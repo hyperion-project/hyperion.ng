@@ -1,0 +1,134 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"device": {
+			"type":"object",
+			"required":true,
+			"properties":{
+				"name": {
+					"type":"string",
+					"required":true
+				},
+				"type": {
+					"type":"string",
+					"required":true
+				},
+				"output": {
+					"type":"string",
+					"required":true
+				},
+				"interval": {
+					"type":"integer",
+					"required":true
+				},
+				"rate": {
+					"type":"integer",
+					"required":true
+				}
+            },
+            "additionalProperties": false
+		},
+		"color": {
+			"type":"object",
+			"required":true,
+			"properties": {
+				"red": {
+					"type":"object",
+					"required":true,
+					"properties":{
+						"gamma": {
+							"type":"number",
+							"required":true
+						},
+						"adjust": {
+							"type":"number",
+							"required":true
+						},
+						"blacklevel": {
+							"type":"number",
+							"required":true
+						}
+					}
+				},
+				"green": {
+					"type":"object",
+					"required":true,
+					"properties":{
+						"gamma": {
+							"type":"number",
+							"required":true
+						},
+						"adjust": {
+							"type":"number",
+							"required":true
+						},
+						"blacklevel": {
+							"type":"number",
+							"required":true
+						}
+					}
+				},
+				"blue": {
+					"type":"object",
+					"required":true,
+					"properties":{
+						"gamma": {
+							"type":"number",
+							"required":true
+						},
+						"adjust": {
+							"type":"number",
+							"required":true
+						},
+						"blacklevel": {
+							"type":"number",
+							"required":true
+						}
+					}
+				}
+			}
+		},
+		"leds": {
+			"type":"array",
+			"required":true,
+			"items": {
+				"type":"object",
+				"properties": {
+					"index": {
+						"type":"integer",
+						"required":true
+					},
+					"hscan": {
+						"type":"object",
+						"required":true,
+						"properties": {
+							"minimum": {
+								"type":"number",
+								"required":true
+							},
+							"maximum": {
+								"type":"number",
+								"required":true
+							}
+						}
+					},
+					"vscan": {
+						"type":"object",
+						"required":true,
+						"properties": {
+							"minimum": {
+								"type":"number",
+								"required":true
+							},
+							"maximum": {
+								"type":"number",
+								"required":true
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
