@@ -42,3 +42,37 @@ add_executable(Test2BobLight
 
 target_link_libraries(Test2BobLight
 		bob2hyperion)
+
+add_executable(boblight-dispmanx
+		boblight-dispmanx.cpp
+		flagmanager.h
+		flagmanager.cpp
+		flagmanager-dispmanx.h
+		flagmanager-dispmanx.cpp
+		grabber-dispmanx.h
+		grabber-dispmanx.cpp
+		misc.h
+		misc.cpp
+		timer.h
+		timer.cpp
+		timeutils.h
+		timeutils.cpp)
+
+SET(VC_INCLUDE_DIRS 
+		/opt/vc/include
+		/opt/vc/include/interface/vcos/pthreads
+		/opt/vc/include/interface/vmcs_host/linux)
+SET(VC_LIBS 
+	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libbcm_host.so)
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libGLESv2.so
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libEGL.so
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libopenmaxil.so
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libvcos.so
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libvchiq_arm.so)
+
+include_directories(${VC_INCLUDE_DIRS})
+
+target_link_libraries(boblight-dispmanx
+#		hyperion-png
+		bob2hyperion
+		${VC_LIBS})

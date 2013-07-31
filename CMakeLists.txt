@@ -29,8 +29,8 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
-configure_file(config/Hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
-configure_file(config/Hyperion.schema.json ${LIBRARY_OUTPUT_PATH} @ONLY)
+configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
+configure_file(config/hyperion.schema.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 
 # Add the source/lib directories
 add_subdirectory(dependencies)

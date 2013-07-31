@@ -20,7 +20,8 @@ inline Hyperion* rasp_cast(void* hyperion_ptr)
 
 void* boblight_init()
 {
-	syslog(LOG_INFO, __PRETTY_FUNCTION__);
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+//	syslog(LOG_INFO, __PRETTY_FUNCTION__);
 
 	const char* homeDir = getenv("RASPILIGHT_HOME");
 	if (!homeDir)
@@ -83,6 +84,7 @@ int boblight_sendrgb(void* hyperion_ptr, int sync, int* outputused)
 
 int boblight_connect(void* hyperion_ptr, const char* address, int port, int usectimeout)
 {
+	std::cout << "SUCCESFULL NO CONNECTION WITH BOBLIGHT" << std::endl;
 	return 1;
 }
 
@@ -93,6 +95,7 @@ const char* boblight_geterror(void* hyperion_ptr)
 
 int boblight_setpriority(void* hyperion_ptr, int priority)
 {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
 	return 1;
 }
 

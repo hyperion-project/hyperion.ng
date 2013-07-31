@@ -18,15 +18,29 @@ ofstream& indent(ofstream& ofs, unsigned indent)
 
 struct LedFrame
 {
-	unsigned topLedCnt    = 17;
-	unsigned rightLedCnt  = 8;
-	unsigned bottomLedCnt = 17;
-	unsigned leftLedCnt   = 8;
+	unsigned topLedCnt;
+	unsigned rightLedCnt;
+	unsigned bottomLedCnt;
+	unsigned leftLedCnt;
 
-	unsigned topLeftOffset = 17;
+	unsigned topLeftOffset;
 
-	unsigned borderWidth  = 10;
-	unsigned borderHeight = 10;
+	unsigned borderWidth;
+	unsigned borderHeight;
+
+	LedFrame() :
+		topLedCnt(17),
+		rightLedCnt(8),
+		bottomLedCnt(17),
+		leftLedCnt(8),
+
+		topLeftOffset(17),
+
+		borderWidth(10),
+		borderHeight(10)
+	{
+		// empty
+	}
 
 	unsigned totalLedCnt() const
 	{

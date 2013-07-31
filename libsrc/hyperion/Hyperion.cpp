@@ -65,20 +65,21 @@ void Hyperion::setInputSize(const unsigned width, const unsigned height)
 void Hyperion::commit()
 {
 	// Derive the color per led
-	const std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
+	std::vector<RgbColor> ledColors = mLedsMap.getMeanLedColor();
+//	const std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
+
 	// Write the Led colors to the led-string
 	mDevice->write(ledColors);
 }
 
 void Hyperion::operator() (const RgbImage& inputImage)
 {
-	std::cout << "Cached image size: [" << mImage->width() << "x" << mImage->height() << "]. Input image size: [" << inputImage.width() << "x" << inputImage.height() << "]" << std::endl;
 	// Copy the input-image into the buffer
 	mImage->copy(inputImage);
 
 	// Derive the color per led
-//	std::vector<RgbColor> ledColors = mLedsMap.getMeanLedColor();
-	std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
+	std::vector<RgbColor> ledColors = mLedsMap.getMeanLedColor();
+//	std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
 	applyTransform(ledColors);
 
 	// Write the Led colors to the led-string
