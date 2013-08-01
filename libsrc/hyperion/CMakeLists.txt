@@ -15,3 +15,6 @@ add_library(hyperion
 		${CURRENT_SOURCE_DIR}/Hyperion.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
 )
+
+target_link_libraries(hyperion
+		hyperion-utils)

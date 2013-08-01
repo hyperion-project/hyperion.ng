@@ -11,9 +11,6 @@
 # None of the above will be defined unles zlib can be found.
 # PNG depends on Zlib
 #
-# Copyright (c) 2002 Kitware, Inc., Insight Consortium.  All rights reserved.
-# See Copyright.txt or http://www.cmake.org/HTML/Copyright.html for details.
-
 
 INCLUDE(FindZLIB)
 
