@@ -1,0 +1,3 @@
+http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi
+
+cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/raspberrypi/Toolchain-RaspberryPi.cmake

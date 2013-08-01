@@ -58,12 +58,22 @@ add_executable(boblight-dispmanx
 		timeutils.h
 		timeutils.cpp)
 
-SET(VC_INCLUDE_DIRS 
-		/opt/vc/include
-		/opt/vc/include/interface/vcos/pthreads
-		/opt/vc/include/interface/vmcs_host/linux)
-SET(VC_LIBS 
-	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libbcm_host.so)
+FIND_PATH(VC_INCLUDE_DIR
+		bcm_host.h
+		/usr/include
+		/usr/local/include
+		/opt/vc/include)
+SET(VC_INCLUDE_DIRS
+		${VC_INCLUDE_DIR}
+		${VC_INCLUDE_DIR}/interface/vcos/pthreads
+		${VC_INCLUDE_DIR}/interface/vmcs_host/linux)
+FIND_LIBRARY(VC_LIBS
+		NAMES bcm_host
+		PATHS /usr/lib /usr/local/lib /opt/vc/lib)
+message("{VC_LIBS} = ${VC_LIBS}")
+
+#SET(VC_LIBS
+#	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libbcm_host.so)
 #	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libGLESv2.so
 #	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libEGL.so
 #	/home/pi/.xbmc-current/xbmc-bin/lib/xbmc/system/libopenmaxil.so
