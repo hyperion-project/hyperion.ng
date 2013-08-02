@@ -25,14 +25,14 @@ include_directories(${BCM_INCLUDE_DIRS})
 target_link_libraries(boblight-dispmanx
 #		hyperion-png
 		bob2hyperion
-		${BCM_LIBS})
+		${BCM_LIBRARIES})
 
 add_executable(HyperionDispmanX
 		HyperionDispmanX.cpp)
 
 target_link_libraries(HyperionDispmanX
 		hyperion
-		${BCM_LIBS})
+		${BCM_LIBRARIES})
 
 
 # Find the libPNG
@@ -50,3 +50,5 @@ if(PNG_FOUND)
 			hyperion-utils
 			${PNG_LIBRARIES})
 endif(PNG_FOUND)
+
+add_subdirectory(dispmanx-png)

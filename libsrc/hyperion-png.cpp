@@ -9,7 +9,7 @@
 
 // PNGWriter includes
 #define NO_FREETYPE
-#include "pngwriter.h"
+#include "hyperionpng/pngwriter.h"
 
 struct RaspiPng
 {

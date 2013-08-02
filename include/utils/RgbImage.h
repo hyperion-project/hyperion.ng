@@ -47,6 +47,16 @@ private:
 		return y*mWidth + x;
 	}
 
+	RgbImage(const RgbImage&)
+	{
+		// empty
+	}
+
+	RgbImage& operator=(const RgbImage& other)
+	{
+		return *this;
+	}
+
 private:
 	unsigned mWidth;
 	unsigned mHeight;

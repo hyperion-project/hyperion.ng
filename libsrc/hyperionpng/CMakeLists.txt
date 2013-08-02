@@ -11,9 +11,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperionpng)
 
 # Create the 'rasplight-png' library
 add_library(hyperion-png SHARED
-		${CURRENT_SOURCE_DIR}/hyperion-png.cpp
+		${CURRENT_HEADER_DIR}/HyperionPng.h
+		${CURRENT_SOURCE_DIR}/HyperionPng.cpp
 		${CURRENT_SOURCE_DIR}/pngwriter.h
 		${CURRENT_SOURCE_DIR}/pngwriter.cc)
 
 target_link_libraries(hyperion-png
+		hyperion-utils
 		${PNG_LIBRARIES})

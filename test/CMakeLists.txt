@@ -33,5 +33,5 @@ if(PNG_FOUND)
 			TestHyperionPng.cpp)
 
 	target_link_libraries(TestHyperionPng
-			hyperion-png)
+			bob2hyperion-png)
 endif(PNG_FOUND)

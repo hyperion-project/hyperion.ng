@@ -55,16 +55,15 @@ int main(int /*argc*/, char** /*argv*/)
 
 	RgbImage* image_ptr = &(hyperion.image());
 	void* image_vp = reinterpret_cast<void*>(image_ptr);
-	const unsigned imageSize_bytes = width*height*3;
+	const uint32_t pitch = width * 3;
 
 	timespec updateInterval;
 	updateInterval.tv_sec  = 0;
-	updateInterval.tv_nsec = 100000000000;
-
+	updateInterval.tv_nsec = 100000000;
 	while(running)
 	{
 		vc_dispmanx_snapshot(display, resource, VC_IMAGE_ROT0);
-		vc_dispmanx_resource_read_data(resource, &rectangle, image_vp, imageSize_bytes);
+		vc_dispmanx_resource_read_data(resource, &rectangle, image_vp, pitch);
 
 		hyperion.commit();
 
