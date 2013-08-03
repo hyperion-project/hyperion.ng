@@ -20,6 +20,10 @@ add_executable(Test2BobLight
 target_link_libraries(Test2BobLight
 		bob2hyperion)
 
+add_executable(TestRgbImage
+		TestRgbImage.cpp)
+target_link_libraries(TestRgbImage
+		hyperion-utils)
 
 # Find the libPNG
 find_package(PNG REQUIRED QUIET)
@@ -27,11 +31,11 @@ find_package(PNG REQUIRED QUIET)
 # Add additional includes dirs
 include_directories(${PNG_INCLUDE_DIR})
 
-if(PNG_FOUND)
+#if(PNG_FOUND)
 
 	add_executable(TestHyperionPng
 			TestHyperionPng.cpp)
 
 	target_link_libraries(TestHyperionPng
-			bob2hyperion-png)
-endif(PNG_FOUND)
+			hyperion-png)
+#endif(PNG_FOUND)

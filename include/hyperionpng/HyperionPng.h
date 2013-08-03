@@ -25,6 +25,8 @@ public:
 
 	void operator() (const RgbImage& inputImage);
 
+private:
+	void writeImage(const RgbImage& inputImage);
 
 private:
 	RgbImage* mBuffer;

@@ -21,8 +21,8 @@ HyperionPng::~HyperionPng()
 	std::cout << "HyperionPng is being deleted" << std::endl;
 	delete mBuffer;
 
-//	mWriter->close();
-//	delete mWriter;
+	mWriter->close();
+	delete mWriter;
 }
 
 void HyperionPng::setInputSize(const unsigned width, const unsigned height)
@@ -38,18 +38,24 @@ RgbImage& HyperionPng::image()
 
 void HyperionPng::commit()
 {
-	this->operator ()(*mBuffer);
+	writeImage(*mBuffer);
 }
 
 void HyperionPng::operator() (const RgbImage& inputImage)
 {
+	writeImage(inputImage);
+}
+
+void HyperionPng::writeImage(const RgbImage& inputImage)
+{
 	// Write only every n'th frame
-	if (mFrameCnt%mWriteFrequency == 0)
+	if (mFrameCnt%10 == 0)
 	{
 		// Set the filename for the PNG
 		char filename[64];
-		sprintf(filename, "/home/pi/RASPI_%04ld.png", mFileIndex);
+		sprintf(filename, "/home/pi/RASPI_%04lu.png", mFileIndex);
 		mWriter->pngwriter_rename(filename);
+		mWriter->resize(inputImage.width(), inputImage.height());
 
 		// Plot the pixels from the image to the PNG-Writer
 		for (unsigned y=0; y<inputImage.width(); ++y)
@@ -61,10 +67,12 @@ void HyperionPng::operator() (const RgbImage& inputImage)
 			}
 		}
 
+		std::cout << "Writing the PNG" << std::endl;
 		// Write-out the current frame and prepare for the next
 		mWriter->write_png();
 
 		++mFileIndex;
+		std::cout << "PNGWRITER FINISHED" << std::endl;
 	}
 	++mFrameCnt;
 }

@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <vector>
 
 // Local includes
 #include "RgbColor.h"
@@ -33,11 +34,15 @@ public:
 
 	inline void copy(const RgbImage& other)
 	{
-		std::cout << "This image size: [" << width() << "x" << height() << "]. Other image size: [" << other.width() << "x" << other.height() << "]" << std::endl;
 		assert(other.mWidth == mWidth);
 		assert(other.mHeight == mHeight);
 
 		memcpy(mColors, other.mColors, mWidth*mHeight*sizeof(RgbColor));
+	}
+
+	RgbColor* memptr()
+	{
+		return mColors;
 	}
 
 private:
@@ -47,19 +52,9 @@ private:
 		return y*mWidth + x;
 	}
 
-	RgbImage(const RgbImage&)
-	{
-		// empty
-	}
-
-	RgbImage& operator=(const RgbImage& other)
-	{
-		return *this;
-	}
-
 private:
-	unsigned mWidth;
-	unsigned mHeight;
+	const unsigned mWidth;
+	const unsigned mHeight;
 
 	/** The colors of the image */
 	RgbColor* mColors;

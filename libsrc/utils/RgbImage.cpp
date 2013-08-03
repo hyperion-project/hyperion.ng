@@ -10,19 +10,16 @@
 RgbImage::RgbImage(const unsigned width, const unsigned height, const RgbColor background) :
 	mWidth(width),
 	mHeight(height),
-	mColors(nullptr)
+	mColors(new RgbColor[width*height])
 {
-	mColors = new RgbColor[width*height];
-	for (RgbColor* color = mColors; color <= mColors+(mWidth*mHeight); ++color)
+	for (unsigned i=0; i<width*height; ++i)
 	{
-		*color = background;
+		mColors[i] = background;
 	}
 }
 
 RgbImage::~RgbImage()
 {
-	std::cout << "RgbImage(" << this << ") is being deleted" << std::endl;
-
 	delete[] mColors;
 }
 
