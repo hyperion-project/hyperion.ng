@@ -13,7 +13,9 @@ add_library(hyperion
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/LedString.cpp
 		${CURRENT_SOURCE_DIR}/Hyperion.cpp
-		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
+                ${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
+                ${CURRENT_SOURCE_DIR}/ColorTransform.h
+                ${CURRENT_SOURCE_DIR}/ColorTransform.cpp
 )
 
 target_link_libraries(hyperion
