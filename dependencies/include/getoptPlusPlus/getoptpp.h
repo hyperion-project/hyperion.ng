@@ -175,15 +175,6 @@ public:
 	/** Test whether the parameter has been set */
 	virtual bool isSet() const = 0;
 
-
-	/** Attempt to down-cast to PODParameter<T>.
-	 *
-	 * This is very convenient, but also an unholy crime against
-	 * most principles of sane OOP design.
-	 */
-	template<typename T>
-	T get() const;
-
 	/** This parameter's line in OptionsParser::usage() */
     virtual std::string usageLine() const = 0;
 
@@ -192,6 +183,9 @@ public:
 
 	/** The long name of this  parameter (e.g. "--option"), without the dash. */
     const std::string& longOption() const;
+
+    /** Check if this parameters has a short option */
+    bool hasShortOption() const;
 
 	/** The short name of this parameter (e.g. "-o"), without the dash. */
 	char shortOption() const;

@@ -20,12 +20,12 @@ int main(int argc, const char * argv[])
     StringParameter & argImage      = parameters.add<StringParameter>('i', "image"     , "Set the leds to the colors according to the given image file");
     SwitchParameter & argList       = parameters.add<SwitchParameter>('l', "list"      , "List all priority channels which are in use");
     SwitchParameter & argClear      = parameters.add<SwitchParameter>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
-    SwitchParameter & argClearAll   = parameters.add<SwitchParameter>('y', "clear-all" , "Clear data for all priority channels");
+    SwitchParameter & argClearAll   = parameters.add<SwitchParameter>(0x0, "clear-all" , "Clear data for all priority channels");
     DoubleParameter & argGamma      = parameters.add<DoubleParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 values)");
     DoubleParameter & argThreshold  = parameters.add<DoubleParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 values between 0.0 and 1.0)");
     DoubleParameter & argBlacklevel = parameters.add<DoubleParameter>('b', "blacklevel", "Set the blacklevel of the leds (requires 3 values which are normally between 0.0 and 1.0)");
     DoubleParameter & argWhitelevel = parameters.add<DoubleParameter>('w', "whitelevel", "Set the whitelevel of the leds (requires 3 values which are normally between 0.0 and 1.0)");
-    SwitchParameter & argPrint      = parameters.add<SwitchParameter>('z', "print"     , "Print the json input and output messages on stdout");
+    SwitchParameter & argPrint      = parameters.add<SwitchParameter>(0x0, "print"     , "Print the json input and output messages on stdout");
     SwitchParameter & argHelp       = parameters.add<SwitchParameter>('h', "help"      , "Show this help message and exit");
     try
     {

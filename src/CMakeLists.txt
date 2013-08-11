@@ -52,3 +52,5 @@ if(PNG_FOUND)
 endif(PNG_FOUND)
 
 add_subdirectory(dispmanx-png)
+add_subdirectory(hyperion-remote)
+

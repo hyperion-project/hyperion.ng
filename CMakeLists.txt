@@ -1,7 +1,8 @@
 
 # define the minimum cmake version (as required by cmake)
 cmake_minimum_required(VERSION 2.8)
-#set(CMAKE_TOOLCHAIN_FILE /opt/raspberrypi/Toolchain-RaspberryPi.cmake)
+
+set(CMAKE_TOOLCHAIN_FILE /home/johan/raspberrypi/Toolchain-RaspberryPi.cmake)
 
 # Define the main-project name
 project(Hyperion)

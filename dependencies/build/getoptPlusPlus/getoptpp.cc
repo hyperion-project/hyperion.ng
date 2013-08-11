@@ -14,10 +14,9 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-
-
 #include "getoptpp.h"
 #include <stdexcept>
+#include <cassert>
 
 using namespace std;
 
@@ -199,7 +198,8 @@ Parameter::~Parameter() {}
 
 const string& Parameter::description() const { return fdescription; }
 const string& Parameter::longOption() const { return flongOption; }
-char Parameter::shortOption() const { return fshortOption; }
+bool Parameter::hasShortOption() const { return fshortOption != 0x0; }
+char Parameter::shortOption() const { assert(hasShortOption()); return fshortOption; }
 
 /*
  *

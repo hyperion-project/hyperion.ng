@@ -30,16 +30,6 @@ T &ParameterSet::add(char shortName, const char* longName, const char* descripti
 	return *p;
 }
 
-template<typename T>
-T Parameter::get() const{
-	const PODParameter<T> *ppt = dynamic_cast<const PODParameter<T>*>(this);
-	if(ppt) {
-		return ppt->getValue();
-	}
-    throw new std::runtime_error("Type conversion not possible");
-}
-
-
 /*
  *
  * Class CommonParameter implementation
@@ -63,8 +53,15 @@ template<typename SwitchingBehavior>
 std::string CommonParameter<SwitchingBehavior>::usageLine() const {
     std::stringstream strstr;
 
-		strstr.width(10);
+    strstr.width(10);
+    if (hasShortOption())
+    {
         strstr << std::left<< std::string("-") + shortOption();
+    }
+    else
+    {
+        strstr << " ";
+    }
 		strstr.width(20);
         strstr << std::left << "--" + longOption();
 
@@ -82,21 +79,20 @@ bool CommonParameter<SwitchingBehavior>::receive(ParserState& state) throw(Param
 		if(arg.at(0) != '-') return false;
 
 		if(arg.at(1) == '-') { /* Long form parameter */
-
 			try {
 				unsigned int eq = arg.find_first_of("=");
 
                 if(eq == std::string::npos) {
-					if(arg.substr(2) != longOption())
-						return false;
+                    if(arg.substr(2) != longOption())
+                        return false;
 
-					this->receiveSwitch();
-				} else {
-					if(arg.substr(2, eq-2) != longOption())
-						return false;
+                    this->receiveSwitch();
+                } else {
+                    if(arg.substr(2, eq-2) != longOption())
+                        return false;
 
-					this->receiveArgument(arg.substr(eq+1));
-				}
+                    this->receiveArgument(arg.substr(eq+1));
+                }
 				return true;
 			} catch(Parameter::ExpectedArgument &ea) {
 				throw ExpectedArgument("--" + longOption() + ": expected an argument");
@@ -112,28 +108,29 @@ bool CommonParameter<SwitchingBehavior>::receive(ParserState& state) throw(Param
 				throw Parameter::ParameterRejected("--" + longOption() + " (unspecified error)");
 			}
 		}
+        else if (hasShortOption())
+        {
+            try {
+                if(arg.at(1) == shortOption()) {
+                    /* Matched argument on the form -f or -fsomething */
+                    if(arg.length() == 2) { /* -f */
+                        this->receiveSwitch();
 
-		try {
-			if(arg.at(1) == shortOption()) {
-				/* Matched argument on the form -f or -fsomething */
-				if(arg.length() == 2) { /* -f */
-					this->receiveSwitch();
+                        return true;
+                    } else { /* -fsomething */
+                        this->receiveArgument(arg.substr(2));
 
-					return true;
-				} else { /* -fsomething */
-					this->receiveArgument(arg.substr(2));
-
-					return true;
-				}
-			}
-		} catch(Parameter::ExpectedArgument &ea) {
-            throw ExpectedArgument(std::string("-") + shortOption() + ": expected an argument");
-		} catch(Parameter::UnexpectedArgument &ua) {
-            throw UnexpectedArgument(std::string("-") + shortOption() + ": did not expect an argument");
-		} catch(Switchable::SwitchingError &e) {
-            throw ParameterRejected(std::string("-") + shortOption() + ": parameter already set");
-		}
-
+                        return true;
+                    }
+                }
+            } catch(Parameter::ExpectedArgument &ea) {
+                throw ExpectedArgument(std::string("-") + shortOption() + ": expected an argument");
+            } catch(Parameter::UnexpectedArgument &ua) {
+                throw UnexpectedArgument(std::string("-") + shortOption() + ": did not expect an argument");
+            } catch(Switchable::SwitchingError &e) {
+                throw ParameterRejected(std::string("-") + shortOption() + ": parameter already set");
+            }
+        }
     } catch(std::out_of_range& o) {
 		return false;
 	}
@@ -180,8 +177,15 @@ template<typename T>
 std::string PODParameter<T>::usageLine() const {
     std::stringstream strstr;
 
-	strstr.width(10);
-    strstr << std::left<< std::string("-") + shortOption() +"arg";
+    strstr.width(10);
+    if (hasShortOption())
+    {
+        strstr << std::left << std::string("-") + shortOption() +"arg";
+    }
+    else
+    {
+        strstr << "";
+    }
 	strstr.width(20);
     strstr << std::left << "--" + longOption() + "=arg";
 
