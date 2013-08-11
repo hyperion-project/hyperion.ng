@@ -203,7 +203,7 @@ protected:
 	 * 				   iterator that technically allows for more complex grammar than what is
 	 * 				   presently used.
 	 */
-	virtual bool receive(ParserState& state) throw(ParameterRejected) = 0;
+    virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
 
 	friend class OptionsParser;
 
@@ -250,20 +250,9 @@ protected:
 	 * receiveSwitch() or receiveArgument() accordingly.
 	 *
 	 * @param state The current argument being parsed.
+     * @return The number of parameters taken from the input
 	 */
-	virtual bool receive(ParserState& state) throw(ParameterRejected);
-
-	/**
-	 * Called when a parameter does not have an argument, e.g.
-	 * either -f or --foo
-	 */
-	virtual void receiveSwitch() throw (ParameterRejected) = 0;
-
-	/**
-	 * Called when a parameter does have an argument, .e.g
-	 * -fbar or --foo=bar
-	 */
-    virtual void receiveArgument(const std::string& argument) throw (ParameterRejected) = 0;
+    virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
 };
 
 /** This class (used as a mixin) defines how a parameter
@@ -344,15 +333,15 @@ private:
 /* Parameter that does not take an argument, and throws an exception
  * if an argument is given */
 
-class SwitchParameter : public CommonParameter<MultiSwitchable> {
+template<typename SwitchingBehavior=MultiSwitchable>
+class SwitchParameter : public CommonParameter<SwitchingBehavior> {
 public:
 	SwitchParameter(char shortOption, const char *longOption,
 			const char* description);
 	virtual ~SwitchParameter();
 
 protected:
-	virtual void receiveSwitch() throw (Parameter::ParameterRejected);
-    virtual void receiveArgument(const std::string& argument) throw (Parameter::ParameterRejected);
+    virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
 };
 
 /** Plain-Old-Data parameter. Performs input validation.
@@ -363,8 +352,8 @@ protected:
  * Specifically, you need to specialize validate().
  */
 
-template<typename T>
-class PODParameter : public CommonParameter<PresettableUniquelySwitchable> {
+template<typename T, typename SwitchingBehavior=PresettableUniquelySwitchable>
+class PODParameter : public CommonParameter<SwitchingBehavior> {
 public:
 	PODParameter(char shortOption, const char *longOption,
 			const char* description);
@@ -383,14 +372,14 @@ public:
 
 	std::string usageLine() const;
 protected:
+    virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
+
 	/** Validation function for the data type.
 	 *
 	 * @throw ParameterRejected if the argument does not conform to this data type.
 	 * @return the value corresponding to the argument.
 	 */
-    virtual T validate(const std::string& s) throw (ParameterRejected);
-    virtual void receiveArgument(const std::string &argument) throw(ParameterRejected);
-	virtual void receiveSwitch() throw (Parameter::ParameterRejected);
+    virtual T validate(const std::string& s) throw (Parameter::ParameterRejected);
 
 	T value;
 };
