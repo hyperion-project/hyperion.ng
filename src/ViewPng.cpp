@@ -144,10 +144,10 @@ int main(int argc, char** argv)
 	FbWriter fbWriter;
 
 	Hyperion raspiLight(raspiConfig);
-	raspiLight.setInputSize(image->width(), image->height());
+//	raspiLight.setInputSize(image->width(), image->height());
 
 	fbWriter.writeImage(*image);
-	raspiLight(*image);
+//	raspiLight(*image);
 
 	sleep(5);
 

@@ -3,14 +3,11 @@
 #include <algorithm>
 
 // hyperion includes
-#include <hyperion/ImageToLedsMap.h>
+#include "ImageToLedsMap.h"
 
-ImageToLedsMap::ImageToLedsMap()
-{
-	// empty
-}
+using namespace hyperion;
 
-void ImageToLedsMap::createMapping(const RgbImage& image, const std::vector<Led>& leds)
+ImageToLedsMap::ImageToLedsMap(const RgbImage& image, const std::vector<Led>& leds)
 {
 	mColorsMap.resize(leds.size(), std::vector<const RgbColor*>());
 
@@ -46,6 +43,19 @@ std::vector<RgbColor> ImageToLedsMap::getMeanLedColor()
 	return colors;
 }
 
+void ImageToLedsMap::getMeanLedColor(std::vector<RgbColor>& ledColors)
+{
+	// Sanity check for the number of leds
+	assert(mColorsMap.size() == ledColors.size());
+
+	auto led = ledColors.begin();
+	for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors, ++led)
+	{
+		const RgbColor color = findMeanColor(*ledColors);
+		*led = color;
+	}
+}
+
 RgbColor ImageToLedsMap::findMeanColor(const std::vector<const RgbColor*>& colors)
 {
 	uint_fast16_t cummRed   = 0;
@@ -63,28 +73,4 @@ RgbColor ImageToLedsMap::findMeanColor(const std::vector<const RgbColor*>& color
 	const uint8_t avgBlue  = uint8_t(cummBlue/colors.size());
 
 	return {avgRed, avgGreen, avgBlue};
-}
-
-std::vector<RgbColor> ImageToLedsMap::getMedianLedColor()
-{
-	std::vector<RgbColor> ledColors;
-	for (std::vector<const RgbColor*>& colors : mColorsMap)
-	{
-		const RgbColor color = findMedianColor(colors);
-		ledColors.push_back(color);
-	}
-
-	return ledColors;
-}
-
-RgbColor ImageToLedsMap::findMedianColor(std::vector<const RgbColor*>& colors)
-{
-	std::sort(colors.begin(), colors.end(), [](const RgbColor* lhs, const RgbColor* rhs){ return lhs->red   < rhs->red;   });
-	const uint8_t red   = colors.at(colors.size()/2)->red;
-	std::sort(colors.begin(), colors.end(), [](const RgbColor* lhs, const RgbColor* rhs){ return lhs->green < rhs->green; });
-	const uint8_t green = colors.at(colors.size()/2)->green;
-	std::sort(colors.begin(), colors.end(), [](const RgbColor* lhs, const RgbColor* rhs){ return lhs->blue  < rhs->blue;  });
-	const uint8_t blue  = colors.at(colors.size()/2)->blue;
-
-	return {red, green, blue};
 }

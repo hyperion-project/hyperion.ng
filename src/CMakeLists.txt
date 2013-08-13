@@ -2,6 +2,12 @@
 add_executable(WriteConfig
 		WriteConfig.cpp)
 
+add_executable(HyperionDispmanx
+		HyperionMain.cpp)
+
+target_link_libraries(HyperionDispmanx
+		hyperion)
+
 add_executable(boblight-dispmanx
 		boblight-dispmanx.cpp
 		flagmanager.h
@@ -27,12 +33,12 @@ target_link_libraries(boblight-dispmanx
 		bob2hyperion
 		${BCM_LIBRARIES})
 
-add_executable(HyperionDispmanX
-		HyperionDispmanX.cpp)
+#add_executable(HyperionDispmanX
+#		HyperionDispmanX.cpp)
 
-target_link_libraries(HyperionDispmanX
-		hyperion
-		${BCM_LIBRARIES})
+#target_link_libraries(HyperionDispmanX
+#		hyperion
+#		${BCM_LIBRARIES})
 
 
 # Find the libPNG

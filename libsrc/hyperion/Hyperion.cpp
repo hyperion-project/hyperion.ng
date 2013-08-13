@@ -10,6 +10,9 @@
 #include <hyperion/LedDevice.h>
 
 #include "LedDeviceWs2801.h"
+#include "ColorTransform.h"
+
+using namespace hyperion;
 
 LedDevice* constructDevice(const Json::Value& deviceConfig)
 {
@@ -34,9 +37,41 @@ LedDevice* constructDevice(const Json::Value& deviceConfig)
 	return device;
 }
 
+ColorTransform* createColorTransform(const Json::Value& colorConfig)
+{
+	const double threshold  = colorConfig["threshold"].asDouble();
+	const double gamma      = colorConfig["gamma"].asDouble();
+	const double blacklevel = colorConfig["blacklevel"].asDouble();
+	const double whitelevel = colorConfig["whitelevel"].asDouble();
+
+	ColorTransform* transform = new ColorTransform(threshold, gamma, blacklevel, whitelevel);
+	return transform;
+}
+LedString createLedString(const Json::Value& ledsConfig)
+{
+	LedString ledString;
+
+	for (const Json::Value& ledConfig : ledsConfig)
+	{
+		Led led;
+		led.index = ledConfig["index"].asInt();
+		const Json::Value& hscanConfig = ledConfig["hscan"];
+		const Json::Value& vscanConfig = ledConfig["vscan"];
+		led.minX_frac = std::max(0.0, std::min(100.0, hscanConfig["minimum"].asDouble()))/100.0;
+		led.maxX_frac = std::max(0.0, std::min(100.0, hscanConfig["maximum"].asDouble()))/100.0;
+		led.minY_frac = 1.0 - std::max(0.0, std::min(100.0, vscanConfig["maximum"].asDouble()))/100.0;
+		led.maxY_frac = 1.0 - std::max(0.0, std::min(100.0, vscanConfig["minimum"].asDouble()))/100.0;
+
+		ledString.leds().push_back(led);
+	}
+	return ledString;
+}
+
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
-	mLedString(LedString::construct(jsonConfig["leds"], jsonConfig["color"])),
-	mImage(nullptr),
+	mLedString(createLedString(jsonConfig["leds"])),
+	mRedTransform(  createColorTransform(jsonConfig["color"]["red"])),
+	mGreenTransform(createColorTransform(jsonConfig["color"]["green"])),
+	mBlueTransform( createColorTransform(jsonConfig["color"]["blue"])),
 	mDevice(constructDevice(jsonConfig["device"]))
 {
 	// empty
@@ -45,58 +80,29 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 
 Hyperion::~Hyperion()
 {
-	// Delete the existing image (or delete nullptr)
-	delete mImage;
-
 	// Delete the Led-String
 	delete mDevice;
+
+	// Delete the color-transform
+	delete mBlueTransform;
+	delete mGreenTransform;
+	delete mRedTransform;
 }
 
-void Hyperion::setInputSize(const unsigned width, const unsigned height)
+void Hyperion::setValue(int priority, std::vector<RgbColor>& ledColors)
 {
-	// Delete the existing image (or delete nullptr)
-	delete mImage;
-
-	// Create the new image with the mapping to the leds
-	mImage = new RgbImage(width, height);
-	mLedsMap.createMapping(*mImage, mLedString.leds());
-}
-
-void Hyperion::commit()
-{
-	// Derive the color per led
-	std::vector<RgbColor> ledColors = mLedsMap.getMeanLedColor();
-//	const std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
-
-	// Write the Led colors to the led-string
-	mDevice->write(ledColors);
-}
-
-void Hyperion::operator() (const RgbImage& inputImage)
-{
-	// Copy the input-image into the buffer
-	mImage->copy(inputImage);
-
-	// Derive the color per led
-	std::vector<RgbColor> ledColors = mLedsMap.getMeanLedColor();
-//	std::vector<RgbColor> ledColors = mLedsMap.getMedianLedColor();
-	applyTransform(ledColors);
-
-	// Write the Led colors to the led-string
-	mDevice->write(ledColors);
-}
-
-void Hyperion::setColor(const RgbColor& color)
-{
-	mDevice->write(std::vector<RgbColor>(mLedString.leds().size(), color));
-}
-
-void Hyperion::applyTransform(std::vector<RgbColor>& colors) const
-{
-	for (RgbColor& color : colors)
+	// Apply the transform to each led and color-channel
+	for (RgbColor& color : ledColors)
 	{
-		color.red   = (color.red  < mLedString.red.blacklevel)?    0 : mLedString.red.adjust   + mLedString.red.gamma   * color.red;
-		color.green = (color.green < mLedString.green.blacklevel)? 0 : mLedString.green.adjust + mLedString.green.gamma * color.green;
-		color.blue  = (color.blue  < mLedString.blue.blacklevel)?  0 : mLedString.blue.adjust  + mLedString.blue.gamma  * color.blue;
+		color.red   = mRedTransform->transform(color.red);
+		color.green = mGreenTransform->transform(color.green);
+		color.blue  = mBlueTransform->transform(color.blue);
+	}
+
+	mMuxer.setInput(priority, ledColors);
+
+	if (priority == mMuxer.getCurrentPriority())
+	{
+		mDevice->write(ledColors);
 	}
 }

@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <iostream>
 
-
 // Forward class declaration
 struct RgbColor;
 
@@ -21,7 +20,11 @@ struct RgbColor
 	static RgbColor BLUE;
 	static RgbColor YELLOW;
 	static RgbColor WHITE;
+
 };
+
+static_assert(sizeof(RgbColor) == 3, "Incorrect size of RgbColor");
+
 
 inline std::ostream& operator<<(std::ostream& os, const RgbColor& color)
 {

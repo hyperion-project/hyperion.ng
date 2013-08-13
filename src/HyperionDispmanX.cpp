@@ -43,7 +43,7 @@ int main(int /*argc*/, char** /*argv*/)
 	}
 	Hyperion hyperion(raspiConfig);
 
-	dispmanx_process(hyperion, sRunning);
+//	dispmanx_process(hyperion, sRunning);
 
 	return 0;
 }

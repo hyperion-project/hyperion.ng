@@ -1,6 +1,10 @@
 #pragma once
 
-#include "stdint.h"
+// STL includes
+#include <cstdint>
+
+namespace hyperion
+{
 
 /// Transform for a single color byte value
 ///
@@ -14,36 +18,38 @@
 class ColorTransform
 {
 public:
-    ColorTransform();
-    ColorTransform(double threshold, double gamma, double whitelevel, double blacklevel);
-    ~ColorTransform();
+	ColorTransform();
+	ColorTransform(double threshold, double gamma, double blacklevel, double whitelevel);
+	~ColorTransform();
 
-    double getThreshold() const;
-    void setThreshold(double threshold);
+	double getThreshold() const;
+	void setThreshold(double threshold);
 
-    double getGamma() const;
-    void setGamma(double gamma);
+	double getGamma() const;
+	void setGamma(double gamma);
 
-    double getBlacklevel() const;
-    void setBlacklevel(double blacklevel);
+	double getBlacklevel() const;
+	void setBlacklevel(double blacklevel);
 
-    double getWhitelevel() const;
-    void setWhitelevel(double whitelevel);
+	double getWhitelevel() const;
+	void setWhitelevel(double whitelevel);
 
-    /// get the transformed value for the given byte value
-    uint8_t transform(uint8_t input) const
-    {
-        return _mapping[input];
-    }
-
-private:
-    void initializeMapping();
+	/// get the transformed value for the given byte value
+	uint8_t transform(uint8_t input) const
+	{
+		return _mapping[input];
+	}
 
 private:
-    double _threshold;
-    double _gamma;
-    double _blacklevel;
-    double _whitelevel;
+	void initializeMapping();
 
-    uint8_t _mapping[256];
+private:
+	double _threshold;
+	double _gamma;
+	double _blacklevel;
+	double _whitelevel;
+
+	uint8_t _mapping[256];
 };
+
+} // end namespace hyperion

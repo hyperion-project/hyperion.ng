@@ -4,9 +4,14 @@
 // hyperion-utils includes
 #include <utils/RgbImage.h>
 
+// Hyperion includes
 #include <hyperion/LedString.h>
-#include <hyperion/ImageToLedsMap.h>
 #include <hyperion/LedDevice.h>
+#include <hyperion/PriorityMuxer.h>
+
+// Forward class declaration
+namespace hyperion { class ColorTransform; }
+
 
 class Hyperion
 {
@@ -15,27 +20,18 @@ public:
 
 	~Hyperion();
 
-	void setInputSize(const unsigned width, const unsigned height);
-
-	RgbImage& image()
-	{
-		return *mImage;
-	}
-
-	void commit();
-
-	void operator() (const RgbImage& inputImage);
-
-	void setColor(const RgbColor& color);
+	void setValue(int priority, std::vector<RgbColor> &ledColors);
 
 private:
 	void applyTransform(std::vector<RgbColor>& colors) const;
 
 	LedString mLedString;
 
-	RgbImage* mImage;
+	PriorityMuxer mMuxer;
 
-	ImageToLedsMap mLedsMap;
+	hyperion::ColorTransform* mRedTransform;
+	hyperion::ColorTransform* mGreenTransform;
+	hyperion::ColorTransform* mBlueTransform;
 
 	LedDevice* mDevice;
 };

@@ -51,7 +51,7 @@ void boblight_destroy(void* hyperion_ptr)
 	Hyperion* raspiLight = rasp_cast(hyperion_ptr);
 
 	// Switch all leds to black (off)
-	raspiLight->setColor(RgbColor::BLACK);
+//	raspiLight->setColor(RgbColor::BLACK);
 
 	delete raspiLight;
 
@@ -64,20 +64,20 @@ void boblight_setscanrange(void* hyperion_ptr, int width, int height)
 	syslog(LOG_INFO, "Configuring scan range [%dx%d]", width, height);
 
 	Hyperion* raspiLight = rasp_cast(hyperion_ptr);
-	raspiLight->setInputSize(width, height);
+//	raspiLight->setInputSize(width, height);
 }
 
 void boblight_addpixelxy(void* hyperion_ptr, int x, int y, int* rgb)
 {
 	Hyperion* raspiLight = rasp_cast(hyperion_ptr);
 	const RgbColor color = {uint8_t(rgb[0]), uint8_t(rgb[1]), uint8_t(rgb[2])};
-	raspiLight->image().setPixel(x, y, color);
+//	raspiLight->image().setPixel(x, y, color);
 }
 
 int boblight_sendrgb(void* hyperion_ptr, int sync, int* outputused)
 {
 	Hyperion* raspiLight = rasp_cast(hyperion_ptr);
-	raspiLight->commit();
+//	raspiLight->commit();
 
 	return 1;
 }

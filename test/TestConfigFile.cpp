@@ -32,7 +32,7 @@ int main()
 	double redGamma = redConfig["gamma"].asDouble();
 	std::cout << "RED GAMMA = " << redGamma << std::endl;
 	std::cout << "RED GAMMA = " << colorConfig["red.gamma"].asDouble() << std::endl;
-	LedString ledString = LedString::construct(ledConfig, colorConfig);
+//	LedString ledString = LedString::construct(ledConfig, colorConfig);
 
 	return 0;
 }
