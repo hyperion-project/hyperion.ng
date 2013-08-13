@@ -5,11 +5,11 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 
-#include "colortransform.h"
+#include "ColorTransformValues.h"
 
 typedef vlofgren::PODParameter<QColor> ColorParameter;
 typedef vlofgren::PODParameter<QImage> ImageParameter;
-typedef vlofgren::PODParameter<ColorTransform> TransformParameter;
+typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
 
 namespace vlofgren {
     template<>
@@ -67,9 +67,9 @@ namespace vlofgren {
     }
 
     template<>
-    ColorTransform TransformParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
+    ColorTransformValues TransformParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
     {
-        ColorTransform transform;
+        ColorTransformValues transform;
 
         // s should be split in 3 parts
         // seperators are either a ',' or a space

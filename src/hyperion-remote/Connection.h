@@ -8,7 +8,7 @@
 
 #include <json/json.h>
 
-#include "colortransform.h"
+#include "ColorTransformValues.h"
 
 class Connection
 {
@@ -21,7 +21,7 @@ public:
     bool listPriorities();
     bool clear(int priority);
     bool clearAll();
-    bool setTransform(ColorTransform * threshold, ColorTransform * gamma, ColorTransform * blacklevel, ColorTransform * whitelevel);
+    bool setTransform(ColorTransformValues * threshold, ColorTransformValues * gamma, ColorTransformValues * blacklevel, ColorTransformValues * whitelevel);
 
 private:
     bool sendMessage(const Json::Value & message);

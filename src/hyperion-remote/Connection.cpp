@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "connection.h"
+#include "Connection.h"
 
 Connection::Connection(const std::string & a, bool printJson) :
     _printJson(printJson),
@@ -63,7 +63,7 @@ bool Connection::clearAll()
     return false;
 }
 
-bool Connection::setTransform(ColorTransform *threshold, ColorTransform *gamma, ColorTransform *blacklevel, ColorTransform *whitelevel)
+bool Connection::setTransform(ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
     std::cout << "Set color transforms" << std::endl;
     return false;

@@ -1,6 +1,6 @@
 #pragma once
 
-struct ColorTransform
+struct ColorTransformValues
 {
     double valueRed;
     double valueGreen;

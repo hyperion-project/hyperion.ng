@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+
 project(hyperion-remote)
 
 find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
@@ -11,21 +12,17 @@ LINK_DIRECTORIES(${LINK_DIRECTORIES} ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnuea
 include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
-    specialoptions.h
-    connection.h
-    colortransform.h)
+    CustomParameter.h
+    Connection.h
+    ColorTransformValues.h)
 
 set(hyperion-remote_SOURCES
     hyperion-remote.cpp
-    connection.cpp)
-
-qt4_wrap_cpp(HYPERION_REMOTE_MOC_SOURCES
-    ${hyperion-remote_HEADERS})
+    Connection.cpp)
 
 add_executable(hyperion-remote
     ${hyperion-remote_HEADERS}
-    ${hyperion-remote_SOURCES}
-    ${HYPERION_REMOTE_MOC_SOURCES})
+    ${hyperion-remote_SOURCES})
 
 qt4_use_modules(hyperion-remote
     Core

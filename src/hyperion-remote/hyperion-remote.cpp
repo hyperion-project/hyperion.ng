@@ -4,8 +4,8 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 
-#include "specialoptions.h"
-#include "connection.h"
+#include "CustomParameter.h"
+#include "Connection.h"
 
 
 using namespace vlofgren;
@@ -115,10 +115,10 @@ int main(int argc, char * argv[])
         }
         else if (colorTransform)
         {
-            ColorTransform threshold  = argThreshold.getValue();
-            ColorTransform gamma      = argGamma.getValue();
-            ColorTransform blacklevel = argBlacklevel.getValue();
-            ColorTransform whitelevel = argWhitelevel.getValue();
+            ColorTransformValues threshold  = argThreshold.getValue();
+            ColorTransformValues gamma      = argGamma.getValue();
+            ColorTransformValues blacklevel = argBlacklevel.getValue();
+            ColorTransformValues whitelevel = argWhitelevel.getValue();
 
             connection.setTransform(
                         argThreshold.isSet()  ? &threshold  : nullptr,
