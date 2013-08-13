@@ -13,6 +13,8 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	// Open the connection to the displaydisplay
 	_display = vc_dispmanx_display_open(0);
 	int ret = vc_dispmanx_display_get_info(_display, &_info);
+	// Make the compiler (in release mode) happy by 'using' ret
+	(void)ret;
 	assert(ret == 0);
 
 	// Create the resources for capturing image

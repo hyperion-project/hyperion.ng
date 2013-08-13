@@ -19,6 +19,8 @@ namespace hyperion { class ImageToLedsMap;
 class ImageProcessor
 {
 public:
+	~ImageProcessor();
+
 	/**
 	 * Processes the image to a list of led colors. This will update the size of the buffer-image
 	 * if required and call the image-to-leds mapping to determine the mean color per led.
@@ -60,8 +62,6 @@ private:
 	friend class ImageProcessorFactory;
 
 	ImageProcessor(const LedString &ledString);
-
-	~ImageProcessor();
 
 private:
 	const LedString mLedString;

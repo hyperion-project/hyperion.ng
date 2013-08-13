@@ -23,16 +23,30 @@ int main()
 	}
 
 	const Json::Value& deviceConfig = config["device"];
+	if (deviceConfig.empty())
+	{
+		std::cout << "Missing DEVICE configuration 'device'" << std::endl;
+	}
 	const Json::Value& ledConfig    = config["leds"];
+	if (ledConfig.empty())
+	{
+		std::cout << "Missing LEDS configuration 'leds'" << std::endl;
+	}
+
 	const Json::Value& colorConfig  = config["color"];
+	if (colorConfig.empty())
+	{
+		std::cout << "Missing COLORS configuration 'colors'" << std::endl;
+	}
+	else
+	{
+		std::cout << "COLOR CONFIGURATION: " << colorConfig.toStyledString() << std::endl;
 
-	std::cout << "COLOR CONFIGURATION: " << colorConfig.toStyledString() << std::endl;
-
-	const Json::Value& redConfig = colorConfig["red"];
-	double redGamma = redConfig["gamma"].asDouble();
-	std::cout << "RED GAMMA = " << redGamma << std::endl;
-	std::cout << "RED GAMMA = " << colorConfig["red.gamma"].asDouble() << std::endl;
-//	LedString ledString = LedString::construct(ledConfig, colorConfig);
+		const Json::Value& redConfig = colorConfig["red"];
+		double redGamma = redConfig["gamma"].asDouble();
+		std::cout << "RED GAMMA = " << redGamma << std::endl;
+		std::cout << "RED GAMMA = " << colorConfig["red.gamma"].asDouble() << std::endl;
+	}
 
 	return 0;
 }

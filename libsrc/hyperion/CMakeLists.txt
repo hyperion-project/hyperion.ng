@@ -7,14 +7,18 @@ include_directories(${BCM_INCLUDE_DIRS})
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
+# Group the headers that go through the MOC compiler
+SET(Hyperion_QT_HEADERS
+		${CURRENT_HEADER_DIR}/DispmanxWrapper.h
+)
+
 SET(Hyperion_HEADERS
+		${CURRENT_HEADER_DIR}/LedString.h
 		${CURRENT_HEADER_DIR}/Hyperion.h
 		${CURRENT_HEADER_DIR}/LedDevice.h
-		${CURRENT_HEADER_DIR}/LedString.h
 		${CURRENT_HEADER_DIR}/ImageProcessor.h
 		${CURRENT_HEADER_DIR}/ImageProcessorFactory.h
 		${CURRENT_HEADER_DIR}/PriorityMuxer.h
-		${CURRENT_HEADER_DIR}/DispmanxWrapper.h
 
 		${CURRENT_SOURCE_DIR}/DispmanxFrameGrabber.h
 
@@ -38,10 +42,11 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
 )
 
-QT4_WRAP_CPP(Hyperion_HEADERS_MOC ${Hyperion_HEADERS})
+QT4_WRAP_CPP(Hyperion_HEADERS_MOC ${Hyperion_QT_HEADERS})
 
 add_library(hyperion
 		${Hyperion_HEADERS}
+		${Hyperion_QT_HEADERS}
 		${Hyperion_HEADERS_MOC}
 		${Hyperion_SOURCES}
 )

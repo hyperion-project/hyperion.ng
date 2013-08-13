@@ -5,6 +5,7 @@
 // Hyperion includes
 #include <hyperion/DispmanxWrapper.h>
 #include <hyperion/ImageProcessorFactory.h>
+#include <hyperion/ImageProcessor.h>
 
 
 // Local-Hyperion includes
@@ -12,19 +13,21 @@
 
 DispmanxWrapper::DispmanxWrapper() :
 	_timer(),
-	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_frameGrabber(new DispmanxFrameGrabber(64, 64))
+	_frameGrabber(new DispmanxFrameGrabber(64, 64)),
+	_processor(ImageProcessorFactory::getInstance().newImageProcessor())
 {
 	_timer.setInterval(100);
 	_timer.setSingleShot(false);
+
+	_processor->setSize(64, 64);
 
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }
 
 DispmanxWrapper::~DispmanxWrapper()
 {
-	delete _frameGrabber;
 	delete _processor;
+	delete _frameGrabber;
 }
 
 void DispmanxWrapper::start()

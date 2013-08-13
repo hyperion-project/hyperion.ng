@@ -1,6 +1,7 @@
 #pragma once
 
 // BCM includes
+#pragma GCC system_header
 #include <bcm_host.h>
 
 // STL includes
