@@ -27,6 +27,8 @@ Connection::Connection(const std::string & a, bool printJson) :
 	{
 		throw std::runtime_error("Unable to connect to host");
 	}
+
+	std::cout << "Connected to " << a << std::endl;
 }
 
 Connection::~Connection()
@@ -37,15 +39,60 @@ Connection::~Connection()
 bool Connection::setColor(QColor color, int priority, int duration)
 {
 	std::cout << "Set color to " << color.red() << " " << color.green() << " " << color.blue() << std::endl;
-	sendMessage("Set color message");
-	return false;
+
+	// create command
+	Json::Value command;
+	command["command"] = "color";
+	command["priority"] = priority;
+	Json::Value & rgbValue = command["color"];
+	rgbValue[0] = color.red();
+	rgbValue[1] = color.green();
+	rgbValue[2] = color.blue();
+	if (duration > 0)
+	{
+		command["duration"] = duration;
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	return parseReply(reply);
 }
 
 bool Connection::setImage(QImage image, int priority, int duration)
 {
 	std::cout << "Set image has size: " << image.width() << "x" << image.height() << std::endl;
-	return false;
+
+	// ensure the image has RGB888 format
+	image = image.convertToFormat(QImage::Format_RGB888);
+	QByteArray binaryImage;
+	binaryImage.reserve(image.width() * image.height() * 3);
+	for (int i = 0; i < image.height(); ++i)
+	{
+		binaryImage.append(reinterpret_cast<const char *>(image.constScanLine(i)), image.width() * 3);
+	}
+	const QByteArray base64Image = binaryImage.toBase64();
+
+	// create command
+	Json::Value command;
+	command["command"] = "image";
+	command["priority"] = priority;
+	command["width"] = image.width();
+	command["height"] = image.height();
+	command["data"] = std::string(base64Image.data(), base64Image.size());
+	if (duration > 0)
+	{
+		command["duration"] = duration;
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	return parseReply(reply);
 }
+
 
 bool Connection::listPriorities()
 {
@@ -102,7 +149,7 @@ Json::Value Connection::sendMessage(const Json::Value & message)
 	Json::Value reply;
 	if (!jsonReader.parse(serializedReply, reply))
 	{
-		throw std::runtime_error("Error while parsing reply:" + serializedReply);
+		throw std::runtime_error("Error while parsing reply: invalid json");
 	}
 
 	// print reply if requested
@@ -114,3 +161,26 @@ Json::Value Connection::sendMessage(const Json::Value & message)
 	return reply;
 }
 
+bool Connection::parseReply(const Json::Value &reply)
+{
+	bool success = false;
+	std::string reason = "No error info";
+
+	try
+	{
+		success = reply.get("success", false).asBool();
+		if (!success)
+			reason = reply.get("error", reason).asString();
+	}
+	catch (const std::runtime_error &)
+	{
+		// Some json paring error: ignore and set parsing error
+	}
+
+	if (!success)
+	{
+		throw std::runtime_error("Error while paring reply: " + reason);
+	}
+
+	return success;
+}

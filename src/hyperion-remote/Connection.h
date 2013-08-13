@@ -44,6 +44,8 @@ private:
 	/// Send a json command message and receive its reply
 	Json::Value sendMessage(const Json::Value & message);
 
+	bool parseReply(const Json::Value & reply);
+
 private:
 	bool _printJson;
 
