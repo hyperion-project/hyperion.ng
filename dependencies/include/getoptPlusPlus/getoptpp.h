@@ -19,7 +19,8 @@
   *
   * - Removed using namespace std from header
   * - Changed Parameter container type from std::set to std::list to presume order
-  *
+  * - Changed arguments of Parameters to be a seperated arguments on the command line
+  * - Make the choice of receiving arguments or not in subclasses of CommonParameter
   */
 
 #include <list>
@@ -50,7 +51,7 @@ public:
 	Parameter& operator[](char c) const;
 
 	/** Find a parameter by long option form. */
-    Parameter& operator[](const std::string &s) const;
+	Parameter& operator[](const std::string &s) const;
 
 	/** Factory method that adds a new parameter of
 	 * type T to the set.
@@ -72,7 +73,7 @@ public:
 	~ParameterSet();
 protected:
 	friend class OptionsParser;
-    std::list<Parameter*> parameters;
+	std::list<Parameter*> parameters;
 
 private:
 	ParameterSet(const ParameterSet& ps);
@@ -94,7 +95,7 @@ public:
 	ParameterSet& getParameters();
 
 	/** Parse command line arguments */
-    void parse(int argc, const char* argv[]) throw(std::runtime_error);
+	void parse(int argc, const char* argv[]) throw(std::runtime_error);
 
 	/** Generate a usage screen */
 	void usage() const;
@@ -102,16 +103,16 @@ public:
 	/** Return the name of the program, as
 	 * given by argv[0]
 	 */
-    const std::string& programName() const;
+	const std::string& programName() const;
 
 	/** Return a vector of each non-parameter */
-    const std::vector<std::string>& getFiles() const;
+	const std::vector<std::string>& getFiles() const;
 protected:
-    std::string argv0;
-    std::string fprogramDesc;
+	std::string argv0;
+	std::string fprogramDesc;
 
 	ParameterSet parameters;
-    std::vector<std::string> files;
+	std::vector<std::string> files;
 
 	friend class ParserState;
 };
@@ -123,18 +124,18 @@ protected:
 
 class ParserState {
 public:
-    const std::string peek() const;
-    const std::string get() const;
+	const std::string peek() const;
+	const std::string get() const;
 	void advance();
 	bool end() const;
 protected:
-    ParserState(OptionsParser &opts, std::vector<std::string>& args);
+	ParserState(OptionsParser &opts, std::vector<std::string>& args);
 private:
 	friend class OptionsParser;
 
 	OptionsParser &opts;
-    const std::vector<std::string> &arguments;
-    std::vector<std::string>::const_iterator iterator;
+	const std::vector<std::string> &arguments;
+	std::vector<std::string>::const_iterator iterator;
 };
 
 /**
@@ -148,27 +149,27 @@ public:
 
 	/** Generic exception thrown when a parameter is malformed
 	 */
-    class ParameterRejected : public std::runtime_error {
+	class ParameterRejected : public std::runtime_error {
 	public:
-        ParameterRejected(const std::string& s) : std::runtime_error(s) {}
+		ParameterRejected(const std::string& s) : std::runtime_error(s) {}
 		ParameterRejected() : runtime_error("") {}
 	};
 
 	/** Exception thrown when a parameter did not expect an argument */
 	class UnexpectedArgument : public ParameterRejected {
 	public:
-        UnexpectedArgument(const std::string &s) : ParameterRejected(s) {}
+		UnexpectedArgument(const std::string &s) : ParameterRejected(s) {}
 		UnexpectedArgument() {}
 	};
 
 	/** Exception thrown when a parameter expected an argument */
 	class ExpectedArgument : public ParameterRejected {
 	public:
-        ExpectedArgument(const std::string &s) : ParameterRejected(s) {}
+		ExpectedArgument(const std::string &s) : ParameterRejected(s) {}
 		ExpectedArgument() {}
 	};
 
-    Parameter(char shortOption, const std::string & longOption, const std::string & description);
+	Parameter(char shortOption, const std::string & longOption, const std::string & description);
 
 	virtual ~Parameter();
 
@@ -176,16 +177,16 @@ public:
 	virtual bool isSet() const = 0;
 
 	/** This parameter's line in OptionsParser::usage() */
-    virtual std::string usageLine() const = 0;
+	virtual std::string usageLine() const = 0;
 
 	/** Description of the parameter (rightmost field in OptionsParser::usage()) */
-    const std::string& description() const;
+	const std::string& description() const;
 
 	/** The long name of this  parameter (e.g. "--option"), without the dash. */
-    const std::string& longOption() const;
+	const std::string& longOption() const;
 
-    /** Check if this parameters has a short option */
-    bool hasShortOption() const;
+	/** Check if this parameters has a short option */
+	bool hasShortOption() const;
 
 	/** The short name of this parameter (e.g. "-o"), without the dash. */
 	char shortOption() const;
@@ -203,13 +204,13 @@ protected:
 	 * 				   iterator that technically allows for more complex grammar than what is
 	 * 				   presently used.
 	 */
-    virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
+	virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
 
 	friend class OptionsParser;
 
 	char fshortOption;
-    const std::string flongOption;
-    const std::string fdescription;
+	const std::string flongOption;
+	const std::string fdescription;
 private:
 
 };
@@ -243,16 +244,16 @@ public:
 			const char* description);
 	virtual ~CommonParameter();
 
-    virtual std::string usageLine() const;
+	virtual std::string usageLine() const;
 
 protected:
 	/** Parse the argument given by state, and dispatch either
 	 * receiveSwitch() or receiveArgument() accordingly.
 	 *
 	 * @param state The current argument being parsed.
-     * @return The number of parameters taken from the input
+	 * @return The number of parameters taken from the input
 	 */
-    virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
+	virtual int receive(ParserState& state) throw(ParameterRejected) = 0;
 };
 
 /** This class (used as a mixin) defines how a parameter
@@ -341,7 +342,7 @@ public:
 	virtual ~SwitchParameter();
 
 protected:
-    virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
+	virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
 };
 
 /** Plain-Old-Data parameter. Performs input validation.
@@ -372,14 +373,14 @@ public:
 
 	std::string usageLine() const;
 protected:
-    virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
+	virtual int receive(ParserState& state) throw(Parameter::ParameterRejected);
 
 	/** Validation function for the data type.
 	 *
 	 * @throw ParameterRejected if the argument does not conform to this data type.
 	 * @return the value corresponding to the argument.
 	 */
-    virtual T validate(const std::string& s) throw (Parameter::ParameterRejected);
+	virtual T validate(const std::string& s) throw (Parameter::ParameterRejected);
 
 	T value;
 };
