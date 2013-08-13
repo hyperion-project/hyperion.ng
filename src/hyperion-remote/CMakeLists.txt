@@ -12,23 +12,23 @@ LINK_DIRECTORIES(${LINK_DIRECTORIES} ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnuea
 include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
-    CustomParameter.h
-    Connection.h
-    ColorTransformValues.h)
+	CustomParameter.h
+	Connection.h
+	ColorTransformValues.h)
 
 set(hyperion-remote_SOURCES
-    hyperion-remote.cpp
-    Connection.cpp)
+	hyperion-remote.cpp
+	Connection.cpp)
 
 add_executable(hyperion-remote
-    ${hyperion-remote_HEADERS}
-    ${hyperion-remote_SOURCES})
+	${hyperion-remote_HEADERS}
+	${hyperion-remote_SOURCES})
 
 qt4_use_modules(hyperion-remote
-    Core
-    Gui
-    Network)
+	Core
+	Gui
+	Network)
 
 target_link_libraries(hyperion-remote
-    hyperion-utils
-    getoptPlusPlus)
+	hyperion-utils
+	getoptPlusPlus)
