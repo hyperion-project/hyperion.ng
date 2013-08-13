@@ -45,28 +45,16 @@ struct Led
 class LedString
 {
 public:
-	static LedString construct(const Json::Value& ledConfig, const Json::Value& colorConfig);
+	static LedString construct(const Json::Value& ledConfig);
 
 	LedString();
 
 	~LedString();
 
+	std::vector<Led>& leds();
+
 	const std::vector<Led>& leds() const;
 
 private:
 	std::vector<Led> mLeds;
-
-public:
-	/**
-	 * Color adjustements per color
-	 */
-	struct
-	{
-		/** The color gradient */
-		double gamma;
-		/** The color offset */
-		double adjust;
-		/** The minimum required level for the led to turn on */
-		double blacklevel;
-	} red, green, blue;
 };

@@ -5,12 +5,7 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 
-struct ColorTransform
-{
-    double valueRed;
-    double valueGreen;
-    double valueBlue;
-};
+#include "colortransform.h"
 
 typedef vlofgren::PODParameter<QColor> ColorParameter;
 typedef vlofgren::PODParameter<QImage> ImageParameter;

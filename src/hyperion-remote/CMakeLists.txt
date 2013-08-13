@@ -12,7 +12,8 @@ include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
     specialoptions.h
-    connection.h)
+    connection.h
+    colortransform.h)
 
 set(hyperion-remote_SOURCES
     hyperion-remote.cpp

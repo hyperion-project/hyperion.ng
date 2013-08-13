@@ -4,8 +4,11 @@
 
 #include <QColor>
 #include <QImage>
+#include <QTcpSocket>
 
 #include <json/json.h>
+
+#include "colortransform.h"
 
 class Connection
 {
@@ -18,14 +21,13 @@ public:
     bool listPriorities();
     bool clear(int priority);
     bool clearAll();
-    bool setThreshold(double red, double green, double blue);
-    bool setGamma(double red, double green, double blue);
-    bool setBlacklevel(double red, double green, double blue);
-    bool setWhitelevel(double red, double green, double blue);
+    bool setTransform(ColorTransform * threshold, ColorTransform * gamma, ColorTransform * blacklevel, ColorTransform * whitelevel);
 
 private:
     bool sendMessage(const Json::Value & message);
 
 private:
     bool _printJson;
+
+    QTcpSocket _socket;
 };

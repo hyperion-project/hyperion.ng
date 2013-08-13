@@ -2,38 +2,11 @@
 add_executable(WriteConfig
 		WriteConfig.cpp)
 
-add_executable(boblight-dispmanx
-		boblight-dispmanx.cpp
-		flagmanager.h
-		flagmanager.cpp
-		flagmanager-dispmanx.h
-		flagmanager-dispmanx.cpp
-		grabber-dispmanx.h
-		grabber-dispmanx.cpp
-		misc.h
-		misc.cpp
-		timer.h
-		timer.cpp
-		timeutils.h
-		timeutils.cpp)
+add_executable(hyperiond
+		hyperion-d.cpp)
 
-# Find the BCM-package (VC control)
-find_package(BCM REQUIRED)
-
-include_directories(${BCM_INCLUDE_DIRS})
-
-target_link_libraries(boblight-dispmanx
-#		hyperion-png
-		bob2hyperion
-		${BCM_LIBRARIES})
-
-add_executable(HyperionDispmanX
-		HyperionDispmanX.cpp)
-
-target_link_libraries(HyperionDispmanX
-		hyperion
-		${BCM_LIBRARIES})
-
+target_link_libraries(hyperiond
+		hyperion)
 
 # Find the libPNG
 find_package(PNG QUIET)
@@ -47,10 +20,7 @@ if(PNG_FOUND)
 
 	target_link_libraries(ViewPng
 			hyperion
-			hyperion-utils
 			${PNG_LIBRARIES})
 endif(PNG_FOUND)
 
-add_subdirectory(dispmanx-png)
 add_subdirectory(hyperion-remote)
-
