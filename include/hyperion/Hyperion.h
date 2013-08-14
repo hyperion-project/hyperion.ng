@@ -20,7 +20,9 @@ public:
 
 	~Hyperion();
 
-	void setValue(int priority, std::vector<RgbColor> &ledColors);
+	unsigned getLedCount() const;
+
+	void setValue(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
 
 private:
 	void applyTransform(std::vector<RgbColor>& colors) const;

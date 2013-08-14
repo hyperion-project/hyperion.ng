@@ -4,6 +4,7 @@
 
 // Hyperion includes
 #include <hyperion/DispmanxWrapper.h>
+#include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 
@@ -11,39 +12,53 @@
 // Local-Hyperion includes
 #include "DispmanxFrameGrabber.h"
 
-DispmanxWrapper::DispmanxWrapper() :
+DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
+	_updateInterval_ms(1000/updateRate_Hz),
+	_timeout_ms(2 * _updateInterval_ms),
 	_timer(),
-	_frameGrabber(new DispmanxFrameGrabber(64, 64)),
-	_processor(ImageProcessorFactory::getInstance().newImageProcessor())
+	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
+	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
+	_ledColors(hyperion->getLedCount(), RgbColor::BLACK),
+	_hyperion(hyperion)
 {
-	_timer.setInterval(100);
+	// Configure the timer to generate events every n milliseconds
+	_timer.setInterval(_updateInterval_ms);
 	_timer.setSingleShot(false);
 
-	_processor->setSize(64, 64);
+	_processor->setSize(grabWidth, grabHeight);
 
+	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }
 
 DispmanxWrapper::~DispmanxWrapper()
 {
+	// Cleanup used resources (ImageProcessor and FrameGrabber)
 	delete _processor;
 	delete _frameGrabber;
 }
 
 void DispmanxWrapper::start()
 {
+	// Start the timer with the pre configured interval
 	_timer.start();
 }
 
 void DispmanxWrapper::action()
 {
-	qDebug() << "[" << QDateTime::currentDateTimeUtc() << "] Grabbing frame";
-	RgbImage image(64, 64);
+	// Obtain reference of the buffer-image used by the processor
+	RgbImage & image = _processor->image();
+
+	// Grab frame into the allocated image
 	_frameGrabber->grabFrame(image);
 
-	//_processor->
+	_processor->inplace_process(_ledColors);
+
+	const int _priority = 100;
+	_hyperion->setValue(_priority, _ledColors, _timeout_ms);
 }
 void DispmanxWrapper::stop()
 {
+	// Stop the timer, effectivly stopping the process
 	_timer.stop();
 }

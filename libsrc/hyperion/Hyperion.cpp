@@ -89,7 +89,12 @@ Hyperion::~Hyperion()
 	delete mRedTransform;
 }
 
-void Hyperion::setValue(int priority, std::vector<RgbColor>& ledColors)
+unsigned Hyperion::getLedCount() const
+{
+	return mLedString.leds().size();
+}
+
+void Hyperion::setValue(int priority, std::vector<RgbColor>& ledColors, const int timeout_ms)
 {
 	// Apply the transform to each led and color-channel
 	for (RgbColor& color : ledColors)
