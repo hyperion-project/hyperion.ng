@@ -1,6 +1,11 @@
 HYPERION
 ========
 
-An opensource 'AmbiLight' implementation controlled using the RaspBerry Pi running Raspbmc. 
-The library is supplied with an implementation the client interface of the "Boblight" library (libbob2hyperion.so). The library is intended to boost the performance of the ambilight-led control, which can be an issue on the RaspBerry Pi. The current implementation does not use a client-server architecture and can be configured by overwritting libboblight with a symbolic link to libbob2hyperion.
-The shell-script 'bin/install_hyperion.sh' should install the library and create the symbolic link required to use the library.
+An opensource 'AmbiLight' implementation controlled using the RaspBerry Pi running Raspbmc.
+The intention is to replace BobLight. The replacement includes several 'improvements':
+* Frame capture of screen included in deamon. This reduces the processor usages for image based led control to less than 1%.
+* Priority channel can specificy a timeout on their 'command'. This allows a client or remote control to specify a fixed color and then close the connection. 
+* Json IP-control interface. Easy to use interface based on json format for control over TCP/IP.
+* Protobuf IP-control interface. Well documented and efficient interface for control over TCP/IP.
+
+The source is released under MIT-License (see http://opensource.org/licenses/MIT).
