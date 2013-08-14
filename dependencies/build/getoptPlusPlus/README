@@ -1,0 +1,8 @@
+A very small class library that replaces getopt() and 
+getopt_long()-functionality with a more C++-friendly approach.
+
+Additionally, it does not rely on UNIX-specific code.
+
+See test.cc for a sample application and COPYING for license information.
+
+

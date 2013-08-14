@@ -7,3 +7,4 @@
 # otherwise agree to in writing.
 
 add_subdirectory(jsoncpp)
+add_subdirectory(getoptPlusPlus)

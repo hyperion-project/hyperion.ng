@@ -2,10 +2,10 @@
 add_executable(WriteConfig
 		WriteConfig.cpp)
 
-add_executable(hyperion-d
+add_executable(hyperiond
 		hyperion-d.cpp)
 
-target_link_libraries(hyperion-d
+target_link_libraries(hyperiond
 		hyperion)
 
 # Find the libPNG
@@ -22,3 +22,5 @@ if(PNG_FOUND)
 			hyperion
 			${PNG_LIBRARIES})
 endif(PNG_FOUND)
+
+add_subdirectory(hyperion-remote)
