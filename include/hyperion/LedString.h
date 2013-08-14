@@ -18,9 +18,9 @@ namespace Json { class Value; }
  * <pre>
  * |--------------------image--|
  * | minX  maxX                |
- * |  |-----|maxY              |
- * |  |     |                  |
  * |  |-----|minY              |
+ * |  |     |                  |
+ * |  |-----|maxY              |
  * |                           |
  * |                           |
  * |                           |

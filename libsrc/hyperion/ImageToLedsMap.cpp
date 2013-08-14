@@ -7,43 +7,51 @@
 
 using namespace hyperion;
 
-ImageToLedsMap::ImageToLedsMap(const RgbImage& image, const std::vector<Led>& leds)
+ImageToLedsMap::ImageToLedsMap(const unsigned width, const unsigned height, const std::vector<Led>& leds) :
+	_width(width),
+	_height(height),
+	mColorsMap()
 {
-	mColorsMap.resize(leds.size(), std::vector<const RgbColor*>());
+	// Reserve enough space in the map for the leds
+	mColorsMap.reserve(leds.size());
 
-	auto ledColors = mColorsMap.begin();
-	for (auto led = leds.begin(); ledColors != mColorsMap.end() && led != leds.end(); ++ledColors, ++led)
+	for (const Led& led : leds)
 	{
-		ledColors->clear();
+		const unsigned minX_idx = unsigned(width  * led.minX_frac);
+		const unsigned maxX_idx = unsigned(width  * led.maxX_frac);
+		const unsigned minY_idx = unsigned(height * led.minY_frac);
+		const unsigned maxY_idx = unsigned(height * led.maxY_frac);
 
-		const unsigned minX_idx = unsigned(image.width()  * led->minX_frac);
-		const unsigned maxX_idx = unsigned(image.width()  * led->maxX_frac);
-		const unsigned minY_idx = unsigned(image.height() * led->minY_frac);
-		const unsigned maxY_idx = unsigned(image.height() * led->maxY_frac);
-
-		for (unsigned y = minY_idx; y<=maxY_idx && y<image.height(); ++y)
+		std::vector<unsigned> ledColors;
+		for (unsigned y = minY_idx; y<=maxY_idx && y<height; ++y)
 		{
-			for (unsigned x = minX_idx; x<=maxX_idx && x<image.width(); ++x)
+			for (unsigned x = minX_idx; x<=maxX_idx && x<width; ++x)
 			{
-				ledColors->push_back(&image(x,y));
+				ledColors.push_back(y*width + x);
 			}
 		}
+		mColorsMap.push_back(ledColors);
 	}
 }
 
-std::vector<RgbColor> ImageToLedsMap::getMeanLedColor()
+unsigned ImageToLedsMap::width() const
 {
-	std::vector<RgbColor> colors;
-	for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors)
-	{
-		const RgbColor color = findMeanColor(*ledColors);
-		colors.push_back(color);
-	}
+	return _width;
+}
 
+unsigned ImageToLedsMap::height() const
+{
+	return _height;
+}
+
+std::vector<RgbColor> ImageToLedsMap::getMeanLedColor(const RgbImage & image) const
+{
+	std::vector<RgbColor> colors(mColorsMap.size(), RgbColor::BLACK);
+	getMeanLedColor(image, colors);
 	return colors;
 }
 
-void ImageToLedsMap::getMeanLedColor(std::vector<RgbColor>& ledColors)
+void ImageToLedsMap::getMeanLedColor(const RgbImage & image, std::vector<RgbColor> & ledColors) const
 {
 	// Sanity check for the number of leds
 	assert(mColorsMap.size() == ledColors.size());
@@ -51,21 +59,22 @@ void ImageToLedsMap::getMeanLedColor(std::vector<RgbColor>& ledColors)
 	auto led = ledColors.begin();
 	for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors, ++led)
 	{
-		const RgbColor color = findMeanColor(*ledColors);
+		const RgbColor color = calcMeanColor(image, *ledColors);
 		*led = color;
 	}
 }
 
-RgbColor ImageToLedsMap::findMeanColor(const std::vector<const RgbColor*>& colors)
+RgbColor ImageToLedsMap::calcMeanColor(const RgbImage & image, const std::vector<unsigned> & colors) const
 {
 	uint_fast16_t cummRed   = 0;
 	uint_fast16_t cummGreen = 0;
 	uint_fast16_t cummBlue  = 0;
-	for (const RgbColor* color : colors)
+	for (const unsigned colorOffset : colors)
 	{
-		cummRed   += color->red;
-		cummGreen += color->green;
-		cummBlue  += color->blue;
+		const RgbColor& color = image.memptr()[colorOffset];
+		cummRed   += color.red;
+		cummGreen += color.green;
+		cummBlue  += color.blue;
 	}
 
 	const uint8_t avgRed   = uint8_t(cummRed/colors.size());

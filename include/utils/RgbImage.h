@@ -45,6 +45,10 @@ public:
 		return mColors;
 	}
 
+	const RgbColor* memptr() const
+	{
+		return mColors;
+	}
 private:
 
 	inline unsigned toIndex(const unsigned x, const unsigned y) const

@@ -16,6 +16,7 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
 	_timer(),
+	_image(grabWidth, grabHeight),
 	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_ledColors(hyperion->getLedCount(), RgbColor::BLACK),
@@ -46,13 +47,10 @@ void DispmanxWrapper::start()
 
 void DispmanxWrapper::action()
 {
-	// Obtain reference of the buffer-image used by the processor
-	RgbImage & image = _processor->image();
-
 	// Grab frame into the allocated image
-	_frameGrabber->grabFrame(image);
+	_frameGrabber->grabFrame(_image);
 
-	_processor->inplace_process(_ledColors);
+	_processor->process(_image, _ledColors);
 
 	const int _priority = 100;
 	_hyperion->setValue(_priority, _ledColors, _timeout_ms);

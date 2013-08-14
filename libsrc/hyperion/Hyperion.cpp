@@ -2,6 +2,8 @@
 // Syslog include
 #include <syslog.h>
 
+#include <QDateTime>
+
 // JsonSchema include
 #include <utils/jsonschema/JsonFactory.h>
 
@@ -72,9 +74,12 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	mRedTransform(  createColorTransform(jsonConfig["color"]["red"])),
 	mGreenTransform(createColorTransform(jsonConfig["color"]["green"])),
 	mBlueTransform( createColorTransform(jsonConfig["color"]["blue"])),
-	mDevice(constructDevice(jsonConfig["device"]))
+	mDevice(constructDevice(jsonConfig["device"])),
+	_timer()
 {
-	// empty
+	_timer.setSingleShot(true);
+	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
+
 }
 
 
@@ -104,10 +109,42 @@ void Hyperion::setValue(int priority, std::vector<RgbColor>& ledColors, const in
 		color.blue  = mBlueTransform->transform(color.blue);
 	}
 
-	mMuxer.setInput(priority, ledColors);
+	if (timeout_ms > 0)
+	{
+		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
+		mMuxer.setInput(priority, ledColors, timeoutTime);
+	}
+	else
+	{
+		mMuxer.setInput(priority, ledColors);
+	}
 
 	if (priority == mMuxer.getCurrentPriority())
 	{
-		mDevice->write(ledColors);
+		update();
+	}
+}
+
+void Hyperion::update()
+{
+	// Update the muxer, cleaning obsolete priorities
+	mMuxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
+
+	// Obtain the current priority channel
+	int priority = mMuxer.getCurrentPriority();
+	const PriorityMuxer::InputInfo & priorityInfo  = mMuxer.getInputInfo(priority);
+
+	// Write the data to the device
+	mDevice->write(priorityInfo.ledColors);
+
+	// Start the timeout-timer
+	if (priorityInfo.timeoutTime_ms == -1)
+	{
+		_timer.stop();
+	}
+	else
+	{
+		int timeout_ms = std::max(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
+		_timer.start(timeout_ms);
 	}
 }

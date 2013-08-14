@@ -1,6 +1,10 @@
 
 #pragma once
 
+// QT includes
+#include <QObject>
+#include <QTimer>
+
 // hyperion-utils includes
 #include <utils/RgbImage.h>
 
@@ -13,8 +17,9 @@
 namespace hyperion { class ColorTransform; }
 
 
-class Hyperion
+class Hyperion : public QObject
 {
+	Q_OBJECT
 public:
 	Hyperion(const Json::Value& jsonConfig);
 
@@ -23,6 +28,9 @@ public:
 	unsigned getLedCount() const;
 
 	void setValue(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
+
+private slots:
+	void update();
 
 private:
 	void applyTransform(std::vector<RgbColor>& colors) const;
@@ -36,4 +44,6 @@ private:
 	hyperion::ColorTransform* mBlueTransform;
 
 	LedDevice* mDevice;
+
+	QTimer _timer;
 };

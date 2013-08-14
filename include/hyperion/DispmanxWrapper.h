@@ -6,6 +6,7 @@
 
 // Utils includes
 #include <utils/RgbColor.h>
+#include <utils/RgbImage.h>
 
 // Forward class declaration
 class DispmanxFrameGrabber;
@@ -42,6 +43,7 @@ private:
 
 	QTimer _timer;
 
+	RgbImage _image;
 	DispmanxFrameGrabber * _frameGrabber;
 	ImageProcessor * _processor;
 

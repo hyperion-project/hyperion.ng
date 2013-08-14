@@ -22,7 +22,11 @@ public:
 	 * @param[in] image  The RGB image
 	 * @param[in] leds   The list with led specifications
 	 */
-	ImageToLedsMap(const RgbImage& image, const std::vector<Led>& leds);
+	ImageToLedsMap(const unsigned width, const unsigned height, const std::vector<Led> & leds);
+
+	unsigned width() const;
+
+	unsigned height() const;
 
 	/**
 	 * Determines the mean-color for each led using the mapping the image given
@@ -30,7 +34,7 @@ public:
 	 *
 	 * @return ledColors  The vector containing the output
 	 */
-	std::vector<RgbColor> getMeanLedColor();
+	std::vector<RgbColor> getMeanLedColor(const RgbImage & image) const;
 
 	/**
 	 * Determines the mean-color for each led using the mapping the image given
@@ -38,10 +42,12 @@ public:
 	 *
 	 * @param[out] ledColors  The vector containing the output
 	 */
-	void getMeanLedColor(std::vector<RgbColor>& ledColors);
+	void getMeanLedColor(const RgbImage & image, std::vector<RgbColor> & ledColors) const;
 
 private:
-	std::vector<std::vector<const RgbColor*> > mColorsMap;
+	const unsigned _width;
+	const unsigned _height;
+	std::vector<std::vector<unsigned> > mColorsMap;
 
 	/**
 	 * Finds the 'mean color' of the given list. This is the mean over each color-channel (red,
@@ -51,7 +57,7 @@ private:
 	 *
 	 * @return The mean of the given list of colors (or black when empty)
 	 */
-	RgbColor findMeanColor(const std::vector<const RgbColor*>& colors);
+	RgbColor calcMeanColor(const RgbImage & image, const std::vector<unsigned> & colors) const;
 };
 
 } // end namespace hyperion
