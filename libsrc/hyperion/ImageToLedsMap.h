@@ -1,6 +1,9 @@
 
 #pragma once
 
+// STL includes
+#include <sstream>
+
 // hyperion-utils includes
 #include <utils/RgbImage.h>
 
@@ -44,6 +47,23 @@ public:
 	 */
 	void getMeanLedColor(const RgbImage & image, std::vector<RgbColor> & ledColors) const;
 
+	std::string toString() const
+	{
+		std::stringstream sstream;
+		sstream << "ImageToLedsMap(" << _width << "x" << _height << ") [";
+		for (const std::vector<unsigned> imageIndices : mColorsMap)
+		{
+			sstream << "{";
+			for (unsigned imageIndex : imageIndices)
+			{
+				sstream << imageIndex << ";";
+			}
+			sstream << "}";
+		}
+		sstream << "]" << std::endl;
+
+		return sstream.str();
+	}
 private:
 	const unsigned _width;
 	const unsigned _height;

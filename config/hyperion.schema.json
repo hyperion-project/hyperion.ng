@@ -26,8 +26,8 @@
 					"type":"integer",
 					"required":true
 				}
-            },
-            "additionalProperties": false
+			},
+			"additionalProperties": false
 		},
 		"color": {
 			"type":"object",
@@ -46,6 +46,14 @@
 							"required":true
 						},
 						"blacklevel": {
+							"type":"number",
+							"required":true
+						},
+						"whitelevel": {
+							"type":"number",
+							"required":true
+						},
+						"threshold": {
 							"type":"number",
 							"required":true
 						}

@@ -23,14 +23,9 @@ add_executable(TestColorTransform
 target_link_libraries(TestColorTransform
 	hyperion)
 
-# Find the libPNG
-find_package(PNG REQUIRED QUIET)
+add_executable(TestImage2LedsMap
+		TestImage2LedsMap.cpp)
+target_link_libraries(TestImage2LedsMap
+		hyperion)
 
-# Add additional includes dirs
-include_directories(${PNG_INCLUDE_DIR})
-
-add_executable(TestHyperionPng
-		TestHyperionPng.cpp)
-
-target_link_libraries(TestHyperionPng
-		hyperion-png)
+add_subdirectory(dispmanx2png)

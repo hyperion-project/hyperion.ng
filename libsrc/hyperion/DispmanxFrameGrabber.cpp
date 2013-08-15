@@ -10,7 +10,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	// Initiase BCM
 	bcm_host_init();
 
-	// Open the connection to the displaydisplay
+	// Open the connection to the display
 	_display = vc_dispmanx_display_open(0);
 	int ret = vc_dispmanx_display_get_info(_display, &_info);
 	// Make the compiler (in release mode) happy by 'using' ret

@@ -10,8 +10,10 @@
 // hyperion include
 #include <hyperion/Hyperion.h>
 #include <hyperion/LedDevice.h>
+#include <hyperion/ImageProcessorFactory.h>
 
 #include "LedDeviceWs2801.h"
+#include "LedDeviceTest.h"
 #include "ColorTransform.h"
 
 using namespace hyperion;
@@ -32,6 +34,10 @@ LedDevice* constructDevice(const Json::Value& deviceConfig)
 
 		device = deviceWs2801;
 	}
+	else if (deviceConfig["type"].asString() == "test")
+	{
+		device = new LedDeviceTest();
+	}
 	else
 	{
 		// Unknown / Unimplemented device
@@ -49,7 +55,7 @@ ColorTransform* createColorTransform(const Json::Value& colorConfig)
 	ColorTransform* transform = new ColorTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
 }
-LedString createLedString(const Json::Value& ledsConfig)
+LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 {
 	LedString ledString;
 
@@ -77,6 +83,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	mDevice(constructDevice(jsonConfig["device"])),
 	_timer()
 {
+	ImageProcessorFactory::getInstance().init(mLedString);
+
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 

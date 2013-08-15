@@ -11,7 +11,9 @@
 
 int main(int argc, char** argv)
 {
+	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
+	std::cout << "QCoreApplication initialised" << std::endl;
 
 	// Select config and schema file
 	const std::string homeDir = getenv("RASPILIGHT_HOME");
@@ -25,11 +27,15 @@ int main(int argc, char** argv)
 		std::cerr << "UNABLE TO LOAD CONFIGURATION" << std::endl;
 		return -1;
 	}
+	std::cout << "Configuration loaded from: " << configFile << std::endl;
 
 	Hyperion hyperion(config);
+	std::cout << "Hyperion created and initialised" << std::endl;
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
 	dispmanx.start();
+	std::cout << "Frame grabber created and started" << std::endl;
 
 	app.exec();
+	std::cout << "Application closed" << std::endl;
 }

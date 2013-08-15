@@ -5,5 +5,3 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc)
 
 add_subdirectory(hyperion)
 add_subdirectory(utils)
-
-add_subdirectory(hyperionpng)

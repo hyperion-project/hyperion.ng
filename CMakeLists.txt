@@ -30,10 +30,10 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 # Configure the use of QT4
-find_package(Qt4 COMPONENTS QtCore REQUIRED QUIET)
+find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 
-SET(QT_DONT_USE_QTGUI   TRUE)
-SET(QT_USE_QTCONSOLE    TRUE)
+#SET(QT_DONT_USE_QTGUI   TRUE)
+#SET(QT_USE_QTCONSOLE    TRUE)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
