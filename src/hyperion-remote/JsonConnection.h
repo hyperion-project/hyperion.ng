@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QMap>
 
 // jsoncpp includes
 #include <json/json.h>
@@ -15,30 +16,30 @@
 #include "ColorTransformValues.h"
 
 /// Connection class to setup an connection to the hyperion server and execute commands
-class Connection
+class JsonConnection
 {
 public:
-	Connection(const std::string & address, bool printJson);
-	~Connection();
+	JsonConnection(const std::string & address, bool printJson);
+	~JsonConnection();
 
 	/// Set all leds to the specified color
-	bool setColor(QColor color, int priority, int duration);
+	void setColor(QColor color, int priority, int duration);
 
 	/// Set the leds according to the given image (assume the image is stretched to the display size)
-	bool setImage(QImage image, int priority, int duration);
+	void setImage(QImage image, int priority, int duration);
 
 	/// Retrieve a list of all occupied priority channels
-	bool listPriorities();
+	QString getServerInfo();
 
 	/// Clear the given priority channel
-	bool clear(int priority);
+	void clear(int priority);
 
 	/// Clear all priority channels
-	bool clearAll();
+	void clearAll();
 
 	/// Set the color transform of the leds
 	/// Note that providing a NULL will leave the settings on the server unchanged
-	bool setTransform(ColorTransformValues * threshold, ColorTransformValues * gamma, ColorTransformValues * blacklevel, ColorTransformValues * whitelevel);
+	void setTransform(ColorTransformValues * threshold, ColorTransformValues * gamma, ColorTransformValues * blacklevel, ColorTransformValues * whitelevel);
 
 private:
 	/// Send a json command message and receive its reply

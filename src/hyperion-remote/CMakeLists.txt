@@ -13,12 +13,12 @@ include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
 	CustomParameter.h
-	Connection.h
+	JsonConnection.h
 	ColorTransformValues.h)
 
 set(hyperion-remote_SOURCES
 	hyperion-remote.cpp
-	Connection.cpp)
+	JsonConnection.cpp)
 
 add_executable(hyperion-remote
 	${hyperion-remote_HEADERS}
