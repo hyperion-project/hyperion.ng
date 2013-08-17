@@ -3,14 +3,14 @@
 #include <QDateTime>
 
 // Hyperion includes
-#include <hyperion/DispmanxWrapper.h>
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 
-
-// Local-Hyperion includes
+// Local-dispmanx includes
+#include <dispmanx-grabber/DispmanxWrapper.h>
 #include "DispmanxFrameGrabber.h"
+
 
 DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),

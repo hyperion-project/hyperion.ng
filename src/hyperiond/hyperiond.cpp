@@ -6,8 +6,10 @@
 #include <utils/jsonschema/JsonFactory.h>
 
 // Hyperion includes
-#include <hyperion/DispmanxWrapper.h>
 #include <hyperion/Hyperion.h>
+
+// Dispmanx grabber includes
+#include <dispmanx-grabber/DispmanxWrapper.h>
 
 // JsonServer includes
 #include <jsonserver/JsonServer.h>

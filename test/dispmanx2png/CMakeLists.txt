@@ -14,5 +14,5 @@ add_executable(dispmanx2png
 		dispmanx2png.cpp)
 
 target_link_libraries(dispmanx2png
-		hyperion
+		dispmanx-grabber
 		${QT_LIBRARIES})

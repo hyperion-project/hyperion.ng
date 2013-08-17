@@ -6,8 +6,8 @@
 #include <QImage>
 #include <QTest>
 
-// Hyperion includes
-#include <hyperion/DispmanxFrameGrabber.h>
+// Dispmanx grabber includes
+#include <dispmanx-grabber/DispmanxFrameGrabber.h>
 
 static bool running = true;
 

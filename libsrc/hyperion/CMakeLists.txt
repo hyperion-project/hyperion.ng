@@ -1,8 +1,4 @@
 
-# Find the BCM-package (VC control)
-find_package(BCM REQUIRED)
-include_directories(${BCM_INCLUDE_DIRS})
-
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
@@ -10,7 +6,6 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
 		${CURRENT_HEADER_DIR}/Hyperion.h
-		${CURRENT_HEADER_DIR}/DispmanxWrapper.h
 )
 
 SET(Hyperion_HEADERS
@@ -19,8 +14,6 @@ SET(Hyperion_HEADERS
 		${CURRENT_HEADER_DIR}/ImageProcessor.h
 		${CURRENT_HEADER_DIR}/ImageProcessorFactory.h
 		${CURRENT_HEADER_DIR}/PriorityMuxer.h
-
-		${CURRENT_SOURCE_DIR}/DispmanxFrameGrabber.h
 
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
@@ -34,9 +27,6 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/ImageProcessor.cpp
 		${CURRENT_SOURCE_DIR}/ImageProcessorFactory.cpp
 		${CURRENT_SOURCE_DIR}/PriorityMuxer.cpp
-
-		${CURRENT_SOURCE_DIR}/DispmanxWrapper.cpp
-		${CURRENT_SOURCE_DIR}/DispmanxFrameGrabber.cpp
 
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
@@ -55,5 +45,4 @@ add_library(hyperion
 
 target_link_libraries(hyperion
 		hyperion-utils
-		${QT_LIBRARIES}
-		${BCM_LIBRARIES})
+		${QT_LIBRARIES})
