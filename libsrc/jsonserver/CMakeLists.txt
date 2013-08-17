@@ -1,33 +1,42 @@
 
 # Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/jsonserver)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/jsonserver)
+set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/jsonserver)
+set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/jsonserver)
 
 # Group the headers that go through the MOC compiler
-SET(JsonServer_QT_HEADERS
+set(JsonServer_QT_HEADERS
 		${CURRENT_HEADER_DIR}/JsonServer.h
 		${CURRENT_SOURCE_DIR}/JsonClientConnection.h
 )
 
-SET(JsonServer_HEADERS
+set(JsonServer_HEADERS
 )
 
-SET(JsonServer_SOURCES
+set(JsonServer_SOURCES
 		${CURRENT_SOURCE_DIR}/JsonServer.cpp
 		${CURRENT_SOURCE_DIR}/JsonClientConnection.cpp
 )
 
+set(JsonServer_RESOURCES
+		${CURRENT_SOURCE_DIR}/resource.qrc
+)
+
 qt4_wrap_cpp(JsonServer_HEADERS_MOC ${JsonServer_QT_HEADERS})
+
+qt4_add_resources(JsonServer_RESOURCES_RCC ${JsonServer_RESOURCES} OPTIONS "-no-compress")
 
 add_library(jsonserver
 		${JsonServer_HEADERS}
 		${JsonServer_QT_HEADERS}
-		${JsonServer_HEADERS_MOC}
 		${JsonServer_SOURCES}
+		${JsonServer_RESOURCES}
+		${JsonServer_HEADERS_MOC}
+		${JsonServer_RESOURCES_RCC}
 )
 
 target_link_libraries(jsonserver
 		hyperion
+		hyperion-utils
 		jsoncpp)
 
 qt4_use_modules(jsonserver

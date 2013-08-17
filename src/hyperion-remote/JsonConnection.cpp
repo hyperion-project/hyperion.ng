@@ -87,9 +87,9 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	Json::Value command;
 	command["command"] = "image";
 	command["priority"] = priority;
-	command["width"] = image.width();
-	command["height"] = image.height();
-	command["data"] = std::string(base64Image.data(), base64Image.size());
+	command["imagewidth"] = image.width();
+	command["imageheight"] = image.height();
+	command["imagedata"] = std::string(base64Image.data(), base64Image.size());
 	if (duration > 0)
 	{
 		command["duration"] = duration;

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>schema.json</file>
+    </qresource>
+</RCC>

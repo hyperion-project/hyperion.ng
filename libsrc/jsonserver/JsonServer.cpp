@@ -18,6 +18,9 @@ JsonServer::JsonServer(Hyperion *hyperion, uint16_t port) :
 
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+
+	// make sure the resources are loaded (they may be left out after static linking
+	Q_INIT_RESOURCE(resource);
 }
 
 JsonServer::~JsonServer()

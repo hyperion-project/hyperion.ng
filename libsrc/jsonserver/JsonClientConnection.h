@@ -10,6 +10,9 @@
 // jsoncpp includes
 #include <json/json.h>
 
+// util includes
+#include <utils/jsonschema/JsonSchemaChecker.h>
+
 class JsonClientConnection : public QObject
 {
 	Q_OBJECT
@@ -34,6 +37,8 @@ private:
 
 private:
 	QTcpSocket * _socket;
+
+	JsonSchemaChecker _schemaChecker;
 
 	QByteArray _receiveBuffer;
 };

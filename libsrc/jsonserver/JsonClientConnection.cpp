@@ -1,12 +1,36 @@
+// system includes
+#include <stdexcept>
+#include <cassert>
+
 // stl includes
 #include <iostream>
+#include <sstream>
+#include <iterator>
 
+// Qt includes
+#include <QResource>
+
+// project includes
 #include "JsonClientConnection.h"
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket) :
 	QObject(),
-	_socket(socket)
+	_socket(socket),
+	_schemaChecker(),
+	_receiveBuffer()
 {
+	// read the json schema from the resource
+	QResource schemaData(":/schema.json");
+	assert(schemaData.isValid());
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+	}
+	_schemaChecker.setSchema(schemaJson);
+
+	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 }
@@ -47,6 +71,19 @@ void JsonClientConnection::handleMessage(const std::string &message)
 	if (!reader.parse(message, messageRoot, false))
 	{
 		sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
+		return;
+	}
+
+	if (!_schemaChecker.validate(messageRoot))
+	{
+		const std::list<std::string> & errors = _schemaChecker.getMessages();
+		std::stringstream ss;
+		ss << "Error while validating json: {";
+		foreach (const std::string & error, errors) {
+			ss << error << ", ";
+		}
+		ss << "}";
+		sendErrorReply(ss.str());
 		return;
 	}
 
