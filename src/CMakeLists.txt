@@ -6,7 +6,8 @@ add_executable(hyperiond
 		hyperion-d.cpp)
 
 target_link_libraries(hyperiond
-		hyperion)
+		hyperion
+		jsonserver)
 
 # Find the libPNG
 find_package(PNG QUIET)

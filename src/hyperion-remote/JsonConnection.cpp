@@ -210,15 +210,14 @@ void JsonConnection::setTransform(ColorTransformValues *threshold, ColorTransfor
 
 Json::Value JsonConnection::sendMessage(const Json::Value & message)
 {
+	// serialize message (FastWriter already appends a newline)
+	std::string serializedMessage = Json::FastWriter().write(message);
+
 	// print command if requested
 	if (_printJson)
 	{
-		std::cout << "Command: " << message << std::endl;
+		std::cout << "Command: " << serializedMessage;
 	}
-
-	// serialize message (FastWriter already appends a newline
-	Json::FastWriter jsonWriter;
-	std::string serializedMessage = jsonWriter.write(message);
 
 	// write message
 	_socket.write(serializedMessage.c_str());
@@ -241,18 +240,18 @@ Json::Value JsonConnection::sendMessage(const Json::Value & message)
 	}
 	int bytes = serializedReply.indexOf('\n') + 1;     // Find the end of message
 
+	// print reply if requested
+	if (_printJson)
+	{
+		std::cout << "Reply: " << std::string(serializedReply.data(), bytes);
+	}
+
 	// parse reply data
 	Json::Reader jsonReader;
 	Json::Value reply;
 	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
 	{
 		throw std::runtime_error("Error while parsing reply: invalid json");
-	}
-
-	// print reply if requested
-	if (_printJson)
-	{
-		std::cout << "Reply:" << reply << std::endl;
 	}
 
 	return reply;
@@ -271,12 +270,12 @@ bool JsonConnection::parseReply(const Json::Value &reply)
 	}
 	catch (const std::runtime_error &)
 	{
-		// Some json paring error: ignore and set parsing error
+		// Some json parsing error: ignore and set parsing error
 	}
 
 	if (!success)
 	{
-		throw std::runtime_error("Error while paring reply: " + reason);
+		throw std::runtime_error("Error while executing command: " + reason);
 	}
 
 	return success;

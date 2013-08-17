@@ -9,6 +9,9 @@
 #include <hyperion/DispmanxWrapper.h>
 #include <hyperion/Hyperion.h>
 
+// JsonServer includes
+#include <jsonserver/JsonServer.h>
+
 int main(int argc, char** argv)
 {
 	// Initialising QCoreApplication
@@ -16,9 +19,9 @@ int main(int argc, char** argv)
 	std::cout << "QCoreApplication initialised" << std::endl;
 
 	// Select config and schema file
-	const std::string homeDir = getenv("RASPILIGHT_HOME");
-	const std::string schemaFile = homeDir + "/hyperion.schema.json";
-	const std::string configFile = homeDir + "/hyperion.config.json";
+	//const std::string homeDir = getenv("RASPILIGHT_HOME");
+	const std::string schemaFile = "hyperion.schema.json";
+	const std::string configFile = "hyperion.config.json";
 
 	// Load configuration and check against the schema at the same time
 	Json::Value config;
@@ -35,6 +38,9 @@ int main(int argc, char** argv)
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
 	dispmanx.start();
 	std::cout << "Frame grabber created and started" << std::endl;
+
+	JsonServer jsonServer(&hyperion);
+	std::cout << "Json server created and started on port " << jsonServer.getPort() << std::endl;
 
 	app.exec();
 	std::cout << "Application closed" << std::endl;
