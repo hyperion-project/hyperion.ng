@@ -5,42 +5,11 @@
         "command": {
             "type" : "string",
             "required" : true,
-            "enum" : ["color", "image", "serverinfo", "clear", "clearall", "transform"]
-        },
-        "priority": {
-            "type": "integer",
-            "required": false
-        },
-        "duration": {
-            "type": "integer",
-            "required": false
-        },
-        "color": {
-            "type": "array",
-            "required": false,
-            "items" :{
-                "type" : "integer"
-            },
-            "minItems": 3,
-            "maxItems": 3
-        },
-        "imagewidth": {
-            "type" : "integer",
-            "required": false,
-            "minimum": 0
-        },
-        "imageheight": {
-            "type" : "integer",
-            "required": false,
-            "minimum": 0
-        },
-        "imagedata": {
-            "type": "string",
-            "required": false
+            "enum" : ["transform"]
         },
         "transform": {
             "type": "object",
-            "required": false,
+            "required": true,
             "properties": {
                 "threshold": {
                     "type": "array",

@@ -30,15 +30,22 @@ private slots:
 
 private:
 	void handleMessage(const std::string & message);
-	void handleNotImplemented(const Json::Value & message);
+	void handleColorCommand(const Json::Value & message);
+	void handleImageCommand(const Json::Value & message);
+	void handleServerInfoCommand(const Json::Value & message);
+	void handleClearCommand(const Json::Value & message);
+	void handleClearallCommand(const Json::Value & message);
+	void handleTransformCommand(const Json::Value & message);
+	void handleNotImplemented();
 
 	void sendMessage(const Json::Value & message);
 	void sendErrorReply(const std::string & error);
 
 private:
-	QTcpSocket * _socket;
+	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors);
 
-	JsonSchemaChecker _schemaChecker;
+private:
+	QTcpSocket * _socket;
 
 	QByteArray _receiveBuffer;
 };

@@ -1,0 +1,29 @@
+{
+    "type":"object",
+    "required":true,
+    "properties":{
+        "command": {
+            "type" : "string",
+            "required" : true,
+            "enum" : ["color"]
+        },
+        "priority": {
+            "type": "integer",
+            "required": true
+        },
+        "duration": {
+            "type": "integer",
+            "required": false
+        },
+        "color": {
+            "type": "array",
+            "required": true,
+            "items" :{
+                "type" : "integer"
+            },
+            "minItems": 3,
+            "maxItems": 3
+        }
+    },
+    "additionalProperties": false
+}

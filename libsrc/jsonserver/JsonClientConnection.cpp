@@ -16,20 +16,8 @@
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket) :
 	QObject(),
 	_socket(socket),
-	_schemaChecker(),
 	_receiveBuffer()
 {
-	// read the json schema from the resource
-	QResource schemaData(":/schema.json");
-	assert(schemaData.isValid());
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	_schemaChecker.setSchema(schemaJson);
-
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
@@ -64,33 +52,80 @@ void JsonClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
-void JsonClientConnection::handleMessage(const std::string &message)
+void JsonClientConnection::handleMessage(const std::string &messageString)
 {
 	Json::Reader reader;
-	Json::Value messageRoot;
-	if (!reader.parse(message, messageRoot, false))
+	Json::Value message;
+	if (!reader.parse(messageString, message, false))
 	{
 		sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
 		return;
 	}
 
-	if (!_schemaChecker.validate(messageRoot))
+	// check basic message
+	std::string errors;
+	if (!checkJson(message, ":schema", errors))
 	{
-		const std::list<std::string> & errors = _schemaChecker.getMessages();
-		std::stringstream ss;
-		ss << "Error while validating json: {";
-		foreach (const std::string & error, errors) {
-			ss << error << ", ";
-		}
-		ss << "}";
-		sendErrorReply(ss.str());
+		sendErrorReply("Error while validating json: " + errors);
 		return;
 	}
 
-	handleNotImplemented(messageRoot);
+	// check specific message
+	const std::string command = message["command"].asString();
+	if (!checkJson(message, QString("schema-%1").arg(QString::fromStdString(command)), errors))
+	{
+		sendErrorReply("Error while validating json: " + errors);
+		return;
+	}
+
+	// switch over all possible commands and handle them
+	if (command == "color")
+		handleColorCommand(message);
+	else if (command == "image")
+		handleImageCommand(message);
+	else if (command == "serverinfo")
+		handleServerInfoCommand(message);
+	else if (command == "clear")
+		handleClearCommand(message);
+	else if (command == "clearall")
+		handleClearallCommand(message);
+	else if (command == "transform")
+		handleTransformCommand(message);
+	else
+		handleNotImplemented();
 }
 
-void JsonClientConnection::handleNotImplemented(const Json::Value & message)
+void JsonClientConnection::handleColorCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleImageCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleClearCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleClearallCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleTransformCommand(const Json::Value &message)
+{
+	handleNotImplemented();
+}
+
+void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
 }
@@ -111,4 +146,37 @@ void JsonClientConnection::sendErrorReply(const std::string &error)
 
 	// send reply
 	sendMessage(reply);
+}
+
+bool JsonClientConnection::checkJson(const Json::Value & message, const QString & schemaResource, std::string & errorMessage)
+{
+	// read the json schema from the resource
+	QResource schemaData(schemaResource);
+	assert(schemaData.isValid());
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+	}
+
+	// create schema checker
+	JsonSchemaChecker schema;
+	schema.setSchema(schemaJson);
+
+	// check the message
+	if (!schema.validate(message))
+	{
+		const std::list<std::string> & errors = schema.getMessages();
+		std::stringstream ss;
+		ss << "{";
+		foreach (const std::string & error, errors) {
+			ss << error << " ";
+		}
+		ss << "}";
+		errorMessage = ss.str();
+		return false;
+	}
+
+	return true;
 }

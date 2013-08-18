@@ -275,7 +275,7 @@ bool JsonConnection::parseReply(const Json::Value &reply)
 
 	if (!success)
 	{
-		throw std::runtime_error("Error while executing command: " + reason);
+		throw std::runtime_error("Error: " + reason);
 	}
 
 	return success;

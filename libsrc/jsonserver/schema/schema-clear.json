@@ -1,0 +1,16 @@
+{
+    "type":"object",
+    "required":true,
+    "properties":{
+        "command": {
+            "type" : "string",
+            "required" : true,
+            "enum" : ["clear"]
+        },
+        "priority": {
+            "type": "integer",
+            "required": true
+        }
+    },
+    "additionalProperties": false
+}
