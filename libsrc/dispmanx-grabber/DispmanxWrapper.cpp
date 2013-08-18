@@ -53,7 +53,7 @@ void DispmanxWrapper::action()
 
 	_processor->process(_image, _ledColors);
 
-	_hyperion->setValue(_priority, _ledColors, _timeout_ms);
+	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 void DispmanxWrapper::stop()
 {

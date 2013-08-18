@@ -29,7 +29,13 @@ public:
 
 	unsigned getLedCount() const;
 
-	void setValue(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
+	void setColor(int priority, RgbColor &ledColor, const int timeout_ms);
+
+	void setColors(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
+
+	void clear(int priority);
+
+	void clearall();
 
 private slots:
 	void update();
@@ -37,15 +43,15 @@ private slots:
 private:
 	void applyTransform(std::vector<RgbColor>& colors) const;
 
-	LedString mLedString;
+	LedString _ledString;
 
-	PriorityMuxer mMuxer;
+	PriorityMuxer _muxer;
 
-	hyperion::ColorTransform* mRedTransform;
-	hyperion::ColorTransform* mGreenTransform;
-	hyperion::ColorTransform* mBlueTransform;
+	hyperion::ColorTransform* _redTransform;
+	hyperion::ColorTransform* _greenTransform;
+	hyperion::ColorTransform* _blueTransform;
 
-	LedDevice* mDevice;
+	LedDevice* _device;
 
 	QTimer _timer;
 };

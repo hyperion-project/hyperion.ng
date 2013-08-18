@@ -6,10 +6,14 @@
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
 
-PriorityMuxer::PriorityMuxer() :
-	mCurrentPriority(MAX_PRIORITY)
+PriorityMuxer::PriorityMuxer(int ledCount) :
+	_currentPriority(LOWEST_PRIORITY),
+	_activeInputs(),
+	_lowestPriorityInfo()
 {
-	// empty
+	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
+	_lowestPriorityInfo.timeoutTime_ms = -1;
+	_lowestPriorityInfo.ledColors = std::vector<RgbColor>(ledCount, {0, 0, 0});
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -19,23 +23,28 @@ PriorityMuxer::~PriorityMuxer()
 
 int PriorityMuxer::getCurrentPriority() const
 {
-	return mCurrentPriority;
+	return _currentPriority;
 }
 
 QList<int> PriorityMuxer::getPriorities() const
 {
-	return mActiveInputs.keys();
+	return _activeInputs.keys();
 }
 
 bool PriorityMuxer::hasPriority(const int priority) const
 {
-	return mActiveInputs.contains(priority);
+	return _activeInputs.contains(priority);
 }
 
 const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) const
 {
-	auto elemIt = mActiveInputs.find(priority);
-	if (elemIt == mActiveInputs.end())
+	if (priority == LOWEST_PRIORITY)
+	{
+		return _lowestPriorityInfo;
+	}
+
+	auto elemIt = _activeInputs.find(priority);
+	if (elemIt == _activeInputs.end())
 	{
 		throw std::runtime_error("no such priority");
 	}
@@ -44,50 +53,50 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 
 void PriorityMuxer::setInput(const int priority, const std::vector<RgbColor>& ledColors, const int64_t timeoutTime_ms)
 {
-	InputInfo& input = mActiveInputs[priority];
+	InputInfo& input = _activeInputs[priority];
 	input.priority       = priority;
 	input.timeoutTime_ms = timeoutTime_ms;
 	input.ledColors      = ledColors;
 
-	mCurrentPriority = std::min(mCurrentPriority, priority);
+	_currentPriority = std::min(_currentPriority, priority);
 }
 
 void PriorityMuxer::clearInput(const int priority)
 {
-	mActiveInputs.remove(priority);
-	if (mCurrentPriority == priority)
+	_activeInputs.remove(priority);
+	if (_currentPriority == priority)
 	{
-		if (mActiveInputs.empty())
+		if (_activeInputs.empty())
 		{
-			mCurrentPriority = MAX_PRIORITY;
+			_currentPriority = LOWEST_PRIORITY;
 		}
 		else
 		{
-			QList<int> keys = mActiveInputs.keys();
-			mCurrentPriority = *std::min_element(keys.begin(), keys.end());
+			QList<int> keys = _activeInputs.keys();
+			_currentPriority = *std::min_element(keys.begin(), keys.end());
 		}
 	}
 }
 
 void PriorityMuxer::clearAll()
 {
-	mActiveInputs.clear();
-	mCurrentPriority = MAX_PRIORITY;
+	_activeInputs.clear();
+	_currentPriority = LOWEST_PRIORITY;
 }
 
 void PriorityMuxer::setCurrentTime(const int64_t& now)
 {
-	mCurrentPriority = MAX_PRIORITY;
+	_currentPriority = LOWEST_PRIORITY;
 
-	for (auto infoIt = mActiveInputs.begin(); infoIt != mActiveInputs.end();)
+	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
 		if (infoIt->timeoutTime_ms != -1 && infoIt->timeoutTime_ms <= now)
 		{
-			infoIt = mActiveInputs.erase(infoIt);
+			infoIt = _activeInputs.erase(infoIt);
 		}
 		else
 		{
-			mCurrentPriority = std::min(mCurrentPriority, infoIt->priority);
+			_currentPriority = std::min(_currentPriority, infoIt->priority);
 			++infoIt;
 		}
 	}

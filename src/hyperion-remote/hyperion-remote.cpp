@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('s', "info"      , "List server info");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
-		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clear-all" , "Clear data for all priority channels");
+		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
 		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
 		TransformParameter & argBlacklevel = parameters.add<TransformParameter>('b', "blacklevel", "Set the blacklevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");

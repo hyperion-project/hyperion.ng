@@ -76,7 +76,7 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 
 	// check specific message
 	const std::string command = message["command"].asString();
-	if (!checkJson(message, QString("schema-%1").arg(QString::fromStdString(command)), errors))
+	if (!checkJson(message, QString(":schema-%1").arg(QString::fromStdString(command)), errors))
 	{
 		sendErrorReply("Error while validating json: " + errors);
 		return;
@@ -104,14 +104,10 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
-	RgbColor color = {message["color"][0u].asInt(), message["color"][1u].asInt(), message["color"][2u].asInt()};
-
-
-	// create led output
-	std::vector<RgbColor> ledColors(_hyperion->getLedCount(), color);
+	RgbColor color = {uint8_t(message["color"][0u].asInt()), uint8_t(message["color"][1u].asInt()), uint8_t(message["color"][2u].asInt())};
 
 	// set output
-	_hyperion->setValue(priority, ledColors, duration);
+	_hyperion->setColor(priority, color, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -129,12 +125,23 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 
 void JsonClientConnection::handleClearCommand(const Json::Value &message)
 {
-	handleNotImplemented();
+	// extract parameters
+	int priority = message["priority"].asInt();
+
+	// clear priority
+	_hyperion->clear(priority);
+
+	// send reply
+	sendSuccessReply();
 }
 
-void JsonClientConnection::handleClearallCommand(const Json::Value &message)
+void JsonClientConnection::handleClearallCommand(const Json::Value &)
 {
-	handleNotImplemented();
+	// clear priority
+	_hyperion->clearall();
+
+	// send reply
+	sendSuccessReply();
 }
 
 void JsonClientConnection::handleTransformCommand(const Json::Value &message)

@@ -76,74 +76,108 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 }
 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
-	mLedString(createLedString(jsonConfig["leds"])),
-	mRedTransform(  createColorTransform(jsonConfig["color"]["red"])),
-	mGreenTransform(createColorTransform(jsonConfig["color"]["green"])),
-	mBlueTransform( createColorTransform(jsonConfig["color"]["blue"])),
-	mDevice(constructDevice(jsonConfig["device"])),
+	_ledString(createLedString(jsonConfig["leds"])),
+	_muxer(_ledString.leds().size()),
+	_redTransform(createColorTransform(jsonConfig["color"]["red"])),
+	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
+	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
+	_device(constructDevice(jsonConfig["device"])),
 	_timer()
 {
-	ImageProcessorFactory::getInstance().init(mLedString);
+	ImageProcessorFactory::getInstance().init(_ledString);
 
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
+	// initialize the leds
+	update();
 }
 
 
 Hyperion::~Hyperion()
 {
 	// Delete the Led-String
-	delete mDevice;
+	delete _device;
 
 	// Delete the color-transform
-	delete mBlueTransform;
-	delete mGreenTransform;
-	delete mRedTransform;
+	delete _blueTransform;
+	delete _greenTransform;
+	delete _redTransform;
 }
 
 unsigned Hyperion::getLedCount() const
 {
-	return mLedString.leds().size();
+	return _ledString.leds().size();
 }
 
-void Hyperion::setValue(int priority, std::vector<RgbColor>& ledColors, const int timeout_ms)
+void Hyperion::setColor(int priority, RgbColor & color, const int timeout_ms)
+{
+	// create led output
+	std::vector<RgbColor> ledColors(_ledString.leds().size(), color);
+
+	// set colors
+	setColors(priority, ledColors, timeout_ms);
+}
+
+void Hyperion::setColors(int priority, std::vector<RgbColor>& ledColors, const int timeout_ms)
 {
 	// Apply the transform to each led and color-channel
 	for (RgbColor& color : ledColors)
 	{
-		color.red   = mRedTransform->transform(color.red);
-		color.green = mGreenTransform->transform(color.green);
-		color.blue  = mBlueTransform->transform(color.blue);
+		color.red   = _redTransform->transform(color.red);
+		color.green = _greenTransform->transform(color.green);
+		color.blue  = _blueTransform->transform(color.blue);
 	}
 
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		mMuxer.setInput(priority, ledColors, timeoutTime);
+		_muxer.setInput(priority, ledColors, timeoutTime);
 	}
 	else
 	{
-		mMuxer.setInput(priority, ledColors);
+		_muxer.setInput(priority, ledColors);
 	}
 
-	if (priority == mMuxer.getCurrentPriority())
+	if (priority == _muxer.getCurrentPriority())
 	{
 		update();
 	}
 }
 
+void Hyperion::clear(int priority)
+{
+	if (_muxer.hasPriority(priority))
+	{
+		_muxer.clearInput(priority);
+
+		// update leds if necessary
+		if (priority < _muxer.getCurrentPriority());
+		{
+			update();
+		}
+	}
+}
+
+void Hyperion::clearall()
+{
+	_muxer.clearAll();
+
+	// update leds
+	update();
+}
+
 void Hyperion::update()
 {
 	// Update the muxer, cleaning obsolete priorities
-	mMuxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
+	_muxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
 
 	// Obtain the current priority channel
-	int priority = mMuxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo & priorityInfo  = mMuxer.getInputInfo(priority);
+	int priority = _muxer.getCurrentPriority();
+	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
 
 	// Write the data to the device
-	mDevice->write(priorityInfo.ledColors);
+	_device->write(priorityInfo.ledColors);
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)
