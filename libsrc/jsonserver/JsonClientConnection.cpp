@@ -10,12 +10,16 @@
 // Qt includes
 #include <QResource>
 
+// hyperion util includes
+#include "utils/RgbColor.h"
+
 // project includes
 #include "JsonClientConnection.h"
 
-JsonClientConnection::JsonClientConnection(QTcpSocket *socket) :
+JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
 	QObject(),
 	_socket(socket),
+	_hyperion(hyperion),
 	_receiveBuffer()
 {
 	// connect internal signals and slots
@@ -97,7 +101,20 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 
 void JsonClientConnection::handleColorCommand(const Json::Value &message)
 {
-	handleNotImplemented();
+	// extract parameters
+	int priority = message["priority"].asInt();
+	int duration = message.get("duration", -1).asInt();
+	RgbColor color = {message["color"][0u].asInt(), message["color"][1u].asInt(), message["color"][2u].asInt()};
+
+
+	// create led output
+	std::vector<RgbColor> ledColors(_hyperion->getLedCount(), color);
+
+	// set output
+	_hyperion->setValue(priority, ledColors, duration);
+
+	// send reply
+	sendSuccessReply();
 }
 
 void JsonClientConnection::handleImageCommand(const Json::Value &message)
@@ -135,6 +152,16 @@ void JsonClientConnection::sendMessage(const Json::Value &message)
 	Json::FastWriter writer;
 	std::string serializedReply = writer.write(message);
 	_socket->write(serializedReply.data(), serializedReply.length());
+}
+
+void JsonClientConnection::sendSuccessReply()
+{
+	// create reply
+	Json::Value reply;
+	reply["success"] = true;
+
+	// send reply
+	sendMessage(reply);
 }
 
 void JsonClientConnection::sendErrorReply(const std::string &error)

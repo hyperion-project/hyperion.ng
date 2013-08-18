@@ -10,6 +10,9 @@
 // jsoncpp includes
 #include <json/json.h>
 
+// Hyperion includes
+#include <hyperion/Hyperion.h>
+
 // util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
 
@@ -18,7 +21,7 @@ class JsonClientConnection : public QObject
 	Q_OBJECT
 
 public:
-	JsonClientConnection(QTcpSocket * socket);
+	JsonClientConnection(QTcpSocket * socket, Hyperion * hyperion);
 	~JsonClientConnection();
 
 signals:
@@ -39,6 +42,7 @@ private:
 	void handleNotImplemented();
 
 	void sendMessage(const Json::Value & message);
+	void sendSuccessReply();
 	void sendErrorReply(const std::string & error);
 
 private:
@@ -46,6 +50,8 @@ private:
 
 private:
 	QTcpSocket * _socket;
+
+	Hyperion * _hyperion;
 
 	QByteArray _receiveBuffer;
 };

@@ -15,6 +15,7 @@
 DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
+	_priority(128),
 	_timer(),
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
@@ -52,7 +53,6 @@ void DispmanxWrapper::action()
 
 	_processor->process(_image, _ledColors);
 
-	const int _priority = 100;
 	_hyperion->setValue(_priority, _ledColors, _timeout_ms);
 }
 void DispmanxWrapper::stop()

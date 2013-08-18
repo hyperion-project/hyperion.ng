@@ -42,7 +42,7 @@ void JsonServer::newConnection()
 	if (socket != nullptr)
 	{
 		std::cout << "New json connection" << std::endl;
-		JsonClientConnection * connection = new JsonClientConnection(socket);
+		JsonClientConnection * connection = new JsonClientConnection(socket, _hyperion);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
