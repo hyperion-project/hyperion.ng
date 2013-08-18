@@ -11,6 +11,8 @@
 #include <QResource>
 
 // hyperion util includes
+#include "hyperion/ImageProcessorFactory.h"
+#include "hyperion/ImageProcessor.h"
 #include "utils/RgbColor.h"
 
 // project includes
@@ -19,6 +21,7 @@
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
 	QObject(),
 	_socket(socket),
+	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
 	_receiveBuffer()
 {
@@ -115,7 +118,33 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 
 void JsonClientConnection::handleImageCommand(const Json::Value &message)
 {
-	handleNotImplemented();
+	// extract parameters
+	int priority = message["priority"].asInt();
+	int duration = message.get("duration", -1).asInt();
+	int width = message["imagewidth"].asInt();
+	int height = message["imageheight"].asInt();
+	QByteArray data = QByteArray::fromBase64(QByteArray(message["imagedata"].asCString()));
+
+	// check consistency of the size of the received data
+	if (data.size() != width*height*3)
+	{
+		sendErrorReply("Size of image data does not match with the width and height");
+		return;
+	}
+
+	// set width and height of the image processor
+	_imageProcessor->setSize(width, height);
+
+	// create RgbImage
+	RgbImage image(width, height);
+	memcpy(image.memptr(), data.data(), data.size());
+
+	// process the image
+	std::vector<RgbColor> ledColors = _imageProcessor->process(image);
+	_hyperion->setColors(priority, ledColors, duration);
+
+	// send reply
+	sendSuccessReply();
 }
 
 void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)

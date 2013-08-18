@@ -16,6 +16,8 @@
 // util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
 
+class ImageProcessor;
+
 class JsonClientConnection : public QObject
 {
 	Q_OBJECT
@@ -50,6 +52,8 @@ private:
 
 private:
 	QTcpSocket * _socket;
+
+	ImageProcessor * _imageProcessor;
 
 	Hyperion * _hyperion;
 
