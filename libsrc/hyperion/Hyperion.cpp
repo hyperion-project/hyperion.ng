@@ -145,6 +145,45 @@ void Hyperion::setColors(int priority, std::vector<RgbColor>& ledColors, const i
 	}
 }
 
+void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::Color color, double value)
+{
+	// select the transform of the requested color
+	ColorTransform * t = nullptr;
+	switch (color)
+	{
+	case RED:
+		t = _redTransform;
+		break;
+	case GREEN:
+		t = _greenTransform;
+		break;
+	case BLUE:
+		t = _blueTransform;
+		break;
+	default:
+		assert(false);
+	}
+
+	// set transform value
+	switch (transform)
+	{
+	case THRESHOLD:
+		t->setThreshold(value);
+		break;
+	case GAMMA:
+		t->setGamma(value);
+		break;
+	case BLACKLEVEL:
+		t->setBlacklevel(value);
+		break;
+	case WHITELEVEL:
+		t->setWhitelevel(value);
+		break;
+	default:
+		assert(false);
+	}
+}
+
 void Hyperion::clear(int priority)
 {
 	if (_muxer.hasPriority(priority))

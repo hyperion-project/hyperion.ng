@@ -21,6 +21,16 @@ class Hyperion : public QObject
 {
 	Q_OBJECT
 public:
+	enum Color
+	{
+		RED, GREEN, BLUE
+	};
+
+	enum Transform
+	{
+		THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
+	};
+
 	static LedString createLedString(const Json::Value& ledsConfig);
 
 	Hyperion(const Json::Value& jsonConfig);
@@ -32,6 +42,8 @@ public:
 	void setColor(int priority, RgbColor &ledColor, const int timeout_ms);
 
 	void setColors(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
+
+	void setTransform(Transform transform, Color color, double value);
 
 	void clear(int priority);
 

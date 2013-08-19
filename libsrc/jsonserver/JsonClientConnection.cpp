@@ -175,7 +175,41 @@ void JsonClientConnection::handleClearallCommand(const Json::Value &)
 
 void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 {
-	handleNotImplemented();
+	const Json::Value & transform = message["transform"];
+
+	if (transform.isMember("threshold"))
+	{
+		const Json::Value & threshold = transform["threshold"];
+		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::RED, threshold[0u].asDouble());
+		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::GREEN, threshold[1u].asDouble());
+		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::BLUE, threshold[2u].asDouble());
+	}
+
+	if (transform.isMember("gamma"))
+	{
+		const Json::Value & threshold = transform["gamma"];
+		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::RED, threshold[0u].asDouble());
+		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::GREEN, threshold[1u].asDouble());
+		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::BLUE, threshold[2u].asDouble());
+	}
+
+	if (transform.isMember("blacklevel"))
+	{
+		const Json::Value & threshold = transform["blacklevel"];
+		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::RED, threshold[0u].asDouble());
+		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::GREEN, threshold[1u].asDouble());
+		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::BLUE, threshold[2u].asDouble());
+	}
+
+	if (transform.isMember("whitelevel"))
+	{
+		const Json::Value & threshold = transform["whitelevel"];
+		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::RED, threshold[0u].asDouble());
+		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::GREEN, threshold[1u].asDouble());
+		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::BLUE, threshold[2u].asDouble());
+	}
+
+	sendSuccessReply();
 }
 
 void JsonClientConnection::handleNotImplemented()
