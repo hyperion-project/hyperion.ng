@@ -206,6 +206,53 @@ void Hyperion::clearall()
 	update();
 }
 
+double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color color) const
+{
+	// select the transform of the requested color
+	ColorTransform * t = nullptr;
+	switch (color)
+	{
+	case RED:
+		t = _redTransform;
+		break;
+	case GREEN:
+		t = _greenTransform;
+		break;
+	case BLUE:
+		t = _blueTransform;
+		break;
+	default:
+		assert(false);
+	}
+
+	// set transform value
+	switch (transform)
+	{
+	case THRESHOLD:
+		return t->getThreshold();
+	case GAMMA:
+		return t->getGamma();
+	case BLACKLEVEL:
+		return t->getBlacklevel();
+	case WHITELEVEL:
+		return t->getWhitelevel();
+	default:
+		assert(false);
+	}
+
+	return 999.0;
+}
+
+QList<int> Hyperion::getActivePriorities() const
+{
+	return _muxer.getPriorities();
+}
+
+const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
+{
+	return _muxer.getInputInfo(priority);
+}
+
 void Hyperion::update()
 {
 	// Update the muxer, cleaning obsolete priorities

@@ -9,6 +9,7 @@
 
 // Qt includes
 #include <QResource>
+#include <QDateTime>
 
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
@@ -149,7 +150,46 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 
 void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 {
-	handleNotImplemented();
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	Json::Value & info = result["info"];
+
+	// collect priority information
+	Json::Value & priorities = info["priorities"];
+	uint64_t now = QDateTime::currentMSecsSinceEpoch();
+	QList<int> activePriorities = _hyperion->getActivePriorities();
+	foreach (int priority, activePriorities) {
+		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
+		Json::Value & item = priorities[priorities.size()];
+		item["priority"] = priority;
+		if (priorityInfo.timeoutTime_ms != -1)
+		{
+			item["duration_ms"] = priorityInfo.timeoutTime_ms - now;
+		}
+	}
+
+	// collect transform information
+	Json::Value & transform = info["transform"];
+	Json::Value & threshold = transform["threshold"];
+	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::RED));
+	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::GREEN));
+	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::BLUE));
+	Json::Value & gamma = transform["gamma"];
+	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::RED));
+	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::GREEN));
+	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::BLUE));
+	Json::Value & blacklevel = transform["blacklevel"];
+	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::RED));
+	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::GREEN));
+	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::BLUE));
+	Json::Value & whitelevel = transform["whitelevel"];
+	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::RED));
+	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::GREEN));
+	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::BLUE));
+
+	// send the result
+	sendMessage(result);
 }
 
 void JsonClientConnection::handleClearCommand(const Json::Value &message)

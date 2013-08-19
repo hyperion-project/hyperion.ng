@@ -1,5 +1,7 @@
-
 #pragma once
+
+// stl includes
+#include <list>
 
 // QT includes
 #include <QObject>
@@ -21,6 +23,8 @@ class Hyperion : public QObject
 {
 	Q_OBJECT
 public:
+	typedef PriorityMuxer::InputInfo InputInfo;
+
 	enum Color
 	{
 		RED, GREEN, BLUE
@@ -48,6 +52,12 @@ public:
 	void clear(int priority);
 
 	void clearall();
+
+	double getTransform(Transform transform, Color color) const;
+
+	QList<int> getActivePriorities() const;
+
+	const InputInfo& getPriorityInfo(const int priority) const;
 
 private slots:
 	void update();
