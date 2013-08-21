@@ -21,6 +21,10 @@ struct RgbColor
 	static RgbColor YELLOW;
 	static RgbColor WHITE;
 
+	inline bool operator==(const RgbColor& other) const
+	{
+		return red == other.red && green == other.green && blue == other.blue;
+	}
 };
 
 static_assert(sizeof(RgbColor) == 3, "Incorrect size of RgbColor");
