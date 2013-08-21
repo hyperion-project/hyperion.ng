@@ -40,7 +40,6 @@ link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 
 configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
 configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
-configure_file(config/hyperion.schema.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 
 # Add the source/lib directories
 add_subdirectory(dependencies)

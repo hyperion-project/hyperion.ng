@@ -23,6 +23,9 @@ class Hyperion : public QObject
 public:
 	static LedString createLedString(const Json::Value& ledsConfig);
 
+	static Json::Value loadConfig(const std::string& configFile);
+
+	Hyperion(const std::string& configFile);
 	Hyperion(const Json::Value& jsonConfig);
 
 	~Hyperion();

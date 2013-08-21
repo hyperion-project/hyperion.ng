@@ -20,21 +20,17 @@ int main(int argc, char** argv)
 	QCoreApplication app(argc, argv);
 	std::cout << "QCoreApplication initialised" << std::endl;
 
-	// Select config and schema file
-	//const std::string homeDir = getenv("RASPILIGHT_HOME");
-	const std::string schemaFile = "hyperion.schema.json";
-	const std::string configFile = "hyperion.config.json";
-
-	// Load configuration and check against the schema at the same time
-	Json::Value config;
-	if (JsonFactory::load(schemaFile, configFile, config) < 0)
+	if (argc < 2)
 	{
-		std::cerr << "UNABLE TO LOAD CONFIGURATION" << std::endl;
-		return -1;
+		std::cout << "Missing required configuration file. Usage:" << std::endl;
+		std::cout << "hyperiond [config.file]" << std::endl;
+		return 0;
 	}
-	std::cout << "Configuration loaded from: " << configFile << std::endl;
 
-	Hyperion hyperion(config);
+	const std::string configFile = argv[2];
+	std::cout << "Selected configuration file: " << configFile.c_str() << std::endl;
+
+	Hyperion hyperion(configFile);
 	std::cout << "Hyperion created and initialised" << std::endl;
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);

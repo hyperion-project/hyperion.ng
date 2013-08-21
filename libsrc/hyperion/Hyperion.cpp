@@ -1,8 +1,7 @@
 
-// Syslog include
-#include <syslog.h>
-
+// QT includes
 #include <QDateTime>
+#include <QResource>
 
 // JsonSchema include
 #include <utils/jsonschema/JsonFactory.h>
@@ -73,6 +72,33 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 		ledString.leds().push_back(led);
 	}
 	return ledString;
+}
+
+Json::Value Hyperion::loadConfig(const std::string& configFile)
+{
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion.schema.json");
+	assert(schemaData.isValid());
+
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+	}
+	JsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson);
+
+	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
+	schemaChecker.validate(jsonConfig);
+
+	return jsonConfig;
+}
+
+Hyperion::Hyperion(const std::string& configFile) :
+	Hyperion(loadConfig(configFile))
+{
+	// empty
 }
 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
