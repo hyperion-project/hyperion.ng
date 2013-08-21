@@ -2,6 +2,7 @@
 
 BlackBorderDetector::BlackBorderDetector()
 {
+	// empty
 }
 
 BlackBorder BlackBorderDetector::process(const RgbImage& image)
@@ -9,7 +10,8 @@ BlackBorder BlackBorderDetector::process(const RgbImage& image)
 	int firstNonBlackPixelTop  = -1;
 	int firstNonBlackPixelLeft = -1;
 
-	for (unsigned x=0; x<image.width(); ++x)
+	// Find the non-black pixel at the top-half border
+	for (unsigned x=0; x<image.width()/2; ++x)
 	{
 		const RgbColor& color = image(x, 0);
 		if (!isBlack(color))
@@ -18,7 +20,8 @@ BlackBorder BlackBorderDetector::process(const RgbImage& image)
 			break;
 		}
 	}
-	for (unsigned y=0; y<image.height(); ++y)
+	// Find the non-black pixel at the left-half border
+	for (unsigned y=0; y<image.height()/2; ++y)
 	{
 		const RgbColor& color = image(0, y);
 		if (!isBlack(color))
@@ -28,6 +31,7 @@ BlackBorder BlackBorderDetector::process(const RgbImage& image)
 		}
 	}
 
+	// Construct 'unknown' result
 	BlackBorder detectedBorder;
 	detectedBorder.type = BlackBorder::unknown;
 
@@ -45,27 +49,23 @@ BlackBorder BlackBorderDetector::process(const RgbImage& image)
 	}
 	else if (firstNonBlackPixelTop < 0)
 	{
-		if (firstNonBlackPixelLeft < 0 || firstNonBlackPixelLeft > (int)(image.height()/2) )
+		if (firstNonBlackPixelLeft < 0)
 		{
 			// We don't know
-			// B-B-B-B ... B-B-B-B
-			// B +---- ... ----- ?
+			// B-B-B-B ...
+			// B +---- ...
 			// B |
 			// B |
 			// :
-			// B |
-			// B |
-			// B |
-			// B ?
 
 			detectedBorder.type = BlackBorder::unknown;
 			detectedBorder.size = -1;
 		}
-		else //(firstNonBlackPixelLeft > 0 && firstNonBlackPixelLeft < image.height()/2)
+		else //(firstNonBlackPixelLeft > 0)
 		{
 			// Border at top of screen
-			// B-B-B-B ... B-B-B-B
-			// B +---- ... ----- ?
+			// B-B-B-B ...
+			// B +---- ...
 			// C |
 			// ? |
 			// :
@@ -76,23 +76,19 @@ BlackBorder BlackBorderDetector::process(const RgbImage& image)
 	}
 	else // (firstNonBlackPixelTop > 0)
 	{
-		if (firstNonBlackPixelTop < int(image.width()/2) && firstNonBlackPixelLeft < 0)
+		if (firstNonBlackPixelLeft < 0)
 		{
 			// Border at left of screen
 			// B-B-C-? ...
-			// B +---- ... ----- ?
+			// B +---- ...
 			// B |
 			// B |
 			// :
-			// B |
-			// B |
-			// B |
-			// B ?
 
 			detectedBorder.type = BlackBorder::vertical;
 			detectedBorder.size = firstNonBlackPixelTop;
 		}
-		else //(firstNonBlackPixelTop > int(mage.width()/2) || firstNonBlackPixelLeft > 0)
+		else //(firstNonBlackPixelLeft > 0)
 		{
 			// No black border
 			// B-B-C-? ...
