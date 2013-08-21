@@ -12,11 +12,14 @@
 	},
 	"color" :
 	{
+		"hsv" : {
+			"saturationGain" : 1.0,
+			"valueGain"      : 1.0
+		},
 		"red" :
 		{
 			"threshold"  : 0.0,
 			"gamma"      : 1.0,
-			"adjust"     : 1.0,
 			"blacklevel" : 0.0,
 			"whitelevel" : 1.0
 		},
@@ -24,7 +27,6 @@
 		{
 			"threshold"  : 0.0,
 			"gamma"      : 1.0,
-			"adjust"     : 1.0,
 			"blacklevel" : 0.0,
 			"whitelevel" : 1.0
 		},
@@ -32,7 +34,6 @@
 		{
 			"threshold"  : 0.0,
 			"gamma"      : 1.0,
-			"adjust"     : 1.0,
 			"blacklevel" : 0.0,
 			"whitelevel" : 1.0
 		}

@@ -39,7 +39,13 @@ public:
 
 	/// Set the color transform of the leds
 	/// Note that providing a NULL will leave the settings on the server unchanged
-	void setTransform(ColorTransformValues * threshold, ColorTransformValues * gamma, ColorTransformValues * blacklevel, ColorTransformValues * whitelevel);
+	void setTransform(
+			double * saturation,
+			double * value,
+			ColorTransformValues * threshold,
+			ColorTransformValues * gamma,
+			ColorTransformValues * blacklevel,
+			ColorTransformValues * whitelevel);
 
 private:
 	/// Send a json command message and receive its reply

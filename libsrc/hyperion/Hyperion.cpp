@@ -15,6 +15,7 @@
 #include "LedDeviceWs2801.h"
 #include "LedDeviceTest.h"
 #include "ColorTransform.h"
+#include "HsvTransform.h"
 
 using namespace hyperion;
 
@@ -43,6 +44,11 @@ LedDevice* constructDevice(const Json::Value& deviceConfig)
 		// Unknown / Unimplemented device
 	}
 	return device;
+}
+
+HsvTransform * createHsvTransform(const Json::Value & hsvConfig)
+{
+	return new HsvTransform(hsvConfig["saturationGain"].asDouble(), hsvConfig["valueGain"].asDouble());
 }
 
 ColorTransform* createColorTransform(const Json::Value& colorConfig)
@@ -78,6 +84,7 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"])),
 	_muxer(_ledString.leds().size()),
+	_hsvTransform(createHsvTransform(jsonConfig["color"]["hsv"])),
 	_redTransform(createColorTransform(jsonConfig["color"]["red"])),
 	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
 	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
@@ -98,6 +105,9 @@ Hyperion::~Hyperion()
 {
 	// Delete the Led-String
 	delete _device;
+
+	// delete he hsv transform
+	delete _hsvTransform;
 
 	// Delete the color-transform
 	delete _blueTransform;
@@ -121,14 +131,6 @@ void Hyperion::setColor(int priority, RgbColor & color, const int timeout_ms)
 
 void Hyperion::setColors(int priority, std::vector<RgbColor>& ledColors, const int timeout_ms)
 {
-	// Apply the transform to each led and color-channel
-	for (RgbColor& color : ledColors)
-	{
-		color.red   = _redTransform->transform(color.red);
-		color.green = _greenTransform->transform(color.green);
-		color.blue  = _blueTransform->transform(color.blue);
-	}
-
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
@@ -161,27 +163,40 @@ void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::Color color
 		t = _blueTransform;
 		break;
 	default:
-		assert(false);
+		break;
 	}
 
 	// set transform value
 	switch (transform)
 	{
+	case SATURATION_GAIN:
+		_hsvTransform->setSaturationGain(value);
+		break;
+	case VALUE_GAIN:
+		_hsvTransform->setValueGain(value);
+		break;
 	case THRESHOLD:
+		assert (t != nullptr);
 		t->setThreshold(value);
 		break;
 	case GAMMA:
+		assert (t != nullptr);
 		t->setGamma(value);
 		break;
 	case BLACKLEVEL:
+		assert (t != nullptr);
 		t->setBlacklevel(value);
 		break;
 	case WHITELEVEL:
+		assert (t != nullptr);
 		t->setWhitelevel(value);
 		break;
 	default:
 		assert(false);
 	}
+
+	// update the led output
+	update();
 }
 
 void Hyperion::clear(int priority)
@@ -222,19 +237,27 @@ double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color col
 		t = _blueTransform;
 		break;
 	default:
-		assert(false);
+		break;
 	}
 
 	// set transform value
 	switch (transform)
 	{
+	case SATURATION_GAIN:
+		return _hsvTransform->getSaturationGain();
+	case VALUE_GAIN:
+		return _hsvTransform->getValueGain();
 	case THRESHOLD:
+		assert (t != nullptr);
 		return t->getThreshold();
 	case GAMMA:
+		assert (t != nullptr);
 		return t->getGamma();
 	case BLACKLEVEL:
+		assert (t != nullptr);
 		return t->getBlacklevel();
 	case WHITELEVEL:
+		assert (t != nullptr);
 		return t->getWhitelevel();
 	default:
 		assert(false);
@@ -262,8 +285,18 @@ void Hyperion::update()
 	int priority = _muxer.getCurrentPriority();
 	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
 
+	// Apply the transform to each led and color-channel
+	std::vector<RgbColor> ledColors(priorityInfo.ledColors);
+	for (RgbColor& color : ledColors)
+	{
+		_hsvTransform->transform(color.red, color.green, color.blue);
+		color.red   = _redTransform->transform(color.red);
+		color.green = _greenTransform->transform(color.green);
+		color.blue  = _blueTransform->transform(color.blue);
+	}
+
 	// Write the data to the device
-	_device->write(priorityInfo.ledColors);
+	_device->write(ledColors);
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)

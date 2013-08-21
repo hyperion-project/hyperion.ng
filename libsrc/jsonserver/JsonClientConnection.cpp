@@ -171,6 +171,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 
 	// collect transform information
 	Json::Value & transform = info["transform"];
+	transform["saturationGain"] = _hyperion->getTransform(Hyperion::SATURATION_GAIN, Hyperion::INVALID);
+	transform["valueGain"] = _hyperion->getTransform(Hyperion::VALUE_GAIN, Hyperion::INVALID);
 	Json::Value & threshold = transform["threshold"];
 	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::RED));
 	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::GREEN));
@@ -216,6 +218,16 @@ void JsonClientConnection::handleClearallCommand(const Json::Value &)
 void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 {
 	const Json::Value & transform = message["transform"];
+
+	if (transform.isMember("saturationGain"))
+	{
+		_hyperion->setTransform(Hyperion::SATURATION_GAIN, Hyperion::INVALID, transform["saturationGain"].asDouble());
+	}
+
+	if (transform.isMember("valueGain"))
+	{
+		_hyperion->setTransform(Hyperion::VALUE_GAIN, Hyperion::INVALID, transform["valueGain"].asDouble());
+	}
 
 	if (transform.isMember("threshold"))
 	{

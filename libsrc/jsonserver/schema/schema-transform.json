@@ -11,6 +11,16 @@
             "type": "object",
             "required": true,
             "properties": {
+                "saturationGain" : {
+                    "type" : "double",
+                    "required" : false,
+                    "minimum" : 0.0
+                },
+                "valueGain" : {
+                    "type" : "double",
+                    "required" : false,
+                    "minimum" : 0.0
+                },
                 "threshold": {
                     "type": "array",
                     "required": false,

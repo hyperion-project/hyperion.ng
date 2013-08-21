@@ -19,6 +19,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.h
 		${CURRENT_SOURCE_DIR}/ColorTransform.h
+		${CURRENT_SOURCE_DIR}/HsvTransform.h
 )
 
 SET(Hyperion_SOURCES
@@ -32,6 +33,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
 		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
+		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
 )
 
 QT4_WRAP_CPP(Hyperion_HEADERS_MOC ${Hyperion_QT_HEADERS})

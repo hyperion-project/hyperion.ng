@@ -16,8 +16,10 @@
 #include <hyperion/PriorityMuxer.h>
 
 // Forward class declaration
-namespace hyperion { class ColorTransform; }
-
+namespace hyperion {
+	class HsvTransform;
+	class ColorTransform;
+}
 
 class Hyperion : public QObject
 {
@@ -27,12 +29,12 @@ public:
 
 	enum Color
 	{
-		RED, GREEN, BLUE
+		RED, GREEN, BLUE, INVALID
 	};
 
 	enum Transform
 	{
-		THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
+		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
 	static LedString createLedString(const Json::Value& ledsConfig);
@@ -69,9 +71,10 @@ private:
 
 	PriorityMuxer _muxer;
 
-	hyperion::ColorTransform* _redTransform;
-	hyperion::ColorTransform* _greenTransform;
-	hyperion::ColorTransform* _blueTransform;
+	hyperion::HsvTransform * _hsvTransform;
+	hyperion::ColorTransform * _redTransform;
+	hyperion::ColorTransform * _greenTransform;
+	hyperion::ColorTransform * _blueTransform;
 
 	LedDevice* _device;
 

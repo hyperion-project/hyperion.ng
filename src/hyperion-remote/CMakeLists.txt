@@ -30,5 +30,5 @@ qt4_use_modules(hyperion-remote
 	Network)
 
 target_link_libraries(hyperion-remote
-	hyperion-utils
+	jsoncpp
 	getoptPlusPlus)
