@@ -160,7 +160,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setTransform(double * saturation, double * value, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
 
@@ -168,6 +168,16 @@ void JsonConnection::setTransform(ColorTransformValues *threshold, ColorTransfor
 	Json::Value command;
 	command["command"] = "transform";
 	Json::Value & transform = command["transform"];
+
+	if (saturation != nullptr)
+	{
+		transform["saturationGain"] = *saturation;
+	}
+
+	if (value != nullptr)
+	{
+		transform["valueGain"] = *value;
+	}
 
 	if (threshold != nullptr)
 	{
@@ -180,25 +190,25 @@ void JsonConnection::setTransform(ColorTransformValues *threshold, ColorTransfor
 	if (gamma != nullptr)
 	{
 		Json::Value & v = transform["gamma"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(gamma->valueRed);
+		v.append(gamma->valueGreen);
+		v.append(gamma->valueBlue);
 	}
 
 	if (blacklevel != nullptr)
 	{
 		Json::Value & v = transform["blacklevel"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(blacklevel->valueRed);
+		v.append(blacklevel->valueGreen);
+		v.append(blacklevel->valueBlue);
 	}
 
 	if (whitelevel != nullptr)
 	{
 		Json::Value & v = transform["whitelevel"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(whitelevel->valueRed);
+		v.append(whitelevel->valueGreen);
+		v.append(whitelevel->valueBlue);
 	}
 
 	// send command message
@@ -275,7 +285,7 @@ bool JsonConnection::parseReply(const Json::Value &reply)
 
 	if (!success)
 	{
-		throw std::runtime_error("Error while executing command: " + reason);
+		throw std::runtime_error("Error: " + reason);
 	}
 
 	return success;

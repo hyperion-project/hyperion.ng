@@ -26,7 +26,7 @@ public:
 		std::vector<RgbColor> ledColors;
 	};
 
-	PriorityMuxer();
+	PriorityMuxer(int ledCount);
 
 	~PriorityMuxer();
 
@@ -47,9 +47,11 @@ public:
 	void setCurrentTime(const int64_t& now);
 
 private:
-	int mCurrentPriority;
+	int _currentPriority;
 
-	QMap<int, InputInfo> mActiveInputs;
+	QMap<int, InputInfo> _activeInputs;
 
-	const static int MAX_PRIORITY = std::numeric_limits<int>::max();
+	InputInfo _lowestPriorityInfo;
+
+	const static int LOWEST_PRIORITY = std::numeric_limits<int>::max();
 };

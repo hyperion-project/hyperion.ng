@@ -21,6 +21,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.h
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.h
 		${CURRENT_SOURCE_DIR}/ColorTransform.h
+		${CURRENT_SOURCE_DIR}/HsvTransform.h
 )
 
 SET(Hyperion_SOURCES
@@ -36,6 +37,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.cpp
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.cpp
 		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
+		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
 )
 
 set(Hyperion_RESOURCES

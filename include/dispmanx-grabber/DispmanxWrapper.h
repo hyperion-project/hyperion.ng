@@ -39,7 +39,7 @@ public slots:
 private:
 	const int _updateInterval_ms;
 	const int _timeout_ms;
-
+	const int _priority;
 
 	QTimer _timer;
 

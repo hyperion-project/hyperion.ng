@@ -8,8 +8,7 @@
 #include <hyperion/ImageProcessorFactory.h>
 
 // Forward class declaration
-namespace hyperion { class ImageToLedsMap;
-					 class ColorTransform; }
+namespace hyperion { class ImageToLedsMap; }
 
 /**
  * The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is

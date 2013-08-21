@@ -37,12 +37,12 @@ uint16_t JsonServer::getPort() const
 
 void JsonServer::newConnection()
 {
-	std::cout << "New incoming json connection" << std::endl;
 	QTcpSocket * socket = _server.nextPendingConnection();
 
 	if (socket != nullptr)
 	{
-		JsonClientConnection * connection = new JsonClientConnection(socket);
+		std::cout << "New json connection" << std::endl;
+		JsonClientConnection * connection = new JsonClientConnection(socket, _hyperion);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

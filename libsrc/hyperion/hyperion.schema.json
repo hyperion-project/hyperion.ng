@@ -33,15 +33,28 @@
 			"type":"object",
 			"required":true,
 			"properties": {
+				"hsv" : {
+					"type" : "object",
+					"required" : true,
+					"properties" : {
+						"saturationGain" : {
+							"type" : "number",
+							"required" : true,
+							"minimum" : 0.0
+						},
+						"valueGain" : {
+							"type" : "number",
+							"required" : true,
+							"minimum" : 0.0
+						}
+					},
+					"additionalProperties" : false
+				},
 				"red": {
 					"type":"object",
 					"required":true,
 					"properties":{
 						"gamma": {
-							"type":"number",
-							"required":true
-						},
-						"adjust": {
 							"type":"number",
 							"required":true
 						},
@@ -55,7 +68,9 @@
 						},
 						"threshold": {
 							"type":"number",
-							"required":true
+							"required":true,
+							"minimum" : 0.0,
+							"maximum" : 1.0
 						}
 					}
 				},
@@ -67,13 +82,19 @@
 							"type":"number",
 							"required":true
 						},
-						"adjust": {
-							"type":"number",
-							"required":true
-						},
 						"blacklevel": {
 							"type":"number",
 							"required":true
+						},
+						"whitelevel": {
+							"type":"number",
+							"required":true
+						},
+						"threshold": {
+							"type":"number",
+							"required":true,
+							"minimum" : 0.0,
+							"maximum" : 1.0
 						}
 					}
 				},
@@ -85,13 +106,19 @@
 							"type":"number",
 							"required":true
 						},
-						"adjust": {
+						"whitelevel": {
 							"type":"number",
 							"required":true
 						},
 						"blacklevel": {
 							"type":"number",
 							"required":true
+						},
+						"threshold": {
+							"type":"number",
+							"required":true,
+							"minimum" : 0.0,
+							"maximum" : 1.0
 						}
 					}
 				}
