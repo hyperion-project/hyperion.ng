@@ -19,6 +19,8 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 		// Obtain the display information
 		DISPMANX_MODEINFO_T vc_info;
 		int result = vc_dispmanx_display_get_info(_vc_display, &vc_info);
+		// Keep compiler happy in 'release' mode
+		(void)result;
 		assert(result == 0);
 		std::cout << "Display opened with resolution: " << vc_info.width << "x" << vc_info.height << std::endl;
 
