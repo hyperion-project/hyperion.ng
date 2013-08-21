@@ -30,7 +30,7 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 	delete mImageToLeds;
 
 	// Construct a new buffer and mapping
-	mImageToLeds = new ImageToLedsMap(width, height, mLedString.leds());
+	mImageToLeds = new ImageToLedsMap(width, height, 0, 0, mLedString.leds());
 }
 
 std::vector<RgbColor> ImageProcessor::process(const RgbImage& image)

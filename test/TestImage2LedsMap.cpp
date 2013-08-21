@@ -28,7 +28,7 @@ int main()
 	const RgbColor testColor = {64, 123, 12};
 
 	RgbImage image(64, 64, testColor);
-	ImageToLedsMap map(64, 64, ledString.leds());
+	ImageToLedsMap map(64, 64, 0, 0, ledString.leds());
 
 	std::vector<RgbColor> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);
