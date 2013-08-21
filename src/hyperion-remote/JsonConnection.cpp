@@ -180,25 +180,25 @@ void JsonConnection::setTransform(ColorTransformValues *threshold, ColorTransfor
 	if (gamma != nullptr)
 	{
 		Json::Value & v = transform["gamma"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(gamma->valueRed);
+		v.append(gamma->valueGreen);
+		v.append(gamma->valueBlue);
 	}
 
 	if (blacklevel != nullptr)
 	{
 		Json::Value & v = transform["blacklevel"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(blacklevel->valueRed);
+		v.append(blacklevel->valueGreen);
+		v.append(blacklevel->valueBlue);
 	}
 
 	if (whitelevel != nullptr)
 	{
 		Json::Value & v = transform["whitelevel"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(whitelevel->valueRed);
+		v.append(whitelevel->valueGreen);
+		v.append(whitelevel->valueBlue);
 	}
 
 	// send command message
