@@ -18,6 +18,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.h
+		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.h
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.h
 		${CURRENT_SOURCE_DIR}/ColorTransform.h
 )
@@ -32,6 +33,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
+		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.cpp
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.cpp
 		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
 )

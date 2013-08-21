@@ -1,3 +1,5 @@
+
+// Local-Hyperion includes
 #include "BlackBorderDetector.h"
 
 BlackBorderDetector::BlackBorderDetector()

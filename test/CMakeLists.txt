@@ -34,3 +34,8 @@ add_executable(test_blackborderdetector
 		TestBlackBorderDetector.cpp)
 target_link_libraries(test_blackborderdetector
 		hyperion)
+
+add_executable(test_blackborderprocessor
+		TestBlackBorderProcessor.cpp)
+target_link_libraries(test_blackborderprocessor
+		hyperion)
