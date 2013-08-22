@@ -18,7 +18,7 @@ set(JsonServer_SOURCES
 )
 
 set(JsonServer_RESOURCES
-		${CURRENT_SOURCE_DIR}/resource.qrc
+		${CURRENT_SOURCE_DIR}/JsonSchemas.qrc
 )
 
 qt4_wrap_cpp(JsonServer_HEADERS_MOC ${JsonServer_QT_HEADERS})

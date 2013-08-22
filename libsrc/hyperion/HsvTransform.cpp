@@ -42,7 +42,8 @@ void HsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 {
 	if (_saturationGain != 1.0 || _valueGain != 1.0)
 	{
-		uint8_t hue, saturation, value;
+		uint16_t hue;
+		uint8_t saturation, value;
 		rgb2hsv(red, green, blue, hue, saturation, value);
 
 		int s = saturation * _saturationGain;
@@ -61,7 +62,7 @@ void HsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 	}
 }
 
-void HsvTransform::rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint8_t & hue, uint8_t & saturation, uint8_t & value)
+void HsvTransform::rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, uint8_t & saturation, uint8_t & value)
 {
 	uint8_t rgbMin, rgbMax;
 
@@ -84,14 +85,14 @@ void HsvTransform::rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint8_t & h
 	}
 
 	if (rgbMax == red)
-		hue = 0 + 43 * (green - blue) / (rgbMax - rgbMin);
+		hue = 0 + 60 * (green - blue) / (rgbMax - rgbMin);
 	else if (rgbMax == green)
-		hue = 85 + 43 * (blue - red) / (rgbMax - rgbMin);
+		hue = 120 + 60 * (blue - red) / (rgbMax - rgbMin);
 	else
-		hue = 171 + 43 * (red - green) / (rgbMax - rgbMin);
+		hue = 240 + 60 * (red - green) / (rgbMax - rgbMin);
 }
 
-void HsvTransform::hsv2rgb(uint8_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue)
+void HsvTransform::hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
 	uint8_t region, remainder, p, q, t;
 
@@ -103,8 +104,8 @@ void HsvTransform::hsv2rgb(uint8_t hue, uint8_t saturation, uint8_t value, uint8
 		return;
 	}
 
-	region = hue / 43;
-	remainder = (hue - (region * 43)) * 6;
+	region = hue / 60;
+	remainder = (hue - (region * 60)) * 6;
 
 	p = (value * (255 - saturation)) >> 8;
 	q = (value * (255 - ((saturation * remainder) >> 8))) >> 8;
