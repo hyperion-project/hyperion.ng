@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>hyperion.schema.json</file>
+        <file alias="hyperion-schema">hyperion.schema.json</file>
     </qresource>
 </RCC>

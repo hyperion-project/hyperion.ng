@@ -82,8 +82,11 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 
 Json::Value Hyperion::loadConfig(const std::string& configFile)
 {
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+
 	// read the json schema from the resource
-	QResource schemaData(":/hyperion.schema.json");
+	QResource schemaData(":/hyperion-schema");
 	assert(schemaData.isValid());
 
 	Json::Reader jsonReader;
