@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	const std::string configFile = argv[2];
+	const std::string configFile = argv[1];
 	std::cout << "Selected configuration file: " << configFile.c_str() << std::endl;
 
 	Hyperion hyperion(configFile);
