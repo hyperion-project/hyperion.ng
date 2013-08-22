@@ -1,4 +1,7 @@
 
+// C++ includes
+#include <csignal>
+
 // QT includes
 #include <QCoreApplication>
 
@@ -14,11 +17,19 @@
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
+void signal_handler(const int signum)
+{
+	QCoreApplication::quit();
+}
+
 int main(int argc, char** argv)
 {
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
 	std::cout << "QCoreApplication initialised" << std::endl;
+
+	signal(SIGINT,  signal_handler);
+	signal(SIGTERM, signal_handler);
 
 	if (argc < 2)
 	{
@@ -42,4 +53,9 @@ int main(int argc, char** argv)
 
 	app.exec();
 	std::cout << "Application closed" << std::endl;
+
+	// Stop the frame grabber
+	dispmanx.stop();
+	// Clear all colors (switchting off all leds)
+	hyperion.clearall();
 }
