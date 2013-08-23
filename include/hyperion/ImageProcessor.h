@@ -4,11 +4,15 @@
 // Utils includes
 #include <utils/RgbImage.h>
 
-#include <hyperion/LedString.h>
+// Hyperion includes
 #include <hyperion/ImageProcessorFactory.h>
+#include <hyperion/LedString.h>
 
 // Forward class declaration
-namespace hyperion { class ImageToLedsMap; }
+namespace hyperion {
+	class ImageToLedsMap;
+	class BlackBorderProcessor;
+}
 
 /**
  * The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is
@@ -52,8 +56,14 @@ private:
 
 	ImageProcessor(const LedString &ledString);
 
+	void verifyBorder(const RgbImage& image);
 private:
 	const LedString mLedString;
+
+	bool _enableBlackBorderRemoval;
+
+	/// The processor for black border detection
+	hyperion::BlackBorderProcessor* _borderProcessor;
 
 	hyperion::ImageToLedsMap* mImageToLeds;
 };
