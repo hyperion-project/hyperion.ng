@@ -3,11 +3,13 @@
 
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
-XBMCVideoChecker::XBMCVideoChecker(QString address, uint64_t interval_ms, Hyperion * hyperion, int priority) :
+XBMCVideoChecker::XBMCVideoChecker(QString address, uint16_t port, uint64_t interval_ms, Hyperion * hyperion, int priority) :
 	QObject(),
+	_address(address),
+	_port(port),
+	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":1}"),
 	_timer(),
-	_networkManager(),
-	_request(QUrl(QString("http://%1/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":1}").arg(address))),
+	_socket(),
 	_hyperion(hyperion),
 	_priority(priority)
 {
@@ -16,8 +18,8 @@ XBMCVideoChecker::XBMCVideoChecker(QString address, uint64_t interval_ms, Hyperi
 	_timer.setInterval(interval_ms);
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(sendRequest()));
 
-	//setup network manager
-	connect(&_networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(receiveReply(QNetworkReply*)));
+	// setup socket
+	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
 }
 
 void XBMCVideoChecker::start()
@@ -27,33 +29,39 @@ void XBMCVideoChecker::start()
 
 void XBMCVideoChecker::sendRequest()
 {
-	_networkManager.get(_request);
+	switch (_socket.state())
+	{
+	case QTcpSocket::UnconnectedState:
+		// not connected. try to connect
+		std::cout << "Connecting to " << _address.toStdString() << ":" << _port << " to check XBMC player status" << std::endl;
+		_socket.connectToHost(_address, _port);
+		break;
+	case QTcpSocket::ConnectedState:
+		// write the request on the socket
+		_socket.write(_request);
+		break;
+	default:
+		// whatever. let's check again at the next timer tick
+		break;
+	}
 }
 
-void XBMCVideoChecker::receiveReply(QNetworkReply * reply)
+void XBMCVideoChecker::receiveReply()
 {
-	if (reply->error() != QNetworkReply::NoError)
+	// expect that the reply is received as a single message. Probaly oke considering the size of the expected reply
+	QString reply(_socket.readAll());
+
+	if (reply.contains("playerid"))
 	{
-		std::cerr << "Error while requesting XBMC video info: " << reply->errorString().toStdString() << std::endl;
+		// something is playing. check for "video" to check if a video is playing
+		// clear our priority channel to allow the grabbed vido colors to be shown
+		_hyperion->clear(_priority);
 	}
 	else
 	{
-		const QString jsonReply(reply->readAll());
-		if (jsonReply.contains("playerid"))
-		{
-			// something is playing. check for "video" to check if a video is playing
-			// clear our priority channel to allow the grabbed vido colors to be shown
-			_hyperion->clear(_priority);
-		}
-		else
-		{
-			// Nothing is playing. set our priority channel completely to black
-			// The timeout is used to have the channel cleared after 30 seconds of connection problems...
-			_hyperion->setColor(_priority, RgbColor::BLACK, 30000);
-		}
+		// Nothing is playing. set our priority channel completely to black
+		// The timeout is used to have the channel cleared after 30 seconds of connection problems...
+		_hyperion->setColor(_priority, RgbColor::BLACK, 30000);
 	}
-
-	// close reply
-	reply->close();
 }
 

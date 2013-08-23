@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 	RainbowBootSequence bootSequence(&hyperion);
 	bootSequence.start();
 
-	XBMCVideoChecker xbmcVideoChecker("127.0.0.1", 1000, &hyperion, 127);
+	XBMCVideoChecker xbmcVideoChecker("127.0.0.1", 9090, 1000, &hyperion, 999);
 	xbmcVideoChecker.start();
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);

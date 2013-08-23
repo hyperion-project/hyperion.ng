@@ -8,36 +8,43 @@
 // QT includes
 #include <QTimer>
 #include <QString>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QTcpSocket>
+#include <QByteArray>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+/// Check if XBMC is playing something. When it does not, this class will send all black data Hyperion to
+/// override (grabbed) data with a lower priority
+///
+/// Note: The json TCP server needs to be enabled manually in XBMC in System/Settings/Network/Services
 class XBMCVideoChecker : public QObject
 {
 Q_OBJECT
 
 public:
-	XBMCVideoChecker(QString address, uint64_t interval, Hyperion * hyperion, int priority);
+	XBMCVideoChecker(QString address, uint16_t port, uint64_t interval, Hyperion * hyperion, int priority);
 
 	void start();
 
 private slots:
 	void sendRequest();
 
-	void receiveReply(QNetworkReply * reply);
+	void receiveReply();
 
 private:
+	const QString _address;
+
+	const uint16_t _port;
+
+	const QByteArray _request;
+
 	QTimer _timer;
 
-	QNetworkAccessManager _networkManager;
-
-	QNetworkRequest _request;
+	QTcpSocket _socket;
 
 	Hyperion * _hyperion;
 
-	int _priority;
+	const int _priority;
 };
 
