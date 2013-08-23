@@ -3,9 +3,6 @@
 // STL includes
 #include <cstdint>
 
-namespace hyperion
-{
-
 /// Transform for a single color byte value
 ///
 /// Transforms are applied in the following order:
@@ -51,5 +48,3 @@ private:
 
 	uint8_t _mapping[256];
 };
-
-} // end namespace hyperion

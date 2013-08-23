@@ -1,9 +1,7 @@
 // STL includes
 #include <cmath>
 
-#include "ColorTransform.h"
-
-using namespace hyperion;
+#include <utils/ColorTransform.h>
 
 ColorTransform::ColorTransform() :
 	_threshold(0),

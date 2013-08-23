@@ -10,6 +10,7 @@
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
+#include <bootsequence/RainbowBootSequence.h>
 
 // Dispmanx grabber includes
 #include <dispmanx-grabber/DispmanxWrapper.h>
@@ -43,6 +44,9 @@ int main(int argc, char** argv)
 
 	Hyperion hyperion(configFile);
 	std::cout << "Hyperion created and initialised" << std::endl;
+
+	RainbowBootSequence bootSequence(&hyperion);
+	bootSequence.start();
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
 	dispmanx.start();

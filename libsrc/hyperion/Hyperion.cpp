@@ -13,10 +13,9 @@
 
 #include "LedDeviceWs2801.h"
 #include "LedDeviceTest.h"
-#include "ColorTransform.h"
-#include "HsvTransform.h"
 
-using namespace hyperion;
+#include <utils/ColorTransform.h>
+#include <utils/HsvTransform.h>
 
 LedDevice* constructDevice(const Json::Value& deviceConfig)
 {

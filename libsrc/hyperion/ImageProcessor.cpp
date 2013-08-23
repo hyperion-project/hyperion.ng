@@ -2,9 +2,10 @@
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
 
+#include <utils/ColorTransform.h>
+
 // Local-Hyperion includes
 #include "BlackBorderProcessor.h"
-#include "ColorTransform.h"
 #include "ImageToLedsMap.h"
 
 using namespace hyperion;

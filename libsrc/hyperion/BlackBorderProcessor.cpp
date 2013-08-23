@@ -13,7 +13,7 @@ BlackBorderProcessor::BlackBorderProcessor(
 	_blurRemoveCnt(blurRemoveCnt),
 	_detector(),
 	_currentBorder({BlackBorder::unknown, 0}),
-	_lastDetectedBorder({BlackBorder::unknown, 0}),
+	_previousDetectedBorder({BlackBorder::unknown, 0}),
 	_consistentCnt(0)
 {
 }
@@ -32,35 +32,50 @@ bool BlackBorderProcessor::process(const RgbImage& image)
 {
 	const BlackBorder imageBorder = _detector.process(image);
 
-	if (imageBorder.type == _lastDetectedBorder.type && imageBorder.size == _lastDetectedBorder.size)
+	if (imageBorder == _previousDetectedBorder)
 	{
 		++_consistentCnt;
 	}
 	else
 	{
-		_lastDetectedBorder = imageBorder;
-		_consistentCnt      = 0;
+		_previousDetectedBorder = imageBorder;
+		_consistentCnt          = 0;
+	}
+
+	if (_currentBorder == imageBorder)
+	{
+		// No change required
+		return false;
 	}
 
 	bool borderChanged = false;
-	switch (_lastDetectedBorder.type)
+	switch (imageBorder.type)
 	{
 	case BlackBorder::none:
-		borderChanged = (_currentBorder.type != BlackBorder::none);
-		_currentBorder = _lastDetectedBorder;
+		if (_consistentCnt == 0)
+		{
+			_currentBorder = imageBorder;
+			borderChanged = true;
+		}
 		break;
 	case BlackBorder::horizontal:
-	case BlackBorder::vertical:
-		if (_consistentCnt == _borderSwitchCnt)
+		if (_currentBorder.type == BlackBorder::vertical || imageBorder.size < _currentBorder.size || _consistentCnt == _borderSwitchCnt)
 		{
-			_currentBorder = _lastDetectedBorder;
+			_currentBorder = imageBorder;
+			borderChanged = true;
+		}
+		break;
+	case BlackBorder::vertical:
+		if (_currentBorder.type == BlackBorder::horizontal || imageBorder.size < _currentBorder.size || _consistentCnt == _borderSwitchCnt)
+		{
+			_currentBorder = imageBorder;
 			borderChanged = true;
 		}
 		break;
 	case BlackBorder::unknown:
 		if (_consistentCnt == _unknownSwitchCnt)
 		{
-			_currentBorder = _lastDetectedBorder;
+			_currentBorder = imageBorder;
 			borderChanged = true;
 		}
 		break;

@@ -1,6 +1,4 @@
-#include "HsvTransform.h"
-
-using namespace hyperion;
+#include <utils/HsvTransform.h>
 
 HsvTransform::HsvTransform() :
 	_saturationGain(1.0),

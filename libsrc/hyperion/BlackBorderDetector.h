@@ -27,6 +27,28 @@ namespace hyperion
 
 		/// The size of detected border (negative if not applicable)
 		int size;
+
+		///
+		/// Compares this BlackBorder to the given other BlackBorder
+		///
+		/// @param[in] other  The other BlackBorder
+		///
+		/// @return True if this is the same border as other
+		///
+		inline bool operator== (const BlackBorder& other) const
+		{
+			switch (type)
+			{
+			case none:
+			case unknown:
+				return other.type == type;
+			case horizontal:
+			case vertical:
+				return type == other.type && size == other.size;
+			}
+
+			return false;
+		}
 	};
 
 	///

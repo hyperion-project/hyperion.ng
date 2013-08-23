@@ -2,9 +2,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <../../libsrc/hyperion/ColorTransform.h>
-
-using namespace hyperion;
+#include <utils/ColorTransform.h>
 
 int main()
 {

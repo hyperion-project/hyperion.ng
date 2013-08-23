@@ -16,10 +16,8 @@
 #include <hyperion/PriorityMuxer.h>
 
 // Forward class declaration
-namespace hyperion {
-	class HsvTransform;
-	class ColorTransform;
-}
+class HsvTransform;
+class ColorTransform;
 
 class Hyperion : public QObject
 {
@@ -74,10 +72,10 @@ private:
 
 	PriorityMuxer _muxer;
 
-	hyperion::HsvTransform * _hsvTransform;
-	hyperion::ColorTransform * _redTransform;
-	hyperion::ColorTransform * _greenTransform;
-	hyperion::ColorTransform * _blueTransform;
+	HsvTransform * _hsvTransform;
+	ColorTransform * _redTransform;
+	ColorTransform * _greenTransform;
+	ColorTransform * _blueTransform;
 
 	LedDevice* _device;
 

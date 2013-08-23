@@ -30,7 +30,7 @@ namespace hyperion
 
 		BlackBorder _currentBorder;
 
-		BlackBorder _lastDetectedBorder;
+		BlackBorder _previousDetectedBorder;
 
 		unsigned _consistentCnt;
 	};
