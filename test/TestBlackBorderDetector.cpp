@@ -5,6 +5,8 @@
 // Hyperion includes
 #include "hyperion/BlackBorderDetector.h"
 
+using namespace hyperion;
+
 RgbColor randomColor()
 {
 	const uint8_t randomRedValue   = uint8_t(rand() % (std::numeric_limits<uint8_t>::max() + 1));

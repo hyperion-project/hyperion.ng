@@ -1,8 +1,16 @@
+
+// Local-Hyperion includes
 #include "BlackBorderProcessor.h"
 
-BlackBorderProcessor::BlackBorderProcessor() :
-	_unknownSwitchCnt(600),
-	_borderSwitchCnt(50),
+using namespace hyperion;
+
+BlackBorderProcessor::BlackBorderProcessor(
+		const unsigned unknownFrameCnt,
+		const unsigned borderFrameCnt,
+		const unsigned blurRemoveCnt) :
+	_unknownSwitchCnt(unknownFrameCnt),
+	_borderSwitchCnt(borderFrameCnt),
+	_blurRemoveCnt(blurRemoveCnt),
 	_detector(),
 	_currentBorder({BlackBorder::unknown, 0}),
 	_lastDetectedBorder({BlackBorder::unknown, 0}),
@@ -12,6 +20,11 @@ BlackBorderProcessor::BlackBorderProcessor() :
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
 {
+	if (_currentBorder.size > 0)
+	{
+		return {_currentBorder.type, _currentBorder.size+int(_blurRemoveCnt)};
+	}
+
 	return _currentBorder;
 }
 

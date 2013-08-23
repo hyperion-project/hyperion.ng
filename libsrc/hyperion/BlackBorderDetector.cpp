@@ -2,6 +2,8 @@
 // Local-Hyperion includes
 #include "BlackBorderDetector.h"
 
+using namespace hyperion;
+
 BlackBorderDetector::BlackBorderDetector()
 {
 	// empty

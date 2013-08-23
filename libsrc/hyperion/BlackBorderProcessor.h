@@ -4,27 +4,34 @@
 // Local Hyperion includes
 #include "BlackBorderDetector.h"
 
-class BlackBorderProcessor
+namespace hyperion
 {
-public:
-	BlackBorderProcessor();
+	class BlackBorderProcessor
+	{
+	public:
+		BlackBorderProcessor(
+				const unsigned unknownFrameCnt,
+				const unsigned borderFrameCnt,
+				const unsigned blurRemoveCnt);
 
-	BlackBorder getCurrentBorder() const;
+		BlackBorder getCurrentBorder() const;
 
-	bool process(const RgbImage& image);
+		bool process(const RgbImage& image);
 
-private:
+	private:
 
-	const unsigned _unknownSwitchCnt;
+		const unsigned _unknownSwitchCnt;
 
-	const unsigned _borderSwitchCnt;
+		const unsigned _borderSwitchCnt;
 
-	BlackBorderDetector _detector;
+		unsigned _blurRemoveCnt;
 
-	BlackBorder _currentBorder;
+		BlackBorderDetector _detector;
 
-	BlackBorder _lastDetectedBorder;
+		BlackBorder _currentBorder;
 
-	unsigned _consistentCnt;
-};
+		BlackBorder _lastDetectedBorder;
 
+		unsigned _consistentCnt;
+	};
+} // end namespace hyperion

@@ -5,7 +5,10 @@
 // Utils includes
 #include <utils/RgbImage.h>
 
+// Local-Hyperion includes
 #include "hyperion/BlackBorderProcessor.h"
+
+using namespace hyperion;
 
 RgbColor randomColor()
 {
@@ -40,8 +43,9 @@ int main()
 {
 	unsigned unknownCnt = 600;
 	unsigned borderCnt  = 50;
+	unsigned blurCnt    = 0;
 
-	BlackBorderProcessor processor;
+	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt);
 
 	// Start with 'no border' detection
 	RgbImage noBorderImage = createImage(64, 64, 0, 0);
