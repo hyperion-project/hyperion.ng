@@ -15,6 +15,9 @@
 // Dispmanx grabber includes
 #include <dispmanx-grabber/DispmanxWrapper.h>
 
+// XBMC Video checker includes
+#include <xbmcvideochecker/XBMCVideoChecker.h>
+
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
@@ -47,6 +50,9 @@ int main(int argc, char** argv)
 
 	RainbowBootSequence bootSequence(&hyperion);
 	bootSequence.start();
+
+	XBMCVideoChecker xbmcVideoChecker("127.0.0.1", 1000, &hyperion, 127);
+	xbmcVideoChecker.start();
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
 	dispmanx.start();
