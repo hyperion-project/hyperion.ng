@@ -23,7 +23,7 @@ class XBMCVideoChecker : public QObject
 Q_OBJECT
 
 public:
-	XBMCVideoChecker(QString address, uint16_t port, uint64_t interval, Hyperion * hyperion, int priority);
+	XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval, Hyperion * hyperion, int priority);
 
 	void start();
 

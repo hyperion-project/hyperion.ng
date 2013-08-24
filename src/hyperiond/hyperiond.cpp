@@ -4,6 +4,7 @@
 
 // QT includes
 #include <QCoreApplication>
+#include <QResource>
 
 // Json-Schema includes
 #include <utils/jsonschema/JsonFactory.h>
@@ -26,6 +27,30 @@ void signal_handler(const int signum)
 	QCoreApplication::quit();
 }
 
+Json::Value loadConfig(const std::string & configFile)
+{
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion-schema");
+	assert(schemaData.isValid());
+
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+	}
+	JsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson);
+
+	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
+	schemaChecker.validate(jsonConfig);
+
+	return jsonConfig;
+}
+
 int main(int argc, char** argv)
 {
 	// Initialising QCoreApplication
@@ -44,15 +69,21 @@ int main(int argc, char** argv)
 
 	const std::string configFile = argv[1];
 	std::cout << "Selected configuration file: " << configFile.c_str() << std::endl;
+	const Json::Value config = loadConfig(configFile);
 
-	Hyperion hyperion(configFile);
+	Hyperion hyperion(config);
 	std::cout << "Hyperion created and initialised" << std::endl;
 
 	RainbowBootSequence bootSequence(&hyperion);
 	bootSequence.start();
 
-	XBMCVideoChecker xbmcVideoChecker("127.0.0.1", 9090, 1000, &hyperion, 999);
-	xbmcVideoChecker.start();
+	const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
+	XBMCVideoChecker xbmcVideoChecker(videoCheckerConfig["xbmcAddress"].asString(), videoCheckerConfig["xbmcTcpPort"].asUInt(), 1000, &hyperion, 999);
+	if (videoCheckerConfig["enable"].asBool())
+	{
+		xbmcVideoChecker.start();
+		std::cout << "XBMC video checker created and started" << std::endl;
+	}
 
 	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
 	dispmanx.start();
@@ -61,11 +92,14 @@ int main(int argc, char** argv)
 	JsonServer jsonServer(&hyperion);
 	std::cout << "Json server created and started on port " << jsonServer.getPort() << std::endl;
 
-	app.exec();
-	std::cout << "Application closed" << std::endl;
+	// run the application
+	int rc = app.exec();
 
+	std::cout << "Application closed" << std::endl;
 	// Stop the frame grabber
 	dispmanx.stop();
 	// Clear all colors (switchting off all leds)
 	hyperion.clearall();
+
+	return rc;
 }

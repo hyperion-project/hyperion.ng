@@ -1,7 +1,6 @@
 
 // QT includes
 #include <QDateTime>
-#include <QResource>
 
 // JsonSchema include
 #include <utils/jsonschema/JsonFactory.h>
@@ -17,7 +16,7 @@
 #include <utils/ColorTransform.h>
 #include <utils/HsvTransform.h>
 
-LedDevice* constructDevice(const Json::Value& deviceConfig)
+LedDevice* Hyperion::constructDevice(const Json::Value& deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
 	LedDevice* device = nullptr;
@@ -44,12 +43,12 @@ LedDevice* constructDevice(const Json::Value& deviceConfig)
 	return device;
 }
 
-HsvTransform * createHsvTransform(const Json::Value & hsvConfig)
+HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
 {
 	return new HsvTransform(hsvConfig["saturationGain"].asDouble(), hsvConfig["valueGain"].asDouble());
 }
 
-ColorTransform* createColorTransform(const Json::Value& colorConfig)
+ColorTransform* Hyperion::createColorTransform(const Json::Value& colorConfig)
 {
 	const double threshold  = colorConfig["threshold"].asDouble();
 	const double gamma      = colorConfig["gamma"].asDouble();
@@ -77,36 +76,6 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 		ledString.leds().push_back(led);
 	}
 	return ledString;
-}
-
-Json::Value Hyperion::loadConfig(const std::string& configFile)
-{
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	assert(schemaData.isValid());
-
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
-
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
-}
-
-Hyperion::Hyperion(const std::string& configFile) :
-	Hyperion(loadConfig(configFile))
-{
-	// empty
 }
 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :

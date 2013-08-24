@@ -35,11 +35,6 @@ public:
 		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
-	static LedString createLedString(const Json::Value& ledsConfig);
-
-	static Json::Value loadConfig(const std::string& configFile);
-
-	Hyperion(const std::string& configFile);
 	Hyperion(const Json::Value& jsonConfig);
 
 	~Hyperion();
@@ -61,6 +56,11 @@ public:
 	QList<int> getActivePriorities() const;
 
 	const InputInfo& getPriorityInfo(const int priority) const;
+
+	static LedDevice* constructDevice(const Json::Value & deviceConfig);
+	static LedString createLedString(const Json::Value & ledsConfig);
+	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
+	static ColorTransform* createColorTransform(const Json::Value & colorConfig);
 
 private slots:
 	void update();

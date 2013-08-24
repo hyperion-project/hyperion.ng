@@ -1,169 +1,190 @@
 {
-	"type":"object",
-	"required":true,
-	"properties":{
-		"device": {
-			"type":"object",
-			"required":true,
-			"properties":{
-				"name": {
-					"type":"string",
-					"required":true
-				},
-				"type": {
-					"type":"string",
-					"required":true
-				},
-				"output": {
-					"type":"string",
-					"required":true
-				},
-				"interval": {
-					"type":"integer",
-					"required":true
-				},
-				"rate": {
-					"type":"integer",
-					"required":true
-				}
-			},
-			"additionalProperties": false
-		},
-		"color": {
-			"type":"object",
-			"required":true,
-			"properties": {
-				"hsv" : {
-					"type" : "object",
-					"required" : true,
-					"properties" : {
-						"saturationGain" : {
-							"type" : "number",
-							"required" : true,
-							"minimum" : 0.0
-						},
-						"valueGain" : {
-							"type" : "number",
-							"required" : true,
-							"minimum" : 0.0
-						}
-					},
-					"additionalProperties" : false
-				},
-				"red": {
-					"type":"object",
-					"required":true,
-					"properties":{
-						"gamma": {
-							"type":"number",
-							"required":true
-						},
-						"blacklevel": {
-							"type":"number",
-							"required":true
-						},
-						"whitelevel": {
-							"type":"number",
-							"required":true
-						},
-						"threshold": {
-							"type":"number",
-							"required":true,
-							"minimum" : 0.0,
-							"maximum" : 1.0
-						}
-					}
-				},
-				"green": {
-					"type":"object",
-					"required":true,
-					"properties":{
-						"gamma": {
-							"type":"number",
-							"required":true
-						},
-						"blacklevel": {
-							"type":"number",
-							"required":true
-						},
-						"whitelevel": {
-							"type":"number",
-							"required":true
-						},
-						"threshold": {
-							"type":"number",
-							"required":true,
-							"minimum" : 0.0,
-							"maximum" : 1.0
-						}
-					}
-				},
-				"blue": {
-					"type":"object",
-					"required":true,
-					"properties":{
-						"gamma": {
-							"type":"number",
-							"required":true
-						},
-						"whitelevel": {
-							"type":"number",
-							"required":true
-						},
-						"blacklevel": {
-							"type":"number",
-							"required":true
-						},
-						"threshold": {
-							"type":"number",
-							"required":true,
-							"minimum" : 0.0,
-							"maximum" : 1.0
-						}
-					}
-				}
-			}
-		},
-		"leds": {
-			"type":"array",
-			"required":true,
-			"items": {
-				"type":"object",
-				"properties": {
-					"index": {
-						"type":"integer",
-						"required":true
-					},
-					"hscan": {
-						"type":"object",
-						"required":true,
-						"properties": {
-							"minimum": {
-								"type":"number",
-								"required":true
-							},
-							"maximum": {
-								"type":"number",
-								"required":true
-							}
-						}
-					},
-					"vscan": {
-						"type":"object",
-						"required":true,
-						"properties": {
-							"minimum": {
-								"type":"number",
-								"required":true
-							},
-							"maximum": {
-								"type":"number",
-								"required":true
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+    "type":"object",
+    "required":true,
+    "properties":{
+        "device": {
+            "type":"object",
+            "required":true,
+            "properties":{
+                "name": {
+                    "type":"string",
+                    "required":true
+                },
+                "type": {
+                    "type":"string",
+                    "required":true
+                },
+                "output": {
+                    "type":"string",
+                    "required":true
+                },
+                "interval": {
+                    "type":"integer",
+                    "required":true
+                },
+                "rate": {
+                    "type":"integer",
+                    "required":true
+                }
+            },
+            "additionalProperties": false
+        },
+        "color": {
+            "type":"object",
+            "required":true,
+            "properties": {
+                "hsv" : {
+                    "type" : "object",
+                    "required" : true,
+                    "properties" : {
+                        "saturationGain" : {
+                            "type" : "number",
+                            "required" : true,
+                            "minimum" : 0.0
+                        },
+                        "valueGain" : {
+                            "type" : "number",
+                            "required" : true,
+                            "minimum" : 0.0
+                        }
+                    },
+                    "additionalProperties" : false
+                },
+                "red": {
+                    "type":"object",
+                    "required":true,
+                    "properties":{
+                        "gamma": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "blacklevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "whitelevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "threshold": {
+                            "type":"number",
+                            "required":true,
+                            "minimum" : 0.0,
+                            "maximum" : 1.0
+                        }
+                    }
+                },
+                "green": {
+                    "type":"object",
+                    "required":true,
+                    "properties":{
+                        "gamma": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "blacklevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "whitelevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "threshold": {
+                            "type":"number",
+                            "required":true,
+                            "minimum" : 0.0,
+                            "maximum" : 1.0
+                        }
+                    }
+                },
+                "blue": {
+                    "type":"object",
+                    "required":true,
+                    "properties":{
+                        "gamma": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "whitelevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "blacklevel": {
+                            "type":"number",
+                            "required":true
+                        },
+                        "threshold": {
+                            "type":"number",
+                            "required":true,
+                            "minimum" : 0.0,
+                            "maximum" : 1.0
+                        }
+                    }
+                }
+            }
+        },
+        "leds": {
+            "type":"array",
+            "required":true,
+            "items": {
+                "type":"object",
+                "properties": {
+                    "index": {
+                        "type":"integer",
+                        "required":true
+                    },
+                    "hscan": {
+                        "type":"object",
+                        "required":true,
+                        "properties": {
+                            "minimum": {
+                                "type":"number",
+                                "required":true
+                            },
+                            "maximum": {
+                                "type":"number",
+                                "required":true
+                            }
+                        }
+                    },
+                    "vscan": {
+                        "type":"object",
+                        "required":true,
+                        "properties": {
+                            "minimum": {
+                                "type":"number",
+                                "required":true
+                            },
+                            "maximum": {
+                                "type":"number",
+                                "required":true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "xbmcVideoChecker" :
+        {
+            "type" : "object",
+            "required" : true,
+            "properties" : {
+                "enable" : {
+                    "type" : "boolean",
+                    "required" : true
+                },
+                "xbmcAddress" : {
+                    "type" : "string",
+                    "required" : true
+                },
+                "xbmcTcpPort" : {
+                    "type" : "integer",
+                    "required" : true
+                }
+            },
+            "additionalProperties" : false
+        }
+    },
+    "additionalProperties" : false
 }

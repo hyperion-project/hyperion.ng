@@ -3,9 +3,9 @@
 
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
-XBMCVideoChecker::XBMCVideoChecker(QString address, uint16_t port, uint64_t interval_ms, Hyperion * hyperion, int priority) :
+XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval_ms, Hyperion * hyperion, int priority) :
 	QObject(),
-	_address(address),
+	_address(QString::fromStdString(address)),
 	_port(port),
 	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":1}"),
 	_timer(),
@@ -48,7 +48,7 @@ void XBMCVideoChecker::sendRequest()
 
 void XBMCVideoChecker::receiveReply()
 {
-	// expect that the reply is received as a single message. Probaly oke considering the size of the expected reply
+	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
 
 	if (reply.contains("playerid"))
