@@ -1,9 +1,11 @@
 
+// Utils includes
 #include <utils/HsvTransform.h>
 
-#include <bootsequence/RainbowBootSequence.h>
+// Local-Bootsequence include
+#include "RainbowBootSequence.h"
 
-RainbowBootSequence::RainbowBootSequence(Hyperion * hyperion) :
+RainbowBootSequence::RainbowBootSequence(Hyperion * hyperion, const unsigned duration_ms) :
 	_timer(),
 	_hyperion(hyperion),
 	_priority(0),
@@ -16,9 +18,7 @@ RainbowBootSequence::RainbowBootSequence(Hyperion * hyperion) :
 		HsvTransform::hsv2rgb(iLed*360/_hyperion->getLedCount(), 255, 255, color.red, color.green, color.blue);
 	}
 
-	unsigned sequenceLength_ms = 3000;
-
-	_timer.setInterval(sequenceLength_ms/_hyperion->getLedCount());
+	_timer.setInterval(duration_ms/_hyperion->getLedCount());
 	_timer.setSingleShot(false);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 }

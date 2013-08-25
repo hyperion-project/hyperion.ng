@@ -11,7 +11,9 @@
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
-#include <bootsequence/RainbowBootSequence.h>
+
+// Bootsequence includes
+#include <bootsequence/BootSequenceFactory.h>
 
 // Dispmanx grabber includes
 #include <dispmanx-grabber/DispmanxWrapper.h>
@@ -74,8 +76,8 @@ int main(int argc, char** argv)
 	Hyperion hyperion(config);
 	std::cout << "Hyperion created and initialised" << std::endl;
 
-	RainbowBootSequence bootSequence(&hyperion);
-	bootSequence.start();
+	BootSequence * bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
+	bootSequence->start();
 
 	const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
 	XBMCVideoChecker xbmcVideoChecker(videoCheckerConfig["xbmcAddress"].asString(), videoCheckerConfig["xbmcTcpPort"].asUInt(), 1000, &hyperion, 999);
@@ -85,7 +87,13 @@ int main(int argc, char** argv)
 		std::cout << "XBMC video checker created and started" << std::endl;
 	}
 
-	DispmanxWrapper dispmanx(64, 64, 10, &hyperion);
+	// Construct and start the frame-grabber
+	const Json::Value & frameGrabberConfig = config["framegrabber"];
+	DispmanxWrapper dispmanx(
+			frameGrabberConfig["width"].asUInt(),
+			frameGrabberConfig["height"].asUInt(),
+			frameGrabberConfig["frequency_Hz"].asUInt(),
+			&hyperion);
 	dispmanx.start();
 	std::cout << "Frame grabber created and started" << std::endl;
 
@@ -94,10 +102,14 @@ int main(int argc, char** argv)
 
 	// run the application
 	int rc = app.exec();
-
 	std::cout << "Application closed" << std::endl;
+
 	// Stop the frame grabber
 	dispmanx.stop();
+
+	// Delete the boot sequence
+	delete bootSequence;
+
 	// Clear all colors (switchting off all leds)
 	hyperion.clearall();
 

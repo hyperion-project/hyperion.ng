@@ -2,302 +2,317 @@
 // Generation script: ./WriteConfig
 
 {
-    "device" :
-    {
-        "name"     : "MyPi",
-        "type"     : "ws2801",
-        "output"   : "/dev/spidev0.0",
-        "interval" : 20000,
-        "rate"     : 48000
-    },
-    "color" :
-    {
-        "hsv" : {
-            "saturationGain" : 1.0,
-            "valueGain"      : 1.0
-        },
-        "red" :
-        {
-            "threshold"  : 0.0,
-            "gamma"      : 1.0,
-            "blacklevel" : 0.0,
-            "whitelevel" : 1.0
-        },
-        "green" :
-        {
-            "threshold"  : 0.0,
-            "gamma"      : 1.0,
-            "blacklevel" : 0.0,
-            "whitelevel" : 1.0
-        },
-        "blue" :
-        {
-            "threshold"  : 0.0,
-            "gamma"      : 1.0,
-            "blacklevel" : 0.0,
-            "whitelevel" : 1.0
-        }
-    },
-    "leds" :
-    [
-        {
-            "index" : 0,
-            "hscan" : { "minimum" : 47.0588, "maximum" : 52.9412 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 1,
-            "hscan" : { "minimum" : 41.1765, "maximum" : 47.0588 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 2,
-            "hscan" : { "minimum" : 35.2941, "maximum" : 41.1765 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 3,
-            "hscan" : { "minimum" : 29.4118, "maximum" : 35.2941 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 4,
-            "hscan" : { "minimum" : 23.5294, "maximum" : 29.4118 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 5,
-            "hscan" : { "minimum" : 17.6471, "maximum" : 23.5294 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 6,
-            "hscan" : { "minimum" : 11.7647, "maximum" : 17.6471 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 7,
-            "hscan" : { "minimum" : 5.88235, "maximum" : 11.7647 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        // TOP-LEFT Corner
-        {
-            "index" : 8,
-            "hscan" : { "minimum" : 0, "maximum" : 5.88235 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 9,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 10, "maximum" : 20 }
-        },
-        {
-            "index" : 10,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 20, "maximum" : 30 }
-        },
-        {
-            "index" : 11,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 30, "maximum" : 40 }
-        },
-        {
-            "index" : 12,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 40, "maximum" : 50 }
-        },
-        {
-            "index" : 13,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 50, "maximum" : 60 }
-        },
-        {
-            "index" : 14,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 60, "maximum" : 70 }
-        },
-        {
-            "index" : 15,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 70, "maximum" : 80 }
-        },
-        {
-            "index" : 16,
-            "hscan" : { "minimum" : 0, "maximum" : 10 },
-            "vscan" : { "minimum" : 80, "maximum" : 90 }
-        },
-        // BOTTOM-LEFT Corner
-        {
-            "index" : 17,
-            "hscan" : { "minimum" : 0, "maximum" : 5.88235 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 18,
-            "hscan" : { "minimum" : 5.88235, "maximum" : 11.7647 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 19,
-            "hscan" : { "minimum" : 11.7647, "maximum" : 17.6471 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 20,
-            "hscan" : { "minimum" : 17.6471, "maximum" : 23.5294 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 21,
-            "hscan" : { "minimum" : 23.5294, "maximum" : 29.4118 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 22,
-            "hscan" : { "minimum" : 29.4118, "maximum" : 35.2941 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 23,
-            "hscan" : { "minimum" : 35.2941, "maximum" : 41.1765 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 24,
-            "hscan" : { "minimum" : 41.1765, "maximum" : 47.0588 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 25,
-            "hscan" : { "minimum" : 47.0588, "maximum" : 52.9412 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 26,
-            "hscan" : { "minimum" : 52.9412, "maximum" : 58.8235 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 27,
-            "hscan" : { "minimum" : 58.8235, "maximum" : 64.7059 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 28,
-            "hscan" : { "minimum" : 64.7059, "maximum" : 70.5882 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 29,
-            "hscan" : { "minimum" : 70.5882, "maximum" : 76.4706 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 30,
-            "hscan" : { "minimum" : 76.4706, "maximum" : 82.3529 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 31,
-            "hscan" : { "minimum" : 82.3529, "maximum" : 88.2353 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 32,
-            "hscan" : { "minimum" : 88.2353, "maximum" : 94.1176 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        // BOTTOM-RIGHT Corner
-        {
-            "index" : 33,
-            "hscan" : { "minimum" : 94.1176, "maximum" : 100 },
-            "vscan" : { "minimum" : 90, "maximum" : 100 }
-        },
-        {
-            "index" : 34,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 80, "maximum" : 90 }
-        },
-        {
-            "index" : 35,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 70, "maximum" : 80 }
-        },
-        {
-            "index" : 36,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 60, "maximum" : 70 }
-        },
-        {
-            "index" : 37,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 50, "maximum" : 60 }
-        },
-        {
-            "index" : 38,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 40, "maximum" : 50 }
-        },
-        {
-            "index" : 39,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 30, "maximum" : 40 }
-        },
-        {
-            "index" : 40,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 20, "maximum" : 30 }
-        },
-        {
-            "index" : 41,
-            "hscan" : { "minimum" : 90, "maximum" : 100 },
-            "vscan" : { "minimum" : 10, "maximum" : 20 }
-        },
-        // TOP-RIGHT Corner
-        {
-            "index" : 42,
-            "hscan" : { "minimum" : 94.1176, "maximum" : 100 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 43,
-            "hscan" : { "minimum" : 88.2353, "maximum" : 94.1176 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 44,
-            "hscan" : { "minimum" : 82.3529, "maximum" : 88.2353 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 45,
-            "hscan" : { "minimum" : 76.4706, "maximum" : 82.3529 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 46,
-            "hscan" : { "minimum" : 70.5882, "maximum" : 76.4706 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 47,
-            "hscan" : { "minimum" : 64.7059, "maximum" : 70.5882 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 48,
-            "hscan" : { "minimum" : 58.8235, "maximum" : 64.7059 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        },
-        {
-            "index" : 49,
-            "hscan" : { "minimum" : 52.9412, "maximum" : 58.8235 },
-            "vscan" : { "minimum" : 0, "maximum" : 10 }
-        }
-    ],
-    "xbmcVideoChecker" : {
-        "enable" : true,
-        "xbmcAddress" : "127.0.0.1",
-        "xbmcTcpPort" : 9090
-    }
+	"device" :
+	{
+		"name"     : "MyPi",
+		"type"     : "ws2801",
+		"output"   : "/dev/spidev0.0",
+		"interval" : 20000,
+		"rate"     : 48000
+	},
+	"color" :
+	{
+		"hsv" : {
+			"saturationGain" : 1.0,
+			"valueGain"      : 1.0
+		},
+		"red" :
+		{
+			"threshold"  : 0.0,
+			"gamma"      : 1.0,
+			"blacklevel" : 0.0,
+			"whitelevel" : 1.0
+		},
+		"green" :
+		{
+			"threshold"  : 0.0,
+			"gamma"      : 1.0,
+			"blacklevel" : 0.0,
+			"whitelevel" : 1.0
+		},
+		"blue" :
+		{
+			"threshold"  : 0.0,
+			"gamma"      : 1.0,
+			"blacklevel" : 0.0,
+			"whitelevel" : 1.0
+		}
+	},
+	"leds" :
+	[
+		{
+			"index" : 0,
+			"hscan" : { "minimum" : 47.0588, "maximum" : 52.9412 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 1,
+			"hscan" : { "minimum" : 41.1765, "maximum" : 47.0588 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 2,
+			"hscan" : { "minimum" : 35.2941, "maximum" : 41.1765 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 3,
+			"hscan" : { "minimum" : 29.4118, "maximum" : 35.2941 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 4,
+			"hscan" : { "minimum" : 23.5294, "maximum" : 29.4118 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 5,
+			"hscan" : { "minimum" : 17.6471, "maximum" : 23.5294 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 6,
+			"hscan" : { "minimum" : 11.7647, "maximum" : 17.6471 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 7,
+			"hscan" : { "minimum" : 5.88235, "maximum" : 11.7647 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		// TOP-LEFT Corner
+		{
+			"index" : 8,
+			"hscan" : { "minimum" : 0, "maximum" : 5.88235 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 9,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 10, "maximum" : 20 }
+		},
+		{
+			"index" : 10,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 20, "maximum" : 30 }
+		},
+		{
+			"index" : 11,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 30, "maximum" : 40 }
+		},
+		{
+			"index" : 12,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 40, "maximum" : 50 }
+		},
+		{
+			"index" : 13,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 50, "maximum" : 60 }
+		},
+		{
+			"index" : 14,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 60, "maximum" : 70 }
+		},
+		{
+			"index" : 15,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 70, "maximum" : 80 }
+		},
+		{
+			"index" : 16,
+			"hscan" : { "minimum" : 0, "maximum" : 10 },
+			"vscan" : { "minimum" : 80, "maximum" : 90 }
+		},
+		// BOTTOM-LEFT Corner
+		{
+			"index" : 17,
+			"hscan" : { "minimum" : 0, "maximum" : 5.88235 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 18,
+			"hscan" : { "minimum" : 5.88235, "maximum" : 11.7647 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 19,
+			"hscan" : { "minimum" : 11.7647, "maximum" : 17.6471 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 20,
+			"hscan" : { "minimum" : 17.6471, "maximum" : 23.5294 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 21,
+			"hscan" : { "minimum" : 23.5294, "maximum" : 29.4118 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 22,
+			"hscan" : { "minimum" : 29.4118, "maximum" : 35.2941 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 23,
+			"hscan" : { "minimum" : 35.2941, "maximum" : 41.1765 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 24,
+			"hscan" : { "minimum" : 41.1765, "maximum" : 47.0588 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 25,
+			"hscan" : { "minimum" : 47.0588, "maximum" : 52.9412 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 26,
+			"hscan" : { "minimum" : 52.9412, "maximum" : 58.8235 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 27,
+			"hscan" : { "minimum" : 58.8235, "maximum" : 64.7059 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 28,
+			"hscan" : { "minimum" : 64.7059, "maximum" : 70.5882 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 29,
+			"hscan" : { "minimum" : 70.5882, "maximum" : 76.4706 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 30,
+			"hscan" : { "minimum" : 76.4706, "maximum" : 82.3529 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 31,
+			"hscan" : { "minimum" : 82.3529, "maximum" : 88.2353 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 32,
+			"hscan" : { "minimum" : 88.2353, "maximum" : 94.1176 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		// BOTTOM-RIGHT Corner
+		{
+			"index" : 33,
+			"hscan" : { "minimum" : 94.1176, "maximum" : 100 },
+			"vscan" : { "minimum" : 90, "maximum" : 100 }
+		},
+		{
+			"index" : 34,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 80, "maximum" : 90 }
+		},
+		{
+			"index" : 35,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 70, "maximum" : 80 }
+		},
+		{
+			"index" : 36,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 60, "maximum" : 70 }
+		},
+		{
+			"index" : 37,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 50, "maximum" : 60 }
+		},
+		{
+			"index" : 38,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 40, "maximum" : 50 }
+		},
+		{
+			"index" : 39,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 30, "maximum" : 40 }
+		},
+		{
+			"index" : 40,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 20, "maximum" : 30 }
+		},
+		{
+			"index" : 41,
+			"hscan" : { "minimum" : 90, "maximum" : 100 },
+			"vscan" : { "minimum" : 10, "maximum" : 20 }
+		},
+		// TOP-RIGHT Corner
+		{
+			"index" : 42,
+			"hscan" : { "minimum" : 94.1176, "maximum" : 100 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 43,
+			"hscan" : { "minimum" : 88.2353, "maximum" : 94.1176 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 44,
+			"hscan" : { "minimum" : 82.3529, "maximum" : 88.2353 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 45,
+			"hscan" : { "minimum" : 76.4706, "maximum" : 82.3529 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 46,
+			"hscan" : { "minimum" : 70.5882, "maximum" : 76.4706 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 47,
+			"hscan" : { "minimum" : 64.7059, "maximum" : 70.5882 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 48,
+			"hscan" : { "minimum" : 58.8235, "maximum" : 64.7059 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		},
+		{
+			"index" : 49,
+			"hscan" : { "minimum" : 52.9412, "maximum" : 58.8235 },
+			"vscan" : { "minimum" : 0, "maximum" : 10 }
+		}
+	],
+
+	"xbmcVideoChecker" : {
+		"enable" : true,
+		"xbmcAddress" : "127.0.0.1",
+		"xbmcTcpPort" : 9090
+	},
+
+	"bootsequence" :
+	{
+		"type"        : "rainbow",
+		"duration_ms" : 3000
+	},
+
+	"framegrabber" :
+	{
+		"width"        : 64,
+		"height"       : 64,
+		"frequency_Hz" : 10
+	}
+
 }
