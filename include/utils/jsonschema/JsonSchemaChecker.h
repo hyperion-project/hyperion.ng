@@ -7,30 +7,47 @@
 // jsoncpp includes
 #include <json/json.h>
 
-/**
- * JsonSchemaChecker is a very basic implementation of json schema.
- * The json schema definition draft can be found at
- * http://tools.ietf.org/html/draft-zyp-json-schema-03
- *
- * The following keywords are supported:
- * - type
- * - required
- * - properties
- * - items
- * - enum
- * - minimum
- * - maximum
- */
+
+/// JsonSchemaChecker is a very basic implementation of json schema.
+/// The json schema definition draft can be found at
+/// http://tools.ietf.org/html/draft-zyp-json-schema-03
+///
+/// The following keywords are supported:
+/// - type
+/// - required
+/// - properties
+/// - items
+/// - enum
+/// - minimum
+/// - maximum
+/// - addtionalProperties
+/// - minItems
+/// - maxItems
+///
+/// And the non-standard:
+/// - dependencies
 class JsonSchemaChecker
 {
 public:
 	JsonSchemaChecker();
 	virtual ~JsonSchemaChecker();
 
+	///
+	/// @param The schema to use
+	/// @return true upon succes
+	///
 	bool setSchema(const Json::Value & schema);
 
+	///
+	/// @brief Validate a JSON structure
+	/// @param The JSON value to check
+	/// @return true when the arguments is valid according to the schema
+	///
 	bool validate(const Json::Value & value);
 
+	///
+	/// @return A list of error messages
+	///
 	const std::list<std::string> & getMessages() const;
 
 private:

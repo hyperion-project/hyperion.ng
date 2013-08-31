@@ -15,29 +15,53 @@
 class ColorTransform
 {
 public:
+	/// @brief Default constructor
 	ColorTransform();
+
+	/// @brief Constructor
+	/// @param threshold
+	/// @param gamma
+	/// @param blacklevel
+	/// @param whitelevel
 	ColorTransform(double threshold, double gamma, double blacklevel, double whitelevel);
+
+	/// @brief Destructor
 	~ColorTransform();
 
+	/// @return The current threshold value
 	double getThreshold() const;
+
+	/// @param threshold New threshold value
 	void setThreshold(double threshold);
 
+	/// @return The current gamma value
 	double getGamma() const;
+
+	/// @param gamma New gamma value
 	void setGamma(double gamma);
 
+	/// @return The current blacklevel value
 	double getBlacklevel() const;
+
+	/// @param blacklevel New blacklevel value
 	void setBlacklevel(double blacklevel);
 
+	/// @return The current whitelevel value
 	double getWhitelevel() const;
+
+	/// @param whitelevel New whitelevel value
 	void setWhitelevel(double whitelevel);
 
-	/// get the transformed value for the given byte value
+	/// @brief Transform the given byte value
+	/// @param input The input color byte
+	/// @return The transformed byte value
 	uint8_t transform(uint8_t input) const
 	{
 		return _mapping[input];
 	}
 
 private:
+	/// @brief (re)-initilize the color mapping
 	void initializeMapping();
 
 private:

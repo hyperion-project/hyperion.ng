@@ -10,11 +10,14 @@
 // hyperion-remote includes
 #include "ColorTransformValues.h"
 
-
+/// Data parameter for a color
 typedef vlofgren::PODParameter<QColor> ColorParameter;
-typedef vlofgren::PODParameter<QImage> ImageParameter;
-typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
 
+/// Data parameter for an image
+typedef vlofgren::PODParameter<QImage> ImageParameter;
+
+/// Data parameter for color transform values (list of three values)
+typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
 
 namespace vlofgren {
 	template<>
