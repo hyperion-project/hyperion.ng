@@ -6,6 +6,9 @@
 // Utility includes
 #include <utils/RgbColor.h>
 
+///
+/// Interface (pure virtual base class) for LedDevices.
+///
 class LedDevice
 {
 public:

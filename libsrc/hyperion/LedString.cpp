@@ -17,6 +17,7 @@ LedString::LedString()
 
 LedString::~LedString()
 {
+	// empty
 }
 
 std::vector<Led>& LedString::leds()
