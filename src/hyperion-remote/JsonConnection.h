@@ -79,6 +79,7 @@ public:
 	/// @param saturation The HSV saturation gain
 	/// @param value The HSV value gain
 	/// @param threshold The threshold
+	/// @param gamma The gamma value
 	/// @param blacklevel The blacklevel
 	/// @param whitelevel The whitelevel
 	///

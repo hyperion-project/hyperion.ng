@@ -413,7 +413,7 @@ void JsonSchemaChecker::checkUniqueItems(const Json::Value & value, const Json::
 	{
 		// only for arrays
 		_error = true;
-		setMessage("maxItems only valid for arrays");
+		setMessage("uniqueItems only valid for arrays");
 		return;
 	}
 

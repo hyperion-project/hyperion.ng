@@ -47,6 +47,7 @@ public:
 	///
 	/// Determines the led colors of the image in the buffer.
 	///
+	/// @param[in] image  The image to translate to led values
 	/// @param[out] ledColors  The color value per led
 	///
 	void process(const RgbImage& image, std::vector<RgbColor>& ledColors);

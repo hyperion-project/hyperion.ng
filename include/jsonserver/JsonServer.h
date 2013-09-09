@@ -43,7 +43,7 @@ private slots:
 
 	///
 	/// Slot which is called when a client closes a connection
-	/// @param The Connection object which is being closed
+	/// @param connection The Connection object which is being closed
 	///
 	void closedConnection(JsonClientConnection * connection);
 

@@ -109,8 +109,6 @@ private:
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
-	/// @param message the incoming message
-	///
 	void handleNotImplemented();
 
 	///

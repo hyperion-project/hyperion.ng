@@ -20,6 +20,15 @@ typedef vlofgren::PODParameter<QImage> ImageParameter;
 typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
 
 namespace vlofgren {
+	///
+	/// Translates a string (as passed on the commandline) to a color
+	///
+	/// @param[in] s The string (as passed on the commandline)
+	///
+	/// @return The translated color
+	///
+	/// @throws Parameter::ParameterRejected If the string did not result in a color
+	///
 	template<>
 	QColor ColorParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
 	{

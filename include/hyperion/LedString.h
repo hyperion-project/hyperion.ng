@@ -15,7 +15,7 @@ namespace Json { class Value; }
 ///
 /// The Led structure contains the definition of the image portion used to determine a single led's
 /// color.
-/// <pre>
+/// @verbatim
 /// |--------------------image--|
 /// | minX  maxX                |
 /// |  |-----|minY              |
@@ -25,7 +25,7 @@ namespace Json { class Value; }
 /// |                           |
 /// |                           |
 /// |---------------------------|
-/// <endpre>
+/// @endverbatim
 ///
 struct Led
 {

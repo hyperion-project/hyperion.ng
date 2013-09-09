@@ -6,6 +6,7 @@ if(PNG_FOUND)
 	include_directories(${PNG_INCLUDE_DIR})
 
 	add_executable(viewpng
+			FbWriter.h
 			ViewPng.cpp)
 
 	target_link_libraries(viewpng

@@ -67,11 +67,35 @@ public:
 	void transform(uint8_t & red, uint8_t & green, uint8_t & blue) const;
 
 	///
-	/// integer version of the conversion are faster, but a little less accurate
-	/// all values are unsigned 8 bit values and scaled between 0 and 255 except
-	/// for the hue which is a 16 bit number and scaled between 0 and 360
+	///	Translates an RGB (red, green, blue) color to an HSV (hue, saturation, value) color
+	///
+	/// @param[in] red The red RGB-component
+	/// @param[in] green The green RGB-component
+	/// @param[in] blue The blue RGB-component
+	/// @param[out] hue The hue HSV-component
+	/// @param[out] saturation The saturation HSV-component
+	/// @param[out] value The value HSV-component
+	///
+	/// @note Integer version of the conversion are faster, but a little less accurate all values
+	/// are unsigned 8 bit values and scaled between 0 and 255 except for the hue which is a 16 bit
+	/// number and scaled between 0 and 360
 	///
 	static void rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, uint8_t & saturation, uint8_t & value);
+
+	///
+	///	Translates an HSV (hue, saturation, value) color to an RGB (red, green, blue) color
+	///
+	/// @param[in] hue The hue HSV-component
+	/// @param[in] saturation The saturation HSV-component
+	/// @param[in] value The value HSV-component
+	/// @param[out] red The red RGB-component
+	/// @param[out] green The green RGB-component
+	/// @param[out] blue The blue RGB-component
+	///
+	/// @note Integer version of the conversion are faster, but a little less accurate all values
+	/// are unsigned 8 bit values and scaled between 0 and 255 except for the hue which is a 16 bit
+	/// number and scaled between 0 and 360
+	///
 	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue);
 
 private:
