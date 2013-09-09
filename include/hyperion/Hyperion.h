@@ -70,7 +70,7 @@ public:
 	/// @param[in] ledColor The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	///
-	void setColor(int priority, RgbColor &ledColor, const int timeout_ms);
+	void setColor(int priority, const RgbColor &ledColor, const int timeout_ms);
 
 	///
 	/// Writes the given colors to all leds for the given time and priority
@@ -79,7 +79,7 @@ public:
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
-	void setColors(int priority, std::vector<RgbColor> &ledColors, const int timeout_ms);
+	void setColors(int priority, const std::vector<RgbColor> &ledColors, const int timeout_ms);
 
 	///
 	/// Sets/Updates a part of the color transformation.

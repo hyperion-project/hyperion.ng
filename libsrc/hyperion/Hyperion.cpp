@@ -22,12 +22,10 @@ LedDevice* Hyperion::constructDevice(const Json::Value& deviceConfig)
 	LedDevice* device = nullptr;
 	if (deviceConfig["type"].asString() == "ws2801")
 	{
-		const std::string name = "WS-2801";
 		const std::string output = deviceConfig["output"].asString();
-		const unsigned interval  = deviceConfig["interval"].asInt();
 		const unsigned rate      = deviceConfig["rate"].asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(name, output, interval, rate);
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
 		deviceWs2801->open();
 
 		device = deviceWs2801;
@@ -117,7 +115,7 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
-void Hyperion::setColor(int priority, RgbColor & color, const int timeout_ms)
+void Hyperion::setColor(int priority, const RgbColor &color, const int timeout_ms)
 {
 	// create led output
 	std::vector<RgbColor> ledColors(_ledString.leds().size(), color);
@@ -126,7 +124,7 @@ void Hyperion::setColor(int priority, RgbColor & color, const int timeout_ms)
 	setColors(priority, ledColors, timeout_ms);
 }
 
-void Hyperion::setColors(int priority, std::vector<RgbColor>& ledColors, const int timeout_ms)
+void Hyperion::setColors(int priority, const std::vector<RgbColor>& ledColors, const int timeout_ms)
 {
 	if (timeout_ms > 0)
 	{
