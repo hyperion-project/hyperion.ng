@@ -46,3 +46,6 @@ add_subdirectory(dependencies)
 add_subdirectory(libsrc)
 add_subdirectory(src)
 add_subdirectory(test)
+
+# Add the doxygen generation directory
+add_subdirectory(doc)
