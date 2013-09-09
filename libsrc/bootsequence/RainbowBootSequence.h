@@ -5,19 +5,14 @@
 #include <QTimer>
 
 // Bootsequence include
-#include <bootsequence/BootSequence.h>
-
-// Hyperion includes
-#include <hyperion/Hyperion.h>
+#include "AbstractBootSequence.h"
 
 ///
 /// The RainborBootSequence shows a 'rainbow' (all lights have a different color). The rainbow is
 /// rotated over each led during the length of the sequence.
 ///
-class RainbowBootSequence : public QObject, public BootSequence
+class RainbowBootSequence : public AbstractBootSequence
 {
-Q_OBJECT
-
 public:
 	///
 	/// Constructs the rainbow boot-sequence. Hyperion is used for writing the led colors. The given
@@ -28,27 +23,13 @@ public:
 	///
 	RainbowBootSequence(Hyperion * hyperion, const unsigned duration_ms);
 
-	///
-	/// Starts the boot-sequence
-	///
-	virtual void start();
-
-private slots:
+protected:
 	///
 	/// Moves the rainbow one led further
 	///
-	void update();
+	const std::vector<RgbColor>& nextColors();
 
 private:
-	/// The timer used to generate an 'update' signal every interval
-	QTimer _timer;
-
-	/// The Hyperion instance
-	Hyperion * _hyperion;
-
-	/// The priority of the boot sequence
-	int _priority;
-
 	/// The current color of the boot sequence (the rainbow)
 	std::vector<RgbColor> _ledColors;
 	/// The counter of the number of iterations left
