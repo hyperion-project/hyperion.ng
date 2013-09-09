@@ -6,14 +6,33 @@
 // Hyperion includes
 #include <hyperion/LedDevice.h>
 
+///
+/// Implementation of the LedDevice that write the led-colors to an
+/// ASCII-textfile('/home/pi/LedDevice.out')
+///
 class LedDeviceTest : public LedDevice
 {
 public:
+	///
+	/// Constructs the test-device, which opens an output stream to the file
+	///
 	LedDeviceTest();
+
+	///
+	/// Destructor of this test-device
+	///
 	virtual ~LedDeviceTest();
 
+	///
+	/// Writes the given led-color values to the output stream
+	///
+	/// @param ledValues The color-value per led
+	///
+	/// @return Zero on success else negative
+	///
 	virtual int write(const std::vector<RgbColor> & ledValues);
 
 private:
+	/// The outputstream
 	std::ofstream _ofs;
 };

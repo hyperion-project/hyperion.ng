@@ -15,17 +15,17 @@
 class ColorTransform
 {
 public:
-	/// @brief Default constructor
+	/// Default constructor
 	ColorTransform();
 
-	/// @brief Constructor
+	/// Constructor
 	/// @param threshold
 	/// @param gamma
 	/// @param blacklevel
 	/// @param whitelevel
 	ColorTransform(double threshold, double gamma, double blacklevel, double whitelevel);
 
-	/// @brief Destructor
+	/// Destructor
 	~ColorTransform();
 
 	/// @return The current threshold value
@@ -52,7 +52,7 @@ public:
 	/// @param whitelevel New whitelevel value
 	void setWhitelevel(double whitelevel);
 
-	/// @brief Transform the given byte value
+	/// Transform the given byte value
 	/// @param input The input color byte
 	/// @return The transformed byte value
 	uint8_t transform(uint8_t input) const
@@ -61,14 +61,19 @@ public:
 	}
 
 private:
-	/// @brief (re)-initilize the color mapping
+	/// (re)-initilize the color mapping
 	void initializeMapping();
 
 private:
+	/// The threshold value
 	double _threshold;
+	/// The gamma value
 	double _gamma;
+	/// The blacklevel
 	double _blacklevel;
+	/// The whitelevel
 	double _whitelevel;
 
+	/// The mapping from input color to output color
 	uint8_t _mapping[256];
 };

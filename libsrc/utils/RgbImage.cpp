@@ -8,8 +8,8 @@
 
 
 RgbImage::RgbImage(const unsigned width, const unsigned height, const RgbColor background) :
-	mWidth(width),
-	mHeight(height),
+	_width(width),
+	_height(height),
 	mColors(new RgbColor[width*height])
 {
 	for (unsigned i=0; i<width*height; ++i)
@@ -32,8 +32,8 @@ void RgbImage::setPixel(const unsigned x, const unsigned y, const RgbColor color
 const RgbColor& RgbImage::operator()(const unsigned x, const unsigned y) const
 {
 	// Debug-mode sanity check on given index
-	assert(x < mWidth);
-	assert(y < mHeight);
+	assert(x < _width);
+	assert(y < _height);
 
 	const unsigned index = toIndex(x, y);
 	return mColors[index];
@@ -42,8 +42,8 @@ const RgbColor& RgbImage::operator()(const unsigned x, const unsigned y) const
 RgbColor& RgbImage::operator()(const unsigned x, const unsigned y)
 {
 	// Debug-mode sanity check on given index
-	assert(x < mWidth);
-	assert(y < mHeight);
+	assert(x < _width);
+	assert(y < _height);
 
 	const unsigned index = toIndex(x, y);
 	return mColors[index];

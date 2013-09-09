@@ -11,9 +11,7 @@
 // hyperion local includes
 #include "LedDeviceWs2801.h"
 
-LedDeviceWs2801::LedDeviceWs2801(const std::string& name,
-								 const std::string& outputDevice,
-								 const unsigned interval,
+LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice,
 								 const unsigned baudrate) :
 	mDeviceName(outputDevice),
 	mBaudRate_Hz(baudrate),

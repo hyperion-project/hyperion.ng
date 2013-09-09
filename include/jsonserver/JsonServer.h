@@ -23,27 +23,27 @@ class JsonServer : public QObject
 
 public:
 	///
-	/// \brief JsonServer constructor
-	/// \param hyperion Hyperion instance
-	/// \param port port number on which to start listening for connections
+	/// JsonServer constructor
+	/// @param hyperion Hyperion instance
+	/// @param port port number on which to start listening for connections
 	///
 	JsonServer(Hyperion * hyperion, uint16_t port = 19444);
 	~JsonServer();
 
 	///
-	/// \return the port number on which this TCP listens for incoming connections
+	/// @return the port number on which this TCP listens for incoming connections
 	///
 	uint16_t getPort() const;
 
 private slots:
 	///
-	/// \brief Slot which is called when a client tries to create a new connection
+	/// Slot which is called when a client tries to create a new connection
 	///
 	void newConnection();
 
 	///
-	/// \brief Slot which is called when a client closes a connection
-	/// \param The Connection object which is being closed
+	/// Slot which is called when a client closes a connection
+	/// @param The Connection object which is being closed
 	///
 	void closedConnection(JsonClientConnection * connection);
 
