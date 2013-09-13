@@ -103,7 +103,7 @@ void HsvTransform::hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint
 	}
 
 	region = hue / 60;
-	remainder = (hue - (region * 60)) * 6;
+	remainder = (hue - (region * 60)) * 256 / 60;
 
 	p = (value * (255 - saturation)) >> 8;
 	q = (value * (255 - ((saturation * remainder) >> 8))) >> 8;
