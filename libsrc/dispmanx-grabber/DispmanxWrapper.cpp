@@ -60,3 +60,11 @@ void DispmanxWrapper::stop()
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
 }
+
+void DispmanxWrapper::setGrabbingMode(GrabbingMode mode)
+{
+	if (mode == GRABBINGMODE_VIDEO)
+		start();
+	else
+		stop();
+}

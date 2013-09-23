@@ -7,6 +7,7 @@
 // Utils includes
 #include <utils/RgbColor.h>
 #include <utils/RgbImage.h>
+#include <utils/GrabbingMode.h>
 
 // Forward class declaration
 class DispmanxFrameGrabber;
@@ -52,6 +53,12 @@ public slots:
 	/// Stops the grabber
 	///
 	void stop();
+
+	///
+	/// \brief Set the grabbing mode
+	/// \param mode The new grabbing mode
+	///
+	void setGrabbingMode(GrabbingMode mode);
 
 private:
 	/// The update rate [Hz]

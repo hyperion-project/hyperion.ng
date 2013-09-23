@@ -14,6 +14,9 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+// Utils includes
+#include <utils/GrabbingMode.h>
+
 ///
 /// This class will check if XBMC is playing something. When it does not, this class will send all black data to Hyperion.
 /// This allows grabbed screen data to be overriden while in the XBMC menus.
@@ -31,15 +34,20 @@ public:
 	/// @param address Network address of the XBMC instance
 	/// @param port Port number to use (XBMC default = 9090)
 	/// @param interval The interval at which XBMC is polled
-	/// @param hyperion The Hyperion instance
-	/// @param priority The priority at which to send the all black data
+	/// @param grabVideo Whether or not to grab when the XBMC video player is playing
+	/// @param grabPhoto Whether or not to grab when the XBMC photo player is playing
+	/// @param grabAudio Whether or not to grab when the XBMC audio player is playing
+	/// @param grabMenu Whether or not to grab when nothing is playing (in XBMC menu)
 	///
-	XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval, Hyperion * hyperion, int priority);
+	XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu);
 
 	///
 	/// Start polling XBMC
 	///
 	void start();
+
+signals:
+	void grabbingMode(GrabbingMode grabbingMode);
 
 private slots:
 	///
@@ -68,9 +76,18 @@ private:
 	/// The QT TCP Socket with connection to XBMC
 	QTcpSocket _socket;
 
-	/// The Hyperion instance to switch leds to black if in XBMC menu
-	Hyperion * _hyperion;
+	/// Flag indicating whether or not to grab when the XBMC video player is playing
+	bool _grabVideo;
 
-	/// The priority of the BLACK led value when in XBMC menu
-	const int _priority;
+	/// Flag indicating whether or not to grab when the XBMC photo player is playing
+	bool _grabPhoto;
+
+	/// Flag indicating whether or not to grab when the XBMC audio player is playing
+	bool _grabAudio;
+
+	/// Flag indicating whether or not to grab when XBMC is playing nothing (in menu)
+	bool _grabMenu;
+
+	/// Previous emitted grab state
+	GrabbingMode _previousMode;
 };

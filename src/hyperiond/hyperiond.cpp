@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 	}
 
 	const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
-	XBMCVideoChecker xbmcVideoChecker(videoCheckerConfig["xbmcAddress"].asString(), videoCheckerConfig["xbmcTcpPort"].asUInt(), 1000, &hyperion, 999);
+	XBMCVideoChecker xbmcVideoChecker(videoCheckerConfig["xbmcAddress"].asString(), videoCheckerConfig["xbmcTcpPort"].asUInt(), 1000, true, true, true, true);
 	if (videoCheckerConfig["enable"].asBool())
 	{
 		xbmcVideoChecker.start();
@@ -97,6 +97,7 @@ int main(int argc, char** argv)
 			frameGrabberConfig["height"].asUInt(),
 			frameGrabberConfig["frequency_Hz"].asUInt(),
 			&hyperion);
+	QObject::connect(&xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), &dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 	dispmanx.start();
 	std::cout << "Frame grabber created and started" << std::endl;
 
