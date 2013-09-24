@@ -3,15 +3,18 @@
 
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
-XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval_ms, Hyperion * hyperion, int priority) :
+XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, uint64_t interval_ms, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu) :
 	QObject(),
 	_address(QString::fromStdString(address)),
 	_port(port),
 	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":1}"),
 	_timer(),
 	_socket(),
-	_hyperion(hyperion),
-	_priority(priority)
+	_grabVideo(grabVideo),
+	_grabPhoto(grabPhoto),
+	_grabAudio(grabAudio),
+	_grabMenu(grabMenu),
+	_previousMode(GRABBINGMODE_INVALID)
 {
 	// setup timer
 	_timer.setSingleShot(false);
@@ -51,17 +54,33 @@ void XBMCVideoChecker::receiveReply()
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
 
-	if (reply.contains("playerid"))
+	GrabbingMode newMode = GRABBINGMODE_INVALID;
+	if (reply.contains("video"))
 	{
-		// something is playing. check for "video" to check if a video is playing
-		// clear our priority channel to allow the grabbed vido colors to be shown
-		_hyperion->clear(_priority);
+		// video is playing
+		newMode = _grabVideo ? GRABBINGMODE_VIDEO : GRABBINGMODE_OFF;
+	}
+	else if (reply.contains("picture"))
+	{
+		// photo viewer is playing
+		newMode = _grabVideo ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF;
+	}
+	else if (reply.contains("audio"))
+	{
+		// photo viewer is playing
+		newMode = _grabVideo ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF;
 	}
 	else
 	{
-		// Nothing is playing. set our priority channel completely to black
-		// The timeout is used to have the channel cleared after 30 seconds of connection problems...
-		_hyperion->setColor(_priority, RgbColor::BLACK, 30000);
+		// Nothing is playing.
+		newMode = _grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF;
+	}
+
+	// emit new state if applicable
+	if (newMode != _previousMode)
+	{
+		emit grabbingMode(newMode);
+		_previousMode = newMode;
 	}
 }
 

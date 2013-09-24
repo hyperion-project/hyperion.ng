@@ -54,7 +54,7 @@ void setColor(char* colorStr)
 	unsigned ledCnt = 50;
 	std::vector<RgbColor> buff(ledCnt, color);
 
-	LedDeviceWs2801 ledDevice("SpiPi", "/dev/spidev0.0", 20000, 40000);
+	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000);
 	ledDevice.open();
 	ledDevice.write(buff);
 }
@@ -68,7 +68,7 @@ void doCircle()
 	unsigned ledCnt = 50;
 	std::vector<RgbColor> data(ledCnt, RgbColor::BLACK);
 
-	LedDeviceWs2801 ledDevice("SpiPi", "/dev/spidev0.0", 20000, 40000);
+	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000);
 	ledDevice.open();
 
 	timespec loopTime;

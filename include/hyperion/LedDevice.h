@@ -6,22 +6,27 @@
 // Utility includes
 #include <utils/RgbColor.h>
 
+///
+/// Interface (pure virtual base class) for LedDevices.
+///
 class LedDevice
 {
 public:
 
-	/**
-	 * Empty virtual destructor for pure virtual base class
-	 */
+	///
+	/// Empty virtual destructor for pure virtual base class
+	///
 	virtual ~LedDevice()
 	{
 		// empty
 	}
 
-	/**
-	 * Writes the RGB-Color values to the leds.
-	 *
-	 * @param[in] ledValues  The RGB-color per led
-	 */
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
 	virtual int write(const std::vector<RgbColor>& ledValues) = 0;
 };

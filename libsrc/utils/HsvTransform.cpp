@@ -1,3 +1,4 @@
+#include <iostream>
 #include <utils/HsvTransform.h>
 
 HsvTransform::HsvTransform() :
@@ -44,6 +45,8 @@ void HsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 		uint8_t saturation, value;
 		rgb2hsv(red, green, blue, hue, saturation, value);
 
+		std::cout << int(hue) << " " << int(saturation) << " " << int(value) << std::endl;
+
 		int s = saturation * _saturationGain;
 		if (s > 255)
 			saturation = 255;
@@ -83,11 +86,21 @@ void HsvTransform::rgb2hsv(uint8_t red, uint8_t green, uint8_t blue, uint16_t & 
 	}
 
 	if (rgbMax == red)
-		hue = 0 + 60 * (green - blue) / (rgbMax - rgbMin);
+	{
+		// start from 360 to be sure that we won't assign a negative number to the unsigned hue value
+		hue = 360 + 60 * (green - blue) / (rgbMax - rgbMin);
+
+		if (hue > 359)
+			hue -= 360;
+	}
 	else if (rgbMax == green)
+	{
 		hue = 120 + 60 * (blue - red) / (rgbMax - rgbMin);
+	}
 	else
+	{
 		hue = 240 + 60 * (red - green) / (rgbMax - rgbMin);
+	}
 }
 
 void HsvTransform::hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue)
@@ -103,7 +116,7 @@ void HsvTransform::hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint
 	}
 
 	region = hue / 60;
-	remainder = (hue - (region * 60)) * 6;
+	remainder = (hue - (region * 60)) * 256 / 60;
 
 	p = (value * (255 - saturation)) >> 8;
 	q = (value * (255 - ((saturation * remainder) >> 8))) >> 8;
