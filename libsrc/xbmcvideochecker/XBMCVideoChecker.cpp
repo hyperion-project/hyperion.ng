@@ -54,8 +54,6 @@ void XBMCVideoChecker::receiveReply()
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
 
-	std::cout << reply.toStdString() << std::endl;
-
 	// check if the resply is a reply to one of my requests
 	if (!reply.contains("\"id\":666"))
 	{
@@ -71,13 +69,13 @@ void XBMCVideoChecker::receiveReply()
 	}
 	else if (reply.contains("picture"))
 	{
-		// photo viewer is playing
-		newMode = _grabVideo ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF;
+		// picture viewer is playing
+		newMode = _grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF;
 	}
 	else if (reply.contains("audio"))
 	{
-		// photo viewer is playing
-		newMode = _grabVideo ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF;
+		// audio is playing
+		newMode = _grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF;
 	}
 	else
 	{
