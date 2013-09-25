@@ -181,6 +181,22 @@
                 "xbmcTcpPort" : {
                     "type" : "integer",
                     "required" : true
+                },
+                "grabVideo" : {
+                    "type" : "boolean",
+                    "required" : true
+                },
+                "grabPictures" : {
+                    "type" : "boolean",
+                    "required" : true
+                },
+                "grabAudio" : {
+                    "type" : "boolean",
+                    "required" : true
+                },
+                "grabMenu" : {
+                    "type" : "boolean",
+                    "required" : true
                 }
             },
             "additionalProperties" : false

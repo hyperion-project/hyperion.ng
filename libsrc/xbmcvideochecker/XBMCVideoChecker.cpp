@@ -7,7 +7,7 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, u
 	QObject(),
 	_address(QString::fromStdString(address)),
 	_port(port),
-	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":1}"),
+	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":666}"),
 	_timer(),
 	_socket(),
 	_grabVideo(grabVideo),
@@ -54,6 +54,13 @@ void XBMCVideoChecker::receiveReply()
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
 
+	// check if the resply is a reply to one of my requests
+	if (!reply.contains("\"id\":666"))
+	{
+		// probably not. Leave this mreply as is and don't act on it
+		return;
+	}
+
 	GrabbingMode newMode = GRABBINGMODE_INVALID;
 	if (reply.contains("video"))
 	{
@@ -62,13 +69,13 @@ void XBMCVideoChecker::receiveReply()
 	}
 	else if (reply.contains("picture"))
 	{
-		// photo viewer is playing
-		newMode = _grabVideo ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF;
+		// picture viewer is playing
+		newMode = _grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF;
 	}
 	else if (reply.contains("audio"))
 	{
-		// photo viewer is playing
-		newMode = _grabVideo ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF;
+		// audio is playing
+		newMode = _grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF;
 	}
 	else
 	{

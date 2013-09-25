@@ -83,7 +83,14 @@ int main(int argc, char** argv)
 	}
 
 	const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
-	XBMCVideoChecker xbmcVideoChecker(videoCheckerConfig["xbmcAddress"].asString(), videoCheckerConfig["xbmcTcpPort"].asUInt(), 1000, true, true, true, true);
+	XBMCVideoChecker xbmcVideoChecker(
+			videoCheckerConfig["xbmcAddress"].asString(),
+			videoCheckerConfig["xbmcTcpPort"].asUInt(),
+			1000,
+			videoCheckerConfig["grabVideo"].asBool(),
+			videoCheckerConfig["grabPictures"].asBool(),
+			videoCheckerConfig["grabAudio"].asBool(),
+			videoCheckerConfig["grabMenu"].asBool());
 	if (videoCheckerConfig["enable"].asBool())
 	{
 		xbmcVideoChecker.start();
