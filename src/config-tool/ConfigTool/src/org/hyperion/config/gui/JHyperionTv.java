@@ -26,6 +26,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingWorker;
 
 import org.hyperion.config.spec.Led;
 
@@ -88,7 +89,7 @@ public class JHyperionTv extends Component {
 		}
 	}
 	
-	private JPopupMenu getPopupMenu() {
+	private synchronized JPopupMenu getPopupMenu() {
 		if (mPopupMenu == null) {
 			mPopupMenu = new JPopupMenu();
 			mPopupMenu.add(mLoadAction);
@@ -137,7 +138,12 @@ public class JHyperionTv extends Component {
 	public JHyperionTv() {
 		
 		// Pre-cache the popup menu
-		getPopupMenu();
+		new SwingWorker<Object, Object>() {
+			@Override
+			protected Object doInBackground() throws Exception {
+				return getPopupMenu();
+			}
+		}.execute();
 		
 		addMouseMotionListener(new MouseMotionListener() {
 			@Override

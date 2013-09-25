@@ -7,21 +7,29 @@ import java.util.Vector;
 
 import org.hyperion.config.spec.ColorConfig;
 import org.hyperion.config.spec.DeviceConfig;
+import org.hyperion.config.spec.ImageProcessConfig;
 import org.hyperion.config.spec.Led;
+import org.hyperion.config.spec.LedFrameConstruction;
 import org.hyperion.config.spec.MiscConfig;
 
 public class LedString {
-	/** The individual led configuration */
-	public Vector<Led> leds;
 	
 	/** The configuration of the output device */
-	DeviceConfig mDeviceConfig = new DeviceConfig();
+	public DeviceConfig mDeviceConfig = new DeviceConfig();
 
+	/** THe configuration of the 'physical' led frame */
+	public LedFrameConstruction mLedFrameConfig = new LedFrameConstruction();
+	/** The configuration of the image processing */
+	public ImageProcessConfig mProcessConfig = new ImageProcessConfig();
+	
 	/** The color adjustment configuration */
-	ColorConfig mColorConfig = new ColorConfig();
+	public ColorConfig mColorConfig = new ColorConfig();
 	
 	/** The miscellaneous configuration (bootsequence, blackborder detector, etc) */
-	MiscConfig mMiscConfig = new MiscConfig();
+	public MiscConfig mMiscConfig = new MiscConfig();
+	
+	/** The translation of the led frame construction and image processing to individual led configuration */
+	public Vector<Led> leds;
 	
 	public void saveConfigFile(String mFilename) throws IOException {
 		

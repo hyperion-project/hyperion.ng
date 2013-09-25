@@ -4,18 +4,20 @@ import java.util.Locale;
 
 
 public class MiscConfig {
-	BootSequence mBootSequence = BootSequence.rainbow;
-	int mBootSequenceLength_ms = 3000;
+	public BootSequence mBootSequence = BootSequence.rainbow;
+	public int mBootSequenceLength_ms = 3000;
 	
-	boolean mBlackborderDetector = true;
-	
-	int mFrameGrabberWidth = 64;
-	int mFrameGrabberHeight = 64;
-	int mFrameGrabberInterval_ms = 100;
+	public int mFrameGrabberWidth = 64;
+	public int mFrameGrabberHeight = 64;
+	public int mFrameGrabberInterval_ms = 100;
 
-	boolean mXbmcChecker = true;
-	String mXbmcAddress  = "127.0.0.1";
-	int mXbmcTcpPort     = 9090;
+	public boolean mXbmcChecker = true;
+	public String mXbmcAddress  = "127.0.0.1";
+	public int mXbmcTcpPort     = 9090;
+	public boolean mVideoOn = true;
+	public boolean mMenuOn = false;
+	public boolean mPictureOn = false;
+	public boolean mAudioOn = false;
 	
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();

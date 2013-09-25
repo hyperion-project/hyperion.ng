@@ -16,42 +16,39 @@ public class LedFrameConstruction extends Observable {
 	}
 	
 	/** True if the leds are organised clockwise else false (counter clockwise) */
-	public boolean clockwiseDirection;
+	public boolean clockwiseDirection = true;
 	
 	/** True if the top left corner has a led else false */
-	public boolean topLeftCorner;
+	public boolean topLeftCorner = true;
 	/** True if the top right corner has a led else false */
-	public boolean topRightCorner;
+	public boolean topRightCorner = true;
 	/** True if the bottom left corner has a led else false */
-	public boolean bottomLeftCorner;
+	public boolean bottomLeftCorner = true;
 	/** True if the bottom right corner has a led else false */
-	public boolean bottomRightCorner;
+	public boolean bottomRightCorner = true;
 	
 	/** The number of leds between the top-left corner and the top-right corner of the screen 
 		(excluding the corner leds) */
-	public int topLedCnt;
+	public int topLedCnt = 16;
 	/** The number of leds between the bottom-left corner and the bottom-right corner of the screen
 		(excluding the corner leds) */
-	public int bottomLedCnt;
+	public int bottomLedCnt = 16;
 	
 	/** The number of leds between the top-left corner and the bottom-left corner of the screen
 		(excluding the corner leds) */
-	public int leftLedCnt;
+	public int leftLedCnt = 7;
 	/** The number of leds between the top-right corner and the bottom-right corner of the screen
 		(excluding the corner leds) */
-	public int rightLedCnt;
+	public int rightLedCnt = 7;
 	
 	/** The offset (in leds) of the starting led counted clockwise from the top-left corner */
-	public int firstLedOffset;
+	public int firstLedOffset = -16;
 	
-	/** The 'integration depth' of the leds along the horizontal axis of the tv */
-	public double horizontalDepth = 0.05;
-	/** The 'integration depth' of the leds along the vertical axis of the tv */
-	public double verticalDepth   = 0.05;
-	
-	/** The fraction of overlap from one to another led */
-	public double overlapFraction = 0.0;
-	
+	/**
+	 * Returns the total number of leds
+	 * 
+	 * @return The total number of leds
+	 */
 	public int getLedCount() {
 		int cornerLedCnt = 0;
 		if (topLeftCorner)     ++cornerLedCnt;

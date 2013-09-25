@@ -9,8 +9,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.hyperion.config.spec.BootSequence;
+import org.hyperion.config.spec.MiscConfig;
 
 public class MiscConfigPanel extends JPanel {
+	
+	private final MiscConfig mMiscConfig;
 	
 	private JLabel mMenuLabel;
 	private JComboBox<String> mMenuCombo;
@@ -21,13 +24,13 @@ public class MiscConfigPanel extends JPanel {
 	private JLabel mAudioLabel;
 	private JComboBox<String> mAudioCombo;
 
-	private JLabel mBlackborderDetectorLabel;
-	private JComboBox<String> mBlackborderDetectorCombo;
 	private JLabel mBootSequenceLabel;
 	private JComboBox<BootSequence> mBootSequenceCombo;
 
-	public MiscConfigPanel() {
+	public MiscConfigPanel(MiscConfig pMiscConfig) {
 		super();
+		
+		mMiscConfig = pMiscConfig;
 		
 		initialise();
 	}
@@ -73,14 +76,6 @@ public class MiscConfigPanel extends JPanel {
 		mAudioCombo.addActionListener(mActionListener);
 		add(mAudioCombo);
 		
-		mBlackborderDetectorLabel = new JLabel("Blackborder Detector:");
-		add(mBlackborderDetectorLabel);
-		
-		mBlackborderDetectorCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mBlackborderDetectorCombo.setSelectedItem("On");
-		mBlackborderDetectorCombo.setToolTipText("Enables or disables the blackborder detection and removal");
-		add(mBlackborderDetectorCombo);
-		
 		mBootSequenceLabel = new JLabel("Boot Sequence:");
 		add(mBootSequenceLabel);
 		
@@ -95,7 +90,6 @@ public class MiscConfigPanel extends JPanel {
 						.addComponent(mVideoLabel)
 						.addComponent(mPictureLabel)
 						.addComponent(mAudioLabel)
-						.addComponent(mBlackborderDetectorLabel)
 						.addComponent(mBootSequenceLabel)
 						)
 				.addGroup(layout.createParallelGroup()
@@ -103,7 +97,6 @@ public class MiscConfigPanel extends JPanel {
 						.addComponent(mVideoCombo)
 						.addComponent(mPictureCombo)
 						.addComponent(mAudioCombo)
-						.addComponent(mBlackborderDetectorCombo)
 						.addComponent(mBootSequenceCombo)
 						));
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -124,10 +117,6 @@ public class MiscConfigPanel extends JPanel {
 						.addComponent(mAudioCombo)
 						)
 				.addGroup(layout.createParallelGroup()
-						.addComponent(mBlackborderDetectorLabel)
-						.addComponent(mBlackborderDetectorCombo)
-						)
-				.addGroup(layout.createParallelGroup()
 						.addComponent(mBootSequenceLabel)
 						.addComponent(mBootSequenceCombo)
 						));
@@ -136,7 +125,12 @@ public class MiscConfigPanel extends JPanel {
 	private final ActionListener mActionListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			mMiscConfig.mBootSequence = (BootSequence)mBootSequenceCombo.getSelectedItem();
 			
+			mMiscConfig.mMenuOn = (mMenuCombo.getSelectedItem() == "On");
+			mMiscConfig.mVideoOn = (mVideoCombo.getSelectedItem() == "On");
+			mMiscConfig.mPictureOn = (mPictureCombo.getSelectedItem() == "On");
+			mMiscConfig.mAudioOn = (mAudioCombo.getSelectedItem() == "On");
 		}
 	};
 }
