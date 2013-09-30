@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -15,17 +15,23 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-import org.hyperion.config.LedFrameFactory;
-import org.hyperion.config.LedString;
+import org.hyperion.hypercon.LedFrameFactory;
+import org.hyperion.hypercon.LedString;
 
+/**
+ * The main-config panel of HyperCon. Includes the configuration and the panels to edit and 
+ * write-out the configuration. This can be placed on JFrame, JDialog or JApplet as required.
+ */
 public class ConfigPanel extends JPanel {
 
+	/** The LED configuration information*/
 	private final LedString ledString = new LedString();
 	
+	/** Action for write the Hyperion deamon configuration file */
 	private final Action mSaveConfigAction = new AbstractAction("Create Hyperion Configuration") {
+		JFileChooser fileChooser = new JFileChooser();
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			JFileChooser fileChooser = new JFileChooser();
 			if (fileChooser.showSaveDialog(ConfigPanel.this) != JFileChooser.APPROVE_OPTION) {
 				return;
 			}
@@ -39,27 +45,39 @@ public class ConfigPanel extends JPanel {
 		}
 	};
 	
+	/** The panel for containing the example 'Hyperion TV' */
 	private JPanel mTvPanel;
+	/** The simulated 'Hyperion TV' */
 	private JHyperionTv mHyperionTv;
 	
-	private JPanel mConstructionPanel;
-	
-	private JPanel mIntegrationPanel;
-	
+	/** The left (WEST) side panel containing the diferent configuration panels */
 	private JPanel mSpecificationPanel;
 	
+	/** The panel for specifying the construction of the LED-Frame */
+	private JPanel mConstructionPanel;
+	
+	/** The panel for specifying the image integration */
+	private JPanel mIntegrationPanel;
+	
+	/** The panel for specifying the miscallenuous configuration */
 	private MiscConfigPanel mMiscPanel;
 	
+	/** The button connected to mSaveConfigAction */
 	private JButton mSaveConfigButton;
 	
+	/**
+	 * Constructs the configuration panel with a default initialised led-frame and configuration
+	 */
 	public ConfigPanel() {
 		super();
 		
 		initialise();
 		
+		// Compute the individual leds for the current configuration
 		ledString.leds = LedFrameFactory.construct(ledString.mLedFrameConfig, ledString.mProcessConfig);
 		mHyperionTv.setLeds(ledString.leds);
 		
+		// Add Observer to update the individual leds if the configuration changes
 		final Observer observer = new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
@@ -72,6 +90,9 @@ public class ConfigPanel extends JPanel {
 		ledString.mProcessConfig.addObserver(observer);
 	}
 	
+	/**
+	 * Initialises the config-panel 
+	 */
 	private void initialise() {
 		setLayout(new BorderLayout());
 		
@@ -80,6 +101,11 @@ public class ConfigPanel extends JPanel {
 		
 	}
 	
+	/**
+	 * Created, if not exists, and returns the panel holding the simulated 'Hyperion TV'
+	 * 
+	 * @return The Tv panel
+	 */
 	private JPanel getTvPanel() {
 		if (mTvPanel == null) {
 			mTvPanel = new JPanel();

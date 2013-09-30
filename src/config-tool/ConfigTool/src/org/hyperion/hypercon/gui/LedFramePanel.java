@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -13,8 +13,8 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.hyperion.config.spec.DeviceType;
-import org.hyperion.config.spec.LedFrameConstruction;
+import org.hyperion.hypercon.spec.DeviceType;
+import org.hyperion.hypercon.spec.LedFrameConstruction;
 
 public class LedFramePanel extends JPanel {
 	

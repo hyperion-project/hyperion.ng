@@ -1,4 +1,4 @@
-package org.hyperion.config.spec;
+package org.hyperion.hypercon.spec;
 
 import java.util.Observable;
 
@@ -6,12 +6,15 @@ import java.util.Observable;
 
 /**
  * The LedFrame describes the construction of leds along the sides of the TV screen.
- *  
  */
 public class LedFrameConstruction extends Observable {
-
+	/**
+	 * Enumeration of the led configuration direction 
+	 */
 	public enum Direction {
+		/** Clockwise led configuration */
 		clockwise,
+		/** Counter Clockwise led configuration */
 		counter_clockwise;
 	}
 	

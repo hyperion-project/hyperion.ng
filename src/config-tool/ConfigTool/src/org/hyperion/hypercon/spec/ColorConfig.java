@@ -1,27 +1,49 @@
-package org.hyperion.config.spec;
+package org.hyperion.hypercon.spec;
 
 import java.util.Locale;
 
+/**
+ * The color tuning parameters of the different color channels (both in RGB space as in HSV space)
+ */
 public class ColorConfig {
 
+	/** The saturation gain (in HSV space) */
 	double mSaturationGain = 1.0;
+	/** The value gain (in HSV space) */
 	double mValueGain = 1.0;
 	
+	/** The minimum required RED-value (in RGB space) */
 	double mRedThreshold  = 0.0;
+	/** The gamma-curve correct for the RED-value (in RGB space) */
 	double mRedGamma      = 1.0;
+	/** The black-level of the RED-value (in RGB space) */
 	double mRedBlacklevel = 0.0;
+	/** The white-level of the RED-value (in RGB space) */
 	double mRedWhitelevel = 1.0;
 	
+	/** The minimum required GREEN-value (in RGB space) */
 	double mGreenThreshold  = 0.0;
+	/** The gamma-curve correct for the GREEN-value (in RGB space) */
 	double mGreenGamma      = 1.0;
+	/** The black-level of the GREEN-value (in RGB space) */
 	double mGreenBlacklevel = 0.0;
+	/** The white-level of the GREEN-value (in RGB space) */
 	double mGreenWhitelevel = 1.0;
 	
+	/** The minimum required BLUE-value (in RGB space) */
 	double mBlueThreshold  = 0.0;
+	/** The gamma-curve correct for the BLUE-value (in RGB space) */
 	double mBlueGamma      = 1.0;
+	/** The black-level of the BLUE-value (in RGB space) */
 	double mBlueBlacklevel = 0.0;
+	/** The white-level of the BLUE-value (in RGB space) */
 	double mBlueWhitelevel = 1.0;
 	
+	/**
+	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
+	 * 
+	 * @return The JSON string of this ColorConfig
+	 */
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		strBuf.append("\t\"color\" :\n");
@@ -33,7 +55,12 @@ public class ColorConfig {
 		return strBuf.toString();
 	}
 	
-	public String hsvToJsonString() {
+	/**
+	 * Creates the JSON string of the HSV-subconfiguration as used in the Hyperion deaomn configfile
+	 * 
+	 * @return The JSON string of the HSV-config
+	 */
+	private String hsvToJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		strBuf.append("\t\t\"hsv\" :\n");
 		strBuf.append("\t\t{\n");
@@ -44,7 +71,12 @@ public class ColorConfig {
 		return strBuf.toString();
 	}
 	
-	public String rgbToJsonString() {
+	/**
+	 * Creates the JSON string of the RGB-subconfiguration as used in the Hyperion deaomn configfile
+	 * 
+	 * @return The JSON string of the RGB-config
+	 */
+	private String rgbToJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		
 		strBuf.append("\t\t\"red\" :\n");

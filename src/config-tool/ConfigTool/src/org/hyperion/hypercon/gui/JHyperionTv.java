@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -28,7 +28,7 @@ import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingWorker;
 
-import org.hyperion.config.spec.Led;
+import org.hyperion.hypercon.spec.Led;
 
 public class JHyperionTv extends Component {
 
@@ -293,7 +293,7 @@ public class JHyperionTv extends Component {
 			
 			ledPaint.screenX = led.lastX;
 			ledPaint.screenY = led.lastY;
-			ledPaint.angle_rad = 0.5*Math.PI - led.led.mSide.getAngle();
+			ledPaint.angle_rad = 0.5*Math.PI - led.led.mSide.getAngle_rad();
 			
 			ledPaint.seqNr = led.led.mLedSeqNr;
 		}

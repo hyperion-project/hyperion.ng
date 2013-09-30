@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -8,6 +8,11 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+/**
+ * Configuration panel for the ColorConfig.
+ *  
+ * NB This has not been integrated in the GUI jet!
+ */
 public class ColorConfigPanel extends JPanel {
 	private JPanel mRgbTransformPanel;
 	private JLabel mThresholdLabel;

@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -15,7 +15,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.hyperion.config.spec.ImageProcessConfig;
+import org.hyperion.hypercon.spec.ImageProcessConfig;
 
 public class ImageProcessPanel extends JPanel implements Observer {
 	
@@ -126,25 +126,30 @@ public class ImageProcessPanel extends JPanel implements Observer {
 	@Override
 	public void update(Observable pObs, Object pArg) {
 		if (pObs == mProcessConfig && pArg != this) {
-			mHorizontalDepthSpinner.setValue(mProcessConfig.horizontalDepth * 100.0);
-			mVerticalDepthSpinner.setValue(mProcessConfig.verticalDepth * 100.0);
-			mOverlapSpinner.setValue(mProcessConfig.overlapFraction * 100.0);
+			mHorizontalDepthSpinner.setValue(mProcessConfig.getHorizontalDepth() * 100.0);
+			mVerticalDepthSpinner.setValue(mProcessConfig.getVerticalDepth() * 100.0);
+			mOverlapSpinner.setValue(mProcessConfig.getOverlapFraction() * 100.0);
 		}
 	}
 	private final ActionListener mActionListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			mProcessConfig.blackBorderRemoval = (mBlackborderDetectorCombo.getSelectedItem() == "On");
+			// Update the processing configuration
+			mProcessConfig.setBlackBorderRemoval((mBlackborderDetectorCombo.getSelectedItem() == "On"));
+			
+			// Notify observers
+			mProcessConfig.notifyObservers(this);
 		}
 	};
 	private final ChangeListener mChangeListener = new ChangeListener() {
 		@Override
 		public void stateChanged(ChangeEvent e) {
-			mProcessConfig.horizontalDepth = ((Double)mHorizontalDepthSpinner.getValue())/100.0;
-			mProcessConfig.verticalDepth = ((Double)mVerticalDepthSpinner.getValue())/100.0;
-			mProcessConfig.overlapFraction = ((Double)mOverlapSpinner.getValue())/100.0;
-			
-			mProcessConfig.setChanged();
+			// Update the processing configuration
+			mProcessConfig.setHorizontalDepth(((Double)mHorizontalDepthSpinner.getValue())/100.0);
+			mProcessConfig.setVerticalDepth(((Double)mVerticalDepthSpinner.getValue())/100.0);
+			mProcessConfig.setOverlapFraction(((Double)mOverlapSpinner.getValue())/100.0);
+
+			// Notify observers
 			mProcessConfig.notifyObservers(this);
 		}
 	};

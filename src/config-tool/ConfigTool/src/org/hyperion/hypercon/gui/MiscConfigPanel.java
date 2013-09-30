@@ -1,4 +1,4 @@
-package org.hyperion.config.gui;
+package org.hyperion.hypercon.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,8 +8,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.hyperion.config.spec.BootSequence;
-import org.hyperion.config.spec.MiscConfig;
+import org.hyperion.hypercon.spec.BootSequence;
+import org.hyperion.hypercon.spec.MiscConfig;
 
 public class MiscConfigPanel extends JPanel {
 	

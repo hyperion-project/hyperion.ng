@@ -1,17 +1,19 @@
-package org.hyperion.config;
+package org.hyperion.hypercon;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Vector;
 
-import org.hyperion.config.spec.ColorConfig;
-import org.hyperion.config.spec.DeviceConfig;
-import org.hyperion.config.spec.ImageProcessConfig;
-import org.hyperion.config.spec.Led;
-import org.hyperion.config.spec.LedFrameConstruction;
-import org.hyperion.config.spec.MiscConfig;
-
+import org.hyperion.hypercon.spec.ColorConfig;
+import org.hyperion.hypercon.spec.DeviceConfig;
+import org.hyperion.hypercon.spec.ImageProcessConfig;
+import org.hyperion.hypercon.spec.Led;
+import org.hyperion.hypercon.spec.LedFrameConstruction;
+import org.hyperion.hypercon.spec.MiscConfig;
+/**
+ * The full configuration of Hyperion with sub-items for device, color and miscelanuous items. 
+ */
 public class LedString {
 	
 	/** The configuration of the output device */
@@ -31,6 +33,13 @@ public class LedString {
 	/** The translation of the led frame construction and image processing to individual led configuration */
 	public Vector<Led> leds;
 	
+	/**
+	 * Writes the configuration to the given file
+	 * 
+	 * @param mFilename The absolute filename
+	 * 
+	 * @throws IOException If unable to write the given file
+	 */
 	public void saveConfigFile(String mFilename) throws IOException {
 		
 		try (FileWriter fw = new FileWriter(mFilename)) {
@@ -57,6 +66,11 @@ public class LedString {
 		}
 	}
 	
+	/**
+	 * Converts the list with leds specifications to a JSON string as used by the Hyperion Deamon
+	 * 
+	 * @return The JSON string with led-specifications
+	 */
 	String ledToJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		strBuf.append("\t\"leds\" : \n");
