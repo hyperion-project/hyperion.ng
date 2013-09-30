@@ -12,7 +12,7 @@ import org.hyperion.hypercon.LedFrameFactory;
 public class ImageProcessConfig extends Observable {
 	
 	/** The 'integration depth' of the leds along the horizontal axis of the tv */
-	private double mHorizontalDepth = 0.05;
+	private double mHorizontalDepth = 0.08;
 	/** The 'integration depth' of the leds along the vertical axis of the tv */
 	private double mVerticalDepth   = 0.05;
 

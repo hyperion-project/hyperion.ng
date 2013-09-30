@@ -2,6 +2,8 @@ package org.hyperion.hypercon;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Vector;
 
 import org.hyperion.hypercon.spec.BorderSide;
@@ -153,6 +155,12 @@ public class LedFrameFactory {
 			}
 		}
 
+		Collections.sort(mLeds, new Comparator<Led>() {
+			@Override
+			public int compare(Led o1, Led o2) {
+				return Integer.compare(o1.mLedSeqNr, o2.mLedSeqNr);
+			}
+		});
 		return mLeds;
 	}
 	
