@@ -46,6 +46,17 @@ public class ColorConfig {
 	 */
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
+		
+		strBuf.append("\t/// Color manipulation configuration used to tune the output colors to specific surroundings. Contains the following fields:\n");
+		strBuf.append("\t///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following tuning parameters:\n");
+		strBuf.append("\t///            - 'saturationGain' The gain adjustement of the saturation\n");
+		strBuf.append("\t///            - 'valueGain'      The gain adjustement of the value\n");
+		strBuf.append("\t///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the following tuning parameters for each channel:\n");
+		strBuf.append("\t///            - 'threshold'  The minimum required input value for the channel to be on (else zero)\n");
+		strBuf.append("\t///            - 'gamma'      The gamma-curve correction factor\n");
+		strBuf.append("\t///            - 'blacklevel' The lowest possible value (when the channel is black)\n");
+		strBuf.append("\t///            - 'whitelevel' The highest possible value (when the channel is white)\n");
+
 		strBuf.append("\t\"color\" :\n");
 		strBuf.append("\t{\n");
 		strBuf.append(hsvToJsonString() + ",\n");
@@ -65,7 +76,7 @@ public class ColorConfig {
 		strBuf.append("\t\t\"hsv\" :\n");
 		strBuf.append("\t\t{\n");
 		strBuf.append(String.format(Locale.ROOT, "\t\t\tsaturationGain : %.4f,\n", mSaturationGain));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\tsaturationGain : %.4f\n", mValueGain));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\tvaluGain       : %.4f\n", mValueGain));
 		
 		strBuf.append("\t\t}");
 		return strBuf.toString();

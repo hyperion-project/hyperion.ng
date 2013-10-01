@@ -1,5 +1,6 @@
 package org.hyperion.hypercon;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
@@ -27,6 +28,7 @@ public class Main {
 		frame.setTitle("Hyperion configuration Tool");
 		frame.setSize(1300, 600);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setIconImage(new ImageIcon(Main.class.getResource("HyperConIcon_64.png")).getImage());
 		
 		// Add the HyperCon configuration panel
 		frame.setContentPane(new ConfigPanel());

@@ -40,24 +40,48 @@ public class MiscConfig {
 	 */
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
+
+		strBuf.append("\t/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: \n");
+		strBuf.append("\t///  * enable       : Flag for enabling or disabling the XBMC-based frame grabbing\n");
+		strBuf.append("\t///  * xbmcAddress  : The IP address of the XBMC-host\n");
+		strBuf.append("\t///  * xbmcTcpPort  : The TCP-port of the XBMC-server\n");
+		strBuf.append("\t///  * grabVideo    : Flag indicating that the frame-grabber is on(true) during video playback\n");
+		strBuf.append("\t///  * grabPictures : Flag indicating that the frame-grabber is on(true) during picture show\n");
+		strBuf.append("\t///  * grabAudio    : Flag indicating that the frame-grabber is on(true) during audio playback\n");
+		strBuf.append("\t///  * grabMenu     : Flag indicating that the frame-grabber is on(true) in the XBMC menu\n");
+		
+		strBuf.append("\t\"xbmcVideoChecker\" :\n");
+		strBuf.append("\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"enable\"       : %s,\n", mXbmcChecker));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"xbmcAddress\"  : \"%s\",\n", mXbmcAddress));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"xbmcTcpPort\"  : %d,\n", mXbmcTcpPort));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"grabVideo\"    : %s,\n", mVideoOn));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"grabPictures\" : %s,\n", mPictureOn));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"grabAudio\"    : %s,\n", mAudioOn));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"grabMenu\"     : %s\n", mMenuOn));
+		strBuf.append("\t},\n");
+		
+		strBuf.append("\t/// The boot-sequence configuration, contains the following items: \n");
+		strBuf.append("\t///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none') \n");
+		strBuf.append("\t///  * duration_ms : The length of the boot-sequence [ms]\n");
+		
 		strBuf.append("\t\"bootsequence\" :\n");
 		strBuf.append("\t{\n");
 		strBuf.append(String.format(Locale.ROOT, "\t\t\"type\"        : \"%s\",\n", mBootSequence));
 		strBuf.append(String.format(Locale.ROOT, "\t\t\"duration_ms\" : %d\n", mBootSequenceLength_ms));
 		strBuf.append("\t},\n");
 		
+		
+		strBuf.append("\t/// The configuration for the frame-grabber, contains the following items: \n");
+		strBuf.append("\t///  * width        : The width of the grabbed frames [pixels]\n");
+		strBuf.append("\t///  * height       : The height of the grabbed frames [pixels]\n");
+		strBuf.append("\t///  * frequency_Hz : The frequency of the frame grab [Hz]\n");
+		
 		strBuf.append("\t\"framegrabber\" :\n");
 		strBuf.append("\t{\n");
 		strBuf.append(String.format(Locale.ROOT, "\t\t\"width\"        : %d,\n", mFrameGrabberWidth));
 		strBuf.append(String.format(Locale.ROOT, "\t\t\"height\"       : %d,\n", mFrameGrabberHeight));
 		strBuf.append(String.format(Locale.ROOT, "\t\t\"frequency_Hz\" : %.1f\n", 1000.0/mFrameGrabberInterval_ms));
-		strBuf.append("\t},\n");
-
-		strBuf.append("\t\"xbmcVideoChecker\" :\n");
-		strBuf.append("\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\"enable\"      : %s,\n", mXbmcChecker));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\"xbmcAddress\" : \"%s\",\n", mXbmcAddress));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\"xbmcTcpPort\" : %d\n", mXbmcTcpPort));
 		strBuf.append("\t}");
 		
 		return strBuf.toString();
