@@ -61,10 +61,23 @@ void DispmanxWrapper::stop()
 	_timer.stop();
 }
 
-void DispmanxWrapper::setGrabbingMode(GrabbingMode mode)
+void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 {
-	if (mode == GRABBINGMODE_VIDEO)
+	switch (mode)
+	{
+	case GRABBINGMODE_VIDEO:
+		_frameGrabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
 		start();
-	else
+	case GRABBINGMODE_AUDIO:
+	case GRABBINGMODE_PHOTO:
+	case GRABBINGMODE_MENU:
+		_frameGrabber->setFlags(0);
+		start();
+		break;
+	case GRABBINGMODE_OFF:
 		stop();
+		break;
+	case GRABBINGMODE_INVALID:
+		break;
+	}
 }
