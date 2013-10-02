@@ -14,14 +14,14 @@ fi
 initctl stop hyperion
 
 # Copy the hyperion-binaries to the /usr/bin
-wget github.com/tvdzwan/hyperion/tree/master/deploy/hyperiond -P /usr/bin/
-wget github.com/tvdzwan/hyperion/tree/master/deploy/hyperion-remote -P /usr/bin/
+wget raw.github.com/tvdzwan/hyperion/master/deploy/hyperiond -P /usr/bin/
+wget raw.github.com/tvdzwan/hyperion/master/deploy/hyperion-remote -P /usr/bin/
 
 # Copy the hyperion configuration file to /etc
-wget github.com/tvdzwan/hyperion/tree/master/config/hyperion.config.json -P /etc/
+wget raw.github.com/tvdzwan/hyperion/master/config/hyperion.config.json -P /etc/
 
 # Copy the service control configuration to /etc/int
-wget github.com/tvdzwan/hyperion/tree/master/bin/hyperion.conf -P /etc/init/
+wget raw.github.com/tvdzwan/hyperion/master/bin/hyperion.conf -P /etc/init/
 
 # Start the hyperion daemon
 initctl start hyperion
