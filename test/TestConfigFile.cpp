@@ -2,50 +2,64 @@
 // STL includes
 #include <cstdlib>
 
+// QT includes
+#include <QResource>
+
 // JsonSchema includes
 #include <utils/jsonschema/JsonFactory.h>
 
 // hyperion includes
 #include <hyperion/LedString.h>
 
-int main()
+Json::Value loadConfig(const std::string & configFile)
 {
-	std::string homeDir = getenv("RASPILIGHT_HOME");
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
 
-	const std::string schemaFile = homeDir + "/hyperion.schema.json";
-	const std::string configFile = homeDir + "/hyperion.config.json";
-
-	Json::Value config;
-	if (JsonFactory::load(schemaFile, configFile, config) < 0)
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion-schema");
+	if (!schemaData.isValid()) \
 	{
-		std::cerr << "UNABLE TO LOAD CONFIGURATION" << std::endl;
-		return -1;
+		throw std::runtime_error("Schema not found");
 	}
 
-	const Json::Value& deviceConfig = config["device"];
-	if (deviceConfig.empty())
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		std::cout << "Missing DEVICE configuration 'device'" << std::endl;
+		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
 	}
-	const Json::Value& ledConfig    = config["leds"];
-	if (ledConfig.empty())
+	JsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson);
+
+	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
+	schemaChecker.validate(jsonConfig);
+
+	return jsonConfig;
+}
+
+int main(int argc, char** argv)
+{
+	if (argc != 2)
 	{
-		std::cout << "Missing LEDS configuration 'leds'" << std::endl;
+		std::cerr << "Missing required configuration file to test" << std::endl;
+		std::cerr << "Usage: test_configfile [configfile]" << std::endl;
+		return 0;
 	}
 
-	const Json::Value& colorConfig  = config["color"];
-	if (colorConfig.empty())
+	const std::string configFile(argv[1]);
+	std::cout << "Configuration file selected: " << configFile.c_str() << std::endl;
+	std::cout << "Attemp to load...\t";
+	try
 	{
-		std::cout << "Missing COLORS configuration 'colors'" << std::endl;
+		Json::Value value = loadConfig(configFile);
+		(void)value;
+		std::cout << "PASSED" << std::endl;
 	}
-	else
+	catch (std::runtime_error exception)
 	{
-		std::cout << "COLOR CONFIGURATION: " << colorConfig.toStyledString() << std::endl;
-
-		const Json::Value& redConfig = colorConfig["red"];
-		double redGamma = redConfig["gamma"].asDouble();
-		std::cout << "RED GAMMA = " << redGamma << std::endl;
-		std::cout << "RED GAMMA = " << colorConfig["red.gamma"].asDouble() << std::endl;
+		std::cout << "FAILED" << std::endl;
+		std::cout << exception.what() << std::endl;
 	}
 
 	return 0;
