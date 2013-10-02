@@ -1,24 +1,27 @@
 #!/bin/sh
 
-# Script for removing the existing boblight library and replacing it with Hyperion
+# Script for downloading and installing the latest Hyperion release
 
-# First stop the current BobLight demon and XBMC
-initctl stop xbmc
-initctl stop boblight
+# Make sure that the boblight daemon is no longer running
+BOBLIGHT_PROCNR=$(ps -e | grep "boblight" | wc -l)
+if [ $BOBLIGHT_PROCNR -eq 1 ];
+then
+	echo 'Found running instance of boblight. Please stop boblight via XBMC menu before installing hyperion'
+	exit
+fi
 
-# Install the RapsiLight library
-cp libbob2hyperion.so /usr/lib/libbob2hyperion.so
-chmod 755 /usr/lib/libbob2hyperion.so
-cp hyperion.config.json /etc/
-cp hyperion.schema.json /etc/
+# Stop hyperion daemon if it is running
+initctl stop hyperion
 
-# Remove the existing boblight client library (make backup)
-cp /usr/lib/libboblight.so.0.0.0 /usr/lib/libboblight.old
-# Rename the settings file to ensure that the boblight-deamon does not start
-mv /etc/bobconfig.txt /etc/bobconfig.txt.old
+# Copy the hyperion-binaries to the /usr/bin
+wget github.com/tvdzwan/hyperion/tree/master/deploy/hyperiond -P /usr/bin/
+wget github.com/tvdzwan/hyperion/tree/master/deploy/hyperion-remote -P /usr/bin/
 
-# Link libboblight to the new installed library
-ln -s /usr/lib/libbob2hyperion.so /usr/lib/libboblight.so.0.0.0
+# Copy the hyperion configuration file to /etc
+wget github.com/tvdzwan/hyperion/tree/master/config/hyperion.config.json -P /etc/
 
-# Restart only XBMC
-initctl start xbmc
+# Copy the service control configuration to /etc/int
+wget github.com/tvdzwan/hyperion/tree/master/bin/hyperion.conf -P /etc/init/
+
+# Start the hyperion daemon
+initctl start hyperion
