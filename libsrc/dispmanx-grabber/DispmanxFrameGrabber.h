@@ -27,6 +27,13 @@ public:
 	~DispmanxFrameGrabber();
 
 	///
+	/// Updates the frame-grab flags as used by the VC library for frame grabbing
+	///
+	/// @param vc_flags  The snapshot grabbing mask
+	///
+	void setFlags(const int vc_flags);
+
+	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
 	/// provided image should have the same dimensions as the configured values (_width and
 	/// _height)
@@ -46,8 +53,12 @@ private:
 	/// Rectangle of the captured resource that is transfered to user space
 	VC_RECT_T _rectangle;
 
+	/// Flags (transforms) for creating snapshots
+	int _vc_flags;
+
 	/// With of the captured snapshot [pixels]
 	unsigned _width;
 	/// Height of the captured snapshot [pixels]
 	unsigned _height;
+
 };

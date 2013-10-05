@@ -55,10 +55,10 @@ public slots:
 	void stop();
 
 	///
-	/// \brief Set the grabbing mode
-	/// \param mode The new grabbing mode
+	/// Set the grabbing mode
+	/// @param[in] mode The new grabbing mode
 	///
-	void setGrabbingMode(GrabbingMode mode);
+	void setGrabbingMode(const GrabbingMode mode);
 
 private:
 	/// The update rate [Hz]

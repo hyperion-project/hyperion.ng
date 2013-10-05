@@ -200,6 +200,42 @@
                 }
             },
             "additionalProperties" : false
+        },
+        "bootsequence" :
+        {
+            "type" : "object",
+            "required" : true,
+            "properties" : {
+                "type" : {
+                    "type" : "string",
+                    "required" : true
+                },
+                "duration_ms" : {
+                    "type" : "integer",
+                    "required" : true
+                }
+            },
+            "additionalProperties" : false
+        },
+        "framegrabber" :
+        {
+            "type" : "object",
+            "required" : true,
+            "properties" : {
+                "width" : {
+                    "type" : "integer",
+                    "required" : true
+                },
+                "height" : {
+                    "type" : "integer",
+                    "required" : true
+                },
+                "frequency_Hz" : {
+                    "type" : "integer",
+                    "required" : true
+                }
+            },
+            "additionalProperties" : false
         }
     },
     "additionalProperties" : false
