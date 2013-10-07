@@ -39,3 +39,5 @@ add_executable(test_blackborderprocessor
 		TestBlackBorderProcessor.cpp)
 target_link_libraries(test_blackborderprocessor
 		hyperion)
+
+add_executable(spidev_test spidev_test.c)
