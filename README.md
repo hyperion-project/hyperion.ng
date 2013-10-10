@@ -9,6 +9,6 @@ Hyperion is an opensource 'AmbiLight' implementation controlled using the RaspBe
 * HyperCon. A tool which helps generate a Hyperion configuration file.
 * Generic software architecture to support new devices and new algorithms easily.
 
-More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki)
+More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki).
 
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).
