@@ -1,10 +1,14 @@
 HYPERION
 ========
 
-An opensource 'AmbiLight' implementation controlled using the RaspBerry Pi running Raspbmc.
-The intention is to replace BobLight. The replacement includes several 'improvements':
-* Frame capture of screen included in deamon. This reduces the processor usages for image based led control to less than 2%.
-* Priority channel can specificy a timeout on their 'command'. This allows a client or remote control to specify a fixed color and then close the connection. 
-* Json IP-control interface. Easy to use interface based on json format for control over TCP/IP.
+Hyperion is an opensource 'AmbiLight' implementation controlled using the RaspBerry Pi running [Raspbmc](http://www.raspbmc.com). The main features of Hyperion are:
+* Low CPU load. For a led string of 50 leds the CPU usage will typically be below 1.5% on a non-overclocked Pi.
+* Json interface which allows easy integration into scripts.
+* A command line utility allows easy testing and configuration of the color transforms (Transformation settings are not preserved over a restart at the moment...).
+* Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our Android app).
+* HyperCon. A tool which helps generate a Hyperion configuration file.
+* Generic software architecture to support new devices and new algorithms easily.
+
+More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki).
 
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).

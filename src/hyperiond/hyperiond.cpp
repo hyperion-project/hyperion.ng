@@ -1,4 +1,3 @@
-
 // C++ includes
 #include <csignal>
 
@@ -66,7 +65,7 @@ int main(int argc, char** argv)
 	{
 		std::cout << "Missing required configuration file. Usage:" << std::endl;
 		std::cout << "hyperiond [config.file]" << std::endl;
-		return 0;
+		return 1;
 	}
 
 	const std::string configFile = argv[1];
