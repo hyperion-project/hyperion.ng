@@ -8,6 +8,7 @@
 #include <iterator>
 
 // Qt includes
+#include <QRgb>
 #include <QResource>
 #include <QDateTime>
 
@@ -116,17 +117,13 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 
 void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &message)
 {
-	if (message.rgbcolor().size() != 3)
-	{
-		sendErrorReply("The rgbcolor field requires a length of 3");
-		return;
-	}
-
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
-	const std::string & rgbColor = message.rgbcolor();
-	RgbColor color = {uint8_t(rgbColor[0]), uint8_t(rgbColor[1]), uint8_t(rgbColor[2])};
+	RgbColor color;
+	color.red = qRed(message.rgbcolor());
+	color.green = qGreen(message.rgbcolor());
+	color.blue = qBlue(message.rgbcolor());
 
 	// set output
 	_hyperion->setColor(priority, color, duration);

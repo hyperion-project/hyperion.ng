@@ -23,8 +23,8 @@ message ColorRequest {
 	// priority to use when setting the color
 	required int32 priority = 1;
 
-	// 3-byte value containing the rgb color
-	required bytes rgbColor = 2;
+	// integer value containing the rgb color (0x00RRGGBB)
+	required int32 rgbColor = 2;
 
 	// duration of the request (negative results in infinite)
 	optional int32 duration = 3;

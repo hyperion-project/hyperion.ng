@@ -33,7 +33,7 @@
     "color" :
     {
         "hsv" : {
-            "saturationGain" : 1.5,
+            "saturationGain" : 1.2,
             "valueGain"      : 1.5
         },
         "red" :
