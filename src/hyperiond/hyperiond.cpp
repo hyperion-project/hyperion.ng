@@ -23,6 +23,9 @@
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
+// ProtoServer includes
+#include <protoserver/ProtoServer.h>
+
 void signal_handler(const int signum)
 {
 	QCoreApplication::quit();
@@ -75,14 +78,20 @@ int main(int argc, char** argv)
 	Hyperion hyperion(config);
 	std::cout << "Hyperion created and initialised" << std::endl;
 
-	BootSequence * bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
-	if (bootSequence)
+	// create boot sequence if the configuration is present
+	BootSequence * bootSequence = nullptr;
+	if (config.isMember("bootsequence"))
 	{
+		bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
 		bootSequence->start();
 	}
 
-	const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
-	XBMCVideoChecker xbmcVideoChecker(
+	// create XBMC video checker if the configuration is present
+	XBMCVideoChecker * xbmcVideoChecker = nullptr;
+	if (config.isMember("xbmcVideoChecker"))
+	{
+		const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
+		xbmcVideoChecker = new XBMCVideoChecker(
 			videoCheckerConfig["xbmcAddress"].asString(),
 			videoCheckerConfig["xbmcTcpPort"].asUInt(),
 			1000,
@@ -90,38 +99,67 @@ int main(int argc, char** argv)
 			videoCheckerConfig["grabPictures"].asBool(),
 			videoCheckerConfig["grabAudio"].asBool(),
 			videoCheckerConfig["grabMenu"].asBool());
-	if (videoCheckerConfig["enable"].asBool())
-	{
-		xbmcVideoChecker.start();
+
+		xbmcVideoChecker->start();
 		std::cout << "XBMC video checker created and started" << std::endl;
 	}
 
-	// Construct and start the frame-grabber
-	const Json::Value & frameGrabberConfig = config["framegrabber"];
-	DispmanxWrapper dispmanx(
+	// Construct and start the frame-grabber if the configuration is present
+	DispmanxWrapper * dispmanx = nullptr;
+	if (config.isMember("framegrabber"))
+	{
+		const Json::Value & frameGrabberConfig = config["framegrabber"];
+		dispmanx = new DispmanxWrapper(
 			frameGrabberConfig["width"].asUInt(),
 			frameGrabberConfig["height"].asUInt(),
 			frameGrabberConfig["frequency_Hz"].asUInt(),
 			&hyperion);
-	QObject::connect(&xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), &dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
-	dispmanx.start();
-	std::cout << "Frame grabber created and started" << std::endl;
 
-	JsonServer jsonServer(&hyperion);
-	std::cout << "Json server created and started on port " << jsonServer.getPort() << std::endl;
+		if (xbmcVideoChecker != nullptr)
+		{
+			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
+		}
+		else
+		{
+			dispmanx->setGrabbingMode(GRABBINGMODE_VIDEO);
+		}
+
+		dispmanx->start();
+		std::cout << "Frame grabber created and started" << std::endl;
+	}
+
+	// Create Json server if configuration is present
+	JsonServer * jsonServer = nullptr;
+	if (config.isMember("jsonServer"))
+	{
+		const Json::Value & jsonServerConfig = config["jsonServer"];
+		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
+		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
+	}
+
+	// Create Proto server if configuration is present
+	ProtoServer * protoServer = nullptr;
+	if (config.isMember("protoServer"))
+	{
+		const Json::Value & protoServerConfig = config["protoServer"];
+		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt());
+		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
+	}
 
 	// run the application
 	int rc = app.exec();
 	std::cout << "Application closed" << std::endl;
 
-	// Stop the frame grabber
-	dispmanx.stop();
-
-	// Delete the boot sequence
-	delete bootSequence;
-
 	// Clear all colors (switchting off all leds)
 	hyperion.clearall();
 
+	// Delete all component
+	delete bootSequence;
+	delete dispmanx;
+	delete xbmcVideoChecker;
+	delete jsonServer;
+	delete protoServer;
+
+	// leave application
 	return rc;
 }

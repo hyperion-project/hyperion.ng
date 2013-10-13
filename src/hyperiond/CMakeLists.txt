@@ -7,4 +7,5 @@ target_link_libraries(hyperiond
 		hyperion
 		dispmanx-grabber
 		xbmcvideochecker
-		jsonserver)
+		jsonserver
+		protoserver)
