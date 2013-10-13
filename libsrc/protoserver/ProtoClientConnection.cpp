@@ -61,13 +61,9 @@ void ProtoClientConnection::readData()
 
 	// read a message
 	proto::HyperionRequest message;
-	try
+	if (!message.ParseFromArray(_receiveBuffer.data() + 4, messageSize))
 	{
-		message.ParseFromArray(_receiveBuffer.data() + 4, messageSize);
-	}
-	catch(const std::exception & e)
-	{
-		sendErrorReply(std::string("Unable to parse message: ") + e.what());
+		sendErrorReply("Unable to parse message");
 	}
 
 	// handle the message
@@ -203,7 +199,6 @@ void ProtoClientConnection::sendMessage(const google::protobuf::Message &message
 	std::string serializedReply = message.SerializeAsString();
 	uint32_t size = serializedReply.size();
 	uint8_t sizeData[] = {uint8_t(size >> 24), uint8_t(size >> 16), uint8_t(size >> 8), uint8_t(size)};
-	std::cout << sizeData[0] << " " << sizeData[0] << " " << sizeData[0] << " " << sizeData[0] << " <data>" << std::endl;
 	_socket->write((const char *) sizeData, sizeof(sizeData));
 	_socket->write(serializedReply.data(), serializedReply.length());
 	_socket->flush();
