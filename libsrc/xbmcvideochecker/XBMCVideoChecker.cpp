@@ -7,7 +7,7 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, u
 	QObject(),
 	_address(QString::fromStdString(address)),
 	_port(port),
-	_request("{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":666}"),
+	_request(R"({"jsonrpc":"2.0","method":"Player.GetActivePlayers","id":666})"),
 	_timer(),
 	_socket(),
 	_grabVideo(grabVideo),
