@@ -1,18 +1,6 @@
 
 #include "DispmanxFrameGrabber.h"
 
-// Because the shapshot function is incompatible between versions (use of different enum as
-// third argument) and no proper version number is available as preprocessor define we cast the
-// function to the same function with the third argument as 'int'.
-// This way we can call the function in both versions of the VideoCore library without
-// switching.
-static int my_vc_dispmanx_snapshot(DISPMANX_DISPLAY_HANDLE_T display, DISPMANX_RESOURCE_HANDLE_T snapshot_resource, int transform)
-{
-	typedef int (*SnapshotFunctionPtr)(DISPMANX_DISPLAY_HANDLE_T, DISPMANX_RESOURCE_HANDLE_T, int);
-	SnapshotFunctionPtr snapshot = (SnapshotFunctionPtr) &vc_dispmanx_snapshot;
-	return (*snapshot)(display, snapshot_resource, transform);
-}
-
 DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height) :
 	_vc_display(0),
 	_vc_resource(0),
@@ -77,7 +65,7 @@ void DispmanxFrameGrabber::grabFrame(RgbImage& image)
 	_vc_display = vc_dispmanx_display_open(0);
 
 	// Create the snapshot (incl down-scaling)
-	my_vc_dispmanx_snapshot(_vc_display, _vc_resource, _vc_flags);
+	vc_dispmanx_snapshot(_vc_display, _vc_resource, (DISPMANX_TRANSFORM_T) _vc_flags);
 
 	// Read the snapshot into the memory
 	void* image_ptr = image.memptr();
