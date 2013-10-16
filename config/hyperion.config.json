@@ -30,29 +30,29 @@
 	{
 		"hsv" :
 		{
-			saturationGain : 1.0000,
-			valuGain       : 1.5000
+			"saturationGain" : 1.0000,
+			"valuGain"       : 1.5000
 		},
 		"red" :
 		{
-			threshold  : 0.1000,
-			gamma      : 2.0000,
-			blacklevel : 0.0000,
-			whitelevel : 0.8000
+			"threshold"  : 0.1000,
+			"gamma"      : 2.0000,
+			"blacklevel" : 0.0000,
+			"whitelevel" : 0.8000
 		},
 		"green" :
 		{
-			threshold  : 0.1000,
-			gamma      : 2.0000,
-			blacklevel : 0.0000,
-			whitelevel : 1.0000
+			"threshold"  : 0.1000,
+			"gamma"      : 2.0000,
+			"blacklevel" : 0.0000,
+			"whitelevel" : 1.0000
 		},
 		"blue" :
 		{
-			threshold  : 0.1000,
-			gamma      : 2.0000,
-			blacklevel : 0.0000,
-			whitelevel : 1.0000
+			"threshold"  : 0.1000,
+			"gamma"      : 2.0000,
+			"blacklevel" : 0.0000,
+			"whitelevel" : 1.0000
 		}
 	},
 
