@@ -32,6 +32,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 
+# add protocol buffers
+find_package(Protobuf REQUIRED)
+
 #SET(QT_DONT_USE_QTGUI   TRUE)
 #SET(QT_USE_QTCONSOLE    TRUE)
 include(${QT_USE_FILE})

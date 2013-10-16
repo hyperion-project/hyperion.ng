@@ -13,15 +13,22 @@ fi
 # Stop hyperion daemon if it is running
 initctl stop hyperion
 
-# Copy the hyperion-binaries to the /usr/bin
-wget raw.github.com/tvdzwan/hyperion/master/deploy/hyperiond -P /usr/bin/
-wget raw.github.com/tvdzwan/hyperion/master/deploy/hyperion-remote -P /usr/bin/
+wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperiond -P /usr/bin/
+wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion-remote -P /usr/bin/
+
+# Copy the gpio changer (gpio->spi) to the /usr/bin
+wget -N github.com/tvdzwan/hyperion/raw/master/deploy/gpio2spi -P /usr/bin/
 
 # Copy the hyperion configuration file to /etc
-wget raw.github.com/tvdzwan/hyperion/master/config/hyperion.config.json -P /etc/
+wget -N github.com/tvdzwan/hyperion/raw/master/config/hyperion.config.json -P /etc/
 
 # Copy the service control configuration to /etc/int
-wget raw.github.com/tvdzwan/hyperion/master/bin/hyperion.conf -P /etc/init/
+wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.conf -P /etc/init/
+
+# Set permissions
+chmod +x /usr/bin/hyperiond
+chmod +x /usr/bin/hyperion-remote
+chmod +x /usr/bin/gpio2spi
 
 # Start the hyperion daemon
 initctl start hyperion

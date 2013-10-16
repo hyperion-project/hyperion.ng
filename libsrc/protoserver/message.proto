@@ -1,0 +1,69 @@
+package proto;
+
+message HyperionRequest {
+	enum Command {
+		COLOR = 1;
+		IMAGE = 2;
+		CLEAR = 3;
+		CLEARALL = 4;
+	}
+
+	// command specification
+	required Command command = 1;
+
+	// extensions to define all specific requests
+	extensions 10 to 100;
+}
+
+message ColorRequest {
+	extend HyperionRequest {
+		required ColorRequest colorRequest = 10;
+	}
+
+	// priority to use when setting the color
+	required int32 priority = 1;
+
+	// integer value containing the rgb color (0x00RRGGBB)
+	required int32 rgbColor = 2;
+
+	// duration of the request (negative results in infinite)
+	optional int32 duration = 3;
+}
+
+message ImageRequest {
+	extend HyperionRequest {
+		required ImageRequest imageRequest = 11;
+	}
+
+	// priority to use when setting the image
+	required int32 priority = 1;
+
+	// width of the image
+	required int32 imagewidth = 2;
+
+	// height of the image
+	required int32 imageheight = 3;
+
+	// image data
+	required bytes imagedata = 4;
+
+	// duration of the request (negative results in infinite)
+	optional int32 duration = 5;
+}
+
+message ClearRequest {
+	extend HyperionRequest {
+		required ClearRequest clearRequest = 12;
+	}
+
+	// priority which need to be cleared
+	required int32 priority = 1;
+}
+
+message HyperionReply {
+	// flag indication success or failure
+	required bool success = 1;
+
+	// string indicating the reason for failure (if applicable)
+	optional string error = 2;
+}

@@ -7,7 +7,6 @@ add_executable(test_spi
 target_link_libraries(test_spi
 		hyperion)
 
-
 add_executable(test_configfile
 		TestConfigFile.cpp)
 target_link_libraries(test_configfile
@@ -39,3 +38,6 @@ add_executable(test_blackborderprocessor
 		TestBlackBorderProcessor.cpp)
 target_link_libraries(test_blackborderprocessor
 		hyperion)
+
+add_executable(spidev_test spidev_test.c)
+add_executable(gpio2spi switchPinCtrl.c)

@@ -45,8 +45,6 @@ void HsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 		uint8_t saturation, value;
 		rgb2hsv(red, green, blue, hue, saturation, value);
 
-		std::cout << int(hue) << " " << int(saturation) << " " << int(value) << std::endl;
-
 		int s = saturation * _saturationGain;
 		if (s > 255)
 			saturation = 255;
