@@ -83,7 +83,11 @@ int main(int argc, char** argv)
 	if (config.isMember("bootsequence"))
 	{
 		bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
-		bootSequence->start();
+		
+		if (bootSequence != nullptr)
+		{
+			bootSequence->start();
+		}
 	}
 
 	// create XBMC video checker if the configuration is present
