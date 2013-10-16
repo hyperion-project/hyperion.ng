@@ -7,7 +7,8 @@ Hyperion is an opensource 'AmbiLight' implementation controlled using the RaspBe
 * A command line utility allows easy testing and configuration of the color transforms (Transformation settings are not preserved over a restart at the moment...).
 * Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our Android app).
 * HyperCon. A tool which helps generate a Hyperion configuration file.
-* Black border detector
+* XBMC-checker which checks the playing status of XBMC and decides whether or not to capture the screen.
+* Black border detector.
 * Generic software architecture to support new devices and new algorithms easily.
 
 More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki).
