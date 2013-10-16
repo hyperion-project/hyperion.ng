@@ -33,7 +33,7 @@
     "color" :
     {
         "hsv" : {
-            "saturationGain" : 1.2,
+            "saturationGain" : 1.0,
             "valueGain"      : 1.5
         },
         "red" :
@@ -41,7 +41,7 @@
             "threshold"  : 0.1,
             "gamma"      : 2.0,
             "blacklevel" : 0.0,
-            "whitelevel" : 1.0
+            "whitelevel" : 0.8
         },
         "green" :
         {
