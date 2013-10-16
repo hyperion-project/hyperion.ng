@@ -76,7 +76,7 @@ public class ColorConfig {
 		strBuf.append("\t\t\"hsv\" :\n");
 		strBuf.append("\t\t{\n");
 		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"saturationGain\" : %.4f,\n", mSaturationGain));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"valuGain\"       : %.4f\n", mValueGain));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"valueGain\"      : %.4f\n", mValueGain));
 		
 		strBuf.append("\t\t}");
 		return strBuf.toString();
