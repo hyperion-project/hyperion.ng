@@ -7,14 +7,8 @@
 #include <QByteArray>
 #include <QTcpSocket>
 
-// jsoncpp includes
-#include <json/json.h>
-
 // Hyperion includes
 #include <hyperion/Hyperion.h>
-
-// util includes
-#include <utils/jsonschema/JsonSchemaChecker.h>
 
 // proto includes
 #include "message.pb.h"
