@@ -12,7 +12,7 @@
 BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, const Json::Value & jsonConfig)
 {
 	std::string type = jsonConfig["type"].asString();
-	std::transform(type.begin(), type.end(), type.begin(), std::tolower);
+	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	if (type == "none")
 	{
