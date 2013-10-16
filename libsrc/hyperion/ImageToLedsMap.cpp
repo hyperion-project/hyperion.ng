@@ -85,6 +85,11 @@ void ImageToLedsMap::getMeanLedColor(const RgbImage & image, std::vector<RgbColo
 
 RgbColor ImageToLedsMap::calcMeanColor(const RgbImage & image, const std::vector<unsigned> & colors) const
 {
+	if (colors.size() == 0)
+	{
+		return RgbColor::BLACK;
+	}
+
 	// Accumulate the sum of each seperate color channel
 	uint_fast16_t cummRed   = 0;
 	uint_fast16_t cummGreen = 0;
