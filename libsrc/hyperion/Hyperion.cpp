@@ -68,8 +68,8 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 		const Json::Value& vscanConfig = ledConfig["vscan"];
 		led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
 		led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
-		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
 
 		ledString.leds().push_back(led);
 	}
