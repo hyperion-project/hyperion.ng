@@ -12,7 +12,7 @@ public class DeviceConfig {
 	/** The device 'file' name */
 	String mOutput   = "/dev/spidev0.0";
 	/** The baudrate of the device */
-	int mBaudrate    = 48000;
+	int mBaudrate    = 1000000;
 	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile

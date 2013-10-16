@@ -10,30 +10,30 @@ public class ColorConfig {
 	/** The saturation gain (in HSV space) */
 	double mSaturationGain = 1.0;
 	/** The value gain (in HSV space) */
-	double mValueGain = 1.0;
+	double mValueGain = 1.5;
 	
 	/** The minimum required RED-value (in RGB space) */
-	double mRedThreshold  = 0.0;
+	double mRedThreshold  = 0.1;
 	/** The gamma-curve correct for the RED-value (in RGB space) */
-	double mRedGamma      = 1.0;
+	double mRedGamma      = 2.0;
 	/** The black-level of the RED-value (in RGB space) */
 	double mRedBlacklevel = 0.0;
 	/** The white-level of the RED-value (in RGB space) */
-	double mRedWhitelevel = 1.0;
+	double mRedWhitelevel = 0.8;
 	
 	/** The minimum required GREEN-value (in RGB space) */
-	double mGreenThreshold  = 0.0;
+	double mGreenThreshold  = 0.1;
 	/** The gamma-curve correct for the GREEN-value (in RGB space) */
-	double mGreenGamma      = 1.0;
+	double mGreenGamma      = 2.0;
 	/** The black-level of the GREEN-value (in RGB space) */
 	double mGreenBlacklevel = 0.0;
 	/** The white-level of the GREEN-value (in RGB space) */
 	double mGreenWhitelevel = 1.0;
 	
 	/** The minimum required BLUE-value (in RGB space) */
-	double mBlueThreshold  = 0.0;
+	double mBlueThreshold  = 0.1;
 	/** The gamma-curve correct for the BLUE-value (in RGB space) */
-	double mBlueGamma      = 1.0;
+	double mBlueGamma      = 2.0;
 	/** The black-level of the BLUE-value (in RGB space) */
 	double mBlueBlacklevel = 0.0;
 	/** The white-level of the BLUE-value (in RGB space) */

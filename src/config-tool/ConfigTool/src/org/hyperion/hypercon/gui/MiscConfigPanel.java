@@ -44,16 +44,16 @@ public class MiscConfigPanel extends JPanel {
 		add(mMenuLabel);
 		
 		mMenuCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mMenuCombo.setSelectedItem("Off");
+		mMenuCombo.setSelectedItem(mMiscConfig.mMenuOn? "On": "Off");
 		mMenuCombo.setToolTipText("Enables('On') or disbales('Off') the ambi-light in the XBMC Menu");
 		mMenuCombo.addActionListener(mActionListener);
 		add(mMenuCombo);
 
 		mVideoLabel = new JLabel("Video");
 		add(mVideoLabel);
-		
+
 		mVideoCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mVideoCombo.setSelectedItem("On");
+		mVideoCombo.setSelectedItem(mMiscConfig.mVideoOn? "On": "Off");
 		mVideoCombo.setToolTipText("Enables('On') or disbales('Off') the ambi-light during video playback");
 		mVideoCombo.addActionListener(mActionListener);
 		add(mVideoCombo);
@@ -62,7 +62,7 @@ public class MiscConfigPanel extends JPanel {
 		add(mPictureLabel);
 		
 		mPictureCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mPictureCombo.setSelectedItem("Off");
+		mPictureCombo.setSelectedItem(mMiscConfig.mPictureOn? "On": "Off");
 		mPictureCombo.setToolTipText("Enables('On') or disbales('Off') the ambi-light when viewing pictures");
 		mPictureCombo.addActionListener(mActionListener);
 		add(mPictureCombo);
@@ -71,7 +71,7 @@ public class MiscConfigPanel extends JPanel {
 		add(mAudioLabel);
 		
 		mAudioCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mAudioCombo.setSelectedItem("Off");
+		mAudioCombo.setSelectedItem(mMiscConfig.mAudioOn? "On": "Off");
 		mAudioCombo.setToolTipText("Enables('On') or disbales('Off') the ambi-light when listing to audio");
 		mAudioCombo.addActionListener(mActionListener);
 		add(mAudioCombo);
