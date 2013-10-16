@@ -83,10 +83,11 @@ int main(int argc, char** argv)
 	if (config.isMember("bootsequence"))
 	{
 		bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
-		
+
 		if (bootSequence != nullptr)
 		{
 			bootSequence->start();
+			std::cout << "Boot sequence created and started" << std::endl;
 		}
 	}
 
@@ -152,7 +153,7 @@ int main(int argc, char** argv)
 
 	// run the application
 	int rc = app.exec();
-	std::cout << "Application closed" << std::endl;
+	std::cout << "Application closed with code " << rc << std::endl;
 
 	// Clear all colors (switchting off all leds)
 	hyperion.clearall();
