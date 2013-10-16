@@ -20,11 +20,13 @@ BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, cons
 	}
 	else if (type == "rainbow")
 	{
+		std::cout << "SELECTED BOOT SEQUENCE: " << "RAINBOW" << std::endl;
 		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
 		return new RainbowBootSequence(hyperion, duration_ms);
 	}
 	else if (type == "knightrider" || type == "knight rider")
 	{
+		std::cout << "SELECTED BOOT SEQUENCE: " << "KITT" << std::endl;
 		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
 		return new KittBootSequence(hyperion, duration_ms);
 	}
