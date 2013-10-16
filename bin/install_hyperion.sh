@@ -26,5 +26,10 @@ wget github.com/tvdzwan/hyperion/raw/master/config/hyperion.config.json -P /etc/
 # Copy the service control configuration to /etc/int
 wget github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.conf -P /etc/init/
 
+# Set permissions
+chmod +x /usr/bin/hyperiond
+chmod +x /usr/bin/hyperion-remote
+chmod +x /usr/bin/gpio2spi
+
 # Start the hyperion daemon
 initctl start hyperion
