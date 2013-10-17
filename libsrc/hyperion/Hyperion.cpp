@@ -43,15 +43,18 @@ LedDevice* Hyperion::constructDevice(const Json::Value& deviceConfig)
 
 HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
 {
-	return new HsvTransform(hsvConfig["saturationGain"].asDouble(), hsvConfig["valueGain"].asDouble());
+	const double saturationGain = hsvConfig.get("saturationGain", 1.0).asDouble();
+	const double valueGain      = hsvConfig.get("valueGain",      1.0).asDouble();
+
+	return new HsvTransform(saturationGain, valueGain);
 }
 
 ColorTransform* Hyperion::createColorTransform(const Json::Value& colorConfig)
 {
-	const double threshold  = colorConfig["threshold"].asDouble();
-	const double gamma      = colorConfig["gamma"].asDouble();
-	const double blacklevel = colorConfig["blacklevel"].asDouble();
-	const double whitelevel = colorConfig["whitelevel"].asDouble();
+	const double threshold  = colorConfig.get("threshold", 0.0).asDouble();
+	const double gamma      = colorConfig.get("gamma", 1.0).asDouble();
+	const double blacklevel = colorConfig.get("blacklevel", 0.0).asDouble();
+	const double whitelevel = colorConfig.get("whitelevel", 1.0).asDouble();
 
 	ColorTransform* transform = new ColorTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
