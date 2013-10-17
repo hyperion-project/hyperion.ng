@@ -1,3 +1,29 @@
-http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi
+ON RASPBERRY
+--------------
+sudo apt-get install libprotobuf-dev libQt4-dev rsync
 
-cmake -DCMAKE_TOOLCHAIN_FILE=$HOME/raspberrypi/Toolchain-RaspberryPi.cmake
+ON HOST
+---------
+export RASPI=192.168.1.17
+export RASCROSS_DIR="$HOME/raspberrypi"
+export HYPERION_DIR="$HOME/hyperion"
+
+sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
+
+mkdir -p "$RASCROSS_DIR/rootfs"
+git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
+
+git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
+ln -s "$RASCROSS_DIR/firmware/opt" "$RASCROSS_DIR/rootfs/opt"
+
+rsync -rl --delete-after --safe-links pi@$RASPI:/{lib,usr} "$RASCROSS_DIR/rootfs"
+
+git clone https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+mkdir "$HYPERION_DIR/build"
+cmake -DCMAKE_TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake" --build "$HYPERION_DIR/build" "$HYPERION_DIR"
+
+
+
+------------------------------------------------------------------------------
+These instructions are based on the guide given by:
+http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi
