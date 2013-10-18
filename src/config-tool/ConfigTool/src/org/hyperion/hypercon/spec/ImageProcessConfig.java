@@ -15,6 +15,11 @@ public class ImageProcessConfig extends Observable {
 	private double mHorizontalDepth = 0.08;
 	/** The 'integration depth' of the leds along the vertical axis of the tv */
 	private double mVerticalDepth   = 0.05;
+	
+	/** The gap between the border integration area for the horizontal leds */
+	private double mHorizontalGap = 0.0;
+	/** The gap between the border integration area for the vertical leds */
+	private double mVerticalGap = 0.0;
 
 	/** The fraction of overlap from one to another led */
 	private double mOverlapFraction = 0.0;
@@ -46,6 +51,29 @@ public class ImageProcessConfig extends Observable {
 	}
 
 	/**
+	 * Returns the horizontal gap (top and bottom) of the image integration area from the side of the 
+	 * screen [0.0; 1.0]
+	 * 
+	 * @return The horizontal gap [0.0; 1.0] 
+	 */
+	public double getHorizontalGap() {
+		return mHorizontalGap;
+	}
+
+	/**
+	 * Sets the horizontal gap (top and bottom) of the image integration area from the side as a fraction of the 
+	 * screen [0.0; 1.0]
+	 * 
+	 * @param pHorizontalGap The horizontal integration area gap from the side [0.0; 1.0] 
+	 */
+	public void setHorizontalGap(double pHorizontalGap) {
+		if (mHorizontalGap != pHorizontalGap) {
+			mHorizontalGap = pHorizontalGap;
+			setChanged();
+		}
+	}
+
+	/**
 	 * Returns the vertical depth (left and right) of the image integration as a fraction of the 
 	 * image [0.0; 1.0]
 	 * 
@@ -67,6 +95,30 @@ public class ImageProcessConfig extends Observable {
 			setChanged();
 		}
 	}
+
+	/**
+	 * Returns the vertical gap (left and right) of the image integration area from the side of the 
+	 * screen [0.0; 1.0]
+	 * 
+	 * @return The vertical gap [0.0; 1.0] 
+	 */
+	public double getVerticalGap() {
+		return mVerticalGap;
+	}
+
+	/**
+	 * Sets the horizontal gap (top and bottom) of the image integration area from the side as a fraction of the 
+	 * screen [0.0; 1.0]
+	 * 
+	 * @param pHorizontalGap The horizontal integration area gap from the side [0.0; 1.0] 
+	 */
+	public void setVerticalGap(double pVerticalGap) {
+		if (mVerticalGap != pVerticalGap) {
+			mVerticalGap = pVerticalGap;
+			setChanged();
+		}
+	}
+
 
 	/**
 	 * Returns the fractional overlap of one integration tile with its neighbors

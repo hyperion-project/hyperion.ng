@@ -25,7 +25,12 @@ public class ImageProcessPanel extends JPanel implements Observer {
 	private JSpinner mHorizontalDepthSpinner;
 	private JLabel mVerticalDepthLabel;
 	private JSpinner mVerticalDepthSpinner;
-	
+
+	private JLabel mHorizontalGapLabel;
+	private JSpinner mHorizontalGapSpinner;
+	private JLabel mVerticalGapLabel;
+	private JSpinner mVerticalGapSpinner;
+
 	private JLabel mOverlapLabel;
 	private JSpinner mOverlapSpinner;
 	
@@ -65,6 +70,28 @@ public class ImageProcessPanel extends JPanel implements Observer {
 		mVerticalDepthSpinner.addChangeListener(mChangeListener);
 		add(mVerticalDepthSpinner);
 
+		mHorizontalGapLabel = new JLabel("Horizontal gap [%]:");
+		mHorizontalGapLabel.setPreferredSize(new Dimension(100, 30));
+		mHorizontalGapLabel.setMaximumSize(new Dimension(150, 30));
+		add(mHorizontalGapLabel);
+		
+		mHorizontalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
+		mHorizontalGapSpinner.setPreferredSize(new Dimension(150, 30));
+		mHorizontalGapSpinner.setMaximumSize(new Dimension(250, 30));
+		mHorizontalGapSpinner.addChangeListener(mChangeListener);
+		add(mHorizontalGapSpinner);
+
+		mVerticalGapLabel = new JLabel("Vertical gap [%]:");
+		mVerticalGapLabel.setPreferredSize(new Dimension(100, 30));
+		mVerticalGapLabel.setMaximumSize(new Dimension(150, 30));
+		add(mVerticalGapLabel);
+		
+		mVerticalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
+		mVerticalGapSpinner.setPreferredSize(new Dimension(150, 30));
+		mVerticalGapSpinner.setMaximumSize(new Dimension(250, 30));
+		mVerticalGapSpinner.addChangeListener(mChangeListener);
+		add(mVerticalGapSpinner);
+
 		mOverlapLabel = new JLabel("Overlap [%]:");
 		mOverlapLabel.setPreferredSize(new Dimension(100, 30));
 		mOverlapLabel.setMaximumSize(new Dimension(150, 30));
@@ -93,12 +120,16 @@ public class ImageProcessPanel extends JPanel implements Observer {
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mHorizontalDepthLabel)
 						.addComponent(mVerticalDepthLabel)
+						.addComponent(mHorizontalGapLabel)
+						.addComponent(mVerticalGapLabel)
 						.addComponent(mOverlapLabel)
 						.addComponent(mBlackborderDetectorLabel)
 						)
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mHorizontalDepthSpinner)
 						.addComponent(mVerticalDepthSpinner)
+						.addComponent(mHorizontalGapSpinner)
+						.addComponent(mVerticalGapSpinner)
 						.addComponent(mOverlapSpinner)
 						.addComponent(mBlackborderDetectorCombo)
 						)
@@ -111,6 +142,14 @@ public class ImageProcessPanel extends JPanel implements Observer {
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mVerticalDepthLabel)
 						.addComponent(mVerticalDepthSpinner)
+						)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(mHorizontalGapLabel)
+						.addComponent(mHorizontalGapSpinner)
+						)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(mVerticalGapLabel)
+						.addComponent(mVerticalGapSpinner)
 						)
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mOverlapLabel)
@@ -147,6 +186,8 @@ public class ImageProcessPanel extends JPanel implements Observer {
 			// Update the processing configuration
 			mProcessConfig.setHorizontalDepth(((Double)mHorizontalDepthSpinner.getValue())/100.0);
 			mProcessConfig.setVerticalDepth(((Double)mVerticalDepthSpinner.getValue())/100.0);
+			mProcessConfig.setHorizontalGap(((Double)mHorizontalGapSpinner.getValue())/100.0);
+			mProcessConfig.setVerticalGap(((Double)mVerticalGapSpinner.getValue())/100.0);
 			mProcessConfig.setOverlapFraction(((Double)mOverlapSpinner.getValue())/100.0);
 
 			// Notify observers

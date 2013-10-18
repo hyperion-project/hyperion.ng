@@ -183,51 +183,88 @@ public class LedFrameFactory {
 		led.mLocation = new Point2D.Double(x_frac, y_frac);
 		led.mSide = pBorderSide;
 		
-		double widthFrac  = (1.0/pFrameSpec.topLedCnt * (1.0 + overlap_frac))/2.0;
-		double heightFrac = (1.0/pFrameSpec.leftLedCnt * (1.0 + overlap_frac))/2.0;
+		double xFrac      = pProcessSpec.getVerticalGap() + (1.0-2*pProcessSpec.getVerticalGap()) * x_frac;	
+		double yFrac      = pProcessSpec.getHorizontalGap() + (1.0-2*pProcessSpec.getHorizontalGap()) * y_frac;	
+		double widthFrac  = ((1.0-2*pProcessSpec.getVerticalGap())/pFrameSpec.topLedCnt * (1.0 + overlap_frac))/2.0;
+		double heightFrac = ((1.0-2*pProcessSpec.getHorizontalGap())/pFrameSpec.leftLedCnt * (1.0 + overlap_frac))/2.0;
+		
+		double horizontalDepth = Math.min(1.0 - pProcessSpec.getHorizontalGap(), pProcessSpec.getHorizontalDepth());
+		double verticalDepth = Math.min(1.0 - pProcessSpec.getVerticalGap(), pProcessSpec.getVerticalDepth());
 		
 		switch (pBorderSide) {
 		case top_left: {
-			led.mImageRectangle = new Rectangle2D.Double(0.0, 0.0, pProcessSpec.getVerticalDepth(), pProcessSpec.getHorizontalDepth());
+			led.mImageRectangle = new Rectangle2D.Double(
+					pProcessSpec.getVerticalGap(), 
+					pProcessSpec.getHorizontalGap(),
+					verticalDepth, 
+					horizontalDepth);
 			break;
 		}
 		case top_right: {
-			led.mImageRectangle = new Rectangle2D.Double(1.0-pProcessSpec.getVerticalDepth(), 0.0, pProcessSpec.getVerticalDepth(), pProcessSpec.getHorizontalDepth());
+			led.mImageRectangle = new Rectangle2D.Double(
+					1.0-pProcessSpec.getVerticalGap()-verticalDepth,
+					pProcessSpec.getHorizontalGap(),
+					verticalDepth, 
+					horizontalDepth);
 			break;
 		}
 		case bottom_left: {
-			led.mImageRectangle = new Rectangle2D.Double(0.0, 1.0-pProcessSpec.getHorizontalDepth(), pProcessSpec.getVerticalDepth(), pProcessSpec.getHorizontalDepth());
+			led.mImageRectangle = new Rectangle2D.Double(
+					pProcessSpec.getVerticalGap(),
+					1.0-pProcessSpec.getHorizontalGap()-horizontalDepth,
+					verticalDepth,
+					horizontalDepth);
 			break;
 		}
 		case bottom_right: {
-			led.mImageRectangle = new Rectangle2D.Double(1.0-pProcessSpec.getVerticalDepth(), 1.0-pProcessSpec.getHorizontalDepth(), pProcessSpec.getVerticalDepth(), pProcessSpec.getHorizontalDepth());
+			led.mImageRectangle = new Rectangle2D.Double(
+					1.0-pProcessSpec.getVerticalGap()-verticalDepth, 
+					1.0-pProcessSpec.getHorizontalGap()-horizontalDepth,
+					verticalDepth,
+					horizontalDepth);
 			break;
 		}
 		case top:{
-			double intXmin_frac = Math.max(0.0, x_frac-widthFrac);
-			double intXmax_frac = Math.min(x_frac+widthFrac, 1.0);
-			led.mImageRectangle = new Rectangle2D.Double(intXmin_frac, 0.0, intXmax_frac-intXmin_frac, pProcessSpec.getHorizontalDepth());
+			double intXmin_frac = Math.max(0.0, xFrac-widthFrac);
+			double intXmax_frac = Math.min(xFrac+widthFrac, 1.0);
+			led.mImageRectangle = new Rectangle2D.Double(
+					intXmin_frac, 
+					pProcessSpec.getHorizontalGap(), 
+					intXmax_frac-intXmin_frac, 
+					horizontalDepth);
 			
 			break;
 		}
 		case bottom:
 		{
-			double intXmin_frac = Math.max(0.0, x_frac-widthFrac);
-			double intXmax_frac = Math.min(x_frac+widthFrac, 1.0);
+			double intXmin_frac = Math.max(0.0, xFrac-widthFrac);
+			double intXmax_frac = Math.min(xFrac+widthFrac, 1.0);
 			
-			led.mImageRectangle = new Rectangle2D.Double(intXmin_frac, 1.0-pProcessSpec.getHorizontalDepth(), intXmax_frac-intXmin_frac, pProcessSpec.getHorizontalDepth());
+			led.mImageRectangle = new Rectangle2D.Double(
+					intXmin_frac, 
+					1.0-pProcessSpec.getHorizontalGap()-horizontalDepth, 
+					intXmax_frac-intXmin_frac, 
+					horizontalDepth);
 			break;
 		}
 		case left: {
-			double intYmin_frac = Math.max(0.0, y_frac-heightFrac);
-			double intYmax_frac = Math.min(y_frac+heightFrac, 1.0);
-			led.mImageRectangle = new Rectangle2D.Double(0.0, intYmin_frac, pProcessSpec.getVerticalDepth(), intYmax_frac-intYmin_frac);
+			double intYmin_frac = Math.max(0.0, yFrac-heightFrac);
+			double intYmax_frac = Math.min(yFrac+heightFrac, 1.0);
+			led.mImageRectangle = new Rectangle2D.Double(
+					pProcessSpec.getVerticalGap(), 
+					intYmin_frac, 
+					verticalDepth, 
+					intYmax_frac-intYmin_frac);
 			break;
 		}
 		case right:
-			double intYmin_frac = Math.max(0.0, y_frac-heightFrac);
-			double intYmax_frac = Math.min(y_frac+heightFrac, 1.0);
-			led.mImageRectangle = new Rectangle2D.Double(1.0-pProcessSpec.getVerticalDepth(), intYmin_frac, pProcessSpec.getVerticalDepth(), intYmax_frac-intYmin_frac);
+			double intYmin_frac = Math.max(0.0, yFrac-heightFrac);
+			double intYmax_frac = Math.min(yFrac+heightFrac, 1.0);
+			led.mImageRectangle = new Rectangle2D.Double(
+					1.0-pProcessSpec.getVerticalGap()-verticalDepth, 
+					intYmin_frac, 
+					verticalDepth, 
+					intYmax_frac-intYmin_frac);
 			break;
 		}
 		
