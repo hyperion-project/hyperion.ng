@@ -89,22 +89,22 @@ void XBMCVideoChecker::receiveReply()
 		switch (newMode)
 		{
 		case GRABBINGMODE_VIDEO:
-			std::cout << "XBMC checker: switching to VIDEO" << std::endl;
+			std::cout << "XBMC checker: switching to VIDEO mode" << std::endl;
 			break;
 		case GRABBINGMODE_PHOTO:
-			std::cout << "XBMC checker: switching to PHOTO" << std::endl;
+			std::cout << "XBMC checker: switching to PHOTO mode" << std::endl;
 			break;
 		case GRABBINGMODE_AUDIO:
-			std::cout << "XBMC checker: switching to AUDIO" << std::endl;
+			std::cout << "XBMC checker: switching to AUDIO mode" << std::endl;
 			break;
 		case GRABBINGMODE_MENU:
-			std::cout << "XBMC checker: switching to MENU" << std::endl;
+			std::cout << "XBMC checker: switching to MENU mode" << std::endl;
 			break;
 		case GRABBINGMODE_OFF:
-			std::cout << "XBMC checker: switching to OFF" << std::endl;
+			std::cout << "XBMC checker: switching to OFF mode" << std::endl;
 			break;
 		case GRABBINGMODE_INVALID:
-			std::cout << "XBMC checker: switching to INVALID" << std::endl;
+			std::cout << "XBMC checker: switching to INVALID mode" << std::endl;
 			break;
 		}
 
