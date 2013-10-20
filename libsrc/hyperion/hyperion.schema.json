@@ -169,6 +169,18 @@
                 "additionalProperties" : false
             }
         },
+        "blackborderdetector" :
+        {
+            "type" : "object",
+            "required" : false,
+            "properties" : {
+                "enable" : {
+                    "type" : "boolean",
+                    "required" : true
+                }
+            },
+            "additionalProperties" : false
+        },
         "xbmcVideoChecker" :
         {
             "type" : "object",

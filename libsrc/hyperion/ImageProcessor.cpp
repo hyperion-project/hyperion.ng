@@ -10,9 +10,9 @@
 
 using namespace hyperion;
 
-ImageProcessor::ImageProcessor(const LedString& ledString) :
+ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector) :
 	mLedString(ledString),
-	_enableBlackBorderRemoval(true),
+	_enableBlackBorderRemoval(enableBlackBorderDetector),
 	_borderProcessor(new BlackBorderProcessor(600, 50, 1)),
 	mImageToLeds(nullptr)
 {

@@ -99,7 +99,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_device(constructDevice(jsonConfig["device"])),
 	_timer()
 {
-	ImageProcessorFactory::getInstance().init(_ledString);
+	ImageProcessorFactory::getInstance().init(_ledString, jsonConfig["blackborderdetector"].get("enable", true).asBool());
 
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));

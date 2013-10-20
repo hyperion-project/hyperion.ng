@@ -319,6 +319,13 @@
         }
     ],
 
+    /// The black border configuration, contains the following items:
+    ///  * enable : true if the detector should be activated
+    "blackborderdetector" :
+    {
+        "enable" : true
+    },
+
     /// The boot-sequence configuration, contains the following items:
     ///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none')
     ///  * duration_ms : The length of the boot-sequence [ms]

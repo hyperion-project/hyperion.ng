@@ -31,7 +31,7 @@ public:
 	///
 	/// @param[in] ledString  The led configuration
 	///
-	void init(const LedString& ledString);
+	void init(const LedString& ledString, bool enableBlackBorderDetector);
 
 	///
 	/// Creates a new ImageProcessor. The onwership of the processor is transferred to the caller.
@@ -43,4 +43,7 @@ public:
 private:
 	/// The Led-string specification
 	LedString _ledString;
+
+	/// Flag indicating if the black border detector should be used
+	bool _enableBlackBorderDetector;
 };

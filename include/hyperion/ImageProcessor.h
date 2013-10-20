@@ -62,7 +62,7 @@ private:
 	///
 	/// @param[in] ledString  The led-string specification
 	///
-	ImageProcessor(const LedString &ledString);
+	ImageProcessor(const LedString &ledString, bool enableBlackBorderDetector);
 
 	///
 	/// Performs black-border detection (if enabled) on the given image
