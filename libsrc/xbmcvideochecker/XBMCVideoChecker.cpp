@@ -84,7 +84,7 @@ void XBMCVideoChecker::receiveReply()
 	}
 
 	// emit new state if applicable
-	if (newMode != _previousMode)
+	if (newMode != _previousMode && newMode != GRABBINGMODE_INVALID)
 	{
 		switch (newMode)
 		{
