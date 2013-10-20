@@ -57,6 +57,9 @@ public class LedString {
 			String ledJson = ledToJsonString();
 			fw.write(ledJson + ",\n\n");
 			
+			String blackBorderJson = mProcessConfig.getBlackborderJson();
+			fw.write(blackBorderJson + ",\n\n");
+			
 			String miscJson = mMiscConfig.toJsonString();
 			fw.write(miscJson + "\n");
 			

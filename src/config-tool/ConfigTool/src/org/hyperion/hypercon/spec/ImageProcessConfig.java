@@ -1,5 +1,6 @@
 package org.hyperion.hypercon.spec;
 
+import java.util.Locale;
 import java.util.Observable;
 
 import org.hyperion.hypercon.LedFrameFactory;
@@ -158,5 +159,19 @@ public class ImageProcessConfig extends Observable {
 			mBlackBorderRemoval = pBlackBorderRemoval;
 			setChanged();
 		}
+	}
+
+	public String getBlackborderJson() {
+		StringBuffer strBuf = new StringBuffer();
+
+		strBuf.append("\t/// The black border configuration, contains the following items: \n");
+		strBuf.append("\t///  * enable : true if the detector should be activated\n");
+		
+		strBuf.append("\t\"blackborderdetector\" :\n");
+		strBuf.append("\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\"enable\" : %s\n", mBlackBorderRemoval ? "true" : "false"));
+		strBuf.append("\t}");
+		
+		return strBuf.toString();
 	}
 }
