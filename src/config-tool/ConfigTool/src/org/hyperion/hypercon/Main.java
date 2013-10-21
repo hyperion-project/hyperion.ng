@@ -26,7 +26,7 @@ public class Main {
 		// Create a frame for the configuration panel
 		JFrame frame = new JFrame();
 		frame.setTitle("Hyperion configuration Tool");
-		frame.setSize(1300, 620);
+		frame.setSize(1300, 700);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setIconImage(new ImageIcon(Main.class.getResource("HyperConIcon_64.png")).getImage());
 		

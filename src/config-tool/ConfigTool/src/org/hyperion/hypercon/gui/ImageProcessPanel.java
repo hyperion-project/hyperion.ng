@@ -1,6 +1,5 @@
 package org.hyperion.hypercon.gui;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Observable;
@@ -49,57 +48,37 @@ public class ImageProcessPanel extends JPanel implements Observer {
 	
 	private void initialise() {
 		mHorizontalDepthLabel = new JLabel("Horizontal depth [%]:");
-		mHorizontalDepthLabel.setPreferredSize(new Dimension(100, 30));
-		mHorizontalDepthLabel.setMaximumSize(new Dimension(150, 30));
 		add(mHorizontalDepthLabel);
 		
 		mHorizontalDepthSpinner = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 100.0, 1.0));
-		mHorizontalDepthSpinner.setPreferredSize(new Dimension(150, 30));
-		mHorizontalDepthSpinner.setMaximumSize(new Dimension(250, 30));
 		mHorizontalDepthSpinner.addChangeListener(mChangeListener);
 		add(mHorizontalDepthSpinner);
 
 		mVerticalDepthLabel = new JLabel("Vertical depth [%]:");
-		mVerticalDepthLabel.setPreferredSize(new Dimension(100, 30));
-		mVerticalDepthLabel.setMaximumSize(new Dimension(150, 30));
 		add(mVerticalDepthLabel);
 		
 		mVerticalDepthSpinner = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 100.0, 1.0));
-		mVerticalDepthSpinner.setPreferredSize(new Dimension(150, 30));
-		mVerticalDepthSpinner.setMaximumSize(new Dimension(250, 30));
 		mVerticalDepthSpinner.addChangeListener(mChangeListener);
 		add(mVerticalDepthSpinner);
 
 		mHorizontalGapLabel = new JLabel("Horizontal gap [%]:");
-		mHorizontalGapLabel.setPreferredSize(new Dimension(100, 30));
-		mHorizontalGapLabel.setMaximumSize(new Dimension(150, 30));
 		add(mHorizontalGapLabel);
 		
 		mHorizontalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
-		mHorizontalGapSpinner.setPreferredSize(new Dimension(150, 30));
-		mHorizontalGapSpinner.setMaximumSize(new Dimension(250, 30));
 		mHorizontalGapSpinner.addChangeListener(mChangeListener);
 		add(mHorizontalGapSpinner);
 
 		mVerticalGapLabel = new JLabel("Vertical gap [%]:");
-		mVerticalGapLabel.setPreferredSize(new Dimension(100, 30));
-		mVerticalGapLabel.setMaximumSize(new Dimension(150, 30));
 		add(mVerticalGapLabel);
 		
 		mVerticalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
-		mVerticalGapSpinner.setPreferredSize(new Dimension(150, 30));
-		mVerticalGapSpinner.setMaximumSize(new Dimension(250, 30));
 		mVerticalGapSpinner.addChangeListener(mChangeListener);
 		add(mVerticalGapSpinner);
 
 		mOverlapLabel = new JLabel("Overlap [%]:");
-		mOverlapLabel.setPreferredSize(new Dimension(100, 30));
-		mOverlapLabel.setMaximumSize(new Dimension(150, 30));
 		add(mOverlapLabel);
 		
 		mOverlapSpinner = new JSpinner(new SpinnerNumberModel(0.0, -100.0, 100.0, 1.0));
-		mOverlapSpinner.setPreferredSize(new Dimension(150, 30));
-		mOverlapSpinner.setMaximumSize(new Dimension(250, 30));
 		mOverlapSpinner.addChangeListener(mChangeListener);
 		add(mOverlapSpinner);
 		

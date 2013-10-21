@@ -1,7 +1,6 @@
 package org.hyperion.hypercon.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.Observable;
@@ -120,7 +119,6 @@ public class ConfigPanel extends JPanel {
 	private JPanel getSpecificationPanel() {
 		if (mSpecificationPanel == null) {
 			mSpecificationPanel = new JPanel();
-			mSpecificationPanel.setPreferredSize(new Dimension(300, 200));
 			mSpecificationPanel.setLayout(new BoxLayout(mSpecificationPanel, BoxLayout.Y_AXIS));
 			
 			mConstructionPanel = new LedFramePanel(ledString.mLedFrameConfig);
