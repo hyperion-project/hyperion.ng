@@ -57,6 +57,8 @@ Json::Value loadConfig(const std::string & configFile)
 
 int main(int argc, char** argv)
 {
+	std::cout << "Application build time: " << __DATE__ << " " << __TIME__ << std::endl;
+
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
 	std::cout << "QCoreApplication initialised" << std::endl;

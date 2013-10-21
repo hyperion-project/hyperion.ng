@@ -49,81 +49,82 @@ void OptionsParser::parse(int argc, const char* argv[]) throw(runtime_error)
 
    for(; !state.end(); state.advance()) {
 
-       std::list<Parameter*>::iterator i;
+	   std::list<Parameter*>::iterator i;
 
-       for(i = parameters.parameters.begin();
-               i != parameters.parameters.end(); i++)
-       {
-           int n = 0;
-           try
-           {
-               n = (*i)->receive(state);
-           }
-           catch(Parameter::ExpectedArgument &)
-           {
-               throw Parameter::ExpectedArgument(state.get() + ": expected an argument");
-           }
-           catch(Parameter::UnexpectedArgument &)
-           {
-               throw Parameter::UnexpectedArgument(state.get() + ": did not expect an argument");
-           }
-           catch(Switchable::SwitchingError &)
-           {
-               throw Parameter::ParameterRejected(state.get() + ": parameter already set");
-           }
-           catch(Parameter::ParameterRejected & pr) {
-               std::string what = pr.what();
-               if(what.length())
-               {
-                   throw Parameter::ParameterRejected(state.get() + ": " + what);
-               }
-               throw Parameter::ParameterRejected(state.get() + " (unspecified error)");
-           }
+	   for(i = parameters.parameters.begin();
+			   i != parameters.parameters.end(); i++)
+	   {
+		   int n = 0;
+		   try
+		   {
+			   n = (*i)->receive(state);
+		   }
+		   catch(Parameter::ExpectedArgument &)
+		   {
+			   throw Parameter::ExpectedArgument(state.get() + ": expected an argument");
+		   }
+		   catch(Parameter::UnexpectedArgument &)
+		   {
+			   throw Parameter::UnexpectedArgument(state.get() + ": did not expect an argument");
+		   }
+		   catch(Switchable::SwitchingError &)
+		   {
+			   throw Parameter::ParameterRejected(state.get() + ": parameter already set");
+		   }
+		   catch(Parameter::ParameterRejected & pr) {
+			   std::string what = pr.what();
+			   if(what.length())
+			   {
+				   throw Parameter::ParameterRejected(state.get() + ": " + what);
+			   }
+			   throw Parameter::ParameterRejected(state.get() + " (unspecified error)");
+		   }
 
-           for (int j = 1; j < n; ++j)
-           {
-               state.advance();
-           }
+		   for (int j = 1; j < n; ++j)
+		   {
+			   state.advance();
+		   }
 
-           if(n != 0)
-           {
-               break;
-           }
-       }
+		   if(n != 0)
+		   {
+			   break;
+		   }
+	   }
 
-       if(i == parameters.parameters.end()) {
-           std::string file = state.get();
-           if(file == "--") {
-               state.advance();
-               break;
-           }
-           else if(file.at(0) == '-')
-               throw Parameter::ParameterRejected(string("Bad parameter: ") + file);
-           else files.push_back(state.get());
-       }
+	   if(i == parameters.parameters.end()) {
+		   std::string file = state.get();
+		   if(file == "--") {
+			   state.advance();
+			   break;
+		   }
+		   else if(file.at(0) == '-')
+			   throw Parameter::ParameterRejected(string("Bad parameter: ") + file);
+		   else files.push_back(state.get());
+	   }
    }
 
    if(!state.end()) for(; !state.end(); state.advance()) {
-       files.push_back(state.get());
+	   files.push_back(state.get());
    }
 
 }
 
 void OptionsParser::usage() const {
    cerr << fprogramDesc << endl;
+   cerr << "Build time: " << __DATE__ << " " << __TIME__ << endl << endl;
    cerr << "Usage: " << programName() << " [OPTIONS]" << endl << endl;
 
    cerr << "Parameters: " << endl;
 
    std::list<Parameter*>::const_iterator i;
    for(i = parameters.parameters.begin();
-           i != parameters.parameters.end(); i++)
+		   i != parameters.parameters.end(); i++)
    {
-       cerr.width(30);
-       cerr << std::left << "    " + (*i)->usageLine();
+	   cerr.width(30);
+	   cerr << std::left << "    " + (*i)->usageLine();
 
-       cerr.width(40);
-       cerr << std::left << (*i)->description() << endl;
+	   cerr.width(40);
+	   cerr << std::left << (*i)->description() << endl;
 
    }
 }
@@ -148,9 +149,9 @@ ParameterSet::ParameterSet(const ParameterSet& ps) {
 
 ParameterSet::~ParameterSet() {
    for(std::list<Parameter*>::iterator i = parameters.begin();
-           i != parameters.end(); i++)
+		   i != parameters.end(); i++)
    {
-       delete *i;
+	   delete *i;
    }
 
 }
@@ -161,7 +162,7 @@ ParameterSet::~ParameterSet() {
 
 Parameter& ParameterSet::operator[](char c) const {
    for(std::list<Parameter*>::const_iterator i = parameters.begin(); i!= parameters.end(); i++) {
-       if((*i)->shortOption() == c) return *(*i);
+	   if((*i)->shortOption() == c) return *(*i);
    }
    throw out_of_range("ParameterSet["+c+string("]"));
 }
@@ -169,7 +170,7 @@ Parameter& ParameterSet::operator[](char c) const {
 
 Parameter& ParameterSet::operator[](const string& param) const {
    for(std::list<Parameter*>::const_iterator i = parameters.begin(); i!= parameters.end(); i++) {
-       if((*i)->longOption() == param) return *(*i);
+	   if((*i)->longOption() == param) return *(*i);
    }
    throw out_of_range("ParameterSet["+param+"]");
 }
@@ -278,7 +279,7 @@ void PresettableUniquelySwitchable::preset() {
 
 template<>
 PODParameter<string>::PODParameter(char shortOption, const char *longOption,
-       const char* description) : CommonParameter<PresettableUniquelySwitchable>(shortOption, longOption, description) {
+	   const char* description) : CommonParameter<PresettableUniquelySwitchable>(shortOption, longOption, description) {
    preset();
 }
 
@@ -297,7 +298,7 @@ int PODParameter<int>::validate(const string &s) throw(Parameter::ParameterRejec
    if(*cstr != '\0') throw ParameterRejected("Expected int");
 
    if(l > INT_MAX || l < INT_MIN) {
-       throw ParameterRejected("Expected int");
+	   throw ParameterRejected("Expected int");
    }
 
    return l;
