@@ -57,6 +57,9 @@ std::vector<RgbColor> ImageProcessor::process(const RgbImage& image)
 
 void ImageProcessor::process(const RgbImage& image, std::vector<RgbColor>& ledColors)
 {
+	// Ensure that the buffer-image is the proper size
+	setSize(image.width(), image.height());
+
 	// Check black border detection
 	verifyBorder(image);
 

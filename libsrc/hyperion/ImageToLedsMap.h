@@ -80,7 +80,7 @@ namespace hyperion
 		/// The height of the indexed image
 		const unsigned _height;
 		/// The absolute indices into the image for each led
-		std::vector<std::vector<unsigned> > mColorsMap;
+		std::vector<std::vector<unsigned>> mColorsMap;
 
 		///
 		/// Calculates the 'mean color' of the given list. This is the mean over each color-channel
