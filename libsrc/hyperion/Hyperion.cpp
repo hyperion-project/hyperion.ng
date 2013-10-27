@@ -21,8 +21,12 @@
 LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
+
+	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
+	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
 	LedDevice* device = nullptr;
-	if (deviceConfig["type"].asString() == "ws2801")
+	if (type == "ws2801")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
@@ -32,13 +36,13 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 
 		device = deviceWs2801;
 	}
-	else if (deviceConfig["type"].asString() == "test")
+	else if (type == "test")
 	{
 		device = new LedDeviceTest();
 	}
 	else
 	{
-		std::cout << "Unable to create device" << std::endl;
+		std::cout << "Unable to create device " << type << std::endl;
 		// Unknown / Unimplemented device
 	}
 	return device;
@@ -95,7 +99,35 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 
 LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
 {
-	//return new LinearColorSmoothing(ledDevice, 20.0, .3);
+	std::string type = smoothingConfig.get("type", "none").asString();
+	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+	if (type == "none")
+	{
+		std::cout << "Not creating any smoothing" << std::endl;
+		return ledDevice;
+	}
+	else if (type == "linear")
+	{
+		if (!smoothingConfig.isMember("time_ms"))
+		{
+			std::cout << "Unable to create smoothing of type linear because of missing parameter 'time_ms'" << std::endl;
+		}
+		else if (!smoothingConfig.isMember("updateFrequency"))
+		{
+			std::cout << "Unable to create smoothing of type linear because of missing parameter 'updateFrequency'" << std::endl;
+		}
+		else
+		{
+			std::cout << "Creating linear smoothing" << std::endl;
+			return new LinearColorSmoothing(ledDevice, smoothingConfig["updateFrequency"].asDouble(), smoothingConfig["time_ms"].asInt());
+		}
+	}
+	else
+	{
+		std::cout << "Unable to create smoothing of type " << type << std::endl;
+	}
+
 	return ledDevice;
 }
 
@@ -114,7 +146,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	ImageProcessorFactory::getInstance().init(_ledString, jsonConfig["blackborderdetector"].get("enable", true).asBool());
 
 	// initialize the color smoothing filter
-	_device = createColorSmoothing(jsonConfig["smoothing"], _device);
+	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);
 
 	// setup the timer
 	_timer.setSingleShot(true);

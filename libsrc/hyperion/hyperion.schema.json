@@ -125,7 +125,30 @@
                         }
                     },
                     "additionalProperties" : false
+                },
+                "smoothing" : {
+                    "type" : "object",
+                    "required" : false,
+                    "properties" : {
+                        "type" : {
+                            "type" : "enum",
+                            "required" : true,
+                            "values" : ["none", "linear"]
+                        },
+                        "time_ms" : {
+                            "type" : "integer",
+                            "required" : false,
+                            "minimum" : 10
+                        },
+                        "updateFrequency" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.001
+                        }
+                    },
+                    "additionalProperties" : false
                 }
+
             },
             "additionalProperties" : false
         },

@@ -26,7 +26,7 @@ public:
 	/// @param LedDevice the led device
 	/// @param LedUpdatFrequency The frequency at which the leds will be updated (Hz)
 	/// @param settingTime The time after which the updated led values have been fully applied (sec)
-	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, double settlingTime);
+	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime);
 
 	/// Destructor
 	virtual ~LinearColorSmoothing();

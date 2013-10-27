@@ -3,12 +3,12 @@
 
 #include "LinearColorSmoothing.h"
 
-LinearColorSmoothing::LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, double settlingTime) :
+LinearColorSmoothing::LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms) :
 	QObject(),
 	LedDevice(),
 	_ledDevice(ledDevice),
-	_updateInterval(1000.0 / ledUpdateFrequency),
-	_settlingTime(1000 * settlingTime),
+	_updateInterval(1000 / ledUpdateFrequency_hz),
+	_settlingTime(settlingTime_ms),
 	_timer()
 {
 	_timer.setSingleShot(false);

@@ -6,7 +6,6 @@ import java.util.Locale;
  * The color tuning parameters of the different color channels (both in RGB space as in HSV space)
  */
 public class ColorConfig {
-
 	/** The saturation gain (in HSV space) */
 	double mSaturationGain = 1.0;
 	/** The value gain (in HSV space) */
@@ -39,6 +38,13 @@ public class ColorConfig {
 	/** The white-level of the BLUE-value (in RGB space) */
 	double mBlueWhitelevel = 1.0;
 	
+	/** The type of smoothing algorithm */
+	ColorSmoothingType mSmoothingType = ColorSmoothingType.none;
+	/** The time constant for smoothing algorithm in milliseconds */
+	int mSmoothingTime = 200;
+	/** The update frequency of the leds in Hz */
+	double mSmoothingUpdateFrequency = 20.0;
+	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
 	 * 
@@ -49,25 +55,30 @@ public class ColorConfig {
 		
 		strBuf.append("\t/// Color manipulation configuration used to tune the output colors to specific surroundings. Contains the following fields:\n");
 		strBuf.append("\t///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following tuning parameters:\n");
-		strBuf.append("\t///            - 'saturationGain' The gain adjustement of the saturation\n");
-		strBuf.append("\t///            - 'valueGain'      The gain adjustement of the value\n");
+		strBuf.append("\t///            - 'saturationGain'  The gain adjustement of the saturation\n");
+		strBuf.append("\t///            - 'valueGain'       The gain adjustement of the value\n");
 		strBuf.append("\t///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the following tuning parameters for each channel:\n");
-		strBuf.append("\t///            - 'threshold'  The minimum required input value for the channel to be on (else zero)\n");
-		strBuf.append("\t///            - 'gamma'      The gamma-curve correction factor\n");
-		strBuf.append("\t///            - 'blacklevel' The lowest possible value (when the channel is black)\n");
-		strBuf.append("\t///            - 'whitelevel' The highest possible value (when the channel is white)\n");
+		strBuf.append("\t///            - 'threshold'       The minimum required input value for the channel to be on (else zero)\n");
+		strBuf.append("\t///            - 'gamma'           The gamma-curve correction factor\n");
+		strBuf.append("\t///            - 'blacklevel'      The lowest possible value (when the channel is black)\n");
+		strBuf.append("\t///            - 'whitelevel'      The highest possible value (when the channel is white)\n");
+		strBuf.append("\t///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning parameters:\n");
+		strBuf.append("\t///            - 'type'            The type of smoothing algorithm ('linear' or 'none')\n");
+		strBuf.append("\t///            - 'time_ms'         The time constant for smoothing algorithm in milliseconds\n");
+		strBuf.append("\t///            - 'updateFrequency' The update frequency of the leds in Hz\n");
 
 		strBuf.append("\t\"color\" :\n");
 		strBuf.append("\t{\n");
 		strBuf.append(hsvToJsonString() + ",\n");
-		strBuf.append(rgbToJsonString() + "\n");
+		strBuf.append(rgbToJsonString() + ",\n");
+		strBuf.append(smoothingToString() + "\n");
 		strBuf.append("\t}");
 		
 		return strBuf.toString();
 	}
 	
 	/**
-	 * Creates the JSON string of the HSV-subconfiguration as used in the Hyperion deaomn configfile
+	 * Creates the JSON string of the HSV-subconfiguration as used in the Hyperion deamon configfile
 	 * 
 	 * @return The JSON string of the HSV-config
 	 */
@@ -83,7 +94,7 @@ public class ColorConfig {
 	}
 	
 	/**
-	 * Creates the JSON string of the RGB-subconfiguration as used in the Hyperion deaomn configfile
+	 * Creates the JSON string of the RGB-subconfiguration as used in the Hyperion deamon configfile
 	 * 
 	 * @return The JSON string of the RGB-config
 	 */
@@ -117,4 +128,20 @@ public class ColorConfig {
 		return strBuf.toString();
 	}
 
+	/**
+	 * Creates the JSON string of the smoothing subconfiguration as used in the Hyperion deamon configfile
+	 * 
+	 * @return The JSON string of the HSV-config
+	 */
+	private String smoothingToString() {
+		StringBuffer strBuf = new StringBuffer();
+		strBuf.append("\t\t\"smoothing\" :\n");
+		strBuf.append("\t\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"type\"            : \"%s\",\n", mSmoothingType.name()));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"time_ms\"         : %d,\n", mSmoothingTime));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency));
+		
+		strBuf.append("\t\t}");
+		return strBuf.toString();
+	}
 }
