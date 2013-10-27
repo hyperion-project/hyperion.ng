@@ -13,7 +13,7 @@
 	"device" :
 	{
 		"name"       : "MyPi",
-		"type"       : "WS2801",
+		"type"       : "ws2801",
 		"output"     : "/dev/spidev0.0",
 		"rate"       : 1000000,
 		"bgr-output" : false
