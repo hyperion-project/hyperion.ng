@@ -22,6 +22,10 @@
                     "type" : "integer",
                     "required" : true,
                     "minimum" : 0
+                },
+                "bgr-output" : {
+                    "type" : "boolean",
+                    "required" : false
                 }
             },
             "additionalProperties" : false

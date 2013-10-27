@@ -171,6 +171,9 @@ private:
 	/// The BLUE-Channel (RGB) transform
 	ColorTransform * _blueTransform;
 
+	/// Flag indicating if the output should be BGR (red and blue reversed)
+	bool _haveBgrOutput;
+
 	/// The actual LedDevice
 	LedDevice* _device;
 

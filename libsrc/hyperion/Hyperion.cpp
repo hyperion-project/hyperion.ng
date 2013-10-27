@@ -96,6 +96,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_redTransform(createColorTransform(jsonConfig["color"]["red"])),
 	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
 	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
+	_haveBgrOutput(jsonConfig["device"].get("bgr-output", false).asBool()),
 	_device(constructDevice(jsonConfig["device"])),
 	_timer()
 {
@@ -301,6 +302,11 @@ void Hyperion::update()
 		color.red   = _redTransform->transform(color.red);
 		color.green = _greenTransform->transform(color.green);
 		color.blue  = _blueTransform->transform(color.blue);
+
+		if (_haveBgrOutput)
+		{
+			std::swap(color.red, color.blue);
+		}
 	}
 
 	// Write the data to the device

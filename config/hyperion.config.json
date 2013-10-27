@@ -3,18 +3,20 @@
 
 {
     /// Device configuration contains the following fields:
-    /// * 'name'   : The user friendly name of the device (only used for display purposes)
-    /// * 'type'   : The type of the device or leds (known types for now are 'ws2801', 'test' and 'none')
-    /// * 'output' : The output specification depends on selected device
-    ///              - 'ws2801' this is the device (eg '/dev/spidev0.0')
-    ///              - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')
-    /// * 'rate'   : The baudrate of the output to the device (only applicable for 'ws2801')
+    /// * 'name'       : The user friendly name of the device (only used for display purposes)
+    /// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'test' and 'none')
+    /// * 'output'     : The output specification depends on selected device
+    ///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')
+    ///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')
+    /// * 'rate'       : The baudrate of the output to the device (only applicable for 'ws2801')
+    /// * 'bgr-output' : Use BGR output instead of RGB (reverse red and blue).
     "device" :
     {
-        "name"   : "MyPi",
-        "type"   : "ws2801",
-        "output" : "/dev/spidev0.0",
-        "rate"   : 1000000
+        "name"       : "MyPi",
+        "type"       : "ws2801",
+        "output"     : "/dev/spidev0.0",
+        "rate"       : 1000000,
+        "bgr-output" : false
     },
 
     /// Color manipulation configuration used to tune the output colors to specific surroundings. Contains the following fields:
