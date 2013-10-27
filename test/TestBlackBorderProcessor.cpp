@@ -70,10 +70,11 @@ int main()
 			}
 		}
 	}
+
 	// Verify that the border is indeed
-	if (processor.getCurrentBorder().type != BlackBorder::none)
+	if (processor.getCurrentBorder().unknown != false || processor.getCurrentBorder().horizontalSize != 0 || processor.getCurrentBorder().verticalSize != 0)
 	{
-		std::cerr << "Incorrectlty identified 'no border' (" << processor.getCurrentBorder().type << " != " << BlackBorder::none << ")" << std::endl;
+		std::cerr << "Incorrectlty identified 'no border'" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -99,14 +100,16 @@ int main()
 			}
 		}
 	}
-	if (processor.getCurrentBorder().type != BlackBorder::horizontal || processor.getCurrentBorder().size != borderSize)
+
+	if (processor.getCurrentBorder().unknown != false || processor.getCurrentBorder().horizontalSize != borderSize || processor.getCurrentBorder().verticalSize != 0)
 	{
-		std::cerr << "Incorrectlty found 'horizontal border' (" << processor.getCurrentBorder().type << " != " << BlackBorder::horizontal << ")" << std::endl;
+
+		std::cerr << "Incorrectlty found 'horizontal border' (" << processor.getCurrentBorder().unknown << "," << processor.getCurrentBorder().horizontalSize << "," << processor.getCurrentBorder().verticalSize << ")" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	// Switch back (in one shot) to no border
-	if (!processor.process(noBorderImage) || (processor.getCurrentBorder().type != BlackBorder::none))
+	if (!processor.process(noBorderImage) || (processor.getCurrentBorder().unknown != false || processor.getCurrentBorder().horizontalSize != 0 || processor.getCurrentBorder().verticalSize != 0))
 	{
 		std::cerr << "Failed to switch back to 'no border' with one image" << std::endl;
 		exit(EXIT_FAILURE);
@@ -133,9 +136,10 @@ int main()
 			}
 		}
 	}
-	if (processor.getCurrentBorder().type != BlackBorder::vertical || processor.getCurrentBorder().size != borderSize)
+
+	if (processor.getCurrentBorder().unknown != false || processor.getCurrentBorder().horizontalSize != 0 || processor.getCurrentBorder().verticalSize != borderSize)
 	{
-		std::cerr << "Incorrectlty found 'vertical border' (" << processor.getCurrentBorder().type << " != " << BlackBorder::horizontal << ")" << std::endl;
+		std::cerr << "Incorrectlty found 'vertical border'" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 

@@ -78,24 +78,18 @@ void ImageProcessor::verifyBorder(const RgbImage& image)
 		// Clean up the old mapping
 		delete mImageToLeds;
 
-		switch (border.type)
+		if (border.unknown)
 		{
-		case BlackBorder::none:
-		case BlackBorder::unknown:
 			// Construct a new buffer and mapping
 			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), 0, 0, mLedString.leds());
-			break;
-		case BlackBorder::horizontal:
+		}
+		else
+		{
 			// Construct a new buffer and mapping
-			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), border.size, 0, mLedString.leds());
-			break;
-		case BlackBorder::vertical:
-			// Construct a new buffer and mapping
-			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), 0, border.size, mLedString.leds());
-			break;
+			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, mLedString.leds());
 		}
 
-		std::cout << "CURRENT BORDER TYPE: " << _borderProcessor->getCurrentBorder().type << " (size=" << _borderProcessor->getCurrentBorder().size << ")" << std::endl;
+		std::cout << "CURRENT BORDER TYPE: unknown=" << border.unknown << " hor.size=" << border.horizontalSize << " vert.size=" << border.verticalSize << std::endl;
 	}
 
 }

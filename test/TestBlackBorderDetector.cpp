@@ -45,7 +45,7 @@ int TC_NO_BORDER()
 	{
 		RgbImage image = createImage(64, 64, 0, 0);
 		BlackBorder border = detector.process(image);
-		if (border.type != BlackBorder::none)
+		if (border.unknown != false && border.horizontalSize != 0 && border.verticalSize != 0)
 		{
 			std::cerr << "Failed to correctly detect no border" << std::endl;
 			result = -1;
@@ -64,7 +64,7 @@ int TC_TOP_BORDER()
 	{
 		RgbImage image = createImage(64, 64, 12, 0);
 		BlackBorder border = detector.process(image);
-		if (border.type != BlackBorder::horizontal || border.size != 12)
+		if (border.unknown != false && border.horizontalSize != 12 && border.verticalSize != 0)
 		{
 			std::cerr << "Failed to correctly detect horizontal border with correct size" << std::endl;
 			result = -1;
@@ -83,13 +83,31 @@ int TC_LEFT_BORDER()
 	{
 		RgbImage image = createImage(64, 64, 0, 12);
 		BlackBorder border = detector.process(image);
-		if (border.type != BlackBorder::vertical || border.size != 12)
+		if (border.unknown != false && border.horizontalSize != 0 && border.verticalSize != 12)
 		{
 			std::cerr << "Failed to detected vertical border with correct size" << std::endl;
 			result = -1;
 		}
 	}
 
+	return result;
+}
+
+int TC_DUAL_BORDER()
+{
+	int result = 0;
+
+	BlackBorderDetector detector;
+
+	{
+		RgbImage image = createImage(64, 64, 12, 12);
+		BlackBorder border = detector.process(image);
+		if (border.unknown != false && border.horizontalSize != 12 && border.verticalSize != 12)
+		{
+			std::cerr << "Failed to detected two-sided border" << std::endl;
+			result = -1;
+		}
+	}
 	return result;
 }
 
@@ -100,9 +118,9 @@ int TC_UNKNOWN_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 12, 12);
+		RgbImage image = createImage(64, 64, 30, 30);
 		BlackBorder border = detector.process(image);
-		if (border.type != BlackBorder::unknown)
+		if (border.unknown != true)
 		{
 			std::cerr << "Failed to detected unknown border" << std::endl;
 			result = -1;
@@ -116,6 +134,7 @@ int main()
 	TC_NO_BORDER();
 	TC_TOP_BORDER();
 	TC_LEFT_BORDER();
+	TC_DUAL_BORDER();
 	TC_UNKNOWN_BORDER();
 
 	return 0;

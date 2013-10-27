@@ -11,22 +11,14 @@ namespace hyperion
 	///
 	struct BlackBorder
 	{
-		///
-		/// Enumeration of the possible types of detected borders
-		///
-		enum Type
-		{
-			none,
-			horizontal,
-			vertical,
-			unknown
-		};
+		/// Falg indicating if the border is unknown
+		bool unknown;
 
-		/// The type of detected border
-		Type type;
+		/// The size of the detected horizontal border
+		int horizontalSize;
 
-		/// The size of detected border (negative if not applicable)
-		int size;
+		/// The size of the detected vertical border
+		int verticalSize;
 
 		///
 		/// Compares this BlackBorder to the given other BlackBorder
@@ -37,24 +29,19 @@ namespace hyperion
 		///
 		inline bool operator== (const BlackBorder& other) const
 		{
-			switch (type)
+			if (unknown)
 			{
-			case none:
-			case unknown:
-				return other.type == type;
-			case horizontal:
-			case vertical:
-				return type == other.type && size == other.size;
+				return other.unknown;
 			}
 
-			return false;
+			return other.unknown==false && horizontalSize==other.horizontalSize && verticalSize==other.verticalSize;
 		}
 	};
 
 	///
 	/// The BlackBorderDetector performs detection of black-borders on a single image.
-	/// The detector will scan the border of the upper-left quadrant of an image. Based on detected
-	/// black pixels it will give an estimate of the black-border.
+	/// The detector will search for the upper left corner of the picture in the frame.
+	/// Based on detected black pixels it will give an estimate of the black-border.
 	///
 	class BlackBorderDetector
 	{

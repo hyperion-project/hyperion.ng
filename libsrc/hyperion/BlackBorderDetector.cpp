@@ -11,100 +11,53 @@ BlackBorderDetector::BlackBorderDetector()
 
 BlackBorder BlackBorderDetector::process(const RgbImage& image)
 {
-	int firstNonBlackPixelTop  = -1;
-	int firstNonBlackPixelLeft = -1;
+	// only test the topleft third of the image
+	int width = image.width() /3;
+	int height = image.height() / 3;
+	int maxSize = std::max(width, height);
 
-	// Find the non-black pixel at the top-half border
-	for (unsigned x=0; x<image.width()/2; ++x)
+	int firstNonBlackXPixelIndex = -1;
+	int firstNonBlackYPixelIndex = -1;
+
+	// find some pixel of the image
+	for (int i = 0; i < maxSize; ++i)
 	{
-		const RgbColor& color = image(x, 0);
+		int x = std::min(i, width);
+		int y = std::min(i, height);
+
+		const RgbColor& color = image(x, y);
 		if (!isBlack(color))
 		{
-			firstNonBlackPixelTop = x;
+			firstNonBlackXPixelIndex = x;
+			firstNonBlackYPixelIndex = y;
 			break;
 		}
 	}
-	// Find the non-black pixel at the left-half border
-	for (unsigned y=0; y<image.height()/2; ++y)
+
+	// expand image to the left
+	for(; firstNonBlackXPixelIndex > 0; --firstNonBlackXPixelIndex)
 	{
-		const RgbColor& color = image(0, y);
-		if (!isBlack(color))
+		const RgbColor& color = image(firstNonBlackXPixelIndex-1, firstNonBlackYPixelIndex);
+		if (isBlack(color))
 		{
-			firstNonBlackPixelLeft = y;
 			break;
 		}
 	}
 
-	// Construct 'unknown' result
+	// expand image to the top
+	for(; firstNonBlackYPixelIndex > 0; --firstNonBlackYPixelIndex)
+	{
+		const RgbColor& color = image(firstNonBlackXPixelIndex, firstNonBlackYPixelIndex-1);
+		if (isBlack(color))
+		{
+			break;
+		}
+	}
+
+	// Construct result
 	BlackBorder detectedBorder;
-	detectedBorder.type = BlackBorder::unknown;
-
-	if (firstNonBlackPixelTop == 0 /*&& firstNonBlackPixelLeft == 0*/)
-	{
-		// No black border
-		// C-?-?-? ...
-		// ? +----
-		// ? |
-		// ? |
-		// :
-
-		detectedBorder.type = BlackBorder::none;
-		detectedBorder.size = -1;
-	}
-	else if (firstNonBlackPixelTop < 0)
-	{
-		if (firstNonBlackPixelLeft < 0)
-		{
-			// We don't know
-			// B-B-B-B ...
-			// B +---- ...
-			// B |
-			// B |
-			// :
-
-			detectedBorder.type = BlackBorder::unknown;
-			detectedBorder.size = -1;
-		}
-		else //(firstNonBlackPixelLeft > 0)
-		{
-			// Border at top of screen
-			// B-B-B-B ...
-			// B +---- ...
-			// C |
-			// ? |
-			// :
-
-			detectedBorder.type = BlackBorder::horizontal;
-			detectedBorder.size = firstNonBlackPixelLeft;
-		}
-	}
-	else // (firstNonBlackPixelTop > 0)
-	{
-		if (firstNonBlackPixelLeft < 0)
-		{
-			// Border at left of screen
-			// B-B-C-? ...
-			// B +---- ...
-			// B |
-			// B |
-			// :
-
-			detectedBorder.type = BlackBorder::vertical;
-			detectedBorder.size = firstNonBlackPixelTop;
-		}
-		else //(firstNonBlackPixelLeft > 0)
-		{
-			// No black border
-			// B-B-C-? ...
-			// B +----
-			// C |
-			// ? |
-			// :
-
-			detectedBorder.type = BlackBorder::none;
-			detectedBorder.size = -1;
-		}
-	}
-
+	detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
+	detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
+	detectedBorder.verticalSize = firstNonBlackXPixelIndex;
 	return detectedBorder;
 }

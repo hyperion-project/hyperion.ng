@@ -12,26 +12,33 @@ BlackBorderProcessor::BlackBorderProcessor(
 	_borderSwitchCnt(borderFrameCnt),
 	_blurRemoveCnt(blurRemoveCnt),
 	_detector(),
-	_currentBorder({BlackBorder::unknown, 0}),
-	_previousDetectedBorder({BlackBorder::unknown, 0}),
+	_currentBorder({true, -1, -1}),
+	_previousDetectedBorder({true, -1, -1}),
 	_consistentCnt(0)
 {
 }
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
 {
-	if (_currentBorder.size > 0)
-	{
-		return {_currentBorder.type, _currentBorder.size+int(_blurRemoveCnt)};
-	}
-
 	return _currentBorder;
 }
 
 bool BlackBorderProcessor::process(const RgbImage& image)
 {
-	const BlackBorder imageBorder = _detector.process(image);
+	// get the border for the single image
+	BlackBorder imageBorder = _detector.process(image);
 
+	// add blur to the border
+	if (imageBorder.horizontalSize > 0)
+	{
+		imageBorder.horizontalSize += _blurRemoveCnt;
+	}
+	if (imageBorder.verticalSize > 0)
+	{
+		imageBorder.verticalSize += _blurRemoveCnt;
+	}
+
+	// set the consistency counter
 	if (imageBorder == _previousDetectedBorder)
 	{
 		++_consistentCnt;
@@ -42,6 +49,7 @@ bool BlackBorderProcessor::process(const RgbImage& image)
 		_consistentCnt          = 0;
 	}
 
+	// check if there is a change
 	if (_currentBorder == imageBorder)
 	{
 		// No change required
@@ -49,36 +57,38 @@ bool BlackBorderProcessor::process(const RgbImage& image)
 	}
 
 	bool borderChanged = false;
-	switch (imageBorder.type)
+	if (imageBorder.unknown)
 	{
-	case BlackBorder::none:
-		if (_consistentCnt == 0)
-		{
-			_currentBorder = imageBorder;
-			borderChanged = true;
-		}
-		break;
-	case BlackBorder::horizontal:
-		if (_currentBorder.type == BlackBorder::vertical || imageBorder.size < _currentBorder.size || _consistentCnt == _borderSwitchCnt)
-		{
-			_currentBorder = imageBorder;
-			borderChanged = true;
-		}
-		break;
-	case BlackBorder::vertical:
-		if (_currentBorder.type == BlackBorder::horizontal || imageBorder.size < _currentBorder.size || _consistentCnt == _borderSwitchCnt)
-		{
-			_currentBorder = imageBorder;
-			borderChanged = true;
-		}
-		break;
-	case BlackBorder::unknown:
+		// apply the unknown border if we consistently can't determine a border
 		if (_consistentCnt == _unknownSwitchCnt)
 		{
 			_currentBorder = imageBorder;
 			borderChanged = true;
 		}
-		break;
+	}
+	else
+	{
+		// apply the detected border if it has been detected consistently
+		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
+		{
+			_currentBorder = imageBorder;
+			borderChanged = true;
+		}
+		else
+		{
+			// apply smaller borders immediately
+			if (imageBorder.verticalSize < _currentBorder.verticalSize)
+			{
+				_currentBorder.verticalSize = imageBorder.verticalSize;
+				borderChanged = true;
+			}
+
+			if (imageBorder.horizontalSize < _currentBorder.horizontalSize)
+			{
+				_currentBorder.horizontalSize = imageBorder.horizontalSize;
+				borderChanged = true;
+			}
+		}
 	}
 
 	return borderChanged;

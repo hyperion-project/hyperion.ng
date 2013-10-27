@@ -20,7 +20,7 @@ namespace hyperion
 		/// @param borderFrameCnt The number of frames(images) that need to contain a vertical or
 		///                       horizontal border becomes the current border
 		/// @param blurRemoveCnt The size to add to a horizontal or vertical border (because the
-		///                      outer pixels is blurred (black and color combined))
+		///                      outer pixels is blurred (black and color combined due to image scaling))
 		///
 		BlackBorderProcessor(
 				const unsigned unknownFrameCnt,
