@@ -13,10 +13,12 @@
 #include "LedDeviceWs2801.h"
 #include "LedDeviceTest.h"
 
+#include "LinearColorSmoothing.h"
+
 #include <utils/ColorTransform.h>
 #include <utils/HsvTransform.h>
 
-LedDevice* Hyperion::constructDevice(const Json::Value& deviceConfig)
+LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
 	LedDevice* device = nullptr;
@@ -36,6 +38,7 @@ LedDevice* Hyperion::constructDevice(const Json::Value& deviceConfig)
 	}
 	else
 	{
+		std::cout << "Unable to create device" << std::endl;
 		// Unknown / Unimplemented device
 	}
 	return device;
@@ -59,6 +62,7 @@ ColorTransform* Hyperion::createColorTransform(const Json::Value& colorConfig)
 	ColorTransform* transform = new ColorTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
 }
+
 LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 {
 	LedString ledString;
@@ -89,6 +93,12 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 	return ledString;
 }
 
+LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
+{
+	//return new LinearColorSmoothing(ledDevice, 20.0, .3);
+	return ledDevice;
+}
+
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"])),
 	_muxer(_ledString.leds().size()),
@@ -97,11 +107,16 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
 	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
 	_haveBgrOutput(jsonConfig["device"].get("bgr-output", false).asBool()),
-	_device(constructDevice(jsonConfig["device"])),
+	_device(createDevice(jsonConfig["device"])),
 	_timer()
 {
+	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(_ledString, jsonConfig["blackborderdetector"].get("enable", true).asBool());
 
+	// initialize the color smoothing filter
+	_device = createColorSmoothing(jsonConfig["smoothing"], _device);
+
+	// setup the timer
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
@@ -112,6 +127,10 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 
 Hyperion::~Hyperion()
 {
+	// switch off all leds
+	clearall();
+	_device->switchOff();
+
 	// Delete the Led-String
 	delete _device;
 

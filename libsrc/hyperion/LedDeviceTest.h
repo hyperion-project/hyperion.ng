@@ -32,6 +32,9 @@ public:
 	///
 	virtual int write(const std::vector<RgbColor> & ledValues);
 
+	/// Switch the leds off
+	virtual int switchOff();
+
 private:
 	/// The outputstream
 	std::ofstream _ofs;

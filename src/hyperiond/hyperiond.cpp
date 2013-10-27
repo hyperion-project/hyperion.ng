@@ -157,9 +157,6 @@ int main(int argc, char** argv)
 	int rc = app.exec();
 	std::cout << "Application closed with code " << rc << std::endl;
 
-	// Clear all colors (switchting off all leds)
-	hyperion.clearall();
-
 	// Delete all component
 	delete bootSequence;
 	delete dispmanx;

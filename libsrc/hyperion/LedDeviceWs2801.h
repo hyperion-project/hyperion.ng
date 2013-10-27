@@ -44,6 +44,9 @@ public:
 	///
 	virtual int write(const std::vector<RgbColor> &ledValues);
 
+	/// Switch the leds off
+	virtual int switchOff();
+
 private:
 	/// The name of the output device
 	const std::string mDeviceName;
@@ -56,4 +59,7 @@ private:
 	spi_ioc_transfer spi;
 	/// The 'latch' time for latching the shifted-value into the leds
 	timespec latchTime;
+
+	/// the number of leds (needed when switching off)
+	size_t mLedCount;
 };

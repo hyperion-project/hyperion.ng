@@ -24,3 +24,8 @@ int LedDeviceTest::write(const std::vector<RgbColor> & ledValues)
 
 	return 0;
 }
+
+int LedDeviceTest::switchOff()
+{
+	return 0;
+}

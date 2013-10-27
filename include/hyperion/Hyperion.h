@@ -135,10 +135,11 @@ public:
 	///
 	const InputInfo& getPriorityInfo(const int priority) const;
 
-	static LedDevice * constructDevice(const Json::Value & deviceConfig);
+	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
 	static ColorTransform * createColorTransform(const Json::Value & colorConfig);
+	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
 
 private slots:
 	///
@@ -175,7 +176,7 @@ private:
 	bool _haveBgrOutput;
 
 	/// The actual LedDevice
-	LedDevice* _device;
+	LedDevice * _device;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;

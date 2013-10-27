@@ -15,7 +15,8 @@ LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice,
 								 const unsigned baudrate) :
 	mDeviceName(outputDevice),
 	mBaudRate_Hz(baudrate),
-	mFid(-1)
+	mFid(-1),
+	mLedCount(0)
 {
 	memset(&spi, 0, sizeof(spi));
 
@@ -62,6 +63,8 @@ int LedDeviceWs2801::open()
 
 int LedDeviceWs2801::write(const std::vector<RgbColor> &ledValues)
 {
+	mLedCount = ledValues.size();
+
 	if (mFid < 0)
 	{
 		std::cerr << "Can not write to device which is open." << std::endl;
@@ -80,4 +83,9 @@ int LedDeviceWs2801::write(const std::vector<RgbColor> &ledValues)
 	}
 
 	return retVal;
+}
+
+int LedDeviceWs2801::switchOff()
+{
+	return write(std::vector<RgbColor>(mLedCount, RgbColor::BLACK));
 }
