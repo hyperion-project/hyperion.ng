@@ -1,20 +1,22 @@
 package org.hyperion.hypercon.spec;
 
+import java.util.Observable;
+
 /**
  * The device specific configuration
  */
-public class DeviceConfig {
+public class DeviceConfig extends Observable {
 
 	/** The name of the device */
-	String mName     = "MyPi";
+	public String mName     = "MyPi";
 	/** The type specification of the device */
-	DeviceType mType = DeviceType.ws2801;
+	public DeviceType mType = DeviceType.ws2801;
 	/** The device 'file' name */
-	String mOutput   = "/dev/spidev0.0";
+	public String mOutput   = "/dev/spidev0.0";
 	/** The baudrate of the device */
-	int mBaudrate    = 1000000;
+	public int mBaudrate    = 1000000;
 	/** Flag indicating if the red and blue should be reversed */
-	boolean mBgrOutput = false;
+	public boolean mBgrOutput = false;
 	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
@@ -47,4 +49,8 @@ public class DeviceConfig {
 		return strBuf.toString();
 	}
 
+	@Override
+	public void setChanged() {
+		super.setChanged();
+	}
 }

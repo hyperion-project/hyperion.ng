@@ -12,12 +12,14 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.hyperion.hypercon.spec.DeviceConfig;
 import org.hyperion.hypercon.spec.DeviceType;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
 
 public class LedFramePanel extends JPanel {
 	
 	private final LedFrameConstruction mLedFrameSpec;
+	private final DeviceConfig mDeviceConfig;
 	
 	private JLabel mTypeLabel;
 	private JComboBox<DeviceType> mTypeCombo;
@@ -41,10 +43,11 @@ public class LedFramePanel extends JPanel {
 	private JLabel mOffsetLabel;
 	private JSpinner mOffsetSpinner;
 	
-	public LedFramePanel(LedFrameConstruction ledFrameSpec) {
+	public LedFramePanel(LedFrameConstruction ledFrameSpec, DeviceConfig deviceConfig) {
 		super();
 		
 		mLedFrameSpec = ledFrameSpec;
+		mDeviceConfig = deviceConfig;
 		
 		initialise();
 	}
@@ -151,6 +154,10 @@ public class LedFramePanel extends JPanel {
 	}
 	
 	void updateLedConstruction() {
+		mDeviceConfig.mType = (DeviceType) mTypeCombo.getSelectedItem();
+		mDeviceConfig.setChanged();
+		mDeviceConfig.notifyObservers();
+		
 		mLedFrameSpec.topLeftCorner  = (Boolean)mTopCornerCombo.getSelectedItem();
 		mLedFrameSpec.topRightCorner = (Boolean)mTopCornerCombo.getSelectedItem();
 		mLedFrameSpec.bottomLeftCorner  = (Boolean)mBottomCornerCombo.getSelectedItem();

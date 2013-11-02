@@ -121,7 +121,7 @@ public class ConfigPanel extends JPanel {
 			mSpecificationPanel = new JPanel();
 			mSpecificationPanel.setLayout(new BoxLayout(mSpecificationPanel, BoxLayout.Y_AXIS));
 			
-			mConstructionPanel = new LedFramePanel(ledString.mLedFrameConfig);
+			mConstructionPanel = new LedFramePanel(ledString.mLedFrameConfig, ledString.mDeviceConfig);
 			mConstructionPanel.setBorder(BorderFactory.createTitledBorder("Construction"));
 			mSpecificationPanel.add(mConstructionPanel);
 
