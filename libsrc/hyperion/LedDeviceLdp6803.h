@@ -37,5 +37,6 @@ public:
 	virtual int switchOff();
 
 private:
+	/// The buffer containing the packed RGB values
 	std::vector<unsigned short> _ledBuffer;
 };
