@@ -20,31 +20,23 @@ LedDeviceLdp6803::LedDeviceLdp6803(const std::string& outputDevice, const unsign
 int LedDeviceLdp6803::write(const std::vector<RgbColor> &ledValues)
 {
 	// Reconfigure if the current connfiguration does not match the required configuration
-	if (ledValues.size() != _ledBuffer.size())
+	if (4 + 2*ledValues.size() != _ledBuffer.size())
 	{
-		// Initialise the buffer with all 'black' values
-		_ledBuffer.resize(ledValues.size() + 2, 0x80);
-		_ledBuffer[0] = 0;
-		_ledBuffer[1] = 0;
+		// Initialise the buffer
+		_ledBuffer.resize(4 + 2*ledValues.size(), 0x00);
 	}
 
-	// Copy the colors from the RgbColor vector to the Ldp6803Rgb vector
+	// Copy the colors from the RgbColor vector to the Ldp6803 data vector
 	for (unsigned iLed=0; iLed<ledValues.size(); ++iLed)
 	{
 		const RgbColor& rgb = ledValues[iLed];
 
-		const char packedRed   = rgb.red   & 0xf8;
-		const char packedGreen = rgb.green & 0xf8;
-		const char packedBlue  = rgb.blue  & 0xf8;
-		const unsigned short packedRgb = 0x80 | (packedRed << 7) | (packedGreen << 2) | (packedBlue >> 3);
-
-		_ledBuffer[iLed + 2] = packedRgb;
+		_ledBuffer[4 + 2 * iLed] = 0x80 | ((rgb.red & 0xf8) >> 1) | (rgb.green >> 6);
+		_ledBuffer[5 + 2 * iLed] = ((rgb.green & 0x38) << 2) | (rgb.blue >> 3);
 	}
 
 	// Write the data
-	const unsigned bufCnt = _ledBuffer.size() * sizeof(short);
-	const char * bufPtr   = reinterpret_cast<const char *>(_ledBuffer.data());
-	if (latch(bufCnt, bufPtr, 0) < 0)
+	if (writeBytes(_ledBuffer.size(), _ledBuffer.data()) < 0)
 	{
 		return -1;
 	}
