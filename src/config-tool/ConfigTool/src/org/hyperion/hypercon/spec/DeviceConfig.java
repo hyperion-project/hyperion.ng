@@ -26,7 +26,7 @@ public class DeviceConfig {
 		
 		strBuf.append("\t/// Device configuration contains the following fields: \n");
 		strBuf.append("\t/// * 'name'       : The user friendly name of the device (only used for display purposes)\n");
-		strBuf.append("\t/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'test' and 'none')\n");
+		strBuf.append("\t/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'ldp6803', 'test' and 'none')\n");
 		strBuf.append("\t/// * 'output'     : The output specification depends on selected device\n");
 		strBuf.append("\t///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')\n");
 		strBuf.append("\t///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')\n");
