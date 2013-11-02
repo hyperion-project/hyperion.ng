@@ -2,8 +2,8 @@
 // Local-Hyperion includes
 #include "LedDeviceTest.h"
 
-LedDeviceTest::LedDeviceTest() :
-	_ofs("/home/pi/LedDevice.out")
+LedDeviceTest::LedDeviceTest(const std::string& output) :
+	_ofs(output.empty()?"/home/pi/LedDevice.out":output.c_str())
 {
 	// empty
 }

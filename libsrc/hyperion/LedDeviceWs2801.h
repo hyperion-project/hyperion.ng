@@ -33,8 +33,6 @@ public:
 	virtual int switchOff();
 
 private:
-	/// The 'latch' time for latching the shifted-value into the leds
-	timespec latchTime;
 
 	/// the number of leds (needed when switching off)
 	size_t mLedCount;

@@ -10,80 +10,48 @@
 // hyperion local includes
 #include "LedDeviceLdp6803.h"
 
-LedDeviceLDP6803::LedDeviceLDP6803(const std::string& outputDevice, const unsigned baudrate) :
+LedDeviceLdp6803::LedDeviceLdp6803(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate),
-	mLedCount(0)
+	_ledBuffer(0)
 {
-	latchTime.tv_sec = 0;
-	latchTime.tv_nsec = 500000;
+	// empty
 }
 
-int LedDeviceLDP6803::write(const std::vector<RgbColor> &ledValues)
+int LedDeviceLdp6803::write(const std::vector<RgbColor> &ledValues)
 {
-	mLedCount = ledValues.size();
-
-	// Define buffer sizes based on number of leds
-	// buffsize for actual buffer to be sent via SPI pins
-	// tempbuffsize for RGB data processing.
-	// buffsize = 4 zero bytes + 2 bytes per LED
-	// tempbuffsize will hold RGB values, so 3 bytes per LED
-
-	int buffsize = (mLedCount * 2) + 4;
-	int tempbuffsize = mLedCount *3;
-	int i,r,g,b,d,count;
-
-	uint8_t m_buff[buffsize];
-	const uint8_t *temp_buff;//[tempbuffsize];
-
-	if (mFid < 0)
+	// Reconfigure if the current connfiguration does not match the required configuration
+	if (ledValues.size() != _ledBuffer.size())
 	{
-			std::cerr << "Can not write to device which is open." << std::endl;
-			return -1;
+		// Initialise the buffer with all 'black' values
+		_ledBuffer.resize(ledValues.size() + 2, 0x80);
+		_ledBuffer[0] = 0;
+		_ledBuffer[1] = 0;
 	}
 
-	temp_buff = reinterpret_cast<const uint8_t*>(ledValues.data());
-
-	// set first 4 bytes to zero
-	m_buff[0]=0;
-	m_buff[1]=0;
-	m_buff[2]=0;
-	m_buff[3]=0;
-
-	// Set counter
-	count=4;
-
-	// Now process RGB values: 0-255 to be
-	// converted to 0-31, with bits combined
-	// to match hardware protocol
-
-	for (i=0 ; i < tempbuffsize ; i+=3) {
-		r = temp_buff[i] >> 3;
-		g = temp_buff[i+1] >> 3;
-		b = temp_buff[i+2] >> 3;
-
-		d = (r * 1024) + (g * 32) + b + 32768;
-
-		m_buff[count] = d >> 8;
-		m_buff[count+1] = d & 0x00FF;
-
-		count += 2;
-	}
-
-	spi.tx_buf = __u64(m_buff);
-	spi.len    = buffsize;
-
-	int retVal = ioctl(mFid, SPI_IOC_MESSAGE(1), &spi);
-
-	if (retVal == 0)
+	// Copy the colors from the RgbColor vector to the Ldp6803Rgb vector
+	for (unsigned iLed=0; iLed<ledValues.size(); ++iLed)
 	{
-		// Sleep to latch the leds (only if write succesfull)
-		nanosleep(&latchTime, NULL);
+		const RgbColor& rgb = ledValues[iLed];
+
+		const char packedRed   = rgb.red   & 0xf8;
+		const char packedGreen = rgb.green & 0xf8;
+		const char packedBlue  = rgb.blue  & 0xf8;
+		const unsigned short packedRgb = 0x80 | (packedRed << 7) | (packedGreen << 2) | (packedBlue >> 3);
+
+		_ledBuffer[iLed + 2] = packedRgb;
 	}
 
-	return retVal;
+	// Write the data
+	const unsigned bufCnt = _ledBuffer.size() * sizeof(short);
+	const char * bufPtr   = reinterpret_cast<const char *>(_ledBuffer.data());
+	if (latch(bufCnt, bufPtr, 0) < 0)
+	{
+		return -1;
+	}
+	return 0;
 }
 
-int LedDeviceLDP6803::switchOff()
+int LedDeviceLdp6803::switchOff()
 {
-	return write(std::vector<RgbColor>(mLedCount, RgbColor::BLACK));
+	return write(std::vector<RgbColor>(_ledBuffer.size(), RgbColor::BLACK));
 }

@@ -55,3 +55,31 @@ int LedSpiDevice::open()
 
 	return 0;
 }
+
+int LedSpiDevice::latch(const unsigned len, const char * vec, const int latchTime_ns)
+{
+
+	if (mFid < 0)
+	{
+		return -1;
+	}
+
+	spi.tx_buf = __u64(vec);
+	spi.len    = __u32(len);
+
+	int retVal = ioctl(mFid, SPI_IOC_MESSAGE(1), &spi);
+
+	if (retVal == 0 && latchTime_ns > 0)
+	{
+		// The 'latch' time for latching the shifted-value into the leds
+		timespec latchTime;
+		latchTime.tv_sec  = 0;
+		latchTime.tv_nsec = latchTime_ns;
+
+		// Sleep to latch the leds (only if write succesfull)
+		nanosleep(&latchTime, NULL);
+	}
+
+	return retVal;
+
+}

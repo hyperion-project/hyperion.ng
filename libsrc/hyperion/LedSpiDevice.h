@@ -32,13 +32,26 @@ public:
 	///
 	int open();
 
+protected:
+	/**
+	 * Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the
+	 * values are latched.
+	 *
+	 * @param[in[ len The length of the data
+	 * @param[in] vec The data
+	 * @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
+	 * means no latch required) [ns]
+	 *
+	 * @return Zero on succes else negative
+	 */
+	int latch(const unsigned len, const char * vec, const int latchTime_ns);
+
 private:
 	/// The name of the output device
 	const std::string mDeviceName;
 	/// The used baudrate of the output device
 	const int mBaudRate_Hz;
 
-protected:
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int mFid;
 	/// The transfer structure for writing to the spi-device

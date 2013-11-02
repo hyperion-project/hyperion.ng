@@ -16,7 +16,7 @@ public:
 	///
 	/// Constructs the test-device, which opens an output stream to the file
 	///
-	LedDeviceTest();
+	LedDeviceTest(const std::string& output);
 
 	///
 	/// Destructor of this test-device
