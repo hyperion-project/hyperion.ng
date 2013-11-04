@@ -16,7 +16,7 @@
         "type"       : "ws2801",
         "output"     : "/dev/spidev0.0",
         "rate"       : 1000000,
-        "bgr-output" : false
+        "colorOrder" : "rgb"
     },
 
     /// Color manipulation configuration used to tune the output colors to specific surroundings. Contains the following fields:

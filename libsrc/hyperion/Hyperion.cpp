@@ -60,6 +60,47 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 	return device;
 }
 
+Hyperion::ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
+{
+	// deprecated: force BGR when the deprecated flag is present and set to true
+	if (deviceConfig.get("bgr-output", false).asBool())
+	{
+		return ORDER_BGR;
+	}
+
+	std::string order = deviceConfig.get("colorOrder", "rgb").asString();
+	if (order == "rgb")
+	{
+		return ORDER_RGB;
+	}
+	else if (order == "bgr")
+	{
+		return ORDER_BGR;
+	}
+	else if (order == "rbg")
+	{
+		return ORDER_RBG;
+	}
+	else if (order == "brg")
+	{
+		return ORDER_BRG;
+	}
+	else if (order == "gbr")
+	{
+		return ORDER_GBR;
+	}
+	else if (order == "grb")
+	{
+		return ORDER_GRB;
+	}
+	else
+	{
+		std::cout << "Unknown color order defined (" << order << "). Using RGB." << std::endl;
+	}
+
+	return ORDER_RGB;
+}
+
 HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
 {
 	const double saturationGain = hsvConfig.get("saturationGain", 1.0).asDouble();
@@ -143,6 +184,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	return ledDevice;
 }
 
+
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"])),
 	_muxer(_ledString.leds().size()),
@@ -150,7 +192,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_redTransform(createColorTransform(jsonConfig["color"]["red"])),
 	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
 	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
-	_haveBgrOutput(jsonConfig["device"].get("bgr-output", false).asBool()),
+	_colorOrder(createColorOrder(jsonConfig["device"])),
 	_device(createDevice(jsonConfig["device"])),
 	_timer()
 {
@@ -366,9 +408,37 @@ void Hyperion::update()
 		color.green = _greenTransform->transform(color.green);
 		color.blue  = _blueTransform->transform(color.blue);
 
-		if (_haveBgrOutput)
+		// correct the color byte order
+		switch (_colorOrder)
 		{
+		case ORDER_RGB:
+			// leave as it is
+			break;
+		case ORDER_BGR:
 			std::swap(color.red, color.blue);
+			break;
+		case ORDER_RBG:
+			std::swap(color.green, color.blue);
+			break;
+		case ORDER_GRB:
+			std::swap(color.red, color.green);
+			break;
+		case ORDER_GBR:
+		{
+			uint8_t temp = color.red;
+			color.red = color.green;
+			color.green = color.blue;
+			color.blue = temp;
+			break;
+		}
+		case ORDER_BRG:
+		{
+			uint8_t temp = color.red;
+			color.red = color.blue;
+			color.blue = color.green;
+			color.green = temp;
+			break;
+		}
 		}
 	}
 

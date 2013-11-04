@@ -15,8 +15,8 @@ public class DeviceConfig extends Observable {
 	public String mOutput   = "/dev/spidev0.0";
 	/** The baudrate of the device */
 	public int mBaudrate    = 1000000;
-	/** Flag indicating if the red and blue should be reversed */
-	public boolean mBgrOutput = false;
+	/** The order of the color bytes */
+	public ColorByteOrder mColorByteOrder = ColorByteOrder.RGB;
 	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
@@ -33,7 +33,7 @@ public class DeviceConfig extends Observable {
 		strBuf.append("\t///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')\n");
 		strBuf.append("\t///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')\n");
 		strBuf.append("\t/// * 'rate'       : The baudrate of the output to the device (only applicable for 'ws2801')\n");
-		strBuf.append("\t/// * 'bgr-output' : Use BGR output instead of RGB (reverse red and blue).\n");
+		strBuf.append("\t/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).\n");
 
 		strBuf.append("\t\"device\" :\n");
 		strBuf.append("\t{\n");
@@ -42,7 +42,7 @@ public class DeviceConfig extends Observable {
 		strBuf.append("\t\t\"type\"       : \"").append(mType.name()).append("\",\n");
 		strBuf.append("\t\t\"output\"     : \"").append(mOutput).append("\",\n");
 		strBuf.append("\t\t\"rate\"       : ").append(mBaudrate).append(",\n");
-		strBuf.append("\t\t\"bgr-output\" : ").append(mBgrOutput).append("\n");
+		strBuf.append("\t\t\"colorOrder\" : ").append(mColorByteOrder.name().toLowerCase()).append("\n");
 		
 		strBuf.append("\t}");
 		
