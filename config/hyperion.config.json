@@ -9,7 +9,7 @@
     ///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')
     ///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')
     /// * 'rate'       : The baudrate of the output to the device (only applicable for 'ws2801')
-    /// * 'bgr-output' : Use BGR output instead of RGB (reverse red and blue).
+    /// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
     "device" :
     {
         "name"       : "MyPi",
