@@ -6,12 +6,12 @@
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 led device.
 ///
-/// 00000000 00000000 00000000 00000000 1XXXXXYY YYYZZZZZ 1XXXXXYY YYYZZZZZ ...
+/// 00000000 00000000 00000000 00000000 1RRRRRGG GGGBBBBB 1RRRRRGG GGGBBBBB ...
 /// |---------------------------------| |---------------| |---------------|
 /// 32 zeros to start the frame Led1 Led2 ...
 ///
 /// For each led, the first bit is always 1, and then you have 5 bits each for red, green and blue
-/// (X, Y and Z in the above illustration) making 16 bits per led. Total bits = 32 + (16 x number of
+/// (R, G and B in the above illustration) making 16 bits per led. Total bytes = 4 + (2 x number of
 /// leds)
 ///
 class LedDeviceLdp6803 : public LedSpiDevice
@@ -20,7 +20,7 @@ public:
 	///
 	/// Constructs the LedDevice for a string containing leds of the type LDP6803
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
+	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev0.0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	///
 	LedDeviceLdp6803(const std::string& outputDevice, const unsigned baudrate);
@@ -38,5 +38,5 @@ public:
 
 private:
 	/// The buffer containing the packed RGB values
-	std::vector<unsigned short> _ledBuffer;
+	std::vector<uint8_t> _ledBuffer;
 };

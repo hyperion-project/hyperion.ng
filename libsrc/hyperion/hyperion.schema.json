@@ -23,7 +23,11 @@
                     "required" : true,
                     "minimum" : 0
                 },
-                "bgr-output" : {
+                "colorOrder" : {
+                    "type" : "string",
+                    "required" : false
+                },
+                "bgr-output" : { // deprecated
                     "type" : "boolean",
                     "required" : false
                 }

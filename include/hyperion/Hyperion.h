@@ -46,6 +46,12 @@ public:
 		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
+	/// Enumeration containing the possible orders of device color byte data
+	enum ColorOrder
+	{
+		ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
+	};
+
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
@@ -136,6 +142,7 @@ public:
 	const InputInfo& getPriorityInfo(const int priority) const;
 
 	static LedDevice * createDevice(const Json::Value & deviceConfig);
+	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
 	static ColorTransform * createColorTransform(const Json::Value & colorConfig);
@@ -172,8 +179,8 @@ private:
 	/// The BLUE-Channel (RGB) transform
 	ColorTransform * _blueTransform;
 
-	/// Flag indicating if the output should be BGR (red and blue reversed)
-	bool _haveBgrOutput;
+	/// Value with the desired color byte order
+	ColorOrder _colorOrder;
 
 	/// The actual LedDevice
 	LedDevice * _device;

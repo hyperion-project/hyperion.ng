@@ -1,13 +1,13 @@
 package org.hyperion.hypercon.test;
 
 import org.hyperion.hypercon.ConfigurationFile;
+import org.hyperion.hypercon.spec.ColorByteOrder;
 import org.hyperion.hypercon.spec.ColorConfig;
 import org.hyperion.hypercon.spec.DeviceConfig;
 import org.hyperion.hypercon.spec.DeviceType;
 import org.hyperion.hypercon.spec.ImageProcessConfig;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
 import org.hyperion.hypercon.spec.MiscConfig;
-import org.hyperion.hypercon.spec.RgbByteOrder;
 
 public class TesConfigWriter {
 
@@ -19,7 +19,7 @@ public class TesConfigWriter {
 		MiscConfig miscConfig = new MiscConfig();
 		
 		deviceConfig.mBaudrate = 4800;
-		deviceConfig.mRgbByteOrder = RgbByteOrder.bgr;
+		deviceConfig.mColorByteOrder = ColorByteOrder.BGR;
 		deviceConfig.mName = "DAG";
 		deviceConfig.mOutput = "/dev/null";
 		deviceConfig.mType = DeviceType.ldp6803;

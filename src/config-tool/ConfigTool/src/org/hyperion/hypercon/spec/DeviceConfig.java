@@ -1,21 +1,20 @@
 package org.hyperion.hypercon.spec;
 
-
 /**
  * The device specific configuration
  */
 public class DeviceConfig {
 
 	/** The name of the device */
-	public String mName       = "MyPi";
+	public String mName     = "MyPi";
 	/** The type specification of the device */
-	public DeviceType mType   = DeviceType.ws2801;
+	public DeviceType mType = DeviceType.ws2801;
 	/** The device 'file' name */
-	public String mOutput     = "/dev/spidev0.0";
+	public String mOutput   = "/dev/spidev0.0";
 	/** The baudrate of the device */
-	public int mBaudrate      = 1000000;
-	/** Ordering of the rgb-color channels */
-	public RgbByteOrder mRgbByteOrder = RgbByteOrder.rbg;
+	public int mBaudrate    = 1000000;
+	/** The order of the color bytes */
+	public ColorByteOrder mColorByteOrder = ColorByteOrder.RGB;
 	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
@@ -32,7 +31,7 @@ public class DeviceConfig {
 		strBuf.append("\t///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')\n");
 		strBuf.append("\t///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')\n");
 		strBuf.append("\t/// * 'rate'       : The baudrate of the output to the device (only applicable for 'ws2801')\n");
-		strBuf.append("\t/// * 'colorOrder' : The order of the byte color channel (rgb, rbg, bgr, brg, gbr, grb).\n");
+		strBuf.append("\t/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).\n");
 
 		strBuf.append("\t\"device\" :\n");
 		strBuf.append("\t{\n");
@@ -41,11 +40,10 @@ public class DeviceConfig {
 		strBuf.append("\t\t\"type\"       : \"").append(mType.name()).append("\",\n");
 		strBuf.append("\t\t\"output\"     : \"").append(mOutput).append("\",\n");
 		strBuf.append("\t\t\"rate\"       : ").append(mBaudrate).append(",\n");
-		strBuf.append("\t\t\"colorOrder\" : ").append(mRgbByteOrder.name()).append("\n");
+		strBuf.append("\t\t\"colorOrder\" : \"").append(mColorByteOrder.name().toLowerCase()).append("\"\n");
 		
 		strBuf.append("\t}");
 		
 		return strBuf.toString();
 	}
-
 }

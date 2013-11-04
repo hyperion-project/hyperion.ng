@@ -7,8 +7,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.hyperion.hypercon.spec.ColorByteOrder;
 import org.hyperion.hypercon.spec.DeviceConfig;
-import org.hyperion.hypercon.spec.RgbByteOrder;
 
 public class DevicePanel extends JPanel {
 	
@@ -21,7 +21,7 @@ public class DevicePanel extends JPanel {
 	private JComboBox<Integer> mBaudrateCombo;
 	
 	private JLabel mRgbLabel;
-	private JComboBox<RgbByteOrder> mRgbCombo;
+	private JComboBox<ColorByteOrder> mRgbCombo;
 	
 	public DevicePanel(DeviceConfig pDeviceConfig) {
 		super();
@@ -52,8 +52,8 @@ public class DevicePanel extends JPanel {
 		mRgbLabel = new JLabel("RGB Byte Order");
 		add(mRgbLabel);
 		
-		mRgbCombo = new JComboBox<>(RgbByteOrder.values());
-		mRgbCombo.setSelectedItem(mDeviceConfig.mRgbByteOrder);
+		mRgbCombo = new JComboBox<>(ColorByteOrder.values());
+		mRgbCombo.setSelectedItem(mDeviceConfig.mColorByteOrder);
 		mRgbCombo.addActionListener(mActionListener);
 		add(mRgbCombo);
 	}
@@ -63,7 +63,7 @@ public class DevicePanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			mDeviceConfig.mOutput = (String)mOutputCombo.getSelectedItem();
 			mDeviceConfig.mBaudrate = (Integer)mBaudrateCombo.getSelectedItem();
-			mDeviceConfig.mRgbByteOrder = (RgbByteOrder)mRgbCombo.getSelectedItem();
+			mDeviceConfig.mColorByteOrder = (ColorByteOrder)mRgbCombo.getSelectedItem();
 		}
 	};
 }

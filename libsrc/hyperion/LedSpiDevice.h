@@ -18,7 +18,7 @@ public:
 	/// @param[in] outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	///
-	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate);
+	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -37,20 +37,22 @@ protected:
 	 * Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the
 	 * values are latched.
 	 *
-	 * @param[in[ len The length of the data
-	 * @param[in] vec The data
+	 * @param[in[ size The length of the data
+	 * @param[in] data The data
 	 * @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
 	 * means no latch required) [ns]
 	 *
 	 * @return Zero on succes else negative
 	 */
-	int latch(const unsigned len, const char * vec, const int latchTime_ns);
+	int writeBytes(const unsigned size, const uint8_t *data);
 
 private:
 	/// The name of the output device
 	const std::string mDeviceName;
 	/// The used baudrate of the output device
 	const int mBaudRate_Hz;
+	/// The time which the device should be untouched after a write
+	const int mLatchTime_ns;
 
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int mFid;

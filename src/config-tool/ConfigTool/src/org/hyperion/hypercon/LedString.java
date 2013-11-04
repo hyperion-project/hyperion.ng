@@ -21,6 +21,7 @@ public class LedString {
 
 	/** THe configuration of the 'physical' led frame */
 	public LedFrameConstruction mLedFrameConfig = new LedFrameConstruction();
+	
 	/** The configuration of the image processing */
 	public ImageProcessConfig mProcessConfig = new ImageProcessConfig();
 	
