@@ -42,7 +42,7 @@ public class DeviceConfig extends Observable {
 		strBuf.append("\t\t\"type\"       : \"").append(mType.name()).append("\",\n");
 		strBuf.append("\t\t\"output\"     : \"").append(mOutput).append("\",\n");
 		strBuf.append("\t\t\"rate\"       : ").append(mBaudrate).append(",\n");
-		strBuf.append("\t\t\"colorOrder\" : ").append(mColorByteOrder.name().toLowerCase()).append("\n");
+		strBuf.append("\t\t\"colorOrder\" : \"").append(mColorByteOrder.name().toLowerCase()).append("\"\n");
 		
 		strBuf.append("\t}");
 		
