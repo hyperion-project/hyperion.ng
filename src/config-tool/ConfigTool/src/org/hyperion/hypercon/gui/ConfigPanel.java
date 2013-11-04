@@ -14,8 +14,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
+import org.hyperion.hypercon.ConfigurationFile;
 import org.hyperion.hypercon.LedFrameFactory;
 import org.hyperion.hypercon.LedString;
+import org.hyperion.hypercon.Main;
 
 /**
  * The main-config panel of HyperCon. Includes the configuration and the panels to edit and 
@@ -24,7 +26,7 @@ import org.hyperion.hypercon.LedString;
 public class ConfigPanel extends JPanel {
 
 	/** The LED configuration information*/
-	private final LedString ledString = new LedString();
+	private final LedString ledString;
 	
 	/** Action for write the Hyperion deamon configuration file */
 	private final Action mSaveConfigAction = new AbstractAction("Create Hyperion Configuration") {
@@ -37,6 +39,14 @@ public class ConfigPanel extends JPanel {
 
 			try {
 				ledString.saveConfigFile(fileChooser.getSelectedFile().getAbsolutePath());
+				
+				ConfigurationFile configFile = new ConfigurationFile();
+				configFile.store(ledString.mDeviceConfig);
+				configFile.store(ledString.mLedFrameConfig);
+				configFile.store(ledString.mProcessConfig);
+				configFile.store(ledString.mColorConfig);
+				configFile.store(ledString.mMiscConfig);
+				configFile.save(Main.configFilename);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -67,8 +77,10 @@ public class ConfigPanel extends JPanel {
 	/**
 	 * Constructs the configuration panel with a default initialised led-frame and configuration
 	 */
-	public ConfigPanel() {
+	public ConfigPanel(final LedString pLedString) {
 		super();
+		
+		ledString = pLedString;
 		
 		initialise();
 		
@@ -121,7 +133,7 @@ public class ConfigPanel extends JPanel {
 			mSpecificationPanel = new JPanel();
 			mSpecificationPanel.setLayout(new BoxLayout(mSpecificationPanel, BoxLayout.Y_AXIS));
 			
-			mConstructionPanel = new LedFramePanel(ledString.mLedFrameConfig);
+			mConstructionPanel = new LedFramePanel(ledString.mDeviceConfig, ledString.mLedFrameConfig);
 			mConstructionPanel.setBorder(BorderFactory.createTitledBorder("Construction"));
 			mSpecificationPanel.add(mConstructionPanel);
 

@@ -2,8 +2,6 @@ package org.hyperion.hypercon.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
@@ -16,7 +14,7 @@ import javax.swing.event.ChangeListener;
 
 import org.hyperion.hypercon.spec.ImageProcessConfig;
 
-public class ImageProcessPanel extends JPanel implements Observer {
+public class ImageProcessPanel extends JPanel {
 	
 	private final ImageProcessConfig mProcessConfig;
 	
@@ -42,43 +40,41 @@ public class ImageProcessPanel extends JPanel implements Observer {
 		mProcessConfig = pProcessConfig;
 		
 		initialise();
-		
-		update(mProcessConfig, null);
 	}
 	
 	private void initialise() {
 		mHorizontalDepthLabel = new JLabel("Horizontal depth [%]:");
 		add(mHorizontalDepthLabel);
 		
-		mHorizontalDepthSpinner = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 100.0, 1.0));
+		mHorizontalDepthSpinner = new JSpinner(new SpinnerNumberModel(mProcessConfig.mHorizontalDepth*100.0, 1.0, 100.0, 1.0));
 		mHorizontalDepthSpinner.addChangeListener(mChangeListener);
 		add(mHorizontalDepthSpinner);
 
 		mVerticalDepthLabel = new JLabel("Vertical depth [%]:");
 		add(mVerticalDepthLabel);
 		
-		mVerticalDepthSpinner = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 100.0, 1.0));
+		mVerticalDepthSpinner = new JSpinner(new SpinnerNumberModel(mProcessConfig.mVerticalDepth*100.0, 1.0, 100.0, 1.0));
 		mVerticalDepthSpinner.addChangeListener(mChangeListener);
 		add(mVerticalDepthSpinner);
 
 		mHorizontalGapLabel = new JLabel("Horizontal gap [%]:");
 		add(mHorizontalGapLabel);
 		
-		mHorizontalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
+		mHorizontalGapSpinner = new JSpinner(new SpinnerNumberModel(mProcessConfig.mHorizontalGap*100.0, 0.0, 50.0, 1.0));
 		mHorizontalGapSpinner.addChangeListener(mChangeListener);
 		add(mHorizontalGapSpinner);
 
 		mVerticalGapLabel = new JLabel("Vertical gap [%]:");
 		add(mVerticalGapLabel);
 		
-		mVerticalGapSpinner = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 50.0, 1.0));
+		mVerticalGapSpinner = new JSpinner(new SpinnerNumberModel(mProcessConfig.mVerticalGap*100.0, 0.0, 50.0, 1.0));
 		mVerticalGapSpinner.addChangeListener(mChangeListener);
 		add(mVerticalGapSpinner);
 
 		mOverlapLabel = new JLabel("Overlap [%]:");
 		add(mOverlapLabel);
 		
-		mOverlapSpinner = new JSpinner(new SpinnerNumberModel(0.0, -100.0, 100.0, 1.0));
+		mOverlapSpinner = new JSpinner(new SpinnerNumberModel(mProcessConfig.mOverlapFraction*100.0, -100.0, 100.0, 1.0));
 		mOverlapSpinner.addChangeListener(mChangeListener);
 		add(mOverlapSpinner);
 		
@@ -86,7 +82,7 @@ public class ImageProcessPanel extends JPanel implements Observer {
 		add(mBlackborderDetectorLabel);
 		
 		mBlackborderDetectorCombo = new JComboBox<>(new String[] {"On", "Off"});
-		mBlackborderDetectorCombo.setSelectedItem("On");
+		mBlackborderDetectorCombo.setSelectedItem(mProcessConfig.mBlackBorderRemoval?"On":"Off");
 		mBlackborderDetectorCombo.setToolTipText("Enables or disables the blackborder detection and removal");
 		mBlackborderDetectorCombo.addActionListener(mActionListener);
 		add(mBlackborderDetectorCombo);
@@ -140,15 +136,7 @@ public class ImageProcessPanel extends JPanel implements Observer {
 						)
 						);
 	}
-	
-	@Override
-	public void update(Observable pObs, Object pArg) {
-		if (pObs == mProcessConfig && pArg != this) {
-			mHorizontalDepthSpinner.setValue(mProcessConfig.getHorizontalDepth() * 100.0);
-			mVerticalDepthSpinner.setValue(mProcessConfig.getVerticalDepth() * 100.0);
-			mOverlapSpinner.setValue(mProcessConfig.getOverlapFraction() * 100.0);
-		}
-	}
+
 	private final ActionListener mActionListener = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {

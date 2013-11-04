@@ -1,5 +1,9 @@
 package org.hyperion.hypercon;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -11,6 +15,7 @@ import org.hyperion.hypercon.gui.ConfigPanel;
  * JAVA application (contains the entry-point).
  */
 public class Main {
+	public static final String configFilename = "hyerpcon.dat";
 
 	/**
 	 * Entry point to start HyperCon 
@@ -18,6 +23,8 @@ public class Main {
 	 * @param pArgs HyperCon does not have command line arguments
 	 */
 	public static void main(String[] pArgs) {
+		final LedString ledString = new LedString();
+		
 		try {
 			// Configure swing to use the system default look and feel
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -29,9 +36,31 @@ public class Main {
 		frame.setSize(1300, 700);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setIconImage(new ImageIcon(Main.class.getResource("HyperConIcon_64.png")).getImage());
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				ConfigurationFile configFile = new ConfigurationFile();
+				configFile.store(ledString.mDeviceConfig);
+				configFile.store(ledString.mLedFrameConfig);
+				configFile.store(ledString.mProcessConfig);
+				configFile.store(ledString.mColorConfig);
+				configFile.store(ledString.mMiscConfig);
+				configFile.save(configFilename);
+			}
+		});
+		
+		if (new File(configFilename).exists()) {
+			ConfigurationFile configFile = new ConfigurationFile();
+			configFile.load(configFilename);
+			configFile.restore(ledString.mDeviceConfig);
+			configFile.restore(ledString.mLedFrameConfig);
+			configFile.restore(ledString.mProcessConfig);
+			configFile.restore(ledString.mColorConfig);
+			configFile.restore(ledString.mMiscConfig);
+		}
 		
 		// Add the HyperCon configuration panel
-		frame.setContentPane(new ConfigPanel());
+		frame.setContentPane(new ConfigPanel(ledString));
 		
 		// Show the frame
 		frame.setVisible(true);

@@ -7,6 +7,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.hyperion.hypercon.spec.ColorConfig;
 
 /**
  * Configuration panel for the ColorConfig.
@@ -14,6 +18,9 @@ import javax.swing.SpinnerNumberModel;
  * NB This has not been integrated in the GUI jet!
  */
 public class ColorConfigPanel extends JPanel {
+	
+	private final ColorConfig mColorConfig;
+	
 	private JPanel mRgbTransformPanel;
 	private JLabel mThresholdLabel;
 	private JLabel mGammaLabel;
@@ -41,8 +48,10 @@ public class ColorConfigPanel extends JPanel {
 	private JLabel mValueAdjustLabel;
 	private JSpinner mValueAdjustSpinner;
 
-	public ColorConfigPanel() {
+	public ColorConfigPanel(ColorConfig pColorConfig) {
 		super();
+		
+		mColorConfig = pColorConfig;
 		
 		initialise();
 	}
@@ -75,35 +84,47 @@ public class ColorConfigPanel extends JPanel {
 			
 			mRedTransformLabel = new JLabel("RED");
 			mRgbTransformPanel.add(mRedTransformLabel);
-			mRedThresholdSpinner = new JSpinner(new SpinnerNumberModel());
+			mRedThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedThreshold, 0.0, 1.0, 0.1));
+			mRedThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedThresholdSpinner);
-			mRedGammaSpinner = new JSpinner(new SpinnerNumberModel());
+			mRedGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedGamma, 0.0, 100.0, 0.1));
+			mRedThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedGammaSpinner);
-			mRedBlacklevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mRedBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedBlacklevel, 0.0, 1.0, 0.1));
+			mRedThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedBlacklevelSpinner);
-			mRedWhitelevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mRedWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedWhitelevel, 0.0, 1.0, 0.1));
+			mRedThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedWhitelevelSpinner);
 			
 			mGreenTransformLabel = new JLabel("GREEN");
 			mRgbTransformPanel.add(mGreenTransformLabel);
-			mGreenThresholdSpinner = new JSpinner(new SpinnerNumberModel());
+			mGreenThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenThreshold, 0.0, 1.0, 0.1));
+			mGreenThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenThresholdSpinner);
-			mGreenGammaSpinner = new JSpinner(new SpinnerNumberModel());
+			mGreenGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenGamma, 0.0, 100.0, 0.1));
+			mGreenGammaSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenGammaSpinner);
-			mGreenBlacklevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mGreenBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenBlacklevel, 0.0, 1.0, 0.1));
+			mGreenBlacklevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenBlacklevelSpinner);
-			mGreenWhitelevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mGreenWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenWhitelevel, 0.0, 1.0, 0.1));
+			mGreenWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenWhitelevelSpinner);
 
 			mBlueTransformLabel = new JLabel("BLUE");
 			mRgbTransformPanel.add(mBlueTransformLabel);
-			mBlueThresholdSpinner = new JSpinner(new SpinnerNumberModel());
+			mBlueThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueThreshold, 0.0, 1.0, 0.1));
+			mBlueThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueThresholdSpinner);
-			mBlueGammaSpinner = new JSpinner(new SpinnerNumberModel());
+			mBlueGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueGamma, 0.0, 100.0, 0.1));
+			mBlueGammaSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueGammaSpinner);
-			mBlueBlacklevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mBlueBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueBlacklevel, 0.0, 1.0, 0.1));
+			mBlueBlacklevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueBlacklevelSpinner);
-			mBlueWhitelevelSpinner = new JSpinner(new SpinnerNumberModel());
+			mBlueWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueWhitelevel, 0.0, 1.0, 0.1));
+			mBlueWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueWhitelevelSpinner);
 			
 			layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -177,13 +198,15 @@ public class ColorConfigPanel extends JPanel {
 			mSaturationAdjustLabel = new JLabel("Saturation");
 			mHsvTransformPanel.add(mSaturationAdjustLabel);
 			
-			mSaturationAdjustSpinner = new JSpinner(new SpinnerNumberModel(1.0, 0.0, 1024.0, 0.01));
+			mSaturationAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mSaturationGain, 0.0, 1024.0, 0.01));
+			mSaturationAdjustSpinner.addChangeListener(mChangeListener);
 			mHsvTransformPanel.add(mSaturationAdjustSpinner);
 			
 			mValueAdjustLabel = new JLabel("Value");
 			mHsvTransformPanel.add(mValueAdjustLabel);
 			
-			mValueAdjustSpinner = new JSpinner(new SpinnerNumberModel(1.0, 0.0, 1024.0, 0.01));
+			mValueAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mValueGain, 0.0, 1024.0, 0.01));
+			mValueAdjustSpinner.addChangeListener(mChangeListener);
 			mHsvTransformPanel.add(mValueAdjustSpinner);
 
 			layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -211,4 +234,26 @@ public class ColorConfigPanel extends JPanel {
 		return mHsvTransformPanel;
 	}
 	
+	private final ChangeListener mChangeListener = new ChangeListener() {
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			mColorConfig.mRedThreshold  = (Double)mRedThresholdSpinner.getValue();
+			mColorConfig.mRedGamma      = (Double)mRedGammaSpinner.getValue();
+			mColorConfig.mRedBlacklevel = (Double)mRedBlacklevelSpinner.getValue();
+			mColorConfig.mRedWhitelevel = (Double)mRedWhitelevelSpinner.getValue();
+
+			mColorConfig.mGreenThreshold  = (Double)mGreenThresholdSpinner.getValue();
+			mColorConfig.mGreenGamma      = (Double)mGreenGammaSpinner.getValue();
+			mColorConfig.mGreenBlacklevel = (Double)mGreenBlacklevelSpinner.getValue();
+			mColorConfig.mGreenWhitelevel = (Double)mGreenWhitelevelSpinner.getValue();
+
+			mColorConfig.mBlueThreshold  = (Double)mBlueThresholdSpinner.getValue();
+			mColorConfig.mBlueGamma      = (Double)mBlueGammaSpinner.getValue();
+			mColorConfig.mBlueBlacklevel = (Double)mBlueBlacklevelSpinner.getValue();
+			mColorConfig.mBlueWhitelevel = (Double)mBlueWhitelevelSpinner.getValue();
+			
+			mColorConfig.mSaturationGain = (Double)mSaturationAdjustSpinner.getValue();
+			mColorConfig.mValueGain      = (Double)mValueAdjustSpinner.getValue();
+		}
+	};
 }

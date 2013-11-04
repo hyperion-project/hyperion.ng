@@ -7,43 +7,43 @@ import java.util.Locale;
  */
 public class ColorConfig {
 	/** The saturation gain (in HSV space) */
-	double mSaturationGain = 1.0;
+	public double mSaturationGain = 1.0;
 	/** The value gain (in HSV space) */
-	double mValueGain = 1.5;
+	public double mValueGain = 1.5;
 	
 	/** The minimum required RED-value (in RGB space) */
-	double mRedThreshold  = 0.1;
+	public double mRedThreshold  = 0.1;
 	/** The gamma-curve correct for the RED-value (in RGB space) */
-	double mRedGamma      = 2.0;
+	public double mRedGamma      = 2.0;
 	/** The black-level of the RED-value (in RGB space) */
-	double mRedBlacklevel = 0.0;
+	public double mRedBlacklevel = 0.0;
 	/** The white-level of the RED-value (in RGB space) */
-	double mRedWhitelevel = 0.8;
+	public double mRedWhitelevel = 0.8;
 	
 	/** The minimum required GREEN-value (in RGB space) */
-	double mGreenThreshold  = 0.1;
+	public double mGreenThreshold  = 0.1;
 	/** The gamma-curve correct for the GREEN-value (in RGB space) */
-	double mGreenGamma      = 2.0;
+	public double mGreenGamma      = 2.0;
 	/** The black-level of the GREEN-value (in RGB space) */
-	double mGreenBlacklevel = 0.0;
+	public double mGreenBlacklevel = 0.0;
 	/** The white-level of the GREEN-value (in RGB space) */
-	double mGreenWhitelevel = 1.0;
+	public double mGreenWhitelevel = 1.0;
 	
 	/** The minimum required BLUE-value (in RGB space) */
-	double mBlueThreshold  = 0.1;
+	public double mBlueThreshold  = 0.1;
 	/** The gamma-curve correct for the BLUE-value (in RGB space) */
-	double mBlueGamma      = 2.0;
+	public double mBlueGamma      = 2.0;
 	/** The black-level of the BLUE-value (in RGB space) */
-	double mBlueBlacklevel = 0.0;
+	public double mBlueBlacklevel = 0.0;
 	/** The white-level of the BLUE-value (in RGB space) */
-	double mBlueWhitelevel = 1.0;
+	public double mBlueWhitelevel = 1.0;
 	
 	/** The type of smoothing algorithm */
-	ColorSmoothingType mSmoothingType = ColorSmoothingType.none;
+	public ColorSmoothingType mSmoothingType = ColorSmoothingType.none;
 	/** The time constant for smoothing algorithm in milliseconds */
-	int mSmoothingTime = 200;
+	public int mSmoothingTime_ms = 200;
 	/** The update frequency of the leds in Hz */
-	double mSmoothingUpdateFrequency = 20.0;
+	public double mSmoothingUpdateFrequency_Hz = 20.0;
 	
 	/**
 	 * Creates the JSON string of the configuration as used in the Hyperion daemon configfile
@@ -138,8 +138,8 @@ public class ColorConfig {
 		strBuf.append("\t\t\"smoothing\" :\n");
 		strBuf.append("\t\t{\n");
 		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"type\"            : \"%s\",\n", mSmoothingType.name()));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"time_ms\"         : %d,\n", mSmoothingTime));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"time_ms\"         : %d,\n", mSmoothingTime_ms));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency_Hz));
 		
 		strBuf.append("\t\t}");
 		return strBuf.toString();

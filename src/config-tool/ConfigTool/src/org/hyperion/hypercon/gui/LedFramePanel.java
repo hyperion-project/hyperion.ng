@@ -12,11 +12,14 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.hyperion.hypercon.spec.DeviceConfig;
 import org.hyperion.hypercon.spec.DeviceType;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
+import org.hyperion.hypercon.spec.LedFrameConstruction.Direction;
 
 public class LedFramePanel extends JPanel {
 	
+	private final DeviceConfig mDeviceConfig;
 	private final LedFrameConstruction mLedFrameSpec;
 	
 	private JLabel mTypeLabel;
@@ -41,9 +44,10 @@ public class LedFramePanel extends JPanel {
 	private JLabel mOffsetLabel;
 	private JSpinner mOffsetSpinner;
 	
-	public LedFramePanel(LedFrameConstruction ledFrameSpec) {
+	public LedFramePanel(DeviceConfig pDeviceConfig, LedFrameConstruction ledFrameSpec) {
 		super();
 		
+		mDeviceConfig = pDeviceConfig;
 		mLedFrameSpec = ledFrameSpec;
 		
 		initialise();
@@ -53,24 +57,28 @@ public class LedFramePanel extends JPanel {
 		mTypeLabel = new JLabel("LED Type:");
 		add(mTypeLabel);
 		mTypeCombo = new JComboBox<>(DeviceType.values());
+		mTypeCombo.setSelectedItem(mDeviceConfig.mType);
 		mTypeCombo.addActionListener(mActionListener);
 		add(mTypeCombo);
 		
 		mTopCornerLabel = new JLabel("Led in top corners");
 		add(mTopCornerLabel);
 		mTopCornerCombo = new JComboBox<>(new Boolean[] {true, false});
+		mTopCornerCombo.setSelectedItem(mLedFrameSpec.topCorners);
 		mTopCornerCombo.addActionListener(mActionListener);
 		add(mTopCornerCombo);
 		
 		mBottomCornerLabel = new JLabel("Led in bottom corners");
 		add(mBottomCornerLabel);
 		mBottomCornerCombo = new JComboBox<>(new Boolean[] {true, false});
+		mBottomCornerCombo.setSelectedItem(mLedFrameSpec.bottomCorners);
 		mBottomCornerCombo.addActionListener(mActionListener);
 		add(mBottomCornerCombo);
 		
 		mDirectionLabel = new JLabel("Direction");
 		add(mDirectionLabel);
 		mDirectionCombo = new JComboBox<>(LedFrameConstruction.Direction.values());
+		mDirectionCombo.setSelectedItem(mLedFrameSpec.clockwiseDirection?Direction.clockwise:Direction.counter_clockwise);
 		mDirectionCombo.addActionListener(mActionListener);
 		add(mDirectionCombo);
 
@@ -151,10 +159,10 @@ public class LedFramePanel extends JPanel {
 	}
 	
 	void updateLedConstruction() {
-		mLedFrameSpec.topLeftCorner  = (Boolean)mTopCornerCombo.getSelectedItem();
-		mLedFrameSpec.topRightCorner = (Boolean)mTopCornerCombo.getSelectedItem();
-		mLedFrameSpec.bottomLeftCorner  = (Boolean)mBottomCornerCombo.getSelectedItem();
-		mLedFrameSpec.bottomRightCorner = (Boolean)mBottomCornerCombo.getSelectedItem();
+		mDeviceConfig.mType = (DeviceType)mTypeCombo.getSelectedItem();
+		
+		mLedFrameSpec.topCorners    = (Boolean)mTopCornerCombo.getSelectedItem();
+		mLedFrameSpec.bottomCorners = (Boolean)mBottomCornerCombo.getSelectedItem();
 		
 		mLedFrameSpec.clockwiseDirection = ((LedFrameConstruction.Direction)mDirectionCombo.getSelectedItem()) == LedFrameConstruction.Direction.clockwise;
 		mLedFrameSpec.firstLedOffset = (Integer)mOffsetSpinner.getValue();

@@ -1,6 +1,6 @@
 package org.hyperion.hypercon.spec;
 
-enum ColorSmoothingType {
+public enum ColorSmoothingType {
 	/** No smoothing in the time domain */
 	none("None"),
 	

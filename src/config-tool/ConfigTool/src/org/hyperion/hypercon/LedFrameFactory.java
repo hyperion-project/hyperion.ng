@@ -60,7 +60,7 @@ public class LedFrameFactory {
 		}
 		
 		// Construct the top-left led (if top-left is enabled)
-		if (frameSpec.topLeftCorner) {
+		if (frameSpec.topCorners) {
 			mLeds.add(createLed(frameSpec, processConfig, iLed, 0.0, 0.0, processConfig.getOverlapFraction(), BorderSide.top_left));
 			iLed = increase(frameSpec, iLed);
 		}
@@ -83,7 +83,7 @@ public class LedFrameFactory {
 		}
 		
 		// Construct the top-right led (if top-right is enabled)
-		if (frameSpec.topRightCorner) {
+		if (frameSpec.topCorners) {
 			mLeds.add(createLed(frameSpec, processConfig, iLed, 1.0, 0.0, processConfig.getOverlapFraction(), BorderSide.top_right));
 			iLed = increase(frameSpec, iLed);
 		}
@@ -106,7 +106,7 @@ public class LedFrameFactory {
 		}
 		
 		// Construct the bottom-right led (if bottom-right is enabled)
-		if (frameSpec.bottomRightCorner) {
+		if (frameSpec.bottomCorners) {
 			mLeds.add(createLed(frameSpec, processConfig, iLed, 1.0, 1.0, processConfig.getOverlapFraction(), BorderSide.bottom_right));
 			iLed = increase(frameSpec, iLed);
 		}
@@ -133,7 +133,7 @@ public class LedFrameFactory {
 		}
 		
 		// Construct the bottom-left led (if bottom-left is enabled)
-		if (frameSpec.bottomLeftCorner) {
+		if (frameSpec.bottomCorners) {
 			mLeds.add(createLed(frameSpec, processConfig, iLed, 0.0, 1.0, processConfig.getOverlapFraction(), BorderSide.bottom_left));
 			iLed = increase(frameSpec, iLed);
 		}

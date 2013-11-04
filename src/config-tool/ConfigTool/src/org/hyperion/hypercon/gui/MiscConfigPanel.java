@@ -80,8 +80,9 @@ public class MiscConfigPanel extends JPanel {
 		add(mBootSequenceLabel);
 		
 		mBootSequenceCombo = new JComboBox<>(BootSequence.values());
-		mBootSequenceCombo.setSelectedItem(BootSequence.rainbow);
+		mBootSequenceCombo.setSelectedItem(mMiscConfig.mBootSequence);
 		mBootSequenceCombo.setToolTipText("The sequence used on startup to verify proper working of all the leds");
+		mBootSequenceCombo.addActionListener(mActionListener);
 		add(mBootSequenceCombo);
 		
 		layout.setHorizontalGroup(layout.createSequentialGroup()

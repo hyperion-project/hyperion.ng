@@ -13,20 +13,20 @@ import org.hyperion.hypercon.LedFrameFactory;
 public class ImageProcessConfig extends Observable {
 	
 	/** The 'integration depth' of the leds along the horizontal axis of the tv */
-	private double mHorizontalDepth = 0.08;
+	public double mHorizontalDepth = 0.08;
 	/** The 'integration depth' of the leds along the vertical axis of the tv */
-	private double mVerticalDepth   = 0.05;
+	public double mVerticalDepth   = 0.05;
 	
 	/** The gap between the border integration area for the horizontal leds */
-	private double mHorizontalGap = 0.0;
+	public double mHorizontalGap = 0.0;
 	/** The gap between the border integration area for the vertical leds */
-	private double mVerticalGap = 0.0;
+	public double mVerticalGap = 0.0;
 
 	/** The fraction of overlap from one to another led */
-	private double mOverlapFraction = 0.0;
+	public double mOverlapFraction = 0.0;
 	
 	/** Flag indicating that black borders are excluded in the image processing */
-	private boolean mBlackBorderRemoval = true;
+	public boolean mBlackBorderRemoval = true;
 	
 	/**
 	 * Returns the horizontal depth (top and bottom) of the image integration as a fraction of the 

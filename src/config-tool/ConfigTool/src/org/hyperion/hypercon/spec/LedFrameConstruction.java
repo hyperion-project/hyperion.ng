@@ -21,14 +21,10 @@ public class LedFrameConstruction extends Observable {
 	/** True if the leds are organised clockwise else false (counter clockwise) */
 	public boolean clockwiseDirection = true;
 	
-	/** True if the top left corner has a led else false */
-	public boolean topLeftCorner = true;
-	/** True if the top right corner has a led else false */
-	public boolean topRightCorner = true;
-	/** True if the bottom left corner has a led else false */
-	public boolean bottomLeftCorner = true;
-	/** True if the bottom right corner has a led else false */
-	public boolean bottomRightCorner = true;
+	/** True if the top corners have a led else false */
+	public boolean topCorners = true;
+	/** True if the bottom corners have a led else false */
+	public boolean bottomCorners = true;
 	
 	/** The number of leds between the top-left corner and the top-right corner of the screen 
 		(excluding the corner leds) */
@@ -54,10 +50,8 @@ public class LedFrameConstruction extends Observable {
 	 */
 	public int getLedCount() {
 		int cornerLedCnt = 0;
-		if (topLeftCorner)     ++cornerLedCnt;
-		if (topRightCorner)    ++cornerLedCnt;
-		if (bottomLeftCorner)  ++cornerLedCnt;
-		if (bottomRightCorner) ++cornerLedCnt;
+		if (topCorners)     cornerLedCnt+=2;
+		if (bottomCorners)  cornerLedCnt+=2;
 		
 		return topLedCnt + bottomLedCnt + leftLedCnt + rightLedCnt + cornerLedCnt;
 	}
