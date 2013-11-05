@@ -147,6 +147,10 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 
 		ledString.leds().push_back(led);
 	}
+
+	// Make sure the leds are sorted (on their indices)
+	std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
+
 	return ledString;
 }
 
