@@ -8,7 +8,7 @@
 #include <sys/ioctl.h>
 
 // hyperion local includes
-#include "LedDeviceLdp6803.h"
+#include "LedDeviceLpd6803.h"
 
 LedDeviceLdp6803::LedDeviceLdp6803(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate),

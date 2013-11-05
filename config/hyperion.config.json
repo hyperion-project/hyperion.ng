@@ -4,7 +4,7 @@
 {
     /// Device configuration contains the following fields:
     /// * 'name'       : The user friendly name of the device (only used for display purposes)
-    /// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'ldp6803', 'test' and 'none')
+    /// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'lpd6803', 'test' and 'none')
     /// * 'output'     : The output specification depends on selected device
     ///                  - 'ws2801' this is the device (eg '/dev/spidev0.0')
     ///                  - 'test' this is the file used to write test output (eg '/home/pi/hyperion.out')

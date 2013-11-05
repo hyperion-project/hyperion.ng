@@ -22,7 +22,7 @@ public class TesConfigWriter {
 		deviceConfig.mColorByteOrder = ColorByteOrder.BGR;
 		deviceConfig.mName = "DAG";
 		deviceConfig.mOutput = "/dev/null";
-		deviceConfig.mType = DeviceType.ldp6803;
+		deviceConfig.mType = DeviceType.lpd6803;
 		
 		
 		ConfigurationFile configFile = new ConfigurationFile();
