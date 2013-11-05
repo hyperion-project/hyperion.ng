@@ -67,4 +67,5 @@ add_library(hyperion
 
 target_link_libraries(hyperion
 		hyperion-utils
+		serialport
 		${QT_LIBRARIES})
