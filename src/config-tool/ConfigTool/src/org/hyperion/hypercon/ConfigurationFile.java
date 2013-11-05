@@ -18,8 +18,8 @@ public class ConfigurationFile {
 	public void load(String pFilename) {
 		pProps.clear();
 //		try (InputStream in = new InflaterInputStream(new FileInputStream(pFilename))){
-//		try (InputStream in = new GZIPInputStream(new FileInputStream(pFilename))){
-		try (InputStream in = new FileInputStream(pFilename)) {
+		try (InputStream in = new GZIPInputStream(new FileInputStream(pFilename))){
+//		try (InputStream in = new FileInputStream(pFilename)) {
 			pProps.load(in);
 		} catch (Throwable t) {
 			// TODO Auto-generated catch block
@@ -29,8 +29,8 @@ public class ConfigurationFile {
 
 	public void save(String pFilename) {
 //		try (OutputStream out = new DeflaterOutputStream(new FileOutputStream(pFilename))) {
-//		try (OutputStream out = new GZIPOutputStream(new FileOutputStream(pFilename))) {
-		try (OutputStream out = (new FileOutputStream(pFilename))) {
+		try (OutputStream out = new GZIPOutputStream(new FileOutputStream(pFilename))) {
+//		try (OutputStream out = (new FileOutputStream(pFilename))) {
 			pProps.store(out, "Pesistent settings file for HyperCon");
 		} catch (IOException e) {
 			e.printStackTrace();

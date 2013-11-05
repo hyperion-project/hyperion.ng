@@ -15,7 +15,7 @@ import org.hyperion.hypercon.gui.ConfigPanel;
  * JAVA application (contains the entry-point).
  */
 public class Main {
-	public static final String configFilename = "hyerpcon.dat";
+	public static final String configFilename = "hypercon.dat";
 
 	/**
 	 * Entry point to start HyperCon 
