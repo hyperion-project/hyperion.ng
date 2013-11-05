@@ -20,11 +20,13 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.h
 		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.h
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.h
-		${CURRENT_SOURCE_DIR}/LedSpiDevice.h
-		${CURRENT_SOURCE_DIR}/LedRs232Device.h
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
-		${CURRENT_SOURCE_DIR}/LedDeviceLdp6803.h
+
+		${CURRENT_SOURCE_DIR}/device/LedSpiDevice.h
+		${CURRENT_SOURCE_DIR}/device/LedRs232Device.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceSedu.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLdp6803.h
 )
 
 SET(Hyperion_SOURCES
@@ -37,12 +39,14 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.cpp
 		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
-		${CURRENT_SOURCE_DIR}/LedSpiDevice.cpp
-		${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceLdp6803.cpp
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
+
+		${CURRENT_SOURCE_DIR}/device/LedSpiDevice.cpp
+		${CURRENT_SOURCE_DIR}/device/LedRs232Device.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceSedu.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceTest.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLdp6803.cpp
 )
 
 set(Hyperion_RESOURCES

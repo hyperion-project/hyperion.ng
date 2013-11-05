@@ -10,9 +10,9 @@
 #include <hyperion/LedDevice.h>
 #include <hyperion/ImageProcessorFactory.h>
 
-#include "LedDeviceLdp6803.h"
-#include "LedDeviceTest.h"
-#include "LedDeviceWs2801.h"
+#include "device/LedDeviceLdp6803.h"
+#include "device/LedDeviceTest.h"
+#include "device/LedDeviceWs2801.h"
 
 #include "LinearColorSmoothing.h"
 
