@@ -55,17 +55,17 @@ using serial::IOException;
 
 
 Serial::SerialImpl::SerialImpl (const string &port, unsigned long baudrate,
-                                bytesize_t bytesize,
-                                parity_t parity, stopbits_t stopbits,
-                                flowcontrol_t flowcontrol)
+								bytesize_t bytesize,
+								parity_t parity, stopbits_t stopbits,
+								flowcontrol_t flowcontrol)
   : port_ (port), fd_ (-1), is_open_ (false), xonxoff_ (false), rtscts_ (false),
-    baudrate_ (baudrate), parity_ (parity),
-    bytesize_ (bytesize), stopbits_ (stopbits), flowcontrol_ (flowcontrol)
+	baudrate_ (baudrate), parity_ (parity),
+	bytesize_ (bytesize), stopbits_ (stopbits), flowcontrol_ (flowcontrol)
 {
   pthread_mutex_init(&this->read_mutex, NULL);
   pthread_mutex_init(&this->write_mutex, NULL);
   if (port_.empty () == false)
-    open ();
+	open ();
 }
 
 Serial::SerialImpl::~SerialImpl ()
@@ -79,26 +79,26 @@ void
 Serial::SerialImpl::open ()
 {
   if (port_.empty ()) {
-    throw invalid_argument ("Empty port is invalid.");
+	throw invalid_argument ("Empty port is invalid.");
   }
   if (is_open_ == true) {
-    throw SerialException ("Serial port already open.");
+	throw SerialException ("Serial port already open.");
   }
 
   fd_ = ::open (port_.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
   if (fd_ == -1) {
-    switch (errno) {
-    case EINTR:
-      // Recurse because this is a recoverable error.
-      open ();
-      return;
-    case ENFILE:
-    case EMFILE:
-      THROW (IOException, "Too many file handles open.");
-    default:
-      THROW (IOException, errno);
-    }
+	switch (errno) {
+	case EINTR:
+	  // Recurse because this is a recoverable error.
+	  open ();
+	  return;
+	case ENFILE:
+	case EMFILE:
+	  THROW (IOException, "Too many file handles open.");
+	default:
+	  THROW (IOException, errno);
+	}
   }
 
   reconfigurePort();
@@ -109,20 +109,20 @@ void
 Serial::SerialImpl::reconfigurePort ()
 {
   if (fd_ == -1) {
-    // Can only operate on a valid file descriptor
-    THROW (IOException, "Invalid file descriptor, is the serial port open?");
+	// Can only operate on a valid file descriptor
+	THROW (IOException, "Invalid file descriptor, is the serial port open?");
   }
 
   struct termios options; // The options for the file descriptor
 
   if (tcgetattr(fd_, &options) == -1) {
-    THROW (IOException, "::tcgetattr");
+	THROW (IOException, "::tcgetattr");
   }
 
   // set up raw mode / no echo / binary
   options.c_cflag |= (tcflag_t)  (CLOCAL | CREAD);
   options.c_lflag &= (tcflag_t) ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL |
-                                       ISIG | IEXTEN); //|ECHOPRT
+									   ISIG | IEXTEN); //|ECHOPRT
 
   options.c_oflag &= (tcflag_t) ~(OPOST);
   options.c_iflag &= (tcflag_t) ~(INLCR | IGNCR | ICRNL | IGNBRK);
@@ -218,6 +218,9 @@ Serial::SerialImpl::reconfigurePort ()
 #ifdef B460800
   case 460800: baud = B460800; break;
 #endif
+#ifdef B500000
+  case 500000: baud = B500000; break;
+#endif
 #ifdef B921600
   case 921600: baud = B921600; break;
 #endif
@@ -246,117 +249,117 @@ Serial::SerialImpl::reconfigurePort ()
   case 4000000: baud = B4000000; break;
 #endif
   default:
-    custom_baud = true;
-    // OS X support
+	custom_baud = true;
+	// OS X support
 #if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
-    // Starting with Tiger, the IOSSIOSPEED ioctl can be used to set arbitrary baud rates
-    // other than those specified by POSIX. The driver for the underlying serial hardware
-    // ultimately determines which baud rates can be used. This ioctl sets both the input
-    // and output speed.
-    speed_t new_baud = static_cast<speed_t>(baudrate_);
-    if (-1 == ioctl (fd_, IOSSIOSPEED, &new_baud, 1)) {
-      THROW (IOException, errno);
-    }
-    // Linux Support
+	// Starting with Tiger, the IOSSIOSPEED ioctl can be used to set arbitrary baud rates
+	// other than those specified by POSIX. The driver for the underlying serial hardware
+	// ultimately determines which baud rates can be used. This ioctl sets both the input
+	// and output speed.
+	speed_t new_baud = static_cast<speed_t>(baudrate_);
+	if (-1 == ioctl (fd_, IOSSIOSPEED, &new_baud, 1)) {
+	  THROW (IOException, errno);
+	}
+	// Linux Support
 #elif defined(__linux__) && defined (TIOCSSERIAL)
-    struct serial_struct ser;
+	struct serial_struct ser;
 
-    if (-1 == ioctl (fd_, TIOCGSERIAL, &ser)) {
-      THROW (IOException, errno);
-    }
+	if (-1 == ioctl (fd_, TIOCGSERIAL, &ser)) {
+	  THROW (IOException, errno);
+	}
 
-    // set custom divisor
-    ser.custom_divisor = ser.baud_base / (int) baudrate_;
-    // update flags
-    ser.flags &= ~ASYNC_SPD_MASK;
-    ser.flags |= ASYNC_SPD_CUST;
+	// set custom divisor
+	ser.custom_divisor = ser.baud_base / (int) baudrate_;
+	// update flags
+	ser.flags &= ~ASYNC_SPD_MASK;
+	ser.flags |= ASYNC_SPD_CUST;
 
-    if (-1 == ioctl (fd_, TIOCSSERIAL, &ser)) {
-      THROW (IOException, errno);
-    }
+	if (-1 == ioctl (fd_, TIOCSSERIAL, &ser)) {
+	  THROW (IOException, errno);
+	}
 #else
-    throw invalid_argument ("OS does not currently support custom bauds");
+	throw invalid_argument ("OS does not currently support custom bauds");
 #endif
   }
   if (custom_baud == false) {
 #ifdef _BSD_SOURCE
-    ::cfsetspeed(&options, baud);
+	::cfsetspeed(&options, baud);
 #else
-    ::cfsetispeed(&options, baud);
-    ::cfsetospeed(&options, baud);
+	::cfsetispeed(&options, baud);
+	::cfsetospeed(&options, baud);
 #endif
   }
 
   // setup char len
   options.c_cflag &= (tcflag_t) ~CSIZE;
   if (bytesize_ == eightbits)
-    options.c_cflag |= CS8;
+	options.c_cflag |= CS8;
   else if (bytesize_ == sevenbits)
-    options.c_cflag |= CS7;
+	options.c_cflag |= CS7;
   else if (bytesize_ == sixbits)
-    options.c_cflag |= CS6;
+	options.c_cflag |= CS6;
   else if (bytesize_ == fivebits)
-    options.c_cflag |= CS5;
+	options.c_cflag |= CS5;
   else
-    throw invalid_argument ("invalid char len");
+	throw invalid_argument ("invalid char len");
   // setup stopbits
   if (stopbits_ == stopbits_one)
-    options.c_cflag &= (tcflag_t) ~(CSTOPB);
+	options.c_cflag &= (tcflag_t) ~(CSTOPB);
   else if (stopbits_ == stopbits_one_point_five)
-    // ONE POINT FIVE same as TWO.. there is no POSIX support for 1.5
-    options.c_cflag |=  (CSTOPB);
+	// ONE POINT FIVE same as TWO.. there is no POSIX support for 1.5
+	options.c_cflag |=  (CSTOPB);
   else if (stopbits_ == stopbits_two)
-    options.c_cflag |=  (CSTOPB);
+	options.c_cflag |=  (CSTOPB);
   else
-    throw invalid_argument ("invalid stop bit");
+	throw invalid_argument ("invalid stop bit");
   // setup parity
   options.c_iflag &= (tcflag_t) ~(INPCK | ISTRIP);
   if (parity_ == parity_none) {
-    options.c_cflag &= (tcflag_t) ~(PARENB | PARODD);
+	options.c_cflag &= (tcflag_t) ~(PARENB | PARODD);
   } else if (parity_ == parity_even) {
-    options.c_cflag &= (tcflag_t) ~(PARODD);
-    options.c_cflag |=  (PARENB);
+	options.c_cflag &= (tcflag_t) ~(PARODD);
+	options.c_cflag |=  (PARENB);
   } else if (parity_ == parity_odd) {
-    options.c_cflag |=  (PARENB | PARODD);
+	options.c_cflag |=  (PARENB | PARODD);
   } else {
-    throw invalid_argument ("invalid parity");
+	throw invalid_argument ("invalid parity");
   }
   // setup flow control
   if (flowcontrol_ == flowcontrol_none) {
-    xonxoff_ = false;
-    rtscts_ = false;
+	xonxoff_ = false;
+	rtscts_ = false;
   }
   if (flowcontrol_ == flowcontrol_software) {
-    xonxoff_ = true;
-    rtscts_ = false;
+	xonxoff_ = true;
+	rtscts_ = false;
   }
   if (flowcontrol_ == flowcontrol_hardware) {
-    xonxoff_ = false;
-    rtscts_ = true;
+	xonxoff_ = false;
+	rtscts_ = true;
   }
   // xonxoff
 #ifdef IXANY
   if (xonxoff_)
-    options.c_iflag |=  (IXON | IXOFF); //|IXANY)
+	options.c_iflag |=  (IXON | IXOFF); //|IXANY)
   else
-    options.c_iflag &= (tcflag_t) ~(IXON | IXOFF | IXANY);
+	options.c_iflag &= (tcflag_t) ~(IXON | IXOFF | IXANY);
 #else
   if (xonxoff_)
-    options.c_iflag |=  (IXON | IXOFF);
+	options.c_iflag |=  (IXON | IXOFF);
   else
-    options.c_iflag &= (tcflag_t) ~(IXON | IXOFF);
+	options.c_iflag &= (tcflag_t) ~(IXON | IXOFF);
 #endif
   // rtscts
 #ifdef CRTSCTS
   if (rtscts_)
-    options.c_cflag |=  (CRTSCTS);
+	options.c_cflag |=  (CRTSCTS);
   else
-    options.c_cflag &= (unsigned long) ~(CRTSCTS);
+	options.c_cflag &= (unsigned long) ~(CRTSCTS);
 #elif defined CNEW_RTSCTS
   if (rtscts_)
-    options.c_cflag |=  (CNEW_RTSCTS);
+	options.c_cflag |=  (CNEW_RTSCTS);
   else
-    options.c_cflag &= (unsigned long) ~(CNEW_RTSCTS);
+	options.c_cflag &= (unsigned long) ~(CNEW_RTSCTS);
 #else
 #error "OS Support seems wrong."
 #endif
@@ -376,11 +379,11 @@ void
 Serial::SerialImpl::close ()
 {
   if (is_open_ == true) {
-    if (fd_ != -1) {
-      ::close (fd_); // Ignoring the outcome
-      fd_ = -1;
-    }
-    is_open_ = false;
+	if (fd_ != -1) {
+	  ::close (fd_); // Ignoring the outcome
+	  fd_ = -1;
+	}
+	is_open_ = false;
   }
 }
 
@@ -394,13 +397,13 @@ size_t
 Serial::SerialImpl::available ()
 {
   if (!is_open_) {
-    return 0;
+	return 0;
   }
   int count = 0;
   if (-1 == ioctl (fd_, TIOCINQ, &count)) {
-      THROW (IOException, errno);
+	  THROW (IOException, errno);
   } else {
-      return static_cast<size_t> (count);
+	  return static_cast<size_t> (count);
   }
 }
 
@@ -423,13 +426,13 @@ get_time_now (struct timespec &time)
 inline void
 diff_timespec (timespec &start, timespec &end, timespec &result) {
   if (start.tv_sec > end.tv_sec) {
-    throw SerialException ("Timetravel, start time later than end time.");
+	throw SerialException ("Timetravel, start time later than end time.");
   }
   result.tv_sec = end.tv_sec - start.tv_sec;
   result.tv_nsec = end.tv_nsec - start.tv_nsec;
   if (result.tv_nsec < 0) {
-    result.tv_nsec = 1e9 - result.tv_nsec;
-    result.tv_sec -= 1;
+	result.tv_nsec = 1e9 - result.tv_nsec;
+	result.tv_sec -= 1;
   }
 }
 
@@ -438,7 +441,7 @@ Serial::SerialImpl::read (uint8_t *buf, size_t size)
 {
   // If the port is not open, throw
   if (!is_open_) {
-    throw PortNotOpenedException ("Serial::read");
+	throw PortNotOpenedException ("Serial::read");
   }
   fd_set readfds;
   size_t bytes_read = 0;
@@ -455,98 +458,98 @@ Serial::SerialImpl::read (uint8_t *buf, size_t size)
   struct timeval inter_byte_timeout;
   inter_byte_timeout.tv_sec = timeout_.inter_byte_timeout / 1000;
   inter_byte_timeout.tv_usec =
-    static_cast<int> (timeout_.inter_byte_timeout % 1000);
+	static_cast<int> (timeout_.inter_byte_timeout % 1000);
   inter_byte_timeout.tv_usec *= 1000; // To convert to micro seconds
   while (bytes_read < size) {
-    // Setup the select timeout timeval
-    struct timeval timeout;
-    // If the total_timeout is less than the inter_byte_timeout
-    if (total_timeout.tv_sec < inter_byte_timeout.tv_sec
-     || (total_timeout.tv_sec == inter_byte_timeout.tv_sec
-      && total_timeout.tv_usec < inter_byte_timeout.tv_sec))
-    {
-      // Then set the select timeout to use the total time
-      timeout = total_timeout;
-    } else {
-      // Else set the select timeout to use the inter byte time
-      timeout = inter_byte_timeout;
-    }
-    FD_ZERO (&readfds);
-    FD_SET (fd_, &readfds);
-    // Begin timing select
-    struct timespec start, end;
-    get_time_now (start);
-    // Call select to block for serial data or a timeout
-    int r = select (fd_ + 1, &readfds, NULL, NULL, &timeout);
-    // Calculate difference and update the structure
-    get_time_now (end);
-    // Calculate the time select took
-    struct timespec diff;
-    diff_timespec (start, end, diff);
-    // Update the timeout
-    if (total_timeout.tv_sec <= diff.tv_sec) {
-      total_timeout.tv_sec = 0;
-    } else {
-      total_timeout.tv_sec -= diff.tv_sec;
-    }
-    if (total_timeout.tv_usec <= (diff.tv_nsec / 1000)) {
-      total_timeout.tv_usec = 0;
-    } else {
-      total_timeout.tv_usec -= (diff.tv_nsec / 1000);
-    }
+	// Setup the select timeout timeval
+	struct timeval timeout;
+	// If the total_timeout is less than the inter_byte_timeout
+	if (total_timeout.tv_sec < inter_byte_timeout.tv_sec
+	 || (total_timeout.tv_sec == inter_byte_timeout.tv_sec
+	  && total_timeout.tv_usec < inter_byte_timeout.tv_sec))
+	{
+	  // Then set the select timeout to use the total time
+	  timeout = total_timeout;
+	} else {
+	  // Else set the select timeout to use the inter byte time
+	  timeout = inter_byte_timeout;
+	}
+	FD_ZERO (&readfds);
+	FD_SET (fd_, &readfds);
+	// Begin timing select
+	struct timespec start, end;
+	get_time_now (start);
+	// Call select to block for serial data or a timeout
+	int r = select (fd_ + 1, &readfds, NULL, NULL, &timeout);
+	// Calculate difference and update the structure
+	get_time_now (end);
+	// Calculate the time select took
+	struct timespec diff;
+	diff_timespec (start, end, diff);
+	// Update the timeout
+	if (total_timeout.tv_sec <= diff.tv_sec) {
+	  total_timeout.tv_sec = 0;
+	} else {
+	  total_timeout.tv_sec -= diff.tv_sec;
+	}
+	if (total_timeout.tv_usec <= (diff.tv_nsec / 1000)) {
+	  total_timeout.tv_usec = 0;
+	} else {
+	  total_timeout.tv_usec -= (diff.tv_nsec / 1000);
+	}
 
-    // Figure out what happened by looking at select's response 'r'
-    /** Error **/
-    if (r < 0) {
-      // Select was interrupted, try again
-      if (errno == EINTR) {
-        continue;
-      }
-      // Otherwise there was some error
-      THROW (IOException, errno);
-    }
-    /** Timeout **/
-    if (r == 0) {
-      break;
-    }
-    /** Something ready to read **/
-    if (r > 0) {
-      // Make sure our file descriptor is in the ready to read list
-      if (FD_ISSET (fd_, &readfds)) {
-        // This should be non-blocking returning only what is available now
-        //  Then returning so that select can block again.
-        ssize_t bytes_read_now =
-          ::read (fd_, buf + bytes_read, size - bytes_read);
-        // read should always return some data as select reported it was
-        // ready to read when we get to this point.
-        if (bytes_read_now < 1) {
-          // Disconnected devices, at least on Linux, show the
-          // behavior that they are always ready to read immediately
-          // but reading returns nothing.
-          throw SerialException ("device reports readiness to read but "
-                                 "returned no data (device disconnected?)");
-        }
-        // Update bytes_read
-        bytes_read += static_cast<size_t> (bytes_read_now);
-        // If bytes_read == size then we have read everything we need
-        if (bytes_read == size) {
-          break;
-        }
-        // If bytes_read < size then we have more to read
-        if (bytes_read < size) {
-          continue;
-        }
-        // If bytes_read > size then we have over read, which shouldn't happen
-        if (bytes_read > size) {
-          throw SerialException ("read over read, too many bytes where "
-                                 "read, this shouldn't happen, might be "
-                                 "a logical error!");
-        }
-      }
-      // This shouldn't happen, if r > 0 our fd has to be in the list!
-      THROW (IOException, "select reports ready to read, but our fd isn't"
-             " in the list, this shouldn't happen!");
-    }
+	// Figure out what happened by looking at select's response 'r'
+	/** Error **/
+	if (r < 0) {
+	  // Select was interrupted, try again
+	  if (errno == EINTR) {
+		continue;
+	  }
+	  // Otherwise there was some error
+	  THROW (IOException, errno);
+	}
+	/** Timeout **/
+	if (r == 0) {
+	  break;
+	}
+	/** Something ready to read **/
+	if (r > 0) {
+	  // Make sure our file descriptor is in the ready to read list
+	  if (FD_ISSET (fd_, &readfds)) {
+		// This should be non-blocking returning only what is available now
+		//  Then returning so that select can block again.
+		ssize_t bytes_read_now =
+		  ::read (fd_, buf + bytes_read, size - bytes_read);
+		// read should always return some data as select reported it was
+		// ready to read when we get to this point.
+		if (bytes_read_now < 1) {
+		  // Disconnected devices, at least on Linux, show the
+		  // behavior that they are always ready to read immediately
+		  // but reading returns nothing.
+		  throw SerialException ("device reports readiness to read but "
+								 "returned no data (device disconnected?)");
+		}
+		// Update bytes_read
+		bytes_read += static_cast<size_t> (bytes_read_now);
+		// If bytes_read == size then we have read everything we need
+		if (bytes_read == size) {
+		  break;
+		}
+		// If bytes_read < size then we have more to read
+		if (bytes_read < size) {
+		  continue;
+		}
+		// If bytes_read > size then we have over read, which shouldn't happen
+		if (bytes_read > size) {
+		  throw SerialException ("read over read, too many bytes where "
+								 "read, this shouldn't happen, might be "
+								 "a logical error!");
+		}
+	  }
+	  // This shouldn't happen, if r > 0 our fd has to be in the list!
+	  THROW (IOException, "select reports ready to read, but our fd isn't"
+			 " in the list, this shouldn't happen!");
+	}
   }
   return bytes_read;
 }
@@ -555,7 +558,7 @@ size_t
 Serial::SerialImpl::write (const uint8_t *data, size_t length)
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::write");
+	throw PortNotOpenedException ("Serial::write");
   }
   fd_set writefds;
   size_t bytes_written = 0;
@@ -564,88 +567,88 @@ Serial::SerialImpl::write (const uint8_t *data, size_t length)
   timeout.tv_usec = static_cast<int> (timeout_.write_timeout_multiplier % 1000);
   timeout.tv_usec *= 1000; // To convert to micro seconds
   while (bytes_written < length) {
-    FD_ZERO (&writefds);
-    FD_SET (fd_, &writefds);
-    // On Linux the timeout struct is updated by select to contain the time
-    // left on the timeout to make looping easier, but on other platforms this
-    // does not occur.
+	FD_ZERO (&writefds);
+	FD_SET (fd_, &writefds);
+	// On Linux the timeout struct is updated by select to contain the time
+	// left on the timeout to make looping easier, but on other platforms this
+	// does not occur.
 #if !defined(__linux__)
-    // Begin timing select
-    struct timespec start, end;
-    get_time_now(start);
+	// Begin timing select
+	struct timespec start, end;
+	get_time_now(start);
 #endif
-    // Do the select
-    int r = select (fd_ + 1, NULL, &writefds, NULL, &timeout);
+	// Do the select
+	int r = select (fd_ + 1, NULL, &writefds, NULL, &timeout);
 #if !defined(__linux__)
-    // Calculate difference and update the structure
-    get_time_now(end);
-    // Calculate the time select took
-    struct timespec diff;
-    diff_timespec(start, end, diff);
-    // Update the timeout
-    if (timeout.tv_sec <= diff.tv_sec) {
-      timeout.tv_sec = 0;
-    } else {
-      timeout.tv_sec -= diff.tv_sec;
-    }
-    if (timeout.tv_usec <= (diff.tv_nsec / 1000)) {
-      timeout.tv_usec = 0;
-    } else {
-      timeout.tv_usec -= (diff.tv_nsec / 1000);
-    }
+	// Calculate difference and update the structure
+	get_time_now(end);
+	// Calculate the time select took
+	struct timespec diff;
+	diff_timespec(start, end, diff);
+	// Update the timeout
+	if (timeout.tv_sec <= diff.tv_sec) {
+	  timeout.tv_sec = 0;
+	} else {
+	  timeout.tv_sec -= diff.tv_sec;
+	}
+	if (timeout.tv_usec <= (diff.tv_nsec / 1000)) {
+	  timeout.tv_usec = 0;
+	} else {
+	  timeout.tv_usec -= (diff.tv_nsec / 1000);
+	}
 #endif
 
-    // Figure out what happened by looking at select's response 'r'
-    /** Error **/
-    if (r < 0) {
-      // Select was interrupted, try again
-      if (errno == EINTR) {
-        continue;
-      }
-      // Otherwise there was some error
-      THROW (IOException, errno);
-    }
-    /** Timeout **/
-    if (r == 0) {
-      break;
-    }
-    /** Port ready to write **/
-    if (r > 0) {
-      // Make sure our file descriptor is in the ready to write list
-      if (FD_ISSET (fd_, &writefds)) {
-        // This will write some
-        ssize_t bytes_written_now =
-          ::write (fd_, data + bytes_written, length - bytes_written);
-        // write should always return some data as select reported it was
-        // ready to write when we get to this point.
-        if (bytes_written_now < 1) {
-          // Disconnected devices, at least on Linux, show the
-          // behavior that they are always ready to write immediately
-          // but writing returns nothing.
-          throw SerialException ("device reports readiness to write but "
-                                 "returned no data (device disconnected?)");
-        }
-        // Update bytes_written
-        bytes_written += static_cast<size_t> (bytes_written_now);
-        // If bytes_written == size then we have written everything we need to
-        if (bytes_written == length) {
-          break;
-        }
-        // If bytes_written < size then we have more to write
-        if (bytes_written < length) {
-          continue;
-        }
-        // If bytes_written > size then we have over written, which shouldn't happen
-        if (bytes_written > length) {
-          throw SerialException ("write over wrote, too many bytes where "
-                                 "written, this shouldn't happen, might be "
-                                 "a logical error!");
-        }
-      }
-      // This shouldn't happen, if r > 0 our fd has to be in the list!
-      THROW (IOException, "select reports ready to write, but our fd isn't"
-                          " in the list, this shouldn't happen!");
-    }
+	// Figure out what happened by looking at select's response 'r'
+	/** Error **/
+	if (r < 0) {
+	  // Select was interrupted, try again
+	  if (errno == EINTR) {
+		continue;
+	  }
+	  // Otherwise there was some error
+	  THROW (IOException, errno);
+	}
+	/** Timeout **/
+	if (r == 0) {
+	  break;
+	}
+	/** Port ready to write **/
+	if (r > 0) {
+	  // Make sure our file descriptor is in the ready to write list
+	  if (FD_ISSET (fd_, &writefds)) {
+		// This will write some
+		ssize_t bytes_written_now =
+		  ::write (fd_, data + bytes_written, length - bytes_written);
+		// write should always return some data as select reported it was
+		// ready to write when we get to this point.
+		if (bytes_written_now < 1) {
+		  // Disconnected devices, at least on Linux, show the
+		  // behavior that they are always ready to write immediately
+		  // but writing returns nothing.
+		  throw SerialException ("device reports readiness to write but "
+								 "returned no data (device disconnected?)");
+		}
+		// Update bytes_written
+		bytes_written += static_cast<size_t> (bytes_written_now);
+		// If bytes_written == size then we have written everything we need to
+		if (bytes_written == length) {
+		  break;
+		}
+		// If bytes_written < size then we have more to write
+		if (bytes_written < length) {
+		  continue;
+		}
+		// If bytes_written > size then we have over written, which shouldn't happen
+		if (bytes_written > length) {
+		  throw SerialException ("write over wrote, too many bytes where "
+								 "written, this shouldn't happen, might be "
+								 "a logical error!");
+		}
+	  }
+	  // This shouldn't happen, if r > 0 our fd has to be in the list!
+	  THROW (IOException, "select reports ready to write, but our fd isn't"
+						  " in the list, this shouldn't happen!");
+	}
   }
   return bytes_written;
 }
@@ -679,7 +682,7 @@ Serial::SerialImpl::setBaudrate (unsigned long baudrate)
 {
   baudrate_ = baudrate;
   if (is_open_)
-    reconfigurePort ();
+	reconfigurePort ();
 }
 
 unsigned long
@@ -693,7 +696,7 @@ Serial::SerialImpl::setBytesize (serial::bytesize_t bytesize)
 {
   bytesize_ = bytesize;
   if (is_open_)
-    reconfigurePort ();
+	reconfigurePort ();
 }
 
 serial::bytesize_t
@@ -707,7 +710,7 @@ Serial::SerialImpl::setParity (serial::parity_t parity)
 {
   parity_ = parity;
   if (is_open_)
-    reconfigurePort ();
+	reconfigurePort ();
 }
 
 serial::parity_t
@@ -721,7 +724,7 @@ Serial::SerialImpl::setStopbits (serial::stopbits_t stopbits)
 {
   stopbits_ = stopbits;
   if (is_open_)
-    reconfigurePort ();
+	reconfigurePort ();
 }
 
 serial::stopbits_t
@@ -735,7 +738,7 @@ Serial::SerialImpl::setFlowcontrol (serial::flowcontrol_t flowcontrol)
 {
   flowcontrol_ = flowcontrol;
   if (is_open_)
-    reconfigurePort ();
+	reconfigurePort ();
 }
 
 serial::flowcontrol_t
@@ -748,7 +751,7 @@ void
 Serial::SerialImpl::flush ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::flush");
+	throw PortNotOpenedException ("Serial::flush");
   }
   tcdrain (fd_);
 }
@@ -757,7 +760,7 @@ void
 Serial::SerialImpl::flushInput ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::flushInput");
+	throw PortNotOpenedException ("Serial::flushInput");
   }
   tcflush (fd_, TCIFLUSH);
 }
@@ -766,7 +769,7 @@ void
 Serial::SerialImpl::flushOutput ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::flushOutput");
+	throw PortNotOpenedException ("Serial::flushOutput");
   }
   tcflush (fd_, TCOFLUSH);
 }
@@ -775,7 +778,7 @@ void
 Serial::SerialImpl::sendBreak (int duration)
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::sendBreak");
+	throw PortNotOpenedException ("Serial::sendBreak");
   }
   tcsendbreak (fd_, static_cast<int> (duration / 4));
 }
@@ -784,23 +787,23 @@ void
 Serial::SerialImpl::setBreak (bool level)
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::setBreak");
+	throw PortNotOpenedException ("Serial::setBreak");
   }
 
   if (level) {
-    if (-1 == ioctl (fd_, TIOCSBRK))
-    {
-        stringstream ss;
-        ss << "setBreak failed on a call to ioctl(TIOCSBRK): " << errno << " " << strerror(errno);
-        throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCSBRK))
+	{
+		stringstream ss;
+		ss << "setBreak failed on a call to ioctl(TIOCSBRK): " << errno << " " << strerror(errno);
+		throw(SerialException(ss.str().c_str()));
+	}
   } else {
-    if (-1 == ioctl (fd_, TIOCCBRK))
-    {
-        stringstream ss;
-        ss << "setBreak failed on a call to ioctl(TIOCCBRK): " << errno << " " << strerror(errno);
-        throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCCBRK))
+	{
+		stringstream ss;
+		ss << "setBreak failed on a call to ioctl(TIOCCBRK): " << errno << " " << strerror(errno);
+		throw(SerialException(ss.str().c_str()));
+	}
   }
 }
 
@@ -808,25 +811,25 @@ void
 Serial::SerialImpl::setRTS (bool level)
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::setRTS");
+	throw PortNotOpenedException ("Serial::setRTS");
   }
 
   int command = TIOCM_RTS;
 
   if (level) {
-    if (-1 == ioctl (fd_, TIOCMBIS, &command))
-    {
-      stringstream ss;
-      ss << "setRTS failed on a call to ioctl(TIOCMBIS): " << errno << " " << strerror(errno);
-      throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCMBIS, &command))
+	{
+	  stringstream ss;
+	  ss << "setRTS failed on a call to ioctl(TIOCMBIS): " << errno << " " << strerror(errno);
+	  throw(SerialException(ss.str().c_str()));
+	}
   } else {
-    if (-1 == ioctl (fd_, TIOCMBIC, &command))
-    {
-      stringstream ss;
-      ss << "setRTS failed on a call to ioctl(TIOCMBIC): " << errno << " " << strerror(errno);
-      throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCMBIC, &command))
+	{
+	  stringstream ss;
+	  ss << "setRTS failed on a call to ioctl(TIOCMBIC): " << errno << " " << strerror(errno);
+	  throw(SerialException(ss.str().c_str()));
+	}
   }
 }
 
@@ -834,25 +837,25 @@ void
 Serial::SerialImpl::setDTR (bool level)
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::setDTR");
+	throw PortNotOpenedException ("Serial::setDTR");
   }
 
   int command = TIOCM_DTR;
 
   if (level) {
-    if (-1 == ioctl (fd_, TIOCMBIS, &command))
-    {
-      stringstream ss;
-      ss << "setDTR failed on a call to ioctl(TIOCMBIS): " << errno << " " << strerror(errno);
-      throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCMBIS, &command))
+	{
+	  stringstream ss;
+	  ss << "setDTR failed on a call to ioctl(TIOCMBIS): " << errno << " " << strerror(errno);
+	  throw(SerialException(ss.str().c_str()));
+	}
   } else {
-    if (-1 == ioctl (fd_, TIOCMBIC, &command))
-    {
-      stringstream ss;
-      ss << "setDTR failed on a call to ioctl(TIOCMBIC): " << errno << " " << strerror(errno);
-      throw(SerialException(ss.str().c_str()));
-    }
+	if (-1 == ioctl (fd_, TIOCMBIC, &command))
+	{
+	  stringstream ss;
+	  ss << "setDTR failed on a call to ioctl(TIOCMBIC): " << errno << " " << strerror(errno);
+	  throw(SerialException(ss.str().c_str()));
+	}
   }
 }
 
@@ -863,26 +866,26 @@ Serial::SerialImpl::waitForChange ()
 
 while (is_open_ == true) {
 
-    int status;
+	int status;
 
-    if (-1 == ioctl (fd_, TIOCMGET, &status))
-    {
-        stringstream ss;
-        ss << "waitForChange failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
-        throw(SerialException(ss.str().c_str()));
-    }
-    else
-    {
-        if (0 != (status & TIOCM_CTS)
-         || 0 != (status & TIOCM_DSR)
-         || 0 != (status & TIOCM_RI)
-         || 0 != (status & TIOCM_CD))
-        {
-          return true;
-        }
-    }
+	if (-1 == ioctl (fd_, TIOCMGET, &status))
+	{
+		stringstream ss;
+		ss << "waitForChange failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
+		throw(SerialException(ss.str().c_str()));
+	}
+	else
+	{
+		if (0 != (status & TIOCM_CTS)
+		 || 0 != (status & TIOCM_DSR)
+		 || 0 != (status & TIOCM_RI)
+		 || 0 != (status & TIOCM_CD))
+		{
+		  return true;
+		}
+	}
 
-    usleep(1000);
+	usleep(1000);
   }
 
   return false;
@@ -890,10 +893,10 @@ while (is_open_ == true) {
   int command = (TIOCM_CD|TIOCM_DSR|TIOCM_RI|TIOCM_CTS);
 
   if (-1 == ioctl (fd_, TIOCMIWAIT, &command)) {
-    stringstream ss;
-    ss << "waitForDSR failed on a call to ioctl(TIOCMIWAIT): "
-       << errno << " " << strerror(errno);
-    throw(SerialException(ss.str().c_str()));
+	stringstream ss;
+	ss << "waitForDSR failed on a call to ioctl(TIOCMIWAIT): "
+	   << errno << " " << strerror(errno);
+	throw(SerialException(ss.str().c_str()));
   }
   return true;
 #endif
@@ -903,20 +906,20 @@ bool
 Serial::SerialImpl::getCTS ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::getCTS");
+	throw PortNotOpenedException ("Serial::getCTS");
   }
 
   int status;
 
   if (-1 == ioctl (fd_, TIOCMGET, &status))
   {
-    stringstream ss;
-    ss << "getCTS failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
-    throw(SerialException(ss.str().c_str()));
+	stringstream ss;
+	ss << "getCTS failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
+	throw(SerialException(ss.str().c_str()));
   }
   else
   {
-    return 0 != (status & TIOCM_CTS);
+	return 0 != (status & TIOCM_CTS);
   }
 }
 
@@ -924,20 +927,20 @@ bool
 Serial::SerialImpl::getDSR ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::getDSR");
+	throw PortNotOpenedException ("Serial::getDSR");
   }
 
   int status;
 
   if (-1 == ioctl (fd_, TIOCMGET, &status))
   {
-      stringstream ss;
-      ss << "getDSR failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
-      throw(SerialException(ss.str().c_str()));
+	  stringstream ss;
+	  ss << "getDSR failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
+	  throw(SerialException(ss.str().c_str()));
   }
   else
   {
-      return 0 != (status & TIOCM_DSR);
+	  return 0 != (status & TIOCM_DSR);
   }
 }
 
@@ -945,20 +948,20 @@ bool
 Serial::SerialImpl::getRI ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::getRI");
+	throw PortNotOpenedException ("Serial::getRI");
   }
 
   int status;
 
   if (-1 == ioctl (fd_, TIOCMGET, &status))
   {
-    stringstream ss;
-    ss << "getRI failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
-    throw(SerialException(ss.str().c_str()));
+	stringstream ss;
+	ss << "getRI failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
+	throw(SerialException(ss.str().c_str()));
   }
   else
   {
-    return 0 != (status & TIOCM_RI);
+	return 0 != (status & TIOCM_RI);
   }
 }
 
@@ -966,20 +969,20 @@ bool
 Serial::SerialImpl::getCD ()
 {
   if (is_open_ == false) {
-    throw PortNotOpenedException ("Serial::getCD");
+	throw PortNotOpenedException ("Serial::getCD");
   }
 
   int status;
 
   if (-1 == ioctl (fd_, TIOCMGET, &status))
   {
-    stringstream ss;
-    ss << "getCD failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
-    throw(SerialException(ss.str().c_str()));
+	stringstream ss;
+	ss << "getCD failed on a call to ioctl(TIOCMGET): " << errno << " " << strerror(errno);
+	throw(SerialException(ss.str().c_str()));
   }
   else
   {
-    return 0 != (status & TIOCM_CD);
+	return 0 != (status & TIOCM_CD);
   }
 }
 
@@ -988,7 +991,7 @@ Serial::SerialImpl::readLock ()
 {
   int result = pthread_mutex_lock(&this->read_mutex);
   if (result) {
-    THROW (IOException, result);
+	THROW (IOException, result);
   }
 }
 
@@ -997,7 +1000,7 @@ Serial::SerialImpl::readUnlock ()
 {
   int result = pthread_mutex_unlock(&this->read_mutex);
   if (result) {
-    THROW (IOException, result);
+	THROW (IOException, result);
   }
 }
 
@@ -1006,7 +1009,7 @@ Serial::SerialImpl::writeLock ()
 {
   int result = pthread_mutex_lock(&this->write_mutex);
   if (result) {
-    THROW (IOException, result);
+	THROW (IOException, result);
   }
 }
 
@@ -1015,7 +1018,7 @@ Serial::SerialImpl::writeUnlock ()
 {
   int result = pthread_mutex_unlock(&this->write_mutex);
   if (result) {
-    THROW (IOException, result);
+	THROW (IOException, result);
   }
 }
 
