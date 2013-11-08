@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <project default="main" basedir=".">
+    <tstamp/>
+    <property name="version" value="1.0" />
+    
  	<property name="deploy.dir"  value="${basedir}/../../../deploy" />
     
  	<target name="main" depends="make_deploy_dir, build" description="Build HyperCon, the Hyperion configuration file builder" />
@@ -8,6 +11,13 @@
 		<jar destfile="HyperCon.jar">
 			<manifest>
 				<attribute name="Main-Class" value="org.hyperion.hypercon.Main" />
+				
+				<attribute name="Specification-Title"    value="HyperCon"/>
+				<attribute name="Specification-Version"  value="${version}"/>
+				<attribute name="Specification-Vendor"   value="Hyperion Team"/>
+				<attribute name="Implementation-Title"   value="org.hyperion"/>
+				<attribute name="Implementation-Version" value="${version} - ${TODAY}"/> 
+				<attribute name="Implementation-Vendor"  value="Hyperion Team"/>
 			</manifest>
 
 			<fileset dir="classes" />

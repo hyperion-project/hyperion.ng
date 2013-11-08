@@ -23,6 +23,7 @@ public class Main {
 	 * @param pArgs HyperCon does not have command line arguments
 	 */
 	public static void main(String[] pArgs) {
+		final String versionStr = Main.class.getPackage().getImplementationVersion();
 		final LedString ledString = new LedString();
 		
 		try {
@@ -32,7 +33,8 @@ public class Main {
 		
 		// Create a frame for the configuration panel
 		JFrame frame = new JFrame();
-		frame.setTitle("Hyperion configuration Tool");
+		String title = "Hyperion configuration Tool" + ((versionStr != null && !versionStr.isEmpty())? (" (" + versionStr + ")") : ""); 
+		frame.setTitle(title);
 		frame.setSize(1300, 700);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setIconImage(new ImageIcon(Main.class.getResource("HyperConIcon_64.png")).getImage());
