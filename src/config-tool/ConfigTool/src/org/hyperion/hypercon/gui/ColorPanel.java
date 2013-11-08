@@ -1,6 +1,9 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.GridLayout;
+
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
@@ -17,7 +20,7 @@ import org.hyperion.hypercon.spec.ColorConfig;
  *  
  * NB This has not been integrated in the GUI jet!
  */
-public class ColorConfigPanel extends JPanel {
+public class ColorPanel extends JPanel {
 	
 	private final ColorConfig mColorConfig;
 	
@@ -47,8 +50,8 @@ public class ColorConfigPanel extends JPanel {
 	private JSpinner mSaturationAdjustSpinner;
 	private JLabel mValueAdjustLabel;
 	private JSpinner mValueAdjustSpinner;
-
-	public ColorConfigPanel(ColorConfig pColorConfig) {
+	
+	public ColorPanel(ColorConfig pColorConfig) {
 		super();
 		
 		mColorConfig = pColorConfig;
@@ -57,6 +60,7 @@ public class ColorConfigPanel extends JPanel {
 	}
 	
 	private void initialise() {
+		setBorder(BorderFactory.createTitledBorder("Color transform"));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		add(getRgbPanel());
@@ -67,19 +71,22 @@ public class ColorConfigPanel extends JPanel {
 		if (mRgbTransformPanel == null) {
 			mRgbTransformPanel = new JPanel();
 			
-			GroupLayout layout = new GroupLayout(mRgbTransformPanel);
+			GridLayout layout = new GridLayout(0, 5);
+//			GroupLayout layout = new GroupLayout(mRgbTransformPanel);
 			mRgbTransformPanel.setLayout(layout);
 			
-			mThresholdLabel = new JLabel("Thresold");
+			mRgbTransformPanel.add(Box.createHorizontalBox());
+			
+			mThresholdLabel = new JLabel("Thres.");
 			mRgbTransformPanel.add(mThresholdLabel);
 			
 			mGammaLabel = new JLabel("Gamma");
 			mRgbTransformPanel.add(mGammaLabel);
 			
-			mBlacklevelLabel = new JLabel("Blacklevel");
+			mBlacklevelLabel = new JLabel("Blacklvl");
 			mRgbTransformPanel.add(mBlacklevelLabel);
 			
-			mWhitelevelLabel = new JLabel("Whitelevel");
+			mWhitelevelLabel = new JLabel("Whitelvl");
 			mRgbTransformPanel.add(mWhitelevelLabel);
 			
 			mRedTransformLabel = new JLabel("RED");
@@ -126,63 +133,6 @@ public class ColorConfigPanel extends JPanel {
 			mBlueWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueWhitelevel, 0.0, 1.0, 0.1));
 			mBlueWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueWhitelevelSpinner);
-			
-			layout.setHorizontalGroup(layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mRedTransformLabel)
-							.addComponent(mGreenTransformLabel)
-							.addComponent(mBlueTransformLabel))
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mThresholdLabel)
-							.addComponent(mRedThresholdSpinner)
-							.addComponent(mGreenThresholdSpinner)
-							.addComponent(mBlueThresholdSpinner))
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mGammaLabel)
-							.addComponent(mRedGammaSpinner)
-							.addComponent(mGreenGammaSpinner)
-							.addComponent(mBlueGammaSpinner)
-							)
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mBlacklevelLabel)
-							.addComponent(mRedBlacklevelSpinner)
-							.addComponent(mGreenBlacklevelSpinner)
-							.addComponent(mBlueBlacklevelSpinner)
-							)
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mWhitelevelLabel)
-							.addComponent(mRedWhitelevelSpinner)
-							.addComponent(mGreenWhitelevelSpinner)
-							.addComponent(mBlueWhitelevelSpinner)
-							));
-			
-			layout.setVerticalGroup(layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mThresholdLabel)
-							.addComponent(mGammaLabel)
-							.addComponent(mBlacklevelLabel)
-							.addComponent(mWhitelevelLabel))
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mRedTransformLabel)
-							.addComponent(mRedThresholdSpinner)
-							.addComponent(mRedGammaSpinner)
-							.addComponent(mRedBlacklevelSpinner)
-							.addComponent(mRedWhitelevelSpinner)
-							)
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mGreenTransformLabel)
-							.addComponent(mGreenThresholdSpinner)
-							.addComponent(mGreenGammaSpinner)
-							.addComponent(mGreenBlacklevelSpinner)
-							.addComponent(mGreenWhitelevelSpinner)
-							)
-					.addGroup(layout.createParallelGroup()
-							.addComponent(mBlueTransformLabel)
-							.addComponent(mBlueThresholdSpinner)
-							.addComponent(mBlueGammaSpinner)
-							.addComponent(mBlueBlacklevelSpinner)
-							.addComponent(mBlueWhitelevelSpinner)
-							));
 		}
 		return mRgbTransformPanel;
 	}

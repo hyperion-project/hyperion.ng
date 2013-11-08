@@ -3,6 +3,7 @@ package org.hyperion.hypercon.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -43,6 +44,8 @@ public class ImageProcessPanel extends JPanel {
 	}
 	
 	private void initialise() {
+		setBorder(BorderFactory.createTitledBorder("Image Process"));
+		
 		mHorizontalDepthLabel = new JLabel("Horizontal depth [%]:");
 		add(mHorizontalDepthLabel);
 		

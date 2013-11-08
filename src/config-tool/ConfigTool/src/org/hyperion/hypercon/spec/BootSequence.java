@@ -7,9 +7,7 @@ public enum BootSequence {
 	/** The rainbow boot sequence */ 
 	rainbow,
 	/** The Knight Rider (or KITT) boot sequence */
-	knight_rider,
-	/** No boot sequence */
-	none;
+	knight_rider;
 	
 	/**
 	 * Returns a string representation of the BootSequence
@@ -23,8 +21,6 @@ public enum BootSequence {
 			return "Rainbow";
 		case knight_rider:
 			return "Kinght Rider";
-		case none:
-			return "None";
 		}
 		return "None";
 	}

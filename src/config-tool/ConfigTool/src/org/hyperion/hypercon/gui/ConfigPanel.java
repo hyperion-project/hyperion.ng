@@ -1,6 +1,7 @@
 package org.hyperion.hypercon.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.Observable;
@@ -9,10 +10,12 @@ import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.hyperion.hypercon.ConfigurationFile;
 import org.hyperion.hypercon.LedFrameFactory;
@@ -59,18 +62,13 @@ public class ConfigPanel extends JPanel {
 	/** The simulated 'Hyperion TV' */
 	private JHyperionTv mHyperionTv;
 	
+	private JTabbedPane mSpecificationTabs = null;
 	/** The left (WEST) side panel containing the diferent configuration panels */
-	private JPanel mSpecificationPanel;
-	
-	/** The panel for specifying the construction of the LED-Frame */
-	private JPanel mConstructionPanel;
-	
-	/** The panel for specifying the image integration */
-	private JPanel mIntegrationPanel;
-	
-	/** The panel for specifying the miscallenuous configuration */
-	private MiscConfigPanel mMiscPanel;
-	
+	private JPanel mHardwarePanel = null;
+	private JPanel mProcessPanel = null;
+	private JPanel mExternalPanel = null;
+
+
 	/** The button connected to mSaveConfigAction */
 	private JButton mSaveConfigButton;
 	
@@ -108,8 +106,33 @@ public class ConfigPanel extends JPanel {
 		setLayout(new BorderLayout());
 		
 		add(getTvPanel(), BorderLayout.CENTER);
-		add(getSpecificationPanel(), BorderLayout.WEST);
+		add(getWestPanel(), BorderLayout.WEST);
 		
+	}
+	private JPanel getWestPanel() {
+		JPanel mWestPanel = new JPanel();
+		mWestPanel.setLayout(new BorderLayout());
+		
+		mWestPanel.add(getSpecificationTabs(), BorderLayout.CENTER);
+		
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+		mSaveConfigButton = new JButton(mSaveConfigAction);
+		panel.add(mSaveConfigButton, BorderLayout.SOUTH);
+		mWestPanel.add(panel, BorderLayout.SOUTH);
+
+		return mWestPanel;
+	}
+	private JTabbedPane getSpecificationTabs() {
+		if (mSpecificationTabs == null) {
+			mSpecificationTabs = new JTabbedPane();
+			mSpecificationTabs.setPreferredSize(new Dimension(300,150));
+			
+			mSpecificationTabs.addTab("Hardware", getHardwarePanel());
+			mSpecificationTabs.addTab("Process", getProcessPanel());
+			mSpecificationTabs.addTab("External", getExternalPanel());
+		}
+		return mSpecificationTabs;
 	}
 	
 	/**
@@ -128,29 +151,43 @@ public class ConfigPanel extends JPanel {
 		return mTvPanel;
 	}
 	
-	private JPanel getSpecificationPanel() {
-		if (mSpecificationPanel == null) {
-			mSpecificationPanel = new JPanel();
-			mSpecificationPanel.setLayout(new BoxLayout(mSpecificationPanel, BoxLayout.Y_AXIS));
+	private JPanel getHardwarePanel() {
+		if (mHardwarePanel == null) {
+			mHardwarePanel = new JPanel();
+			mHardwarePanel.setLayout(new BoxLayout(mHardwarePanel, BoxLayout.Y_AXIS));
 			
-			mConstructionPanel = new LedFramePanel(ledString.mDeviceConfig, ledString.mLedFrameConfig);
-			mConstructionPanel.setBorder(BorderFactory.createTitledBorder("Construction"));
-			mSpecificationPanel.add(mConstructionPanel);
+			mHardwarePanel.add(new DevicePanel(ledString.mDeviceConfig));
+			mHardwarePanel.add(new LedFramePanel(ledString.mLedFrameConfig));
+			mHardwarePanel.add(new ImageProcessPanel(ledString.mProcessConfig));
 
-			mIntegrationPanel = new ImageProcessPanel(ledString.mProcessConfig);
-			mIntegrationPanel.setBorder(BorderFactory.createTitledBorder("Image Process"));
-			mSpecificationPanel.add(mIntegrationPanel);
-			
-			mMiscPanel = new MiscConfigPanel(ledString.mMiscConfig);
-			mMiscPanel.setBorder(BorderFactory.createTitledBorder("Misc"));
-			mSpecificationPanel.add(mMiscPanel);
-			
-			JPanel panel = new JPanel(new BorderLayout());
-			panel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-			mSaveConfigButton = new JButton(mSaveConfigAction);
-			panel.add(mSaveConfigButton, BorderLayout.SOUTH);
-			mSpecificationPanel.add(panel);
+			mHardwarePanel.add(Box.createVerticalGlue());
 		}
-		return mSpecificationPanel;
+		return mHardwarePanel;
+	}
+	private JPanel getProcessPanel() {
+		if (mProcessPanel == null) {
+			mProcessPanel = new JPanel();
+
+			mProcessPanel.setLayout(new BoxLayout(mProcessPanel, BoxLayout.Y_AXIS));
+			
+			mProcessPanel.add(new BootSequencePanel(ledString.mMiscConfig));
+			mProcessPanel.add(new FrameGrabberPanel(ledString.mMiscConfig));
+			mProcessPanel.add(new ColorSmoothingPanel(ledString.mColorConfig));
+			mProcessPanel.add(new ColorPanel(ledString.mColorConfig));
+		}
+		return mProcessPanel;
+	}
+	private JPanel getExternalPanel() {
+		if (mExternalPanel == null) {
+			mExternalPanel = new JPanel();
+
+			mExternalPanel.setLayout(new BoxLayout(mExternalPanel, BoxLayout.Y_AXIS));
+			
+			mExternalPanel.add(new XbmcPanel(ledString.mMiscConfig));
+			mExternalPanel.add(new InterfacePanel(ledString.mMiscConfig));
+			
+			mExternalPanel.add(Box.createVerticalGlue());
+		}
+		return mExternalPanel;
 	}
 }

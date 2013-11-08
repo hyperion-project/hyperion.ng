@@ -8,6 +8,8 @@ public enum DeviceType {
 	ws2801("WS2801"),
 	/** LDP6803 Led String device with one continuous shift-register (5 bits per color channel)*/
 	ldp6803("LDP6803"),
+	/** SEDU LED device */
+	sedu("SEDU"),
 	/** Test device for writing color values to file-output */
 	test("Test"),
 	/** No device, no output is generated */

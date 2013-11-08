@@ -4,7 +4,7 @@ package org.hyperion.hypercon.spec;
  * The device specific configuration
  */
 public class DeviceConfig {
-
+	
 	/** The name of the device */
 	public String mName     = "MyPi";
 	/** The type specification of the device */

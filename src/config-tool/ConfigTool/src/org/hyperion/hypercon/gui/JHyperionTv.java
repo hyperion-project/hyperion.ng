@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -239,6 +240,12 @@ public class JHyperionTv extends Component {
 			
 			g2d.drawRect(xmin, ymin, (xmax-xmin), (ymax-ymin));
 		}
+		
+		Graphics2D gCopy = (Graphics2D)g.create();
+		gCopy.setXORMode(Color.WHITE);
+		gCopy.setFont(gCopy.getFont().deriveFont(20.0f));
+		String ledCntStr = "Led count: " + mLeds2.size();
+		gCopy.drawString(ledCntStr, getWidth()-150.0f, getHeight()-10.0f);
 	}
 	
 	class LedPaint {

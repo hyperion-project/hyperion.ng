@@ -38,8 +38,9 @@ public class ColorConfig {
 	/** The white-level of the BLUE-value (in RGB space) */
 	public double mBlueWhitelevel = 1.0;
 	
+	public boolean mSmoothingEnabled = false;
 	/** The type of smoothing algorithm */
-	public ColorSmoothingType mSmoothingType = ColorSmoothingType.none;
+	public ColorSmoothingType mSmoothingType = ColorSmoothingType.linear;
 	/** The time constant for smoothing algorithm in milliseconds */
 	public int mSmoothingTime_ms = 200;
 	/** The update frequency of the leds in Hz */
@@ -135,13 +136,15 @@ public class ColorConfig {
 	 */
 	private String smoothingToString() {
 		StringBuffer strBuf = new StringBuffer();
-		strBuf.append("\t\t\"smoothing\" :\n");
-		strBuf.append("\t\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"type\"            : \"%s\",\n", mSmoothingType.name()));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"time_ms\"         : %d,\n", mSmoothingTime_ms));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency_Hz));
 		
-		strBuf.append("\t\t}");
+		String preamble = (mSmoothingEnabled)? "\t\t" : "//\t\t";
+		strBuf.append(preamble).append("\"smoothing\" :\n");
+		strBuf.append(preamble).append("{\n");
+		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"type\"            : \"%s\",\n", mSmoothingType.name()));
+		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"time_ms\"         : %d,\n", mSmoothingTime_ms));
+		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency_Hz));
+		
+		strBuf.append(preamble).append("}");
 		return strBuf.toString();
 	}
 }

@@ -3,6 +3,7 @@ package org.hyperion.hypercon.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -12,18 +13,12 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.hyperion.hypercon.spec.DeviceConfig;
-import org.hyperion.hypercon.spec.DeviceType;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
 import org.hyperion.hypercon.spec.LedFrameConstruction.Direction;
 
 public class LedFramePanel extends JPanel {
 	
-	private final DeviceConfig mDeviceConfig;
 	private final LedFrameConstruction mLedFrameSpec;
-	
-	private JLabel mTypeLabel;
-	private JComboBox<DeviceType> mTypeCombo;
 
 	private JLabel mHorizontalCountLabel;
 	private JSpinner mHorizontalCountSpinner;
@@ -44,22 +39,16 @@ public class LedFramePanel extends JPanel {
 	private JLabel mOffsetLabel;
 	private JSpinner mOffsetSpinner;
 	
-	public LedFramePanel(DeviceConfig pDeviceConfig, LedFrameConstruction ledFrameSpec) {
+	public LedFramePanel(LedFrameConstruction ledFrameSpec) {
 		super();
 		
-		mDeviceConfig = pDeviceConfig;
 		mLedFrameSpec = ledFrameSpec;
 		
 		initialise();
 	}
 	
 	private void initialise() {
-		mTypeLabel = new JLabel("LED Type:");
-		add(mTypeLabel);
-		mTypeCombo = new JComboBox<>(DeviceType.values());
-		mTypeCombo.setSelectedItem(mDeviceConfig.mType);
-		mTypeCombo.addActionListener(mActionListener);
-		add(mTypeCombo);
+		setBorder(BorderFactory.createTitledBorder("Construction"));
 		
 		mTopCornerLabel = new JLabel("Led in top corners");
 		add(mTopCornerLabel);
@@ -112,7 +101,6 @@ public class LedFramePanel extends JPanel {
 		
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addComponent(mTypeLabel)
 						.addComponent(mDirectionLabel)
 						.addComponent(mTopCornerLabel)
 						.addComponent(mBottomCornerLabel)
@@ -121,7 +109,6 @@ public class LedFramePanel extends JPanel {
 						.addComponent(mVerticalCountLabel)
 						.addComponent(mOffsetLabel))
 				.addGroup(layout.createParallelGroup()
-						.addComponent(mTypeCombo)
 						.addComponent(mDirectionCombo)
 						.addComponent(mTopCornerCombo)
 						.addComponent(mBottomCornerCombo)
@@ -131,9 +118,6 @@ public class LedFramePanel extends JPanel {
 						.addComponent(mOffsetSpinner))
 				);
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(mTypeLabel)
-						.addComponent(mTypeCombo))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mDirectionLabel)
 						.addComponent(mDirectionCombo))
@@ -159,8 +143,6 @@ public class LedFramePanel extends JPanel {
 	}
 	
 	void updateLedConstruction() {
-		mDeviceConfig.mType = (DeviceType)mTypeCombo.getSelectedItem();
-		
 		mLedFrameSpec.topCorners    = (Boolean)mTopCornerCombo.getSelectedItem();
 		mLedFrameSpec.bottomCorners = (Boolean)mBottomCornerCombo.getSelectedItem();
 		
