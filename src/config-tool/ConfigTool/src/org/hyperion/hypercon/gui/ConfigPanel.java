@@ -3,6 +3,7 @@ package org.hyperion.hypercon.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
@@ -34,6 +35,9 @@ public class ConfigPanel extends JPanel {
 	/** Action for write the Hyperion deamon configuration file */
 	private final Action mSaveConfigAction = new AbstractAction("Create Hyperion Configuration") {
 		JFileChooser fileChooser = new JFileChooser();
+		{
+			fileChooser.setSelectedFile(new File("hyperion.config.json"));
+		}
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (fileChooser.showSaveDialog(ConfigPanel.this) != JFileChooser.APPROVE_OPTION) {
