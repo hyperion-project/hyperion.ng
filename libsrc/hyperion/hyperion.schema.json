@@ -307,6 +307,20 @@
                 }
             },
             "additionalProperties" : false
+        },
+        "boblightServer" :
+        {
+            "type" : "object",
+            "required" : false,
+            "properties" : {
+                "port" : {
+                    "type" : "integer",
+                    "required" : true,
+                    "minimum" : 0,
+                    "maximum" : 65535
+                }
+            },
+            "additionalProperties" : false
         }
     },
     "additionalProperties" : false

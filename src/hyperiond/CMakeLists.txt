@@ -8,4 +8,5 @@ target_link_libraries(hyperiond
 		dispmanx-grabber
 		xbmcvideochecker
 		jsonserver
-		protoserver)
+		protoserver
+		boblightserver)

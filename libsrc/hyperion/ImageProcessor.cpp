@@ -67,6 +67,20 @@ void ImageProcessor::process(const RgbImage& image, std::vector<RgbColor>& ledCo
 	mImageToLeds->getMeanLedColor(image, ledColors);
 }
 
+bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
+{
+	if (led < mLedString.leds().size())
+	{
+		const Led & l = mLedString.leds()[led];
+		hscanBegin = l.minX_frac;
+		hscanEnd = l.maxX_frac;
+		vscanBegin = l.minY_frac;
+		vscanEnd = l.maxY_frac;
+	}
+
+	return false;
+}
+
 void ImageProcessor::verifyBorder(const RgbImage& image)
 {
 	if(_enableBlackBorderRemoval && _borderProcessor->process(image))

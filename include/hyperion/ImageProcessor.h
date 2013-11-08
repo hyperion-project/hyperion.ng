@@ -52,6 +52,17 @@ public:
 	///
 	void process(const RgbImage& image, std::vector<RgbColor>& ledColors);
 
+	///
+	/// Get the hscan and vscan parameters for a single led
+	///
+	/// @param[in] led Index of the led
+	/// @param[out] hscanBegin begin of the hscan
+	/// @param[out] hscanEnd end of the hscan
+	/// @param[out] vscanBegin begin of the hscan
+	/// @param[out] vscanEnd end of the hscan
+	/// @return true if the parameters could be retrieved
+	bool getScanParameters(size_t led, double & hscanBegin, double & hscanEnd, double & vscanBegin, double & vscanEnd) const;
+
 private:
 	/// Friend declaration of the factory for creating ImageProcessor's
 	friend class ImageProcessorFactory;

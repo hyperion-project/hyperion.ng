@@ -42,7 +42,7 @@ void JsonClientConnection::readData()
 	_receiveBuffer += _socket->readAll();
 
 	int bytes = _receiveBuffer.indexOf('\n') + 1;
-	if (bytes != 0)
+	while(bytes > 0)
 	{
 		// create message string
 		std::string message(_receiveBuffer.data(), bytes);
@@ -52,6 +52,9 @@ void JsonClientConnection::readData()
 
 		// handle message
 		handleMessage(message);
+
+		// try too look up '\n' again
+		bytes = _receiveBuffer.indexOf('\n') + 1;
 	}
 }
 

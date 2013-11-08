@@ -26,6 +26,9 @@
 // ProtoServer includes
 #include <protoserver/ProtoServer.h>
 
+// BoblightServer includes
+#include <boblightserver/BoblightServer.h>
+
 void signal_handler(const int signum)
 {
 	QCoreApplication::quit();
@@ -151,6 +154,15 @@ int main(int argc, char** argv)
 		const Json::Value & protoServerConfig = config["protoServer"];
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt());
 		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
+	}
+
+	// Create Boblight server if configuration is present
+	BoblightServer * boblightServer = nullptr;
+	if (config.isMember("boblightServer"))
+	{
+		const Json::Value & boblightServerConfig = config["boblightServer"];
+		boblightServer = new BoblightServer(&hyperion, boblightServerConfig["port"].asUInt());
+		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
 	}
 
 	// run the application
