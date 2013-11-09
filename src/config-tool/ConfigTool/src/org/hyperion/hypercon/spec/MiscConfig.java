@@ -61,9 +61,6 @@ public class MiscConfig {
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 
-		if (mBootsequenceEnabled) {
-			strBuf.append(",");
-		}
 		strBuf.append("\n\n");
 		strBuf.append("\t/// The boot-sequence configuration, contains the following items: \n");
 		strBuf.append("\t///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none') \n");
@@ -76,9 +73,6 @@ public class MiscConfig {
 		strBuf.append(bootPreamble).append(String.format(Locale.ROOT, "\t\"duration_ms\" : %d\n", mBootSequenceLength_ms));
 		strBuf.append(bootPreamble).append("},\n\n");
 
-		if (mFrameGrabberEnabled) {
-			strBuf.append(",");
-		}
 		strBuf.append("\n\n");
 		strBuf.append("\t/// The configuration for the frame-grabber, contains the following items: \n");
 		strBuf.append("\t///  * width        : The width of the grabbed frames [pixels]\n");
@@ -93,9 +87,6 @@ public class MiscConfig {
 		strBuf.append(grabPreamble).append(String.format(Locale.ROOT, "\t\"frequency_Hz\" : %.1f\n", 1000.0/mFrameGrabberInterval_ms));
 		strBuf.append(grabPreamble).append("},\n\n");
 
-		if (mXbmcCheckerEnabled) {
-			strBuf.append(",");
-		}
 		strBuf.append("\n\n");
 		strBuf.append("\t/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: \n");
 		strBuf.append("\t///  * xbmcAddress  : The IP address of the XBMC-host\n");
