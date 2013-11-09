@@ -338,8 +338,6 @@
 		"enable" : true
 	},
 
-
-
 	/// The boot-sequence configuration, contains the following items: 
 	///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none') 
 	///  * duration_ms : The length of the boot-sequence [ms]
@@ -348,8 +346,6 @@
 		"type"        : "Rainbow",
 		"duration_ms" : 3000
 	},
-
-
 
 	/// The configuration for the frame-grabber, contains the following items: 
 	///  * width        : The width of the grabbed frames [pixels]
@@ -361,8 +357,6 @@
 		"height"       : 64,
 		"frequency_Hz" : 10.0
 	},
-
-
 
 	/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: 
 	///  * xbmcAddress  : The IP address of the XBMC-host
