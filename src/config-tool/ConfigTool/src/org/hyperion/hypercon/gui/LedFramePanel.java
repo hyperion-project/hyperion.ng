@@ -1,7 +1,9 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.Transient;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -47,6 +49,14 @@ public class LedFramePanel extends JPanel {
 		initialise();
 	}
 	
+	@Override
+	@Transient
+	public Dimension getMaximumSize() {
+		Dimension maxSize = super.getMaximumSize();
+		Dimension prefSize = super.getPreferredSize();
+		return new Dimension(maxSize.width, prefSize.height);
+	}
+
 	private void initialise() {
 		setBorder(BorderFactory.createTitledBorder("Construction"));
 		

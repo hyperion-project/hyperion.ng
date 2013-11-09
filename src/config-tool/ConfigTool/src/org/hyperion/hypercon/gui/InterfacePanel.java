@@ -1,7 +1,9 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.Transient;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -43,8 +45,16 @@ public class InterfacePanel extends JPanel {
 		initialise();
 	}
 	
+	@Override
+	@Transient
+	public Dimension getMaximumSize() {
+		Dimension maxSize = super.getMaximumSize();
+		Dimension prefSize = super.getPreferredSize();
+		return new Dimension(maxSize.width, prefSize.height);
+	}
+	
 	private void initialise() {
-		setBorder(BorderFactory.createTitledBorder("External interfaces"));
+		//setBorder(BorderFactory.createTitledBorder("External interfaces"));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		add(getJsonPanel());
@@ -57,7 +67,7 @@ public class InterfacePanel extends JPanel {
 	private JPanel getJsonPanel() {
 		if (mJsonPanel == null) {
 			mJsonPanel = new JPanel();
-			mJsonPanel.setBorder(BorderFactory.createTitledBorder("JSON"));
+			mJsonPanel.setBorder(BorderFactory.createTitledBorder("Json server"));
 			
 			mJsonCheck = new JCheckBox("Enabled");
 			mJsonCheck.setSelected(mMiscConfig.mJsonInterfaceEnabled);
@@ -96,7 +106,7 @@ public class InterfacePanel extends JPanel {
 	private JPanel getProtoPanel() {
 		if (mProtoPanel == null) {
 			mProtoPanel = new JPanel();
-			mProtoPanel.setBorder(BorderFactory.createTitledBorder("PROTO"));
+			mProtoPanel.setBorder(BorderFactory.createTitledBorder("Proto server"));
 			
 			mProtoCheck = new JCheckBox("Enabled");
 			mProtoCheck.setSelected(mMiscConfig.mProtoInterfaceEnabled);
@@ -136,7 +146,7 @@ public class InterfacePanel extends JPanel {
 	private JPanel getBoblightPanel() {
 		if (mBoblightPanel == null) {
 			mBoblightPanel = new JPanel();
-			mBoblightPanel.setBorder(BorderFactory.createTitledBorder("Boblight"));
+			mBoblightPanel.setBorder(BorderFactory.createTitledBorder("Boblight server"));
 			
 			mBoblightCheck = new JCheckBox("Enabled");
 			mBoblightCheck.setSelected(mMiscConfig.mBoblightInterfaceEnabled);

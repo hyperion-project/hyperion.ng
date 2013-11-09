@@ -130,7 +130,6 @@ public class ConfigPanel extends JPanel {
 	private JTabbedPane getSpecificationTabs() {
 		if (mSpecificationTabs == null) {
 			mSpecificationTabs = new JTabbedPane();
-			mSpecificationTabs.setPreferredSize(new Dimension(300,150));
 			
 			mSpecificationTabs.addTab("Hardware", getHardwarePanel());
 			mSpecificationTabs.addTab("Process", getProcessPanel());
@@ -163,33 +162,32 @@ public class ConfigPanel extends JPanel {
 			mHardwarePanel.add(new DevicePanel(ledString.mDeviceConfig));
 			mHardwarePanel.add(new LedFramePanel(ledString.mLedFrameConfig));
 			mHardwarePanel.add(new ImageProcessPanel(ledString.mProcessConfig));
-
 			mHardwarePanel.add(Box.createVerticalGlue());
 		}
 		return mHardwarePanel;
 	}
+	
 	private JPanel getProcessPanel() {
 		if (mProcessPanel == null) {
 			mProcessPanel = new JPanel();
-
 			mProcessPanel.setLayout(new BoxLayout(mProcessPanel, BoxLayout.Y_AXIS));
 			
 			mProcessPanel.add(new BootSequencePanel(ledString.mMiscConfig));
 			mProcessPanel.add(new FrameGrabberPanel(ledString.mMiscConfig));
 			mProcessPanel.add(new ColorSmoothingPanel(ledString.mColorConfig));
 			mProcessPanel.add(new ColorPanel(ledString.mColorConfig));
+			mProcessPanel.add(Box.createVerticalGlue());
 		}
 		return mProcessPanel;
 	}
+	
 	private JPanel getExternalPanel() {
 		if (mExternalPanel == null) {
 			mExternalPanel = new JPanel();
-
 			mExternalPanel.setLayout(new BoxLayout(mExternalPanel, BoxLayout.Y_AXIS));
 			
 			mExternalPanel.add(new XbmcPanel(ledString.mMiscConfig));
 			mExternalPanel.add(new InterfacePanel(ledString.mMiscConfig));
-			
 			mExternalPanel.add(Box.createVerticalGlue());
 		}
 		return mExternalPanel;

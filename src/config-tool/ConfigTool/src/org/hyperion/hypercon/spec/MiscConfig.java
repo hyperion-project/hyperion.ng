@@ -49,7 +49,7 @@ public class MiscConfig {
 	public int mProtoPort = 19445;
 
 	/** Flag indicating that the PROTO interface is enabled */
-	public boolean mBoblightInterfaceEnabled = true;
+	public boolean mBoblightInterfaceEnabled = false;
 	/** The TCP port at which the Protobuf server is listening for incoming connections */
 	public int mBoblightPort = 19333;
 	

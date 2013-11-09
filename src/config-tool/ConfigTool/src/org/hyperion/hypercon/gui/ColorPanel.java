@@ -1,6 +1,8 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.beans.Transient;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -59,11 +61,20 @@ public class ColorPanel extends JPanel {
 		initialise();
 	}
 	
+	@Override
+	@Transient
+	public Dimension getMaximumSize() {
+		Dimension maxSize = super.getMaximumSize();
+		Dimension prefSize = super.getPreferredSize();
+		return new Dimension(maxSize.width, prefSize.height);
+	}
+
 	private void initialise() {
 		setBorder(BorderFactory.createTitledBorder("Color transform"));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		add(getRgbPanel());
+		add(Box.createVerticalStrut(10));
 		add(getHsvPanel());
 	}
 	
@@ -140,19 +151,18 @@ public class ColorPanel extends JPanel {
 	private JPanel getHsvPanel() {
 		if (mHsvTransformPanel == null) {
 			mHsvTransformPanel = new JPanel();
-			mHsvTransformPanel.setBorder(BorderFactory.createTitledBorder("HSV"));
 			
 			GroupLayout layout = new GroupLayout(mHsvTransformPanel);
 			mHsvTransformPanel.setLayout(layout);
 			
-			mSaturationAdjustLabel = new JLabel("Saturation");
+			mSaturationAdjustLabel = new JLabel("HSV Saturation gain");
 			mHsvTransformPanel.add(mSaturationAdjustLabel);
 			
 			mSaturationAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mSaturationGain, 0.0, 1024.0, 0.01));
 			mSaturationAdjustSpinner.addChangeListener(mChangeListener);
 			mHsvTransformPanel.add(mSaturationAdjustSpinner);
 			
-			mValueAdjustLabel = new JLabel("Value");
+			mValueAdjustLabel = new JLabel("HSV Value gain");
 			mHsvTransformPanel.add(mValueAdjustLabel);
 			
 			mValueAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mValueGain, 0.0, 1024.0, 0.01));
