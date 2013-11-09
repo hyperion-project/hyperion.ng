@@ -137,10 +137,10 @@ public class ColorConfig {
 	private String smoothingToString() {
 		StringBuffer strBuf = new StringBuffer();
 		
-		String preamble = (mSmoothingEnabled)? "\t\t" : "//\t\t";
+		String preamble = "\t\t";
 		strBuf.append(preamble).append("\"smoothing\" :\n");
 		strBuf.append(preamble).append("{\n");
-		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"type\"            : \"%s\",\n", mSmoothingType.name()));
+		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"type\"            : \"%s\",\n", (mSmoothingEnabled) ? mSmoothingType.name() : "none"));
 		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"time_ms\"         : %d,\n", mSmoothingTime_ms));
 		strBuf.append(preamble).append(String.format(Locale.ROOT, "\t\"updateFrequency\" : %.4f\n", mSmoothingUpdateFrequency_Hz));
 		
