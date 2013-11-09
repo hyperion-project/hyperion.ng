@@ -32,6 +32,9 @@
 void signal_handler(const int signum)
 {
 	QCoreApplication::quit();
+
+	// reset signal handler to default (in case this handler is not capable of stopping)
+	signal(signum, SIG_DFL);
 }
 
 Json::Value loadConfig(const std::string & configFile)

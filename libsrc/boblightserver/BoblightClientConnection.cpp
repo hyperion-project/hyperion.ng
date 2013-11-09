@@ -67,6 +67,13 @@ void BoblightClientConnection::readData()
 		// handle message
 		handleMessage(message);
 
+		// drop messages if the buffer is too full
+		if (_receiveBuffer.size() > 100*1024)
+		{
+			std::cout << "Boblight server drops messages" << std::endl;
+			_receiveBuffer.clear();
+		}
+
 		// try too look up '\n' again
 		bytes = _receiveBuffer.indexOf('\n') + 1;
 	}
@@ -183,6 +190,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			{
 				_hyperion->setColors(_priority, _ledColors, -1);
 			}
+			return;
 		}
 	}
 
