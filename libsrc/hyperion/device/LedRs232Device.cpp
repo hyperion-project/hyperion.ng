@@ -48,9 +48,9 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 		return -1;
 	}
 
-	//for (int i = 0; i < 20; ++i)
-	//	std::cout << std::hex << (int)data[i] << " ";
-	//std::cout << std::endl;
+//	for (int i = 0; i < 20; ++i)
+//		std::cout << std::hex << (int)data[i] << " ";
+//	std::cout << std::endl;
 
 	try
 	{

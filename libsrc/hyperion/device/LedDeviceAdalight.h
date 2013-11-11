@@ -7,18 +7,18 @@
 #include "LedRs232Device.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to SEDU led device.
+/// Implementation of the LedDevice interface for writing to an Adalight led device.
 ///
-class LedDeviceSedu : public LedRs232Device
+class LedDeviceAdalight : public LedRs232Device
 {
 public:
 	///
-	/// Constructs the LedDevice for attached via SEDU device
+	/// Constructs the LedDevice for attached Adalight device
 	///
 	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate);
 
 	///
 	/// Writes the led color values to the led-device
