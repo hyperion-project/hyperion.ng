@@ -1,6 +1,6 @@
 
 // Local-Hyperion includes
-#include "BlackBorderProcessor.h"
+#include <hyperion/BlackBorderProcessor.h>
 
 using namespace hyperion;
 
@@ -16,6 +16,7 @@ BlackBorderProcessor::BlackBorderProcessor(
 	_previousDetectedBorder({true, -1, -1}),
 	_consistentCnt(0)
 {
+	// empty
 }
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
@@ -23,46 +24,33 @@ BlackBorder BlackBorderProcessor::getCurrentBorder() const
 	return _currentBorder;
 }
 
-bool BlackBorderProcessor::process(const RgbImage& image)
+bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 {
-	// get the border for the single image
-	BlackBorder imageBorder = _detector.process(image);
-
-	// add blur to the border
-	if (imageBorder.horizontalSize > 0)
-	{
-		imageBorder.horizontalSize += _blurRemoveCnt;
-	}
-	if (imageBorder.verticalSize > 0)
-	{
-		imageBorder.verticalSize += _blurRemoveCnt;
-	}
-
 	// set the consistency counter
-	if (imageBorder == _previousDetectedBorder)
+	if (newDetectedBorder == _previousDetectedBorder)
 	{
 		++_consistentCnt;
 	}
 	else
 	{
-		_previousDetectedBorder = imageBorder;
+		_previousDetectedBorder = newDetectedBorder;
 		_consistentCnt          = 0;
 	}
 
 	// check if there is a change
-	if (_currentBorder == imageBorder)
+	if (_currentBorder == newDetectedBorder)
 	{
 		// No change required
 		return false;
 	}
 
 	bool borderChanged = false;
-	if (imageBorder.unknown)
+	if (newDetectedBorder.unknown)
 	{
 		// apply the unknown border if we consistently can't determine a border
 		if (_consistentCnt == _unknownSwitchCnt)
 		{
-			_currentBorder = imageBorder;
+			_currentBorder = newDetectedBorder;
 			borderChanged = true;
 		}
 	}
@@ -71,21 +59,21 @@ bool BlackBorderProcessor::process(const RgbImage& image)
 		// apply the detected border if it has been detected consistently
 		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
 		{
-			_currentBorder = imageBorder;
+			_currentBorder = newDetectedBorder;
 			borderChanged = true;
 		}
 		else
 		{
 			// apply smaller borders immediately
-			if (imageBorder.verticalSize < _currentBorder.verticalSize)
+			if (newDetectedBorder.verticalSize < _currentBorder.verticalSize)
 			{
-				_currentBorder.verticalSize = imageBorder.verticalSize;
+				_currentBorder.verticalSize = newDetectedBorder.verticalSize;
 				borderChanged = true;
 			}
 
-			if (imageBorder.horizontalSize < _currentBorder.horizontalSize)
+			if (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize)
 			{
-				_currentBorder.horizontalSize = imageBorder.horizontalSize;
+				_currentBorder.horizontalSize = newDetectedBorder.horizontalSize;
 				borderChanged = true;
 			}
 		}

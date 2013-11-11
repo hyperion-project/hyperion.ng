@@ -1,34 +1,56 @@
-
 #pragma once
 
-#include <cassert>
-#include <cstring>
+// STL includes
 #include <vector>
+#include <cstdint>
+#include <cstring>
+#include <algorithm>
 
-// Local includes
-#include "RgbColor.h"
-
-///
-/// The RgbImage holds a 2D matrix of RgbColors's (or image). Width and height of the image are
-/// fixed at construction.
-///
-class RgbImage
+template <typename Pixel_T>
+class Image
 {
 public:
+
+	typedef Pixel_T pixel_type;
 
 	///
 	/// Constructor for an image with specified width and height
 	///
 	/// @param width The width of the image
 	/// @param height The height of the image
-	/// @param background The color of the image (default = BLACK)
 	///
-	RgbImage(const unsigned width, const unsigned height, const RgbColor background = RgbColor::BLACK);
+	Image(const unsigned width, const unsigned height) :
+		_width(width),
+		_height(height),
+		_pixels(new Pixel_T[width*height + 1]),
+		_endOfPixels(_pixels + width*height)
+	{
+		memset(_pixels, 0, (_width*_height+1)*sizeof(Pixel_T));
+	}
+
+	///
+	/// Constructor for an image with specified width and height
+	///
+	/// @param width The width of the image
+	/// @param height The height of the image
+	/// @param background The color of the image
+	///
+	Image(const unsigned width, const unsigned height, const Pixel_T background) :
+		_width(width),
+		_height(height),
+		_pixels(new Pixel_T[width*height + 1]),
+		_endOfPixels(_pixels + width*height)
+	{
+		std::fill(_pixels, _endOfPixels, background);
+	}
 
 	///
 	/// Destructor
 	///
-	~RgbImage();
+	~Image()
+	{
+		delete[] _pixels;
+	}
 
 	///
 	/// Returns the width of the image
@@ -50,14 +72,25 @@ public:
 		return _height;
 	}
 
-	///
-	/// Sets the color of a specific pixel in the image
-	///
-	/// @param x The x index
-	/// @param y The y index
-	/// @param color The new color
-	///
-	void setPixel(const unsigned x, const unsigned y, const RgbColor color);
+	uint8_t alpha(const unsigned pixel) const
+	{
+		return (_pixels + pixel)->red;
+	}
+
+	uint8_t red(const unsigned pixel) const
+	{
+		return (_pixels + pixel)->red;
+	}
+
+	uint8_t green(const unsigned pixel) const
+	{
+		return (_pixels + pixel)->green;
+	}
+
+	uint8_t blue(const unsigned pixel) const
+	{
+		return (_pixels + pixel)->blue;
+	}
 
 	///
 	/// Returns a const reference to a specified pixel in the image
@@ -67,7 +100,10 @@ public:
 	///
 	/// @return const reference to specified pixel
 	///
-	const RgbColor& operator()(const unsigned x, const unsigned y) const;
+	const Pixel_T& operator()(const unsigned x, const unsigned y) const
+	{
+		return _pixels[toIndex(x,y)];
+	}
 
 	///
 	/// Returns a reference to a specified pixel in the image
@@ -77,37 +113,40 @@ public:
 	///
 	/// @return reference to specified pixel
 	///
-	RgbColor& operator()(const unsigned x, const unsigned y);
+	Pixel_T& operator()(const unsigned x, const unsigned y)
+	{
+		return _pixels[toIndex(x,y)];
+	}
 
 	///
 	/// Copies another image into this image. The images should have exactly the same size.
 	///
 	/// @param other The image to copy into this
 	///
-	inline void copy(const RgbImage& other)
+	void copy(const Image<Pixel_T>& other)
 	{
 		assert(other._width == _width);
 		assert(other._height == _height);
 
-		memcpy(mColors, other.mColors, _width*_height*sizeof(RgbColor));
+		memcpy(_pixels, other._pixels, _width*_height*sizeof(Pixel_T));
 	}
 
 	///
 	/// Returns a memory pointer to the first pixel in the image
 	/// @return The memory pointer to the first pixel
 	///
-	RgbColor* memptr()
+	Pixel_T* memptr()
 	{
-		return mColors;
+		return _pixels;
 	}
 
 	///
 	/// Returns a const memory pointer to the first pixel in the image
 	/// @return The const memory pointer to the first pixel
 	///
-	const RgbColor* memptr() const
+	const Pixel_T* memptr() const
 	{
-		return mColors;
+		return _pixels;
 	}
 private:
 
@@ -130,6 +169,9 @@ private:
 	/// The height of the image
 	const unsigned _height;
 
-	/** The colors of the image */
-	RgbColor* mColors;
+	/// The pixels of the image
+	Pixel_T* _pixels;
+
+	/// Pointer to the last(extra) pixel
+	Pixel_T* _endOfPixels;
 };

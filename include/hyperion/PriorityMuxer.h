@@ -10,7 +10,7 @@
 #include <QMap>
 
 // Utils includes
-#include <utils/RgbColor.h>
+#include <utils/ColorRgb.h>
 
 // Hyperion includes
 #include <hyperion/LedDevice.h>
@@ -34,7 +34,7 @@ public:
 		/// The absolute timeout of the channel
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
-		std::vector<RgbColor> ledColors;
+		std::vector<ColorRgb> ledColors;
 	};
 
 	///
@@ -89,7 +89,7 @@ public:
 	/// @param[in] ledColors The led colors of the priority channel
 	/// @param[in] timeoutTime_ms The absolute timeout time of the channel
 	///
-	void setInput(const int priority, const std::vector<RgbColor>& ledColors, const int64_t timeoutTime_ms=-1);
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1);
 
 	///
 	/// Clears the specified priority channel

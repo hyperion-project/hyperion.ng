@@ -7,7 +7,7 @@
 #include <vector>
 
 // Local includes
-#include <utils/RgbColor.h>
+#include <utils/ColorRgb.h>
 
 // Forward class declarations
 namespace Json { class Value; }

@@ -26,7 +26,7 @@ void AbstractBootSequence::update()
 	}
 
 	// Obtain the next led-colors from the child-class
-	const std::vector<RgbColor>& colors = nextColors();
+	const std::vector<ColorRgb>& colors = nextColors();
 	// Write the colors to hyperion
 	_hyperion->setColors(_priority, colors, -1);
 

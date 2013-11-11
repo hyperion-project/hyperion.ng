@@ -12,9 +12,9 @@ add_executable(test_configfile
 target_link_libraries(test_configfile
 		hyperion)
 
-add_executable(test_rgbimage
+add_executable(test_ImageRgb
 		TestRgbImage.cpp)
-target_link_libraries(test_rgbimage
+target_link_libraries(test_ImageRgb
 		hyperion-utils)
 
 add_executable(test_colortransform

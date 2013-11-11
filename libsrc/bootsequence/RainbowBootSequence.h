@@ -27,11 +27,11 @@ protected:
 	///
 	/// Moves the rainbow one led further
 	///
-	const std::vector<RgbColor>& nextColors();
+	const std::vector<ColorRgb>& nextColors();
 
 private:
 	/// The current color of the boot sequence (the rainbow)
-	std::vector<RgbColor> _ledColors;
+	std::vector<ColorRgb> _ledColors;
 	/// The counter of the number of iterations left
 	int _iterationCounter;
 };

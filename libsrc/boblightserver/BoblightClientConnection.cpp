@@ -16,7 +16,7 @@
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
 #include "hyperion/ImageProcessor.h"
-#include "utils/RgbColor.h"
+#include "utils/ColorRgb.h"
 
 // project includes
 #include "BoblightClientConnection.h"
@@ -29,7 +29,7 @@ BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, Hyperion 
 	_hyperion(hyperion),
 	_receiveBuffer(),
 	_priority(255),
-	_ledColors(hyperion->getLedCount(), RgbColor::BLACK)
+	_ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
 {
 	// initalize the locale. Start with the default C-locale
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
@@ -149,7 +149,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 
 						if (rc1 && rc2 && rc3)
 						{
-							RgbColor & rgb =  _ledColors[ledIndex];
+							ColorRgb & rgb =  _ledColors[ledIndex];
 							rgb.red = red;
 							rgb.green = green;
 							rgb.blue = blue;

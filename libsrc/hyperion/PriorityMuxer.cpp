@@ -13,7 +13,7 @@ PriorityMuxer::PriorityMuxer(int ledCount) :
 {
 	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;
-	_lowestPriorityInfo.ledColors = std::vector<RgbColor>(ledCount, {0, 0, 0});
+	_lowestPriorityInfo.ledColors = std::vector<ColorRgb>(ledCount, {0, 0, 0});
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -51,7 +51,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	return elemIt.value();
 }
 
-void PriorityMuxer::setInput(const int priority, const std::vector<RgbColor>& ledColors, const int64_t timeoutTime_ms)
+void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms)
 {
 	InputInfo& input = _activeInputs[priority];
 	input.priority       = priority;

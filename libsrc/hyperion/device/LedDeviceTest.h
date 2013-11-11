@@ -30,7 +30,7 @@ public:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<RgbColor> & ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues);
 
 	/// Switch the leds off
 	virtual int switchOff();

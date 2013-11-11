@@ -1,4 +1,7 @@
 
+// STL includes
+#include <cassert>
+
 // QT includes
 #include <QDateTime>
 
@@ -249,16 +252,16 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
-void Hyperion::setColor(int priority, const RgbColor &color, const int timeout_ms)
+void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms)
 {
 	// create led output
-	std::vector<RgbColor> ledColors(_ledString.leds().size(), color);
+	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
 
 	// set colors
 	setColors(priority, ledColors, timeout_ms);
 }
 
-void Hyperion::setColors(int priority, const std::vector<RgbColor>& ledColors, const int timeout_ms)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms)
 {
 	if (timeout_ms > 0)
 	{
@@ -415,8 +418,8 @@ void Hyperion::update()
 	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
 
 	// Apply the transform to each led and color-channel
-	std::vector<RgbColor> ledColors(priorityInfo.ledColors);
-	for (RgbColor& color : ledColors)
+	std::vector<ColorRgb> ledColors(priorityInfo.ledColors);
+	for (ColorRgb& color : ledColors)
 	{
 		_hsvTransform->transform(color.red, color.green, color.blue);
 		color.red   = _redTransform->transform(color.red);

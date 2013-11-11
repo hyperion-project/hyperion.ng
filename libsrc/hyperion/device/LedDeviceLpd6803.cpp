@@ -17,7 +17,7 @@ LedDeviceLdp6803::LedDeviceLdp6803(const std::string& outputDevice, const unsign
 	// empty
 }
 
-int LedDeviceLdp6803::write(const std::vector<RgbColor> &ledValues)
+int LedDeviceLdp6803::write(const std::vector<ColorRgb> &ledValues)
 {
 	// Reconfigure if the current connfiguration does not match the required configuration
 	if (4 + 2*ledValues.size() != _ledBuffer.size())
@@ -26,10 +26,10 @@ int LedDeviceLdp6803::write(const std::vector<RgbColor> &ledValues)
 		_ledBuffer.resize(4 + 2*ledValues.size(), 0x00);
 	}
 
-	// Copy the colors from the RgbColor vector to the Ldp6803 data vector
+	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector
 	for (unsigned iLed=0; iLed<ledValues.size(); ++iLed)
 	{
-		const RgbColor& rgb = ledValues[iLed];
+		const ColorRgb& rgb = ledValues[iLed];
 
 		_ledBuffer[4 + 2 * iLed] = 0x80 | ((rgb.red & 0xf8) >> 1) | (rgb.green >> 6);
 		_ledBuffer[5 + 2 * iLed] = ((rgb.green & 0x38) << 2) | (rgb.blue >> 3);
@@ -45,5 +45,5 @@ int LedDeviceLdp6803::write(const std::vector<RgbColor> &ledValues)
 
 int LedDeviceLdp6803::switchOff()
 {
-	return write(std::vector<RgbColor>(_ledBuffer.size(), RgbColor::BLACK));
+	return write(std::vector<ColorRgb>(_ledBuffer.size(), ColorRgb{0,0,0}));
 }

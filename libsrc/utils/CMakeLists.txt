@@ -4,13 +4,16 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/utils)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/utils)
 
 add_library(hyperion-utils
-		${CURRENT_HEADER_DIR}/RgbColor.h
-		${CURRENT_HEADER_DIR}/RgbImage.h
+		${CURRENT_HEADER_DIR}/ColorArgb.h
+		${CURRENT_SOURCE_DIR}/ColorArgb.cpp
+		${CURRENT_HEADER_DIR}/ColorRgb.h
+		${CURRENT_SOURCE_DIR}/ColorRgb.cpp
+		${CURRENT_HEADER_DIR}/ColorRgba.h
+		${CURRENT_SOURCE_DIR}/ColorRgba.cpp
+		${CURRENT_HEADER_DIR}/Image.h
 		${CURRENT_HEADER_DIR}/ColorTransform.h
 		${CURRENT_HEADER_DIR}/HsvTransform.h
 
-		${CURRENT_SOURCE_DIR}/RgbColor.cpp
-		${CURRENT_SOURCE_DIR}/RgbImage.cpp
 		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
 		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
 

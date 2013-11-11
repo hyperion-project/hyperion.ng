@@ -8,7 +8,8 @@
 #include <cstdint>
 
 // Utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
+#include <utils/ColorRgba.h>
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
@@ -41,7 +42,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	void grabFrame(RgbImage& image);
+	void grabFrame(Image<ColorRgba> & image);
 
 private:
 	/// Handle to the display that is being captured

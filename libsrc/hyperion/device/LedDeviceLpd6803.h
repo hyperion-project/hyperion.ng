@@ -31,7 +31,7 @@ public:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<RgbColor> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	/// Switch the leds off
 	virtual int switchOff();

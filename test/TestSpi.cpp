@@ -8,28 +8,28 @@
 #include <iostream>
 
 // Local includes
-#include <utils/RgbColor.h>
+#include <utils/ColorRgb.h>
 
 #include "../libsrc/hyperion/device/LedDeviceWs2801.h"
 
 void setColor(char* colorStr)
 {
-	RgbColor color = RgbColor::BLACK;
+	ColorRgb color = ColorRgb::BLACK;
 	std::cout << "Switching all leds to: ";
 	if (strncmp("red", colorStr, 3) == 0)
 	{
 		std::cout << "red";
-		color = RgbColor::RED;
+		color = ColorRgb::RED;
 	}
 	else if (strncmp("green", colorStr, 5) == 0)
 	{
 		std::cout << "green";
-		color = RgbColor::GREEN;
+		color = ColorRgb::GREEN;
 	}
 	else if (strncmp("blue", colorStr, 5) == 0)
 	{
 		std::cout << "blue";
-		color = RgbColor::BLUE;
+		color = ColorRgb::BLUE;
 	}
 	else if (strncmp("cyan", colorStr, 5) == 0)
 	{
@@ -42,17 +42,17 @@ void setColor(char* colorStr)
 	else if (strncmp("white", colorStr, 5) == 0)
 	{
 		std::cout << "white";
-		color = RgbColor::WHITE;
+		color = ColorRgb::WHITE;
 	}
 	else if (strncmp("black", colorStr, 5) == 0)
 	{
 		std::cout << "black";
-		color = RgbColor::BLACK;
+		color = ColorRgb::BLACK;
 	}
 	std::cout << std::endl;
 
 	unsigned ledCnt = 50;
-	std::vector<RgbColor> buff(ledCnt, color);
+	std::vector<ColorRgb> buff(ledCnt, color);
 
 	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000);
 	ledDevice.open();
@@ -62,11 +62,11 @@ void setColor(char* colorStr)
 bool _running = true;
 void doCircle()
 {
-	RgbColor color_1 = RgbColor::RED;
-	RgbColor color_2 = RgbColor::YELLOW;
+	ColorRgb color_1 = ColorRgb::RED;
+	ColorRgb color_2 = ColorRgb::YELLOW;
 
 	unsigned ledCnt = 50;
-	std::vector<RgbColor> data(ledCnt, RgbColor::BLACK);
+	std::vector<ColorRgb> data(ledCnt, ColorRgb::BLACK);
 
 	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000);
 	ledDevice.open();
@@ -84,8 +84,8 @@ void doCircle()
 
 	while (_running)
 	{
-		data[curLed_1] = RgbColor::BLACK;
-		data[curLed_2] = RgbColor::BLACK;
+		data[curLed_1] = ColorRgb::BLACK;
+		data[curLed_2] = ColorRgb::BLACK;
 
 		// Move the current and the next pointer
 		curLed_1 = nextLed_1;
@@ -111,8 +111,8 @@ void doCircle()
 	}
 
 	// Switch the current leds off
-	data[curLed_1] = RgbColor::BLACK;
-	data[curLed_2] = RgbColor::BLACK;
+	data[curLed_1] = ColorRgb::BLACK;
+	data[curLed_2] = ColorRgb::BLACK;
 
 	ledDevice.write(data);
 }
@@ -126,9 +126,9 @@ void signal_handler(int signum)
 
 int main(int argc, char** argv)
 {
-	if (sizeof(RgbColor) != 3)
+	if (sizeof(ColorRgb) != 3)
 	{
-		std::cout << "sizeof(RgbColor) = " << sizeof(RgbColor) << std::endl;
+		std::cout << "sizeof(ColorRgb) = " << sizeof(ColorRgb) << std::endl;
 		return -1;
 	}
 

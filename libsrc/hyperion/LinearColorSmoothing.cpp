@@ -22,7 +22,7 @@ LinearColorSmoothing::~LinearColorSmoothing()
 	delete _ledDevice;
 }
 
-int LinearColorSmoothing::write(const std::vector<RgbColor> &ledValues)
+int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
 	// received a new target color
 	if (_previousValues.size() == 0)
@@ -38,7 +38,7 @@ int LinearColorSmoothing::write(const std::vector<RgbColor> &ledValues)
 	else
 	{
 		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(RgbColor));
+		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	}
 
 	return 0;
@@ -66,7 +66,7 @@ void LinearColorSmoothing::updateLeds()
 
 	if (deltaTime < 0)
 	{
-		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(RgbColor));
+		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(ColorRgb));
 		_previousTime = now;
 
 		_ledDevice->write(_previousValues);
@@ -77,8 +77,8 @@ void LinearColorSmoothing::updateLeds()
 
 		for (size_t i = 0; i < _previousValues.size(); ++i)
 		{
-			RgbColor & prev = _previousValues[i];
-			RgbColor & target = _targetValues[i];
+			ColorRgb & prev = _previousValues[i];
+			ColorRgb & target = _targetValues[i];
 
 			prev.red   += k * (target.red   - prev.red);
 			prev.green += k * (target.green - prev.green);

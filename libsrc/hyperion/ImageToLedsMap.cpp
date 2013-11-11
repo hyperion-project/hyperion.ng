@@ -1,9 +1,10 @@
 
 // STL includes
 #include <algorithm>
+#include <cassert>
 
 // hyperion includes
-#include "ImageToLedsMap.h"
+#include <hyperion/ImageToLedsMap.h>
 
 using namespace hyperion;
 
@@ -60,53 +61,4 @@ unsigned ImageToLedsMap::width() const
 unsigned ImageToLedsMap::height() const
 {
 	return _height;
-}
-
-std::vector<RgbColor> ImageToLedsMap::getMeanLedColor(const RgbImage & image) const
-{
-	std::vector<RgbColor> colors(mColorsMap.size(), RgbColor::BLACK);
-	getMeanLedColor(image, colors);
-	return colors;
-}
-
-void ImageToLedsMap::getMeanLedColor(const RgbImage & image, std::vector<RgbColor> & ledColors) const
-{
-	// Sanity check for the number of leds
-	assert(mColorsMap.size() == ledColors.size());
-
-	// Iterate each led and compute the mean
-	auto led = ledColors.begin();
-	for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors, ++led)
-	{
-		const RgbColor color = calcMeanColor(image, *ledColors);
-		*led = color;
-	}
-}
-
-RgbColor ImageToLedsMap::calcMeanColor(const RgbImage & image, const std::vector<unsigned> & colors) const
-{
-	if (colors.size() == 0)
-	{
-		return RgbColor::BLACK;
-	}
-
-	// Accumulate the sum of each seperate color channel
-	uint_fast16_t cummRed   = 0;
-	uint_fast16_t cummGreen = 0;
-	uint_fast16_t cummBlue  = 0;
-	for (const unsigned colorOffset : colors)
-	{
-		const RgbColor& color = image.memptr()[colorOffset];
-		cummRed   += color.red;
-		cummGreen += color.green;
-		cummBlue  += color.blue;
-	}
-
-	// Compute the average of each color channel
-	const uint8_t avgRed   = uint8_t(cummRed/colors.size());
-	const uint8_t avgGreen = uint8_t(cummGreen/colors.size());
-	const uint8_t avgBlue  = uint8_t(cummBlue/colors.size());
-
-	// Return the computed color
-	return {avgRed, avgGreen, avgBlue};
 }

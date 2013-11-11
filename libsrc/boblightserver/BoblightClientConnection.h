@@ -99,5 +99,5 @@ private:
 	int _priority;
 
 	/// The latest led color data
-	std::vector<RgbColor> _ledColors;
+	std::vector<ColorRgb> _ledColors;
 };

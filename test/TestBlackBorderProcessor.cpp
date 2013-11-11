@@ -1,16 +1,19 @@
 
 // STL includes
+#include <cassert>
 #include <random>
+#include <iostream>
 
 // Utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
 
 // Local-Hyperion includes
 #include "hyperion/BlackBorderProcessor.h"
 
 using namespace hyperion;
 
-RgbColor randomColor()
+ColorRgb randomColor()
 {
 	const uint8_t randomRedValue   = uint8_t(rand() % (std::numeric_limits<uint8_t>::max() + 1));
 	const uint8_t randomGreenValue = uint8_t(rand() % (std::numeric_limits<uint8_t>::max() + 1));
@@ -19,16 +22,16 @@ RgbColor randomColor()
 	return {randomRedValue, randomGreenValue, randomBlueValue};
 }
 
-RgbImage createImage(unsigned width, unsigned height, unsigned topBorder, unsigned leftBorder)
+Image<ColorRgb> createImage(unsigned width, unsigned height, unsigned topBorder, unsigned leftBorder)
 {
-	RgbImage image(width, height);
+	Image<ColorRgb> image(width, height);
 	for (unsigned x=0; x<image.width(); ++x)
 	{
 		for (unsigned y=0; y<image.height(); ++y)
 		{
 			if (y < topBorder || x < leftBorder)
 			{
-				image(x,y) = RgbColor::BLACK;
+				image(x,y) = ColorRgb::BLACK;
 			}
 			else
 			{
@@ -48,7 +51,7 @@ int main()
 	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt);
 
 	// Start with 'no border' detection
-	RgbImage noBorderImage = createImage(64, 64, 0, 0);
+	Image<ColorRgb> noBorderImage = createImage(64, 64, 0, 0);
 	for (unsigned i=0; i<10; ++i)
 	{
 		bool newBorder = processor.process(noBorderImage);
@@ -79,7 +82,7 @@ int main()
 	}
 
 	int borderSize = 12;
-	RgbImage horzImage = createImage(64, 64, borderSize, 0);
+	Image<ColorRgb> horzImage = createImage(64, 64, borderSize, 0);
 	for (unsigned i=0; i<borderCnt*2; ++i)
 	{
 		bool newBorder = processor.process(horzImage);
@@ -115,7 +118,7 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	RgbImage vertImage = createImage(64, 64, 0, borderSize);
+	Image<ColorRgb> vertImage = createImage(64, 64, 0, borderSize);
 	for (unsigned i=0; i<borderCnt*2; ++i)
 	{
 		bool newBorder = processor.process(vertImage);

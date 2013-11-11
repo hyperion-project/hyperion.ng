@@ -5,8 +5,9 @@
 #include <QTimer>
 
 // Utils includes
-#include <utils/RgbColor.h>
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
+#include <utils/ColorRgba.h>
 #include <utils/GrabbingMode.h>
 
 // Forward class declaration
@@ -15,8 +16,8 @@ class Hyperion;
 class ImageProcessor;
 
 ///
-/// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain RgbImage's from the
-/// displayed content. This RgbImage is processed to a RgbColor for each led and commmited to the
+/// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain ImageRgb's from the
+/// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
 /// attached Hyperion.
 ///
 class DispmanxWrapper: public QObject
@@ -72,14 +73,14 @@ private:
 	QTimer _timer;
 
 	/// The image used for grabbing frames
-	RgbImage _image;
+	Image<ColorRgba> _image;
 	/// The actual grabber
 	DispmanxFrameGrabber * _frameGrabber;
 	/// The processor for transforming images to led colors
 	ImageProcessor * _processor;
 
 	/// The list with computed led colors
-	std::vector<RgbColor> _ledColors;
+	std::vector<ColorRgb> _ledColors;
 
 	/// Pointer to Hyperion for writing led values
 	Hyperion * _hyperion;

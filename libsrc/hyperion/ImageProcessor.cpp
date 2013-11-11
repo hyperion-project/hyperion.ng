@@ -1,12 +1,10 @@
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
+#include <hyperion/ImageToLedsMap.h>
+#include <hyperion/BlackBorderProcessor.h>
 
 #include <utils/ColorTransform.h>
-
-// Local-Hyperion includes
-#include "BlackBorderProcessor.h"
-#include "ImageToLedsMap.h"
 
 using namespace hyperion;
 
@@ -40,33 +38,6 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 	mImageToLeds = new ImageToLedsMap(width, height, 0, 0, mLedString.leds());
 }
 
-std::vector<RgbColor> ImageProcessor::process(const RgbImage& image)
-{
-	// Ensure that the buffer-image is the proper size
-	setSize(image.width(), image.height());
-
-	// Check black border detection
-	verifyBorder(image);
-
-	// Create a result vector and call the 'in place' functionl
-	std::vector<RgbColor> colors = mImageToLeds->getMeanLedColor(image);
-
-	// return the computed colors
-	return colors;
-}
-
-void ImageProcessor::process(const RgbImage& image, std::vector<RgbColor>& ledColors)
-{
-	// Ensure that the buffer-image is the proper size
-	setSize(image.width(), image.height());
-
-	// Check black border detection
-	verifyBorder(image);
-
-	// Determine the mean-colors of each led (using the existing mapping)
-	mImageToLeds->getMeanLedColor(image, ledColors);
-}
-
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	if (led < mLedString.leds().size())
@@ -81,29 +52,3 @@ bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &h
 	return false;
 }
 
-void ImageProcessor::verifyBorder(const RgbImage& image)
-{
-	if(_enableBlackBorderRemoval && _borderProcessor->process(image))
-	{
-		std::cout << "BORDER SWITCH REQUIRED!!" << std::endl;
-
-		const BlackBorder border = _borderProcessor->getCurrentBorder();
-
-		// Clean up the old mapping
-		delete mImageToLeds;
-
-		if (border.unknown)
-		{
-			// Construct a new buffer and mapping
-			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), 0, 0, mLedString.leds());
-		}
-		else
-		{
-			// Construct a new buffer and mapping
-			mImageToLeds = new ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, mLedString.leds());
-		}
-
-		std::cout << "CURRENT BORDER TYPE: unknown=" << border.unknown << " hor.size=" << border.horizontalSize << " vert.size=" << border.verticalSize << std::endl;
-	}
-
-}

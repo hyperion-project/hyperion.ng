@@ -18,11 +18,11 @@ LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned
 	// empty
 }
 
-int LedDeviceWs2801::write(const std::vector<RgbColor> &ledValues)
+int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)
 {
 	mLedCount = ledValues.size();
 
-	const unsigned dataLen = ledValues.size() * sizeof(RgbColor);
+	const unsigned dataLen = ledValues.size() * sizeof(ColorRgb);
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(dataLen, dataPtr);
@@ -30,5 +30,5 @@ int LedDeviceWs2801::write(const std::vector<RgbColor> &ledValues)
 
 int LedDeviceWs2801::switchOff()
 {
-	return write(std::vector<RgbColor>(mLedCount, RgbColor::BLACK));
+	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
 }

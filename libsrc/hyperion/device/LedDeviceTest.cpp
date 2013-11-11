@@ -13,10 +13,10 @@ LedDeviceTest::~LedDeviceTest()
 	// empty
 }
 
-int LedDeviceTest::write(const std::vector<RgbColor> & ledValues)
+int LedDeviceTest::write(const std::vector<ColorRgb> & ledValues)
 {
 	_ofs << "[";
-	for (const RgbColor& color : ledValues)
+	for (const ColorRgb& color : ledValues)
 	{
 		_ofs << color;
 	}

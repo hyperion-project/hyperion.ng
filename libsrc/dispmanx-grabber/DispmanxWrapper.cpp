@@ -20,7 +20,7 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_ledColors(hyperion->getLedCount(), RgbColor::BLACK),
+	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
 	_hyperion(hyperion)
 {
 	// Configure the timer to generate events every n milliseconds

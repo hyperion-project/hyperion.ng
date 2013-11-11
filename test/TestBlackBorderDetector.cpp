@@ -3,11 +3,12 @@
 #include <random>
 
 // Hyperion includes
-#include "hyperion/BlackBorderDetector.h"
+#include <hyperion/BlackBorderDetector.h>
+#include <utils/ColorRgb.h>
 
 using namespace hyperion;
 
-RgbColor randomColor()
+ColorRgb randomColor()
 {
 	const uint8_t randomRedValue   = uint8_t(rand() % (std::numeric_limits<uint8_t>::max() + 1));
 	const uint8_t randomGreenValue = uint8_t(rand() % (std::numeric_limits<uint8_t>::max() + 1));
@@ -16,16 +17,16 @@ RgbColor randomColor()
 	return {randomRedValue, randomGreenValue, randomBlueValue};
 }
 
-RgbImage createImage(unsigned width, unsigned height, unsigned topBorder, unsigned leftBorder)
+Image<ColorRgb> createImage(unsigned width, unsigned height, unsigned topBorder, unsigned leftBorder)
 {
-	RgbImage image(width, height);
+	Image<ColorRgb> image(width, height);
 	for (unsigned x=0; x<image.width(); ++x)
 	{
 		for (unsigned y=0; y<image.height(); ++y)
 		{
 			if (y < topBorder || x < leftBorder)
 			{
-				image(x,y) = RgbColor::BLACK;
+				image(x,y) = ColorRgb::BLACK;
 			}
 			else
 			{
@@ -43,7 +44,7 @@ int TC_NO_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 0, 0);
+		Image<ColorRgb> image = createImage(64, 64, 0, 0);
 		BlackBorder border = detector.process(image);
 		if (border.unknown != false && border.horizontalSize != 0 && border.verticalSize != 0)
 		{
@@ -62,7 +63,7 @@ int TC_TOP_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 12, 0);
+		Image<ColorRgb> image = createImage(64, 64, 12, 0);
 		BlackBorder border = detector.process(image);
 		if (border.unknown != false && border.horizontalSize != 12 && border.verticalSize != 0)
 		{
@@ -81,7 +82,7 @@ int TC_LEFT_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 0, 12);
+		Image<ColorRgb> image = createImage(64, 64, 0, 12);
 		BlackBorder border = detector.process(image);
 		if (border.unknown != false && border.horizontalSize != 0 && border.verticalSize != 12)
 		{
@@ -100,7 +101,7 @@ int TC_DUAL_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 12, 12);
+		Image<ColorRgb> image = createImage(64, 64, 12, 12);
 		BlackBorder border = detector.process(image);
 		if (border.unknown != false && border.horizontalSize != 12 && border.verticalSize != 12)
 		{
@@ -118,7 +119,7 @@ int TC_UNKNOWN_BORDER()
 	BlackBorderDetector detector;
 
 	{
-		RgbImage image = createImage(64, 64, 30, 30);
+		Image<ColorRgb> image = createImage(64, 64, 30, 30);
 		BlackBorder border = detector.process(image);
 		if (border.unknown != true)
 		{

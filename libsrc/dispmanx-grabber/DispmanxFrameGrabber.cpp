@@ -1,4 +1,9 @@
 
+// STL includes
+#include <cassert>
+#include <iostream>
+
+// Local includes
 #include "DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height) :
@@ -32,7 +37,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	// Create the resources for capturing image
 	uint32_t vc_nativeImageHandle;
 	_vc_resource = vc_dispmanx_resource_create(
-			VC_IMAGE_RGB888,
+			VC_IMAGE_RGBA32,
 			width,
 			height,
 			&vc_nativeImageHandle);
@@ -56,7 +61,7 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
-void DispmanxFrameGrabber::grabFrame(RgbImage& image)
+void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 {
 	// Sanity check of the given image size
 	assert(image.width() == _width && image.height() == _height);
@@ -69,7 +74,7 @@ void DispmanxFrameGrabber::grabFrame(RgbImage& image)
 
 	// Read the snapshot into the memory
 	void* image_ptr = image.memptr();
-	const unsigned destPitch = _width * 3;
+	const unsigned destPitch = _width * sizeof(ColorRgba);
 	vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, image_ptr, destPitch);
 
 	// Close the displaye

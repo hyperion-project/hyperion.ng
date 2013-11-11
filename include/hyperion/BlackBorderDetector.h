@@ -2,7 +2,7 @@
 #pragma once
 
 // Utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
 
 namespace hyperion
 {
@@ -58,7 +58,59 @@ namespace hyperion
 		///
 		/// @return The detected (or not detected) black border info
 		///
-		BlackBorder process(const RgbImage& image);
+		template <typename Pixel_T>
+		BlackBorder process(const Image<Pixel_T> & image)
+		{
+			// only test the topleft third of the image
+			int width = image.width() /3;
+			int height = image.height() / 3;
+			int maxSize = std::max(width, height);
+
+			int firstNonBlackXPixelIndex = -1;
+			int firstNonBlackYPixelIndex = -1;
+
+			// find some pixel of the image
+			for (int i = 0; i < maxSize; ++i)
+			{
+				int x = std::min(i, width);
+				int y = std::min(i, height);
+
+				const Pixel_T & color = image(x, y);
+				if (!isBlack(color))
+				{
+					firstNonBlackXPixelIndex = x;
+					firstNonBlackYPixelIndex = y;
+					break;
+				}
+			}
+
+			// expand image to the left
+			for(; firstNonBlackXPixelIndex > 0; --firstNonBlackXPixelIndex)
+			{
+				const Pixel_T & color = image(firstNonBlackXPixelIndex-1, firstNonBlackYPixelIndex);
+				if (isBlack(color))
+				{
+					break;
+				}
+			}
+
+			// expand image to the top
+			for(; firstNonBlackYPixelIndex > 0; --firstNonBlackYPixelIndex)
+			{
+				const Pixel_T & color = image(firstNonBlackXPixelIndex, firstNonBlackYPixelIndex-1);
+				if (isBlack(color))
+				{
+					break;
+				}
+			}
+
+			// Construct result
+			BlackBorder detectedBorder;
+			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
+			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
+			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
+			return detectedBorder;
+		}
 
 	private:
 
@@ -69,11 +121,11 @@ namespace hyperion
 		///
 		/// @return True if the color is considered black else false
 		///
-		inline bool isBlack(const RgbColor& color)
+		template <typename Pixel_T>
+		inline bool isBlack(const Pixel_T & color)
 		{
 			// Return the simple compare of the color against black
-			return RgbColor::BLACK == color;
-			// TODO[TvdZ]: We could add a threshold to check that the color is close to black
+			return color.red+color.green+color.green == 0;
 		}
 	};
 } // end namespace hyperion

@@ -13,13 +13,13 @@ SET(Hyperion_QT_HEADERS
 SET(Hyperion_HEADERS
 		${CURRENT_HEADER_DIR}/ImageProcessor.h
 		${CURRENT_HEADER_DIR}/ImageProcessorFactory.h
+		${CURRENT_HEADER_DIR}/ImageToLedsMap.h
 		${CURRENT_HEADER_DIR}/LedDevice.h
 		${CURRENT_HEADER_DIR}/LedString.h
 		${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
-		${CURRENT_SOURCE_DIR}/BlackBorderDetector.h
-		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.h
-		${CURRENT_SOURCE_DIR}/ImageToLedsMap.h
+		${CURRENT_HEADER_DIR}/BlackBorderDetector.h
+		${CURRENT_HEADER_DIR}/BlackBorderProcessor.h
 
 		${CURRENT_SOURCE_DIR}/device/LedSpiDevice.h
 		${CURRENT_SOURCE_DIR}/device/LedRs232Device.h

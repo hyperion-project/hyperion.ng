@@ -45,7 +45,7 @@ protected:
 	///
 	/// @return The next led colors in the boot sequence
 	///
-	virtual const std::vector<RgbColor>& nextColors() = 0;
+	virtual const std::vector<ColorRgb>& nextColors() = 0;
 
 private:
 	/// The timer used to generate an 'update' signal every interval

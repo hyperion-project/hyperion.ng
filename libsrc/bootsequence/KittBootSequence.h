@@ -33,17 +33,17 @@ public:
 	///
 	/// @return The next colors for the leds
 	///
-	virtual const std::vector<RgbColor>& nextColors();
+	virtual const std::vector<ColorRgb>& nextColors();
 
 private:
 	/// Image processor to compute led-colors from the image
 	ImageProcessor * _processor;
 
 	/// 1D-Image of the KITT-grill contains a single red pixel and the rest black
-	RgbImage _image;
+	Image<ColorRgb> _image;
 
 	/// The vector with led-colors
-	std::vector<RgbColor> _ledColors;
+	std::vector<ColorRgb> _ledColors;
 
 	/// Direction the red-light is currently moving
 	bool _forwardMove = true;

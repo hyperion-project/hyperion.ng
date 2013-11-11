@@ -42,9 +42,35 @@ namespace hyperion
 		///
 		/// @return True if a different border was detected than the current else false
 		///
-		bool process(const RgbImage& image);
+		template <typename Pixel_T>
+		bool process(const Image<Pixel_T> & image)
+		{
+			// get the border for the single image
+			BlackBorder imageBorder = _detector.process(image);
+			// add blur to the border
+			if (imageBorder.horizontalSize > 0)
+			{
+				imageBorder.horizontalSize += _blurRemoveCnt;
+			}
+			if (imageBorder.verticalSize > 0)
+			{
+				imageBorder.verticalSize += _blurRemoveCnt;
+			}
+
+			const bool borderUpdated = updateBorder(imageBorder);
+			return borderUpdated;
+		}
+
 
 	private:
+		///
+		/// Updates the current border based on the newly detected border. Returns true if the
+		/// current border has changed.
+		///
+		/// @param newDetectedBorder  The newly detected border
+		/// @return True if the current border changed else false
+		///
+		bool updateBorder(const BlackBorder & newDetectedBorder);
 
 		/// The number of unknown-borders detected before it becomes the current border
 		const unsigned _unknownSwitchCnt;

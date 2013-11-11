@@ -24,13 +24,13 @@ LedDeviceSedu::LedDeviceSedu(const std::string& outputDevice, const unsigned bau
 	// empty
 }
 
-int LedDeviceSedu::write(const std::vector<RgbColor> &ledValues)
+int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)
 {
 	if (_ledBuffer.size() == 0)
 	{
 		std::vector<FrameSpec> frameSpecs{{0xA0, 96}, {0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 
-		const unsigned reqColorChannels = ledValues.size() * sizeof(RgbColor);
+		const unsigned reqColorChannels = ledValues.size() * sizeof(ColorRgb);
 
 		for (const FrameSpec& frameSpec : frameSpecs)
 		{
@@ -52,7 +52,7 @@ int LedDeviceSedu::write(const std::vector<RgbColor> &ledValues)
 		}
 	}
 
-	memcpy(_ledBuffer.data()+2, ledValues.data(), ledValues.size() * sizeof(RgbColor));
+	memcpy(_ledBuffer.data()+2, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 

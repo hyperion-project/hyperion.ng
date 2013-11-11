@@ -4,7 +4,7 @@
 #include <vector>
 
 // Utility includes
-#include <utils/RgbColor.h>
+#include <utils/ColorRgb.h>
 
 ///
 /// Interface (pure virtual base class) for LedDevices.
@@ -28,7 +28,7 @@ public:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<RgbColor>& ledValues) = 0;
+	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 
 	/// Switch the leds off
 	virtual int switchOff() = 0;

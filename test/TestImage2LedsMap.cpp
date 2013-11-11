@@ -1,6 +1,6 @@
 
 // Utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
 #include <utils/jsonschema/JsonFactory.h>
 
 // Hyperion includes
@@ -25,16 +25,16 @@ int main()
 
 	const LedString ledString = Hyperion::createLedString(config["leds"]);
 
-	const RgbColor testColor = {64, 123, 12};
+	const ColorRgb testColor = {64, 123, 12};
 
-	RgbImage image(64, 64, testColor);
+	Image<ColorRgb> image(64, 64, testColor);
 	ImageToLedsMap map(64, 64, 0, 0, ledString.leds());
 
-	std::vector<RgbColor> ledColors(ledString.leds().size());
+	std::vector<ColorRgb> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);
 
 	std::cout << "[";
-	for (const RgbColor & color : ledColors)
+	for (const ColorRgb & color : ledColors)
 	{
 		std::cout << color;
 	}

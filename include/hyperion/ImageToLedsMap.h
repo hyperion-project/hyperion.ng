@@ -2,10 +2,11 @@
 #pragma once
 
 // STL includes
+#include <cassert>
 #include <sstream>
 
 // hyperion-utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
 
 // hyperion includes
 #include <hyperion/LedString.h>
@@ -63,7 +64,13 @@ namespace hyperion
 		///
 		/// @return ledColors  The vector containing the output
 		///
-		std::vector<RgbColor> getMeanLedColor(const RgbImage & image) const;
+		template <typename Pixel_T>
+		std::vector<ColorRgb> getMeanLedColor(const Image<Pixel_T> & image) const
+		{
+			std::vector<ColorRgb> colors(mColorsMap.size(), ColorRgb{0,0,0});
+			getMeanLedColor(image, colors);
+			return colors;
+		}
 
 		///
 		/// Determines the mean color for each led using the mapping the image given
@@ -72,7 +79,20 @@ namespace hyperion
 		/// @param[in] image  The image from which to extract the led colors
 		/// @param[out] ledColors  The vector containing the output
 		///
-		void getMeanLedColor(const RgbImage & image, std::vector<RgbColor> & ledColors) const;
+		template <typename Pixel_T>
+		void getMeanLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		{
+			// Sanity check for the number of leds
+			assert(mColorsMap.size() == ledColors.size());
+
+			// Iterate each led and compute the mean
+			auto led = ledColors.begin();
+			for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors, ++led)
+			{
+				const ColorRgb color = calcMeanColor(image, *ledColors);
+				*led = color;
+			}
+		}
 
 	private:
 		/// The width of the indexed image
@@ -91,7 +111,34 @@ namespace hyperion
 		///
 		/// @return The mean of the given list of colors (or black when empty)
 		///
-		RgbColor calcMeanColor(const RgbImage & image, const std::vector<unsigned> & colors) const;
+		template <typename Pixel_T>
+		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const std::vector<unsigned> & colors) const
+		{
+			if (colors.size() == 0)
+			{
+				return ColorRgb::BLACK;
+			}
+
+			// Accumulate the sum of each seperate color channel
+			uint_fast16_t cummRed   = 0;
+			uint_fast16_t cummGreen = 0;
+			uint_fast16_t cummBlue  = 0;
+			for (const unsigned colorOffset : colors)
+			{
+				const Pixel_T& pixel = image.memptr()[colorOffset];
+				cummRed   += pixel.red;
+				cummGreen += pixel.green;
+				cummBlue  += pixel.blue;
+			}
+
+			// Compute the average of each color channel
+			const uint8_t avgRed   = uint8_t(cummRed/colors.size());
+			const uint8_t avgGreen = uint8_t(cummGreen/colors.size());
+			const uint8_t avgBlue  = uint8_t(cummBlue/colors.size());
+
+			// Return the computed color
+			return {avgRed, avgGreen, avgBlue};
+		}
 	};
 
 } // end namespace hyperion

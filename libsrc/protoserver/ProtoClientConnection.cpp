@@ -15,7 +15,7 @@
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
 #include "hyperion/ImageProcessor.h"
-#include "utils/RgbColor.h"
+#include "utils/ColorRgb.h"
 
 // project includes
 #include "ProtoClientConnection.h"
@@ -120,7 +120,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
-	RgbColor color;
+	ColorRgb color;
 	color.red = qRed(message.rgbcolor());
 	color.green = qGreen(message.rgbcolor());
 	color.blue = qBlue(message.rgbcolor());
@@ -151,12 +151,12 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	// set width and height of the image processor
 	_imageProcessor->setSize(width, height);
 
-	// create RgbImage
-	RgbImage image(width, height);
+	// create ImageRgb
+	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), imageData.c_str(), imageData.size());
 
 	// process the image
-	std::vector<RgbColor> ledColors = _imageProcessor->process(image);
+	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
 	_hyperion->setColors(priority, ledColors, duration);
 
 	// send reply

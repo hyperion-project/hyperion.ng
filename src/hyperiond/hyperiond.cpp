@@ -1,4 +1,5 @@
 // C++ includes
+#include <cassert>
 #include <csignal>
 
 // QT includes

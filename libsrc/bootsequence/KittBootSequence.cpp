@@ -8,8 +8,8 @@
 KittBootSequence::KittBootSequence(Hyperion * hyperion, const unsigned duration_ms) :
 	AbstractBootSequence(hyperion, 100, duration_ms/100),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_image(9, 1),
-	_ledColors(hyperion->getLedCount(), RgbColor::BLACK),
+	_image(9, 1, ColorRgb{0,0,0}),
+	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
 	_forwardMove(false),
 	_currentLight(0)
 {
@@ -21,17 +21,17 @@ KittBootSequence::~KittBootSequence()
 	delete _processor;
 }
 
-const std::vector<RgbColor>& KittBootSequence::nextColors()
+const std::vector<ColorRgb>& KittBootSequence::nextColors()
 {
 
 	// Switch the previous light 'off'
-	_image(_currentLight, 0) = RgbColor::BLACK;
+	_image(_currentLight, 0) = ColorRgb{0,0,0};
 
 	// Move the current to the next light
 	moveNextLight();
 
 	// Switch the current light 'on'
-	_image(_currentLight, 0) = RgbColor::RED;
+	_image(_currentLight, 0) = ColorRgb{255,0,0};
 
 
 	// Translate the 'image' to led colors

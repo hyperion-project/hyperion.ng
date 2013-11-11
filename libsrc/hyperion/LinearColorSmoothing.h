@@ -36,7 +36,7 @@ public:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<RgbColor> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	/// Switch the leds off
 	virtual int switchOff();
@@ -62,11 +62,11 @@ private:
 	int64_t _targetTime;
 
 	/// The target led data
-	std::vector<RgbColor> _targetValues;
+	std::vector<ColorRgb> _targetValues;
 
 	/// The timestamp of the previously written led data
 	int64_t _previousTime;
 
 	/// The previously written led data
-	std::vector<RgbColor> _previousValues;
+	std::vector<ColorRgb> _previousValues;
 };

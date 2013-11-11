@@ -14,7 +14,7 @@
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
 #include "hyperion/ImageProcessor.h"
-#include "utils/RgbColor.h"
+#include "utils/ColorRgb.h"
 
 // project includes
 #include "JsonClientConnection.h"
@@ -111,7 +111,7 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
-	RgbColor color = {uint8_t(message["color"][0u].asInt()), uint8_t(message["color"][1u].asInt()), uint8_t(message["color"][2u].asInt())};
+	ColorRgb color = {uint8_t(message["color"][0u].asInt()), uint8_t(message["color"][1u].asInt()), uint8_t(message["color"][2u].asInt())};
 
 	// set output
 	_hyperion->setColor(priority, color, duration);
@@ -139,12 +139,12 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 	// set width and height of the image processor
 	_imageProcessor->setSize(width, height);
 
-	// create RgbImage
-	RgbImage image(width, height);
+	// create ImageRgb
+	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), data.data(), data.size());
 
 	// process the image
-	std::vector<RgbColor> ledColors = _imageProcessor->process(image);
+	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
 	_hyperion->setColors(priority, ledColors, duration);
 
 	// send reply
