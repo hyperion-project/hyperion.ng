@@ -18,7 +18,7 @@ LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsi
 	// empty
 }
 
-int LedDeviceAdalight::write(const std::vector<RgbColor> &ledValues)
+int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 {
 	if (_ledBuffer.size() == 0)
 	{
