@@ -10,6 +10,8 @@ public enum DeviceType {
 	lpd6803("LPD6803"),
 	/** SEDU LED device */
 	sedu("SEDU"),
+	/** Adalight device */
+	adalight("Adalight"),
 	/** Test device for writing color values to file-output */
 	test("Test"),
 	/** No device, no output is generated */

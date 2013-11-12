@@ -17,6 +17,7 @@
 #include "device/LedDeviceSedu.h"
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
+#include "device/LedDeviceAdalight.h"
 
 #include "LinearColorSmoothing.h"
 
@@ -60,6 +61,16 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		deviceSedu->open();
 
 		device = deviceSedu;
+	}
+	else if (type == "adalight")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		deviceAdalight->open();
+
+		device = deviceAdalight;
 	}
 	else if (type == "test")
 	{
