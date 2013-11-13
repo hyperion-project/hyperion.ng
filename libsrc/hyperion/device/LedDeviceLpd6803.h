@@ -14,7 +14,7 @@
 /// (R, G and B in the above illustration) making 16 bits per led. Total bytes = 4 + (2 x number of
 /// leds)
 ///
-class LedDeviceLdp6803 : public LedSpiDevice
+class LedDeviceLpd6803 : public LedSpiDevice
 {
 public:
 	///
@@ -23,7 +23,7 @@ public:
 	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev0.0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceLdp6803(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceLpd6803(const std::string& outputDevice, const unsigned baudrate);
 
 	///
 	/// Writes the led color values to the led-device

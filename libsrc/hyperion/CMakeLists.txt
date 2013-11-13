@@ -27,6 +27,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.h
 )
 
@@ -48,6 +49,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/device/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.cpp
 )
 
