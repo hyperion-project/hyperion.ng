@@ -26,10 +26,10 @@ public class DeviceConfig {
 		
 		strBuf.append("\t/// Device configuration contains the following fields: \n");
 		strBuf.append("\t/// * 'name'       : The user friendly name of the device (only used for display purposes)\n");
-		strBuf.append("\t/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'lpd6803', 'sedu',\n");
-		strBuf.append("\t///                  'adalight', 'test' and 'none')\n");
+		strBuf.append("\t/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'ldp8806',\n");
+		strBuf.append("\t///                  'lpd6803', 'sedu', 'adalight', 'lightpack', 'test' and 'none')\n");
 		strBuf.append("\t/// * 'output'     : The output specification depends on selected device. This can for example be the\n");
-		strBuf.append("\t///                  device specifier or the output file name\n");
+		strBuf.append("\t///                  device specifier, device serial number, or the output file name\n");
 		strBuf.append("\t/// * 'rate'       : The baudrate of the output to the device\n");
 		strBuf.append("\t/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).\n");
 
