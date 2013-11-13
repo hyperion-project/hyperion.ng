@@ -10,7 +10,8 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
 
 ///
 /// FbWriter allows direct access tot the FrameBuffer. It writes and image to the framebuffer,
@@ -83,7 +84,7 @@ public:
 	///
 	/// @param image  The RGB Image
 	///
-	void writeImage(const RgbImage& image)
+	void writeImage(const Image<ColorRgb>& image)
 	{
 		std::cout << "Writing image [" << image.width() << "x" << image.height() << "]" << std::endl;
 

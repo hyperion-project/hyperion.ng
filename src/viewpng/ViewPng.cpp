@@ -6,7 +6,8 @@
 #include <png.h>
 
 // Utils includes
-#include <utils/RgbImage.h>
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
 #include <utils/jsonschema/JsonFactory.h>
 
 // Raspilight includes
@@ -15,7 +16,7 @@
 // Local includes
 #include "FbWriter.h"
 
-bool read_png(std::string file_name, RgbImage*& rgbImage)
+bool read_png(std::string file_name, Image<ColorRgb>*& rgbImage)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -70,16 +71,16 @@ bool read_png(std::string file_name, RgbImage*& rgbImage)
 	png_bytepp row_pointers;
 	row_pointers = png_get_rows(png_ptr, info_ptr);
 
-	rgbImage = new RgbImage(width, height);
+	rgbImage = new Image<ColorRgb>(width, height);
 
 	for (unsigned iRow=0; iRow<height; ++iRow)
 	{
 		if (color_type == PNG_COLOR_TYPE_RGB)
 		{
-			RgbColor* rowPtr = reinterpret_cast<RgbColor*>(row_pointers[iRow]);
+			ColorRgb* rowPtr = reinterpret_cast<ColorRgb*>(row_pointers[iRow]);
 			for (unsigned iCol=0; iCol<width; ++iCol)
 			{
-				rgbImage->setPixel(iCol, iRow, rowPtr[iCol]);
+				(*rgbImage)(iCol, iRow) = rowPtr[iCol];
 			}
 		}
 		else if (color_type == PNG_COLOR_TYPE_RGBA)
@@ -88,7 +89,7 @@ bool read_png(std::string file_name, RgbImage*& rgbImage)
 			for (unsigned iCol=0; iCol<width; ++iCol)
 			{
 				const unsigned argbValue = rowPtr[iCol];
-				rgbImage->setPixel(iCol, iRow, {uint8_t((argbValue >> 16) & 0xFF), uint8_t((argbValue >> 8) & 0xFF), uint8_t((argbValue) & 0xFF)});
+				(*rgbImage)(iCol, iRow) = ColorRgb{uint8_t((argbValue >> 16) & 0xFF), uint8_t((argbValue >> 8) & 0xFF), uint8_t((argbValue) & 0xFF)};
 			}
 		}
 		else
@@ -115,7 +116,7 @@ int main(int argc, char** argv)
 
 	const std::string pngFilename = argv[1];
 
-	RgbImage* image = nullptr;
+	Image<ColorRgb>* image = nullptr;
 	if (!read_png(pngFilename, image) || image == nullptr)
 	{
 		std::cout << "Failed to load image" << std::endl;

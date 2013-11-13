@@ -18,6 +18,7 @@
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
 #include "device/LedDeviceAdalight.h"
+#include "device/LedDeviceLightpack.h"
 
 #include "LinearColorSmoothing.h"
 
@@ -71,6 +72,13 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		deviceAdalight->open();
 
 		device = deviceAdalight;
+	}
+	else if (type == "lightpack")
+	{
+		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack();
+		deviceLightpack->open();
+
+		device = deviceLightpack;
 	}
 	else if (type == "test")
 	{

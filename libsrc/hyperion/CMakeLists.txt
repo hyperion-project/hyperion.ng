@@ -3,6 +3,8 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
+include_directories(${LIBUSB_1_INCLUDE_DIRS})
+
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
 		${CURRENT_HEADER_DIR}/Hyperion.h
@@ -28,6 +30,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.h
 )
 
 SET(Hyperion_SOURCES
@@ -49,6 +52,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.cpp
 )
 
 set(Hyperion_RESOURCES
@@ -70,4 +74,5 @@ add_library(hyperion
 target_link_libraries(hyperion
 		hyperion-utils
 		serialport
-		${QT_LIBRARIES})
+		${QT_LIBRARIES}
+		${LIBUSB_1_LIBRARIES})

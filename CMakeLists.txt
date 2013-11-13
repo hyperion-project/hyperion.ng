@@ -37,6 +37,9 @@ find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 # add protocol buffers
 find_package(Protobuf REQUIRED)
 
+#add libusb
+find_package(libusb-1.0 REQUIRED)
+
 #SET(QT_DONT_USE_QTGUI   TRUE)
 #SET(QT_USE_QTCONSOLE    TRUE)
 include(${QT_USE_FILE})
