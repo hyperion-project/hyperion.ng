@@ -14,6 +14,7 @@
 #include <hyperion/ImageProcessorFactory.h>
 
 #include "device/LedDeviceLpd6803.h"
+#include "device/LedDeviceLpd8806.h"
 #include "device/LedDeviceSedu.h"
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
@@ -48,10 +49,20 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
 
-		LedDeviceLdp6803* deviceLdp6803 = new LedDeviceLdp6803(output, rate);
+		LedDeviceLpd6803* deviceLdp6803 = new LedDeviceLpd6803(output, rate);
 		deviceLdp6803->open();
 
 		device = deviceLdp6803;
+	}
+	else if (type == "lpd8806" || type == "ldp8806")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceLpd8806* deviceLpd8806 = new LedDeviceLpd8806(output, rate);
+		deviceLpd8806->open();
+
+		device = deviceLpd8806;
 	}
 	else if (type == "sedu")
 	{

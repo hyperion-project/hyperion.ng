@@ -10,14 +10,14 @@
 // hyperion local includes
 #include "LedDeviceLpd6803.h"
 
-LedDeviceLdp6803::LedDeviceLdp6803(const std::string& outputDevice, const unsigned baudrate) :
+LedDeviceLpd6803::LedDeviceLpd6803(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate),
 	_ledBuffer(0)
 {
 	// empty
 }
 
-int LedDeviceLdp6803::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 {
 	// Reconfigure if the current connfiguration does not match the required configuration
 	if (4 + 2*ledValues.size() != _ledBuffer.size())
@@ -43,7 +43,7 @@ int LedDeviceLdp6803::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LedDeviceLdp6803::switchOff()
+int LedDeviceLpd6803::switchOff()
 {
 	return write(std::vector<ColorRgb>(_ledBuffer.size(), ColorRgb{0,0,0}));
 }
