@@ -200,9 +200,10 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 		const ColorRgb & color = ledValues[i];
 
 		// copy the most significant bits of the rgb values to the first three bytes
-		_ledBuffer[6*i]   = color.red;
-		_ledBuffer[6*i+1] = color.green;
-		_ledBuffer[6*i+2] = color.blue;
+		// offset 1 to accomodate for the command byte
+		_ledBuffer[6*i+1] = color.red;
+		_ledBuffer[6*i+2] = color.green;
+		_ledBuffer[6*i+3] = color.blue;
 
 		// leave the next three bytes on zero...
 		// 12-bit values have zeros in the lowest 4 bits which is almost correct, but it saves extra
