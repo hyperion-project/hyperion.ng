@@ -96,6 +96,8 @@ int LedDeviceLightpack::open()
 		if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
 			(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 		{
+			std::cout << "Found a lightpack device. Retrieving more information..." << std::endl;
+
 			// get the hardware address
 			int busNumber = libusb_get_bus_number(deviceList[i]);
 			int addressNumber = libusb_get_device_address(deviceList[i]);
@@ -187,6 +189,10 @@ int LedDeviceLightpack::open()
 		_ledBuffer = std::vector<uint8_t>(1 + _ledCount * 6, 0);
 		_ledBuffer[0] = CMD_UPDATE_LEDS;
 	}
+	else
+	{
+		std::cerr << "No Lightpack device has been found" << std::endl;
+	}
 
 	return _deviceHandle == nullptr ? -1 : 0;
 }
@@ -221,6 +227,8 @@ int LedDeviceLightpack::switchOff()
 
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 {
+	std::cout << "Writing " << size << " bytes to Lightpack device" << std::endl;
+
 	return libusb_control_transfer(_deviceHandle,
 		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS	| LIBUSB_RECIPIENT_INTERFACE,
 		0x09,
