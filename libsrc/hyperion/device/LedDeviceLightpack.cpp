@@ -184,7 +184,7 @@ int LedDeviceLightpack::open()
 		}
 
 		// set the led buffer size (command + 6 bytes per led)
-		_ledBuffer.resize(1 + _ledCount * 6, 0);
+		_ledBuffer = std::vector<uint8_t>(1 + _ledCount * 6, 0);
 		_ledBuffer[0] = CMD_UPDATE_LEDS;
 	}
 
