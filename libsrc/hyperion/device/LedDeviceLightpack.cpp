@@ -191,7 +191,14 @@ int LedDeviceLightpack::open()
 	}
 	else
 	{
-		std::cerr << "No Lightpack device has been found" << std::endl;
+		if (_serialNumber.empty())
+		{
+			std::cerr << "No Lightpack device has been found" << std::endl;
+		}
+		else
+		{
+			std::cerr << "No Lightpack device has been found with serial " << _serialNumber << std::endl;
+		}
 	}
 
 	return _deviceHandle == nullptr ? -1 : 0;
