@@ -34,9 +34,21 @@ public:
 	///
 	int open();
 
-	int write(const std::vector<ColorRgb>& ledValues);
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues);
 
-	int switchOff();
+	///
+	/// Switch the leds off
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int switchOff();
 
 private:
 	struct Version

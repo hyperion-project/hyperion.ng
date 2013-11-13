@@ -59,8 +59,8 @@ LedDeviceLightpack::~LedDeviceLightpack()
 
 	if (_libusbContext != nullptr)
 	{
-	  libusb_exit(_libusbContext);
-	  _libusbContext = nullptr;
+		libusb_exit(_libusbContext);
+		_libusbContext = nullptr;
 	}
 }
 
