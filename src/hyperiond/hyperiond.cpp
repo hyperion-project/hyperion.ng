@@ -133,10 +133,6 @@ int main(int argc, char** argv)
 		{
 			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 		}
-		else
-		{
-			dispmanx->setGrabbingMode(GRABBINGMODE_VIDEO);
-		}
 
 		dispmanx->start();
 		std::cout << "Frame grabber created and started" << std::endl;
