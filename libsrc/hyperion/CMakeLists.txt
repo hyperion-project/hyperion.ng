@@ -10,6 +10,7 @@ SET(Hyperion_QT_HEADERS
 		${CURRENT_HEADER_DIR}/Hyperion.h
 
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.h
 )
 
 SET(Hyperion_HEADERS
@@ -30,7 +31,6 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.h
-		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.h
 )
 

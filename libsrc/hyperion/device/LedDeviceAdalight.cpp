@@ -13,9 +13,16 @@
 
 LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate) :
 	LedRs232Device(outputDevice, baudrate),
-	_ledBuffer(0)
+	_ledBuffer(0),
+	_timer()
 {
-	// empty
+	// setup the timer
+	_timer.setSingleShot(false);
+	_timer.setInterval(5000);
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
+
+	// start the timer
+	_timer.start();
 }
 
 int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
@@ -31,12 +38,25 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 	}
 
+	// restart the timer
+	_timer.start();
+
+	// write data
 	memcpy(6 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
 int LedDeviceAdalight::switchOff()
 {
+	// restart the timer
+	_timer.start();
+
+	// write data
 	memset(6 + _ledBuffer.data(), 0, _ledBuffer.size()-6);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+void LedDeviceAdalight::rewriteLeds()
+{
+	writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

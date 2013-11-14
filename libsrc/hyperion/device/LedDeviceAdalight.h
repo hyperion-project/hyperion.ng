@@ -3,14 +3,19 @@
 // STL includes
 #include <string>
 
+// Qt includes
+#include <QTimer>
+
 // hyperion incluse
 #include "LedRs232Device.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device.
 ///
-class LedDeviceAdalight : public LedRs232Device
+class LedDeviceAdalight : public QObject, public LedRs232Device
 {
+	Q_OBJECT
+
 public:
 	///
 	/// Constructs the LedDevice for attached Adalight device
@@ -31,7 +36,16 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
+private slots:
+	/// Write the last data to the leds again
+	void rewriteLeds();
+
 private:
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
+
+	/// Timer object which makes sure that led data is written at a minimum rate
+	/// The Adalight device will switch off when it does not receive data at least
+	/// every 15 seconds
+	QTimer _timer;
 };
