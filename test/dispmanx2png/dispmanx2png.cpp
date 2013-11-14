@@ -116,7 +116,8 @@ int main(int argc, char** argv)
 			memcpy(scanLinePtr, imageRgba.memptr()+imageRgba.width()*iScanline, imageRgba.width()*sizeof(ColorRgba));
 		}
 
-		qImage.save(QString("HYPERION_%3.png").arg(iFrame));
+		const QImage qImageSwp = qImage.rgbSwapped();
+		qImageSwp.save(QString("HYPERION_%3.png").arg(iFrame));
 		++iFrame;
 
 		timespec sleepTime;
