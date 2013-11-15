@@ -147,7 +147,7 @@ int LedDeviceLightpack::open()
 				}
 				catch(int e)
 				{
-					std::cerr << "unable to retrieve open Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
+					std::cerr << "unable to open Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
 				}
 			}
 		}
@@ -223,7 +223,8 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 		// switches to determine what to do and some bit shuffling
 	}
 
-	return writeBytes(_ledBuffer.data(), _ledBuffer.size());
+	int error = writeBytes(_ledBuffer.data(), _ledBuffer.size());
+	return error >= 0 ? 0 : error;
 }
 
 int LedDeviceLightpack::switchOff()
@@ -263,12 +264,14 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 	error = libusb_detach_kernel_driver(handle, LIGHTPACK_INTERFACE);
 	if (error != LIBUSB_SUCCESS)
 	{
+		libusb_close(handle);
 		throw error;
 	}
 
 	error = libusb_claim_interface(handle, LIGHTPACK_INTERFACE);
 	if (error != LIBUSB_SUCCESS)
 	{
+		libusb_close(handle);
 		throw error;
 	}
 
@@ -283,6 +286,7 @@ std::string LedDeviceLightpack::getString(libusb_device * device, int stringDesc
 	int error = libusb_get_string_descriptor_ascii(deviceHandle, stringDescriptorIndex, reinterpret_cast<unsigned char *>(buffer), sizeof(buffer));
 	if (error <= 0)
 	{
+		libusb_close(deviceHandle);
 		throw error;
 	}
 
@@ -295,9 +299,16 @@ LedDeviceLightpack::Version LedDeviceLightpack::getVersion(libusb_device *device
 	libusb_device_handle * deviceHandle = openDevice(device);
 
 	uint8_t buffer[256];
-	int error = libusb_get_descriptor(deviceHandle, LIBUSB_DT_REPORT, 0, buffer, sizeof(buffer));
-	if (error <= 3)
+	int error = libusb_control_transfer(
+				deviceHandle,
+				LIBUSB_ENDPOINT_IN | LIBUSB_RECIPIENT_INTERFACE,
+				LIBUSB_REQUEST_GET_DESCRIPTOR,
+				(LIBUSB_DT_REPORT << 8),
+				0,
+				buffer, sizeof(buffer), 100);
+	if (error < 3)
 	{
+		libusb_close(deviceHandle);
 		throw error;
 	}
 
