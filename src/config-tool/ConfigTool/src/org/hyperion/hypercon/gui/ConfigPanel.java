@@ -1,7 +1,6 @@
 package org.hyperion.hypercon.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +63,7 @@ public class ConfigPanel extends JPanel {
 	/** The panel for containing the example 'Hyperion TV' */
 	private JPanel mTvPanel;
 	/** The simulated 'Hyperion TV' */
-	private JHyperionTv mHyperionTv;
+	private LedSimulationComponent mHyperionTv;
 	
 	private JTabbedPane mSpecificationTabs = null;
 	/** The left (WEST) side panel containing the diferent configuration panels */
@@ -148,7 +147,7 @@ public class ConfigPanel extends JPanel {
 			mTvPanel = new JPanel();
 			mTvPanel.setLayout(new BorderLayout());
 				
-			mHyperionTv = new JHyperionTv();
+			mHyperionTv = new LedSimulationComponent(ledString.leds);
 			mTvPanel.add(mHyperionTv, BorderLayout.CENTER);
 		}
 		return mTvPanel;
