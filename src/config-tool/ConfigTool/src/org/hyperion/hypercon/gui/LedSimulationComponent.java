@@ -33,8 +33,6 @@ import org.hyperion.hypercon.spec.LedFrameConstruction;
 
 public class LedSimulationComponent extends JPanel {
 
-	private double mBorderFraction = 0.2;
-	
 	private BufferedImage mTvImage = new BufferedImage(640, 480, BufferedImage.TYPE_INT_ARGB);
 	
 	private void setImage(Image pImage) {
@@ -173,8 +171,8 @@ public class LedSimulationComponent extends JPanel {
 				}
 				int width  = backgroundImage.getWidth();
 				int height = backgroundImage.getHeight();
-				int borderWidth  = (int) (backgroundImage.getWidth() * mBorderFraction);
-				int borderHeight = (int) (backgroundImage.getHeight() * mBorderFraction);
+				int borderWidth  = (int) (backgroundImage.getWidth() * 0.1);
+				int borderHeight = (int) (backgroundImage.getHeight() * 0.2);
 				
 				mTopLeftImage.setImage(backgroundImage.getSubimage(0, 0, borderWidth, borderHeight));
 				mTopImage.setImage(backgroundImage.getSubimage(borderWidth, 0, width-2*borderWidth, borderHeight));

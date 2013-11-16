@@ -15,8 +15,6 @@ import org.hyperion.hypercon.spec.Led;
 
 public class LedSimulationWorker extends SwingWorker<BufferedImage, Object> {
 
-	private final double mBorderFraction = 0.2;
-	
 	private final BufferedImage mTvImage;
 	
 	private final Vector<Led> mLeds;
@@ -78,15 +76,16 @@ public class LedSimulationWorker extends SwingWorker<BufferedImage, Object> {
 	}
 	
 	Point tv2image(Dimension pImageDim, Point2D point) {
-		double tvFraction = (1.0 - 2*mBorderFraction);
+		double tvWidthFraction  = (1.0 - 2*0.1);
+		double tvHeightFraction = (1.0 - 2*0.2);
 		
-		double tvWidth = tvFraction * pImageDim.width;
+		double tvWidth = tvWidthFraction * pImageDim.width;
 		double tvXIndex = point.getX()*tvWidth;
-		double imageXIndex = tvXIndex + mBorderFraction*pImageDim.width;
+		double imageXIndex = tvXIndex + 0.1*pImageDim.width;
 		
-		double tvHeight = tvFraction * pImageDim.height;
+		double tvHeight = tvHeightFraction * pImageDim.height;
 		double tvYIndex = point.getY()*tvHeight;
-		double imageYIndex = tvYIndex + mBorderFraction*pImageDim.height;
+		double imageYIndex = tvYIndex + 0.2*pImageDim.height;
 
 		return new Point((int)imageXIndex, (int)imageYIndex);
 	}
