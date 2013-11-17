@@ -75,6 +75,7 @@ int LedDeviceLightpack::open()
 		_libusbContext = nullptr;
 		return -1;
 	}
+	libusb_set_debug(_libusbContext, 3);
 	std::cout << "USB context initialized" << std::endl;
 
 	// retrieve the list of usb devices
@@ -113,6 +114,7 @@ int LedDeviceLightpack::open()
 				catch (int e)
 				{
 					std::cerr << "unable to retrieve serial number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
+					serialNumber = "";
 				}
 			}
 
@@ -125,6 +127,7 @@ int LedDeviceLightpack::open()
 			catch (int e)
 			{
 				std::cerr << "unable to retrieve firmware version number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
+				version = {-1,-1};
 			}
 
 			std::cout << "Lightpack device found: bus=" << busNumber << " address=" << addressNumber << " serial=" << serialNumber << " version=" << version.majorVersion << "." << version.minorVersion << std::endl;
@@ -147,7 +150,7 @@ int LedDeviceLightpack::open()
 				}
 				catch(int e)
 				{
-					std::cerr << "unable to open Lightpack device. Searching for other device(" << e << "): " << libusb_error_name(e) << std::endl;
+					std::cerr << "Unable to open Lightpack device. Searching for other device(" << e << "): " << libusb_error_name(e) << std::endl;
 				}
 			}
 		}
@@ -219,7 +222,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 		_ledBuffer[6*i+3] = color.blue;
 
 		// leave the next three bytes on zero...
-		// 12-bit values have zeros in the lowest 4 bits which is almost correct, but it saves extra
+		// 12-bit values having zeros in the lowest 4 bits which is almost correct, but it saves extra
 		// switches to determine what to do and some bit shuffling
 	}
 
@@ -235,14 +238,24 @@ int LedDeviceLightpack::switchOff()
 
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 {
-	std::cout << "Writing " << size << " bytes to Lightpack device" << std::endl;
+	std::cout << "Writing " << size << " bytes: ";
+	for (int i = 0; i < size ; ++i) printf("%02x ", data[i]);
+	std::cout << std::endl;
 
-	return libusb_control_transfer(_deviceHandle,
-		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS	| LIBUSB_RECIPIENT_INTERFACE,
-		0x09,
+	int error = libusb_control_transfer(_deviceHandle,
+		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+		LIBUSB_REQUEST_SET_CONFIGURATION,
 		(2 << 8),
 		0x00,
 		data, size, 100);
+
+	if (error == size)
+	{
+		return 0;
+	}
+
+	std::cerr << "Unable to write " << size << " bytes to Lightpack device(" << error << "): " << libusb_error_name(error) << std::endl;
+	return error;
 }
 
 int LedDeviceLightpack::disableSmoothing()
@@ -317,10 +330,10 @@ LedDeviceLightpack::Version LedDeviceLightpack::getVersion(libusb_device *device
 	uint8_t buffer[256];
 	error = libusb_control_transfer(
 				handle,
-				LIBUSB_ENDPOINT_IN | LIBUSB_RECIPIENT_INTERFACE,
-				LIBUSB_REQUEST_GET_DESCRIPTOR,
-				(LIBUSB_DT_REPORT << 8),
-				0,
+				LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+				LIBUSB_REQUEST_GET_CONFIGURATION,
+				(2 << 8),
+				0x00,
 				buffer, sizeof(buffer), 100);
 	if (error < 3)
 	{
