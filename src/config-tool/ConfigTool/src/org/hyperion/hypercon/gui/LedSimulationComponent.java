@@ -3,6 +3,8 @@ package org.hyperion.hypercon.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -59,6 +61,7 @@ public class LedSimulationComponent extends JPanel {
 	private JProgressBar mProgressBar;
 	
 	LedTvComponent mTvComponent;
+	private int mLedCnt = 0;
 	
 	public LedSimulationComponent(Vector<Led> pLeds) {
 		super();
@@ -133,6 +136,7 @@ public class LedSimulationComponent extends JPanel {
 	LedSimulationWorker mWorker = null;
 	
 	public void setLeds(Vector<Led> pLeds) {
+		mLedCnt = pLeds == null? 0 : pLeds.size();
 		mTvComponent.setLeds(pLeds);
 		
 		synchronized (LedSimulationComponent.this) {
@@ -199,6 +203,16 @@ public class LedSimulationComponent extends JPanel {
 		mWorker.execute();
 	}
 
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+        
+        Graphics2D gCopy = (Graphics2D)g.create();
+        gCopy.setXORMode(Color.WHITE);
+        gCopy.setFont(gCopy.getFont().deriveFont(20.0f));
+        String ledCntStr = "Led count: " + mLedCnt;
+        gCopy.drawString(ledCntStr, getWidth()-150.0f, getHeight()-10.0f);
+	}
 	
 	public static void main(String[] pArgs) {
 		JFrame frame = new JFrame();
