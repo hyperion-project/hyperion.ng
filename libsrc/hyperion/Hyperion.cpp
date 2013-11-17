@@ -20,6 +20,7 @@
 #include "device/LedDeviceWs2801.h"
 #include "device/LedDeviceAdalight.h"
 #include "device/LedDeviceLightpack.h"
+#include "device/LedDeviceMultiLightpack.h"
 
 #include "LinearColorSmoothing.h"
 
@@ -89,6 +90,13 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		const std::string output = deviceConfig.get("output", "").asString();
 
 		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack(output);
+		deviceLightpack->open();
+
+		device = deviceLightpack;
+	}
+	else if (type == "multi-lightpack")
+	{
+		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
 		deviceLightpack->open();
 
 		device = deviceLightpack;
