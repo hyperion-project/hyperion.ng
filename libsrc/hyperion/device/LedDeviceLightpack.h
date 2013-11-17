@@ -28,11 +28,18 @@ public:
 	virtual ~LedDeviceLightpack();
 
 	///
-	/// Opens and configures the output device7
+	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
 	int open();
+
+	///
+	/// Opens and configures the output device with the sepcified device
+	///
+	/// @return Zero on succes else negative
+	///
+	int open(libusb_device * device);
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -44,24 +51,40 @@ public:
 	virtual int write(const std::vector<ColorRgb>& ledValues);
 
 	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  Array of RGB values
+	/// @param[in] size       The number of RGB values
+	///
+	/// @return Zero on success else negative
+	///
+	int write(const ColorRgb * ledValues, int size);
+
+	///
 	/// Switch the leds off
 	///
 	/// @return Zero on success else negative
 	///
 	virtual int switchOff();
 
-private:
-	struct Version
-	{
-		int majorVersion;
-		int minorVersion;
-	};
+	/// Get the serial of the Lightpack
+	const std::string & getSerialNumber() const;
 
+	/// Get the number of leds
+	int getLedCount() const;
+
+private:
 	/// write bytes to the device
 	int writeBytes(uint8_t *data, int size);
 
 	/// Disable the internal smoothing on the Lightpack device
 	int disableSmoothing();
+
+	struct Version
+	{
+		int majorVersion;
+		int minorVersion;
+	};
 
 	static libusb_device_handle * openDevice(libusb_device * device);
 	static std::string getString(libusb_device * device, int stringDescriptorIndex);

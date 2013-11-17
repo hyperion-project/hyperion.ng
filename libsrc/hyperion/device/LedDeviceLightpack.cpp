@@ -75,6 +75,7 @@ int LedDeviceLightpack::open()
 		_libusbContext = nullptr;
 		return -1;
 	}
+	//libusb_set_debug(_libusbContext, 3);
 	std::cout << "USB context initialized" << std::endl;
 
 	// retrieve the list of usb devices
@@ -84,112 +85,20 @@ int LedDeviceLightpack::open()
 	// iterate the list of devices
 	for (ssize_t i = 0 ; i < deviceCount; ++i)
 	{
-		libusb_device_descriptor deviceDescriptor;
-		error = libusb_get_device_descriptor(deviceList[i], &deviceDescriptor);
-		if (error != LIBUSB_SUCCESS)
+		// try to open and initialize the device
+		error = open(deviceList[i]);
+
+		if (error == 0)
 		{
-			std::cerr << "Error while retrieving device descriptor(" << error << "): " << libusb_error_name(error) << std::endl;
-			// continue with next usb device
-			continue;
-		}
-
-		if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
-			(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
-		{
-			std::cout << "Found a lightpack device. Retrieving more information..." << std::endl;
-
-			// get the hardware address
-			int busNumber = libusb_get_bus_number(deviceList[i]);
-			int addressNumber = libusb_get_device_address(deviceList[i]);
-
-			// get the serial number
-			std::string serialNumber;
-			if (deviceDescriptor.iSerialNumber != 0)
-			{
-				try
-				{
-					serialNumber = LedDeviceLightpack::getString(deviceList[i], deviceDescriptor.iSerialNumber);
-				}
-				catch (int e)
-				{
-					std::cerr << "unable to retrieve serial number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
-				}
-			}
-
-			// get the firmware version
-			Version version = {-1,-1};
-			try
-			{
-				version = LedDeviceLightpack::getVersion(deviceList[i]);
-			}
-			catch (int e)
-			{
-				std::cerr << "unable to retrieve firmware version number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
-			}
-
-			std::cout << "Lightpack device found: bus=" << busNumber << " address=" << addressNumber << " serial=" << serialNumber << " version=" << version.majorVersion << "." << version.minorVersion << std::endl;
-
-			// check if this is the device we are looking for
-			if (_serialNumber.empty() || _serialNumber == serialNumber)
-			{
-				// This is it!
-				try
-				{
-					_deviceHandle = openDevice(deviceList[i]);
-					_serialNumber = serialNumber;
-					_busNumber = busNumber;
-					_addressNumber = addressNumber;
-
-					std::cout << "Lightpack device successfully opened" << std::endl;
-
-					// break from the search loop
-					break;
-				}
-				catch(int e)
-				{
-					std::cerr << "unable to open Lightpack device. Searching for other device(" << e << "): " << libusb_error_name(e) << std::endl;
-				}
-			}
+			// a device was sucessfully opened. break from list
+			break;
 		}
 	}
 
 	// free the device list
 	libusb_free_device_list(deviceList, 1);
 
-	if (_deviceHandle != nullptr)
-	{
-		// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
-		_firmwareVersion.majorVersion = 6;
-
-		// disable smoothing of the chosen device
-		disableSmoothing();
-
-		// determine the number of leds
-		if (_firmwareVersion.majorVersion == 4)
-		{
-			_ledCount = 8;
-		}
-		else
-		{
-			_ledCount = 10;
-		}
-
-		// determine the bits per channel
-		if (_firmwareVersion.majorVersion == 6)
-		{
-			// maybe also or version 7? The firmware suggest this is only for 6... (2013-11-13)
-			_bitsPerChannel = 12;
-		}
-		else
-		{
-			_bitsPerChannel = 8;
-		}
-
-		// set the led buffer size (command + 6 bytes per led)
-		_ledBuffer = std::vector<uint8_t>(1 + _ledCount * 6, 0);
-		_ledBuffer[0] = CMD_UPDATE_LEDS;
-	}
-	else
+	if (_deviceHandle == nullptr)
 	{
 		if (_serialNumber.empty())
 		{
@@ -204,9 +113,120 @@ int LedDeviceLightpack::open()
 	return _deviceHandle == nullptr ? -1 : 0;
 }
 
+int LedDeviceLightpack::open(libusb_device * device)
+{
+	libusb_device_descriptor deviceDescriptor;
+	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
+	if (error != LIBUSB_SUCCESS)
+	{
+		std::cerr << "Error while retrieving device descriptor(" << error << "): " << libusb_error_name(error) << std::endl;
+		return -1;
+	}
+
+	if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
+		(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
+	{
+		std::cout << "Found a lightpack device. Retrieving more information..." << std::endl;
+
+		// get the hardware address
+		int busNumber = libusb_get_bus_number(device);
+		int addressNumber = libusb_get_device_address(device);
+
+		// get the serial number
+		std::string serialNumber;
+		if (deviceDescriptor.iSerialNumber != 0)
+		{
+			try
+			{
+				serialNumber = LedDeviceLightpack::getString(device, deviceDescriptor.iSerialNumber);
+			}
+			catch (int e)
+			{
+				std::cerr << "unable to retrieve serial number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
+				serialNumber = "";
+			}
+		}
+
+		// get the firmware version
+		Version version = {-1,-1};
+		try
+		{
+			version = LedDeviceLightpack::getVersion(device);
+		}
+		catch (int e)
+		{
+			std::cerr << "unable to retrieve firmware version number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
+			version = {-1,-1};
+		}
+
+		std::cout << "Lightpack device found: bus=" << busNumber << " address=" << addressNumber << " serial=" << serialNumber << " version=" << version.majorVersion << "." << version.minorVersion << std::endl;
+
+		// check if this is the device we are looking for
+		if (_serialNumber.empty() || _serialNumber == serialNumber)
+		{
+			// This is it!
+			try
+			{
+				_deviceHandle = openDevice(device);
+				_serialNumber = serialNumber;
+				_busNumber = busNumber;
+				_addressNumber = addressNumber;
+
+				std::cout << "Lightpack device successfully opened" << std::endl;
+
+				// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
+				_firmwareVersion.majorVersion = 6;
+
+				// disable smoothing of the chosen device
+				disableSmoothing();
+
+				// determine the number of leds
+				if (_firmwareVersion.majorVersion == 4)
+				{
+					_ledCount = 8;
+				}
+				else
+				{
+					_ledCount = 10;
+				}
+
+				// determine the bits per channel
+				if (_firmwareVersion.majorVersion == 6)
+				{
+					// maybe also or version 7? The firmware suggest this is only for 6... (2013-11-13)
+					_bitsPerChannel = 12;
+				}
+				else
+				{
+					_bitsPerChannel = 8;
+				}
+
+				// set the led buffer size (command + 6 bytes per led)
+				_ledBuffer = std::vector<uint8_t>(1 + _ledCount * 6, 0);
+				_ledBuffer[0] = CMD_UPDATE_LEDS;
+
+				// return success
+				return 0;
+			}
+			catch(int e)
+			{
+				_deviceHandle = nullptr;
+				std::cerr << "Unable to open Lightpack device. Searching for other device(" << e << "): " << libusb_error_name(e) << std::endl;
+			}
+		}
+	}
+
+	return -1;
+}
+
 int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 {
-	int count = std::min(_ledCount, (int) ledValues.size());
+	return write(ledValues.data(), ledValues.size());
+}
+
+int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
+{
+	int count = std::min(_ledCount, size);
 
 	for (int i = 0; i < count ; ++i)
 	{
@@ -219,7 +239,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 		_ledBuffer[6*i+3] = color.blue;
 
 		// leave the next three bytes on zero...
-		// 12-bit values have zeros in the lowest 4 bits which is almost correct, but it saves extra
+		// 12-bit values having zeros in the lowest 4 bits which is almost correct, but it saves extra
 		// switches to determine what to do and some bit shuffling
 	}
 
@@ -233,16 +253,36 @@ int LedDeviceLightpack::switchOff()
 	return writeBytes(buf, sizeof(buf)) == sizeof(buf);
 }
 
+const std::string &LedDeviceLightpack::getSerialNumber() const
+{
+	return _serialNumber;
+}
+
+int LedDeviceLightpack::getLedCount() const
+{
+	return _ledCount;
+}
+
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 {
-	std::cout << "Writing " << size << " bytes to Lightpack device" << std::endl;
+//	std::cout << "Writing " << size << " bytes: ";
+//	for (int i = 0; i < size ; ++i) printf("%02x ", data[i]);
+//	std::cout << std::endl;
 
-	return libusb_control_transfer(_deviceHandle,
-		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS	| LIBUSB_RECIPIENT_INTERFACE,
-		0x09,
+	int error = libusb_control_transfer(_deviceHandle,
+		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+		LIBUSB_REQUEST_SET_CONFIGURATION,
 		(2 << 8),
 		0x00,
-		data, size, 100);
+		data, size, 1000);
+
+	if (error == size)
+	{
+		return 0;
+	}
+
+	std::cerr << "Unable to write " << size << " bytes to Lightpack device(" << error << "): " << libusb_error_name(error) << std::endl;
+	return error;
 }
 
 int LedDeviceLightpack::disableSmoothing()
@@ -317,11 +357,11 @@ LedDeviceLightpack::Version LedDeviceLightpack::getVersion(libusb_device *device
 	uint8_t buffer[256];
 	error = libusb_control_transfer(
 				handle,
-				LIBUSB_ENDPOINT_IN | LIBUSB_RECIPIENT_INTERFACE,
-				LIBUSB_REQUEST_GET_DESCRIPTOR,
-				(LIBUSB_DT_REPORT << 8),
+				LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+				0x01,
+				0x0100,
 				0,
-				buffer, sizeof(buffer), 100);
+				buffer, sizeof(buffer), 1000);
 	if (error < 3)
 	{
 		libusb_close(handle);
