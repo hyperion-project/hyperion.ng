@@ -24,6 +24,7 @@ import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
 
 import org.hyperion.hypercon.LedFrameFactory;
 import org.hyperion.hypercon.spec.ImageProcessConfig;
@@ -145,22 +146,24 @@ public class LedSimulationComponent extends JPanel {
 		mWorker.addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName() == "state") {
+					if (evt.getNewValue() == SwingWorker.StateValue.STARTED) {
+						mProgressBar.setVisible(true);
+					} else if (evt.getNewValue() == SwingWorker.StateValue.DONE) {
+						handleWorkerDone();
+						mProgressBar.setVisible(false);
+					}
+				} else if (evt.getPropertyName() == "progress") {
+					mProgressBar.setValue(mWorker.getProgress());
+				}					
+			}
+			
+			private void handleWorkerDone() {
 				BufferedImage backgroundImage = null;
-
 				synchronized(LedSimulationComponent.this) {
 					if (mWorker == null) {
 						return;
 					}
-					
-					if (evt.getPropertyName() == "progress") {
-						mProgressBar.setValue(mWorker.getProgress());
-						return;
-					}
-				
-					if (!mWorker.isDone()) {
-						return;
-					}
-					
 					try {
 						backgroundImage = mWorker.get();
 						mWorker = null;
@@ -169,6 +172,7 @@ public class LedSimulationComponent extends JPanel {
 				if (backgroundImage == null) {
 					return;
 				}
+
 				int width  = backgroundImage.getWidth();
 				int height = backgroundImage.getHeight();
 				int borderWidth  = (int) (backgroundImage.getWidth() * 0.1);
@@ -186,6 +190,7 @@ public class LedSimulationComponent extends JPanel {
 				mBottomRightImage.setImage(backgroundImage.getSubimage(width-borderWidth, height-borderHeight, borderWidth, borderHeight));
 				
 				mProgressBar.setValue(100);
+				mProgressBar.setVisible(false);
 				mWorker = null;
 				
 				LedSimulationComponent.this.repaint();
