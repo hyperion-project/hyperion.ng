@@ -302,12 +302,16 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 		throw error;
 	}
 
-	error = libusb_detach_kernel_driver(handle, LIGHTPACK_INTERFACE);
-	if (error != LIBUSB_SUCCESS)
+	// detach kernel driver if it is active
+	if (libusb_kernel_driver_active(handle, LIGHTPACK_INTERFACE) == 1)
 	{
-		std::cerr << "unable to detach kernel driver(" << error << "): " << libusb_error_name(error) << std::endl;
-		libusb_close(handle);
-		throw error;
+		error = libusb_detach_kernel_driver(handle, LIGHTPACK_INTERFACE);
+		if (error != LIBUSB_SUCCESS)
+		{
+			std::cerr << "unable to detach kernel driver(" << error << "): " << libusb_error_name(error) << std::endl;
+			libusb_close(handle);
+			throw error;
+		}
 	}
 
 	error = libusb_claim_interface(handle, LIGHTPACK_INTERFACE);
