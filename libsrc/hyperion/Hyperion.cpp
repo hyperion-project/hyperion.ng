@@ -24,7 +24,7 @@
 
 #include "LinearColorSmoothing.h"
 
-#include <utils/ColorTransform.h>
+#include <utils/RgbChannelTransform.h>
 #include <utils/HsvTransform.h>
 
 LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
@@ -163,14 +163,14 @@ HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
 	return new HsvTransform(saturationGain, valueGain);
 }
 
-ColorTransform* Hyperion::createColorTransform(const Json::Value& colorConfig)
+RgbChannelTransform* Hyperion::createColorTransform(const Json::Value& colorConfig)
 {
 	const double threshold  = colorConfig.get("threshold", 0.0).asDouble();
 	const double gamma      = colorConfig.get("gamma", 1.0).asDouble();
 	const double blacklevel = colorConfig.get("blacklevel", 0.0).asDouble();
 	const double whitelevel = colorConfig.get("whitelevel", 1.0).asDouble();
 
-	ColorTransform* transform = new ColorTransform(threshold, gamma, blacklevel, whitelevel);
+	RgbChannelTransform* transform = new RgbChannelTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
 }
 
@@ -322,7 +322,7 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::Color color, double value)
 {
 	// select the transform of the requested color
-	ColorTransform * t = nullptr;
+	RgbChannelTransform * t = nullptr;
 	switch (color)
 	{
 	case RED:
@@ -396,7 +396,7 @@ void Hyperion::clearall()
 double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color color) const
 {
 	// select the transform of the requested color
-	ColorTransform * t = nullptr;
+	RgbChannelTransform * t = nullptr;
 	switch (color)
 	{
 	case RED:

@@ -17,7 +17,7 @@
 
 // Forward class declaration
 class HsvTransform;
-class ColorTransform;
+class RgbChannelTransform;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -145,7 +145,7 @@ public:
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
-	static ColorTransform * createColorTransform(const Json::Value & colorConfig);
+	static RgbChannelTransform * createColorTransform(const Json::Value & colorConfig);
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
 
 private slots:
@@ -173,11 +173,11 @@ private:
 	/// The HSV Transform for applying Saturation and Value transforms
 	HsvTransform * _hsvTransform;
 	/// The RED-Channel (RGB) transform
-	ColorTransform * _redTransform;
+	RgbChannelTransform * _redTransform;
 	/// The GREEN-Channel (RGB) transform
-	ColorTransform * _greenTransform;
+	RgbChannelTransform * _greenTransform;
 	/// The BLUE-Channel (RGB) transform
-	ColorTransform * _blueTransform;
+	RgbChannelTransform * _blueTransform;
 
 	/// Value with the desired color byte order
 	ColorOrder _colorOrder;
