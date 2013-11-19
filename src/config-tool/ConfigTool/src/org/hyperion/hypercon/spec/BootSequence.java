@@ -19,7 +19,7 @@ public enum BootSequence {
 		switch(this) {
 		case rainbow:
 			return "Rainbow";
-		case knight_rider:
+		case knightrider:
 			return "Kinght Rider";
 		}
 		return "None";
