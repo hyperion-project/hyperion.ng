@@ -7,7 +7,7 @@ public enum BootSequence {
 	/** The rainbow boot sequence */ 
 	rainbow,
 	/** The Knight Rider (or KITT) boot sequence */
-	knight_rider;
+	knightrider;
 	
 	/**
 	 * Returns a string representation of the BootSequence
