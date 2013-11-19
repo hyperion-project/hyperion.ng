@@ -62,7 +62,7 @@ public class MiscConfig {
 		StringBuffer strBuf = new StringBuffer();
 
 		strBuf.append("\t/// The boot-sequence configuration, contains the following items: \n");
-		strBuf.append("\t///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none') \n");
+		strBuf.append("\t///  * type        : The type of the boot-sequence ('rainbow', 'knightrider', 'none') \n");
 		strBuf.append("\t///  * duration_ms : The length of the boot-sequence [ms]\n");
 		
 		String bootPreamble = mBootsequenceEnabled? "\t" : "//\t";
