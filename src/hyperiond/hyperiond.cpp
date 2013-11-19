@@ -6,6 +6,9 @@
 #include <QCoreApplication>
 #include <QResource>
 
+// config includes
+#include "HyperionConfig.h"
+
 // Json-Schema includes
 #include <utils/jsonschema/JsonFactory.h>
 
@@ -15,8 +18,10 @@
 // Bootsequence includes
 #include <bootsequence/BootSequenceFactory.h>
 
+#ifdef ENABLE_DISPMANX
 // Dispmanx grabber includes
 #include <dispmanx-grabber/DispmanxWrapper.h>
+#endif
 
 // XBMC Video checker includes
 #include <xbmcvideochecker/XBMCVideoChecker.h>
@@ -118,6 +123,7 @@ int main(int argc, char** argv)
 		std::cout << "XBMC video checker created and started" << std::endl;
 	}
 
+#ifdef ENABLE_DISPMANX
 	// Construct and start the frame-grabber if the configuration is present
 	DispmanxWrapper * dispmanx = nullptr;
 	if (config.isMember("framegrabber"))
@@ -137,6 +143,12 @@ int main(int argc, char** argv)
 		dispmanx->start();
 		std::cout << "Frame grabber created and started" << std::endl;
 	}
+#else
+	if (config.isMember("framegrabber"))
+	{
+		std::cerr << "The dispmanx framegrabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+	}
+#endif
 
 	// Create Json server if configuration is present
 	JsonServer * jsonServer = nullptr;
@@ -171,7 +183,9 @@ int main(int argc, char** argv)
 
 	// Delete all component
 	delete bootSequence;
+#ifdef ENABLE_DISPMANX
 	delete dispmanx;
+#endif
 	delete xbmcVideoChecker;
 	delete jsonServer;
 	delete protoServer;

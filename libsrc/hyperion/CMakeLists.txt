@@ -79,4 +79,5 @@ target_link_libraries(hyperion
 		hyperion-utils
 		serialport
 		${QT_LIBRARIES}
-		${LIBUSB_1_LIBRARIES})
+		${LIBUSB_1_LIBRARIES}
+		${CMAKE_THREAD_LIBS_INIT})

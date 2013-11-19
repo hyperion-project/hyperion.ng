@@ -27,7 +27,9 @@ add_executable(test_image2ledsmap
 target_link_libraries(test_image2ledsmap
 		hyperion)
 
-add_subdirectory(dispmanx2png)
+if (ENABLE_DISPMANX)
+	add_subdirectory(dispmanx2png)
+endif (ENABLE_DISPMANX)
 
 add_executable(test_blackborderdetector
 		TestBlackBorderDetector.cpp)

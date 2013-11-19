@@ -1,0 +1,4 @@
+// Generated config file
+
+// Define to enable the dispmanx grabber
+#cmakedefine ENABLE_DISPMANX
