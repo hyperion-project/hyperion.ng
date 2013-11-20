@@ -165,7 +165,7 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 		RgbChannelTransform * greenTransform = createColorTransform(colorConfig["green"]);
 		RgbChannelTransform * blueTransform  = createColorTransform(colorConfig["blue"]);
 
-		HsvTransform * hsvTransform = createHsvTransform("hsv");
+		HsvTransform * hsvTransform = createHsvTransform(colorConfig["hsv"]);
 		transform->addTransform(id, *redTransform, *greenTransform, *blueTransform, *hsvTransform);
 		transform->setTransformForLed(id, 0, ledCnt-1);
 
