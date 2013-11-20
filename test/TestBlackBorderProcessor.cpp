@@ -148,7 +148,7 @@ int main()
 
 	// Switch back (in one shot) to no border
 	assert(processor.process(noBorderImage));
-	assert(processor.getCurrentBorder().type == BlackBorder::none);
+	assert(processor.getCurrentBorder().verticalSize == 0 && processor.getCurrentBorder().horizontalSize == 0);
 
 	return 0;
 }
