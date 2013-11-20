@@ -339,7 +339,7 @@
 	},
 
 	/// The boot-sequence configuration, contains the following items: 
-	///  * type        : The type of the boot-sequence ('rainbow', 'knight_rider', 'none') 
+	///  * type        : The type of the boot-sequence ('rainbow', 'knightrider', 'none') 
 	///  * duration_ms : The length of the boot-sequence [ms]
 	"bootsequence" :
 	{

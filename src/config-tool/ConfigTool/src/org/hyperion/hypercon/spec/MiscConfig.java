@@ -68,7 +68,7 @@ public class MiscConfig {
 		String bootPreamble = mBootsequenceEnabled? "\t" : "//\t";
 		strBuf.append(bootPreamble).append("\"bootsequence\" :\n");
 		strBuf.append(bootPreamble).append("{\n");
-		strBuf.append(bootPreamble).append(String.format(Locale.ROOT, "\t\"type\"        : \"%s\",\n", mBootSequence));
+		strBuf.append(bootPreamble).append(String.format(Locale.ROOT, "\t\"type\"        : \"%s\",\n", mBootSequence.name()));
 		strBuf.append(bootPreamble).append(String.format(Locale.ROOT, "\t\"duration_ms\" : %d\n", mBootSequenceLength_ms));
 		strBuf.append(bootPreamble).append("},\n\n");
 
