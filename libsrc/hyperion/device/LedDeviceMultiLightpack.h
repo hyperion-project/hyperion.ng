@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <list>
 
 // libusb include
 #include <libusb.h>
@@ -50,6 +51,10 @@ public:
 	/// @return Zero on success else negative
 	///
 	virtual int switchOff();
+
+private:
+	static std::list<std::string> getLightpackSerials();
+	static std::string getString(libusb_device * device, int stringDescriptorIndex);
 
 private:
 	/// buffer for led data

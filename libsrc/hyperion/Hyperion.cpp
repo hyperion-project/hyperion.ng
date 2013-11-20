@@ -89,8 +89,8 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 	{
 		const std::string output = deviceConfig.get("output", "").asString();
 
-		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack(output);
-		deviceLightpack->open();
+		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack();
+		deviceLightpack->open(output);
 
 		device = deviceLightpack;
 	}

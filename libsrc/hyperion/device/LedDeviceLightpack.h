@@ -20,7 +20,7 @@ public:
 	///
 	/// Constructs the LedDeviceLightpack
 	///
-	LedDeviceLightpack(const std::string & serialNumber = "");
+	LedDeviceLightpack();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -32,14 +32,7 @@ public:
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
-
-	///
-	/// Opens and configures the output device with the sepcified device
-	///
-	/// @return Zero on succes else negative
-	///
-	int open(libusb_device * device);
+	int open(const std::string & serialNumber = "");
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -74,6 +67,13 @@ public:
 	int getLedCount() const;
 
 private:
+	///
+	/// Test if the device is a (or the) lightpack we are looking for
+	///
+	/// @return Zero on succes else negative
+	///
+	int testAndOpen(libusb_device * device, const std::string & requestedSerialNumber);
+
 	/// write bytes to the device
 	int writeBytes(uint8_t *data, int size);
 
@@ -88,7 +88,6 @@ private:
 
 	static libusb_device_handle * openDevice(libusb_device * device);
 	static std::string getString(libusb_device * device, int stringDescriptorIndex);
-	static Version getVersion(libusb_device * device);
 
 private:
 	/// libusb context

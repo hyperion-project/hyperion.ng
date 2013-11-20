@@ -32,13 +32,13 @@ enum DATA_VERSION_INDEXES{
 	INDEX_FW_VER_MINOR
 };
 
-LedDeviceLightpack::LedDeviceLightpack(const std::string &serialNumber) :
+LedDeviceLightpack::LedDeviceLightpack() :
 	LedDevice(),
 	_libusbContext(nullptr),
 	_deviceHandle(nullptr),
 	_busNumber(-1),
 	_addressNumber(-1),
-	_serialNumber(serialNumber),
+	_serialNumber(""),
 	_firmwareVersion({-1,-1}),
 	_ledCount(-1),
 	_bitsPerChannel(-1),
@@ -64,7 +64,7 @@ LedDeviceLightpack::~LedDeviceLightpack()
 	}
 }
 
-int LedDeviceLightpack::open()
+int LedDeviceLightpack::open(const std::string & serialNumber)
 {
 	int error;
 
@@ -86,7 +86,7 @@ int LedDeviceLightpack::open()
 	for (ssize_t i = 0 ; i < deviceCount; ++i)
 	{
 		// try to open and initialize the device
-		error = open(deviceList[i]);
+		error = testAndOpen(deviceList[i], serialNumber);
 
 		if (error == 0)
 		{
@@ -113,7 +113,7 @@ int LedDeviceLightpack::open()
 	return _deviceHandle == nullptr ? -1 : 0;
 }
 
-int LedDeviceLightpack::open(libusb_device * device)
+int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & requestedSerialNumber)
 {
 	libusb_device_descriptor deviceDescriptor;
 	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
@@ -147,22 +147,10 @@ int LedDeviceLightpack::open(libusb_device * device)
 			}
 		}
 
-		// get the firmware version
-		Version version = {-1,-1};
-		try
-		{
-			version = LedDeviceLightpack::getVersion(device);
-		}
-		catch (int e)
-		{
-			std::cerr << "unable to retrieve firmware version number from Lightpack device(" << e << "): " << libusb_error_name(e) << std::endl;
-			version = {-1,-1};
-		}
-
-		std::cout << "Lightpack device found: bus=" << busNumber << " address=" << addressNumber << " serial=" << serialNumber << " version=" << version.majorVersion << "." << version.minorVersion << std::endl;
+		std::cout << "Lightpack device found: bus=" << busNumber << " address=" << addressNumber << " serial=" << serialNumber << std::endl;
 
 		// check if this is the device we are looking for
-		if (_serialNumber.empty() || _serialNumber == serialNumber)
+		if (requestedSerialNumber.empty() || requestedSerialNumber == serialNumber)
 		{
 			// This is it!
 			try
@@ -173,6 +161,25 @@ int LedDeviceLightpack::open(libusb_device * device)
 				_addressNumber = addressNumber;
 
 				std::cout << "Lightpack device successfully opened" << std::endl;
+
+				// get the firmware version
+				uint8_t buffer[256];
+				error = libusb_control_transfer(
+							_deviceHandle,
+							LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+							0x01,
+							0x0100,
+							0,
+							buffer, sizeof(buffer), 1000);
+				if (error < 3)
+				{
+					std::cerr << "Unable to retrieve firmware version number from Lightpack device(" << error << "): " << libusb_error_name(error) << std::endl;
+				}
+				else
+				{
+					_firmwareVersion.majorVersion = buffer[INDEX_FW_VER_MAJOR];
+					_firmwareVersion.minorVersion = buffer[INDEX_FW_VER_MINOR];
+				}
 
 				// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
 				_firmwareVersion.majorVersion = 6;
@@ -206,6 +213,7 @@ int LedDeviceLightpack::open(libusb_device * device)
 				_ledBuffer[0] = CMD_UPDATE_LEDS;
 
 				// return success
+				std::cout << "Lightpack device opened: bus=" << _busNumber << " address=" << _addressNumber << " serial=" << _serialNumber << " version=" << _firmwareVersion.majorVersion << "." << _firmwareVersion.minorVersion << std::endl;
 				return 0;
 			}
 			catch(int e)
@@ -346,32 +354,4 @@ std::string LedDeviceLightpack::getString(libusb_device * device, int stringDesc
 
 	libusb_close(handle);
 	return std::string(buffer, error);
-}
-
-LedDeviceLightpack::Version LedDeviceLightpack::getVersion(libusb_device *device)
-{
-	libusb_device_handle * handle = nullptr;
-
-	int error = libusb_open(device, &handle);
-	if (error != LIBUSB_SUCCESS)
-	{
-		throw error;
-	}
-
-	uint8_t buffer[256];
-	error = libusb_control_transfer(
-				handle,
-				LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
-				0x01,
-				0x0100,
-				0,
-				buffer, sizeof(buffer), 1000);
-	if (error < 3)
-	{
-		libusb_close(handle);
-		throw error;
-	}
-
-	libusb_close(handle);
-	return Version{buffer[INDEX_FW_VER_MAJOR], buffer[INDEX_FW_VER_MINOR]};
 }
