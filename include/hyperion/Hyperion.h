@@ -18,6 +18,7 @@
 // Forward class declaration
 class HsvTransform;
 class RgbChannelTransform;
+class MultiColorTransform;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -33,7 +34,7 @@ public:
 	///
 	/// RGB-Color channel enumeration
 	///
-	enum Color
+	enum RgbChannel
 	{
 		RED, GREEN, BLUE, INVALID
 	};
@@ -96,7 +97,7 @@ public:
 	///                  Transform::WHITELEVEL)
 	/// @param[in] value  The new value for the given transform
 	///
-	void setTransform(Transform transform, Color color, double value);
+	void setTransform(Transform transform, RgbChannel color, double value);
 
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
@@ -121,7 +122,7 @@ public:
 	///
 	/// @return The value of the specified color transform
 	///
-	double getTransform(Transform transform, Color color) const;
+	double getTransform(Transform transform, RgbChannel color) const;
 
 	///
 	/// Returns a list of active priorities
@@ -144,8 +145,11 @@ public:
 	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
+
+	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
-	static RgbChannelTransform * createColorTransform(const Json::Value & colorConfig);
+	static RgbChannelTransform * createColorTransform(const Json::Value& colorConfig);
+
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
 
 private slots:
@@ -156,28 +160,14 @@ private slots:
 	void update();
 
 private:
-	///
-	/// Applies all color transmforms to the given list of colors. The transformation is performed
-	/// in place.
-	///
-	/// @param colors  The colors to be transformed
-	///
-	void applyTransform(std::vector<ColorRgb>& colors) const;
-
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
-	/// The HSV Transform for applying Saturation and Value transforms
-	HsvTransform * _hsvTransform;
-	/// The RED-Channel (RGB) transform
-	RgbChannelTransform * _redTransform;
-	/// The GREEN-Channel (RGB) transform
-	RgbChannelTransform * _greenTransform;
-	/// The BLUE-Channel (RGB) transform
-	RgbChannelTransform * _blueTransform;
+	/// The transformation from raw colors to led colors
+	MultiColorTransform * _raw2ledTransform;
 
 	/// Value with the desired color byte order
 	ColorOrder _colorOrder;

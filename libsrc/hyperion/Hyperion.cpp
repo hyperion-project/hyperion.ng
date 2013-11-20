@@ -22,10 +22,8 @@
 #include "device/LedDeviceLightpack.h"
 #include "device/LedDeviceMultiLightpack.h"
 
+#include "MultiColorTransform.h"
 #include "LinearColorSmoothing.h"
-
-#include <utils/RgbChannelTransform.h>
-#include <utils/HsvTransform.h>
 
 LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 {
@@ -155,6 +153,33 @@ Hyperion::ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 	return ORDER_RGB;
 }
 
+MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorConfig)
+{
+	MultiColorTransform * transform = new MultiColorTransform();
+	if (!colorConfig.isArray())
+	{
+		// Old style color transformation config (just one for all leds)
+		const std::string id = "default";
+
+		RgbChannelTransform * redTransform   = createColorTransform(colorConfig["red"]);
+		RgbChannelTransform * greenTransform = createColorTransform(colorConfig["green"]);
+		RgbChannelTransform * blueTransform  = createColorTransform(colorConfig["blue"]);
+
+		HsvTransform * hsvTransform = createHsvTransform("hsv");
+		transform->addTransform(id, *redTransform, *greenTransform, *blueTransform, *hsvTransform);
+		transform->setTransformForLed(id, 0, ledCnt-1);
+
+		delete redTransform;
+		delete greenTransform;
+		delete blueTransform;
+	}
+	else
+	{
+
+	}
+	return transform;
+}
+
 HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
 {
 	const double saturationGain = hsvConfig.get("saturationGain", 1.0).asDouble();
@@ -246,10 +271,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"])),
 	_muxer(_ledString.leds().size()),
-	_hsvTransform(createHsvTransform(jsonConfig["color"]["hsv"])),
-	_redTransform(createColorTransform(jsonConfig["color"]["red"])),
-	_greenTransform(createColorTransform(jsonConfig["color"]["green"])),
-	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
+	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
 	_colorOrder(createColorOrder(jsonConfig["device"])),
 	_device(createDevice(jsonConfig["device"])),
 	_timer()
@@ -278,13 +300,8 @@ Hyperion::~Hyperion()
 	// Delete the Led-String
 	delete _device;
 
-	// delete he hsv transform
-	delete _hsvTransform;
-
-	// Delete the color-transform
-	delete _blueTransform;
-	delete _greenTransform;
-	delete _redTransform;
+	// delete the color transform
+	delete _raw2ledTransform;
 }
 
 unsigned Hyperion::getLedCount() const
@@ -319,20 +336,23 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	}
 }
 
-void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::Color color, double value)
+void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::RgbChannel color, double value)
 {
+	ColorTransform* colorTransform = _raw2ledTransform->getTransform("default");
+	assert(colorTransform != nullptr);
+
 	// select the transform of the requested color
 	RgbChannelTransform * t = nullptr;
 	switch (color)
 	{
 	case RED:
-		t = _redTransform;
+		t = &(colorTransform->_rgbRedTransform);
 		break;
 	case GREEN:
-		t = _greenTransform;
+		t = &(colorTransform->_rgbGreenTransform);
 		break;
 	case BLUE:
-		t = _blueTransform;
+		t = &(colorTransform->_rgbBlueTransform);
 		break;
 	default:
 		break;
@@ -342,10 +362,10 @@ void Hyperion::setTransform(Hyperion::Transform transform, Hyperion::Color color
 	switch (transform)
 	{
 	case SATURATION_GAIN:
-		_hsvTransform->setSaturationGain(value);
+		colorTransform->_hsvTransform.setSaturationGain(value);
 		break;
 	case VALUE_GAIN:
-		_hsvTransform->setValueGain(value);
+		colorTransform->_hsvTransform.setValueGain(value);
 		break;
 	case THRESHOLD:
 		assert (t != nullptr);
@@ -393,20 +413,23 @@ void Hyperion::clearall()
 	update();
 }
 
-double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color color) const
+double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::RgbChannel color) const
 {
+	ColorTransform * colorTransform = _raw2ledTransform->getTransform("default");
+	assert(colorTransform != nullptr);
+
 	// select the transform of the requested color
 	RgbChannelTransform * t = nullptr;
 	switch (color)
 	{
 	case RED:
-		t = _redTransform;
+		t = &(colorTransform->_rgbRedTransform);
 		break;
 	case GREEN:
-		t = _greenTransform;
+		t = &(colorTransform->_rgbGreenTransform);
 		break;
 	case BLUE:
-		t = _blueTransform;
+		t = &(colorTransform->_rgbBlueTransform);
 		break;
 	default:
 		break;
@@ -416,9 +439,9 @@ double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color col
 	switch (transform)
 	{
 	case SATURATION_GAIN:
-		return _hsvTransform->getSaturationGain();
+		return colorTransform->_hsvTransform.getSaturationGain();
 	case VALUE_GAIN:
-		return _hsvTransform->getValueGain();
+		return colorTransform->_hsvTransform.getValueGain();
 	case THRESHOLD:
 		assert (t != nullptr);
 		return t->getThreshold();
@@ -458,14 +481,9 @@ void Hyperion::update()
 	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
 
 	// Apply the transform to each led and color-channel
-	std::vector<ColorRgb> ledColors(priorityInfo.ledColors);
+	std::vector<ColorRgb> ledColors = _raw2ledTransform->applyTransform(priorityInfo.ledColors);
 	for (ColorRgb& color : ledColors)
 	{
-		_hsvTransform->transform(color.red, color.green, color.blue);
-		color.red   = _redTransform->transform(color.red);
-		color.green = _greenTransform->transform(color.green);
-		color.blue  = _blueTransform->transform(color.blue);
-
 		// correct the color byte order
 		switch (_colorOrder)
 		{
