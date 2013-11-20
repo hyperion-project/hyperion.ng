@@ -1,8 +1,19 @@
+project(hyperion)
 
 # define the minimum cmake version (as required by cmake)
 cmake_minimum_required(VERSION 2.8)
 
 #set(CMAKE_TOOLCHAIN_FILE /opt/raspberrypi/Toolchain-RaspberryPi.cmake)
+
+# set the build options
+option (ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
+message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
+
+# Createt the configuration file
+# configure a header file to pass some of the CMake settings
+# to the source code
+configure_file ("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
+include_directories("${PROJECT_BINARY_DIR}")
 
 # Define the main-project name
 project(Hyperion)
@@ -37,8 +48,9 @@ find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 # add protocol buffers
 find_package(Protobuf REQUIRED)
 
-#add libusb
+#add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
+find_package(Threads REQUIRED)
 
 #SET(QT_DONT_USE_QTGUI   TRUE)
 #SET(QT_USE_QTCONSOLE    TRUE)

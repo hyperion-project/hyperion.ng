@@ -24,7 +24,7 @@ BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, cons
 		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
 		return new RainbowBootSequence(hyperion, duration_ms);
 	}
-	else if (type == "knightrider" || type == "knight rider")
+	else if (type == "knightrider" || type == "knight rider" || "knight_rider")
 	{
 		std::cout << "SELECTED BOOT SEQUENCE: " << "KITT" << std::endl;
 		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
@@ -34,5 +34,3 @@ BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, cons
 	std::cerr << "Unknown boot-sequence selected; boot-sequence disabled." << std::endl;
 	return nullptr;
 }
-
-

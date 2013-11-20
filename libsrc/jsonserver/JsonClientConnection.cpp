@@ -168,7 +168,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 		item["priority"] = priority;
 		if (priorityInfo.timeoutTime_ms != -1)
 		{
-			item["duration_ms"] = priorityInfo.timeoutTime_ms - now;
+			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
 	}
 
