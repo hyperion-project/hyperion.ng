@@ -20,7 +20,7 @@ public enum BootSequence {
 		case rainbow:
 			return "Rainbow";
 		case knightrider:
-			return "Kinght Rider";
+			return "Knight Rider";
 		}
 		return "None";
 	}
