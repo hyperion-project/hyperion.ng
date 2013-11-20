@@ -162,6 +162,8 @@ void JsonSchemaChecker::checkType(const Json::Value & value, const Json::Value &
 		wrongType = !value.isArray();
 	else if (type == "null")
 		wrongType = !value.isNull();
+	else if (type == "enum")
+		wrongType = !value.isString();
 	else if (type == "any")
 		wrongType = false;
 	else
