@@ -77,7 +77,6 @@ add_library(hyperion
 		${Hyperion_SOURCES}
 		${Hyperion_RESOURCES_RCC}
 )
-message("{QT_LIBRARIES} = ${QT_LIBRARIES}")
 
 target_link_libraries(hyperion
 		hyperion-utils
