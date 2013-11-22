@@ -6,21 +6,8 @@
 // Utils includes
 #include <utils/ColorRgb.h>
 
-#include <utils/RgbChannelTransform.h>
-#include <utils/HsvTransform.h>
-
-struct ColorTransform
-{
-	std::string _id;
-	/// The RED-Channel (RGB) transform
-	RgbChannelTransform _rgbRedTransform;
-	/// The GREEN-Channel (RGB) transform
-	RgbChannelTransform _rgbGreenTransform;
-	/// The BLUE-Channel (RGB) transform
-	RgbChannelTransform _rgbBlueTransform;
-	/// The HSV Transform for applying Saturation and Value transforms
-	HsvTransform _hsvTransform;
-};
+// Hyperion includes
+#include <hyperion/ColorTransform.h>
 
 ///
 /// The LedColorTransform is responsible for performing color transformation from 'raw' colors
@@ -29,22 +16,25 @@ struct ColorTransform
 class MultiColorTransform
 {
 public:
-	MultiColorTransform();
+	MultiColorTransform(const unsigned ledCnt);
 	~MultiColorTransform();
 
-	void addTransform(const std::string & id,
-			const RgbChannelTransform & redTransform,
-			const RgbChannelTransform & greenTransform,
-			const RgbChannelTransform & blueTransform,
-			const HsvTransform & hsvTransform);
+	/**
+	 * Adds a new ColorTransform to this MultiColorTransform
+	 *
+	 * @param transform The new ColorTransform (ownership is transfered)
+	 */
+	void addTransform(ColorTransform * transform);
 
 	void setTransformForLed(const std::string& id, const unsigned startLed, const unsigned endLed);
+
+	bool verifyTransforms() const;
 
 	///
 	/// Returns the identifier of all the unique ColorTransform
 	///
 	/// @return The list with unique id's of the ColorTransforms
-	std::vector<std::string> getTransformIds();
+	const std::vector<std::string> & getTransformIds();
 
 	///
 	/// Returns the pointer to the ColorTransform with the given id
@@ -65,6 +55,9 @@ public:
 	std::vector<ColorRgb> applyTransform(const std::vector<ColorRgb>& rawColors);
 
 private:
+	/// List with transform ids
+	std::vector<std::string> _transformIds;
+
 	/// List with unique ColorTransforms
 	std::vector<ColorTransform*> _transform;
 

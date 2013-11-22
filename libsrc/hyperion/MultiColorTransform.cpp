@@ -5,7 +5,8 @@
 // Hyperion includes
 #include "MultiColorTransform.h"
 
-MultiColorTransform::MultiColorTransform()
+MultiColorTransform::MultiColorTransform(const unsigned ledCnt) :
+	_ledTransforms(ledCnt, nullptr)
 {
 }
 
@@ -18,33 +19,16 @@ MultiColorTransform::~MultiColorTransform()
 	}
 }
 
-void MultiColorTransform::addTransform(const std::string & id,
-		const RgbChannelTransform & redTransform,
-		const RgbChannelTransform & greenTransform,
-		const RgbChannelTransform & blueTransform,
-		const HsvTransform & hsvTransform)
+void MultiColorTransform::addTransform(ColorTransform * transform)
 {
-	ColorTransform * transform = new ColorTransform();
-	transform->_id = id;
-
-	transform->_rgbRedTransform   = redTransform;
-	transform->_rgbGreenTransform = greenTransform;
-	transform->_rgbBlueTransform  = blueTransform;
-
-	transform->_hsvTransform = hsvTransform;
-
+	_transformIds.push_back(transform->_id);
 	_transform.push_back(transform);
 }
 
 void MultiColorTransform::setTransformForLed(const std::string& id, const unsigned startLed, const unsigned endLed)
 {
 	assert(startLed <= endLed);
-
-	// Make sure that there are at least enough led transforms to match the given indices
-	if (_ledTransforms.size() < endLed+1)
-	{
-		_ledTransforms.resize(endLed+1, nullptr);
-	}
+	assert(endLed < _ledTransforms.size());
 
 	// Get the identified transform (don't care if is nullptr)
 	ColorTransform * transform = getTransform(id);
@@ -54,15 +38,23 @@ void MultiColorTransform::setTransformForLed(const std::string& id, const unsign
 	}
 }
 
-std::vector<std::string> MultiColorTransform::getTransformIds()
+bool MultiColorTransform::verifyTransforms() const
 {
-	// Create the list on the fly
-	std::vector<std::string> transformIds;
-	for (ColorTransform* transform : _transform)
+	bool allLedsSet = true;
+	for (unsigned iLed=0; iLed<_ledTransforms.size(); ++iLed)
 	{
-		transformIds.push_back(transform->_id);
+		if (_ledTransforms[iLed] == nullptr)
+		{
+			std::cerr << "No transform set for " << iLed << std::endl;
+			allLedsSet = false;
+		}
 	}
-	return transformIds;
+	return allLedsSet;
+}
+
+const std::vector<std::string> & MultiColorTransform::getTransformIds()
+{
+	return _transformIds;
 }
 
 ColorTransform* MultiColorTransform::getTransform(const std::string& id)
@@ -85,7 +77,7 @@ std::vector<ColorRgb> MultiColorTransform::applyTransform(const std::vector<Colo
 	// Create a copy, as we will do the rest of the transformation in place
 	std::vector<ColorRgb> ledColors(rawColors);
 
-	const size_t itCnt = std::min(_transform.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledTransforms.size(), rawColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorTransform* transform = _ledTransforms[i];

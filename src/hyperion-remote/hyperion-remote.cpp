@@ -45,6 +45,7 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
+		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "Set the HSV value gain of the leds");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
@@ -83,6 +84,7 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
 			std::cerr << "or one or more of the available color transformations:" << std::endl;
+			std::cerr << "  " << argId.usageLine() << std::endl;
 			std::cerr << "  " << argSaturation.usageLine() << std::endl;
 			std::cerr << "  " << argValue.usageLine() << std::endl;
 			std::cerr << "  " << argThreshold.usageLine() << std::endl;
@@ -119,9 +121,11 @@ int main(int argc, char * argv[])
 		}
 		else if (colorTransform)
 		{
+			std::string transId;
 			double saturation, value;
 			ColorTransformValues threshold, gamma, blacklevel, whitelevel;
 
+			if (argId.isSet())         transId    = argId.getValue();
 			if (argSaturation.isSet()) saturation = argSaturation.getValue();
 			if (argValue.isSet())      value      = argValue.getValue();
 			if (argThreshold.isSet())  threshold  = argThreshold.getValue();
@@ -130,6 +134,7 @@ int main(int argc, char * argv[])
 			if (argWhitelevel.isSet()) whitelevel = argWhitelevel.getValue();
 
 			connection.setTransform(
+						argId.isSet()         ? &transId    : nullptr,
 						argSaturation.isSet() ? &saturation : nullptr,
 						argValue.isSet()      ? &value      : nullptr,
 						argThreshold.isSet()  ? &threshold  : nullptr,

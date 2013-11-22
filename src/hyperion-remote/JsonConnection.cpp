@@ -160,7 +160,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(double * saturation, double * value, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
 
@@ -168,6 +168,11 @@ void JsonConnection::setTransform(double * saturation, double * value, ColorTran
 	Json::Value command;
 	command["command"] = "transform";
 	Json::Value & transform = command["transform"];
+
+	if (transformId != nullptr)
+	{
+		transform["id"] = *transformId;
+	}
 
 	if (saturation != nullptr)
 	{

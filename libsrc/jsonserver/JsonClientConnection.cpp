@@ -12,9 +12,10 @@
 #include <QDateTime>
 
 // hyperion util includes
-#include "hyperion/ImageProcessorFactory.h"
-#include "hyperion/ImageProcessor.h"
-#include "utils/ColorRgb.h"
+#include <hyperion/ImageProcessorFactory.h>
+#include <hyperion/ImageProcessor.h>
+#include <hyperion/ColorTransform.h>
+#include <utils/ColorRgb.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -173,25 +174,39 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 	}
 
 	// collect transform information
-	Json::Value & transform = info["transform"];
-	transform["saturationGain"] = _hyperion->getTransform(Hyperion::SATURATION_GAIN, Hyperion::INVALID);
-	transform["valueGain"] = _hyperion->getTransform(Hyperion::VALUE_GAIN, Hyperion::INVALID);
-	Json::Value & threshold = transform["threshold"];
-	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::RED));
-	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::GREEN));
-	threshold.append(_hyperion->getTransform(Hyperion::THRESHOLD, Hyperion::BLUE));
-	Json::Value & gamma = transform["gamma"];
-	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::RED));
-	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::GREEN));
-	gamma.append(_hyperion->getTransform(Hyperion::GAMMA, Hyperion::BLUE));
-	Json::Value & blacklevel = transform["blacklevel"];
-	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::RED));
-	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::GREEN));
-	blacklevel.append(_hyperion->getTransform(Hyperion::BLACKLEVEL, Hyperion::BLUE));
-	Json::Value & whitelevel = transform["whitelevel"];
-	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::RED));
-	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::GREEN));
-	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::BLUE));
+	Json::Value & transformArray = info["transform"];
+	for (const std::string& transformId : _hyperion->getTransformIds())
+	{
+		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
+		if (colorTransform == nullptr)
+		{
+			std::cerr << "Incorrect color transform id: " << transformId << std::endl;
+			continue;
+		}
+
+		Json::Value & transform = transformArray.append(Json::Value());
+		transform["id"] = transformId;
+
+		transform["saturationGain"] = colorTransform->_hsvTransform.getSaturationGain();
+		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
+
+		Json::Value & threshold = transform["threshold"];
+		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
+		threshold.append(colorTransform->_rgbGreenTransform.getThreshold());
+		threshold.append(colorTransform->_rgbBlueTransform.getThreshold());
+		Json::Value & gamma = transform["gamma"];
+		gamma.append(colorTransform->_rgbRedTransform.getGamma());
+		gamma.append(colorTransform->_rgbGreenTransform.getGamma());
+		gamma.append(colorTransform->_rgbBlueTransform.getGamma());
+		Json::Value & blacklevel = transform["blacklevel"];
+		blacklevel.append(colorTransform->_rgbRedTransform.getBlacklevel());
+		blacklevel.append(colorTransform->_rgbGreenTransform.getBlacklevel());
+		blacklevel.append(colorTransform->_rgbBlueTransform.getBlacklevel());
+		Json::Value & whitelevel = transform["whitelevel"];
+		whitelevel.append(colorTransform->_rgbRedTransform.getWhitelevel());
+		whitelevel.append(colorTransform->_rgbGreenTransform.getWhitelevel());
+		whitelevel.append(colorTransform->_rgbBlueTransform.getWhitelevel());
+	}
 
 	// send the result
 	sendMessage(result);
@@ -222,46 +237,54 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 {
 	const Json::Value & transform = message["transform"];
 
+	const std::string transformId = transform.get("id", _hyperion->getTransformIds().front()).asString();
+	ColorTransform * colorTransform = _hyperion->getTransform(transformId);
+	if (colorTransform == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		return;
+	}
+
 	if (transform.isMember("saturationGain"))
 	{
-		_hyperion->setTransform(Hyperion::SATURATION_GAIN, Hyperion::INVALID, transform["saturationGain"].asDouble());
+		colorTransform->_hsvTransform.setSaturationGain(transform["saturationGain"].asDouble());
 	}
 
 	if (transform.isMember("valueGain"))
 	{
-		_hyperion->setTransform(Hyperion::VALUE_GAIN, Hyperion::INVALID, transform["valueGain"].asDouble());
+		colorTransform->_hsvTransform.setValueGain(transform["valueGain"].asDouble());
 	}
 
 	if (transform.isMember("threshold"))
 	{
-		const Json::Value & threshold = transform["threshold"];
-		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::RED, threshold[0u].asDouble());
-		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::GREEN, threshold[1u].asDouble());
-		_hyperion->setTransform(Hyperion::THRESHOLD, Hyperion::BLUE, threshold[2u].asDouble());
+		const Json::Value & values = transform["threshold"];
+		colorTransform->_rgbRedTransform  .setThreshold(values[0u].asDouble());
+		colorTransform->_rgbGreenTransform.setThreshold(values[1u].asDouble());
+		colorTransform->_rgbBlueTransform .setThreshold(values[2u].asDouble());
 	}
 
 	if (transform.isMember("gamma"))
 	{
-		const Json::Value & threshold = transform["gamma"];
-		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::RED, threshold[0u].asDouble());
-		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::GREEN, threshold[1u].asDouble());
-		_hyperion->setTransform(Hyperion::GAMMA, Hyperion::BLUE, threshold[2u].asDouble());
+		const Json::Value & values = transform["gamma"];
+		colorTransform->_rgbRedTransform  .setGamma(values[0u].asDouble());
+		colorTransform->_rgbGreenTransform.setGamma(values[1u].asDouble());
+		colorTransform->_rgbBlueTransform .setGamma(values[2u].asDouble());
 	}
 
 	if (transform.isMember("blacklevel"))
 	{
-		const Json::Value & threshold = transform["blacklevel"];
-		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::RED, threshold[0u].asDouble());
-		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::GREEN, threshold[1u].asDouble());
-		_hyperion->setTransform(Hyperion::BLACKLEVEL, Hyperion::BLUE, threshold[2u].asDouble());
+		const Json::Value & values = transform["blacklevel"];
+		colorTransform->_rgbRedTransform  .setBlacklevel(values[0u].asDouble());
+		colorTransform->_rgbGreenTransform.setBlacklevel(values[1u].asDouble());
+		colorTransform->_rgbBlueTransform .setBlacklevel(values[2u].asDouble());
 	}
 
 	if (transform.isMember("whitelevel"))
 	{
-		const Json::Value & threshold = transform["whitelevel"];
-		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::RED, threshold[0u].asDouble());
-		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::GREEN, threshold[1u].asDouble());
-		_hyperion->setTransform(Hyperion::WHITELEVEL, Hyperion::BLUE, threshold[2u].asDouble());
+		const Json::Value & values = transform["whitelevel"];
+		colorTransform->_rgbRedTransform  .setWhitelevel(values[0u].asDouble());
+		colorTransform->_rgbGreenTransform.setWhitelevel(values[1u].asDouble());
+		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].asDouble());
 	}
 
 	sendSuccessReply();
