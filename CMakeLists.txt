@@ -37,6 +37,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
 
 # enable C++11
@@ -60,6 +61,7 @@ link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 
 configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
 configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
+configure_file(config/hyperion_x86.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
