@@ -34,10 +34,11 @@
 	///            - 'updateFrequency' The update frequency of the leds in Hz
 	"color" :
 	{
-		"transforms" :
+		"transform" :
 		[
 			{
-				"id" : "default",
+				"id" : "device_1",
+				"leds" : "0-24",
 				"hsv" :
 				{
 					"saturationGain" : 1.0000,
@@ -63,12 +64,42 @@
 					"gamma"      : 2.0000,
 					"blacklevel" : 0.0000,
 					"whitelevel" : 1.0000
+				}
+			},
+			{
+				"id" : "device_2",
+				"leds" : "25-49",
+				"hsv" :
+				{
+					"saturationGain" : 1.0000,
+					"valueGain"      : 1.5000
 				},
+				"red" :
+				{
+					"threshold"  : 0.1000,
+					"gamma"      : 2.0000,
+					"blacklevel" : 0.0000,
+					"whitelevel" : 0.8000
+				},
+				"green" :
+				{
+					"threshold"  : 0.1000,
+					"gamma"      : 2.0000,
+					"blacklevel" : 0.0000,
+					"whitelevel" : 1.0000
+				},
+				"blue" :
+				{
+					"threshold"  : 0.1000,
+					"gamma"      : 2.0000,
+					"blacklevel" : 0.0000,
+					"whitelevel" : 1.0000
+				}
 			}
 		],
 		"smoothing" :
 		{
-			"type"            : "none",
+			"type"            : "linear",
 			"time_ms"         : 200,
 			"updateFrequency" : 20.0000
 		}
