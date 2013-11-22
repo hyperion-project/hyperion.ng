@@ -154,6 +154,8 @@ void JsonSchemaChecker::checkType(const Json::Value & value, const Json::Value &
 		wrongType = !value.isNumeric();
 	else if (type == "integer")
 		wrongType = !value.isIntegral();
+	else if (type == "double")
+		wrongType = !value.isDouble();
 	else if (type == "boolean")
 		wrongType = !value.isBool();
 	else if (type == "object")
