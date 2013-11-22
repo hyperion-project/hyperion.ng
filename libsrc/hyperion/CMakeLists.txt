@@ -3,7 +3,14 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
-include_directories(${LIBUSB_1_INCLUDE_DIRS})
+#add libusb and pthreads (required for the Lighpack usb device)
+find_package(UDev REQUIRED)
+find_package(libusb-1.0 REQUIRED)
+find_package(Threads REQUIRED)
+
+include_directories(
+	${UDEV_INCLUDE_DIR}
+	${LIBUSB_1_INCLUDE_DIRS})
 
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
@@ -79,5 +86,6 @@ target_link_libraries(hyperion
 		hyperion-utils
 		serialport
 		${QT_LIBRARIES}
-		${LIBUSB_1_LIBRARIES}
-		${CMAKE_THREAD_LIBS_INIT})
+		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
+		${CMAKE_THREAD_LIBS_INIT}
+		${UDEV_LIBRARIES}) # apt-get install libudev-dev

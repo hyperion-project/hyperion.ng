@@ -1,4 +1,5 @@
-project(hyperion)
+# Define the main-project name
+project(Hyperion)
 
 # define the minimum cmake version (as required by cmake)
 cmake_minimum_required(VERSION 2.8)
@@ -14,9 +15,6 @@ message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 # to the source code
 configure_file ("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
-
-# Define the main-project name
-project(Hyperion)
 
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -44,13 +42,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
-
-# add protocol buffers
-find_package(Protobuf REQUIRED)
-
-#add libusb and pthreads
-find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
 
 #SET(QT_DONT_USE_QTGUI   TRUE)
 #SET(QT_USE_QTCONSOLE    TRUE)
