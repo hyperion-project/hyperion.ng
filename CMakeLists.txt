@@ -53,8 +53,6 @@ find_package(Protobuf REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 
-#SET(QT_DONT_USE_QTGUI   TRUE)
-#SET(QT_USE_QTCONSOLE    TRUE)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
