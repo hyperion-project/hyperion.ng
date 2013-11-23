@@ -4,13 +4,10 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
 #add libusb and pthreads (required for the Lighpack usb device)
-find_package(UDev REQUIRED)
 find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
 
 include_directories(
-	${UDEV_INCLUDE_DIR}
-	${LIBUSB_1_INCLUDE_DIRS})
+	${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
 
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
@@ -40,6 +37,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.h
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack-hidapi.h
 )
 
 SET(Hyperion_SOURCES
@@ -64,6 +62,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack-hidapi.cpp
 )
 
 set(Hyperion_RESOURCES
@@ -85,7 +84,6 @@ add_library(hyperion
 target_link_libraries(hyperion
 		hyperion-utils
 		serialport
+		hidapi-libusb
 		${QT_LIBRARIES}
-		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
-		${CMAKE_THREAD_LIBS_INIT}
-		${UDEV_LIBRARIES}) # apt-get install libudev-dev
+)

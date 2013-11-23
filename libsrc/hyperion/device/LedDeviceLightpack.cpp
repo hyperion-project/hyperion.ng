@@ -279,7 +279,7 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 
 	int error = libusb_control_transfer(_deviceHandle,
 		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
-		LIBUSB_REQUEST_SET_CONFIGURATION,
+		0x09,
 		(2 << 8),
 		0x00,
 		data, size, 1000);

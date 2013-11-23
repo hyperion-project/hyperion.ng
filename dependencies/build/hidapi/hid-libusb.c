@@ -20,7 +20,7 @@
  files located at the root of the source distribution.
  These files may also be found in the public source
  code repository located at:
-        http://github.com/signal11/hidapi .
+		http://github.com/signal11/hidapi .
 ********************************************************/
 
 #define _GNU_SOURCE /* needed for wcsdup() before glibc 2.10 */
@@ -167,9 +167,9 @@ static uint32_t get_bytes(uint8_t *rpt, size_t len, size_t num_bytes, size_t cur
 	}
 	else if (num_bytes == 4) {
 		return (rpt[cur+4] * 0x01000000 +
-		        rpt[cur+3] * 0x00010000 +
-		        rpt[cur+2] * 0x00000100 +
-		        rpt[cur+1] * 0x00000001);
+				rpt[cur+3] * 0x00010000 +
+				rpt[cur+2] * 0x00000100 +
+				rpt[cur+1] * 0x00000001);
 	}
 	else
 		return 0;
@@ -180,7 +180,7 @@ static uint32_t get_bytes(uint8_t *rpt, size_t len, size_t num_bytes, size_t cur
    Usage and Usage Page that it finds in the descriptor.
    The return value is 0 on success and -1 on failure. */
 static int get_usage(uint8_t *report_descriptor, size_t size,
-                     unsigned short *usage_page, unsigned short *usage)
+					 unsigned short *usage_page, unsigned short *usage)
 {
 	unsigned int i = 0;
 	int size_code;
@@ -473,7 +473,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 						/* Check the VID/PID against the arguments */
 						if ((vendor_id == 0x0 || vendor_id == dev_vid) &&
-						    (product_id == 0x0 || product_id == dev_pid)) {
+							(product_id == 0x0 || product_id == dev_pid)) {
 							struct hid_device_info *tmp;
 
 							/* VID/PID match. Create the record. */
@@ -617,7 +617,7 @@ hid_device * hid_open(unsigned short vendor_id, unsigned short product_id, const
 	cur_dev = devs;
 	while (cur_dev) {
 		if (cur_dev->vendor_id == vendor_id &&
-		    cur_dev->product_id == product_id) {
+			cur_dev->product_id == product_id) {
 			if (serial_number) {
 				if (wcscmp(serial_number, cur_dev->serial_number) == 0) {
 					path_to_open = cur_dev->path;
@@ -744,9 +744,9 @@ static void *read_thread(void *param)
 
 			/* Break out of this loop only on fatal error.*/
 			if (res != LIBUSB_ERROR_BUSY &&
-			    res != LIBUSB_ERROR_TIMEOUT &&
-			    res != LIBUSB_ERROR_OVERFLOW &&
-			    res != LIBUSB_ERROR_INTERRUPTED) {
+				res != LIBUSB_ERROR_TIMEOUT &&
+				res != LIBUSB_ERROR_OVERFLOW &&
+				res != LIBUSB_ERROR_INTERRUPTED) {
 				break;
 			}
 		}
@@ -863,23 +863,23 @@ hid_device * HID_API_EXPORT hid_open_path(const char *path)
 							   endpoint. */
 							int is_interrupt =
 								(ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
-							      == LIBUSB_TRANSFER_TYPE_INTERRUPT;
+								  == LIBUSB_TRANSFER_TYPE_INTERRUPT;
 							int is_output =
 								(ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK)
-							      == LIBUSB_ENDPOINT_OUT;
+								  == LIBUSB_ENDPOINT_OUT;
 							int is_input =
 								(ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK)
-							      == LIBUSB_ENDPOINT_IN;
+								  == LIBUSB_ENDPOINT_IN;
 
 							/* Decide whether to use it for intput or output. */
 							if (dev->input_endpoint == 0 &&
-							    is_interrupt && is_input) {
+								is_interrupt && is_input) {
 								/* Use this endpoint for INPUT */
 								dev->input_endpoint = ep->bEndpointAddress;
 								dev->input_ep_max_packet_size = ep->wMaxPacketSize;
 							}
 							if (dev->output_endpoint == 0 &&
-							    is_interrupt && is_output) {
+								is_interrupt && is_output) {
 								/* Use this endpoint for OUTPUT */
 								dev->output_endpoint = ep->bEndpointAddress;
 							}
