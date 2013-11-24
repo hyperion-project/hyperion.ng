@@ -1,6 +1,6 @@
 ON RASPBERRY
 --------------
-sudo apt-get install libprotobuf-dev libQt4-dev libusb-1.0-0-dev rsync
+sudo apt-get install libprotobuf-dev libQt4-dev libusb-1.0-0-dev python-dev rsync
 
 ON HOST
 ---------

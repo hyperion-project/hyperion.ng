@@ -1,4 +1,8 @@
 
+find_package(PythonLibs REQUIRED)
+
+include_directories(${PYTHON_INCLUDE_DIRS})
+
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/effectengine)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/effectengine)
@@ -28,4 +32,5 @@ add_library(effectengine
 
 target_link_libraries(effectengine
 		hyperion
-		${QT_LIBRARIES})
+		${QT_LIBRARIES}
+		${PYTHON_LIBRARIES})
