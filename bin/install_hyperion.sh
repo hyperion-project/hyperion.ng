@@ -37,7 +37,7 @@ wget -N github.com/tvdzwan/hyperion/raw/master/config/hyperion.config.json -P /e
 if [ $IS_XBIAN -eq 0 ]; then
 	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.conf -P /etc/init/
 else
-	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.xbian.conf -P /etc/init/ -O hyperion.conf
+	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
 fi
 
 # Start the hyperion daemon
