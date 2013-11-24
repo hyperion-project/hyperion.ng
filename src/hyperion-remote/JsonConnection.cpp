@@ -102,6 +102,27 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	parseReply(reply);
 }
 
+void JsonConnection::setEffect(const std::string &effectName, int priority, int duration)
+{
+	std::cout << "Start effect " << effectName << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "effect";
+	command["priority"] = priority;
+	Json::Value & effect = command["effect"];
+	effect["name"] = effectName;
+	if (duration > 0)
+	{
+		command["duration"] = duration;
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
 
 QString JsonConnection::getServerInfo()
 {

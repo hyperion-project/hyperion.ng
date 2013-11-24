@@ -77,6 +77,7 @@ add_library(hyperion
 
 target_link_libraries(hyperion
 		hyperion-utils
+		effectengine
 		serialport
 		${QT_LIBRARIES}
 		${LIBUSB_1_LIBRARIES}

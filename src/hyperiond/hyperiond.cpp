@@ -26,6 +26,9 @@
 // XBMC Video checker includes
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
+// Effect engine includes
+#include <effectengine/EffectEngine.h>
+
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
@@ -150,6 +153,13 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	// Create the effect engine
+	EffectEngine * effectEngine = nullptr;
+	if (true)
+	{
+		effectEngine = new EffectEngine(&hyperion);
+	}
+
 	// Create Json server if configuration is present
 	JsonServer * jsonServer = nullptr;
 	if (config.isMember("jsonServer"))
@@ -187,8 +197,10 @@ int main(int argc, char** argv)
 	delete dispmanx;
 #endif
 	delete xbmcVideoChecker;
+	delete effectEngine;
 	delete jsonServer;
 	delete protoServer;
+	delete boblightServer;
 
 	// leave application
 	return rc;

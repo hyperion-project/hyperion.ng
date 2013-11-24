@@ -27,6 +27,9 @@
 #include <utils/ColorTransform.h>
 #include <utils/HsvTransform.h>
 
+// effect engine includes
+#include <effectengine/EffectEngine.h>
+
 LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
@@ -252,6 +255,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_blueTransform(createColorTransform(jsonConfig["color"]["blue"])),
 	_colorOrder(createColorOrder(jsonConfig["device"])),
 	_device(createDevice(jsonConfig["device"])),
+	_effectEngine(nullptr),
 	_timer()
 {
 	// initialize the image processor factory
@@ -264,6 +268,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
+	// create the effect engine
+	_effectEngine = new EffectEngine(this);
+
 	// initialize the leds
 	update();
 }
@@ -274,6 +281,9 @@ Hyperion::~Hyperion()
 	// switch off all leds
 	clearall();
 	_device->switchOff();
+
+	// delete the effect engine
+	delete _effectEngine;
 
 	// Delete the Led-String
 	delete _device;
@@ -382,6 +392,9 @@ void Hyperion::clear(int priority)
 		{
 			update();
 		}
+
+		// send clear signal to the effect engine
+		_effectEngine->channelCleared(priority);
 	}
 }
 
@@ -391,6 +404,9 @@ void Hyperion::clearall()
 
 	// update leds
 	update();
+
+	// send clearall signal to the effect engine
+	_effectEngine->allChannelsCleared();
 }
 
 double Hyperion::getTransform(Hyperion::Transform transform, Hyperion::Color color) const
@@ -446,6 +462,16 @@ QList<int> Hyperion::getActivePriorities() const
 const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
 {
 	return _muxer.getInputInfo(priority);
+}
+
+std::list<std::string> Hyperion::getEffects() const
+{
+	return _effectEngine->getEffects();
+}
+
+int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
+{
+	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
 void Hyperion::update()

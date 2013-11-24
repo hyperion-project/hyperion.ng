@@ -53,6 +53,15 @@ public:
 	void setImage(QImage image, int priority, int duration);
 
 	///
+	/// Start the given effect
+	///
+	/// @param effect The name of the effect
+	/// @param priority The priority
+	/// @param duration The duration in milliseconds
+	///
+	void setEffect(const std::string & effectName, int priority, int duration);
+
+	///
 	/// Retrieve a list of all occupied priority channels
 	///
 	/// @return String with the server info

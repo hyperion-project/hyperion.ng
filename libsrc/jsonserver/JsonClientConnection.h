@@ -79,6 +79,13 @@ private:
 	void handleImageCommand(const Json::Value & message);
 
 	///
+	/// Handle an incoming JSON Effect message
+	///
+	/// @param message the incoming message
+	///
+	void handleEffectCommand(const Json::Value & message);
+
+	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message

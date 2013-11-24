@@ -6,6 +6,7 @@ target_link_libraries(hyperiond
 		bootsequence
 		hyperion
 		xbmcvideochecker
+		effectengine
 		jsonserver
 		protoserver
 		boblightserver)

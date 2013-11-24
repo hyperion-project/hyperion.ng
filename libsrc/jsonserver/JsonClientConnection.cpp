@@ -94,6 +94,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleColorCommand(message);
 	else if (command == "image")
 		handleImageCommand(message);
+	else if (command == "effect")
+		handleEffectCommand(message);
 	else if (command == "serverinfo")
 		handleServerInfoCommand(message);
 	else if (command == "clear")
@@ -151,7 +153,22 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
-void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
+void JsonClientConnection::handleEffectCommand(const Json::Value &message)
+{
+	// extract parameters
+	int priority = message["priority"].asInt();
+	int duration = message.get("duration", -1).asInt();
+	const Json::Value & effect = message["effect"];
+	const std::string & effectName = effect["name"].asString();
+
+	// set output
+	_hyperion->setEffect(effectName, priority, duration);
+
+	// send reply
+	sendSuccessReply();
+}
+
+void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 {
 	// create result
 	Json::Value result;
@@ -192,6 +209,17 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::RED));
 	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::GREEN));
 	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::BLUE));
+
+	// collect effect info
+	Json::Value & effects = info["effects"];
+	std::list<std::string> effectNames = _hyperion->getEffects();
+	for (const std::string & name : effectNames)
+	{
+		Json::Value effect;
+		effect["name"] = name;
+
+		effects.append(effect);
+	}
 
 	// send the result
 	sendMessage(result);
