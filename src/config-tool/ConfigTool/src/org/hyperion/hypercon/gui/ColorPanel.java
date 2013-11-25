@@ -16,6 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.hyperion.hypercon.spec.ColorConfig;
+import org.hyperion.hypercon.spec.TransformConfig;
 
 /**
  * Configuration panel for the ColorConfig.
@@ -24,7 +25,7 @@ import org.hyperion.hypercon.spec.ColorConfig;
  */
 public class ColorPanel extends JPanel {
 	
-	private final ColorConfig mColorConfig;
+	private final TransformConfig mColorConfig;
 	
 	private JPanel mRgbTransformPanel;
 	private JLabel mThresholdLabel;
@@ -56,7 +57,7 @@ public class ColorPanel extends JPanel {
 	public ColorPanel(ColorConfig pColorConfig) {
 		super();
 		
-		mColorConfig = pColorConfig;
+		mColorConfig = pColorConfig.mTransforms.get(0);
 		
 		initialise();
 	}
