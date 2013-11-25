@@ -50,10 +50,16 @@ public class ColorConfig {
 		
 		strBuf.append("\t\t\"transform\" :\n");
 		strBuf.append("\t\t[\n");
-		for (TransformConfig transform : mTransforms) {
+		for (int i=0; i<mTransforms.size(); ++i) {
+			TransformConfig transform = mTransforms.get(i);
 			strBuf.append(transform.toJsonString());
+			if (i == mTransforms.size()-1) {
+				strBuf.append("\n");
+			} else {
+				strBuf.append(",\n");
+			}
 		}
-		strBuf.append("\t\t]\n");
+		strBuf.append("\t\t],\n");
 
 		strBuf.append(smoothingToString() + "\n");
 		strBuf.append("\t}");

@@ -41,10 +41,10 @@ public class TransformConfig {
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 
-		strBuf.append("\t\t{\n");
+		strBuf.append("\t\t\t{\n");
 		strBuf.append(hsvToJsonString() + ",\n");
-		strBuf.append(rgbToJsonString() + ",\n");
-		strBuf.append("\t\t}");
+		strBuf.append(rgbToJsonString() + "\n");
+		strBuf.append("\t\t\t}");
 		
 		return strBuf.toString();
 	}
@@ -55,12 +55,12 @@ public class TransformConfig {
 	 */
 	private String hsvToJsonString() {
 		StringBuffer strBuf = new StringBuffer();
-		strBuf.append("\t\t\t\"hsv\" :\n");
-		strBuf.append("\t\t\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"saturationGain\" : %.4f,\n", mSaturationGain));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"valueGain\"      : %.4f\n", mValueGain));
+		strBuf.append("\t\t\t\t\"hsv\" :\n");
+		strBuf.append("\t\t\t\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"saturationGain\" : %.4f,\n", mSaturationGain));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"valueGain\"      : %.4f\n", mValueGain));
 		
-		strBuf.append("\t\t\t}");
+		strBuf.append("\t\t\t\t}");
 		return strBuf.toString();
 	}
 	
@@ -72,29 +72,29 @@ public class TransformConfig {
 	private String rgbToJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		
-		strBuf.append("\t\t\t\"red\" :\n");
-		strBuf.append("\t\t\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"threshold\"  : %.4f,\n", mRedThreshold));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"gamma\"      : %.4f,\n", mRedGamma));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"blacklevel\" : %.4f,\n", mRedBlacklevel));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"whitelevel\" : %.4f\n",  mRedWhitelevel));
-		strBuf.append("\t\t},\n");
+		strBuf.append("\t\t\t\t\"red\" :\n");
+		strBuf.append("\t\t\t\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"threshold\"  : %.4f,\n", mRedThreshold));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"gamma\"      : %.4f,\n", mRedGamma));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"blacklevel\" : %.4f,\n", mRedBlacklevel));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"whitelevel\" : %.4f\n",  mRedWhitelevel));
+		strBuf.append("\t\t\t\t},\n");
 
-		strBuf.append("\t\t\t\"green\" :\n");
-		strBuf.append("\t\t\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"threshold\"  : %.4f,\n", mGreenThreshold));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"gamma\"      : %.4f,\n", mGreenGamma));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"blacklevel\" : %.4f,\n", mGreenBlacklevel));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"whitelevel\" : %.4f\n",  mGreenWhitelevel));
-		strBuf.append("\t\t\t},\n");
+		strBuf.append("\t\t\t\t\"green\" :\n");
+		strBuf.append("\t\t\t\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"threshold\"  : %.4f,\n", mGreenThreshold));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"gamma\"      : %.4f,\n", mGreenGamma));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"blacklevel\" : %.4f,\n", mGreenBlacklevel));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"whitelevel\" : %.4f\n",  mGreenWhitelevel));
+		strBuf.append("\t\t\t\t},\n");
 
-		strBuf.append("\t\t\t\"blue\" :\n");
-		strBuf.append("\t\t\t{\n");
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"threshold\"  : %.4f,\n", mBlueThreshold));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"gamma\"      : %.4f,\n", mBlueGamma));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"blacklevel\" : %.4f,\n", mBlueBlacklevel));
-		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\"whitelevel\" : %.4f\n",  mBlueWhitelevel));
-		strBuf.append("\t\t\t}");
+		strBuf.append("\t\t\t\t\"blue\" :\n");
+		strBuf.append("\t\t\t\t{\n");
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"threshold\"  : %.4f,\n", mBlueThreshold));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"gamma\"      : %.4f,\n", mBlueGamma));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"blacklevel\" : %.4f,\n", mBlueBlacklevel));
+		strBuf.append(String.format(Locale.ROOT, "\t\t\t\t\t\"whitelevel\" : %.4f\n",  mBlueWhitelevel));
+		strBuf.append("\t\t\t\t}");
 		
 		return strBuf.toString();
 	}
