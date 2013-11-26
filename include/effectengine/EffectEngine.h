@@ -2,6 +2,9 @@
 
 #include <hyperion/Hyperion.h>
 
+// pre-declarioation
+class Effect;
+
 class EffectEngine : public QObject
 {
 	Q_OBJECT
@@ -22,8 +25,13 @@ public slots:
 	/// Clear all effects
 	void allChannelsCleared();
 
+private slots:
+	void effectFinished(Effect * effect);
+
 private:
 	Hyperion * _hyperion;
 
 	std::map<std::string, std::string> _availableEffects;
+
+	std::list<Effect *> _activeEffects;
 };
