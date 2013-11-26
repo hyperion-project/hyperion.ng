@@ -1,6 +1,5 @@
 package org.hyperion.hypercon.spec;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -10,7 +9,7 @@ import java.util.Vector;
 public class ColorConfig {
 	
 	/** List with color transformations */
-	public List<TransformConfig> mTransforms = new Vector<>();
+	public Vector<TransformConfig> mTransforms = new Vector<>();
 	{
 		mTransforms.add(new TransformConfig());
 	}
@@ -31,16 +30,27 @@ public class ColorConfig {
 	public String toJsonString() {
 		StringBuffer strBuf = new StringBuffer();
 		
-		strBuf.append("\t/// Color manipulation configuration used to tune the output colors to specific surroundings. Contains the following fields:\n");
-		strBuf.append("\t///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following tuning parameters:\n");
+		strBuf.append("\t/// Color manipulation configuration used to tune the output colors to specific surroundings. \n");
+		strBuf.append("\t/// The configuration contains a list of color-transforms. Each transform contains the \n");
+		strBuf.append("\t/// following fields:\n");
+		strBuf.append("\t///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')");
+		strBuf.append("\t///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies\n");
+		strBuf.append("\t///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.");
+		strBuf.append("\t///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following \n");
+		strBuf.append("\t///            tuning parameters:\n");
 		strBuf.append("\t///            - 'saturationGain'  The gain adjustement of the saturation\n");
 		strBuf.append("\t///            - 'valueGain'       The gain adjustement of the value\n");
-		strBuf.append("\t///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the following tuning parameters for each channel:\n");
-		strBuf.append("\t///            - 'threshold'       The minimum required input value for the channel to be on (else zero)\n");
+		strBuf.append("\t///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the \n");
+		strBuf.append("\t///                           following tuning parameters for each channel:\n");
+		strBuf.append("\t///            - 'threshold'       The minimum required input value for the channel to be on \n");
+		strBuf.append("\t///                                (else zero)\n");
 		strBuf.append("\t///            - 'gamma'           The gamma-curve correction factor\n");
 		strBuf.append("\t///            - 'blacklevel'      The lowest possible value (when the channel is black)\n");
 		strBuf.append("\t///            - 'whitelevel'      The highest possible value (when the channel is white)\n");
-		strBuf.append("\t///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning parameters:\n");
+		strBuf.append("\t///");
+		strBuf.append("\t/// Next to the list with color transforms there is also a smoothing option.");
+		strBuf.append("\t///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning \n");
+		strBuf.append("\t///                  parameters:\n");
 		strBuf.append("\t///            - 'type'            The type of smoothing algorithm ('linear' or 'none')\n");
 		strBuf.append("\t///            - 'time_ms'         The time constant for smoothing algorithm in milliseconds\n");
 		strBuf.append("\t///            - 'updateFrequency' The update frequency of the leds in Hz\n");

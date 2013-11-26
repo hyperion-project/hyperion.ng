@@ -1,5 +1,6 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.beans.Transient;
@@ -11,11 +12,13 @@ import javax.swing.GroupLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
-import org.hyperion.hypercon.spec.ColorConfig;
 import org.hyperion.hypercon.spec.TransformConfig;
 
 /**
@@ -23,9 +26,13 @@ import org.hyperion.hypercon.spec.TransformConfig;
  *  
  * NB This has not been integrated in the GUI jet!
  */
-public class ColorPanel extends JPanel {
+public class ColorTransformPanel extends JPanel {
 	
 	private final TransformConfig mColorConfig;
+	
+	private JPanel mIndexPanel;
+	private JLabel mIndexLabel;
+	private JTextField mIndexField;
 	
 	private JPanel mRgbTransformPanel;
 	private JLabel mThresholdLabel;
@@ -54,10 +61,10 @@ public class ColorPanel extends JPanel {
 	private JLabel mValueAdjustLabel;
 	private JSpinner mValueAdjustSpinner;
 	
-	public ColorPanel(ColorConfig pColorConfig) {
+	public ColorTransformPanel(TransformConfig pTransformConfig) {
 		super();
 		
-		mColorConfig = pColorConfig.mTransforms.get(0);
+		mColorConfig = pTransformConfig;
 		
 		initialise();
 	}
@@ -71,12 +78,32 @@ public class ColorPanel extends JPanel {
 	}
 
 	private void initialise() {
-		setBorder(BorderFactory.createTitledBorder("Color transform"));
+		setBorder(BorderFactory.createTitledBorder("Transform [" + mColorConfig.mId + "]"));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
+		add(getIndexPanel());
+		add(Box.createVerticalStrut(10));
 		add(getRgbPanel());
 		add(Box.createVerticalStrut(10));
 		add(getHsvPanel());
+		add(Box.createVerticalGlue());
+	}
+	
+	private JPanel getIndexPanel() {
+		if (mIndexPanel == null) {
+			mIndexPanel = new JPanel();
+			mIndexPanel.setMaximumSize(new Dimension(1024, 25));
+			mIndexPanel.setLayout(new BorderLayout(10,10));
+			
+			mIndexLabel = new JLabel("Indices:");
+			mIndexPanel.add(mIndexLabel, BorderLayout.WEST);
+			
+			mIndexField = new JTextField(mColorConfig.mLedIndexString);
+			mIndexField.setToolTipText("Comma seperated indices or index ranges (eg '1-10, 13, 14, 17-19')");
+			mIndexField.getDocument().addDocumentListener(mDocumentListener);
+			mIndexPanel.add(mIndexField, BorderLayout.CENTER);
+		}
+		return mIndexPanel;
 	}
 	
 	private JPanel getRgbPanel() {
@@ -215,6 +242,20 @@ public class ColorPanel extends JPanel {
 			
 			mColorConfig.mSaturationGain = (Double)mSaturationAdjustSpinner.getValue();
 			mColorConfig.mValueGain      = (Double)mValueAdjustSpinner.getValue();
+		}
+	};
+	private final DocumentListener mDocumentListener = new DocumentListener() {
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			mColorConfig.mLedIndexString = mIndexField.getText();
+		}
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			mColorConfig.mLedIndexString = mIndexField.getText();
+		}
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			mColorConfig.mLedIndexString = mIndexField.getText();
 		}
 	};
 }

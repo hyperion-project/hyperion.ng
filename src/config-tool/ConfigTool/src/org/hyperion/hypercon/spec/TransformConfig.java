@@ -4,7 +4,10 @@ import java.util.Locale;
 
 public class TransformConfig {
 	/** The identifier of this ColorTransform configuration */
-	public String mId = "";
+	public String mId = "default";
+	
+	/** The indices to which this transform applies */
+	public String mLedIndexString = "0-49";
 	
 	/** The saturation gain (in HSV space) */
 	public double mSaturationGain = 1.0;
@@ -42,6 +45,8 @@ public class TransformConfig {
 		StringBuffer strBuf = new StringBuffer();
 
 		strBuf.append("\t\t\t{\n");
+		strBuf.append("\t\t\t\t\"id\"   : \"" + mId + "\",\n");
+		strBuf.append("\t\t\t\t\"leds\" : \"" + mLedIndexString + "\",\n");
 		strBuf.append(hsvToJsonString() + ",\n");
 		strBuf.append(rgbToJsonString() + "\n");
 		strBuf.append("\t\t\t}");
@@ -97,5 +102,10 @@ public class TransformConfig {
 		strBuf.append("\t\t\t\t}");
 		
 		return strBuf.toString();
+	}
+	
+	@Override
+	public String toString() {
+		return mId;
 	}
 }
