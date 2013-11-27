@@ -1,35 +1,38 @@
 // stl includes
+#include <iostream>
 #include <sstream>
 
 // effect engin eincludes
 #include "Effect.h"
 
 // Effect wrapper methods for Python interpreter extra build in methods
-static PyObject* Effect_SetColor(PyObject *self, PyObject *args)
+static PyObject* Effect_setColor(PyObject *self, PyObject *args)
 {
 	return Py_BuildValue("i", 42);
 }
 
-static PyObject* Effect_SetImage(PyObject *self, PyObject *args)
+static PyObject* Effect_setImage(PyObject *self, PyObject *args)
 {
 	return Py_BuildValue("i", 42);
 }
 
-static PyObject* Effect_GetLedCount(PyObject *self, PyObject *args)
+static PyObject* Effect_getLedCount(PyObject *self, PyObject *args)
 {
 	return Py_BuildValue("i", 42);
 }
 
-static PyObject* Effect_IsAbortRequested(PyObject *self, PyObject *args)
+static PyObject* Effect_abort(PyObject *self, PyObject *)
 {
-	return Py_BuildValue("i", 42);
+	Effect * effect = reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
+	bool abort = effect->isAbortedRequested();
+	return Py_BuildValue("i", abort ? 1 : 0);
 }
 
 static PyMethodDef effectMethods[] = {
-	{"setColor",         Effect_SetColor,         METH_VARARGS, "Set a new color for the leds."},
-	{"setImage",         Effect_SetImage,         METH_VARARGS, "Set a new image to process and determine new led colors."},
-	{"getLedCount",      Effect_GetLedCount,      METH_VARARGS, "Get the number of avaliable led channels."},
-	{"isAbortRequested", Effect_IsAbortRequested, METH_VARARGS, "Check if the effect should abort execution."},
+	{"setColor",    Effect_setColor,    METH_VARARGS, "Set a new color for the leds."},
+	{"setImage",    Effect_setImage,    METH_VARARGS, "Set a new image to process and determine new led colors."},
+	{"getLedCount", Effect_getLedCount, METH_VARARGS, "Get the number of avaliable led channels."},
+	{"abort",       Effect_abort,       METH_NOARGS , "Check if the effect should abort execution."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -54,22 +57,11 @@ void Effect::run()
 	// Initialize a new thread state
 	PyEval_AcquireLock(); // Get the GIL
 	_interpreterThreadState = Py_NewInterpreter();
-	Py_InitModule("hyperiond", effectMethods);
 
-	// Create hyperion instance in the new interpreter
-	std::ostringstream oss;
-	oss << "import hyperiond"                              << std::endl;
-	oss << "class Hyperion:"                               << std::endl;
-	oss << "    def setColor(self):"                       << std::endl;
-	oss << "        return hyperiond.setColor()"           << std::endl;
-	oss << "    def setImage(self):"                       << std::endl;
-	oss << "        return hyperiond.setImage()"           << std::endl;
-	oss << "    def getLedCount(self):"                    << std::endl;
-	oss << "        return hyperiond.getLedCount()"        << std::endl;
-	oss << "    def isAbortRequested(self):"               << std::endl;
-	oss << "        return hyperiond.isAbortRequested()"   << std::endl;
-	oss << "hyperion = Hyperion()"                         << std::endl;
-	PyRun_SimpleString(oss.str().c_str());
+	// add methods extra builtin methods to the interpreter
+	PyObject * thisCapsule = PyCapsule_New(this, nullptr, nullptr);
+	Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
+	std::cout << this << std::endl;
 
 	// Run the effect script
 	std::string script = "test.py";
@@ -80,6 +72,11 @@ void Effect::run()
 	Py_EndInterpreter(_interpreterThreadState);
 	_interpreterThreadState = nullptr;
 	PyEval_ReleaseLock();
+}
+
+bool Effect::isAbortedRequested() const
+{
+	return _abortRequested;
 }
 
 int Effect::getPriority() const

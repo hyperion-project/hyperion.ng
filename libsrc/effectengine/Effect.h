@@ -16,6 +16,8 @@ public:
 
 	virtual void run();
 
+	bool isAbortedRequested() const;
+
 	int getPriority() const;
 
 public slots:
