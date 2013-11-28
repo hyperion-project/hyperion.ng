@@ -5,6 +5,8 @@
 #include <effectengine/EffectEngine.h>
 #include "Effect.h"
 
+//static PyThreadState *_mainThreadState = 0;
+
 EffectEngine::EffectEngine(Hyperion * hyperion) :
 	_hyperion(hyperion),
 	_availableEffects(),
@@ -21,6 +23,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion) :
 	std::cout << "Initializing Python interpreter" << std::endl;
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
+	//_mainThreadState = PyEval_SaveThread();
 	PyEval_ReleaseLock(); // Release the GIL
 }
 
@@ -29,7 +32,8 @@ EffectEngine::~EffectEngine()
 	// clean up the Python interpreter
 	std::cout << "Cleaning up Python interpreter" << std::endl;
 	PyEval_AcquireLock(); // Get the Gil
-	Py_Finalize();
+	//PyEval_RestoreThread(_mainThreadState);
+	//Py_Finalize();
 }
 
 std::list<std::string> EffectEngine::getEffects() const

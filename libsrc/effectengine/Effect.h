@@ -35,7 +35,6 @@ private:
 	static PyMethodDef effectMethods[];
 	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
-	static PyObject* wrapGetLedCount(PyObject *self, PyObject *args);
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
 	static Effect * getEffect(PyObject *self);
 

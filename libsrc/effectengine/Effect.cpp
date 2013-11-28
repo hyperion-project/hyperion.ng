@@ -12,7 +12,6 @@
 PyMethodDef Effect::effectMethods[] = {
 	{"setColor",    Effect::wrapSetColor,    METH_VARARGS, "Set a new color for the leds."},
 	{"setImage",    Effect::wrapSetImage,    METH_VARARGS, "Set a new image to process and determine new led colors."},
-	{"getLedCount", Effect::wrapGetLedCount, METH_NOARGS,  "Get the number of avaliable led channels."},
 	{"abort",       Effect::wrapAbort,       METH_NOARGS,  "Check if the effect should abort execution."},
 	{NULL, NULL, 0, NULL}
 };
@@ -43,7 +42,10 @@ void Effect::run()
 
 	// add methods extra builtin methods to the interpreter
 	PyObject * thisCapsule = PyCapsule_New(this, nullptr, nullptr);
-	Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
+	PyObject * module = Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
+	
+	// add ledCount variable to the interpreter
+	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
 
 	// Set the end time if applicable
 	if (_timeout > 0)
@@ -87,12 +89,6 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect(self);
 	return Py_BuildValue("i", 42);
-}
-
-PyObject* Effect::wrapGetLedCount(PyObject *self, PyObject *args)
-{
-	Effect * effect = getEffect(self);
-	return Py_BuildValue("i", effect->_imageProcessor->getLedCount());
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
