@@ -12,8 +12,8 @@
 PyMethodDef Effect::effectMethods[] = {
 	{"setColor",    Effect::wrapSetColor,    METH_VARARGS, "Set a new color for the leds."},
 	{"setImage",    Effect::wrapSetImage,    METH_VARARGS, "Set a new image to process and determine new led colors."},
-	{"getLedCount", Effect::wrapGetLedCount, METH_VARARGS, "Get the number of avaliable led channels."},
-	{"abort",       Effect::wrapAbort,       METH_NOARGS , "Check if the effect should abort execution."},
+	{"getLedCount", Effect::wrapGetLedCount, METH_NOARGS,  "Get the number of avaliable led channels."},
+	{"abort",       Effect::wrapAbort,       METH_NOARGS,  "Check if the effect should abort execution."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -24,7 +24,8 @@ Effect::Effect(int priority, int timeout) :
 	_timeout(timeout),
 	_endTime(-1),
 	_interpreterThreadState(nullptr),
-	_abortRequested(false)
+	_abortRequested(false),
+	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 {
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
@@ -91,7 +92,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 PyObject* Effect::wrapGetLedCount(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect(self);
-	return Py_BuildValue("i", 42);
+	return Py_BuildValue("i", effect->_imageProcessor->getLedCount());
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)

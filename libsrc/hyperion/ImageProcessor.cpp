@@ -23,6 +23,11 @@ ImageProcessor::~ImageProcessor()
 	delete _borderProcessor;
 }
 
+unsigned ImageProcessor::getLedCount() const
+{
+	return mLedString.leds().size();
+}
+
 void ImageProcessor::setSize(const unsigned width, const unsigned height)
 {
 	// Check if the existing buffer-image is already the correct dimensions

@@ -21,6 +21,11 @@ public:
 	~ImageProcessor();
 
 	///
+	/// Returns the number of attached leds
+	///
+	unsigned getLedCount() const;
+
+	///
 	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
 	/// match the given size.
 	/// NB All earlier obtained references will be invalid.

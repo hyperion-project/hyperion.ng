@@ -6,6 +6,9 @@
 // Python includes
 #include <Python.h>
 
+// Hyperion includes
+#include <hyperion/ImageProcessor.h>
+
 class Effect : public QThread
 {
 	Q_OBJECT
@@ -46,4 +49,7 @@ private:
 	PyThreadState * _interpreterThreadState;
 
 	bool _abortRequested;
+
+	/// The processor for translating images to led-values
+	ImageProcessor * _imageProcessor;
 };
