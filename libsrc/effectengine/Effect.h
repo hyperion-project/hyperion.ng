@@ -16,8 +16,6 @@ public:
 
 	virtual void run();
 
-	bool isAbortedRequested() const;
-
 	int getPriority() const;
 
 public slots:
@@ -28,6 +26,14 @@ signals:
 
 private slots:
 	void effectFinished();
+
+private:
+	// Wrapper methods for Python interpreter extra buildin methods
+	static PyMethodDef effectMethods[];
+	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
+	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
+	static PyObject* wrapGetLedCount(PyObject *self, PyObject *args);
+	static PyObject* wrapAbort(PyObject *self, PyObject *args);
 
 private:
 	const int _priority;
