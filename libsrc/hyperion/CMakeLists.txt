@@ -4,15 +4,21 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
 #add libusb and pthreads (required for the Lighpack usb device)
-#find_package(UDev REQUIRED)
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
-#find_package(UDev REQUIRED)
 
 include_directories(
 	../../include/hidapi
-#	${UDEV_INCLUDE_DIR}
 	${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
+
+# set the build options
+option (LIBUDEV_REQUIRED "Add libudev to the build (needed on Ubuntu 13.10, but gives errors when added on the RPi) :-S" OFF)
+message(STATUS "LIBUDEV_REQUIRED = " ${LIBUDEV_REQUIRED})
+
+if (LIBUDEV_REQUIRED)
+	find_package(UDev REQUIRED)
+	include_directories(${UDEV_INCLUDE_DIR})
+endif (LIBUDEV_REQUIRED)
 
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
@@ -89,6 +95,11 @@ target_link_libraries(hyperion
 		serialport
 		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 		${CMAKE_THREAD_LIBS_INIT}
-#		${UDEV_LIBRARIES} # apt-get install libudev-dev
 		${QT_LIBRARIES}
 )
+
+if (LIBUDEV_REQUIRED)
+	target_link_libraries(hyperion
+			${UDEV_LIBRARIES} # apt-get install libudev-dev
+	)
+endif (LIBUDEV_REQUIRED)
