@@ -2,6 +2,9 @@
 #include <iostream>
 #include <sstream>
 
+// Qt includes
+#include <QDateTime>
+
 // effect engin eincludes
 #include "Effect.h"
 
@@ -19,6 +22,7 @@ Effect::Effect(int priority, int timeout) :
 	QThread(),
 	_priority(priority),
 	_timeout(timeout),
+	_endTime(-1),
 	_interpreterThreadState(nullptr),
 	_abortRequested(false)
 {
@@ -39,6 +43,12 @@ void Effect::run()
 	// add methods extra builtin methods to the interpreter
 	PyObject * thisCapsule = PyCapsule_New(this, nullptr, nullptr);
 	Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
+
+	// Set the end time if applicable
+	if (_timeout > 0)
+	{
+		_endTime = QDateTime::currentMSecsSinceEpoch() + _timeout;
+	}
 
 	// Run the effect script
 	std::string script = "test.py";
@@ -68,21 +78,39 @@ void Effect::effectFinished()
 
 PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 {
+	Effect * effect = getEffect(self);
 	return Py_BuildValue("i", 42);
 }
 
 PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 {
+	Effect * effect = getEffect(self);
 	return Py_BuildValue("i", 42);
 }
 
 PyObject* Effect::wrapGetLedCount(PyObject *self, PyObject *args)
 {
+	Effect * effect = getEffect(self);
 	return Py_BuildValue("i", 42);
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
 {
-	Effect * effect = reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
+	Effect * effect = getEffect(self);
 	return Py_BuildValue("i", effect->_abortRequested ? 1 : 0);
+}
+
+Effect * Effect::getEffect(PyObject *self)
+{
+	// Get the effect from the capsule in the self pointer
+	Effect * effect = reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
+	
+	// Test if the effect has reached it end time
+	if (effect->_timeout > 0 && QDateTime::currentMSecsSinceEpoch() > effect->_endTime)
+	{
+		effect->_abortRequested = true;
+	}
+	
+	// return the effect
+	return effect;
 }

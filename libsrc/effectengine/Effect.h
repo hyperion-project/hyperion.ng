@@ -34,11 +34,14 @@ private:
 	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
 	static PyObject* wrapGetLedCount(PyObject *self, PyObject *args);
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
+	static Effect * getEffect(PyObject *self);
 
 private:
 	const int _priority;
 
 	const int _timeout;
+	
+	int64_t _endTime;
 
 	PyThreadState * _interpreterThreadState;
 
