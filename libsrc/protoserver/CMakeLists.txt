@@ -3,6 +3,9 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/protoserver)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/protoserver)
 
+# add protocol buffers
+find_package(Protobuf REQUIRED)
+
 include_directories(
 		${CMAKE_CURRENT_BINARY_DIR}
 		${PROTOBUF_INCLUDE_DIRS})
