@@ -172,6 +172,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 
 PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 {
+	// get the effect
 	Effect * effect = getEffect(self);
 
 	// check if we have aborted already
@@ -180,7 +181,68 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 		return Py_BuildValue("");
 	}
 
-	return Py_BuildValue("");
+	// determine the timeout
+	int timeout = effect->_timeout;
+	if (timeout > 0)
+	{
+		timeout = effect->_endTime - QDateTime::currentMSecsSinceEpoch();
+
+		// we are done if the time has passed
+		if (timeout <= 0)
+		{
+			return Py_BuildValue("");
+		}
+	}
+
+	// bytearray of values
+	int width, height;
+	PyObject * bytearray = nullptr;
+	if (PyArg_ParseTuple(args, "iiO", &width, &height, &bytearray))
+	{
+		if (PyByteArray_Check(bytearray))
+		{
+			int length = PyByteArray_Size(bytearray);
+			if (length == 3 * width * height)
+			{
+				Image<ColorRgb> image(width, height);
+				char * data = PyByteArray_AS_STRING(bytearray);
+				for (int y = 0; y < height; ++y)
+				{
+					for (int x = 0; x < width; ++x)
+					{
+						ColorRgb & color = image(x, y);
+						int index = x+width*y;
+						color.red   = data [3*index];
+						color.green = data [3*index+1];
+						color.blue  = data [3*index+2];
+					}
+				}
+
+				std::vector<ColorRgb> colors(effect->_imageProcessor->getLedCount());
+				effect->_imageProcessor->process(image, colors);
+				effect->setColors(effect->_priority, colors, timeout);
+				return Py_BuildValue("");
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*ledCount");
+				return nullptr;
+			}
+		}
+		else
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Argument 3 is not a bytearray");
+			return nullptr;
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
+
+	// error
+	PyErr_SetString(PyExc_RuntimeError, "Unknown error");
+	return nullptr;
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
