@@ -17,10 +17,12 @@ PyMethodDef Effect::effectMethods[] = {
 };
 
 
-Effect::Effect(int priority, int timeout) :
+Effect::Effect(int priority, int timeout, const std::string & script, const std::string & args) :
 	QThread(),
 	_priority(priority),
 	_timeout(timeout),
+	_script(script),
+	_args(args),
 	_endTime(-1),
 	_interpreterThreadState(nullptr),
 	_abortRequested(false),
@@ -47,6 +49,9 @@ void Effect::run()
 	// add ledCount variable to the interpreter
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
 
+	// add a args variable to the interpreter
+	PyObject_SetAttrString(module, "args", Py_BuildValue("s", _args.c_str()));
+
 	// Set the end time if applicable
 	if (_timeout > 0)
 	{
@@ -54,9 +59,15 @@ void Effect::run()
 	}
 
 	// Run the effect script
-	std::string script = "test.py";
-	FILE* file = fopen(script.c_str(), "r");
-	PyRun_SimpleFile(file, script.c_str());
+	FILE* file = fopen(_script.c_str(), "r");
+	if (file != nullptr)
+	{
+		PyRun_SimpleFile(file, _script.c_str());
+	}
+	else
+	{
+		std::cerr << "Unable to open script file " << _script << std::endl;
+	}
 
 	// Clean up the thread state
 	Py_EndInterpreter(_interpreterThreadState);

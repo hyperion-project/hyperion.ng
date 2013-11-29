@@ -23,13 +23,12 @@ EffectEngine::EffectEngine(Hyperion * hyperion) :
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	_availableEffects["test"] = "test.py";
+	_availableEffects["test"] = {"test.py", "{\"speed\":0.2}"};
 
 	// initialize the python interpreter
 	std::cout << "Initializing Python interpreter" << std::endl;
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
-	PyRun_SimpleString("print 'test'");
 	_mainThreadState = PyEval_SaveThread();
 }
 
@@ -54,11 +53,18 @@ int EffectEngine::runEffect(const std::string &effectName, int priority, int tim
 {
 	std::cout << "run effect " << effectName << " on channel " << priority << std::endl;
 
+	if (_availableEffects.find(effectName) == _availableEffects.end())
+	{
+		// no such effect
+		return -1;
+	}
+
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-	Effect * effect = new Effect(priority, timeout);
+	const EffectDefinition & effectDefinition = _availableEffects[effectName];
+	Effect * effect = new Effect(priority, timeout, effectDefinition.script, effectDefinition.args);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);

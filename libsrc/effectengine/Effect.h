@@ -14,7 +14,7 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(int priority, int timeout);
+	Effect(int priority, int timeout, const std::string & script, const std::string & args = "");
 	virtual ~Effect();
 
 	virtual void run();
@@ -44,6 +44,10 @@ private:
 	const int _priority;
 
 	const int _timeout;
+
+	const std::string & _script;
+
+	const std::string & _args;
 
 	int64_t _endTime;
 

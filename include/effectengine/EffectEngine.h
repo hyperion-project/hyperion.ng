@@ -26,13 +26,20 @@ public slots:
 	/// Clear all effects
 	void allChannelsCleared();
 
+public:
+	struct EffectDefinition
+	{
+		std::string script;
+		std::string args;
+	};
+
 private slots:
 	void effectFinished(Effect * effect);
 
 private:
 	Hyperion * _hyperion;
 
-	std::map<std::string, std::string> _availableEffects;
+	std::map<std::string, EffectDefinition> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
 
