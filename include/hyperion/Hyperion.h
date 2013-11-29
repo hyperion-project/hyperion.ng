@@ -71,6 +71,41 @@ public:
 	unsigned getLedCount() const;
 
 	///
+	/// Returns the value of a specific color transform
+	///
+	/// @param[in] transform The type of transform
+	/// @param[in] color The color channel to which the transform applies (only applicable for
+	///                  Transform::THRESHOLD, Transform::GAMMA, Transform::BLACKLEVEL,
+	///                  Transform::WHITELEVEL)
+	///
+	/// @return The value of the specified color transform
+	///
+	double getTransform(Transform transform, Color color) const;
+
+	///
+	/// Returns a list of active priorities
+	///
+	/// @return The list with priorities
+	///
+	QList<int> getActivePriorities() const;
+
+	///
+	/// Returns the information of a specific priorrity channel
+	///
+	/// @param[in] priority  The priority channel
+	///
+	/// @return The information of the given
+	///
+	/// @throw std::runtime_error when the priority channel does not exist
+	///
+	const InputInfo& getPriorityInfo(const int priority) const;
+
+	/// Get the list of available effects
+	/// @return The list of available effects
+	std::list<std::string> getEffects() const;
+
+public slots:
+	///
 	/// Writes a single color to all the leds for the given time and priority
 	///
 	/// @param[in] priority The priority of the written color
@@ -111,40 +146,6 @@ public:
 	/// Clears all priority channels. This will switch the leds off until a new priority is written.
 	///
 	void clearall();
-
-	///
-	/// Returns the value of a specific color transform
-	///
-	/// @param[in] transform The type of transform
-	/// @param[in] color The color channel to which the transform applies (only applicable for
-	///                  Transform::THRESHOLD, Transform::GAMMA, Transform::BLACKLEVEL,
-	///                  Transform::WHITELEVEL)
-	///
-	/// @return The value of the specified color transform
-	///
-	double getTransform(Transform transform, Color color) const;
-
-	///
-	/// Returns a list of active priorities
-	///
-	/// @return The list with priorities
-	///
-	QList<int> getActivePriorities() const;
-
-	///
-	/// Returns the information of a specific priorrity channel
-	///
-	/// @param[in] priority  The priority channel
-	///
-	/// @return The information of the given
-	///
-	/// @throw std::runtime_error when the priority channel does not exist
-	///
-	const InputInfo& getPriorityInfo(const int priority) const;
-
-	/// Get the list of available effects
-	/// @return The list of available effects
-	std::list<std::string> getEffects() const;
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run

@@ -4,6 +4,7 @@
 
 // pre-declarioation
 class Effect;
+typedef struct _ts PyThreadState;
 
 class EffectEngine : public QObject
 {
@@ -34,4 +35,6 @@ private:
 	std::map<std::string, std::string> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
+
+	PyThreadState * _mainThreadState;
 };

@@ -27,6 +27,8 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+
 private slots:
 	void effectFinished();
 
@@ -42,7 +44,7 @@ private:
 	const int _priority;
 
 	const int _timeout;
-	
+
 	int64_t _endTime;
 
 	PyThreadState * _interpreterThreadState;

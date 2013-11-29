@@ -164,8 +164,8 @@ void JsonSchemaChecker::checkType(const Json::Value & value, const Json::Value &
 		wrongType = !value.isNull();
 	else if (type == "any")
 		wrongType = false;
-	else
-		assert(false);
+//	else
+//		assert(false);
 
 	if (wrongType)
 	{

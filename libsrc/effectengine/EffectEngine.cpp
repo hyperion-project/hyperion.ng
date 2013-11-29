@@ -1,3 +1,6 @@
+// Qt includes
+#include <QMetaType>
+
 // Python includes
 #include <Python.h>
 
@@ -10,8 +13,11 @@
 EffectEngine::EffectEngine(Hyperion * hyperion) :
 	_hyperion(hyperion),
 	_availableEffects(),
-	_activeEffects()
+	_activeEffects(),
+	_mainThreadState(nullptr)
 {
+	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+
 	// connect the Hyperion channel clear feedback
 	connect(_hyperion, SIGNAL(channelCleared(int)), this, SLOT(channelCleared(int)));
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
@@ -23,17 +29,16 @@ EffectEngine::EffectEngine(Hyperion * hyperion) :
 	std::cout << "Initializing Python interpreter" << std::endl;
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
-	//_mainThreadState = PyEval_SaveThread();
-	PyEval_ReleaseLock(); // Release the GIL
+	PyRun_SimpleString("print 'test'");
+	_mainThreadState = PyEval_SaveThread();
 }
 
 EffectEngine::~EffectEngine()
 {
 	// clean up the Python interpreter
 	std::cout << "Cleaning up Python interpreter" << std::endl;
-	PyEval_AcquireLock(); // Get the Gil
-	//PyEval_RestoreThread(_mainThreadState);
-	//Py_Finalize();
+	PyEval_RestoreThread(_mainThreadState);
+	Py_Finalize();
 }
 
 std::list<std::string> EffectEngine::getEffects() const
@@ -54,6 +59,7 @@ int EffectEngine::runEffect(const std::string &effectName, int priority, int tim
 
 	// create the effect
 	Effect * effect = new Effect(priority, timeout);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 

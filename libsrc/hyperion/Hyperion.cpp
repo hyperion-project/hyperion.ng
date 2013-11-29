@@ -4,6 +4,7 @@
 
 // QT includes
 #include <QDateTime>
+#include <QThread>
 
 // JsonSchema include
 #include <utils/jsonschema/JsonFactory.h>
@@ -392,10 +393,11 @@ void Hyperion::clear(int priority)
 		{
 			update();
 		}
-
-		// send clear signal to the effect engine
-		_effectEngine->channelCleared(priority);
 	}
+
+	// send clear signal to the effect engine
+	// (outside the check so the effect gets cleared even when the effect is not sending colors)
+	_effectEngine->channelCleared(priority);
 }
 
 void Hyperion::clearall()

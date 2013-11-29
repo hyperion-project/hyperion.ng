@@ -43,7 +43,7 @@ void Effect::run()
 	// add methods extra builtin methods to the interpreter
 	PyObject * thisCapsule = PyCapsule_New(this, nullptr, nullptr);
 	PyObject * module = Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
-	
+
 	// add ledCount variable to the interpreter
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
 
@@ -81,14 +81,106 @@ void Effect::effectFinished()
 
 PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 {
+	// get the effect
 	Effect * effect = getEffect(self);
-	return Py_BuildValue("i", 42);
+
+	// check if we have aborted already
+	if (effect->_abortRequested)
+	{
+		return Py_BuildValue("");
+	}
+
+	// determine the timeout
+	int timeout = effect->_timeout;
+	if (timeout > 0)
+	{
+		timeout = effect->_endTime - QDateTime::currentMSecsSinceEpoch();
+
+		// we are done if the time has passed
+		if (timeout <= 0)
+		{
+			return Py_BuildValue("");
+		}
+	}
+
+	// check the number of arguments
+	int argCount = PyTuple_Size(args);
+	if (argCount == 3)
+	{
+		// three seperate arguments for red, green, and blue
+		ColorRgb color;
+		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
+		{
+			effect->setColors(effect->_priority, std::vector<ColorRgb>(effect->_imageProcessor->getLedCount(), color), timeout);
+			return Py_BuildValue("");
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	else if (argCount == 1)
+	{
+		// bytearray of values
+		PyObject * bytearray = nullptr;
+		if (PyArg_ParseTuple(args, "O", &bytearray))
+		{
+			if (PyByteArray_Check(bytearray))
+			{
+				size_t length = PyByteArray_Size(bytearray);
+				if (length == 3 * effect->_imageProcessor->getLedCount())
+				{
+					std::vector<ColorRgb> colors(effect->_imageProcessor->getLedCount());
+					char * data = PyByteArray_AS_STRING(bytearray);
+					for (size_t i = 0; i < colors.size(); ++i)
+					{
+						ColorRgb & color = colors[i];
+						color.red   = data [3*i];
+						color.green = data [3*i+1];
+						color.blue  = data [3*i+2];
+					}
+					effect->setColors(effect->_priority, colors, timeout);
+					return Py_BuildValue("");
+				}
+				else
+				{
+					PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*ledCount");
+					return nullptr;
+				}
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Argument is not a bytearray");
+				return nullptr;
+			}
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	else
+	{
+		PyErr_SetString(PyExc_RuntimeError, "Function expect 1 or 3 arguments");
+		return nullptr;
+	}
+
+	// error
+	PyErr_SetString(PyExc_RuntimeError, "Unknown error");
+	return nullptr;
 }
 
 PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect(self);
-	return Py_BuildValue("i", 42);
+
+	// check if we have aborted already
+	if (effect->_abortRequested)
+	{
+		return Py_BuildValue("");
+	}
+
+	return Py_BuildValue("");
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
@@ -101,13 +193,13 @@ Effect * Effect::getEffect(PyObject *self)
 {
 	// Get the effect from the capsule in the self pointer
 	Effect * effect = reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
-	
+
 	// Test if the effect has reached it end time
 	if (effect->_timeout > 0 && QDateTime::currentMSecsSinceEpoch() > effect->_endTime)
 	{
 		effect->_abortRequested = true;
 	}
-	
+
 	// return the effect
 	return effect;
 }
