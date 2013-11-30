@@ -80,7 +80,6 @@ int EffectEngine::runEffect(const std::string &effectName, int priority, int tim
 
 void EffectEngine::channelCleared(int priority)
 {
-	std::cout << "clear effect on channel " << priority << std::endl;
 	for (Effect * effect : _activeEffects)
 	{
 		if (effect->getPriority() == priority)
@@ -92,7 +91,6 @@ void EffectEngine::channelCleared(int priority)
 
 void EffectEngine::allChannelsCleared()
 {
-	std::cout << "clear effect on every channel" << std::endl;
 	for (Effect * effect : _activeEffects)
 	{
 		effect->abort();
@@ -101,6 +99,12 @@ void EffectEngine::allChannelsCleared()
 
 void EffectEngine::effectFinished(Effect *effect)
 {
+	if (!effect->isAbortRequested())
+	{
+		// effect stopped by itself. Clear the channel
+		_hyperion->clear(effect->getPriority());
+	}
+
 	std::cout << "effect finished" << std::endl;
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{

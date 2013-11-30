@@ -80,6 +80,11 @@ int Effect::getPriority() const
 	return _priority;
 }
 
+bool Effect::isAbortRequested() const
+{
+	return _abortRequested;
+}
+
 void Effect::abort()
 {
 	_abortRequested = true;

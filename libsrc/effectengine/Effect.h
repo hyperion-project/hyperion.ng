@@ -21,6 +21,8 @@ public:
 
 	int getPriority() const;
 
+	bool isAbortRequested() const;
+
 public slots:
 	void abort();
 
