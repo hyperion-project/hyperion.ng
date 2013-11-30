@@ -1,16 +1,14 @@
-// Qt includes
-#include <QMetaType>
-
 // Python includes
 #include <Python.h>
+
+// Qt includes
+#include <QMetaType>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 #include "Effect.h"
 
-//static PyThreadState *_mainThreadState = 0;
-
-EffectEngine::EffectEngine(Hyperion * hyperion) :
+EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig) :
 	_hyperion(hyperion),
 	_availableEffects(),
 	_activeEffects(),
@@ -23,7 +21,12 @@ EffectEngine::EffectEngine(Hyperion * hyperion) :
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	_availableEffects["test"] = {"test.py", "{\"speed\":0.2}"};
+	std::vector<std::string> effectNames = jsonEffectConfig.getMemberNames();
+	for (const std::string & name : effectNames)
+	{
+		const Json::Value & info = jsonEffectConfig[name];
+		_availableEffects[name] = {info["script"].asString(), Json::FastWriter().write(info["args"])};
+	}
 
 	// initialize the python interpreter
 	std::cout << "Initializing Python interpreter" << std::endl;

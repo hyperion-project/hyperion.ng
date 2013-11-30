@@ -270,7 +270,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
 	// create the effect engine
-	_effectEngine = new EffectEngine(this);
+	_effectEngine = new EffectEngine(this, jsonConfig["effects"]);
 
 	// initialize the leds
 	update();

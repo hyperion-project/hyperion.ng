@@ -11,7 +11,7 @@ class EffectEngine : public QObject
 	Q_OBJECT
 
 public:
-	EffectEngine(Hyperion * hyperion);
+	EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig);
 	virtual ~EffectEngine();
 
 	std::list<std::string> getEffects() const;

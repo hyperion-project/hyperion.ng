@@ -176,7 +176,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & info = result["info"];
 
 	// collect priority information
-	Json::Value & priorities = info["priorities"];
+	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
 	foreach (int priority, activePriorities) {
@@ -190,7 +190,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	}
 
 	// collect transform information
-	Json::Value & transform = info["transform"];
+	Json::Value & transform = info["transform"] = Json::Value(Json::objectValue);
 	transform["saturationGain"] = _hyperion->getTransform(Hyperion::SATURATION_GAIN, Hyperion::INVALID);
 	transform["valueGain"] = _hyperion->getTransform(Hyperion::VALUE_GAIN, Hyperion::INVALID);
 	Json::Value & threshold = transform["threshold"];
@@ -211,7 +211,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	whitelevel.append(_hyperion->getTransform(Hyperion::WHITELEVEL, Hyperion::BLUE));
 
 	// collect effect info
-	Json::Value & effects = info["effects"];
+	Json::Value & effects = info["effects"] = Json::Value(Json::arrayValue);
 	std::list<std::string> effectNames = _hyperion->getEffects();
 	for (const std::string & name : effectNames)
 	{

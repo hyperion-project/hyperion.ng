@@ -200,6 +200,27 @@
                 "additionalProperties" : false
             }
         },
+        "effects" :
+        {
+            "type" : "object",
+            "required" : false,
+            "additionalProperties" :
+            {
+                "type" : "object",
+                "required" : false,
+                "properties" :
+                {
+                    "script" : {
+                        "type" : "string",
+                        "required" : true
+                    },
+                    "args" : {
+                        "type" : "object",
+                        "required" : false
+                    }
+                }
+            }
+        },
         "blackborderdetector" :
         {
             "type" : "object",
