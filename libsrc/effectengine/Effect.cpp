@@ -1,3 +1,6 @@
+// Python include
+#include <Python.h>
+
 // stl includes
 #include <iostream>
 #include <sstream>
@@ -17,7 +20,7 @@ PyMethodDef Effect::effectMethods[] = {
 };
 
 
-Effect::Effect(int priority, int timeout, const std::string & script, const std::string & args) :
+Effect::Effect(int priority, int timeout, const std::string & script, const Json::Value & args) :
 	QThread(),
 	_priority(priority),
 	_timeout(timeout),
@@ -50,7 +53,8 @@ void Effect::run()
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
 
 	// add a args variable to the interpreter
-	PyObject_SetAttrString(module, "args", Py_BuildValue("s", _args.c_str()));
+	PyObject_SetAttrString(module, "args", json2python(_args));
+	//PyObject_SetAttrString(module, "args", Py_BuildValue("s", _args.c_str()));
 
 	// Set the end time if applicable
 	if (_timeout > 0)
@@ -93,6 +97,45 @@ void Effect::abort()
 void Effect::effectFinished()
 {
 	emit effectFinished(this);
+}
+
+PyObject *Effect::json2python(const Json::Value &json) const
+{
+	switch (json.type())
+	{
+	case Json::nullValue:
+		return Py_BuildValue("");
+	case Json::realValue:
+		return Py_BuildValue("d", json.asDouble());
+	case Json::intValue:
+	case Json::uintValue:
+		return Py_BuildValue("i", json.asInt());
+	case Json::booleanValue:
+		return Py_BuildValue("i", json.asBool() ? 1 : 0);
+	case Json::stringValue:
+		return Py_BuildValue("s", json.asCString());
+	case Json::objectValue:
+	{
+		PyObject * obj = PyDict_New();
+		for (Json::Value::iterator i = json.begin(); i != json.end(); ++i)
+		{
+			PyDict_SetItemString(obj, i.memberName(), json2python(*i));
+		}
+		return obj;
+	}
+	case Json::arrayValue:
+	{
+		PyObject * list = PyList_New(json.size());
+		for (Json::Value::iterator i = json.begin(); i != json.end(); ++i)
+		{
+			PyList_SetItem(list, i.index(), json2python(*i));
+		}
+		return list;
+	}
+	}
+
+	assert(false);
+	return nullptr;
 }
 
 PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)

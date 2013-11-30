@@ -32,5 +32,6 @@ add_library(effectengine
 
 target_link_libraries(effectengine
 		hyperion
+		jsoncpp
 		${QT_LIBRARIES}
 		${PYTHON_LIBRARIES})

@@ -1,5 +1,9 @@
 #pragma once
 
+// Json includes
+#include <json/value.h>
+
+// Hyperion includes
 #include <hyperion/Hyperion.h>
 
 // pre-declarioation
@@ -30,7 +34,7 @@ public:
 	struct EffectDefinition
 	{
 		std::string script;
-		std::string args;
+		Json::Value args;
 	};
 
 private slots:

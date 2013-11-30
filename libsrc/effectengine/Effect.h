@@ -1,10 +1,10 @@
 #pragma once
 
-// Qt includes
-#include <QThread>
-
 // Python includes
 #include <Python.h>
+
+// Qt includes
+#include <QThread>
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
@@ -14,7 +14,7 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(int priority, int timeout, const std::string & script, const std::string & args = "");
+	Effect(int priority, int timeout, const std::string & script, const Json::Value & args = Json::Value());
 	virtual ~Effect();
 
 	virtual void run();
@@ -35,6 +35,8 @@ private slots:
 	void effectFinished();
 
 private:
+	PyObject * json2python(const Json::Value & json) const;
+
 	// Wrapper methods for Python interpreter extra buildin methods
 	static PyMethodDef effectMethods[];
 	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
@@ -49,7 +51,7 @@ private:
 
 	const std::string & _script;
 
-	const std::string & _args;
+	const Json::Value & _args;
 
 	int64_t _endTime;
 

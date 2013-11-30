@@ -25,7 +25,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	for (const std::string & name : effectNames)
 	{
 		const Json::Value & info = jsonEffectConfig[name];
-		_availableEffects[name] = {info["script"].asString(), Json::FastWriter().write(info["args"])};
+		_availableEffects[name] = {info["script"].asString(), info["args"]};
 	}
 
 	// initialize the python interpreter
