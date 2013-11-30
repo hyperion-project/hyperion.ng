@@ -2,16 +2,10 @@ import hyperion
 import time
 import colorsys
 
-# Get the rotation time
+# Get the parameters
 rotationTime = hyperion.args.get('rotation-time', 3.0)
-
-# Get the brightness
 brightness = hyperion.args.get('brightness', 1.0)
-
-# Get the saturation
 saturation = hyperion.args.get('saturation', 1.0)
-
-# Get the direction
 reverse = hyperion.args.get('reverse', False)
 
 # Initialize the led data
