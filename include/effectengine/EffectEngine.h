@@ -33,6 +33,9 @@ public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const std::string &effectName, const Json::Value & args, int priority, int timeout = -1);
 
+	/// Run the specified effect on the given priority channel and optionally specify a timeout
+	int runEffectScript(const std::string &script, const Json::Value & args, int priority, int timeout = -1);
+
 	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
 

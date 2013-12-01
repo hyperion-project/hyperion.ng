@@ -6,31 +6,12 @@
 #include <bootsequence/BootSequenceFactory.h>
 
 // Local Bootsequence includes
-#include "RainbowBootSequence.h"
-#include "KittBootSequence.h"
+#include "EffectBootSequence.h"
 
 BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, const Json::Value & jsonConfig)
 {
-	std::string type = jsonConfig["type"].asString();
-	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-
-	if (type == "none")
-	{
-		return nullptr;
-	}
-	else if (type == "rainbow")
-	{
-		std::cout << "SELECTED BOOT SEQUENCE: " << "RAINBOW" << std::endl;
-		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
-		return new RainbowBootSequence(hyperion, duration_ms);
-	}
-	else if (type == "knightrider" || type == "knight rider" || "knight_rider")
-	{
-		std::cout << "SELECTED BOOT SEQUENCE: " << "KITT" << std::endl;
-		const unsigned duration_ms = jsonConfig["duration_ms"].asUInt();
-		return new KittBootSequence(hyperion, duration_ms);
-	}
-
-	std::cerr << "Unknown boot-sequence selected; boot-sequence disabled." << std::endl;
-	return nullptr;
+	const std::string script = jsonConfig["script"].asString();
+	const Json::Value args = jsonConfig.get("args", Json::Value(Json::objectValue));
+	const unsigned duration = jsonConfig["duration_ms"].asUInt();
+	return new EffectBootSequence(hyperion, script, args, duration);
 }

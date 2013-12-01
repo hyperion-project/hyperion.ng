@@ -73,11 +73,16 @@ int EffectEngine::runEffect(const std::string &effectName, const Json::Value &ar
 		return -1;
 	}
 
+	return runEffectScript(effectDefinition->script, args.isNull() ? effectDefinition->args : args, priority, timeout);
+}
+
+int EffectEngine::runEffectScript(const std::string &script, const Json::Value &args, int priority, int timeout)
+{
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-	Effect * effect = new Effect(priority, timeout, effectDefinition->script, args.isNull() ? effectDefinition->args : args);
+	Effect * effect = new Effect(priority, timeout, script, args);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
