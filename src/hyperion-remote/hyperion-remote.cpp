@@ -43,6 +43,7 @@ int main(int argc, char * argv[])
 		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name)");
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
 		StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
+		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
@@ -59,6 +60,7 @@ int main(int argc, char * argv[])
 		argAddress.setDefault(defaultServerAddress.toStdString());
 		argPriority.setDefault(defaultPriority);
 		argDuration.setDefault(-1);
+		argEffectArgs.setDefault("");
 
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
@@ -108,7 +110,7 @@ int main(int argc, char * argv[])
 		}
 		else if (argEffect.isSet())
 		{
-			connection.setEffect(argEffect.getValue(), argPriority.getValue(), argDuration.getValue());
+			connection.setEffect(argEffect.getValue(), argEffectArgs.getValue(), argPriority.getValue(), argDuration.getValue());
 		}
 		else if (argServerInfo.isSet())
 		{

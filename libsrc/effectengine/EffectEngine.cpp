@@ -25,7 +25,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	for (const std::string & name : effectNames)
 	{
 		const Json::Value & info = jsonEffectConfig[name];
-		_availableEffects[name] = {info["script"].asString(), info["args"]};
+		_availableEffects.push_back({name, info["script"].asString(), info["args"]});
 	}
 
 	// initialize the python interpreter
@@ -43,22 +43,33 @@ EffectEngine::~EffectEngine()
 	Py_Finalize();
 }
 
-std::list<std::string> EffectEngine::getEffects() const
+const std::list<EffectDefinition> &EffectEngine::getEffects() const
 {
-	std::list<std::string> effectNames;
-	foreach (auto entry, _availableEffects) {
-		effectNames.push_back(entry.first);
-	}
-	return effectNames;
+	return _availableEffects;
 }
 
 int EffectEngine::runEffect(const std::string &effectName, int priority, int timeout)
 {
+	return runEffect(effectName, Json::Value(Json::nullValue), priority, timeout);
+}
+
+int EffectEngine::runEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+{
 	std::cout << "run effect " << effectName << " on channel " << priority << std::endl;
 
-	if (_availableEffects.find(effectName) == _availableEffects.end())
+	const EffectDefinition * effectDefinition = nullptr;
+	for (const EffectDefinition & e : _availableEffects)
+	{
+		if (e.name == effectName)
+		{
+			effectDefinition = &e;
+			break;
+		}
+	}
+	if (effectDefinition == nullptr)
 	{
 		// no such effect
+		std::cerr << "effect " << effectName << " not found" << std::endl;
 		return -1;
 	}
 
@@ -66,8 +77,7 @@ int EffectEngine::runEffect(const std::string &effectName, int priority, int tim
 	channelCleared(priority);
 
 	// create the effect
-	const EffectDefinition & effectDefinition = _availableEffects[effectName];
-	Effect * effect = new Effect(priority, timeout, effectDefinition.script, effectDefinition.args);
+	Effect * effect = new Effect(priority, timeout, effectDefinition->script, args.isNull() ? effectDefinition->args : args);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);

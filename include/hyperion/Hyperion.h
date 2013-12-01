@@ -15,6 +15,9 @@
 #include <hyperion/LedDevice.h>
 #include <hyperion/PriorityMuxer.h>
 
+// Effect engine includes
+#include <effectengine/EffectDefinition.h>
+
 // Forward class declaration
 class HsvTransform;
 class ColorTransform;
@@ -102,7 +105,7 @@ public:
 
 	/// Get the list of available effects
 	/// @return The list of available effects
-	std::list<std::string> getEffects() const;
+	const std::list<EffectDefinition> &getEffects() const;
 
 public slots:
 	///
@@ -152,6 +155,12 @@ public slots:
 	///	@param priority The priority channel of the effect
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const std::string & effectName, int priority, int timeout = -1);
+
+	/// Run the specified effect on the given priority channel and optionally specify a timeout
+	/// @param effectName Name of the effec to run
+	///	@param priority The priority channel of the effect
+	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
+	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
 
 public:
 	static LedDevice * createDevice(const Json::Value & deviceConfig);

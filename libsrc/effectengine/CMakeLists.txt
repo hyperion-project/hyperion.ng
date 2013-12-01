@@ -14,6 +14,7 @@ SET(EffectEngineQT_HEADERS
 )
 
 SET(EffectEngineHEADERS
+	${CURRENT_HEADER_DIR}/EffectDefinition.h
 )
 
 SET(EffectEngineSOURCES

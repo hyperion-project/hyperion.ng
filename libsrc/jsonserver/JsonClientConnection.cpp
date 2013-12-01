@@ -162,7 +162,14 @@ void JsonClientConnection::handleEffectCommand(const Json::Value &message)
 	const std::string & effectName = effect["name"].asString();
 
 	// set output
-	_hyperion->setEffect(effectName, priority, duration);
+	if (effect.isMember("args"))
+	{
+		_hyperion->setEffect(effectName, effect["args"], priority, duration);
+	}
+	else
+	{
+		_hyperion->setEffect(effectName, priority, duration);
+	}
 
 	// send reply
 	sendSuccessReply();
@@ -212,11 +219,13 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 	// collect effect info
 	Json::Value & effects = info["effects"] = Json::Value(Json::arrayValue);
-	std::list<std::string> effectNames = _hyperion->getEffects();
-	for (const std::string & name : effectNames)
+	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
+	for (const EffectDefinition & effectDefinition : effectsDefinitions)
 	{
 		Json::Value effect;
-		effect["name"] = name;
+		effect["name"] = effectDefinition.name;
+		effect["script"] = effectDefinition.script;
+		effect["args"] = effectDefinition.args;
 
 		effects.append(effect);
 	}

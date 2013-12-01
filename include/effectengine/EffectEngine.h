@@ -1,10 +1,16 @@
 #pragma once
 
+// Qt includes
+#include <QObject>
+
 // Json includes
 #include <json/value.h>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
+
+// Effect engine includes
+#include <effectengine/EffectDefinition.h>
 
 // pre-declarioation
 class Effect;
@@ -18,11 +24,14 @@ public:
 	EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig);
 	virtual ~EffectEngine();
 
-	std::list<std::string> getEffects() const;
+	const std::list<EffectDefinition> & getEffects() const;
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const std::string &effectName, int priority, int timeout = -1);
+
+	/// Run the specified effect on the given priority channel and optionally specify a timeout
+	int runEffect(const std::string &effectName, const Json::Value & args, int priority, int timeout = -1);
 
 	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
@@ -30,20 +39,13 @@ public slots:
 	/// Clear all effects
 	void allChannelsCleared();
 
-public:
-	struct EffectDefinition
-	{
-		std::string script;
-		Json::Value args;
-	};
-
 private slots:
 	void effectFinished(Effect * effect);
 
 private:
 	Hyperion * _hyperion;
 
-	std::map<std::string, EffectDefinition> _availableEffects;
+	std::list<EffectDefinition> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
 

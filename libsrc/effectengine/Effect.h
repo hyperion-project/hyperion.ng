@@ -49,9 +49,9 @@ private:
 
 	const int _timeout;
 
-	const std::string & _script;
+	const std::string _script;
 
-	const Json::Value & _args;
+	const Json::Value _args;
 
 	int64_t _endTime;
 

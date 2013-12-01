@@ -102,7 +102,7 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	parseReply(reply);
 }
 
-void JsonConnection::setEffect(const std::string &effectName, int priority, int duration)
+void JsonConnection::setEffect(const std::string &effectName, const std::string & effectArgs, int priority, int duration)
 {
 	std::cout << "Start effect " << effectName << std::endl;
 
@@ -112,6 +112,14 @@ void JsonConnection::setEffect(const std::string &effectName, int priority, int 
 	command["priority"] = priority;
 	Json::Value & effect = command["effect"];
 	effect["name"] = effectName;
+	if (effectArgs.size() > 0)
+	{
+		Json::Reader reader;
+		if (!reader.parse(effectArgs, effect["args"], false))
+		{
+			throw std::runtime_error("Error in effect arguments: " + reader.getFormattedErrorMessages());
+		}
+	}
 	if (duration > 0)
 	{
 		command["duration"] = duration;

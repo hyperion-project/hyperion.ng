@@ -466,7 +466,7 @@ const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
-std::list<std::string> Hyperion::getEffects() const
+const std::list<EffectDefinition> & Hyperion::getEffects() const
 {
 	return _effectEngine->getEffects();
 }
@@ -474,6 +474,11 @@ std::list<std::string> Hyperion::getEffects() const
 int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout);
+}
+
+int Hyperion::setEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+{
+	return _effectEngine->runEffect(effectName, args, priority, timeout);
 }
 
 void Hyperion::update()
