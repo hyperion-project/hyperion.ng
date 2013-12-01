@@ -6,6 +6,10 @@ import colorsys
 speed = hyperion.args.get('speed', 1.0)
 fadeFactor = hyperion.args.get('fadeFactor', 0.7)
 
+# Check parameters
+speed = max(0.0001, speed)
+fadeFactor = max(0.0, min(fadeFactor, 1.0))
+
 # Initialize the led data
 width = 25
 imageData = bytearray(width * (0,0,0))
