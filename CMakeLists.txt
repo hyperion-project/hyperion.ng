@@ -33,7 +33,7 @@ include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Prefer static linking over dynamic
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
 set(CMAKE_BUILD_TYPE "Release")
 
