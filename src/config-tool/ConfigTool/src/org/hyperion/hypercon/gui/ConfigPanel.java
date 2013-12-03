@@ -133,6 +133,7 @@ public class ConfigPanel extends JPanel {
 			mSpecificationTabs.addTab("Hardware", getHardwarePanel());
 			mSpecificationTabs.addTab("Process", getProcessPanel());
 			mSpecificationTabs.addTab("External", getExternalPanel());
+			mSpecificationTabs.addTab("Effect Engine", new EffectEnginePanel(ledString.mEffectEngineConfig));
 		}
 		return mSpecificationTabs;
 	}

@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import org.hyperion.hypercon.spec.ColorConfig;
 import org.hyperion.hypercon.spec.DeviceConfig;
+import org.hyperion.hypercon.spec.EffectEngineConfig;
 import org.hyperion.hypercon.spec.ImageProcessConfig;
 import org.hyperion.hypercon.spec.Led;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
@@ -17,19 +18,22 @@ import org.hyperion.hypercon.spec.MiscConfig;
 public class LedString {
 	
 	/** The configuration of the output device */
-	public DeviceConfig mDeviceConfig = new DeviceConfig();
+	public final DeviceConfig mDeviceConfig = new DeviceConfig();
 
 	/** THe configuration of the 'physical' led frame */
-	public LedFrameConstruction mLedFrameConfig = new LedFrameConstruction();
+	public final LedFrameConstruction mLedFrameConfig = new LedFrameConstruction();
 	
 	/** The configuration of the image processing */
-	public ImageProcessConfig mProcessConfig = new ImageProcessConfig();
+	public final ImageProcessConfig mProcessConfig = new ImageProcessConfig();
 	
 	/** The color adjustment configuration */
-	public ColorConfig mColorConfig = new ColorConfig();
+	public final ColorConfig mColorConfig = new ColorConfig();
 	
 	/** The miscellaneous configuration (bootsequence, blackborder detector, etc) */
-	public MiscConfig mMiscConfig = new MiscConfig();
+	public final MiscConfig mMiscConfig = new MiscConfig();
+
+	/** The effect engine configuration, containing the Effects */
+	public final EffectEngineConfig mEffectEngineConfig = new EffectEngineConfig();
 	
 	/** The translation of the led frame construction and image processing to individual led configuration */
 	public Vector<Led> leds;
@@ -55,14 +59,27 @@ public class LedString {
 			String colorJson = mColorConfig.toJsonString();
 			fw.write(colorJson + ",\n\n");
 
-			String ledJson = ledToJsonString();
-			fw.write(ledJson + ",\n\n");
+			JsonStringBuffer jsonBuf = new JsonStringBuffer(1);
+
+			ledsAppendTo(jsonBuf);
 			
-			String blackBorderJson = mProcessConfig.getBlackborderJson();
-			fw.write(blackBorderJson + ",\n\n");
+			jsonBuf.newLine();
 			
-			String miscJson = mMiscConfig.toJsonString();
-			fw.write(miscJson + "\n");
+			mProcessConfig.appendTo(jsonBuf);
+
+			jsonBuf.newLine();
+			
+			mMiscConfig.appendTo(jsonBuf);
+			
+			jsonBuf.newLine();
+
+			mEffectEngineConfig.appendTo(jsonBuf);
+			
+			jsonBuf.newLine();
+			
+			jsonBuf.addValue("endOfJson", "endOfJson", true);
+			
+			fw.write(jsonBuf.toString());
 			
 			fw.write("}\n");
 		} catch (IOException e) {
@@ -70,42 +87,28 @@ public class LedString {
 		}
 	}
 	
-	/**
-	 * Converts the list with leds specifications to a JSON string as used by the Hyperion Deamon
-	 * 
-	 * @return The JSON string with led-specifications
-	 */
-	String ledToJsonString() {
-		StringBuffer strBuf = new StringBuffer();
+	void ledsAppendTo(JsonStringBuffer pJsonBuf) {
+		String ledComment = 
+				" The configuration for each individual led. This contains the specification of the area \n" + 
+				" averaged of an input image for each led to determine its color. Each item in the list \n" +
+				" contains the following fields:\n" +
+				" * index: The index of the led. This determines its location in the string of leds; zero \n" +
+				"          being the first led.\n" +
+				" * hscan: The fractional part of the image along the horizontal used for the averaging \n" +
+				"          (minimum and maximum inclusive)\n" +
+				" * vscan: The fractional part of the image along the vertical used for the averaging \n" +
+				"          (minimum and maximum inclusive)\n";
+		pJsonBuf.writeComment(ledComment);
 		
-		strBuf.append("\t/// The configuration for each individual led. This contains the specification of the area \n");
-		strBuf.append("\t/// averaged of an input image for each led to determine its color. Each item in the list \n");
-		strBuf.append("\t/// contains the following fields:\n");
-		strBuf.append("\t/// * index: The index of the led. This determines its location in the string of leds; zero \n");
-		strBuf.append("\t///          being the first led.\n");
-		strBuf.append("\t/// * hscan: The fractional part of the image along the horizontal used for the averaging \n");
-		strBuf.append("\t///          (minimum and maximum inclusive)\n");
-		strBuf.append("\t/// * vscan: The fractional part of the image along the vertical used for the averaging \n");
-		strBuf.append("\t///          (minimum and maximum inclusive)\n");
-		
-		strBuf.append("\t\"leds\" : \n");
-		strBuf.append("\t[\n");
-		
+		pJsonBuf.startArray("leds");
 		for (Led led : leds)
 		{
-			strBuf.append("\t\t{\n");
-			strBuf.append(String.format(Locale.ROOT, "\t\t\t\"index\" : %d,\n", led.mLedSeqNr));
-			strBuf.append(String.format(Locale.ROOT, "\t\t\t\"hscan\" : { \"minimum\" : %.4f, \"maximum\" : %.4f },\n", led.mImageRectangle.getMinX(), led.mImageRectangle.getMaxX()));
-			strBuf.append(String.format(Locale.ROOT, "\t\t\t\"vscan\" : { \"minimum\" : %.4f, \"maximum\" : %.4f }\n", led.mImageRectangle.getMinY(), led.mImageRectangle.getMaxY()));
-			if (led != leds.lastElement()) {
-				strBuf.append("\t\t},\n");
-			} else {
-				strBuf.append("\t\t}\n");
-			}
+			pJsonBuf.startObject("");
+			pJsonBuf.addValue("index", led.mLedSeqNr, false);
+			pJsonBuf.addRawValue("hscan", String.format(Locale.ENGLISH, "{ %1$cminimum%1$c : %2$.4f, %1$cmaximum%1$c : %3$.4f }", '"', led.mImageRectangle.getMinX(), led.mImageRectangle.getMaxX()), false);
+			pJsonBuf.addRawValue("vscan", String.format(Locale.ENGLISH, "{ %1$cminimum%1$c : %2$.4f, %1$cmaximum%1$c : %3$.4f }", '"', led.mImageRectangle.getMinY(), led.mImageRectangle.getMaxY()), true);
+			pJsonBuf.stopObject(led.equals(leds.get(leds.size()-1)));
 		}
-		
-		strBuf.append("\t]");
-		
-		return strBuf.toString();
+		pJsonBuf.stopArray();
 	}
 }
