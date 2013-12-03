@@ -135,7 +135,7 @@ public class ColorSmoothingPanel extends JPanel {
 		@Override
 		public void stateChanged(ChangeEvent e) {
 			mColorConfig.mSmoothingTime_ms = (Integer)mTimeSpinner.getValue();
-			mColorConfig.mSmoothingUpdateFrequency_Hz = (Integer)mUpdateFrequencySpinner.getValue();
+			mColorConfig.mSmoothingUpdateFrequency_Hz = (Double)mUpdateFrequencySpinner.getValue();
 		}
 	};
 }
