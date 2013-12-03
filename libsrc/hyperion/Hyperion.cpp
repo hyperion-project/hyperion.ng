@@ -418,6 +418,11 @@ ColorTransform * Hyperion::getTransform(const std::string& id)
 	return _raw2ledTransform->getTransform(id);
 }
 
+void Hyperion::transformsUpdated()
+{
+	update();
+}
+
 void Hyperion::clear(int priority)
 {
 	if (_muxer.hasPriority(priority))

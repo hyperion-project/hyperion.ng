@@ -287,6 +287,9 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].asDouble());
 	}
 
+	// commit the changes
+	_hyperion->transformsUpdated();
+
 	sendSuccessReply();
 }
 
