@@ -27,6 +27,7 @@ int main(int argc, char** argv)
 	signal(SIGINT,  signal_handler);
 
 	int grabFlags = 0;
+	int grabCount = -1;
 	try
 	{
 		// create the option parser and initialize all parameters
@@ -35,6 +36,8 @@ int main(int argc, char** argv)
 
 		QString flagDescr = QString("Set the grab flags of the dispmanx frame grabber [default: 0x%1]").arg(grabFlags, 8, 16, QChar('0'));
 		StringParameter   & argFlags = parameters.add<StringParameter>   ('f', "flags", flagDescr.toAscii().constData());
+		IntParameter      & argCount = parameters.add<IntParameter>      ('n', "count", "Number of images to capture (default infinite)");
+		argCount.setDefault(grabCount);
 		SwitchParameter<> & argList  = parameters.add<SwitchParameter<> >('l', "list",  "List the possible flags");
 		SwitchParameter<> & argHelp  = parameters.add<SwitchParameter<> >('h', "help",  "Show this help message and exit");
 
@@ -90,6 +93,8 @@ int main(int argc, char** argv)
 				return -1;
 			}
 		}
+
+		grabCount = argCount.getValue();
 	}
 	catch (const std::runtime_error & e)
 	{
@@ -106,7 +111,7 @@ int main(int argc, char** argv)
 	QImage qImage(64, 64, QImage::Format_ARGB32);
 	Image<ColorRgba> imageRgba(64, 64);
 
-	while(running)
+	for (int i=0; i<grabCount || grabCount < 0; ++i) {
 	{
 		frameGrabber.grabFrame(imageRgba);
 
@@ -117,7 +122,7 @@ int main(int argc, char** argv)
 		}
 
 		const QImage qImageSwp = qImage.rgbSwapped();
-		qImageSwp.save(QString("HYPERION_%3.png").arg(iFrame));
+		qImageSwp.save(QString("HYPERION_f0x%1_%2.png").arg(grabFlags, 2, 16).arg(iFrame));
 		++iFrame;
 
 		timespec sleepTime;
