@@ -86,6 +86,7 @@ public:
 	///
 	/// @note Note that providing a NULL will leave the settings on the server unchanged
 	///
+	/// @param transformId The identifier of the transform to set
 	/// @param saturation The HSV saturation gain
 	/// @param value The HSV value gain
 	/// @param threshold The threshold
@@ -94,6 +95,7 @@ public:
 	/// @param whitelevel The whitelevel
 	///
 	void setTransform(
+			std::string * transformId,
 			double * saturation,
 			double * value,
 			ColorTransformValues * threshold,
