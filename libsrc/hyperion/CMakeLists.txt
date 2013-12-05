@@ -30,6 +30,8 @@ SET(Hyperion_HEADERS
 		${CURRENT_HEADER_DIR}/BlackBorderDetector.h
 		${CURRENT_HEADER_DIR}/BlackBorderProcessor.h
 
+		${CURRENT_SOURCE_DIR}/MultiColorTransform.h
+
 		${CURRENT_SOURCE_DIR}/device/LedSpiDevice.h
 		${CURRENT_SOURCE_DIR}/device/LedRs232Device.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceTest.h
@@ -51,6 +53,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/BlackBorderDetector.cpp
 		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
+		${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
 
 		${CURRENT_SOURCE_DIR}/device/LedSpiDevice.cpp

@@ -35,6 +35,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
 
 # enable C++11
@@ -43,14 +44,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 
-#SET(QT_DONT_USE_QTGUI   TRUE)
-#SET(QT_USE_QTCONSOLE    TRUE)
+# add protocol buffers
+find_package(Protobuf REQUIRED)
+
+#add libusb and pthreads
+find_package(libusb-1.0 REQUIRED)
+find_package(Threads REQUIRED)
+
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 
 configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
 configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
+configure_file(config/hyperion_x86.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
