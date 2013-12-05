@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 	QImage qImage(64, 64, QImage::Format_ARGB32);
 	Image<ColorRgba> imageRgba(64, 64);
 
-	for (int i=0; i<grabCount || grabCount < 0; ++i) {
+	for (int i=0; i<grabCount || grabCount < 0; ++i)
 	{
 		frameGrabber.grabFrame(imageRgba);
 
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		}
 
 		const QImage qImageSwp = qImage.rgbSwapped();
-		qImageSwp.save(QString("HYPERION_f0x%1_%2.png").arg(grabFlags, 2, 16).arg(iFrame));
+		qImageSwp.save(QString("HYPERION_f0x%1_%2.png").arg(grabFlags, 8, 16, QChar('0')).arg(iFrame));
 		++iFrame;
 
 		timespec sleepTime;
@@ -133,3 +133,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
