@@ -1,5 +1,5 @@
 # Define the main-project name
-project(hyperion)
+project(Hyperion)
 
 # define the minimum cmake version (as required by cmake)
 cmake_minimum_required(VERSION 2.8)
@@ -43,6 +43,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
+
+# add protocol buffers
+find_package(Protobuf REQUIRED)
+
+#add libusb and pthreads
+find_package(libusb-1.0 REQUIRED)
+find_package(Threads REQUIRED)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
