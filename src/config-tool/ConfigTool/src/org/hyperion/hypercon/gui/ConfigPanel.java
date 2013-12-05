@@ -174,7 +174,7 @@ public class ConfigPanel extends JPanel {
 			mProcessPanel.add(new BootSequencePanel(ledString.mMiscConfig));
 			mProcessPanel.add(new FrameGrabberPanel(ledString.mMiscConfig));
 			mProcessPanel.add(new ColorSmoothingPanel(ledString.mColorConfig));
-			mProcessPanel.add(new ColorPanel(ledString.mColorConfig));
+			mProcessPanel.add(new ColorsPanel(ledString.mColorConfig));
 			mProcessPanel.add(Box.createVerticalGlue());
 		}
 		return mProcessPanel;

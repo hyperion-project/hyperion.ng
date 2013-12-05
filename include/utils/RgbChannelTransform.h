@@ -12,21 +12,21 @@
 /// 4) finally, in case of a weird choice of parameters, the output is clamped between [0:1]
 ///
 /// All configuration values are doubles and assume the color value to be between 0 and 1
-class ColorTransform
+class RgbChannelTransform
 {
 public:
 	/// Default constructor
-	ColorTransform();
+	RgbChannelTransform();
 
 	/// Constructor
-	/// @param threshold
-	/// @param gamma
-	/// @param blacklevel
-	/// @param whitelevel
-	ColorTransform(double threshold, double gamma, double blacklevel, double whitelevel);
+	/// @param threshold  The minimum threshold
+	/// @param gamma The gamma of the gamma-curve correction
+	/// @param blacklevel The minimum value for the RGB-Channel
+	/// @param whitelevel The maximum value for the RGB-Channel
+	RgbChannelTransform(double threshold, double gamma, double blacklevel, double whitelevel);
 
 	/// Destructor
-	~ColorTransform();
+	~RgbChannelTransform();
 
 	/// @return The current threshold value
 	double getThreshold() const;
