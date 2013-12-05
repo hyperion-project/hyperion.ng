@@ -1,9 +1,10 @@
 // STL includes
 #include <cmath>
 
-#include <utils/ColorTransform.h>
+// Utils includes
+#include <utils/RgbChannelTransform.h>
 
-ColorTransform::ColorTransform() :
+RgbChannelTransform::RgbChannelTransform() :
 	_threshold(0),
 	_gamma(1.0),
 	_blacklevel(0.0),
@@ -12,7 +13,7 @@ ColorTransform::ColorTransform() :
 	initializeMapping();
 }
 
-ColorTransform::ColorTransform(double threshold, double gamma, double blacklevel, double whitelevel) :
+RgbChannelTransform::RgbChannelTransform(double threshold, double gamma, double blacklevel, double whitelevel) :
 	_threshold(threshold),
 	_gamma(gamma),
 	_blacklevel(blacklevel),
@@ -21,55 +22,55 @@ ColorTransform::ColorTransform(double threshold, double gamma, double blacklevel
 	initializeMapping();
 }
 
-ColorTransform::~ColorTransform()
+RgbChannelTransform::~RgbChannelTransform()
 {
 }
 
-double ColorTransform::getThreshold() const
+double RgbChannelTransform::getThreshold() const
 {
 	return _threshold;
 }
 
-void ColorTransform::setThreshold(double threshold)
+void RgbChannelTransform::setThreshold(double threshold)
 {
 	_threshold = threshold;
 	initializeMapping();
 }
 
-double ColorTransform::getGamma() const
+double RgbChannelTransform::getGamma() const
 {
 	return _gamma;
 }
 
-void ColorTransform::setGamma(double gamma)
+void RgbChannelTransform::setGamma(double gamma)
 {
 	_gamma = gamma;
 	initializeMapping();
 }
 
-double ColorTransform::getBlacklevel() const
+double RgbChannelTransform::getBlacklevel() const
 {
 	return _blacklevel;
 }
 
-void ColorTransform::setBlacklevel(double blacklevel)
+void RgbChannelTransform::setBlacklevel(double blacklevel)
 {
 	_blacklevel = blacklevel;
 	initializeMapping();
 }
 
-double ColorTransform::getWhitelevel() const
+double RgbChannelTransform::getWhitelevel() const
 {
 	return _whitelevel;
 }
 
-void ColorTransform::setWhitelevel(double whitelevel)
+void RgbChannelTransform::setWhitelevel(double whitelevel)
 {
 	_whitelevel = whitelevel;
 	initializeMapping();
 }
 
-void ColorTransform::initializeMapping()
+void RgbChannelTransform::initializeMapping()
 {
 	// initialize the mapping as a linear array
 	for (int i = 0; i < 256; ++i)

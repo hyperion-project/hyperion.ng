@@ -11,11 +11,11 @@ add_library(hyperion-utils
 		${CURRENT_HEADER_DIR}/ColorRgba.h
 		${CURRENT_SOURCE_DIR}/ColorRgba.cpp
 		${CURRENT_HEADER_DIR}/Image.h
-		${CURRENT_HEADER_DIR}/ColorTransform.h
-		${CURRENT_HEADER_DIR}/HsvTransform.h
 
-		${CURRENT_SOURCE_DIR}/ColorTransform.cpp
+		${CURRENT_HEADER_DIR}/HsvTransform.h
 		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
+		${CURRENT_HEADER_DIR}/RgbChannelTransform.h
+		${CURRENT_SOURCE_DIR}/RgbChannelTransform.cpp
 
 		${CURRENT_HEADER_DIR}/jsonschema/JsonFactory.h
 		${CURRENT_HEADER_DIR}/jsonschema/JsonSchemaChecker.h

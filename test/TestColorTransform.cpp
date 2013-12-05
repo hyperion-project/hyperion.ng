@@ -2,13 +2,14 @@
 #include <iostream>
 #include <cmath>
 
-#include <utils/ColorTransform.h>
+// Utils includes
+#include <utils/RgbChannelTransform.h>
 
 int main()
 {
 	{
 		std::cout << "Testing linear transform" << std::endl;
-		ColorTransform t;
+		RgbChannelTransform t;
 		for (int i = 0; i < 256; ++i)
 		{
 			uint8_t input = i;
@@ -29,7 +30,7 @@ int main()
 
 	{
 		std::cout << "Testing threshold" << std::endl;
-		ColorTransform t(.10, 1.0, 0.0, 1.0);
+		RgbChannelTransform t(.10, 1.0, 0.0, 1.0);
 		for (int i = 0; i < 256; ++i)
 		{
 			uint8_t input = i;
@@ -50,7 +51,7 @@ int main()
 
 	{
 		std::cout << "Testing blacklevel and whitelevel" << std::endl;
-		ColorTransform t(0, 1.0, 0.2, 0.8);
+		RgbChannelTransform t(0, 1.0, 0.2, 0.8);
 		for (int i = 0; i < 256; ++i)
 		{
 			uint8_t input = i;
@@ -71,7 +72,7 @@ int main()
 
 	{
 		std::cout << "Testing gamma" << std::endl;
-		ColorTransform t(0, 2.0, 0.0, 1.0);
+		RgbChannelTransform t(0, 2.0, 0.0, 1.0);
 		for (int i = 0; i < 256; ++i)
 		{
 			uint8_t input = i;

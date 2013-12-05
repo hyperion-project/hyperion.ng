@@ -13,8 +13,8 @@
 	"device" :
 	{
 		"name"       : "MyPi",
-		"type"       : "ws2801",
-		"output"     : "/dev/spidev0.0",
+		"type"       : "test",
+		"output"     : "./hyperiond.test.out",
 		"rate"       : 500000,
 		"colorOrder" : "rgb"
 	},
@@ -38,7 +38,7 @@
 		[
 			{
 				"id" : "device_1",
-				"leds" : "0-24",
+				"leds" : "0,1,2,3-10, 12-32, 33, 34, 35-49",
 				"hsv" :
 				{
 					"saturationGain" : 1.0000,
@@ -68,7 +68,7 @@
 			},
 			{
 				"id" : "device_2",
-				"leds" : "25-49",
+				"leds" : "11",
 				"hsv" :
 				{
 					"saturationGain" : 1.0000,
@@ -97,9 +97,10 @@
 				}
 			}
 		],
+
 		"smoothing" :
 		{
-			"type"            : "linear",
+			"type"            : "none",
 			"time_ms"         : 200,
 			"updateFrequency" : 20.0000
 		}
@@ -402,15 +403,15 @@
 	///  * grabPictures : Flag indicating that the frame-grabber is on(true) during picture show
 	///  * grabAudio    : Flag indicating that the frame-grabber is on(true) during audio playback
 	///  * grabMenu     : Flag indicating that the frame-grabber is on(true) in the XBMC menu
-	"xbmcVideoChecker" :
-	{
-		"xbmcAddress"  : "127.0.0.1",
-		"xbmcTcpPort"  : 9090,
-		"grabVideo"    : true,
-		"grabPictures" : true,
-		"grabAudio"    : true,
-		"grabMenu"     : false
-	},
+//	"xbmcVideoChecker" :
+//	{
+//		"xbmcAddress"  : "127.0.0.1",
+//		"xbmcTcpPort"  : 9090,
+//		"grabVideo"    : true,
+//		"grabPictures" : true,
+//		"grabAudio"    : true,
+//		"grabMenu"     : false
+//	},
 
 	/// The configuration of the Json server which enables the json remote interface
 	///  * port : Port at which the json server is started

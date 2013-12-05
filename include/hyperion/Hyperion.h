@@ -16,8 +16,10 @@
 #include <hyperion/PriorityMuxer.h>
 
 // Forward class declaration
-class HsvTransform;
 class ColorTransform;
+class HsvTransform;
+class RgbChannelTransform;
+class MultiColorTransform;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -33,7 +35,7 @@ public:
 	///
 	/// RGB-Color channel enumeration
 	///
-	enum Color
+	enum RgbChannel
 	{
 		RED, GREEN, BLUE, INVALID
 	};
@@ -88,15 +90,16 @@ public:
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
 
 	///
-	/// Sets/Updates a part of the color transformation.
+	/// Returns the list with unique transform identifiers
+	/// @return The list with transform identifiers
 	///
-	/// @param[in] transform  The type of transform to configure
-	/// @param[in] color The color channel to which the transform applies (only applicable for
-	///                  Transform::THRESHOLD, Transform::GAMMA, Transform::BLACKLEVEL,
-	///                  Transform::WHITELEVEL)
-	/// @param[in] value  The new value for the given transform
+	const std::vector<std::string> & getTransformIds() const;
+
 	///
-	void setTransform(Transform transform, Color color, double value);
+	/// Returns the ColorTransform with the given identifier
+	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
+	///
+	ColorTransform * getTransform(const std::string& id);
 
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
@@ -110,18 +113,6 @@ public:
 	/// Clears all priority channels. This will switch the leds off until a new priority is written.
 	///
 	void clearall();
-
-	///
-	/// Returns the value of a specific color transform
-	///
-	/// @param[in] transform The type of transform
-	/// @param[in] color The color channel to which the transform applies (only applicable for
-	///                  Transform::THRESHOLD, Transform::GAMMA, Transform::BLACKLEVEL,
-	///                  Transform::WHITELEVEL)
-	///
-	/// @return The value of the specified color transform
-	///
-	double getTransform(Transform transform, Color color) const;
 
 	///
 	/// Returns a list of active priorities
@@ -144,8 +135,12 @@ public:
 	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
+
+	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
+	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
-	static ColorTransform * createColorTransform(const Json::Value & colorConfig);
+	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
+
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
 
 private slots:
@@ -156,28 +151,14 @@ private slots:
 	void update();
 
 private:
-	///
-	/// Applies all color transmforms to the given list of colors. The transformation is performed
-	/// in place.
-	///
-	/// @param colors  The colors to be transformed
-	///
-	void applyTransform(std::vector<ColorRgb>& colors) const;
-
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
-	/// The HSV Transform for applying Saturation and Value transforms
-	HsvTransform * _hsvTransform;
-	/// The RED-Channel (RGB) transform
-	ColorTransform * _redTransform;
-	/// The GREEN-Channel (RGB) transform
-	ColorTransform * _greenTransform;
-	/// The BLUE-Channel (RGB) transform
-	ColorTransform * _blueTransform;
+	/// The transformation from raw colors to led colors
+	MultiColorTransform * _raw2ledTransform;
 
 	/// Value with the desired color byte order
 	ColorOrder _colorOrder;

@@ -4,8 +4,6 @@
 #include <hyperion/ImageToLedsMap.h>
 #include <hyperion/BlackBorderProcessor.h>
 
-#include <utils/ColorTransform.h>
-
 using namespace hyperion;
 
 ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector) :
