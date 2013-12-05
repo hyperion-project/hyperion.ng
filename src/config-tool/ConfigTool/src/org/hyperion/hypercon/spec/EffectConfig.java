@@ -1,5 +1,7 @@
 package org.hyperion.hypercon.spec;
 
+import java.util.Locale;
+
 import org.hyperion.hypercon.JsonStringBuffer;
 
 /**
@@ -20,10 +22,9 @@ public class EffectConfig {
 		pJsonBuf.startObject(mId);
 		pJsonBuf.addValue("script", mScript, false);
 		
-		pJsonBuf.startObject("args");
-		pJsonBuf.stopObject();
+		pJsonBuf.addRawValue("args", String.format(Locale.ENGLISH, "{\n%s\n}", mArgs), true);
 		
-		pJsonBuf.stopObject(!endOfEffects);
+		pJsonBuf.stopObject(endOfEffects);
 	}
 	
 	@Override
