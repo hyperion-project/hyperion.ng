@@ -1,6 +1,6 @@
 package org.hyperion.hypercon.spec;
 
-import java.util.Locale;
+import java.util.Vector;
 
 import org.hyperion.hypercon.JsonStringBuffer;
 
@@ -15,14 +15,28 @@ public class EffectConfig {
 	/** The python-script used to generate the effect */
 	public String mScript;
 	
-	/** The JSON-string containing the arguments of the python-script */
-	public String mArgs;
+	/** The arguments (key-value) of the python-script */
+	public final Vector<EffectArg> mArgs = new Vector<>();
+	
+	static public class EffectArg {
+		public String key;
+		public Object value;
+		
+		public EffectArg() {
+			key = "";
+			value = "";
+		}
+		public EffectArg(String pKey, Object pValue) {
+			key = pKey;
+			value = pValue;
+		}
+	}
 	
 	public void append(JsonStringBuffer pJsonBuf, boolean endOfEffects) {
 		pJsonBuf.startObject(mId);
 		pJsonBuf.addValue("script", mScript, false);
 		
-		pJsonBuf.addRawValue("args", String.format(Locale.ENGLISH, "{\n%s\n}", mArgs), true);
+		//pJsonBuf.addRawValue("args", String.format(Locale.ENGLISH, "{\n%s\n}", mArgs), true);
 		
 		pJsonBuf.stopObject(endOfEffects);
 	}
@@ -30,5 +44,18 @@ public class EffectConfig {
 	@Override
 	public String toString() {
 		return mId;
+	}
+	
+	@Override
+	public EffectConfig clone() {
+		EffectConfig thisClone = new EffectConfig();
+		thisClone.mId     = mId;
+		thisClone.mScript = mScript;
+		
+		for (EffectArg arg : mArgs) {
+			thisClone.mArgs.add(new EffectArg(arg.key, arg.value));
+		}
+		
+		return thisClone;
 	}
 }

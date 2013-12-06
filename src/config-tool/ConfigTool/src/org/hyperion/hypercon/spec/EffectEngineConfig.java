@@ -1,5 +1,6 @@
 package org.hyperion.hypercon.spec;
 
+import java.awt.Color;
 import java.util.Vector;
 
 import org.hyperion.hypercon.JsonStringBuffer;
@@ -12,34 +13,22 @@ public class EffectEngineConfig {
 
 	public final Vector<EffectConfig> mEffects = new Vector<>();
 	{
-		EffectConfig testSlow = new EffectConfig();
-		testSlow.mId = "test-slow";
-		testSlow.mScript = "test.py";
-		testSlow.mArgs = "\"speed\" : 0.5";
-		
-		EffectConfig testFast = new EffectConfig();
-		testFast.mId = "test-fast";
-		testFast.mScript = "test.py";
-		testFast.mArgs = "\"speed\" : 2.0";
-		
 		EffectConfig rainbowSwirl = new EffectConfig();
 		rainbowSwirl.mId = "Rainbow swirl";
 		rainbowSwirl.mScript = "rainbow-swirl.py";
-		rainbowSwirl.mArgs = 
-				"\"rotation-time\" : 10.0,\n" +
-				"\"brightness\" : 1.0,\n" +
-				"\"reverse\" : false";
+		rainbowSwirl.mArgs.add(new EffectConfig.EffectArg("rotation-time", 10.0)); 
+		rainbowSwirl.mArgs.add(new EffectConfig.EffectArg("brightness", 1.0)); 
+		rainbowSwirl.mArgs.add(new EffectConfig.EffectArg("reverse", false)); 
 				
 		EffectConfig rainbowMood = new EffectConfig();
 		rainbowMood.mId = "Rainbow mood";
 		rainbowMood.mScript = "rainbow-mood.py";
-		rainbowMood.mArgs = 
-				"\"rotation-time\" : 10.0,\n" +
-				"\"brightness\" : 1.0,\n" +
-				"\"reverse\" : false";
+		rainbowMood.mArgs.add(new EffectConfig.EffectArg("rotation-time", 10.0)); 
+		rainbowMood.mArgs.add(new EffectConfig.EffectArg("brightness", 1.0)); 
+		rainbowMood.mArgs.add(new EffectConfig.EffectArg("reverse", false)); 
+		rainbowMood.mArgs.add(new EffectConfig.EffectArg("test", "test")); 
+		rainbowMood.mArgs.add(new EffectConfig.EffectArg("AColor", Color.RED));
 		
-		mEffects.add(testSlow);
-		mEffects.add(testFast);
 		mEffects.add(rainbowSwirl);
 		mEffects.add(rainbowMood);
 	}
