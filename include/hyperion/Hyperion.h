@@ -105,7 +105,7 @@ public slots:
 	/// @param[in] ledColor The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	///
-	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms);
+	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms, bool clearEffects = true);
 
 	///
 	/// Writes the given colors to all leds for the given time and priority
@@ -114,7 +114,7 @@ public slots:
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true);
 
 	///
 	/// Returns the list with unique transform identifiers

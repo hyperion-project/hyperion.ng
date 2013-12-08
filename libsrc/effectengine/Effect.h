@@ -29,7 +29,7 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects);
 
 private slots:
 	void effectFinished();

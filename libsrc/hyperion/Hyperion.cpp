@@ -392,17 +392,23 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
-void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms)
+void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
 {
 	// create led output
 	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
 
 	// set colors
-	setColors(priority, ledColors, timeout_ms);
+	setColors(priority, ledColors, timeout_ms, clearEffects);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects)
 {
+	// clear effects if this call does not come from an effect
+	if (clearEffects)
+	{
+		_effectEngine->channelCleared(priority);
+	}
+
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;

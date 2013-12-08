@@ -83,7 +83,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 
 	// create the effect
 	Effect * effect = new Effect(priority, timeout, script, args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
