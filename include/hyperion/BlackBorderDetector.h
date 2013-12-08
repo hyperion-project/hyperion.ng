@@ -125,7 +125,7 @@ namespace hyperion
 		inline bool isBlack(const Pixel_T & color)
 		{
 			// Return the simple compare of the color against black
-			return color.red+color.green+color.green == 0;
+			return color.red < 3 && color.green < 3 && color.green < 3;
 		}
 	};
 } // end namespace hyperion
