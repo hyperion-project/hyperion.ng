@@ -46,9 +46,9 @@ private:
 	std::vector<ColorRgb> _ledColors;
 
 	/// Direction the red-light is currently moving
-	bool _forwardMove = true;
+	bool _forwardMove;
 	/// The location of the current red-light
-	unsigned _currentLight = 0;
+	unsigned _currentLight;
 
 	/// Moves the current light to the next (increase or decrease depending on direction)
 	void moveNextLight();
