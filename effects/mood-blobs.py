@@ -4,13 +4,11 @@ import colorsys
 import math
 
 # Get the parameters
-rotationTime = hyperion.args.get('rotationTime', 20.0)
+rotationTime = float(hyperion.args.get('rotationTime', 20.0))
 color = hyperion.args.get('color', (0,0,255))
-hueChange = hyperion.args.get('hueChange', 60.0) / 360.0
-blobs = hyperion.args.get('blobs', 5)
-reverse = hyperion.args.get('reverse', False)
-print color
-print hyperion.args
+hueChange = float(hyperion.args.get('hueChange', 60.0)) / 360.0
+blobs = int(hyperion.args.get('blobs', 5))
+reverse = bool(hyperion.args.get('reverse', False))
 
 # Check parameters
 rotationTime = max(0.1, rotationTime)
