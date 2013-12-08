@@ -29,8 +29,11 @@ Effect::Effect(int priority, int timeout, const std::string & script, const Json
 	_endTime(-1),
 	_interpreterThreadState(nullptr),
 	_abortRequested(false),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
+	_colors()
 {
+	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
+
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
 }
@@ -170,7 +173,8 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 		ColorRgb color;
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
-			effect->setColors(effect->_priority, std::vector<ColorRgb>(effect->_imageProcessor->getLedCount(), color), timeout);
+			std::fill(effect->_colors.begin(), effect->_colors.end(), color);
+			effect->setColors(effect->_priority, effect->_colors, timeout);
 			return Py_BuildValue("");
 		}
 		else
@@ -189,16 +193,9 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 				size_t length = PyByteArray_Size(bytearray);
 				if (length == 3 * effect->_imageProcessor->getLedCount())
 				{
-					std::vector<ColorRgb> colors(effect->_imageProcessor->getLedCount());
 					char * data = PyByteArray_AS_STRING(bytearray);
-					for (size_t i = 0; i < colors.size(); ++i)
-					{
-						ColorRgb & color = colors[i];
-						color.red   = data [3*i];
-						color.green = data [3*i+1];
-						color.blue  = data [3*i+2];
-					}
-					effect->setColors(effect->_priority, colors, timeout);
+					memcpy(effect->_colors.data(), data, length);
+					effect->setColors(effect->_priority, effect->_colors, timeout);
 					return Py_BuildValue("");
 				}
 				else
@@ -265,21 +262,10 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 			{
 				Image<ColorRgb> image(width, height);
 				char * data = PyByteArray_AS_STRING(bytearray);
-				for (int y = 0; y < height; ++y)
-				{
-					for (int x = 0; x < width; ++x)
-					{
-						ColorRgb & color = image(x, y);
-						int index = x+width*y;
-						color.red   = data [3*index];
-						color.green = data [3*index+1];
-						color.blue  = data [3*index+2];
-					}
-				}
+				memcpy(image.memptr(), data, length);
 
-				std::vector<ColorRgb> colors(effect->_imageProcessor->getLedCount());
-				effect->_imageProcessor->process(image, colors);
-				effect->setColors(effect->_priority, colors, timeout);
+				effect->_imageProcessor->process(image, effect->_colors);
+				effect->setColors(effect->_priority, effect->_colors, timeout);
 				return Py_BuildValue("");
 			}
 			else
@@ -307,13 +293,6 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
 {
 	Effect * effect = getEffect(self);
-	return Py_BuildValue("i", effect->_abortRequested ? 1 : 0);
-}
-
-Effect * Effect::getEffect(PyObject *self)
-{
-	// Get the effect from the capsule in the self pointer
-	Effect * effect = reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
 
 	// Test if the effect has reached it end time
 	if (effect->_timeout > 0 && QDateTime::currentMSecsSinceEpoch() > effect->_endTime)
@@ -321,6 +300,11 @@ Effect * Effect::getEffect(PyObject *self)
 		effect->_abortRequested = true;
 	}
 
-	// return the effect
-	return effect;
+	return Py_BuildValue("i", effect->_abortRequested ? 1 : 0);
+}
+
+Effect * Effect::getEffect(PyObject *self)
+{
+	// Get the effect from the capsule in the self pointer
+	return reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
 }

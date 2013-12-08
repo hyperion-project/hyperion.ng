@@ -61,4 +61,7 @@ private:
 
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;
+
+	/// Buffer for colorData
+	std::vector<ColorRgb> _colors;
 };
