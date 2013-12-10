@@ -21,6 +21,7 @@
 #include "device/LedDeviceSedu.h"
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
+#include "device/LedDeviceWs2811.h"
 #include "device/LedDeviceAdalight.h"
 #include "device/LedDeviceLightpack.h"
 #include "device/LedDeviceMultiLightpack.h"
@@ -45,6 +46,16 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		deviceWs2801->open();
 
 		device = deviceWs2801;
+	}
+	else if (type == "ws2811")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const bool rate          = deviceConfig["fast"].asBool();
+
+		LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, rate);
+		deviceWs2811->open();
+
+		device = deviceWs2811;
 	}
 	else if (type == "lpd6803" || type == "ldp6803")
 	{
