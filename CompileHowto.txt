@@ -24,3 +24,7 @@ cmake -DENABLE_DISPMANX=OFF ..
 
 # run make to build Hyperion
 make
+
+# The binaries are build in "$HYPERION_DIR/build/bin". You could copy those to /usr/bin
+sudo cp ./bin/hyperion-remote /usr/bin/
+sudo cp ./bin/hyperiond /usr/bin/
