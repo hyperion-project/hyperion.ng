@@ -16,7 +16,6 @@ import org.hyperion.hypercon.spec.MiscConfig;
  * The full configuration of Hyperion with sub-items for device, color and miscelanuous items. 
  */
 public class LedString {
-	
 	/** The configuration of the output device */
 	public final DeviceConfig mDeviceConfig = new DeviceConfig();
 

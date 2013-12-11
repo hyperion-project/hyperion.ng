@@ -16,6 +16,9 @@ import org.hyperion.hypercon.gui.ConfigPanel;
  */
 public class Main {
 	public static final String configFilename = "hypercon.dat";
+	
+	/** Some application settings (for easy/dirty access) */
+	public static final HyperConConfig HyperConConfig = new HyperConConfig();
 
 	/**
 	 * Entry point to start HyperCon 
@@ -42,11 +45,13 @@ public class Main {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				ConfigurationFile configFile = new ConfigurationFile();
+				configFile.store(Main.HyperConConfig);
 				configFile.store(ledString.mDeviceConfig);
 				configFile.store(ledString.mLedFrameConfig);
 				configFile.store(ledString.mProcessConfig);
 				configFile.store(ledString.mColorConfig);
 				configFile.store(ledString.mMiscConfig);
+				configFile.store(ledString.mEffectEngineConfig);
 				configFile.save(configFilename);
 			}
 		});
@@ -54,11 +59,18 @@ public class Main {
 		if (new File(configFilename).exists()) {
 			ConfigurationFile configFile = new ConfigurationFile();
 			configFile.load(configFilename);
+			configFile.restore(Main.HyperConConfig);
 			configFile.restore(ledString.mDeviceConfig);
 			configFile.restore(ledString.mLedFrameConfig);
 			configFile.restore(ledString.mProcessConfig);
 			configFile.restore(ledString.mColorConfig);
 			configFile.restore(ledString.mMiscConfig);
+			configFile.restore(ledString.mEffectEngineConfig);
+			
+			if (HyperConConfig.loadDefaultEffect) {
+				ledString.mEffectEngineConfig.loadDefault();
+				HyperConConfig.loadDefaultEffect = false;
+			}
 		}
 		
 		// Add the HyperCon configuration panel

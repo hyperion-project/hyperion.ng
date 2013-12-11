@@ -21,6 +21,7 @@ import org.hyperion.hypercon.ConfigurationFile;
 import org.hyperion.hypercon.LedFrameFactory;
 import org.hyperion.hypercon.LedString;
 import org.hyperion.hypercon.Main;
+import org.hyperion.hypercon.gui.effectengine.EffectEnginePanel;
 
 /**
  * The main-config panel of HyperCon. Includes the configuration and the panels to edit and 

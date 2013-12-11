@@ -18,14 +18,29 @@ public class EffectConfig {
 	/** The arguments (key-value) of the python-script */
 	public final Vector<EffectArg> mArgs = new Vector<>();
 	
+	/**
+	 * The effect argument contains a key-value combination that holds a single argument of an 
+	 * effect
+	 */
 	static public class EffectArg {
+		/** The key of the effect argument */
 		public String key;
+		/** The value of the effect argument */
 		public Object value;
 		
+		/**
+		 * Constructs an new effect argument with empty key and value
+		 */
 		public EffectArg() {
-			key = "";
-			value = "";
+			this("", "");
 		}
+		
+		/**
+		 * Constructs an effect argument with the given key and value
+		 *  
+		 * @param pKey The key of the new argument
+		 * @param pValue The value of the new argument
+		 */
 		public EffectArg(String pKey, Object pValue) {
 			key = pKey;
 			value = pValue;
