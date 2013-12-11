@@ -11,6 +11,6 @@ Hyperion is an opensource 'AmbiLight' implementation controlled using the RaspBe
 * Black border detector.
 * Generic software architecture to support new devices and new algorithms easily.
 
-More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki).
+More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki) or the [Hyperion topic](http://forum.stmlabs.com/showthread.php?tid=11053) on the Raspbmc formum.
 
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).
