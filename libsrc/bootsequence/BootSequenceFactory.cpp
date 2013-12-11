@@ -5,13 +5,24 @@
 // Bootsequence includes
 #include <bootsequence/BootSequenceFactory.h>
 
+// Effect engine includes
+#include <effectengine/EffectEngine.h>
+
 // Local Bootsequence includes
 #include "EffectBootSequence.h"
 
 BootSequence * BootSequenceFactory::createBootSequence(Hyperion * hyperion, const Json::Value & jsonConfig)
 {
-	const std::string script = jsonConfig["script"].asString();
-	const Json::Value args = jsonConfig.get("args", Json::Value(Json::objectValue));
+	const std::string path = jsonConfig["path"].asString();
+	const std::string effectFile = jsonConfig["effect"].asString();
 	const unsigned duration = jsonConfig["duration_ms"].asUInt();
-	return new EffectBootSequence(hyperion, script, args, duration);
+
+	EffectDefinition effect;
+	if (EffectEngine::loadEffectDefinition(path, effectFile, effect))
+	{
+		return new EffectBootSequence(hyperion, effect, duration);
+	}
+
+	std::cerr << "Boot sequence could not be loaded" << std::endl;
+	return nullptr;
 }

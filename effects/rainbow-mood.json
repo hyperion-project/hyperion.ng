@@ -1,0 +1,10 @@
+{
+	"name" : "Rainbow mood",
+	"script" : "rainbow-mood.py",
+	"args" :
+	{
+		"rotation-time" : 60.0,
+		"brightness" : 1.0,
+		"reverse" : false
+	}
+}

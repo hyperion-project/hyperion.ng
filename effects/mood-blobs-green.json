@@ -1,0 +1,12 @@
+{
+	"name" : "Green mood blobs",
+	"script" : "mood-blobs.py",
+	"args" :
+	{
+		"rotationTime" : 60.0,
+		"color" : [0,255,0],
+		"hueChange" : 60.0,
+		"blobs" : 5,
+		"reverse" : false
+	}
+}

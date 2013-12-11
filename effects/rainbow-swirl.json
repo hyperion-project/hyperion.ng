@@ -1,0 +1,10 @@
+{
+	"name" : "Rainbow swirl",
+	"script" : "rainbow-swirl.py",
+	"args" :
+	{
+		"rotation-time" : 20.0,
+		"brightness" : 1.0,
+		"reverse" : false
+	}
+}

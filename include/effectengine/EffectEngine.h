@@ -26,6 +26,8 @@ public:
 
 	const std::list<EffectDefinition> & getEffects() const;
 
+	static bool loadEffectDefinition(const std::string & path, const std::string & effectConfigFile, EffectDefinition &effectDefinition);
+
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const std::string &effectName, int priority, int timeout = -1);
