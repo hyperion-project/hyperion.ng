@@ -3,10 +3,10 @@ import time
 import colorsys
 
 # Get the parameters
-rotationTime = hyperion.args.get('rotation-time', 3.0)
-brightness = hyperion.args.get('brightness', 1.0)
-saturation = hyperion.args.get('saturation', 1.0)
-reverse = hyperion.args.get('reverse', False)
+rotationTime = float(hyperion.args.get('rotation-time', 30.0))
+brightness = float(hyperion.args.get('brightness', 1.0))
+saturation = float(hyperion.args.get('saturation', 1.0))
+reverse = bool(hyperion.args.get('reverse', False))
 
 # Check parameters
 rotationTime = max(0.1, rotationTime)

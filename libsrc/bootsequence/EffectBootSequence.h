@@ -17,9 +17,10 @@ public:
 	/// duration is the length the effect will run.
 	///
 	/// @param[in] hyperion  The Hyperion instance
+	/// @param[in] effect The effect definition
 	/// @param[in] duration_ms  The length of the sequence [ms]
 	///
-	EffectBootSequence(Hyperion * hyperion, const std::string & script, const Json::Value & args, const unsigned duration_ms);
+	EffectBootSequence(Hyperion * hyperion, const EffectDefinition & effect, const unsigned duration_ms);
 	virtual ~EffectBootSequence();
 
 	virtual void start();
@@ -29,10 +30,7 @@ private:
 	Hyperion * _hyperion;
 
 	/// The script to execute
-	const std::string _script;
-
-	/// The arguments of the script
-	const Json::Value _args;
+	const EffectDefinition _effect;
 
 	/// Duration of the boot sequence
 	const unsigned _duration_ms;

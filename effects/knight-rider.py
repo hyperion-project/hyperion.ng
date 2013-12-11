@@ -3,8 +3,8 @@ import time
 import colorsys
 
 # Get the rotation time
-speed = hyperion.args.get('speed', 1.0)
-fadeFactor = hyperion.args.get('fadeFactor', 0.7)
+speed = float(hyperion.args.get('speed', 1.0))
+fadeFactor = float(hyperion.args.get('fadeFactor', 0.7))
 
 # Check parameters
 speed = max(0.0001, speed)

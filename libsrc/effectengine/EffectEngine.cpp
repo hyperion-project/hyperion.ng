@@ -1,8 +1,17 @@
 // Python includes
 #include <Python.h>
 
+// Stl includes
+#include <fstream>
+
 // Qt includes
+#include <QResource>
 #include <QMetaType>
+#include <QFile>
+#include <QDir>
+
+// hyperion util includes
+#include <utils/jsonschema/JsonSchemaChecker.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
@@ -21,11 +30,26 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	std::vector<std::string> effectNames = jsonEffectConfig.getMemberNames();
-	for (const std::string & name : effectNames)
+	const Json::Value & paths = jsonEffectConfig["paths"];
+	for (Json::UInt i = 0; i < paths.size(); ++i)
 	{
-		const Json::Value & info = jsonEffectConfig[name];
-		_availableEffects.push_back({name, info["script"].asString(), info["args"]});
+		const std::string & path = paths[i].asString();
+		QDir directory(QString::fromStdString(path));
+		if (!directory.exists())
+		{
+			std::cerr << "Effect directory can not be loaded: " << path << std::endl;
+			continue;
+		}
+
+		QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+		foreach (const QString & filename, filenames)
+		{
+			EffectDefinition def;
+			if (loadEffectDefinition(path, filename.toStdString(), def))
+			{
+				_availableEffects.push_back(def);
+			}
+		}
 	}
 
 	// initialize the python interpreter
@@ -46,6 +70,51 @@ EffectEngine::~EffectEngine()
 const std::list<EffectDefinition> &EffectEngine::getEffects() const
 {
 	return _availableEffects;
+}
+
+bool EffectEngine::loadEffectDefinition(const std::string &path, const std::string &effectConfigFile, EffectDefinition & effectDefinition)
+{
+	std::string fileName = path + QDir::separator().toAscii() + effectConfigFile;
+	std::ifstream file(fileName.c_str());
+
+	if (!file.is_open())
+	{
+		std::cerr << "Effect file '" << fileName << "' could not be loaded" << std::endl;
+		return false;
+	}
+
+	// Read the json config file
+	Json::Reader jsonReader;
+	Json::Value config;
+	if (!jsonReader.parse(file, config, false))
+	{
+		std::cerr << "Error while reading effect '" << fileName << "': " << jsonReader.getFormattedErrorMessages() << std::endl;
+		return false;
+	}
+
+	// Read the json schema file
+	QResource schemaData(":effect-schema");
+	JsonSchemaChecker schemaChecker;
+	Json::Value schema;
+	Json::Reader().parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schema, false);
+	schemaChecker.setSchema(schema);
+	if (!schemaChecker.validate(config))
+	{
+		const std::list<std::string> & errors = schemaChecker.getMessages();
+		foreach (const std::string & error, errors) {
+			std::cerr << "Error while checking '" << fileName << "':" << error << std::endl;
+		}
+		return false;
+	}
+
+	// setup the definition
+	effectDefinition.name = config["name"].asString();
+	effectDefinition.script = path + QDir::separator().toAscii() + config["script"].asString();
+	effectDefinition.args = config["args"];
+
+	// return succes
+	std::cout << "Effect loaded: " + effectDefinition.name << std::endl;
+	return true;
 }
 
 int EffectEngine::runEffect(const std::string &effectName, int priority, int timeout)
@@ -83,7 +152,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 
 	// create the effect
 	Effect * effect = new Effect(priority, timeout, script, args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)), Qt::QueuedConnection);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 

@@ -1,0 +1,9 @@
+{
+	"name" : "Knight rider",
+	"script" : "knight-rider.py",
+	"args" :
+	{
+		"speed" : 1.0,
+		"fadeFactor" : 0.7
+	}
+}

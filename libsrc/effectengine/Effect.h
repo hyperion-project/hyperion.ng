@@ -29,7 +29,7 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects);
 
 private slots:
 	void effectFinished();
@@ -61,4 +61,7 @@ private:
 
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;
+
+	/// Buffer for colorData
+	std::vector<ColorRgb> _colors;
 };
