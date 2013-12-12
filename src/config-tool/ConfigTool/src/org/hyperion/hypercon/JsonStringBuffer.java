@@ -104,11 +104,15 @@ public class JsonStringBuffer {
 		++mIndentLevel;
 	}
 	
-	public void stopArray() {
+	public void stopArray(boolean lastValue) {
 		--mIndentLevel;
 
 		startLine();
-		mStrBuf.append("],\n");
+		if (lastValue) {
+			mStrBuf.append("]\n");
+		} else {
+			mStrBuf.append("],\n");
+		}
 	}
 	
 	

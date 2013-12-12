@@ -47,8 +47,8 @@ public class ColorConfig {
 		strBuf.append("\t///            - 'gamma'           The gamma-curve correction factor\n");
 		strBuf.append("\t///            - 'blacklevel'      The lowest possible value (when the channel is black)\n");
 		strBuf.append("\t///            - 'whitelevel'      The highest possible value (when the channel is white)\n");
-		strBuf.append("\t///");
-		strBuf.append("\t/// Next to the list with color transforms there is also a smoothing option.");
+		strBuf.append("\t///\n");
+		strBuf.append("\t/// Next to the list with color transforms there is also a smoothing option.\n");
 		strBuf.append("\t///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning \n");
 		strBuf.append("\t///                  parameters:\n");
 		strBuf.append("\t///            - 'type'            The type of smoothing algorithm ('linear' or 'none')\n");

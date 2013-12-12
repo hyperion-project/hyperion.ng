@@ -28,6 +28,8 @@ import org.hyperion.hypercon.spec.TransformConfig;
  */
 public class ColorTransformPanel extends JPanel {
 	
+	private final Dimension maxDim = new Dimension(1024, 20);
+	
 	private final TransformConfig mColorConfig;
 	
 	private JPanel mIndexPanel;
@@ -131,45 +133,57 @@ public class ColorTransformPanel extends JPanel {
 			mRedTransformLabel = new JLabel("RED");
 			mRgbTransformPanel.add(mRedTransformLabel);
 			mRedThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedThreshold, 0.0, 1.0, 0.1));
+			mRedThresholdSpinner.setMaximumSize(maxDim);
 			mRedThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedThresholdSpinner);
 			mRedGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedGamma, 0.0, 100.0, 0.1));
-			mRedThresholdSpinner.addChangeListener(mChangeListener);
+			mRedGammaSpinner.setMaximumSize(maxDim);
+			mRedGammaSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedGammaSpinner);
 			mRedBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedBlacklevel, 0.0, 1.0, 0.1));
-			mRedThresholdSpinner.addChangeListener(mChangeListener);
+			mRedBlacklevelSpinner.setMaximumSize(maxDim);
+			mRedBlacklevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedBlacklevelSpinner);
 			mRedWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mRedWhitelevel, 0.0, 1.0, 0.1));
-			mRedThresholdSpinner.addChangeListener(mChangeListener);
+			mRedWhitelevelSpinner.setMaximumSize(maxDim);
+			mRedWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mRedWhitelevelSpinner);
 			
 			mGreenTransformLabel = new JLabel("GREEN");
 			mRgbTransformPanel.add(mGreenTransformLabel);
 			mGreenThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenThreshold, 0.0, 1.0, 0.1));
+			mGreenThresholdSpinner.setMaximumSize(maxDim);
 			mGreenThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenThresholdSpinner);
 			mGreenGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenGamma, 0.0, 100.0, 0.1));
+			mGreenGammaSpinner.setMaximumSize(maxDim);
 			mGreenGammaSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenGammaSpinner);
 			mGreenBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenBlacklevel, 0.0, 1.0, 0.1));
+			mGreenBlacklevelSpinner.setMaximumSize(maxDim);
 			mGreenBlacklevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenBlacklevelSpinner);
 			mGreenWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mGreenWhitelevel, 0.0, 1.0, 0.1));
+			mGreenWhitelevelSpinner.setMaximumSize(maxDim);
 			mGreenWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mGreenWhitelevelSpinner);
 
 			mBlueTransformLabel = new JLabel("BLUE");
 			mRgbTransformPanel.add(mBlueTransformLabel);
 			mBlueThresholdSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueThreshold, 0.0, 1.0, 0.1));
+			mBlueThresholdSpinner.setMaximumSize(maxDim);
 			mBlueThresholdSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueThresholdSpinner);
 			mBlueGammaSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueGamma, 0.0, 100.0, 0.1));
+			mBlueGammaSpinner.setMaximumSize(maxDim);
 			mBlueGammaSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueGammaSpinner);
 			mBlueBlacklevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueBlacklevel, 0.0, 1.0, 0.1));
+			mBlueBlacklevelSpinner.setMaximumSize(maxDim);
 			mBlueBlacklevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueBlacklevelSpinner);
 			mBlueWhitelevelSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mBlueWhitelevel, 0.0, 1.0, 0.1));
+			mBlueWhitelevelSpinner.setMaximumSize(maxDim);
 			mBlueWhitelevelSpinner.addChangeListener(mChangeListener);
 			mRgbTransformPanel.add(mBlueWhitelevelSpinner);
 		}
@@ -187,6 +201,7 @@ public class ColorTransformPanel extends JPanel {
 			mHsvTransformPanel.add(mSaturationAdjustLabel);
 			
 			mSaturationAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mSaturationGain, 0.0, 1024.0, 0.01));
+			mSaturationAdjustSpinner.setMaximumSize(maxDim);
 			mSaturationAdjustSpinner.addChangeListener(mChangeListener);
 			mHsvTransformPanel.add(mSaturationAdjustSpinner);
 			
@@ -194,6 +209,7 @@ public class ColorTransformPanel extends JPanel {
 			mHsvTransformPanel.add(mValueAdjustLabel);
 			
 			mValueAdjustSpinner = new JSpinner(new SpinnerNumberModel(mColorConfig.mValueGain, 0.0, 1024.0, 0.01));
+			mValueAdjustSpinner.setMaximumSize(maxDim);
 			mValueAdjustSpinner.addChangeListener(mChangeListener);
 			mHsvTransformPanel.add(mValueAdjustSpinner);
 

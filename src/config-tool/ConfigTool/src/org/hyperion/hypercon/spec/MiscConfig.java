@@ -13,7 +13,7 @@ public class MiscConfig {
 	/** Flag indicating that the boot sequence is enabled(true) or not(false) */
 	public boolean mBootSequenceEnabled = true;
 	/** The effect selected for the boot sequence */
-	public String mBootSequenceEffect = "Rainbow Swirl (fast)";
+	public String mBootSequenceEffect = "Rainbow swirl fast";
 	
 	/** Flag indicating that the Frame Grabber is enabled */
 	public boolean mFrameGrabberEnabled = true;
@@ -68,7 +68,7 @@ public class MiscConfig {
 		for (String effectPath : effectPaths) {
 			strBuf.addArrayElement(effectPath, effectPath == effectPaths[effectPaths.length-1]);
 		}
-		strBuf.stopArray();
+		strBuf.stopArray(!mBootSequenceEnabled);
 		strBuf.toggleComment(!mBootSequenceEnabled);
 		strBuf.addValue("bootsequence", mBootSequenceEffect,  true);
 		strBuf.toggleComment(false);
