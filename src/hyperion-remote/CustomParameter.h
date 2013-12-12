@@ -11,7 +11,7 @@
 #include "ColorTransformValues.h"
 
 /// Data parameter for a color
-typedef vlofgren::PODParameter<QColor> ColorParameter;
+typedef vlofgren::PODParameter<std::vector<QColor>> ColorParameter;
 
 /// Data parameter for an image
 typedef vlofgren::PODParameter<QImage> ImageParameter;
@@ -21,40 +21,54 @@ typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
 
 namespace vlofgren {
 	///
-	/// Translates a string (as passed on the commandline) to a color
+	/// Translates a string (as passed on the commandline) to a vector of colors
 	///
 	/// @param[in] s The string (as passed on the commandline)
 	///
-	/// @return The translated color
+	/// @return The translated colors
 	///
 	/// @throws Parameter::ParameterRejected If the string did not result in a color
 	///
 	template<>
-	QColor ColorParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
+	std::vector<QColor> ColorParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
 	{
 		// Check if we can create the color by name
 		QColor color(s.c_str());
 		if (color.isValid())
 		{
-			return color;
+			return std::vector<QColor>{color};
 		}
 
 		// check if we can create the color by hex RRGGBB value
-		if (s.length() == 6 && isxdigit(s[0]) && isxdigit(s[1]) && isxdigit(s[2]) && isxdigit(s[3]) && isxdigit(s[4]) && isxdigit(s[5]))
+		if (s.length() >= 6u && (s.length()%6) == 0u && std::count_if(s.begin(), s.end(), isxdigit) == s.length())
 		{
 			bool ok = true;
-			int rgb[3];
-			for (int i = 0; i < 3 && ok; ++i)
+			std::vector<QColor> colors;
+
+			for (size_t j = 0; j < s.length()/6; ++j)
 			{
-				QString colorComponent(s.substr(2*i, 2).c_str());
-				rgb[i] = colorComponent.toInt(&ok, 16);
+				int rgb[3];
+				for (int i = 0; i < 3 && ok; ++i)
+				{
+					QString colorComponent(s.substr(6*j+2*i, 2).c_str());
+					rgb[i] = colorComponent.toInt(&ok, 16);
+				}
+
+				if (ok)
+				{
+					color.setRgb(rgb[0], rgb[1], rgb[2]);
+					colors.push_back(color);
+				}
+				else
+				{
+					break;
+				}
 			}
 
 			// check if all components parsed succesfully
 			if (ok)
 			{
-				color.setRgb(rgb[0], rgb[1], rgb[2]);
-				return color;
+				return colors;
 			}
 		}
 
@@ -65,7 +79,7 @@ namespace vlofgren {
 		}
 		throw Parameter::ParameterRejected(errorMessage.str());
 
-		return color;
+		return std::vector<QColor>{color};
 	}
 
 	template<>

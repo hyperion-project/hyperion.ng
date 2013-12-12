@@ -41,7 +41,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setColor(QColor color, int priority, int duration);
+	void setColor(std::vector<QColor> color, int priority, int duration);
 
 	///
 	/// Set the leds according to the given image (assume the image is stretched to the display size)
