@@ -189,6 +189,7 @@ public class ConfigPanel extends JPanel {
 			
 			mExternalPanel.add(new XbmcPanel(ledString.mMiscConfig));
 			mExternalPanel.add(new InterfacePanel(ledString.mMiscConfig));
+			mExternalPanel.add(new org.hyperion.hypercon.gui.EffectEnginePanel());
 			mExternalPanel.add(Box.createVerticalGlue());
 		}
 		return mExternalPanel;
