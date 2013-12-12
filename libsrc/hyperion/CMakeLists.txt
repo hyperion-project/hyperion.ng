@@ -40,6 +40,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.h
+		${CURRENT_SOURCE_DIR}/device/LedDevicePaintpack.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.h
 )
 
@@ -65,6 +66,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDevicePaintpack.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.cpp
 )
 
@@ -87,6 +89,7 @@ add_library(hyperion
 target_link_libraries(hyperion
 		hyperion-utils
 		effectengine
+		hidapi-libusb
 		serialport
 		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 		${CMAKE_THREAD_LIBS_INIT}
