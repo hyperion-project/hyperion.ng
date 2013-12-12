@@ -40,7 +40,7 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	LedDevice* device = nullptr;
-	if (type == "ws2801")
+	if (type == "ws2801" || type == "lightberry")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
