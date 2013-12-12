@@ -6,13 +6,14 @@ import org.hyperion.hypercon.JsonStringBuffer;
  * Miscellaneous configuration items for the Hyperion daemon.
  */
 public class MiscConfig {
+
+	/** The absolute location(s) of the effects */
+	public String mEffectEnginePath = "/opt/hyperion/effects";
 	
-	/** Flag indicating that the boot sequence is enabled */
-	public boolean mBootsequenceEnabled = true;
-	/** The selected boot sequence */
-	public BootSequence mBootSequence = BootSequence.rainbow;
-	/** The length of the boot sequence [ms] */
-	public int mBootSequenceLength_ms = 3000;
+	/** Flag indicating that the boot sequence is enabled(true) or not(false) */
+	public boolean mBootSequenceEnabled = true;
+	/** The effect selected for the boot sequence */
+	public String mBootSequenceEffect = "Rainbow Swirl (fast)";
 	
 	/** Flag indicating that the Frame Grabber is enabled */
 	public boolean mFrameGrabberEnabled = true;
@@ -54,19 +55,25 @@ public class MiscConfig {
 	public int mBoblightPort = 19333;
 	
 	public void appendTo(JsonStringBuffer strBuf) {
-		String bootsequenceComment = 
-				"The boot-sequence configuration, contains the following items: \n" +
-				" * type        : The type of the boot-sequence ('rainbow', 'knightrider', 'none') \n" +
-				" * duration_ms : The length of the boot-sequence [ms]\n";
-		strBuf.writeComment(bootsequenceComment);
+		String effectEngineComment = 
+				"The configuration of the effect engine, contains the following items: \n" +
+				" * paths        : An array with absolute location(s) of directories with effects \n" +
+				" * bootsequence : The effect selected as 'boot sequence'";
+		strBuf.writeComment(effectEngineComment);
 		
-		strBuf.toggleComment(!mBootsequenceEnabled);
-		strBuf.startObject("bootsequence");
-		strBuf.addValue("type", mBootSequence.name(), false);
-		strBuf.addValue("duration_ms", mBootSequenceLength_ms, true);
-		strBuf.stopObject();
+		String[] effectPaths = mEffectEnginePath.split(":");
+		
+		strBuf.startObject("effects");
+		strBuf.startArray("paths");
+		for (String effectPath : effectPaths) {
+			strBuf.addArrayElement(effectPath, effectPath == effectPaths[effectPaths.length-1]);
+		}
+		strBuf.stopArray();
+		strBuf.toggleComment(!mBootSequenceEnabled);
+		strBuf.addValue("bootsequence", mBootSequenceEffect,  true);
 		strBuf.toggleComment(false);
-		
+		strBuf.stopObject();
+
 		strBuf.newLine();
 		
 		String grabComment =

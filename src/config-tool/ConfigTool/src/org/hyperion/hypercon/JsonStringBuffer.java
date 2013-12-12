@@ -162,6 +162,22 @@ public class JsonStringBuffer {
 		}
 	}
 	
+	/**
+	 * Adds an array element to an opened array. 
+	 * 
+	 * @param pValue The value of the element
+	 * @param pLastValue Indicates that it is the last element in the array
+	 */
+	public void addArrayElement(String pValue, boolean pLastValue) {
+		startLine();
+		mStrBuf.append('"').append(pValue).append('"');
+		if (pLastValue) {
+			mStrBuf.append("\n");
+		} else {
+			mStrBuf.append(",\n");
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return mStrBuf.toString();

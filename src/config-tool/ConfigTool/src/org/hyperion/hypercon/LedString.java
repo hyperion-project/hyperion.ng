@@ -7,7 +7,6 @@ import java.util.Vector;
 
 import org.hyperion.hypercon.spec.ColorConfig;
 import org.hyperion.hypercon.spec.DeviceConfig;
-import org.hyperion.hypercon.spec.EffectEngineConfig;
 import org.hyperion.hypercon.spec.ImageProcessConfig;
 import org.hyperion.hypercon.spec.Led;
 import org.hyperion.hypercon.spec.LedFrameConstruction;
@@ -31,9 +30,6 @@ public class LedString {
 	/** The miscellaneous configuration (bootsequence, blackborder detector, etc) */
 	public final MiscConfig mMiscConfig = new MiscConfig();
 
-	/** The effect engine configuration, containing the Effects */
-	public final EffectEngineConfig mEffectEngineConfig = new EffectEngineConfig();
-	
 	/** The translation of the led frame construction and image processing to individual led configuration */
 	public Vector<Led> leds;
 	
@@ -72,10 +68,6 @@ public class LedString {
 			
 			jsonBuf.newLine();
 
-			mEffectEngineConfig.appendTo(jsonBuf);
-			
-			jsonBuf.newLine();
-			
 			jsonBuf.addValue("endOfJson", "endOfJson", true);
 			
 			fw.write(jsonBuf.toString());

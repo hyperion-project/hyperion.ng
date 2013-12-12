@@ -51,7 +51,6 @@ public class Main {
 				configFile.store(ledString.mProcessConfig);
 				configFile.store(ledString.mColorConfig);
 				configFile.store(ledString.mMiscConfig);
-				configFile.store(ledString.mEffectEngineConfig);
 				configFile.save(configFilename);
 			}
 		});
@@ -65,12 +64,6 @@ public class Main {
 			configFile.restore(ledString.mProcessConfig);
 			configFile.restore(ledString.mColorConfig);
 			configFile.restore(ledString.mMiscConfig);
-			configFile.restore(ledString.mEffectEngineConfig);
-			
-			if (HyperConConfig.loadDefaultEffect) {
-				ledString.mEffectEngineConfig.loadDefault();
-				HyperConConfig.loadDefaultEffect = false;
-			}
 		}
 		
 		// Add the HyperCon configuration panel
