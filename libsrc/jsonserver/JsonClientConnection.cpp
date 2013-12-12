@@ -114,10 +114,33 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
-	ColorRgb color = {uint8_t(message["color"][0u].asInt()), uint8_t(message["color"][1u].asInt()), uint8_t(message["color"][2u].asInt())};
+
+	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
+	const Json::Value & jsonColor = message["color"];
+	Json::UInt i = 0;
+	for (; i < jsonColor.size()/3 && i < _hyperion->getLedCount(); ++i)
+	{
+		colorData[i].red = uint8_t(message["color"][3u*i].asInt());
+		colorData[i].green = uint8_t(message["color"][3u*i+1u].asInt());
+		colorData[i].blue = uint8_t(message["color"][3u*i+2u].asInt());
+	}
+
+	// copy full blocks of led colors
+	unsigned size = i;
+	while (i + size < _hyperion->getLedCount())
+	{
+		memcpy(&(colorData[i]), colorData.data(), size * sizeof(ColorRgb));
+		i += size;
+	}
+
+	// copy remaining block of led colors
+	if (i < _hyperion->getLedCount())
+	{
+		memcpy(&(colorData[i]), colorData.data(), (_hyperion->getLedCount()-i) * sizeof(ColorRgb));
+	}
 
 	// set output
-	_hyperion->setColor(priority, color, duration);
+	_hyperion->setColors(priority, colorData, duration);
 
 	// send reply
 	sendSuccessReply();

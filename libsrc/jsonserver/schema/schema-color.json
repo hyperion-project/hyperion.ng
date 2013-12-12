@@ -21,8 +21,7 @@
             "items" :{
                 "type" : "integer"
             },
-            "minItems": 3,
-            "maxItems": 3
+            "minItems": 3
         }
     },
     "additionalProperties": false
