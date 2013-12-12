@@ -23,6 +23,7 @@
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
 #include "device/LedDeviceAdalight.h"
+#include "device/LedDevicePaintpack.h"
 #include "device/LedDeviceLightpack.h"
 #include "device/LedDeviceMultiLightpack.h"
 
@@ -98,6 +99,13 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		deviceLightpack->open(output);
 
 		device = deviceLightpack;
+	}
+	else if (type == "paintpack")
+	{
+		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack();
+		devicePainLightpack->open();
+
+		device = devicePainLightpack;
 	}
 	else if (type == "multi-lightpack")
 	{
