@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 		StringParameter    & argAddress    = parameters.add<StringParameter>   ('a', "address"   , QString("Set the address of the hyperion server [default: %1]").arg(defaultServerAddress).toAscii().constData());
 		IntParameter       & argPriority   = parameters.add<IntParameter>      ('p', "priority"  , QString("Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]").arg(defaultPriority).toAscii().constData());
 		IntParameter       & argDuration   = parameters.add<IntParameter>      ('d', "duration"  , "Specify how long the leds should be switched on in millseconds [default: infinity]");
-		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name)");
+		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
 		StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
 		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
