@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 //		int retVal = -1;
 //		QMetaObject::invokeMethod(hyperion, "setEffect", Q_RETURN_ARG(int, retVal), Q_ARG(std::string, effectName), Q_ARG(Json::Value, Json::Value()), Q_ARG(int, priority), Q_ARG(int, duration_ms));
 //		if (retVal == 0)
-		if (hyperion.setEffect(effectName, Json::Value(), priority, duration_ms) == 0)
+		if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
 		{
 			std::cout << "Boot sequence created and started" << std::endl;
 		}
