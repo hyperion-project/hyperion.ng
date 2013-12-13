@@ -10,7 +10,18 @@ repodir="$2"
 echo build directory = $builddir
 echo repository root dirrectory = $repodir
 
-echo Copying binaries
-cp -v "$builddir"/bin/hyperiond       "$repodir"/deploy
-cp -v "$builddir"/bin/hyperion-remote "$repodir"/deploy
-cp -v "$builddir"/bin/gpio2spi        "$repodir"/deploy
+outfile="$repodir/deploy/hyperion.tar.gz"
+echo create $outfile
+
+tar --create --verbose --gzip --absolute-names --show-transformed-names \
+	--file "$outfile" \
+	--transform "s:$builddir/bin/:hyperion/bin/:" \
+	--transform "s:$repodir/effects/:hyperion/effects/:" \
+	--transform "s:$repodir/config/:hyperion/config/:" \
+	--transform "s://:/:g" \
+	"$builddir/bin/hyperiond" \
+	"$builddir/bin/hyperion-remote" \
+	"$builddir/bin/gpio2spi" \
+	"$builddir/bin/dispmanx2png" \
+	"$repodir/effects/"* \
+	"$repodir/config/hyperion.config.json"
