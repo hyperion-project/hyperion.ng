@@ -101,7 +101,7 @@ public class ColorTransformPanel extends JPanel {
 			mIndexPanel.add(mIndexLabel, BorderLayout.WEST);
 			
 			mIndexField = new JTextField(mColorConfig.mLedIndexString);
-			mIndexField.setToolTipText("Comma seperated indices or index ranges (eg '1-10, 13, 14, 17-19')");
+			mIndexField.setToolTipText("Comma seperated indices or index ranges (eg '1-10, 13, 14, 17-19'); Special case '*', which means all leds");
 			mIndexField.getDocument().addDocumentListener(mDocumentListener);
 			mIndexPanel.add(mIndexField, BorderLayout.CENTER);
 		}
