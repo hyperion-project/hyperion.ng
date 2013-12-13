@@ -364,7 +364,8 @@
 			"/opt/hyperion/effects"
 		]
 	},
-	"Bootsequence" :
+
+	"bootsequence" :
 	{
 		"effect" : "Rainbow swirl fast",
 		"duration_ms" : 3000
