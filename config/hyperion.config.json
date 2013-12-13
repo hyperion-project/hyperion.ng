@@ -22,8 +22,10 @@
 	/// Color manipulation configuration used to tune the output colors to specific surroundings.
 	/// The configuration contains a list of color-transforms. Each transform contains the
 	/// following fields:
-	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following
+	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
+	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
+	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following
 	///            tuning parameters:
 	///            - 'saturationGain'  The gain adjustement of the saturation
 	///            - 'valueGain'       The gain adjustement of the value
@@ -47,7 +49,7 @@
 		[
 			{
 				"id"   : "default",
-				"leds" : "0-49",
+				"leds" : "*",
 				"hsv" :
 				{
 					"saturationGain" : 1.0000,
@@ -382,7 +384,8 @@
 		"frequency_Hz" : 10.0
 	},
 
-	/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields:
+	/// The configuration of the XBMC connection used to enable and disable the frame-grabber.
+	/// Contains the following fields:
 	///  * xbmcAddress  : The IP address of the XBMC-host
 	///  * xbmcTcpPort  : The TCP-port of the XBMC-server
 	///  * grabVideo    : Flag indicating that the frame-grabber is on(true) during video playback

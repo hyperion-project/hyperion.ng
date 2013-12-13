@@ -1,0 +1,8 @@
+{
+	"name" : "Stroboscope",
+	"script" : "strobe.py",
+	"args" :
+	{
+		"frequency" : 10.0
+	}
+}
