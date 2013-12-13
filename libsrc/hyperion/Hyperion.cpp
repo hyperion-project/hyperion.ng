@@ -510,11 +510,6 @@ int Hyperion::setEffect(const std::string &effectName, const Json::Value &args, 
 	return _effectEngine->runEffect(effectName, args, priority, timeout);
 }
 
-int Hyperion::setEffectScript(const std::string &script, const Json::Value &args, int priority, int timeout)
-{
-	return _effectEngine->runEffectScript(script, args, priority, timeout);
-}
-
 void Hyperion::update()
 {
 	// Update the muxer, cleaning obsolete priorities

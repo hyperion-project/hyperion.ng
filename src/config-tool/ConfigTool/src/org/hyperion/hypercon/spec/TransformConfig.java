@@ -7,7 +7,7 @@ public class TransformConfig {
 	public String mId = "default";
 	
 	/** The indices to which this transform applies */
-	public String mLedIndexString = "0-49";
+	public String mLedIndexString = "*";
 	
 	/** The saturation gain (in HSV space) */
 	public double mSaturationGain = 1.0;
