@@ -223,7 +223,15 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 			ColorTransform * colorTransform = createColorTransform(config);
 			transform->addTransform(colorTransform);
 
-			const QString ledIndicesStr = config.get("leds", "").asCString();
+			const QString ledIndicesStr = QString(config.get("leds", "").asCString()).trimmed();
+			if (ledIndicesStr.compare("*") == 0)
+			{
+				// Special case for indices '*' => all leds
+				transform->setTransformForLed(colorTransform->_id, 0, ledCnt-1);
+				std::cout << "ColorTransform '" << colorTransform->_id << "' => [0; "<< ledCnt-1 << "]" << std::endl;
+				continue;
+			}
+
 			if (!overallExp.exactMatch(ledIndicesStr))
 			{
 				std::cerr << "Given led indices " << i << " not correct format: " << ledIndicesStr.toStdString() << std::endl;
