@@ -107,7 +107,11 @@ int main(int argc, char** argv)
 //		if (retVal == 0)
 		if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
 		{
-			std::cout << "Boot sequence created and started" << std::endl;
+			std::cout << "Boot sequence(" << effectName << ") created and started" << std::endl;
+		}
+		else
+		{
+			std::cout << "Failed to start boot sequence: " << effectName << std::endl;
 		}
 	}
 

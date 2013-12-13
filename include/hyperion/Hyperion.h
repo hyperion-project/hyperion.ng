@@ -157,13 +157,6 @@ public slots:
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
 
-	/// Run the specified effect script on the given priority channel and optionally specify a timeout
-	/// @param script path of the effect script
-	/// @param args arguments of the effect script
-	///	@param priority The priority channel of the effect
-	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffectScript(const std::string &script, const Json::Value &args, int priority, int timeout);
-
 public:
 	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
