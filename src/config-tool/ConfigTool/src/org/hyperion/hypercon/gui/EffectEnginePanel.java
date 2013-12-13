@@ -9,7 +9,11 @@ import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -30,7 +34,9 @@ public class EffectEnginePanel extends JPanel {
 	private JCheckBox mBootSequenceCheck;
 	private JLabel mBootSequenceLabel;
 	private JTextField mBootSequenceField;
-	
+	private JLabel mBootSequenceLengthLabel;
+	private JSpinner mBootSequenceLengthSpinner;
+
 	public EffectEnginePanel(final MiscConfig pMiscConfig) {
 		super();
 		
@@ -125,6 +131,22 @@ public class EffectEnginePanel extends JPanel {
 			});
 			mBootSequencePanel.add(mBootSequenceField);
 			
+			mBootSequenceLengthLabel = new JLabel("Length[ms]: ");
+			mBootSequenceLengthLabel.setMinimumSize(new Dimension(75, 10));
+			mBootSequenceLengthLabel.setEnabled(mMiscConfig.mBootSequenceEnabled);
+			mBootSequencePanel.add(mBootSequenceLengthLabel);
+		
+			mBootSequenceLengthSpinner = new JSpinner(new SpinnerNumberModel(mMiscConfig.mBootSequenceLength_ms, 100, 1500000, 500));
+			mBootSequenceLengthSpinner.setMaximumSize(new Dimension(1024, 20));
+			mBootSequenceLengthSpinner.setEnabled(mMiscConfig.mBootSequenceEnabled);
+			mBootSequenceLengthSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					mMiscConfig.mBootSequenceLength_ms = (Integer)mBootSequenceLengthSpinner.getValue();
+				}
+			});
+			mBootSequencePanel.add(mBootSequenceLengthSpinner);
+	
 			GroupLayout layout = new GroupLayout(mBootSequencePanel);
 			mBootSequencePanel.setLayout(layout);
 			
@@ -133,14 +155,20 @@ public class EffectEnginePanel extends JPanel {
 					.addGroup(layout.createParallelGroup()
 							.addComponent(mBootSequenceLabel)
 							.addComponent(mBootSequenceField))
+					.addGroup(layout.createParallelGroup()
+							.addComponent(mBootSequenceLengthLabel)
+							.addComponent(mBootSequenceLengthSpinner))
 					);
 			
-			layout.setHorizontalGroup(layout.createParallelGroup()
-					.addGroup(layout.createSequentialGroup()
+			layout.setHorizontalGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup()
+							.addComponent(mBootSequenceCheck)
 							.addComponent(mBootSequenceLabel)
-							.addComponent(mBootSequenceField))
-					.addComponent(mBootSequenceCheck));
-			
+							.addComponent(mBootSequenceLengthLabel))
+					.addGroup(layout.createParallelGroup()
+							.addComponent(mBootSequenceCheck)
+							.addComponent(mBootSequenceField)
+							.addComponent(mBootSequenceLengthSpinner)));
 		}
 		return mBootSequencePanel;
 	}

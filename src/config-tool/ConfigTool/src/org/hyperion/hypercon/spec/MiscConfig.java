@@ -14,6 +14,8 @@ public class MiscConfig {
 	public boolean mBootSequenceEnabled = true;
 	/** The effect selected for the boot sequence */
 	public String mBootSequenceEffect = "Rainbow swirl fast";
+	/** The (maximum) length of the boot-sequence */
+	public int mBootSequenceLength_ms = 3000;
 	
 	/** Flag indicating that the Frame Grabber is enabled */
 	public boolean mFrameGrabberEnabled = true;
@@ -68,11 +70,15 @@ public class MiscConfig {
 		for (String effectPath : effectPaths) {
 			strBuf.addArrayElement(effectPath, effectPath == effectPaths[effectPaths.length-1]);
 		}
-		strBuf.stopArray(!mBootSequenceEnabled);
-		strBuf.toggleComment(!mBootSequenceEnabled);
-		strBuf.addValue("bootsequence", mBootSequenceEffect,  true);
-		strBuf.toggleComment(false);
+		strBuf.stopArray(true);
 		strBuf.stopObject();
+
+		strBuf.toggleComment(!mBootSequenceEnabled);
+		strBuf.startObject("Bootsequence");
+		strBuf.addValue("effect", mBootSequenceEffect,  false);
+		strBuf.addValue("duration_ms", mBootSequenceLength_ms, true);
+		strBuf.stopObject();
+		strBuf.toggleComment(false);
 
 		strBuf.newLine();
 		

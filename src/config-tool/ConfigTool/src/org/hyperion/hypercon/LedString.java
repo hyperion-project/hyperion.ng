@@ -100,6 +100,6 @@ public class LedString {
 			pJsonBuf.addRawValue("vscan", String.format(Locale.ENGLISH, "{ %1$cminimum%1$c : %2$.4f, %1$cmaximum%1$c : %3$.4f }", '"', led.mImageRectangle.getMinY(), led.mImageRectangle.getMaxY()), true);
 			pJsonBuf.stopObject(led.equals(leds.get(leds.size()-1)));
 		}
-		pJsonBuf.stopArray();
+		pJsonBuf.stopArray(false);
 	}
 }
