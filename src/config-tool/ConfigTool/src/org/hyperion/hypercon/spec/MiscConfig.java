@@ -73,8 +73,10 @@ public class MiscConfig {
 		strBuf.stopArray(true);
 		strBuf.stopObject();
 
+		strBuf.newLine();
+
 		strBuf.toggleComment(!mBootSequenceEnabled);
-		strBuf.startObject("Bootsequence");
+		strBuf.startObject("bootsequence");
 		strBuf.addValue("effect", mBootSequenceEffect,  false);
 		strBuf.addValue("duration_ms", mBootSequenceLength_ms, true);
 		strBuf.stopObject();
