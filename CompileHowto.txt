@@ -1,6 +1,6 @@
 # Install the required tools and dependencies
 sudo apt-get update
-sudo apt-get install git cmake build-essential libprotobuf-dev libQt4-dev libusb-1.0-0-dev protobuf-compiler
+sudo apt-get install git cmake build-essential libprotobuf-dev libQt4-dev libusb-1.0-0-dev protobuf-compiler python-dev
 
 # RPI ONLY: when you build on the rapberry pi and inlcude the dispmanx grabber (which is the default) 
 # you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github
