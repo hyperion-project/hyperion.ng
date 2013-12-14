@@ -30,14 +30,11 @@ if [ $IS_XBIAN -eq 0 ]; then
 	chmod +x /usr/bin/gpio2spi
 fi
 
-# Copy the hyperion configuration file to /etc
-wget -N github.com/tvdzwan/hyperion/raw/master/config/hyperion.config.json -P /etc/
-
 # Copy the service control configuration to /etc/int
 if [ $IS_XBIAN -eq 0 ]; then
 	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.conf -P /etc/init/
 else
-	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
+	wget -N github.com/tvdzwan/hyperion/raw/master/deploy/hyperion.xbian.conf -P /etc/init/ -O hyperion.conf
 fi
 
 # Start the hyperion daemon
