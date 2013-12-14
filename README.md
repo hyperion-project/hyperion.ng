@@ -9,6 +9,7 @@ Hyperion is an opensource 'AmbiLight' implementation controlled using the RaspBe
 * HyperCon. A tool which helps generate a Hyperion configuration file.
 * XBMC-checker which checks the playing status of XBMC and decides whether or not to capture the screen.
 * Black border detector.
+* A scriptable effect engine.
 * Generic software architecture to support new devices and new algorithms easily.
 
 More information can be found on the [wiki](https://github.com/tvdzwan/hyperion/wiki) or the [Hyperion topic](http://forum.stmlabs.com/showthread.php?tid=11053) on the Raspbmc formum.
