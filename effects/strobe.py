@@ -3,6 +3,7 @@ import time
 import colorsys
 
 # Get the rotation time
+color     =       hyperion.args.get('color',     (255,255,255))
 frequency = float(hyperion.args.get('frequency', 10.0))
 
 # Check parameters
@@ -13,7 +14,7 @@ sleepTime = 1.0 / frequency
 
 # Initialize the led data
 blackLedsData = bytearray(hyperion.ledCount * (  0,  0,  0))
-whiteLedsData = bytearray(hyperion.ledCount * (255,255,255))
+whiteLedsData = bytearray(hyperion.ledCount * colo)
 
 # Start the write data loop
 while not hyperion.abort():

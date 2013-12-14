@@ -1,0 +1,9 @@
+{
+	"name" : "Strobe blue",
+	"script" : "strobe.py",
+	"args" :
+	{
+		"color"     : [ 0, 0, 255 ],
+		"frequency" : 10.0
+	}
+}
