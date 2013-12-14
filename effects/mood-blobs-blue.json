@@ -1,0 +1,12 @@
+{
+	"name" : "Blue mood blobs",
+	"script" : "mood-blobs.py",
+	"args" :
+	{
+		"rotationTime" : 60.0,
+		"color" : [0,0,255],
+		"hueChange" : 60.0,
+		"blobs" : 5,
+		"reverse" : false
+	}
+}

@@ -95,6 +95,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleColorCommand(message);
 	else if (command == "image")
 		handleImageCommand(message);
+	else if (command == "effect")
+		handleEffectCommand(message);
 	else if (command == "serverinfo")
 		handleServerInfoCommand(message);
 	else if (command == "clear")
@@ -112,10 +114,33 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
-	ColorRgb color = {uint8_t(message["color"][0u].asInt()), uint8_t(message["color"][1u].asInt()), uint8_t(message["color"][2u].asInt())};
+
+	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
+	const Json::Value & jsonColor = message["color"];
+	Json::UInt i = 0;
+	for (; i < jsonColor.size()/3 && i < _hyperion->getLedCount(); ++i)
+	{
+		colorData[i].red = uint8_t(message["color"][3u*i].asInt());
+		colorData[i].green = uint8_t(message["color"][3u*i+1u].asInt());
+		colorData[i].blue = uint8_t(message["color"][3u*i+2u].asInt());
+	}
+
+	// copy full blocks of led colors
+	unsigned size = i;
+	while (i + size < _hyperion->getLedCount())
+	{
+		memcpy(&(colorData[i]), colorData.data(), size * sizeof(ColorRgb));
+		i += size;
+	}
+
+	// copy remaining block of led colors
+	if (i < _hyperion->getLedCount())
+	{
+		memcpy(&(colorData[i]), colorData.data(), (_hyperion->getLedCount()-i) * sizeof(ColorRgb));
+	}
 
 	// set output
-	_hyperion->setColor(priority, color, duration);
+	_hyperion->setColors(priority, colorData, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -152,7 +177,29 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
-void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
+void JsonClientConnection::handleEffectCommand(const Json::Value &message)
+{
+	// extract parameters
+	int priority = message["priority"].asInt();
+	int duration = message.get("duration", -1).asInt();
+	const Json::Value & effect = message["effect"];
+	const std::string & effectName = effect["name"].asString();
+
+	// set output
+	if (effect.isMember("args"))
+	{
+		_hyperion->setEffect(effectName, effect["args"], priority, duration);
+	}
+	else
+	{
+		_hyperion->setEffect(effectName, priority, duration);
+	}
+
+	// send reply
+	sendSuccessReply();
+}
+
+void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 {
 	// create result
 	Json::Value result;
@@ -160,7 +207,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 	Json::Value & info = result["info"];
 
 	// collect priority information
-	Json::Value & priorities = info["priorities"];
+	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
 	foreach (int priority, activePriorities) {
@@ -206,6 +253,19 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &message)
 		whitelevel.append(colorTransform->_rgbRedTransform.getWhitelevel());
 		whitelevel.append(colorTransform->_rgbGreenTransform.getWhitelevel());
 		whitelevel.append(colorTransform->_rgbBlueTransform.getWhitelevel());
+	}
+
+	// collect effect info
+	Json::Value & effects = info["effects"] = Json::Value(Json::arrayValue);
+	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
+	for (const EffectDefinition & effectDefinition : effectsDefinitions)
+	{
+		Json::Value effect;
+		effect["name"] = effectDefinition.name;
+		effect["script"] = effectDefinition.script;
+		effect["args"] = effectDefinition.args;
+
+		effects.append(effect);
 	}
 
 	// send the result

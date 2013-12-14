@@ -15,9 +15,6 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
-// Bootsequence includes
-#include <bootsequence/BootSequenceFactory.h>
-
 #ifdef ENABLE_DISPMANX
 // Dispmanx grabber includes
 #include <dispmanx-grabber/DispmanxWrapper.h>
@@ -25,6 +22,9 @@
 
 // XBMC Video checker includes
 #include <xbmcvideochecker/XBMCVideoChecker.h>
+
+// Effect engine includes
+#include <effectengine/EffectEngine.h>
 
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
@@ -93,15 +93,25 @@ int main(int argc, char** argv)
 	std::cout << "Hyperion created and initialised" << std::endl;
 
 	// create boot sequence if the configuration is present
-	BootSequence * bootSequence = nullptr;
 	if (config.isMember("bootsequence"))
 	{
-		bootSequence = BootSequenceFactory::createBootSequence(&hyperion, config["bootsequence"]);
+		const Json::Value effectConfig = config["bootsequence"];
 
-		if (bootSequence != nullptr)
+		// Get the parameters for the bootsequence
+		const std::string effectName = effectConfig["effect"].asString();
+		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
+		const int priority = 0;
+
+//		int retVal = -1;
+//		QMetaObject::invokeMethod(hyperion, "setEffect", Q_RETURN_ARG(int, retVal), Q_ARG(std::string, effectName), Q_ARG(Json::Value, Json::Value()), Q_ARG(int, priority), Q_ARG(int, duration_ms));
+//		if (retVal == 0)
+		if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
 		{
-			bootSequence->start();
-			std::cout << "Boot sequence created and started" << std::endl;
+			std::cout << "Boot sequence(" << effectName << ") created and started" << std::endl;
+		}
+		else
+		{
+			std::cout << "Failed to start boot sequence: " << effectName << std::endl;
 		}
 	}
 
@@ -182,13 +192,13 @@ int main(int argc, char** argv)
 	std::cout << "Application closed with code " << rc << std::endl;
 
 	// Delete all component
-	delete bootSequence;
 #ifdef ENABLE_DISPMANX
 	delete dispmanx;
 #endif
 	delete xbmcVideoChecker;
 	delete jsonServer;
 	delete protoServer;
+	delete boblightServer;
 
 	// leave application
 	return rc;

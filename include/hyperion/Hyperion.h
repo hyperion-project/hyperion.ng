@@ -15,8 +15,12 @@
 #include <hyperion/LedDevice.h>
 #include <hyperion/PriorityMuxer.h>
 
+// Effect engine includes
+#include <effectengine/EffectDefinition.h>
+
 // Forward class declaration
 class ColorTransform;
+class EffectEngine;
 class HsvTransform;
 class RgbChannelTransform;
 class MultiColorTransform;
@@ -72,13 +76,36 @@ public:
 	unsigned getLedCount() const;
 
 	///
+	/// Returns a list of active priorities
+	///
+	/// @return The list with priorities
+	///
+	QList<int> getActivePriorities() const;
+
+	///
+	/// Returns the information of a specific priorrity channel
+	///
+	/// @param[in] priority  The priority channel
+	///
+	/// @return The information of the given
+	///
+	/// @throw std::runtime_error when the priority channel does not exist
+	///
+	const InputInfo& getPriorityInfo(const int priority) const;
+
+	/// Get the list of available effects
+	/// @return The list of available effects
+	const std::list<EffectDefinition> &getEffects() const;
+
+public slots:
+	///
 	/// Writes a single color to all the leds for the given time and priority
 	///
 	/// @param[in] priority The priority of the written color
 	/// @param[in] ledColor The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	///
-	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms);
+	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms, bool clearEffects = true);
 
 	///
 	/// Writes the given colors to all leds for the given time and priority
@@ -87,7 +114,7 @@ public:
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true);
 
 	///
 	/// Returns the list with unique transform identifiers
@@ -117,24 +144,20 @@ public:
 	///
 	void clearall();
 
-	///
-	/// Returns a list of active priorities
-	///
-	/// @return The list with priorities
-	///
-	QList<int> getActivePriorities() const;
+	/// Run the specified effect on the given priority channel and optionally specify a timeout
+	/// @param effectName Name of the effec to run
+	///	@param priority The priority channel of the effect
+	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
+	int setEffect(const std::string & effectName, int priority, int timeout = -1);
 
-	///
-	/// Returns the information of a specific priorrity channel
-	///
-	/// @param[in] priority  The priority channel
-	///
-	/// @return The information of the given
-	///
-	/// @throw std::runtime_error when the priority channel does not exist
-	///
-	const InputInfo& getPriorityInfo(const int priority) const;
+	/// Run the specified effect on the given priority channel and optionally specify a timeout
+	/// @param effectName Name of the effec to run
+	/// @param args arguments of the effect script
+	///	@param priority The priority channel of the effect
+	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
+	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
 
+public:
 	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
@@ -145,6 +168,15 @@ public:
 	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
 
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
+
+signals:
+	/// Signal which is emitted when a priority channel is actively cleared
+	/// This signal will not be emitted when a priority channel time out
+	void channelCleared(int priority);
+
+	/// Signal which is emitted when all priority channels are actively cleared
+	/// This signal will not be emitted when a priority channel time out
+	void allChannelsCleared();
 
 private slots:
 	///
@@ -168,6 +200,9 @@ private:
 
 	/// The actual LedDevice
 	LedDevice * _device;
+
+	/// Effect engine
+	EffectEngine * _effectEngine;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;

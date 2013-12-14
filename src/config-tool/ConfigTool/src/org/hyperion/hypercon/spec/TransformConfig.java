@@ -7,35 +7,35 @@ public class TransformConfig {
 	public String mId = "default";
 	
 	/** The indices to which this transform applies */
-	public String mLedIndexString = "0-49";
+	public String mLedIndexString = "*";
 	
 	/** The saturation gain (in HSV space) */
 	public double mSaturationGain = 1.0;
 	/** The value gain (in HSV space) */
-	public double mValueGain = 1.5;
+	public double mValueGain = 1.0;
 	
 	/** The minimum required RED-value (in RGB space) */
-	public double mRedThreshold  = 0.1;
+	public double mRedThreshold  = 0.0;
 	/** The gamma-curve correct for the RED-value (in RGB space) */
-	public double mRedGamma      = 2.0;
+	public double mRedGamma      = 1.0;
 	/** The black-level of the RED-value (in RGB space) */
 	public double mRedBlacklevel = 0.0;
 	/** The white-level of the RED-value (in RGB space) */
-	public double mRedWhitelevel = 0.8;
+	public double mRedWhitelevel = 1.0;
 	
 	/** The minimum required GREEN-value (in RGB space) */
-	public double mGreenThreshold  = 0.1;
+	public double mGreenThreshold  = 0.0;
 	/** The gamma-curve correct for the GREEN-value (in RGB space) */
-	public double mGreenGamma      = 2.0;
+	public double mGreenGamma      = 1.0;
 	/** The black-level of the GREEN-value (in RGB space) */
 	public double mGreenBlacklevel = 0.0;
 	/** The white-level of the GREEN-value (in RGB space) */
 	public double mGreenWhitelevel = 1.0;
 	
 	/** The minimum required BLUE-value (in RGB space) */
-	public double mBlueThreshold  = 0.1;
+	public double mBlueThreshold  = 0.0;
 	/** The gamma-curve correct for the BLUE-value (in RGB space) */
-	public double mBlueGamma      = 2.0;
+	public double mBlueGamma      = 1.0;
 	/** The black-level of the BLUE-value (in RGB space) */
 	public double mBlueBlacklevel = 0.0;
 	/** The white-level of the BLUE-value (in RGB space) */

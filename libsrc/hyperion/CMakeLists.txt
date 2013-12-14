@@ -11,15 +11,6 @@ include_directories(
 	../../include/hidapi
 	${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
 
-# set the build options
-option (LIBUDEV_REQUIRED "Add libudev to the build (needed on Ubuntu 13.10, but gives errors when added on the RPi) :-S" OFF)
-message(STATUS "LIBUDEV_REQUIRED = " ${LIBUDEV_REQUIRED})
-
-if (LIBUDEV_REQUIRED)
-	find_package(UDev REQUIRED)
-	include_directories(${UDEV_INCLUDE_DIR})
-endif (LIBUDEV_REQUIRED)
-
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
 		${CURRENT_HEADER_DIR}/Hyperion.h
@@ -49,6 +40,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.h
+		${CURRENT_SOURCE_DIR}/device/LedDevicePaintpack.h
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.h
 )
 
@@ -74,6 +66,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLpd8806.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceLightpack.cpp
+		${CURRENT_SOURCE_DIR}/device/LedDevicePaintpack.cpp
 		${CURRENT_SOURCE_DIR}/device/LedDeviceMultiLightpack.cpp
 )
 
@@ -95,14 +88,10 @@ add_library(hyperion
 
 target_link_libraries(hyperion
 		hyperion-utils
+		effectengine
+		hidapi-libusb
 		serialport
 		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 		${CMAKE_THREAD_LIBS_INIT}
 		${QT_LIBRARIES}
 )
-
-if (LIBUDEV_REQUIRED)
-	target_link_libraries(hyperion
-			${UDEV_LIBRARIES} # apt-get install libudev-dev
-	)
-endif (LIBUDEV_REQUIRED)

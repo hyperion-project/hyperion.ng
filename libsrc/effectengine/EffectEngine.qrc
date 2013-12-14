@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="effect-schema">EffectDefinition.schema.json</file>
+    </qresource>
+</RCC>

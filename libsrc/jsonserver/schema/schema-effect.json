@@ -1,0 +1,35 @@
+{
+    "type":"object",
+    "required":true,
+    "properties":{
+        "command": {
+            "type" : "string",
+            "required" : true,
+            "enum" : ["effect"]
+        },
+        "priority": {
+            "type": "integer",
+            "required": true
+        },
+        "duration": {
+            "type": "integer",
+            "required": false
+        },
+        "effect": {
+            "type": "object",
+            "required": true,
+            "properties" :{
+                "name" : {
+                    "type" : "string",
+                    "required" : true
+                },
+                "args" : {
+                    "type" : "object",
+                    "required" : false
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

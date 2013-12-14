@@ -1,5 +1,6 @@
 package org.hyperion.hypercon.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,11 +11,8 @@ import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
+import org.hyperion.hypercon.gui.device.DeviceTypePanel;
 import org.hyperion.hypercon.spec.ColorByteOrder;
 import org.hyperion.hypercon.spec.DeviceConfig;
 import org.hyperion.hypercon.spec.DeviceType;
@@ -25,15 +23,10 @@ public class DevicePanel extends JPanel {
 
 	private final DeviceConfig mDeviceConfig;
 	
-	
 	private JLabel mTypeLabel;
 	private JComboBox<DeviceType> mTypeCombo;
 
-	private JLabel mOutputLabel;
-	private JComboBox<String> mOutputCombo;
-	
-	private JLabel mBaudrateLabel;
-	private JSpinner mBaudrateSpinner;
+	private JPanel mDevicePanel;
 	
 	private JLabel mRgbLabel;
 	private JComboBox<ColorByteOrder> mRgbCombo;
@@ -57,16 +50,8 @@ public class DevicePanel extends JPanel {
 	private void initialise() {
 		setBorder(BorderFactory.createTitledBorder("Device"));
 		
-		mOutputLabel = new JLabel("Output");
-		add(mOutputLabel);
-		
-		mOutputCombo = new JComboBox<>(KnownOutputs);
-		mOutputCombo.setEditable(true);
-		mOutputCombo.setSelectedItem(mDeviceConfig.mOutput);
-		mOutputCombo.addActionListener(mActionListener);
-		add(mOutputCombo);
-		
-		mTypeLabel = new JLabel("LED Type:");
+		mTypeLabel = new JLabel("Type: ");
+		mTypeLabel.setMinimumSize(new Dimension(80, 10));
 		add(mTypeLabel);
 		
 		mTypeCombo = new JComboBox<>(DeviceType.values());
@@ -74,14 +59,17 @@ public class DevicePanel extends JPanel {
 		mTypeCombo.addActionListener(mActionListener);
 		add(mTypeCombo);
 
-		mBaudrateLabel = new JLabel("Baudrate");
-		add(mBaudrateLabel);
+		mDevicePanel = new JPanel();
+		mDevicePanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+		mDevicePanel.setLayout(new BorderLayout());
+		DeviceTypePanel typePanel = mDeviceConfig.mType.getConfigPanel(mDeviceConfig);
+		if (typePanel != null) {
+			mDevicePanel.add(typePanel, BorderLayout.CENTER);
+		}
+		add(mDevicePanel);
 		
-		mBaudrateSpinner = new JSpinner(new SpinnerNumberModel(mDeviceConfig.mBaudrate, 1, 1000000, 128));
-		mBaudrateSpinner.addChangeListener(mChangeListener);
-		add(mBaudrateSpinner);
-	
-		mRgbLabel = new JLabel("RGB Byte Order");
+		mRgbLabel = new JLabel("RGB Byte Order: ");
+		mRgbLabel.setMinimumSize(new Dimension(80, 10));
 		add(mRgbLabel);
 		
 		mRgbCombo = new JComboBox<>(ColorByteOrder.values());
@@ -89,35 +77,26 @@ public class DevicePanel extends JPanel {
 		mRgbCombo.addActionListener(mActionListener);
 		add(mRgbCombo);
 		
-
 		GroupLayout layout = new GroupLayout(this);
 		layout.setAutoCreateGaps(true);
 		setLayout(layout);
 		
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(mOutputLabel)
-						.addComponent(mTypeLabel)
-						.addComponent(mBaudrateLabel)
-						.addComponent(mRgbLabel))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(mOutputCombo)
-						.addComponent(mTypeCombo)
-						.addComponent(mBaudrateSpinner)
-						.addComponent(mRgbCombo))
-				);
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(mOutputLabel)
-						.addComponent(mOutputCombo))
-				.addGroup(layout.createParallelGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addGroup(layout.createSequentialGroup()
 						.addComponent(mTypeLabel)
 						.addComponent(mTypeCombo))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(mBaudrateLabel)
-						.addComponent(mBaudrateSpinner))
-				.addGroup(layout.createParallelGroup()
+				.addComponent(mDevicePanel)
+				.addGroup(layout.createSequentialGroup()
 						.addComponent(mRgbLabel)
+						.addComponent(mRgbCombo)));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addGroup(layout.createSequentialGroup()
+						.addComponent(mTypeLabel)
+						.addComponent(mDevicePanel)
+						.addComponent(mRgbLabel))
+				.addGroup(layout.createSequentialGroup()
+						.addComponent(mTypeCombo)
+						.addComponent(mDevicePanel)
 						.addComponent(mRgbCombo)));
 	}
 	
@@ -125,16 +104,14 @@ public class DevicePanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			mDeviceConfig.mType = (DeviceType)mTypeCombo.getSelectedItem();
-			mDeviceConfig.mOutput = (String)mOutputCombo.getSelectedItem();
-			mDeviceConfig.mBaudrate = (Integer)mBaudrateSpinner.getValue();
 			mDeviceConfig.mColorByteOrder = (ColorByteOrder)mRgbCombo.getSelectedItem();
-		}
-	};
-	
-	private final ChangeListener mChangeListener = new ChangeListener() {
-		@Override
-		public void stateChanged(ChangeEvent e) {
-			mDeviceConfig.mBaudrate = (Integer)mBaudrateSpinner.getValue();
+
+			mDevicePanel.removeAll();
+			DeviceTypePanel typePanel = mDeviceConfig.mType.getConfigPanel(mDeviceConfig);
+			if (typePanel != null) {
+				mDevicePanel.add(typePanel, BorderLayout.CENTER);
+			}
+			revalidate();
 		}
 	};
 }

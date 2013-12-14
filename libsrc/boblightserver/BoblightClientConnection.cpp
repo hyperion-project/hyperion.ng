@@ -133,7 +133,8 @@ void BoblightClientConnection::handleMessage(const QString & message)
 					if (messageParts[3] == "rgb" && messageParts.size() == 7)
 					{
 						bool rc1, rc2, rc3;
-						uint8_t red = 255 * messageParts[4].toFloat(&rc1);
+						uint8_t red = qMax(0, qMin(255, int(255 * messageParts[4].toFloat(&rc1))));
+
 						if (!rc1)
 						{
 							// maybe a locale issue. switch to a locale with a comma instead of a dot as decimal seperator (or vice versa)
@@ -141,11 +142,11 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
 
 							// try again
-							red = 255 * messageParts[4].toFloat(&rc1);
+							red = qMax(0, qMin(255, int(255 * messageParts[4].toFloat(&rc1))));
 						}
 
-						uint8_t green = 255 * messageParts[5].toFloat(&rc2);
-						uint8_t blue  = 255 * messageParts[6].toFloat(&rc3);
+						uint8_t green = qMax(0, qMin(255, 255 * int(messageParts[5].toFloat(&rc2))));
+						uint8_t blue  = qMax(0, qMin(255, 255 * int(messageParts[6].toFloat(&rc3))));
 
 						if (rc1 && rc2 && rc3)
 						{
@@ -153,6 +154,13 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							rgb.red = red;
 							rgb.green = green;
 							rgb.blue = blue;
+
+							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
+							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
+							{
+								_hyperion->setColors(_priority, _ledColors, -1);
+							}
+
 							return;
 						}
 					}

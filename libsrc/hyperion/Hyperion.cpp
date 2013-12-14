@@ -4,6 +4,7 @@
 
 // QT includes
 #include <QDateTime>
+#include <QThread>
 #include <QRegExp>
 #include <QString>
 #include <QStringList>
@@ -22,11 +23,15 @@
 #include "device/LedDeviceTest.h"
 #include "device/LedDeviceWs2801.h"
 #include "device/LedDeviceAdalight.h"
+#include "device/LedDevicePaintpack.h"
 #include "device/LedDeviceLightpack.h"
 #include "device/LedDeviceMultiLightpack.h"
 
 #include "MultiColorTransform.h"
 #include "LinearColorSmoothing.h"
+
+// effect engine includes
+#include <effectengine/EffectEngine.h>
 
 LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 {
@@ -36,7 +41,7 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	LedDevice* device = nullptr;
-	if (type == "ws2801")
+	if (type == "ws2801" || type == "lightberry")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
@@ -94,6 +99,13 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 		deviceLightpack->open(output);
 
 		device = deviceLightpack;
+	}
+	else if (type == "paintpack")
+	{
+		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack();
+		devicePainLightpack->open();
+
+		device = devicePainLightpack;
 	}
 	else if (type == "multi-lightpack")
 	{
@@ -211,7 +223,15 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 			ColorTransform * colorTransform = createColorTransform(config);
 			transform->addTransform(colorTransform);
 
-			const QString ledIndicesStr = config.get("leds", "").asCString();
+			const QString ledIndicesStr = QString(config.get("leds", "").asCString()).trimmed();
+			if (ledIndicesStr.compare("*") == 0)
+			{
+				// Special case for indices '*' => all leds
+				transform->setTransformForLed(colorTransform->_id, 0, ledCnt-1);
+				std::cout << "ColorTransform '" << colorTransform->_id << "' => [0; "<< ledCnt-1 << "]" << std::endl;
+				continue;
+			}
+
 			if (!overallExp.exactMatch(ledIndicesStr))
 			{
 				std::cerr << "Given led indices " << i << " not correct format: " << ledIndicesStr.toStdString() << std::endl;
@@ -342,6 +362,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
 	_colorOrder(createColorOrder(jsonConfig["device"])),
 	_device(createDevice(jsonConfig["device"])),
+	_effectEngine(nullptr),
 	_timer()
 {
 	if (!_raw2ledTransform->verifyTransforms())
@@ -358,6 +379,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
+	// create the effect engine
+	_effectEngine = new EffectEngine(this, jsonConfig["effects"]);
+
 	// initialize the leds
 	update();
 }
@@ -368,6 +392,9 @@ Hyperion::~Hyperion()
 	// switch off all leds
 	clearall();
 	_device->switchOff();
+
+	// delete the effect engine
+	delete _effectEngine;
 
 	// Delete the Led-String
 	delete _device;
@@ -381,17 +408,23 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
-void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms)
+void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
 {
 	// create led output
 	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
 
 	// set colors
-	setColors(priority, ledColors, timeout_ms);
+	setColors(priority, ledColors, timeout_ms, clearEffects);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects)
 {
+	// clear effects if this call does not come from an effect
+	if (clearEffects)
+	{
+		_effectEngine->channelCleared(priority);
+	}
+
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
@@ -435,6 +468,10 @@ void Hyperion::clear(int priority)
 			update();
 		}
 	}
+
+	// send clear signal to the effect engine
+	// (outside the check so the effect gets cleared even when the effect is not sending colors)
+	_effectEngine->channelCleared(priority);
 }
 
 void Hyperion::clearall()
@@ -443,6 +480,9 @@ void Hyperion::clearall()
 
 	// update leds
 	update();
+
+	// send clearall signal to the effect engine
+	_effectEngine->allChannelsCleared();
 }
 
 QList<int> Hyperion::getActivePriorities() const
@@ -453,6 +493,21 @@ QList<int> Hyperion::getActivePriorities() const
 const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
 {
 	return _muxer.getInputInfo(priority);
+}
+
+const std::list<EffectDefinition> & Hyperion::getEffects() const
+{
+	return _effectEngine->getEffects();
+}
+
+int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
+{
+	return _effectEngine->runEffect(effectName, priority, timeout);
+}
+
+int Hyperion::setEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+{
+	return _effectEngine->runEffect(effectName, args, priority, timeout);
 }
 
 void Hyperion::update()

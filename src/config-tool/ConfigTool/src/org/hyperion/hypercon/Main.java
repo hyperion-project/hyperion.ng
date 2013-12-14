@@ -16,6 +16,9 @@ import org.hyperion.hypercon.gui.ConfigPanel;
  */
 public class Main {
 	public static final String configFilename = "hypercon.dat";
+	
+	/** Some application settings (for easy/dirty access) */
+	public static final HyperConConfig HyperConConfig = new HyperConConfig();
 
 	/**
 	 * Entry point to start HyperCon 
@@ -42,6 +45,7 @@ public class Main {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				ConfigurationFile configFile = new ConfigurationFile();
+				configFile.store(Main.HyperConConfig);
 				configFile.store(ledString.mDeviceConfig);
 				configFile.store(ledString.mLedFrameConfig);
 				configFile.store(ledString.mProcessConfig);
@@ -54,6 +58,7 @@ public class Main {
 		if (new File(configFilename).exists()) {
 			ConfigurationFile configFile = new ConfigurationFile();
 			configFile.load(configFilename);
+			configFile.restore(Main.HyperConConfig);
 			configFile.restore(ledString.mDeviceConfig);
 			configFile.restore(ledString.mLedFrameConfig);
 			configFile.restore(ledString.mProcessConfig);

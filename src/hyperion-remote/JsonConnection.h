@@ -41,7 +41,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setColor(QColor color, int priority, int duration);
+	void setColor(std::vector<QColor> color, int priority, int duration);
 
 	///
 	/// Set the leds according to the given image (assume the image is stretched to the display size)
@@ -51,6 +51,16 @@ public:
 	/// @param duration The duration in milliseconds
 	///
 	void setImage(QImage image, int priority, int duration);
+
+	///
+	/// Start the given effect
+	///
+	/// @param effect The name of the effect
+	/// @param effectArgs The arguments to use instead of the default ones
+	/// @param priority The priority
+	/// @param duration The duration in milliseconds
+	///
+	void setEffect(const std::string & effectName, const std::string &effectArgs, int priority, int duration);
 
 	///
 	/// Retrieve a list of all occupied priority channels

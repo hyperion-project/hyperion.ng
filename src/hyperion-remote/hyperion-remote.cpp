@@ -40,8 +40,10 @@ int main(int argc, char * argv[])
 		StringParameter    & argAddress    = parameters.add<StringParameter>   ('a', "address"   , QString("Set the address of the hyperion server [default: %1]").arg(defaultServerAddress).toAscii().constData());
 		IntParameter       & argPriority   = parameters.add<IntParameter>      ('p', "priority"  , QString("Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]").arg(defaultPriority).toAscii().constData());
 		IntParameter       & argDuration   = parameters.add<IntParameter>      ('d', "duration"  , "Specify how long the leds should be switched on in millseconds [default: infinity]");
-		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name)");
+		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
+		StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
+		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
@@ -59,6 +61,7 @@ int main(int argc, char * argv[])
 		argAddress.setDefault(defaultServerAddress.toStdString());
 		argPriority.setDefault(defaultPriority);
 		argDuration.setDefault(-1);
+		argEffectArgs.setDefault("");
 
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
@@ -74,12 +77,13 @@ int main(int argc, char * argv[])
 		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
 
 		// check that exactly one command was given
-		int commandCount = count({argColor.isSet(), argImage.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform});
+		int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
 			std::cerr << "  " << argColor.usageLine() << std::endl;
 			std::cerr << "  " << argImage.usageLine() << std::endl;
+			std::cerr << "  " << argEffect.usageLine() << std::endl;
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
@@ -105,6 +109,10 @@ int main(int argc, char * argv[])
 		else if (argImage.isSet())
 		{
 			connection.setImage(argImage.getValue(), argPriority.getValue(), argDuration.getValue());
+		}
+		else if (argEffect.isSet())
+		{
+			connection.setEffect(argEffect.getValue(), argEffectArgs.getValue(), argPriority.getValue(), argDuration.getValue());
 		}
 		else if (argServerInfo.isSet())
 		{

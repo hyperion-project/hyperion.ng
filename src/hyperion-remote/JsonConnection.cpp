@@ -39,18 +39,21 @@ JsonConnection::~JsonConnection()
 	_socket.close();
 }
 
-void JsonConnection::setColor(QColor color, int priority, int duration)
+void JsonConnection::setColor(std::vector<QColor> colors, int priority, int duration)
 {
-	std::cout << "Set color to " << color.red() << " " << color.green() << " " << color.blue() << std::endl;
+	std::cout << "Set color to " << colors[0].red() << " " << colors[0].green() << " " << colors[0].blue() << (colors.size() > 1 ? " + ..." : "") << std::endl;
 
 	// create command
 	Json::Value command;
 	command["command"] = "color";
 	command["priority"] = priority;
 	Json::Value & rgbValue = command["color"];
-	rgbValue[0] = color.red();
-	rgbValue[1] = color.green();
-	rgbValue[2] = color.blue();
+	for (const QColor & color : colors)
+	{
+		rgbValue.append(color.red());
+		rgbValue.append(color.green());
+		rgbValue.append(color.blue());
+	}
 	if (duration > 0)
 	{
 		command["duration"] = duration;
@@ -102,6 +105,35 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	parseReply(reply);
 }
 
+void JsonConnection::setEffect(const std::string &effectName, const std::string & effectArgs, int priority, int duration)
+{
+	std::cout << "Start effect " << effectName << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "effect";
+	command["priority"] = priority;
+	Json::Value & effect = command["effect"];
+	effect["name"] = effectName;
+	if (effectArgs.size() > 0)
+	{
+		Json::Reader reader;
+		if (!reader.parse(effectArgs, effect["args"], false))
+		{
+			throw std::runtime_error("Error in effect arguments: " + reader.getFormattedErrorMessages());
+		}
+	}
+	if (duration > 0)
+	{
+		command["duration"] = duration;
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
 
 QString JsonConnection::getServerInfo()
 {

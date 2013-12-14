@@ -12,7 +12,7 @@ public class DeviceConfig {
 	/** The device 'file' name */
 	public String mOutput   = "/dev/spidev0.0";
 	/** The baudrate of the device */
-	public int mBaudrate    = 1000000;
+	public int mBaudrate    = 250000;
 	/** The order of the color bytes */
 	public ColorByteOrder mColorByteOrder = ColorByteOrder.RGB;
 	
