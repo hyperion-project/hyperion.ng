@@ -12,6 +12,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.Properties;
 import java.util.Vector;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Class for supporting the serialisation and deserialisation of HyperCon settings.
@@ -29,8 +31,8 @@ public class ConfigurationFile {
 	public void load(String pFilename) {
 		mProps.clear();
 //		try (InputStream in = new InflaterInputStream(new FileInputStream(pFilename))){
-//		try (InputStream in = new GZIPInputStream(new FileInputStream(pFilename))){
-		try (InputStream in = new FileInputStream(pFilename)) {
+		try (InputStream in = new GZIPInputStream(new FileInputStream(pFilename))){
+//		try (InputStream in = new FileInputStream(pFilename)) {
 			mProps.load(in);
 		} catch (Throwable t) {
 			// TODO Auto-generated catch block
@@ -45,8 +47,8 @@ public class ConfigurationFile {
 	 */
 	public void save(String pFilename) {
 //		try (OutputStream out = new DeflaterOutputStream(new FileOutputStream(pFilename))) {
-//		try (OutputStream out = new GZIPOutputStream(new FileOutputStream(pFilename))) {
-		try (OutputStream out = (new FileOutputStream(pFilename))) {
+		try (OutputStream out = new GZIPOutputStream(new FileOutputStream(pFilename))) {
+//		try (OutputStream out = (new FileOutputStream(pFilename))) {
 			mProps.store(out, "Pesistent settings file for HyperCon");
 		} catch (IOException e) {
 			e.printStackTrace();

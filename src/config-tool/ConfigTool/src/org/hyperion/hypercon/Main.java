@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import org.hyperion.hypercon.gui.ConfigPanel;
+import org.hyperion.hypercon.spec.TransformConfig;
 
 /**
  * (static) Main-class for starting HyperCon (the Hyperion configuration file builder) as a standard 
@@ -44,26 +45,37 @@ public class Main {
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				ConfigurationFile configFile = new ConfigurationFile();
-				configFile.store(Main.HyperConConfig);
-				configFile.store(ledString.mDeviceConfig);
-				configFile.store(ledString.mLedFrameConfig);
-				configFile.store(ledString.mProcessConfig);
-				configFile.store(ledString.mColorConfig);
-				configFile.store(ledString.mMiscConfig);
-				configFile.save(configFilename);
+				try {
+					ConfigurationFile configFile = new ConfigurationFile();
+					configFile.store(Main.HyperConConfig);
+					configFile.store(ledString.mDeviceConfig);
+					configFile.store(ledString.mLedFrameConfig);
+					configFile.store(ledString.mProcessConfig);
+					configFile.store(ledString.mColorConfig);
+					configFile.store(ledString.mMiscConfig);
+					configFile.save(configFilename);
+				} catch (Throwable t) {
+					System.err.println("Failed to save " + configFilename);
+				}
 			}
 		});
 		
 		if (new File(configFilename).exists()) {
-			ConfigurationFile configFile = new ConfigurationFile();
-			configFile.load(configFilename);
-			configFile.restore(Main.HyperConConfig);
-			configFile.restore(ledString.mDeviceConfig);
-			configFile.restore(ledString.mLedFrameConfig);
-			configFile.restore(ledString.mProcessConfig);
-			configFile.restore(ledString.mColorConfig);
-			configFile.restore(ledString.mMiscConfig);
+			try {
+				ConfigurationFile configFile = new ConfigurationFile();
+				configFile.load(configFilename);
+				configFile.restore(Main.HyperConConfig);
+				configFile.restore(ledString.mDeviceConfig);
+				configFile.restore(ledString.mLedFrameConfig);
+				configFile.restore(ledString.mProcessConfig);
+				configFile.restore(ledString.mColorConfig);
+				configFile.restore(ledString.mMiscConfig);
+			} catch (Throwable t) {
+				System.err.println("Failed to load " + configFilename);
+			}
+			if (ledString.mColorConfig.mTransforms.isEmpty()) {
+				ledString.mColorConfig.mTransforms.add(new TransformConfig());
+			}
 		}
 		
 		// Add the HyperCon configuration panel
