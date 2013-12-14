@@ -14,7 +14,7 @@ sleepTime = 1.0 / frequency
 
 # Initialize the led data
 blackLedsData = bytearray(hyperion.ledCount * (  0,  0,  0))
-whiteLedsData = bytearray(hyperion.ledCount * colo)
+whiteLedsData = bytearray(hyperion.ledCount * color)
 
 # Start the write data loop
 while not hyperion.abort():
