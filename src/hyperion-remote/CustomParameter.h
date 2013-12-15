@@ -40,7 +40,7 @@ namespace vlofgren {
 		}
 
 		// check if we can create the color by hex RRGGBB value
-		if (s.length() >= 6u && (s.length()%6) == 0u && std::count_if(s.begin(), s.end(), isxdigit) == s.length())
+		if (s.length() >= 6u && (s.length()%6u) == 0u && std::count_if(s.begin(), s.end(), isxdigit) == int(s.length()))
 		{
 			bool ok = true;
 			std::vector<QColor> colors;
