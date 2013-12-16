@@ -46,4 +46,5 @@ target_link_libraries(test_qregexp
 		${QT_LIBRARIES})
 
 add_executable(spidev_test spidev_test.c)
+
 add_executable(gpio2spi switchPinCtrl.c)
