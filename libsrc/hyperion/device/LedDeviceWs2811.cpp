@@ -2,10 +2,10 @@
 // Local hyperion includes
 #include "LedDeviceWs2811.h"
 
-LedDeviceWs2811::LedDeviceWs2811(const std::string & deviceName, const bool fastDevice) :
-	LedRs232Device(deviceName, fastDevice?4000000:2000000)
+LedDeviceWs2811::LedDeviceWs2811(const std::string & deviceName) :
+	LedRs232Device(deviceName, ws2811::getBaudrate(ws2811::option_1))
 {
-	fillEncodeTable();
+	fillEncodeTable(ws2811::option_1);
 }
 
 int LedDeviceWs2811::write(const std::vector<ColorRgb> & ledValues)
@@ -37,52 +37,12 @@ int LedDeviceWs2811::switchOff()
 	return 0;
 }
 
-void LedDeviceWs2811::fillEncodeTable()
+void LedDeviceWs2811::fillEncodeTable(const ws2811::SignalTiming ledOption)
 {
+	_byteToSignalTable.resize(256);
 	for (unsigned byteValue=0; byteValue<256; ++byteValue)
 	{
-		char byteSignal[4];
-		for (unsigned iBit=0; iBit<8; iBit=2)
-		{
-			// Isolate two bits
-			char bitVal = (byteValue >> (6-iBit)) & 0x03;
-
-			switch (bitVal)
-			{
-			case 0:
-				//  _          _
-				// | | _ _ _ _| |_ _ _  _|
-				//     <----bits----->
-				byteSignal[iBit/2] = 0x08;
-				break;
-			case 1:
-				//  _          _ _
-				// | | _ _ _ _|   |_ _  _|
-				//     <----bits----->
-				byteSignal[iBit/2] = 0x0C;;
-				break;
-			case 2:
-				//  _  _       _
-				// |    |_ _ _| |_ _ _  _|
-				//     <----bits----->
-				byteSignal[iBit/2] = 0x88;
-				break;
-			case 3:
-				//  _  _       _ _
-				// |    |_ _ _|   |_ _  _|
-				//     <----bits----->
-				byteSignal[iBit/2] = 0x8C;
-				break;
-			default:
-				// Should not happen
-				std::cerr << "two bits evaluated to other value: " << bitVal << std::endl;
-			}
-		}
-		const unsigned byteSignalVal =
-				(byteSignal[0] & 0x00ff) <<  0 |
-				(byteSignal[1] & 0x00ff) <<  8 |
-				(byteSignal[2] & 0x00ff) << 16 |
-				(byteSignal[3] & 0x00ff) << 24;
-		_byteToSignalTable.push_back(byteSignalVal);
+		const uint8_t byteVal = uint8_t(byteValue);
+		_byteToSignalTable[byteValue] = ws2811::translate(ledOption, byteVal);
 	}
 }

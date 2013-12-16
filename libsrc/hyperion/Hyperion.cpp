@@ -49,10 +49,10 @@ LedDevice* Hyperion::createDevice(const Json::Value& deviceConfig)
 	}
 	else if (type == "ws2811")
 	{
+		const std::string type   = deviceConfig["type"].asString();
 		const std::string output = deviceConfig["output"].asString();
-		const bool rate          = deviceConfig["fast"].asBool();
 
-		LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, rate);
+		LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output);
 		deviceWs2811->open();
 
 		device = deviceWs2811;
