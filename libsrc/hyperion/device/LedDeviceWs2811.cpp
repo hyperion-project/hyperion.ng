@@ -133,10 +133,13 @@ ws2811::ByteSignal ws2811::translate(SignalTiming ledOption, uint8_t byte)
 	return result;
 }
 
-LedDeviceWs2811::LedDeviceWs2811(const std::string & deviceName) :
-	LedRs232Device(deviceName, ws2811::getBaudrate(ws2811::highspeed))
+LedDeviceWs2811::LedDeviceWs2811(
+		const std::string & outputDevice,
+		const ws2811::SignalTiming signalTiming,
+		const ws2811::SpeedMode speedMode) :
+	LedRs232Device(outputDevice, ws2811::getBaudrate(speedMode))
 {
-	fillEncodeTable(ws2811::option_2882);
+	fillEncodeTable(signalTiming);
 }
 
 int LedDeviceWs2811::write(const std::vector<ColorRgb> & ledValues)
