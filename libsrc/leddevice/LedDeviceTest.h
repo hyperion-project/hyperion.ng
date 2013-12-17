@@ -3,8 +3,8 @@
 // STL includes0
 #include <fstream>
 
-// Hyperion includes
-#include <hyperion/LedDevice.h>
+// Leddevice includes
+#include <leddevice/LedDevice.h>
 
 ///
 /// Implementation of the LedDevice that write the led-colors to an

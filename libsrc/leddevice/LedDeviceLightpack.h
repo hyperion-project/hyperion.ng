@@ -9,7 +9,7 @@
 #include <libusb.h>
 
 // Hyperion includes
-#include <hyperion/LedDevice.h>
+#include <leddevice/LedDevice.h>
 
 ///
 /// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)

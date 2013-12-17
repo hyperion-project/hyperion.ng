@@ -4,7 +4,7 @@
 #include <linux/spi/spidev.h>
 
 // Hyperion includes
-#include <hyperion/LedDevice.h>
+#include <leddevice/LedDevice.h>
 
 ///
 /// The LedSpiDevice implements an abstract base-class for LedDevices using the SPI-device.

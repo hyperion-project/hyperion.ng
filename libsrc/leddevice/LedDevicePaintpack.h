@@ -7,7 +7,7 @@
 #include <hidapi/hidapi.h>
 
 // Hyperion includes
-#include <hyperion/LedDevice.h>
+#include <leddevice/LedDevice.h>
 
 ///
 /// LedDevice implementation for a paintpack device ()

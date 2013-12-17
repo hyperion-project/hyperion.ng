@@ -10,7 +10,7 @@
 // Local includes
 #include <utils/ColorRgb.h>
 
-#include "../libsrc/hyperion/device/LedDeviceWs2801.h"
+#include "../libsrc/leddevice/LedDeviceWs2801.h"
 
 void setColor(char* colorStr)
 {

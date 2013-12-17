@@ -12,13 +12,13 @@
 
 // Hyperion includes
 #include <hyperion/LedString.h>
-#include <hyperion/LedDevice.h>
 #include <hyperion/PriorityMuxer.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 
 // Forward class declaration
+class LedDevice;
 class ColorTransform;
 class EffectEngine;
 class HsvTransform;
@@ -158,7 +158,6 @@ public slots:
 	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
 
 public:
-	static LedDevice * createDevice(const Json::Value & deviceConfig);
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	static LedString createLedString(const Json::Value & ledsConfig);
 

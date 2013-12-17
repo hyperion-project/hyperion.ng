@@ -3,8 +3,8 @@
 // Serial includes
 #include <serial/serial.h>
 
-// Hyperion includes
-#include <hyperion/LedDevice.h>
+// Leddevice includes
+#include <leddevice/LedDevice.h>
 
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.

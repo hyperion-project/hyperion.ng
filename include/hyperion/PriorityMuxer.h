@@ -12,9 +12,6 @@
 // Utils includes
 #include <utils/ColorRgb.h>
 
-// Hyperion includes
-#include <hyperion/LedDevice.h>
-
 ///
 /// The PriorityMuxer handles the priority channels. Led values input is written to the priority map
 /// and the muxer keeps track of all active priorities. The current priority can be queried and per

@@ -11,7 +11,7 @@
 #include <linux/spi/spidev.h>
 
 // hyperion incluse
-#include <hyperion/LedDevice.h>
+#include <leddevice/LedDevice.h>
 
 /// Linear Smooting class
 ///
