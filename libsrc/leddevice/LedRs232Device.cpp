@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <iostream>
 
+// Serial includes
+#include <serial/serial.h>
+
 // Local Hyperion includes
 #include "LedRs232Device.h"
 
@@ -55,6 +58,30 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 	try
 	{
 		_rs232Port.write(data, size);
+	}
+	catch (const serial::SerialException & serialExc)
+	{
+		// TODO[TvdZ]: Maybe we should limit the frequency of this error report somehow
+		std::cerr << "Serial exception caught while writing to device: " << serialExc.what() << std::endl;
+		std::cout << "Attempting to re-open the device." << std::endl;
+
+		// First make sure the device is properly closed
+		try
+		{
+			_rs232Port.close();
+		}
+		catch (const std::exception & e) {}
+
+		// Attempt to open the device and write the data
+		try
+		{
+			_rs232Port.open();
+			_rs232Port.write(data, size);
+		}
+		catch (const std::exception & e)
+		{
+			// We failed again, this not good, do nothing maybe in the next loop we have more success
+		}
 	}
 	catch (const std::exception& e)
 	{
