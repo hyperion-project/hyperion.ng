@@ -8,7 +8,10 @@ cmake_minimum_required(VERSION 2.8)
 
 # set the build options
 option (ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
+option (ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
+
 message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
+message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
 
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
@@ -53,7 +56,10 @@ find_package(Threads REQUIRED)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
-link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
+# TODO[TvdZ]: This linking directory should only be added if we are cross compiling
+if(NOT APPLE)
+	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
+endif()
 
 configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
 configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)

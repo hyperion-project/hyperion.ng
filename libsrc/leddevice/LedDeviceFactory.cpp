@@ -3,12 +3,15 @@
 #include <leddevice/LedDeviceFactory.h>
 
 // Local Leddevice includes
-#include "LedDeviceLpd6803.h"
-#include "LedDeviceLpd8806.h"
+#ifdef ENABLE_SPIDEV
+	#include "LedDeviceLpd6803.h"
+	#include "LedDeviceLpd8806.h"
+	#include "LedDeviceWs2801.h"
+	#include "LedDeviceWs2811.h"
+#endif
+
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
-#include "LedDeviceWs2801.h"
-#include "LedDeviceWs2811.h"
 #include "LedDeviceAdalight.h"
 #include "LedDevicePaintpack.h"
 #include "LedDeviceLightpack.h"
@@ -22,7 +25,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	LedDevice* device = nullptr;
-	if (type == "ws2801" || type == "lightberry")
+	if (false) {}
+#ifdef ENABLE_SPIDEV
+	else if (type == "ws2801" || type == "lightberry")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
@@ -69,16 +74,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLpd8806;
 	}
-	else if (type == "sedu")
-	{
-		const std::string output = deviceConfig["output"].asString();
-		const unsigned rate      = deviceConfig["rate"].asInt();
-
-		LedDeviceSedu* deviceSedu = new LedDeviceSedu(output, rate);
-		deviceSedu->open();
-
-		device = deviceSedu;
-	}
 	else if (type == "adalight")
 	{
 		const std::string output = deviceConfig["output"].asString();
@@ -88,6 +83,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceAdalight->open();
 
 		device = deviceAdalight;
+	}
+#endif
+	else if (type == "sedu")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceSedu* deviceSedu = new LedDeviceSedu(output, rate);
+		deviceSedu->open();
+
+		device = deviceSedu;
 	}
 	else if (type == "lightpack")
 	{

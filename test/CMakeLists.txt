@@ -1,11 +1,15 @@
 # Needed for testing non-public components
 include_directories(../libsrc)
 
-# Add the simple test executable 'TestSpi'
-add_executable(test_spi
-		TestSpi.cpp)
-target_link_libraries(test_spi
-		hyperion)
+if(ENABLE_SPIDEV)
+	# Add the simple test executable 'TestSpi'
+	add_executable(test_spi TestSpi.cpp)
+	target_link_libraries(test_spi hyperion)
+
+	add_executable(spidev_test spidev_test.c)
+
+	add_executable(gpio2spi switchPinCtrl.c)
+endif(ENABLE_SPIDEV)
 
 add_executable(test_configfile
 		TestConfigFile.cpp)
@@ -44,7 +48,3 @@ target_link_libraries(test_blackborderprocessor
 add_executable(test_qregexp TestQRegExp.cpp)
 target_link_libraries(test_qregexp
 		${QT_LIBRARIES})
-
-add_executable(spidev_test spidev_test.c)
-
-add_executable(gpio2spi switchPinCtrl.c)

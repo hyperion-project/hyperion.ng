@@ -7,9 +7,6 @@
 // Qt includes
 #include <QTimer>
 
-// Linux-SPI includes
-#include <linux/spi/spidev.h>
-
 // hyperion incluse
 #include <leddevice/LedDevice.h>
 

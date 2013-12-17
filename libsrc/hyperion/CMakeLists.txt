@@ -57,7 +57,6 @@ target_link_libraries(hyperion
 		hyperion-utils
 		leddevice
 		effectengine
-		hidapi-libusb
 		serialport
 		${QT_LIBRARIES}
 )

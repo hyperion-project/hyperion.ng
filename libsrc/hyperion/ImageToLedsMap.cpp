@@ -1,6 +1,7 @@
 
 // STL includes
 #include <algorithm>
+#include <cmath>
 #include <cassert>
 
 // hyperion includes
