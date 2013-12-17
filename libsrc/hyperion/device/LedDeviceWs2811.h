@@ -8,12 +8,22 @@
 
 namespace ws2811
 {
+	/**
+	 * Enumaration of known signal timings
+	 */
 	enum SignalTiming
 	{
-		option_1,
-		option_2,
-		option_3,
-		option_4
+		option_3755,
+		option_3773,
+		option_2855,
+		option_2882,
+		not_a_signaltiming
+	};
+
+	enum SpeedMode
+	{
+		lowspeed,
+		highspeed
 	};
 
 	/**
@@ -28,99 +38,8 @@ namespace ws2811
 	};
 
 	/**
-	 * Returns the required baudrate for a specific signal-timing
-	 *
-	 * @param timing The WS2811/WS2812/WS2812b option
-	 *
-	 * @return The required baudrate for the signal timing
+	 * Structure holding the signal for a signle byte
 	 */
-	inline unsigned getBaudrate(const SignalTiming timing)
-	{
-		switch (timing)
-		{
-		case option_1:
-		case option_2:
-			// Bit length: 125ns
-			return 8000000;
-		case option_3:
-		case option_4:
-			// Bit length: 250ns
-			return 4000000;
-		}
-
-		return 0;
-	}
-
-	/**
-	 * The number of 'signal units' (bits) For the subpart of a specific timing scheme
-	 *
-	 * @param timing The controller option
-	 * @param option The signal part
-	 */
-	inline unsigned getLength(const SignalTiming timing, const TimeOption option)
-	{
-		switch (timing)
-		{
-		case option_1:
-			// Reference: www.adafruit.com/datasheets/WS2812.pdf‎
-			// Unit length: 125ns
-			switch (option)
-			{
-			case T0H:
-				return 3; // 350ns +-150ns
-			case T0L:
-				return 7; // 800ns +-150ns
-			case T1H:
-				return 6; // 700ns +-150ns
-			case T1L:
-				return 4; // 600ns +-150ns
-			}
-		case option_3:
-			// Reference: http://www.mikrocontroller.net/attachment/180459/WS2812B_preliminary.pdf
-			// Unit length: 125ns
-			switch (option)
-			{
-			case T0H:
-				return 3; // 400ns +-150ns
-			case T0L:
-				return 7; // 850ns +-150ns
-			case T1H:
-				return 7; // 800ns +-150ns
-			case T1L:
-				return 3; // 450ns +-150ns
-			}
-		case option_2:
-			// Reference: www.adafruit.com/datasheets/WS2811.pdf‎
-			// Unit length: 250ns
-			switch (option)
-			{
-			case T0H:
-				return 2; //  500ns +-150ns
-			case T0L:
-				return 8; // 2000ns +-150ns
-			case T1H:
-				return 5; // 1200ns +-150ns
-			case T1L:
-				return 5; // 1300ns +-150ns
-			}
-		case option_4:
-			// Reference: www.szparkson.net/download/WS2811.pdf‎
-			// Unit length: 250ns
-			switch (option)
-			{
-			case T0H:
-				return 2; //  500ns +-150ns
-			case T0L:
-				return 8; // 2000ns +-150ns
-			case T1H:
-				return 8; // 2000ns +-150ns
-			case T1L:
-				return 2; //  500ns +-150ns
-			}
-		}
-		return 0;
-	}
-
 	struct ByteSignal
 	{
 		uint8_t bit_1;
@@ -132,8 +51,35 @@ namespace ws2811
 		uint8_t bit_7;
 		uint8_t bit_8;
 	};
-
+	// Make sure the structure is exatly the length we require
 	static_assert(sizeof(ByteSignal) == 8, "Incorrect sizeof ByteSignal (expected 8)");
+
+	/**
+	 * Translates a string to a signal timing
+	 *
+	 * @param signalTiming The string specifying the signal timing
+	 * @param defaultValue The default value (used if the string does not match any known timing)
+	 *
+	 * @return The SignalTiming (or not_a_signaltiming if it did not match)
+	 */
+	SignalTiming fromString(const std::string& signalTiming, const SignalTiming defaultValue);
+
+	/**
+	 * Returns the required baudrate for a specific signal-timing
+	 *
+	 * @param SpeedMode The WS2811/WS2812 speed mode (WS2812b only has highspeed)
+	 *
+	 * @return The required baudrate for the signal timing
+	 */
+	unsigned getBaudrate(const SpeedMode speedMode);
+
+	/**
+	 * The number of 'signal units' (bits) For the subpart of a specific timing scheme
+	 *
+	 * @param timing The controller option
+	 * @param option The signal part
+	 */
+	unsigned getLength(const SignalTiming timing, const TimeOption option);
 
 	/**
 	 * Constructs a 'bit' based signal with defined 'high' length (and implicite defined 'low'
@@ -144,18 +90,7 @@ namespace ws2811
 	 * @param lenHigh The total length of the 'high' length (incl start-bit)
 	 * @return The byte representing the high-low signal
 	 */
-	inline uint8_t bitToSignal(unsigned lenHigh)
-	{
-		// Sanity check on the length of the 'high' signal
-		assert(0 < lenHigh && lenHigh < 10);
-
-		uint8_t result = 0x00;
-		for (unsigned i=1; i<lenHigh; ++i)
-		{
-			result |= (1 << (8-i));
-		}
-		return result;
-	}
+	uint8_t bitToSignal(unsigned lenHigh);
 
 	/**
 	 * Translate a byte into signal levels for a specific WS2811 option
@@ -165,19 +100,7 @@ namespace ws2811
 	 *
 	 * @return The signal for the given byte (one byte per bit)
 	 */
-	inline ByteSignal translate(SignalTiming ledOption, uint8_t byte)
-	{
-		ByteSignal result;
-		result.bit_1 = bitToSignal(getLength(ledOption, (byte & 0x80)?T1H:T0H));
-		result.bit_2 = bitToSignal(getLength(ledOption, (byte & 0x40)?T1H:T0H));
-		result.bit_3 = bitToSignal(getLength(ledOption, (byte & 0x20)?T1H:T0H));
-		result.bit_4 = bitToSignal(getLength(ledOption, (byte & 0x10)?T1H:T0H));
-		result.bit_5 = bitToSignal(getLength(ledOption, (byte & 0x08)?T1H:T0H));
-		result.bit_6 = bitToSignal(getLength(ledOption, (byte & 0x04)?T1H:T0H));
-		result.bit_7 = bitToSignal(getLength(ledOption, (byte & 0x02)?T1H:T0H));
-		result.bit_8 = bitToSignal(getLength(ledOption, (byte & 0x01)?T1H:T0H));
-		return result;
-	}
+	ByteSignal translate(SignalTiming ledOption, uint8_t byte);
 }
 
 class LedDeviceWs2811 : public LedRs232Device
