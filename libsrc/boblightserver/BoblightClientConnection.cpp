@@ -145,8 +145,8 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							red = qMax(0, qMin(255, int(255 * messageParts[4].toFloat(&rc1))));
 						}
 
-						uint8_t green = qMax(0, qMin(255, 255 * int(messageParts[5].toFloat(&rc2))));
-						uint8_t blue  = qMax(0, qMin(255, 255 * int(messageParts[6].toFloat(&rc3))));
+						uint8_t green = qMax(0, qMin(255, int(255 * messageParts[5].toFloat(&rc2))));
+						uint8_t blue  = qMax(0, qMin(255, int(255 * messageParts[6].toFloat(&rc3))));
 
 						if (rc1 && rc2 && rc3)
 						{
