@@ -24,7 +24,7 @@ elseif(UNIX)
 	find_package(libusb-1.0 REQUIRED)
 	find_package(Threads    REQUIRED)
 
-	include_directories($LIBUSB_1_INCLUDE_DIRS})
+	include_directories(${LIBUSB_1_INCLUDE_DIRS})
 
 	add_library(hidapi-libusb hid-libusb.c)
 
