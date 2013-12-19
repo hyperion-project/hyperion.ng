@@ -74,6 +74,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLpd8806;
 	}
+#endif
 	else if (type == "adalight")
 	{
 		const std::string output = deviceConfig["output"].asString();
@@ -84,7 +85,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceAdalight;
 	}
-#endif
 	else if (type == "sedu")
 	{
 		const std::string output = deviceConfig["output"].asString();
