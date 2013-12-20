@@ -363,7 +363,7 @@ void Hyperion::clear(int priority)
 		_muxer.clearInput(priority);
 
 		// update leds if necessary
-		if (priority < _muxer.getCurrentPriority());
+		if (priority < _muxer.getCurrentPriority())
 		{
 			update();
 		}
