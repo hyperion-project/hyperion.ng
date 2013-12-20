@@ -48,3 +48,9 @@ target_link_libraries(test_qregexp
 add_executable(spidev_test spidev_test.c)
 
 add_executable(gpio2spi switchPinCtrl.c)
+
+add_executable(test_rs232highspeed
+		TestRs232HighSpeed.cpp
+		../libsrc/leddevice/LedRs232Device.cpp)
+target_link_libraries(test_rs232highspeed
+		serialport)
