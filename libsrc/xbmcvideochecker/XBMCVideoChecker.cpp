@@ -44,7 +44,7 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 
 void XBMCVideoChecker::start()
 {
-	disconnected();
+	reconnect();
 }
 
 void XBMCVideoChecker::receiveReply()
@@ -157,17 +157,42 @@ void XBMCVideoChecker::connected()
 void XBMCVideoChecker::disconnected()
 {
 	std::cout << "XBMC Disconnected" << std::endl;
-
-	// try to connect
-	_socket.connectToHost(_address, _port);
+	reconnect();
 }
 
-void XBMCVideoChecker::connectionError(QAbstractSocket::SocketError)
+void XBMCVideoChecker::reconnect()
 {
-	std::cout << "XBMC Connection error" << std::endl;
+	if (_socket.state() == QTcpSocket::ConnectedState)
+	{
+		return;
+	}
 
-	// try to connect again in 1 second
-	QTimer::singleShot(1000, this, SLOT(disconnected()));
+	// try to connect
+	switch (_socket.state())
+	{
+	case QTcpSocket::ConnectingState:
+		// Somehow when XBMC restarts we get stuck in connecting state
+		// If we get here we tried to connect already for 5 seconds. abort and try again in 1 second.
+		_socket.reset();
+		_socket.waitForDisconnected(50);
+		QTimer::singleShot(1000, this, SLOT(reconnect()));
+		break;
+	case QTcpSocket::UnconnectedState:
+		_socket.connectToHost(_address, _port);
+		QTimer::singleShot(10000, this, SLOT(reconnect()));
+		break;
+	default:
+		QTimer::singleShot(10000, this, SLOT(reconnect()));
+		break;
+	}
+}
+
+void XBMCVideoChecker::connectionError(QAbstractSocket::SocketError error)
+{
+	std::cout << "XBMC Connection error (" << error << ")" << std::endl;
+
+	// close the socket
+	_socket.close();
 }
 
 void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)

@@ -65,6 +65,9 @@ private slots:
 	/// Called when disconnected from XBMC
 	void disconnected();
 
+	/// reconnect to XBMC
+	void reconnect();
+
 	/// Called when a connection error was encountered
 	void connectionError(QAbstractSocket::SocketError error);
 
