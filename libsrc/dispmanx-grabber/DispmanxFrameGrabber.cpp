@@ -61,10 +61,29 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
+void DispmanxFrameGrabber::setVideoMode(const VideoMode videoMode)
+{
+	switch (videoMode) {
+	case VIDEO_3DSBS:
+		vc_dispmanx_rect_set(&_rectangle, 0, 0, _width/2, _height);
+		break;
+	case VIDEO_3DTAB:
+		vc_dispmanx_rect_set(&_rectangle, 0, 0, _width, _height/2);
+		break;
+	case VIDEO_2D:
+	default:
+		vc_dispmanx_rect_set(&_rectangle, 0, 0, _width, _height);
+		break;
+	}
+}
+
 void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 {
-	// Sanity check of the given image size
-	assert(image.width() == _width && image.height() == _height);
+	// resize the given image if needed
+	if (image.width() != unsigned(_rectangle.width) || image.height() != unsigned(_rectangle.height))
+	{
+		image.resize(_rectangle.width, _rectangle.height);
+	}
 
 	// Open the connection to the display
 	_vc_display = vc_dispmanx_display_open(0);
@@ -74,7 +93,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 
 	// Read the snapshot into the memory
 	void* image_ptr = image.memptr();
-	const unsigned destPitch = _width * sizeof(ColorRgba);
+	const unsigned destPitch = _rectangle.width * sizeof(ColorRgba);
 	vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, image_ptr, destPitch);
 
 	// Close the displaye

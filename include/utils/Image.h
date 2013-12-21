@@ -118,6 +118,22 @@ public:
 		return _pixels[toIndex(x,y)];
 	}
 
+	/// Resize the image
+	/// @param width The width of the image
+	/// @param height The height of the image
+	void resize(const unsigned width, const unsigned height)
+	{
+		if ((width*height) > (_endOfPixels-_pixels))
+		{
+			delete[] _pixels;
+			_pixels = new Pixel_T[width*height + 1];
+			_endOfPixels = _pixels + width*height;
+		}
+
+		_width = width;
+		_height = height;
+	}
+
 	///
 	/// Copies another image into this image. The images should have exactly the same size.
 	///
@@ -165,9 +181,9 @@ private:
 
 private:
 	/// The width of the image
-	const unsigned _width;
+	unsigned _width;
 	/// The height of the image
-	const unsigned _height;
+	unsigned _height;
 
 	/// The pixels of the image
 	Pixel_T* _pixels;

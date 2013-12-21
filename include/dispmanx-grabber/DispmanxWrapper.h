@@ -9,6 +9,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
 
 // Forward class declaration
 class DispmanxFrameGrabber;
@@ -60,6 +61,12 @@ public slots:
 	/// @param[in] mode The new grabbing mode
 	///
 	void setGrabbingMode(const GrabbingMode mode);
+
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(const VideoMode videoMode);
 
 private:
 	/// The update rate [Hz]
