@@ -41,6 +41,10 @@ public class XbmcPanel extends JPanel {
 	private JComboBox<String> mPictureCombo;
 	private JLabel mAudioLabel;
 	private JComboBox<String> mAudioCombo;
+	private JLabel mScreensaverLabel;
+	private JComboBox<String> mScreensaverCombo;
+	private JLabel mEnable3DLabel;
+	private JComboBox<String> mEnable3DCombo;
 	
 	public XbmcPanel(final MiscConfig pMiscConfig) {
 		super();
@@ -130,6 +134,24 @@ public class XbmcPanel extends JPanel {
 		mAudioCombo.addActionListener(mActionListener);
 		add(mAudioCombo);
 		
+		mScreensaverLabel = new JLabel("Screensaver");
+		add(mScreensaverLabel);
+		
+		mScreensaverCombo = new JComboBox<>(new String[] {"On", "Off"});
+		mScreensaverCombo.setSelectedItem(mMiscConfig.mScreensaverOn? "On": "Off");
+		mScreensaverCombo.setToolTipText("Enables('On') or disables('Off') the ambi-light when the XBMC screensaver is active");
+		mScreensaverCombo.addActionListener(mActionListener);
+		add(mScreensaverCombo);
+		
+		mEnable3DLabel = new JLabel("3D checking");
+		add(mEnable3DLabel);
+		
+		mEnable3DCombo = new JComboBox<>(new String[] {"On", "Off"});
+		mEnable3DCombo.setSelectedItem(mMiscConfig.m3DCheckingEnabled ? "On": "Off");
+		mEnable3DCombo.setToolTipText("Enables('On') or disables('Off') switching to 3D mode when a 3D video file is started");
+		mEnable3DCombo.addActionListener(mActionListener);
+		add(mEnable3DCombo);
+		
 		GroupLayout layout = new GroupLayout(this);
 		layout.setAutoCreateGaps(true);
 		setLayout(layout);
@@ -143,6 +165,8 @@ public class XbmcPanel extends JPanel {
 						.addComponent(mVideoLabel)
 						.addComponent(mPictureLabel)
 						.addComponent(mAudioLabel)
+						.addComponent(mScreensaverLabel)
+						.addComponent(mEnable3DLabel)
 						)
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mXbmcCheck)
@@ -152,6 +176,8 @@ public class XbmcPanel extends JPanel {
 						.addComponent(mVideoCombo)
 						.addComponent(mPictureCombo)
 						.addComponent(mAudioCombo)
+						.addComponent(mScreensaverCombo)
+						.addComponent(mEnable3DCombo)
 						));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(mXbmcCheck)
@@ -178,6 +204,14 @@ public class XbmcPanel extends JPanel {
 				.addGroup(layout.createParallelGroup()
 						.addComponent(mAudioLabel)
 						.addComponent(mAudioCombo)
+						)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(mScreensaverLabel)
+						.addComponent(mScreensaverCombo)
+						)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(mEnable3DLabel)
+						.addComponent(mEnable3DCombo)
 						));
 
 		toggleEnabled(mMiscConfig.mXbmcCheckerEnabled);
@@ -198,6 +232,10 @@ public class XbmcPanel extends JPanel {
 		mPictureCombo.setEnabled(pEnabled);
 		mAudioLabel.setEnabled(pEnabled);
 		mAudioCombo.setEnabled(pEnabled);
+		mScreensaverLabel.setEnabled(pEnabled);
+		mScreensaverCombo.setEnabled(pEnabled);
+		mEnable3DLabel.setEnabled(pEnabled);
+		mEnable3DCombo.setEnabled(pEnabled);
 	}
 	
 	private final ChangeListener mChangeListener = new ChangeListener() {
@@ -216,6 +254,8 @@ public class XbmcPanel extends JPanel {
 			mMiscConfig.mVideoOn = (mVideoCombo.getSelectedItem() == "On");
 			mMiscConfig.mPictureOn = (mPictureCombo.getSelectedItem() == "On");
 			mMiscConfig.mAudioOn = (mAudioCombo.getSelectedItem() == "On");
+			mMiscConfig.mScreensaverOn = (mScreensaverCombo.getSelectedItem() == "On");
+			mMiscConfig.m3DCheckingEnabled = (mEnable3DCombo.getSelectedItem() == "On");
 
 			toggleEnabled(mMiscConfig.mXbmcCheckerEnabled);
 		}
