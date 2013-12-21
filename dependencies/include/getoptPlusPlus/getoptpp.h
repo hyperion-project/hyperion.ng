@@ -129,11 +129,11 @@ public:
 	void advance();
 	bool end() const;
 protected:
-	ParserState(OptionsParser &opts, std::vector<std::string>& args);
+	ParserState(/*OptionsParser &opts,*/ std::vector<std::string>& args);
 private:
 	friend class OptionsParser;
 
-	OptionsParser &opts;
+//	OptionsParser &opts;
 	const std::vector<std::string> &arguments;
 	std::vector<std::string>::const_iterator iterator;
 };
