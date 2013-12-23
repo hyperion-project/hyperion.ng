@@ -54,3 +54,6 @@ add_executable(test_rs232highspeed
 		../libsrc/leddevice/LedRs232Device.cpp)
 target_link_libraries(test_rs232highspeed
 		serialport)
+
+add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
+target_link_libraries(test_uartHighSpeed ${QT_LIBRARIES})
