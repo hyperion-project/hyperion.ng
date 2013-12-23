@@ -58,6 +58,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 	try
 	{
 		_rs232Port.write(data, size);
+		_rs232Port.flush();
 	}
 	catch (const serial::SerialException & serialExc)
 	{
@@ -77,6 +78,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 		{
 			_rs232Port.open();
 			_rs232Port.write(data, size);
+			_rs232Port.flush();
 		}
 		catch (const std::exception & e)
 		{

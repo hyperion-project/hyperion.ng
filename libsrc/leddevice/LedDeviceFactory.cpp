@@ -9,6 +9,7 @@
 #include "LedDeviceTest.h"
 #include "LedDeviceWs2801.h"
 #include "LedDeviceWs2811.h"
+#include "LedDeviceWs2812b.h"
 #include "LedDeviceAdalight.h"
 #include "LedDevicePaintpack.h"
 #include "LedDeviceLightpack.h"
@@ -31,6 +32,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceWs2801->open();
 
 		device = deviceWs2801;
+	}
+	else if (type == "ws2812b")
+	{
+		LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
+		deviceWs2812b->open();
+
+		device = deviceWs2812b;
 	}
 //	else if (type == "ws2811")
 //	{

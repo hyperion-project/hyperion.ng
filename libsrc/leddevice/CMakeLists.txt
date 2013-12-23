@@ -26,6 +26,7 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
+		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
@@ -42,6 +43,7 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
