@@ -61,6 +61,8 @@ LedDeviceWs2812b::ByteSignal LedDeviceWs2812b::byte2Signal(const uint8_t byte) c
 
 uint8_t LedDeviceWs2812b::bits2Signal(const bool bit1, const bool bit2) const
 {
+	// See https://github.com/tvdzwan/hyperion/wiki/Ws2812b for the explanation of the given
+	// translations
 	if (bit1)
 	{
 		if (bit2)
