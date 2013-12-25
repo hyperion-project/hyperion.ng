@@ -49,6 +49,8 @@ add_executable(spidev_test spidev_test.c)
 
 add_executable(gpio2spi switchPinCtrl.c)
 
+add_executable(determineWs2811Timing DetermineWs2811Timing.cpp)
+
 add_executable(test_rs232highspeed
 		TestRs232HighSpeed.cpp
 		../libsrc/leddevice/LedRs232Device.cpp
