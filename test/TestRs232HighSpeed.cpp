@@ -12,8 +12,8 @@ public:
 		// empty
 	}
 
-	int write(const std::vector<ColorRgb> &ledValues) {}
-	int switchOff() {};
+	int write(const std::vector<ColorRgb> &ledValues) { return 0; }
+	int switchOff() { return 0; };
 
 	void writeTestSequence()
 	{
