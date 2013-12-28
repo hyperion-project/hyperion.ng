@@ -12,51 +12,51 @@ include_directories(
 	${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
 
 # Group the headers that go through the MOC compiler
+SET(Leddevice_QT_HEADERS
+		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
+)
 
 SET(Leddevice_HEADERS
 		${CURRENT_HEADER_DIR}/LedDevice.h
 		${CURRENT_HEADER_DIR}/LedDeviceFactory.h
 
 		${CURRENT_SOURCE_DIR}/LedRs232Device.h
+		
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
 		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.h
+		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
 )
 
 SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
+		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
 )
 
 if(ENABLE_SPIDEV)
-	SET(Leddevice_QT_HEADERS
-			${Leddevice_QT_HEADERS}
-			${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
-	)
 	SET(Leddevice_HEADERS
 			${Leddevice_HEADERS}
 			${CURRENT_SOURCE_DIR}/LedSpiDevice.h
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.h
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.h
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
-			${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
 	)
 	SET(Leddevice_SOURCES
 			${Leddevice_SOURCES}
 			${CURRENT_SOURCE_DIR}/LedSpiDevice.cpp
-			${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
-			${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
 	)
 endif(ENABLE_SPIDEV)
 

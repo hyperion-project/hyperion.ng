@@ -3,6 +3,7 @@ project(hidapi)
 # Add the 'generic' hidapi include directory
 include_directories(../../include/hidapi)
 
+#TODO[TvdZ]: Rename hidapi-??? to hidapi
 if(APPLE)
 
 	find_package(IOKit          REQUIRED)
