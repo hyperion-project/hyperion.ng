@@ -62,7 +62,9 @@ int testSerialPortLib()
 			continue;
 		}
 
+		rs232Port.flushOutput();
 		rs232Port.write(data);
+		rs232Port.flush();
 
 		data.clear();
 		for (int i=0; i<9; ++i)

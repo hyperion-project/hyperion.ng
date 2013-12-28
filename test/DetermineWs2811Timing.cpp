@@ -49,6 +49,8 @@ int main()
 	requiredTiming(400, 850, 150, 5);	// Zero
 	requiredTiming(800, 450, 150, 5);	// One
 
+	requiredTiming(650, 600, 150, 5);	// One
+
 	// 4bits
 	requiredTiming(400, 850, 150, 4);	// Zero
 	requiredTiming(800, 450, 150, 4);	// One
