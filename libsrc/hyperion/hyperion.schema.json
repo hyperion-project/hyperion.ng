@@ -255,6 +255,14 @@
                 "grabMenu" : {
                     "type" : "boolean",
                     "required" : true
+                },
+                "grabScreensaver" : {
+                    "type" : "boolean",
+                    "required" : false
+                },
+                "enable3DDetection" : {
+                    "type" : "boolean",
+                    "required" : false
                 }
             },
             "additionalProperties" : false

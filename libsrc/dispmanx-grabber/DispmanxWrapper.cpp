@@ -81,3 +81,8 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 		break;
 	}
 }
+
+void DispmanxWrapper::setVideoMode(const VideoMode mode)
+{
+	_frameGrabber->setVideoMode(mode);
+}

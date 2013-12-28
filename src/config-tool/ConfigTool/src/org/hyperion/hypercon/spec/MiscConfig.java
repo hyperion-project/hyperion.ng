@@ -40,6 +40,10 @@ public class MiscConfig {
 	public boolean mPictureOn = true;
 	/** Flag indicating that the frame-grabber is on during audio playback */
 	public boolean mAudioOn = true;
+	/** Flag indicating that the frame-grabber is on when xbmc is on screensaver */
+	public boolean mScreensaverOn = true;
+	/** Flag indicating that the frame-grabber is should take actions when a 3D file is playing */
+	public boolean m3DCheckingEnabled = true;
 
 	/** Flag indicating that the JSON interface is enabled */
 	public boolean mJsonInterfaceEnabled = true;
@@ -103,12 +107,14 @@ public class MiscConfig {
 		
 		String xbmcComment = 
 				"The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: \n" +
-				" * xbmcAddress  : The IP address of the XBMC-host\n" +
-				" * xbmcTcpPort  : The TCP-port of the XBMC-server\n" +
-				" * grabVideo    : Flag indicating that the frame-grabber is on(true) during video playback\n" +
-				" * grabPictures : Flag indicating that the frame-grabber is on(true) during picture show\n" +
-				" * grabAudio    : Flag indicating that the frame-grabber is on(true) during audio playback\n" +
-				" * grabMenu     : Flag indicating that the frame-grabber is on(true) in the XBMC menu\n";
+				" * xbmcAddress       : The IP address of the XBMC-host\n" +
+				" * xbmcTcpPort       : The TCP-port of the XBMC-server\n" +
+				" * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback\n" +
+				" * grabPictures      : Flag indicating that the frame-grabber is on(true) during picture show\n" +
+				" * grabAudio         : Flag indicating that the frame-grabber is on(true) during audio playback\n" +
+				" * grabMenu          : Flag indicating that the frame-grabber is on(true) in the XBMC menu\n" +
+				" * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when XBMC is on screensaver\n" +
+				" * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing\n";
 		strBuf.writeComment(xbmcComment);
 		
 		strBuf.toggleComment(!mXbmcCheckerEnabled);
@@ -118,7 +124,9 @@ public class MiscConfig {
 		strBuf.addValue("grabVideo", mVideoOn, false);
 		strBuf.addValue("grabPictures", mPictureOn, false);
 		strBuf.addValue("grabAudio", mAudioOn, false);
-		strBuf.addValue("grabMenu", mMenuOn, true);
+		strBuf.addValue("grabMenu", mMenuOn, false);
+		strBuf.addValue("grabScreensaver", mScreensaverOn, false);
+		strBuf.addValue("enable3DDetection", m3DCheckingEnabled, true);
 		strBuf.stopObject();
 		strBuf.toggleComment(false);
 

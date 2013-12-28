@@ -10,6 +10,7 @@
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgba.h>
+#include <utils/VideoMode.h>
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
@@ -35,6 +36,12 @@ public:
 	void setFlags(const int vc_flags);
 
 	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(const VideoMode videoMode);
+
+	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
 	/// provided image should have the same dimensions as the configured values (_width and
 	/// _height)
@@ -58,8 +65,7 @@ private:
 	int _vc_flags;
 
 	/// With of the captured snapshot [pixels]
-	unsigned _width;
+	const unsigned _width;
 	/// Height of the captured snapshot [pixels]
-	unsigned _height;
-
+	const unsigned _height;
 };

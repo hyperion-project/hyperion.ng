@@ -383,12 +383,14 @@
 	},
 
 	/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: 
-	///  * xbmcAddress  : The IP address of the XBMC-host
-	///  * xbmcTcpPort  : The TCP-port of the XBMC-server
-	///  * grabVideo    : Flag indicating that the frame-grabber is on(true) during video playback
-	///  * grabPictures : Flag indicating that the frame-grabber is on(true) during picture show
-	///  * grabAudio    : Flag indicating that the frame-grabber is on(true) during audio playback
-	///  * grabMenu     : Flag indicating that the frame-grabber is on(true) in the XBMC menu
+	///  * xbmcAddress       : The IP address of the XBMC-host
+	///  * xbmcTcpPort       : The TCP-port of the XBMC-server
+	///  * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback
+	///  * grabPictures      : Flag indicating that the frame-grabber is on(true) during picture show
+	///  * grabAudio         : Flag indicating that the frame-grabber is on(true) during audio playback
+	///  * grabMenu          : Flag indicating that the frame-grabber is on(true) in the XBMC menu
+	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when XBMC is on screensaver
+	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
 	"xbmcVideoChecker" : 
 	{
 		"xbmcAddress" : "127.0.0.1",
@@ -396,7 +398,9 @@
 		"grabVideo" : true,
 		"grabPictures" : true,
 		"grabAudio" : true,
-		"grabMenu" : false
+		"grabMenu" : false,
+		"grabScreensaver" : true,
+		"enable3DDetection" : true
 	},
 
 	/// The configuration of the Json server which enables the json remote interface

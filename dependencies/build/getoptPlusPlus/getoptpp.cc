@@ -45,7 +45,7 @@ void OptionsParser::parse(int argc, const char* argv[]) throw(runtime_error)
 
    vector<string> v(&argv[1], &argv[argc]);
 
-   ParserState state(*this, v);
+   ParserState state(/* *this,*/ v);
 
    for(; !state.end(); state.advance()) {
 
@@ -164,7 +164,7 @@ Parameter& ParameterSet::operator[](char c) const {
    for(std::list<Parameter*>::const_iterator i = parameters.begin(); i!= parameters.end(); i++) {
 	   if((*i)->shortOption() == c) return *(*i);
    }
-   throw out_of_range("ParameterSet["+c+string("]"));
+   throw out_of_range("ParameterSet["+string(&c)+string("]"));
 }
 
 
@@ -185,8 +185,8 @@ Parameter& ParameterSet::operator[](const string& param) const {
 */
 
 
-ParserState::ParserState(OptionsParser &opts, vector<string>& args) :
-   opts(opts), arguments(args), iterator(args.begin())
+ParserState::ParserState(/*OptionsParser &opts, */vector<string>& args) :
+   /*opts(opts),*/ arguments(args), iterator(args.begin())
 {
 
 }

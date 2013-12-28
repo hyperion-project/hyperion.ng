@@ -123,11 +123,12 @@ int main(int argc, char** argv)
 		xbmcVideoChecker = new XBMCVideoChecker(
 			videoCheckerConfig["xbmcAddress"].asString(),
 			videoCheckerConfig["xbmcTcpPort"].asUInt(),
-			1000,
 			videoCheckerConfig["grabVideo"].asBool(),
 			videoCheckerConfig["grabPictures"].asBool(),
 			videoCheckerConfig["grabAudio"].asBool(),
-			videoCheckerConfig["grabMenu"].asBool());
+			videoCheckerConfig["grabMenu"].asBool(),
+			videoCheckerConfig.get("grabScreensaver", true).asBool(),
+			videoCheckerConfig.get("enable3DDetection", true).asBool());
 
 		xbmcVideoChecker->start();
 		std::cout << "XBMC video checker created and started" << std::endl;
@@ -148,6 +149,7 @@ int main(int argc, char** argv)
 		if (xbmcVideoChecker != nullptr)
 		{
 			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), dispmanx, SLOT(setVideoMode(VideoMode)));
 		}
 
 		dispmanx->start();
