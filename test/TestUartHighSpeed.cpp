@@ -95,8 +95,16 @@ void signal_handler(int signum)
 
 }
 
+void test3bitsEncoding();
+
 int main()
 {
+	if (true)
+	{
+		test3bitsEncoding();
+		return 0;
+	}
+
 	_running = true;
 	signal(SIGTERM, &signal_handler);
 
@@ -245,4 +253,129 @@ int main()
 	std::cout << "Program finished" << std::endl;
 
 	return 0;
+}
+
+std::vector<uint8_t> bit3Encode(const std::vector<uint8_t> & bytes);
+uint8_t bit3Encode(const bool bit_1, const bool bit_2, const bool bit_3);
+
+void test3bitsEncoding()
+{
+	//OPEN THE UART
+	int uart0_filestream = open("/dev/ttyAMA0", O_WRONLY | O_NOCTTY | O_NDELAY);
+	if (uart0_filestream == -1)
+	{
+		//ERROR - CAN'T OPEN SERIAL PORT
+		printf("Error - Unable to open UART.  Ensure it is not in use by another application\n");
+		return;
+	}
+
+	// Configure the port
+	struct termios options;
+	tcgetattr(uart0_filestream, &options);
+	options.c_cflag = B2500000 | CS7 | CLOCAL;
+	options.c_iflag = IGNPAR;
+	options.c_oflag = 0;
+	options.c_lflag = 0;
+
+	tcflush(uart0_filestream, TCIFLUSH);
+	tcsetattr(uart0_filestream, TCSANOW, &options);
+
+	std::vector<uint8_t> colorRed;
+	for (unsigned i=0; i<10; ++i)
+	{
+		colorRed.push_back(0x00);
+		colorRed.push_back(0xFF);
+		colorRed.push_back(0x00);
+	}
+	std::vector<uint8_t> colorGreen;
+	for (unsigned i=0; i<10; ++i)
+	{
+		colorGreen.push_back(0xFF);
+		colorGreen.push_back(0x00);
+		colorGreen.push_back(0x00);
+	}
+	std::vector<uint8_t> colorBlue;
+	for (unsigned i=0; i<10; ++i)
+	{
+		colorBlue.push_back(0x00);
+		colorBlue.push_back(0x00);
+		colorBlue.push_back(0xFF);
+	}
+	std::vector<uint8_t> colorBlack;
+	for (unsigned i=0; i<10; ++i)
+	{
+		colorBlack.push_back(0x00);
+		colorBlack.push_back(0x00);
+		colorBlack.push_back(0x00);
+	}
+	const std::vector<uint8_t> colorRedSignal   = bit3Encode(colorRed);
+	const std::vector<uint8_t> colorGreenSignal = bit3Encode(colorGreen);
+	const std::vector<uint8_t> colorBlueSignal  = bit3Encode(colorBlue);
+	const std::vector<uint8_t> colorBlackSignal = bit3Encode(colorBlack);
+
+	for (unsigned i=0; i<100; ++i)
+	{
+		write(uart0_filestream, colorRedSignal.data(), colorRedSignal.size());
+		usleep(100000);
+		write(uart0_filestream, colorGreenSignal.data(), colorGreenSignal.size());
+		usleep(100000);
+		write(uart0_filestream, colorBlueSignal.data(), colorBlueSignal.size());
+		usleep(100000);
+	}
+	write(uart0_filestream, colorBlackSignal.data(), colorBlackSignal.size());
+
+	//----- CLOSE THE UART -----
+	close(uart0_filestream);
+
+	std::cout << "Program finished" << std::endl;
+}
+
+std::vector<uint8_t> bit3Encode(const std::vector<uint8_t> & bytes)
+{
+	std::vector<uint8_t> result;
+
+	for (unsigned iByte=0; iByte<bytes.size(); iByte+=3)
+	{
+		const uint8_t & byte1 = bytes[iByte];
+		const uint8_t & byte2 = bytes[iByte + 1];
+		const uint8_t & byte3 = bytes[iByte + 2];
+
+		result.push_back(bit3Encode(byte1 & 0x80, byte1 & 0x40, byte1 & 0x20));
+		result.push_back(bit3Encode(byte1 & 0x10, byte1 & 0x08, byte1 & 0x04));
+		result.push_back(bit3Encode(byte1 & 0x02, byte1 & 0x01, byte2 & 0x80));
+		result.push_back(bit3Encode(byte2 & 0x40, byte2 & 0x20, byte2 & 0x10));
+		result.push_back(bit3Encode(byte2 & 0x08, byte2 & 0x04, byte2 & 0x02));
+		result.push_back(bit3Encode(byte2 & 0x01, byte3 & 0x80, byte3 & 0x40));
+		result.push_back(bit3Encode(byte3 & 0x20, byte3 & 0x10, byte3 & 0x08));
+		result.push_back(bit3Encode(byte3 & 0x04, byte3 & 0x02, byte3 & 0x01));
+	}
+
+	return result;
+}
+
+uint8_t bit3Encode(const bool bit_1, const bool bit_2, const bool bit_3)
+{
+	// Bit index(default):1   2   3
+	//                    |   |   |
+	// default value  (1) 00 100 10 (0)
+	//
+	// Reversed value (1) 01 001 00 (0)
+	//                    |   |   |
+	// Bit index (rev):   3   2   1
+	uint8_t result = 0x24;
+
+	if(bit_1)
+	{
+		result |= 0x01;
+	}
+	if (bit_2)
+	{
+		result |= 0x08;
+	}
+	if (bit_3)
+	{
+		result |= 0x40;
+	}
+
+	return ~result;
 }
