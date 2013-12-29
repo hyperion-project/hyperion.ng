@@ -1,4 +1,6 @@
 
+#include <HyperionConfig.h>
+
 // Leddevice includes
 #include <leddevice/LedDeviceFactory.h>
 
@@ -76,13 +78,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 //              device = deviceWs2811;
 //      }
-        else if (type == "ws2812b")
-        {
-                LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
-                deviceWs2812b->open();
+		else if (type == "ws2812b")
+		{
+				LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
+				deviceWs2812b->open();
 
-                device = deviceWs2812b;
-        }
+				device = deviceWs2812b;
+		}
 	else if (type == "adalight")
 	{
 		const std::string output = deviceConfig["output"].asString();
