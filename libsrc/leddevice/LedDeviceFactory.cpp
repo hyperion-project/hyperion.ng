@@ -1,4 +1,5 @@
 
+// Build configuration
 #include <HyperionConfig.h>
 
 // Leddevice includes
@@ -11,14 +12,15 @@
 	#include "LedDeviceWs2801.h"
 #endif
 
+#include "LedDeviceAdalight.h"
+#include "LedDeviceLightpack.h"
+#include "LedDeviceMultiLightpack.h"
+#include "LedDevicePaintpack.h"
+#include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
 #include "LedDeviceWs2811.h"
 #include "LedDeviceWs2812b.h"
-#include "LedDeviceAdalight.h"
-#include "LedDevicePaintpack.h"
-#include "LedDeviceLightpack.h"
-#include "LedDeviceMultiLightpack.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -29,17 +31,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 	LedDevice* device = nullptr;
 	if (false) {}
-#ifdef ENABLE_SPIDEV
-	else if (type == "ws2801" || type == "lightberry")
+	else if (type == "adalight")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
-		deviceWs2801->open();
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		deviceAdalight->open();
 
-		device = deviceWs2801;
+		device = deviceAdalight;
 	}
+#ifdef ENABLE_SPIDEV
 	else if (type == "lpd6803" || type == "ldp6803")
 	{
 		const std::string output = deviceConfig["output"].asString();
@@ -60,6 +62,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLpd8806;
 	}
+	else if (type == "ws2801" || type == "lightberry")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
+		deviceWs2801->open();
+
+		device = deviceWs2801;
+	}
 #endif
 //      else if (type == "ws2811")
 //      {
@@ -78,22 +90,38 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 //              device = deviceWs2811;
 //      }
-		else if (type == "ws2812b")
-		{
-				LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
-				deviceWs2812b->open();
-
-				device = deviceWs2812b;
-		}
-	else if (type == "adalight")
+	else if (type == "lightpack")
 	{
-		const std::string output = deviceConfig["output"].asString();
-		const unsigned rate      = deviceConfig["rate"].asInt();
+		const std::string output = deviceConfig.get("output", "").asString();
 
-		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
-		deviceAdalight->open();
+		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack();
+		deviceLightpack->open(output);
 
-		device = deviceAdalight;
+		device = deviceLightpack;
+	}
+	else if (type == "multi-lightpack")
+	{
+		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
+		deviceLightpack->open();
+
+		device = deviceLightpack;
+	}
+	else if (type == "paintpack")
+	{
+		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack();
+		devicePainLightpack->open();
+
+		device = devicePainLightpack;
+	}
+	else if (type == "piblaster")
+	{
+		const std::string output     = deviceConfig.get("output",     "").asString();
+		const std::string assignment = deviceConfig.get("assignment", "").asString();
+
+		LedDevicePiBlaster * devicePiBlaster = new LedDevicePiBlaster(output, assignment);
+		devicePiBlaster->open();
+
+		device = devicePiBlaster;
 	}
 	else if (type == "sedu")
 	{
@@ -105,33 +133,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceSedu;
 	}
-	else if (type == "lightpack")
-	{
-		const std::string output = deviceConfig.get("output", "").asString();
-
-		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack();
-		deviceLightpack->open(output);
-
-		device = deviceLightpack;
-	}
-	else if (type == "paintpack")
-	{
-		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack();
-		devicePainLightpack->open();
-
-		device = devicePainLightpack;
-	}
-	else if (type == "multi-lightpack")
-	{
-		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
-		deviceLightpack->open();
-
-		device = deviceLightpack;
-	}
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
+	}
+	else if (type == "ws2812b")
+	{
+			LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
+			deviceWs2812b->open();
+
+			device = deviceWs2812b;
 	}
 	else
 	{

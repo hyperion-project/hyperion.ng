@@ -315,17 +315,22 @@ void test3bitsEncoding()
 
 	for (unsigned i=0; i<100; ++i)
 	{
-		write(uart0_filestream, colorRedSignal.data(), colorRedSignal.size());
+		size_t res;
+		res = write(uart0_filestream, colorRedSignal.data(), colorRedSignal.size());
+		(void)res;
 		usleep(100000);
-		write(uart0_filestream, colorGreenSignal.data(), colorGreenSignal.size());
+		res = write(uart0_filestream, colorGreenSignal.data(), colorGreenSignal.size());
+		(void)res;
 		usleep(100000);
-		write(uart0_filestream, colorBlueSignal.data(), colorBlueSignal.size());
+		res = write(uart0_filestream, colorBlueSignal.data(), colorBlueSignal.size());
+		(void)res;
 		usleep(100000);
 	}
-	write(uart0_filestream, colorBlackSignal.data(), colorBlackSignal.size());
-
+	size_t res = write(uart0_filestream, colorBlackSignal.data(), colorBlackSignal.size());
+	(void)res;
 	//----- CLOSE THE UART -----
-	close(uart0_filestream);
+	res = close(uart0_filestream);
+	(void)res;
 
 	std::cout << "Program finished" << std::endl;
 }

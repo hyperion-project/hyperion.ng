@@ -21,31 +21,31 @@ SET(Leddevice_HEADERS
 		${CURRENT_HEADER_DIR}/LedDeviceFactory.h
 
 		${CURRENT_SOURCE_DIR}/LedRs232Device.h
-		
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
-		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.h
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
+
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
-		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.h
+		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
+		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.h
+		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
+		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.h
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
 )
 
 SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
-		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
+
+		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.cpp
+		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
+		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
-		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
 )
 
 if(ENABLE_SPIDEV)
