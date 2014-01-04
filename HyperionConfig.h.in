@@ -2,3 +2,6 @@
 
 // Define to enable the dispmanx grabber
 #cmakedefine ENABLE_DISPMANX
+
+// Define to enable the v4l2 grabber
+#cmakedefine ENABLE_V4L2
