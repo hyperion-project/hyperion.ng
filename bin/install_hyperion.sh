@@ -18,7 +18,12 @@ then
 fi
 
 # Stop hyperion daemon if it is running
-/sbin/initctl stop hyperion
+# Start the hyperion daemon
+if [ $USE_INITCTL -eq 1 ]; then
+	/sbin/initctl stop hyperion
+else
+	/usr/sbin/service hyperion stop
+fi
 
 # Get and extract the Hyperion binaries and effects to /opt
 wget https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz -O - | tar -C /opt -xz
@@ -44,7 +49,7 @@ if [ $USE_INITCTL -eq 1 ]; then
 	fi
 else
 	# place startup script in init.d and add it to upstart
-	ln -fs /opt/hyperion/init.d/hyperion.init.sh /etc/hyperion/init.d/hyperion
+	ln -fs /opt/hyperion/init.d/hyperion.init.sh /etc/init.d/hyperion
 	chmod +x /etc/init.d/hyperion
 	update-rc.d hyperion defaults 98 02
 fi
