@@ -2,8 +2,12 @@
 
 # Script for downloading and installing the latest Hyperion release
 
-# Find out if we are on XBian
+# Find out if we are on Raspbmc
 IS_XBIAN=`cat /etc/issue | grep XBian | wc -l`
+IS_RASPBMC=`cat /etc/issue | grep Raspbmc | wc -l`
+
+# check which init script we should use
+USE_INITCTL=`which /sbin/initctl | wc -l`
 
 # Make sure that the boblight daemon is no longer running
 BOBLIGHT_PROCNR=$(ps -e | grep "boblight" | wc -l)
@@ -24,7 +28,7 @@ ln -fs /opt/hyperion/bin/hyperiond /usr/bin/hyperiond
 ln -fs /opt/hyperion/bin/hyperion-remote /usr/bin/hyperion-remote
 
 # create link to the gpio changer (gpio->spi)
-if [ $IS_XBIAN -eq 0 ]; then
+if [ $IS_RASPBMC -eq 1 ]; then
 	ln -fs /opt/hyperion/bin/gpio2spi /usr/bin/gpio2spi
 fi
 
@@ -32,11 +36,22 @@ fi
 ln -s /opt/hyperion/config/hyperion.config.json /etc/hyperion.config.json
 
 # Copy the service control configuration to /etc/int
-if [ $IS_XBIAN -eq 0 ]; then
-	wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.conf -P /etc/init/
+if [ $USE_INITCTL -eq 1 ]; then
+	if [ $IS_RASPBMC -eq 1 ]; then
+		wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.conf -P /etc/init/
+	else
+		wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
+	fi
 else
-	wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
+	# place startup script in init.d and add it to upstart
+	ln -fs /opt/hyperion/init.d/hyperion.init.sh /etc/hyperion/init.d/hyperion
+	chmod +x /etc/init.d/hyperion
+	update-rc.d hyperion defaults 98 02
 fi
 
 # Start the hyperion daemon
-/sbin/initctl start hyperion
+if [ $USE_INITCTL -eq 1 ]; then
+	/sbin/initctl start hyperion
+else
+	/usr/sbin/service hyperion start
+fi

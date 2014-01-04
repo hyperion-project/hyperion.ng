@@ -18,10 +18,12 @@ tar --create --verbose --gzip --absolute-names --show-transformed-names \
 	--transform "s:$builddir/bin/:hyperion/bin/:" \
 	--transform "s:$repodir/effects/:hyperion/effects/:" \
 	--transform "s:$repodir/config/:hyperion/config/:" \
+	--transform "s:$repodir/bin/hyperion.init.sh:hyperion/init.d/hyperion.init.sh:" \
 	--transform "s://:/:g" \
 	"$builddir/bin/hyperiond" \
 	"$builddir/bin/hyperion-remote" \
 	"$builddir/bin/gpio2spi" \
 	"$builddir/bin/dispmanx2png" \
 	"$repodir/effects/"* \
+	"$repodir/bin/hyperion.init.sh" \
 	"$repodir/config/hyperion.config.json"
