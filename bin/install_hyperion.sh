@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Make sure /sbin is on the path (for service to find sub scripts)
+PATH="/sbin:$PATH"
+
 # Script for downloading and installing the latest Hyperion release
 
 # Find out if we are on Raspbmc
