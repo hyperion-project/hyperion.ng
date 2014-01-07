@@ -6,7 +6,7 @@
 #include "LedDeviceWs2812b.h"
 
 LedDeviceWs2812b::LedDeviceWs2812b() :
-	LedRs232Device("/dev/ttyAMA0", 2500000)
+	LedRs232Device("/dev/ttyAMA0", 2000000)
 {
 	// empty
 }
