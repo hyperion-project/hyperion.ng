@@ -20,7 +20,7 @@ public:
 
 	virtual ~LedDevicePiBlaster();
 
-	int open();
+	int open(bool report = true);
 
 	///
 	/// Writes the colors to the PiBlaster device

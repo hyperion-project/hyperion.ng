@@ -3,6 +3,9 @@
 #include <cerrno>
 #include <cstring>
 
+// QT includes
+#include <QFile>
+
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
 
@@ -24,21 +27,38 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 	}
 }
 
-int LedDevicePiBlaster::open()
+int LedDevicePiBlaster::open(bool report)
 {
 	if (_fid != nullptr)
 	{
 		// The file pointer is already open
-		std::cerr << "Attempt to open allready opened device (" << _deviceName << ")" << std::endl;
+		if (report)
+		{
+			std::cerr << "Attempt to open allready opened device (" << _deviceName << ")" << std::endl;
+		}
+		return -1;
+	}
+
+	if (!QFile::exists(_deviceName.c_str()))
+	{
+		if (report)
+		{
+			std::cerr << "The device(" << _deviceName << ") does not yet exist, can not connect (yet)." << std::endl;
+		}
 		return -1;
 	}
 
 	_fid = fopen(_deviceName.c_str(), "w");
 	if (_fid == nullptr)
 	{
-		std::cerr << "Failed to open device (" << _deviceName << "). Error message: " << strerror(errno) << std::endl;
+		if (report)
+		{
+			std::cerr << "Failed to open device (" << _deviceName << "). Error message: " << strerror(errno) << std::endl;
+		}
 		return -1;
 	}
+
+	std::cout << "Connect to device(" << _deviceName << ")" << std::endl;
 
 	return 0;
 }
@@ -54,6 +74,12 @@ int LedDevicePiBlaster::open()
 //      7              25             P1-22
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {
+	// Attempt to open if not yet opened
+	if (_fid == nullptr && open(false) < 0)
+	{
+		return -1;
+	}
+
 	unsigned colorIdx = 0;
 	for (unsigned iChannel=0; iChannel<8; ++iChannel)
 	{
@@ -85,6 +111,12 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 
 int LedDevicePiBlaster::switchOff()
 {
+	// Attempt to open if not yet opened
+	if (_fid == nullptr && open(false) < 0)
+	{
+		return -1;
+	}
+
 	for (unsigned iChannel=0; iChannel<8; ++iChannel)
 	{
 		if (_channelAssignment[iChannel] != ' ')
