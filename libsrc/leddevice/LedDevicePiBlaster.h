@@ -20,6 +20,13 @@ public:
 
 	virtual ~LedDevicePiBlaster();
 
+	///
+	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
+	/// and the device is available.
+	///
+	/// @param report If true errors are writen to the standard error else silent
+	/// @return Zero on succes else negative
+	///
 	int open(bool report = true);
 
 	///
