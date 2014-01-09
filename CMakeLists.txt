@@ -48,8 +48,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 
-# add protocol buffers
+# add protocol buffers (make sure to find the static version)
+set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 find_package(Protobuf REQUIRED)
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_OLD})
+set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
 
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
