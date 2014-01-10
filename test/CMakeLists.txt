@@ -1,4 +1,4 @@
-# Needed for testing non-public components
+ # Needed for testing non-public components
 include_directories(../libsrc)
 
 if(ENABLE_SPIDEV)
@@ -65,4 +65,6 @@ target_link_libraries(test_rs232highspeed
 if(NOT APPLE AND UNIX)
 	include_directories(/usr/include)
 	add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
+
+	add_executable(test_nonInvWs2812b TestNonInvWs2812b.cpp)
 endif()
