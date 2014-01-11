@@ -34,43 +34,27 @@ public:
 private:
 
 	///
-	/// Structure holding the four output-bytes corresponding to a single input byte
+	/// Translate a color to the signal bits. The resulting bits are written to the given memory.
 	///
-	struct ByteSignal
-	{
-		uint8_t bit_12;
-		uint8_t bit_34;
-		uint8_t bit_56;
-		uint8_t bit_78;
-	};
-	/// Translation table from single input-byte to output-bytes
-	std::vector<ByteSignal> _byte2signalTable;
+	/// @param color The color to translate
+	/// @param signal The pointer at the beginning of the signal to write
+	/// @return The pointer at the end of the written signal
+	///
+	uint8_t * color2signal(const ColorRgb & color, uint8_t * signal);
 
 	///
-	/// Fills the translation table (_byte2signalTable)
-	///
-	void fillTable();
-
-	///
-	/// Computes the output bytes that belong to a given input-byte (no table lookup)
-	///
-	/// @param byte The input byte
-	/// @return The four bytes (ByteSignal) for the output signal
-	///
-	ByteSignal byte2Signal(const uint8_t byte) const;
-
-	///
-	/// Translates two bits to a single byte
+	/// Translates three bits to a single byte
 	///
 	/// @param bit1 The value of the first bit (1=true, zero=false)
-	/// @param bit1 The value of the ssecond bit (1=true, zero=false)
+	/// @param bit2 The value of the second bit (1=true, zero=false)
+	/// @param bit3 The value of the third bit (1=true, zero=false)
 	///
 	/// @return The output-byte for the given two bit
 	///
-	uint8_t bits2Signal(const bool bit1, const bool bit2) const;
+	uint8_t bits2Signal(const bool bit1, const bool bit2, const bool bit3) const;
 
 	///
 	/// The output buffer for writing bytes to the output
 	///
-	std::vector<ByteSignal> _ledBuffer;
+	std::vector<uint8_t> _ledBuffer;
 };

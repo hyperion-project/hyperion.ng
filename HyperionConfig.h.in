@@ -5,3 +5,6 @@
 
 // Define to enable the v4l2 grabber
 #cmakedefine ENABLE_V4L2
+
+// Define to enable the spi-device
+#cmakedefine ENABLE_SPIDEV

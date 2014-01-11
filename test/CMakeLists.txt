@@ -1,11 +1,15 @@
-# Needed for testing non-public components
+ # Needed for testing non-public components
 include_directories(../libsrc)
 
-# Add the simple test executable 'TestSpi'
-add_executable(test_spi
-		TestSpi.cpp)
-target_link_libraries(test_spi
-		hyperion)
+if(ENABLE_SPIDEV)
+	# Add the simple test executable 'TestSpi'
+	add_executable(test_spi TestSpi.cpp)
+	target_link_libraries(test_spi hyperion)
+
+	add_executable(spidev_test spidev_test.c)
+
+	add_executable(gpio2spi switchPinCtrl.c)
+endif(ENABLE_SPIDEV)
 
 add_executable(test_configfile
 		TestConfigFile.cpp)
@@ -49,9 +53,9 @@ add_executable(test_qregexp TestQRegExp.cpp)
 target_link_libraries(test_qregexp
 		${QT_LIBRARIES})
 
-add_executable(spidev_test spidev_test.c)
-
-add_executable(gpio2spi switchPinCtrl.c)
+add_executable(test_qtscreenshot TestQtScreenshot.cpp)
+target_link_libraries(test_qtscreenshot
+		${QT_LIBRARIES})
 
 add_executable(determineWs2811Timing DetermineWs2811Timing.cpp)
 
@@ -62,6 +66,9 @@ add_executable(test_rs232highspeed
 target_link_libraries(test_rs232highspeed
 		serialport)
 
-include_directories(/usr/include)
-add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
-target_link_libraries(test_uartHighSpeed ${QT_LIBRARIES})
+if(NOT APPLE AND UNIX)
+	include_directories(/usr/include)
+	add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
+
+	add_executable(test_nonInvWs2812b TestNonInvWs2812b.cpp)
+endif()

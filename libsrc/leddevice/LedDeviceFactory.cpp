@@ -1,19 +1,26 @@
 
+// Build configuration
+#include <HyperionConfig.h>
+
 // Leddevice includes
 #include <leddevice/LedDeviceFactory.h>
 
 // Local Leddevice includes
-#include "LedDeviceLpd6803.h"
-#include "LedDeviceLpd8806.h"
-#include "LedDeviceSedu.h"
-#include "LedDeviceTest.h"
-#include "LedDeviceWs2801.h"
-#include "LedDeviceWs2811.h"
-#include "LedDeviceWs2812b.h"
+#ifdef ENABLE_SPIDEV
+	#include "LedDeviceLpd6803.h"
+	#include "LedDeviceLpd8806.h"
+	#include "LedDeviceWs2801.h"
+#endif
+
 #include "LedDeviceAdalight.h"
-#include "LedDevicePaintpack.h"
 #include "LedDeviceLightpack.h"
 #include "LedDeviceMultiLightpack.h"
+#include "LedDevicePaintpack.h"
+#include "LedDevicePiBlaster.h"
+#include "LedDeviceSedu.h"
+#include "LedDeviceTest.h"
+#include "LedDeviceWs2811.h"
+#include "LedDeviceWs2812b.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -23,40 +30,18 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	LedDevice* device = nullptr;
-	if (type == "ws2801" || type == "lightberry")
+	if (false) {}
+	else if (type == "adalight")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
-		deviceWs2801->open();
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		deviceAdalight->open();
 
-		device = deviceWs2801;
+		device = deviceAdalight;
 	}
-	else if (type == "ws2812b")
-	{
-		LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
-		deviceWs2812b->open();
-
-		device = deviceWs2812b;
-	}
-//	else if (type == "ws2811")
-//	{
-//		const std::string output       = deviceConfig["output"].asString();
-//		const std::string outputSpeed  = deviceConfig["output"].asString();
-//		const std::string timingOption = deviceConfig["timingOption"].asString();
-
-//		ws2811::SpeedMode speedMode = (outputSpeed == "high")? ws2811::highspeed : ws2811::lowspeed;
-//		if (outputSpeed != "high" && outputSpeed != "low")
-//		{
-//			std::cerr << "Incorrect speed-mode selected for WS2811: " << outputSpeed << " != {'high', 'low'}" << std::endl;
-//		}
-
-//		LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, ws2811::fromString(timingOption, ws2811::option_2855), speedMode);
-//		deviceWs2811->open();
-
-//		device = deviceWs2811;
-//	}
+#ifdef ENABLE_SPIDEV
 	else if (type == "lpd6803" || type == "ldp6803")
 	{
 		const std::string output = deviceConfig["output"].asString();
@@ -77,32 +62,47 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLpd8806;
 	}
-	else if (type == "sedu")
+	else if (type == "ws2801" || type == "lightberry")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
 
-		LedDeviceSedu* deviceSedu = new LedDeviceSedu(output, rate);
-		deviceSedu->open();
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
+		deviceWs2801->open();
 
-		device = deviceSedu;
+		device = deviceWs2801;
 	}
-	else if (type == "adalight")
-	{
-		const std::string output = deviceConfig["output"].asString();
-		const unsigned rate      = deviceConfig["rate"].asInt();
+#endif
+//      else if (type == "ws2811")
+//      {
+//              const std::string output       = deviceConfig["output"].asString();
+//              const std::string outputSpeed  = deviceConfig["output"].asString();
+//              const std::string timingOption = deviceConfig["timingOption"].asString();
 
-		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
-		deviceAdalight->open();
+//              ws2811::SpeedMode speedMode = (outputSpeed == "high")? ws2811::highspeed : ws2811::lowspeed;
+//              if (outputSpeed != "high" && outputSpeed != "low")
+//              {
+//                      std::cerr << "Incorrect speed-mode selected for WS2811: " << outputSpeed << " != {'high', 'low'}" << std::endl;
+//              }
 
-		device = deviceAdalight;
-	}
+//              LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, ws2811::fromString(timingOption, ws2811::option_2855), speedMode);
+//              deviceWs2811->open();
+
+//              device = deviceWs2811;
+//      }
 	else if (type == "lightpack")
 	{
 		const std::string output = deviceConfig.get("output", "").asString();
 
 		LedDeviceLightpack* deviceLightpack = new LedDeviceLightpack();
 		deviceLightpack->open(output);
+
+		device = deviceLightpack;
+	}
+	else if (type == "multi-lightpack")
+	{
+		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
+		deviceLightpack->open();
 
 		device = deviceLightpack;
 	}
@@ -113,17 +113,37 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = devicePainLightpack;
 	}
-	else if (type == "multi-lightpack")
+	else if (type == "piblaster")
 	{
-		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
-		deviceLightpack->open();
+		const std::string output     = deviceConfig.get("output",     "").asString();
+		const std::string assignment = deviceConfig.get("assignment", "").asString();
 
-		device = deviceLightpack;
+		LedDevicePiBlaster * devicePiBlaster = new LedDevicePiBlaster(output, assignment);
+		devicePiBlaster->open();
+
+		device = devicePiBlaster;
+	}
+	else if (type == "sedu")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceSedu* deviceSedu = new LedDeviceSedu(output, rate);
+		deviceSedu->open();
+
+		device = deviceSedu;
 	}
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
+	}
+	else if (type == "ws2812b")
+	{
+			LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
+			deviceWs2812b->open();
+
+			device = deviceWs2812b;
 	}
 	else
 	{

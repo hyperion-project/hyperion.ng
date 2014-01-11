@@ -62,7 +62,9 @@ int testSerialPortLib()
 			continue;
 		}
 
+		rs232Port.flushOutput();
 		rs232Port.write(data);
+		rs232Port.flush();
 
 		data.clear();
 		for (int i=0; i<9; ++i)
@@ -110,7 +112,7 @@ public:
 		open();
 	}
 
-	int write(const std::vector<ColorRgb> &ledValues) \
+	int write(const std::vector<ColorRgb> &ledValues)
 	{
 		std::vector<uint8_t> bytes(ledValues.size() * 3 * 4);
 
@@ -130,7 +132,7 @@ public:
 		return 0;
 	}
 
-	int switchOff() { return 0; }
+	int switchOff() { return 0; };
 
 	void writeTestSequence(const std::vector<uint8_t> & data)
 	{

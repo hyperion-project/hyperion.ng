@@ -57,6 +57,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 
 	try
 	{
+		_rs232Port.flushOutput();
 		_rs232Port.write(data, size);
 		_rs232Port.flush();
 	}
