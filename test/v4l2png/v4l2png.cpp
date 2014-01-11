@@ -40,9 +40,10 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	V4L2Grabber grabber;
+    V4L2Grabber grabber("/dev/video0", 0, V4L2Grabber::PAL, 10.0);
 	grabber.start();
+    grabber.capture();
+    grabber.stop();
 
 	return 0;
 }
-

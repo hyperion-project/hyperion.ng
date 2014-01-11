@@ -10,10 +10,19 @@
 class V4L2Grabber
 {
 public:
-	V4L2Grabber();
+    enum VideoStandard {
+        PAL, NTSC, NO_CHANGE
+    };
+
+public:
+    V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, double fps);
 	virtual ~V4L2Grabber();
 
 	void start();
+
+    void capture();
+
+    void stop();
 
 private:
 	void open_device();
@@ -26,7 +35,7 @@ private:
 
 	void init_userp(unsigned int buffer_size);
 
-	void init_device();
+    void init_device(VideoStandard videoStandard, int input);
 
 	void uninit_device();
 
@@ -36,7 +45,9 @@ private:
 
 	int read_frame();
 
-	void process_image(const void *p, int size);
+    void process_image(const void *p, int size);
+
+    void process_image(const uint8_t *p);
 
 	int xioctl(int request, void *arg);
 
@@ -59,4 +70,7 @@ private:
 	const io_method _ioMethod;
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
+
+    int _width;
+    int _height;
 };
