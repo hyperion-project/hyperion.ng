@@ -36,7 +36,7 @@ if (ENABLE_DISPMANX)
 endif (ENABLE_DISPMANX)
 
 if (ENABLE_V4L2)
-	add_subdirectory(v4l2png)
+	add_subdirectory(v4l2_to_png)
 endif (ENABLE_V4L2)
 
 add_executable(test_blackborderdetector

@@ -96,7 +96,10 @@ void V4L2Grabber::capture(int frameCount)
 			}
 
 			if (read_frame())
+			{
 				break;
+			}
+
 			/* EAGAIN - continue select loop. */
 		}
 	}
@@ -589,6 +592,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 	int width = (_width + _pixelDecimation/2) / _pixelDecimation;
 	int height = (_height + _pixelDecimation/2) / _pixelDecimation;
+
 
 	QImage image(width, height, QImage::Format_RGB888);
 
