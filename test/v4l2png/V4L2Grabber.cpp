@@ -19,22 +19,25 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, double fps) :
-    _deviceName(device),
+V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int frameDecimation, int pixelDecimation) :
+	_deviceName(device),
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
-    _buffers(),
-    _width(0),
-    _height(0)
+	_buffers(),
+	_width(0),
+	_height(0),
+	_frameDecimation(frameDecimation),
+	_pixelDecimation(pixelDecimation),
+	_currentFrame(0)
 {
-    open_device();
-    init_device(videoStandard, input);
+	open_device();
+	init_device(videoStandard, input);
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
-    uninit_device();
-    close_device();
+	uninit_device();
+	close_device();
 }
 
 void V4L2Grabber::start()
@@ -42,47 +45,48 @@ void V4L2Grabber::start()
 	start_capturing();
 }
 
-void V4L2Grabber::capture()
+void V4L2Grabber::capture(int frameCount)
 {
-    int count = 1;
-    while (count-- > 0) {
-            for (;;) {
-                    fd_set fds;
-                    struct timeval tv;
-                    int r;
+	for (int count = 0; count < frameCount || frameCount < 0; ++count)
+	{
+		for (;;)
+		{
+			// the set of file descriptors for select
+			fd_set fds;
+			FD_ZERO(&fds);
+			FD_SET(_fileDescriptor, &fds);
 
-                    FD_ZERO(&fds);
-                    FD_SET(_fileDescriptor, &fds);
+			// timeout
+			struct timeval tv;
+			tv.tv_sec = 2;
+			tv.tv_usec = 0;
 
-                    /* Timeout. */
-                    tv.tv_sec = 2;
-                    tv.tv_usec = 0;
+			// block until data is available
+			int r = select(_fileDescriptor + 1, &fds, NULL, NULL, &tv);
 
-                    r = select(_fileDescriptor + 1, &fds, NULL, NULL, &tv);
+			if (-1 == r)
+			{
+				if (EINTR == errno)
+						continue;
+				errno_exit("select");
+			}
 
-                    if (-1 == r)
-                    {
-                            if (EINTR == errno)
-                                    continue;
-                            errno_exit("select");
-                    }
+			if (0 == r)
+			{
+				fprintf(stderr, "select timeout\n");
+				exit(EXIT_FAILURE);
+			}
 
-                    if (0 == r)
-                    {
-                            fprintf(stderr, "select timeout\n");
-                            exit(EXIT_FAILURE);
-                    }
-
-                    if (read_frame())
-                            break;
-                    /* EAGAIN - continue select loop. */
-            }
-    }
+			if (read_frame())
+				break;
+			/* EAGAIN - continue select loop. */
+		}
+	}
 }
 
 void V4L2Grabber::stop()
 {
-    stop_capturing();
+	stop_capturing();
 }
 
 void V4L2Grabber::open_device()
@@ -218,7 +222,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 {
 		struct v4l2_capability cap;
-        if (-1 == xioctl(VIDIOC_QUERYCAP, &cap))
+		if (-1 == xioctl(VIDIOC_QUERYCAP, &cap))
 		{
 				if (EINVAL == errno) {
 						fprintf(stderr, "%s is no V4L2 device\n", _deviceName.c_str());
@@ -256,14 +260,14 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 		/* Select video input, video standard and tune here. */
 
-        struct v4l2_cropcap cropcap;
+		struct v4l2_cropcap cropcap;
 		CLEAR(cropcap);
 
 		cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
 		if (0 == xioctl(VIDIOC_CROPCAP, &cropcap)) {
-                struct v4l2_crop crop;
-                crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				struct v4l2_crop crop;
+				crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 				crop.c = cropcap.defrect; /* reset to default */
 
 				if (-1 == xioctl(VIDIOC_S_CROP, &crop)) {
@@ -280,61 +284,61 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				/* Errors ignored. */
 		}
 
-        // set input if needed
-        if (input >= 0)
-        {
-            if (-1 == xioctl(VIDIOC_S_INPUT, &input))
-            {
-                errno_exit("VIDIOC_S_INPUT");
-            }
-        }
+		// set input if needed
+		if (input >= 0)
+		{
+			if (-1 == xioctl(VIDIOC_S_INPUT, &input))
+			{
+				errno_exit("VIDIOC_S_INPUT");
+			}
+		}
 
-        // set the video standard if needed
-        switch (videoStandard)
-        {
-        case PAL:
-            {
-                v4l2_std_id std_id = V4L2_STD_PAL;
-                if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-                {
-                        errno_exit("VIDIOC_S_STD");
-                }
-            }
-            break;
-        case NTSC:
-            {
-                v4l2_std_id std_id = V4L2_STD_NTSC;
-                if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-                {
-                        errno_exit("VIDIOC_S_STD");
-                }
-            }
-            break;
-        case NO_CHANGE:
-        default:
-            // No change to device settings
-            break;
-        }
+		// set the video standard if needed
+		switch (videoStandard)
+		{
+		case PAL:
+			{
+				v4l2_std_id std_id = V4L2_STD_PAL;
+				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+				{
+						errno_exit("VIDIOC_S_STD");
+				}
+			}
+			break;
+		case NTSC:
+			{
+				v4l2_std_id std_id = V4L2_STD_NTSC;
+				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+				{
+						errno_exit("VIDIOC_S_STD");
+				}
+			}
+			break;
+		case NO_CHANGE:
+		default:
+			// No change to device settings
+			break;
+		}
 
-        // get the current settings
-        struct v4l2_format fmt;
+		// get the current settings
+		struct v4l2_format fmt;
 		CLEAR(fmt);
 		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
 		{
-            errno_exit("VIDIOC_G_FMT");
+			errno_exit("VIDIOC_G_FMT");
 		}
 
-        // check pixel format
-        if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_UYVY)
-        {
-            exit(EXIT_FAILURE);
-        }
+		// check pixel format
+		if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_UYVY)
+		{
+			exit(EXIT_FAILURE);
+		}
 
-        // store width & height
-        _width = fmt.fmt.pix.width;
-        _height = fmt.fmt.pix.height;
-        std::cout << "V4L2 width=" << _width << " height=" << _height << std::endl;
+		// store width & height
+		_width = fmt.fmt.pix.width;
+		_height = fmt.fmt.pix.height;
+		std::cout << "V4L2 width=" << _width << " height=" << _height << std::endl;
 
 		switch (_ioMethod) {
 		case IO_METHOD_READ:
@@ -445,11 +449,11 @@ int V4L2Grabber::read_frame()
 
 	switch (_ioMethod) {
 	case IO_METHOD_READ:
-            int size;
-            if ((size = read(_fileDescriptor, _buffers[0].start, _buffers[0].length)) == -1)
-            {
-                    switch (errno)
-                    {
+			int size;
+			if ((size = read(_fileDescriptor, _buffers[0].start, _buffers[0].length)) == -1)
+			{
+					switch (errno)
+					{
 					case EAGAIN:
 							return 0;
 
@@ -463,7 +467,7 @@ int V4L2Grabber::read_frame()
 					}
 			}
 
-            process_image(_buffers[0].start, size);
+			process_image(_buffers[0].start, size);
 			break;
 
 	case IO_METHOD_MMAP:
@@ -472,10 +476,10 @@ int V4L2Grabber::read_frame()
 			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			buf.memory = V4L2_MEMORY_MMAP;
 
-            if (-1 == xioctl(VIDIOC_DQBUF, &buf))
-            {
-                    switch (errno)
-                    {
+			if (-1 == xioctl(VIDIOC_DQBUF, &buf))
+			{
+					switch (errno)
+					{
 					case EAGAIN:
 							return 0;
 
@@ -491,12 +495,12 @@ int V4L2Grabber::read_frame()
 
 			assert(buf.index < _buffers.size());
 
-            process_image(_buffers[buf.index].start, buf.bytesused);
+			process_image(_buffers[buf.index].start, buf.bytesused);
 
 			if (-1 == xioctl(VIDIOC_QBUF, &buf))
-            {
+			{
 					errno_exit("VIDIOC_QBUF");
-            }
+			}
 
 			break;
 
@@ -506,10 +510,10 @@ int V4L2Grabber::read_frame()
 			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			buf.memory = V4L2_MEMORY_USERPTR;
 
-            if (-1 == xioctl(VIDIOC_DQBUF, &buf))
-            {
-                    switch (errno)
-                    {
+			if (-1 == xioctl(VIDIOC_DQBUF, &buf))
+			{
+					switch (errno)
+					{
 					case EAGAIN:
 							return 0;
 
@@ -524,19 +528,19 @@ int V4L2Grabber::read_frame()
 			}
 
 			for (size_t i = 0; i < _buffers.size(); ++i)
-            {
-                    if (buf.m.userptr == (unsigned long)_buffers[i].start && buf.length == _buffers[i].length)
-                    {
+			{
+					if (buf.m.userptr == (unsigned long)_buffers[i].start && buf.length == _buffers[i].length)
+					{
 							break;
-                    }
-            }
+					}
+			}
 
-            process_image((void *)buf.m.userptr, buf.bytesused);
+			process_image((void *)buf.m.userptr, buf.bytesused);
 
-            if (-1 == xioctl(VIDIOC_QBUF, &buf))
-            {
+			if (-1 == xioctl(VIDIOC_QBUF, &buf))
+			{
 					errno_exit("VIDIOC_QBUF");
-            }
+			}
 			break;
 	}
 
@@ -545,44 +549,50 @@ int V4L2Grabber::read_frame()
 
 void V4L2Grabber::process_image(const void *p, int size)
 {
-    if (size != 2*_width*_height)
-    {
-        std::cout << "Frame too small: " << size << " != " << (2*_width*_height) << std::endl;
-    }
-    else
-    {
-        process_image(reinterpret_cast<const uint8_t *>(p));
-    }
+	if (++_currentFrame >= _frameDecimation)
+	{
+		// We do want a new frame...
+
+		if (size != 2*_width*_height)
+		{
+			std::cout << "Frame too small: " << size << " != " << (2*_width*_height) << std::endl;
+		}
+		else
+		{
+			process_image(reinterpret_cast<const uint8_t *>(p));
+			_currentFrame = 0; // restart counting
+		}
+	}
 }
 
 void V4L2Grabber::process_image(const uint8_t * data)
 {
-    std::cout << "process image" << std::endl;
+	std::cout << "process image" << std::endl;
 
-    QImage image(_width, _height, QImage::Format_RGB888);
+	QImage image(_width, _height, QImage::Format_RGB888);
 
 	for (int y = 0; y < image.height(); ++y)
 	{
 		for (int x = 0; x < image.width(); ++x)
 		{
-            uint8_t value = data[(image.width() * y + x) * 2 + 1];
-            //std::cout << "data = " << int(value) << std::endl;
-            image.setPixel(x, y, qRgb(value, value, value));
+			uint8_t value = data[(image.width() * y + x) * 2 + 1];
+			//std::cout << "data = " << int(value) << std::endl;
+			image.setPixel(x, y, qRgb(value, value, value));
 		}
 	}
 
-    image.save("screenshot.png");
+	image.save("screenshot.png");
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
 {
 	int r;
 
-    do
-    {
-        r = ioctl(_fileDescriptor, request, arg);
-    }
-    while (-1 == r && EINTR == errno);
+	do
+	{
+		r = ioctl(_fileDescriptor, request, arg);
+	}
+	while (-1 == r && EINTR == errno);
 
 	return r;
 }
