@@ -19,6 +19,24 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+static inline uint8_t clamp(int x)
+{
+	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
+}
+
+static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b)
+{
+	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
+	int c = y - 16;
+	int d = u - 128;
+	int e = v - 128;
+
+	r = clamp((298 * c + 409 * e + 128) >> 8);
+	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
+	b = clamp((298 * c + 516 * d + 128) >> 8);
+}
+
+
 V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int frameDecimation, int pixelDecimation) :
 	_deviceName(device),
 	_ioMethod(IO_METHOD_MMAP),
@@ -26,8 +44,8 @@ V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard vid
 	_buffers(),
 	_width(0),
 	_height(0),
-	_frameDecimation(frameDecimation),
-	_pixelDecimation(pixelDecimation),
+	_frameDecimation(std::max(1, frameDecimation)),
+	_pixelDecimation(std::max(1, pixelDecimation)),
 	_currentFrame(0)
 {
 	open_device();
@@ -569,15 +587,24 @@ void V4L2Grabber::process_image(const uint8_t * data)
 {
 	std::cout << "process image" << std::endl;
 
-	QImage image(_width, _height, QImage::Format_RGB888);
+	int width = (_width + _pixelDecimation/2) / _pixelDecimation;
+	int height = (_height + _pixelDecimation/2) / _pixelDecimation;
 
-	for (int y = 0; y < image.height(); ++y)
+	QImage image(width, height, QImage::Format_RGB888);
+
+	for (int ySource = _pixelDecimation/2, yDest = 0; ySource < _height; ySource += _pixelDecimation, ++yDest)
 	{
-		for (int x = 0; x < image.width(); ++x)
+		for (int xSource = _pixelDecimation/2, xDest = 0; xSource < _width; xSource += _pixelDecimation, ++xDest)
 		{
-			uint8_t value = data[(image.width() * y + x) * 2 + 1];
-			//std::cout << "data = " << int(value) << std::endl;
-			image.setPixel(x, y, qRgb(value, value, value));
+			int index = (_width * ySource + xSource) * 2;
+			uint8_t y = data[index+1];
+			uint8_t u = (xSource%2 == 0) ? data[index] : data[index-2];
+			uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index];
+
+			uint8_t r, g, b;
+			yuv2rgb(y, u, v, r, g, b);
+
+			image.setPixel(xDest, yDest, qRgb(r, g, b));
 		}
 	}
 
