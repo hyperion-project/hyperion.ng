@@ -57,6 +57,8 @@ int main(int argc, char** argv)
 		StringParameter &   argDevice             = parameters.add<StringParameter>       ('d', "device",         "The device to use [default=/dev/video0]");
 		VideoStandardParameter & argVideoStandard = parameters.add<VideoStandardParameter>('v', "video-standard", "The used video standard. Valid values are PAL. NYSC, or NO-CHANGE [default=PAL]");
 		IntParameter &      argInput              = parameters.add<IntParameter>          ('i', "input",          "Input channel [default=0]");
+		IntParameter &      argCropWidth          = parameters.add<IntParameter>          (0x0, "crop-width",     "Number of pixels to crop from the left and right sides in the picture before decimation [default=0]");
+		IntParameter &      argCropHeight         = parameters.add<IntParameter>          (0x0, "crop-height",    "Number of pixels to crop from the top and the bottom in the picture before decimation [default=0]");
 		IntParameter &      argSizeDecimation     = parameters.add<IntParameter>          ('s', "size-decimator", "Decimation factor for the output size [default=1]");
 		SwitchParameter<> & argHelp               = parameters.add<SwitchParameter<> >    ('h', "help",           "Show this help message and exit");
 
@@ -64,6 +66,8 @@ int main(int argc, char** argv)
 		argDevice.setDefault("/dev/video0");
 		argVideoStandard.setDefault(V4L2Grabber::PAL);
 		argInput.setDefault(0);
+		argCropWidth.setDefault(0);
+		argCropHeight.setDefault(0);
 		argSizeDecimation.setDefault(1);
 
 		// parse all options
@@ -80,6 +84,8 @@ int main(int argc, char** argv)
 					argDevice.getValue(),
 					argInput.getValue(),
 					argVideoStandard.getValue(),
+					std::max(0, argCropWidth.getValue()),
+					std::max(0, argCropHeight.getValue()),
 					1,
 					argSizeDecimation.getValue());
 

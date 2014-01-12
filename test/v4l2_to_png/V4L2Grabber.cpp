@@ -37,13 +37,15 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 }
 
 
-V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int frameDecimation, int pixelDecimation) :
+V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation) :
 	_deviceName(device),
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
 	_buffers(),
 	_width(0),
 	_height(0),
+	_cropWidth(cropHorizontal),
+	_cropHeight(cropVertical),
 	_frameDecimation(std::max(1, frameDecimation)),
 	_pixelDecimation(std::max(1, pixelDecimation)),
 	_currentFrame(0)
@@ -590,14 +592,14 @@ void V4L2Grabber::process_image(const uint8_t * data)
 {
 	std::cout << "process image" << std::endl;
 
-	int width = (_width + _pixelDecimation/2) / _pixelDecimation;
-	int height = (_height + _pixelDecimation/2) / _pixelDecimation;
+	int width = (_width - 2 * _cropWidth + _pixelDecimation/2) / _pixelDecimation;
+	int height = (_height - 2 * _cropHeight + _pixelDecimation/2) / _pixelDecimation;
 
 	Image<ColorRgb> image(width, height);
 
-	for (int ySource = _pixelDecimation/2, yDest = 0; ySource < _height; ySource += _pixelDecimation, ++yDest)
+	for (int ySource = _cropHeight + _pixelDecimation/2, yDest = 0; ySource < _height - _cropHeight; ySource += _pixelDecimation, ++yDest)
 	{
-		for (int xSource = _pixelDecimation/2, xDest = 0; xSource < _width; xSource += _pixelDecimation, ++xDest)
+		for (int xSource = _cropWidth + _pixelDecimation/2, xDest = 0; xSource < _width - _cropWidth; xSource += _pixelDecimation, ++xDest)
 		{
 			int index = (_width * ySource + xSource) * 2;
 			uint8_t y = data[index+1];

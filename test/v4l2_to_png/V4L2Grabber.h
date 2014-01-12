@@ -19,7 +19,7 @@ public:
 	};
 
 public:
-	V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, int frameDecimation, int pixelDecimation);
+	V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation);
 	virtual ~V4L2Grabber();
 
 	void start();
@@ -77,6 +77,8 @@ private:
 
 	int _width;
 	int _height;
+	const int _cropWidth;
+	const int _cropHeight;
 	const int _frameDecimation;
 	const int _pixelDecimation;
 
