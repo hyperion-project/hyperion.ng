@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+// util includes
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
+
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html

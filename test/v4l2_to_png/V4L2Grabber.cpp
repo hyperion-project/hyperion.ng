@@ -593,8 +593,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	int width = (_width + _pixelDecimation/2) / _pixelDecimation;
 	int height = (_height + _pixelDecimation/2) / _pixelDecimation;
 
-
-	QImage image(width, height, QImage::Format_RGB888);
+	Image<ColorRgb> image(width, height);
 
 	for (int ySource = _pixelDecimation/2, yDest = 0; ySource < _height; ySource += _pixelDecimation, ++yDest)
 	{
@@ -605,14 +604,14 @@ void V4L2Grabber::process_image(const uint8_t * data)
 			uint8_t u = (xSource%2 == 0) ? data[index] : data[index-2];
 			uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index];
 
-			uint8_t r, g, b;
-			yuv2rgb(y, u, v, r, g, b);
-
-			image.setPixel(xDest, yDest, qRgb(r, g, b));
+			ColorRgb & rgb = image(xDest, yDest);
+			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 		}
 	}
 
-	image.save("screenshot.png");
+	// store as PNG
+	QImage pngImage((const uint8_t *) image.memptr(), width, height, 3*width, QImage::Format_RGB888);
+	pngImage.save("screenshot.png");
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
