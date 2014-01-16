@@ -36,4 +36,5 @@ private:
 
 	/// the number of leds
 	size_t mLedCount;
+	const uint8_t calculateChecksum(const ColorRgb color);
 };
