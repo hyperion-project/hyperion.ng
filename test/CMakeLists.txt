@@ -66,5 +66,6 @@ if(NOT APPLE AND UNIX)
 	include_directories(/usr/include)
 	add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
 
-	add_executable(test_nonInvWs2812b TestNonInvWs2812b.cpp)
+	add_executable(test_nonUniformWs2812b TestNonUniformWs2812b.cpp)
+	add_executable(test_nonInvWs2812b     TestNonInvWs2812b.cpp)
 endif()
