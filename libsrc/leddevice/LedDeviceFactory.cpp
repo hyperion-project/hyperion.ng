@@ -63,6 +63,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLpd8806;
 	}
+	else if (type == "p9813")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceP9813* deviceP9813 = new LedDeviceP9813(output, rate);
+		deviceP9813->open();
+
+		device = deviceP9813;
+	}
 	else if (type == "ws2801" || type == "lightberry")
 	{
 		const std::string output = deviceConfig["output"].asString();
@@ -145,16 +155,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			deviceWs2812b->open();
 
 			device = deviceWs2812b;
-	}
-	else if (type == "p9813")
-	{
-		const std::string output = deviceConfig["output"].asString();
-		const unsigned rate      = deviceConfig["rate"].asInt();
-
-		LedDeviceP9813* deviceP9813 = new LedDeviceP9813(output, rate);
-		deviceP9813->open();
-
-		device = deviceP9813;
 	}
 	else
 	{
