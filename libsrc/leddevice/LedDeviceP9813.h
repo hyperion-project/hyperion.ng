@@ -35,6 +35,16 @@ public:
 private:
 
 	/// the number of leds
-	size_t mLedCount;
-	const uint8_t calculateChecksum(const ColorRgb color);
+	size_t _ledCount;
+
+	/// Buffer for writing/written led data
+	std::vector<uint8_t> _ledBuf;
+
+	///
+	/// Calculates the required checksum for one led
+	///
+	/// @param color The color of the led
+	/// @return The checksum for the led
+	///
+	uint8_t calculateChecksum(const ColorRgb & color) const;
 };

@@ -9,8 +9,8 @@
 #ifdef ENABLE_SPIDEV
 	#include "LedDeviceLpd6803.h"
 	#include "LedDeviceLpd8806.h"
-	#include "LedDeviceWs2801.h"
 	#include "LedDeviceP9813.h"
+	#include "LedDeviceWs2801.h"
 #endif
 
 #include "LedDeviceAdalight.h"
