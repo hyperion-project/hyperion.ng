@@ -10,6 +10,7 @@
 	#include "LedDeviceLpd6803.h"
 	#include "LedDeviceLpd8806.h"
 	#include "LedDeviceWs2801.h"
+	#include "LedDeviceP9813.h"
 #endif
 
 #include "LedDeviceAdalight.h"
@@ -144,6 +145,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			deviceWs2812b->open();
 
 			device = deviceWs2812b;
+	}
+	else if (type == "p9813")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceP9813* deviceP9813 = new LedDeviceP9813(output, rate);
+		deviceP9813->open();
+
+		device = deviceP9813;
 	}
 	else
 	{
