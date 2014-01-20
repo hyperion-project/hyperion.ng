@@ -48,8 +48,9 @@ namespace hyperion
 	public:
 		///
 		/// Constructs a black-border detector
+		/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 		///
-		BlackBorderDetector();
+		BlackBorderDetector(uint8_t blackborderThreshold);
 
 		///
 		/// Performs the actual black-border detection on the given image
@@ -125,7 +126,11 @@ namespace hyperion
 		inline bool isBlack(const Pixel_T & color)
 		{
 			// Return the simple compare of the color against black
-			return color.red < 3 && color.green < 3 && color.green < 3;
+			return color.red < _blackborderThreshold && color.green < _blackborderThreshold && color.green < _blackborderThreshold;
 		}
+
+	private:
+		/// Threshold for the blackborder detector [0 .. 255]
+		const uint8_t _blackborderThreshold;
 	};
 } // end namespace hyperion

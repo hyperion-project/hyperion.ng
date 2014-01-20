@@ -30,8 +30,10 @@ public:
 	/// Initialises this factory with the given led-configuration
 	///
 	/// @param[in] ledString  The led configuration
+	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
+	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
-	void init(const LedString& ledString, bool enableBlackBorderDetector);
+	void init(const LedString& ledString, bool enableBlackBorderDetector, double blackborderThreshold);
 
 	///
 	/// Creates a new ImageProcessor. The onwership of the processor is transferred to the caller.
@@ -46,4 +48,7 @@ private:
 
 	/// Flag indicating if the black border detector should be used
 	bool _enableBlackBorderDetector;
+
+	/// Threshold for the blackborder detector [0 .. 255]
+	uint8_t _blackborderThreshold;
 };

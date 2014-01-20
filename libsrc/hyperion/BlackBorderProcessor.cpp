@@ -4,14 +4,14 @@
 
 using namespace hyperion;
 
-BlackBorderProcessor::BlackBorderProcessor(
-		const unsigned unknownFrameCnt,
+BlackBorderProcessor::BlackBorderProcessor(const unsigned unknownFrameCnt,
 		const unsigned borderFrameCnt,
-		const unsigned blurRemoveCnt) :
+		const unsigned blurRemoveCnt,
+		uint8_t blackborderThreshold) :
 	_unknownSwitchCnt(unknownFrameCnt),
 	_borderSwitchCnt(borderFrameCnt),
 	_blurRemoveCnt(blurRemoveCnt),
-	_detector(),
+	_detector(blackborderThreshold),
 	_currentBorder({true, -1, -1}),
 	_previousDetectedBorder({true, -1, -1}),
 	_consistentCnt(0)

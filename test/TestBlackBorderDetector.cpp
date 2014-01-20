@@ -41,7 +41,7 @@ int TC_NO_BORDER()
 {
 	int result = 0;
 
-	BlackBorderDetector detector;
+	BlackBorderDetector detector(3);
 
 	{
 		Image<ColorRgb> image = createImage(64, 64, 0, 0);
@@ -60,7 +60,7 @@ int TC_TOP_BORDER()
 {
 	int result = 0;
 
-	BlackBorderDetector detector;
+	BlackBorderDetector detector(3);
 
 	{
 		Image<ColorRgb> image = createImage(64, 64, 12, 0);
@@ -79,7 +79,7 @@ int TC_LEFT_BORDER()
 {
 	int result = 0;
 
-	BlackBorderDetector detector;
+	BlackBorderDetector detector(3);
 
 	{
 		Image<ColorRgb> image = createImage(64, 64, 0, 12);
@@ -98,7 +98,7 @@ int TC_DUAL_BORDER()
 {
 	int result = 0;
 
-	BlackBorderDetector detector;
+	BlackBorderDetector detector(3);
 
 	{
 		Image<ColorRgb> image = createImage(64, 64, 12, 12);
@@ -116,7 +116,7 @@ int TC_UNKNOWN_BORDER()
 {
 	int result = 0;
 
-	BlackBorderDetector detector;
+	BlackBorderDetector detector(3);
 
 	{
 		Image<ColorRgb> image = createImage(64, 64, 30, 30);
