@@ -223,6 +223,12 @@
                 "enable" : {
                     "type" : "boolean",
                     "required" : true
+                },
+                "threshold" : {
+                    "type" : "number",
+                    "required" : false,
+                    "minimum" : 0.0,
+                    "maximum" : 1.0
                 }
             },
             "additionalProperties" : false

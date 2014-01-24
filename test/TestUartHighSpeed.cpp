@@ -261,7 +261,8 @@ uint8_t bit3Encode(const bool bit_1, const bool bit_2, const bool bit_3);
 void test3bitsEncoding()
 {
 	//OPEN THE UART
-	int uart0_filestream = open("/dev/ttyAMA0", O_WRONLY | O_NOCTTY | O_NDELAY);
+//	int uart0_filestream = open("/dev/ttyAMA0", O_WRONLY | O_NOCTTY | O_NDELAY);
+	int uart0_filestream = open("/dev/ttyUSB0", O_WRONLY | O_NOCTTY | O_NDELAY);
 	if (uart0_filestream == -1)
 	{
 		//ERROR - CAN'T OPEN SERIAL PORT

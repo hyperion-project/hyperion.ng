@@ -54,6 +54,7 @@ if(ENABLE_SPIDEV)
 			${CURRENT_SOURCE_DIR}/LedSpiDevice.h
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.h
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.h
+			${CURRENT_SOURCE_DIR}/LedDeviceP9813.h
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
 	)
 	SET(Leddevice_SOURCES
@@ -61,6 +62,7 @@ if(ENABLE_SPIDEV)
 			${CURRENT_SOURCE_DIR}/LedSpiDevice.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.cpp
+			${CURRENT_SOURCE_DIR}/LedDeviceP9813.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 	)
 endif(ENABLE_SPIDEV)

@@ -4,6 +4,11 @@
 #include <vector>
 #include <iostream>
 
+#include <unistd.h>			//Used for UART
+#include <fcntl.h>			//Used for UART
+#include <termios.h>		//Used for UART
+#include <sys/ioctl.h>
+
 std::vector<uint8_t> encode(const std::vector<uint8_t> & data);
 void split(const uint8_t byte, uint8_t & out1, uint8_t & out2);
 uint8_t encode(const bool bit1, const bool bit2, const bool bit3);
@@ -23,10 +28,41 @@ void print(uint8_t byte)
 	}
 }
 
+void printClockSignal(const std::vector<uint8_t> & signal)
+{
+	bool prevBit = true;
+	bool nextBit = true;
+
+	for (uint8_t byte : signal)
+	{
+
+		for (int i=-1; i<9; ++i)
+		{
+			if (i == -1) // Start bit
+				nextBit = false;
+			else if (i == 8) // Stop bit
+				nextBit = true;
+			else
+				nextBit = byte & (1 << i);
+
+			if (!prevBit && nextBit)
+			{
+				std::cout << ' ';
+			}
+
+			if (nextBit)
+				std::cout << '1';
+			else
+				std::cout << '0';
+
+			prevBit = nextBit;
+		}
+	}
+}
+
 int main()
 {
-	std::vector<uint8_t> data(3, 0x55);
-
+	const std::vector<uint8_t> data(9, 0xff);
 	std::vector<uint8_t> encData = encode(data);
 
 	for (uint8_t encByte : encData)
@@ -36,7 +72,45 @@ int main()
 		std::cout << " 1";
 	}
 	std::cout << std::endl;
+	printClockSignal(encData);
+	std::cout << std::endl;
 
+	//OPEN THE UART
+//	int uart0_filestream = open("/dev/ttyAMA0", O_WRONLY | O_NOCTTY | O_NDELAY);
+	int uart0_filestream = open("/dev/ttyUSB0", O_WRONLY | O_NOCTTY | O_NDELAY);
+	if (uart0_filestream == -1)
+	{
+		//ERROR - CAN'T OPEN SERIAL PORT
+		printf("Error - Unable to open UART.  Ensure it is not in use by another application\n");
+		return -1;
+	}
+
+	// Configure the port
+	struct termios options;
+	tcgetattr(uart0_filestream, &options);
+	options.c_cflag = B4000000 | CS8 | CLOCAL;
+	options.c_iflag = IGNPAR;
+	options.c_oflag = 0;
+	options.c_lflag = 0;
+
+	tcflush(uart0_filestream, TCIFLUSH);
+	tcsetattr(uart0_filestream, TCSANOW, &options);
+
+	char c = getchar();
+
+	const int breakLength_ms = 1;
+
+	encData = std::vector<uint8_t>(128, 0x10);
+
+	write(uart0_filestream, encData.data(), encData.size());
+
+	tcsendbreak(uart0_filestream, breakLength_ms);
+
+	//tcdrain(uart0_filestream);
+//	res = write(uart0_filestream, encData.data(), encData.size());
+//	(void)res;
+
+	close(uart0_filestream);
 
 	return 0;
 }
@@ -96,19 +170,16 @@ std::vector<uint8_t> encode(const std::vector<uint8_t> & data)
 		previousByte = nextByte;
 	}
 
+	result.push_back(previousByte);
+
+
 	return result;
 }
 
 void split(const uint8_t byte, uint8_t & out1, uint8_t & out2)
 {
-	print(byte); std::cout << " => ";
-	print(out2); std::cout << " => ";
-	out1 &= ~0x0F;
 	out1 |= (byte & 0x0F) << 4;
-//	out2 &= ~0xF0;
-	print(out2); std::cout << " => ";
 	out2 = (byte & 0xF0) >> 4;
-	print(out2); std::cout << std::endl;
 }
 
 uint8_t encode(const bool bit1, const bool bit2, const bool bit3)

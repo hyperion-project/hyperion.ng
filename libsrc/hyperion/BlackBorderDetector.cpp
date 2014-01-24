@@ -4,7 +4,8 @@
 
 using namespace hyperion;
 
-BlackBorderDetector::BlackBorderDetector()
+BlackBorderDetector::BlackBorderDetector(uint8_t blackborderThreshold) :
+	_blackborderThreshold(blackborderThreshold)
 {
 	// empty
 }

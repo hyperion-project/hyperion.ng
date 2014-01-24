@@ -6,46 +6,46 @@
 
 using namespace hyperion;
 
-ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector) :
-	mLedString(ledString),
+ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector, uint8_t blackborderThreshold) :
+	_ledString(ledString),
 	_enableBlackBorderRemoval(enableBlackBorderDetector),
-	_borderProcessor(new BlackBorderProcessor(600, 50, 1)),
-	mImageToLeds(nullptr)
+	_borderProcessor(new BlackBorderProcessor(600, 50, 1, blackborderThreshold)),
+	_imageToLeds(nullptr)
 {
 	// empty
 }
 
 ImageProcessor::~ImageProcessor()
 {
-	delete mImageToLeds;
+	delete _imageToLeds;
 	delete _borderProcessor;
 }
 
 unsigned ImageProcessor::getLedCount() const
 {
-	return mLedString.leds().size();
+	return _ledString.leds().size();
 }
 
 void ImageProcessor::setSize(const unsigned width, const unsigned height)
 {
 	// Check if the existing buffer-image is already the correct dimensions
-	if (mImageToLeds && mImageToLeds->width() == width && mImageToLeds->height() == height)
+	if (_imageToLeds && _imageToLeds->width() == width && _imageToLeds->height() == height)
 	{
 		return;
 	}
 
 	// Clean up the old buffer and mapping
-	delete mImageToLeds;
+	delete _imageToLeds;
 
 	// Construct a new buffer and mapping
-	mImageToLeds = new ImageToLedsMap(width, height, 0, 0, mLedString.leds());
+	_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
 }
 
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
-	if (led < mLedString.leds().size())
+	if (led < _ledString.leds().size())
 	{
-		const Led & l = mLedString.leds()[led];
+		const Led & l = _ledString.leds()[led];
 		hscanBegin = l.minX_frac;
 		hscanEnd = l.maxX_frac;
 		vscanBegin = l.minY_frac;

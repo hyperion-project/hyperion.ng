@@ -21,11 +21,13 @@ namespace hyperion
 		///                       horizontal border becomes the current border
 		/// @param blurRemoveCnt The size to add to a horizontal or vertical border (because the
 		///                      outer pixels is blurred (black and color combined due to image scaling))
+		/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 		///
 		BlackBorderProcessor(
 				const unsigned unknownFrameCnt,
 				const unsigned borderFrameCnt,
-				const unsigned blurRemoveCnt);
+				const unsigned blurRemoveCnt,
+				uint8_t blackborderThreshold);
 
 		///
 		/// Return the current (detected) border

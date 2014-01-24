@@ -348,10 +348,12 @@
 	],
 
 	/// The black border configuration, contains the following items: 
-	///  * enable : true if the detector should be activated
+	///  * enable    : true if the detector should be activated
+	///  * threshold : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
 	"blackborderdetector" : 
 	{
-		"enable" : true
+		"enable" : true,
+		"threshold" : 0.01
 	},
 
 	/// The configuration of the effect engine, contains the following items: 
