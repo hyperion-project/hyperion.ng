@@ -120,7 +120,7 @@ void OptionsParser::usage() const {
    for(i = parameters.parameters.begin();
 		   i != parameters.parameters.end(); i++)
    {
-	   cerr.width(30);
+	   cerr.width(31);
 	   cerr << std::left << "    " + (*i)->usageLine();
 
 	   cerr.width(40);

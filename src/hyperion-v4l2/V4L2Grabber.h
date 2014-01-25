@@ -14,13 +14,17 @@
 class V4L2Grabber
 {
 public:
+	typedef void (*ImageCallback)(void * arg, const Image<ColorRgb> & image);
+
 	enum VideoStandard {
 		PAL, NTSC, NO_CHANGE
 	};
 
 public:
-	V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation);
+	V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, int width, int height, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation);
 	virtual ~V4L2Grabber();
+
+	void setCallback(ImageCallback callback, void * arg);
 
 	void start();
 
@@ -49,7 +53,7 @@ private:
 
 	int read_frame();
 
-	void process_image(const void *p, int size);
+	bool process_image(const void *p, int size);
 
 	void process_image(const uint8_t *p);
 
@@ -83,4 +87,7 @@ private:
 	const int _pixelDecimation;
 
 	int _currentFrame;
+
+	ImageCallback _callback;
+	void * _callbackArg;
 };

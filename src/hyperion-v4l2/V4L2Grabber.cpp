@@ -12,9 +12,6 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-#include <QImage>
-#include <QRgb>
-
 #include "V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -37,18 +34,20 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 }
 
 
-V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation) :
+V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int width, int height, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation) :
 	_deviceName(device),
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
 	_buffers(),
-	_width(0),
-	_height(0),
+	_width(width),
+	_height(height),
 	_cropWidth(cropHorizontal),
 	_cropHeight(cropVertical),
 	_frameDecimation(std::max(1, frameDecimation)),
 	_pixelDecimation(std::max(1, pixelDecimation)),
-	_currentFrame(0)
+	_currentFrame(0),
+	_callback(nullptr),
+	_callbackArg(nullptr)
 {
 	open_device();
 	init_device(videoStandard, input);
@@ -58,6 +57,12 @@ V4L2Grabber::~V4L2Grabber()
 {
 	uninit_device();
 	close_device();
+}
+
+void V4L2Grabber::setCallback(V4L2Grabber::ImageCallback callback, void *arg)
+{
+	_callback = callback;
+	_callbackArg = arg;
 }
 
 void V4L2Grabber::start()
@@ -343,6 +348,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 		}
 
+
 		// get the current settings
 		struct v4l2_format fmt;
 		CLEAR(fmt);
@@ -356,6 +362,32 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_UYVY)
 		{
 			exit(EXIT_FAILURE);
+		}
+
+		if (_width > 0 || _height > 0)
+		{
+			if (_width > 0)
+			{
+				fmt.fmt.pix.width = _width;
+			}
+
+			if (fmt.fmt.pix.height > 0)
+			{
+				fmt.fmt.pix.height = _height;
+			}
+
+			// set the settings
+			if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
+			{
+				errno_exit("VIDIOC_S_FMT");
+			}
+
+			// get the format settings again
+			// (the size may not have been accepted without an error)
+			if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
+			{
+				errno_exit("VIDIOC_G_FMT");
+			}
 		}
 
 		// store width & height
@@ -468,6 +500,8 @@ void V4L2Grabber::stop_capturing()
 
 int V4L2Grabber::read_frame()
 {
+	bool rc = false;
+
 	struct v4l2_buffer buf;
 
 	switch (_ioMethod) {
@@ -490,7 +524,7 @@ int V4L2Grabber::read_frame()
 					}
 			}
 
-			process_image(_buffers[0].start, size);
+			rc = process_image(_buffers[0].start, size);
 			break;
 
 	case IO_METHOD_MMAP:
@@ -518,7 +552,7 @@ int V4L2Grabber::read_frame()
 
 			assert(buf.index < _buffers.size());
 
-			process_image(_buffers[buf.index].start, buf.bytesused);
+			rc = process_image(_buffers[buf.index].start, buf.bytesused);
 
 			if (-1 == xioctl(VIDIOC_QBUF, &buf))
 			{
@@ -558,7 +592,7 @@ int V4L2Grabber::read_frame()
 					}
 			}
 
-			process_image((void *)buf.m.userptr, buf.bytesused);
+			rc = process_image((void *)buf.m.userptr, buf.bytesused);
 
 			if (-1 == xioctl(VIDIOC_QBUF, &buf))
 			{
@@ -567,10 +601,10 @@ int V4L2Grabber::read_frame()
 			break;
 	}
 
-	return 1;
+	return rc ? 1 : 0;
 }
 
-void V4L2Grabber::process_image(const void *p, int size)
+bool V4L2Grabber::process_image(const void *p, int size)
 {
 	if (++_currentFrame >= _frameDecimation)
 	{
@@ -584,14 +618,15 @@ void V4L2Grabber::process_image(const void *p, int size)
 		{
 			process_image(reinterpret_cast<const uint8_t *>(p));
 			_currentFrame = 0; // restart counting
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void V4L2Grabber::process_image(const uint8_t * data)
 {
-	std::cout << "process image" << std::endl;
-
 	int width = (_width - 2 * _cropWidth + _pixelDecimation/2) / _pixelDecimation;
 	int height = (_height - 2 * _cropHeight + _pixelDecimation/2) / _pixelDecimation;
 
@@ -611,9 +646,10 @@ void V4L2Grabber::process_image(const uint8_t * data)
 		}
 	}
 
-	// store as PNG
-	QImage pngImage((const uint8_t *) image.memptr(), width, height, 3*width, QImage::Format_RGB888);
-	pngImage.save("screenshot.png");
+	if (_callback != nullptr)
+	{
+		(*_callback)(_callbackArg, image);
+	}
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)

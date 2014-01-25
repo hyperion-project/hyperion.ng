@@ -35,10 +35,6 @@ if (ENABLE_DISPMANX)
 	add_subdirectory(dispmanx2png)
 endif (ENABLE_DISPMANX)
 
-if (ENABLE_V4L2)
-	add_subdirectory(v4l2_to_png)
-endif (ENABLE_V4L2)
-
 add_executable(test_blackborderdetector
 		TestBlackBorderDetector.cpp)
 target_link_libraries(test_blackborderdetector
