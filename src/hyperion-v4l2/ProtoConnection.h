@@ -14,7 +14,7 @@
 #include <utils/ColorRgb.h>
 
 // jsoncpp includes
-#include <json/json.h>
+#include <message.pb.h>
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -41,7 +41,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setColor(std::vector<QColor> color, int priority, int duration);
+	void setColor(const ColorRgb & color, int priority, int duration = 1);
 
 	///
 	/// Set the leds according to the given image (assume the image is stretched to the display size)
@@ -50,7 +50,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setImage(const Image<ColorRgb> & image, int priority, int duration);
+	void setImage(const Image<ColorRgb> & image, int priority, int duration = -1);
 
 	///
 	/// Clear the given priority channel
@@ -66,13 +66,13 @@ public:
 
 private:
 	///
-	/// Send a json command message and receive its reply
+	/// Send a command message and receive its reply
 	///
 	/// @param message The message to send
 	///
 	/// @return The returned reply
 	///
-	Json::Value sendMessage(const Json::Value & message);
+	proto::HyperionReply sendMessage(const proto::HyperionRequest & message);
 
 	///
 	/// Parse a reply message
@@ -81,7 +81,7 @@ private:
 	///
 	/// @return true if the reply indicates success
 	///
-	bool parseReply(const Json::Value & reply);
+	bool parseReply(const proto::HyperionReply & reply);
 
 private:
 	/// The TCP-Socket with the connection to the server

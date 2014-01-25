@@ -42,7 +42,6 @@ add_executable(hyperion-v4l2
 
 target_link_libraries(hyperion-v4l2
 	getoptPlusPlus
-	jsoncpp
 	hyperion-utils
 	${PROTOBUF_LIBRARIES}
 	pthread

@@ -38,26 +38,17 @@ ProtoConnection::~ProtoConnection()
 	_socket.close();
 }
 
-void ProtoConnection::setColor(std::vector<QColor> colors, int priority, int duration)
+void ProtoConnection::setColor(const ColorRgb & color, int priority, int duration)
 {
-	// create command
-	Json::Value command;
-	command["command"] = "color";
-	command["priority"] = priority;
-	Json::Value & rgbValue = command["color"];
-	for (const QColor & color : colors)
-	{
-		rgbValue.append(color.red());
-		rgbValue.append(color.green());
-		rgbValue.append(color.blue());
-	}
-	if (duration > 0)
-	{
-		command["duration"] = duration;
-	}
+	proto::HyperionRequest request;
+	request.set_command(proto::HyperionRequest::COLOR);
+	proto::ColorRequest * colorRequest = request.MutableExtension(proto::ColorRequest::colorRequest);
+	colorRequest->set_rgbcolor((color.red << 16) | (color.green << 8) | color.blue);
+	colorRequest->set_priority(priority);
+	colorRequest->set_duration(duration);
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	proto::HyperionReply reply = sendMessage(request);
 
 	// parse reply message
 	parseReply(reply);
@@ -65,40 +56,31 @@ void ProtoConnection::setColor(std::vector<QColor> colors, int priority, int dur
 
 void ProtoConnection::setImage(const Image<ColorRgb> &image, int priority, int duration)
 {
-	// ensure the image has RGB888 format
-	QByteArray binaryImage = QByteArray::fromRawData(reinterpret_cast<const char *>(image.memptr()), image.width() * image.height() * 3);
-	const QByteArray base64Image = binaryImage.toBase64();
-
-	// create command
-	Json::Value command;
-	command["command"] = "image";
-	command["priority"] = priority;
-	command["imagewidth"] = image.width();
-	command["imageheight"] = image.height();
-	command["imagedata"] = std::string(base64Image.data(), base64Image.size());
-	if (duration > 0)
-	{
-		command["duration"] = duration;
-	}
+	proto::HyperionRequest request;
+	request.set_command(proto::HyperionRequest::IMAGE);
+	proto::ImageRequest * imageRequest = request.MutableExtension(proto::ImageRequest::imageRequest);
+	imageRequest->set_imagedata(image.memptr(), image.width() * image.height() * 3);
+	imageRequest->set_imagewidth(image.width());
+	imageRequest->set_imageheight(image.height());
+	imageRequest->set_priority(priority);
+	imageRequest->set_duration(duration);
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	proto::HyperionReply reply = sendMessage(request);
 
 	// parse reply message
-	parseReply(reply);
+//	parseReply(reply);
 }
 
 void ProtoConnection::clear(int priority)
 {
-	std::cout << "Clear priority channel " << priority << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "clear";
-	command["priority"] = priority;
+	proto::HyperionRequest request;
+	request.set_command(proto::HyperionRequest::CLEAR);
+	proto::ClearRequest * clearRequest = request.MutableExtension(proto::ClearRequest::clearRequest);
+	clearRequest->set_priority(priority);
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	proto::HyperionReply reply = sendMessage(request);
 
 	// parse reply message
 	parseReply(reply);
@@ -106,35 +88,44 @@ void ProtoConnection::clear(int priority)
 
 void ProtoConnection::clearAll()
 {
-	std::cout << "Clear all priority channels" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "clearall";
+	proto::HyperionRequest request;
+	request.set_command(proto::HyperionRequest::CLEARALL);
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	proto::HyperionReply reply = sendMessage(request);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-Json::Value ProtoConnection::sendMessage(const Json::Value & message)
+proto::HyperionReply ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 {
 	// serialize message (FastWriter already appends a newline)
-	std::string serializedMessage = Json::FastWriter().write(message);
+	std::string serializedMessage = message.SerializeAsString();
+
+	int length = serializedMessage.size();
+	const uint8_t header[] = {
+		uint8_t((length >> 24) & 0xFF),
+		uint8_t((length >> 16) & 0xFF),
+		uint8_t((length >>  8) & 0xFF),
+		uint8_t((length      ) & 0xFF)};
 
 	// write message
-	_socket.write(serializedMessage.c_str());
+	int count = 0;
+	count += _socket.write(reinterpret_cast<const char *>(header), 4);
+	count += _socket.write(reinterpret_cast<const char *>(serializedMessage.data()), length);
 	if (!_socket.waitForBytesWritten())
 	{
 		throw std::runtime_error("Error while writing data to host");
 	}
 
+	/*
 	// read reply data
 	QByteArray serializedReply;
-	while (!serializedReply.contains('\n'))
+	length = -1;
+	while (serializedReply.size() != length)
 	{
+		std::cout << length << std::endl;
 		// receive reply
 		if (!_socket.waitForReadyRead())
 		{
@@ -142,39 +133,40 @@ Json::Value ProtoConnection::sendMessage(const Json::Value & message)
 		}
 
 		serializedReply += _socket.readAll();
-	}
-	int bytes = serializedReply.indexOf('\n') + 1;     // Find the end of message
 
+		if (length < 0 && serializedReply.size() >= 4)
+		{
+			std::cout << (int) serializedReply[3] << std::endl;
+			std::cout << (int) serializedReply[2] << std::endl;
+			std::cout << (int) serializedReply[1] << std::endl;
+			std::cout << (int) serializedReply[0] << std::endl;
+
+			length = (uint8_t(serializedReply[0]) << 24) | (uint8_t(serializedReply[1]) << 16) | (uint8_t(serializedReply[2]) << 8) | uint8_t(serializedReply[3]) ;
+		}
+	}
+
+	std::cout << length << std::endl;
+*/
 	// parse reply data
-	Json::Reader jsonReader;
-	Json::Value reply;
-	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
-	{
-		throw std::runtime_error("Error while parsing reply: invalid json");
-	}
-
+	proto::HyperionReply reply;
+//	reply.ParseFromArray(serializedReply.constData()+4, length);
 	return reply;
 }
 
-bool ProtoConnection::parseReply(const Json::Value &reply)
+bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 {
 	bool success = false;
-	std::string reason = "No error info";
 
-	try
+	if (!reply.success())
 	{
-		success = reply.get("success", false).asBool();
-		if (!success)
-			reason = reply.get("error", reason).asString();
-	}
-	catch (const std::runtime_error &)
-	{
-		// Some json parsing error: ignore and set parsing error
-	}
-
-	if (!success)
-	{
-		throw std::runtime_error("Error: " + reason);
+		if (reply.has_error())
+		{
+			throw std::runtime_error("Error: " + reply.error());
+		}
+		else
+		{
+			throw std::runtime_error("Error: No error info");
+		}
 	}
 
 	return success;
