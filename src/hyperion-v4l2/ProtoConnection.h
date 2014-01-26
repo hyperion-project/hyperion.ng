@@ -68,14 +68,15 @@ public:
 	void clearAll();
 
 private:
+	/// Try to connect to the Hyperion host
+	void connectToHost();
+
 	///
 	/// Send a command message and receive its reply
 	///
 	/// @param message The message to send
 	///
-	/// @return The returned reply
-	///
-	proto::HyperionReply sendMessage(const proto::HyperionRequest & message);
+	void sendMessage(const proto::HyperionRequest & message);
 
 	///
 	/// Parse a reply message
@@ -89,6 +90,12 @@ private:
 private:
 	/// The TCP-Socket with the connection to the server
 	QTcpSocket _socket;
+
+	/// Host address
+	QString _host;
+
+	/// Host port
+	uint16_t _port;
 
 	/// Skip receiving reply messages from Hyperion if set
 	bool _skipReply;

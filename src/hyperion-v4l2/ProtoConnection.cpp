@@ -17,21 +17,18 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	{
 		throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
 	}
+	_host = parts[0];
 
 	bool ok;
-	uint16_t port = parts[1].toUShort(&ok);
+	_port = parts[1].toUShort(&ok);
 	if (!ok)
 	{
 		throw std::runtime_error(QString("Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
 	}
 
-	_socket.connectToHost(parts[0], port);
-	if (!_socket.waitForConnected())
-	{
-		throw std::runtime_error("Unable to connect to host");
-	}
-
-	std::cout << "Connected to " << a << std::endl;
+	// try to connect to host
+	std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+	connectToHost();
 }
 
 ProtoConnection::~ProtoConnection()
@@ -54,10 +51,7 @@ void ProtoConnection::setColor(const ColorRgb & color, int priority, int duratio
 	colorRequest->set_duration(duration);
 
 	// send command message
-	proto::HyperionReply reply = sendMessage(request);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessage(request);
 }
 
 void ProtoConnection::setImage(const Image<ColorRgb> &image, int priority, int duration)
@@ -72,10 +66,7 @@ void ProtoConnection::setImage(const Image<ColorRgb> &image, int priority, int d
 	imageRequest->set_duration(duration);
 
 	// send command message
-	proto::HyperionReply reply = sendMessage(request);
-
-	// parse reply message
-//	parseReply(reply);
+	sendMessage(request);
 }
 
 void ProtoConnection::clear(int priority)
@@ -86,10 +77,7 @@ void ProtoConnection::clear(int priority)
 	clearRequest->set_priority(priority);
 
 	// send command message
-	proto::HyperionReply reply = sendMessage(request);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessage(request);
 }
 
 void ProtoConnection::clearAll()
@@ -98,14 +86,32 @@ void ProtoConnection::clearAll()
 	request.set_command(proto::HyperionRequest::CLEARALL);
 
 	// send command message
-	proto::HyperionReply reply = sendMessage(request);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessage(request);
 }
 
-proto::HyperionReply ProtoConnection::sendMessage(const proto::HyperionRequest &message)
+void ProtoConnection::connectToHost()
 {
+	_socket.connectToHost(_host, _port);
+	if (_socket.waitForConnected()) {
+		std::cout << "Connected to Hyperion host" << std::endl;
+	}
+}
+
+void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
+{
+	if (_socket.state() == QAbstractSocket::UnconnectedState)
+	{
+		std::cout << "Currently disconnected: trying to connect to host" << std::endl;
+		connectToHost();
+	}
+
+	if (_socket.state() != QAbstractSocket::ConnectedState)
+	{
+		return;
+	}
+
+	// We only get here if we are connected
+
 	// serialize message (FastWriter already appends a newline)
 	std::string serializedMessage = message.SerializeAsString();
 
@@ -122,41 +128,44 @@ proto::HyperionReply ProtoConnection::sendMessage(const proto::HyperionRequest &
 	count += _socket.write(reinterpret_cast<const char *>(serializedMessage.data()), length);
 	if (!_socket.waitForBytesWritten())
 	{
-		throw std::runtime_error("Error while writing data to host");
+		std::cerr << "Error while writing data to host" << std::endl;
+		return;
 	}
 
-	// read reply data
-	QByteArray serializedReply;
-	length = -1;
-	while (length < 0 && serializedReply.size() < length+4)
+	if (!_skipReply)
 	{
-		// receive reply
-		if (!_socket.waitForReadyRead())
+		// read reply data
+		QByteArray serializedReply;
+		length = -1;
+		while (length < 0 && serializedReply.size() < length+4)
 		{
-			throw std::runtime_error("Error while reading data from host");
+			// receive reply
+			if (!_socket.waitForReadyRead())
+			{
+				std::cerr << "Error while reading data from host" << std::endl;
+				return;
+			}
+
+			serializedReply += _socket.readAll();
+
+			if (length < 0 && serializedReply.size() >= 4)
+			{
+				// read the message size
+				length =
+						((serializedReply[0]<<24) & 0xFF000000) |
+						((serializedReply[1]<<16) & 0x00FF0000) |
+						((serializedReply[2]<< 8) & 0x0000FF00) |
+						((serializedReply[3]    ) & 0x000000FF);
+			}
 		}
 
-		serializedReply += _socket.readAll();
+		// parse reply data
+		proto::HyperionReply reply;
+		reply.ParseFromArray(serializedReply.constData()+4, length);
 
-		if (length < 0 && serializedReply.size() >= 4)
-		{
-			// read the message size
-			length =
-					((serializedReply[0]<<24) & 0xFF000000) |
-					((serializedReply[1]<<16) & 0x00FF0000) |
-					((serializedReply[2]<< 8) & 0x0000FF00) |
-					((serializedReply[3]    ) & 0x000000FF);
-		}
+		// parse reply message
+		parseReply(reply);
 	}
-
-	// parse reply data
-	proto::HyperionReply reply;
-	reply.ParseFromArray(serializedReply.constData()+4, length);
-
-	// remove data from receive buffer
-	serializedReply = serializedReply.mid(length+4);
-
-	return reply;
 }
 
 bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
