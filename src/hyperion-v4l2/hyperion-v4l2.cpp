@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("Simple application to send a command to hyperion using the Json interface");
+		OptionsParser optionParser("V4L capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
 		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "The device to use [default=/dev/video0]");
