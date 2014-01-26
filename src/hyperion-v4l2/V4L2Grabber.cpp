@@ -369,7 +369,6 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// check pixel format
-
 	switch (fmt.fmt.pix.pixelformat)
 	{
 	case V4L2_PIX_FMT_UYVY:

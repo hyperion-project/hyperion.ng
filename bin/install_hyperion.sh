@@ -36,7 +36,7 @@ if [ $IS_OPENELEC -eq 1 ]; then
 	# OpenELEC has a readonly file system. Use alternative location
 	curl --get https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz | tar -C /storage -xz
 	curl --get https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.deps.openelec-rpi.tar.gz | tar -C /storage/hyperion/bin -xz
-	
+
 	# modify the default config to have a correct effect path
 	sed -i 's:/opt:/storage:g' /storage/hyperion/config/hyperion.config.json
 else
@@ -47,6 +47,7 @@ fi
 if [ $IS_OPENELEC -ne 1 ]; then
 	ln -fs /opt/hyperion/bin/hyperiond /usr/bin/hyperiond
 	ln -fs /opt/hyperion/bin/hyperion-remote /usr/bin/hyperion-remote
+	ln -fs /opt/hyperion/bin/hyperion-v4l2 /usr/bin/hyperion-v4l2
 fi
 
 # create link to the gpio changer (gpio->spi)
@@ -62,7 +63,6 @@ if [ $IS_OPENELEC -eq 1 ]; then
 else
 	ln -s /opt/hyperion/config/hyperion.config.json /etc/hyperion.config.json
 fi
-	
 
 # Copy the service control configuration to /etc/int
 if [ $USE_INITCTL -eq 1 ]; then
