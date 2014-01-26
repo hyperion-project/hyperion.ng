@@ -17,12 +17,15 @@ include_directories(
 set(Hyperion_V4L2_HEADERS
 	V4L2Grabber.h
 	ProtoConnection.h
+	ImageHandler.h
+	VideoStandardParameter.h
 )
 
 set(Hyperion_V4L2_SOURCES
 	hyperion-v4l2.cpp
 	V4L2Grabber.cpp
 	ProtoConnection.cpp
+	ImageHandler.cpp
 )
 
 set(Hyperion_V4L2_PROTOS
@@ -42,6 +45,7 @@ add_executable(hyperion-v4l2
 
 target_link_libraries(hyperion-v4l2
 	getoptPlusPlus
+	blackborder
 	hyperion-utils
 	${PROTOBUF_LIBRARIES}
 	pthread
