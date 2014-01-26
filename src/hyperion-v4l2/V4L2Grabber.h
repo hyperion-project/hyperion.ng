@@ -81,6 +81,7 @@ private:
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 
+	uint32_t _pixelFormat;
 	int _width;
 	int _height;
 	const int _cropWidth;

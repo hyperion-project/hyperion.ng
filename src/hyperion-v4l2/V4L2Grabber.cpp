@@ -41,6 +41,7 @@ V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard vid
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
 	_buffers(),
+	_pixelFormat(0),
 	_width(width),
 	_height(height),
 	_cropWidth(cropHorizontal),
@@ -368,9 +369,15 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// check pixel format
-	if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_UYVY)
+
+	switch (fmt.fmt.pix.pixelformat)
 	{
-		throw_exception("Only pixel format UYVY is supported");
+	case V4L2_PIX_FMT_UYVY:
+	case V4L2_PIX_FMT_YUYV:
+		_pixelFormat = fmt.fmt.pix.pixelformat;
+		break;
+	default:
+		throw_exception("Only pixel formats UYVY and YUYV are supported");
 	}
 
 	if (_width > 0 || _height > 0)
@@ -648,9 +655,23 @@ void V4L2Grabber::process_image(const uint8_t * data)
 		for (int xSource = _cropWidth + _pixelDecimation/2, xDest = 0; xSource < _width - _cropWidth; xSource += _pixelDecimation, ++xDest)
 		{
 			int index = (_width * ySource + xSource) * 2;
-			uint8_t y = data[index+1];
-			uint8_t u = (xSource%2 == 0) ? data[index] : data[index-2];
-			uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index];
+			uint8_t y = 0;
+			uint8_t u = 0;
+			uint8_t v = 0;
+
+			switch (_pixelFormat)
+			{
+			case V4L2_PIX_FMT_UYVY:
+				y = data[index+1];
+				u = (xSource%2 == 0) ? data[index  ] : data[index-2];
+				v = (xSource%2 == 0) ? data[index+2] : data[index  ];
+				break;
+			case V4L2_PIX_FMT_YUYV:
+				y = data[index];
+				u = (xSource%2 == 0) ? data[index+1] : data[index-1];
+				v = (xSource%2 == 0) ? data[index+3] : data[index+1];
+				break;
+			}
 
 			ColorRgb & rgb = image(xDest, yDest);
 			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
