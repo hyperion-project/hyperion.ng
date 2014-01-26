@@ -8,8 +8,8 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 
-// Local-Hyperion includes
-#include "hyperion/BlackBorderProcessor.h"
+// Blackborder includes
+#include "blackborder/BlackBorderProcessor.h"
 
 using namespace hyperion;
 

@@ -8,7 +8,9 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/LedString.h>
 #include <hyperion/ImageToLedsMap.h>
-#include <hyperion/BlackBorderProcessor.h>
+
+// Black border includes
+#include <blackborder/BlackBorderProcessor.h>
 
 ///
 /// The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is

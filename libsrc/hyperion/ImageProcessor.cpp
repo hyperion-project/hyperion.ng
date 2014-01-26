@@ -2,7 +2,9 @@
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/ImageToLedsMap.h>
-#include <hyperion/BlackBorderProcessor.h>
+
+// Blacborder includes
+#include <blackborder/BlackBorderProcessor.h>
 
 using namespace hyperion;
 

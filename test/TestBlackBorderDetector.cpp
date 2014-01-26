@@ -3,8 +3,10 @@
 #include <random>
 
 // Hyperion includes
-#include <hyperion/BlackBorderDetector.h>
 #include <utils/ColorRgb.h>
+
+// Blackborder includes
+#include <blackborder/BlackBorderDetector.h>
 
 using namespace hyperion;
 

@@ -1,6 +1,6 @@
 
-// Local-Hyperion includes
-#include <hyperion/BlackBorderDetector.h>
+// BlackBorders includes
+#include <blackborder/BlackBorderDetector.h>
 
 using namespace hyperion;
 
