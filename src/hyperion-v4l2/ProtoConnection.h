@@ -34,6 +34,9 @@ public:
 	///
 	~ProtoConnection();
 
+	/// Do not read reply messages from Hyperion if set to true
+	void setSkipReply(bool skip);
+
 	///
 	/// Set all leds to the specified color
 	///
@@ -86,4 +89,7 @@ private:
 private:
 	/// The TCP-Socket with the connection to the server
 	QTcpSocket _socket;
+
+	/// Skip receiving reply messages from Hyperion if set
+	bool _skipReply;
 };

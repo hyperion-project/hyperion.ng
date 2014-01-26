@@ -8,7 +8,8 @@
 #include "ProtoConnection.h"
 
 ProtoConnection::ProtoConnection(const std::string & a) :
-	_socket()
+	_socket(),
+	_skipReply(false)
 {
 	QString address(a.c_str());
 	QStringList parts = address.split(":");
@@ -36,6 +37,11 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 ProtoConnection::~ProtoConnection()
 {
 	_socket.close();
+}
+
+void ProtoConnection::setSkipReply(bool skip)
+{
+	_skipReply = skip;
 }
 
 void ProtoConnection::setColor(const ColorRgb & color, int priority, int duration)
@@ -119,13 +125,11 @@ proto::HyperionReply ProtoConnection::sendMessage(const proto::HyperionRequest &
 		throw std::runtime_error("Error while writing data to host");
 	}
 
-	/*
 	// read reply data
 	QByteArray serializedReply;
 	length = -1;
-	while (serializedReply.size() != length)
+	while (length < 0 && serializedReply.size() < length+4)
 	{
-		std::cout << length << std::endl;
 		// receive reply
 		if (!_socket.waitForReadyRead())
 		{
@@ -136,20 +140,22 @@ proto::HyperionReply ProtoConnection::sendMessage(const proto::HyperionRequest &
 
 		if (length < 0 && serializedReply.size() >= 4)
 		{
-			std::cout << (int) serializedReply[3] << std::endl;
-			std::cout << (int) serializedReply[2] << std::endl;
-			std::cout << (int) serializedReply[1] << std::endl;
-			std::cout << (int) serializedReply[0] << std::endl;
-
-			length = (uint8_t(serializedReply[0]) << 24) | (uint8_t(serializedReply[1]) << 16) | (uint8_t(serializedReply[2]) << 8) | uint8_t(serializedReply[3]) ;
+			// read the message size
+			length =
+					((serializedReply[0]<<24) & 0xFF000000) |
+					((serializedReply[1]<<16) & 0x00FF0000) |
+					((serializedReply[2]<< 8) & 0x0000FF00) |
+					((serializedReply[3]    ) & 0x000000FF);
 		}
 	}
 
-	std::cout << length << std::endl;
-*/
 	// parse reply data
 	proto::HyperionReply reply;
-//	reply.ParseFromArray(serializedReply.constData()+4, length);
+	reply.ParseFromArray(serializedReply.constData()+4, length);
+
+	// remove data from receive buffer
+	serializedReply = serializedReply.mid(length+4);
+
 	return reply;
 }
 

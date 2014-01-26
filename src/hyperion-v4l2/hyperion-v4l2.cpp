@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",     "Take a single screenshot, save it to file and quit");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",        "Set the address of the hyperion server [default: 127.0.0.1:19445]");
 		IntParameter           & argPriority        = parameters.add<IntParameter>          ('p', "priority",       "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
+		SwitchParameter<>      & argSkipReply       = parameters.add<SwitchParameter<>>     (0x0, "skip-reply",     "Do not receive and check reply messages from Hyperion");
 		SwitchParameter<>      & argHelp            = parameters.add<SwitchParameter<>>     ('h', "help",           "Show this help message and exit");
 
 		// set defaults
@@ -126,6 +127,7 @@ int main(int argc, char** argv)
 		else
 		{
 			ProtoConnection connection(argAddress.getValue());
+			connection.setSkipReply(argSkipReply.isSet());
 
 			grabber.setCallback(&sendImage, &connection);
 			grabber.capture();
