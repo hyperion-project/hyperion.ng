@@ -59,7 +59,9 @@ private:
 
 	int xioctl(int request, void *arg);
 
-	void errno_exit(const char *s);
+	void throw_exception(const std::string &error);
+
+	void throw_errno_exception(const std::string &error);
 
 private:
 	enum io_method {
