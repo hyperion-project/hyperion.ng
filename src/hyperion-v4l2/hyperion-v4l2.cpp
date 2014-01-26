@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 		ParameterSet & parameters = optionParser.getParameters();
 
 		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "The device to use [default=/dev/video0]");
-		VideoStandardParameter & argVideoStandard   = parameters.add<VideoStandardParameter>('v', "video-standard",   "The used video standard. Valid values are PAL. NYSC, or NO-CHANGE [default=PAL]");
+		VideoStandardParameter & argVideoStandard   = parameters.add<VideoStandardParameter>('v', "video-standard",   "The used video standard. Valid values are PAL or NTSC (optional)");
 		IntParameter           & argInput           = parameters.add<IntParameter>          (0x0, "input",            "Input channel (optional)");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Try to set the width of the video input (optional)");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Try to set the height of the video input (optional)");
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
 		// set defaults
 		argDevice.setDefault("/dev/video0");
-		argVideoStandard.setDefault(V4L2Grabber::PAL);
+		argVideoStandard.setDefault(V4L2Grabber::NO_CHANGE);
 		argInput.setDefault(-1);
 		argWidth.setDefault(-1);
 		argHeight.setDefault(-1);
