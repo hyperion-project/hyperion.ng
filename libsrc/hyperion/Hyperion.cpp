@@ -270,7 +270,10 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 		throw std::runtime_error("Color transformation incorrectly set");
 	}
 	// initialize the image processor factory
-	ImageProcessorFactory::getInstance().init(_ledString, jsonConfig["blackborderdetector"].get("enable", true).asBool());
+	ImageProcessorFactory::getInstance().init(
+				_ledString,
+				jsonConfig["blackborderdetector"].get("enable", true).asBool(),
+				jsonConfig["blackborderdetector"].get("threshold", 0.01).asDouble());
 
 	// initialize the color smoothing filter
 	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);

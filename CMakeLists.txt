@@ -13,6 +13,9 @@ option (ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
 message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
 
+option (ENABLE_V4L2 "Enable the V4L2 grabber" ON)
+message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
+
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
 # to the source code

@@ -22,6 +22,7 @@ tar --create --verbose --gzip --absolute-names --show-transformed-names \
 	--transform "s://:/:g" \
 	"$builddir/bin/hyperiond" \
 	"$builddir/bin/hyperion-remote" \
+	"$builddir/bin/hyperion-v4l2" \
 	"$builddir/bin/gpio2spi" \
 	"$builddir/bin/dispmanx2png" \
 	"$repodir/effects/"* \

@@ -17,9 +17,6 @@ SET(Hyperion_HEADERS
 		${CURRENT_HEADER_DIR}/LedString.h
 		${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
-		${CURRENT_HEADER_DIR}/BlackBorderDetector.h
-		${CURRENT_HEADER_DIR}/BlackBorderProcessor.h
-
 		${CURRENT_SOURCE_DIR}/MultiColorTransform.h
 )
 
@@ -30,8 +27,6 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/LedString.cpp
 		${CURRENT_SOURCE_DIR}/PriorityMuxer.cpp
 
-		${CURRENT_SOURCE_DIR}/BlackBorderDetector.cpp
-		${CURRENT_SOURCE_DIR}/BlackBorderProcessor.cpp
 		${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
 		${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
@@ -54,6 +49,7 @@ add_library(hyperion
 )
 
 target_link_libraries(hyperion
+		blackborder
 		hyperion-utils
 		leddevice
 		effectengine

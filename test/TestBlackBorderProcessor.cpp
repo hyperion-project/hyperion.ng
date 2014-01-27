@@ -8,8 +8,8 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 
-// Local-Hyperion includes
-#include "hyperion/BlackBorderProcessor.h"
+// Blackborder includes
+#include "blackborder/BlackBorderProcessor.h"
 
 using namespace hyperion;
 
@@ -48,7 +48,7 @@ int main()
 	unsigned borderCnt  = 50;
 	unsigned blurCnt    = 0;
 
-	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt);
+	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt, 3);
 
 	// Start with 'no border' detection
 	Image<ColorRgb> noBorderImage = createImage(64, 64, 0, 0);
