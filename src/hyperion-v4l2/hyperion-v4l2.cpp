@@ -1,7 +1,7 @@
-
 // STL includes
 #include <csignal>
 #include <iomanip>
+#include <clocale>
 
 // QT includes
 #include <QImage>
@@ -30,6 +30,8 @@ void saveScreenshot(void *, const Image<ColorRgb> & image)
 
 int main(int argc, char** argv)
 {
+	setlocale(LC_ALL, "C");
+
 	try
 	{
 		// create the option parser and initialize all parameters

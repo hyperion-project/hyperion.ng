@@ -1,4 +1,5 @@
 // stl includes
+#include <clocale>
 #include <initializer_list>
 
 // Qt includes
@@ -26,6 +27,8 @@ int count(std::initializer_list<bool> values)
 
 int main(int argc, char * argv[])
 {
+	setlocale(LC_ALL, "C");
+
 	QCoreApplication app(argc, argv);
 
 	try

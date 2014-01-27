@@ -1,6 +1,7 @@
 // C++ includes
 #include <cassert>
 #include <csignal>
+#include <clocale>
 
 // QT includes
 #include <QCoreApplication>
@@ -70,6 +71,7 @@ Json::Value loadConfig(const std::string & configFile)
 int main(int argc, char** argv)
 {
 	std::cout << "Application build time: " << __DATE__ << " " << __TIME__ << std::endl;
+	std::cout << "Locale = " << setlocale(LC_ALL, "C") << std::endl;
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
