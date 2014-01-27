@@ -46,7 +46,7 @@ void printClockSignal(const std::vector<uint8_t> & signal)
 
 int main()
 {
-	const std::vector<uint8_t> white{0xff, 0xff, 0xff};
+	const std::vector<uint8_t> white{0xff,0xff,0xff, 0xff,0xff,0xff, 0xff,0xff,0xff};
 	const std::vector<uint8_t> green{0xff, 0x00, 0x00};
 	const std::vector<uint8_t> red  {0x00, 0xff, 0x00};
 	const std::vector<uint8_t> blue {0x00, 0x00, 0xff};
@@ -87,20 +87,22 @@ int main()
 		const std::vector<uint8_t> encBlackData = encode(black);
 
 		//std::cout << "Writing GREEN ("; printClockSignal(encode(green)); std::cout << ")" << std::endl;
-		const std::vector<uint8_t> garbage {0x0f};
-		write(uart0_filestream, garbage.data(), garbage.size());
-		write(uart0_filestream, encGreenData.data(), encGreenData.size());
-		write(uart0_filestream, encRedData.data(), encRedData.size());
-		write(uart0_filestream, encBlueData.data(), encBlueData.size());
-		write(uart0_filestream, encGrayData.data(), encGrayData.size());
-		write(uart0_filestream, encBlackData.data(), encBlackData.size());
-	}
-	{
-		getchar();
+//		const std::vector<uint8_t> garbage {0x0f};
+//		write(uart0_filestream, garbage.data(), garbage.size());
+//		write(uart0_filestream, encGreenData.data(), encGreenData.size());
+//		write(uart0_filestream, encRedData.data(), encRedData.size());
+//		write(uart0_filestream, encBlueData.data(), encBlueData.size());
+//		write(uart0_filestream, encGrayData.data(), encGrayData.size());
+//		write(uart0_filestream, encBlackData.data(), encBlackData.size());
+//	}
+//	{
+//		getchar();
 		const std::vector<uint8_t> encData = encode(white);
 		std::cout << "Writing WHITE ("; printClockSignal(encode(white)); std::cout << ")" << std::endl;
-		const std::vector<uint8_t> garbage {0x0f};
-		write(uart0_filestream, garbage.data(), garbage.size());
+//		const std::vector<uint8_t> garbage {0x0f};
+//		write(uart0_filestream, garbage.data(), garbage.size());
+		write(uart0_filestream, encData.data(), encData.size());
+		write(uart0_filestream, encData.data(), encData.size());
 		write(uart0_filestream, encData.data(), encData.size());
 	}
 	{
