@@ -62,7 +62,7 @@ void printClockSignal(const std::vector<uint8_t> & signal)
 
 int main()
 {
-	const std::vector<uint8_t> data(9, 0xff);
+	const std::vector<uint8_t> data(9, 0x00);
 	std::vector<uint8_t> encData = encode(data);
 
 	for (uint8_t encByte : encData)
@@ -88,7 +88,7 @@ int main()
 	// Configure the port
 	struct termios options;
 	tcgetattr(uart0_filestream, &options);
-	options.c_cflag = B4000000 | CS8 | CLOCAL;
+	options.c_cflag = B2500000 | CS8 | CLOCAL;
 	options.c_iflag = IGNPAR;
 	options.c_oflag = 0;
 	options.c_lflag = 0;
@@ -96,11 +96,11 @@ int main()
 	tcflush(uart0_filestream, TCIFLUSH);
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 
-	char c = getchar();
+	getchar();
 
 	const int breakLength_ms = 1;
 
-	encData = std::vector<uint8_t>(128, 0x10);
+	encData = std::vector<uint8_t>(128, 0x00);
 
 	write(uart0_filestream, encData.data(), encData.size());
 

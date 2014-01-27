@@ -31,6 +31,7 @@ int LedRs232Device::open()
 {
 	try
 	{
+		std::cout << "Opening UART: " << mDeviceName << std::endl;
 		_rs232Port.setPort(mDeviceName);
 		_rs232Port.setBaudrate(mBaudRate_Hz);
 		_rs232Port.open();
