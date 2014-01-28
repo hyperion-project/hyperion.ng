@@ -4,6 +4,7 @@
 
 // Qt includes
 #include <QCoreApplication>
+#include <QLocale>
 
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
@@ -27,9 +28,11 @@ int count(std::initializer_list<bool> values)
 
 int main(int argc, char * argv[])
 {
-	setlocale(LC_ALL, "C");
-
 	QCoreApplication app(argc, argv);
+
+	// force the locale
+	setlocale(LC_ALL, "C");
+	QLocale::setDefault(QLocale::c());
 
 	try
 	{

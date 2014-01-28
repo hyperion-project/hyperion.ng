@@ -30,6 +30,7 @@ void saveScreenshot(void *, const Image<ColorRgb> & image)
 
 int main(int argc, char** argv)
 {
+	// force the locale
 	setlocale(LC_ALL, "C");
 
 	try

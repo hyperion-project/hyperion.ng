@@ -6,6 +6,7 @@
 // QT includes
 #include <QCoreApplication>
 #include <QResource>
+#include <QLocale>
 
 // config includes
 #include "HyperionConfig.h"
@@ -71,7 +72,6 @@ Json::Value loadConfig(const std::string & configFile)
 int main(int argc, char** argv)
 {
 	std::cout << "Application build time: " << __DATE__ << " " << __TIME__ << std::endl;
-	std::cout << "Locale = " << setlocale(LC_ALL, "C") << std::endl;
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -79,6 +79,10 @@ int main(int argc, char** argv)
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
+
+	// force the locale
+	setlocale(LC_ALL, "C");
+	QLocale::setDefault(QLocale::c());
 
 	if (argc < 2)
 	{
