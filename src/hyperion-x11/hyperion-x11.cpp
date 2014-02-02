@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
 		else
 		{
 			// Create the Proto-connection with hyperiond
-			ProtoWrapper protoWrapper("127.0.0.1:19445", argSkipReply.isSet());
+			ProtoWrapper protoWrapper(argAddress.getValue(), argSkipReply.isSet());
 
 			// Connect the screen capturing to the proto processing
 			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(process(Image<ColorRgb>)));
