@@ -19,8 +19,8 @@ cd "$HYPERION_DIR/build"
 
 # run cmake to generate make files on the rsapberry pi
 cmake ..
-# or if you are not compiling on the raspberry pi and need to disable the Disppmanx grabber
-cmake -DENABLE_DISPMANX=OFF ..
+# or if you are not compiling on the raspberry pi and need to disable the Dispmanx grabber and support for spi devices
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF ..
 
 # run make to build Hyperion
 make
