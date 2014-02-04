@@ -42,10 +42,6 @@ V4L2Grabber::V4L2Grabber(
 		VideoStandard videoStandard,
 		int width,
 		int height,
-		int cropLeft,
-		int cropRight,
-		int cropTop,
-		int cropBottom,
 		int frameDecimation,
 		int horizontalPixelDecimation,
 		int verticalPixelDecimation) :
@@ -56,13 +52,14 @@ V4L2Grabber::V4L2Grabber(
 	_pixelFormat(0),
 	_width(width),
 	_height(height),
-	_cropLeft(cropLeft),
-	_cropRight(cropRight),
-	_cropTop(cropTop),
-	_cropBottom(cropBottom),
+	_cropLeft(0),
+	_cropRight(0),
+	_cropTop(0),
+	_cropBottom(0),
 	_frameDecimation(std::max(1, frameDecimation)),
 	_horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
 	_verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
+	_mode3D(MODE_NONE),
 	_currentFrame(0),
 	_callback(nullptr),
 	_callbackArg(nullptr)
@@ -75,6 +72,19 @@ V4L2Grabber::~V4L2Grabber()
 {
 	uninit_device();
 	close_device();
+}
+
+void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
+{
+	_cropLeft = cropLeft;
+	_cropRight = cropRight;
+	_cropTop = cropTop;
+	_cropBottom = cropBottom;
+}
+
+void V4L2Grabber::set3D(Mode3D mode)
+{
+	_mode3D = mode;
 }
 
 void V4L2Grabber::setCallback(V4L2Grabber::ImageCallback callback, void *arg)
@@ -659,14 +669,29 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data)
 {
-	int width = (_width - _cropLeft - _cropRight + _horizontalPixelDecimation/2) / _horizontalPixelDecimation;
-	int height = (_height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
+	int width = _width;
+	int height = _height;
 
-	Image<ColorRgb> image(width, height);
-
-	for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < _height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
+	switch (_mode3D)
 	{
-		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < _width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
+	case MODE_3DSBS:
+		width = _width/2;
+		break;
+	case MODE_3DTAB:
+		height = _height/2;
+		break;
+	default:
+		break;
+	}
+
+	// create output structure
+	int outputWidth = (width - _cropLeft - _cropRight + _horizontalPixelDecimation/2) / _horizontalPixelDecimation;
+	int outputHeight = (height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
+	Image<ColorRgb> image(outputWidth, outputHeight);
+
+	for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
+	{
+		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
 		{
 			int index = (_width * ySource + xSource) * 2;
 			uint8_t y = 0;

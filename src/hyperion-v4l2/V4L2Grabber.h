@@ -20,6 +20,10 @@ public:
 		PAL, NTSC, NO_CHANGE
 	};
 
+	enum Mode3D {
+		MODE_NONE, MODE_3DSBS, MODE_3DTAB
+	};
+
 public:
 	V4L2Grabber(
 			const std::string & device,
@@ -27,14 +31,17 @@ public:
 			VideoStandard videoStandard,
 			int width,
 			int height,
-			int cropLeft,
-			int cropRight,
-			int cropTop,
-			int cropBottom,
 			int frameDecimation,
 			int horizontalPixelDecimation,
 			int verticalPixelDecimation);
 	virtual ~V4L2Grabber();
+
+	void setCropping(int cropLeft,
+					 int cropRight,
+					 int cropTop,
+					 int cropBottom);
+
+	void set3D(Mode3D mode);
 
 	void setCallback(ImageCallback callback, void * arg);
 
@@ -96,13 +103,15 @@ private:
 	uint32_t _pixelFormat;
 	int _width;
 	int _height;
-	const int _cropLeft;
-	const int _cropRight;
-	const int _cropTop;
-	const int _cropBottom;
-	const int _frameDecimation;
-	const int _horizontalPixelDecimation;
-	const int _verticalPixelDecimation;
+	int _cropLeft;
+	int _cropRight;
+	int _cropTop;
+	int _cropBottom;
+	int _frameDecimation;
+	int _horizontalPixelDecimation;
+	int _verticalPixelDecimation;
+
+	Mode3D _mode3D;
 
 	int _currentFrame;
 

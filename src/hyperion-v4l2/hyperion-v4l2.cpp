@@ -54,6 +54,8 @@ int main(int argc, char** argv)
 		IntParameter           & argFrameDecimation = parameters.add<IntParameter>          ('f', "frame-decimator",  "Decimation factor for the video frames [default=1]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
 		DoubleParameter        & argSignalThreshold = parameters.add<DoubleParameter>       ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.");
+		SwitchParameter<>      & arg3DSBS           = parameters.add<SwitchParameter<>>     (0x0, "3DSBS",            "Interpret the incoming video stream as 3D side-by-side");
+		SwitchParameter<>      & arg3DTAB           = parameters.add<SwitchParameter<>>     (0x0, "3DTAB",            "Interpret the incoming video stream as 3D top-and-bottom");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
 		IntParameter           & argPriority        = parameters.add<IntParameter>          ('p', "priority",         "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
 		SwitchParameter<>      & argSkipReply       = parameters.add<SwitchParameter<>>     (0x0, "skip-reply",       "Do not receive and check reply messages from Hyperion");
@@ -88,21 +90,38 @@ int main(int argc, char** argv)
 		if (!argCropTop.isSet())    argCropTop.setDefault(argCropHeight.getValue());
 		if (!argCropBottom.isSet()) argCropBottom.setDefault(argCropHeight.getValue());
 
+		// initialize the grabber
 		V4L2Grabber grabber(
 					argDevice.getValue(),
 					argInput.getValue(),
 					argVideoStandard.getValue(),
 					argWidth.getValue(),
 					argHeight.getValue(),
-					std::max(0, argCropLeft.getValue()),
-					std::max(0, argCropRight.getValue()),
-					std::max(0, argCropTop.getValue()),
-					std::max(0, argCropBottom.getValue()),
 					std::max(1, argFrameDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()));
 
+		// set cropping values
+		grabber.setCropping(
+					std::max(0, argCropLeft.getValue()),
+					std::max(0, argCropRight.getValue()),
+					std::max(0, argCropTop.getValue()),
+					std::max(0, argCropBottom.getValue()));
+
+		// set 3D mode if applicable
+		if (arg3DSBS.isSet())
+		{
+			grabber.set3D(V4L2Grabber::MODE_3DSBS);
+		}
+		else if (arg3DTAB.isSet())
+		{
+			grabber.set3D(V4L2Grabber::MODE_3DTAB);
+		}
+
+		// start the grabber
 		grabber.start();
+
+		// run the grabber
 		if (argScreenshot.isSet())
 		{
 			grabber.setCallback(&saveScreenshot, nullptr);
@@ -114,6 +133,8 @@ int main(int argc, char** argv)
 			grabber.setCallback(&ImageHandler::imageCallback, &handler);
 			grabber.capture();
 		}
+
+		// stop the grabber
 		grabber.stop();
 	}
 	catch (const std::runtime_error & e)
