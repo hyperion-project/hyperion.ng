@@ -28,7 +28,7 @@ int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)
 {
 	if (_ledBuffer.size() == 0)
 	{
-		std::vector<FrameSpec> frameSpecs{{0xA0, 96}, {0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
+		std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 
 		const unsigned reqColorChannels = ledValues.size() * sizeof(ColorRgb);
 
