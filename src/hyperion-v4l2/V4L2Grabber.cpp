@@ -36,7 +36,19 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 }
 
 
-V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard videoStandard, int width, int height, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation) :
+V4L2Grabber::V4L2Grabber(
+		const std::string & device,
+		int input,
+		VideoStandard videoStandard,
+		int width,
+		int height,
+		int cropLeft,
+		int cropRight,
+		int cropTop,
+		int cropBottom,
+		int frameDecimation,
+		int horizontalPixelDecimation,
+		int verticalPixelDecimation) :
 	_deviceName(device),
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
@@ -44,10 +56,13 @@ V4L2Grabber::V4L2Grabber(const std::string &device, int input, VideoStandard vid
 	_pixelFormat(0),
 	_width(width),
 	_height(height),
-	_cropWidth(cropHorizontal),
-	_cropHeight(cropVertical),
+	_cropLeft(cropLeft),
+	_cropRight(cropRight),
+	_cropTop(cropTop),
+	_cropBottom(cropBottom),
 	_frameDecimation(std::max(1, frameDecimation)),
-	_pixelDecimation(std::max(1, pixelDecimation)),
+	_horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
+	_verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
 	_currentFrame(0),
 	_callback(nullptr),
 	_callbackArg(nullptr)
@@ -644,14 +659,14 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data)
 {
-	int width = (_width - 2 * _cropWidth + _pixelDecimation/2) / _pixelDecimation;
-	int height = (_height - 2 * _cropHeight + _pixelDecimation/2) / _pixelDecimation;
+	int width = (_width - _cropLeft - _cropRight + _horizontalPixelDecimation/2) / _horizontalPixelDecimation;
+	int height = (_height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
 
 	Image<ColorRgb> image(width, height);
 
-	for (int ySource = _cropHeight + _pixelDecimation/2, yDest = 0; ySource < _height - _cropHeight; ySource += _pixelDecimation, ++yDest)
+	for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < _height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
 	{
-		for (int xSource = _cropWidth + _pixelDecimation/2, xDest = 0; xSource < _width - _cropWidth; xSource += _pixelDecimation, ++xDest)
+		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < _width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
 		{
 			int index = (_width * ySource + xSource) * 2;
 			uint8_t y = 0;

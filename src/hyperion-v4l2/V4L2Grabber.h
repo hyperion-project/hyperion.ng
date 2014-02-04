@@ -21,7 +21,19 @@ public:
 	};
 
 public:
-	V4L2Grabber(const std::string & device, int input, VideoStandard videoStandard, int width, int height, int cropHorizontal, int cropVertical, int frameDecimation, int pixelDecimation);
+	V4L2Grabber(
+			const std::string & device,
+			int input,
+			VideoStandard videoStandard,
+			int width,
+			int height,
+			int cropLeft,
+			int cropRight,
+			int cropTop,
+			int cropBottom,
+			int frameDecimation,
+			int horizontalPixelDecimation,
+			int verticalPixelDecimation);
 	virtual ~V4L2Grabber();
 
 	void setCallback(ImageCallback callback, void * arg);
@@ -84,10 +96,13 @@ private:
 	uint32_t _pixelFormat;
 	int _width;
 	int _height;
-	const int _cropWidth;
-	const int _cropHeight;
+	const int _cropLeft;
+	const int _cropRight;
+	const int _cropTop;
+	const int _cropBottom;
 	const int _frameDecimation;
-	const int _pixelDecimation;
+	const int _horizontalPixelDecimation;
+	const int _verticalPixelDecimation;
 
 	int _currentFrame;
 

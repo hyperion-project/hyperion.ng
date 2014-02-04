@@ -44,8 +44,12 @@ int main(int argc, char** argv)
 		IntParameter           & argInput           = parameters.add<IntParameter>          (0x0, "input",            "Input channel (optional)");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Try to set the width of the video input (optional)");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Try to set the height of the video input (optional)");
-		IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides in the picture before decimation [default=0]");
-		IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom in the picture before decimation [default=0]");
+		IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides of the picture before decimation [default=0]");
+		IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom of the picture before decimation [default=0]");
+		IntParameter           & argCropLeft        = parameters.add<IntParameter>          (0x0, "crop-left",        "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
+		IntParameter           & argCropRight       = parameters.add<IntParameter>          (0x0, "crop-right",       "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
+		IntParameter           & argCropTop         = parameters.add<IntParameter>          (0x0, "crop-top",         "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
+		IntParameter           & argCropBottom      = parameters.add<IntParameter>          (0x0, "crop-bottom",      "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
 		IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=1]");
 		IntParameter           & argFrameDecimation = parameters.add<IntParameter>          ('f', "frame-decimator",  "Decimation factor for the video frames [default=1]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
@@ -79,15 +83,23 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
+		if (!argCropLeft.isSet())   argCropLeft.setDefault(argCropWidth.getValue());
+		if (!argCropRight.isSet())  argCropRight.setDefault(argCropWidth.getValue());
+		if (!argCropTop.isSet())    argCropTop.setDefault(argCropHeight.getValue());
+		if (!argCropBottom.isSet()) argCropBottom.setDefault(argCropHeight.getValue());
+
 		V4L2Grabber grabber(
 					argDevice.getValue(),
 					argInput.getValue(),
 					argVideoStandard.getValue(),
 					argWidth.getValue(),
 					argHeight.getValue(),
-					std::max(0, argCropWidth.getValue()),
-					std::max(0, argCropHeight.getValue()),
+					std::max(0, argCropLeft.getValue()),
+					std::max(0, argCropRight.getValue()),
+					std::max(0, argCropTop.getValue()),
+					std::max(0, argCropBottom.getValue()),
 					std::max(1, argFrameDecimation.getValue()),
+					std::max(1, argSizeDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()));
 
 		grabber.start();
