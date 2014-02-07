@@ -15,7 +15,6 @@ include_directories(
 )
 
 set(Hyperion_V4L2_HEADERS
-	V4L2Grabber.h
 	ProtoConnection.h
 	ImageHandler.h
 	VideoStandardParameter.h
@@ -23,7 +22,6 @@ set(Hyperion_V4L2_HEADERS
 
 set(Hyperion_V4L2_SOURCES
 	hyperion-v4l2.cpp
-	V4L2Grabber.cpp
 	ProtoConnection.cpp
 	ImageHandler.cpp
 )
@@ -44,6 +42,7 @@ add_executable(hyperion-v4l2
 )
 
 target_link_libraries(hyperion-v4l2
+	v4l2-grabber
 	getoptPlusPlus
 	blackborder
 	hyperion-utils

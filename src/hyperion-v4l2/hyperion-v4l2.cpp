@@ -12,8 +12,10 @@
 // blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
+// grabber includes
+#include "grabber/V4L2Grabber.h"
+
 // hyperion-v4l2 includes
-#include "V4L2Grabber.h"
 #include "ProtoConnection.h"
 #include "VideoStandardParameter.h"
 #include "ImageHandler.h"

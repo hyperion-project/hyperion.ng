@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-#include "V4L2Grabber.h"
+#include "grabber/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 

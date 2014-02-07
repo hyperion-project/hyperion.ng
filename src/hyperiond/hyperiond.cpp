@@ -19,7 +19,7 @@
 
 #ifdef ENABLE_DISPMANX
 // Dispmanx grabber includes
-#include <dispmanx-grabber/DispmanxWrapper.h>
+#include <grabber/DispmanxWrapper.h>
 #endif
 
 // XBMC Video checker includes
