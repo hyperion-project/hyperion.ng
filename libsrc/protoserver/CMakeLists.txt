@@ -44,9 +44,5 @@ add_library(protoserver
 target_link_libraries(protoserver
 		hyperion
 		hyperion-utils
-		${PROTOBUF_LIBRARIES})
-
-qt4_use_modules(protoserver
-	Core
-	Gui
-	Network)
+        ${PROTOBUF_LIBRARIES}
+        ${QT_LIBRARIES})

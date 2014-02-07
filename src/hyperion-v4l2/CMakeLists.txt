@@ -49,9 +49,5 @@ target_link_libraries(hyperion-v4l2
 	hyperion-utils
 	${PROTOBUF_LIBRARIES}
 	pthread
+    ${QT_LIBRARIES}
 )
-
-qt4_use_modules(hyperion-v4l2
-	Core
-	Gui
-	Network)
