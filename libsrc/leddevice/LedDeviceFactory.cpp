@@ -1,3 +1,6 @@
+// Stl includes
+#include <string>
+#include <algorithm>
 
 // Build configuration
 #include <HyperionConfig.h>
