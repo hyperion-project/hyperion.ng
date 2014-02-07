@@ -1,5 +1,8 @@
 #pragma once
 
+// STL includes
+#include <algorithm>
+
 // Qt includes
 #include <QColor>
 #include <QImage>
