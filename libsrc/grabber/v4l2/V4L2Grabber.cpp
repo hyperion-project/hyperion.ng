@@ -59,10 +59,9 @@ V4L2Grabber::V4L2Grabber(
 	_frameDecimation(std::max(1, frameDecimation)),
 	_horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
 	_verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
-	_mode3D(MODE_NONE),
+	_mode3D(VIDEO_2D),
 	_currentFrame(0),
-	_callback(nullptr),
-	_callbackArg(nullptr)
+	_streamNotifier(nullptr)
 {
 	open_device();
 	init_device(videoStandard, input);
@@ -82,66 +81,21 @@ void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_cropBottom = cropBottom;
 }
 
-void V4L2Grabber::set3D(Mode3D mode)
+void V4L2Grabber::set3D(VideoMode mode)
 {
 	_mode3D = mode;
 }
 
-void V4L2Grabber::setCallback(V4L2Grabber::ImageCallback callback, void *arg)
-{
-	_callback = callback;
-	_callbackArg = arg;
-}
-
 void V4L2Grabber::start()
 {
+	_streamNotifier->setEnabled(true);
 	start_capturing();
-}
-
-void V4L2Grabber::capture(int frameCount)
-{
-	for (int count = 0; count < frameCount || frameCount < 0; ++count)
-	{
-		for (;;)
-		{
-			// the set of file descriptors for select
-			fd_set fds;
-			FD_ZERO(&fds);
-			FD_SET(_fileDescriptor, &fds);
-
-			// timeout
-			struct timeval tv;
-			tv.tv_sec = 2;
-			tv.tv_usec = 0;
-
-			// block until data is available
-			int r = select(_fileDescriptor + 1, &fds, NULL, NULL, &tv);
-
-			if (-1 == r)
-			{
-				if (EINTR == errno)
-					continue;
-				throw_errno_exception("select");
-			}
-
-			if (0 == r)
-			{
-				throw_exception("select timeout");
-			}
-
-			if (read_frame())
-			{
-				break;
-			}
-
-			/* EAGAIN - continue select loop. */
-		}
-	}
 }
 
 void V4L2Grabber::stop()
 {
 	stop_capturing();
+	_streamNotifier->setEnabled(false);
 }
 
 void V4L2Grabber::open_device()
@@ -170,6 +124,10 @@ void V4L2Grabber::open_device()
 		oss << "Cannot open '" << _deviceName << "'";
 		throw_errno_exception(oss.str());
 	}
+
+	// create the notifier for when a new frame is available
+	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
+	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
 }
 
 void V4L2Grabber::close_device()
@@ -178,6 +136,12 @@ void V4L2Grabber::close_device()
 		throw_errno_exception("close");
 
 	_fileDescriptor = -1;
+
+	if (_streamNotifier != nullptr)
+	{
+		delete _streamNotifier;
+		_streamNotifier = nullptr;
+	}
 }
 
 void V4L2Grabber::init_read(unsigned int buffer_size)
@@ -674,10 +638,10 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 	switch (_mode3D)
 	{
-	case MODE_3DSBS:
+	case VIDEO_3DSBS:
 		width = _width/2;
 		break;
-	case MODE_3DTAB:
+	case VIDEO_3DTAB:
 		height = _height/2;
 		break;
 	default:
@@ -717,10 +681,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 		}
 	}
 
-	if (_callback != nullptr)
-	{
-		(*_callback)(_callbackArg, image);
-	}
+	emit newFrame(image);
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)

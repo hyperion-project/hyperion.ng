@@ -4,7 +4,7 @@
 #include <clocale>
 
 // QT includes
-#include <QImage>
+#include <QCoreApplication>
 
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
@@ -19,6 +19,7 @@
 #include "ProtoConnection.h"
 #include "VideoStandardParameter.h"
 #include "ImageHandler.h"
+#include "ScreenshotHandler.h"
 
 using namespace vlofgren;
 
@@ -32,8 +33,11 @@ void saveScreenshot(void *, const Image<ColorRgb> & image)
 
 int main(int argc, char** argv)
 {
+	QCoreApplication app(argc, argv);
+
 	// force the locale
 	setlocale(LC_ALL, "C");
+	QLocale::setDefault(QLocale::c());
 
 	try
 	{
@@ -113,31 +117,30 @@ int main(int argc, char** argv)
 		// set 3D mode if applicable
 		if (arg3DSBS.isSet())
 		{
-			grabber.set3D(V4L2Grabber::MODE_3DSBS);
+			grabber.set3D(VIDEO_3DSBS);
 		}
 		else if (arg3DTAB.isSet())
 		{
-			grabber.set3D(V4L2Grabber::MODE_3DTAB);
+			grabber.set3D(VIDEO_3DTAB);
 		}
-
-		// start the grabber
-		grabber.start();
 
 		// run the grabber
 		if (argScreenshot.isSet())
 		{
-			grabber.setCallback(&saveScreenshot, nullptr);
-			grabber.capture(1);
+			ScreenshotHandler handler("screenshot.png");
+			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			grabber.start();
+			QCoreApplication::exec();
+			grabber.stop();
 		}
 		else
 		{
 			ImageHandler handler(argAddress.getValue(), argPriority.getValue(), argSignalThreshold.getValue(), argSkipReply.isSet());
-			grabber.setCallback(&ImageHandler::imageCallback, &handler);
-			grabber.capture();
+			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			grabber.start();
+			QCoreApplication::exec();
+			grabber.stop();
 		}
-
-		// stop the grabber
-		grabber.stop();
 	}
 	catch (const std::runtime_error & e)
 	{

@@ -10,6 +10,10 @@ ImageHandler::ImageHandler(const std::string & address, int priority, double sig
 	_connection.setSkipReply(skipProtoReply);
 }
 
+ImageHandler::~ImageHandler()
+{
+}
+
 void ImageHandler::receiveImage(const Image<ColorRgb> & image)
 {
 	// check if we should do signal detection
@@ -32,10 +36,3 @@ void ImageHandler::receiveImage(const Image<ColorRgb> & image)
 		}
 	}
 }
-
-void ImageHandler::imageCallback(void *arg, const Image<ColorRgb> &image)
-{
-	ImageHandler * handler = static_cast<ImageHandler *>(arg);
-	handler->receiveImage(image);
-}
-

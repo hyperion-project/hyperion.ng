@@ -14,16 +14,21 @@ include_directories(
 	${QT_INCLUDES}
 )
 
-set(Hyperion_V4L2_HEADERS
-	ProtoConnection.h
+set(Hyperion_V4L2_QT_HEADERS
 	ImageHandler.h
+	ScreenshotHandler.h
+)
+
+set(Hyperion_V4L2_HEADERS
 	VideoStandardParameter.h
+	ProtoConnection.h
 )
 
 set(Hyperion_V4L2_SOURCES
 	hyperion-v4l2.cpp
 	ProtoConnection.cpp
 	ImageHandler.cpp
+	ScreenshotHandler.cpp
 )
 
 set(Hyperion_V4L2_PROTOS
@@ -34,9 +39,13 @@ protobuf_generate_cpp(Hyperion_V4L2_PROTO_SRCS Hyperion_V4L2_PROTO_HDRS
 	${Hyperion_V4L2_PROTOS}
 )
 
+QT4_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
+
 add_executable(hyperion-v4l2
 	${Hyperion_V4L2_HEADERS}
 	${Hyperion_V4L2_SOURCES}
+	${Hyperion_V4L2_QT_HEADERS}
+	${Hyperion_V4L2_MOC_SOURCES}
 	${Hyperion_V4L2_PROTO_SRCS}
 	${Hyperion_V4L2_PROTO_HDRS}
 )
@@ -48,5 +57,5 @@ target_link_libraries(hyperion-v4l2
 	hyperion-utils
 	${PROTOBUF_LIBRARIES}
 	pthread
-    ${QT_LIBRARIES}
+	${QT_LIBRARIES}
 )

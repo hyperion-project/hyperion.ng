@@ -4,24 +4,25 @@
 #include <string>
 #include <vector>
 
+// Qt includes
+#include <QObject>
+#include <QSocketNotifier>
+
 // util includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/VideoMode.h>
 
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-class V4L2Grabber
+class V4L2Grabber : public QObject
 {
-public:
-	typedef void (*ImageCallback)(void * arg, const Image<ColorRgb> & image);
+	Q_OBJECT
 
+public:
 	enum VideoStandard {
 		PAL, NTSC, NO_CHANGE
-	};
-
-	enum Mode3D {
-		MODE_NONE, MODE_3DSBS, MODE_3DTAB
 	};
 
 public:
@@ -36,20 +37,23 @@ public:
 			int verticalPixelDecimation);
 	virtual ~V4L2Grabber();
 
+public slots:
 	void setCropping(int cropLeft,
 					 int cropRight,
 					 int cropTop,
 					 int cropBottom);
 
-	void set3D(Mode3D mode);
-
-	void setCallback(ImageCallback callback, void * arg);
+	void set3D(VideoMode mode);
 
 	void start();
 
-	void capture(int frameCount = -1);
-
 	void stop();
+
+signals:
+	void newFrame(const Image<ColorRgb> & image);
+
+private slots:
+	int read_frame();
 
 private:
 	void open_device();
@@ -69,8 +73,6 @@ private:
 	void start_capturing();
 
 	void stop_capturing();
-
-	int read_frame();
 
 	bool process_image(const void *p, int size);
 
@@ -111,10 +113,9 @@ private:
 	int _horizontalPixelDecimation;
 	int _verticalPixelDecimation;
 
-	Mode3D _mode3D;
+	VideoMode _mode3D;
 
 	int _currentFrame;
 
-	ImageCallback _callback;
-	void * _callbackArg;
+	QSocketNotifier * _streamNotifier;
 };
