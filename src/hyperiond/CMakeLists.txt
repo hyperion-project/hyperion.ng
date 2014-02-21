@@ -8,7 +8,9 @@ target_link_libraries(hyperiond
 		effectengine
 		jsonserver
 		protoserver
-		boblightserver)
+		boblightserver
+		v4l2-grabber
+)
 
 if (ENABLE_DISPMANX)
 	target_link_libraries(hyperiond dispmanx-grabber)

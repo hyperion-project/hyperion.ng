@@ -69,6 +69,11 @@ V4L2Grabber::V4L2Grabber(
 
 V4L2Grabber::~V4L2Grabber()
 {
+	// stop if the grabber was not stopped
+	if (_streamNotifier != nullptr && _streamNotifier->isEnabled()) {
+		stop();
+	}
+
 	uninit_device();
 	close_device();
 }
