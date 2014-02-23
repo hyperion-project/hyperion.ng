@@ -328,7 +328,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set the video standard if needed
 	switch (videoStandard)
 	{
-	case PAL:
+	case VIDEOSTANDARD_PAL:
 	{
 		v4l2_std_id std_id = V4L2_STD_PAL;
 		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
@@ -337,7 +337,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 		break;
-	case NTSC:
+	case VIDEOSTANDARD_NTSC:
 	{
 		v4l2_std_id std_id = V4L2_STD_NTSC;
 		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
@@ -346,7 +346,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 		break;
-	case NO_CHANGE:
+	case VIDEOSTANDARD_NO_CHANGE:
 	default:
 		// No change to device settings
 		break;

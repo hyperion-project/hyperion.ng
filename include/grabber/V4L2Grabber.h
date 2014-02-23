@@ -13,17 +13,15 @@
 #include <utils/ColorRgb.h>
 #include <utils/VideoMode.h>
 
+// grabber includes
+#include <grabber/VideoStandard.h>
+
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
 class V4L2Grabber : public QObject
 {
 	Q_OBJECT
-
-public:
-	enum VideoStandard {
-		PAL, NTSC, NO_CHANGE
-	};
 
 public:
 	V4L2Grabber(

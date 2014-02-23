@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 
 		// set defaults
 		argDevice.setDefault("/dev/video0");
-		argVideoStandard.setDefault(V4L2Grabber::NO_CHANGE);
+		argVideoStandard.setDefault(VIDEOSTANDARD_NO_CHANGE);
 		argInput.setDefault(-1);
 		argWidth.setDefault(-1);
 		argHeight.setDefault(-1);

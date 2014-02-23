@@ -179,13 +179,13 @@ int main(int argc, char** argv)
 		v4l2Grabber = new V4L2Grabber(
 					grabberConfig.get("device", "/dev/video0").asString(),
 					grabberConfig.get("input", 0).asInt(),
-					grabberConfig.get("standard", V4L2Grabber::NONE),
+					parseVideoStandard(grabberConfig.get("standard", "NONE").asString()),
 					grabberConfig.get("width", -1).asInt(),
 					grabberConfig.get("height", -1).asInt(),
 					grabberConfig.get("frameDecimation", 2).asInt(),
 					grabberConfig.get("sizeDecimation", 8).asInt(),
 					grabberConfig.get("sizeDecimation", 8).asInt());
-		v4l2Grabber->set3D(grabberConfig.get("mode", VIDEO_2D));
+		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
 		v4l2Grabber->setCropping(
 					grabberConfig.get("cropLeft", 0).asInt(),
 					grabberConfig.get("cropRight", 0).asInt(),
