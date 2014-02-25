@@ -53,6 +53,14 @@ add_executable(test_qtscreenshot TestQtScreenshot.cpp)
 target_link_libraries(test_qtscreenshot
 		${QT_LIBRARIES})
 
+if(ENABLE_X11)
+    # Find X11
+    find_package(X11 REQUIRED)
+
+    add_executable(test_x11performance TestX11Performance.cpp)
+	target_link_libraries(test_x11performance ${X11_LIBRARIES} ${QT_LIBRARIES})
+endif(ENABLE_X11)
+
 add_executable(determineWs2811Timing DetermineWs2811Timing.cpp)
 
 add_executable(test_rs232highspeed
