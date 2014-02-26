@@ -54,6 +54,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 
 	// initialize the python interpreter
 	std::cout << "Initializing Python interpreter" << std::endl;
+    Effect::registerHyperionExtensionModule();
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
 	_mainThreadState = PyEval_SaveThread();
@@ -151,7 +152,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 	channelCleared(priority);
 
 	// create the effect
-	Effect * effect = new Effect(priority, timeout, script, args);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, args);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);

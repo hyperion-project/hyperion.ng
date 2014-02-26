@@ -14,7 +14,7 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(int priority, int timeout, const std::string & script, const Json::Value & args = Json::Value());
+    Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args = Json::Value());
 	virtual ~Effect();
 
 	virtual void run();
@@ -22,6 +22,9 @@ public:
 	int getPriority() const;
 
 	bool isAbortRequested() const;
+
+    /// This function registers the extension module in Python
+    static void registerHyperionExtensionModule();
 
 public slots:
 	void abort();
@@ -38,13 +41,22 @@ private:
 	PyObject * json2python(const Json::Value & json) const;
 
 	// Wrapper methods for Python interpreter extra buildin methods
-	static PyMethodDef effectMethods[];
-	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
+    static PyMethodDef effectMethods[];
+    static PyObject* wrapSetColor(PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
-	static Effect * getEffect(PyObject *self);
+    static Effect * getEffect();
+
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef moduleDef;
+    static PyObject* PyInit_hyperion();
+#else
+    static void PyInit_hyperion();
+#endif
 
 private:
+    PyThreadState * _mainThreadState;
+
 	const int _priority;
 
 	const int _timeout;

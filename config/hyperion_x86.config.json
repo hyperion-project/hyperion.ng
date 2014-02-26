@@ -14,7 +14,7 @@
 	{
 		"name"       : "MyPi",
 		"type"       : "adalight",
-		"output"     : "/dev/ttyUSB0",
+        "output"     : "/dev/ttyUSB0",
 		"rate"       : 115200,
 		"colorOrder" : "rgb"
 	},
@@ -363,7 +363,7 @@
 	{
 		"paths" : 
 		[
-			"/opt/hyperion/effects"
+			"/home/dincs/projects/hyperion/effects"
 		]
 	},
 

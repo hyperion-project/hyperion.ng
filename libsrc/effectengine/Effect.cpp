@@ -19,9 +19,39 @@ PyMethodDef Effect::effectMethods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+// create the hyperion module
+struct PyModuleDef Effect::moduleDef = {
+    PyModuleDef_HEAD_INIT,
+    "hyperion",            /* m_name */
+    "Hyperion module",     /* m_doc */
+    -1,                    /* m_size */
+    Effect::effectMethods, /* m_methods */
+    NULL,                  /* m_reload */
+    NULL,                  /* m_traverse */
+    NULL,                  /* m_clear */
+    NULL,                  /* m_free */
+};
 
-Effect::Effect(int priority, int timeout, const std::string & script, const Json::Value & args) :
+PyObject* Effect::PyInit_hyperion()
+{
+    return PyModule_Create(&moduleDef);
+}
+#else
+void Effect::PyInit_hyperion()
+{
+    Py_InitModule("hyperion", effectMethods);
+}
+#endif
+
+void Effect::registerHyperionExtensionModule()
+{
+    PyImport_AppendInittab("hyperion", &PyInit_hyperion);
+}
+
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args) :
 	QThread(),
+    _mainThreadState(mainThreadState),
 	_priority(priority),
 	_timeout(timeout),
 	_script(script),
@@ -44,20 +74,26 @@ Effect::~Effect()
 
 void Effect::run()
 {
+    // switch to the main thread state and acquire the GIL
+    PyEval_RestoreThread(_mainThreadState);
+
 	// Initialize a new thread state
-	PyEval_AcquireLock(); // Get the GIL
-	_interpreterThreadState = Py_NewInterpreter();
+    _interpreterThreadState = Py_NewInterpreter();
 
-	// add methods extra builtin methods to the interpreter
-	PyObject * thisCapsule = PyCapsule_New(this, nullptr, nullptr);
-	PyObject * module = Py_InitModule4("hyperion", effectMethods, nullptr, thisCapsule, PYTHON_API_VERSION);
+    // import the buildtin Hyperion module
+    PyObject * module = PyImport_ImportModule("hyperion");
 
-	// add ledCount variable to the interpreter
-	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
+    // add a capsule containing 'this' to the module to be able to retrieve the effect from the callback function
+    PyObject_SetAttrString(module, "__effectObj", PyCapsule_New(this, nullptr, nullptr));
 
-	// add a args variable to the interpreter
-	PyObject_SetAttrString(module, "args", json2python(_args));
-	//PyObject_SetAttrString(module, "args", Py_BuildValue("s", _args.c_str()));
+    // add ledCount variable to the interpreter
+    PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
+
+    // add a args variable to the interpreter
+    PyObject_SetAttrString(module, "args", json2python(_args));
+
+    // decref the module
+    Py_XDECREF(module);
 
 	// Set the end time if applicable
 	if (_timeout > 0)
@@ -144,7 +180,7 @@ PyObject *Effect::json2python(const Json::Value &json) const
 PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 {
 	// get the effect
-	Effect * effect = getEffect(self);
+    Effect * effect = getEffect();
 
 	// check if we have aborted already
 	if (effect->_abortRequested)
@@ -229,7 +265,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 {
 	// get the effect
-	Effect * effect = getEffect(self);
+    Effect * effect = getEffect();
 
 	// check if we have aborted already
 	if (effect->_abortRequested)
@@ -292,7 +328,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
 {
-	Effect * effect = getEffect(self);
+    Effect * effect = getEffect();
 
 	// Test if the effect has reached it end time
 	if (effect->_timeout > 0 && QDateTime::currentMSecsSinceEpoch() > effect->_endTime)
@@ -303,8 +339,24 @@ PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
 	return Py_BuildValue("i", effect->_abortRequested ? 1 : 0);
 }
 
-Effect * Effect::getEffect(PyObject *self)
+Effect * Effect::getEffect()
 {
-	// Get the effect from the capsule in the self pointer
-	return reinterpret_cast<Effect *>(PyCapsule_GetPointer(self, nullptr));
+    // extract the module from the runtime
+    PyObject * module = PyObject_GetAttrString(PyImport_AddModule("__main__"), "hyperion");
+
+    if (PyModule_Check(module))
+    {
+        // retrieve the capsule with the effect
+        PyObject * effectCapsule = PyObject_GetAttrString(module, "__effectObj");
+
+        if (PyCapsule_CheckExact(effectCapsule))
+        {
+            // Get the effect from the capsule
+            return reinterpret_cast<Effect *>(PyCapsule_GetPointer(effectCapsule, nullptr));
+        }
+    }
+
+    // something is wrong
+    std::cerr << "Unable to retrieve the effect object from the Python runtime" << std::endl;
+    return nullptr;
 }
