@@ -55,5 +55,5 @@ private:
 
 	std::list<Effect *> _activeEffects;
 
-	PyThreadState * _mainThreadState;
+    PyThreadState * _mainThreadState;
 };
