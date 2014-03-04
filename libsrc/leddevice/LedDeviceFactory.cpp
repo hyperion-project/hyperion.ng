@@ -16,6 +16,10 @@
 	#include "LedDeviceWs2801.h"
 #endif
 
+#ifdef ENABLE_TINKERFORGE
+	#include "LedDeviceTinkerforge.h"
+#endif
+
 #include "LedDeviceAdalight.h"
 #include "LedDeviceLightpack.h"
 #include "LedDeviceMultiLightpack.h"
@@ -87,6 +91,22 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = deviceWs2801;
 	}
 #endif
+
+#ifdef ENABLE_TINKERFORGE
+	else if (type=="tinkerforge") 
+	{
+		const std::string host 	= deviceConfig.get("output", "127.0.0.1").asString();
+		const uint16_t port 		= deviceConfig.get("port", 4223).asInt();
+		const std::string  uid		= deviceConfig["uid"].asString();
+		const unsigned rate 	= deviceConfig["rate"].asInt();
+
+		LedDeviceTinkerforge* deviceTinkerforge = new LedDeviceTinkerforge(host, port, uid, rate);
+		deviceTinkerforge->open();
+
+		device = deviceTinkerforge;
+	}
+#endif
+
 //      else if (type == "ws2811")
 //      {
 //              const std::string output       = deviceConfig["output"].asString();

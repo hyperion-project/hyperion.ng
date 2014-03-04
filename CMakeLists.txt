@@ -16,6 +16,9 @@ message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" OFF)
+message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
+
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
 # to the source code
@@ -61,6 +64,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
+
+if (ENABLE_TINKERFORGE)
+	find_package(libtinkerforge-1.0 REQUIRED)
+endif (ENABLE_TINKERFORGE)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
