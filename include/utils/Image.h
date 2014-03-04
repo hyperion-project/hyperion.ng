@@ -17,8 +17,12 @@ public:
 	/// Default constructor for an image
 	///
 	Image() :
-		Image(1, 1)
+		_width(1),
+		_height(1),
+		_pixels(new Pixel_T[2]),
+		_endOfPixels(_pixels + 1)
 	{
+		memset(_pixels, 0, 2*sizeof(Pixel_T));
 	}
 
 	///
