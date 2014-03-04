@@ -36,8 +36,7 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 }
 
 
-V4L2Grabber::V4L2Grabber(
-		const std::string & device,
+V4L2Grabber::V4L2Grabber(const std::string & device,
 		int input,
 		VideoStandard videoStandard,
 		int width,
@@ -59,8 +58,11 @@ V4L2Grabber::V4L2Grabber(
 	_frameDecimation(std::max(1, frameDecimation)),
 	_horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
 	_verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
+	_noSignalCounterThreshold(50),
+	_noSignalThresholdColor(ColorRgb{0,0,0}),
 	_mode3D(VIDEO_2D),
 	_currentFrame(0),
+	_noSignalCounter(0),
 	_streamNotifier(nullptr)
 {
 	open_device();
@@ -89,6 +91,14 @@ void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 void V4L2Grabber::set3D(VideoMode mode)
 {
 	_mode3D = mode;
+}
+
+void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
+{
+	_noSignalThresholdColor.red = uint8_t(255*redSignalThreshold);
+	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
+	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
+	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
 }
 
 void V4L2Grabber::start()
@@ -658,6 +668,8 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	int outputHeight = (height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
 	Image<ColorRgb> image(outputWidth, outputHeight);
 
+	bool noSignal = true;
+
 	for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
 	{
 		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
@@ -683,10 +695,32 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 			ColorRgb & rgb = image(xDest, yDest);
 			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+			noSignal &= rgb < _noSignalThresholdColor;
 		}
 	}
 
-	emit newFrame(image);
+	if (noSignal)
+	{
+		++_noSignalCounter;
+	}
+	else
+	{
+		if (_noSignalCounter >= _noSignalCounterThreshold)
+		{
+			std::cout << "V4L2 Grabber: " << "Signal detected" << std::endl;
+		}
+
+		_noSignalCounter = 0;
+	}
+
+	if (_noSignalCounter < _noSignalCounterThreshold)
+	{
+		emit newFrame(image);
+	}
+	else if (_noSignalCounter == _noSignalCounterThreshold)
+	{
+		std::cout << "V4L2 Grabber: " << "Signal lost" << std::endl;
+	}
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)

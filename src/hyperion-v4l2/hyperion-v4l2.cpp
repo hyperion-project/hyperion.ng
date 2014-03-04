@@ -63,6 +63,9 @@ int main(int argc, char** argv)
 		IntParameter           & argFrameDecimation = parameters.add<IntParameter>          ('f', "frame-decimator",  "Decimation factor for the video frames [default=1]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
 		DoubleParameter        & argSignalThreshold = parameters.add<DoubleParameter>       ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.");
+		DoubleParameter        & argRedSignalThreshold = parameters.add<DoubleParameter>    (0x0, "red-threshold",    "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleParameter        & argGreenSignalThreshold = parameters.add<DoubleParameter>  (0x0, "green-threshold",  "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleParameter        & argBlueSignalThreshold = parameters.add<DoubleParameter>   (0x0, "blue-threshold",   "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		SwitchParameter<>      & arg3DSBS           = parameters.add<SwitchParameter<>>     (0x0, "3DSBS",            "Interpret the incoming video stream as 3D side-by-side");
 		SwitchParameter<>      & arg3DTAB           = parameters.add<SwitchParameter<>>     (0x0, "3DTAB",            "Interpret the incoming video stream as 3D top-and-bottom");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
@@ -110,6 +113,13 @@ int main(int argc, char** argv)
 					std::max(1, argSizeDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()));
 
+		// set signal detection
+		grabber.setSignalThreshold(
+					std::min(1.0, std::max(0.0, argRedSignalThreshold.isSet() ? argRedSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					std::min(1.0, std::max(0.0, argGreenSignalThreshold.isSet() ? argGreenSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					std::min(1.0, std::max(0.0, argBlueSignalThreshold.isSet() ? argBlueSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					50);
+
 		// set cropping values
 		grabber.setCropping(
 					std::max(0, argCropLeft.getValue()),
@@ -138,7 +148,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ImageHandler handler(argAddress.getValue(), argPriority.getValue(), argSignalThreshold.getValue(), argSkipReply.isSet());
+			ImageHandler handler(argAddress.getValue(), argPriority.getValue(), argSkipReply.isSet());
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
 			grabber.start();
 			QCoreApplication::exec();

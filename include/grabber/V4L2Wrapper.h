@@ -19,6 +19,9 @@ public:
 			int height,
 			int frameDecimation,
 			int pixelDecimation,
+			double redSignalThreshold,
+			double greenSignalThreshold,
+			double blueSignalThreshold,
 			Hyperion * hyperion,
 			int hyperionPriority);
 	virtual ~V4L2Wrapper();

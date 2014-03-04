@@ -5,9 +5,6 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 
-// blackborder includes
-#include <blackborder/BlackBorderProcessor.h>
-
 // hyperion v4l2 includes
 #include "ProtoConnection.h"
 
@@ -17,7 +14,7 @@ class ImageHandler : public QObject
 	Q_OBJECT
 
 public:
-	ImageHandler(const std::string & address, int priority, double signalThreshold, bool skipProtoReply);
+	ImageHandler(const std::string & address, int priority, bool skipProtoReply);
 	virtual ~ImageHandler();
 
 public slots:
@@ -31,10 +28,4 @@ private:
 
 	/// Hyperion proto connection object
 	ProtoConnection _connection;
-
-	/// Threshold used for signal detection
-	double _signalThreshold;
-
-	/// Blackborder detector which is used as a signal detector (unknown border = no signal)
-	hyperion::BlackBorderProcessor _signalProcessor;
 };

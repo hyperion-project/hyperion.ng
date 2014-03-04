@@ -24,8 +24,7 @@ class V4L2Grabber : public QObject
 	Q_OBJECT
 
 public:
-	V4L2Grabber(
-			const std::string & device,
+	V4L2Grabber(const std::string & device,
 			int input,
 			VideoStandard videoStandard,
 			int width,
@@ -42,6 +41,11 @@ public slots:
 					 int cropBottom);
 
 	void set3D(VideoMode mode);
+
+	void setSignalThreshold(double redSignalThreshold,
+					double greenSignalThreshold,
+					double blueSignalThreshold,
+					int noSignalCounterThreshold);
 
 	void start();
 
@@ -110,10 +114,14 @@ private:
 	int _frameDecimation;
 	int _horizontalPixelDecimation;
 	int _verticalPixelDecimation;
+	int _noSignalCounterThreshold;
+
+	ColorRgb _noSignalThresholdColor;
 
 	VideoMode _mode3D;
 
 	int _currentFrame;
+	int _noSignalCounter;
 
 	QSocketNotifier * _streamNotifier;
 };

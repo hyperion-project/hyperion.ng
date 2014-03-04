@@ -184,6 +184,9 @@ int main(int argc, char** argv)
 					grabberConfig.get("height", -1).asInt(),
 					grabberConfig.get("frameDecimation", 2).asInt(),
 					grabberConfig.get("sizeDecimation", 8).asInt(),
+					grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
+					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
+					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
 					&hyperion,
 					grabberConfig.get("priority", 800).asInt());
 		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
