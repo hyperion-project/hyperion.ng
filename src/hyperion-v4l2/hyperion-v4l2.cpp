@@ -39,6 +39,9 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
+	// register the image type to use in signals
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+
 	try
 	{
 		// create the option parser and initialize all parameters

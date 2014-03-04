@@ -1,3 +1,5 @@
+#include <QMetaType>
+
 #include <grabber/V4L2Wrapper.h>
 
 #include <hyperion/ImageProcessorFactory.h>
@@ -25,6 +27,9 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 	_hyperion(hyperion),
 	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0})
 {
+	// register the image type
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+
 	// connect the new frame signal using a queued connection, because it will be called from a different thread
 	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::QueuedConnection);
 }

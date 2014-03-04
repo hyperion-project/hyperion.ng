@@ -14,6 +14,14 @@ public:
 	typedef Pixel_T pixel_type;
 
 	///
+	/// Default constructor for an image
+	///
+	Image() :
+		Image(1, 1)
+	{
+	}
+
+	///
 	/// Constructor for an image with specified width and height
 	///
 	/// @param width The width of the image
@@ -22,8 +30,8 @@ public:
 	Image(const unsigned width, const unsigned height) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[width*height + 1]),
-		_endOfPixels(_pixels + width*height)
+		_pixels(new Pixel_T[width * height + 1]),
+		_endOfPixels(_pixels + width * height)
 	{
 		memset(_pixels, 0, (_width*_height+1)*sizeof(Pixel_T));
 	}
@@ -38,10 +46,22 @@ public:
 	Image(const unsigned width, const unsigned height, const Pixel_T background) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[width*height + 1]),
-		_endOfPixels(_pixels + width*height)
+		_pixels(new Pixel_T[width * height + 1]),
+		_endOfPixels(_pixels + width * height)
 	{
 		std::fill(_pixels, _endOfPixels, background);
+	}
+
+	///
+	/// Copy constructor for an image
+	///
+	Image(const Image & other) :
+		_width(other._width),
+		_height(other._height),
+		_pixels(new Pixel_T[other._width * other._height + 1]),
+		_endOfPixels(_pixels + other._width * other._height)
+	{
+		memcpy(_pixels, other._pixels, other._width * other._height * sizeof(Pixel_T));
 	}
 
 	///
