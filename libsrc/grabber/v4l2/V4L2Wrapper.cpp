@@ -29,9 +29,19 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 {
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
-	// connect the new frame signal using a queued connection, because it will be called from a different thread
-	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::QueuedConnection);
+	// Handle the image in the captured thread using a direct connection
+	QObject::connect(
+				&_grabber, SIGNAL(newFrame(Image<ColorRgb>)),
+				this, SLOT(newFrame(Image<ColorRgb>)),
+				Qt::DirectConnection);
+
+	// send color data to Hyperion using a queued connection to handle the data over to the main event loop
+	QObject::connect(
+				this, SIGNAL(emitColors(int,std::vector<ColorRgb>,int)),
+				_hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)),
+				Qt::QueuedConnection);
 }
 
 V4L2Wrapper::~V4L2Wrapper()
@@ -67,6 +77,6 @@ void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 	_processor->process(image, _ledColors);
 
 	// send colors to Hyperion
-	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
+	emit emitColors(_priority, _ledColors, _timeout_ms);
 }
 

@@ -35,6 +35,9 @@ public slots:
 
 	void set3D(VideoMode mode);
 
+signals:
+	void emitColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 
