@@ -67,7 +67,7 @@ void foo_1(int pixelDecimation)
 	// Cleanup allocated resources of the X11 grab
 	XDestroyImage(xImage);
 
-	std::cout << "Time required: " << timer.elapsed() << " us" << std::endl;
+	std::cout << "Time required: " << timer.elapsed() << " ms" << std::endl;
 
 	XCloseDisplay(x11Display);
 }
@@ -125,7 +125,7 @@ void foo_2(int pixelDecimation)
 			XDestroyImage(xImage);
 		}
 	}
-	std::cout << "Time required: " << timer.elapsed() << " us" << std::endl;
+	std::cout << "Time required: " << timer.elapsed() << " ms" << std::endl;
 
 
 	XCloseDisplay(x11Display);
