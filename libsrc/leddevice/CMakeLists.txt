@@ -8,8 +8,8 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 
 include_directories(
-	../../include/hidapi
-	${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
+		../../include/hidapi
+		${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
 
 # Group the headers that go through the MOC compiler
 SET(Leddevice_QT_HEADERS
@@ -67,6 +67,17 @@ if(ENABLE_SPIDEV)
 	)
 endif(ENABLE_SPIDEV)
 
+if(ENABLE_TINKERFORGE)
+	SET(Leddevice_HEADERS
+			${Leddevice_HEADERS}
+			${CURRENT_SOURCE_DIR}/LedDeviceTinkerforge.h
+	)
+	SET(Leddevice_SOURCES
+			${Leddevice_SOURCES}
+			${CURRENT_SOURCE_DIR}/LedDeviceTinkerforge.cpp
+	)
+endif(ENABLE_TINKERFORGE)
+
 
 QT4_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
 
@@ -78,12 +89,17 @@ add_library(leddevice
 )
 
 target_link_libraries(leddevice
-		hyperion-utils
-		serialport
-		${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
-		${CMAKE_THREAD_LIBS_INIT}
-		${QT_LIBRARIES}
+	hyperion-utils
+	serialport
+	${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
+	${CMAKE_THREAD_LIBS_INIT}
+	${QT_LIBRARIES}
 )
+
+if(ENABLE_TINKERFORGE)
+	target_link_libraries(leddevice tinkerforge)
+endif()
+
 if(APPLE)
 	target_link_libraries(leddevice hidapi-mac)
 else()
