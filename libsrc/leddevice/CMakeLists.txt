@@ -6,20 +6,10 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 #add libusb and pthreads (required for the Lighpack usb device)
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
-if(ENABLE_TINKERFORGE)
-	find_package(libtinkerforge-1.0 REQUIRED)
-endif(ENABLE_TINKERFORGE)
-
 
 include_directories(
 		../../include/hidapi
 		${LIBUSB_1_INCLUDE_DIRS}) # for Lightpack device
-
-
-if(ENABLE_TINKERFORGE)
-	include_directories(
-		${LIBTINKERFORGE_1_INCLUDE_DIRS}) # for Tinkerforge device
-endif(ENABLE_TINKERFORGE)
 
 # Group the headers that go through the MOC compiler
 SET(Leddevice_QT_HEADERS
@@ -107,9 +97,7 @@ target_link_libraries(leddevice
 )
 
 if(ENABLE_TINKERFORGE)
-	target_link_libraries(leddevice
-		${LIBTINKERFORGE_1_LIBRARIES}
-	)
+	target_link_libraries(leddevice tinkerforge)
 endif()
 
 if(APPLE)

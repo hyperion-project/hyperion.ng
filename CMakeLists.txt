@@ -66,7 +66,7 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 
 if (ENABLE_TINKERFORGE)
-	find_package(libtinkerforge-1.0 REQUIRED)
+	#find_package(libtinkerforge-1.0 REQUIRED)
 endif (ENABLE_TINKERFORGE)
 
 include(${QT_USE_FILE})

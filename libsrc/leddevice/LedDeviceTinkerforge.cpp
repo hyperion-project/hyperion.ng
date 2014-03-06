@@ -9,15 +9,15 @@
 static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 
-LedDeviceTinkerforge::LedDeviceTinkerforge(const std::string &host, uint16_t port, const std::string &uid, const unsigned interval) :
-	LedDevice(),
-	_host(host),
-	_port(port),
-	_uid(uid),	
-	_interval(interval),
-	_ipConnection(nullptr),
-	_ledStrip(nullptr),
-	_colorChannelSize(0)
+LedDeviceTinkerforge::LedDeviceTinkerforge(const std::string & host, uint16_t port, const std::string & uid, const unsigned interval) :
+		LedDevice(),
+		_host(host),
+		_port(port),
+		_uid(uid),
+		_interval(interval),
+		_ipConnection(nullptr),
+		_ledStrip(nullptr),
+		_colorChannelSize(0)
 {
 	// empty
 }
@@ -29,14 +29,22 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 	{
 		switchOff();
 	}
-	if (_ipConnection != nullptr) 
-		delete _ipConnection;
-	if (_ledStrip != nullptr)
-		delete _ledStrip;
+
+	// Clean up claimed resources
+	delete _ipConnection;
+	delete _ledStrip;
 }
 
 int LedDeviceTinkerforge::open()
 {
+	// Check if connection is already createds
+	if (_ipConnection != nullptr)
+	{
+		std::cout << "Attempt to open existing connection; close before opening" << std::endl;
+		return -1;
+	}
+
+	// Initialise a new connection
 	_ipConnection = new IPConnection;
 	ipcon_create(_ipConnection);
 
@@ -47,6 +55,7 @@ int LedDeviceTinkerforge::open()
 		return -1;
 	}
 
+	// Create the 'LedStrip'
 	_ledStrip = new LEDStrip;
 	led_strip_create(_ledStrip, _uid.c_str(), _ipConnection);
 
@@ -62,8 +71,6 @@ int LedDeviceTinkerforge::open()
 
 int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 {
-	std::cerr << "Write" << std::endl;
-
 	unsigned nrLedValues = ledValues.size();
 
 	if (nrLedValues > MAX_NUM_LEDS) 
@@ -80,62 +87,57 @@ int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 	}
 	_colorChannelSize = nrLedValues;
 
-	auto redIt = _redChannel.begin();
+	auto redIt   = _redChannel.begin();
 	auto greenIt = _greenChannel.begin();
-	auto blueIt = _blueChannel.begin();
+	auto blueIt  = _blueChannel.begin();
 
 	for (const ColorRgb &ledValue : ledValues)
 	{
 		*redIt = ledValue.red;
-		redIt++;
+		++redIt;
 		*greenIt = ledValue.green;
-		greenIt++;
+		++greenIt;
 		*blueIt = ledValue.blue;
-		blueIt++; 
+		++blueIt;
 	}
 
-	return transferLedData(_ledStrip, 0, _colorChannelSize, &_redChannel[0], &_greenChannel[0], &_blueChannel[0]);
+	return transferLedData(_ledStrip, 0, _colorChannelSize, _redChannel.data(), _greenChannel.data(), _blueChannel.data());
 }
 
 int LedDeviceTinkerforge::switchOff()
 {
 	std::cerr << "Switchoff" << std::endl;
-	std::fill(_redChannel.begin(), _redChannel.end(), 0);
+	std::fill(_redChannel.begin(),   _redChannel.end(),   0);
 	std::fill(_greenChannel.begin(), _greenChannel.end(), 0);
-	std::fill(_blueChannel.begin(), _blueChannel.end(), 0);
+	std::fill(_blueChannel.begin(),  _blueChannel.end(),  0);
 
-	return transferLedData(_ledStrip, 0, _colorChannelSize, &_redChannel[0], &_greenChannel[0], &_blueChannel[0]);
+	return transferLedData(_ledStrip, 0, _colorChannelSize, _redChannel.data(), _greenChannel.data(), _blueChannel.data());
 }
 
 int LedDeviceTinkerforge::transferLedData(LEDStrip *ledStrip, unsigned index, unsigned length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel) 
 {
-	// we need that array size no matter how many leds will really be set
-	uint8_t _reds[MAX_NUM_LEDS_SETTABLE];
-	uint8_t _greens[MAX_NUM_LEDS_SETTABLE];
-	uint8_t _blues[MAX_NUM_LEDS_SETTABLE];
-
-	int status = E_INVALID_PARAMETER;
-	unsigned i;
-	unsigned int copyLength;
-
-	if (index >= 0 && length > 0 && index < length && length <= MAX_NUM_LEDS) 
+	if (length == 0 || index >= length || length > MAX_NUM_LEDS)
 	{
-		for (i = index; i < length; i += MAX_NUM_LEDS_SETTABLE)
+		return E_INVALID_PARAMETER;
+	}
+
+	uint8_t * redPtr   = redChannel;
+	uint8_t * greenPtr = greenChannel;
+	uint8_t * bluePtr  = blueChannel;
+	for (unsigned i=index; i<length; i+=MAX_NUM_LEDS_SETTABLE)
+	{
+		const unsigned copyLength = (i + MAX_NUM_LEDS_SETTABLE > length) ? length - i : MAX_NUM_LEDS_SETTABLE;
+		const int status = led_strip_set_rgb_values(ledStrip, i, copyLength, redPtr, greenPtr, bluePtr);
+		redPtr   += copyLength;
+		greenPtr += copyLength;
+		bluePtr  += copyLength;
+
+		if (status != E_OK)
 		{
-			copyLength = (i + MAX_NUM_LEDS_SETTABLE > length) ? length - i : MAX_NUM_LEDS_SETTABLE;
-
-			memcpy(_reds, redChannel + i, copyLength * sizeof(uint8_t));
-			memcpy(_greens, greenChannel + i, copyLength * sizeof(uint8_t));
-			memcpy(_blues, blueChannel + i, copyLength * sizeof(uint8_t));
-
-			status = led_strip_set_rgb_values(ledStrip, i, copyLength, _reds, _greens, _blues);
-
-			if (status != E_OK) 
-			{
-				std::cerr << "Setting led values failed with status " << status << std::endl;
-				break;
-			}
+			std::cerr << "Setting led values failed with status " << status << std::endl;
+			return status;
 		}
 	}
-	return status;
+
+	return E_OK;
 }
