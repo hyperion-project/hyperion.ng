@@ -106,7 +106,6 @@ int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceTinkerforge::switchOff()
 {
-	std::cerr << "Switchoff" << std::endl;
 	std::fill(_redChannel.begin(),   _redChannel.end(),   0);
 	std::fill(_greenChannel.begin(), _greenChannel.end(), 0);
 	std::fill(_blueChannel.begin(),  _blueChannel.end(),  0);
@@ -121,17 +120,18 @@ int LedDeviceTinkerforge::transferLedData(LEDStrip *ledStrip, unsigned index, un
 		return E_INVALID_PARAMETER;
 	}
 
-	uint8_t * redPtr   = redChannel;
-	uint8_t * greenPtr = greenChannel;
-	uint8_t * bluePtr  = blueChannel;
+	uint8_t reds[MAX_NUM_LEDS_SETTABLE];
+	uint8_t greens[MAX_NUM_LEDS_SETTABLE];
+	uint8_t blues[MAX_NUM_LEDS_SETTABLE];
+
 	for (unsigned i=index; i<length; i+=MAX_NUM_LEDS_SETTABLE)
 	{
 		const unsigned copyLength = (i + MAX_NUM_LEDS_SETTABLE > length) ? length - i : MAX_NUM_LEDS_SETTABLE;
-		const int status = led_strip_set_rgb_values(ledStrip, i, copyLength, redPtr, greenPtr, bluePtr);
-		redPtr   += copyLength;
-		greenPtr += copyLength;
-		bluePtr  += copyLength;
+		memcpy(reds,   redChannel   + i,   copyLength);
+		memcpy(greens, greenChannel + i, copyLength);
+		memcpy(blues,  blueChannel  + i,  copyLength);
 
+		const int status = led_strip_set_rgb_values(ledStrip, i, copyLength, reds, greens, blues);
 		if (status != E_OK)
 		{
 			std::cerr << "Setting led values failed with status " << status << std::endl;
