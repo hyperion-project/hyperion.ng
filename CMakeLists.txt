@@ -16,7 +16,7 @@ message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" OFF)
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
 message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
 
 # Createt the configuration file
