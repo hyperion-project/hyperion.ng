@@ -52,20 +52,3 @@ target_link_libraries(test_qregexp
 add_executable(test_qtscreenshot TestQtScreenshot.cpp)
 target_link_libraries(test_qtscreenshot
 		${QT_LIBRARIES})
-
-add_executable(determineWs2811Timing DetermineWs2811Timing.cpp)
-
-add_executable(test_rs232highspeed
-		TestRs232HighSpeed.cpp
-		../libsrc/leddevice/LedRs232Device.cpp
-		../libsrc/leddevice/LedDeviceWs2812b.cpp)
-target_link_libraries(test_rs232highspeed
-		serialport)
-
-if(NOT APPLE AND UNIX)
-	include_directories(/usr/include)
-	add_executable(test_uartHighSpeed TestUartHighSpeed.cpp)
-
-	add_executable(test_nonUniformWs2812b TestNonUniformWs2812b.cpp)
-	add_executable(test_nonInvWs2812b     TestNonInvWs2812b.cpp)
-endif()

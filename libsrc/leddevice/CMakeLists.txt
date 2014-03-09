@@ -28,8 +28,7 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.h
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.h
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.h
+		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
 )
 
 SET(Leddevice_SOURCES
@@ -44,8 +43,7 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2811.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceWs2812b.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
 )
 
 if(ENABLE_SPIDEV)

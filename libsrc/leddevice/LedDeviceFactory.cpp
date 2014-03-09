@@ -23,8 +23,7 @@
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
-#include "LedDeviceWs2811.h"
-#include "LedDeviceWs2812b.h"
+#include "LedDeviceHyperionUsbasp.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -87,23 +86,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = deviceWs2801;
 	}
 #endif
-//      else if (type == "ws2811")
-//      {
-//              const std::string output       = deviceConfig["output"].asString();
-//              const std::string outputSpeed  = deviceConfig["output"].asString();
-//              const std::string timingOption = deviceConfig["timingOption"].asString();
-
-//              ws2811::SpeedMode speedMode = (outputSpeed == "high")? ws2811::highspeed : ws2811::lowspeed;
-//              if (outputSpeed != "high" && outputSpeed != "low")
-//              {
-//                      std::cerr << "Incorrect speed-mode selected for WS2811: " << outputSpeed << " != {'high', 'low'}" << std::endl;
-//              }
-
-//              LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, ws2811::fromString(timingOption, ws2811::option_2855), speedMode);
-//              deviceWs2811->open();
-
-//              device = deviceWs2811;
-//      }
 	else if (type == "lightpack")
 	{
 		const std::string output = deviceConfig.get("output", "").asString();
@@ -147,17 +129,22 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceSedu;
 	}
+	else if (type == "hyperion-usbasp-ws2801")
+	{
+			LedDeviceHyperionUsbasp * deviceHyperionUsbasp = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2801);
+			deviceHyperionUsbasp->open();
+			device = deviceHyperionUsbasp;
+	}
+	else if (type == "hyperion-usbasp-ws2812")
+	{
+			LedDeviceHyperionUsbasp * deviceHyperionUsbasp = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2812);
+			deviceHyperionUsbasp->open();
+			device = deviceHyperionUsbasp;
+	}
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
-	}
-	else if (type == "ws2812b")
-	{
-			LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
-			deviceWs2812b->open();
-
-			device = deviceWs2812b;
 	}
 	else
 	{
