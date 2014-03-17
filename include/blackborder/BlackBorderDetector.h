@@ -1,4 +1,3 @@
-
 #pragma once
 
 // Utils includes
@@ -126,7 +125,7 @@ namespace hyperion
 		inline bool isBlack(const Pixel_T & color)
 		{
 			// Return the simple compare of the color against black
-			return color.red < _blackborderThreshold && color.green < _blackborderThreshold && color.green < _blackborderThreshold;
+			return color.red < _blackborderThreshold && color.green < _blackborderThreshold && color.blue < _blackborderThreshold;
 		}
 
 	private:
