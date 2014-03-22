@@ -695,7 +695,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 			ColorRgb & rgb = image(xDest, yDest);
 			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
-			noSignal &= rgb < _noSignalThresholdColor;
+			noSignal &= rgb <= _noSignalThresholdColor;
 		}
 	}
 
