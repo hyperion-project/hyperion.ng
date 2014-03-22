@@ -96,6 +96,8 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
 	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
 	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
+
+	std::cout << "V4L2 grabber signal threshold set to: " << _noSignalThresholdColor << std::endl;
 }
 
 void V4L2Grabber::start()
@@ -674,8 +676,6 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	int outputHeight = (height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
 	Image<ColorRgb> image(outputWidth, outputHeight);
 
-	bool noSignal = true;
-
 	for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
 	{
 		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
@@ -701,6 +701,20 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 			ColorRgb & rgb = image(xDest, yDest);
 			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+		}
+	}
+
+	// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
+	bool noSignal = true;
+	for (unsigned x = 0; noSignal && x < (image.width()>>1); ++x)
+	{
+		int xImage = (image.width()>>2) + x;
+
+		for (unsigned y = 0; noSignal && y < (image.height()>>1); ++y)
+		{
+			int yImage = (image.height()>>2) + y;
+
+			ColorRgb & rgb = image(xImage, yImage);
 			noSignal &= rgb <= _noSignalThresholdColor;
 		}
 	}
