@@ -28,7 +28,8 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 			pixelDecimation),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
-	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0})
+	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
+	_timer()
 {
 	// set the signal detection threshold of the grabber
 	_grabber.setSignalThreshold(
@@ -52,6 +53,13 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 				this, SIGNAL(emitColors(int,std::vector<ColorRgb>,int)),
 				_hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)),
 				Qt::QueuedConnection);
+
+	// setup the higher prio source checker
+	// this will disable the v4l2 grabber when a source with hisher priority is active
+	_timer.setInterval(500);
+	_timer.setSingleShot(false);
+	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSources()));
+	_timer.start();
 }
 
 V4L2Wrapper::~V4L2Wrapper()
@@ -88,3 +96,20 @@ void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 	emit emitColors(_priority, _ledColors, _timeout_ms);
 }
 
+void V4L2Wrapper::checkSources()
+{
+	QList<int> activePriorities = _hyperion->getActivePriorities();
+
+	for (int x : activePriorities)
+	{
+		if (x < _priority)
+		{
+			// found a higher priority source: grabber should be disabled
+			_grabber.stop();
+			return;
+		}
+	}
+
+	// no higher priority source was found: grabber should be enabled
+	_grabber.start();
+}

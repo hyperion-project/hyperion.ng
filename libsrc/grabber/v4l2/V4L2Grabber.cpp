@@ -72,10 +72,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 V4L2Grabber::~V4L2Grabber()
 {
 	// stop if the grabber was not stopped
-	if (_streamNotifier != nullptr && _streamNotifier->isEnabled()) {
-		stop();
-	}
-
+	stop();
 	uninit_device();
 	close_device();
 }
@@ -103,14 +100,22 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 
 void V4L2Grabber::start()
 {
-	_streamNotifier->setEnabled(true);
-	start_capturing();
+	if (_streamNotifier != nullptr && !_streamNotifier->isEnabled())
+	{
+		_streamNotifier->setEnabled(true);
+		start_capturing();
+		std::cout << "V4L2 grabber started" << std::endl;
+	}
 }
 
 void V4L2Grabber::stop()
 {
-	stop_capturing();
-	_streamNotifier->setEnabled(false);
+	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
+	{
+		stop_capturing();
+		_streamNotifier->setEnabled(false);
+		std::cout << "V4L2 grabber stopped" << std::endl;
+	}
 }
 
 void V4L2Grabber::open_device()
@@ -142,6 +147,7 @@ void V4L2Grabber::open_device()
 
 	// create the notifier for when a new frame is available
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
+	_streamNotifier->setEnabled(false);
 	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
 }
 

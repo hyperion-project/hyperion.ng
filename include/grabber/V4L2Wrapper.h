@@ -1,5 +1,8 @@
 #pragma once
 
+// Qt includes
+#include <QTimer>
+
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessor.h>
@@ -44,6 +47,8 @@ signals:
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 
+	void checkSources();
+
 private:
 	/// The timeout of the led colors [ms]
 	const int _timeout_ms;
@@ -62,4 +67,7 @@ private:
 
 	/// The list with computed led colors
 	std::vector<ColorRgb> _ledColors;
+
+	/// Timer which tests if a higher priority source is active
+	QTimer _timer;
 };
