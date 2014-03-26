@@ -1,4 +1,3 @@
-
 // STL includes
 #include <algorithm>
 #include <cmath>
@@ -33,17 +32,35 @@ ImageToLedsMap::ImageToLedsMap(
 
 	for (const Led& led : leds)
 	{
+		// skip leds without area
+		if ((led.maxX_frac-led.minX_frac) < 1e-6 || (led.maxY_frac-led.minY_frac) < 1e-6)
+		{
+			continue;
+		}
+		
 		// Compute the index boundaries for this led
-		const unsigned minX_idx = xOffset + unsigned(std::round((actualWidth-1)  * led.minX_frac));
-		const unsigned maxX_idx = xOffset + unsigned(std::round((actualWidth-1)  * led.maxX_frac));
-		const unsigned minY_idx = yOffset + unsigned(std::round((actualHeight-1) * led.minY_frac));
-		const unsigned maxY_idx = yOffset + unsigned(std::round((actualHeight-1) * led.maxY_frac));
+		unsigned minX_idx = xOffset + unsigned(std::round(actualWidth  * led.minX_frac));
+		unsigned maxX_idx = xOffset + unsigned(std::round(actualWidth  * led.maxX_frac));
+		unsigned minY_idx = yOffset + unsigned(std::round(actualHeight * led.minY_frac));
+		unsigned maxY_idx = yOffset + unsigned(std::round(actualHeight * led.maxY_frac));
+		
+		// make sure that the area is at least a single led large
+		minX_idx = std::min(minX_idx, xOffset + actualWidth - 1);
+		if (minX_idx == maxX_idx)
+		{
+			maxX_idx = minX_idx + 1;
+		}
+		minY_idx = std::min(minY_idx, yOffset + actualHeight - 1);
+		if (minY_idx == maxY_idx)
+		{
+			maxY_idx = minY_idx + 1;
+		}
 
 		// Add all the indices in the above defined rectangle to the indices for this led
 		std::vector<unsigned> ledColors;
-		for (unsigned y = minY_idx; y<=maxY_idx && y<height; ++y)
+		for (unsigned y = minY_idx; y<maxY_idx && y<(yOffset+actualHeight); ++y)
 		{
-			for (unsigned x = minX_idx; x<=maxX_idx && x<width; ++x)
+			for (unsigned x = minX_idx; x<maxX_idx && x<(xOffset+actualWidth); ++x)
 			{
 				ledColors.push_back(y*width + x);
 			}
