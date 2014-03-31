@@ -15,6 +15,7 @@
 
 // grabber includes
 #include <grabber/VideoStandard.h>
+#include <grabber/PixelFormat.h>
 
 /// Capture class for V4L2 devices
 ///
@@ -26,7 +27,7 @@ class V4L2Grabber : public QObject
 public:
 	V4L2Grabber(const std::string & device,
 			int input,
-			VideoStandard videoStandard,
+			VideoStandard videoStandard, PixelFormat pixelFormat,
 			int width,
 			int height,
 			int frameDecimation,
@@ -104,7 +105,7 @@ private:
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 
-	uint32_t _pixelFormat;
+	PixelFormat _pixelFormat;
 	int _width;
 	int _height;
 	int _cropLeft;

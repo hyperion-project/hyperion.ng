@@ -39,6 +39,7 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 V4L2Grabber::V4L2Grabber(const std::string & device,
 		int input,
 		VideoStandard videoStandard,
+		PixelFormat pixelFormat,
 		int width,
 		int height,
 		int frameDecimation,
@@ -48,7 +49,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
 	_buffers(),
-	_pixelFormat(0),
+	_pixelFormat(pixelFormat),
 	_width(width),
 	_height(height),
 	_cropLeft(0),
@@ -380,17 +381,25 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		throw_errno_exception("VIDIOC_G_FMT");
 	}
 
-	// check pixel format
-	switch (fmt.fmt.pix.pixelformat)
+	// set the requested pixel format
+	switch (_pixelFormat)
 	{
-	case V4L2_PIX_FMT_UYVY:
-	case V4L2_PIX_FMT_YUYV:
-		_pixelFormat = fmt.fmt.pix.pixelformat;
+	case PIXELFORMAT_UYVY:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 		break;
+	case PIXELFORMAT_YUYV:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+		break;
+	case PIXELFORMAT_RGB32:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+		break;
+	case PIXELFORMAT_NO_CHANGE:
 	default:
-		throw_exception("Only pixel formats UYVY and YUYV are supported");
+		// No change to device settings
+		break;
 	}
 
+	// set the requested withd and height
 	if (_width > 0 || _height > 0)
 	{
 		if (_width > 0)
@@ -402,19 +411,38 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		{
 			fmt.fmt.pix.height = _height;
 		}
+	}
 
-		// set the settings
-		if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
-		{
-			throw_errno_exception("VIDIOC_S_FMT");
-		}
+	// set the settings
+	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
+	{
+		throw_errno_exception("VIDIOC_S_FMT");
+	}
 
-		// get the format settings again
-		// (the size may not have been accepted without an error)
-		if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
-		{
-			throw_errno_exception("VIDIOC_G_FMT");
-		}
+	// get the format settings again
+	// (the size may not have been accepted without an error)
+	if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
+	{
+		throw_errno_exception("VIDIOC_G_FMT");
+	}
+
+	// check pixel format
+	switch (fmt.fmt.pix.pixelformat)
+	{
+	case V4L2_PIX_FMT_UYVY:
+		_pixelFormat = PIXELFORMAT_UYVY;
+		std::cout << "V4L2 pixel format=UYVY" << std::endl;
+		break;
+	case V4L2_PIX_FMT_YUYV:
+		_pixelFormat = PIXELFORMAT_YUYV;
+		std::cout << "V4L2 pixel format=YUYV" << std::endl;
+		break;
+	case V4L2_PIX_FMT_RGB32:
+		_pixelFormat = PIXELFORMAT_RGB32;
+		std::cout << "V4L2 pixel format=RGB32" << std::endl;
+		break;
+	default:
+		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
 	}
 
 	// store width & height
@@ -680,27 +708,40 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	{
 		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
 		{
-			int index = (_width * ySource + xSource) * 2;
-			uint8_t y = 0;
-			uint8_t u = 0;
-			uint8_t v = 0;
+			ColorRgb & rgb = image(xDest, yDest);
 
 			switch (_pixelFormat)
 			{
-			case V4L2_PIX_FMT_UYVY:
-				y = data[index+1];
-				u = (xSource%2 == 0) ? data[index  ] : data[index-2];
-				v = (xSource%2 == 0) ? data[index+2] : data[index  ];
+			case PIXELFORMAT_UYVY:
+				{
+					int index = (_width * ySource + xSource) * 2;
+					uint8_t y = data[index+1];
+					uint8_t u = (xSource%2 == 0) ? data[index  ] : data[index-2];
+					uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index  ];
+					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
 				break;
-			case V4L2_PIX_FMT_YUYV:
-				y = data[index];
-				u = (xSource%2 == 0) ? data[index+1] : data[index-1];
-				v = (xSource%2 == 0) ? data[index+3] : data[index+1];
+			case PIXELFORMAT_YUYV:
+				{
+					int index = (_width * ySource + xSource) * 2;
+					uint8_t y = data[index];
+					uint8_t u = (xSource%2 == 0) ? data[index+1] : data[index-1];
+					uint8_t v = (xSource%2 == 0) ? data[index+3] : data[index+1];
+					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
+				break;
+			case PIXELFORMAT_RGB32:
+				{
+					int index = (_width * ySource + xSource) * 4;
+					rgb.red   = data[index+1];
+					rgb.green = data[index+2];
+					rgb.blue  = data[index+3];
+				}
+				break;
+			default:
+				// this should not be possible
 				break;
 			}
-
-			ColorRgb & rgb = image(xDest, yDest);
-			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 		}
 	}
 

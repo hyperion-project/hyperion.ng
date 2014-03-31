@@ -180,6 +180,7 @@ int main(int argc, char** argv)
 					grabberConfig.get("device", "/dev/video0").asString(),
 					grabberConfig.get("input", 0).asInt(),
 					parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
+					parsePixelFormat(grabberConfig.get("pixelFormat", "no-change").asString()),
 					grabberConfig.get("width", -1).asInt(),
 					grabberConfig.get("height", -1).asInt(),
 					grabberConfig.get("frameDecimation", 2).asInt(),
