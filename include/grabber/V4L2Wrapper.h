@@ -18,6 +18,7 @@ public:
 	V4L2Wrapper(const std::string & device,
 			int input,
 			VideoStandard videoStandard,
+			PixelFormat pixelFormat,
 			int width,
 			int height,
 			int frameDecimation,

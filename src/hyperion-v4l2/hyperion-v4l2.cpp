@@ -18,6 +18,7 @@
 // hyperion-v4l2 includes
 #include "ProtoConnection.h"
 #include "VideoStandardParameter.h"
+#include "PixelFormatParameter.h"
 #include "ImageHandler.h"
 #include "ScreenshotHandler.h"
 
@@ -50,6 +51,7 @@ int main(int argc, char** argv)
 
 		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "The device to use [default=/dev/video0]");
 		VideoStandardParameter & argVideoStandard   = parameters.add<VideoStandardParameter>('v', "video-standard",   "The used video standard. Valid values are PAL or NTSC (optional)");
+		PixelFormatParameter   & argPixelFormat     = parameters.add<PixelFormatParameter>  (0x0, "pixel-format",     "The use pixel format. Valid values are YUYV, UYVY, and RGB32 (optional)");
 		IntParameter           & argInput           = parameters.add<IntParameter>          (0x0, "input",            "Input channel (optional)");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Try to set the width of the video input (optional)");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Try to set the height of the video input (optional)");
@@ -76,6 +78,7 @@ int main(int argc, char** argv)
 		// set defaults
 		argDevice.setDefault("/dev/video0");
 		argVideoStandard.setDefault(VIDEOSTANDARD_NO_CHANGE);
+		argPixelFormat.setDefault(PIXELFORMAT_NO_CHANGE);
 		argInput.setDefault(-1);
 		argWidth.setDefault(-1);
 		argHeight.setDefault(-1);
@@ -107,6 +110,7 @@ int main(int argc, char** argv)
 					argDevice.getValue(),
 					argInput.getValue(),
 					argVideoStandard.getValue(),
+					argPixelFormat.getValue(),
 					argWidth.getValue(),
 					argHeight.getValue(),
 					std::max(1, argFrameDecimation.getValue()),

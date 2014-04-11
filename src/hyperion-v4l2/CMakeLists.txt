@@ -21,6 +21,7 @@ set(Hyperion_V4L2_QT_HEADERS
 
 set(Hyperion_V4L2_HEADERS
 	VideoStandardParameter.h
+	PixelFormatParameter.h
 	ProtoConnection.h
 )
 
