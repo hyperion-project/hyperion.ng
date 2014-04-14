@@ -52,6 +52,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	_pixelFormat(pixelFormat),
 	_width(width),
 	_height(height),
+	_frameByteSize(-1),
 	_cropLeft(0),
 	_cropRight(0),
 	_cropTop(0),
@@ -426,31 +427,34 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		throw_errno_exception("VIDIOC_G_FMT");
 	}
 
-	// check pixel format
-	switch (fmt.fmt.pix.pixelformat)
-	{
-	case V4L2_PIX_FMT_UYVY:
-		_pixelFormat = PIXELFORMAT_UYVY;
-		std::cout << "V4L2 pixel format=UYVY" << std::endl;
-		break;
-	case V4L2_PIX_FMT_YUYV:
-		_pixelFormat = PIXELFORMAT_YUYV;
-		std::cout << "V4L2 pixel format=YUYV" << std::endl;
-		break;
-	case V4L2_PIX_FMT_RGB32:
-		_pixelFormat = PIXELFORMAT_RGB32;
-		std::cout << "V4L2 pixel format=RGB32" << std::endl;
-		break;
-	default:
-		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
-	}
-
 	// store width & height
 	_width = fmt.fmt.pix.width;
 	_height = fmt.fmt.pix.height;
 
 	// print the eventually used width and height
 	std::cout << "V4L2 width=" << _width << " height=" << _height << std::endl;
+
+	// check pixel format and frame size
+	switch (fmt.fmt.pix.pixelformat)
+	{
+	case V4L2_PIX_FMT_UYVY:
+		_pixelFormat = PIXELFORMAT_UYVY;
+		_frameByteSize = _width * _height * 2;
+		std::cout << "V4L2 pixel format=UYVY" << std::endl;
+		break;
+	case V4L2_PIX_FMT_YUYV:
+		_pixelFormat = PIXELFORMAT_YUYV;
+		_frameByteSize = _width * _height * 2;
+		std::cout << "V4L2 pixel format=YUYV" << std::endl;
+		break;
+	case V4L2_PIX_FMT_RGB32:
+		_pixelFormat = PIXELFORMAT_RGB32;
+		_frameByteSize = _width * _height * 4;
+		std::cout << "V4L2 pixel format=RGB32" << std::endl;
+		break;
+	default:
+		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
+	}
 
 	switch (_ioMethod) {
 	case IO_METHOD_READ:
@@ -667,9 +671,9 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	{
 		// We do want a new frame...
 
-		if (size != 2*_width*_height)
+		if (size != _frameByteSize)
 		{
-			std::cout << "Frame too small: " << size << " != " << (2*_width*_height) << std::endl;
+			std::cout << "Frame too small: " << size << " != " << _frameByteSize << std::endl;
 		}
 		else
 		{

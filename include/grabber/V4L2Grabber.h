@@ -108,6 +108,7 @@ private:
 	PixelFormat _pixelFormat;
 	int _width;
 	int _height;
+	int _frameByteSize;
 	int _cropLeft;
 	int _cropRight;
 	int _cropTop;
