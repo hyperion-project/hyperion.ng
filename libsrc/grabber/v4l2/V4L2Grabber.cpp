@@ -737,9 +737,9 @@ void V4L2Grabber::process_image(const uint8_t * data)
 			case PIXELFORMAT_RGB32:
 				{
 					int index = (_width * ySource + xSource) * 4;
-					rgb.red   = data[index+1];
-					rgb.green = data[index+2];
-					rgb.blue  = data[index+3];
+					rgb.red   = data[index  ];
+					rgb.green = data[index+1];
+					rgb.blue  = data[index+2];
 				}
 				break;
 			default:
