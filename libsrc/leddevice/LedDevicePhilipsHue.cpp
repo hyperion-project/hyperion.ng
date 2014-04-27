@@ -18,11 +18,6 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue() {
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
-	// Due to rate limiting (max. 30 request per seconds), discard new values if
-	// the previous request have not been completed yet.
-	if (http->hasPendingRequests()) {
-		return -1;
-	}
 	unsigned int lightId = 1;
 	for (const ColorRgb& color : ledValues) {
 		float x, y, b;
@@ -50,8 +45,6 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	header.setValue("Content-Length", QString("%1").arg(content.size()));
 	http->setHost(host);
 	http->request(header, content.toAscii());
-	// std::cout << "LedDevicePhilipsHue::put(): " << header.toString().toUtf8().constData() << std::endl;
-	// std::cout << "LedDevicePhilipsHue::put(): " << content.toUtf8().constData() << std::endl;
 }
 
 QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
@@ -71,11 +64,11 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 	x = X / (X + Y + Z);
 	y = Y / (X + Y + Z);
 	if (isnan(x)) {
-        x = 0.0f;
-    }
-    if (isnan(y)) {
-        y = 0.0f;
-    }
-    // Brightness is simply Y in the XYZ space.
+		x = 0.0f;
+	}
+	if (isnan(y)) {
+		y = 0.0f;
+	}
+	// Brightness is simply Y in the XYZ space.
 	brightness = Y;
 }
