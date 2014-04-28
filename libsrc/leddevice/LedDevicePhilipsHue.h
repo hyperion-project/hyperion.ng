@@ -9,7 +9,7 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
-		
+
 /**
  * Implementation for the Philips Hue system.
  * 
@@ -18,8 +18,7 @@
  * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
  * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
  */
-class LedDevicePhilipsHue : public LedDevice
-{
+class LedDevicePhilipsHue: public LedDevice {
 public:
 	///
 	/// Constructs the device.
@@ -46,14 +45,26 @@ public:
 	virtual int switchOff();
 
 private:
+	/// Array to save the light states.
+	std::vector<QString> states;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
+	/// Qhttp object for sending requests.
 	QHttp* http;
 
 	///
-	/// Sends a HTTP PUT request
+	/// Sends a HTTP GET request (blocking).
+	///
+	/// @param route the URI of the request
+	///
+	/// @return response of the request
+	///
+	QByteArray get(QString route);
+
+	///
+	/// Sends a HTTP PUT request (non-blocking).
 	///
 	/// @param route the URI of the request
 	///
@@ -64,9 +75,31 @@ private:
 	///
 	/// @param lightId the id of the hue light (starting from 1)
 	///
-	/// @return the URI of the light
+	/// @return the URI of the light state for PUT requests.
+	///
+	QString getStateRoute(unsigned int lightId);
+
+	///
+	/// @param lightId the id of the hue light (starting from 1)
+	///
+	/// @return the URI of the light for GET requests.
 	///
 	QString getRoute(unsigned int lightId);
+
+	///
+	/// Queries the status of all lights and saves it.
+	///
+	/// @param nLights the number of lights
+	///
+	void saveStates(unsigned int nLights);
+
+	/// Restores the status of all lights.
+	void restoreStates();
+
+	///
+	/// @return true if light states have been saved.
+	///
+	bool statesSaved();
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness
@@ -84,7 +117,6 @@ private:
 	///
 	/// @param brightness converted brightness component
 	///
-	void rgbToXYBrightness(float red, float green, float blue, 
-			float& x, float& y, float& brightness);
+	void rgbToXYBrightness(float red, float green, float blue, float& x, float& y, float& brightness);
 
 };
