@@ -12,11 +12,13 @@
 
 /**
  * Implementation for the Philips Hue system.
- * 
+ *
  * To use set the device to "philipshue".
  * Uses the official Philips Hue API (http://developers.meethue.com).
  * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
  * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
+ *
+ * @author ntim (github)
  */
 class LedDevicePhilipsHue: public LedDevice {
 public:
