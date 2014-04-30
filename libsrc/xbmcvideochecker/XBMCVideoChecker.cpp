@@ -18,10 +18,8 @@
 // {"id":668,"jsonrpc":"2.0","result":{"System.ScreenSaverActive":false}}
 
 // Request stereoscopicmode example:
-// {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":1}
-// {"id":1,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
-
-int xbmcVersion = 0;
+// {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
+// {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
 
 XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection) :
 	QObject(),
@@ -30,8 +28,8 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_activePlayerRequest(R"({"id":666,"jsonrpc":"2.0","method":"Player.GetActivePlayers"})"),
 	_currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})"),
 	_checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})"),
-	_getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":1})"),
-	_getXbmcVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":1})"),
+	_getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})"),
+	_getXbmcVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":670})"),
 	_socket(),
 	_grabVideo(grabVideo),
 	_grabPhoto(grabPhoto),
@@ -41,7 +39,8 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_enable3DDetection(enable3DDetection),
 	_previousScreensaverMode(false),
 	_previousGrabbingMode(GRABBINGMODE_INVALID),
-	_previousVideoMode(VIDEO_2D)
+	_previousVideoMode(VIDEO_2D),
+	_xbmcVersion(0)
 {
 	// setup socket
 	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
@@ -124,10 +123,10 @@ void XBMCVideoChecker::receiveReply()
 	}
 	else if (reply.contains("\"id\":667"))
 	{
-		if (xbmcVersion >= 13)
+		if (_xbmcVersion >= 13)
 		{
-		// check of active stereoscopicmode
-		_socket.write(_getStereoscopicMode.toUtf8());
+			// check of active stereoscopicmode
+			_socket.write(_getStereoscopicMode.toUtf8());
 		}
 		else
 		{
@@ -162,13 +161,13 @@ void XBMCVideoChecker::receiveReply()
 		// check here xbmc version
 		if (_socket.state() == QTcpSocket::ConnectedState)
 		{
-			if (xbmcVersion == 0)
-			{	
+			if (_xbmcVersion == 0)
+			{
 				_socket.write(_getXbmcVersion.toUtf8());
 			}
 		}
 	}
-	else if (reply.contains("\"stereoscopicmode\""))
+	else if (reply.contains("\"id\":669"))
 	{
 		QRegExp regex("\"mode\":\"(split_vertical|split_horizontal)\"");
 		int pos = regex.indexIn(reply);
@@ -185,13 +184,13 @@ void XBMCVideoChecker::receiveReply()
 			}
 		}
 	}
-	else if (reply.contains("\"version\":"))
+	else if (reply.contains("\"id\":670"))
 	{
 		QRegExp regex("\"major\":(\\d+)");
 		int pos = regex.indexIn(reply);
 		if (pos > 0)
 		{
-			xbmcVersion = regex.cap(1).toInt();
+			_xbmcVersion = regex.cap(1).toInt();
 		}
 	}
 }

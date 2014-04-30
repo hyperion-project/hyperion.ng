@@ -131,4 +131,7 @@ private:
 
 	/// Previous emitted video mode
 	VideoMode _previousVideoMode;
+
+	/// XBMC version number
+	int _xbmcVersion;
 };
