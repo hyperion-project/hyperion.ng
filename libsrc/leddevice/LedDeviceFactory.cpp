@@ -28,6 +28,7 @@
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
 #include "LedDeviceHyperionUsbasp.h"
+#include "LedDevicePhilipsHue.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -158,6 +159,11 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			LedDeviceHyperionUsbasp * deviceHyperionUsbasp = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2812);
 			deviceHyperionUsbasp->open();
 			device = deviceHyperionUsbasp;
+	}
+	else if (type == "philipshue")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		device = new LedDevicePhilipsHue(output);
 	}
 	else if (type == "test")
 	{
