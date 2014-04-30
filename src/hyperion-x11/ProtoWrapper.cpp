@@ -3,7 +3,7 @@
 #include "ProtoWrapper.h"
 
 ProtoWrapper::ProtoWrapper(const std::string & protoAddress, const bool skipReply) :
-	_priority(200),
+	_priority(10),
 	_duration_ms(2000),
 	_connection(protoAddress)
 {

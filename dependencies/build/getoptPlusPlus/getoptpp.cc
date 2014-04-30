@@ -280,7 +280,6 @@ void PresettableUniquelySwitchable::preset() {
 template<>
 PODParameter<string>::PODParameter(char shortOption, const char *longOption,
 	   const char* description) : CommonParameter<PresettableUniquelySwitchable>(shortOption, longOption, description) {
-   preset();
 }
 
 

@@ -8,3 +8,6 @@
 
 // Define to enable the spi-device
 #cmakedefine ENABLE_SPIDEV
+
+// Define to enable the spi-device
+#cmakedefine ENABLE_TINKERFORGE

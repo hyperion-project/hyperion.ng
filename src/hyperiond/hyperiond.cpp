@@ -1,10 +1,12 @@
 // C++ includes
 #include <cassert>
 #include <csignal>
+#include <clocale>
 
 // QT includes
 #include <QCoreApplication>
 #include <QResource>
+#include <QLocale>
 
 // config includes
 #include "HyperionConfig.h"
@@ -17,7 +19,12 @@
 
 #ifdef ENABLE_DISPMANX
 // Dispmanx grabber includes
-#include <dispmanx-grabber/DispmanxWrapper.h>
+#include <grabber/DispmanxWrapper.h>
+#endif
+
+#ifdef ENABLE_V4L2
+// v4l2 grabber
+#include <grabber/V4L2Wrapper.h>
 #endif
 
 // XBMC Video checker includes
@@ -77,6 +84,10 @@ int main(int argc, char** argv)
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
+
+	// force the locale
+	setlocale(LC_ALL, "C");
+	QLocale::setDefault(QLocale::c());
 
 	if (argc < 2)
 	{
@@ -159,6 +170,43 @@ int main(int argc, char** argv)
 	}
 #endif
 
+#ifdef ENABLE_V4L2
+	// construct and start the v4l2 grabber if the configuration is present
+	V4L2Wrapper * v4l2Grabber = nullptr;
+	if (config.isMember("grabber-v4l2"))
+	{
+		const Json::Value & grabberConfig = config["grabber-v4l2"];
+		v4l2Grabber = new V4L2Wrapper(
+					grabberConfig.get("device", "/dev/video0").asString(),
+					grabberConfig.get("input", 0).asInt(),
+					parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
+					parsePixelFormat(grabberConfig.get("pixelFormat", "no-change").asString()),
+					grabberConfig.get("width", -1).asInt(),
+					grabberConfig.get("height", -1).asInt(),
+					grabberConfig.get("frameDecimation", 2).asInt(),
+					grabberConfig.get("sizeDecimation", 8).asInt(),
+					grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
+					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
+					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
+					&hyperion,
+					grabberConfig.get("priority", 800).asInt());
+		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
+		v4l2Grabber->setCropping(
+					grabberConfig.get("cropLeft", 0).asInt(),
+					grabberConfig.get("cropRight", 0).asInt(),
+					grabberConfig.get("cropTop", 0).asInt(),
+					grabberConfig.get("cropBottom", 0).asInt());
+
+		v4l2Grabber->start();
+		std::cout << "V4l2 grabber created and started" << std::endl;
+	}
+#else
+	if (config.isMember("grabber-v4l2"))
+	{
+		std::cerr << "The v4l2 grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+	}
+#endif
+
 	// Create Json server if configuration is present
 	JsonServer * jsonServer = nullptr;
 	if (config.isMember("jsonServer"))
@@ -193,6 +241,9 @@ int main(int argc, char** argv)
 	// Delete all component
 #ifdef ENABLE_DISPMANX
 	delete dispmanx;
+#endif
+#ifdef ENABLE_V4L2
+	delete v4l2Grabber;
 #endif
 	delete xbmcVideoChecker;
 	delete jsonServer;

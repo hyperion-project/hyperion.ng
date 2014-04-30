@@ -28,11 +28,7 @@ add_executable(hyperion-remote
 	${hyperion-remote_HEADERS}
 	${hyperion-remote_SOURCES})
 
-qt4_use_modules(hyperion-remote
-	Core
-	Gui
-	Network)
-
 target_link_libraries(hyperion-remote
 	jsoncpp
-	getoptPlusPlus)
+    getoptPlusPlus
+    ${QT_LIBRARIES})

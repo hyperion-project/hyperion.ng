@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
 
 		IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides in the picture before decimation [default=0]");
 		IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom in the picture before decimation [default=0]");
-		IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=1]");
+		IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=16]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
 		IntParameter           & argPriority        = parameters.add<IntParameter>          ('p', "priority",         "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
 		// set defaults
 		argCropWidth.setDefault(0);
 		argCropHeight.setDefault(0);
-		argSizeDecimation.setDefault(1);
+		argSizeDecimation.setDefault(16);
 		argAddress.setDefault("127.0.0.1:19445");
 		argPriority.setDefault(800);
 

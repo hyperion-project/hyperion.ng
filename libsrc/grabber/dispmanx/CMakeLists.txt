@@ -4,8 +4,8 @@ find_package(BCM REQUIRED)
 include_directories(${BCM_INCLUDE_DIRS})
 
 # Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/dispmanx-grabber)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/dispmanx-grabber)
+SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
+SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/dispmanx)
 
 # Group the headers that go through the MOC compiler
 SET(DispmanxGrabberQT_HEADERS

@@ -37,9 +37,5 @@ add_library(jsonserver
 target_link_libraries(jsonserver
 		hyperion
 		hyperion-utils
-		jsoncpp)
-
-qt4_use_modules(jsonserver
-	Core
-	Gui
-	Network)
+        jsoncpp
+        ${QT_LIBRARIES})

@@ -19,10 +19,13 @@ message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 option(ENABLE_X11 "Enable the X11 grabber" ON)
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
+message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
+
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
 # to the source code
-configure_file ("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
+configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add project specific cmake modules (find, etc)
@@ -64,6 +67,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
+
+if (ENABLE_TINKERFORGE)
+	#find_package(libtinkerforge-1.0 REQUIRED)
+endif (ENABLE_TINKERFORGE)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

@@ -6,7 +6,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QPixmap>
-#include <Qfile>
+#include <QFile>
 #include <QRgb>
 
 #include <QElapsedTimer>
