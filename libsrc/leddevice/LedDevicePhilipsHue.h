@@ -4,8 +4,10 @@
 #include <string>
 
 // Qt includes
+#include <QObject>
 #include <QString>
 #include <QHttp>
+#include <QTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -18,7 +20,8 @@
  * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
  * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
  */
-class LedDevicePhilipsHue: public LedDevice {
+class LedDevicePhilipsHue: public QObject, public LedDevice {
+Q_OBJECT
 public:
 	///
 	/// Constructs the device.
@@ -44,6 +47,10 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
+private slots:
+	/// Restores the status of all lights.
+	void restoreStates();
+
 private:
 	/// Array to save the light states.
 	std::vector<QString> states;
@@ -53,6 +60,8 @@ private:
 	QString username;
 	/// Qhttp object for sending requests.
 	QHttp* http;
+	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
+	QTimer timer;
 
 	///
 	/// Sends a HTTP GET request (blocking).
@@ -92,9 +101,6 @@ private:
 	/// @param nLights the number of lights
 	///
 	void saveStates(unsigned int nLights);
-
-	/// Restores the status of all lights.
-	void restoreStates();
 
 	///
 	/// @return true if light states have been saved.

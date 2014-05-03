@@ -13,6 +13,9 @@
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output) :
 		host(output.c_str()), username("newdeveloper") {
 	http = new QHttp(host);
+	timer.setInterval(1000);
+	timer.setSingleShot(true);
+	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()()));
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
@@ -37,10 +40,12 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Next light id.
 		lightId++;
 	}
+	timer.start();
 	return 0;
 }
 
 int LedDevicePhilipsHue::switchOff() {
+	timer.stop();
 	// If light states have been saved before, ...
 	if (statesSaved()) {
 		// ... restore them.
