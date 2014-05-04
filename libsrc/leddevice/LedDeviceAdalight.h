@@ -12,7 +12,7 @@
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device.
 ///
-class LedDeviceAdalight : public QObject, public LedRs232Device
+class LedDeviceAdalight : public LedRs232Device
 {
 	Q_OBJECT
 

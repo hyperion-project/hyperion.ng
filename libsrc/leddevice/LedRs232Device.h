@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QObject>
+
 // Serial includes
 #include <serial/serial.h>
 
@@ -9,8 +11,10 @@
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
 ///
-class LedRs232Device : public LedDevice
+class LedRs232Device : public QObject, public LedDevice
 {
+	Q_OBJECT
+
 public:
 	///
 	/// Constructs the LedDevice attached to a RS232-device
@@ -43,6 +47,10 @@ protected:
 	 */
 	int writeBytes(const unsigned size, const uint8_t *data);
 
+private slots:
+	/// Unblock the device after a connection delay
+	void unblockAfterDelay();
+
 private:
 	/// The name of the output device
 	const std::string _deviceName;
@@ -55,4 +63,6 @@ private:
 
 	/// The RS232 serial-device
 	serial::Serial _rs232Port;
+
+	bool _blockedForDelay;
 };

@@ -4,19 +4,21 @@
 #include <cstdio>
 #include <iostream>
 
+// Qt includes
+#include <QTimer>
+
 // Serial includes
 #include <serial/serial.h>
 
 // Local Hyperion includes
 #include "LedRs232Device.h"
-#include "utils/Sleep.h"
-
 
 LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms) :
 	_deviceName(outputDevice),
 	_baudRate_Hz(baudrate),
 	_delayAfterConnect_ms(delayAfterConnect_ms),
-	_rs232Port()
+	_rs232Port(),
+	_blockedForDelay(false)
 {
 	// empty
 }
@@ -40,7 +42,9 @@ int LedRs232Device::open()
 
 		if (_delayAfterConnect_ms > 0)
 		{
-			Sleep::msleep(_delayAfterConnect_ms);
+			_blockedForDelay = true;
+			QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
+			std::cout << "Device blocked for " << _delayAfterConnect_ms << " ms" << std::endl;
 		}
 	}
 	catch (const std::exception& e)
@@ -54,6 +58,11 @@ int LedRs232Device::open()
 
 int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 {
+	if (_blockedForDelay)
+	{
+		return 0;
+	}
+
 	if (!_rs232Port.isOpen())
 	{
 		return -1;
@@ -101,4 +110,10 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 	}
 
 	return 0;
+}
+
+void LedRs232Device::unblockAfterDelay()
+{
+	std::cout << "Device unblocked" << std::endl;
+	_blockedForDelay = false;
 }

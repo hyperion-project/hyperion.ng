@@ -13,14 +13,13 @@ include_directories(
 
 # Group the headers that go through the MOC compiler
 SET(Leddevice_QT_HEADERS
+		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
 )
 
 SET(Leddevice_HEADERS
 		${CURRENT_HEADER_DIR}/LedDevice.h
 		${CURRENT_HEADER_DIR}/LedDeviceFactory.h
-
-		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.h
