@@ -9,11 +9,13 @@
 
 // Local Hyperion includes
 #include "LedRs232Device.h"
+#include "utils/Sleep.h"
 
 
-LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate) :
-	mDeviceName(outputDevice),
-	mBaudRate_Hz(baudrate),
+LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms) :
+	_deviceName(outputDevice),
+	_baudRate_Hz(baudrate),
+	_delayAfterConnect_ms(delayAfterConnect_ms),
 	_rs232Port()
 {
 	// empty
@@ -31,10 +33,15 @@ int LedRs232Device::open()
 {
 	try
 	{
-		std::cout << "Opening UART: " << mDeviceName << std::endl;
-		_rs232Port.setPort(mDeviceName);
-		_rs232Port.setBaudrate(mBaudRate_Hz);
+		std::cout << "Opening UART: " << _deviceName << std::endl;
+		_rs232Port.setPort(_deviceName);
+		_rs232Port.setBaudrate(_baudRate_Hz);
 		_rs232Port.open();
+
+		if (_delayAfterConnect_ms > 0)
+		{
+			Sleep::msleep(_delayAfterConnect_ms);
+		}
 	}
 	catch (const std::exception& e)
 	{

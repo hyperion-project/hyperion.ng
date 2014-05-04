@@ -43,8 +43,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const int delay_ms       = deviceConfig["delayAfterConnect"].asInt();
 
-		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate, delay_ms);
 		deviceAdalight->open();
 
 		device = deviceAdalight;

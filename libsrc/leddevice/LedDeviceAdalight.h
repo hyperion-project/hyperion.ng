@@ -23,7 +23,7 @@ public:
 	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms);
 
 	///
 	/// Writes the led color values to the led-device
