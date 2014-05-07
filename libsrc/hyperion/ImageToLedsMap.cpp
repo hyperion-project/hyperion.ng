@@ -35,15 +35,16 @@ ImageToLedsMap::ImageToLedsMap(
 		// skip leds without area
 		if ((led.maxX_frac-led.minX_frac) < 1e-6 || (led.maxY_frac-led.minY_frac) < 1e-6)
 		{
+			mColorsMap.emplace_back();
 			continue;
 		}
-		
+
 		// Compute the index boundaries for this led
 		unsigned minX_idx = xOffset + unsigned(std::round(actualWidth  * led.minX_frac));
 		unsigned maxX_idx = xOffset + unsigned(std::round(actualWidth  * led.maxX_frac));
 		unsigned minY_idx = yOffset + unsigned(std::round(actualHeight * led.minY_frac));
 		unsigned maxY_idx = yOffset + unsigned(std::round(actualHeight * led.maxY_frac));
-		
+
 		// make sure that the area is at least a single led large
 		minX_idx = std::min(minX_idx, xOffset + actualWidth - 1);
 		if (minX_idx == maxX_idx)

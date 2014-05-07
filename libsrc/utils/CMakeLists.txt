@@ -11,6 +11,7 @@ add_library(hyperion-utils
 		${CURRENT_HEADER_DIR}/ColorRgba.h
 		${CURRENT_SOURCE_DIR}/ColorRgba.cpp
 		${CURRENT_HEADER_DIR}/Image.h
+		${CURRENT_HEADER_DIR}/Sleep.h
 
 		${CURRENT_HEADER_DIR}/HsvTransform.h
 		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
