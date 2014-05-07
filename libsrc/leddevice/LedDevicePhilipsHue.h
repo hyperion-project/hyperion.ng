@@ -46,7 +46,7 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
+	/// Restores the original state of the leds.
 	virtual int switchOff();
 
 private slots:
@@ -103,6 +103,13 @@ private:
 	/// @param nLights the number of lights
 	///
 	void saveStates(unsigned int nLights);
+
+	///
+	/// Switches the leds on.
+	///
+	/// @param nLights the number of lights
+	///
+	void switchOn(unsigned int nLights);
 
 	///
 	/// @return true if light states have been saved.

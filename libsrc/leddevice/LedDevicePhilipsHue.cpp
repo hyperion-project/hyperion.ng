@@ -13,9 +13,9 @@
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output) :
 		host(output.c_str()), username("newdeveloper") {
 	http = new QHttp(host);
-	timer.setInterval(1000);
+	timer.setInterval(3000);
 	timer.setSingleShot(true);
-	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()()));
+	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
@@ -26,6 +26,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	// Save light states if not done before.
 	if (!statesSaved()) {
 		saveStates(ledValues.size());
+		switchOn(ledValues.size());
 	}
 	// Iterate through colors and set light states.
 	unsigned int lightId = 1;
@@ -110,10 +111,19 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		}
 		// Save state object values which are subject to change.
 		Json::Value state(Json::objectValue);
-		state["xy"] = json["state"]["xy"];
-		state["bri"] = json["state"]["bri"];
+		state["on"] = json["state"]["on"];
+		if (json["state"]["on"] == true) {
+			state["xy"] = json["state"]["xy"];
+			state["bri"] = json["state"]["bri"];
+		}
 		// Save state object.
 		states.push_back(QString(writer.write(state).c_str()).trimmed());
+	}
+}
+
+void LedDevicePhilipsHue::switchOn(unsigned int nLights) {
+	for (unsigned int i = 0; i < nLights; i++) {
+		put(getStateRoute(i + 1), "{\"on\": true}");
 	}
 }
 
