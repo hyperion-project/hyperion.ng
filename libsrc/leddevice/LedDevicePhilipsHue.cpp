@@ -13,6 +13,9 @@
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output) :
 		host(output.c_str()), username("newdeveloper") {
 	http = new QHttp(host);
+	timer.setInterval(3000);
+	timer.setSingleShot(true);
+	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
@@ -23,6 +26,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	// Save light states if not done before.
 	if (!statesSaved()) {
 		saveStates(ledValues.size());
+		switchOn(ledValues.size());
 	}
 	// Iterate through colors and set light states.
 	unsigned int lightId = 1;
@@ -37,10 +41,12 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Next light id.
 		lightId++;
 	}
+	timer.start();
 	return 0;
 }
 
 int LedDevicePhilipsHue::switchOff() {
+	timer.stop();
 	// If light states have been saved before, ...
 	if (statesSaved()) {
 		// ... restore them.
@@ -54,9 +60,15 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	QHttpRequestHeader header("PUT", url);
 	header.setValue("Host", host);
 	header.setValue("Accept-Encoding", "identity");
+	header.setValue("Connection", "keep-alive");
 	header.setValue("Content-Length", QString("%1").arg(content.size()));
-	http->setHost(host);
+	QEventLoop loop;
+	// Connect requestFinished signal to quit slot of the loop.
+	loop.connect(http, SIGNAL(requestFinished(int, bool)), SLOT(quit()));
+	// Perfrom request
 	http->request(header, content.toAscii());
+	// Go into the loop until the request is finished.
+	loop.exec();
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
@@ -92,13 +104,26 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		// Read the response.
 		QByteArray response = get(getRoute(i + 1));
 		// Parse JSON.
-		Json::Value state;
-		if (!reader.parse(QString(response).toStdString(), state)) {
+		Json::Value json;
+		if (!reader.parse(QString(response).toStdString(), json)) {
 			// Error occured, break loop.
 			break;
 		}
+		// Save state object values which are subject to change.
+		Json::Value state(Json::objectValue);
+		state["on"] = json["state"]["on"];
+		if (json["state"]["on"] == true) {
+			state["xy"] = json["state"]["xy"];
+			state["bri"] = json["state"]["bri"];
+		}
 		// Save state object.
-		states.push_back(QString(writer.write(state["state"]).c_str()));
+		states.push_back(QString(writer.write(state).c_str()).trimmed());
+	}
+}
+
+void LedDevicePhilipsHue::switchOn(unsigned int nLights) {
+	for (unsigned int i = 0; i < nLights; i++) {
+		put(getStateRoute(i + 1), "{\"on\": true}");
 	}
 }
 
