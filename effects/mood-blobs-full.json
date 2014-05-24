@@ -1,0 +1,16 @@
+{
+	"name" : "Full color mood blobs",
+	"script" : "mood-blobs.py",
+	"args" :
+	{
+		"rotationTime" : 60.0,
+		"color" : [0,0,255],
+		"hueChange" : 30.0,
+		"blobs" : 5,
+		"reverse" : false,
+		"baseChange" : true,
+		"baseColorRangeLeft" : 0,
+		"baseColorRangeRight" : 360,
+		"baseColorChangeRate" : 0.2
+	}
+}
