@@ -4,8 +4,10 @@
 #include <string>
 
 // Qt includes
+#include <QObject>
 #include <QString>
 #include <QHttp>
+#include <QTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -20,7 +22,8 @@
  *
  * @author ntim (github)
  */
-class LedDevicePhilipsHue: public LedDevice {
+class LedDevicePhilipsHue: public QObject, public LedDevice {
+Q_OBJECT
 public:
 	///
 	/// Constructs the device.
@@ -43,8 +46,12 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
+	/// Restores the original state of the leds.
 	virtual int switchOff();
+
+private slots:
+	/// Restores the status of all lights.
+	void restoreStates();
 
 private:
 	/// Array to save the light states.
@@ -55,6 +62,8 @@ private:
 	QString username;
 	/// Qhttp object for sending requests.
 	QHttp* http;
+	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
+	QTimer timer;
 
 	///
 	/// Sends a HTTP GET request (blocking).
@@ -95,8 +104,12 @@ private:
 	///
 	void saveStates(unsigned int nLights);
 
-	/// Restores the status of all lights.
-	void restoreStates();
+	///
+	/// Switches the leds on.
+	///
+	/// @param nLights the number of lights
+	///
+	void switchOn(unsigned int nLights);
 
 	///
 	/// @return true if light states have been saved.

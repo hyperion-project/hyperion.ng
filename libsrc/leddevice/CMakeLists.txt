@@ -15,6 +15,7 @@ include_directories(
 SET(Leddevice_QT_HEADERS
 		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
+		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 )
 
 SET(Leddevice_HEADERS
@@ -28,7 +29,6 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
-		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 )
 
 SET(Leddevice_SOURCES
