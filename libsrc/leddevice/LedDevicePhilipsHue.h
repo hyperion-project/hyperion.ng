@@ -22,6 +22,11 @@
  *
  * @author ntim (github)
  */
+struct CGPoint;
+struct CGPoint {
+	float x;
+	float y;
+};
 class LedDevicePhilipsHue: public QObject, public LedDevice {
 Q_OBJECT
 public:
@@ -44,7 +49,7 @@ public:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	/// Restores the original state of the leds.
 	virtual int switchOff();
@@ -54,6 +59,19 @@ private slots:
 	void restoreStates();
 
 private:
+	// ModelIds
+	const std::vector<QString> hueBulbs = {"LCT001", "LCT002", "LCT003"};
+	const std::vector<QString> livingColors = {"LLC001", "LLC005", "LLC006", "LLC007",
+			 "LLC011", "LLC012", "LLC013", "LST001"};
+	/// LivingColors color gamut triangle
+	CGPoint Red , Green, Blue;
+
+	CGPoint CGPointMake(float x, float y);
+	float CrossProduct(CGPoint p1, CGPoint p2);
+	bool CheckPointInLampsReach(CGPoint p);
+	CGPoint GetClosestPointToPoint(CGPoint A, CGPoint B, CGPoint P);
+	float GetDistanceBetweenTwoPoints(CGPoint one, CGPoint two);
+
 	/// Array to save the light states.
 	std::vector<QString> states;
 	/// Ip address of the bridge
@@ -64,6 +82,13 @@ private:
 	QHttp* http;
 	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
 	QTimer timer;
+
+	std::vector<ColorRgb> oldLedValues;
+	std::vector<QString> modelIds;
+
+	bool hasColorChanged(unsigned int lightId, const ColorRgb *color);
+
+	bool checkOnStatus(QString status);
 
 	///
 	/// Sends a HTTP GET request (blocking).
@@ -109,7 +134,9 @@ private:
 	///
 	/// @param nLights the number of lights
 	///
-	void switchOn(unsigned int nLights);
+	void switchLampOn(unsigned int lightId);
+
+	void switchLampOff(unsigned int lightId);
 
 	///
 	/// @return true if light states have been saved.
@@ -132,6 +159,6 @@ private:
 	///
 	/// @param brightness converted brightness component
 	///
-	void rgbToXYBrightness(float red, float green, float blue, float& x, float& y, float& brightness);
+	void rgbToXYBrightness(float red, float green, float blue, CGPoint *xyPoint, float &brightness);
 
 };
