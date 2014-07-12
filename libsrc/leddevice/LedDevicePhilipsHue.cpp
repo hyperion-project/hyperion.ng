@@ -14,16 +14,16 @@
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string &output) :
 	host(output.c_str()), username("newdeveloper") {
 	http = new QHttp(host);
-/*	timer.setInterval(3000);
+	timer.setInterval(3000);
 	timer.setSingleShot(true);
-	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));*/
+	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
 	delete http;
 }
 
-int LedDevicePhilipsHue::write(const std::vector<ColorRgb> &ledValues) {
+int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	// Save light states if not done before.
 	if (!statesSaved())
 		saveStates(ledValues.size());
@@ -65,15 +65,15 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> &ledValues) {
 			switchLampOn(lightId);
 
 		float bri;
-		CGPoint p = CGPointMake(0, 0);
+		CGPoint p = {0.0f, 0.0f};
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-		rgbToXYBrightness(r, g, b, &p, bri);
+		rgbToXYBrightness(r, g, b, p, bri);
 		// Send adjust color and brightness command in JSON format.
 		put(getStateRoute(lightId),
 			 QString("{\"xy\": [%1, %2], \"bri\": %3}").arg(p.x).arg(p.y).arg(qRound(b * 255.0f)));
 	}
 	oldLedValues = ledValues;
-	//timer.start();
+	timer.start();
 	return 0;
 }
 
@@ -95,7 +95,7 @@ bool LedDevicePhilipsHue::hasColorChanged(unsigned int lightId, const ColorRgb *
 }
 
 int LedDevicePhilipsHue::switchOff() {
-	//timer.stop();
+	timer.stop();
 	// If light states have been saved before, ...
 	if (statesSaved()) {
 		// ... restore them.
@@ -122,7 +122,6 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	http->request(header, content.toAscii());
 	// Go into the loop until the request is finished.
 	loop.exec();
-	//std::cout << http->readAll().data() << std::endl;
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
@@ -203,23 +202,15 @@ bool LedDevicePhilipsHue::statesSaved() {
 	return !states.empty();
 }
 
-CGPoint LedDevicePhilipsHue::CGPointMake(float x, float y) {
-	CGPoint p;
-	p.x = x;
-	p.y = y;
-
-	return p;
-}
-
-float LedDevicePhilipsHue::CrossProduct(CGPoint p1, CGPoint p2) {
+float LedDevicePhilipsHue::CrossProduct(CGPoint& p1, CGPoint& p2) {
 	return (p1.x * p2.y - p1.y * p2.x);
 }
 
-bool LedDevicePhilipsHue::CheckPointInLampsReach(CGPoint p) {
-	CGPoint v1 = CGPointMake(Green.x - Red.x, Green.y - Red.y);
-	CGPoint v2 = CGPointMake(Blue.x - Red.x, Blue.y - Red.y);
+bool LedDevicePhilipsHue::CheckPointInLampsReach(CGPoint& p) {
+	CGPoint v1 = {Green.x - Red.x, Green.y - Red.y};
+	CGPoint v2 = {Blue.x - Red.x, Blue.y - Red.y};
 
-	CGPoint q = CGPointMake(p.x - Red.x, p.y - Red.y);
+	CGPoint q = {p.x - Red.x, p.y - Red.y};
 
 	float s = CrossProduct(q, v2) / CrossProduct(v1, v2);
 	float t = CrossProduct(v1, q) / CrossProduct(v1, v2);
@@ -229,9 +220,9 @@ bool LedDevicePhilipsHue::CheckPointInLampsReach(CGPoint p) {
 		return false;
 }
 
-CGPoint LedDevicePhilipsHue::GetClosestPointToPoint(CGPoint A, CGPoint B, CGPoint P) {
-	CGPoint AP = CGPointMake(P.x - A.x, P.y - A.y);
-	CGPoint AB = CGPointMake(B.x - A.x, B.y - A.y);
+CGPoint LedDevicePhilipsHue::GetClosestPointToPoint(CGPoint& A, CGPoint& B, CGPoint& P) {
+	CGPoint AP = {P.x - A.x, P.y - A.y};
+	CGPoint AB = {B.x - A.x, B.y - A.y};
 	float ab2 = AB.x * AB.x + AB.y * AB.y;
 	float ap_ab = AP.x * AB.x + AP.y * AB.y;
 
@@ -242,10 +233,10 @@ CGPoint LedDevicePhilipsHue::GetClosestPointToPoint(CGPoint A, CGPoint B, CGPoin
 	else if (t > 1.0f)
 		t = 1.0f;
 
-	return CGPointMake(A.x + AB.x * t, A.y + AB.y * t);
+	return {A.x + AB.x * t, A.y + AB.y * t};
 }
 
-float LedDevicePhilipsHue::GetDistanceBetweenTwoPoints(CGPoint one, CGPoint two) {
+float LedDevicePhilipsHue::GetDistanceBetweenTwoPoints(CGPoint& one, CGPoint& two) {
 	float dx = one.x - two.x; // horizontal difference
 	float dy = one.y - two.y; // vertical difference
 	float dist = sqrt(dx * dx + dy * dy);
@@ -253,7 +244,7 @@ float LedDevicePhilipsHue::GetDistanceBetweenTwoPoints(CGPoint one, CGPoint two)
 	return dist;
 }
 
-void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, CGPoint *xyPoint, float &brightness) {
+void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, CGPoint& xyPoint, float& brightness) {
 	//Apply gamma correction.
 	float r = (red > 0.04045f) ? powf((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
 	float g = (green > 0.04045f) ? powf((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
@@ -271,25 +262,25 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 	if (isnan(cy))
 		cy = 0.0f;
 
-	(*xyPoint).x = cx;
-	(*xyPoint).y = cy;
+	xyPoint.x = cx;
+	xyPoint.y = cy;
 
 	//Check if the given XY value is within the colourreach of our lamps.
-	bool inReachOfLamps = CheckPointInLampsReach(*xyPoint);
+	bool inReachOfLamps = CheckPointInLampsReach(xyPoint);
 
 	if (!inReachOfLamps) {
 		//It seems the colour is out of reach
 		//let's find the closes colour we can produce with our lamp and send this XY value out.
 
 		//Find the closest point on each line in the triangle.
-		CGPoint pAB = GetClosestPointToPoint(Red, Green, *xyPoint);
-		CGPoint pAC = GetClosestPointToPoint(Blue, Red, *xyPoint);
-		CGPoint pBC = GetClosestPointToPoint(Green, Blue, *xyPoint);
+		CGPoint pAB = GetClosestPointToPoint(Red, Green, xyPoint);
+		CGPoint pAC = GetClosestPointToPoint(Blue, Red, xyPoint);
+		CGPoint pBC = GetClosestPointToPoint(Green, Blue, xyPoint);
 
 		//Get the distances per point and see which point is closer to our Point.
-		float dAB = GetDistanceBetweenTwoPoints(*xyPoint, pAB);
-		float dAC = GetDistanceBetweenTwoPoints(*xyPoint, pAC);
-		float dBC = GetDistanceBetweenTwoPoints(*xyPoint, pBC);
+		float dAB = GetDistanceBetweenTwoPoints(xyPoint, pAB);
+		float dAC = GetDistanceBetweenTwoPoints(xyPoint, pAC);
+		float dBC = GetDistanceBetweenTwoPoints(xyPoint, pBC);
 
 		float lowest = dAB;
 		CGPoint closestPoint = pAB;
@@ -304,8 +295,8 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 		}
 
 		//Change the xy value to a value which is within the reach of the lamp.
-		(*xyPoint).x = closestPoint.x;
-		(*xyPoint).y = closestPoint.y;
+		xyPoint.x = closestPoint.x;
+		xyPoint.y = closestPoint.y;
 	}
 
 	// Brightness is simply Y in the XYZ space.
