@@ -11,7 +11,7 @@
 #include <QHttpRequestHeader>
 #include <QEventLoop>
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string &output) :
+LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output) :
 	host(output.c_str()), username("newdeveloper") {
 	http = new QHttp(host);
 	timer.setInterval(3000);
@@ -30,23 +30,24 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	// Iterate through colors and set light states.
 	unsigned int lightId = 0;
 	for (const ColorRgb &color : ledValues) {
-		lightId++;
 		// Send only request to the brigde if color changed (prevents DDOS --> 503)
 		if (!oldLedValues.empty())
-			if(!hasColorChanged(lightId, &color))
+			if(!hasColorChanged(lightId, &color)) {
+				lightId++;
 				continue;
+			}
 
 		float r = color.red / 255.0f;
 		float g = color.green / 255.0f;
 		float b = color.blue / 255.0f;
 
 		//set color gamut triangle
-		if(std::find(hueBulbs.begin(), hueBulbs.end(), modelIds[(lightId - 1)]) != hueBulbs.end()) {
+		if(std::find(hueBulbs.begin(), hueBulbs.end(), modelIds[lightId]) != hueBulbs.end()) {
 			Red = {0.675f, 0.322f};
 			Green = {0.4091f, 0.518f};
 			Blue = {0.167f, 0.04f};
 		} else if (std::find(livingColors.begin(),
-				 livingColors.end(), modelIds[(lightId - 1)]) != livingColors.end()) {
+				 livingColors.end(), modelIds[lightId]) != livingColors.end()) {
 			Red = {0.703f, 0.296f};
 			Green = {0.214f, 0.709f};
 			Blue = {0.139f, 0.081f};
@@ -58,10 +59,11 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// if color equal black, switch off lamp ...
 		if (r == 0.0f && g == 0.0f && b == 0.0f) {
 			switchLampOff(lightId);
+			lightId++;
 			continue;
 		}
 		// ... and if lamp off, switch on
-		if (!checkOnStatus(states[(lightId - 1)]))
+		if (!checkOnStatus(states[lightId]))
 			switchLampOn(lightId);
 
 		float bri;
@@ -71,6 +73,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Send adjust color and brightness command in JSON format.
 		put(getStateRoute(lightId),
 			 QString("{\"xy\": [%1, %2], \"bri\": %3}").arg(p.x).arg(p.y).arg(qRound(b * 255.0f)));
+		lightId++;
 	}
 	oldLedValues = ledValues;
 	timer.start();
@@ -79,7 +82,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 
 bool LedDevicePhilipsHue::hasColorChanged(unsigned int lightId, const ColorRgb *color) {
 	bool matchFound = true;
-	const ColorRgb &tmpOldColor = oldLedValues[(lightId - 1)];
+	const ColorRgb &tmpOldColor = oldLedValues[lightId];
 	if ((*color).red == tmpOldColor.red)
 		matchFound = false;
 	if (!matchFound && (*color).green == tmpOldColor.green)
@@ -139,7 +142,7 @@ QByteArray LedDevicePhilipsHue::get(QString route) {
 }
 
 QString LedDevicePhilipsHue::getStateRoute(unsigned int lightId) {
-	return QString("lights/%1/state").arg(lightId);
+	return QString("lights/%1/state").arg(lightId + 1);
 }
 
 QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
@@ -178,18 +181,20 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 
 void LedDevicePhilipsHue::switchLampOn(unsigned int lightId) {
 	put(getStateRoute(lightId), "{\"on\": true}");
-	states[(lightId - 1)].replace("\"on\":false", "\"on\":true");
+	states[lightId].replace("\"on\":false", "\"on\":true");
 }
 
 void LedDevicePhilipsHue::switchLampOff(unsigned int lightId) {
 	put(getStateRoute(lightId), "{\"on\": false}");
-	states[(lightId - 1)].replace("\"on\":true", "\"on\":false");
+	states[lightId].replace("\"on\":true", "\"on\":false");
 }
 
 void LedDevicePhilipsHue::restoreStates() {
-	unsigned int lightId = 1;
+	unsigned int lightId = 0;
 	for (QString state : states) {
-		put(getStateRoute(lightId), state);
+		if (!checkOnStatus(states[lightId]))
+			switchLampOn(lightId);
+		put(getStateRoute(lightId), states[lightId]);
 		lightId++;
 	}
 	// Clear saved light states.
