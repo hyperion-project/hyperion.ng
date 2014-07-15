@@ -41,9 +41,9 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Write color if color has been changed.
 		if (xy != lamp.color) {
 			// Send adjust color command in JSON format.
-			put(getStateRoute(lightId), QString("{\"xy\": [%1, %2]}").arg(xy.x).arg(xy.y));
+			put(getStateRoute(lamp.id), QString("{\"xy\": [%1, %2]}").arg(xy.x).arg(xy.y));
 			// Send brightness color command in JSON format.
-			put(getStateRoute(lightId), QString("{\"bri\": %1}").arg(qRound(xy.bri * 255.0f)));
+			put(getStateRoute(lamp.id), QString("{\"bri\": %1}").arg(qRound(xy.bri * 255.0f)));
 			// Remember written color.
 			lamp.color = xy;
 		}
