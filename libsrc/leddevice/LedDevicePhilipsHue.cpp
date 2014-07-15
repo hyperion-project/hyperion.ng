@@ -31,18 +31,22 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		switchOn((unsigned int) ledValues.size());
 	}
 	// Iterate through colors and set light states.
-	unsigned int lightId = 1;
+	unsigned int lightId = 0;
 	for (const ColorRgb& color : ledValues) {
-		// Find triangle.
-		CGTriangle triangle = triangles.at(lightId - 1);
+		// Get lamp.
+		HueLamp& lamp = lamps.at(lightId);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-		CGPoint xy;
-		float b;
-		rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, triangle, xy, b);
-		// Send adjust color command in JSON format.
-		put(getStateRoute(lightId), QString("{\"xy\": [%1, %2]}").arg(xy.x).arg(xy.y));
-		// Send brightness color command in JSON format.
-		put(getStateRoute(lightId), QString("{\"bri\": %1}").arg(qRound(b * 255.0f)));
+		ColorPoint xy;
+		rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, lamp, xy);
+		// Write color if color has been changed.
+		if (xy != lamp.color) {
+			// Send adjust color command in JSON format.
+			put(getStateRoute(lightId), QString("{\"xy\": [%1, %2]}").arg(xy.x).arg(xy.y));
+			// Send brightness color command in JSON format.
+			put(getStateRoute(lightId), QString("{\"bri\": %1}").arg(qRound(xy.bri * 255.0f)));
+			// Remember written color.
+			lamp.color = xy;
+		}
 		// Next light id.
 		lightId++;
 	}
@@ -98,31 +102,9 @@ QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
 	return QString("lights/%1").arg(lightId);
 }
 
-CGTriangle LedDevicePhilipsHue::getTriangle(QString modelId) {
-	const std::set<QString> HUE_BULBS_MODEL_IDS = { "LCT001", "LCT002", "LCT003" };
-	const std::set<QString> LIVING_COLORS_MODEL_IDS = { "LLC001", "LLC005", "LLC006", "LLC007", "LLC011", "LLC012",
-			"LLC013", "LST001" };
-	CGTriangle triangle;
-	if (HUE_BULBS_MODEL_IDS.find(modelId) != HUE_BULBS_MODEL_IDS.end()) {
-		triangle.red = {0.675f, 0.322f};
-		triangle.green = {0.4091f, 0.518f};
-		triangle.blue = {0.167f, 0.04f};
-	} else if (LIVING_COLORS_MODEL_IDS.find(modelId) != LIVING_COLORS_MODEL_IDS.end()) {
-		triangle.red = {0.703f, 0.296f};
-		triangle.green = {0.214f, 0.709f};
-		triangle.blue = {0.139f, 0.081f};
-	} else {
-		triangle.red = {1.0f, 0.0f};
-		triangle.green = {0.0f, 1.0f};
-		triangle.blue = {0.0f, 0.0f};
-	}
-	return triangle;
-}
-
 void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
-	// Clear saved light states.
-	states.clear();
-	triangles.clear();
+	// Clear saved lamps.
+	lamps.clear();
 	// Use json parser to parse reponse.
 	Json::Reader reader;
 	Json::FastWriter writer;
@@ -136,50 +118,48 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 			// Error occured, break loop.
 			break;
 		}
-		// Save state object values which are subject to change.
+		// Get state object values which are subject to change.
 		Json::Value state(Json::objectValue);
 		state["on"] = json["state"]["on"];
 		if (json["state"]["on"] == true) {
 			state["xy"] = json["state"]["xy"];
 			state["bri"] = json["state"]["bri"];
 		}
-		// Save state object.
-		states.push_back(QString(writer.write(state).c_str()).trimmed());
-		// Determine triangle.
+		// Determine the model id.
 		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
-		triangles.push_back(getTriangle(modelId));
+		QString originalState = QString(writer.write(state).c_str()).trimmed();
+		// Save state object.
+		lamps.push_back(HueLamp(i + 1, originalState, modelId));
 	}
 }
 
 void LedDevicePhilipsHue::switchOn(unsigned int nLights) {
-	for (unsigned int i = 0; i < nLights; i++) {
-		put(getStateRoute(i + 1), "{\"on\": true}");
+	for (HueLamp lamp : lamps) {
+		put(getStateRoute(lamp.id), "{\"on\": true}");
 	}
 }
 
 void LedDevicePhilipsHue::restoreStates() {
-	unsigned int lightId = 1;
-	for (QString state : states) {
-		put(getStateRoute(lightId), state);
-		lightId++;
+	for (HueLamp lamp : lamps) {
+		put(getStateRoute(lamp.id), lamp.originalState);
 	}
 	// Clear saved light states.
-	states.clear();
-	triangles.clear();
+	lamps.clear();
 }
 
 bool LedDevicePhilipsHue::areStatesSaved() {
-	return !states.empty();
+	return !lamps.empty();
 }
 
-float LedDevicePhilipsHue::crossProduct(CGPoint p1, CGPoint p2) {
+float LedDevicePhilipsHue::crossProduct(ColorPoint p1, ColorPoint p2) {
 	return p1.x * p2.y - p1.y * p2.x;
 }
 
-bool LedDevicePhilipsHue::isPointInLampsReach(CGTriangle triangle, CGPoint p) {
-	CGPoint v1 = { triangle.green.x - triangle.red.x, triangle.green.y - triangle.red.y };
-	CGPoint v2 = { triangle.blue.x - triangle.red.x, triangle.blue.y - triangle.red.y };
-	CGPoint q = { p.x - triangle.red.x, p.y - triangle.red.y };
+bool LedDevicePhilipsHue::isPointInLampsReach(HueLamp lamp, ColorPoint p) {
+	ColorTriangle& triangle = lamp.colorSpace;
+	ColorPoint v1 = { triangle.green.x - triangle.red.x, triangle.green.y - triangle.red.y };
+	ColorPoint v2 = { triangle.blue.x - triangle.red.x, triangle.blue.y - triangle.red.y };
+	ColorPoint q = { p.x - triangle.red.x, p.y - triangle.red.y };
 	float s = crossProduct(q, v2) / crossProduct(v1, v2);
 	float t = crossProduct(v1, q) / crossProduct(v1, v2);
 	if ((s >= 0.0f) && (t >= 0.0f) && (s + t <= 1.0f)) {
@@ -189,9 +169,9 @@ bool LedDevicePhilipsHue::isPointInLampsReach(CGTriangle triangle, CGPoint p) {
 	}
 }
 
-CGPoint LedDevicePhilipsHue::getClosestPointToPoint(CGPoint A, CGPoint B, CGPoint P) {
-	CGPoint AP = { P.x - A.x, P.y - A.y };
-	CGPoint AB = { B.x - A.x, B.y - A.y };
+ColorPoint LedDevicePhilipsHue::getClosestPointToPoint(ColorPoint a, ColorPoint b, ColorPoint p) {
+	ColorPoint AP = { p.x - a.x, p.y - a.y };
+	ColorPoint AB = { b.x - a.x, b.y - a.y };
 	float ab2 = AB.x * AB.x + AB.y * AB.y;
 	float ap_ab = AP.x * AB.x + AP.y * AB.y;
 	float t = ap_ab / ab2;
@@ -200,20 +180,19 @@ CGPoint LedDevicePhilipsHue::getClosestPointToPoint(CGPoint A, CGPoint B, CGPoin
 	} else if (t > 1.0f) {
 		t = 1.0f;
 	}
-	return {A.x + AB.x * t, A.y + AB.y * t};
+	return {a.x + AB.x * t, a.y + AB.y * t};
 }
 
-float LedDevicePhilipsHue::getDistanceBetweenTwoPoints(CGPoint one, CGPoint two) {
+float LedDevicePhilipsHue::getDistanceBetweenTwoPoints(ColorPoint p1, ColorPoint p2) {
 	// Horizontal difference.
-	float dx = one.x - two.x;
+	float dx = p1.x - p2.x;
 	// Vertical difference.
-	float dy = one.y - two.y;
-	float dist = sqrt(dx * dx + dy * dy);
-	return dist;
+	float dy = p1.y - p2.y;
+	// Absolute value.
+	return sqrt(dx * dx + dy * dy);
 }
 
-void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, CGTriangle triangle, CGPoint& xyPoint,
-		float& brightness) {
+void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, HueLamp lamp, ColorPoint& xy) {
 	// Apply gamma correction.
 	float r = (red > 0.04045f) ? powf((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
 	float g = (green > 0.04045f) ? powf((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
@@ -231,20 +210,20 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 	if (isnan(cy)) {
 		cy = 0.0f;
 	}
-	xyPoint.x = cx;
-	xyPoint.y = cy;
-	// Check if the given XY value is within the colourreach of our lamps.
-	if (!isPointInLampsReach(triangle, xyPoint)) {
-		// It seems the colour is out of reach let's find the closes colour we can produce with our lamp and send this XY value out.
-		CGPoint pAB = getClosestPointToPoint(triangle.red, triangle.green, xyPoint);
-		CGPoint pAC = getClosestPointToPoint(triangle.blue, triangle.red, xyPoint);
-		CGPoint pBC = getClosestPointToPoint(triangle.green, triangle.blue, xyPoint);
+	xy.x = cx;
+	xy.y = cy;
+	// Check if the given XY value is within the color reach of our lamps.
+	if (!isPointInLampsReach(lamp, xy)) {
+		// It seems the color is out of reach let's find the closes colour we can produce with our lamp and send this XY value out.
+		ColorPoint pAB = getClosestPointToPoint(lamp.colorSpace.red, lamp.colorSpace.green, xy);
+		ColorPoint pAC = getClosestPointToPoint(lamp.colorSpace.blue, lamp.colorSpace.red, xy);
+		ColorPoint pBC = getClosestPointToPoint(lamp.colorSpace.green, lamp.colorSpace.blue, xy);
 		// Get the distances per point and see which point is closer to our Point.
-		float dAB = getDistanceBetweenTwoPoints(xyPoint, pAB);
-		float dAC = getDistanceBetweenTwoPoints(xyPoint, pAC);
-		float dBC = getDistanceBetweenTwoPoints(xyPoint, pBC);
+		float dAB = getDistanceBetweenTwoPoints(xy, pAB);
+		float dAC = getDistanceBetweenTwoPoints(xy, pAC);
+		float dBC = getDistanceBetweenTwoPoints(xy, pBC);
 		float lowest = dAB;
-		CGPoint closestPoint = pAB;
+		ColorPoint closestPoint = pAB;
 		if (dAC < lowest) {
 			lowest = dAC;
 			closestPoint = pAC;
@@ -254,9 +233,41 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 			closestPoint = pBC;
 		}
 		// Change the xy value to a value which is within the reach of the lamp.
-		xyPoint.x = closestPoint.x;
-		xyPoint.y = closestPoint.y;
+		xy.x = closestPoint.x;
+		xy.y = closestPoint.y;
 	}
 	// Brightness is simply Y in the XYZ space.
-	brightness = Y;
+	xy.bri = Y;
+}
+
+HueLamp::HueLamp(unsigned int id, QString originalState, QString modelId) :
+		id(id), originalState(originalState) {
+	/// Hue system model ids.
+	const std::set<QString> HUE_BULBS_MODEL_IDS = { "LCT001", "LCT002", "LCT003" };
+	const std::set<QString> LIVING_COLORS_MODEL_IDS = { "LLC001", "LLC005", "LLC006", "LLC007", "LLC011", "LLC012",
+			"LLC013", "LST001" };
+	/// Find id in the sets and set the appropiate color space.
+	if (HUE_BULBS_MODEL_IDS.find(modelId) != HUE_BULBS_MODEL_IDS.end()) {
+		colorSpace.red = {0.675f, 0.322f};
+		colorSpace.green = {0.4091f, 0.518f};
+		colorSpace.blue = {0.167f, 0.04f};
+	} else if (LIVING_COLORS_MODEL_IDS.find(modelId) != LIVING_COLORS_MODEL_IDS.end()) {
+		colorSpace.red = {0.703f, 0.296f};
+		colorSpace.green = {0.214f, 0.709f};
+		colorSpace.blue = {0.139f, 0.081f};
+	} else {
+		colorSpace.red = {1.0f, 0.0f};
+		colorSpace.green = {0.0f, 1.0f};
+		colorSpace.blue = {0.0f, 0.0f};
+	}
+	/// Initialize color with black
+	color = {0.0f, 0.0f, 0.0f};
+}
+
+bool operator ==(ColorPoint p1, ColorPoint p2) {
+	return (p1.x == p2.x) && (p1.y == p2.y) && (p1.bri == p2.bri);
+}
+
+bool operator !=(ColorPoint p1, ColorPoint p2) {
+	return !(p1 == p2);
 }

@@ -12,13 +12,27 @@
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
-struct CGPoint {
+struct ColorPoint {
 	float x;
 	float y;
+	float bri;
 };
 
-struct CGTriangle {
-	CGPoint red, green, blue;
+bool operator==(ColorPoint p1, ColorPoint p2);
+bool operator!=(ColorPoint p1, ColorPoint p2);
+
+struct ColorTriangle {
+	ColorPoint red, green, blue;
+};
+
+class HueLamp {
+public:
+	unsigned int id;
+	ColorPoint color;
+	ColorTriangle colorSpace;
+	QString originalState;
+
+	HueLamp(unsigned int id, QString originalState, QString modelId);
 };
 
 /**
@@ -63,10 +77,8 @@ private slots:
 	void restoreStates();
 
 private:
-	/// Array to save the light states.
-	std::vector<QString> states;
-	/// Color triangles.
-	std::vector<CGTriangle> triangles;
+	/// Array to save the lamps.
+	std::vector<HueLamp> lamps;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
@@ -141,12 +153,11 @@ private:
 	///
 	/// @param brightness converted brightness component
 	///
-	void rgbToXYBrightness(float red, float green, float blue, CGTriangle triangle, CGPoint& xyPoint, float& brightness);
+	void rgbToXYBrightness(float red, float green, float blue, HueLamp lamp, ColorPoint& xy);
 
-	CGTriangle getTriangle(QString modelId);
-	float crossProduct(CGPoint p1, CGPoint p2);
-	bool isPointInLampsReach(CGTriangle triangle, CGPoint p);
-	CGPoint getClosestPointToPoint(CGPoint a, CGPoint b, CGPoint p);
-	float getDistanceBetweenTwoPoints(CGPoint one, CGPoint two);
+	float crossProduct(ColorPoint p1, ColorPoint p2);
+	bool isPointInLampsReach(HueLamp lamp, ColorPoint p);
+	ColorPoint getClosestPointToPoint(ColorPoint a, ColorPoint b, ColorPoint p);
+	float getDistanceBetweenTwoPoints(ColorPoint one, ColorPoint two);
 
 };
