@@ -12,6 +12,15 @@
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
+struct CGPoint {
+	float x;
+	float y;
+};
+
+struct CGTriangle {
+	CGPoint red, green, blue;
+};
+
 /**
  * Implementation for the Philips Hue system.
  *
@@ -56,6 +65,10 @@ private slots:
 private:
 	/// Array to save the light states.
 	std::vector<QString> states;
+	/// Array to save model ids.
+	std::vector<QString> ids;
+	/// Color triangles.
+	std::vector<CGTriangle> triangles;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
@@ -114,7 +127,7 @@ private:
 	///
 	/// @return true if light states have been saved.
 	///
-	bool statesSaved();
+	bool areStatesSaved();
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness
@@ -126,12 +139,16 @@ private:
 	///
 	/// @param blue the blue component in [0, 1]
 	///
-	/// @param x converted x component
-	///
-	/// @param y converted y component
+	/// @param xyPoint converted xy component
 	///
 	/// @param brightness converted brightness component
 	///
-	void rgbToXYBrightness(float red, float green, float blue, float& x, float& y, float& brightness);
+	void rgbToXYBrightness(float red, float green, float blue, CGTriangle triangle, CGPoint& xyPoint, float& brightness);
+
+	CGTriangle getTriangle(QString modelId);
+	float crossProduct(CGPoint p1, CGPoint p2);
+	bool isPointInLampsReach(CGTriangle triangle, CGPoint p);
+	CGPoint getClosestPointToPoint(CGPoint a, CGPoint b, CGPoint p);
+	float getDistanceBetweenTwoPoints(CGPoint one, CGPoint two);
 
 };
