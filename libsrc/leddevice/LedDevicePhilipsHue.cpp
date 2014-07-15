@@ -31,10 +31,10 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		switchOn((unsigned int) ledValues.size());
 	}
 	// Iterate through colors and set light states.
-	unsigned int lightId = 0;
+	unsigned int idx = 0;
 	for (const ColorRgb& color : ledValues) {
 		// Get lamp.
-		HueLamp& lamp = lamps.at(lightId);
+		HueLamp& lamp = lamps.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		ColorPoint xy;
 		rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, lamp, xy);
@@ -48,7 +48,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 			lamp.color = xy;
 		}
 		// Next light id.
-		lightId++;
+		idx++;
 	}
 	timer.start();
 	return 0;
