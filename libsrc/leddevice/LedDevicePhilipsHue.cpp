@@ -122,6 +122,7 @@ CGTriangle LedDevicePhilipsHue::getTriangle(QString modelId) {
 void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	// Clear saved light states.
 	states.clear();
+	triangles.clear();
 	// Use json parser to parse reponse.
 	Json::Reader reader;
 	Json::FastWriter writer;
@@ -142,12 +143,11 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 			state["xy"] = json["state"]["xy"];
 			state["bri"] = json["state"]["bri"];
 		}
-		// Save id.
-		ids.push_back(QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", ""));
 		// Save state object.
 		states.push_back(QString(writer.write(state).c_str()).trimmed());
 		// Determine triangle.
-		triangles.push_back(getTriangle(ids.back()));
+		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
+		triangles.push_back(getTriangle(modelId));
 	}
 }
 
@@ -165,6 +165,7 @@ void LedDevicePhilipsHue::restoreStates() {
 	}
 	// Clear saved light states.
 	states.clear();
+	triangles.clear();
 }
 
 bool LedDevicePhilipsHue::areStatesSaved() {

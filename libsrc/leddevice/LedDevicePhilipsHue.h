@@ -65,8 +65,6 @@ private slots:
 private:
 	/// Array to save the light states.
 	std::vector<QString> states;
-	/// Array to save model ids.
-	std::vector<QString> ids;
 	/// Color triangles.
 	std::vector<CGTriangle> triangles;
 	/// Ip address of the bridge
