@@ -158,7 +158,7 @@ private:
 	bool areStatesSaved();
 
 	///
-	/// Converts an RGB color to the Hue xy color space and brightness
+	/// Converts an RGB color to the Hue xy color space and brightness.
 	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
 	///
 	/// @param red the red component in [0, 1]
@@ -211,6 +211,6 @@ private:
 	///
 	/// @return the distance between the two points
 	///
-	float getDistanceBetweenTwoPoints(ColorPoint one, ColorPoint two);
+	float getDistanceBetweenTwoPoints(ColorPoint p1, ColorPoint p2);
 
 };
