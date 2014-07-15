@@ -12,6 +12,9 @@
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
+/**
+ * A color point in the color space of the hue system.
+ */
 struct ColorPoint {
 	float x;
 	float y;
@@ -21,10 +24,16 @@ struct ColorPoint {
 bool operator==(ColorPoint p1, ColorPoint p2);
 bool operator!=(ColorPoint p1, ColorPoint p2);
 
+/**
+ * Color triangle to define an available color space for the hue lamps.
+ */
 struct ColorTriangle {
 	ColorPoint red, green, blue;
 };
 
+/**
+ * Simple class to hold the id, the latest color, the color space and the original state.
+ */
 class HueLamp {
 public:
 	unsigned int id;
@@ -32,6 +41,15 @@ public:
 	ColorTriangle colorSpace;
 	QString originalState;
 
+	///
+	/// Constructs the lamp.
+	///
+	/// @param id the light id
+	///
+	/// @param originalState the json string of the original state
+	///
+	/// @param modelId the model id of the hue lamp which is used to determine the color space
+	///
 	HueLamp(unsigned int id, QString originalState, QString modelId);
 };
 
@@ -149,15 +167,50 @@ private:
 	///
 	/// @param blue the blue component in [0, 1]
 	///
-	/// @param xyPoint converted xy component
+	/// @param lamp the hue lamp instance used for color space checks.
 	///
-	/// @param brightness converted brightness component
+	/// @return color point
 	///
-	void rgbToXYBrightness(float red, float green, float blue, HueLamp lamp, ColorPoint& xy);
+	ColorPoint rgbToXYBrightness(float red, float green, float blue, HueLamp lamp);
 
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the cross product between p1 and p2
+	///
 	float crossProduct(ColorPoint p1, ColorPoint p2);
+
+
+	///
+	/// @param lamp the hue lamp instance
+	///
+	/// @param p the color point to check
+	///
+	/// @return true if the color point is covered by the lamp color space
+	///
 	bool isPointInLampsReach(HueLamp lamp, ColorPoint p);
+
+
+	///
+	/// @param a reference point one
+	///
+	/// @param b reference point two
+	///
+	/// @param p the point to which the closest point is to be found
+	///
+	/// @return the closest color point of p to a and b
+	///
 	ColorPoint getClosestPointToPoint(ColorPoint a, ColorPoint b, ColorPoint p);
+
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the distance between the two points
+	///
 	float getDistanceBetweenTwoPoints(ColorPoint one, ColorPoint two);
 
 };

@@ -36,8 +36,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Get lamp.
 		HueLamp& lamp = lamps.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-		ColorPoint xy;
-		rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, lamp, xy);
+		ColorPoint xy = rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, lamp);
 		// Write color if color has been changed.
 		if (xy != lamp.color) {
 			// Send adjust color command in JSON format.
@@ -192,7 +191,7 @@ float LedDevicePhilipsHue::getDistanceBetweenTwoPoints(ColorPoint p1, ColorPoint
 	return sqrt(dx * dx + dy * dy);
 }
 
-void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, HueLamp lamp, ColorPoint& xy) {
+ColorPoint LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, HueLamp lamp) {
 	// Apply gamma correction.
 	float r = (red > 0.04045f) ? powf((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
 	float g = (green > 0.04045f) ? powf((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
@@ -202,16 +201,15 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 	float Y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
 	float Z = r * 0.0000000f + g * 0.053077f + b * 1.035763f;
 	// Convert to x,y space.
-	float cx = X / (X + Y + Z + 0.0000001f);
-	float cy = Y / (X + Y + Z + 0.0000001f);
+	float cx = X / (X + Y + Z);
+	float cy = Y / (X + Y + Z);
 	if (isnan(cx)) {
 		cx = 0.0f;
 	}
 	if (isnan(cy)) {
 		cy = 0.0f;
 	}
-	xy.x = cx;
-	xy.y = cy;
+	ColorPoint xy = {cx, cy};
 	// Check if the given XY value is within the color reach of our lamps.
 	if (!isPointInLampsReach(lamp, xy)) {
 		// It seems the color is out of reach let's find the closes colour we can produce with our lamp and send this XY value out.
@@ -242,11 +240,11 @@ void LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float blue, 
 
 HueLamp::HueLamp(unsigned int id, QString originalState, QString modelId) :
 		id(id), originalState(originalState) {
-	/// Hue system model ids.
+	// Hue system model ids.
 	const std::set<QString> HUE_BULBS_MODEL_IDS = { "LCT001", "LCT002", "LCT003" };
 	const std::set<QString> LIVING_COLORS_MODEL_IDS = { "LLC001", "LLC005", "LLC006", "LLC007", "LLC011", "LLC012",
 			"LLC013", "LST001" };
-	/// Find id in the sets and set the appropiate color space.
+	// Find id in the sets and set the appropiate color space.
 	if (HUE_BULBS_MODEL_IDS.find(modelId) != HUE_BULBS_MODEL_IDS.end()) {
 		colorSpace.red = {0.675f, 0.322f};
 		colorSpace.green = {0.4091f, 0.518f};
@@ -260,7 +258,7 @@ HueLamp::HueLamp(unsigned int id, QString originalState, QString modelId) :
 		colorSpace.green = {0.0f, 1.0f};
 		colorSpace.blue = {0.0f, 0.0f};
 	}
-	/// Initialize color with black
+	// Initialize color with black
 	color = {0.0f, 0.0f, 0.0f};
 }
 
