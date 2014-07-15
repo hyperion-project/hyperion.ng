@@ -49,7 +49,7 @@ public:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues);
 
 	/// Restores the original state of the leds.
 	virtual int switchOff();
@@ -59,18 +59,17 @@ private slots:
 	void restoreStates();
 
 private:
-	// ModelIds
+	/// Available modelIds
 	const std::vector<QString> hueBulbs = {"LCT001", "LCT002", "LCT003"};
 	const std::vector<QString> livingColors = {"LLC001", "LLC005", "LLC006", "LLC007",
 			 "LLC011", "LLC012", "LLC013", "LST001"};
-	/// LivingColors color gamut triangle
+	/// Color gamut triangle
 	CGPoint Red , Green, Blue;
 
-	CGPoint CGPointMake(float x, float y);
-	float CrossProduct(CGPoint p1, CGPoint p2);
-	bool CheckPointInLampsReach(CGPoint p);
-	CGPoint GetClosestPointToPoint(CGPoint A, CGPoint B, CGPoint P);
-	float GetDistanceBetweenTwoPoints(CGPoint one, CGPoint two);
+	float CrossProduct(CGPoint& p1, CGPoint& p2);
+	bool CheckPointInLampsReach(CGPoint& p);
+	CGPoint GetClosestPointToPoint(CGPoint& A, CGPoint& B, CGPoint& P);
+	float GetDistanceBetweenTwoPoints(CGPoint& one, CGPoint& two);
 
 	/// Array to save the light states.
 	std::vector<QString> states;
@@ -159,6 +158,6 @@ private:
 	///
 	/// @param brightness converted brightness component
 	///
-	void rgbToXYBrightness(float red, float green, float blue, CGPoint *xyPoint, float &brightness);
+	void rgbToXYBrightness(float red, float green, float blue, CGPoint& xyPoint, float& brightness);
 
 };
