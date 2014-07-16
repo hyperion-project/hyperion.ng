@@ -15,30 +15,34 @@
 /**
  * A color point in the color space of the hue system.
  */
-struct ColorPoint {
+struct CiColor {
+	/// X component.
 	float x;
+	/// Y component.
 	float y;
+	/// The brightness.
 	float bri;
 };
 
-bool operator==(ColorPoint p1, ColorPoint p2);
-bool operator!=(ColorPoint p1, ColorPoint p2);
+bool operator==(CiColor p1, CiColor p2);
+bool operator!=(CiColor p1, CiColor p2);
 
 /**
  * Color triangle to define an available color space for the hue lamps.
  */
-struct ColorTriangle {
-	ColorPoint red, green, blue;
+struct CiColorTriangle {
+	CiColor red, green, blue;
 };
 
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
  */
-class HueLamp {
+class PhilipsHueLamp {
 public:
 	unsigned int id;
-	ColorPoint color;
-	ColorTriangle colorSpace;
+	CiColor black;
+	CiColor color;
+	CiColorTriangle colorSpace;
 	QString originalState;
 
 	///
@@ -50,7 +54,57 @@ public:
 	///
 	/// @param modelId the model id of the hue lamp which is used to determine the color space
 	///
-	HueLamp(unsigned int id, QString originalState, QString modelId);
+	PhilipsHueLamp(unsigned int id, QString originalState, QString modelId);
+
+	///
+	/// Converts an RGB color to the Hue xy color space and brightness.
+	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
+	///
+	/// @param red the red component in [0, 1]
+	///
+	/// @param green the green component in [0, 1]
+	///
+	/// @param blue the blue component in [0, 1]
+	///
+	/// @return color point
+	///
+	CiColor rgbToCiColor(float red, float green, float blue);
+
+	///
+	/// @param p the color point to check
+	///
+	/// @return true if the color point is covered by the lamp color space
+	///
+	bool isPointInLampsReach(CiColor p);
+
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the cross product between p1 and p2
+	///
+	float crossProduct(CiColor p1, CiColor p2);
+
+	///
+	/// @param a reference point one
+	///
+	/// @param b reference point two
+	///
+	/// @param p the point to which the closest point is to be found
+	///
+	/// @return the closest color point of p to a and b
+	///
+	CiColor getClosestPointToPoint(CiColor a, CiColor b, CiColor p);
+
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the distance between the two points
+	///
+	float getDistanceBetweenTwoPoints(CiColor p1, CiColor p2);
 };
 
 /**
@@ -97,9 +151,8 @@ private slots:
 	void restoreStates();
 
 private:
-	const static ColorPoint BLACK;
 	/// Array to save the lamps.
-	std::vector<HueLamp> lamps;
+	std::vector<PhilipsHueLamp> lamps;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
@@ -161,59 +214,5 @@ private:
 	/// @return true if light states have been saved.
 	///
 	bool areStatesSaved();
-
-	///
-	/// Converts an RGB color to the Hue xy color space and brightness.
-	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
-	///
-	/// @param red the red component in [0, 1]
-	///
-	/// @param green the green component in [0, 1]
-	///
-	/// @param blue the blue component in [0, 1]
-	///
-	/// @param lamp the hue lamp instance used for color space checks.
-	///
-	/// @return color point
-	///
-	ColorPoint rgbToXYBrightness(float red, float green, float blue, HueLamp lamp);
-
-	///
-	/// @param p1 point one
-	///
-	/// @param p2 point tow
-	///
-	/// @return the cross product between p1 and p2
-	///
-	float crossProduct(ColorPoint p1, ColorPoint p2);
-
-	///
-	/// @param lamp the hue lamp instance
-	///
-	/// @param p the color point to check
-	///
-	/// @return true if the color point is covered by the lamp color space
-	///
-	bool isPointInLampsReach(HueLamp lamp, ColorPoint p);
-
-	///
-	/// @param a reference point one
-	///
-	/// @param b reference point two
-	///
-	/// @param p the point to which the closest point is to be found
-	///
-	/// @return the closest color point of p to a and b
-	///
-	ColorPoint getClosestPointToPoint(ColorPoint a, ColorPoint b, ColorPoint p);
-
-	///
-	/// @param p1 point one
-	///
-	/// @param p2 point tow
-	///
-	/// @return the distance between the two points
-	///
-	float getDistanceBetweenTwoPoints(ColorPoint p1, ColorPoint p2);
 
 };
