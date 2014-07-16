@@ -32,6 +32,11 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		saveStates((unsigned int) ledValues.size());
 		switchOn((unsigned int) ledValues.size());
 	}
+	// If there are less states saved than colors given, then maybe something went wrong before.
+	if (lamps.size() != ledValues.size()) {
+		restoreStates();
+		return 0;
+	}
 	// Iterate through colors and set light states.
 	unsigned int idx = 0;
 	for (const ColorRgb& color : ledValues) {
@@ -51,7 +56,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 			}
 			// Send adjust color and brightness command in JSON format.
 			put(getStateRoute(lamp.id),
-					QString("{\"xy\": [%1, %2], \"bri\": %1}").arg(xy.x).arg(xy.y).arg(qRound(xy.bri * 255.0f)));
+					QString("{\"xy\": [%1, %2], \"bri\": %3}").arg(xy.x).arg(xy.y).arg(qRound(xy.bri * 255.0f)));
 			// Remember written color.
 			lamp.color = xy;
 		}
