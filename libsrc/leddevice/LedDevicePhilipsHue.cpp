@@ -178,12 +178,10 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 			// From black to a color.
 			if (lamp.color == lamp.black && xy != lamp.black) {
 				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
-				std::cout << "switchon" << std::endl;
 			}
 			// From a color to black.
 			else if (lamp.color != lamp.black && xy == lamp.black) {
 				put(getStateRoute(lamp.id), QString("{\"on\": false}"));
-				std::cout << "switchoff" << std::endl;
 			}
 		}
 		// Remember last color.
