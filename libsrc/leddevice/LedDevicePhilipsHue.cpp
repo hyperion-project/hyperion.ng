@@ -12,7 +12,7 @@
 
 #include <set>
 
-const ColorPoint LedDevicePhilipsHue::BLACK = {0.0f, 0.0f, 0.0f};
+const ColorPoint LedDevicePhilipsHue::BLACK = { 0.0f, 0.0f, 0.0f };
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack) :
 		host(output.c_str()), username("newdeveloper"), switchOffOnBlack(switchOffOnBlack) {
@@ -42,7 +42,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Switch lamp off if switchOffOnBlack is enabled and the lamp is currently on.
 		if (switchOffOnBlack && xy == BLACK && lamp.color != BLACK) {
 			put(getStateRoute(lamp.id), QString("{\"on\": false}"));
-		} 
+		}
 		// Write color if color has been changed.
 		else if (xy != lamp.color) {
 			// Switch on if the lamp has been previously switched off.
@@ -50,8 +50,8 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
 			}
 			// Send adjust color and brightness command in JSON format.
-			put(getStateRoute(lamp.id), QString("{\"xy\": [%1, %2], \"bri\": %1}").arg(xy.x).arg(xy.y)
-				.arg(qRound(xy.bri * 255.0f)));
+			put(getStateRoute(lamp.id),
+					QString("{\"xy\": [%1, %2], \"bri\": %1}").arg(xy.x).arg(xy.y).arg(qRound(xy.bri * 255.0f)));
 			// Remember written color.
 			lamp.color = xy;
 		}
@@ -218,10 +218,11 @@ ColorPoint LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float 
 	if (isnan(cy)) {
 		cy = 0.0f;
 	}
-	ColorPoint xy = {cx, cy};
+	// Brightness is simply Y in the XYZ space.
+	ColorPoint xy = { cx, cy, Y };
 	// Check if the given XY value is within the color reach of our lamps.
 	if (!isPointInLampsReach(lamp, xy)) {
-		// It seems the color is out of reach let's find the closes colour we can produce with our lamp and send this XY value out.
+		// It seems the color is out of reach let's find the closes color we can produce with our lamp and send this XY value out.
 		ColorPoint pAB = getClosestPointToPoint(lamp.colorSpace.red, lamp.colorSpace.green, xy);
 		ColorPoint pAC = getClosestPointToPoint(lamp.colorSpace.blue, lamp.colorSpace.red, xy);
 		ColorPoint pBC = getClosestPointToPoint(lamp.colorSpace.green, lamp.colorSpace.blue, xy);
@@ -243,8 +244,7 @@ ColorPoint LedDevicePhilipsHue::rgbToXYBrightness(float red, float green, float 
 		xy.x = closestPoint.x;
 		xy.y = closestPoint.y;
 	}
-	// Brightness is simply Y in the XYZ space.
-	xy.bri = Y;
+	return xy;
 }
 
 HueLamp::HueLamp(unsigned int id, QString originalState, QString modelId) :

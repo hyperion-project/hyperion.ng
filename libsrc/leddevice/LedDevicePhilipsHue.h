@@ -61,7 +61,7 @@ public:
  * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
  * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
  *
- * @author ntim (github)
+ * @author ntim (github), bimsarck (github)
  */
 class LedDevicePhilipsHue: public QObject, public LedDevice {
 Q_OBJECT
@@ -187,7 +187,6 @@ private:
 	///
 	float crossProduct(ColorPoint p1, ColorPoint p2);
 
-
 	///
 	/// @param lamp the hue lamp instance
 	///
@@ -196,7 +195,6 @@ private:
 	/// @return true if the color point is covered by the lamp color space
 	///
 	bool isPointInLampsReach(HueLamp lamp, ColorPoint p);
-
 
 	///
 	/// @param a reference point one
