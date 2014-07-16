@@ -71,7 +71,9 @@ public:
 	///
 	/// @param output the ip address of the bridge
 	///
-	LedDevicePhilipsHue(const std::string& output);
+	/// @param switchOffOnBlack kill lights for black
+	///
+	LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack);
 
 	///
 	/// Destructor of this device
@@ -95,6 +97,7 @@ private slots:
 	void restoreStates();
 
 private:
+	const static ColorPoint BLACK;
 	/// Array to save the lamps.
 	std::vector<HueLamp> lamps;
 	/// Ip address of the bridge
@@ -105,6 +108,8 @@ private:
 	QHttp* http;
 	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
 	QTimer timer;
+	///
+	bool switchOffOnBlack;
 
 	///
 	/// Sends a HTTP GET request (blocking).

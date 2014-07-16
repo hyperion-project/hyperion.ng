@@ -12,8 +12,10 @@
 
 #include <set>
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output) :
-		host(output.c_str()), username("newdeveloper") {
+const ColorPoint LedDevicePhilipsHue::BLACK = {0.0f, 0.0f, 0.0f};
+
+LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack) :
+		host(output.c_str()), username("newdeveloper"), switchOffOnBlack(switchOffOnBlack) {
 	http = new QHttp(host);
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
@@ -37,12 +39,19 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		HueLamp& lamp = lamps.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		ColorPoint xy = rgbToXYBrightness(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, lamp);
+		// Switch lamp off if switchOffOnBlack is enabled and the lamp is currently on.
+		if (switchOffOnBlack && xy == BLACK && lamp.color != BLACK) {
+			put(getStateRoute(lamp.id), QString("{\"on\": false}"));
+		} 
 		// Write color if color has been changed.
-		if (xy != lamp.color) {
-			// Send adjust color command in JSON format.
-			put(getStateRoute(lamp.id), QString("{\"xy\": [%1, %2]}").arg(xy.x).arg(xy.y));
-			// Send brightness color command in JSON format.
-			put(getStateRoute(lamp.id), QString("{\"bri\": %1}").arg(qRound(xy.bri * 255.0f)));
+		else if (xy != lamp.color) {
+			// Switch on if the lamp has been previously switched off.
+			if (switchOffOnBlack && lamp.color == BLACK) {
+				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
+			}
+			// Send adjust color and brightness command in JSON format.
+			put(getStateRoute(lamp.id), QString("{\"xy\": [%1, %2], \"bri\": %1}").arg(xy.x).arg(xy.y)
+				.arg(qRound(xy.bri * 255.0f)));
 			// Remember written color.
 			lamp.color = xy;
 		}
