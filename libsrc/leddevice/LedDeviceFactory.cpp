@@ -29,6 +29,7 @@
 #include "LedDeviceTest.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
+#include "LedDeviceTpm2.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -171,6 +172,15 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
+	}
+	else if (type == "tpm2")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate = deviceConfig["rate"].asInt();
+
+		LedDeviceTpm2* deviceTpm2 = new LedDeviceTpm2(output, rate);
+		deviceTpm2->open();
+		device = deviceTpm2;
 	}
 	else
 	{
