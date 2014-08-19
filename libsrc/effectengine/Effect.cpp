@@ -270,7 +270,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 			}
 			else
 			{
-				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*ledCount");
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*width*height");
 				return nullptr;
 			}
 		}
