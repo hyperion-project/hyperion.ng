@@ -4,31 +4,30 @@
 #include <string>
 #include <vector>
 
+// Qt includes
+#include <QObject>
+#include <QSocketNotifier>
+
 // util includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/VideoMode.h>
+
+// grabber includes
+#include <grabber/VideoStandard.h>
+#include <grabber/PixelFormat.h>
 
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-class V4L2Grabber
+class V4L2Grabber : public QObject
 {
-public:
-	typedef void (*ImageCallback)(void * arg, const Image<ColorRgb> & image);
-
-	enum VideoStandard {
-		PAL, NTSC, NO_CHANGE
-	};
-
-	enum Mode3D {
-		MODE_NONE, MODE_3DSBS, MODE_3DTAB
-	};
+	Q_OBJECT
 
 public:
-	V4L2Grabber(
-			const std::string & device,
+	V4L2Grabber(const std::string & device,
 			int input,
-			VideoStandard videoStandard,
+			VideoStandard videoStandard, PixelFormat pixelFormat,
 			int width,
 			int height,
 			int frameDecimation,
@@ -36,20 +35,28 @@ public:
 			int verticalPixelDecimation);
 	virtual ~V4L2Grabber();
 
+public slots:
 	void setCropping(int cropLeft,
 					 int cropRight,
 					 int cropTop,
 					 int cropBottom);
 
-	void set3D(Mode3D mode);
+	void set3D(VideoMode mode);
 
-	void setCallback(ImageCallback callback, void * arg);
+	void setSignalThreshold(double redSignalThreshold,
+					double greenSignalThreshold,
+					double blueSignalThreshold,
+					int noSignalCounterThreshold);
 
 	void start();
 
-	void capture(int frameCount = -1);
-
 	void stop();
+
+signals:
+	void newFrame(const Image<ColorRgb> & image);
+
+private slots:
+	int read_frame();
 
 private:
 	void open_device();
@@ -69,8 +76,6 @@ private:
 	void start_capturing();
 
 	void stop_capturing();
-
-	int read_frame();
 
 	bool process_image(const void *p, int size);
 
@@ -100,9 +105,10 @@ private:
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 
-	uint32_t _pixelFormat;
+	PixelFormat _pixelFormat;
 	int _width;
 	int _height;
+	int _frameByteSize;
 	int _cropLeft;
 	int _cropRight;
 	int _cropTop;
@@ -110,11 +116,14 @@ private:
 	int _frameDecimation;
 	int _horizontalPixelDecimation;
 	int _verticalPixelDecimation;
+	int _noSignalCounterThreshold;
 
-	Mode3D _mode3D;
+	ColorRgb _noSignalThresholdColor;
+
+	VideoMode _mode3D;
 
 	int _currentFrame;
+	int _noSignalCounter;
 
-	ImageCallback _callback;
-	void * _callbackArg;
+	QSocketNotifier * _streamNotifier;
 };

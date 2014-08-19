@@ -19,11 +19,12 @@ LedDeviceLpd6803::LedDeviceLpd6803(const std::string& outputDevice, const unsign
 
 int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 {
+	unsigned messageLength = 4 + 2*ledValues.size() + ledValues.size()/8 + 1;
 	// Reconfigure if the current connfiguration does not match the required configuration
-	if (4 + 2*ledValues.size() != _ledBuffer.size())
+	if (messageLength != _ledBuffer.size())
 	{
 		// Initialise the buffer
-		_ledBuffer.resize(4 + 2*ledValues.size(), 0x00);
+		_ledBuffer.resize(messageLength, 0x00);
 	}
 
 	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector

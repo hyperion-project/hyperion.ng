@@ -4,7 +4,7 @@
 #include <clocale>
 
 // QT includes
-#include <QImage>
+#include <QCoreApplication>
 
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
@@ -12,11 +12,15 @@
 // blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
+// grabber includes
+#include "grabber/V4L2Grabber.h"
+
 // hyperion-v4l2 includes
-#include "V4L2Grabber.h"
 #include "ProtoConnection.h"
 #include "VideoStandardParameter.h"
+#include "PixelFormatParameter.h"
 #include "ImageHandler.h"
+#include "ScreenshotHandler.h"
 
 using namespace vlofgren;
 
@@ -30,8 +34,14 @@ void saveScreenshot(void *, const Image<ColorRgb> & image)
 
 int main(int argc, char** argv)
 {
+	QCoreApplication app(argc, argv);
+
 	// force the locale
 	setlocale(LC_ALL, "C");
+	QLocale::setDefault(QLocale::c());
+
+	// register the image type to use in signals
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 
 	try
 	{
@@ -41,6 +51,7 @@ int main(int argc, char** argv)
 
 		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "The device to use [default=/dev/video0]");
 		VideoStandardParameter & argVideoStandard   = parameters.add<VideoStandardParameter>('v', "video-standard",   "The used video standard. Valid values are PAL or NTSC (optional)");
+		PixelFormatParameter   & argPixelFormat     = parameters.add<PixelFormatParameter>  (0x0, "pixel-format",     "The use pixel format. Valid values are YUYV, UYVY, and RGB32 (optional)");
 		IntParameter           & argInput           = parameters.add<IntParameter>          (0x0, "input",            "Input channel (optional)");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Try to set the width of the video input (optional)");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Try to set the height of the video input (optional)");
@@ -54,6 +65,9 @@ int main(int argc, char** argv)
 		IntParameter           & argFrameDecimation = parameters.add<IntParameter>          ('f', "frame-decimator",  "Decimation factor for the video frames [default=1]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
 		DoubleParameter        & argSignalThreshold = parameters.add<DoubleParameter>       ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.");
+		DoubleParameter        & argRedSignalThreshold = parameters.add<DoubleParameter>    (0x0, "red-threshold",    "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleParameter        & argGreenSignalThreshold = parameters.add<DoubleParameter>  (0x0, "green-threshold",  "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleParameter        & argBlueSignalThreshold = parameters.add<DoubleParameter>   (0x0, "blue-threshold",   "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		SwitchParameter<>      & arg3DSBS           = parameters.add<SwitchParameter<>>     (0x0, "3DSBS",            "Interpret the incoming video stream as 3D side-by-side");
 		SwitchParameter<>      & arg3DTAB           = parameters.add<SwitchParameter<>>     (0x0, "3DTAB",            "Interpret the incoming video stream as 3D top-and-bottom");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
@@ -63,7 +77,8 @@ int main(int argc, char** argv)
 
 		// set defaults
 		argDevice.setDefault("/dev/video0");
-		argVideoStandard.setDefault(V4L2Grabber::NO_CHANGE);
+		argVideoStandard.setDefault(VIDEOSTANDARD_NO_CHANGE);
+		argPixelFormat.setDefault(PIXELFORMAT_NO_CHANGE);
 		argInput.setDefault(-1);
 		argWidth.setDefault(-1);
 		argHeight.setDefault(-1);
@@ -95,11 +110,19 @@ int main(int argc, char** argv)
 					argDevice.getValue(),
 					argInput.getValue(),
 					argVideoStandard.getValue(),
+					argPixelFormat.getValue(),
 					argWidth.getValue(),
 					argHeight.getValue(),
 					std::max(1, argFrameDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()),
 					std::max(1, argSizeDecimation.getValue()));
+
+		// set signal detection
+		grabber.setSignalThreshold(
+					std::min(1.0, std::max(0.0, argRedSignalThreshold.isSet() ? argRedSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					std::min(1.0, std::max(0.0, argGreenSignalThreshold.isSet() ? argGreenSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					std::min(1.0, std::max(0.0, argBlueSignalThreshold.isSet() ? argBlueSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					50);
 
 		// set cropping values
 		grabber.setCropping(
@@ -111,31 +134,30 @@ int main(int argc, char** argv)
 		// set 3D mode if applicable
 		if (arg3DSBS.isSet())
 		{
-			grabber.set3D(V4L2Grabber::MODE_3DSBS);
+			grabber.set3D(VIDEO_3DSBS);
 		}
 		else if (arg3DTAB.isSet())
 		{
-			grabber.set3D(V4L2Grabber::MODE_3DTAB);
+			grabber.set3D(VIDEO_3DTAB);
 		}
-
-		// start the grabber
-		grabber.start();
 
 		// run the grabber
 		if (argScreenshot.isSet())
 		{
-			grabber.setCallback(&saveScreenshot, nullptr);
-			grabber.capture(1);
+			ScreenshotHandler handler("screenshot.png");
+			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			grabber.start();
+			QCoreApplication::exec();
+			grabber.stop();
 		}
 		else
 		{
-			ImageHandler handler(argAddress.getValue(), argPriority.getValue(), argSignalThreshold.getValue(), argSkipReply.isSet());
-			grabber.setCallback(&ImageHandler::imageCallback, &handler);
-			grabber.capture();
+			ImageHandler handler(argAddress.getValue(), argPriority.getValue(), argSkipReply.isSet());
+			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			grabber.start();
+			QCoreApplication::exec();
+			grabber.stop();
 		}
-
-		// stop the grabber
-		grabber.stop();
 	}
 	catch (const std::runtime_error & e)
 	{

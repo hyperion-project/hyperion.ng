@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
-#include "V4L2Grabber.h"
+#include "grabber/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -36,10 +36,10 @@ static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, u
 }
 
 
-V4L2Grabber::V4L2Grabber(
-		const std::string & device,
+V4L2Grabber::V4L2Grabber(const std::string & device,
 		int input,
 		VideoStandard videoStandard,
+		PixelFormat pixelFormat,
 		int width,
 		int height,
 		int frameDecimation,
@@ -49,9 +49,10 @@ V4L2Grabber::V4L2Grabber(
 	_ioMethod(IO_METHOD_MMAP),
 	_fileDescriptor(-1),
 	_buffers(),
-	_pixelFormat(0),
+	_pixelFormat(pixelFormat),
 	_width(width),
 	_height(height),
+	_frameByteSize(-1),
 	_cropLeft(0),
 	_cropRight(0),
 	_cropTop(0),
@@ -59,10 +60,12 @@ V4L2Grabber::V4L2Grabber(
 	_frameDecimation(std::max(1, frameDecimation)),
 	_horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
 	_verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
-	_mode3D(MODE_NONE),
+	_noSignalCounterThreshold(50),
+	_noSignalThresholdColor(ColorRgb{0,0,0}),
+	_mode3D(VIDEO_2D),
 	_currentFrame(0),
-	_callback(nullptr),
-	_callbackArg(nullptr)
+	_noSignalCounter(0),
+	_streamNotifier(nullptr)
 {
 	open_device();
 	init_device(videoStandard, input);
@@ -70,6 +73,8 @@ V4L2Grabber::V4L2Grabber(
 
 V4L2Grabber::~V4L2Grabber()
 {
+	// stop if the grabber was not stopped
+	stop();
 	uninit_device();
 	close_device();
 }
@@ -82,66 +87,39 @@ void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_cropBottom = cropBottom;
 }
 
-void V4L2Grabber::set3D(Mode3D mode)
+void V4L2Grabber::set3D(VideoMode mode)
 {
 	_mode3D = mode;
 }
 
-void V4L2Grabber::setCallback(V4L2Grabber::ImageCallback callback, void *arg)
+void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
-	_callback = callback;
-	_callbackArg = arg;
+	_noSignalThresholdColor.red = uint8_t(255*redSignalThreshold);
+	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
+	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
+	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
+
+	std::cout << "V4L2 grabber signal threshold set to: " << _noSignalThresholdColor << std::endl;
 }
 
 void V4L2Grabber::start()
 {
-	start_capturing();
-}
-
-void V4L2Grabber::capture(int frameCount)
-{
-	for (int count = 0; count < frameCount || frameCount < 0; ++count)
+	if (_streamNotifier != nullptr && !_streamNotifier->isEnabled())
 	{
-		for (;;)
-		{
-			// the set of file descriptors for select
-			fd_set fds;
-			FD_ZERO(&fds);
-			FD_SET(_fileDescriptor, &fds);
-
-			// timeout
-			struct timeval tv;
-			tv.tv_sec = 2;
-			tv.tv_usec = 0;
-
-			// block until data is available
-			int r = select(_fileDescriptor + 1, &fds, NULL, NULL, &tv);
-
-			if (-1 == r)
-			{
-				if (EINTR == errno)
-					continue;
-				throw_errno_exception("select");
-			}
-
-			if (0 == r)
-			{
-				throw_exception("select timeout");
-			}
-
-			if (read_frame())
-			{
-				break;
-			}
-
-			/* EAGAIN - continue select loop. */
-		}
+		_streamNotifier->setEnabled(true);
+		start_capturing();
+		std::cout << "V4L2 grabber started" << std::endl;
 	}
 }
 
 void V4L2Grabber::stop()
 {
-	stop_capturing();
+	if (_streamNotifier != nullptr && _streamNotifier->isEnabled())
+	{
+		stop_capturing();
+		_streamNotifier->setEnabled(false);
+		std::cout << "V4L2 grabber stopped" << std::endl;
+	}
 }
 
 void V4L2Grabber::open_device()
@@ -170,6 +148,11 @@ void V4L2Grabber::open_device()
 		oss << "Cannot open '" << _deviceName << "'";
 		throw_errno_exception(oss.str());
 	}
+
+	// create the notifier for when a new frame is available
+	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
+	_streamNotifier->setEnabled(false);
+	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
 }
 
 void V4L2Grabber::close_device()
@@ -178,6 +161,12 @@ void V4L2Grabber::close_device()
 		throw_errno_exception("close");
 
 	_fileDescriptor = -1;
+
+	if (_streamNotifier != nullptr)
+	{
+		delete _streamNotifier;
+		_streamNotifier = nullptr;
+	}
 }
 
 void V4L2Grabber::init_read(unsigned int buffer_size)
@@ -359,7 +348,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set the video standard if needed
 	switch (videoStandard)
 	{
-	case PAL:
+	case VIDEOSTANDARD_PAL:
 	{
 		v4l2_std_id std_id = V4L2_STD_PAL;
 		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
@@ -368,7 +357,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 		break;
-	case NTSC:
+	case VIDEOSTANDARD_NTSC:
 	{
 		v4l2_std_id std_id = V4L2_STD_NTSC;
 		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
@@ -377,7 +366,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 		break;
-	case NO_CHANGE:
+	case VIDEOSTANDARD_NO_CHANGE:
 	default:
 		// No change to device settings
 		break;
@@ -393,17 +382,25 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		throw_errno_exception("VIDIOC_G_FMT");
 	}
 
-	// check pixel format
-	switch (fmt.fmt.pix.pixelformat)
+	// set the requested pixel format
+	switch (_pixelFormat)
 	{
-	case V4L2_PIX_FMT_UYVY:
-	case V4L2_PIX_FMT_YUYV:
-		_pixelFormat = fmt.fmt.pix.pixelformat;
+	case PIXELFORMAT_UYVY:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 		break;
+	case PIXELFORMAT_YUYV:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+		break;
+	case PIXELFORMAT_RGB32:
+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+		break;
+	case PIXELFORMAT_NO_CHANGE:
 	default:
-		throw_exception("Only pixel formats UYVY and YUYV are supported");
+		// No change to device settings
+		break;
 	}
 
+	// set the requested withd and height
 	if (_width > 0 || _height > 0)
 	{
 		if (_width > 0)
@@ -415,19 +412,19 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		{
 			fmt.fmt.pix.height = _height;
 		}
+	}
 
-		// set the settings
-		if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
-		{
-			throw_errno_exception("VIDIOC_S_FMT");
-		}
+	// set the settings
+	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
+	{
+		throw_errno_exception("VIDIOC_S_FMT");
+	}
 
-		// get the format settings again
-		// (the size may not have been accepted without an error)
-		if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
-		{
-			throw_errno_exception("VIDIOC_G_FMT");
-		}
+	// get the format settings again
+	// (the size may not have been accepted without an error)
+	if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
+	{
+		throw_errno_exception("VIDIOC_G_FMT");
 	}
 
 	// store width & height
@@ -436,6 +433,28 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 	// print the eventually used width and height
 	std::cout << "V4L2 width=" << _width << " height=" << _height << std::endl;
+
+	// check pixel format and frame size
+	switch (fmt.fmt.pix.pixelformat)
+	{
+	case V4L2_PIX_FMT_UYVY:
+		_pixelFormat = PIXELFORMAT_UYVY;
+		_frameByteSize = _width * _height * 2;
+		std::cout << "V4L2 pixel format=UYVY" << std::endl;
+		break;
+	case V4L2_PIX_FMT_YUYV:
+		_pixelFormat = PIXELFORMAT_YUYV;
+		_frameByteSize = _width * _height * 2;
+		std::cout << "V4L2 pixel format=YUYV" << std::endl;
+		break;
+	case V4L2_PIX_FMT_RGB32:
+		_pixelFormat = PIXELFORMAT_RGB32;
+		_frameByteSize = _width * _height * 4;
+		std::cout << "V4L2 pixel format=RGB32" << std::endl;
+		break;
+	default:
+		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
+	}
 
 	switch (_ioMethod) {
 	case IO_METHOD_READ:
@@ -652,9 +671,9 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	{
 		// We do want a new frame...
 
-		if (size != 2*_width*_height)
+		if (size != _frameByteSize)
 		{
-			std::cout << "Frame too small: " << size << " != " << (2*_width*_height) << std::endl;
+			std::cout << "Frame too small: " << size << " != " << _frameByteSize << std::endl;
 		}
 		else
 		{
@@ -674,10 +693,10 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 	switch (_mode3D)
 	{
-	case MODE_3DSBS:
+	case VIDEO_3DSBS:
 		width = _width/2;
 		break;
-	case MODE_3DTAB:
+	case VIDEO_3DTAB:
 		height = _height/2;
 		break;
 	default:
@@ -693,33 +712,79 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	{
 		for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
 		{
-			int index = (_width * ySource + xSource) * 2;
-			uint8_t y = 0;
-			uint8_t u = 0;
-			uint8_t v = 0;
+			ColorRgb & rgb = image(xDest, yDest);
 
 			switch (_pixelFormat)
 			{
-			case V4L2_PIX_FMT_UYVY:
-				y = data[index+1];
-				u = (xSource%2 == 0) ? data[index  ] : data[index-2];
-				v = (xSource%2 == 0) ? data[index+2] : data[index  ];
+			case PIXELFORMAT_UYVY:
+				{
+					int index = (_width * ySource + xSource) * 2;
+					uint8_t y = data[index+1];
+					uint8_t u = (xSource%2 == 0) ? data[index  ] : data[index-2];
+					uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index  ];
+					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
 				break;
-			case V4L2_PIX_FMT_YUYV:
-				y = data[index];
-				u = (xSource%2 == 0) ? data[index+1] : data[index-1];
-				v = (xSource%2 == 0) ? data[index+3] : data[index+1];
+			case PIXELFORMAT_YUYV:
+				{
+					int index = (_width * ySource + xSource) * 2;
+					uint8_t y = data[index];
+					uint8_t u = (xSource%2 == 0) ? data[index+1] : data[index-1];
+					uint8_t v = (xSource%2 == 0) ? data[index+3] : data[index+1];
+					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
+				break;
+			case PIXELFORMAT_RGB32:
+				{
+					int index = (_width * ySource + xSource) * 4;
+					rgb.red   = data[index  ];
+					rgb.green = data[index+1];
+					rgb.blue  = data[index+2];
+				}
+				break;
+			default:
+				// this should not be possible
 				break;
 			}
-
-			ColorRgb & rgb = image(xDest, yDest);
-			yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 		}
 	}
 
-	if (_callback != nullptr)
+	// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
+	bool noSignal = true;
+	for (unsigned x = 0; noSignal && x < (image.width()>>1); ++x)
 	{
-		(*_callback)(_callbackArg, image);
+		int xImage = (image.width()>>2) + x;
+
+		for (unsigned y = 0; noSignal && y < (image.height()>>1); ++y)
+		{
+			int yImage = (image.height()>>2) + y;
+
+			ColorRgb & rgb = image(xImage, yImage);
+			noSignal &= rgb <= _noSignalThresholdColor;
+		}
+	}
+
+	if (noSignal)
+	{
+		++_noSignalCounter;
+	}
+	else
+	{
+		if (_noSignalCounter >= _noSignalCounterThreshold)
+		{
+			std::cout << "V4L2 Grabber: " << "Signal detected" << std::endl;
+		}
+
+		_noSignalCounter = 0;
+	}
+
+	if (_noSignalCounter < _noSignalCounterThreshold)
+	{
+		emit newFrame(image);
+	}
+	else if (_noSignalCounter == _noSignalCounterThreshold)
+	{
+		std::cout << "V4L2 Grabber: " << "Signal lost" << std::endl;
 	}
 }
 

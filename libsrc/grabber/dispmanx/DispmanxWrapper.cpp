@@ -7,8 +7,8 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 
-// Local-dispmanx includes
-#include <dispmanx-grabber/DispmanxWrapper.h>
+// Dispmanx grabber includes
+#include <grabber/DispmanxWrapper.h>
 #include "DispmanxFrameGrabber.h"
 
 

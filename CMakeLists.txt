@@ -7,19 +7,22 @@ cmake_minimum_required(VERSION 2.8)
 #set(CMAKE_TOOLCHAIN_FILE /opt/raspberrypi/Toolchain-RaspberryPi.cmake)
 
 # set the build options
-option (ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
-option (ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
-
+option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
 message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
-message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
 
-option (ENABLE_V4L2 "Enable the V4L2 grabber" ON)
+option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
+message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
+
+option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
+
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
+message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
 
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
 # to the source code
-configure_file ("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
+configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add project specific cmake modules (find, etc)
@@ -61,6 +64,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
+
+if (ENABLE_TINKERFORGE)
+	#find_package(libtinkerforge-1.0 REQUIRED)
+endif (ENABLE_TINKERFORGE)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

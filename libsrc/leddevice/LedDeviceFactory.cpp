@@ -1,3 +1,6 @@
+// Stl includes
+#include <string>
+#include <algorithm>
 
 // Build configuration
 #include <HyperionConfig.h>
@@ -13,6 +16,10 @@
 	#include "LedDeviceWs2801.h"
 #endif
 
+#ifdef ENABLE_TINKERFORGE
+	#include "LedDeviceTinkerforge.h"
+#endif
+
 #include "LedDeviceAdalight.h"
 #include "LedDeviceLightpack.h"
 #include "LedDeviceMultiLightpack.h"
@@ -20,8 +27,9 @@
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
-#include "LedDeviceWs2811.h"
-#include "LedDeviceWs2812b.h"
+#include "LedDeviceHyperionUsbasp.h"
+#include "LedDevicePhilipsHue.h"
+#include "LedDeviceTpm2.h"
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -36,8 +44,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const int delay_ms       = deviceConfig["delayAfterConnect"].asInt();
 
-		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate, delay_ms);
 		deviceAdalight->open();
 
 		device = deviceAdalight;
@@ -84,23 +93,20 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = deviceWs2801;
 	}
 #endif
-//      else if (type == "ws2811")
-//      {
-//              const std::string output       = deviceConfig["output"].asString();
-//              const std::string outputSpeed  = deviceConfig["output"].asString();
-//              const std::string timingOption = deviceConfig["timingOption"].asString();
+#ifdef ENABLE_TINKERFORGE
+	else if (type=="tinkerforge")
+	{
+		const std::string host 	= deviceConfig.get("output", "127.0.0.1").asString();
+		const uint16_t port 		= deviceConfig.get("port", 4223).asInt();
+		const std::string  uid		= deviceConfig["uid"].asString();
+		const unsigned rate 	= deviceConfig["rate"].asInt();
 
-//              ws2811::SpeedMode speedMode = (outputSpeed == "high")? ws2811::highspeed : ws2811::lowspeed;
-//              if (outputSpeed != "high" && outputSpeed != "low")
-//              {
-//                      std::cerr << "Incorrect speed-mode selected for WS2811: " << outputSpeed << " != {'high', 'low'}" << std::endl;
-//              }
+		LedDeviceTinkerforge* deviceTinkerforge = new LedDeviceTinkerforge(host, port, uid, rate);
+		deviceTinkerforge->open();
 
-//              LedDeviceWs2811 * deviceWs2811 = new LedDeviceWs2811(output, ws2811::fromString(timingOption, ws2811::option_2855), speedMode);
-//              deviceWs2811->open();
-
-//              device = deviceWs2811;
-//      }
+		device = deviceTinkerforge;
+	}
+#endif
 	else if (type == "lightpack")
 	{
 		const std::string output = deviceConfig.get("output", "").asString();
@@ -144,17 +150,37 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceSedu;
 	}
+	else if (type == "hyperion-usbasp-ws2801")
+	{
+			LedDeviceHyperionUsbasp * deviceHyperionUsbasp = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2801);
+			deviceHyperionUsbasp->open();
+			device = deviceHyperionUsbasp;
+	}
+	else if (type == "hyperion-usbasp-ws2812")
+	{
+			LedDeviceHyperionUsbasp * deviceHyperionUsbasp = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2812);
+			deviceHyperionUsbasp->open();
+			device = deviceHyperionUsbasp;
+	}
+	else if (type == "philipshue")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+		device = new LedDevicePhilipsHue(output, switchOffOnBlack);
+	}
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
 	}
-	else if (type == "ws2812b")
+	else if (type == "tpm2")
 	{
-			LedDeviceWs2812b * deviceWs2812b = new LedDeviceWs2812b();
-			deviceWs2812b->open();
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate = deviceConfig["rate"].asInt();
 
-			device = deviceWs2812b;
+		LedDeviceTpm2* deviceTpm2 = new LedDeviceTpm2(output, rate);
+		deviceTpm2->open();
+		device = deviceTpm2;
 	}
 	else
 	{

@@ -38,7 +38,7 @@ public:
 	/// @param grabPhoto Whether or not to grab when the XBMC photo player is playing
 	/// @param grabAudio Whether or not to grab when the XBMC audio player is playing
 	/// @param grabMenu Whether or not to grab when nothing is playing (in XBMC menu)
-	/// @param grabScreensaver 	Whether or not to grab when the XBMC screensaver is activated
+	/// @param grabScreensaver Whether or not to grab when the XBMC screensaver is activated
 	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
 	///
 	XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection);
@@ -96,6 +96,12 @@ private:
 	/// The JSON-RPC message to check the screensaver
 	const QString _checkScreensaverRequest;
 
+	/// The JSON-RPC message to check the active stereoscopicmode
+	const QString _getStereoscopicMode;
+
+	/// The JSON-RPC message to check the xbmc version
+	const QString _getXbmcVersion;
+
 	/// The QT TCP Socket with connection to XBMC
 	QTcpSocket _socket;
 
@@ -111,7 +117,7 @@ private:
 	/// Flag indicating whether or not to grab when XBMC is playing nothing (in menu)
 	const bool _grabMenu;
 
-	/// Flag inidcating whether or not to grab when the XBMC screensaver is activated
+	/// Flag indicating whether or not to grab when the XBMC screensaver is activated
 	const bool _grabScreensaver;
 
 	/// Flag indicating wheter or not to enable the detection of 3D movies playing
@@ -125,4 +131,7 @@ private:
 
 	/// Previous emitted video mode
 	VideoMode _previousVideoMode;
+
+	/// XBMC version number
+	int _xbmcVersion;
 };

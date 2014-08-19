@@ -17,6 +17,10 @@
 // {"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}}
 // {"id":668,"jsonrpc":"2.0","result":{"System.ScreenSaverActive":false}}
 
+// Request stereoscopicmode example:
+// {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
+// {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
+
 XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection) :
 	QObject(),
 	_address(QString::fromStdString(address)),
@@ -24,6 +28,8 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_activePlayerRequest(R"({"id":666,"jsonrpc":"2.0","method":"Player.GetActivePlayers"})"),
 	_currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})"),
 	_checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})"),
+	_getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})"),
+	_getXbmcVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":670})"),
 	_socket(),
 	_grabVideo(grabVideo),
 	_grabPhoto(grabPhoto),
@@ -33,7 +39,8 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_enable3DDetection(enable3DDetection),
 	_previousScreensaverMode(false),
 	_previousGrabbingMode(GRABBINGMODE_INVALID),
-	_previousVideoMode(VIDEO_2D)
+	_previousVideoMode(VIDEO_2D),
+	_xbmcVersion(0)
 {
 	// setup socket
 	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
@@ -116,24 +123,32 @@ void XBMCVideoChecker::receiveReply()
 	}
 	else if (reply.contains("\"id\":667"))
 	{
-		// result of Player.GetItem
-		// TODO: what if the filename contains a '"'. In Json this should have been escaped
-		QRegExp regex("\"file\":\"((?!\").)*\"");
-		int pos = regex.indexIn(reply);
-		if (pos > 0)
+		if (_xbmcVersion >= 13)
 		{
-			QStringRef filename = QStringRef(&reply, pos+8, regex.matchedLength()-9);
-			if (filename.contains("3DSBS", Qt::CaseInsensitive) || filename.contains("HSBS", Qt::CaseInsensitive))
+			// check of active stereoscopicmode
+			_socket.write(_getStereoscopicMode.toUtf8());
+		}
+		else
+		{
+			// result of Player.GetItem
+			// TODO: what if the filename contains a '"'. In Json this should have been escaped
+			QRegExp regex("\"file\":\"((?!\").)*\"");
+			int pos = regex.indexIn(reply);
+			if (pos > 0)
 			{
-				setVideoMode(VIDEO_3DSBS);
-			}
-			else if (filename.contains("3DTAB", Qt::CaseInsensitive) || filename.contains("HTAB", Qt::CaseInsensitive))
-			{
-				setVideoMode(VIDEO_3DTAB);
-			}
-			else
-			{
-				setVideoMode(VIDEO_2D);
+				QStringRef filename = QStringRef(&reply, pos+8, regex.matchedLength()-9);
+				if (filename.contains("3DSBS", Qt::CaseInsensitive) || filename.contains("HSBS", Qt::CaseInsensitive))
+				{
+					setVideoMode(VIDEO_3DSBS);
+				}
+				else if (filename.contains("3DTAB", Qt::CaseInsensitive) || filename.contains("HTAB", Qt::CaseInsensitive))
+				{
+					setVideoMode(VIDEO_3DTAB);
+				}
+				else
+				{
+					setVideoMode(VIDEO_2D);
+				}
 			}
 		}
 	}
@@ -142,6 +157,41 @@ void XBMCVideoChecker::receiveReply()
 		// result of System.ScreenSaverActive
 		bool active = reply.contains("\"System.ScreenSaverActive\":true");
 		setScreensaverMode(!_grabScreensaver && active);
+
+		// check here xbmc version
+		if (_socket.state() == QTcpSocket::ConnectedState)
+		{
+			if (_xbmcVersion == 0)
+			{
+				_socket.write(_getXbmcVersion.toUtf8());
+			}
+		}
+	}
+	else if (reply.contains("\"id\":669"))
+	{
+		QRegExp regex("\"mode\":\"(split_vertical|split_horizontal)\"");
+		int pos = regex.indexIn(reply);
+		if (pos > 0)
+		{
+			QString sMode = regex.cap(1);
+			if (sMode == "split_vertical")
+			{
+				setVideoMode(VIDEO_3DSBS);
+			}
+			else if (sMode == "split_horizontal")
+			{
+				setVideoMode(VIDEO_3DTAB);
+			}
+		}
+	}
+	else if (reply.contains("\"id\":670"))
+	{
+		QRegExp regex("\"major\":(\\d+)");
+		int pos = regex.indexIn(reply);
+		if (pos > 0)
+		{
+			_xbmcVersion = regex.cap(1).toInt();
+		}
 	}
 }
 

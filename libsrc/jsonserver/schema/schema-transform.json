@@ -16,12 +16,12 @@
 					"required" : false
 				},
 				"saturationGain" : {
-					"type" : "double",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0
 				},
 				"valueGain" : {
-					"type" : "double",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0
 				},
@@ -29,7 +29,7 @@
 					"type": "array",
 					"required": false,
 					"items" : {
-						"type": "double",
+						"type": "number",
 						"minimum": 0.0,
 						"maximum": 1.0
 					},
@@ -40,7 +40,7 @@
 					"type": "array",
 					"required": false,
 					"items" : {
-						"type": "double",
+						"type": "number",
 						"minimum": 0.0
 					},
 					"minItems": 3,
@@ -50,7 +50,7 @@
 					"type": "array",
 					"required": false,
 					"items" : {
-						"type": "double"
+						"type": "number"
 					},
 					"minItems": 3,
 					"maxItems": 3
@@ -59,7 +59,7 @@
 					"type": "array",
 					"required": false,
 					"items" : {
-						"type": "double"
+						"type": "number"
 					},
 					"minItems": 3,
 					"maxItems": 3

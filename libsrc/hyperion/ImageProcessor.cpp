@@ -43,6 +43,11 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 	_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
 }
 
+void ImageProcessor::enableBalckBorderDetector(bool enable)
+{
+	_enableBlackBorderRemoval = enable;
+}
+
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	if (led < _ledString.leds().size())

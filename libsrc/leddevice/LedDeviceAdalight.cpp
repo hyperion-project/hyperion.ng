@@ -11,8 +11,8 @@
 // hyperion local includes
 #include "LedDeviceAdalight.h"
 
-LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate) :
-	LedRs232Device(outputDevice, baudrate),
+LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms) :
+	LedRs232Device(outputDevice, baudrate, delayAfterConnect_ms),
 	_ledBuffer(0),
 	_timer()
 {

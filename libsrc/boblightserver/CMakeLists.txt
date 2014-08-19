@@ -28,9 +28,5 @@ add_library(boblightserver
 
 target_link_libraries(boblightserver
 		hyperion
-		hyperion-utils)
-
-qt4_use_modules(boblightserver
-	Core
-	Gui
-	Network)
+        hyperion-utils
+        ${QT_LIBRARIES})

@@ -12,7 +12,4 @@ add_subdirectory(leddevice)
 add_subdirectory(utils)
 add_subdirectory(xbmcvideochecker)
 add_subdirectory(effectengine)
-
-if (ENABLE_DISPMANX)
-	add_subdirectory(dispmanx-grabber)
-endif (ENABLE_DISPMANX)
+add_subdirectory(grabber)
