@@ -165,7 +165,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	else if (type == "philipshue")
 	{
 		const std::string output = deviceConfig["output"].asString();
-		device = new LedDevicePhilipsHue(output);
+		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+		device = new LedDevicePhilipsHue(output, switchOffOnBlack);
 	}
 	else if (type == "test")
 	{

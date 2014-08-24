@@ -13,6 +13,101 @@
 #include <leddevice/LedDevice.h>
 
 /**
+ * A color point in the color space of the hue system.
+ */
+struct CiColor {
+	/// X component.
+	float x;
+	/// Y component.
+	float y;
+	/// The brightness.
+	float bri;
+};
+
+bool operator==(CiColor p1, CiColor p2);
+bool operator!=(CiColor p1, CiColor p2);
+
+/**
+ * Color triangle to define an available color space for the hue lamps.
+ */
+struct CiColorTriangle {
+	CiColor red, green, blue;
+};
+
+/**
+ * Simple class to hold the id, the latest color, the color space and the original state.
+ */
+class PhilipsHueLamp {
+public:
+	unsigned int id;
+	CiColor black;
+	CiColor color;
+	CiColorTriangle colorSpace;
+	QString originalState;
+
+	///
+	/// Constructs the lamp.
+	///
+	/// @param id the light id
+	///
+	/// @param originalState the json string of the original state
+	///
+	/// @param modelId the model id of the hue lamp which is used to determine the color space
+	///
+	PhilipsHueLamp(unsigned int id, QString originalState, QString modelId);
+
+	///
+	/// Converts an RGB color to the Hue xy color space and brightness.
+	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
+	///
+	/// @param red the red component in [0, 1]
+	///
+	/// @param green the green component in [0, 1]
+	///
+	/// @param blue the blue component in [0, 1]
+	///
+	/// @return color point
+	///
+	CiColor rgbToCiColor(float red, float green, float blue);
+
+	///
+	/// @param p the color point to check
+	///
+	/// @return true if the color point is covered by the lamp color space
+	///
+	bool isPointInLampsReach(CiColor p);
+
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the cross product between p1 and p2
+	///
+	float crossProduct(CiColor p1, CiColor p2);
+
+	///
+	/// @param a reference point one
+	///
+	/// @param b reference point two
+	///
+	/// @param p the point to which the closest point is to be found
+	///
+	/// @return the closest color point of p to a and b
+	///
+	CiColor getClosestPointToPoint(CiColor a, CiColor b, CiColor p);
+
+	///
+	/// @param p1 point one
+	///
+	/// @param p2 point tow
+	///
+	/// @return the distance between the two points
+	///
+	float getDistanceBetweenTwoPoints(CiColor p1, CiColor p2);
+};
+
+/**
  * Implementation for the Philips Hue system.
  *
  * To use set the device to "philipshue".
@@ -20,13 +115,8 @@
  * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
  * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
  *
- * @author ntim (github)
+ * @author ntim (github), bimsarck (github)
  */
-struct CGPoint;
-struct CGPoint {
-	float x;
-	float y;
-};
 class LedDevicePhilipsHue: public QObject, public LedDevice {
 Q_OBJECT
 public:
@@ -35,7 +125,9 @@ public:
 	///
 	/// @param output the ip address of the bridge
 	///
-	LedDevicePhilipsHue(const std::string& output);
+	/// @param switchOffOnBlack kill lights for black
+	///
+	LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack);
 
 	///
 	/// Destructor of this device
@@ -59,20 +151,8 @@ private slots:
 	void restoreStates();
 
 private:
-	/// Available modelIds
-	const std::vector<QString> hueBulbs = {"LCT001", "LCT002", "LCT003"};
-	const std::vector<QString> livingColors = {"LLC001", "LLC005", "LLC006", "LLC007",
-			 "LLC011", "LLC012", "LLC013", "LST001"};
-	/// Color gamut triangle
-	CGPoint Red , Green, Blue;
-
-	float CrossProduct(CGPoint& p1, CGPoint& p2);
-	bool CheckPointInLampsReach(CGPoint& p);
-	CGPoint GetClosestPointToPoint(CGPoint& A, CGPoint& B, CGPoint& P);
-	float GetDistanceBetweenTwoPoints(CGPoint& one, CGPoint& two);
-
-	/// Array to save the light states.
-	std::vector<QString> states;
+	/// Array to save the lamps.
+	std::vector<PhilipsHueLamp> lamps;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
@@ -81,13 +161,8 @@ private:
 	QHttp* http;
 	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
 	QTimer timer;
-
-	std::vector<ColorRgb> oldLedValues;
-	std::vector<QString> modelIds;
-
-	bool hasColorChanged(unsigned int lightId, const ColorRgb *color);
-
-	bool checkOnStatus(QString status);
+	///
+	bool switchOffOnBlack;
 
 	///
 	/// Sends a HTTP GET request (blocking).
@@ -133,31 +208,11 @@ private:
 	///
 	/// @param nLights the number of lights
 	///
-	void switchLampOn(unsigned int lightId);
-
-	void switchLampOff(unsigned int lightId);
+	void switchOn(unsigned int nLights);
 
 	///
 	/// @return true if light states have been saved.
 	///
-	bool statesSaved();
-
-	///
-	/// Converts an RGB color to the Hue xy color space and brightness
-	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
-	///
-	/// @param red the red component in [0, 1]
-	///
-	/// @param green the green component in [0, 1]
-	///
-	/// @param blue the blue component in [0, 1]
-	///
-	/// @param x converted x component
-	///
-	/// @param y converted y component
-	///
-	/// @param brightness converted brightness component
-	///
-	void rgbToXYBrightness(float red, float green, float blue, CGPoint& xyPoint, float& brightness);
+	bool areStatesSaved();
 
 };
