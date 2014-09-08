@@ -7,7 +7,6 @@ target_link_libraries(hyperiond
 		xbmcvideochecker
 		effectengine
 		jsonserver
-		protoserver
 		boblightserver
 )
 
@@ -18,3 +17,7 @@ endif (ENABLE_DISPMANX)
 if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif (ENABLE_V4L2)
+
+if (ENABLE_PROTOBUF)
+	target_link_libraries(hyperiond protoserver)
+endif (ENABLE_PROTOBUF)
