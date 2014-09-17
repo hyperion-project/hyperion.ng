@@ -1,4 +1,4 @@
-// For license and other informations see LedDeviceWS2812s.h
+// For license and other informations see LedDeviceWS2812b.h
 // To activate: use led device "ws2812s" in the hyperion configuration
 
 // STL includes
@@ -15,7 +15,7 @@
 //#include <sys/ioctl.h>
 
 // hyperion local includes
-#include "LedDeviceWS2812s.h"
+#include "LedDeviceWS2812b.h"
 
 // ==== Defines and Vars ====
 
@@ -227,7 +227,7 @@
 
 
 
-LedDeviceWS2812s::LedDeviceWS2812s() :
+LedDeviceWS2812b::LedDeviceWS2812b() :
 	LedDevice(),
 	mLedCount(0)
 {
@@ -237,7 +237,7 @@ LedDeviceWS2812s::LedDeviceWS2812s() :
 }
 
 
-int LedDeviceWS2812s::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 {
 	mLedCount = ledValues.size();
 	//printf("Set leds, number: %d\n", mLedCount);
@@ -315,12 +315,12 @@ int LedDeviceWS2812s::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LedDeviceWS2812s::switchOff()
+int LedDeviceWS2812b::switchOff()
 {
 	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
 }
 
-LedDeviceWS2812s::~LedDeviceWS2812s()
+LedDeviceWS2812b::~LedDeviceWS2812b()
 {
 	// Exit cleanly, freeing memory and stopping the DMA & PWM engines
 		// We trap all signals (including Ctrl+C), so even if you don't get here, it terminates correctly
@@ -340,7 +340,7 @@ LedDeviceWS2812s::~LedDeviceWS2812s()
 // Convenience functions
 // --------------------------------------------------------------------------------------------------
 // Print some bits of a binary number (2nd arg is how many bits)
-void LedDeviceWS2812s::printBinary(unsigned int i, unsigned int bits) {
+void LedDeviceWS2812b::printBinary(unsigned int i, unsigned int bits) {
 	int x;
 	for(x=bits-1; x>=0; x--) {
 		printf("%d", (i & (1 << x)) ? 1 : 0);
@@ -378,7 +378,7 @@ static void udelay(int us) {
 
 // Shutdown functions
 // --------------------------------------------------------------------------------------------------
-void LedDeviceWS2812s::terminate(int dummy) {
+void LedDeviceWS2812b::terminate(int dummy) {
 	// Shut down the DMA controller
 	if(dma_reg) {
 		CLRBIT(dma_reg[DMA_CS], DMA_CS_ACTIVE);
@@ -402,7 +402,7 @@ void LedDeviceWS2812s::terminate(int dummy) {
 	//exit(1);
 }
 
-void LedDeviceWS2812s::fatal(const char *fmt, ...) {
+void LedDeviceWS2812b::fatal(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
@@ -414,13 +414,13 @@ void LedDeviceWS2812s::fatal(const char *fmt, ...) {
 // Memory management
 // --------------------------------------------------------------------------------------------------
 // Translate from virtual address to physical
-unsigned int LedDeviceWS2812s::mem_virt_to_phys(void *virt) {
+unsigned int LedDeviceWS2812b::mem_virt_to_phys(void *virt) {
 	unsigned int offset = (uint8_t *)virt - virtbase;
 	return page_map[offset >> PAGE_SHIFT].physaddr + (offset % PAGE_SIZE);
 }
 
 // Translate from physical address to virtual
-unsigned int LedDeviceWS2812s::mem_phys_to_virt(uint32_t phys) {
+unsigned int LedDeviceWS2812b::mem_phys_to_virt(uint32_t phys) {
 	unsigned int pg_offset = phys & (PAGE_SIZE - 1);
 	unsigned int pg_addr = phys - pg_offset;
 
@@ -435,7 +435,7 @@ unsigned int LedDeviceWS2812s::mem_phys_to_virt(uint32_t phys) {
 }
 
 // Map a peripheral's IO memory into our virtual memory, so we can read/write it directly
-void * LedDeviceWS2812s::map_peripheral(uint32_t base, uint32_t len) {
+void * LedDeviceWS2812b::map_peripheral(uint32_t base, uint32_t len) {
 	int fd = open("/dev/mem", O_RDWR);
 	void * vaddr;
 
@@ -450,7 +450,7 @@ void * LedDeviceWS2812s::map_peripheral(uint32_t base, uint32_t len) {
 }
 
 // Zero out the PWM waveform buffer
-void LedDeviceWS2812s::clearPWMBuffer() {
+void LedDeviceWS2812b::clearPWMBuffer() {
 	memset(PWMWaveform, 0, NUM_DATA_WORDS * 4);	// Times four because memset deals in bytes.
 }
 
@@ -458,7 +458,7 @@ void LedDeviceWS2812s::clearPWMBuffer() {
 // The (31 - bitIdx) is so that we write the data backwards, correcting its endianness
 // This means getPWMBit will return something other than what was written, so it would be nice
 // if the logic that calls this function would figure it out instead. (However, that's trickier)
-void LedDeviceWS2812s::setPWMBit(unsigned int bitPos, unsigned char bit) {
+void LedDeviceWS2812b::setPWMBit(unsigned int bitPos, unsigned char bit) {
 
 	// Fetch word the bit is in
 	unsigned int wordOffset = (int)(bitPos / 32);
@@ -480,7 +480,7 @@ void LedDeviceWS2812s::setPWMBit(unsigned int bitPos, unsigned char bit) {
 
 // ==== Init Hardware ====
 
-void LedDeviceWS2812s::initHardware() {
+void LedDeviceWS2812b::initHardware() {
 	int pid;
 	int fd;
 	char pagemap_fn[64];
@@ -722,7 +722,7 @@ void LedDeviceWS2812s::initHardware() {
 }
 
 // Begin the transfer
-void LedDeviceWS2812s::startTransfer() {
+void LedDeviceWS2812b::startTransfer() {
 	// Enable DMA
 	dma_reg[DMA_CONBLK_AD] = mem_virt_to_phys(ctl->cb);
 	dma_reg[DMA_CS] = DMA_CS_CONFIGWORD | (1 << DMA_CS_ACTIVE);

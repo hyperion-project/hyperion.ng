@@ -1,5 +1,5 @@
-#ifndef LEDDEVICEWS2812S_H_
-#define LEDDEVICEWS2812S_H_
+#ifndef LEDDEVICEWS2812B_H_
+#define LEDDEVICEWS2812B_H_
 
 #pragma once
 
@@ -126,14 +126,14 @@ typedef struct {
 ///
 /// Implementation of the LedDevice interface for writing to Ws2801 led device.
 ///
-class LedDeviceWS2812s : public LedDevice
+class LedDeviceWS2812b : public LedDevice
 {
 public:
 	///
 	/// Constructs the LedDevice for a string containing leds of the type WS2812
-	LedDeviceWS2812s();
+	LedDeviceWS2812b();
 
-	~LedDeviceWS2812s();
+	~LedDeviceWS2812b();
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -206,4 +206,4 @@ private:
 
 
 
-#endif /* LEDDEVICEWS2812S_H_ */
+#endif /* LEDDEVICEWS2812B_H_ */
