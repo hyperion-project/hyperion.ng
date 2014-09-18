@@ -11,3 +11,6 @@
 
 // Define to enable the spi-device
 #cmakedefine ENABLE_TINKERFORGE
+
+// Define to enable PROTOBUF server
+#cmakedefine ENABLE_PROTOBUF

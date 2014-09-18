@@ -6,7 +6,11 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc)
 add_subdirectory(hyperion)
 add_subdirectory(blackborder)
 add_subdirectory(jsonserver)
-add_subdirectory(protoserver)
+
+if (ENABLE_PROTOBUF)
+	add_subdirectory(protoserver)
+endif (ENABLE_PROTOBUF)
+
 add_subdirectory(boblightserver)
 add_subdirectory(leddevice)
 add_subdirectory(utils)

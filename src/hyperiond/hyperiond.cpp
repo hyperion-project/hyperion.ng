@@ -36,8 +36,10 @@
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
+#ifdef ENABLE_PROTOBUF
 // ProtoServer includes
 #include <protoserver/ProtoServer.h>
+#endif
 
 // BoblightServer includes
 #include <boblightserver/BoblightServer.h>
@@ -233,6 +235,7 @@ int main(int argc, char** argv)
 		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
 	}
 
+#ifdef ENABLE_PROTOBUF
 	// Create Proto server if configuration is present
 	ProtoServer * protoServer = nullptr;
 	if (config.isMember("protoServer"))
@@ -241,6 +244,7 @@ int main(int argc, char** argv)
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt());
 		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
 	}
+#endif
 
 	// Create Boblight server if configuration is present
 	BoblightServer * boblightServer = nullptr;
@@ -264,7 +268,9 @@ int main(int argc, char** argv)
 #endif
 	delete xbmcVideoChecker;
 	delete jsonServer;
+#ifdef ENABLE_PROTOBUF
 	delete protoServer;
+#endif
 	delete boblightServer;
 
 	// leave application
