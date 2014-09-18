@@ -247,6 +247,16 @@ LedDeviceWS2812b::LedDeviceWS2812b() :
 	// Init PWM generator and clear LED buffer
 	initHardware();
 	//clearLEDBuffer();
+
+	// init bit pattern, it is always 1X0
+	unsigned int wireBit = 0;
+
+	while ((wireBit + 3) < ((NUM_DATA_WORDS) * 4 * 8)){
+		setPWMBit(wireBit++, 1);
+		setPWMBit(wireBit++, 0); // just init it with 0
+		setPWMBit(wireBit++, 0);
+	}
+
 	printf("WS2812b init finished \n");
 }
 
@@ -267,7 +277,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 	// Read data from LEDBuffer[], translate it into wire format, and write to PWMWaveform
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
-	unsigned int wireBit = 0;			// Holds the current bit we will set in PWMWaveform
+	unsigned int wireBit = 1;			// Holds the current bit we will set in PWMWaveform, start with 1 and skip the other two for speed
 
 	// Copy PWM waveform to DMA's data buffer
 	//printf("Copying %d words to DMA data buffer\n", NUM_DATA_WORDS);
@@ -277,11 +287,15 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
-	cbp->length = ((mLedCount * 2.25) + 1) * 4;
+	cbp->length = (mLedCount * 2.25) * 4;
+	//cbp->length = ((mLedCount * 2.25) + 1) * 4;
 	if(cbp->length > NUM_DATA_WORDS * 4) {
 		cbp->length = NUM_DATA_WORDS * 4;
-		mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
+		mLedCount = NUM_DATA_WORDS / 2.25;
+		//mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
 	}
+
+
 
 	for(size_t i=0; i<mLedCount; i++) {
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
@@ -294,9 +308,8 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		for(int j=23; j>=0; j--) {
 			unsigned char colorBit = (colorBits & (1 << j)) ? 1 : 0; // Holds current bit out of colorBits to be processed
 
-			setPWMBit(wireBit++, 1);
-			setPWMBit(wireBit++, colorBit);
-			setPWMBit(wireBit++, 0);
+			setPWMBit(wireBit, colorBit);
+			wireBit +=3;
 			/* old code for better understanding
 			switch(colorBit) {
 				case 1:
@@ -315,6 +328,25 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		}
 	}
 
+	//remove one to undo optimization
+	wireBit --;
+
+	// fill up the bytes
+	int rest = 32 - wireBit % 32;
+	unsigned int oldwireBitValue = wireBit;
+
+//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
+//	printf(" pre\n");
+
+	// zero rest of the 4 bytes / int so that output is 0 (no data is send)
+	for (int i = 0; i < rest; i += 3){
+		setPWMBit(wireBit, 0);
+		wireBit += 3;
+	}
+
+//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
+//		printf(" post\n");
+
 	// This block is a major CPU hog when there are lots of pixels to be transmitted.
 	// It would go quicker with DMA.
 //	for(unsigned int i = 0; i < (cbp->length / 4); i++) {
@@ -324,6 +356,16 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 	// Enable DMA and PWM engines, which should now send the data
 	startTransfer();
+
+	// restore bit pattern
+	wireBit = oldwireBitValue;
+	for (int i = 0; i < rest; i += 3){
+		setPWMBit(wireBit, 1);
+		wireBit += 3;
+	}
+
+//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
+//	printf(" restored\n");
 
 	// Wait long enough for the DMA transfer to finish
 	// 3 RAM bits per wire bit, so 72 bits to send one color command.

@@ -101,7 +101,7 @@
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 
-//#define BENCHMARK
+#define BENCHMARK
 
 // The page map contains pointers to memory that we will allocate below. It uses two pointers
 // per address. This is because the software (this program) deals only in virtual addresses,
