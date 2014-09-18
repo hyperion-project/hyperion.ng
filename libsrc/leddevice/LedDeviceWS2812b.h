@@ -101,6 +101,7 @@
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 
+//#define BENCHMARK
 
 // The page map contains pointers to memory that we will allocate below. It uses two pointers
 // per address. This is because the software (this program) deals only in virtual addresses,
@@ -150,7 +151,7 @@ private:
 	/// the number of leds (needed when switching off)
 	size_t mLedCount;
 
-	page_map_t *page_map;						// This will hold the page map, which we'll allocate below
+	page_map_t *page_map;						// This will hold the page map, which we'll allocate
 	uint8_t *virtbase;					// Pointer to some virtual memory that will be allocated
 
 	volatile unsigned int *pwm_reg;		// PWM controller register set
@@ -174,7 +175,7 @@ private:
 		uint32_t sample[NUM_DATA_WORDS];
 	};
 
-	struct control_data_s *ctl;
+	//struct control_data_s *ctl;
 
 	// PWM waveform buffer (in words), 16 32-bit words are enough to hold 170 wire bits.
 	// That's OK if we only transmit from the FIFO, but for DMA, we will use a much larger size.
@@ -193,6 +194,12 @@ private:
 	void fatal(const char *fmt, ...);
 	void * map_peripheral(uint32_t base, uint32_t len);
 	void printBinary(unsigned int i, unsigned int bits);
+
+#ifdef BENCHMARK
+	unsigned int runCount;
+	long combinedNseconds;
+	long shortestNseconds;
+#endif
 };
 
 

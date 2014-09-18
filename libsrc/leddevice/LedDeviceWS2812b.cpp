@@ -14,6 +14,10 @@
 //#include <sys/types.h>
 //#include <sys/ioctl.h>
 
+#ifdef BENCHMARK
+	#include <time.h>
+#endif
+
 // hyperion local includes
 #include "LedDeviceWS2812b.h"
 
@@ -230,31 +234,40 @@
 LedDeviceWS2812b::LedDeviceWS2812b() :
 	LedDevice(),
 	mLedCount(0)
+
+#ifdef BENCHMARK
+	,
+	runCount(0),
+	combinedNseconds(0),
+	shortestNseconds(2147483647)
+#endif
+
 {
+	//shortestNseconds = 2147483647;
 	// Init PWM generator and clear LED buffer
 	initHardware();
 	//clearLEDBuffer();
+	printf("WS2812b init finished \n");
 }
 
 
 int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 {
+#ifdef BENCHMARK
+	timespec timeStart;
+	timespec timeEnd;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeStart);
+#endif
+
 	mLedCount = ledValues.size();
 	//printf("Set leds, number: %d\n", mLedCount);
-
-//	const unsigned dataLen = ledValues.size() * sizeof(ColorRgb);
-//	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	// Clear out the PWM buffer
 	// Disabled, because we will overwrite the buffer anyway.
 
 	// Read data from LEDBuffer[], translate it into wire format, and write to PWMWaveform
-//	unsigned int LEDBuffeWordPos = 0;
-//	unsigned int PWMWaveformBitPos = 0;
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
-	unsigned char colorBit = 0;			// Holds current bit out of colorBits to be processed
 	unsigned int wireBit = 0;			// Holds the current bit we will set in PWMWaveform
-//	Color_t color;
 
 	for(size_t i=0; i<mLedCount; i++) {
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
@@ -265,7 +278,12 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 		// Iterate through color bits to get wire bits
 		for(int j=23; j>=0; j--) {
-			colorBit = (colorBits & (1 << j)) ? 1 : 0;
+			unsigned char colorBit = (colorBits & (1 << j)) ? 1 : 0; // Holds current bit out of colorBits to be processed
+
+			setPWMBit(wireBit++, 1);
+			setPWMBit(wireBit++, colorBit);
+			setPWMBit(wireBit++, 0);
+			/* old code for better understanding
 			switch(colorBit) {
 				case 1:
 					//wireBits = 0b110;	// High, High, Low
@@ -279,13 +297,13 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 					setPWMBit(wireBit++, 0);
 					setPWMBit(wireBit++, 0);
 					break;
-			}
+			}*/
 		}
 	}
 
 	// Copy PWM waveform to DMA's data buffer
 	//printf("Copying %d words to DMA data buffer\n", NUM_DATA_WORDS);
-	ctl = (struct control_data_s *)virtbase;
+	struct control_data_s *ctl = (struct control_data_s *)virtbase;
 	dma_cb_t *cbp = ctl->cb;
 
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
@@ -298,10 +316,10 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 	// This block is a major CPU hog when there are lots of pixels to be transmitted.
 	// It would go quicker with DMA.
-	for(unsigned int i = 0; i < (cbp->length / 4); i++) {
-		ctl->sample[i] = PWMWaveform[i];
-	}
-
+//	for(unsigned int i = 0; i < (cbp->length / 4); i++) {
+//		ctl->sample[i] = PWMWaveform[i];
+//	}
+	memcpy ( ctl->sample, PWMWaveform, cbp->length ); // memcpy does the same and is potentially faster
 
 	// Enable DMA and PWM engines, which should now send the data
 	startTransfer();
@@ -312,6 +330,20 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	//printf("Delay for %d μSec\n", (int)bitTimeUSec);
 	//usleep((int)bitTimeUSec);
 
+#ifdef BENCHMARK
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeEnd);
+	timespec result;
+
+	result.tv_sec = timeEnd.tv_sec - timeStart.tv_sec;
+	result.tv_nsec = timeEnd.tv_nsec - timeStart.tv_nsec;
+	if (result.tv_nsec < 0) {
+		result.tv_nsec = 1e9 - result.tv_nsec;
+		result.tv_sec -= 1;
+	}
+	runCount ++;
+	combinedNseconds += result.tv_nsec;
+	shortestNseconds = result.tv_nsec < shortestNseconds ? result.tv_nsec : shortestNseconds;
+#endif
 	return 0;
 }
 
@@ -325,6 +357,10 @@ LedDeviceWS2812b::~LedDeviceWS2812b()
 	// Exit cleanly, freeing memory and stopping the DMA & PWM engines
 		// We trap all signals (including Ctrl+C), so even if you don't get here, it terminates correctly
 		terminate(0);
+#ifdef BENCHMARK
+	printf("WS2812b Benchmark results: Runs %d - Avarage %lu (n) - Minimum %ld (n)\n",
+			runCount, (runCount > 0 ? combinedNseconds / runCount : 0), shortestNseconds);
+#endif
 }
 
 
@@ -576,7 +612,7 @@ void LedDeviceWS2812b::initHardware() {
 
 	// Set up control block
 	// ---------------------------------------------------------------
-	ctl = (struct control_data_s *)virtbase;
+	struct control_data_s *ctl = (struct control_data_s *)virtbase;
 	dma_cb_t *cbp = ctl->cb;
 	// FIXME: Change this to use DEFINEs
 	unsigned int phys_pwm_fifo_addr = 0x7e20c000 + 0x18;
@@ -724,7 +760,7 @@ void LedDeviceWS2812b::initHardware() {
 // Begin the transfer
 void LedDeviceWS2812b::startTransfer() {
 	// Enable DMA
-	dma_reg[DMA_CONBLK_AD] = mem_virt_to_phys(ctl->cb);
+	dma_reg[DMA_CONBLK_AD] = mem_virt_to_phys(((struct control_data_s *) virtbase)->cb);
 	dma_reg[DMA_CS] = DMA_CS_CONFIGWORD | (1 << DMA_CS_ACTIVE);
 	usleep(100);
 
