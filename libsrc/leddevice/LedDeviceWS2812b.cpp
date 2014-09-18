@@ -269,6 +269,20 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
 	unsigned int wireBit = 0;			// Holds the current bit we will set in PWMWaveform
 
+	// Copy PWM waveform to DMA's data buffer
+	//printf("Copying %d words to DMA data buffer\n", NUM_DATA_WORDS);
+	struct control_data_s *ctl = (struct control_data_s *)virtbase;
+	dma_cb_t *cbp = ctl->cb;
+
+	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
+	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
+	// Times 4 because DMA works in bytes, not words
+	cbp->length = ((mLedCount * 2.25) + 1) * 4;
+	if(cbp->length > NUM_DATA_WORDS * 4) {
+		cbp->length = NUM_DATA_WORDS * 4;
+		mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
+	}
+
 	for(size_t i=0; i<mLedCount; i++) {
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
 		//printf("RGB: %d, %d, %d\n", ledValues[i].red, ledValues[i].green, ledValues[i].blue);
@@ -299,19 +313,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 					break;
 			}*/
 		}
-	}
-
-	// Copy PWM waveform to DMA's data buffer
-	//printf("Copying %d words to DMA data buffer\n", NUM_DATA_WORDS);
-	struct control_data_s *ctl = (struct control_data_s *)virtbase;
-	dma_cb_t *cbp = ctl->cb;
-
-	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
-	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
-	// Times 4 because DMA works in bytes, not words
-	cbp->length = ((mLedCount * 2.25) + 1) * 4;
-	if(cbp->length > NUM_DATA_WORDS * 4) {
-		cbp->length = NUM_DATA_WORDS * 4;
 	}
 
 	// This block is a major CPU hog when there are lots of pixels to be transmitted.
