@@ -68,6 +68,7 @@ if(ENABLE_SPIDEV)
 	)
 endif(ENABLE_SPIDEV)
 
+if(ENABLE_WS2812BPWM)
 SET(Leddevice_HEADERS
 		${Leddevice_HEADERS}
 		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.h
@@ -76,6 +77,7 @@ SET(Leddevice_SOURCES
 		${Leddevice_SOURCES}
 		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.cpp
 )
+endif(ENABLE_WS2812BPWM)
 
 if(ENABLE_TINKERFORGE)
 	SET(Leddevice_HEADERS

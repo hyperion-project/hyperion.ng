@@ -252,7 +252,8 @@ LedDeviceWS2812b::LedDeviceWS2812b() :
 	// init bit pattern, it is always 1X0
 	unsigned int wireBit = 0;
 
-	while ((wireBit + 3) < ((NUM_DATA_WORDS) * 4 * 8)){
+	while ((wireBit + 3) < ((NUM_DATA_WORDS) * 4 * 8))
+	{
 		setPWMBit(wireBit++, 1);
 		setPWMBit(wireBit++, 0); // just init it with 0
 		setPWMBit(wireBit++, 0);
@@ -264,36 +265,36 @@ LedDeviceWS2812b::LedDeviceWS2812b() :
 #ifdef WS2812_ASM_OPTI
 
 // rotate register, used to move the 1 around :-)
-static inline __attribute__((always_inline))
-uint32_t arm_ror_imm(uint32_t v, uint32_t sh) {
-  uint32_t d;
-  asm ("ROR %[Rd], %[Rm], %[Is]" : [Rd] "=r" (d) : [Rm] "r" (v), [Is] "i" (sh));
-  return d;
+static inline __attribute__((always_inline)) uint32_t arm_ror_imm(uint32_t v, uint32_t sh)
+{
+	uint32_t d;
+	asm ("ROR %[Rd], %[Rm], %[Is]" : [Rd] "=r" (d) : [Rm] "r" (v), [Is] "i" (sh));
+	return d;
 }
 
 // rotate register, used to move the 1 around, add 1 to int counter on carry
-static inline __attribute__((always_inline))
-uint32_t arm_ror_imm_add_on_carry(uint32_t v, uint32_t sh, uint32_t inc) {
-  uint32_t d;
-  asm ("RORS %[Rd], %[Rm], %[Is]\n\t"
-	   "ADDCS %[Rd1], %[Rd1], #1"
-		  : [Rd] "=r" (d), [Rd1] "+r" (inc): [Rm] "r" (v), [Is] "i" (sh));
-  return d;
+static inline __attribute__((always_inline)) uint32_t arm_ror_imm_add_on_carry(uint32_t v, uint32_t sh, uint32_t inc)
+{
+	  uint32_t d;
+	  asm ("RORS %[Rd], %[Rm], %[Is]\n\t"
+		   "ADDCS %[Rd1], %[Rd1], #1"
+			  : [Rd] "=r" (d), [Rd1] "+r" (inc): [Rm] "r" (v), [Is] "i" (sh));
+	  return d;
 }
 
-static inline __attribute__((always_inline))
-uint32_t arm_ror(uint32_t v, uint32_t sh) {
-  uint32_t d;
-  asm ("ROR %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (sh));
-  return d;
+static inline __attribute__((always_inline)) uint32_t arm_ror(uint32_t v, uint32_t sh)
+{
+	  uint32_t d;
+	  asm ("ROR %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (sh));
+	  return d;
 }
 
 
-static inline __attribute__((always_inline))
-uint32_t arm_Bit_Clear_imm(uint32_t v, uint32_t v2) {
-  uint32_t d;
-  asm ("BIC %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (v2));
-  return d;
+static inline __attribute__((always_inline)) uint32_t arm_Bit_Clear_imm(uint32_t v, uint32_t v2)
+{
+	  uint32_t d;
+	  asm ("BIC %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (v2));
+	  return d;
 }
 #endif
 
@@ -306,10 +307,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 #endif
 
 	mLedCount = ledValues.size();
-	//printf("Set leds, number: %d\n", mLedCount);
-
-	// Clear out the PWM buffer
-	// Disabled, because we will overwrite the buffer anyway.
 
 	// Read data from LEDBuffer[], translate it into wire format, and write to PWMWaveform
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
@@ -323,11 +320,10 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
-//	cbp->length = (mLedCount * 2.25) * 4;
 	cbp->length = ((mLedCount * 2.25) + 1) * 4;
-	if(cbp->length > NUM_DATA_WORDS * 4) {
+	if(cbp->length > NUM_DATA_WORDS * 4)
+	{
 		cbp->length = NUM_DATA_WORDS * 4;
-//		mLedCount = NUM_DATA_WORDS / 2.25;
 		mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
 	}
 
@@ -336,7 +332,8 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 #endif
 
 
-	for(size_t i=0; i<mLedCount; i++) {
+	for(size_t i=0; i<mLedCount; i++)
+	{
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
 		//printf("RGB: %d, %d, %d\n", ledValues[i].red, ledValues[i].green, ledValues[i].blue);
 		colorBits = ((unsigned int)ledValues[i].red << 8) | ((unsigned int)ledValues[i].green << 16) | ledValues[i].blue;
@@ -347,19 +344,16 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		for(int j=23; j>=0; j--) {
 #ifdef WS2812_ASM_OPTI
 			// Fetch word the bit is in
-				unsigned int wordOffset = (int)(wireBit / 32);
-				wireBit +=3;
+			unsigned int wordOffset = (int)(wireBit / 32);
+			wireBit +=3;
 
-//				printBinary(startbitPattern, 32);
-//				printf(" %d\n", j);
-				if (colorBits & (1 << j)) {
-						PWMWaveform[wordOffset] |= startbitPattern;
-				} else {
-						PWMWaveform[wordOffset] = arm_Bit_Clear_imm(PWMWaveform[wordOffset], startbitPattern);
-				}
+			if (colorBits & (1 << j)) {
+				PWMWaveform[wordOffset] |= startbitPattern;
+			} else {
+				PWMWaveform[wordOffset] = arm_Bit_Clear_imm(PWMWaveform[wordOffset], startbitPattern);
+			}
 
-				startbitPattern = arm_ror_imm(startbitPattern, 3);
-
+			startbitPattern = arm_ror_imm(startbitPattern, 3);
 #else
 			unsigned char colorBit = (colorBits & (1 << j)) ? 1 : 0; // Holds current bit out of colorBits to be processed
 			setPWMBit(wireBit, colorBit);
@@ -391,9 +385,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	//remove one to undo optimization
 	wireBit --;
 
-//	printBinary(PWMWaveform[(int)(wireBit / 32)], 32);
-//	printf(" pre\n");
-
 #ifdef WS2812_ASM_OPTI
 	int rest = 32 - wireBit % 32; // 64: 32 - used Bits
 	startbitPattern = (1 << (rest-1)); // set new bitpattern to start at the benigining of one bit (3 bit in wave form)
@@ -406,7 +397,8 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	unsigned int oldbitPattern = startbitPattern;
 
 	// zero rest of the 4 bytes / int so that output is 0 (no data is send)
-	for (int i = 0; i < rest; i += 3){
+	for (int i = 0; i < rest; i += 3)
+	{
 		unsigned int wordOffset = (int)(wireBit / 32);
 		wireBit += 3;
 		PWMWaveform[wordOffset] = arm_Bit_Clear_imm(PWMWaveform[wordOffset], startbitPattern);
@@ -419,22 +411,14 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	unsigned int oldwireBitValue = wireBit;
 
 	// zero rest of the 4 bytes / int so that output is 0 (no data is send)
-	for (int i = 0; i < rest; i += 3){
+	for (int i = 0; i < rest; i += 3)
+	{
 		setPWMBit(wireBit, 0);
 		wireBit += 3;
 	}
 #endif
-//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32) -1 ], 32);
-//		printf(" post\n");
-//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
-//		printf(" post\n");
 
-	// This block is a major CPU hog when there are lots of pixels to be transmitted.
-	// It would go quicker with DMA.
-//	for(unsigned int i = 0; i < (cbp->length / 4); i++) {
-//		ctl->sample[i] = PWMWaveform[i];
-//	}
-	memcpy ( ctl->sample, PWMWaveform, cbp->length ); // memcpy does the same and is potentially faster
+	memcpy ( ctl->sample, PWMWaveform, cbp->length );
 
 	// Enable DMA and PWM engines, which should now send the data
 	startTransfer();
@@ -444,27 +428,20 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 #ifdef WS2812_ASM_OPTI
 	startbitPattern = oldbitPattern;
-	for (int i = 0; i < rest; i += 3){
+	for (int i = 0; i < rest; i += 3)
+	{
 		unsigned int wordOffset = (int)(wireBit / 32);
 		wireBit += 3;
 		PWMWaveform[wordOffset] |= startbitPattern;
 		startbitPattern = arm_ror_imm(startbitPattern, 3);
 	}
 #else
-	for (int i = 0; i < rest; i += 3){
+	for (int i = 0; i < rest; i += 3)
+	{
 		setPWMBit(wireBit, 1);
 		wireBit += 3;
 	}
 #endif
-
-//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
-//	printf(" restored\n");
-
-	// Wait long enough for the DMA transfer to finish
-	// 3 RAM bits per wire bit, so 72 bits to send one color command.
-	//float bitTimeUSec = (float)(NUM_DATA_WORDS * 32) * 0.4;	// Bits sent * time to transmit one bit, which is 0.4μSec
-	//printf("Delay for %d μSec\n", (int)bitTimeUSec);
-	//usleep((int)bitTimeUSec);
 
 #ifdef BENCHMARK
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeEnd);
@@ -472,7 +449,8 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 	result.tv_sec = timeEnd.tv_sec - timeStart.tv_sec;
 	result.tv_nsec = timeEnd.tv_nsec - timeStart.tv_nsec;
-	if (result.tv_nsec < 0) {
+	if (result.tv_nsec < 0)
+	{
 		result.tv_nsec = 1e9 - result.tv_nsec;
 		result.tv_sec -= 1;
 	}
@@ -491,8 +469,7 @@ int LedDeviceWS2812b::switchOff()
 LedDeviceWS2812b::~LedDeviceWS2812b()
 {
 	// Exit cleanly, freeing memory and stopping the DMA & PWM engines
-		// We trap all signals (including Ctrl+C), so even if you don't get here, it terminates correctly
-		terminate(0);
+	terminate(0);
 #ifdef BENCHMARK
 	printf("WS2812b Benchmark results: Runs %d - Avarage %lu (n) - Minimum %ld (n)\n",
 			runCount, (runCount > 0 ? combinedNseconds / runCount : 0), shortestNseconds);
@@ -512,47 +489,46 @@ LedDeviceWS2812b::~LedDeviceWS2812b()
 // Convenience functions
 // --------------------------------------------------------------------------------------------------
 // Print some bits of a binary number (2nd arg is how many bits)
-void LedDeviceWS2812b::printBinary(unsigned int i, unsigned int bits) {
+void LedDeviceWS2812b::printBinary(unsigned int i, unsigned int bits)
+{
 	int x;
-	for(x=bits-1; x>=0; x--) {
+	for(x=bits-1; x>=0; x--)
+	{
 		printf("%d", (i & (1 << x)) ? 1 : 0);
-		if(x % 16 == 0 && x > 0) {
+		if(x % 16 == 0 && x > 0)
+		{
 			printf(" ");
-		} else if(x % 4 == 0 && x > 0) {
+		}
+		else if(x % 4 == 0 && x > 0)
+		{
 			printf(":");
 		}
 	}
 }
 
 // Reverse the bits in a word
-unsigned int reverseWord(unsigned int word) {
+unsigned int reverseWord(unsigned int word)
+{
 	unsigned int output = 0;
 	//unsigned char bit;
 	int i;
-	for(i=0; i<32; i++) {
-		//bit = word & (1 << i) ? 1 : 0;
+	for(i=0; i<32; i++)
+	{
 		output |= word & (1 << i) ? 1 : 0;
-		if(i<31) {
+		if(i<31)
+		{
 			output <<= 1;
 		}
 	}
 	return output;
 }
 
-// Not sure how this is better than usleep...?
-/*
-static void udelay(int us) {
-	struct timespec ts = { 0, us * 1000 };
-	nanosleep(&ts, NULL);
-}
-*/
-
-
 // Shutdown functions
 // --------------------------------------------------------------------------------------------------
 void LedDeviceWS2812b::terminate(int dummy) {
 	// Shut down the DMA controller
-	if(dma_reg) {
+	if(dma_reg)
+	{
 		CLRBIT(dma_reg[DMA_CS], DMA_CS_ACTIVE);
 		usleep(100);
 		SETBIT(dma_reg[DMA_CS], DMA_CS_RESET);
@@ -560,21 +536,22 @@ void LedDeviceWS2812b::terminate(int dummy) {
 	}
 
 	// Shut down PWM
-	if(pwm_reg) {
+	if(pwm_reg)
+	{
 		CLRBIT(pwm_reg[PWM_CTL], PWM_CTL_PWEN1);
 		usleep(100);
 		pwm_reg[PWM_CTL] = (1 << PWM_CTL_CLRF1);
 	}
 
 	// Free the allocated memory
-	if(page_map != 0) {
+	if(page_map != 0)
+	{
 		free(page_map);
 	}
-
-	//exit(1);
 }
 
-void LedDeviceWS2812b::fatal(const char *fmt, ...) {
+void LedDeviceWS2812b::fatal(const char *fmt, ...)
+{
 	va_list ap;
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
@@ -586,18 +563,22 @@ void LedDeviceWS2812b::fatal(const char *fmt, ...) {
 // Memory management
 // --------------------------------------------------------------------------------------------------
 // Translate from virtual address to physical
-unsigned int LedDeviceWS2812b::mem_virt_to_phys(void *virt) {
+unsigned int LedDeviceWS2812b::mem_virt_to_phys(void *virt)
+{
 	unsigned int offset = (uint8_t *)virt - virtbase;
 	return page_map[offset >> PAGE_SHIFT].physaddr + (offset % PAGE_SIZE);
 }
 
 // Translate from physical address to virtual
-unsigned int LedDeviceWS2812b::mem_phys_to_virt(uint32_t phys) {
+unsigned int LedDeviceWS2812b::mem_phys_to_virt(uint32_t phys)
+{
 	unsigned int pg_offset = phys & (PAGE_SIZE - 1);
 	unsigned int pg_addr = phys - pg_offset;
 
-	for (unsigned int i = 0; i < NUM_PAGES; i++) {
-		if (page_map[i].physaddr == pg_addr) {
+	for (unsigned int i = 0; i < NUM_PAGES; i++)
+	{
+		if (page_map[i].physaddr == pg_addr)
+		{
 			return (uint32_t)virtbase + i * PAGE_SIZE + pg_offset;
 		}
 	}
@@ -607,22 +588,28 @@ unsigned int LedDeviceWS2812b::mem_phys_to_virt(uint32_t phys) {
 }
 
 // Map a peripheral's IO memory into our virtual memory, so we can read/write it directly
-void * LedDeviceWS2812b::map_peripheral(uint32_t base, uint32_t len) {
+void * LedDeviceWS2812b::map_peripheral(uint32_t base, uint32_t len)
+{
 	int fd = open("/dev/mem", O_RDWR);
 	void * vaddr;
 
 	if (fd < 0)
+	{
 		fatal("Failed to open /dev/mem: %m\n");
+	}
 	vaddr = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, base);
 	if (vaddr == MAP_FAILED)
+	{
 		fatal("Failed to map peripheral at 0x%08x: %m\n", base);
+	}
 	close(fd);
 
 	return vaddr;
 }
 
 // Zero out the PWM waveform buffer
-void LedDeviceWS2812b::clearPWMBuffer() {
+void LedDeviceWS2812b::clearPWMBuffer()
+{
 	memset(PWMWaveform, 0, NUM_DATA_WORDS * 4);	// Times four because memset deals in bytes.
 }
 
@@ -630,29 +617,26 @@ void LedDeviceWS2812b::clearPWMBuffer() {
 // The (31 - bitIdx) is so that we write the data backwards, correcting its endianness
 // This means getPWMBit will return something other than what was written, so it would be nice
 // if the logic that calls this function would figure it out instead. (However, that's trickier)
-void LedDeviceWS2812b::setPWMBit(unsigned int bitPos, unsigned char bit) {
-
+void LedDeviceWS2812b::setPWMBit(unsigned int bitPos, unsigned char bit)
+{
 	// Fetch word the bit is in
 	unsigned int wordOffset = (int)(bitPos / 32);
 	unsigned int bitIdx = bitPos - (wordOffset * 32);
 
-	//printf("bitPos=%d wordOffset=%d bitIdx=%d value=%d\n", bitPos, wordOffset, bitIdx, bit);
-
-	switch(bit) {
+	switch(bit)
+	{
 		case 1:
 			PWMWaveform[wordOffset] |= (1 << (31 - bitIdx));
-//			PWMWaveform[wordOffset] |= (1 << bitIdx);
 			break;
 		case 0:
 			PWMWaveform[wordOffset] &= ~(1 << (31 - bitIdx));
-//			PWMWaveform[wordOffset] &= ~(1 << bitIdx);
 			break;
 	}
 }
 
 // ==== Init Hardware ====
-
-void LedDeviceWS2812b::initHardware() {
+void LedDeviceWS2812b::initHardware()
+{
 	int pid;
 	int fd;
 	char pagemap_fn[64];
@@ -692,22 +676,24 @@ void LedDeviceWS2812b::initHardware() {
 		-1,														// File descriptor
 		0);														// Offset
 
-	if (virtbase == MAP_FAILED) {
+	if (virtbase == MAP_FAILED)
+	{
 		fatal("Failed to mmap physical pages: %m\n");
+		return;
 	}
 
-	if ((unsigned long)virtbase & (PAGE_SIZE-1)) {
+	if ((unsigned long)virtbase & (PAGE_SIZE-1))
+	{
 		fatal("Virtual address is not page aligned\n");
+		return;
 	}
-
-	//printf("virtbase mapped 0x%x bytes at 0x%x\n", NUM_PAGES * PAGE_SIZE, virtbase);
 
 	// Allocate page map (pointers to the control block(s) and data for each CB
 	page_map = (page_map_t *) malloc(NUM_PAGES * sizeof(*page_map));
-	if (page_map == 0) {
+	if (page_map == 0)
+	{
 		fatal("Failed to malloc page_map: %m\n");
-	} else {
-		//printf("Allocated 0x%x bytes for page_map at 0x%x\n", NUM_PAGES * sizeof(*page_map), page_map);
+		return;
 	}
 
 	// Use /proc/self/pagemap to figure out the mapping between virtual and physical addresses
@@ -715,17 +701,20 @@ void LedDeviceWS2812b::initHardware() {
 	sprintf(pagemap_fn, "/proc/%d/pagemap", pid);
 	fd = open(pagemap_fn, O_RDONLY);
 
-	if (fd < 0) {
+	if (fd < 0)
+	{
 		fatal("Failed to open %s: %m\n", pagemap_fn);
 	}
 
 	off_t newOffset = (unsigned long)virtbase >> 9;
-	if (lseek(fd, newOffset, SEEK_SET) != newOffset) {
+	if (lseek(fd, newOffset, SEEK_SET) != newOffset)
+	{
 		fatal("Failed to seek on %s: %m\n", pagemap_fn);
 	}
 
 	printf("Page map: %d pages\n", NUM_PAGES);
-	for (unsigned int i = 0; i < NUM_PAGES; i++) {
+	for (unsigned int i = 0; i < NUM_PAGES; i++)
+	{
 		uint64_t pfn;
 		page_map[i].virtaddr = virtbase + i * PAGE_SIZE;
 
@@ -766,7 +755,8 @@ void LedDeviceWS2812b::initHardware() {
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
 	cbp->length = ((mLedCount * 2.25) + 1) * 4;
-	if(cbp->length > NUM_DATA_WORDS * 4) {
+	if(cbp->length > NUM_DATA_WORDS * 4)
+	{
 		cbp->length = NUM_DATA_WORDS * 4;
 	}
 
@@ -779,19 +769,6 @@ void LedDeviceWS2812b::initHardware() {
 
 	// Pointer to next block - 0 shuts down the DMA channel when transfer is complete
 	cbp->next = 0;
-
-	// Testing
-	/*
-	ctl = (struct control_data_s *)virtbase;
-	ctl->sample[0] = 0x00000000;
-	ctl->sample[1] = 0x000000FA;
-	ctl->sample[2] = 0x0000FFFF;
-	ctl->sample[3] = 0xAAAAAAAA;
-	ctl->sample[4] = 0xF0F0F0F0;
-	ctl->sample[5] = 0x0A0A0A0A;
-	ctl->sample[6] = 0xF00F0000;
-	*/
-
 
 	// Stop any existing DMA transfers
 	// ---------------------------------------------------------------
@@ -894,7 +871,8 @@ void LedDeviceWS2812b::initHardware() {
 }
 
 // Begin the transfer
-void LedDeviceWS2812b::startTransfer() {
+void LedDeviceWS2812b::startTransfer()
+{
 	// Enable DMA
 	dma_reg[DMA_CONBLK_AD] = mem_virt_to_phys(((struct control_data_s *) virtbase)->cb);
 	dma_reg[DMA_CS] = DMA_CS_CONFIGWORD | (1 << DMA_CS_ACTIVE);
@@ -902,7 +880,4 @@ void LedDeviceWS2812b::startTransfer() {
 
 	// Enable PWM
 	SETBIT(pwm_reg[PWM_CTL], PWM_CTL_PWEN1);
-
-//	dumpPWM();
-//	dumpDMA();
 }

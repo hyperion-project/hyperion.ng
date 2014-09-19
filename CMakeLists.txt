@@ -13,6 +13,9 @@ message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
 message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 
+option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" ON)
+message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
+
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
@@ -22,9 +25,9 @@ message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
 option(ENABLE_PROTOBUF "Enable PROTOBUF server" ON)
 message(STATUS "ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
 
-if (ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
+if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
-endif (ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
+endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
