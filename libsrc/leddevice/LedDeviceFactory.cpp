@@ -31,6 +31,8 @@
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
 
+#include "LedDeviceWS2812b.h"
+
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
@@ -181,6 +183,10 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		LedDeviceTpm2* deviceTpm2 = new LedDeviceTpm2(output, rate);
 		deviceTpm2->open();
 		device = deviceTpm2;
+	}else if (type == "ws2812b")
+	{
+		LedDeviceWS2812b * ledDeviceWS2812b = new LedDeviceWS2812b();
+		device = ledDeviceWS2812b;
 	}
 	else
 	{
