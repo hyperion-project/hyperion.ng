@@ -270,6 +270,16 @@ uint32_t arm_ror_imm(uint32_t v, uint32_t sh) {
   return d;
 }
 
+// rotate register, used to move the 1 around, add 1 to int counter on carry
+static inline __attribute__((always_inline))
+uint32_t arm_ror_imm_add_on_carry(uint32_t v, uint32_t sh, uint32_t inc) {
+  uint32_t d;
+  asm ("RORS %[Rd], %[Rm], %[Is]\n\t"
+	   "ADDCS %[Rd1], %[Rd1], #1"
+		  : [Rd] "=r" (d), [Rd1] "+r" (inc): [Rm] "r" (v), [Is] "i" (sh));
+  return d;
+}
+
 static inline __attribute__((always_inline))
 uint32_t arm_ror(uint32_t v, uint32_t sh) {
   uint32_t d;
@@ -312,12 +322,12 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
-	cbp->length = (mLedCount * 2.25) * 4;
-	//cbp->length = ((mLedCount * 2.25) + 1) * 4;
+//	cbp->length = (mLedCount * 2.25) * 4;
+	cbp->length = ((mLedCount * 2.25) + 1) * 4;
 	if(cbp->length > NUM_DATA_WORDS * 4) {
 		cbp->length = NUM_DATA_WORDS * 4;
-		mLedCount = NUM_DATA_WORDS / 2.25;
-		//mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
+//		mLedCount = NUM_DATA_WORDS / 2.25;
+		mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
 	}
 
 #ifdef WS2812_ASM_OPTI
@@ -380,19 +390,39 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	//remove one to undo optimization
 	wireBit --;
 
-	// fill up the bytes
-	int rest = 32 - wireBit % 32;
-	unsigned int oldwireBitValue = wireBit;
-
-//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
+//	printBinary(PWMWaveform[(int)(wireBit / 32)], 32);
 //	printf(" pre\n");
+
+#ifdef WS2812_ASM_OPTI
+	int rest = 32 - wireBit % 32; // 64: 32 - used Bits
+	startbitPattern = (1 << (rest-1)); // set new bitpattern to start at the benigining of one bit (3 bit in wave form)
+	rest += 32; // add one int extra for pwm
+
+//	printBinary(startbitPattern, 32);
+//	printf(" startbit\n");
+
+	unsigned int oldwireBitValue = wireBit;
+	unsigned int oldbitPattern = startbitPattern;
+
+	// zero rest of the 4 bytes / int so that output is 0 (no data is send)
+	for (int i = 0; i < rest; i += 3){
+		unsigned int wordOffset = (int)(wireBit / 32);
+		wireBit += 3;
+		PWMWaveform[wordOffset] = arm_Bit_Clear_imm(PWMWaveform[wordOffset], startbitPattern);
+		startbitPattern = arm_ror_imm(startbitPattern, 3);
+	}
+
+#else
+	// fill up the bytes
+	int rest = 32 - wireBit % 32 + 32; // 64: 32 - used Bits + 32 (one int extra for pwm)
+	unsigned int oldwireBitValue = wireBit;
 
 	// zero rest of the 4 bytes / int so that output is 0 (no data is send)
 	for (int i = 0; i < rest; i += 3){
 		setPWMBit(wireBit, 0);
 		wireBit += 3;
 	}
-
+#endif
 //	printBinary(PWMWaveform[(int)(oldwireBitValue / 32) -1 ], 32);
 //		printf(" post\n");
 //	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
@@ -410,10 +440,21 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 	// restore bit pattern
 	wireBit = oldwireBitValue;
+
+#ifdef WS2812_ASM_OPTI
+	startbitPattern = oldbitPattern;
+	for (int i = 0; i < rest; i += 3){
+		unsigned int wordOffset = (int)(wireBit / 32);
+		wireBit += 3;
+		PWMWaveform[wordOffset] |= startbitPattern;
+		startbitPattern = arm_ror_imm(startbitPattern, 3);
+	}
+#else
 	for (int i = 0; i < rest; i += 3){
 		setPWMBit(wireBit, 1);
 		wireBit += 3;
 	}
+#endif
 
 //	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
 //	printf(" restored\n");
