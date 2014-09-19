@@ -260,6 +260,31 @@ LedDeviceWS2812b::LedDeviceWS2812b() :
 	printf("WS2812b init finished \n");
 }
 
+#ifdef WS2812_ASM_OPTI
+
+// rotate register, used to move the 1 around :-)
+static inline __attribute__((always_inline))
+uint32_t arm_ror_imm(uint32_t v, uint32_t sh) {
+  uint32_t d;
+  asm ("ROR %[Rd], %[Rm], %[Is]" : [Rd] "=r" (d) : [Rm] "r" (v), [Is] "i" (sh));
+  return d;
+}
+
+static inline __attribute__((always_inline))
+uint32_t arm_ror(uint32_t v, uint32_t sh) {
+  uint32_t d;
+  asm ("ROR %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (sh));
+  return d;
+}
+
+
+static inline __attribute__((always_inline))
+uint32_t arm_Bit_Clear_imm(uint32_t v, uint32_t v2) {
+  uint32_t d;
+  asm ("BIC %[Rd], %[Rm], %[Rs]" : [Rd] "=r" (d) : [Rm] "r" (v), [Rs] "r" (v2));
+  return d;
+}
+#endif
 
 int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 {
@@ -295,6 +320,9 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		//mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
 	}
 
+#ifdef WS2812_ASM_OPTI
+	unsigned int startbitPattern = 0x40000000; // = 0100 0000  0000 0000  0000 0000  0000 0000 pattern
+#endif
 
 
 	for(size_t i=0; i<mLedCount; i++) {
@@ -306,10 +334,26 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 		// Iterate through color bits to get wire bits
 		for(int j=23; j>=0; j--) {
-			unsigned char colorBit = (colorBits & (1 << j)) ? 1 : 0; // Holds current bit out of colorBits to be processed
+#ifdef WS2812_ASM_OPTI
+			// Fetch word the bit is in
+				unsigned int wordOffset = (int)(wireBit / 32);
+				wireBit +=3;
 
+//				printBinary(startbitPattern, 32);
+//				printf(" %d\n", j);
+				if (colorBits & (1 << j)) {
+						PWMWaveform[wordOffset] |= startbitPattern;
+				} else {
+						PWMWaveform[wordOffset] = arm_Bit_Clear_imm(PWMWaveform[wordOffset], startbitPattern);
+				}
+
+				startbitPattern = arm_ror_imm(startbitPattern, 3);
+
+#else
+			unsigned char colorBit = (colorBits & (1 << j)) ? 1 : 0; // Holds current bit out of colorBits to be processed
 			setPWMBit(wireBit, colorBit);
 			wireBit +=3;
+#endif
 			/* old code for better understanding
 			switch(colorBit) {
 				case 1:
@@ -328,6 +372,11 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		}
 	}
 
+#ifdef WS2812_ASM_OPTI
+	// calculate the bits manually since it is not needed with asm
+	//wireBit += mLedCount * 24 *3;
+	//printf(" %d\n", wireBit);
+#endif
 	//remove one to undo optimization
 	wireBit --;
 
@@ -344,6 +393,8 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 		wireBit += 3;
 	}
 
+//	printBinary(PWMWaveform[(int)(oldwireBitValue / 32) -1 ], 32);
+//		printf(" post\n");
 //	printBinary(PWMWaveform[(int)(oldwireBitValue / 32)], 32);
 //		printf(" post\n");
 

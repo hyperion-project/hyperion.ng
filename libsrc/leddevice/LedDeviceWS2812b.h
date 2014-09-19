@@ -102,6 +102,7 @@
 #include <leddevice/LedDevice.h>
 
 #define BENCHMARK
+#define WS2812_ASM_OPTI
 
 // The page map contains pointers to memory that we will allocate below. It uses two pointers
 // per address. This is because the software (this program) deals only in virtual addresses,
