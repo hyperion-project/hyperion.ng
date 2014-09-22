@@ -115,6 +115,8 @@ int main(int argc, char** argv)
 		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
 		const int priority = 0;
 		
+		hyperion.setColor(priority+1, ColorRgb::BLACK, duration_ms, false);
+
 		if (effectConfig.isMember("args"))
 		{
 			const Json::Value effectConfigArgs = effectConfig["args"];
