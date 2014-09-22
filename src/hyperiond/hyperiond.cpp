@@ -119,18 +119,16 @@ int main(int argc, char** argv)
 		{
 			const Json::Value effectConfigArgs = effectConfig["args"];
 			if (hyperion.setEffect(effectName, effectConfigArgs, priority, duration_ms) == 0)
-                        {
-                                std::cout << "Boot sequence(" << effectName << ") with user-defined arguments created and started" << std::endl;
-                        }
-                        else
-                        {
-                                std::cout << "Failed to start boot sequence: " << effectName << " with user-defined arguments" << std::endl;
-                        }
-
+			{
+					std::cout << "Boot sequence(" << effectName << ") with user-defined arguments created and started" << std::endl;
+			}
+			else
+			{
+					std::cout << "Failed to start boot sequence: " << effectName << " with user-defined arguments" << std::endl;
+			}
 		}
 		else
 		{
-
 			if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
 			{
 				std::cout << "Boot sequence(" << effectName << ") created and started" << std::endl;
