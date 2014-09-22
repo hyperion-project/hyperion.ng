@@ -13,7 +13,7 @@ message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
 message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
 
-option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" ON)
+option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
 message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
