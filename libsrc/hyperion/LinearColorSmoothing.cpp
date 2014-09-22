@@ -3,13 +3,18 @@
 
 #include "LinearColorSmoothing.h"
 
-LinearColorSmoothing::LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms) :
+LinearColorSmoothing::LinearColorSmoothing(
+		LedDevice *ledDevice,
+		double ledUpdateFrequency_hz,
+		int settlingTime_ms,
+		unsigned updateDelay) :
 	QObject(),
 	LedDevice(),
 	_ledDevice(ledDevice),
 	_updateInterval(1000 / ledUpdateFrequency_hz),
 	_settlingTime(settlingTime_ms),
-	_timer()
+	_timer(),
+	_outputDelay(updateDelay)
 {
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
@@ -25,7 +30,7 @@ LinearColorSmoothing::~LinearColorSmoothing()
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
 	// received a new target color
-	if (_previousValues.size() == 0)
+	if (_previousValues.empty())
 	{
 		// not initialized yet
 		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
@@ -46,17 +51,19 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 int LinearColorSmoothing::switchOff()
 {
-	// stop smoothing filter
-	_timer.stop();
-
-	// return to uninitialized state
-	_previousValues.clear();
-	_previousTime = 0;
-	_targetValues.clear();
+	// Clear the smoothing parameters
+	std::fill(_targetValues.begin(), _targetValues.end(), ColorRgb::BLACK);
 	_targetTime = 0;
 
-	// finally switch off all leds
-	return _ledDevice->switchOff();
+	// Erase the output-queue
+	for (unsigned i=0; i<_outputQueue.size(); ++i)
+	{
+		_outputQueue.push_back(_targetValues);
+		_outputQueue.pop_front();
+	}
+
+
+	return 0;
 }
 
 void LinearColorSmoothing::updateLeds()
@@ -69,7 +76,7 @@ void LinearColorSmoothing::updateLeds()
 		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(ColorRgb));
 		_previousTime = now;
 
-		_ledDevice->write(_previousValues);
+		queueColors(_previousValues);
 	}
 	else
 	{
@@ -86,6 +93,23 @@ void LinearColorSmoothing::updateLeds()
 		}
 		_previousTime = now;
 
-		_ledDevice->write(_previousValues);
+		queueColors(_previousValues);
+	}
+}
+
+void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
+{
+	if (_outputDelay == 0)
+	{
+		_ledDevice->write(ledColors);
+	}
+	else
+	{
+		_outputQueue.push_back(ledColors);
+		if (_outputQueue.size() > _outputDelay)
+		{
+			_ledDevice->write(_outputQueue.front());
+			_outputQueue.pop_front();
+		}
 	}
 }
