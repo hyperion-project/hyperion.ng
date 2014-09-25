@@ -4,7 +4,7 @@
 #include "LinearColorSmoothing.h"
 
 LinearColorSmoothing::LinearColorSmoothing(
-		LedDevice *ledDevice,
+		LedDevice * ledDevice,
 		double ledUpdateFrequency_hz,
 		int settlingTime_ms,
 		unsigned updateDelay) :
@@ -51,6 +51,8 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 int LinearColorSmoothing::switchOff()
 {
+	// We will keep updating the leds (but with pure-black)
+
 	// Clear the smoothing parameters
 	std::fill(_targetValues.begin(), _targetValues.end(), ColorRgb::BLACK);
 	_targetTime = 0;
@@ -61,7 +63,6 @@ int LinearColorSmoothing::switchOff()
 		_outputQueue.push_back(_targetValues);
 		_outputQueue.pop_front();
 	}
-
 
 	return 0;
 }
@@ -101,11 +102,14 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 {
 	if (_outputDelay == 0)
 	{
+		// No output delay => immediate write
 		_ledDevice->write(ledColors);
 	}
 	else
 	{
+		// Push the new colors in the delay-buffer
 		_outputQueue.push_back(ledColors);
+		// If the delay-buffer is filled pop the front and write to device
 		if (_outputQueue.size() > _outputDelay)
 		{
 			_ledDevice->write(_outputQueue.front());
