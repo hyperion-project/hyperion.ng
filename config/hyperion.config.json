@@ -81,7 +81,7 @@
 			"type"            : "none",
 			"time_ms"         : 200,
 			"updateFrequency" : 20.0000,
-			"framesDelay"     : 0
+			"updateDelay"     : 0
 		}
 	},
 

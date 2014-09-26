@@ -23,7 +23,8 @@ public:
 	/// @param LedDevice the led device
 	/// @param LedUpdatFrequency The frequency at which the leds will be updated (Hz)
 	/// @param settingTime The time after which the updated led values have been fully applied (sec)
-	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime);
+	/// @param updateDelay The number of frames to delay outgoing led updates
+	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime, unsigned updateDelay);
 
 	/// Destructor
 	virtual ~LinearColorSmoothing();
@@ -43,6 +44,13 @@ private slots:
 	void updateLeds();
 
 private:
+	/**
+	 * Pushes the colors into the output queue and popping the head to the led-device
+	 *
+	 * @param ledColors The colors to queue
+	 */
+	void queueColors(const std::vector<ColorRgb> & ledColors);
+
 	/// The led device
 	LedDevice * _ledDevice;
 
@@ -66,4 +74,10 @@ private:
 
 	/// The previously written led data
 	std::vector<ColorRgb> _previousValues;
+
+	/** The number of updates to keep in the output queue (delayed) before being output */
+	const unsigned _outputDelay;
+	/** The output queue */
+	std::list<std::vector<ColorRgb> > _outputQueue;
+
 };
