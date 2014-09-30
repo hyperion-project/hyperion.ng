@@ -26,6 +26,8 @@ LinearColorSmoothing::LinearColorSmoothing(
 
 LinearColorSmoothing::~LinearColorSmoothing()
 {
+	// Make sure to switch off the underlying led-device (because switchOff is no longer forwarded)
+	_ledDevice->switchOff();
 	delete _ledDevice;
 }
 
