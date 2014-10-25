@@ -161,4 +161,7 @@ private:
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
+	
+	/// used for WebSocket detection and connection handling
+	bool _webSocketHandshakeDone;
 };
