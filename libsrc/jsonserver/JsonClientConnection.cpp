@@ -65,7 +65,7 @@ void JsonClientConnection::readData()
 					break;
 				case 127: {
 						payloadLength = 0;
-						for (int i=0; i < 8; i++) {
+						for (uint i=0; i < 8; i++) {
 							payloadLength |= ((quint64)(_receiveBuffer.at(index+i) & 0xFF)) << (8*(7-i));
 						}
 						index += 8;
@@ -76,7 +76,7 @@ void JsonClientConnection::readData()
 			}
 			
 			if (isMasked) { // if the data is masked we need to get the key for unmasking
-				for (int i=0; i < 4; i++) {
+				for (uint i=0; i < 4; i++) {
 					maskKey[i] = _receiveBuffer.at(index + i);	
 				}
 				index += 4;
@@ -162,24 +162,6 @@ void JsonClientConnection::readData()
 			}		
 		}
 	}
-	
-	/*
-	int bytes = _receiveBuffer.indexOf('\n') + 1;
-	while(bytes > 0)
-	{
-		// create message string
-		std::string message(_receiveBuffer.data(), bytes);
-
-		// remove message data from buffer
-		_receiveBuffer = _receiveBuffer.mid(bytes);
-
-		// handle message
-		handleMessage(message);
-
-		// try too look up '\n' again
-		bytes = _receiveBuffer.indexOf('\n') + 1;
-	}
-	*/
 }
 
 void JsonClientConnection::socketClosed()
