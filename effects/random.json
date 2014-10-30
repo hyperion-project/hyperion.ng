@@ -1,0 +1,7 @@
+{
+	"name" : "Random",
+	"script" : "random.py",
+	"args" :
+	{
+	}
+}

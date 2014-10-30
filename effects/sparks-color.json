@@ -1,0 +1,7 @@
+{
+	"name" : "Sparks color",
+	"script" : "sparks-color.py",
+	"args" :
+	{
+	}
+}
