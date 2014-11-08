@@ -136,6 +136,16 @@ private:
 	/// @param error String describing the error
 	///
 	void sendErrorReply(const std::string & error);
+	
+	///
+	/// Do handshake for a websocket connection
+	///
+	void doWebSocketHandshake();
+	
+	///
+	/// Handle incoming websocket data frame
+	///
+	void handleWebSocketFrame();
 
 private:
 	///
