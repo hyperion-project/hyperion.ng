@@ -10,6 +10,8 @@
 // Qt includes
 #include <QResource>
 #include <QDateTime>
+#include <QCryptographicHash>
+#include <QHostInfo>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -25,7 +27,8 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperi
 	_socket(socket),
 	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
-	_receiveBuffer()
+	_receiveBuffer(),
+	_webSocketHandshakeDone(false)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -41,26 +44,164 @@ JsonClientConnection::~JsonClientConnection()
 void JsonClientConnection::readData()
 {
 	_receiveBuffer += _socket->readAll();
-
-	int bytes = _receiveBuffer.indexOf('\n') + 1;
-	while(bytes > 0)
+	
+	if (_webSocketHandshakeDone)
 	{
-		// create message string
-		std::string message(_receiveBuffer.data(), bytes);
+		// websocket mode, data frame
+		handleWebSocketFrame();
+	} else
+	{
+		// might be a handshake request or raw socket data
+		if(_receiveBuffer.contains("Upgrade: websocket"))
+		{
+			doWebSocketHandshake();
+		} else 
+		{
+			// raw socket data, handling as usual
+			int bytes = _receiveBuffer.indexOf('\n') + 1;
+			while(bytes > 0)
+			{
+				// create message string
+				std::string message(_receiveBuffer.data(), bytes);
 
-		// remove message data from buffer
-		_receiveBuffer = _receiveBuffer.mid(bytes);
+				// remove message data from buffer
+				_receiveBuffer = _receiveBuffer.mid(bytes);
 
-		// handle message
-		handleMessage(message);
+				// handle message
+				handleMessage(message);
 
-		// try too look up '\n' again
-		bytes = _receiveBuffer.indexOf('\n') + 1;
+				// try too look up '\n' again
+				bytes = _receiveBuffer.indexOf('\n') + 1;
+			}		
+		}
 	}
+}
+
+void JsonClientConnection::handleWebSocketFrame()
+{
+	if ((_receiveBuffer.at(0) & 0x80) == 0x80)
+	{
+		// final bit found, frame complete
+		quint8 * maskKey = NULL;
+		quint8 opCode = _receiveBuffer.at(0) & 0x0F;
+		bool isMasked = (_receiveBuffer.at(1) & 0x80) == 0x80;
+		quint64 payloadLength = _receiveBuffer.at(1) & 0x7F;
+		quint32 index = 2;
+		
+		switch (payloadLength)
+		{
+			case 126:
+				payloadLength = ((_receiveBuffer.at(2) << 8) & 0xFF00) | (_receiveBuffer.at(3) & 0xFF);
+				index += 2;
+				break;
+			case 127:
+				payloadLength = 0;
+				for (uint i=0; i < 8; i++)						{
+					payloadLength |= ((quint64)(_receiveBuffer.at(index+i) & 0xFF)) << (8*(7-i));
+				}
+				index += 8;
+				break;
+			default:
+				break;
+		}
+		
+		if (isMasked)
+		{
+			// if the data is masked we need to get the key for unmasking
+			maskKey = new quint8[4];
+			for (uint i=0; i < 4; i++)
+			{
+				maskKey[i] = _receiveBuffer.at(index + i);	
+			}
+			index += 4;
+		}
+		
+		// check the type of data frame
+		switch (opCode)
+		{
+		case 0x01:
+			{
+				// frame contains text, extract it
+				QByteArray result = _receiveBuffer.mid(index, payloadLength);
+				_receiveBuffer.clear();
+			
+				// unmask data if necessary
+				if (isMasked)
+				{
+					for (uint i=0; i < payloadLength; i++)
+					{
+						result[i] = (result[i] ^ maskKey[i % 4]);
+					}
+					if (maskKey != NULL)
+					{
+						delete[] maskKey;
+						maskKey = NULL;
+					}
+				}
+								
+				handleMessage(QString(result).toStdString());
+			}
+			break;
+		case 0x08:
+			{
+				// close request, confirm
+				quint8 close[] = {0x88, 0};				
+				_socket->write((const char*)close, 2);
+				_socket->flush();
+				_socket->close();
+			}
+			break;
+		case 0x09:
+			{
+				// ping received, send pong
+				quint8 pong[] = {0x0A, 0};				
+				_socket->write((const char*)pong, 2);
+				_socket->flush();
+			}
+			break;
+		}
+	} else
+	{
+		std::cout << "Someone is sending very big messages over several frames... it's not supported yet" << std::endl;
+		quint8 close[] = {0x88, 0};				
+		_socket->write((const char*)close, 2);
+		_socket->flush();
+		_socket->close();
+	}
+}
+
+void JsonClientConnection::doWebSocketHandshake()
+{
+	// http header, might not be a very reliable check...
+	std::cout << "Websocket handshake" << std::endl;
+
+	// get the key to prepare an answer
+	int start = _receiveBuffer.indexOf("Sec-WebSocket-Key") + 19;
+	std::string value(_receiveBuffer.mid(start, _receiveBuffer.indexOf("\r\n", start) - start).data());
+	_receiveBuffer.clear();
+
+	// must be always appended
+	value += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+	// generate sha1 hash
+	QByteArray hash = QCryptographicHash::hash(value.c_str(), QCryptographicHash::Sha1);
+
+	// prepare an answer
+	std::ostringstream h;
+	h << "HTTP/1.1 101 Switching Protocols\r\n" <<
+	"Upgrade: websocket\r\n" <<
+	"Connection: Upgrade\r\n" << 
+	"Sec-WebSocket-Accept: " << QString(hash.toBase64()).toStdString() << "\r\n\r\n";
+
+	_socket->write(h.str().c_str());
+	_socket->flush();
+	// we are in WebSocket mode, data frames should follow next
+	_webSocketHandshakeDone = true;
 }
 
 void JsonClientConnection::socketClosed()
 {
+	_webSocketHandshakeDone = false;
 	emit connectionClosed(this);
 }
 
@@ -205,6 +346,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value result;
 	result["success"] = true;
 	Json::Value & info = result["info"];
+	
+	// add host name for remote clients
+	info["hostname"] = QHostInfo::localHostName().toStdString();
 
 	// collect priority information
 	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
@@ -362,7 +506,32 @@ void JsonClientConnection::sendMessage(const Json::Value &message)
 {
 	Json::FastWriter writer;
 	std::string serializedReply = writer.write(message);
-	_socket->write(serializedReply.data(), serializedReply.length());
+	
+	if (!_webSocketHandshakeDone)
+	{
+		// raw tcp socket mode
+		_socket->write(serializedReply.data(), serializedReply.length());
+	} else
+	{
+		// websocket mode
+		quint32 size = serializedReply.length();
+	
+		// prepare data frame
+		QByteArray response;
+		response.append(0x81);
+		if (size > 125)
+		{
+			response.append(0x7E);
+			response.append((size >> 8) & 0xFF);
+			response.append(size & 0xFF);
+		} else {
+			response.append(size);
+		}
+	
+		response.append(serializedReply.c_str(), serializedReply.length());
+	
+		_socket->write(response.data(), response.length());		
+	}
 }
 
 void JsonClientConnection::sendSuccessReply()
