@@ -13,6 +13,9 @@ message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
 message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
 
+option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
+message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
+
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
@@ -21,6 +24,13 @@ message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
 option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
 message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
+
+option(ENABLE_PROTOBUF "Enable PROTOBUF server" ON)
+message(STATUS "ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
+
+if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
+	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
+endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
@@ -57,12 +67,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 
-# add protocol buffers (make sure to find the static version)
-set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD ${CMAKE_FIND_LIBRARY_SUFFIXES})
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-find_package(Protobuf REQUIRED)
-set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_OLD})
-set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
+if (ENABLE_PROTOBUF)
+	# add protocol buffers (make sure to find the static version)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD ${CMAKE_FIND_LIBRARY_SUFFIXES})
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+	find_package(Protobuf REQUIRED)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_OLD})
+	set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
+endif (ENABLE_PROTOBUF)
 
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)

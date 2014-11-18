@@ -64,6 +64,9 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 {
 	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
 
+	// disable the black border detector for effects
+	_imageProcessor->enableBalckBorderDetector(false);
+
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
 }
@@ -310,7 +313,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 			}
 			else
 			{
-				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*ledCount");
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should be 3*width*height");
 				return nullptr;
 			}
 		}

@@ -37,6 +37,9 @@ public:
 	///
 	void setSize(const unsigned width, const unsigned height);
 
+	/// Enable or disable the black border detector
+	void enableBalckBorderDetector(bool enable);
+
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -142,7 +145,7 @@ private:
 	const LedString _ledString;
 
 	/// Flag the enables(true)/disabled(false) blackborder detector
-	const bool _enableBlackBorderRemoval;
+	bool _enableBlackBorderRemoval;
 
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;

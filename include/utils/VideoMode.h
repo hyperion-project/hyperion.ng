@@ -18,7 +18,7 @@ inline VideoMode parse3DMode(std::string videoMode)
 	// convert to lower case
 	std::transform(videoMode.begin(), videoMode.end(), videoMode.begin(), ::tolower);
 
-	if (videoMode == "23DTAB")
+	if (videoMode == "3DTAB")
 	{
 		return VIDEO_3DTAB;
 	}

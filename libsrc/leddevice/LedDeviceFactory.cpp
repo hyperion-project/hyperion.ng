@@ -28,6 +28,12 @@
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
 #include "LedDeviceHyperionUsbasp.h"
+#include "LedDevicePhilipsHue.h"
+#include "LedDeviceTpm2.h"
+
+#ifdef ENABLE_WS2812BPWM
+	#include "LedDeviceWS2812b.h"
+#endif
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -42,8 +48,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const int delay_ms       = deviceConfig["delayAfterConnect"].asInt();
 
-		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate);
+		LedDeviceAdalight* deviceAdalight = new LedDeviceAdalight(output, rate, delay_ms);
 		deviceAdalight->open();
 
 		device = deviceAdalight;
@@ -159,11 +166,33 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			deviceHyperionUsbasp->open();
 			device = deviceHyperionUsbasp;
 	}
+	else if (type == "philipshue")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+		device = new LedDevicePhilipsHue(output, switchOffOnBlack);
+	}
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
 	}
+	else if (type == "tpm2")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate = deviceConfig["rate"].asInt();
+
+		LedDeviceTpm2 * deviceTpm2 = new LedDeviceTpm2(output, rate);
+		deviceTpm2->open();
+		device = deviceTpm2;
+	}
+#ifdef ENABLE_WS2812BPWM
+	else if (type == "ws2812b")
+	{
+		LedDeviceWS2812b * ledDeviceWS2812b = new LedDeviceWS2812b();
+		device = ledDeviceWS2812b;
+	}
+#endif
 	else
 	{
 		std::cout << "Unable to create device " << type << std::endl;

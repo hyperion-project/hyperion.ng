@@ -13,14 +13,14 @@ include_directories(
 
 # Group the headers that go through the MOC compiler
 SET(Leddevice_QT_HEADERS
+		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
+		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 )
 
 SET(Leddevice_HEADERS
 		${CURRENT_HEADER_DIR}/LedDevice.h
 		${CURRENT_HEADER_DIR}/LedDeviceFactory.h
-
-		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.h
@@ -29,6 +29,7 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
+		${CURRENT_SOURCE_DIR}/LedDeviceTpm2.h
 )
 
 SET(Leddevice_SOURCES
@@ -44,6 +45,8 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
+		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceTpm2.cpp
 )
 
 if(ENABLE_SPIDEV)
@@ -64,6 +67,17 @@ if(ENABLE_SPIDEV)
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
 	)
 endif(ENABLE_SPIDEV)
+
+if(ENABLE_WS2812BPWM)
+SET(Leddevice_HEADERS
+		${Leddevice_HEADERS}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.h
+	)
+SET(Leddevice_SOURCES
+		${Leddevice_SOURCES}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.cpp
+)
+endif(ENABLE_WS2812BPWM)
 
 if(ENABLE_TINKERFORGE)
 	SET(Leddevice_HEADERS

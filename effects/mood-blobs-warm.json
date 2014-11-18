@@ -1,0 +1,16 @@
+{
+	"name" : "Warm mood blobs",
+	"script" : "mood-blobs.py",
+	"args" :
+	{
+		"rotationTime" : 60.0,
+		"color" : [255,0,0],
+		"hueChange" : 30.0,
+		"blobs" : 5,
+		"reverse" : false,
+		"baseChange" : true,
+		"baseColorRangeLeft" : 333,
+		"baseColorRangeRight" : 151,
+		"baseColorChangeRate" : 2.0
+	}
+}

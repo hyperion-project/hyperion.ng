@@ -34,13 +34,13 @@ fi
 echo 'Downloading hyperion'
 if [ $IS_OPENELEC -eq 1 ]; then
 	# OpenELEC has a readonly file system. Use alternative location
-	curl --get https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz | tar -C /storage -xz
-	curl --get https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.deps.openelec-rpi.tar.gz | tar -C /storage/hyperion/bin -xz
+	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz | tar -C /storage -xz
+	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.deps.openelec-rpi.tar.gz | tar -C /storage/hyperion/bin -xz
 
 	# modify the default config to have a correct effect path
 	sed -i 's:/opt:/storage:g' /storage/hyperion/config/hyperion.config.json
 else
-	wget https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz -O - | tar -C /opt -xz
+	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz -O - | tar -C /opt -xz
 fi
 
 # create links to the binaries
@@ -68,9 +68,9 @@ fi
 if [ $USE_INITCTL -eq 1 ]; then
 	echo 'Installing initctl script'
 	if [ $IS_RASPBMC -eq 1 ]; then
-		wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.conf -P /etc/init/
+		wget -N https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.conf -P /etc/init/
 	else
-		wget -N https://raw.github.com/tvdzwan/hyperion/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
+		wget -N https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.xbian.conf -O /etc/init/hyperion.conf
 	fi
 elif [ $USE_SERVICE -eq 1 ]; then
 	echo 'Installing startup script in init.d'

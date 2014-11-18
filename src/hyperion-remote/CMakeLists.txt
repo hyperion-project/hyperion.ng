@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hyperion-remote)
 
-# add protocol buffers
-find_package(Protobuf REQUIRED)
-
 # find Qt4
 find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
 
