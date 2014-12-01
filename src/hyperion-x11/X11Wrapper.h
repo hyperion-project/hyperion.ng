@@ -9,7 +9,7 @@ class X11Wrapper : public QObject
 {
     Q_OBJECT
 public:
-    X11Wrapper(const unsigned cropHorizontal, const unsigned cropVertical, const unsigned pixelDecimation);
+    X11Wrapper(int grabInterval, const unsigned cropHorizontal, const unsigned cropVertical, const unsigned pixelDecimation);
 
     const Image<ColorRgb> & getScreenshot();
 

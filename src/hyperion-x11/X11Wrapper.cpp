@@ -2,10 +2,13 @@
 // Hyperion-X11 includes
 #include "X11Wrapper.h"
 
-X11Wrapper::X11Wrapper(const unsigned cropHorizontal, const unsigned cropVertical, const unsigned pixelDecimation) :
+X11Wrapper::X11Wrapper(int grabInterval, const unsigned cropHorizontal, const unsigned cropVertical, const unsigned pixelDecimation) :
     _timer(this),
     _grabber(cropHorizontal, cropVertical, pixelDecimation)
 {
+    _timer.setSingleShot(false);
+    _timer.setInterval(grabInterval);
+
     // Connect capturing to the timeout signal of the timer
     connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
 }
@@ -18,7 +21,7 @@ const Image<ColorRgb> & X11Wrapper::getScreenshot()
 
 void X11Wrapper::start()
 {
-    _timer.start(100);
+    _timer.start();
 }
 
 void X11Wrapper::stop()

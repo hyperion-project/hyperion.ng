@@ -29,6 +29,7 @@ int main(int argc, char ** argv)
         OptionsParser optionParser("X11 capture application for Hyperion");
         ParameterSet & parameters = optionParser.getParameters();
 
+        IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Cpture frame rate [default=10]");
         IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides in the picture before decimation [default=0]");
         IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom in the picture before decimation [default=0]");
         IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=16]");
@@ -39,6 +40,7 @@ int main(int argc, char ** argv)
         SwitchParameter<>      & argHelp            = parameters.add<SwitchParameter<>>     ('h', "help",             "Show this help message and exit");
 
         // set defaults
+        argFps.setDefault(10);
         argCropWidth.setDefault(0);
         argCropHeight.setDefault(0);
         argSizeDecimation.setDefault(16);
@@ -56,7 +58,8 @@ int main(int argc, char ** argv)
         }
 
         // Create the X11 grabbing stuff
-        X11Wrapper x11Wrapper(argCropWidth.getValue(), argCropHeight.getValue(), argSizeDecimation.getValue());
+        int grabInterval = 1000 / argFps.getValue();
+        X11Wrapper x11Wrapper(grabInterval, argCropWidth.getValue(), argCropHeight.getValue(), argSizeDecimation.getValue());
 
         if (argScreenshot.isSet())
         {
