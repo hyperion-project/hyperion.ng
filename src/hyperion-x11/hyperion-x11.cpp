@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
             ProtoConnectionWrapper protoWrapper(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
 
             // Connect the screen capturing to the proto processing
-            QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(process(Image<ColorRgb>)));
+            QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
 
             // Start the capturing
             x11Wrapper.start();
