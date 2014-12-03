@@ -86,6 +86,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceP9813->open();
 
 		device = deviceP9813;
+	}
 	else if (type == "apa102")
 	{
 		const std::string output = deviceConfig["output"].asString();
