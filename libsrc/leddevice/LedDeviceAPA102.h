@@ -36,6 +36,7 @@ public:
 
 private:
 
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
+	/// The buffer containing the packed RGB values
+	std::vector<uint8_t> _ledBuffer;
+
 };

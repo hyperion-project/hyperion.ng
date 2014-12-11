@@ -13,35 +13,30 @@
 
 LedDeviceAPA102::LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate, 500000),
-	mLedCount(0)
+	_ledBuffer(0)
 {
 	// empty
 }
 
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 {
-	mLedCount = ledValues.size();
-
-	const unsigned dataLen = 8 + (ledValues.size() * (sizeof(ColorRgb) + 1));
-	const uint8_t data[dataLen] = { 0x00, 0x00, 0x00, 0x00 };
-	int position = 4;
-	for (ColorRgb* rgb : ledValues ){
-		data[i++] = 0xFF;
-		data[i++] = rgb.red;
-		data[i++] = rgb.green;
-		data[i++] = rgb.blue;
+	const unsigned int mLedCount = (ledValues.size() * 4) + 8;
+	if(_ledBuffer.size() != mLedCount){
+		_ledBuffer.resize(mLedCount, 0x00);
 	}
 
-	// Write end frame
-	data[i++] = 0xFF;
-	data[i++] = 0xFF;
-	data[i++] = 0xFF;
-	data[i++] = 0xFF;
+	for (unsigned iLed=1; iLed<=ledValues.size(); ++iLed) {
+		const ColorRgb& rgb = ledValues[iLed];
+		_ledBuffer[iLed*4]   = 0xFF;
+		_ledBuffer[iLed*4+1] = rgb.red;
+		_ledBuffer[iLed*4+2] = rgb.green;
+		_ledBuffer[iLed*4+3] = rgb.blue;
+	}
 
-	return writeBytes(dataLen, data);
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
 int LedDeviceAPA102::switchOff()
 {
-	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledBuffer.size(), ColorRgb{0,0,0}));
 }
