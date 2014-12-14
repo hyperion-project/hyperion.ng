@@ -20,19 +20,19 @@
 
 static inline uint8_t clamp(int x)
 {
-    return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
+	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
 }
 
 static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b)
 {
-    // see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
-    int c = y - 16;
-    int d = u - 128;
-    int e = v - 128;
+	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
+	int c = y - 16;
+	int d = u - 128;
+	int e = v - 128;
 
-    r = clamp((298 * c + 409 * e + 128) >> 8);
-    g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
-    b = clamp((298 * c + 516 * d + 128) >> 8);
+	r = clamp((298 * c + 409 * e + 128) >> 8);
+	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
+	b = clamp((298 * c + 516 * d + 128) >> 8);
 }
 
 

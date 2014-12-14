@@ -8,16 +8,20 @@
 // X11Grabber includes
 #include <grabber/X11Grabber.h>
 
-X11Grabber::X11Grabber(const unsigned cropHorizontal, const unsigned cropVertical, const unsigned pixelDecimation) :
-    _pixelDecimation(pixelDecimation),
-    _cropWidth(cropHorizontal),
-    _cropHeight(cropVertical),
+X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation) :
+    _imageResampler(),
+    _cropLeft(cropLeft),
+    _cropRight(cropRight),
+    _cropTop(cropTop),
+    _cropBottom(cropBottom),
     _x11Display(nullptr),
     _screenWidth(0),
     _screenHeight(0),
     _image(0,0)
 {
-    // empty
+    _imageResampler.setHorizontalPixelDecimation(horizontalPixelDecimation);
+    _imageResampler.setVerticalPixelDecimation(verticalPixelDecimation);
+    _imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XGetImage
 }
 
 X11Grabber::~X11Grabber()
@@ -51,42 +55,18 @@ Image<ColorRgb> & X11Grabber::grab()
 
     updateScreenDimensions();
 
-    const int croppedWidth  = _screenWidth  - 2*_cropWidth;
-    const int croppedHeight = _screenHeight - 2*_cropHeight;
+    const unsigned croppedWidth  = _screenWidth - _cropLeft - _cropRight;
+    const unsigned croppedHeight = _screenHeight - _cropTop - _cropBottom;
 
     // Capture the current screen
-    XImage * xImage = XGetImage(_x11Display, DefaultRootWindow(_x11Display), _cropWidth, _cropHeight, croppedWidth, croppedHeight, AllPlanes, ZPixmap);
+    XImage * xImage = XGetImage(_x11Display, DefaultRootWindow(_x11Display), _cropLeft, _cropTop, croppedWidth, croppedHeight, AllPlanes, ZPixmap);
     if (xImage == nullptr)
     {
         std::cerr << "Grab failed" << std::endl;
         return _image;
     }
 
-    // Copy the capture XImage to the local image (and apply required decimation)
-    ColorRgb * outputPtr = _image.memptr();
-    int width = 0;
-    int height = 0;
-    for (int iY=(_pixelDecimation/2); iY<croppedHeight; iY+=_pixelDecimation)
-    {
-        width = 0;
-        for (int iX=(_pixelDecimation/2); iX<croppedWidth; iX+=_pixelDecimation)
-        {
-            // Extract the pixel from the X11-image
-            const uint32_t pixel = uint32_t(XGetPixel(xImage, iX, iY));
-
-            // Assign the color value
-            outputPtr->red   = uint8_t((pixel >> 16) & 0xff);
-            outputPtr->green = uint8_t((pixel >> 8)  & 0xff);
-            outputPtr->blue  = uint8_t((pixel >> 0)  & 0xff);
-
-            // Move to the next output pixel
-            ++outputPtr;
-            ++width;
-        }
-        ++height;
-    }
-
-    std::cout << "decimated X11 message: " << width << " x " << height << std::endl;
+    _imageResampler.processImage(reinterpret_cast<const uint8_t *>(xImage->data), xImage->width, xImage->height, xImage->bytes_per_line, PIXELFORMAT_BGR32, _image);
 
     // Cleanup allocated resources of the X11 grab
     XDestroyImage(xImage);
@@ -113,12 +93,6 @@ int X11Grabber::updateScreenDimensions()
     _screenWidth  = window_attributes_return.width;
     _screenHeight = window_attributes_return.height;
     std::cout << "[" << _screenWidth << "x" << _screenHeight <<"]" << std::endl;
-
-    // Update the size of the buffer used to transfer the screenshot
-    int width = (_screenWidth - 2 * _cropWidth - _pixelDecimation/2 - 1) / _pixelDecimation + 1;
-    int height = (_screenHeight - 2 * _cropHeight - _pixelDecimation/2 - 1) / _pixelDecimation + 1;
-
-    _image.resize(width, height);
 
     return 0;
 }

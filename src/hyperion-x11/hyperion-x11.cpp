@@ -30,9 +30,13 @@ int main(int argc, char ** argv)
         ParameterSet & parameters = optionParser.getParameters();
 
         IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Cpture frame rate [default=10]");
-        IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides in the picture before decimation [default=0]");
-        IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom in the picture before decimation [default=0]");
-        IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=16]");
+        IntParameter           & argCropWidth       = parameters.add<IntParameter>          (0x0, "crop-width",       "Number of pixels to crop from the left and right sides of the picture before decimation [default=0]");
+        IntParameter           & argCropHeight      = parameters.add<IntParameter>          (0x0, "crop-height",      "Number of pixels to crop from the top and the bottom of the picture before decimation [default=0]");
+        IntParameter           & argCropLeft        = parameters.add<IntParameter>          (0x0, "crop-left",        "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
+        IntParameter           & argCropRight       = parameters.add<IntParameter>          (0x0, "crop-right",       "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
+        IntParameter           & argCropTop         = parameters.add<IntParameter>          (0x0, "crop-top",         "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
+        IntParameter           & argCropBottom      = parameters.add<IntParameter>          (0x0, "crop-bottom",      "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
+        IntParameter           & argSizeDecimation  = parameters.add<IntParameter>          ('s', "size-decimator",   "Decimation factor for the output size [default=8]");
         SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
         StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
         IntParameter           & argPriority        = parameters.add<IntParameter>          ('p', "priority",         "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
@@ -43,7 +47,7 @@ int main(int argc, char ** argv)
         argFps.setDefault(10);
         argCropWidth.setDefault(0);
         argCropHeight.setDefault(0);
-        argSizeDecimation.setDefault(16);
+        argSizeDecimation.setDefault(8);
         argAddress.setDefault("127.0.0.1:19445");
         argPriority.setDefault(800);
 
@@ -57,9 +61,22 @@ int main(int argc, char ** argv)
             return 0;
         }
 
+        // cropping values if not defined
+        if (!argCropLeft.isSet())   argCropLeft.setDefault(argCropWidth.getValue());
+        if (!argCropRight.isSet())  argCropRight.setDefault(argCropWidth.getValue());
+        if (!argCropTop.isSet())    argCropTop.setDefault(argCropHeight.getValue());
+        if (!argCropBottom.isSet()) argCropBottom.setDefault(argCropHeight.getValue());
+
         // Create the X11 grabbing stuff
         int grabInterval = 1000 / argFps.getValue();
-        X11Wrapper x11Wrapper(grabInterval, argCropWidth.getValue(), argCropHeight.getValue(), argSizeDecimation.getValue());
+        X11Wrapper x11Wrapper(
+                    grabInterval,
+                    argCropLeft.getValue(),
+                    argCropRight.getValue(),
+                    argCropTop.getValue(),
+                    argCropBottom.getValue(),
+                    argSizeDecimation.getValue(), // horizontal decimation
+                    argSizeDecimation.getValue()); // vertical decimation
 
         if (argScreenshot.isSet())
         {

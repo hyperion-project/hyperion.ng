@@ -102,6 +102,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
+        // cropping values if not defined
         if (!argCropLeft.isSet())   argCropLeft.setDefault(argCropWidth.getValue());
         if (!argCropRight.isSet())  argCropRight.setDefault(argCropWidth.getValue());
         if (!argCropTop.isSet())    argCropTop.setDefault(argCropHeight.getValue());

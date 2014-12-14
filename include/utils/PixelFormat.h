@@ -9,8 +9,9 @@
 enum PixelFormat {
 	PIXELFORMAT_YUYV,
 	PIXELFORMAT_UYVY,
-	PIXELFORMAT_RGB32,
-	PIXELFORMAT_NO_CHANGE
+    PIXELFORMAT_RGB32,
+    PIXELFORMAT_BGR32,
+    PIXELFORMAT_NO_CHANGE
 };
 
 inline PixelFormat parsePixelFormat(std::string pixelFormat)
@@ -26,10 +27,14 @@ inline PixelFormat parsePixelFormat(std::string pixelFormat)
 	{
 		return PIXELFORMAT_UYVY;
 	}
-	else if (pixelFormat == "rgb32")
-	{
-		return PIXELFORMAT_RGB32;
-	}
+    else if (pixelFormat == "rgb32")
+    {
+        return PIXELFORMAT_RGB32;
+    }
+    else if (pixelFormat == "bgr32")
+    {
+        return PIXELFORMAT_BGR32;
+    }
 
 	// return the default NO_CHANGE
 	return PIXELFORMAT_NO_CHANGE;
