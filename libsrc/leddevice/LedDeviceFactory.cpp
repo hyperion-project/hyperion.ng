@@ -14,6 +14,7 @@
 	#include "LedDeviceLpd8806.h"
 	#include "LedDeviceP9813.h"
 	#include "LedDeviceWs2801.h"
+	#include "LedDeviceAPA102.h"
 #endif
 
 #ifdef ENABLE_TINKERFORGE
@@ -85,6 +86,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceP9813->open();
 
 		device = deviceP9813;
+	}
+	else if (type == "apa102")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate);
+		deviceAPA102->open();
+
+		device = deviceAPA102;
 	}
 	else if (type == "ws2801" || type == "lightberry")
 	{
