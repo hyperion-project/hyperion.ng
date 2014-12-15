@@ -268,7 +268,7 @@ LedDeviceWS2812b::LedDeviceWS2812b() :
 static inline __attribute__((always_inline)) uint32_t arm_ror_imm(uint32_t v, uint32_t sh)
 {
 	uint32_t d;
-	asm ("ROR %[Rd], %[Rm], %[Is]" : [Rd] "=r" (d) : [Rm] "r" (v), [Is] "i" (sh));
+	asm ("ROR %[Rd], %[Rm], %[Is]" : [Rd] "=r" (d) : [Rm] "r" (v), [Is] "r" (sh));
 	return d;
 }
 
@@ -278,7 +278,7 @@ static inline __attribute__((always_inline)) uint32_t arm_ror_imm_add_on_carry(u
 	  uint32_t d;
 	  asm ("RORS %[Rd], %[Rm], %[Is]\n\t"
 		   "ADDCS %[Rd1], %[Rd1], #1"
-			  : [Rd] "=r" (d), [Rd1] "+r" (inc): [Rm] "r" (v), [Is] "i" (sh));
+			  : [Rd] "=r" (d), [Rd1] "+r" (inc): [Rm] "r" (v), [Is] "r" (sh));
 	  return d;
 }
 
