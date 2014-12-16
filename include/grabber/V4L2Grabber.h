@@ -13,6 +13,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/PixelFormat.h>
 #include <utils/VideoMode.h>
+#include <utils/ImageResampler.h>
 
 // grabber includes
 #include <grabber/VideoStandard.h>
@@ -108,22 +109,17 @@ private:
     PixelFormat _pixelFormat;
     int _width;
     int _height;
+    int _lineLength;
     int _frameByteSize;
-    int _cropLeft;
-    int _cropRight;
-    int _cropTop;
-    int _cropBottom;
     int _frameDecimation;
-    int _horizontalPixelDecimation;
-    int _verticalPixelDecimation;
     int _noSignalCounterThreshold;
 
     ColorRgb _noSignalThresholdColor;
-
-    VideoMode _mode3D;
 
     int _currentFrame;
     int _noSignalCounter;
 
     QSocketNotifier * _streamNotifier;
+
+    ImageResampler _imageResampler;
 };
