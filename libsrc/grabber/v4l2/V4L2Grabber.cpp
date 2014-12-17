@@ -18,24 +18,6 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-static inline uint8_t clamp(int x)
-{
-	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
-}
-
-static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b)
-{
-	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
-	int c = y - 16;
-	int d = u - 128;
-	int e = v - 128;
-
-	r = clamp((298 * c + 409 * e + 128) >> 8);
-	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
-	b = clamp((298 * c + 516 * d + 128) >> 8);
-}
-
-
 V4L2Grabber::V4L2Grabber(const std::string & device,
         int input,
         VideoStandard videoStandard,
@@ -52,21 +34,19 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
     _pixelFormat(pixelFormat),
     _width(width),
     _height(height),
+    _lineLength(-1),
     _frameByteSize(-1),
-    _cropLeft(0),
-    _cropRight(0),
-    _cropTop(0),
-    _cropBottom(0),
     _frameDecimation(std::max(1, frameDecimation)),
-    _horizontalPixelDecimation(std::max(1, horizontalPixelDecimation)),
-    _verticalPixelDecimation(std::max(1, verticalPixelDecimation)),
     _noSignalCounterThreshold(50),
     _noSignalThresholdColor(ColorRgb{0,0,0}),
-    _mode3D(VIDEO_2D),
     _currentFrame(0),
     _noSignalCounter(0),
-    _streamNotifier(nullptr)
+    _streamNotifier(nullptr),
+    _imageResampler()
 {
+    _imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
+    _imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
+
     open_device();
     init_device(videoStandard, input);
 }
@@ -81,15 +61,12 @@ V4L2Grabber::~V4L2Grabber()
 
 void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-    _cropLeft = cropLeft;
-    _cropRight = cropRight;
-    _cropTop = cropTop;
-    _cropBottom = cropBottom;
+    _imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
 void V4L2Grabber::set3D(VideoMode mode)
 {
-    _mode3D = mode;
+    _imageResampler.set3D(mode);
 }
 
 void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
@@ -414,6 +391,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
         }
     }
 
+    // set the line length
+    _lineLength = fmt.fmt.pix.bytesperline;
+
     // set the settings
     if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
     {
@@ -688,71 +668,8 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data)
 {
-    int width = _width;
-    int height = _height;
-
-    switch (_mode3D)
-    {
-    case VIDEO_3DSBS:
-        width = _width/2;
-        break;
-    case VIDEO_3DTAB:
-        height = _height/2;
-        break;
-    default:
-        break;
-    }
-
-    // create output structure
-    int outputWidth = (width - _cropLeft - _cropRight + _horizontalPixelDecimation/2) / _horizontalPixelDecimation;
-    int outputHeight = (height - _cropTop - _cropBottom + _verticalPixelDecimation/2) / _verticalPixelDecimation;
-
-    // TODO: should this be the following (like X11):
-    //int outputWidth = (width - _cropLeft - _cropRight + _horizontalPixelDecimation/2 - 1) / _horizontalPixelDecimation + 1;
-    //int outputHeight = (height - _cropTop - _cropBottom + _verticalPixelDecimation/2 - 1) / _verticalPixelDecimation + 1;
-
-    Image<ColorRgb> image(outputWidth, outputHeight);
-
-    for (int ySource = _cropTop + _verticalPixelDecimation/2, yDest = 0; ySource < height - _cropBottom; ySource += _verticalPixelDecimation, ++yDest)
-    {
-        for (int xSource = _cropLeft + _horizontalPixelDecimation/2, xDest = 0; xSource < width - _cropRight; xSource += _horizontalPixelDecimation, ++xDest)
-        {
-            ColorRgb & rgb = image(xDest, yDest);
-
-            switch (_pixelFormat)
-            {
-            case PIXELFORMAT_UYVY:
-                {
-                    int index = (_width * ySource + xSource) * 2;
-                    uint8_t y = data[index+1];
-                    uint8_t u = (xSource%2 == 0) ? data[index  ] : data[index-2];
-                    uint8_t v = (xSource%2 == 0) ? data[index+2] : data[index  ];
-                    yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
-                }
-                break;
-            case PIXELFORMAT_YUYV:
-                {
-                    int index = (_width * ySource + xSource) * 2;
-                    uint8_t y = data[index];
-                    uint8_t u = (xSource%2 == 0) ? data[index+1] : data[index-1];
-                    uint8_t v = (xSource%2 == 0) ? data[index+3] : data[index+1];
-                    yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
-                }
-                break;
-            case PIXELFORMAT_RGB32:
-                {
-                    int index = (_width * ySource + xSource) * 4;
-                    rgb.red   = data[index  ];
-                    rgb.green = data[index+1];
-                    rgb.blue  = data[index+2];
-                }
-                break;
-            default:
-                // this should not be possible
-                break;
-            }
-        }
-    }
+    Image<ColorRgb> image(0, 0);
+    _imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 
     // check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
     bool noSignal = true;
