@@ -11,13 +11,16 @@ option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
 message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
-message(STATUS "ENABLE_SPIDEV = " ${ENABLE_SPIDEV})
+message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
 
 option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
 message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
+
+option(ENABLE_X11 "Enable the X11 grabber" ON)
+message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
 option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
 message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
@@ -54,8 +57,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-#set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
+#set(CMAKE_BUILD_TYPE "Release")
 
 # enable C++11
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")

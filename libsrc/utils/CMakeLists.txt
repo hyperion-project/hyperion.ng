@@ -13,6 +13,12 @@ add_library(hyperion-utils
 		${CURRENT_HEADER_DIR}/Image.h
 		${CURRENT_HEADER_DIR}/Sleep.h
 
+		${CURRENT_HEADER_DIR}/PixelFormat.h
+		${CURRENT_HEADER_DIR}/VideoMode.h
+
+		${CURRENT_HEADER_DIR}/ImageResampler.h
+		${CURRENT_SOURCE_DIR}/ImageResampler.cpp
+
 		${CURRENT_HEADER_DIR}/HsvTransform.h
 		${CURRENT_SOURCE_DIR}/HsvTransform.cpp
 		${CURRENT_HEADER_DIR}/RgbChannelTransform.h
