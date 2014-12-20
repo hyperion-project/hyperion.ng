@@ -19,7 +19,7 @@ message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
-option(ENABLE_X11 "Enable the X11 grabber" ON)
+option(ENABLE_X11 "Enable the X11 grabber" OFF)
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
 option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
