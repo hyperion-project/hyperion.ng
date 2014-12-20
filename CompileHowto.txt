@@ -1,6 +1,6 @@
 # Install the required tools and dependencies
 sudo apt-get update
-sudo apt-get install git cmake build-essential libprotobuf-dev libQt4-dev libusb-1.0-0-dev protobuf-compiler python-dev
+sudo apt-get install git cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
 
 # RPI ONLY: when you build on the rapberry pi and inlcude the dispmanx grabber (which is the default) 
 # you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github
@@ -11,7 +11,7 @@ sudo cp -R "$FIRMWARE_DIR/hardfp/opt/*" /opt
 
 # create hyperion directory and checkout the code from github
 export HYPERION_DIR="hyperion"
-git clone https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
 
 # create and enter the build directory
 mkdir "$HYPERION_DIR/build"
@@ -20,7 +20,7 @@ cd "$HYPERION_DIR/build"
 # run cmake to generate make files on the rsapberry pi
 cmake ..
 # or if you are not compiling on the raspberry pi and need to disable the Dispmanx grabber and support for spi devices
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF ..
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON ..
 
 # run make to build Hyperion
 make
