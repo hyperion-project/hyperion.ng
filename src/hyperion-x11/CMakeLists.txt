@@ -14,6 +14,7 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
 	${QT_INCLUDES}
 	${X11_INCLUDES}
+	${PROTOBUF_INCLUDE_DIRS}
 )
 
 set(Hyperion_X11_QT_HEADERS

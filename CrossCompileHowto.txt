@@ -1,6 +1,6 @@
 ON RASPBERRY
 --------------
-sudo apt-get install libprotobuf-dev libQt4-dev libusb-1.0-0-dev python-dev rsync
+sudo apt-get install libQt4-dev libusb-1.0-0-dev python-dev rsync
 
 ON HOST
 ---------
@@ -8,21 +8,31 @@ export RASPI=192.168.1.17
 export RASCROSS_DIR="$HOME/raspberrypi"
 export HYPERION_DIR="$HOME/hyperion"
 
-sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
+# install required packages
+sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
 
+# create the rootfs by copying it from an rpi running for example raspbmc
 mkdir -p "$RASCROSS_DIR/rootfs"
-git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
-
-git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
-ln -s "$RASCROSS_DIR/firmware/opt" "$RASCROSS_DIR/rootfs/opt"
-
 rsync -rl --delete-after --safe-links pi@$RASPI:/{lib,usr} "$RASCROSS_DIR/rootfs"
 
-git clone https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+# get the raspberry pi firmware and add it to the rootfs
+git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
+ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$RASCROSS_DIR/rootfs/opt"
+
+# get the compile tools
+git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
+
+# get the Hyperion sources
+git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+
+# do a native build (to build the protobuf compiler for the native platform)
 mkdir "$HYPERION_DIR/build"
-cmake -DCMAKE_TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake" --build "$HYPERION_DIR/build" "$HYPERION_DIR"
+cmake -DENABLE_DISPMANX=OFF --build "$HYPERION_DIR/build" "$HYPERION_DIR"
 
-
+# do the rpi build 
+# specify the protoc export file to import the protobuf compiler from the native build
+mkdir "$HYPERION_DIR/build-rpi"
+cmake -DCMAKE_TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake" -DIMPORT_PROTOC=$HYPERION_DIR/build/protoc_export.cmake --build "$HYPERION_DIR/build-rpi" "$HYPERION_DIR"
 
 ------------------------------------------------------------------------------
 These instructions are based on the guide given by:

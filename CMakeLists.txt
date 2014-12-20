@@ -19,7 +19,7 @@ message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
 message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 
-option(ENABLE_X11 "Enable the X11 grabber" ON)
+option(ENABLE_X11 "Enable the X11 grabber" OFF)
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
 option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
@@ -66,15 +66,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 # Configure the use of QT4
 find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
-
-if (ENABLE_PROTOBUF)
-	# add protocol buffers (make sure to find the static version)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD ${CMAKE_FIND_LIBRARY_SUFFIXES})
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-	find_package(Protobuf REQUIRED)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_OLD})
-	set(CMAKE_FIND_LIBRARY_SUFFIXES_OLD)
-endif (ENABLE_PROTOBUF)
 
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
