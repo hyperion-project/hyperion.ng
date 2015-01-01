@@ -12,6 +12,12 @@
 // Forward class declarations
 namespace Json { class Value; }
 
+/// Enumeration containing the possible orders of device color byte data
+enum ColorOrder
+{
+	ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR, ORDER_DEFAULT
+};
+
 ///
 /// The Led structure contains the definition of the image portion used to determine a single led's
 /// color.
@@ -40,6 +46,8 @@ struct Led
 	double minY_frac;
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
+	/// the color order
+	ColorOrder colorOrder;
 };
 
 ///

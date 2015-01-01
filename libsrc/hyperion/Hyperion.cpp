@@ -27,7 +27,7 @@
 #include <effectengine/EffectEngine.h>
 
 
-Hyperion::ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
+ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 {
 	// deprecated: force BGR when the deprecated flag is present and set to true
 	if (deviceConfig.get("bgr-output", false).asBool())
@@ -201,6 +201,12 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 		led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
 		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
 		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+		if (ledConfig.get("colorOrder", false).asBool()) {
+			led.colorOrder = createColorOrder(ledConfig);	
+		} else {
+			led.colorOrder = ORDER_DEFAULT;
+		}
+		
 
 		// Fix if the user swapped min and max
 		if (led.minX_frac > led.maxX_frac)
@@ -429,10 +435,16 @@ void Hyperion::update()
 
 	// Apply the transform to each led and color-channel
 	std::vector<ColorRgb> ledColors = _raw2ledTransform->applyTransform(priorityInfo.ledColors);
+	const std::vector<Led>& leds = _ledString.leds();
+	int i = 0;
 	for (ColorRgb& color : ledColors)
 	{
+		ColorOrder ledColorOrder = leds.at(i).colorOrder;
+		if(ledColorOrder == ORDER_DEFAULT) {
+			ledColorOrder = _colorOrder;
+		}
 		// correct the color byte order
-		switch (_colorOrder)
+		switch (ledColorOrder)
 		{
 		case ORDER_RGB:
 			// leave as it is
@@ -463,6 +475,7 @@ void Hyperion::update()
 			break;
 		}
 		}
+		i++;
 	}
 
 	// Write the data to the device
