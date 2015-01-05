@@ -80,7 +80,8 @@
 		{
 			"type"            : "none",
 			"time_ms"         : 200,
-			"updateFrequency" : 20.0000
+			"updateFrequency" : 20.0000,
+			"updateDelay"     : 0
 		}
 	},
 

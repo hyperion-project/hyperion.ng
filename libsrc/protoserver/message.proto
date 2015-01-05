@@ -17,7 +17,7 @@ message HyperionRequest {
 
 message ColorRequest {
 	extend HyperionRequest {
-		required ColorRequest colorRequest = 10;
+		optional ColorRequest colorRequest = 10;
 	}
 
 	// priority to use when setting the color
@@ -32,7 +32,7 @@ message ColorRequest {
 
 message ImageRequest {
 	extend HyperionRequest {
-		required ImageRequest imageRequest = 11;
+		optional ImageRequest imageRequest = 11;
 	}
 
 	// priority to use when setting the image
@@ -53,7 +53,7 @@ message ImageRequest {
 
 message ClearRequest {
 	extend HyperionRequest {
-		required ClearRequest clearRequest = 12;
+		optional ClearRequest clearRequest = 12;
 	}
 
 	// priority which need to be cleared

@@ -14,6 +14,7 @@
 	#include "LedDeviceLpd8806.h"
 	#include "LedDeviceP9813.h"
 	#include "LedDeviceWs2801.h"
+	#include "LedDeviceAPA102.h"
 #endif
 
 #ifdef ENABLE_TINKERFORGE
@@ -30,6 +31,10 @@
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
+
+#ifdef ENABLE_WS2812BPWM
+	#include "LedDeviceWS2812b.h"
+#endif
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
@@ -81,6 +86,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceP9813->open();
 
 		device = deviceP9813;
+	}
+	else if (type == "apa102")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+
+		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate);
+		deviceAPA102->open();
+
+		device = deviceAPA102;
 	}
 	else if (type == "ws2801" || type == "lightberry")
 	{
@@ -178,10 +193,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate = deviceConfig["rate"].asInt();
 
-		LedDeviceTpm2* deviceTpm2 = new LedDeviceTpm2(output, rate);
+		LedDeviceTpm2 * deviceTpm2 = new LedDeviceTpm2(output, rate);
 		deviceTpm2->open();
 		device = deviceTpm2;
 	}
+#ifdef ENABLE_WS2812BPWM
+	else if (type == "ws2812b")
+	{
+		LedDeviceWS2812b * ledDeviceWS2812b = new LedDeviceWS2812b();
+		device = ledDeviceWS2812b;
+	}
+#endif
 	else
 	{
 		std::cout << "Unable to create device " << type << std::endl;

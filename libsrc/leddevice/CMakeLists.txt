@@ -57,6 +57,7 @@ if(ENABLE_SPIDEV)
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.h
 			${CURRENT_SOURCE_DIR}/LedDeviceP9813.h
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.h
+			${CURRENT_SOURCE_DIR}/LedDeviceAPA102.h
 	)
 	SET(Leddevice_SOURCES
 			${Leddevice_SOURCES}
@@ -65,8 +66,20 @@ if(ENABLE_SPIDEV)
 			${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceP9813.cpp
 			${CURRENT_SOURCE_DIR}/LedDeviceWs2801.cpp
+			${CURRENT_SOURCE_DIR}/LedDeviceAPA102.cpp
 	)
 endif(ENABLE_SPIDEV)
+
+if(ENABLE_WS2812BPWM)
+SET(Leddevice_HEADERS
+		${Leddevice_HEADERS}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.h
+	)
+SET(Leddevice_SOURCES
+		${Leddevice_SOURCES}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.cpp
+)
+endif(ENABLE_WS2812BPWM)
 
 if(ENABLE_TINKERFORGE)
 	SET(Leddevice_HEADERS

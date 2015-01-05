@@ -243,8 +243,13 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 		}
 		else
 		{
+			const unsigned updateDelay = smoothingConfig.get("updateDelay", Json::Value(0u)).asUInt();
 			std::cout << "Creating linear smoothing" << std::endl;
-			return new LinearColorSmoothing(ledDevice, smoothingConfig["updateFrequency"].asDouble(), smoothingConfig["time_ms"].asInt());
+			return new LinearColorSmoothing(
+					ledDevice,
+					smoothingConfig["updateFrequency"].asDouble(),
+					smoothingConfig["time_ms"].asInt(),
+					updateDelay);
 		}
 	}
 	else

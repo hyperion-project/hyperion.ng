@@ -1,5 +1,4 @@
 /*.user
-/build
-/build-x86
+/build*
 .DS_Store
 

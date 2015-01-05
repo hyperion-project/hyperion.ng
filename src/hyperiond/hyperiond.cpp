@@ -36,8 +36,10 @@
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
+#ifdef ENABLE_PROTOBUF
 // ProtoServer includes
 #include <protoserver/ProtoServer.h>
+#endif
 
 // BoblightServer includes
 #include <boblightserver/BoblightServer.h>
@@ -113,22 +115,22 @@ int main(int argc, char** argv)
 		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
 		const int priority = 0;
 		
+		hyperion.setColor(priority+1, ColorRgb::BLACK, duration_ms, false);
+
 		if (effectConfig.isMember("args"))
 		{
 			const Json::Value effectConfigArgs = effectConfig["args"];
 			if (hyperion.setEffect(effectName, effectConfigArgs, priority, duration_ms) == 0)
-                        {
-                                std::cout << "Boot sequence(" << effectName << ") with user-defined arguments created and started" << std::endl;
-                        }
-                        else
-                        {
-                                std::cout << "Failed to start boot sequence: " << effectName << " with user-defined arguments" << std::endl;
-                        }
-
+			{
+					std::cout << "Boot sequence(" << effectName << ") with user-defined arguments created and started" << std::endl;
+			}
+			else
+			{
+					std::cout << "Failed to start boot sequence: " << effectName << " with user-defined arguments" << std::endl;
+			}
 		}
 		else
 		{
-
 			if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
 			{
 				std::cout << "Boot sequence(" << effectName << ") created and started" << std::endl;
@@ -233,6 +235,7 @@ int main(int argc, char** argv)
 		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
 	}
 
+#ifdef ENABLE_PROTOBUF
 	// Create Proto server if configuration is present
 	ProtoServer * protoServer = nullptr;
 	if (config.isMember("protoServer"))
@@ -241,6 +244,7 @@ int main(int argc, char** argv)
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt());
 		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
 	}
+#endif
 
 	// Create Boblight server if configuration is present
 	BoblightServer * boblightServer = nullptr;
@@ -264,7 +268,9 @@ int main(int argc, char** argv)
 #endif
 	delete xbmcVideoChecker;
 	delete jsonServer;
+#ifdef ENABLE_PROTOBUF
 	delete protoServer;
+#endif
 	delete boblightServer;
 
 	// leave application
