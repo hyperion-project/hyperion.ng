@@ -22,6 +22,7 @@
 #endif
 
 #include "LedDeviceAdalight.h"
+#include "LedDeviceAmbiLed.h"
 #include "LedDeviceLightpack.h"
 #include "LedDeviceMultiLightpack.h"
 #include "LedDevicePaintpack.h"
@@ -55,6 +56,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceAdalight->open();
 
 		device = deviceAdalight;
+	}
+	else if (type == "ambiled")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+		const int delay_ms       = deviceConfig["delayAfterConnect"].asInt();
+
+		LedDeviceAmbiLed* deviceAmbiLed = new LedDeviceAmbiLed(output, rate, delay_ms);
+		deviceAmbiLed->open();
+
+		device = deviceAmbiLed;
 	}
 #ifdef ENABLE_SPIDEV
 	else if (type == "lpd6803" || type == "ldp6803")
