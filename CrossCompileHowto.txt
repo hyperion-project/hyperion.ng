@@ -9,6 +9,9 @@ export RASCROSS_DIR="$HOME/raspberrypi"
 export HYPERION_DIR="$HOME/hyperion"
 
 sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
+# On newer version of Ubuntu (and maybe other distros) the ia32-libs is not available, the following
+# install solved this for me (TODO: verify what is really required)
+sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386
 
 mkdir -p "$RASCROSS_DIR/rootfs"
 git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
