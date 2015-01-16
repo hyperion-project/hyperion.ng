@@ -30,6 +30,11 @@ git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
 # get the Hyperion sources
 git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
 
+# if you forget the --resursive in above statement or you are updating an existing clone you need
+# to clone the protobuf submodule by runnning the follwing two statements:
+git submodule init
+git submodule update
+
 # do a native build (to build the protobuf compiler for the native platform)
 mkdir "$HYPERION_DIR/build"
 cmake -DENABLE_DISPMANX=OFF --build "$HYPERION_DIR/build" "$HYPERION_DIR"
