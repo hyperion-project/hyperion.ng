@@ -32,6 +32,13 @@ if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
 endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 
+option(ENABLE_FB "Enable the framebuffer grabber" OFF)
+message(STATUS "ENABLE_FB = " ${ENABLE_FB})
+
+if(ENABLE_FB AND ENABLE_DISPMANX)
+	message(FATAL_ERROR "dispmanx grabber and framebuffer grabber cannot be used at the same time")
+endif(ENABLE_FB AND ENABLE_DISPMANX)
+
 # Createt the configuration file
 # configure a header file to pass some of the CMake settings
 # to the source code

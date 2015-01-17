@@ -142,7 +142,7 @@ public:
     /// @param height The height of the image
     void resize(const unsigned width, const unsigned height)
     {
-        if ((width*height) > (_endOfPixels-_pixels))
+        if ((width*height) > unsigned((_endOfPixels-_pixels)))
         {
             delete[] _pixels;
             _pixels = new Pixel_T[width*height + 1];
