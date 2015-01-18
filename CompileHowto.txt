@@ -26,6 +26,8 @@ cd "$HYPERION_DIR/build"
 cmake ..
 # or if you are not compiling on the raspberry pi and need to disable the Dispmanx grabber and support for spi devices
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON ..
+# as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_FB=ON ..
 
 # run make to build Hyperion
 make

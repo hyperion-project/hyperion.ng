@@ -1,7 +1,6 @@
 // C++ includes
 #include <cassert>
 #include <csignal>
-#include <clocale>
 
 // QT includes
 #include <QCoreApplication>
@@ -25,6 +24,11 @@
 #ifdef ENABLE_V4L2
 // v4l2 grabber
 #include <grabber/V4L2Wrapper.h>
+#endif
+
+#ifdef ENABLE_FB
+// Framebuffer grabber includes
+#include <grabber/FramebufferWrapper.h>
 #endif
 
 // XBMC Video checker includes
@@ -183,10 +187,12 @@ int main(int argc, char** argv)
 		std::cout << "Frame grabber created and started" << std::endl;
 	}
 #else
+#ifndef ENABLE_FB
 	if (config.isMember("framegrabber"))
 	{
 		std::cerr << "The dispmanx framegrabber can not be instantiated, becuse it has been left out from the build" << std::endl;
 	}
+#endif
 #endif
 
 #ifdef ENABLE_V4L2
@@ -225,6 +231,38 @@ int main(int argc, char** argv)
 		std::cerr << "The v4l2 grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
 	}
 #endif
+	
+#ifdef ENABLE_FB
+	// Construct and start the framebuffer grabber if the configuration is present
+	FramebufferWrapper * fbGrabber = nullptr;
+	if (config.isMember("framegrabber"))
+	{
+		const Json::Value & grabberConfig = config["framegrabber"];
+		// TODO get device from config
+		fbGrabber = new FramebufferWrapper(
+			grabberConfig.get("device", "/dev/fb0").asString(),
+			grabberConfig["width"].asUInt(),
+			grabberConfig["height"].asUInt(),
+			grabberConfig["frequency_Hz"].asUInt(),
+			&hyperion);
+
+		if (xbmcVideoChecker != nullptr)
+		{
+			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), fbGrabber, SLOT(setVideoMode(VideoMode)));
+		}
+
+		fbGrabber->start();
+		std::cout << "Framebuffer grabber created and started" << std::endl;
+	}
+#else
+#ifndef ENABLE_DISPMANX
+	if (config.isMember("framegrabber"))
+	{
+		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+	}
+#endif
+#endif	
 
 	// Create Json server if configuration is present
 	JsonServer * jsonServer = nullptr;
@@ -262,6 +300,9 @@ int main(int argc, char** argv)
 	// Delete all component
 #ifdef ENABLE_DISPMANX
 	delete dispmanx;
+#endif
+#ifdef ENABLE_FB
+	delete fbGrabber;
 #endif
 #ifdef ENABLE_V4L2
 	delete v4l2Grabber;

@@ -14,6 +14,10 @@ if (ENABLE_DISPMANX)
 	target_link_libraries(hyperiond dispmanx-grabber)
 endif (ENABLE_DISPMANX)
 
+if (ENABLE_FB)
+	target_link_libraries(hyperiond framebuffer-grabber)
+endif (ENABLE_FB)
+
 if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif (ENABLE_V4L2)
