@@ -1,12 +1,19 @@
-ON RASPBERRY
+ON TARGET
 --------------
 sudo apt-get install libQt4-dev libusb-1.0-0-dev python-dev rsync
 
 ON HOST
 ---------
-export RASPI=192.168.1.17
+export TARGET_IP=192.168.1.17
+export TARGET_USER=pi
+
 export RASCROSS_DIR="$HOME/raspberrypi"
+export ROOTFS_DIR="RASCROSS_DIR/rootfs"
 export HYPERION_DIR="$HOME/hyperion"
+export TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake"
+
+export NATIVE_BUILD_DIR="$HYPERION_DIR/build"
+export TARGET_BUILD_DIR=HYPERION_DIR="$HYPERION_DIR/build-rpi"
 
 # install required packages
 sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
@@ -16,16 +23,20 @@ sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
 # install solved this for me (TODO: verify what is really required)
 sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386
 
-# create the rootfs by copying it from an rpi running for example raspbmc
-mkdir -p "$RASCROSS_DIR/rootfs"
-rsync -rl --delete-after --safe-links pi@$RASPI:/{lib,usr} "$RASCROSS_DIR/rootfs"
+# create the rootfs by copying it from an target
+mkdir -p "$ROOTFS_DIR"
+rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/{lib,usr} "$ROOTFS_DIR"
+
+######## RPi specific #########
 
 # get the raspberry pi firmware and add it to the rootfs
 git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
-ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$RASCROSS_DIR/rootfs/opt"
+ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$ROOTFS_DIR/opt"
 
 # get the compile tools
 git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
+
+##### End of RPi specific ######
 
 # get the Hyperion sources
 git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
@@ -36,13 +47,13 @@ git submodule init
 git submodule update
 
 # do a native build (to build the protobuf compiler for the native platform)
-mkdir "$HYPERION_DIR/build"
-cmake -DENABLE_DISPMANX=OFF --build "$HYPERION_DIR/build" "$HYPERION_DIR"
+mkdir -p "$NATIVE_BUILD_DIR"
+cmake -DENABLE_DISPMANX=OFF --build "$NATIVE_BUILD_DIR" "$HYPERION_DIR"
 
-# do the rpi build 
+# do the cross build 
 # specify the protoc export file to import the protobuf compiler from the native build
-mkdir "$HYPERION_DIR/build-rpi"
-cmake -DCMAKE_TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake" -DIMPORT_PROTOC=$HYPERION_DIR/build/protoc_export.cmake --build "$HYPERION_DIR/build-rpi" "$HYPERION_DIR"
+mkdir -p "$TARGET_BUILD_DIR"
+cmake -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -DIMPORT_PROTOC=$NATIVE_BUILD_DIR/protoc_export.cmake --build "$TARGET_BUILD_DIR" "$HYPERION_DIR"
 
 ------------------------------------------------------------------------------
 These instructions are based on the guide given by:
