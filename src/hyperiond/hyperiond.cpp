@@ -31,6 +31,11 @@
 #include <grabber/FramebufferWrapper.h>
 #endif
 
+#ifdef ENABLE_OSX
+// OSX grabber includes
+#include <grabber/OsxWrapper.h>
+#endif
+
 // XBMC Video checker includes
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
@@ -187,7 +192,7 @@ int main(int argc, char** argv)
 		std::cout << "Frame grabber created and started" << std::endl;
 	}
 #else
-#ifndef ENABLE_FB
+#if !defined(ENABLE_OSX) && !defined(ENABLE_FB)
 	if (config.isMember("framegrabber"))
 	{
 		std::cerr << "The dispmanx framegrabber can not be instantiated, becuse it has been left out from the build" << std::endl;
@@ -238,7 +243,6 @@ int main(int argc, char** argv)
 	if (config.isMember("framegrabber"))
 	{
 		const Json::Value & grabberConfig = config["framegrabber"];
-		// TODO get device from config
 		fbGrabber = new FramebufferWrapper(
 			grabberConfig.get("device", "/dev/fb0").asString(),
 			grabberConfig["width"].asUInt(),
@@ -256,13 +260,44 @@ int main(int argc, char** argv)
 		std::cout << "Framebuffer grabber created and started" << std::endl;
 	}
 #else
-#ifndef ENABLE_DISPMANX
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
 	if (config.isMember("framegrabber"))
 	{
 		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
 	}
 #endif
-#endif	
+#endif
+    
+#ifdef ENABLE_OSX
+    // Construct and start the osx grabber if the configuration is present
+    OsxWrapper * osxGrabber = nullptr;
+    if (config.isMember("framegrabber"))
+    {
+        const Json::Value & grabberConfig = config["framegrabber"];
+        osxGrabber = new OsxWrapper(
+                                           grabberConfig.get("display", 0).asUInt(),
+                                           grabberConfig["width"].asUInt(),
+                                           grabberConfig["height"].asUInt(),
+                                           grabberConfig["frequency_Hz"].asUInt(),
+                                           &hyperion);
+        
+        if (xbmcVideoChecker != nullptr)
+        {
+            QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+            QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), osxGrabber, SLOT(setVideoMode(VideoMode)));
+        }
+        
+        osxGrabber->start();
+        std::cout << "OSX grabber created and started" << std::endl;
+    }
+#else
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
+    if (config.isMember("framegrabber"))
+    {
+        std::cerr << "The osx grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+    }
+#endif
+#endif
 
 	// Create Json server if configuration is present
 	JsonServer * jsonServer = nullptr;
@@ -303,6 +338,9 @@ int main(int argc, char** argv)
 #endif
 #ifdef ENABLE_FB
 	delete fbGrabber;
+#endif
+#ifdef ENABLE_OSX
+    delete osxGrabber;
 #endif
 #ifdef ENABLE_V4L2
 	delete v4l2Grabber;

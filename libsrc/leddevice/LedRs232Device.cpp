@@ -1,7 +1,6 @@
 
 // STL includes
 #include <cstring>
-#include <cstdio>
 #include <iostream>
 
 // Qt includes

@@ -1,5 +1,8 @@
 #pragma once
 
+// OSX includes
+#include <CoreGraphics/CoreGraphics.h>
+
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
@@ -7,20 +10,20 @@
 #include <utils/ImageResampler.h>
 
 ///
-/// The FramebufferFrameGrabber is used for creating snapshots of the display (screenshots) 
+/// The OsxFrameGrabber is used for creating snapshots of the display (screenshots) 
 ///
-class FramebufferFrameGrabber
+class OsxFrameGrabber
 {
 public:
 	///
-	/// Construct a FramebufferFrameGrabber that will capture snapshots with specified dimensions.
+	/// Construct a OsxFrameGrabber that will capture snapshots with specified dimensions.
 	///
-	/// @param[in] device The framebuffer device name/path
+	/// @param[in] display The index of the display to capture
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	FramebufferFrameGrabber(const std::string & device, const unsigned width, const unsigned height);
-	~FramebufferFrameGrabber();
+	OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height);
+	~OsxFrameGrabber();
 
 	///
 	/// Set the video mode (2D/3D)
@@ -38,22 +41,19 @@ public:
 	///
 	void grabFrame(Image<ColorRgb> & image);
 
-private:
-	/// Framebuffer file descriptor
-	int _fbfd;
-
-	/// Pointer to framebuffer
-	unsigned char * _fbp;
-	
-	/// Framebuffer device e.g. /dev/fb0
-	const std::string _fbDevice;
+private:	
+	/// display
+	const unsigned _screenIndex;
 	
 	/// With of the captured snapshot [pixels]
 	const unsigned _width;
 	
 	/// Height of the captured snapshot [pixels]
 	const unsigned _height;
-
+	
+	/// Reference to the captured diaplay
+	CGDirectDisplayID _display;
+	
 	/// Image resampler for downscaling the image
 	ImageResampler * _imgResampler;
 };

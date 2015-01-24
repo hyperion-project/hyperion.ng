@@ -91,6 +91,22 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 				break;
+            case PIXELFORMAT_BGR16:
+                {
+                    int index = lineLength * ySource + xSource * 2;
+                    rgb.blue  = (data[index] & 0x1f) << 3;
+                    rgb.green = (((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2;
+                    rgb.red   = (data[index+1] & 0xF8);
+                }
+                break;
+            case PIXELFORMAT_BGR24:
+                {
+                    int index = lineLength * ySource + xSource * 3;
+                    rgb.blue  = data[index  ];
+                    rgb.green = data[index+1];
+                    rgb.red   = data[index+2];
+                }
+                break;
             case PIXELFORMAT_RGB32:
                 {
                     int index = lineLength * ySource + xSource * 4;
