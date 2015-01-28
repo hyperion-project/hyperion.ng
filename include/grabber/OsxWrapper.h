@@ -7,38 +7,39 @@
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/ColorRgba.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 
 // Forward class declaration
-class FramebufferFrameGrabber;
+class OsxFrameGrabber;
 class Hyperion;
 class ImageProcessor;
 
 ///
-/// The FramebufferWrapper uses an instance of the FramebufferFrameGrabber to obtain ImageRgb's from the
+/// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the
 /// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
 /// attached Hyperion.
 ///
-class FramebufferWrapper: public QObject
+class OsxWrapper: public QObject
 {
 	Q_OBJECT
 public:
 	///
-	/// Constructs the framebuffer frame grabber with a specified grab size and update rate.
+	/// Constructs the osx frame grabber with a specified grab size and update rate.
 	///
-	/// @param[in] device Framebuffer device name/path
+	/// @param[in] display Index of the display to grab
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	/// @param[in] hyperion  The instance of Hyperion used to write the led values
 	///
-	FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion);
+	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion);
 
 	///
-	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
+	/// Destructor of this osx frame grabber. Releases any claimed resources.
 	///
-	virtual ~FramebufferWrapper();
+	virtual ~OsxWrapper();
 
 public slots:
 	///
@@ -82,7 +83,7 @@ private:
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
 	/// The actual grabber
-	FramebufferFrameGrabber * _frameGrabber;
+	OsxFrameGrabber * _frameGrabber;
 	/// The processor for transforming images to led colors
 	ImageProcessor * _processor;
 

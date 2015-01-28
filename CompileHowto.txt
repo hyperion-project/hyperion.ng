@@ -28,6 +28,10 @@ cmake ..
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_FB=ON ..
+# for OSX build you need XCode, qt4 libraries and cmake. You can use macport (homebrew might work too) to install them
+sudo port install qt4-mac
+sudo port install cmake
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_V4L2=OFF -DENABLE_OSX=ON .
 
 # run make to build Hyperion
 make

@@ -4,10 +4,6 @@
 #include <cstdio>
 #include <iostream>
 
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
 // hyperion local includes
 #include "LedDeviceTpm2.h"
 

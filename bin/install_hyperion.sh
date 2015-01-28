@@ -10,6 +10,9 @@ IS_XBIAN=`cat /etc/issue | grep XBian | wc -l`
 IS_RASPBMC=`cat /etc/issue | grep Raspbmc | wc -l`
 IS_OPENELEC=`cat /etc/issue | grep -m 1 OpenELEC | wc -l`
 
+# Find out if its an imx6 device
+IS_IMX6=`cat /proc/cpuinfo | grep i.MX6 | wc -l`
+
 # check which init script we should use
 USE_INITCTL=`which /sbin/initctl | wc -l`
 USE_SERVICE=`which /usr/sbin/service | wc -l`
@@ -34,13 +37,20 @@ fi
 echo 'Downloading hyperion'
 if [ $IS_OPENELEC -eq 1 ]; then
 	# OpenELEC has a readonly file system. Use alternative location
+if [ $IS_IMX6 -eq 1 ]; then
+	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_imx6.tar.gz | tar -C /storage -xz
+else
 	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz | tar -C /storage -xz
+fi
 	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.deps.openelec-rpi.tar.gz | tar -C /storage/hyperion/bin -xz
-
 	# modify the default config to have a correct effect path
 	sed -i 's:/opt:/storage:g' /storage/hyperion/config/hyperion.config.json
 else
+if [ $IS_IMX6 -eq 1 ]; then
+	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_imx6.tar.gz -O - | tar -C /opt -xz
+else
 	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz -O - | tar -C /opt -xz
+fi
 fi
 
 # create links to the binaries
@@ -51,7 +61,7 @@ if [ $IS_OPENELEC -ne 1 ]; then
 fi
 
 # create link to the gpio changer (gpio->spi)
-if [ $IS_RASPBMC -eq 1 ]; then
+if [ $IS_RASPBMC -eq 1 ] && [ $IS_IMX6 -ne 1 ]; then
 	ln -fs /opt/hyperion/bin/gpio2spi /usr/bin/gpio2spi
 fi
 
