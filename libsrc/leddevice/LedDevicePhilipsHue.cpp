@@ -132,8 +132,10 @@ CiColor PhilipsHueLamp::rgbToCiColor(float red, float green, float blue) {
 	return xy;
 }
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack) :
-		host(output.c_str()), username("newdeveloper"), switchOffOnBlack(switchOffOnBlack) {
+LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::string& username, bool switchOffOnBlack,
+		int transitiontime) :
+		host(output.c_str()), username(username.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(
+				transitiontime) {
 	http = new QHttp(host);
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
@@ -166,11 +168,13 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		if (xy != lamp.color) {
 			// Switch on if the lamp has been previously switched off.
 			if (switchOffOnBlack && lamp.color == lamp.black) {
-
+				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
 			}
 			// Send adjust color and brightness command in JSON format.
+			// We have to set the transition time each time.
 			put(getStateRoute(lamp.id),
-					QString("{\"xy\": [%1, %2], \"bri\": %3}").arg(xy.x).arg(xy.y).arg(qRound(xy.bri * 255.0f)));
+					QString("{\"xy\": [%1, %2], \"bri\": %3, \"transitiontime\": %4}").arg(xy.x).arg(xy.y).arg(
+							qRound(xy.bri * 255.0f)).arg(transitiontime));
 
 		}
 		// Switch lamp off if switchOffOnBlack is enabled and the lamp is currently on.
