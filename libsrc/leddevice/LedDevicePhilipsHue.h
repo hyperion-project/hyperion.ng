@@ -132,7 +132,7 @@ public:
 	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
 	///
 	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 4);
+			false, int transitiontime = 1);
 
 	///
 	/// Destructor of this device

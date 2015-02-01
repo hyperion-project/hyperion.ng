@@ -194,7 +194,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const std::string output = deviceConfig["output"].asString();
 		const std::string username = deviceConfig.get("username", "newdeveloper").asString();
 		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
-		const int transitiontime = deviceConfig.get("transitiontime", 4).asInt();
+		const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
 		device = new LedDevicePhilipsHue(output, username, switchOffOnBlack, transitiontime);
 	}
 	else if (type == "test")
