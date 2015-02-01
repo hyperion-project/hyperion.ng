@@ -125,9 +125,14 @@ public:
 	///
 	/// @param output the ip address of the bridge
 	///
-	/// @param switchOffOnBlack kill lights for black
+	/// @param username username of the hue bridge (default: newdeveloper)
 	///
-	LedDevicePhilipsHue(const std::string& output, bool switchOffOnBlack);
+	/// @param switchOffOnBlack kill lights for black (default: false)
+	///
+	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
+	///
+	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
+			false, int transitiontime = 4);
 
 	///
 	/// Destructor of this device
@@ -163,6 +168,9 @@ private:
 	QTimer timer;
 	///
 	bool switchOffOnBlack;
+	/// Transition time in multiples of 100 ms.
+	/// The default of the Hue lights will be 400 ms, but we want to have it snapier
+	int transitiontime;
 
 	///
 	/// Sends a HTTP GET request (blocking).
