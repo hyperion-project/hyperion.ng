@@ -30,6 +30,7 @@
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
+#include "LedDeviceAtmo.h"
 
 #ifdef ENABLE_WS2812BPWM
 	#include "LedDeviceWS2812b.h"
@@ -185,6 +186,15 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		LedDeviceTpm2 * deviceTpm2 = new LedDeviceTpm2(output, rate);
 		deviceTpm2->open();
 		device = deviceTpm2;
+	}
+	else if (type == "atmo")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate = 38400;
+
+		LedDeviceAtmo * deviceAtmo = new LedDeviceAtmo(output, rate);
+		deviceAtmo->open();
+		device = deviceAtmo;
 	}
 #ifdef ENABLE_WS2812BPWM
 	else if (type == "ws2812b")
