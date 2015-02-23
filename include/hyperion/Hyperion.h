@@ -52,12 +52,6 @@ public:
 		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
-	/// Enumeration containing the possible orders of device color byte data
-	enum ColorOrder
-	{
-		ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
-	};
-
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
