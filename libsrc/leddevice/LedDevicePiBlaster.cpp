@@ -79,11 +79,11 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 	{
 		return -1;
 	}
-	
+
 	std::vector<int> iPins = {4, 17, 18, 27, 21, 22, 23, 24, 25};
 
 	unsigned colorIdx = 0;
-	for (std::vector<int>::iterator it = iPins.begin; it != iPins.end(); ++it)
+	for (std::vector<int>::iterator it = iPins.begin(); it != iPins.end(); ++it)
 	{
 		double pwmDutyCycle = 0.0;
 		switch (_channelAssignment[*it])
@@ -104,7 +104,7 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 			continue;
 		}
 
-		fprintf(_fid, "%i=%f\n", iChannel, pwmDutyCycle);
+//		fprintf(_fid, "%i=%f\n", iChannel, pwmDutyCycle);
 		fflush(_fid);
 	}
 
@@ -121,7 +121,7 @@ int LedDevicePiBlaster::switchOff()
 
 	std::vector<int> iPins = {4, 17, 18, 21, 22, 23, 24, 25};
 
-	for (std::vector<int>::iterator it = iPins.begin; it != iPins.end(); ++it)
+	for (std::vector<int>::iterator it = iPins.begin(); it != iPins.end(); ++it)
 	{
 		if (_channelAssignment[*it] != ' ')
 		{

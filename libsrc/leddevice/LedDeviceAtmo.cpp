@@ -1,21 +1,15 @@
 
 // STL includes
 #include <cstring>
-#include <cstdio>
 #include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
 
 // hyperion local includes
 #include "LedDeviceAtmo.h"
 
 LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned baudrate) :
 	LedRs232Device(outputDevice, baudrate),
-	_ledBuffer(0)
+	_ledBuffer(4 + 5*3) // 4-byte header, 5 RGB values
 {
-	_ledBuffer.resize(4 + 3*5);
 	_ledBuffer[0] = 0xFF; // Startbyte
 	_ledBuffer[1] = 0x00; // StartChannel(Low)
 	_ledBuffer[2] = 0x00; // StartChannel(High)
@@ -24,16 +18,16 @@ LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned bau
 
 int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 {
-        // The protocol is shomehow limited. we always need to send exactly 5 channels + header
-        // (19 bytes) for the hardware to recognize the data
-        if (ledValues.size() != 5)
-        {
-                printf("AtmoLight: %d channels configured. This should always be 5!\n", ledValues.size());
-                return 0;
-        }
+	// The protocol is shomehow limited. we always need to send exactly 5 channels + header
+	// (19 bytes) for the hardware to recognize the data
+	if (ledValues.size() != 5)
+	{
+			std::cerr << "AtmoLight: " << ledValues.size() << " channels configured. This should always be 5!" << std::endl;
+			return 0;
+	}
 
 	// write data
-	memcpy(4 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
+	memcpy(4 + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
