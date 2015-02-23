@@ -187,26 +187,22 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const Json::Value& colo
 	return transform;
 }
 
-LedString Hyperion::createLedString(const Json::Value& ledsConfig)
+LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
 {
 	LedString ledString;
 
+	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
 	for (const Json::Value& ledConfig : ledsConfig)
 	{
 		Led led;
 		led.index = ledConfig["index"].asInt();
+
 		const Json::Value& hscanConfig = ledConfig["hscan"];
 		const Json::Value& vscanConfig = ledConfig["vscan"];
 		led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
 		led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
 		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
 		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
-		if (ledConfig.get("colorOrder", false).asBool()) {
-			led.colorOrder = createColorOrder(ledConfig);	
-		} else {
-			led.colorOrder = ORDER_DEFAULT;
-		}
-		
 
 		// Fix if the user swapped min and max
 		if (led.minX_frac > led.maxX_frac)
@@ -217,6 +213,10 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig)
 		{
 			std::swap(led.minY_frac, led.maxY_frac);
 		}
+
+		// Get the order of the rgb channels for this led (default is device order)
+		const std::string ledOrderStr = ledConfig.get("colorOrder", deviceOrderStr).asString();
+		led.colorOrder = stringToColorOrder(ledOrderStr);
 
 		ledString.leds().push_back(led);
 	}
@@ -268,10 +268,9 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 
 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
-	_ledString(createLedString(jsonConfig["leds"])),
+	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
 	_muxer(_ledString.leds().size()),
 	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
-	_colorOrder(createColorOrder(jsonConfig["device"])),
 	_device(LedDeviceFactory::construct(jsonConfig["device"])),
 	_effectEngine(nullptr),
 	_timer()
@@ -439,10 +438,7 @@ void Hyperion::update()
 	int i = 0;
 	for (ColorRgb& color : ledColors)
 	{
-		ColorOrder ledColorOrder = leds.at(i).colorOrder;
-		if(ledColorOrder == ORDER_DEFAULT) {
-			ledColorOrder = _colorOrder;
-		}
+		const ColorOrder ledColorOrder = leds.at(i).colorOrder;
 		// correct the color byte order
 		switch (ledColorOrder)
 		{

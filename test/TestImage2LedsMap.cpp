@@ -23,7 +23,7 @@ int main()
 		return -1;
 	}
 
-	const LedString ledString = Hyperion::createLedString(config["leds"]);
+	const LedString ledString = Hyperion::createLedString(config["leds"], Hyperion::createColorOrder(config["device"]));
 
 	const ColorRgb testColor = {64, 123, 12};
 
