@@ -195,6 +195,10 @@
                             }
                         },
                         "additionalProperties" : false
+                    },
+                    "colorOrder" : {
+                        "type" : "string",
+                        "required" : false
                     }
                 },
                 "additionalProperties" : false

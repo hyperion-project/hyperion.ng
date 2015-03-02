@@ -52,12 +52,6 @@ public:
 		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
-	/// Enumeration containing the possible orders of device color byte data
-	enum ColorOrder
-	{
-		ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
-	};
-
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
@@ -159,7 +153,14 @@ public slots:
 
 public:
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
-	static LedString createLedString(const Json::Value & ledsConfig);
+	/**
+	 * Construct the 'led-string' with the integration area definition per led and the color
+	 * ordering of the RGB channels
+	 * @param ledsConfig   The configuration of the led areas
+	 * @param deviceOrder  The default RGB channel ordering
+	 * @return The constructed ledstring
+	 */
+	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
 	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
@@ -193,9 +194,6 @@ private:
 
 	/// The transformation from raw colors to led colors
 	MultiColorTransform * _raw2ledTransform;
-
-	/// Value with the desired color byte order
-	ColorOrder _colorOrder;
 
 	/// The actual LedDevice
 	LedDevice * _device;

@@ -5,11 +5,15 @@
 	/// Device configuration contains the following fields: 
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'ldp8806',
-	///                  'lpd6803', 'sedu', 'adalight', 'lightpack', 'test' and 'none')
+	///                  'lpd6803', 'sedu', 'adalight', 'lightpack', 'philipshue', 'test' and 'none')
 	/// * 'output'     : The output specification depends on selected device. This can for example be the
 	///                  device specifier, device serial number, or the output file name
 	/// * 'rate'       : The baudrate of the output to the device
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
+	/// Specific of Philips Hue: 
+	/// * 'username'   : The name of user registred on the Philips Hue Bridge
+	/// * 'switchOffOnBlack' : Define if Hue light switch off when black is detected
+	/// * 'transitiontime' : Set the time of transition between color of Hue light
 	"device" :
 	{
 		"name"       : "MyPi",
