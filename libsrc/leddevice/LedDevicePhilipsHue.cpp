@@ -166,6 +166,10 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		CiColor xy = lamp.rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f);
 		// Write color if color has been changed.
 		if (xy != lamp.color) {
+			// Switch on if the lamp has been previously switched off.
+			if (switchOffOnBlack && lamp.color == lamp.black) {
+				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
+			}
 			// Send adjust color and brightness command in JSON format.
 			// We have to set the transition time each time.
 			put(getStateRoute(lamp.id),
