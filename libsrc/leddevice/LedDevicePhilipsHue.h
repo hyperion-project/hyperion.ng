@@ -37,7 +37,7 @@ struct CiColorTriangle {
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
  */
-class PhilipsHueLamp {
+class PhilipsHueLight {
 public:
 	unsigned int id;
 	CiColor black;
@@ -46,7 +46,7 @@ public:
 	QString originalState;
 
 	///
-	/// Constructs the lamp.
+	/// Constructs the light.
 	///
 	/// @param id the light id
 	///
@@ -54,7 +54,7 @@ public:
 	///
 	/// @param modelId the model id of the hue lamp which is used to determine the color space
 	///
-	PhilipsHueLamp(unsigned int id, QString originalState, QString modelId);
+	PhilipsHueLight(unsigned int id, QString originalState, QString modelId);
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness.
@@ -159,7 +159,7 @@ private slots:
 
 private:
 	/// Array to save the lamps.
-	std::vector<PhilipsHueLamp> lamps;
+	std::vector<PhilipsHueLight> lights;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")

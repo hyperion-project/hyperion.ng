@@ -20,7 +20,7 @@ bool operator !=(CiColor p1, CiColor p2) {
 	return !(p1 == p2);
 }
 
-PhilipsHueLamp::PhilipsHueLamp(unsigned int id, QString originalState, QString modelId) :
+PhilipsHueLight::PhilipsHueLight(unsigned int id, QString originalState, QString modelId) :
 		id(id), originalState(originalState) {
 	// Hue system model ids.
 	const std::set<QString> HUE_BULBS_MODEL_IDS = { "LCT001", "LCT002", "LCT003" };
@@ -46,11 +46,11 @@ PhilipsHueLamp::PhilipsHueLamp(unsigned int id, QString originalState, QString m
 	color = {black.x, black.y, black.bri};
 }
 
-float PhilipsHueLamp::crossProduct(CiColor p1, CiColor p2) {
+float PhilipsHueLight::crossProduct(CiColor p1, CiColor p2) {
 	return p1.x * p2.y - p1.y * p2.x;
 }
 
-bool PhilipsHueLamp::isPointInLampsReach(CiColor p) {
+bool PhilipsHueLight::isPointInLampsReach(CiColor p) {
 	CiColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
 	CiColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
 	CiColor q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
@@ -62,7 +62,7 @@ bool PhilipsHueLamp::isPointInLampsReach(CiColor p) {
 	return false;
 }
 
-CiColor PhilipsHueLamp::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) {
+CiColor PhilipsHueLight::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) {
 	CiColor AP = { p.x - a.x, p.y - a.y };
 	CiColor AB = { b.x - a.x, b.y - a.y };
 	float ab2 = AB.x * AB.x + AB.y * AB.y;
@@ -76,7 +76,7 @@ CiColor PhilipsHueLamp::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) 
 	return {a.x + AB.x * t, a.y + AB.y * t};
 }
 
-float PhilipsHueLamp::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
+float PhilipsHueLight::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
 	// Horizontal difference.
 	float dx = p1.x - p2.x;
 	// Vertical difference.
@@ -85,7 +85,7 @@ float PhilipsHueLamp::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
 	return sqrt(dx * dx + dy * dy);
 }
 
-CiColor PhilipsHueLamp::rgbToCiColor(float red, float green, float blue) {
+CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue) {
 	// Apply gamma correction.
 	float r = (red > 0.04045f) ? powf((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
 	float g = (green > 0.04045f) ? powf((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
@@ -153,7 +153,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		switchOn((unsigned int) ledValues.size());
 	}
 	// If there are less states saved than colors given, then maybe something went wrong before.
-	if (lamps.size() != ledValues.size()) {
+	if (lights.size() != ledValues.size()) {
 		restoreStates();
 		return 0;
 	}
@@ -161,7 +161,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	unsigned int idx = 0;
 	for (const ColorRgb& color : ledValues) {
 		// Get lamp.
-		PhilipsHueLamp& lamp = lamps.at(idx);
+		PhilipsHueLight& lamp = lights.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		CiColor xy = lamp.rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f);
 		// Write color if color has been changed.
@@ -247,7 +247,7 @@ QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
 
 void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	// Clear saved lamps.
-	lamps.clear();
+	lights.clear();
 	// Use json parser to parse reponse.
 	Json::Reader reader;
 	Json::FastWriter writer;
@@ -279,24 +279,24 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
 		QString originalState = QString(writer.write(state).c_str()).trimmed();
 		// Save state object.
-		lamps.push_back(PhilipsHueLamp(lightIds.at(i), originalState, modelId));
+		lights.push_back(PhilipsHueLight(lightIds.at(i), originalState, modelId));
 	}
 }
 
 void LedDevicePhilipsHue::switchOn(unsigned int nLights) {
-	for (PhilipsHueLamp lamp : lamps) {
-		put(getStateRoute(lamp.id), "{\"on\": true}");
+	for (PhilipsHueLight light : lights) {
+		put(getStateRoute(light.id), "{\"on\": true}");
 	}
 }
 
 void LedDevicePhilipsHue::restoreStates() {
-	for (PhilipsHueLamp lamp : lamps) {
-		put(getStateRoute(lamp.id), lamp.originalState);
+	for (PhilipsHueLight light : lights) {
+		put(getStateRoute(light.id), light.originalState);
 	}
 	// Clear saved light states.
-	lamps.clear();
+	lights.clear();
 }
 
 bool LedDevicePhilipsHue::areStatesSaved() {
-	return !lamps.empty();
+	return !lights.empty();
 }
