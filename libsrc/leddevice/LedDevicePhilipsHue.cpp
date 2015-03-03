@@ -133,9 +133,9 @@ CiColor PhilipsHueLamp::rgbToCiColor(float red, float green, float blue) {
 }
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::string& username, bool switchOffOnBlack,
-		int transitiontime) :
+		int transitiontime, std::vector<unsigned int> lightIds) :
 		host(output.c_str()), username(username.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(
-				transitiontime) {
+				transitiontime), lightIds(lightIds) {
 	http = new QHttp(host);
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
@@ -251,10 +251,17 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	// Use json parser to parse reponse.
 	Json::Reader reader;
 	Json::FastWriter writer;
+	// Create light ids if none supplied by the user.
+	if (lightIds.size() != nLights) {
+		lightIds.clear();
+		for (unsigned int i = 0; i < nLights; i++) {
+			lightIds.push_back(i + 1);
+		}
+	}
 	// Iterate lights.
 	for (unsigned int i = 0; i < nLights; i++) {
 		// Read the response.
-		QByteArray response = get(getRoute(i + 1));
+		QByteArray response = get(getRoute(lightIds.at(i)));
 		// Parse JSON.
 		Json::Value json;
 		if (!reader.parse(QString(response).toStdString(), json)) {
@@ -272,7 +279,7 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
 		QString originalState = QString(writer.write(state).c_str()).trimmed();
 		// Save state object.
-		lamps.push_back(PhilipsHueLamp(i + 1, originalState, modelId));
+		lamps.push_back(PhilipsHueLamp(lightIds.at(i), originalState, modelId));
 	}
 }
 

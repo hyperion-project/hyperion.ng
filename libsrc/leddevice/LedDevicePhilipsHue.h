@@ -131,8 +131,10 @@ public:
 	///
 	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
 	///
+	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
+	///
 	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 1);
+			false, int transitiontime = 1, std::vector<unsigned int> lightIds = {});
 
 	///
 	/// Destructor of this device
@@ -171,6 +173,8 @@ private:
 	/// Transition time in multiples of 100 ms.
 	/// The default of the Hue lights will be 400 ms, but we want to have it snapier
 	int transitiontime;
+	/// Array of the light ids.
+	std::vector<unsigned int> lightIds;
 
 	///
 	/// Sends a HTTP GET request (blocking).
