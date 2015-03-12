@@ -20,21 +20,23 @@ bool operator !=(CiColor p1, CiColor p2) {
 	return !(p1 == p2);
 }
 
-PhilipsHueLamp::PhilipsHueLamp(unsigned int id, QString originalState, QString modelId) :
+PhilipsHueLight::PhilipsHueLight(unsigned int id, QString originalState, QString modelId) :
 		id(id), originalState(originalState) {
-	// Hue system model ids.
-	const std::set<QString> HUE_BULBS_MODEL_IDS = { "LCT001", "LCT002", "LCT003" };
-	const std::set<QString> LIVING_COLORS_MODEL_IDS = { "LLC001", "LLC005", "LLC006", "LLC007", "LLC011", "LLC012",
+	// Hue system model ids (http://www.developers.meethue.com/documentation/supported-lights).
+	// Light strips, color iris, ...
+	const std::set<QString> GAMUT_A_MODEL_IDS = { "LLC001", "LLC005", "LLC006", "LLC007", "LLC010", "LLC011", "LLC012",
 			"LLC013", "LST001" };
+	// Hue bulbs, spots, ...
+	const std::set<QString> GAMUT_B_MODEL_IDS = { "LCT001", "LCT002", "LCT003", "LLM001" };
 	// Find id in the sets and set the appropiate color space.
-	if (HUE_BULBS_MODEL_IDS.find(modelId) != HUE_BULBS_MODEL_IDS.end()) {
+	if (GAMUT_A_MODEL_IDS.find(modelId) != GAMUT_A_MODEL_IDS.end()) {
+		colorSpace.red = {0.703f, 0.296f};
+		colorSpace.green = {0.2151f, 0.7106f};
+		colorSpace.blue = {0.138f, 0.08f};
+	} else if (GAMUT_B_MODEL_IDS.find(modelId) != GAMUT_B_MODEL_IDS.end()) {
 		colorSpace.red = {0.675f, 0.322f};
 		colorSpace.green = {0.4091f, 0.518f};
 		colorSpace.blue = {0.167f, 0.04f};
-	} else if (LIVING_COLORS_MODEL_IDS.find(modelId) != LIVING_COLORS_MODEL_IDS.end()) {
-		colorSpace.red = {0.703f, 0.296f};
-		colorSpace.green = {0.214f, 0.709f};
-		colorSpace.blue = {0.139f, 0.081f};
 	} else {
 		colorSpace.red = {1.0f, 0.0f};
 		colorSpace.green = {0.0f, 1.0f};
@@ -46,11 +48,11 @@ PhilipsHueLamp::PhilipsHueLamp(unsigned int id, QString originalState, QString m
 	color = {black.x, black.y, black.bri};
 }
 
-float PhilipsHueLamp::crossProduct(CiColor p1, CiColor p2) {
+float PhilipsHueLight::crossProduct(CiColor p1, CiColor p2) {
 	return p1.x * p2.y - p1.y * p2.x;
 }
 
-bool PhilipsHueLamp::isPointInLampsReach(CiColor p) {
+bool PhilipsHueLight::isPointInLampsReach(CiColor p) {
 	CiColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
 	CiColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
 	CiColor q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
@@ -62,7 +64,7 @@ bool PhilipsHueLamp::isPointInLampsReach(CiColor p) {
 	return false;
 }
 
-CiColor PhilipsHueLamp::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) {
+CiColor PhilipsHueLight::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) {
 	CiColor AP = { p.x - a.x, p.y - a.y };
 	CiColor AB = { b.x - a.x, b.y - a.y };
 	float ab2 = AB.x * AB.x + AB.y * AB.y;
@@ -76,7 +78,7 @@ CiColor PhilipsHueLamp::getClosestPointToPoint(CiColor a, CiColor b, CiColor p) 
 	return {a.x + AB.x * t, a.y + AB.y * t};
 }
 
-float PhilipsHueLamp::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
+float PhilipsHueLight::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
 	// Horizontal difference.
 	float dx = p1.x - p2.x;
 	// Vertical difference.
@@ -85,7 +87,7 @@ float PhilipsHueLamp::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2) {
 	return sqrt(dx * dx + dy * dy);
 }
 
-CiColor PhilipsHueLamp::rgbToCiColor(float red, float green, float blue) {
+CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue) {
 	// Apply gamma correction.
 	float r = (red > 0.04045f) ? powf((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
 	float g = (green > 0.04045f) ? powf((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
@@ -133,9 +135,9 @@ CiColor PhilipsHueLamp::rgbToCiColor(float red, float green, float blue) {
 }
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::string& username, bool switchOffOnBlack,
-		int transitiontime) :
+		int transitiontime, std::vector<unsigned int> lightIds) :
 		host(output.c_str()), username(username.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(
-				transitiontime) {
+				transitiontime), lightIds(lightIds) {
 	http = new QHttp(host);
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
@@ -153,7 +155,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		switchOn((unsigned int) ledValues.size());
 	}
 	// If there are less states saved than colors given, then maybe something went wrong before.
-	if (lamps.size() != ledValues.size()) {
+	if (lights.size() != ledValues.size()) {
 		restoreStates();
 		return 0;
 	}
@@ -161,7 +163,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 	unsigned int idx = 0;
 	for (const ColorRgb& color : ledValues) {
 		// Get lamp.
-		PhilipsHueLamp& lamp = lamps.at(idx);
+		PhilipsHueLight& lamp = lights.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		CiColor xy = lamp.rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f);
 		// Write color if color has been changed.
@@ -247,14 +249,21 @@ QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
 
 void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	// Clear saved lamps.
-	lamps.clear();
+	lights.clear();
 	// Use json parser to parse reponse.
 	Json::Reader reader;
 	Json::FastWriter writer;
+	// Create light ids if none supplied by the user.
+	if (lightIds.size() != nLights) {
+		lightIds.clear();
+		for (unsigned int i = 0; i < nLights; i++) {
+			lightIds.push_back(i + 1);
+		}
+	}
 	// Iterate lights.
 	for (unsigned int i = 0; i < nLights; i++) {
 		// Read the response.
-		QByteArray response = get(getRoute(i + 1));
+		QByteArray response = get(getRoute(lightIds.at(i)));
 		// Parse JSON.
 		Json::Value json;
 		if (!reader.parse(QString(response).toStdString(), json)) {
@@ -272,24 +281,24 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
 		QString originalState = QString(writer.write(state).c_str()).trimmed();
 		// Save state object.
-		lamps.push_back(PhilipsHueLamp(i + 1, originalState, modelId));
+		lights.push_back(PhilipsHueLight(lightIds.at(i), originalState, modelId));
 	}
 }
 
 void LedDevicePhilipsHue::switchOn(unsigned int nLights) {
-	for (PhilipsHueLamp lamp : lamps) {
-		put(getStateRoute(lamp.id), "{\"on\": true}");
+	for (PhilipsHueLight light : lights) {
+		put(getStateRoute(light.id), "{\"on\": true}");
 	}
 }
 
 void LedDevicePhilipsHue::restoreStates() {
-	for (PhilipsHueLamp lamp : lamps) {
-		put(getStateRoute(lamp.id), lamp.originalState);
+	for (PhilipsHueLight light : lights) {
+		put(getStateRoute(light.id), light.originalState);
 	}
 	// Clear saved light states.
-	lamps.clear();
+	lights.clear();
 }
 
 bool LedDevicePhilipsHue::areStatesSaved() {
-	return !lamps.empty();
+	return !lights.empty();
 }

@@ -37,7 +37,7 @@ struct CiColorTriangle {
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
  */
-class PhilipsHueLamp {
+class PhilipsHueLight {
 public:
 	unsigned int id;
 	CiColor black;
@@ -46,7 +46,7 @@ public:
 	QString originalState;
 
 	///
-	/// Constructs the lamp.
+	/// Constructs the light.
 	///
 	/// @param id the light id
 	///
@@ -54,7 +54,7 @@ public:
 	///
 	/// @param modelId the model id of the hue lamp which is used to determine the color space
 	///
-	PhilipsHueLamp(unsigned int id, QString originalState, QString modelId);
+	PhilipsHueLight(unsigned int id, QString originalState, QString modelId);
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness.
@@ -131,8 +131,10 @@ public:
 	///
 	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
 	///
+	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
+	///
 	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 1);
+			false, int transitiontime = 1, std::vector<unsigned int> lightIds = {});
 
 	///
 	/// Destructor of this device
@@ -157,7 +159,7 @@ private slots:
 
 private:
 	/// Array to save the lamps.
-	std::vector<PhilipsHueLamp> lamps;
+	std::vector<PhilipsHueLight> lights;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
@@ -171,6 +173,8 @@ private:
 	/// Transition time in multiples of 100 ms.
 	/// The default of the Hue lights will be 400 ms, but we want to have it snapier
 	int transitiontime;
+	/// Array of the light ids.
+	std::vector<unsigned int> lightIds;
 
 	///
 	/// Sends a HTTP GET request (blocking).
