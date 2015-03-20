@@ -104,7 +104,7 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 			continue;
 		}
 
-//		fprintf(_fid, "%i=%f\n", iChannel, pwmDutyCycle);
+		fprintf(_fid, "%i=%f\n", iChannel, pwmDutyCycle);
 		fflush(_fid);
 	}
 
