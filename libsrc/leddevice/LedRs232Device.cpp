@@ -64,7 +64,16 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 
 	if (!_rs232Port.isOpen())
 	{
-		return -1;
+		// try to reopen
+		int status = open();
+		if(status == -1){
+			// Try again in 3 seconds
+			int seconds = 3000;
+			_blockedForDelay = true;
+			QTimer::singleShot(seconds, this, SLOT(unblockAfterDelay()));
+			std::cout << "Device blocked for " << seconds << " ms" << std::endl;
+		}
+		return status;
 	}
 
 //	for (int i = 0; i < 20; ++i)
