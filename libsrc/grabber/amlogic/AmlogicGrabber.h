@@ -5,7 +5,7 @@
 
 // Utils includes
 #include <utils/Image.h>
-#include <utils/ColorRgba.h>
+#include <utils/ColorRgb.h>
 #include <utils/VideoMode.h>
 
 ///
@@ -38,7 +38,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	void grabFrame(Image<ColorRgba> & image);
+	void grabFrame(Image<ColorRgb> & image);
 
 private:
 

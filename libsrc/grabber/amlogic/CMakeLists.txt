@@ -12,7 +12,7 @@ SET(AmlogicHEADERS
 
 SET(AmlogicSOURCES
 		${CURRENT_SOURCE_DIR}/AmlogicWrapper.cpp
-		${CURRENT_SOURCE_DIR}/AmlogicFrameGrabber.cpp
+		${CURRENT_SOURCE_DIR}/AmlogicGrabber.cpp
 )
 
 QT4_WRAP_CPP(AmlogicHEADERS_MOC ${AmlogicQT_HEADERS})

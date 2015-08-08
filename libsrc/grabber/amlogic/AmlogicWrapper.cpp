@@ -18,7 +18,7 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 	_priority(1000),
 	_timer(),
 	_image(grabWidth, grabHeight),
-	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
+	_frameGrabber(new AmlogicGrabber(grabWidth, grabHeight)),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
 	_hyperion(hyperion)

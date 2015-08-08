@@ -24,19 +24,6 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
 	_height(height),
 	_amlogicCaptureDev(-1)
 {
-	_amlogicCaptureDev = open("/dev/amvideocap0", O_RDONLY, 0);
-	if (_amlogicCaptureDev == -1)
-	{
-		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to open the AMLOGIC device (" << errno << ")" << std::endl;
-		return;
-	}
-	
-	if (ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH,  _width)  == -1 || 
-	    ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height) == -1)
-	{
-		// Failed to configure frame width
-		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to configure capture size (" << errno << ")" << std::endl;
-	}
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -70,18 +57,37 @@ void AmlogicGrabber::setVideoMode(const VideoMode videoMode)
 void AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	// resize the given image if needed
-	if (image.width() != unsigned(_rectangle.width) || image.height() != unsigned(_rectangle.height))
+	if (image.width() != _width || image.height() != _height)
 	{
-		image.resize(_rectangle.width, _rectangle.height);
+		image.resize(_width, _height);
 	}
 	
+	_amlogicCaptureDev = open("/dev/amvideocap0", O_RDONLY, 0);
+	if (_amlogicCaptureDev == -1)
+	{
+		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to open the AMLOGIC device (" << errno << ")" << std::endl;
+		return;
+	}
+	
+	if (ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH,  _width)  == -1 || 
+	    ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height) == -1)
+	{
+		// Failed to configure frame width
+		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to configure capture size (" << errno << ")" << std::endl;
+		return;
+	}
+	
+	std::cout << "AMLOGIC grabber created (size " << _width << "x" << _height << ")" << std::endl;
 	// Read the snapshot into the memory
 	void * image_ptr = image.memptr();
 	const size_t bytesToRead = _width * _height * sizeof(ColorRgb);
-	const size_t bytesRead   = pread(amlogicCaptureDev, image_ptr, bytesToRead, 0)
+	const size_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
 	if (bytesToRead != bytesRead)
 	{
 		// Read of snapshot failed
 		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Capture failed to grab entire image [bytesToRead(" << bytesToRead << ") != bytesRead(" << bytesRead << ")]" << std::endl;
 	}
+	
+	close(_amlogicCaptureDev);
+	_amlogicCaptureDev = -1;
 }
