@@ -12,11 +12,12 @@
 using namespace vlofgren;
 
 // save the image as screenshot
-void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
+void saveScreenshot(const char * filename, const Image<ColorBgr> & image)
 {
-    // store as PNG
-    QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
-    pngImage.save(filename);
+	// store as PNG
+	QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+	pngImage = pngImage.rgbSwapped();
+	pngImage.save(filename);
 }
 
 int main(int argc, char ** argv)
@@ -39,11 +40,11 @@ int main(int argc, char ** argv)
 		SwitchParameter<>      & argHelp            = parameters.add<SwitchParameter<>>     ('h', "help",             "Show this help message and exit");
 
 		// set defaults
-		argWidth.setDefault(64);
-		argHeight.setDefault(64);
+		argWidth.setDefault(160);
+		argHeight.setDefault(160);
 		argAddress.setDefault("127.0.0.1:19445");
 		argPriority.setDefault(800);
-		
+
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
 
@@ -54,19 +55,29 @@ int main(int argc, char ** argv)
 			return 0;
 		}
 
+		int width  = argWidth.getValue();
+		int height = argHeight.getValue();
+		if (width < 160 || height < 60)
+		{
+			std::cout << "Minimum width and height is 160" << std::endl;
+			width  = std::max(160, width);
+			height = std::max(160, height);
+		}
 		if (argScreenshot.isSet())
 		{
+
 			// Create the grabber
-			AmlogicGrabber amlGrabber(argWidth.getValue(), argHeight.getValue());
-			
+			AmlogicGrabber amlGrabber(width, height);
+
 			// Capture a single screenshot and finish
-			Image<ColorRgb> screenshot;
+			Image<ColorBgr> screenshot;
 			amlGrabber.grabFrame(screenshot);
 			saveScreenshot("screenshot.png", screenshot);
 		}
 		else
 		{
 			// TODO[TvdZ]: Implement the proto-client mechanisme
+			std::cerr << "The PROTO-interface has not been implemented yet" << std::endl;
 		}
 
 	}

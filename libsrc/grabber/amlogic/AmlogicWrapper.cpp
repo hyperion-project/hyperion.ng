@@ -15,7 +15,7 @@
 AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
-	_priority(1000),
+	_priority(999),
 	_timer(),
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new AmlogicGrabber(grabWidth, grabHeight)),
@@ -49,12 +49,17 @@ void AmlogicWrapper::start()
 void AmlogicWrapper::action()
 {
 	// Grab frame into the allocated image
-	_frameGrabber->grabFrame(_image);
+	if (_frameGrabber->grabFrame(_image) < 0)
+	{
+		// Frame grab failed, maybe nothing playing or ....
+		return;
+	}
 
 	_processor->process(_image, _ledColors);
 
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
+
 void AmlogicWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process

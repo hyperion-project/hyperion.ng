@@ -5,7 +5,7 @@
 
 // Utils includes
 #include <utils/Image.h>
-#include <utils/ColorRgb.h>
+#include <utils/ColorBgr.h>
 #include <utils/VideoMode.h>
 
 ///
@@ -37,16 +37,22 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
+	/// @return Zero on success else negative
 	///
-	void grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorBgr> & image);
 
+	/**
+	 * Returns true if video is playing over the amlogic chip
+	 * @return True if video is playing else false
+	 */
+	bool isVideoPlaying();
 private:
 
 	/// With of the captured snapshot [pixels]
 	const unsigned _width;
 	/// Height of the captured snapshot [pixels]
 	const unsigned _height;
-	
+
 	/** The snapshot/capture device of the amlogic video chip */
 	int _amlogicCaptureDev;
 };

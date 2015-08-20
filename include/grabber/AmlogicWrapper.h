@@ -6,8 +6,8 @@
 
 // Utils includes
 #include <utils/Image.h>
+#include <utils/ColorBgr.h>
 #include <utils/ColorRgb.h>
-#include <utils/ColorRgba.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 
@@ -80,7 +80,7 @@ private:
 	QTimer _timer;
 
 	/// The image used for grabbing frames
-	Image<ColorRgb> _image;
+	Image<ColorBgr> _image;
 	/// The actual grabber
 	AmlogicGrabber * _frameGrabber;
 	/// The processor for transforming images to led colors
