@@ -263,20 +263,18 @@ int main(int argc, char** argv)
 		std::cout << "AMLOGIC grabber created and started" << std::endl;
 	}
 #else
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
-	if (config.isMember("framegrabber"))
+	if (config.isMember("amlgrabber"))
 	{
-		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
-#endif
 #endif
 
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
 	FramebufferWrapper * fbGrabber = nullptr;
-	if (config.isMember("framegrabber"))
+	if (config.isMember("framebuffergrabber") || config.isMember("framegrabber"))
 	{
-		const Json::Value & grabberConfig = config["framegrabber"];
+		const Json::Value & grabberConfig = config.isMember("framebuffergrabber")? config["framebuffergrabber"] : config.isMember("framegrabber");
 		fbGrabber = new FramebufferWrapper(
 			grabberConfig.get("device", "/dev/fb0").asString(),
 			grabberConfig["width"].asUInt(),
@@ -294,18 +292,24 @@ int main(int argc, char** argv)
 		std::cout << "Framebuffer grabber created and started" << std::endl;
 	}
 #else
-	if (config.isMember("amlgrabber"))
+	if (config.isMember("framebuffergrabber"))
 	{
-		std::cerr << "The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
 	}
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
+	else if (config.isMember("framegrabber"))
+	{
+		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+	}
+#endif
 #endif
 
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
 	OsxWrapper * osxGrabber = nullptr;
-	if (config.isMember("framegrabber"))
+	if (config.isMember("osxgrabber") || config.isMember("framegrabber"))
 	{
-		const Json::Value & grabberConfig = config["framegrabber"];
+		const Json::Value & grabberConfig = config.isMember("osxgrabber")? config["osxgrabber"] : config["framegrabber"];
 		osxGrabber = new OsxWrapper(
 										   grabberConfig.get("display", 0).asUInt(),
 										   grabberConfig["width"].asUInt(),
@@ -323,8 +327,12 @@ int main(int argc, char** argv)
 		std::cout << "OSX grabber created and started" << std::endl;
 	}
 #else
+	if (config.isMember("osxgrabber"))
+	{
+		std::cerr << "The osx grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+	}
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
-	if (config.isMember("framegrabber"))
+	else if (config.isMember("framegrabber"))
 	{
 		std::cerr << "The osx grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
 	}
