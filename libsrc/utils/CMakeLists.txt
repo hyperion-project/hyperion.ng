@@ -6,6 +6,8 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/utils)
 add_library(hyperion-utils
 		${CURRENT_HEADER_DIR}/ColorArgb.h
 		${CURRENT_SOURCE_DIR}/ColorArgb.cpp
+		${CURRENT_HEADER_DIR}/ColorBgr.h
+		${CURRENT_SOURCE_DIR}/ColorBgr.cpp
 		${CURRENT_HEADER_DIR}/ColorRgb.h
 		${CURRENT_SOURCE_DIR}/ColorRgb.cpp
 		${CURRENT_HEADER_DIR}/ColorRgba.h

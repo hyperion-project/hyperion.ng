@@ -7,36 +7,39 @@ cmake_minimum_required(VERSION 2.8)
 #set(CMAKE_TOOLCHAIN_FILE /opt/raspberrypi/Toolchain-RaspberryPi.cmake)
 
 # set the build options
+option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" OFF)
+message(STATUS "ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC})
+
 option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ON)
 message(STATUS "ENABLE_DISPMANX = " ${ENABLE_DISPMANX})
-
-option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
-message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
-
-option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
-message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
-
-option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
-message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
-
-option(ENABLE_X11 "Enable the X11 grabber" OFF)
-message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
-
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
-message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
-
-option(ENABLE_PROTOBUF "Enable PROTOBUF server" ON)
-message(STATUS "ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
-
-if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
-	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
-endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 
 option(ENABLE_FB "Enable the framebuffer grabber" OFF)
 message(STATUS "ENABLE_FB = " ${ENABLE_FB})
 
 option(ENABLE_OSX "Enable the osx grabber" OFF)
 message(STATUS "ENABLE_OSX = " ${ENABLE_OSX})
+
+option(ENABLE_PROTOBUF "Enable PROTOBUF server" ON)
+message(STATUS "ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
+
+option(ENABLE_SPIDEV   "Enable the SPIDEV device" ON)
+message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
+
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
+message(STATUS "ENABLE_TINKERFORGE = " ${ENABLE_TINKERFORGE})
+
+option(ENABLE_V4L2 "Enable the V4L2 grabber" ON)
+message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
+
+option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
+message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
+
+option(ENABLE_X11 "Enable the X11 grabber" OFF)
+message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
+
+if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
+	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
+endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 
 if(ENABLE_FB AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and framebuffer grabber cannot be used at the same time")
@@ -88,10 +91,6 @@ find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
-
-if (ENABLE_TINKERFORGE)
-	#find_package(libtinkerforge-1.0 REQUIRED)
-endif (ENABLE_TINKERFORGE)
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

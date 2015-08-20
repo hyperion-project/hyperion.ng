@@ -26,6 +26,10 @@ if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif (ENABLE_V4L2)
 
+if (ENABLE_AMLOGIC)
+	target_link_libraries(hyperiond amlogic-grabber)
+endif (ENABLE_AMLOGIC)
+
 if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperiond protoserver)
 endif (ENABLE_PROTOBUF)
