@@ -15,7 +15,7 @@ CPU_WETEK=`cat /proc/cpuinfo | grep Amlogic | wc -l`
 CPU_X64=`uname -m | grep x86_64 | wc -l`
 CPU_X32=`uname -m | grep x86_32 | wc -l`
 # Check that we have a known configuration
-if [ $CPU_RPI -ne 1 ] & [ $CPU_IMX6 -ne 1 ] & [ $CPU_WETEK -ne 1 ] & [ $CPU_X64 -ne 1 ] & [ $CPU_X32 -ne 1 ]; then
+if [[ $CPU_RPI -ne 1 && $CPU_IMX6 -ne 1 && $CPU_WETEK -ne 1 && $CPU_X64 -ne 1 && $CPU_X32 -ne 1 ]]; then
 	echo 'CPU information does not match any known releases'
 	exit
 fi
@@ -96,7 +96,7 @@ elif [ $USE_SERVICE -eq 1 ]; then
 	ln -fs /opt/hyperion/init.d/hyperion.init.sh /etc/init.d/hyperion
 	chmod +x /etc/init.d/hyperion
 	update-rc.d hyperion defaults 98 02
-elif [ $IS_OPENELEC -eq 1 ]; then
+elif [ $OS_OPENELEC -eq 1 ]; then
 	# only add to start script if hyperion is not present yet
 	if [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperiond | wc -l` -eq 0 ]; then
 		echo 'Adding Hyperion to autostart script'
