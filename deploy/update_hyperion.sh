@@ -11,7 +11,7 @@ OS_OPENELEC=`cat /etc/issue | grep -m 1 OpenELEC | wc -l`
 # Find out if its an imx6 device
 CPU_RPI=`cat /proc/cpuinfo | grep RPI | wc -l`
 CPU_IMX6=`cat /proc/cpuinfo | grep i.MX6 | wc -l`
-CPU_WETEK=`cat /proc/cpyinfo | grep wetek | wc -l`
+CPU_WETEK=`cat /proc/cpuinfo | grep Amlogic | wc -l`
 CPU_X64=`uname -m | grep x86_64 | wc -l`
 CPU_X32=`uname -m | grep x86_32 | wc -l`
 # Check that we have a known configuration
