@@ -10,7 +10,7 @@
 #include "LedDeviceAdalight.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to an Adalight led device for APA102 led strips.
+/// Implementation of the LedDevice interface for writing to an Adalight led device for APA102.
 ///
 class LedDeviceAdalightApa102 : public LedDeviceAdalight
 {
@@ -33,4 +33,14 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
+
+
+private:
+	/// The buffer containing the packed RGB values
+	std::vector<uint8_t> _ledBuffer;
+
+	/// Timer object which makes sure that led data is written at a minimum rate
+	/// The Adalight device will switch off when it does not receive data at least
+	/// every 15 seconds
+	QTimer _timer;
 };
