@@ -33,6 +33,7 @@
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
 #include "LedDeviceAtmo.h"
+#include "LedDeviceAdalightApa102.h"
 
 #ifdef ENABLE_WS2812BPWM
 	#include "LedDeviceWS2812b.h"
@@ -57,6 +58,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceAdalight->open();
 
 		device = deviceAdalight;
+	}
+	else if (type == "adalightapa102")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+		const int delay_ms       = deviceConfig["delayAfterConnect"].asInt();
+
+		LedDeviceAdalightApa102* deviceAdalightApa102 = new LedDeviceAdalightApa102(output, rate, delay_ms);
+		deviceAdalightApa102->open();
+
+		device = deviceAdalightApa102;
 	}
 	else if (type == "ambiled")
 	{

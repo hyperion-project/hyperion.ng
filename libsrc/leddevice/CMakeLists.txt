@@ -15,6 +15,7 @@ include_directories(
 SET(Leddevice_QT_HEADERS
 		${CURRENT_SOURCE_DIR}/LedRs232Device.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
+		${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.h
 		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 )
@@ -40,6 +41,7 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
 
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.cpp
