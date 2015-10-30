@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 // Linux includes
 #include <fcntl.h>
@@ -23,7 +24,7 @@ LedDeviceAdalightApa102::LedDeviceAdalightApa102(const std::string& outputDevice
 int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
 {
 	const unsigned int startFrameSize = 4;
-	const unsigned int endFrameSize = (ledValues.size() + 63) / 64 * 4;
+	const unsigned int endFrameSize = std::max<unsigned int>(((ledValues.size() + 15) / 16), 4);
 	const unsigned int mLedCount = (ledValues.size() * 4) + startFrameSize + endFrameSize;
 	if(_ledBuffer.size() != mLedCount){
 		_ledBuffer.resize(mLedCount, 0x00);
@@ -36,7 +37,7 @@ int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
 	}
 	
 	for (unsigned iLed=1; iLed<=ledValues.size(); iLed++) {
-		const ColorRgb& rgb = ledValues[iLed];
+		const ColorRgb& rgb = ledValues[iLed-1];
 		_ledBuffer[iLed*4+6]   = 0xFF;
 		_ledBuffer[iLed*4+1+6] = rgb.red;
 		_ledBuffer[iLed*4+2+6] = rgb.green;
