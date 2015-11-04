@@ -27,7 +27,7 @@ int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
 	const unsigned int endFrameSize = std::max<unsigned int>(((ledValues.size() + 15) / 16), 4);
 	const unsigned int mLedCount = (ledValues.size() * 4) + startFrameSize + endFrameSize;
 	if(_ledBuffer.size() != mLedCount){
-		_ledBuffer.resize(mLedCount, 0x00);
+		_ledBuffer.resize(mLedCount, 0xFF);
 		_ledBuffer[0] = 'A';
 		_ledBuffer[1] = 'd';
 		_ledBuffer[2] = 'a';
