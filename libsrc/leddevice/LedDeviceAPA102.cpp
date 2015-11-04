@@ -25,7 +25,11 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 	const unsigned int endFrameSize = std::max<unsigned int>(((ledValues.size() + 15) / 16), 4);
 	const unsigned int mLedCount = (ledValues.size() * 4) + startFrameSize + endFrameSize;
 	if(_ledBuffer.size() != mLedCount){
-		_ledBuffer.resize(mLedCount, 0x00);
+		_ledBuffer.resize(mLedCount, 0xFF);
+	}
+	
+	for (unsigned iLed=0; iLed<startFrameSize; ++iLed) {
+		_ledBuffer[iLed] = 0x00;
 	}
 
 	for (unsigned iLed=1; iLed<=ledValues.size(); ++iLed) {
