@@ -49,7 +49,7 @@ int LedHIDDevice::open()
 	if (_deviceHandle == nullptr)
 	{
 		// Failed to open the device
-		std::cerr << "Failed to open HID device. Maybe your PID/VID setting is wrong?" << std::endl;
+		std::cerr << "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." << std::endl;
 		
 		// http://www.signal11.us/oss/hidapi/
 		/*
