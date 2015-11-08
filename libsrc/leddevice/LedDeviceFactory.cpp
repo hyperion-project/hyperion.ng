@@ -23,6 +23,7 @@
 
 #include "LedDeviceAdalight.h"
 #include "LedDeviceAmbiLed.h"
+#include "LedDeviceRawHID.h"
 #include "LedDeviceLightpack.h"
 #include "LedDeviceMultiLightpack.h"
 #include "LedDevicePaintpack.h"
@@ -147,6 +148,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = deviceTinkerforge;
 	}
 #endif
+	else if (type == "rawhid")
+	{
+		const int delay_ms        = deviceConfig["delayAfterConnect"].asInt();
+		auto VendorIdString       = deviceConfig.get("VID", "0x2341").asString();
+		auto ProductIdString      = deviceConfig.get("PID", "0x8036").asString();
+
+		// Convert HEX values to integer
+		auto VendorId = std::stoul(VendorIdString, nullptr, 16);
+		auto ProductId = std::stoul(ProductIdString, nullptr, 16);
+
+		LedDeviceRawHID* deviceHID = new LedDeviceRawHID(VendorId, ProductId, delay_ms);
+		deviceHID->open();
+
+		device = deviceHID;
+	}
 	else if (type == "lightpack")
 	{
 		const std::string output = deviceConfig.get("output", "").asString();

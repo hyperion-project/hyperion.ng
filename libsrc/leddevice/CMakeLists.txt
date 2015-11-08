@@ -18,6 +18,8 @@ SET(Leddevice_QT_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.h
 		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
+		${CURRENT_SOURCE_DIR}/LedHIDDevice.h
+		${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
 )
 
 SET(Leddevice_HEADERS
@@ -39,10 +41,12 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
 		${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
+		${CURRENT_SOURCE_DIR}/LedHIDDevice.cpp
 
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceRawHID.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
