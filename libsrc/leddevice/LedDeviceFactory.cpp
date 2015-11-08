@@ -181,7 +181,15 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	}
 	else if (type == "paintpack")
 	{
-		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack();
+		const int delay_ms        = deviceConfig["delayAfterConnect"].asInt();
+		auto VendorIdString       = deviceConfig.get("VID", "0x0EBF").asString();
+		auto ProductIdString      = deviceConfig.get("PID", "0x0025").asString();
+
+		// Convert HEX values to integer
+		auto VendorId = std::stoul(VendorIdString, nullptr, 16);
+		auto ProductId = std::stoul(ProductIdString, nullptr, 16);
+
+		LedDevicePaintpack * devicePainLightpack = new LedDevicePaintpack(VendorId, ProductId, delay_ms);
 		devicePainLightpack->open();
 
 		device = devicePainLightpack;
