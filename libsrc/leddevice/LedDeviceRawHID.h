@@ -7,23 +7,20 @@
 #include <QTimer>
 
 // hyperion include
-#include "LedRs232Device.h"
+#include "LedHIDDevice.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to an Adalight led device.
+/// Implementation of the LedDevice interface for writing to an RawHID led device.
 ///
-class LedDeviceAdalight : public LedRs232Device
+class LedDeviceRawHID : public LedHIDDevice
 {
 	Q_OBJECT
 
 public:
 	///
-	/// Constructs the LedDevice for attached Adalight device
+	/// Constructs the LedDevice for attached RawHID device
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
-	/// @param baudrate The used baudrate for writing to the output device
-	///
-	LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms);
+	LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
 
 	///
 	/// Writes the led color values to the led-device
@@ -40,12 +37,12 @@ private slots:
 	/// Write the last data to the leds again
 	void rewriteLeds();
 
-protected:
+private:
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
 
 	/// Timer object which makes sure that led data is written at a minimum rate
-	/// The Adalight device will switch off when it does not receive data at least
+	/// The RawHID device will switch off when it does not receive data at least
 	/// every 15 seconds
 	QTimer _timer;
 };
