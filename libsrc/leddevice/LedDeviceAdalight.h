@@ -6,7 +6,7 @@
 // Qt includes
 #include <QTimer>
 
-// hyperion incluse
+// hyperion include
 #include "LedRs232Device.h"
 
 ///
