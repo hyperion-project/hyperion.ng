@@ -40,3 +40,6 @@ make
 # The binaries are build in "$HYPERION_DIR/build/bin". You could copy those to /usr/bin
 sudo cp ./bin/hyperion-remote /usr/bin/
 sudo cp ./bin/hyperiond /usr/bin/
+
+# Copy the effect folder (if you did not use the normal installation methode before)
+sudo mkdir -p /opt/hyperion/effects && sudo cp -R ../effects/ /opt/hyperion/
