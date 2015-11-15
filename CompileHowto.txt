@@ -2,14 +2,15 @@
 sudo apt-get update
 sudo apt-get install git cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
 
-# RPI ONLY: when you build on the rapberry pi and inlcude the dispmanx grabber (which is the default) 
+# RPI ONLY: when you build on the rapberry pi and include the dispmanx grabber (which is the default) 
 # you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github
 # and copies the required files to the correct place. The firmware directory can be deleted afterwards if desired.
 export FIRMWARE_DIR="raspberrypi-firmware"
-git clone https://github.com/raspberrypi/firmware.git "$FIRMWARE_DIR"
-sudo cp -R "$FIRMWARE_DIR/hardfp/opt/*" /opt
+git clone --depth 1 https://github.com/raspberrypi/firmware.git "$FIRMWARE_DIR"
+sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /opt
 
 # create hyperion directory and checkout the code from github
+# You might want to add "--depth 1" if you only want to recompile the current source or dont want to use git any further
 export HYPERION_DIR="hyperion"
 git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
 
@@ -22,7 +23,7 @@ git submodule update
 mkdir "$HYPERION_DIR/build"
 cd "$HYPERION_DIR/build"
 
-# run cmake to generate make files on the rsapberry pi
+# run cmake to generate make files on the raspberry pi
 cmake ..
 # or if you are not compiling on the raspberry pi and need to disable the Dispmanx grabber and support for spi devices
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON ..
