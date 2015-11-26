@@ -135,20 +135,18 @@ void setup()
   // green, blue, then off.  Once you're confident everything is working
   // end-to-end, it's OK to comment this out and reprogram the Arduino.
   uint8_t testcolor[] = { 0, 0, 0, 255, 0, 0 };
-  for(int i=0; i<5; i++){
+  for(int i=0; i<4; i++){ //Start Frame
     for(SPDR = 0x00; !(SPSR & _BV(SPIF)); );
   }
   for(char n=3; n>=0; n--) {
     for(c=0; c<25000; c++) {
+	  for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); ); //Brightness byte
       for(i=0; i<3; i++) {
-        for(SPDR = testcolor[n + i]; !(SPSR & _BV(SPIF)); );
-      }
-      for(i=0; i<1; i++) {
-        for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); );
+        for(SPDR = testcolor[n + i]; !(SPSR & _BV(SPIF)); ); //BGR
       }
     }
-    for(int i=0; i<16; i++){
-       for(SPDR = 0x00; !(SPSR & _BV(SPIF)); );
+    for(int i=0; i<4; i++){ //Stop Frame
+       for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); );
     }
     delay(1); // One millisecond pause = latch
     digitalWrite(SPI_LED, spi_out_led = !spi_out_led);
@@ -181,14 +179,18 @@ void setup()
       }
       // If no data received for an extended time, turn off all LEDs.
       if((t - lastByteTime) > serialTimeout) {
-          for(c=0; c<25000; c++) {
-            for(i=0; i<3; i++) {
-                 for(SPDR = 0x00; !(SPSR & _BV(SPIF)); );
-            }
-            for(i=0; i<1; i++) {
-                for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); );
-            }
+        for(i=0;i<4;i++) { //Start Frame
+          for(SPDR = 0x00; !(SPSR & _BV(SPIF)); );
+        }
+        for(c=0; c<25000; c++) {
+          for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); ); //Brightness Byte
+          for(i=0; i<3; i++) {
+            for(SPDR = 0x00; !(SPSR & _BV(SPIF)); ); //BGR
           }
+        }
+        for(i=0;i<4;i++) { //Stop Frame
+          for(SPDR = 0xFF; !(SPSR & _BV(SPIF)); );
+        }
         delay(1); // One millisecond pause = latch
         lastByteTime = t; // Reset counter
       }
