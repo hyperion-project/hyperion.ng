@@ -7,12 +7,12 @@
 #include <QTimer>
 
 // hyperion incluse
-#include "LedDeviceAdalight.h"
+#include "LedRs232Device.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device for APA102.
 ///
-class LedDeviceAdalightApa102 : public LedDeviceAdalight
+class LedDeviceAdalightApa102 : public LedRs232Device
 {
 	Q_OBJECT
 
