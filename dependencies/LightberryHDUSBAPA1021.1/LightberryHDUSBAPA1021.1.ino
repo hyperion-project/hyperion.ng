@@ -126,7 +126,7 @@ void setup()
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);
-  SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
+  SPI.setClockDivider(SPI_CLOCK_DIV8); // 2Mhz
 
   // Issue test pattern to LEDs on startup.  This helps verify that
   // wiring between the Arduino and LEDs is correct.  Not knowing the
