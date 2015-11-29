@@ -135,10 +135,10 @@ void setup()
   // green, blue, then off.  Once you're confident everything is working
   // end-to-end, it's OK to comment this out and reprogram the Arduino.
   uint8_t testcolor[] = { 0, 0, 0, 255, 0, 0 };
-  for (int i = 0; i < 4; i++) { //Start Frame
-    for (SPDR = 0x00; !(SPSR & _BV(SPIF)); );
-  }
   for (char n = 3; n >= 0; n--) {
+    for (int i = 0; i < 4; i++) { //Start Frame
+      for (SPDR = 0x00; !(SPSR & _BV(SPIF)); );
+    }
     for (c = 0; c < 25000; c++) {
       for (SPDR = 0xFF; !(SPSR & _BV(SPIF)); ); //Brightness byte
       for (i = 0; i < 3; i++) {
@@ -148,9 +148,10 @@ void setup()
     for (int i = 0; i < 4; i++) { //Stop Frame
       for (SPDR = 0xFF; !(SPSR & _BV(SPIF)); );
     }
+
     delay(1); // One millisecond pause = latch
-    digitalWrite(SPI_LED, spi_out_led = !spi_out_led);
   }
+  digitalWrite(SPI_LED, spi_out_led = !spi_out_led);
 
   Serial.print("Ada\n"); // Send ACK string to host
 
