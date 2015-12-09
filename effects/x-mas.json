@@ -3,6 +3,6 @@
 	"script" : "x-mas.py",
 	"args" :
 	{
-		"frequency" : 50.0
+		"sleepTime" : 0.75
 	}
 }

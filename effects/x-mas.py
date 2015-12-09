@@ -3,13 +3,7 @@ import time
 import colorsys
 
 # Get the parameters
-frequency = float(hyperion.args.get('frequency', 10.0))
-
-# Check parameters
-frequency = min(100.0, frequency)
-
-# Compute the strobe interval
-sleepTime = 1.0 / frequency
+sleepTime = float(hyperion.args.get('sleepTime', 1.0))
 
 # Initialize the led data
 ledDataOdd = bytearray()
@@ -29,6 +23,6 @@ for i in range(hyperion.ledCount):
 # Start the write data loop
 while not hyperion.abort():
 	hyperion.setColor(ledDataOdd)
-	time.sleep(0.75)
+	time.sleep(sleepTime)
 	hyperion.setColor(ledDataEven)
-	time.sleep(0.75)
+	time.sleep(sleepTime)
