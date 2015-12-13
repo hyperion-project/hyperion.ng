@@ -132,9 +132,15 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				{
 					if (messageParts[3] == "rgb" && messageParts.size() == 7)
 					{
+						// replace decimal comma with decimal point
+						messageParts[4].replace(',', '.');
+						messageParts[5].replace(',', '.');
+						messageParts[6].replace(',', '.');
+
 						bool rc1, rc2, rc3;
 						uint8_t red = qMax(0, qMin(255, int(255 * messageParts[4].toFloat(&rc1))));
 
+						// check for correct locale should not be needed anymore - please check!
 						if (!rc1)
 						{
 							// maybe a locale issue. switch to a locale with a comma instead of a dot as decimal seperator (or vice versa)
