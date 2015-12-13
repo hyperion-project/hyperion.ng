@@ -64,8 +64,8 @@ void BoblightClientConnection::readData()
 		// remove message data from buffer
 		_receiveBuffer = _receiveBuffer.mid(bytes);
 
-		// handle message
-		handleMessage(message);
+		// handle trimmed message
+		handleMessage(message.trimmed());
 
 		// drop messages if the buffer is too full
 		if (_receiveBuffer.size() > 100*1024)
