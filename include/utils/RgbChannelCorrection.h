@@ -41,7 +41,7 @@ public:
 
 	/// Transform the given array value
 	/// @param input The input color bytes
-	/// @return The transformed byte value
+	/// @return The corrected byte value
 	uint8_t correctionR(uint8_t inputR) const;
 	uint8_t correctionG(uint8_t inputG) const;
 	uint8_t correctionB(uint8_t inputB) const;
@@ -60,7 +60,6 @@ private:
 	int _correctionB;
 	
 	/// The mapping from input color to output color
-
 	int _mappingR[256];
 	int _mappingG[256];
 	int _mappingB[256];
