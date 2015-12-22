@@ -12,7 +12,7 @@ MultiColorCorrection::MultiColorCorrection(const unsigned ledCnt) :
 
 MultiColorCorrection::~MultiColorCorrection()
 {
-	// Clean up all the transforms
+	// Clean up all the correctinos
 	for (ColorCorrection * correction : _correction)
 	{
 		delete correction;
@@ -59,7 +59,7 @@ const std::vector<std::string> & MultiColorCorrection::getCorrectionIds()
 
 ColorCorrection* MultiColorCorrection::getCorrection(const std::string& id)
 {
-	// Iterate through the unique transforms until we find the one with the given id
+	// Iterate through the unique corrections until we find the one with the given id
 	for (ColorCorrection * correction : _correction)
 	{
 		if (correction->_id == id)
@@ -68,13 +68,13 @@ ColorCorrection* MultiColorCorrection::getCorrection(const std::string& id)
 		}
 	}
 
-	// The ColorTransform was not found
+	// The ColorCorrection was not found
 	return nullptr;
 }
 
 std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<ColorRgb>& rawColors)
 {
-	// Create a copy, as we will do the rest of the transformation in place
+	// Create a copy, as we will do the rest of the correction in place
 	std::vector<ColorRgb> ledColors(rawColors);
 
 	const size_t itCnt = std::min(_ledCorrections.size(), rawColors.size());
@@ -83,7 +83,7 @@ std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<Co
 		ColorCorrection * correction = _ledCorrections[i];
 		if (correction == nullptr)
 		{
-			// No transform set for this led (do nothing)
+			// No correction set for this led (do nothing)
 			continue;
 		}
 		ColorRgb& color = ledColors[i];
