@@ -470,6 +470,10 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	{
 		throw std::runtime_error("Color correction incorrectly set");
 	}
+	if (!_raw2ledTemperature->verifyCorrections())
+	{
+		throw std::runtime_error("Color temperature incorrectly set");
+	}
 	if (!_raw2ledTransform->verifyTransforms())
 	{
 		throw std::runtime_error("Color transformation incorrectly set");
@@ -512,6 +516,9 @@ Hyperion::~Hyperion()
 	
 	// delete the color correction
 	delete _raw2ledCorrection;
+
+	// delete the color temperature correction
+	delete _raw2ledTemperature;
 }
 
 unsigned Hyperion::getLedCount() const
@@ -562,6 +569,11 @@ const std::vector<std::string> & Hyperion::getCorrectionIds() const
 	return _raw2ledCorrection->getCorrectionIds();
 }
 
+const std::vector<std::string> & Hyperion::getTemperatureIds() const
+{
+	return _raw2ledTemperature->getCorrectionIds();
+}
+
 ColorTransform * Hyperion::getTransform(const std::string& id)
 {
 	return _raw2ledTransform->getTransform(id);
@@ -570,6 +582,11 @@ ColorTransform * Hyperion::getTransform(const std::string& id)
 ColorCorrection * Hyperion::getCorrection(const std::string& id)
 {
 	return _raw2ledCorrection->getCorrection(id);
+}
+
+ColorCorrection * Hyperion::getTemperature(const std::string& id)
+{
+	return _raw2ledTemperature->getCorrection(id);
 }
 
 void Hyperion::transformsUpdated()
