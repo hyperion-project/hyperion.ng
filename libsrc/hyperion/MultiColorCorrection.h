@@ -10,7 +10,7 @@
 #include <hyperion/ColorCorrection.h>
 
 ///
-/// The LedColorTransform is responsible for performing color transformation from 'raw' colors
+/// The LedColorCorrection is responsible for performing color correction from 'raw' colors
 /// received as input to colors mapped to match the color-properties of the leds.
 ///
 class MultiColorCorrection
@@ -20,9 +20,9 @@ public:
 	~MultiColorCorrection();
 
 	/**
-	 * Adds a new ColorTransform to this MultiColorTransform
+	 * Adds a new ColorCorrection to this MultiColorCorrection
 	 *
-	 * @param transform The new ColorTransform (ownership is transfered)
+	 * @param Correction The new ColorCorrection (ownership is transfered)
 	 */
 	void addCorrection(ColorCorrection * correction);
 
@@ -31,17 +31,17 @@ public:
 	bool verifyCorrections() const;
 
 	///
-	/// Returns the identifier of all the unique ColorTransform
+	/// Returns the identifier of all the unique ColorCorrection
 	///
-	/// @return The list with unique id's of the ColorTransforms
+	/// @return The list with unique id's of the ColorCorrections
 	const std::vector<std::string> & getCorrectionIds();
 
 	///
-	/// Returns the pointer to the ColorTransform with the given id
+	/// Returns the pointer to the ColorCorrection with the given id
 	///
-	/// @param id The identifier of the ColorTransform
+	/// @param id The identifier of the ColorCorrection
 	///
-	/// @return The ColorTransform with the given id (or nullptr if it does not exist)
+	/// @return The ColorCorrection with the given id (or nullptr if it does not exist)
 	///
 	ColorCorrection* getCorrection(const std::string& id);
 
@@ -55,12 +55,12 @@ public:
 	std::vector<ColorRgb> applyCorrection(const std::vector<ColorRgb>& rawColors);
 
 private:
-	/// List with transform ids
+	/// List with Correction ids
 	std::vector<std::string> _correctionIds;
 
-	/// List with unique ColorTransforms
+	/// List with unique ColorCorrections
 	std::vector<ColorCorrection*> _correction;
 
-	/// List with a pointer to the ColorTransform for each individual led
+	/// List with a pointer to the ColorCorrection for each individual led
 	std::vector<ColorCorrection*> _ledCorrections;
 };
