@@ -61,10 +61,50 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process(const Image<Pixel_T> & image)
 		{
+
+			// only test the topleft third of the image
+			int width = image.width() / 3;
+			int height = image.height() / 3;
+			int xCenter = image.width() / 2;
+			int yCenter = image.height() / 2;
+//			int maxSize = std::max(width, height);
+
+
+
+			int firstNonBlackXPixelIndex = -1;
+			int firstNonBlackYPixelIndex = -1;
+
+			// find first X pixel of the image
+			for (int x = 0; x < width; ++x)
+			{
+				const Pixel_T & color = image(x, yCenter);
+				if (!isBlack(color))
+				{
+					firstNonBlackXPixelIndex = x;
+					break;
+				}
+			}
+
+			// find first Y pixel of the image
+			for (int y = 0; y < height; ++y)
+			{
+				const Pixel_T & color = image(xCenter, y);
+				if (!isBlack(color))
+				{
+					firstNonBlackYPixelIndex = y;
+					break;
+				}
+			}
+
+
+
+/*
 			// only test the topleft third of the image
 			int width = image.width() /3;
 			int height = image.height() / 3;
 			int maxSize = std::max(width, height);
+
+
 
 			int firstNonBlackXPixelIndex = -1;
 			int firstNonBlackYPixelIndex = -1;
@@ -103,6 +143,7 @@ namespace hyperion
 					break;
 				}
 			}
+*/
 
 			// Construct result
 			BlackBorder detectedBorder;
