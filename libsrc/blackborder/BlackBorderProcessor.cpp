@@ -1,4 +1,4 @@
-
+//#include <iostream>
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
@@ -29,13 +29,18 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	// set the consistency counter
 	if (newDetectedBorder == _previousDetectedBorder)
 	{
-		++_consistentCnt;
+		if (_consistentCnt < 100000)
+		{
+			++_consistentCnt;
+		}
 	}
 	else
 	{
 		_previousDetectedBorder = newDetectedBorder;
 		_consistentCnt          = 0;
 	}
+
+//	std::cout << "new: " << newDetectedBorder.verticalSize << " " << newDetectedBorder.horizontalSize << " cur: " << _currentBorder.verticalSize << " " << _currentBorder.horizontalSize << " cc " << _consistentCnt << std::endl;
 
 	// check if there is a change
 	if (_currentBorder == newDetectedBorder)
@@ -48,7 +53,8 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	if (newDetectedBorder.unknown)
 	{
 		// apply the unknown border if we consistently can't determine a border
-		if (_consistentCnt == _unknownSwitchCnt)
+//		if (_consistentCnt == _unknownSwitchCnt)
+		if (_consistentCnt >= _unknownSwitchCnt)
 		{
 			_currentBorder = newDetectedBorder;
 			borderChanged = true;
@@ -57,7 +63,8 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	else
 	{
 		// apply the detected border if it has been detected consistently
-		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
+//		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
+		if (_currentBorder.unknown || _consistentCnt >= _borderSwitchCnt)
 		{
 			_currentBorder = newDetectedBorder;
 			borderChanged = true;
@@ -65,13 +72,15 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 		else
 		{
 			// apply smaller borders immediately
-			if (newDetectedBorder.verticalSize < _currentBorder.verticalSize)
+//			if (newDetectedBorder.verticalSize < _currentBorder.verticalSize)
+			if ( (newDetectedBorder.verticalSize < _currentBorder.verticalSize) && (_consistentCnt >= 1) )// almost immediatly - avoid switching for "abnormal" frames
 			{
 				_currentBorder.verticalSize = newDetectedBorder.verticalSize;
 				borderChanged = true;
 			}
 
-			if (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize)
+//			if (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize)
+			if ( (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize) && (_consistentCnt >= 1) )
 			{
 				_currentBorder.horizontalSize = newDetectedBorder.horizontalSize;
 				borderChanged = true;

@@ -65,6 +65,8 @@ namespace hyperion
 			// only test the topleft third of the image
 			int width = image.width() / 3;
 			int height = image.height() / 3;
+			int width2 = width * 2;
+			int height2 = height * 2;
 			int xCenter = image.width() / 2;
 			int yCenter = image.height() / 2;
 //			int maxSize = std::max(width, height);
@@ -77,8 +79,10 @@ namespace hyperion
 			// find first X pixel of the image
 			for (int x = 0; x < width; ++x)
 			{
-				const Pixel_T & color = image(x, yCenter);
-				if (!isBlack(color))
+				const Pixel_T & color1 = image(x, yCenter);
+				const Pixel_T & color2 = image(x, height);
+				const Pixel_T & color3 = image(x, height2);
+				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
 				{
 					firstNonBlackXPixelIndex = x;
 					break;
@@ -88,8 +92,10 @@ namespace hyperion
 			// find first Y pixel of the image
 			for (int y = 0; y < height; ++y)
 			{
-				const Pixel_T & color = image(xCenter, y);
-				if (!isBlack(color))
+				const Pixel_T & color1 = image(xCenter, y);
+				const Pixel_T & color2 = image(width, y);
+				const Pixel_T & color3 = image(width2, y);
+				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
 				{
 					firstNonBlackYPixelIndex = y;
 					break;
