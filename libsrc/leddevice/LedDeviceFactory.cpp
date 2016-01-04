@@ -247,7 +247,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	else if (type == "fadecandy")
 	{
 		const std::string host 	= deviceConfig.get("output", "127.0.0.1").asString();
-		const uint16_t port 		= deviceConfig.get("port", 8080).asInt();
+		const uint16_t port 		= deviceConfig.get("port", 7890).asInt();
 		device = new LedDeviceFadeCandy(host,port);
 	}
 	else if (type == "tpm2")

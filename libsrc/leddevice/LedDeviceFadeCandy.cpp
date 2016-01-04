@@ -21,8 +21,6 @@ LedDeviceFadeCandy::LedDeviceFadeCandy(const std::string& host, const uint16_t p
     _opc_data[1] = OPC_SET_PIXELS;
     _opc_data[2] = 0;
     _opc_data[3] = 0;
-
-    qDebug("connect to %s %i",_host.c_str(),_port);
 }
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
@@ -38,7 +36,7 @@ bool LedDeviceFadeCandy::isConnected()
 bool LedDeviceFadeCandy::tryConnect()
 {
     if (  _client.state() == QAbstractSocket::UnconnectedState ) {
-        qDebug("connecting");
+        qDebug("connecting to %s %i",_host.c_str(),_port);
         QHostAddress addr(_host.c_str());
         _client.connectToHost(addr, _port);
         if (_client.waitForConnected(1000))
