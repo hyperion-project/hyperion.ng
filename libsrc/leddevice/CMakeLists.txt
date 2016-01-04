@@ -20,6 +20,8 @@ SET(Leddevice_QT_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 		${CURRENT_SOURCE_DIR}/LedHIDDevice.h
 		${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
+		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
 
 SET(Leddevice_HEADERS
@@ -32,6 +34,7 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.h
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
 		${CURRENT_SOURCE_DIR}/LedDeviceTpm2.h
 		${CURRENT_SOURCE_DIR}/LedDeviceAtmo.h
@@ -53,6 +56,7 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
 		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceTpm2.cpp
@@ -114,7 +118,7 @@ add_library(leddevice
 
 target_link_libraries(leddevice
 	hyperion-utils
-	serialport
+        serialport
 	${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
