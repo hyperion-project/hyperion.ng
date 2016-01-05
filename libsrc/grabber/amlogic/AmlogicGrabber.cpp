@@ -122,6 +122,8 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	{
 		// Failed to configure frame width
 		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to configure capture size (" << errno << "): " << strerror(errno) << std::endl;
+		close(_amlogicCaptureDev);
+		_amlogicCaptureDev = -1;
 		return -1;
 	}
 
@@ -133,18 +135,27 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	if (bytesRead == -1)
 	{
 		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Read of device failed (erno=" << errno << "): " << strerror(errno) << std::endl;
+		close(_amlogicCaptureDev);
+		_amlogicCaptureDev = -1;
 		return -1;
 	}
 	else if (bytesToRead != bytesRead)
 	{
 		// Read of snapshot failed
 		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Capture failed to grab entire image [bytesToRead(" << bytesToRead << ") != bytesRead(" << bytesRead << ")]" << std::endl;
+		close(_amlogicCaptureDev);
+		_amlogicCaptureDev = -1;
 		return -1;
 	}
 
-	// For now we always close the device again
-	close(_amlogicCaptureDev);
-	_amlogicCaptureDev = -1;
-
+	// For now we always close the device now and again
+	static int readCnt = 0;
+	++readCnt;
+	if (readCnt > 20)
+	{
+		close(_amlogicCaptureDev);
+		_amlogicCaptureDev = -1;
+		readCnt = 0;
+	}
 	return 0;
 }

@@ -274,7 +274,7 @@ int main(int argc, char** argv)
 	FramebufferWrapper * fbGrabber = nullptr;
 	if (config.isMember("framebuffergrabber") || config.isMember("framegrabber"))
 	{
-		const Json::Value & grabberConfig = config.isMember("framebuffergrabber")? config["framebuffergrabber"] : config.isMember("framegrabber");
+		const Json::Value & grabberConfig = config.isMember("framebuffergrabber")? config["framebuffergrabber"] : config["framegrabber"];
 		fbGrabber = new FramebufferWrapper(
 			grabberConfig.get("device", "/dev/fb0").asString(),
 			grabberConfig["width"].asUInt(),

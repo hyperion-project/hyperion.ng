@@ -55,6 +55,9 @@ cmake -DENABLE_DISPMANX=OFF --build "$NATIVE_BUILD_DIR" "$HYPERION_DIR"
 mkdir -p "$TARGET_BUILD_DIR"
 cmake -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -DIMPORT_PROTOC=$NATIVE_BUILD_DIR/protoc_export.cmake --build "$TARGET_BUILD_DIR" "$HYPERION_DIR"
 
+# For hummingboard (imx6) the following package is required
+sudo apt-get install lib32z1
+
 ------------------------------------------------------------------------------
 These instructions are based on the guide given by:
 http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi

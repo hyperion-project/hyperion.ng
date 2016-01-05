@@ -3,34 +3,19 @@
 // STL includes
 #include <vector>
 
-// libusb include
-#include <hidapi/hidapi.h>
-
 // Hyperion includes
-#include <leddevice/LedDevice.h>
+#include "LedHIDDevice.h"
 
 ///
 /// LedDevice implementation for a paintpack device ()
 ///
-class LedDevicePaintpack : public LedDevice
+class LedDevicePaintpack : public LedHIDDevice
 {
 public:
 	/**
 	 * Constructs the paintpack device
 	 */
-	LedDevicePaintpack();
-
-	/**
-	 * Destructs the paintpack device, closes USB connection if open
-	 */
-	virtual ~LedDevicePaintpack();
-
-	/**
-	 * Opens the Paintpack device
-	 *
-	 * @return Zero on succes else negative
-	 */
-	int open();
+	LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -49,11 +34,6 @@ public:
 	virtual int switchOff();
 
 private:
-	/// libusb device handle
-	hid_device * _deviceHandle;
-
 	/// buffer for led data
 	std::vector<uint8_t> _ledBuffer;
-
-
 };

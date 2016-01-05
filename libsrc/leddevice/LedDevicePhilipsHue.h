@@ -134,7 +134,7 @@ public:
 	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
 	///
 	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 1, std::vector<unsigned int> lightIds = {});
+			false, int transitiontime = 1, std::vector<unsigned int> lightIds = std::vector<unsigned int>());
 
 	///
 	/// Destructor of this device
