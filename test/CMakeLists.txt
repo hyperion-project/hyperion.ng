@@ -64,4 +64,8 @@ if(ENABLE_X11)
 
     add_executable(test_x11performance TestX11Performance.cpp)
 	target_link_libraries(test_x11performance ${X11_LIBRARIES} ${QT_LIBRARIES})
+if(ENABLE_QT5)
+qt5_use_modules(test_x11performance Widgets)
+endif(ENABLE_QT5)
+
 endif(ENABLE_X11)
