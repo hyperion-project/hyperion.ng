@@ -7,7 +7,12 @@
 // qt includes
 #include <QtCore/qmath.h>
 #include <QUrl>
+#ifdef ENABLE_QT5
+
+#else
 #include <QHttpRequestHeader>
+#endif
+
 #include <QEventLoop>
 
 #include <set>
@@ -144,14 +149,22 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::s
 		int transitiontime, std::vector<unsigned int> lightIds) :
 		host(output.c_str()), username(username.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(
 				transitiontime), lightIds(lightIds) {
+#ifdef ENABLE_QT5
+
+#else
 	http = new QHttp(host);
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
 	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
+#endif
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
+#ifdef ENABLE_QT5
+
+#else
 	delete http;
+#endif
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
@@ -201,21 +214,32 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Next light id.
 		idx++;
 	}
+#ifdef ENABLE_QT5
+
+#else
 	timer.start();
+#endif
 	return 0;
 }
 
 int LedDevicePhilipsHue::switchOff() {
+#ifdef ENABLE_QT5
+
+#else
 	timer.stop();
 	// If light states have been saved before, ...
 	if (areStatesSaved()) {
 		// ... restore them.
 		restoreStates();
 	}
+#endif
 	return 0;
 }
 
 void LedDevicePhilipsHue::put(QString route, QString content) {
+#ifdef ENABLE_QT5
+
+#else
 	QString url = QString("/api/%1/%2").arg(username).arg(route);
 	QHttpRequestHeader header("PUT", url);
 	header.setValue("Host", host);
@@ -229,9 +253,13 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	http->request(header, content.toAscii());
 	// Go into the loop until the request is finished.
 	loop.exec();
+#endif
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
+#ifdef ENABLE_QT5
+	return 0;
+#else
 	QString url = QString("/api/%1/%2").arg(username).arg(route);
 	// Event loop to block until request finished.
 	QEventLoop loop;
@@ -243,6 +271,7 @@ QByteArray LedDevicePhilipsHue::get(QString route) {
 	loop.exec();
 	// Read all data of the response.
 	return http->readAll();
+#endif
 }
 
 QString LedDevicePhilipsHue::getStateRoute(unsigned int lightId) {

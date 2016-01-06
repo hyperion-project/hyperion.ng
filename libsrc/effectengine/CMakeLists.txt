@@ -27,9 +27,13 @@ SET(EffectEngineSOURCES
 
 set(EffectEngine_RESOURCES ${CURRENT_SOURCE_DIR}/EffectEngine.qrc)
 
+if(ENABLE_QT5)
+QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
+qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
+else(ENABLE_QT5)
 QT4_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
-
 qt4_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
+endif(ENABLE_QT5)
 
 add_library(effectengine
 		${EffectEngineHEADERS}
@@ -38,6 +42,10 @@ add_library(effectengine
 		${EffectEngine_RESOURCES_RCC}
 		${EffectEngineSOURCES}
 )
+
+if(ENABLE_QT5)
+qt5_use_modules(effectengine Widgets)
+endif(ENABLE_QT5)
 
 target_link_libraries(effectengine
 		hyperion
