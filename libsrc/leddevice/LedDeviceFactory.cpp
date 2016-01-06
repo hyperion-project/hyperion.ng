@@ -30,6 +30,7 @@
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
+#include "LedDeviceUdp.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -242,6 +243,14 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
+	}
+	else if (type == "udp")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned protocol  = deviceConfig["protocol"].asInt();
+		const unsigned maxPacket   = deviceConfig["maxpacket"].asInt();
+		device = new LedDeviceUdp(output, rate, protocol, maxPacket);
 	}
 	else if (type == "tpm2")
 	{
