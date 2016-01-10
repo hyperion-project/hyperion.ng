@@ -51,8 +51,7 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	if (newDetectedBorder.unknown)
 	{
 		// apply the unknown border if we consistently can't determine a border
-//		if (_consistentCnt == _unknownSwitchCnt)
-		if (_consistentCnt >= _unknownSwitchCnt)
+		if (_consistentCnt == _unknownSwitchCnt)
 		{
 			_currentBorder = newDetectedBorder;
 			borderChanged = true;
@@ -61,8 +60,7 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	else
 	{
 		// apply the detected border if it has been detected consistently
-//		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
-		if (_currentBorder.unknown || _consistentCnt >= _borderSwitchCnt)
+		if (_currentBorder.unknown || _consistentCnt == _borderSwitchCnt)
 		{
 			_currentBorder = newDetectedBorder;
 			borderChanged = true;
@@ -70,17 +68,16 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 		else
 		{
 			bool stable = (_consistentCnt >= 10) || (_inconsistentCnt >=30 );
-										//more then A consistent seems like a new size not only a short flicker 
-										//more then B inconsistent seems like the image is changing a lot and we need to set smaller border
-			// apply smaller borders immediately
-//			if (newDetectedBorder.verticalSize < _currentBorder.verticalSize)
-			if ( (newDetectedBorder.verticalSize < _currentBorder.verticalSize) && (stable) )// almost immediatly - avoid switching for "abnormal" frames
+			//more then 10 consistent seems like a new size not only a short flicker 
+			//more then 30 inconsistent seems like the image is changing a lot and we need to set smaller border
+
+			// apply smaller borders (almost) immediately -> avoid switching for "abnormal" frames
+			if ( (newDetectedBorder.verticalSize < _currentBorder.verticalSize) && (stable) )
 			{
 				_currentBorder.verticalSize = newDetectedBorder.verticalSize;
 				borderChanged = true;
 			}
 
-//			if (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize)
 			if ( (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize) && (stable) )
 			{
 				_currentBorder.horizontalSize = newDetectedBorder.horizontalSize;

@@ -73,8 +73,6 @@ namespace hyperion
 		/// @return True if the current border changed else false
 		///
 		bool updateBorder(const BlackBorder & newDetectedBorder);
-		bool updateBorder1(const BlackBorder & newDetectedBorder);
-		bool updateBorder2(const BlackBorder & newDetectedBorder);
 
 		/// The number of unknown-borders detected before it becomes the current border
 		const unsigned _unknownSwitchCnt;
