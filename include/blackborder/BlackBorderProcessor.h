@@ -89,18 +89,14 @@ namespace hyperion
 		BlackBorderDetector _detector;
 
 		/// The current detected border
-		BlackBorder _currentBorder1;
 		BlackBorder _currentBorder;
 
 		/// The border detected in the previous frame
-		BlackBorder _previousDetectedBorder1;
 		BlackBorder _previousDetectedBorder;
 
 		/// The number of frame the previous detected border matched the incomming border
-		unsigned _consistentCnt1;
 		unsigned _consistentCnt;
 		/// The number of frame the previous detected border NOT matched the incomming border
-		unsigned _inconsistentCnt1;
 		unsigned _inconsistentCnt;
 	};
 } // end namespace hyperion
