@@ -6,7 +6,7 @@
 // Qt includes
 #include <QObject>
 #include <QString>
-#include <QHttp>
+#include <QNetworkAccessManager>
 #include <QTimer>
 
 // Leddevice includes
@@ -164,8 +164,8 @@ private:
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
-	/// Qhttp object for sending requests.
-	QHttp* http;
+	/// QNetworkAccessManager object for sending requests.
+	QNetworkAccessManager* manager;
 	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
 	QTimer timer;
 	///
