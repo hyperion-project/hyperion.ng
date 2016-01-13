@@ -3,7 +3,14 @@ cmake_minimum_required(VERSION 2.8)
 project(hyperion-v4l2)
 
 # find Qt4
+if(ENABLE_QT5)
+find_package(Qt5Widgets REQUIRED)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#      set(CMAKE_CXX_FLAGS "-fPIC")
+else(ENABLE_QT5)
 find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+endif(ENABLE_QT5)
+
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
@@ -24,8 +31,11 @@ set(Hyperion_V4L2_SOURCES
 	hyperion-v4l2.cpp
 	ScreenshotHandler.cpp
 )
-
+if(ENABLE_QT5)
+QT5_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
+else(ENABLE_QT5)
 QT4_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
+endif(ENABLE_QT5)
 
 add_executable(hyperion-v4l2
 	${Hyperion_V4L2_HEADERS}
