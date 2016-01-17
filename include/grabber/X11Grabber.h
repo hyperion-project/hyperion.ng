@@ -26,6 +26,11 @@ private:
     int _cropRight;
     int _cropTop;
     int _cropBottom;
+    
+    Screen *Xscreen;
+    XImage *xImage;
+    XShmSegmentInfo shminfo;
+    int screen;
 
 	/// Reference to the X11 display (nullptr if not opened)
 	Display * _x11Display;
