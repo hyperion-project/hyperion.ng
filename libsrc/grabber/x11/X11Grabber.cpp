@@ -54,12 +54,25 @@ Image<ColorRgb> & X11Grabber::grab()
     }
 
     updateScreenDimensions();
+    
+    Xscreen = DefaultScreenOfDisplay(_x11Display);
 
     const unsigned croppedWidth  = _screenWidth - _cropLeft - _cropRight;
     const unsigned croppedHeight = _screenHeight - _cropTop - _cropBottom;
+    
+    xImage = XShmCreateImage(_x11Display,   DefaultVisualOfScreen(Xscreen),
+				  DefaultDepthOfScreen(Xscreen),
+				  ZPixmap, NULL, &shminfo,
+				  croppedWidth, croppedHeight);
+    
+    shminfo.shmid = shmget(IPC_PRIVATE, xImage->bytes_per_line * xImage->height, IPC_CREAT|0777);
+    shminfo.shmaddr = xImage->data = (char*)shmat(shminfo.shmid,0,0);
+    shminfo.readOnly = False;
+    
+    XShmAttach(_x11Display, &shminfo);
 
     // Capture the current screen
-    XImage * xImage = XGetImage(_x11Display, DefaultRootWindow(_x11Display), _cropLeft, _cropTop, croppedWidth, croppedHeight, AllPlanes, ZPixmap);
+    XShmGetImage(_x11Display, DefaultRootWindow(_x11Display), xImage, _cropLeft, _cropTop, 0x00FFFFFF);
     if (xImage == nullptr)
     {
         std::cerr << "Grab failed" << std::endl;
@@ -69,7 +82,10 @@ Image<ColorRgb> & X11Grabber::grab()
     _imageResampler.processImage(reinterpret_cast<const uint8_t *>(xImage->data), xImage->width, xImage->height, xImage->bytes_per_line, PIXELFORMAT_BGR32, _image);
 
     // Cleanup allocated resources of the X11 grab
+    XShmDetach(_x11Display, &shminfo);
     XDestroyImage(xImage);
+    shmdt (shminfo.shmaddr);
+    shmctl(shminfo.shmid, IPC_RMID, 0);
 
     return _image;
 }
