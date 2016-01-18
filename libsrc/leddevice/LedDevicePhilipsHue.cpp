@@ -200,25 +200,17 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Next light id.
 		idx++;
 	}
-#ifdef ENABLE_QT5
-
-#else
 	timer.start();
-#endif
 	return 0;
 }
 
 int LedDevicePhilipsHue::switchOff() {
-#ifdef ENABLE_QT5
-
-#else
 	timer.stop();
 	// If light states have been saved before, ...
 	if (areStatesSaved()) {
 		// ... restore them.
 		restoreStates();
 	}
-#endif
 	return 0;
 }
 
