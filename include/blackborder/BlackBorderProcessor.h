@@ -94,5 +94,7 @@ namespace hyperion
 
 		/// The number of frame the previous detected border matched the incomming border
 		unsigned _consistentCnt;
+		/// The number of frame the previous detected border NOT matched the incomming border
+		unsigned _inconsistentCnt;
 	};
 } // end namespace hyperion

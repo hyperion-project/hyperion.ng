@@ -8,7 +8,6 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QTimer>
-
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 

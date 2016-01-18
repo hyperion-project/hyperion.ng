@@ -61,45 +61,41 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process(const Image<Pixel_T> & image)
 		{
-			// only test the topleft third of the image
-			int width = image.width() /3;
+
+			// test center and 1/3, 2/3 of width/heigth
+			int width = image.width() / 3;
 			int height = image.height() / 3;
-			int maxSize = std::max(width, height);
+			int width2 = width * 2;
+			int height2 = height * 2;
+			int xCenter = image.width() / 2;
+			int yCenter = image.height() / 2;
+
 
 			int firstNonBlackXPixelIndex = -1;
 			int firstNonBlackYPixelIndex = -1;
 
-			// find some pixel of the image
-			for (int i = 0; i < maxSize; ++i)
+			// find first X pixel of the image
+			for (int x = 0; x < width; ++x)
 			{
-				int x = std::min(i, width);
-				int y = std::min(i, height);
-
-				const Pixel_T & color = image(x, y);
-				if (!isBlack(color))
+				const Pixel_T & color1 = image(x, yCenter);
+				const Pixel_T & color2 = image(x, height);
+				const Pixel_T & color3 = image(x, height2);
+				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
 				{
 					firstNonBlackXPixelIndex = x;
+					break;
+				}
+			}
+
+			// find first Y pixel of the image
+			for (int y = 0; y < height; ++y)
+			{
+				const Pixel_T & color1 = image(xCenter, y);
+				const Pixel_T & color2 = image(width, y);
+				const Pixel_T & color3 = image(width2, y);
+				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
+				{
 					firstNonBlackYPixelIndex = y;
-					break;
-				}
-			}
-
-			// expand image to the left
-			for(; firstNonBlackXPixelIndex > 0; --firstNonBlackXPixelIndex)
-			{
-				const Pixel_T & color = image(firstNonBlackXPixelIndex-1, firstNonBlackYPixelIndex);
-				if (isBlack(color))
-				{
-					break;
-				}
-			}
-
-			// expand image to the top
-			for(; firstNonBlackYPixelIndex > 0; --firstNonBlackYPixelIndex)
-			{
-				const Pixel_T & color = image(firstNonBlackXPixelIndex, firstNonBlackYPixelIndex-1);
-				if (isBlack(color))
-				{
 					break;
 				}
 			}

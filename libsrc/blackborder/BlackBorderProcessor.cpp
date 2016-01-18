@@ -14,7 +14,8 @@ BlackBorderProcessor::BlackBorderProcessor(const unsigned unknownFrameCnt,
 	_detector(blackborderThreshold),
 	_currentBorder({true, -1, -1}),
 	_previousDetectedBorder({true, -1, -1}),
-	_consistentCnt(0)
+	_consistentCnt(0),
+	_inconsistentCnt(0)
 {
 	// empty
 }
@@ -30,11 +31,13 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	if (newDetectedBorder == _previousDetectedBorder)
 	{
 		++_consistentCnt;
+		_inconsistentCnt         = 0;
 	}
 	else
 	{
 		_previousDetectedBorder = newDetectedBorder;
 		_consistentCnt          = 0;
+		++_inconsistentCnt;
 	}
 
 	// check if there is a change
@@ -64,14 +67,18 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 		}
 		else
 		{
-			// apply smaller borders immediately
-			if (newDetectedBorder.verticalSize < _currentBorder.verticalSize)
+			bool stable = (_consistentCnt >= 10) || (_inconsistentCnt >=30 );
+			//more then 10 consistent seems like a new size not only a short flicker 
+			//more then 30 inconsistent seems like the image is changing a lot and we need to set smaller border
+
+			// apply smaller borders (almost) immediately -> avoid switching for "abnormal" frames
+			if ( (newDetectedBorder.verticalSize < _currentBorder.verticalSize) && (stable) )
 			{
 				_currentBorder.verticalSize = newDetectedBorder.verticalSize;
 				borderChanged = true;
 			}
 
-			if (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize)
+			if ( (newDetectedBorder.horizontalSize < _currentBorder.horizontalSize) && (stable) )
 			{
 				_currentBorder.horizontalSize = newDetectedBorder.horizontalSize;
 				borderChanged = true;
