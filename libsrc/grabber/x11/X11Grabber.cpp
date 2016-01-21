@@ -77,6 +77,8 @@ bool X11Grabber::Setup()
 
 Image<ColorRgb> & X11Grabber::grab()
 {
+    updateScreenDimensions();
+    
     XShmGetImage(_x11Display, _window, _xImage, _cropLeft, _cropTop, 0x00FFFFFF);
     if (_xImage == nullptr)
     {
