@@ -1,4 +1,4 @@
-#include <iostream>
+//#include <iostream>
 
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
@@ -39,7 +39,7 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 // makes it look like the border detectionn is not working - since the new 3 line detection algorithm is more precise this became a problem specialy in dark scenes
 // wisc
 
-	std::cout << "cur: " << _currentBorder.verticalSize << " " << _currentBorder.horizontalSize << " new: " << newDetectedBorder.verticalSize << " " << newDetectedBorder.horizontalSize << " c:i " << _consistentCnt << ":" << _inconsistentCnt << std::endl;
+//	std::cout << "cur: " << _currentBorder.verticalSize << " " << _currentBorder.horizontalSize << " new: " << newDetectedBorder.verticalSize << " " << newDetectedBorder.horizontalSize << " c:i " << _consistentCnt << ":" << _inconsistentCnt << std::endl;
 
 	// set the consistency counter
 	if (newDetectedBorder == _previousDetectedBorder)
