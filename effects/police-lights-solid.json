@@ -1,0 +1,11 @@
+{
+	"name" : "Police Lights Solid",
+	"script" : "police.py",
+	"args" :
+	{
+		"rotation-time" : 1.0,
+		"color_one" : [ 255, 0, 0 ],
+		"color_two" : [ 0, 0, 255 ],
+		"reverse" : false
+	}
+}
