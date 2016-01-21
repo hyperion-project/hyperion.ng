@@ -62,13 +62,17 @@ namespace hyperion
 		BlackBorder process(const Image<Pixel_T> & image)
 		{
 
-			// test center and 1/3, 2/3 of width/heigth
-			int width = image.width() / 3;
-			int height = image.height() / 3;
-			int width2 = width * 2;
-			int height2 = height * 2;
-			int xCenter = image.width() / 2;
-			int yCenter = image.height() / 2;
+			// test center and 33%, 66% of width/heigth
+			// 33 and 66 will check left and top
+			// center ill check right and bottom sids
+			int width = image.width();
+			int height = image.height();
+			int width33percent = width / 3;
+			int height33percent = height / 3;
+			int width66percent = width33percent * 2;
+			int height66percent = height33percent * 2;
+			int xCenter = width / 2;
+			int yCenter = height / 2;
 
 
 			int firstNonBlackXPixelIndex = -1;
@@ -77,9 +81,9 @@ namespace hyperion
 			// find first X pixel of the image
 			for (int x = 0; x < width; ++x)
 			{
-				const Pixel_T & color1 = image(x, yCenter);
-				const Pixel_T & color2 = image(x, height);
-				const Pixel_T & color3 = image(x, height2);
+				const Pixel_T & color1 = image( (width - x), yCenter); // right side center line check
+				const Pixel_T & color2 = image(x, height33percent);
+				const Pixel_T & color3 = image(x, height66percent);
 				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
 				{
 					firstNonBlackXPixelIndex = x;
@@ -90,9 +94,9 @@ namespace hyperion
 			// find first Y pixel of the image
 			for (int y = 0; y < height; ++y)
 			{
-				const Pixel_T & color1 = image(xCenter, y);
-				const Pixel_T & color2 = image(width, y);
-				const Pixel_T & color3 = image(width2, y);
+				const Pixel_T & color1 = image(xCenter, (height - y)); // bottom center line check
+				const Pixel_T & color2 = image(width33percent, y );
+				const Pixel_T & color3 = image(width66percent, y);
 				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
 				{
 					firstNonBlackYPixelIndex = y;
