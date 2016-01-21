@@ -6,14 +6,8 @@
 
 // qt includes
 #include <QtCore/qmath.h>
-#include <QUrl>
-#ifdef ENABLE_QT5
-
-#else
-#include <QHttpRequestHeader>
-#endif
-
 #include <QEventLoop>
+#include <QNetworkReply>
 
 #include <set>
 
@@ -149,22 +143,14 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::s
 		int transitiontime, std::vector<unsigned int> lightIds) :
 		host(output.c_str()), username(username.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(
 				transitiontime), lightIds(lightIds) {
-#ifdef ENABLE_QT5
-
-#else
-	http = new QHttp(host);
+	manager = new QNetworkAccessManager();
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
 	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
-#endif
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue() {
-#ifdef ENABLE_QT5
-
-#else
-	delete http;
-#endif
+	delete manager;
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
@@ -214,64 +200,44 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		// Next light id.
 		idx++;
 	}
-#ifdef ENABLE_QT5
-
-#else
 	timer.start();
-#endif
 	return 0;
 }
 
 int LedDevicePhilipsHue::switchOff() {
-#ifdef ENABLE_QT5
-
-#else
 	timer.stop();
 	// If light states have been saved before, ...
 	if (areStatesSaved()) {
 		// ... restore them.
 		restoreStates();
 	}
-#endif
 	return 0;
 }
 
 void LedDevicePhilipsHue::put(QString route, QString content) {
-#ifdef ENABLE_QT5
-
-#else
-	QString url = QString("/api/%1/%2").arg(username).arg(route);
-	QHttpRequestHeader header("PUT", url);
-	header.setValue("Host", host);
-	header.setValue("Accept-Encoding", "identity");
-	header.setValue("Connection", "keep-alive");
-	header.setValue("Content-Length", QString("%1").arg(content.size()));
-	QEventLoop loop;
-	// Connect requestFinished signal to quit slot of the loop.
-	loop.connect(http, SIGNAL(requestFinished(int, bool)), SLOT(quit()));
+	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
 	// Perfrom request
-	http->request(header, content.toAscii());
+	QNetworkRequest request(url);
+	QNetworkReply* reply = manager->put(request, content.toAscii());
+	// Connect finished signal to quit slot of the loop.
+	QEventLoop loop;
+	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
 	// Go into the loop until the request is finished.
 	loop.exec();
-#endif
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
-#ifdef ENABLE_QT5
-	return 0;
-#else
-	QString url = QString("/api/%1/%2").arg(username).arg(route);
-	// Event loop to block until request finished.
-	QEventLoop loop;
-	// Connect requestFinished signal to quit slot of the loop.
-	loop.connect(http, SIGNAL(requestFinished(int, bool)), SLOT(quit()));
+	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
 	// Perfrom request
-	http->get(url);
+	QNetworkRequest request(url);
+	QNetworkReply* reply = manager->get(request);
+	// Connect requestFinished signal to quit slot of the loop.
+	QEventLoop loop;
+	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
 	// Go into the loop until the request is finished.
 	loop.exec();
 	// Read all data of the response.
-	return http->readAll();
-#endif
+	return reply->readAll();
 }
 
 QString LedDevicePhilipsHue::getStateRoute(unsigned int lightId) {
