@@ -4,14 +4,10 @@
 #include <string>
 
 // Qt includes
-#ifdef ENABLE_QT5
-#include <QNetworkAccessManager>
-#else
 #include <QObject>
 #include <QString>
-#include <QHttp>
+#include <QNetworkAccessManager>
 #include <QTimer>
-#endif
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -167,15 +163,10 @@ private:
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
-	/// Qhttp object for sending requests.
-#ifdef ENABLE_QT5
-// TODO 	QNetworkAcessManager stuff
-#else
-	QHttp* http;
-
+	/// QNetworkAccessManager object for sending requests.
+	QNetworkAccessManager* manager;
 	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
 	QTimer timer;
-#endif
 	///
 	bool switchOffOnBlack;
 	/// Transition time in multiples of 100 ms.
