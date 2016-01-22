@@ -218,7 +218,7 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
 	// Perfrom request
 	QNetworkRequest request(url);
-	QNetworkReply* reply = manager->put(request, content.toAscii());
+	QNetworkReply* reply = manager->put(request, content.toLatin1());
 	// Connect finished signal to quit slot of the loop.
 	QEventLoop loop;
 	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
