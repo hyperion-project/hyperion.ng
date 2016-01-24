@@ -8,15 +8,15 @@ ledData = bytearray()
 for i in range(hyperion.ledCount):
 	ledData += bytearray((0,0,0))
 
-sleepTime = 0.002
+sleepTime = float(hyperion.args.get('speed', 1.0)) * 0.004
 
 runners = [
 { "i":0, "pos":0, "c":0, "step":9 , "lvl":255},
 { "i":1, "pos":0, "c":0, "step":8 , "lvl":255},
 { "i":2, "pos":0, "c":0, "step":7 , "lvl":255},
-{ "i":0, "pos":0, "c":0, "step":6 , "lvl":0},
-{ "i":1, "pos":0, "c":0, "step":5 , "lvl":0},
-{ "i":2, "pos":0, "c":0, "step":4, "lvl":0},
+{ "i":0, "pos":0, "c":0, "step":6 , "lvl":100},
+{ "i":1, "pos":0, "c":0, "step":5 , "lvl":100},
+{ "i":2, "pos":0, "c":0, "step":4, "lvl":100},
 ]
 
 # Start the write data loop

@@ -1,0 +1,10 @@
+{
+	"name"   : "Running dots",
+	"script" : "running_dots.py",
+	"args"   :
+	{
+		"speed"      : 1.5,
+		"whiteLevel" : 100,
+		"colorLevel" : 230
+	}
+}
