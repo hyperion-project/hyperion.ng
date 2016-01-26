@@ -1,6 +1,6 @@
 #include "LedDeviceFadeCandy.h"
 
-static const unsigned MAX_NUM_LEDS    = 512;
+static const unsigned MAX_NUM_LEDS    = 10000;
 static const unsigned OPC_BROADCAST   = 0;    // OPC broadcast channel
 static const unsigned OPC_SET_PIXELS  = 0;    // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;    // OPC header size
@@ -32,11 +32,8 @@ bool LedDeviceFadeCandy::isConnected()
 bool LedDeviceFadeCandy::tryConnect()
 {
 	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
-		qDebug("connecting to %s %i",_host.c_str(),_port);
-
 		_client.connectToHost( _host.c_str(), _port);
-		if ( _client.waitForConnected(1000) )
-			qDebug("connected");
+		_client.waitForConnected(1000);
 	}
 
 	return isConnected();
