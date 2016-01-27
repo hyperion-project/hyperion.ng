@@ -23,7 +23,7 @@ public:
 	/// @param host The ip address/host name of fadecandy/opc server
 	/// @param port The port to use (fadecandy default is 7890)
 	///
-	LedDeviceFadeCandy(const std::string& host, const uint16_t port);
+	LedDeviceFadeCandy(const std::string& host, const uint16_t port, const unsigned channel);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
@@ -46,6 +46,7 @@ private:
 	QTcpSocket        _client;
 	const std::string _host;
 	const uint16_t    _port;
+	const unsigned    _channel;
 	QByteArray        _opc_data;
 
 	/// try to establish connection to opc server, if not connected yet
