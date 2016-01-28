@@ -1,4 +1,4 @@
-import hyperion, time, colorsys, random, subprocess
+import hyperion, time, subprocess
 
 def setPixel(x,y,rgb):
 	global imageData, width
@@ -17,8 +17,6 @@ width          = 12
 height         = 10
 
 imageData      = bytearray(height * width * (0,0,0))
-imageDataBlack = bytearray(height * width * (0,0,0))
-imageDataRed   = bytearray(height * width * alarmColor)
 
 # Start the write data loop
 for i in range(6):
@@ -26,9 +24,9 @@ for i in range(6):
 		off = False
 		break
 	if i % 2:
-		hyperion.setImage(width, height, imageDataRed)
+		hyperion.setColor(alarmColor[0], alarmColor[1], alarmColor[2])
 	else:
-		hyperion.setImage(width, height, imageDataBlack)
+		hyperion.setColor(0, 0, 0)
 	time.sleep(sleepTime)
 
 for y in range(height,0,-1):
