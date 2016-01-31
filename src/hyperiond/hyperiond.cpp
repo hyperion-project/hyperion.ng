@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 		// Get the parameters for the bootsequence
 		const std::string effectName = effectConfig["effect"].asString();
 		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
-		const int priority = 0;
+		const int priority           = effectConfig["priority"].asUInt();
 
 		hyperion.setColor(priority+1, ColorRgb::BLACK, duration_ms, false);
 

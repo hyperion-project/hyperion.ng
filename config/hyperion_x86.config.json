@@ -359,6 +359,7 @@
 	/// The configuration of the effect engine, contains the following items: 
 	///  * paths        : An array with absolute location(s) of directories with effects 
 	///  * bootsequence : The effect selected as 'boot sequence'
+	///    * duration_ms : duration of boot effect in ms. 0 means effect stays forever
 	"effects" : 
 	{
 		"paths" : 
@@ -369,8 +370,9 @@
 
 	"bootsequence" : 
 	{
-		"effect" : "Rainbow swirl fast",
-		"duration_ms" : 3000
+		"effect"      : "Rainbow swirl fast",
+		"duration_ms" : 3000,
+		"priority"    : 0
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
