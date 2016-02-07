@@ -355,10 +355,21 @@
 	/// The black border configuration, contains the following items: 
 	///  * enable    : true if the detector should be activated
 	///  * threshold : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
-	"blackborderdetector" : 
+	///  * unknownFrameCnt : Number of frames without any detection before the border is set to 0 (default 600) - optional
+	///  * borderFrameCnt : Number of frames before a consistent detected border gets set (default 50) - optional
+	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency - optional
+	///  * blurRemoveCnt : Number of pixels that get removed from the detected border to cut away blur (default 1) - optional
+	///  * mode : Border detection mode (values "default","classic","osd") - optional
+	
+	"blackborderdetector" :
 	{
 		"enable" : true,
-		"threshold" : 0.01
+		"threshold" : 0.01,
+		"unknownFrameCnt": 600,
+		"borderFrameCnt" : 50,
+		"maxInconsistentCnt" : 10,
+		"blurRemoveCnt": 1,
+		"mode" : "default"
 	},
 
 	/// The configuration of the effect engine, contains the following items: 

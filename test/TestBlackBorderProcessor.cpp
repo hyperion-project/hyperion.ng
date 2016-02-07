@@ -44,11 +44,13 @@ Image<ColorRgb> createImage(unsigned width, unsigned height, unsigned topBorder,
 
 int main()
 {
-	unsigned unknownCnt = 600;
+//	unsigned unknownCnt = 600;
 	unsigned borderCnt  = 50;
-	unsigned blurCnt    = 0;
+//	unsigned blurCnt    = 0;
+	Json::Value config;
 
-	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt, 3);
+//	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt, 3, config);
+	BlackBorderProcessor processor(config);
 
 	// Start with 'no border' detection
 	Image<ColorRgb> noBorderImage = createImage(64, 64, 0, 0);
