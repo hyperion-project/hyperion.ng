@@ -2,7 +2,6 @@
 #include <cstring>
 #include <cstdio>
 #include <iostream>
-#include <algorithm>
 
 // Linux includes
 #include <fcntl.h>
@@ -32,15 +31,15 @@ LedDeviceAPA102::LedDeviceAPA102(const std::string& outputDevice, const unsigned
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 {
 	const unsigned int startFrameSize = APA102_START_FRAME_BYTES;
-        const unsigned int ledsCount = ledValues.size() ;
-        const unsigned int ledsSize = ledsCount * APA102_LED_BYTES ;
-        const unsigned int endFrameBits = APA102_END_FRAME_BITS(ledsCount) ;
-        const unsigned int endFrameSize = APA102_END_FRAME_BYTES(ledsCount) ;
-        const unsigned int transferSize = startFrameSize + ledsSize + endFrameSize ;
+	const unsigned int ledsCount = ledValues.size() ;
+	const unsigned int ledsSize = ledsCount * APA102_LED_BYTES ;
+	const unsigned int endFrameBits = APA102_END_FRAME_BITS(ledsCount) ;
+	const unsigned int endFrameSize = APA102_END_FRAME_BYTES(ledsCount) ;
+	const unsigned int transferSize = startFrameSize + ledsSize + endFrameSize ;
 
 	if(_ledBuffer.size() != transferSize){
 		_ledBuffer.resize(transferSize, 0x00);
-	} 
+	}
 
 	unsigned idx = 0, i;
 	for (i=0; i<APA102_START_FRAME_BYTES; i++) {
@@ -56,7 +55,7 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 		_ledBuffer[idx++] = rgb.blue;
 	}
 	for(i=0; i<endFrameSize; i++)
-	    _ledBuffer[idx++] = 0x00 ;
+		_ledBuffer[idx++] = 0x00 ;
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
@@ -64,4 +63,4 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 int LedDeviceAPA102::switchOff()
 {
 	return write(std::vector<ColorRgb>(_ledBuffer.size(), ColorRgb{0,0,0}));
-}   
+}
