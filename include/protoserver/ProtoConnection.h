@@ -67,16 +67,16 @@ public:
     ///
     void clearAll();
 
-private:
-    /// Try to connect to the Hyperion host
-    void connectToHost();
-
     ///
     /// Send a command message and receive its reply
     ///
     /// @param message The message to send
     ///
     void sendMessage(const proto::HyperionRequest & message);
+
+private:
+    /// Try to connect to the Hyperion host
+    void connectToHost();
 
     ///
     /// Parse a reply message

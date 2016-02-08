@@ -6,12 +6,14 @@
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
+#include <QStringList>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
 // proto includes
 #include "message.pb.h"
+#include "protoserver/ProtoConnection.h"
 
 class ImageProcessor;
 
@@ -28,7 +30,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	ProtoClientConnection(QTcpSocket * socket, Hyperion * hyperion);
+	ProtoClientConnection(QTcpSocket * socket, Hyperion * hyperion, QStringList forwardClientList);
 
 	///
 	/// Destructor
@@ -123,4 +125,8 @@ private:
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
+	
+	/// Hyperion proto connection object for forwarding
+	QList<ProtoConnection*> _proxy_connections;
+
 };

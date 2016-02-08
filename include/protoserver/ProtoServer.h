@@ -6,6 +6,7 @@
 // Qt includes
 #include <QTcpServer>
 #include <QSet>
+#include <QStringList>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -27,7 +28,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	ProtoServer(Hyperion * hyperion, uint16_t port = 19445);
+	ProtoServer(Hyperion * hyperion, uint16_t port = 19445, QStringList * forwardClientList = new QStringList() );
 	~ProtoServer();
 
 	///
@@ -56,4 +57,5 @@ private:
 
 	/// List with open connections
 	QSet<ProtoClientConnection *> _openConnections;
+	QStringList _forwardClients;
 };

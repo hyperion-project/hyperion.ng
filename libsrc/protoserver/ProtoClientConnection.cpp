@@ -20,7 +20,7 @@
 // project includes
 #include "ProtoClientConnection.h"
 
-ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
+ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket, Hyperion * hyperion, QStringList forwardClientList) :
 	QObject(),
 	_socket(socket),
 	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
@@ -30,11 +30,22 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket, Hyperion * hype
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+
+	for (int i = 0; i < forwardClientList.size(); ++i) {
+		std::cout << "Proto forward to " << forwardClientList.at(i).toLocal8Bit().constData() << std::endl;
+		ProtoConnection* p = new ProtoConnection("127.0.0.1:19445");
+		p->setSkipReply(true);
+		_proxy_connections << p;
+	}
+	
 }
 
 ProtoClientConnection::~ProtoClientConnection()
 {
 	delete _socket;
+
+	while (!_proxy_connections.isEmpty())
+    delete _proxy_connections.takeFirst();
 }
 
 void ProtoClientConnection::readData()
@@ -81,6 +92,10 @@ void ProtoClientConnection::socketClosed()
 
 void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message)
 {
+	// forward messages
+	for (int i = 0; i < _proxy_connections.size(); ++i)
+		_proxy_connections.at(i)->sendMessage(message);
+
 	switch (message.command())
 	{
 	case proto::HyperionRequest::COLOR:

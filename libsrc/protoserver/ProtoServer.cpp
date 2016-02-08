@@ -5,12 +5,15 @@
 #include <protoserver/ProtoServer.h>
 #include "ProtoClientConnection.h"
 
-ProtoServer::ProtoServer(Hyperion *hyperion, uint16_t port) :
+ProtoServer::ProtoServer(Hyperion *hyperion, uint16_t port, QStringList * forwardClientList) :
 	QObject(),
 	_hyperion(hyperion),
 	_server(),
 	_openConnections()
 {
+	for (int i = 0; i < forwardClientList->size(); ++i)
+		_forwardClients << forwardClientList->at(i);
+
 	if (!_server.listen(QHostAddress::Any, port))
 	{
 		throw std::runtime_error("Proto server could not bind to port");
@@ -39,7 +42,7 @@ void ProtoServer::newConnection()
 	if (socket != nullptr)
 	{
 		std::cout << "New proto connection" << std::endl;
-		ProtoClientConnection * connection = new ProtoClientConnection(socket, _hyperion);
+		ProtoClientConnection * connection = new ProtoClientConnection(socket, _hyperion, _forwardClients);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
