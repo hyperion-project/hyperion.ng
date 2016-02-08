@@ -1,16 +1,15 @@
 #include "LedDeviceFadeCandy.h"
 
-static const unsigned MAX_NUM_LEDS    = 512;
-static const unsigned OPC_BROADCAST   = 0;    // OPC broadcast channel
-static const unsigned OPC_SET_PIXELS  = 0;    // OPC command codes
-static const unsigned OPC_HEADER_SIZE = 4;    // OPC header size
+static const unsigned MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
+static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
+static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
-LedDeviceFadeCandy::LedDeviceFadeCandy(const std::string& host, const uint16_t port) :
-	_host(host), _port(port)
+LedDeviceFadeCandy::LedDeviceFadeCandy(const std::string& host, const uint16_t port, const unsigned channel) :
+	_host(host), _port(port), _channel(channel)
 {
 	_opc_data.resize( OPC_HEADER_SIZE );
-	_opc_data[0] = OPC_BROADCAST;
+	_opc_data[0] = channel;
 	_opc_data[1] = OPC_SET_PIXELS;
 	_opc_data[2] = 0;
 	_opc_data[3] = 0;
@@ -32,11 +31,9 @@ bool LedDeviceFadeCandy::isConnected()
 bool LedDeviceFadeCandy::tryConnect()
 {
 	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
-		qDebug("connecting to %s %i",_host.c_str(),_port);
-
 		_client.connectToHost( _host.c_str(), _port);
 		if ( _client.waitForConnected(1000) )
-			qDebug("connected");
+			qDebug("fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
 	}
 
 	return isConnected();
@@ -51,7 +48,7 @@ int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 
 	if (nrLedValues > MAX_NUM_LEDS)
 	{
-		std::cerr << "Invalid attempt to write led values. Not more than " << MAX_NUM_LEDS << " leds are allowed." << std::endl;
+		std::cerr << "fadecandy/opc: Invalid attempt to write led values. Not more than " << MAX_NUM_LEDS << " leds are allowed." << std::endl;
 		return -1;
 	}
 

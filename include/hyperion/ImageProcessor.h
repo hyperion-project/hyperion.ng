@@ -106,7 +106,7 @@ private:
 	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
 	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
-	ImageProcessor(const LedString &ledString, bool enableBlackBorderDetector, uint8_t blackborderThreshold);
+	ImageProcessor(const LedString &ledString, const Json::Value &blackborderConfig);
 
 	///
 	/// Performs black-border detection (if enabled) on the given image
