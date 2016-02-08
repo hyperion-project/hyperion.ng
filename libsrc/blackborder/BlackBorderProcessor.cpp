@@ -1,23 +1,31 @@
-//#include <iostream>
-
+//*
+#include <iostream>
+/*
+#include <iomanip>
+using std::cout;
+using std::endl;
+using std::setw;
+using std::left;
+//*/
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
+
 using namespace hyperion;
 
-BlackBorderProcessor::BlackBorderProcessor(const unsigned unknownFrameCnt,
-		const unsigned borderFrameCnt,
-		const unsigned blurRemoveCnt,
-		uint8_t blackborderThreshold) :
-	_unknownSwitchCnt(unknownFrameCnt),
-	_borderSwitchCnt(borderFrameCnt),
-	_blurRemoveCnt(blurRemoveCnt),
-	_detector(blackborderThreshold),
+BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig) :
+	_unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt()),
+	_borderSwitchCnt(blackborderConfig.get("borderFrameCnt", 50).asUInt()),
+	_maxInconsistentCnt(blackborderConfig.get("maxInconsistentCnt", 10).asUInt()),
+	_blurRemoveCnt(blackborderConfig.get("blurRemoveCnt", 1).asUInt()),
+	_detectionMode(blackborderConfig.get("mode", "default").asString()),
+	_detector(blackborderConfig.get("threshold", 0.01).asDouble()),
 	_currentBorder({true, -1, -1}),
 	_previousDetectedBorder({true, -1, -1}),
 	_consistentCnt(0),
 	_inconsistentCnt(10)
 {
+	std::cout << "DETECTION MODE:" << _detectionMode << std::endl;
 	// empty
 }
 
@@ -39,7 +47,7 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 // makes it look like the border detectionn is not working - since the new 3 line detection algorithm is more precise this became a problem specialy in dark scenes
 // wisc
 
-//	std::cout << "cur: " << _currentBorder.verticalSize << " " << _currentBorder.horizontalSize << " new: " << newDetectedBorder.verticalSize << " " << newDetectedBorder.horizontalSize << " c:i " << _consistentCnt << ":" << _inconsistentCnt << std::endl;
+//	std::cout << "c: " << setw(2) << _currentBorder.verticalSize << " " << setw(2) << _currentBorder.horizontalSize << " p: " << setw(2) << _previousDetectedBorder.verticalSize << " " << setw(2) << _previousDetectedBorder.horizontalSize << " n: " << setw(2) << newDetectedBorder.verticalSize << " " << setw(2) << newDetectedBorder.horizontalSize << " c:i " << setw(2) << _consistentCnt << ":" << setw(2) << _inconsistentCnt << std::endl;
 
 	// set the consistency counter
 	if (newDetectedBorder == _previousDetectedBorder)
@@ -50,7 +58,7 @@ bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)
 	else
 	{
 		++_inconsistentCnt;
-		if (_inconsistentCnt <= 10)// few inconsistent frames
+		if (_inconsistentCnt <= _maxInconsistentCnt)// only few inconsistent frames
 		{
 			//discard the newDetectedBorder -> keep the consistent count for previousDetectedBorder
 			return false;
