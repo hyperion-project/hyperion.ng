@@ -364,6 +364,10 @@
 	/// The configuration of the effect engine, contains the following items: 
 	///  * paths        : An array with absolute location(s) of directories with effects 
 	///  * bootsequence : The effect selected as 'boot sequence'
+	///    * effect : name of the effect you want to start. Set to empty if no effect wanted
+	///    * color  : switch to static color after effect is done
+	///    * duration_ms : duration of boot effect in ms. 0 means effect stays forever
+	///    * priority : priority of boot effect and static color
 	"effects" : 
 	{
 		"paths" : 
@@ -374,8 +378,10 @@
 
 	"bootsequence" : 
 	{
-		"effect" : "Rainbow swirl fast",
-		"duration_ms" : 3000
+		"color"       : [0,0,0],
+		"effect"      : "Rainbow swirl fast",
+		"duration_ms" : 3000,
+		"priority"    : 0
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
