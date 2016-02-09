@@ -1,7 +1,9 @@
+
 // STL includes
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 // Linux includes
 #include <fcntl.h>
@@ -17,45 +19,26 @@ LedDeviceAPA102::LedDeviceAPA102(const std::string& outputDevice, const unsigned
 	// empty
 }
 
-#define MIN(a,b)	((a)<(b)?(a):(b))
-#define MAX(a,b)	((a)>(b)?(a):(b))
-
-#define APA102_START_FRAME_BYTES	4
-#define APA102_LED_BYTES		4
-#define APA102_END_FRAME_BITS_MIN	32
-#define APA102_END_FRAME_BITS(leds)	MAX((((leds-1)/2)+1),APA102_END_FRAME_BITS_MIN)
-#define APA102_END_FRAME_BYTES(leds)	(((APA102_END_FRAME_BITS(leds)-1)/8)+1)
-#define APA102_LED_HEADER		0xe0
-#define APA102_LED_MAX_INTENSITY	0x1f
-
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 {
-	const unsigned int startFrameSize = APA102_START_FRAME_BYTES;
-	const unsigned int ledsCount = ledValues.size() ;
-	const unsigned int ledsSize = ledsCount * APA102_LED_BYTES ;
-	const unsigned int endFrameBits = APA102_END_FRAME_BITS(ledsCount) ;
-	const unsigned int endFrameSize = APA102_END_FRAME_BYTES(ledsCount) ;
-	const unsigned int transferSize = startFrameSize + ledsSize + endFrameSize ;
-
-	if(_ledBuffer.size() != transferSize){
-		_ledBuffer.resize(transferSize, 0x00);
+	const unsigned int startFrameSize = 4;
+	const unsigned int endFrameSize = std::max<unsigned int>(((ledValues.size() + 15) / 16), 4);
+	const unsigned int mLedCount = (ledValues.size() * 4) + startFrameSize + endFrameSize;
+	if(_ledBuffer.size() != mLedCount){
+		_ledBuffer.resize(mLedCount, 0xFF);
+		_ledBuffer[0] = 0x00; 
+		_ledBuffer[1] = 0x00; 
+		_ledBuffer[2] = 0x00; 
+		_ledBuffer[3] = 0x00; 
 	}
-
-	unsigned idx = 0, i;
-	for (i=0; i<APA102_START_FRAME_BYTES; i++) {
-		_ledBuffer[idx++] = 0x00 ;
+	
+	for (unsigned iLed=1; iLed<=ledValues.size(); ++iLed) {
+		const ColorRgb& rgb = ledValues[iLed-1];
+		_ledBuffer[iLed*4]   = 0xFF;
+		_ledBuffer[iLed*4+1] = rgb.red;
+		_ledBuffer[iLed*4+2] = rgb.green;
+		_ledBuffer[iLed*4+3] = rgb.blue;
 	}
-
-	for (i=0; i<ledsCount; i++) {
-		const ColorRgb& rgb = ledValues[i];
-
-		_ledBuffer[idx++]   = APA102_LED_HEADER + APA102_LED_MAX_INTENSITY;
-		_ledBuffer[idx++] = rgb.red;
-		_ledBuffer[idx++] = rgb.green;
-		_ledBuffer[idx++] = rgb.blue;
-	}
-	for(i=0; i<endFrameSize; i++)
-		_ledBuffer[idx++] = 0x00 ;
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
