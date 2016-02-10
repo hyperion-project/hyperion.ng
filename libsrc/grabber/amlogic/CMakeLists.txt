@@ -15,7 +15,11 @@ SET(AmlogicSOURCES
 		${CURRENT_SOURCE_DIR}/AmlogicGrabber.cpp
 )
 
+if(ENABLE_QT5)
+QT5_WRAP_CPP(AmlogicHEADERS_MOC ${AmlogicQT_HEADERS})
+else(ENABLE_QT5)
 QT4_WRAP_CPP(AmlogicHEADERS_MOC ${AmlogicQT_HEADERS})
+endif(ENABLE_QT5)
 
 add_library(amlogic-grabber
 		${AmlogicHEADERS}

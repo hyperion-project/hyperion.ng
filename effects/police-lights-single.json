@@ -1,0 +1,12 @@
+{
+	"name" : "Police Lights Single",
+	"script" : "police.py",
+	"args" :
+	{
+		"rotation-time" : 1.5,
+		"color_one" : [ 255, 0, 0 ],
+		"color_two" : [ 0, 0, 255 ],
+		"colors_count" : 10,
+		"reverse" : false
+	}
+}

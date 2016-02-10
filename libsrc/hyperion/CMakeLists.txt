@@ -36,9 +36,13 @@ set(Hyperion_RESOURCES
 		${CURRENT_SOURCE_DIR}/resource.qrc
 )
 
+if(ENABLE_QT5)
+QT5_WRAP_CPP(Hyperion_HEADERS_MOC ${Hyperion_QT_HEADERS})
+QT5_ADD_RESOURCES(Hyperion_RESOURCES_RCC ${Hyperion_RESOURCES} OPTIONS "-no-compress")
+else(ENABLE_QT5)
 QT4_WRAP_CPP(Hyperion_HEADERS_MOC ${Hyperion_QT_HEADERS})
-
 QT4_ADD_RESOURCES(Hyperion_RESOURCES_RCC ${Hyperion_RESOURCES} OPTIONS "-no-compress")
+endif(ENABLE_QT5)
 
 add_library(hyperion
 		${Hyperion_HEADERS}
@@ -47,6 +51,10 @@ add_library(hyperion
 		${Hyperion_SOURCES}
 		${Hyperion_RESOURCES_RCC}
 )
+
+if(ENABLE_QT5)
+qt5_use_modules(hyperion Widgets)
+endif(ENABLE_QT5)
 
 target_link_libraries(hyperion
 		blackborder

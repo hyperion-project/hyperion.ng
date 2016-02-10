@@ -77,6 +77,9 @@ int main(int argc, char ** argv)
                     argCropBottom.getValue(),
                     argSizeDecimation.getValue(), // horizontal decimation
                     argSizeDecimation.getValue()); // vertical decimation
+	
+	if (!x11Wrapper.displayInit())
+	  return -1;
 
         if (argScreenshot.isSet())
         {
