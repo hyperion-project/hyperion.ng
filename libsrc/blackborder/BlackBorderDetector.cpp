@@ -1,6 +1,7 @@
 #include <iostream>
 // BlackBorders includes
 #include <blackborder/BlackBorderDetector.h>
+#include <cmath>
 
 using namespace hyperion;
 
