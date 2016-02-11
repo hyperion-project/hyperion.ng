@@ -1,7 +1,3 @@
-
-// STL includes
-#include <cmath>
-
 // Hyperion includes
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
