@@ -7,6 +7,11 @@
 // X11 includes
 #include <X11/Xlib.h>
 
+#include <X11/extensions/Xrender.h>
+#include <X11/extensions/XShm.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 class X11Grabber
 {
 public:
@@ -16,6 +21,8 @@ public:
 	virtual ~X11Grabber();
 
 	int open();
+	
+	bool Setup();
 
 	Image<ColorRgb> & grab();
 
@@ -26,14 +33,24 @@ private:
     int _cropRight;
     int _cropTop;
     int _cropBottom;
+    
+    XImage* _xImage;
+    XShmSegmentInfo _shminfo;
 
 	/// Reference to the X11 display (nullptr if not opened)
-	Display * _x11Display;
+	Display* _x11Display;
+	Window _window;
+	XWindowAttributes _windowAttr;
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;
+	unsigned _croppedWidth;
+	unsigned _croppedHeight;
 
 	Image<ColorRgb> _image;
-
+	
+	void freeResources();
+	void setupResources();
+	
 	int updateScreenDimensions();
 };

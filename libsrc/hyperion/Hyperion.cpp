@@ -282,8 +282,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
-				jsonConfig["blackborderdetector"].get("enable", true).asBool(),
-				jsonConfig["blackborderdetector"].get("threshold", 0.01).asDouble());
+				jsonConfig["blackborderdetector"]
+	);
 
 	// initialize the color smoothing filter
 	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);

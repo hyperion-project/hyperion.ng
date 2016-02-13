@@ -29,6 +29,11 @@ void X11Wrapper::stop()
     _timer.stop();
 }
 
+bool X11Wrapper::displayInit()
+{
+    return _grabber.Setup();
+}
+
 void X11Wrapper::capture()
 {
     const Image<ColorRgb> & screenshot = _grabber.grab();

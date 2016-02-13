@@ -17,7 +17,11 @@ set(BoblightServer_SOURCES
 		${CURRENT_SOURCE_DIR}/BoblightClientConnection.cpp
 )
 
+if(ENABLE_QT5)
+qt5_wrap_cpp(BoblightServer_HEADERS_MOC ${BoblightServer_QT_HEADERS})
+else(ENABLE_QT5)
 qt4_wrap_cpp(BoblightServer_HEADERS_MOC ${BoblightServer_QT_HEADERS})
+endif(ENABLE_QT5)
 
 add_library(boblightserver
 		${BoblightServer_HEADERS}
@@ -25,6 +29,10 @@ add_library(boblightserver
 		${BoblightServer_SOURCES}
 		${BoblightServer_HEADERS_MOC}
 )
+
+if(ENABLE_QT5)
+qt5_use_modules(boblightserver Widgets)
+endif(ENABLE_QT5)
 
 target_link_libraries(boblightserver
 		hyperion

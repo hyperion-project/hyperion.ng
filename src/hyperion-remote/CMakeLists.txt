@@ -3,7 +3,13 @@ cmake_minimum_required(VERSION 2.8)
 project(hyperion-remote)
 
 # find Qt4
+if(ENABLE_QT5)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#      set(CMAKE_CXX_FLAGS "-fPIC")
+else(ENABLE_QT5)
 find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+endif(ENABLE_QT5)
 
 # The following I do not undrstand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
@@ -24,6 +30,10 @@ set(hyperion-remote_SOURCES
 add_executable(hyperion-remote
 	${hyperion-remote_HEADERS}
 	${hyperion-remote_SOURCES})
+
+if(ENABLE_QT5)
+qt5_use_modules(hyperion-remote Widgets Network)
+endif(ENABLE_QT5)
 
 target_link_libraries(hyperion-remote
 	jsoncpp
