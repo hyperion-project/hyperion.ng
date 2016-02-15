@@ -250,8 +250,22 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleNotImplemented();
 }
 
+
+void JsonClientConnection::forwardJsonMessage(const Json::Value & message)
+{
+	QTcpSocket client;
+	client.connectToHost(QHostAddress("127.0.0.1"), 19444);
+	if ( client.waitForConnected(500) )
+	{
+		sendMessage(message,&client);
+		client.close();
+	}
+}
+
 void JsonClientConnection::handleColorCommand(const Json::Value &message)
 {
+	forwardJsonMessage(message);
+
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
@@ -289,6 +303,8 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 
 void JsonClientConnection::handleImageCommand(const Json::Value &message)
 {
+	forwardJsonMessage(message);
+
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
@@ -320,6 +336,8 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 
 void JsonClientConnection::handleEffectCommand(const Json::Value &message)
 {
+	forwardJsonMessage(message);
+
 	// extract parameters
 	int priority = message["priority"].asInt();
 	int duration = message.get("duration", -1).asInt();
@@ -418,6 +436,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 void JsonClientConnection::handleClearCommand(const Json::Value &message)
 {
+	forwardJsonMessage(message);
+
 	// extract parameters
 	int priority = message["priority"].asInt();
 
@@ -428,8 +448,10 @@ void JsonClientConnection::handleClearCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
-void JsonClientConnection::handleClearallCommand(const Json::Value &)
+void JsonClientConnection::handleClearallCommand(const Json::Value & message)
 {
+	forwardJsonMessage(message);
+
 	// clear priority
 	_hyperion->clearall();
 
@@ -530,9 +552,50 @@ void JsonClientConnection::sendMessage(const Json::Value &message)
 	
 		response.append(serializedReply.c_str(), serializedReply.length());
 	
-		_socket->write(response.data(), response.length());		
+		_socket->write(response.data(), response.length());
 	}
 }
+
+
+void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket * socket)
+{
+	// serialize message (FastWriter already appends a newline)
+	std::string serializedMessage = Json::FastWriter().write(message);
+
+	// write message
+	socket->write(serializedMessage.c_str());
+	if (!socket->waitForBytesWritten())
+	{
+		//std::cout << "Error while writing data to host" << std::endl;
+		return;
+	}
+
+	// read reply data
+	QByteArray serializedReply;
+	while (!serializedReply.contains('\n'))
+	{
+		// receive reply
+		if (!socket->waitForReadyRead())
+		{
+			//std::cout << "Error while reading data from host" << std::endl;
+			return;
+		}
+
+		serializedReply += socket->readAll();
+	}
+	int bytes = serializedReply.indexOf('\n') + 1;     // Find the end of message
+
+	// parse reply data
+	Json::Reader jsonReader;
+	Json::Value reply;
+	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
+	{
+		//std::cout <<  "Error while parsing reply: invalid json" << std::endl;
+		return;
+	}
+
+}
+
 
 void JsonClientConnection::sendSuccessReply()
 {

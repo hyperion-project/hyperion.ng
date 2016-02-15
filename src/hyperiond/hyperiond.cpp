@@ -369,18 +369,7 @@ int main(int argc, char** argv)
 	if (config.isMember("protoServer"))
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
-		QStringList forwardClientList;
-		
-		if ( ! protoServerConfig["forward"].isNull() && protoServerConfig["forward"].isArray() )
-		{
-			for (const Json::Value& client : protoServerConfig["forward"])
-			{
-				forwardClientList << client.asString().c_str();
-				std::cout << client.asString() << std::endl;
-			}
-		}
-		
-		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt(), &forwardClientList );
+		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
 		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
 	}
 #endif

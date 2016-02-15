@@ -30,7 +30,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	ProtoClientConnection(QTcpSocket * socket, Hyperion * hyperion, QStringList forwardClientList);
+	ProtoClientConnection(QTcpSocket * socket, Hyperion * hyperion);
 
 	///
 	/// Destructor
@@ -43,6 +43,7 @@ signals:
 	/// @param connection This connection object
 	///
 	void connectionClosed(ProtoClientConnection * connection);
+	void newMessage(const proto::HyperionRequest * message);
 
 private slots:
 	///
@@ -125,8 +126,4 @@ private:
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
-	
-	/// Hyperion proto connection object for forwarding
-	QList<ProtoConnection*> _proxy_connections;
-
 };

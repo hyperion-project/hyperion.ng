@@ -6,12 +6,19 @@
 // Qt includes
 #include <QTcpServer>
 #include <QSet>
+#include <QList>
 #include <QStringList>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+// forward decl
 class ProtoClientConnection;
+class ProtoConnection;
+
+namespace proto {
+class HyperionRequest;
+}
 
 ///
 /// This class creates a TCP server which accepts connections wich can then send
@@ -28,7 +35,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	ProtoServer(Hyperion * hyperion, uint16_t port = 19445, QStringList * forwardClientList = new QStringList() );
+	ProtoServer(Hyperion * hyperion, uint16_t port = 19445);
 	~ProtoServer();
 
 	///
@@ -48,6 +55,8 @@ private slots:
 	///
 	void closedConnection(ProtoClientConnection * connection);
 
+	void newMessage(const proto::HyperionRequest * message);
+
 private:
 	/// Hyperion instance
 	Hyperion * _hyperion;
@@ -58,4 +67,8 @@ private:
 	/// List with open connections
 	QSet<ProtoClientConnection *> _openConnections;
 	QStringList _forwardClients;
+
+	/// Hyperion proto connection object for forwarding
+	QList<ProtoConnection*> _proxy_connections;
+
 };
