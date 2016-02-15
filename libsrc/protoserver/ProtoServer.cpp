@@ -18,7 +18,6 @@ ProtoServer::ProtoServer(Hyperion *hyperion, uint16_t port) :
 	QStringList slaves = forwarder->getProtoSlaves();
 
 	for (int i = 0; i < slaves.size(); ++i) {
-		std::cout << "Proto forward to " << slaves.at(i).toLocal8Bit().constData() << std::endl;
 		ProtoConnection* p = new ProtoConnection(slaves.at(i).toLocal8Bit().constData());
 		p->setSkipReply(true);
 		_proxy_connections << p;

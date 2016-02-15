@@ -275,13 +275,19 @@ MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarde
 			if ( ! forwarderConfig["json"].isNull() && forwarderConfig["json"].isArray() )
 			{
 				for (const Json::Value& addr : forwarderConfig["json"])
+				{
+					std::cout << "Json forward to " << addr.asString() << std::endl;
 					forwarder->addJsonSlave(addr.asString());
+				}
 			}
 
 			if ( ! forwarderConfig["proto"].isNull() && forwarderConfig["proto"].isArray() )
 			{
 				for (const Json::Value& addr : forwarderConfig["proto"])
+				{
+					std::cout << "Proto forward to " << addr.asString() << std::endl;
 					forwarder->addProtoSlave(addr.asString());
+				}
 			}
 		}
 

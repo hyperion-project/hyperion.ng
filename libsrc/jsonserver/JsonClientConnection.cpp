@@ -16,6 +16,7 @@
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
+#include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorTransform.h>
 #include <utils/ColorRgb.h>
 
@@ -254,11 +255,16 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 void JsonClientConnection::forwardJsonMessage(const Json::Value & message)
 {
 	QTcpSocket client;
-	client.connectToHost(QHostAddress("127.0.0.1"), 19444);
-	if ( client.waitForConnected(500) )
+	QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+
+	for ( int i=0; i<list.size(); i++ )
 	{
-		sendMessage(message,&client);
-		client.close();
+		client.connectToHost(list.at(i).addr, list.at(i).port);
+		if ( client.waitForConnected(500) )
+		{
+			sendMessage(message,&client);
+			client.close();
+		}
 	}
 }
 

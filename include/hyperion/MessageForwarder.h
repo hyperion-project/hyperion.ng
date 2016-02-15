@@ -9,12 +9,19 @@
 // QT includes
 #include <QList>
 #include <QStringList>
+#include <QHostAddress>
 
 // Utils includes
 #include <utils/ColorRgb.h>
 class MessageForwarder
 {
 public:
+
+	struct JsonSlaveAddress {
+		QHostAddress addr;
+		quint16 port = 19444;
+	};
+
 	MessageForwarder();
 	~MessageForwarder();
 	
@@ -23,9 +30,9 @@ public:
 	void sendMessage();
 	
 	QStringList getProtoSlaves();
+	QList<MessageForwarder::JsonSlaveAddress> getJsonSlaves();
 
 private:
-	bool _running;
-
-	QStringList _protoSlaves;
+	QStringList               _protoSlaves;
+	QList<MessageForwarder::JsonSlaveAddress>   _jsonSlaves;
 };
