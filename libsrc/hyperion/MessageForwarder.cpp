@@ -1,5 +1,5 @@
 // STL includes
-#include <exception>
+#include <stdexcept>
 
 #include <hyperion/MessageForwarder.h>
 
