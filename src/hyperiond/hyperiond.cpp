@@ -240,6 +240,10 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), dispmanx, SLOT(setVideoMode(VideoMode)));
 		}
 
+		#ifdef ENABLE_PROTOBUF
+		QObject::connect(dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		#endif
+
 		dispmanx->start();
 		std::cout << "Frame grabber created and started" << std::endl;
 	}
@@ -341,6 +345,10 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), fbGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
+		#ifdef ENABLE_PROTOBUF
+		QObject::connect(fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		#endif
+
 		fbGrabber->start();
 		std::cout << "Framebuffer grabber created and started" << std::endl;
 	}
@@ -375,6 +383,10 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), osxGrabber, SLOT(setVideoMode(VideoMode)));
 		}
+		
+		#ifdef ENABLE_PROTOBUF
+		QObject::connect(osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		#endif
 
 		osxGrabber->start();
 		std::cout << "OSX grabber created and started" << std::endl;
