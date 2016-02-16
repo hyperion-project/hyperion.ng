@@ -19,7 +19,7 @@ public:
 
 	struct JsonSlaveAddress {
 		QHostAddress addr;
-		quint16 port = 19444;
+		quint16 port;
 	};
 
 	MessageForwarder();
