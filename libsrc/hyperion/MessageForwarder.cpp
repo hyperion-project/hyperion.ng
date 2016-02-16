@@ -35,10 +35,6 @@ void MessageForwarder::addProtoSlave(std::string slave)
 	_protoSlaves << QString(slave.c_str());
 }
 
-void MessageForwarder::sendMessage()
-{
-}
-
 QStringList MessageForwarder::getProtoSlaves()
 {
 	return _protoSlaves;

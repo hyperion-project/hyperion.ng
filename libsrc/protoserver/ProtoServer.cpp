@@ -70,6 +70,12 @@ void ProtoServer::newMessage(const proto::HyperionRequest * message)
 		_proxy_connections.at(i)->sendMessage(*message);
 }
 
+void ProtoServer::sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms)
+{
+	for (int i = 0; i < _proxy_connections.size(); ++i)
+		_proxy_connections.at(i)->setImage(image, priority, duration_ms);
+}
+
 void ProtoServer::closedConnection(ProtoClientConnection *connection)
 {
 	std::cout << "Proto connection closed" << std::endl;

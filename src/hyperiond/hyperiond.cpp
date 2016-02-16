@@ -189,6 +189,39 @@ int main(int argc, char** argv)
 		std::cout << "XBMC video checker created and started" << std::endl;
 	}
 
+// ---- network services -----
+
+	// Create Json server if configuration is present
+	JsonServer * jsonServer = nullptr;
+	if (config.isMember("jsonServer"))
+	{
+		const Json::Value & jsonServerConfig = config["jsonServer"];
+		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
+		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
+	}
+
+#ifdef ENABLE_PROTOBUF
+	// Create Proto server if configuration is present
+	ProtoServer * protoServer = nullptr;
+	if (config.isMember("protoServer"))
+	{
+		const Json::Value & protoServerConfig = config["protoServer"];
+		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
+		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
+	}
+#endif
+
+	// Create Boblight server if configuration is present
+	BoblightServer * boblightServer = nullptr;
+	if (config.isMember("boblightServer"))
+	{
+		const Json::Value & boblightServerConfig = config["boblightServer"];
+		boblightServer = new BoblightServer(&hyperion, boblightServerConfig["port"].asUInt());
+		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
+	}
+
+// ---- grabber -----
+
 #ifdef ENABLE_DISPMANX
 	// Construct and start the frame-grabber if the configuration is present
 	DispmanxWrapper * dispmanx = nullptr;
@@ -214,7 +247,7 @@ int main(int argc, char** argv)
 #if !defined(ENABLE_OSX) && !defined(ENABLE_FB)
 	if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The dispmanx framegrabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The dispmanx framegrabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
@@ -246,14 +279,19 @@ int main(int argc, char** argv)
 					grabberConfig.get("cropTop", 0).asInt(),
 					grabberConfig.get("cropBottom", 0).asInt());
 
+		#ifdef ENABLE_PROTOBUF
+		QObject::connect(v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		#endif
+
 		v4l2Grabber->start();
 		std::cout << "V4l2 grabber created and started" << std::endl;
 	}
 #else
 	if (config.isMember("grabber-v4l2"))
 	{
-		std::cerr << "The v4l2 grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The v4l2 grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
+
 #endif
 
 #ifdef ENABLE_AMLOGIC
@@ -309,12 +347,12 @@ int main(int argc, char** argv)
 #else
 	if (config.isMember("framebuffergrabber"))
 	{
-		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
 	else if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The framebuffer grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
@@ -344,44 +382,16 @@ int main(int argc, char** argv)
 #else
 	if (config.isMember("osxgrabber"))
 	{
-		std::cerr << "The osx grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
 	else if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The osx grabber can not be instantiated, becuse it has been left out from the build" << std::endl;
+		std::cerr << "The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
 
-	// Create Json server if configuration is present
-	JsonServer * jsonServer = nullptr;
-	if (config.isMember("jsonServer"))
-	{
-		const Json::Value & jsonServerConfig = config["jsonServer"];
-		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
-		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
-	}
-
-#ifdef ENABLE_PROTOBUF
-	// Create Proto server if configuration is present
-	ProtoServer * protoServer = nullptr;
-	if (config.isMember("protoServer"))
-	{
-		const Json::Value & protoServerConfig = config["protoServer"];
-		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
-		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
-	}
-#endif
-
-	// Create Boblight server if configuration is present
-	BoblightServer * boblightServer = nullptr;
-	if (config.isMember("boblightServer"))
-	{
-		const Json::Value & boblightServerConfig = config["boblightServer"];
-		boblightServer = new BoblightServer(&hyperion, boblightServerConfig["port"].asUInt());
-		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
-	}
 
 	// run the application
 	int rc = app.exec();

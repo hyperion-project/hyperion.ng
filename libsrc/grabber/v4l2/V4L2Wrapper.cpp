@@ -94,6 +94,9 @@ void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 	// process the new image
 	_processor->process(image, _ledColors);
 
+	// forward to other hyperions
+	emit emitImage(_priority, image, _timeout_ms);
+
 	// send colors to Hyperion
 	emit emitColors(_priority, _ledColors, _timeout_ms);
 }

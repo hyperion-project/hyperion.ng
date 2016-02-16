@@ -12,6 +12,10 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+// hyperion includes
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
+
 // forward decl
 class ProtoClientConnection;
 class ProtoConnection;
@@ -42,6 +46,9 @@ public:
 	/// @return the port number on which this TCP listens for incoming connections
 	///
 	uint16_t getPort() const;
+
+public slots:
+	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 private slots:
 	///

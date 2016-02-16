@@ -6,7 +6,6 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
 		${CURRENT_HEADER_DIR}/Hyperion.h
-		${CURRENT_HEADER_DIR}/MessageForwarder.h
 
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
 )
@@ -19,6 +18,7 @@ SET(Hyperion_HEADERS
 		${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
 		${CURRENT_SOURCE_DIR}/MultiColorTransform.h
+		${CURRENT_HEADER_DIR}/MessageForwarder.h
 )
 
 SET(Hyperion_SOURCES
