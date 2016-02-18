@@ -18,6 +18,10 @@ ProtoServer::ProtoServer(Hyperion *hyperion, uint16_t port) :
 	QStringList slaves = forwarder->getProtoSlaves();
 
 	for (int i = 0; i < slaves.size(); ++i) {
+		if ( QString("127.0.0.1:%1").arg(port) == slaves.at(i) ) {
+			throw std::runtime_error("Loop between proto server and forwarder detected. Fix your config!");
+		}
+
 		ProtoConnection* p = new ProtoConnection(slaves.at(i).toLocal8Bit().constData());
 		p->setSkipReply(true);
 		_proxy_connections << p;
