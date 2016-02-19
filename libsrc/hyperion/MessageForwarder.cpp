@@ -44,3 +44,8 @@ QList<MessageForwarder::JsonSlaveAddress> MessageForwarder::getJsonSlaves()
 {
 	return _jsonSlaves;
 }
+
+bool MessageForwarder::protoForwardingEnabled()
+{
+	return ! _protoSlaves.empty();
+}

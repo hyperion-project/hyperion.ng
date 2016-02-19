@@ -27,7 +27,8 @@ public:
 	
 	void addJsonSlave(std::string slave);
 	void addProtoSlave(std::string slave);
-	
+
+	bool protoForwardingEnabled();
 	QStringList getProtoSlaves();
 	QList<MessageForwarder::JsonSlaveAddress> getJsonSlaves();
 

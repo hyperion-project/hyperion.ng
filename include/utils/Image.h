@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+#include <utils/ColorRgb.h>
+
 
 template <typename Pixel_T>
 class Image
@@ -183,6 +185,25 @@ public:
     {
         return _pixels;
     }
+    
+    
+  ///
+  /// Convert image of any color order to a RGB image.
+  ///
+  /// @param[out] image  The image that buffers the output
+  ///
+  void toRgb(Image<ColorRgb>& image)
+  {
+    image.resize(_width, _height);
+    const unsigned imageSize = _width * _height;
+
+    for (unsigned idx=0; idx<imageSize; idx++)
+    {
+      const Pixel_T color = memptr()[idx];
+      image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
+    }
+  }
+
 private:
 
     ///
