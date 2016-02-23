@@ -40,7 +40,7 @@ if [ $IS_OPENELEC -eq 1 ]; then
 if [ $IS_IMX6 -eq 1 ]; then
 	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_imx6.tar.gz | tar -C /storage -xz
 else
-	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz | tar -C /storage -xz
+	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_rpi.tar.gz | tar -C /storage -xz
 fi
 	curl -L --get https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.deps.openelec-rpi.tar.gz | tar -C /storage/hyperion/bin -xz
 	# modify the default config to have a correct effect path
@@ -49,7 +49,7 @@ else
 if [ $IS_IMX6 -eq 1 ]; then
 	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_imx6.tar.gz -O - | tar -C /opt -xz
 else
-	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion.tar.gz -O - | tar -C /opt -xz
+	wget https://raw.githubusercontent.com/tvdzwan/hyperion/master/deploy/hyperion_rpi.tar.gz -O - | tar -C /opt -xz
 fi
 fi
 
