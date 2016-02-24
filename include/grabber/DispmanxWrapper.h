@@ -94,4 +94,7 @@ private:
 
 	/// Pointer to Hyperion for writing led values
 	Hyperion * _hyperion;
+
+	// forwarding enabled
+	bool _forward;
 };

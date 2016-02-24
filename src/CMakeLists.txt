@@ -15,4 +15,9 @@ if(ENABLE_PROTOBUF)
 	if(ENABLE_X11)
 		add_subdirectory(hyperion-x11)
 	endif()
+
+	if(ENABLE_DISPMANX)
+		add_subdirectory(hyperion-dispmanx)
+	endif()
+
 endif()
