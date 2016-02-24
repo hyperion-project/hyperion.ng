@@ -31,6 +31,7 @@
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
 #include "LedDeviceFadeCandy.h"
+#include "LedDeviceUdp.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -250,6 +251,14 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const uint16_t port     = deviceConfig.get("port", 7890).asInt();
 		const uint16_t channel  = deviceConfig.get("channel", 0).asInt();
 		device = new LedDeviceFadeCandy(host, port, channel);
+	}
+	else if (type == "udp")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned protocol  = deviceConfig["protocol"].asInt();
+		const unsigned maxPacket   = deviceConfig["maxpacket"].asInt();
+		device = new LedDeviceUdp(output, rate, protocol, maxPacket);
 	}
 	else if (type == "tpm2")
 	{
