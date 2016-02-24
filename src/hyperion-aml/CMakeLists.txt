@@ -14,6 +14,7 @@ include_directories(
 )
 
 set(Hyperion_AML_QT_HEADERS
+	AmlogicWrapper.h
 )
 
 set(Hyperion_AML_HEADERS
@@ -21,12 +22,13 @@ set(Hyperion_AML_HEADERS
 
 set(Hyperion_AML_SOURCES
 	hyperion-aml.cpp
+	AmlogicWrapper.cpp
 )
 
 if(ENABLE_QT5)
-QT5_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
+	QT5_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
 else(ENABLE_QT5)
-QT4_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
+	QT4_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
 endif(ENABLE_QT5)
 
 add_executable(hyperion-amlogic

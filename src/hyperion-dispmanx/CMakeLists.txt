@@ -12,12 +12,7 @@ else(ENABLE_QT5)
 endif(ENABLE_QT5)
 
 # Find the BCM-package (VC control)
-#find_package(BCM REQUIRED)
-SET( BCM_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/dependencies/external/rapsi_vc )
-SET( BCM_LIBRARIES "" )
-ADD_DEFINITIONS ( -DDISPMANX_DUMMY )
-
-
+find_package(BCM REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver

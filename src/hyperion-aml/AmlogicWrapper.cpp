@@ -1,8 +1,8 @@
 
-// Hyperion-Dispmanx includes
-#include "DispmanxWrapper.h"
+// Hyperion-AmLogic includes
+#include "AmlogicWrapper.h"
 
-DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz) :
+AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz) :
     _timer(this),
     _grabber(grabWidth, grabHeight)
 {
@@ -13,23 +13,23 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
     connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
 }
 
-const Image<ColorRgb> & DispmanxWrapper::getScreenshot()
+const Image<ColorRgb> & AmlogicWrapper::getScreenshot()
 {
 	capture();
 	return _screenshot_rgb;
 }
 
-void DispmanxWrapper::start()
+void AmlogicWrapper::start()
 {
     _timer.start();
 }
 
-void DispmanxWrapper::stop()
+void AmlogicWrapper::stop()
 {
     _timer.stop();
 }
 
-void DispmanxWrapper::capture()
+void AmlogicWrapper::capture()
 {
 	_grabber.grabFrame(_screenshot);
 	_screenshot.toRgb(_screenshot_rgb);

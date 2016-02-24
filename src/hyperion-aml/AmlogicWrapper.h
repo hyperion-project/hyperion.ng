@@ -3,13 +3,13 @@
 #include <QTimer>
 
 // Hyperion-Dispmanx includes
-#include <grabber/DispmanxFrameGrabber.h>
+#include <grabber/AmlogicGrabber.h>
 
-class DispmanxWrapper : public QObject
+class AmlogicWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	const Image<ColorRgb> & getScreenshot();
 
@@ -25,8 +25,7 @@ signals:
 
 private slots:
 	///
-	/// Performs a single screenshot capture and publishes the capture screenshot on the screenshot
-	/// signal.
+	/// Performs a single screenshot capture and publishes the capture screenshot on the screenshot signal.
 	///
 	void capture();
 
@@ -35,8 +34,10 @@ private:
 	QTimer _timer;
 
 	/// The grabber for creating screenshots
-	DispmanxFrameGrabber _grabber;
-	Image<ColorRgb>   _screenshot_rgb;
-	Image<ColorRgba>  _screenshot;
+	AmlogicGrabber   _grabber;
+
+	// image buffers
+	Image<ColorRgb>  _screenshot_rgb;
+	Image<ColorBgr>  _screenshot;
 
 };

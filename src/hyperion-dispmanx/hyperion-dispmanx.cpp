@@ -6,7 +6,7 @@
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
 
-#include "protoserver/ProtoConnectionWrapper.h"
+#include <protoserver/ProtoConnectionWrapper.h>
 #include "DispmanxWrapper.h"
 
 using namespace vlofgren;
@@ -81,12 +81,12 @@ int main(int argc, char ** argv)
 			app.exec();
 		}
 	}
-		catch (const std::runtime_error & e)
-		{
-			// An error occured. Display error and quit
-			std::cerr << e.what() << std::endl;
-			return -1;
-		}
+	catch (const std::runtime_error & e)
+	{
+		// An error occured. Display error and quit
+		std::cerr << e.what() << std::endl;
+		return -1;
+	}
 
-		return 0;
+	return 0;
 }
