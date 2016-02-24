@@ -316,6 +316,10 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)),       amlGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
+		#ifdef ENABLE_PROTOBUF
+		QObject::connect(amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		#endif
+
 		amlGrabber->start();
 		std::cout << "AMLOGIC grabber created and started" << std::endl;
 	}

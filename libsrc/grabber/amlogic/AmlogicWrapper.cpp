@@ -9,7 +9,7 @@
 
 // Amlogic grabber includes
 #include <grabber/AmlogicWrapper.h>
-#include "AmlogicGrabber.h"
+#include <grabber/AmlogicGrabber.h>
 
 
 AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :

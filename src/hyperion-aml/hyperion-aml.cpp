@@ -7,7 +7,7 @@
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
 
-#include "../../libsrc/grabber/amlogic/AmlogicGrabber.h"
+#include <grabber/AmlogicGrabber.h>
 
 using namespace vlofgren;
 
