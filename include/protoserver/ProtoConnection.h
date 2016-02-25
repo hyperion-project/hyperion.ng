@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QTimer>
 #include <QMap>
 
 // hyperion util
@@ -19,8 +20,11 @@
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
 ///
-class ProtoConnection
+class ProtoConnection : public QObject
 {
+
+Q_OBJECT
+
 public:
     ///
     /// Constructor
@@ -74,9 +78,12 @@ public:
     ///
     void sendMessage(const proto::HyperionRequest & message);
 
-private:
+private slots:
     /// Try to connect to the Hyperion host
     void connectToHost();
+
+
+private:
 
     ///
     /// Parse a reply message
@@ -99,4 +106,7 @@ private:
 
     /// Skip receiving reply messages from Hyperion if set
     bool _skipReply;
+
+    QTimer _timer;
+    QAbstractSocket::SocketState  _prevSocketState;
 };
