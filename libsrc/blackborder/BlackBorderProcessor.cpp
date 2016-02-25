@@ -1,12 +1,9 @@
-//*
 #include <iostream>
 /*
 #include <iomanip>
-using std::cout;
-using std::endl;
 using std::setw;
-using std::left;
 //*/
+
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
