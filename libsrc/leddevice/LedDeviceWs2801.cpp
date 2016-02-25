@@ -11,7 +11,7 @@
 // hyperion local includes
 #include "LedDeviceWs2801.h"
 
-LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned baudrate ) :
+LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate, 500000),
 	mLedCount(0)
 {
