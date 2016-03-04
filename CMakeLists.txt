@@ -34,6 +34,9 @@ message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
 message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 
+option(ENABLE_WS281XPWM   "Enable the WS281x-PWM device" OFF)
+message(STATUS "ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
+
 option(ENABLE_X11 "Enable the X11 grabber" OFF)
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
@@ -55,6 +58,10 @@ endif(ENABLE_FB AND ENABLE_OSX)
 if(ENABLE_OSX AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and osx grabber cannot be used at the same time")
 endif(ENABLE_OSX AND ENABLE_DISPMANX)
+
+if(ENABLE_WS2812BPWM AND ENABLE_WS281XPWM)
+	message(FATAL_ERROR "WS2812b and WS281x drivers cannot be used at the same time")
+endif(ENABLE_WS2812BPWM AND ENABLE_WS281XPWM)
 
 #if(ENABLE_QT5)
 # TODO vs ENABLE_QT4?
