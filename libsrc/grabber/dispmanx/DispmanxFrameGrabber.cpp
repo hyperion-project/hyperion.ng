@@ -4,7 +4,7 @@
 #include <iostream>
 
 // Local includes
-#include "DispmanxFrameGrabber.h"
+#include "grabber/DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height) :
 	_vc_display(0),

@@ -23,6 +23,20 @@
 		"colorOrder" : "rgb"
 	},
 
+	/// Configuration for message forwarding to other hyperions
+	/// protobuffer and json remote interface are forwarded to configured hosts
+	/// 'proto' is mostly used for video streams and 'json' for effects
+	///
+	/// ** pay attention which port you use. use correct ports for protols  **
+	/// 
+	/// * 'proto' : list of host in form of <ip>:<port>
+	/// * 'json'  : list of host in form of <ip>:<port>
+///	"forwarder" :
+///	{
+///		"proto" : [ "127.0.0.1:19445","192.168.178.88:19445" ],
+///		"json"  : [ "127.0.0.1:19444","192.168.178.88:19444" ]
+///	},
+
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:

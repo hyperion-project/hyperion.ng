@@ -13,6 +13,7 @@
 // Hyperion includes
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
+#include <hyperion/MessageForwarder.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
@@ -125,6 +126,10 @@ public slots:
 	/// Tell Hyperion that the transforms have changed and the leds need to be updated
 	void transformsUpdated();
 
+	/// Returns  MessageForwarder Object
+	/// @return instance of message forwarder object
+	MessageForwarder * getForwarder();
+
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
 	/// lower priority channel (or off if no more channels are set)
@@ -168,6 +173,7 @@ public:
 	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
 
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
+	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -200,6 +206,9 @@ private:
 
 	/// Effect engine
 	EffectEngine * _effectEngine;
+
+	// proto and json Message forwarder
+	MessageForwarder * _messageForwarder;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;

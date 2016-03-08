@@ -46,8 +46,9 @@ void OsxWrapper::action()
 	// Grab frame into the allocated image
 	_frameGrabber->grabFrame(_image);
 
-	_processor->process(_image, _ledColors);
+	emit emitImage(_priority, _image, _timeout_ms);
 
+	_processor->process(_image, _ledColors);
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 void OsxWrapper::stop()

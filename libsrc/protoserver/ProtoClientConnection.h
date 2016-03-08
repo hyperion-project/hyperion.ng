@@ -6,12 +6,14 @@
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
+#include <QStringList>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
 // proto includes
 #include "message.pb.h"
+#include "protoserver/ProtoConnection.h"
 
 class ImageProcessor;
 
@@ -41,6 +43,7 @@ signals:
 	/// @param connection This connection object
 	///
 	void connectionClosed(ProtoClientConnection * connection);
+	void newMessage(const proto::HyperionRequest * message);
 
 private slots:
 	///
