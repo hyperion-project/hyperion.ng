@@ -7,10 +7,10 @@
 #include <grabber/OsxWrapper.h>
 #include "OsxFrameGrabber.h"
 
-OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
+OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
-	_priority(1000),
+	_priority(priority),
 	_timer(),
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new OsxFrameGrabber(display, grabWidth, grabHeight)),

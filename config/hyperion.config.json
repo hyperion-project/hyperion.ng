@@ -406,7 +406,7 @@
 		"color"       : [0,0,0],
 		"effect"      : "Rainbow swirl fast",
 		"duration_ms" : 3000,
-		"priority"    : 0
+		"priority"    : 990
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
@@ -415,9 +415,10 @@
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
 	"framegrabber" : 
 	{
-		"width" : 64,
-		"height" : 64,
-		"frequency_Hz" : 10.0
+		"width"        : 64,
+		"height"       : 64,
+		"frequency_Hz" : 10.0,
+		"priority"     : 900
 	},
 
 	/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: 
@@ -459,7 +460,8 @@
 	///  * port : Port at which the boblight server is started
 // 	"boblightServer" : 
 // 	{
-// 		"port" : 19333
+// 		"port"     : 19333,
+//		"priority" : 900
 // 	},
 
 	"endOfJson" : "endOfJson"
