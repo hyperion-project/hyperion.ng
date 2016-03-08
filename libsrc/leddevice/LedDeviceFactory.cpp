@@ -129,8 +129,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned latchtime      = deviceConfig.get("latchtime",500000).asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate, latchtime);
 		deviceWs2801->open();
 
 		device = deviceWs2801;
