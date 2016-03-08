@@ -23,7 +23,7 @@ for i in range(hyperion.ledCount-snakeLeds):
 	ledData += bytearray((0, 0, 0))
 
 for i in range(1,snakeLeds+1):
-	rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2]/i)
+	rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2]*(snakeLeds-i)/snakeLeds)
 	ledData += bytearray((int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255)))
 
 # Calculate the sleep time and rotation increment

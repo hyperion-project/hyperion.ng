@@ -1,10 +1,10 @@
 {
-	"name" : "Snake",
+	"name"   : "Snake",
 	"script" : "snake.py",
 	"args" :
 	{
-		"rotation-time" : 10.0,
-		"color" : [255, 0, 0],
-		"percentage" : 25
+		"rotation-time" : 12.0,
+		"color"         : [255, 0, 0],
+		"percentage"    : 10
 	}
 }

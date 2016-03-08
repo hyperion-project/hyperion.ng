@@ -1,0 +1,9 @@
+{
+	"name"   : "Random",
+	"script" : "random.py",
+	"args"   :
+	{
+		"speed"      : 1.0,
+		"saturation" : 1.0
+	}
+}
