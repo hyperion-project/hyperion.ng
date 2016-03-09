@@ -20,4 +20,8 @@ if(ENABLE_PROTOBUF)
 		add_subdirectory(hyperion-dispmanx)
 	endif()
 
+	if(ENABLE_FB)
+		add_subdirectory(hyperion-framebuffer)
+	endif()
+
 endif()
