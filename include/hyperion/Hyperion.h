@@ -140,6 +140,12 @@ public slots:
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorCorrection * getCorrection(const std::string& id);
+	
+	///
+	/// Returns  MessageForwarder Object
+	/// @return instance of message forwarder object
+	///
+	MessageForwarder * getForwarder();
 
 	/// Tell Hyperion that the transforms have changed and the leds need to be updated
 	void transformsUpdated();
@@ -195,6 +201,7 @@ public:
 	static RgbChannelCorrection * createRgbChannelCorrection(const Json::Value& colorConfig);
 
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
+	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -233,6 +240,9 @@ private:
 
 	/// Effect engine
 	EffectEngine * _effectEngine;
+	
+	//protoo and json Message forwarder
+	MessageForwarder * _messageForwarder;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
