@@ -455,6 +455,37 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	return ledDevice;
 }
 
+MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
+{
+		MessageForwarder * forwarder = new MessageForwarder();
+		if ( ! forwarderConfig.isNull() )
+		{
+			if ( ! forwarderConfig["json"].isNull() && forwarderConfig["json"].isArray() )
+			{
+				for (const Json::Value& addr : forwarderConfig["json"])
+				{
+					std::cout << "Json forward to " << addr.asString() << std::endl;
+					forwarder->addJsonSlave(addr.asString());
+				}
+			}
+
+			if ( ! forwarderConfig["proto"].isNull() && forwarderConfig["proto"].isArray() )
+			{
+				for (const Json::Value& addr : forwarderConfig["proto"])
+				{
+					std::cout << "Proto forward to " << addr.asString() << std::endl;
+					forwarder->addProtoSlave(addr.asString());
+				}
+			}
+		}
+
+	return forwarder;
+}
+
+MessageForwarder * Hyperion::getForwarder()
+{
+	return _messageForwarder;
+}
 
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
@@ -519,6 +550,9 @@ Hyperion::~Hyperion()
 
 	// delete the color temperature correction
 	delete _raw2ledTemperature;
+
+	// delete the message forwarder
+	delete _messageForwarder;
 }
 
 unsigned Hyperion::getLedCount() const
