@@ -15,6 +15,7 @@
 #include <hyperion/PriorityMuxer.h>
 #include <hyperion/ColorTransform.h>
 #include <hyperion/ColorCorrection.h>
+#include <hyperion/MessageForwarder.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
