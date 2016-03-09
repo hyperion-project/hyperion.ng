@@ -44,6 +44,7 @@ public slots:
 
 signals:
 	void emitColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

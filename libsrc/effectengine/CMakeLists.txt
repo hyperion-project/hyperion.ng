@@ -1,5 +1,7 @@
 
 find_package(PythonLibs REQUIRED)
+#OpenElec uses 2.7, if you want to compile for OpenElec require 2.7
+#find_package(PythonLibs 2.7 REQUIRED)
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.

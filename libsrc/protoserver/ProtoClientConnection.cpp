@@ -81,6 +81,9 @@ void ProtoClientConnection::socketClosed()
 
 void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message)
 {
+	// forward messages
+	emit newMessage(&message);
+
 	switch (message.command())
 	{
 	case proto::HyperionRequest::COLOR:

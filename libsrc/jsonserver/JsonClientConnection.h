@@ -124,6 +124,7 @@ private:
 	/// @param message The JSON message to send
 	///
 	void sendMessage(const Json::Value & message);
+	void sendMessage(const Json::Value & message, QTcpSocket * socket);
 
 	///
 	/// Send a standard reply indicating success
@@ -146,6 +147,11 @@ private:
 	/// Handle incoming websocket data frame
 	///
 	void handleWebSocketFrame();
+
+	///
+	/// forward json message
+	///
+	void forwardJsonMessage(const Json::Value & message);
 
 private:
 	///

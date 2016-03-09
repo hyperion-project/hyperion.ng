@@ -1,0 +1,10 @@
+{
+	"name" : "Cinema dim lights",
+	"script" : "fade.py",
+	"args" :
+	{
+		"fade-time"   : 5.0,
+		"color-start" : [ 238, 173, 47 ],
+		"color-end"   : [ 136, 97, 7 ]
+	}
+}

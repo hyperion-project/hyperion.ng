@@ -9,7 +9,8 @@
 
 ProtoConnection::ProtoConnection(const std::string & a) :
     _socket(),
-    _skipReply(false)
+    _skipReply(false),
+    _prevSocketState(QAbstractSocket::UnconnectedState)
 {
     QString address(a.c_str());
     QStringList parts = address.split(":");
@@ -29,10 +30,18 @@ ProtoConnection::ProtoConnection(const std::string & a) :
     // try to connect to host
     std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
     connectToHost();
+
+    // start the connection timer
+    _timer.setInterval(5000);
+    _timer.setSingleShot(false);
+
+    connect(&_timer,SIGNAL(timeout()), this, SLOT(connectToHost()) );
+    _timer.start();
 }
 
 ProtoConnection::~ProtoConnection()
 {
+    _timer.stop();
     _socket.close();
 }
 
@@ -91,19 +100,36 @@ void ProtoConnection::clearAll()
 
 void ProtoConnection::connectToHost()
 {
-    _socket.connectToHost(_host, _port);
-    if (_socket.waitForConnected()) {
-        std::cout << "Connected to Hyperion host" << std::endl;
+    // try connection only when 
+    if (_socket.state() == QAbstractSocket::UnconnectedState)
+    {
+       _socket.connectToHost(_host, _port);
+       //_socket.waitForConnected(1000);
     }
 }
 
 void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 {
-    if (_socket.state() == QAbstractSocket::UnconnectedState)
+    // print out connection message only when state is changed
+    if (_socket.state() != _prevSocketState )
     {
-        std::cout << "Currently disconnected: trying to connect to host" << std::endl;
-        connectToHost();
+      switch (_socket.state() )
+      {
+        case QAbstractSocket::UnconnectedState:
+          std::cout << "No connection to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+          break;
+
+        case QAbstractSocket::ConnectedState:
+          std::cout << "Connected to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+          break;
+
+        default:
+          //std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+          break;
+      }
+      _prevSocketState = _socket.state();
     }
+
 
     if (_socket.state() != QAbstractSocket::ConnectedState)
     {

@@ -7,7 +7,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/amlogic)
 SET(AmlogicQT_HEADERS ${CURRENT_HEADER_DIR}/AmlogicWrapper.h)
 
 SET(AmlogicHEADERS
-		${CURRENT_SOURCE_DIR}/AmlogicGrabber.h
+		${CURRENT_HEADER_DIR}/AmlogicGrabber.h
 )
 
 SET(AmlogicSOURCES

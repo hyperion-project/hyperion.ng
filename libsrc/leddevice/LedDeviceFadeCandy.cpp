@@ -1,8 +1,8 @@
 #include "LedDeviceFadeCandy.h"
 
-static const ssize_t MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
-static const ssize_t OPC_SET_PIXELS  = 0;     // OPC command codes
-static const ssize_t OPC_HEADER_SIZE = 4;     // OPC header size
+static const signed MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
+static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
+static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
 LedDeviceFadeCandy::LedDeviceFadeCandy(const std::string& host, const uint16_t port, const unsigned channel) :
