@@ -21,6 +21,10 @@ public:
 	LedDeviceWs2801(const std::string& outputDevice,
 					const unsigned baudrate);
 
+	LedDeviceWs2801(const std::string& outputDevice,
+					const unsigned baudrate,
+					const unsigned latchTime);
+
 	///
 	/// Writes the led color values to the led-device
 	///
