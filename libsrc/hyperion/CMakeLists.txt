@@ -33,6 +33,7 @@ SET(Hyperion_SOURCES
 		${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
 		${CURRENT_SOURCE_DIR}/MultiColorCorrection.cpp
 		${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
+		${CURRENT_SOURCE_DIR}/MessageForwarder.cpp
 )
 
 set(Hyperion_RESOURCES
