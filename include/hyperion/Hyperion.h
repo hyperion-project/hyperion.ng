@@ -241,7 +241,7 @@ private:
 	/// Effect engine
 	EffectEngine * _effectEngine;
 	
-	//protoo and json Message forwarder
+	// proto and json Message forwarder
 	MessageForwarder * _messageForwarder;
 
 	/// The timer for handling priority channel timeouts
