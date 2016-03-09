@@ -495,6 +495,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
 	_device(LedDeviceFactory::construct(jsonConfig["device"])),
 	_effectEngine(nullptr),
+	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
 	_timer()
 {
 	if (!_raw2ledCorrection->verifyCorrections())
@@ -512,8 +513,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
-				jsonConfig["blackborderdetector"].get("enable", true).asBool(),
-				jsonConfig["blackborderdetector"].get("threshold", 0.01).asDouble());
+				jsonConfig["blackborderdetector"]
+	);
 
 	// initialize the color smoothing filter
 	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);
