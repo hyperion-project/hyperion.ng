@@ -59,10 +59,6 @@ if(ENABLE_OSX AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and osx grabber cannot be used at the same time")
 endif(ENABLE_OSX AND ENABLE_DISPMANX)
 
-if(ENABLE_WS2812BPWM AND ENABLE_WS281XPWM)
-	message(FATAL_ERROR "WS2812b and WS281x drivers cannot be used at the same time")
-endif(ENABLE_WS2812BPWM AND ENABLE_WS281XPWM)
-
 #if(ENABLE_QT5)
 # TODO vs ENABLE_QT4?
 #endif(ENABLE_QT5)
