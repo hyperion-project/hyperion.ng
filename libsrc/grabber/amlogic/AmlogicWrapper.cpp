@@ -9,7 +9,7 @@
 
 // Amlogic grabber includes
 #include <grabber/AmlogicWrapper.h>
-#include "AmlogicGrabber.h"
+#include <grabber/AmlogicGrabber.h>
 
 
 AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
@@ -26,6 +26,7 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
 	_timer.setSingleShot(false);
+	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 
 	_processor->setSize(grabWidth, grabHeight);
 
@@ -55,8 +56,14 @@ void AmlogicWrapper::action()
 		return;
 	}
 
-	_processor->process(_image, _ledColors);
+	if ( _forward )
+	{
+		Image<ColorRgb> image_rgb;
+		_image.toRgb(image_rgb);
+		emit emitImage(_priority, image_rgb, _timeout_ms);
+	}
 
+	_processor->process(_image, _ledColors);
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 

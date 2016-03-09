@@ -30,6 +30,8 @@
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
 #include "LedDeviceTest.h"
+#include "LedDeviceFadeCandy.h"
+#include "LedDeviceUdp.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -127,8 +129,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned latchtime      = deviceConfig.get("latchtime",500000).asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate, latchtime);
 		deviceWs2801->open();
 
 		device = deviceWs2801;
@@ -242,6 +245,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		device = new LedDeviceTest(output);
+	}
+	else if (type == "fadecandy")
+	{
+		const std::string host  = deviceConfig.get("output", "127.0.0.1").asString();
+		const uint16_t port     = deviceConfig.get("port", 7890).asInt();
+		const uint16_t channel  = deviceConfig.get("channel", 0).asInt();
+		device = new LedDeviceFadeCandy(host, port, channel);
+	}
+	else if (type == "udp")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned protocol  = deviceConfig["protocol"].asInt();
+		const unsigned maxPacket   = deviceConfig["maxpacket"].asInt();
+		device = new LedDeviceUdp(output, rate, protocol, maxPacket);
 	}
 	else if (type == "tpm2")
 	{

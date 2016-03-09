@@ -59,13 +59,16 @@ void BoblightClientConnection::readData()
 	while(bytes > 0)
 	{
 		// create message string (strip the newline)
+#ifdef ENABLE_QT5
+		QString message = QString::fromLatin1(_receiveBuffer.data(), bytes-1);
+#else
 		QString message = QString::fromAscii(_receiveBuffer.data(), bytes-1);
-
+#endif
 		// remove message data from buffer
 		_receiveBuffer = _receiveBuffer.mid(bytes);
 
-		// handle message
-		handleMessage(message);
+		// handle trimmed message
+		handleMessage(message.trimmed());
 
 		// drop messages if the buffer is too full
 		if (_receiveBuffer.size() > 100*1024)
@@ -132,9 +135,15 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				{
 					if (messageParts[3] == "rgb" && messageParts.size() == 7)
 					{
+						// replace decimal comma with decimal point
+						messageParts[4].replace(',', '.');
+						messageParts[5].replace(',', '.');
+						messageParts[6].replace(',', '.');
+
 						bool rc1, rc2, rc3;
 						uint8_t red = qMax(0, qMin(255, int(255 * messageParts[4].toFloat(&rc1))));
 
+						// check for correct locale should not be needed anymore - please check!
 						if (!rc1)
 						{
 							// maybe a locale issue. switch to a locale with a comma instead of a dot as decimal seperator (or vice versa)

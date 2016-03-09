@@ -10,7 +10,7 @@
 #include <getoptPlusPlus/getoptpp.h>
 
 // Dispmanx grabber includes
-#include <grabber/dispmanx/DispmanxFrameGrabber.h>
+#include <grabber/DispmanxFrameGrabber.h>
 
 using namespace vlofgren;
 

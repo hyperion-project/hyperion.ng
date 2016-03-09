@@ -13,7 +13,7 @@
 #include <sys/types.h>
 
 // Local includes
-#include "AmlogicGrabber.h"
+#include <grabber/AmlogicGrabber.h>
 
 // Flags copied from 'include/linux/amlogic/amports/amvideocap.h' at https://github.com/codesnake/linux-amlogic
 #define AMVIDEOCAP_IOC_MAGIC 'V'

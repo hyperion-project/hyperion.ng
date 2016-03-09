@@ -19,6 +19,21 @@
 		"colorOrder" : "rgb"
 	},
 
+	/// Configuration for message forwarding to other hyperions
+	/// protobuffer and json remote interface are forwarded to configured hosts
+	/// 'proto' is mostly used for video streams and 'json' for effects
+	///
+	/// ** pay attention which port you use. use correct ports for protols  **
+	/// 
+	/// * 'proto' : list of host in form of <ip>:<port>
+	/// * 'json'  : list of host in form of <ip>:<port>
+///	"forwarder" :
+///	{
+///		"proto" : [ "127.0.0.1:19445","192.168.178.88:19445" ],
+///		"json"  : [ "127.0.0.1:19444","192.168.178.88:19444" ]
+///	},
+
+
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
@@ -359,6 +374,10 @@
 	/// The configuration of the effect engine, contains the following items: 
 	///  * paths        : An array with absolute location(s) of directories with effects 
 	///  * bootsequence : The effect selected as 'boot sequence'
+	///    * effect : name of the effect you want to start. Set to empty if no effect wanted
+	///    * color  : switch to static color after effect is done
+	///    * duration_ms : duration of boot effect in ms. 0 means effect stays forever
+	///    * priority : priority of boot effect and static color
 	"effects" : 
 	{
 		"paths" : 
@@ -369,8 +388,10 @@
 
 	"bootsequence" : 
 	{
-		"effect" : "Rainbow swirl fast",
-		"duration_ms" : 3000
+		"color"       : [0,0,0],
+		"effect"      : "Rainbow swirl fast",
+		"duration_ms" : 3000,
+		"priority"    : 900
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 

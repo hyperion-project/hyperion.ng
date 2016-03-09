@@ -68,6 +68,9 @@ public slots:
 	///
 	void setVideoMode(const VideoMode videoMode);
 
+signals:
+	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+
 private:
 	/// The update rate [Hz]
 	const int _updateInterval_ms;
@@ -91,4 +94,7 @@ private:
 
 	/// Pointer to Hyperion for writing led values
 	Hyperion * _hyperion;
+
+	// forwarding enabled
+	bool _forward;
 };

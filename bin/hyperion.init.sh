@@ -1,7 +1,16 @@
 #!/bin/bash
-# Hyperion daemon
+# Hyperion daemon service
 # description: Hyperion daemon
 # processname: hyperiond
+### BEGIN INIT INFO
+# Provides:          Hyperion
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Hyperion Ambilight init.d Service.
+# Description:       Hyperion Ambilight init.d Service.
+### END INIT INFO
 
 DAEMON=hyperiond
 DAEMONOPTS="/etc/hyperion.config.json"

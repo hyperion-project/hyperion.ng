@@ -16,6 +16,14 @@ JsonServer::JsonServer(Hyperion *hyperion, uint16_t port) :
 		throw std::runtime_error("Json server could not bind to port");
 	}
 
+		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+		for ( int i=0; i<list.size(); i++ )
+		{
+			if ( list.at(i).addr == QHostAddress::LocalHost && list.at(i).port == port ) {
+				throw std::runtime_error("Loop between proto server and forwarder detected. Fix your config!");
+			}
+		}
+
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 
