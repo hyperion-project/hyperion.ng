@@ -30,12 +30,12 @@ int main(int argc, char ** argv)
 		OptionsParser optionParser("X11 capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
-		IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Capture frame rate [default=10]");
-		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Width of the captured image [default=128]");
-		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Height of the captured image [default=128]");
+		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "Set the video device [default: /dev/video0]");
+		IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Capture frame rate [default: 10]");
+		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Width of the captured image [default: 128]");
+		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Height of the captured image [default: 128]");
 		SwitchParameter<>      & argScreenshot      = parameters.add<SwitchParameter<>>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit");
 		StringParameter        & argAddress         = parameters.add<StringParameter>       ('a', "address",          "Set the address of the hyperion server [default: 127.0.0.1:19445]");
-		StringParameter        & argDevice          = parameters.add<StringParameter>       ('a', "device",           "Set the video device (default: /dev/video0)");
 		IntParameter           & argPriority        = parameters.add<IntParameter>          ('p', "priority",         "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
 		SwitchParameter<>      & argSkipReply       = parameters.add<SwitchParameter<>>     (0x0, "skip-reply",       "Do not receive and check reply messages from Hyperion");
 		SwitchParameter<>      & argHelp            = parameters.add<SwitchParameter<>>     ('h', "help",             "Show this help message and exit");

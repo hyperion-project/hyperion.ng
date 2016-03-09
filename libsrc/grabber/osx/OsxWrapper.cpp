@@ -5,7 +5,7 @@
 
 // Osx grabber includes
 #include <grabber/OsxWrapper.h>
-#include "OsxFrameGrabber.h"
+#include <grabber/OsxFrameGrabber.h>
 
 OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
