@@ -124,11 +124,17 @@ public slots:
 	const std::vector<std::string> & getTransformIds() const;
 	
 	///
-	/// Returns the list with unique transform identifiers
+	/// Returns the list with unique correction identifiers
 	/// @return The list with correction identifiers
 	///
 	const std::vector<std::string> & getCorrectionIds() const;
-
+	
+	///
+	/// Returns the list with unique correction identifiers
+	/// @return The list with correction identifiers
+	///
+	const std::vector<std::string> & getTemperatureIds() const;
+	
 	///
 	/// Returns the ColorTransform with the given identifier
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
@@ -136,10 +142,16 @@ public slots:
 	ColorTransform * getTransform(const std::string& id);
 	
 	///
-	/// Returns the ColorTransform with the given identifier
-	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
+	/// Returns the ColorCorrection with the given identifier
+	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorCorrection * getCorrection(const std::string& id);
+	
+	///
+	/// Returns the ColorCorrection with the given identifier
+	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
+	///
+	ColorCorrection * getTemperature(const std::string& id);
 	
 	///
 	/// Returns  MessageForwarder Object
@@ -152,6 +164,9 @@ public slots:
 	
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void correctionsUpdated();
+	
+	/// Tell Hyperion that the corrections have changed and the leds need to be updated
+	void temperaturesUpdated();
 
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
