@@ -27,3 +27,4 @@
 // Define to enable the osx grabber
 #cmakedefine ENABLE_OSX
 
+#define HYPERION_VERSION_ID "${HYPERION_VERSION_ID}"

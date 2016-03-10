@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
-	std::cout << "QCoreApplication initialised" << std::endl;
+	std::cout << "Hyperion initialised, Version: " << HYPERION_VERSION_ID << std::endl;
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
