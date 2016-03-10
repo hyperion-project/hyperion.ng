@@ -40,6 +40,9 @@ message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 option(ENABLE_QT5 "Enable QT5" OFF)
 message(STATUS "ENABLE_QT5 = " ${ENABLE_QT5})
 
+option(ENABLE_TESTS "Compile additional test applications" OFF)
+message(STATUS "ENABLE_TESTS = " ${ENABLE_TESTS})
+
 if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
 endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
@@ -55,7 +58,6 @@ endif(ENABLE_FB AND ENABLE_OSX)
 if(ENABLE_OSX AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and osx grabber cannot be used at the same time")
 endif(ENABLE_OSX AND ENABLE_DISPMANX)
-
 
 
 #if(ENABLE_QT5)
@@ -138,7 +140,10 @@ configure_file(config/hyperion_x86.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 add_subdirectory(dependencies)
 add_subdirectory(libsrc)
 add_subdirectory(src)
-add_subdirectory(test)
+if (ENABLE_TESTS)
+	add_subdirectory(test)
+endif (ENABLE_TESTS)
+
 
 # Add the doxygen generation directory
 add_subdirectory(doc)
