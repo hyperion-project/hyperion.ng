@@ -1,6 +1,3 @@
 /*.user
 /build*
 .DS_Store
-
-libsrc/hyperion/ImageProcessor.cpp
-libsrc/hyperion/CMakeLists.txt
