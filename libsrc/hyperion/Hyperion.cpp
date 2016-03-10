@@ -634,6 +634,11 @@ void Hyperion::correctionsUpdated()
 	update();
 }
 
+void Hyperion::temperaturesUpdated()
+{
+	update();
+}
+
 void Hyperion::clear(int priority)
 {
 	if (_muxer.hasPriority(priority))
