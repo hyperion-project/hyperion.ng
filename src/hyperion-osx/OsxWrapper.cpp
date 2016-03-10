@@ -1,6 +1,6 @@
 
 // Hyperion-AmLogic includes
-#include "FramebufferWrapper.h"
+#include "OsxWrapper.h"
 
 OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz) :
     _timer(this),
