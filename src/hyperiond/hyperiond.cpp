@@ -92,11 +92,13 @@ Json::Value loadConfig(const std::string & configFile)
 
 int main(int argc, char** argv)
 {
-	std::cout << "Application build time: " << __DATE__ << " " << __TIME__ << std::endl;
+	std::cout
+		<< "Hyperiond:" << std::endl
+		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
-	std::cout << "Hyperion initialised, Version: " << HYPERION_VERSION_ID << std::endl;
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
