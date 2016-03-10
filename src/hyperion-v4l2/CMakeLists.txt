@@ -53,3 +53,6 @@ target_link_libraries(hyperion-v4l2
 	pthread
 	${QT_LIBRARIES}
 )
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+

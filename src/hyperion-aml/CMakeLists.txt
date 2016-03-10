@@ -31,13 +31,13 @@ else(ENABLE_QT5)
 	QT4_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
 endif(ENABLE_QT5)
 
-add_executable(hyperion-amlogic
+add_executable(${PROJECT_NAME}
 	${Hyperion_AML_HEADERS}
 	${Hyperion_AML_SOURCES}
 	${Hyperion_AML_HEADERS_MOC}
 )
 
-target_link_libraries(hyperion-amlogic
+target_link_libraries(${PROJECT_NAME}
 	getoptPlusPlus
 	blackborder
 	hyperion-utils
@@ -46,7 +46,10 @@ target_link_libraries(hyperion-amlogic
 	pthread
 )
 
-qt4_use_modules(hyperion-amlogic
+qt4_use_modules(${PROJECT_NAME}
 	Core
 	Gui
 	Network)
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+

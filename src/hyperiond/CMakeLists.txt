@@ -33,3 +33,5 @@ endif (ENABLE_AMLOGIC)
 if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperiond protoserver)
 endif (ENABLE_PROTOBUF)
+
+install ( TARGETS hyperiond DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )

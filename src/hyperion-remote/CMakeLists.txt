@@ -39,3 +39,5 @@ target_link_libraries(hyperion-remote
 	jsoncpp
     getoptPlusPlus
     ${QT_LIBRARIES})
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )

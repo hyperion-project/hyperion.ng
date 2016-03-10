@@ -62,3 +62,5 @@ qt4_use_modules(hyperion-x11
 	Gui
 	Network)
 endif(ENABLE_QT5)
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
