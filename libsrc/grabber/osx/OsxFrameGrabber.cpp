@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Local includes
-#include "OsxFrameGrabber.h"
+#include <grabber/OsxFrameGrabber.h>
 
 OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height) :
 	_screenIndex(display),

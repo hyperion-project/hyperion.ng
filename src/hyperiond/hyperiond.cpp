@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 		// Get the parameters for the bootsequence
 		const std::string effectName = effectConfig["effect"].asString();
 		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
-		const int priority           = effectConfig["priority"].asUInt();
+		const int priority           = effectConfig.get("priority",990).asInt();
 		const int bootcolor_priority = (priority > 990) ? priority+1 : 990;
 
 		if ( ! effectConfig["color"].isNull() && effectConfig["color"].isArray() && effectConfig["color"].size() == 3 )
@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 	if (config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = config["boblightServer"];
-		boblightServer = new BoblightServer(&hyperion, boblightServerConfig["port"].asUInt());
+		boblightServer = new BoblightServer(&hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
 		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
 	}
 
@@ -232,6 +232,7 @@ int main(int argc, char** argv)
 			frameGrabberConfig["width"].asUInt(),
 			frameGrabberConfig["height"].asUInt(),
 			frameGrabberConfig["frequency_Hz"].asUInt(),
+			frameGrabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -275,7 +276,7 @@ int main(int argc, char** argv)
 					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
 					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
 					&hyperion,
-					grabberConfig.get("priority", 800).asInt());
+					grabberConfig.get("priority", 900).asInt());
 		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
 		v4l2Grabber->setCropping(
 					grabberConfig.get("cropLeft", 0).asInt(),
@@ -308,6 +309,7 @@ int main(int argc, char** argv)
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
+			grabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -341,6 +343,7 @@ int main(int argc, char** argv)
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
+			grabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -376,11 +379,12 @@ int main(int argc, char** argv)
 	{
 		const Json::Value & grabberConfig = config.isMember("osxgrabber")? config["osxgrabber"] : config["framegrabber"];
 		osxGrabber = new OsxWrapper(
-										   grabberConfig.get("display", 0).asUInt(),
-										   grabberConfig["width"].asUInt(),
-										   grabberConfig["height"].asUInt(),
-										   grabberConfig["frequency_Hz"].asUInt(),
-										   &hyperion);
+									grabberConfig.get("display", 0).asUInt(),
+									grabberConfig["width"].asUInt(),
+									grabberConfig["height"].asUInt(),
+									grabberConfig["frequency_Hz"].asUInt(),
+									grabberConfig.get("priority",900).asInt(),
+									&hyperion );
 
 		if (xbmcVideoChecker != nullptr)
 		{
