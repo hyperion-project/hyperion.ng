@@ -132,7 +132,7 @@ public:
 	/// @param green The green temperature value
 	/// @param blue The blue temperature value
 	void setTemperature(
-			std::string * temperaturenId,
+			std::string * temperatureId,
 			int * red,
 			int * green,
 			int * blue);
