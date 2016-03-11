@@ -175,7 +175,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLightpack;
 	}
-	else if (type == "multi-lightpack")
+	else if (type == "multi-lightpack" || type == "multi_lightpack")
 	{
 		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
 		deviceLightpack->open();
@@ -288,7 +288,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 #endif
 	else
 	{
-		std::cout << "Unable to create device " << type << std::endl;
+		std::cout << "Error: Unknown/Unimplemented device " << type << std::endl;
 		// Unknown / Unimplemented device
 	}
 	return device;
