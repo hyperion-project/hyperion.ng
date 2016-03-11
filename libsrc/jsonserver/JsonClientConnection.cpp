@@ -486,6 +486,16 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	{
 		colorTransform->_hsvTransform.setValueGain(transform["valueGain"].asDouble());
 	}
+	
+	if (transform.isMember("saturationLGain"))
+	{
+		colorTransform->_hslTransform.setSaturationGain(transform["saturationLGain"].asDouble());
+	}
+
+	if (transform.isMember("luminanceGain"))
+	{
+		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].asDouble());
+	}
 
 	if (transform.isMember("threshold"))
 	{
@@ -525,6 +535,72 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
+void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
+{
+	const Json::Value & correction = message["correction"];
+
+	const std::string correctionId = correction.get("id", _hyperion->getCorrectionIds().front()).asString();
+	ColorCorrection * colorCorrection = _hyperion->getCorrection(CorrectionId);
+	if (colorCorrection == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		return;
+	}
+
+	if (correction.isMember("red"))
+	{
+		colorCorrection->_rgbCorrection.setcorrectionR(correction["red"].asInt());
+	}
+
+	if (correction.isMember("green"))
+	{
+		colorCorrection->_rgbCorrection.setcorrectionG(correction["green"].asInt());
+	}
+	
+	if (correction.isMember("blue"))
+	{
+		colorCorrection->_rgbCorrection.setcorrectionB(correction["blue"].asInt());
+	}
+	
+	// commit the changes
+	_hyperion->correctionsUpdated();
+
+	sendSuccessReply();
+}
+	
+void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
+{
+	const Json::Value & temperature = message["temperature"];
+
+	const std::string tempId = temperature.get("id", _hyperion->getTemperatureIds().front()).asString();
+	ColorCorrection * colorTemperature = _hyperion->getTemperature(TemperatureId);
+	if (colorTemperature == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		return;
+	}
+
+	if (temperature.isMember("red"))
+	{
+		colorTemperature->_rgbCorrection.setcorrectionR(temperature["red"].asInt());
+	}
+
+	if (temperature.isMember("green"))
+	{
+		colorTemperature->_rgbCorrection.setcorrectionG(temperature["green"].asInt());
+	}
+	
+	if (temperature.isMember("blue"))
+	{
+		colorTemperature->_rgbCorrection.setcorrectionB(temperature["blue"].asInt());
+	}
+	
+	// commit the changes
+	_hyperion->temperaturesUpdated();
+
+	sendSuccessReply();
+}
+	
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
