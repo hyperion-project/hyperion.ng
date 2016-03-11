@@ -10,7 +10,7 @@
 #include <iostream>
 
 // Local includes
-#include "FramebufferFrameGrabber.h"
+#include <grabber/FramebufferFrameGrabber.h>
 
 FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, const unsigned width, const unsigned height) :
 	_fbfd(0),

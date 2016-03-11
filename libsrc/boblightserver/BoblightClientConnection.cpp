@@ -21,14 +21,14 @@
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
+BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority, Hyperion * hyperion) :
 	QObject(),
 	_locale(QLocale::C),
 	_socket(socket),
 	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
 	_receiveBuffer(),
-	_priority(255),
+	_priority(priority),
 	_ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
 {
 	// initalize the locale. Start with the default C-locale

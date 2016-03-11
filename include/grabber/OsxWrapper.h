@@ -34,7 +34,7 @@ public:
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	/// @param[in] hyperion  The instance of Hyperion used to write the led values
 	///
-	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion);
+	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion);
 
 	///
 	/// Destructor of this osx frame grabber. Releases any claimed resources.

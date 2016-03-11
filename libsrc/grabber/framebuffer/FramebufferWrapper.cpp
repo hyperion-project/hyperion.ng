@@ -5,12 +5,12 @@
 
 // Framebuffer grabber includes
 #include <grabber/FramebufferWrapper.h>
-#include "FramebufferFrameGrabber.h"
+#include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
+FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
-	_priority(1000),
+	_priority(priority),
 	_timer(),
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new FramebufferFrameGrabber(device, grabWidth, grabHeight)),

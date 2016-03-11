@@ -73,11 +73,11 @@ include_directories("${PROJECT_BINARY_DIR}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(ENABLE_QT5)
-ADD_DEFINITIONS ( -DENABLE_QT5 )
-#find_package(Qt5Widgets)
+	ADD_DEFINITIONS ( -DENABLE_QT5 )
+	#find_package(Qt5Widgets)
 else(ENABLE_QT5)
-# Add specific cmake modules to find qt4 (default version finds first available QT which might not be qt4)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/qt4)
+	# Add specific cmake modules to find qt4 (default version finds first available QT which might not be qt4)
+	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/qt4)
 endif(ENABLE_QT5)
 
 # Define the global output path of binaries
@@ -100,23 +100,23 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 
 if(ENABLE_QT5)
 #find_package(Qt5Core REQUIRED)
-find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#      set(CMAKE_CXX_FLAGS "-fPIC")
+	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#	set(CMAKE_CXX_FLAGS "-fPIC")
 else(ENABLE_QT5)
-# Configure the use of QT4
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork REQUIRED QUIET)
+	# Configure the use of QT4
+	find_package(Qt4 COMPONENTS QtCore QtNetwork QtGui REQUIRED QUIET)
 endif(ENABLE_QT5)
 
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 if(ENABLE_QT5)
-#include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+	#include(${QT_USE_FILE})
+	add_definitions(${QT_DEFINITIONS})
 else(ENABLE_QT5)
-include(${QT_USE_FILE})
-add_definitions(${QT_DEFINITIONS})
+	include(${QT_USE_FILE})
+	add_definitions(${QT_DEFINITIONS})
 endif(ENABLE_QT5)
 
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
