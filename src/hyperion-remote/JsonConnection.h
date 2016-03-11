@@ -131,7 +131,7 @@ public:
 	/// @param red The red temperature value
 	/// @param green The green temperature value
 	/// @param blue The blue temperature value
-	void setCorrection(
+	void setTemperature(
 			std::string * temperaturenId,
 			int * red,
 			int * green,
