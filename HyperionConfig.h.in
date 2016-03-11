@@ -12,6 +12,9 @@
 // Define to enable the ws2812b-pwm-device
 #cmakedefine ENABLE_WS2812BPWM
 
+// Define to enable the ws281x-pwm-via-dma-device using jgarff's library
+#cmakedefine ENABLE_WS281XPWM
+
 // Define to enable the spi-device
 #cmakedefine ENABLE_TINKERFORGE
 

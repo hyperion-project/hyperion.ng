@@ -4,6 +4,13 @@ add_subdirectory(build/jsoncpp)
 add_subdirectory(build/serial)
 add_subdirectory(build/tinkerforge)
 
+if(ENABLE_WS281XPWM)
+	add_library(ws281x
+		external/rpi_ws281x/mailbox.c external/rpi_ws281x/ws2811.c
+		external/rpi_ws281x/pwm.c external/rpi_ws281x/dma.c
+		external/rpi_ws281x/rpihw.c)
+endif(ENABLE_WS281XPWM)
+
 if(ENABLE_PROTOBUF)
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared protobuf library")
 	add_subdirectory(external/protobuf)
