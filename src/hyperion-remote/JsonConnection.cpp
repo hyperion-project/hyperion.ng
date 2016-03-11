@@ -192,7 +192,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
 
@@ -215,7 +215,16 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 	{
 		transform["valueGain"] = *value;
 	}
+	
+	if (saturation != nullptr)
+	{
+		transform["saturationLGain"] = *saturationL;
+	}
 
+	if (value != nullptr)
+	{
+		transform["luminanceGain"] = *luminance;
+	}
 	if (threshold != nullptr)
 	{
 		Json::Value & v = transform["threshold"];
@@ -246,6 +255,78 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 		v.append(whitelevel->valueRed);
 		v.append(whitelevel->valueGreen);
 		v.append(whitelevel->valueBlue);
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setCorrection(std::string * correctionId, int * red, int * green, int * blue)
+{
+	std::cout << "Set color corrections" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "correction";
+	Json::Value & correction = command["correction"];
+
+	if (correctionId != nullptr)
+	{
+		correction["id"] = *correctionId;
+	}
+
+	if (red != nullptr)
+	{
+		correction["red"] = *red;
+	}
+
+	if (green != nullptr)
+	{
+		correction["green"] = *green;
+	}
+	
+	if (blue != nullptr)
+	{
+		correction["blue"] = *blue;
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setTemperature(std::string * temperatureId, int * red, int * green, int * blue)
+{
+	std::cout << "Set color temperature corrections" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "temperature";
+	Json::Value & temperature = command["temperature"];
+
+	if (correctionId != nullptr)
+	{
+		temperature["id"] = *temperatureId;
+	}
+
+	if (red != nullptr)
+	{
+		temperature["red"] = *red;
+	}
+
+	if (green != nullptr)
+	{
+		temperature["green"] = *green;
+	}
+	
+	if (blue != nullptr)
+	{
+		temperature["blue"] = *blue;
 	}
 
 	// send command message
