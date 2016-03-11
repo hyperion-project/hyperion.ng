@@ -9,6 +9,7 @@
 #include <QEventLoop>
 #include <QNetworkReply>
 
+#include <stdexcept>
 #include <set>
 
 bool operator ==(CiColor p1, CiColor p2) {
