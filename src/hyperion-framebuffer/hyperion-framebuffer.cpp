@@ -8,7 +8,7 @@
 #include <getoptPlusPlus/getoptpp.h>
 
 #include <protoserver/ProtoConnectionWrapper.h>
-#include "AmlogicWrapper.h"
+#include "FramebufferWrapper.h"
 
 using namespace vlofgren;
 
@@ -30,6 +30,7 @@ int main(int argc, char ** argv)
 		OptionsParser optionParser("X11 capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
+		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "Set the video device [default: /dev/video0]");
 		IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Capture frame rate [default: 10]");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Width of the captured image [default: 128]");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Height of the captured image [default: 128]");
@@ -45,6 +46,7 @@ int main(int argc, char ** argv)
 		argHeight.setDefault(160);
 		argAddress.setDefault("127.0.0.1:19445");
 		argPriority.setDefault(800);
+		argDevice.setDefault("/dev/video0");
 
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
@@ -66,12 +68,12 @@ int main(int argc, char ** argv)
 		}
 		
 		int grabInterval = 1000 / argFps.getValue();
-		AmlogicWrapper amlWrapper(argWidth.getValue(),argHeight.getValue(),grabInterval);
+		FramebufferWrapper fbWrapper(argDevice.getValue(), argWidth.getValue(), argHeight.getValue(), grabInterval);
 
 		if (argScreenshot.isSet())
 		{
 			// Capture a single screenshot and finish
-			const Image<ColorRgb> & screenshot = amlWrapper.getScreenshot();
+			const Image<ColorRgb> & screenshot = fbWrapper.getScreenshot();
 			saveScreenshot("screenshot.png", screenshot);
 		}
 		else
@@ -80,10 +82,10 @@ int main(int argc, char ** argv)
 			ProtoConnectionWrapper protoWrapper(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
 
 			// Connect the screen capturing to the proto processing
-			QObject::connect(&amlWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			QObject::connect(&fbWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
 
 			// Start the capturing
-			amlWrapper.start();
+			fbWrapper.start();
 
 			// Start the application
 			app.exec();

@@ -5,11 +5,12 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
-BoblightServer::BoblightServer(Hyperion *hyperion, uint16_t port) :
+BoblightServer::BoblightServer(Hyperion *hyperion, const int priority,uint16_t port) :
 	QObject(),
 	_hyperion(hyperion),
 	_server(),
-	_openConnections()
+	_openConnections(),
+	_priority(priority)
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
@@ -39,7 +40,7 @@ void BoblightServer::newConnection()
 	if (socket != nullptr)
 	{
 		std::cout << "New boblight connection" << std::endl;
-		BoblightClientConnection * connection = new BoblightClientConnection(socket, _hyperion);
+		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority, _hyperion);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

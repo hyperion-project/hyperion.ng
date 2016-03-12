@@ -12,10 +12,10 @@
 #include <grabber/AmlogicGrabber.h>
 
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, Hyperion * hyperion) :
+AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
-	_priority(999),
+	_priority(priority),
 	_timer(),
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new AmlogicGrabber(grabWidth, grabHeight)),

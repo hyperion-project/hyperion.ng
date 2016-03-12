@@ -1,3 +1,6 @@
 [submodule "dependencies/external/protobuf"]
 	path = dependencies/external/protobuf
 	url = https://github.com/tvdzwan/protobuf.git
+[submodule "dependencies/external/rpi_ws281x"]
+	path = dependencies/external/rpi_ws281x
+	url = https://github.com/jgarff/rpi_ws281x

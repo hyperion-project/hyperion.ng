@@ -16,7 +16,7 @@ export NATIVE_BUILD_DIR="$HYPERION_DIR/build"
 export TARGET_BUILD_DIR=HYPERION_DIR="$HYPERION_DIR/build-rpi"
 
 # install required packages
-sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
+sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev libxrender-dev
 sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
 
 # On newer version of Ubuntu (and maybe other distros) the ia32-libs is not available, the following
