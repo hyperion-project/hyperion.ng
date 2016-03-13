@@ -25,7 +25,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(Hyperion * hyperion, uint16_t port = 19333);
+	BoblightServer(Hyperion * hyperion, const int priority, uint16_t port = 19333);
 	~BoblightServer();
 
 	///
@@ -54,4 +54,7 @@ private:
 
 	/// List with open connections
 	QSet<BoblightClientConnection *> _openConnections;
+
+	/// hyperion priority
+	const int _priority;
 };
