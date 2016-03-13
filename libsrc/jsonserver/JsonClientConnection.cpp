@@ -409,6 +409,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 		transform["saturationGain"] = colorTransform->_hsvTransform.getSaturationGain();
 		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
+		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
+		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
 
 		Json::Value & threshold = transform["threshold"];
 		threshold.append(colorTransform->_rgbRedTransform.getThreshold());

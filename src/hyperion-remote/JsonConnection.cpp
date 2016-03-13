@@ -216,12 +216,12 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 		transform["valueGain"] = *value;
 	}
 	
-	if (saturation != nullptr)
+	if (saturationL != nullptr)
 	{
 		transform["saturationLGain"] = *saturationL;
 	}
 
-	if (value != nullptr)
+	if (luminance != nullptr)
 	{
 		transform["luminanceGain"] = *luminance;
 	}
