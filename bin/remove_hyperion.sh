@@ -94,6 +94,8 @@ else
 	rm -v /usr/bin/hyperiond 2>/dev/null
 	rm -v /usr/bin/hyperion-remote 2>/dev/null
 	rm -v /usr/bin/hyperion-v4l2 2>/dev/null
+	rm -v /usr/bin/hyperion-dispmanx 2>/dev/null
+	rm -v /usr/bin/hyperion-x11 2>/dev/null
 	rm -v /etc/hyperion.config.json 2>/dev/null
 	echo "---> Remove binaries"
 	rm -rv /opt/hyperion 2>/dev/null
