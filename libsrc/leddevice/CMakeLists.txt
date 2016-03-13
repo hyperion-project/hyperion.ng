@@ -97,6 +97,18 @@ SET(Leddevice_SOURCES
 )
 endif(ENABLE_WS2812BPWM)
 
+if(ENABLE_WS281XPWM)
+include_directories(../../dependencies/external/rpi_ws281x)
+SET(Leddevice_HEADERS
+		${Leddevice_HEADERS}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS281x.h
+	)
+SET(Leddevice_SOURCES
+		${Leddevice_SOURCES}
+		${CURRENT_SOURCE_DIR}/LedDeviceWS281x.cpp
+)
+endif(ENABLE_WS281XPWM)
+
 if(ENABLE_TINKERFORGE)
 	SET(Leddevice_HEADERS
 			${Leddevice_HEADERS}
@@ -136,6 +148,10 @@ target_link_libraries(leddevice
 
 if(ENABLE_TINKERFORGE)
 	target_link_libraries(leddevice tinkerforge)
+endif()
+
+if(ENABLE_WS281XPWM)
+	target_link_libraries(leddevice ws281x)
 endif()
 
 if(APPLE)

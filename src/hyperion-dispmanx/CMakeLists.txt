@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 # Set the project name
 project(hyperion-dispmanx)
 
+# find QT
 if(ENABLE_QT5)
 	find_package(Qt5Widgets REQUIRED)
 else(ENABLE_QT5)
-	# find Qt4
 	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork )
 endif(ENABLE_QT5)
 
@@ -55,11 +55,7 @@ target_link_libraries( ${PROJECT_NAME}
 )
 
 if(ENABLE_QT5)
-	qt5_use_modules(hyperion-dispmanx Widgets Core Gui Network)
+	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 else(ENABLE_QT5)
-	qt4_use_modules(hyperion-dispmanx
-		Core
-		Gui
-		Network
-	)
+	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
 endif(ENABLE_QT5)

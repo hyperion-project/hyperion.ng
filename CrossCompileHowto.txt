@@ -1,50 +1,61 @@
-ON TARGET
---------------
-sudo apt-get install libQt4-dev libusb-1.0-0-dev python-dev rsync
+#!/bin/bash
+#Updated: 13 March 2016, by TPmodding
+#Just use a clean Ubunut 14.04 and run this script
+##############
+#ON TARGET
+#--------------
+#sudo apt-get install libQt4-dev libusb-1.0-0-dev python-dev rsync
+#############
 
-ON HOST
----------
-export TARGET_IP=192.168.1.17
+#ON HOST
+#---------
+sudo apt-get update
+sudo apt-get upgrade
+#TO-DO verify what is really required
+sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev libxrender-dev protobuf-compiler lib32z1 lib32ncurses5 lib32bz2-1.0 zlib1g-dev
+
+echo 'PATH=$PATH:$HOME/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin' >> .bashrc
+#---------
+
+
+export TARGET_IP=192.168.0.103
 export TARGET_USER=pi
 
 export RASCROSS_DIR="$HOME/raspberrypi"
-export ROOTFS_DIR="RASCROSS_DIR/rootfs"
+export ROOTFS_DIR="$RASCROSS_DIR/rootfs"
 export HYPERION_DIR="$HOME/hyperion"
+#export IMX6_DIR="$HOME/hummingboard"
 export TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake"
 
 export NATIVE_BUILD_DIR="$HYPERION_DIR/build"
-export TARGET_BUILD_DIR=HYPERION_DIR="$HYPERION_DIR/build-rpi"
+export TARGET_BUILD_DIR="$HYPERION_DIR/build-rpi"
 
-# install required packages
-sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
-sudo apt-get install git rsync cmake ia32-libs protobuf-compiler
-
-# On newer version of Ubuntu (and maybe other distros) the ia32-libs is not available, the following
-# install solved this for me (TODO: verify what is really required)
-sudo apt-get install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386
-
-# create the rootfs by copying it from an target
 mkdir -p "$ROOTFS_DIR"
 rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/{lib,usr} "$ROOTFS_DIR"
 
 ######## RPi specific #########
 
-# get the raspberry pi firmware and add it to the rootfs
+mkdir -p "$RASCROSS_DIR/firmware"
 git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
 ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$ROOTFS_DIR/opt"
 
-# get the compile tools
 git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
 
 ##### End of RPi specific ######
 
+######## NOT TESTED ONLY INFOs #########
+######## IMX6 specific #########
+#export IMX6_DIR="$HOME/hummingboard"
+#mkdir -p "$IMX6_Dir"
+#cd "$IMX6_Dir"
+#wget https://launchpad.net/linaro-toolchain-binaries/trunk/2013.10/+download/gcc-linaro-arm-linux-gnueabihf-4.8-2013.10_linux.tar.bz2
+#tar -xvjf gcc-linaro-arm-linux-gnueabihf-4.8-2013.10_linux.tar.bz2
+#cd
+##### End of IMX6 specific ######
+######## NOT TESTED     #########
+
 # get the Hyperion sources
 git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
-
-# if you forget the --resursive in above statement or you are updating an existing clone you need
-# to clone the protobuf submodule by runnning the follwing two statements:
-git submodule init
-git submodule update
 
 # do a native build (to build the protobuf compiler for the native platform)
 mkdir -p "$NATIVE_BUILD_DIR"
@@ -55,9 +66,17 @@ cmake -DENABLE_DISPMANX=OFF --build "$NATIVE_BUILD_DIR" "$HYPERION_DIR"
 mkdir -p "$TARGET_BUILD_DIR"
 cmake -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -DIMPORT_PROTOC=$NATIVE_BUILD_DIR/protoc_export.cmake --build "$TARGET_BUILD_DIR" "$HYPERION_DIR"
 
-# For hummingboard (imx6) the following package is required
-sudo apt-get install lib32z1
+#compile
+cd "$HYPERION_DIR/deploy"
+rm -rf hummingboard_prerelease.tar.gz hyperion.deps.openelec-imx6.tar.gz hyperion.deps.openelec-rpi.tar.gz hyperion_imx6.tar.gz hyperion_rpi.tar.gz hyperion_wetek.tar.gz hyperion_x32.tar.gz hyperion_x64.tar.gz
+cd
+cd "$HYPERION_DIR/bin"
+chmod +x *
+cp "$HYPERION_DIR/bin/create_all_releases.sh" "$HYPERION_DIR"
+cd "$HYPERION_DIR"
+./create_all_releases.sh
 
-------------------------------------------------------------------------------
-These instructions are based on the guide given by:
-http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi
+######END
+#------------------------------------------------------------------------------
+#These instructions are based on tvdzwan and on the guide given by:
+#http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi
