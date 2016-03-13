@@ -61,7 +61,7 @@ int main(int argc, char * argv[])
 		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "Set the HSV value gain of the leds");
-		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>   ('u', "saturationL", "Set the HSL saturation gain of the leds");
+		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
 		DoubleParameter    & argLuminance  = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
 		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
@@ -70,13 +70,13 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
 		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
 		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "Identifier(qualifier) of the correction to set");
-		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('1', "correctionR"  , "Specify the red channel correction factor");
-		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('2', "correctionG"  , "Specify the green channel correction factor");
-		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('3', "correctionB"  , "Specify the blue channel correction factor");
+		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('1', "correctionR"  , "Specify the red channel correction");
+		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('2', "correctionG"  , "Specify the green channel correction");
+		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('3', "correctionB"  , "Specify the blue channel correction");
 		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature to set");
-		IntParameter       & argTempR      = parameters.add<IntParameter>      ('4', "tempR"  , "Specify the red channel temperature factor");
-		IntParameter       & argTempG      = parameters.add<IntParameter>      ('5', "tempG"  , "Specify the red channel temperature factor");
-		IntParameter       & argTempB      = parameters.add<IntParameter>      ('6', "tempB"  , "Specify the red channel temperature factor");
+		IntParameter       & argTempR      = parameters.add<IntParameter>      ('4', "tempR"  , "Specify the red channel temperature correction");
+		IntParameter       & argTempG      = parameters.add<IntParameter>      ('5', "tempG"  , "Specify the red channel temperature correction");
+		IntParameter       & argTempB      = parameters.add<IntParameter>      ('6', "tempB"  , "Specify the red channel temperature correction");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
 			std::cerr << "  " << argColor.usageLine() << std::endl;
 			std::cerr << "  " << argImage.usageLine() << std::endl;
-            		std::cerr << "  " << argEffect.usageLine() << std::endl;
+            std::cerr << "  " << argEffect.usageLine() << std::endl;
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;

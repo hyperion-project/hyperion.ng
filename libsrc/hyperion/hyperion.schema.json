@@ -38,6 +38,31 @@
             "type":"object",
             "required":false,
             "properties": {
+				"correctionValues" : {
+                    "type" : "object",
+                    "required" : false,
+                    "properties" : {
+                        "red" : {
+                            "type" : "integer",
+                            "required" : false,
+                            "minimum" : 0
+							"maximum" : 255
+                        },
+                        "green" : {
+                            "type" : "integer",
+                            "required" : false,
+                            "minimum" : 0
+							"maximum" : 255
+                        }
+						"blue" : {
+                            "type" : "integer",
+                            "required" : false,
+                            "minimum" : 0
+							"maximum" : 255
+                        }
+                    },
+                    "additionalProperties" : false
+                },
                 "hsv" : {
                     "type" : "object",
                     "required" : false,
@@ -48,6 +73,23 @@
                             "minimum" : 0.0
                         },
                         "valueGain" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.0
+                        }
+                    },
+                    "additionalProperties" : false
+                },
+				"hsl" : {
+                    "type" : "object",
+                    "required" : false,
+                    "properties" : {
+                        "saturationGain" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.0
+                        },
+                        "luminanceGain" : {
                             "type" : "number",
                             "required" : false,
                             "minimum" : 0.0

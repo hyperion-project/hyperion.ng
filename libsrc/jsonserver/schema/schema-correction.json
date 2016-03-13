@@ -16,22 +16,22 @@
 					"required" : false
 				},
 				"red" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum": 0.0,
-					"maximum": 255.0
+					"minimum": 0,
+					"maximum": 255
 				},
 				"green" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum": 0.0,
-					"maximum": 255.0
+					"minimum": 0,
+					"maximum": 255
 				},
 				"blue" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum": 0.0,
-					"maximum": 255.0
+					"minimum": 0,
+					"maximum": 255
 				}
 			},
 			"additionalProperties": false
