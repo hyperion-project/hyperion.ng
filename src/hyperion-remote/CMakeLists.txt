@@ -2,15 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hyperion-remote)
 
-<<<<<<< HEAD
-# find Qt4
-if(ENABLE_QT5)
-find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#      set(CMAKE_CXX_FLAGS "-fPIC")
-else(ENABLE_QT5)
-find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
-=======
 # find Qt
 if(ENABLE_QT5)
 	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
@@ -18,7 +9,6 @@ if(ENABLE_QT5)
 #	set(CMAKE_CXX_FLAGS "-fPIC")
 else(ENABLE_QT5)
 	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
->>>>>>> upstream/master/master
 endif(ENABLE_QT5)
 
 # The following I do not undrstand completely...
