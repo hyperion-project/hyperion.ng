@@ -23,8 +23,10 @@ git submodule update
 mkdir "$HYPERION_DIR/build"
 cd "$HYPERION_DIR/build"
 
-# run cmake to generate make files on the raspberry pi
+# run cmake to generate make files on the raspberry pi WITHOUT PWM SUPPORT
 cmake  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+# run cmake to generate make files on the raspberry pi WITH PWM SUPPORT
+cmake -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # or if you are not compiling on the raspberry pi and need to disable the Dispmanx grabber and support for spi devices
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
@@ -44,7 +46,7 @@ cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_V4L2=OFF -DENABLE_OSX=O
 make
 # or if you have a system with more then 1 cpu core
 make -j 4
-# "4" is  the number of cpu cores (e.g. 4 on RPi2), this makes compile faster
+# "4" is  the number of cpu cores (e.g. 4 on RPi2 and RPi3), this makes compile faster
 
 #after compile, to remove any stuff not needed for a release version.
 strip bin/*

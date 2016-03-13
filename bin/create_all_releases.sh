@@ -17,7 +17,7 @@ cd ..
 # Create the RPI build
 mkdir build-rpi
 cd build-rpi
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 

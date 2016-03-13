@@ -119,10 +119,10 @@ elif [ $CPU_WETEK -eq 1 ]; then
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
 elif [ $CPU_X64 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x64.tar.gz
-	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-x32x64.tar.gz
 elif [ $CPU_X32 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x32.tar.gz
-	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-x32x64.tar.gz
 else
 	echo "---> Critical Error: Target platform unknown -> abort"
 	exit 1
