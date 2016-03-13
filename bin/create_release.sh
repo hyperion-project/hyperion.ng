@@ -24,6 +24,8 @@ tar --create --verbose --gzip --absolute-names --show-transformed-names --ignore
 	--transform "s:$repodir/effects/:hyperion/effects/:" \
 	--transform "s:$repodir/config/:hyperion/config/:" \
 	--transform "s:$repodir/bin/hyperion.init.sh:hyperion/init.d/hyperion.init.sh:" \
+	--transform "s:$repodir/bin/hyperion.systemd.sh:hyperion/init.d/hyperion.systemd.sh:" \
+	--transform "s:$repodir/bin/hyperion.initctl.sh:hyperion/init.d/hyperion.initctl.sh:" \
 	--transform "s://:/:g" \
 	"$builddir/bin/hyperiond" \
 	"$builddir/bin/hyperion-remote" \
@@ -32,5 +34,7 @@ tar --create --verbose --gzip --absolute-names --show-transformed-names --ignore
 	"$builddir/bin/dispmanx2png" \
 	"$repodir/effects/"* \
 	"$repodir/bin/hyperion.init.sh" \
+	"$repodir/bin/hyperion.systemd.sh" \
+	"$repodir/bin/hyperion.initctl.sh" \
 	"$repodir/config/hyperion.config.json"
 

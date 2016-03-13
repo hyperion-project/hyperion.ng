@@ -8,10 +8,7 @@
 #include <getoptPlusPlus/getoptpp.h>
 
 #include <protoserver/ProtoConnectionWrapper.h>
-#include "AmlogicWrapper.h"
-
-#include "HyperionConfig.h"
-
+#include "OsxWrapper.h"
 
 using namespace vlofgren;
 
@@ -25,11 +22,6 @@ void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
-	std::cout
-		<< "hyperion-aml:" << std::endl
-		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
-		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
-
 	QCoreApplication app(argc, argv);
 
 	try
@@ -38,6 +30,7 @@ int main(int argc, char ** argv)
 		OptionsParser optionParser("X11 capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
+		IntParameter           & argDisplay         = parameters.add<IntParameter>          ('d', "display",          "Set the display to capture [default: 0]");
 		IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Capture frame rate [default: 10]");
 		IntParameter           & argWidth           = parameters.add<IntParameter>          (0x0, "width",            "Width of the captured image [default: 128]");
 		IntParameter           & argHeight          = parameters.add<IntParameter>          (0x0, "height",           "Height of the captured image [default: 128]");
@@ -53,6 +46,7 @@ int main(int argc, char ** argv)
 		argHeight.setDefault(160);
 		argAddress.setDefault("127.0.0.1:19445");
 		argPriority.setDefault(800);
+		argDisplay.setDefault(0);
 
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
@@ -74,12 +68,12 @@ int main(int argc, char ** argv)
 		}
 		
 		int grabInterval = 1000 / argFps.getValue();
-		AmlogicWrapper amlWrapper(argWidth.getValue(),argHeight.getValue(),grabInterval);
+		OsxWrapper osxWrapper(argDisplay.getValue(), argWidth.getValue(), argHeight.getValue(), grabInterval);
 
 		if (argScreenshot.isSet())
 		{
 			// Capture a single screenshot and finish
-			const Image<ColorRgb> & screenshot = amlWrapper.getScreenshot();
+			const Image<ColorRgb> & screenshot = osxWrapper.getScreenshot();
 			saveScreenshot("screenshot.png", screenshot);
 		}
 		else
@@ -88,10 +82,10 @@ int main(int argc, char ** argv)
 			ProtoConnectionWrapper protoWrapper(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
 
 			// Connect the screen capturing to the proto processing
-			QObject::connect(&amlWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			QObject::connect(&osxWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
 
 			// Start the capturing
-			amlWrapper.start();
+			osxWrapper.start();
 
 			// Start the application
 			app.exec();

@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 		OptionsParser optionParser("Dispmanx capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
-		IntParameter           & argFps        = parameters.add<IntParameter>          ('f', "framerate",   "Capture frame rate [default=10]");
+		IntParameter           & argFps        = parameters.add<IntParameter>          ('f', "framerate",   "Capture frame rate [default: 10]");
 		IntParameter           & argWidth      = parameters.add<IntParameter>          (0x0, "width",       "The width of the grabbed frames [pixels]");
 		IntParameter           & argHeight     = parameters.add<IntParameter>          (0x0, "height",      "The height of the grabbed frames");
 

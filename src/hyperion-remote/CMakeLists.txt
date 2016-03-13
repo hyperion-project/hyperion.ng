@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hyperion-remote)
 
+<<<<<<< HEAD
 # find Qt4
 if(ENABLE_QT5)
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
@@ -9,6 +10,15 @@ find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 #      set(CMAKE_CXX_FLAGS "-fPIC")
 else(ENABLE_QT5)
 find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+=======
+# find Qt
+if(ENABLE_QT5)
+	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#	set(CMAKE_CXX_FLAGS "-fPIC")
+else(ENABLE_QT5)
+	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+>>>>>>> upstream/master/master
 endif(ENABLE_QT5)
 
 # The following I do not undrstand completely...
@@ -27,17 +37,20 @@ set(hyperion-remote_SOURCES
 	hyperion-remote.cpp
 	JsonConnection.cpp)
 
-add_executable(hyperion-remote
+add_executable(${PROJECT_NAME}
 	${hyperion-remote_HEADERS}
 	${hyperion-remote_SOURCES})
 
+target_link_libraries(${PROJECT_NAME}
+	jsoncpp
+	getoptPlusPlus
+	${QT_LIBRARIES})
+
 if(ENABLE_QT5)
-qt5_use_modules(hyperion-remote Widgets Network)
+	qt5_use_modules(${PROJECT_NAME} Widgets Core Network)
+else(ENABLE_QT5)
+	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
 endif(ENABLE_QT5)
 
-target_link_libraries(hyperion-remote
-	jsoncpp
-    getoptPlusPlus
-    ${QT_LIBRARIES})
-
 install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+

@@ -129,47 +129,42 @@ int main(int argc, char** argv)
 		// Get the parameters for the bootsequence
 		const std::string effectName = effectConfig["effect"].asString();
 		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
-		const int priority           = effectConfig["priority"].asUInt();
+		const int priority           = (duration_ms != 0) ? 0 : effectConfig.get("priority",990).asInt();
 		const int bootcolor_priority = (priority > 990) ? priority+1 : 990;
 
+		// clear the leds
+		ColorRgb boot_color = ColorRgb::BLACK;
+		hyperion.setColor(bootcolor_priority, boot_color, 0, false);
+
+		// start boot effect
+		if ( ! effectName.empty() )
+		{
+			int result;
+			std::cout << "Boot sequence '" << effectName << "' ";
+			if (effectConfig.isMember("args"))
+			{
+				std::cout << " (with user defined arguments) ";
+				const Json::Value effectConfigArgs = effectConfig["args"];
+				result = hyperion.setEffect(effectName, effectConfigArgs, priority, duration_ms);
+			}
+			else
+			{
+				result = hyperion.setEffect(effectName, priority, duration_ms);
+			}
+			std::cout << ((result == 0) ? "started" : "failed") << std::endl;
+		}
+
+		// static color
 		if ( ! effectConfig["color"].isNull() && effectConfig["color"].isArray() && effectConfig["color"].size() == 3 )
 		{
-			ColorRgb boot_color = {
+			boot_color = {
 				(uint8_t)effectConfig["color"][0].asUInt(),
 				(uint8_t)effectConfig["color"][1].asUInt(),
 				(uint8_t)effectConfig["color"][2].asUInt()
 			};
-
-			hyperion.setColor(bootcolor_priority, boot_color, 0, false);
-		}
-		else
-		{
-			hyperion.setColor(bootcolor_priority, ColorRgb::BLACK, duration_ms, false);
 		}
 
-		if (effectConfig.isMember("args"))
-		{
-			const Json::Value effectConfigArgs = effectConfig["args"];
-			if (hyperion.setEffect(effectName, effectConfigArgs, priority, duration_ms) == 0)
-			{
-				std::cout << "Boot sequence(" << effectName << ") with user-defined arguments created and started" << std::endl;
-			}
-			else
-			{
-				std::cout << "Failed to start boot sequence: " << effectName << " with user-defined arguments" << std::endl;
-			}
-		}
-		else
-		{
-			if (hyperion.setEffect(effectName, priority, duration_ms) == 0)
-			{
-				std::cout << "Boot sequence(" << effectName << ") created and started" << std::endl;
-			}
-			else
-			{
-				std::cout << "Failed to start boot sequence: " << effectName << std::endl;
-			}
-		}
+		hyperion.setColor(bootcolor_priority, boot_color, 0, false);
 	}
 
 	// create XBMC video checker if the configuration is present
@@ -218,7 +213,7 @@ int main(int argc, char** argv)
 	if (config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = config["boblightServer"];
-		boblightServer = new BoblightServer(&hyperion, boblightServerConfig["port"].asUInt());
+		boblightServer = new BoblightServer(&hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
 		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
 	}
 
@@ -234,6 +229,7 @@ int main(int argc, char** argv)
 			frameGrabberConfig["width"].asUInt(),
 			frameGrabberConfig["height"].asUInt(),
 			frameGrabberConfig["frequency_Hz"].asUInt(),
+			frameGrabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -277,7 +273,7 @@ int main(int argc, char** argv)
 					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
 					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
 					&hyperion,
-					grabberConfig.get("priority", 800).asInt());
+					grabberConfig.get("priority", 900).asInt());
 		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
 		v4l2Grabber->setCropping(
 					grabberConfig.get("cropLeft", 0).asInt(),
@@ -310,6 +306,7 @@ int main(int argc, char** argv)
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
+			grabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -343,6 +340,7 @@ int main(int argc, char** argv)
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
+			grabberConfig.get("priority",900).asInt(),
 			&hyperion);
 
 		if (xbmcVideoChecker != nullptr)
@@ -378,11 +376,12 @@ int main(int argc, char** argv)
 	{
 		const Json::Value & grabberConfig = config.isMember("osxgrabber")? config["osxgrabber"] : config["framegrabber"];
 		osxGrabber = new OsxWrapper(
-										   grabberConfig.get("display", 0).asUInt(),
-										   grabberConfig["width"].asUInt(),
-										   grabberConfig["height"].asUInt(),
-										   grabberConfig["frequency_Hz"].asUInt(),
-										   &hyperion);
+									grabberConfig.get("display", 0).asUInt(),
+									grabberConfig["width"].asUInt(),
+									grabberConfig["height"].asUInt(),
+									grabberConfig["frequency_Hz"].asUInt(),
+									grabberConfig.get("priority",900).asInt(),
+									&hyperion );
 
 		if (xbmcVideoChecker != nullptr)
 		{

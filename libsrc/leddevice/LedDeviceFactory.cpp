@@ -42,6 +42,10 @@
 	#include "LedDeviceWS2812b.h"
 #endif
 
+#ifdef ENABLE_WS281XPWM
+	#include "LedDeviceWS281x.h"
+#endif
+
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
 	std::cout << "Device configuration: " << deviceConfig << std::endl;
@@ -129,8 +133,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned latchtime      = deviceConfig.get("latchtime",500000).asInt();
 
-		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate);
+		LedDeviceWs2801* deviceWs2801 = new LedDeviceWs2801(output, rate, latchtime);
 		deviceWs2801->open();
 
 		device = deviceWs2801;
@@ -174,7 +179,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLightpack;
 	}
-	else if (type == "multi-lightpack")
+	else if (type == "multi-lightpack" || type == "multi_lightpack")
 	{
 		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
 		deviceLightpack->open();
@@ -285,9 +290,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = ledDeviceWS2812b;
 	}
 #endif
+#ifdef ENABLE_WS281XPWM
+	else if (type == "ws281x")
+	{
+		const int gpio = deviceConfig.get("gpio", 18).asInt();
+		const int leds = deviceConfig.get("leds", 12).asInt();
+		const uint32_t freq = deviceConfig.get("freq", (Json::UInt)800000ul).asInt();
+		const int dmanum = deviceConfig.get("dmanum", 5).asInt();
+
+		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum);
+		device = ledDeviceWS281x;
+	}
+#endif
 	else
 	{
-		std::cout << "Unable to create device " << type << std::endl;
+		std::cout << "Error: Unknown/Unimplemented device " << type << std::endl;
 		// Unknown / Unimplemented device
 	}
 	return device;

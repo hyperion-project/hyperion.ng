@@ -1,37 +1,37 @@
 #!/bin/sh
-
+# create all directly for release with -DCMAKE_BUILD_TYPE=Release -Wno-dev
 # Create the x64 build
 mkdir build-x64
 cd build-x64
-cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON ..
+cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 
 # Create the x32 build
 mkdir build-x32
 cd build-x32
-cmake -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON ..
+cmake -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 
 # Create the RPI build
 mkdir build-rpi
 cd build-rpi
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake ..
+cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 
 # Create the WETEK build
 mkdir build-wetek
 cd build-wetek
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DENABLE_AMLOGIC=ON ..
+cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 
 # Create the IMX6 build
 mkdir build-imx6
 cd build-imx6
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-imx6.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON ..
+cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-imx6.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 

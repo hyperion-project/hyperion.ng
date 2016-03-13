@@ -4,11 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 # Set the project name
 project(hyperion-x11)
 
+# find QT
 if(ENABLE_QT5)
-find_package(Qt5Widgets REQUIRED)
+	find_package(Qt5Widgets REQUIRED)
 else(ENABLE_QT5)
-# find Qt4
-find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
 endif(ENABLE_QT5)
 
 # Find X11
@@ -33,18 +33,19 @@ set(Hyperion_X11_SOURCES
 )
 
 if(ENABLE_QT5)
-QT5_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
+	QT5_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
 else(ENABLE_QT5)
-QT4_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
+	QT4_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
 endif(ENABLE_QT5)
 
-add_executable(hyperion-x11
+
+add_executable(${PROJECT_NAME}
 	${Hyperion_X11_HEADERS}
 	${Hyperion_X11_SOURCES}
 	${Hyperion_X11_HEADERS_MOC}
 )
 
-target_link_libraries(hyperion-x11
+target_link_libraries(${PROJECT_NAME}
 	getoptPlusPlus
 	blackborder
 	hyperion-utils
@@ -55,12 +56,9 @@ target_link_libraries(hyperion-x11
 )
 
 if(ENABLE_QT5)
-qt5_use_modules(hyperion-x11 Widgets Core Gui Network)
+	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 else(ENABLE_QT5)
-qt4_use_modules(hyperion-x11
-	Core
-	Gui
-	Network)
+	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
 endif(ENABLE_QT5)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )

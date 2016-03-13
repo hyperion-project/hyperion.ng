@@ -8,7 +8,7 @@ SET(OsxGrabberQT_HEADERS
 )
 
 SET(OsxGrabberHEADERS
-		${CURRENT_SOURCE_DIR}/OsxFrameGrabber.h
+		${CURRENT_HEADER_DIR}/OsxFrameGrabber.h
 )
 
 SET(OsxGrabberSOURCES
@@ -17,9 +17,9 @@ SET(OsxGrabberSOURCES
 )
 
 if(ENABLE_QT5)
-QT5_WRAP_CPP(OsxGrabberHEADERS_MOC ${OsxGrabberQT_HEADERS})
+	QT5_WRAP_CPP(OsxGrabberHEADERS_MOC ${OsxGrabberQT_HEADERS})
 else(ENABLE_QT5)
-QT4_WRAP_CPP(OsxGrabberHEADERS_MOC ${OsxGrabberQT_HEADERS})
+	QT4_WRAP_CPP(OsxGrabberHEADERS_MOC ${OsxGrabberQT_HEADERS})
 endif(ENABLE_QT5)
 
 add_library(osx-grabber

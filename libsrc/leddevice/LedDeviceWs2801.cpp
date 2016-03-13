@@ -18,6 +18,13 @@ LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned
 	// empty
 }
 
+LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned baudrate, const unsigned latchTime) :
+	LedSpiDevice(outputDevice, baudrate, latchTime),
+	mLedCount(0)
+{
+	// empty
+}
+
 int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)
 {
 	mLedCount = ledValues.size();

@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 
 project(hyperion-v4l2)
 
-# find Qt4
+# find Qt
 if(ENABLE_QT5)
-find_package(Qt5Widgets REQUIRED)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#      set(CMAKE_CXX_FLAGS "-fPIC")
+	find_package(Qt5Widgets REQUIRED)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#	set(CMAKE_CXX_FLAGS "-fPIC")
 else(ENABLE_QT5)
-find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
 endif(ENABLE_QT5)
 
 
@@ -32,19 +32,19 @@ set(Hyperion_V4L2_SOURCES
 	ScreenshotHandler.cpp
 )
 if(ENABLE_QT5)
-QT5_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
+	QT5_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
 else(ENABLE_QT5)
-QT4_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
+	QT4_WRAP_CPP(Hyperion_V4L2_MOC_SOURCES ${Hyperion_V4L2_QT_HEADERS})
 endif(ENABLE_QT5)
 
-add_executable(hyperion-v4l2
+add_executable(${PROJECT_NAME}
 	${Hyperion_V4L2_HEADERS}
 	${Hyperion_V4L2_SOURCES}
 	${Hyperion_V4L2_QT_HEADERS}
 	${Hyperion_V4L2_MOC_SOURCES}
 )
 
-target_link_libraries(hyperion-v4l2
+target_link_libraries(${PROJECT_NAME}
 	v4l2-grabber
 	getoptPlusPlus
 	blackborder
@@ -54,5 +54,11 @@ target_link_libraries(hyperion-v4l2
 	${QT_LIBRARIES}
 )
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+if(ENABLE_QT5)
+	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
+else(ENABLE_QT5)
+	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
+endif(ENABLE_QT5)
 
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )

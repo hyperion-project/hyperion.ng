@@ -1,6 +1,6 @@
 # Install the required tools and dependencies
 sudo apt-get update
-sudo apt-get install git cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev
+sudo apt-get install git cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev libxrender-dev
 
 # RPI ONLY: when you build on the rapberry pi and include the dispmanx grabber (which is the default) 
 # you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github
@@ -14,7 +14,7 @@ sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /opt
 export HYPERION_DIR="hyperion"
 git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
 
-# if you forget the --resursive in above statement or you are updating an existing clone you need
+# if you forget the --recursive in above statement or you are updating an existing clone you need
 # to clone the protobuf submodule by runnning the follwing two statements:
 git submodule init
 git submodule update
@@ -29,10 +29,16 @@ cmake  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_FB=ON  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-# for OSX build you need XCode, qt4 libraries and cmake. You can use macport (homebrew might work too) to install them
+# for OSX build you need XCode, qt4 libraries and cmake (maybe libusb too). You can use macport or homebrew(recommended) to install them:
+#for port:
 sudo port install qt4-mac
 sudo port install cmake
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_V4L2=OFF -DENABLE_OSX=ON .
+#sudo port install libusb
+#for brew:
+sudo brew install qt4-mac
+sudo brew install cmake
+#sudo brew install libusb
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_V4L2=OFF -DENABLE_OSX=ON ..
 
 # run make to build Hyperion
 make

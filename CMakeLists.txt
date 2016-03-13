@@ -34,6 +34,9 @@ message(STATUS "ENABLE_V4L2 = " ${ENABLE_V4L2})
 option(ENABLE_WS2812BPWM   "Enable the WS2812b-PWM device" OFF)
 message(STATUS "ENABLE_WS2812BPWM = " ${ENABLE_WS2812BPWM})
 
+option(ENABLE_WS281XPWM   "Enable the WS281x-PWM device" OFF)
+message(STATUS "ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
+
 option(ENABLE_X11 "Enable the X11 grabber" OFF)
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 

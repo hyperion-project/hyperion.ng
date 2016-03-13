@@ -4,8 +4,12 @@ cmake_minimum_required(VERSION 2.8)
 # Set the project name
 project(hyperion-aml)
 
-# find Qt4
-find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+# find QT
+if(ENABLE_QT5)
+	find_package(Qt5Widgets REQUIRED)
+else(ENABLE_QT5)
+	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
+endif(ENABLE_QT5)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
@@ -51,5 +55,10 @@ qt4_use_modules(${PROJECT_NAME}
 	Gui
 	Network)
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+if(ENABLE_QT5)
+	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
+else(ENABLE_QT5)
+	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
+endif(ENABLE_QT5)
 
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
