@@ -53,20 +53,30 @@ int main(int argc, char * argv[])
 		IntParameter       & argDuration   = parameters.add<IntParameter>      ('d', "duration"  , "Specify how long the leds should be switched on in millseconds [default: infinity]");
 		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
-        StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
-        StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
+        	StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
+		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
 		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "Set the HSV value gain of the leds");
+		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
+		DoubleParameter    & argLuminance  = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
 		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
 		TransformParameter & argBlacklevel = parameters.add<TransformParameter>('b', "blacklevel", "Set the blacklevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
 		TransformParameter & argWhitelevel = parameters.add<TransformParameter>('w', "whitelevel", "Set the whitelevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
 		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
 		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
+		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "Identifier(qualifier) of the correction to set");
+		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('1', "correctionR"  , "Specify the red channel correction");
+		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('2', "correctionG"  , "Specify the green channel correction");
+		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('3', "correctionB"  , "Specify the blue channel correction");
+		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature to set");
+		IntParameter       & argTempR      = parameters.add<IntParameter>      ('4', "tempR"  , "Specify the red channel temperature correction");
+		IntParameter       & argTempG      = parameters.add<IntParameter>      ('5', "tempG"  , "Specify the red channel temperature correction");
+		IntParameter       & argTempB      = parameters.add<IntParameter>      ('6', "tempB"  , "Specify the red channel temperature correction");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -85,10 +95,12 @@ int main(int argc, char * argv[])
 		}
 
 		// check if at least one of the available color transforms is set
-		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
+		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
+		bool colorCorrection = argCorrR.isSet() || argCorrG.isSet() || argCorrB.isSet();
+		bool colorTemp = argTempR.isSet() || argTempG.isSet() || argTempB.isSet();
 
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform, colorCorrection, colorTemp});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -98,14 +110,26 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
-			std::cerr << "or one or more of the available color transformations:" << std::endl;
+			std::cerr << "one or more of the available color transformations:" << std::endl;
 			std::cerr << "  " << argId.usageLine() << std::endl;
 			std::cerr << "  " << argSaturation.usageLine() << std::endl;
 			std::cerr << "  " << argValue.usageLine() << std::endl;
+			std::cerr << "  " << argSaturationL.usageLine() << std::endl;
+			std::cerr << "  " << argLuminance.usageLine() << std::endl;
 			std::cerr << "  " << argThreshold.usageLine() << std::endl;
 			std::cerr << "  " << argGamma.usageLine() << std::endl;
 			std::cerr << "  " << argBlacklevel.usageLine() << std::endl;
 			std::cerr << "  " << argWhitelevel.usageLine() << std::endl;
+			std::cerr << "one or more of the available color corrections:" << std::endl;
+			std::cerr << "  " << argIdC.usageLine() << std::endl;
+			std::cerr << "  " << argCorrR.usageLine() << std::endl;
+			std::cerr << "  " << argCorrG.usageLine() << std::endl;
+			std::cerr << "  " << argCorrB.usageLine() << std::endl;
+			std::cerr << "or one or more of the available color temperature adjustment:" << std::endl;
+			std::cerr << "  " << argIdT.usageLine() << std::endl;
+			std::cerr << "  " << argTempR.usageLine() << std::endl;
+			std::cerr << "  " << argTempG.usageLine() << std::endl;
+			std::cerr << "  " << argTempB.usageLine() << std::endl;
 			return 1;
 		}
 
@@ -121,11 +145,11 @@ int main(int argc, char * argv[])
 		{
 			connection.setImage(argImage.getValue(), argPriority.getValue(), argDuration.getValue());
 		}
-        else if (argEffect.isSet())
-        {
-            connection.setEffect(argEffect.getValue(), argEffectArgs.getValue(), argPriority.getValue(), argDuration.getValue());
-        }
-        else if (argServerInfo.isSet())
+        	else if (argEffect.isSet())
+        	{
+        	 	connection.setEffect(argEffect.getValue(), argEffectArgs.getValue(), argPriority.getValue(), argDuration.getValue());
+        	}
+        	else if (argServerInfo.isSet())
 		{
 			QString info = connection.getServerInfo();
 			std::cout << "Server info:\n" << info.toStdString() << std::endl;
@@ -141,25 +165,61 @@ int main(int argc, char * argv[])
 		else if (colorTransform)
 		{
 			std::string transId;
-			double saturation, value;
+			double saturation, value, saturationL, luminance;
 			ColorTransformValues threshold, gamma, blacklevel, whitelevel;
 
 			if (argId.isSet())         transId    = argId.getValue();
 			if (argSaturation.isSet()) saturation = argSaturation.getValue();
 			if (argValue.isSet())      value      = argValue.getValue();
+			if (argSaturationL.isSet()) saturationL = argSaturationL.getValue();
+			if (argLuminance.isSet())  luminance      = argLuminance.getValue();
 			if (argThreshold.isSet())  threshold  = argThreshold.getValue();
 			if (argGamma.isSet())      gamma      = argGamma.getValue();
 			if (argBlacklevel.isSet()) blacklevel = argBlacklevel.getValue();
 			if (argWhitelevel.isSet()) whitelevel = argWhitelevel.getValue();
-
+			
 			connection.setTransform(
 						argId.isSet()         ? &transId    : nullptr,
 						argSaturation.isSet() ? &saturation : nullptr,
 						argValue.isSet()      ? &value      : nullptr,
+						argSaturationL.isSet() ? &saturationL : nullptr,
+						argLuminance.isSet()  ? &luminance      : nullptr,
 						argThreshold.isSet()  ? &threshold  : nullptr,
 						argGamma.isSet()      ? &gamma      : nullptr,
 						argBlacklevel.isSet() ? &blacklevel : nullptr,
 						argWhitelevel.isSet() ? &whitelevel : nullptr);
+		}
+		else if (colorCorrection)
+		{
+			std::string transId;
+			int red, green, blue;
+
+			if (argIdC.isSet())	transId    = argId.getValue();
+			if (argCorrR.isSet())	red = argCorrR.getValue();
+			if (argCorrG.isSet())	green = argCorrG.getValue();
+			if (argCorrB.isSet())	blue = argCorrB.getValue();
+			
+			connection.setCorrection(
+						argIdC.isSet()		? &transId : nullptr,
+						argCorrR.isSet() 	? &red : nullptr,
+						argCorrG.isSet() 	? &green : nullptr,
+						argCorrB.isSet() 	? &blue : nullptr);
+		}
+		else if (colorTemp)
+		{
+			std::string transId;
+			int red, green, blue;
+
+			if (argIdT.isSet())	transId    = argId.getValue();
+			if (argTempR.isSet())	red = argTempR.getValue();
+			if (argTempG.isSet())	green = argTempG.getValue();
+			if (argTempB.isSet())	blue = argTempB.getValue();
+			
+			connection.setCorrection(
+						argIdC.isSet()		? &transId : nullptr,
+						argTempR.isSet() 	? &red : nullptr,
+						argTempG.isSet() 	? &green : nullptr,
+						argTempB.isSet() 	? &blue : nullptr);
 		}
 	}
 	catch (const std::runtime_error & e)

@@ -89,6 +89,8 @@ public:
 	/// @param transformId The identifier of the transform to set
 	/// @param saturation The HSV saturation gain
 	/// @param value The HSV value gain
+	/// @param saturationL The HSL saturation gain
+	/// @param luminance The HSL luminance gain
 	/// @param threshold The threshold
 	/// @param gamma The gamma value
 	/// @param blacklevel The blacklevel
@@ -98,10 +100,42 @@ public:
 			std::string * transformId,
 			double * saturation,
 			double * value,
+			double * saturationL,
+			double * luminance,
 			ColorTransformValues * threshold,
 			ColorTransformValues * gamma,
 			ColorTransformValues * blacklevel,
 			ColorTransformValues * whitelevel);
+	
+	///
+	/// Set the color correction of the leds
+	///
+	/// @note Note that providing a NULL will leave the settings on the server unchanged
+	///
+	/// @param correctionId The identifier of the correction to set
+	/// @param red The red correction value
+	/// @param green The green correction value
+	/// @param blue The blue correction value
+	void setCorrection(
+			std::string * correctionId,
+			int * red,
+			int * green,
+			int * blue);
+
+	///
+	/// Set the color temperature of the leds
+	///
+	/// @note Note that providing a NULL will leave the settings on the server unchanged
+	///
+	/// @param temperatureId The identifier of the correction to set
+	/// @param red The red temperature value
+	/// @param green The green temperature value
+	/// @param blue The blue temperature value
+	void setTemperature(
+			std::string * temperatureId,
+			int * red,
+			int * green,
+			int * blue);
 
 private:
 	///

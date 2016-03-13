@@ -1,0 +1,41 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["temperature"]
+		},
+		"temperature": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"id" : {
+					"type" : "string",
+					"required" : false
+				},
+				"red" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum": 0,
+					"maximum": 255
+				},
+				"green" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum": 0,
+					"maximum": 255
+				},
+				"blue" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum": 0,
+					"maximum": 255
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

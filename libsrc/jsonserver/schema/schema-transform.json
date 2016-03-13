@@ -25,6 +25,16 @@
 					"required" : false,
 					"minimum" : 0.0
 				},
+				"saturationLGain" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0
+				},
+				"luminanceGain" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0
+				},
 				"threshold": {
 					"type": "array",
 					"required": false,

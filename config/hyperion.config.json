@@ -42,6 +42,32 @@
 	///            - 'updateDelay'     The delay of the output to leds (in periods of smoothing)
 	"color" :
 	{
+		"correction" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"correctionValues" :
+				{
+					"red"   : 255,
+					"green" : 255,
+					"blue"  : 255
+				}
+			}
+		],
+		"temperature" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"correctionValues" :
+				{
+					"red"   : 255,
+					"green" : 255,
+					"blue"  : 255
+				}
+			}
+		],
 		"transform" :
 		[
 			{
@@ -52,6 +78,11 @@
 					"saturationGain" : 1.0000,
 					"valueGain"      : 1.0000
 				},
+				"hsl" :
+				{
+					"saturationGain" : 1.0000,
+					"luminanceGain"  : 1.0000
+				},`
 				"red" :
 				{
 					"threshold"  : 0.0000,
