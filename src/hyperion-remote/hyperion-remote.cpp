@@ -177,7 +177,7 @@ int main(int argc, char * argv[])
 			if (argGamma.isSet())      gamma      = argGamma.getValue();
 			if (argBlacklevel.isSet()) blacklevel = argBlacklevel.getValue();
 			if (argWhitelevel.isSet()) whitelevel = argWhitelevel.getValue();
-
+			
 			connection.setTransform(
 						argId.isSet()         ? &transId    : nullptr,
 						argSaturation.isSet() ? &saturation : nullptr,

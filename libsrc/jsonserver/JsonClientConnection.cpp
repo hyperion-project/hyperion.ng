@@ -232,7 +232,7 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		sendErrorReply("Error while validating json: " + errors);
 		return;
 	}
-
+	
 	// switch over all possible commands and handle them
 	if (command == "color")
 		handleColorCommand(message);
@@ -483,7 +483,7 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
 		return;
 	}
-
+		
 	if (transform.isMember("saturationGain"))
 	{
 		colorTransform->_hsvTransform.setSaturationGain(transform["saturationGain"].asDouble());
@@ -535,7 +535,7 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 		colorTransform->_rgbGreenTransform.setWhitelevel(values[1u].asDouble());
 		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].asDouble());
 	}
-
+	
 	// commit the changes
 	_hyperion->transformsUpdated();
 
