@@ -18,6 +18,7 @@
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorTransform.h>
+#include <hyperion/ColorCorrection.h>
 #include <utils/ColorRgb.h>
 
 // project includes
@@ -247,6 +248,10 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleClearallCommand(message);
 	else if (command == "transform")
 		handleTransformCommand(message);
+	else if (command == "correction")
+		handleCorrectionCommand(message);
+	else if (command == "temperature")
+		handleTemperatureCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -540,10 +545,10 @@ void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
 	const Json::Value & correction = message["correction"];
 
 	const std::string correctionId = correction.get("id", _hyperion->getCorrectionIds().front()).asString();
-	ColorCorrection * colorCorrection = _hyperion->getCorrection(CorrectionId);
+	ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
 	if (colorCorrection == nullptr)
 	{
-		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		//sendErrorReply(std::string("Incorrect correction identifier: ") + correctionId);
 		return;
 	}
 
@@ -573,10 +578,10 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 	const Json::Value & temperature = message["temperature"];
 
 	const std::string tempId = temperature.get("id", _hyperion->getTemperatureIds().front()).asString();
-	ColorCorrection * colorTemperature = _hyperion->getTemperature(TemperatureId);
+	ColorCorrection * colorTemperature = _hyperion->getTemperature(tempId);
 	if (colorTemperature == nullptr)
 	{
-		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		//sendErrorReply(std::string("Incorrect temperature identifier: ") + tempId);
 		return;
 	}
 

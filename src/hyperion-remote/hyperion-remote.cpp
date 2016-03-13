@@ -69,14 +69,14 @@ int main(int argc, char * argv[])
 		TransformParameter & argWhitelevel = parameters.add<TransformParameter>('w', "whitelevel", "Set the whitelevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
 		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
 		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
-		StringParameter    & argIdC        = parameters.add<StringParameter>   ('cq', "qualifier" , "Identifier(qualifier) of the correction to set");
-		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('cr', "correctionR"  , "Specify the red channel correction factor");
-		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('cg', "correctionG"  , "Specify the green channel correction factor");
-		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('cb', "correctionB"  , "Specify the blue channel correction factor");
-		StringParameter    & argIdT        = parameters.add<StringParameter>   ('tq', "qualifier" , "Identifier(qualifier) of the temperature to set");
-		IntParameter       & argTempR      = parameters.add<IntParameter>      ('tr', "tempR"  , "Specify the red channel temperature factor");
-		IntParameter       & argTempG      = parameters.add<IntParameter>      ('tg', "tempG"  , "Specify the red channel temperature factor");
-		IntParameter       & argTempB      = parameters.add<IntParameter>      ('tb', "tempB"  , "Specify the red channel temperature factor");
+		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "Identifier(qualifier) of the correction to set");
+		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('1', "correctionR"  , "Specify the red channel correction factor");
+		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('2', "correctionG"  , "Specify the green channel correction factor");
+		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('3', "correctionB"  , "Specify the blue channel correction factor");
+		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature to set");
+		IntParameter       & argTempR      = parameters.add<IntParameter>      ('4', "tempR"  , "Specify the red channel temperature factor");
+		IntParameter       & argTempG      = parameters.add<IntParameter>      ('5', "tempG"  , "Specify the red channel temperature factor");
+		IntParameter       & argTempB      = parameters.add<IntParameter>      ('6', "tempB"  , "Specify the red channel temperature factor");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -203,7 +203,7 @@ int main(int argc, char * argv[])
 						argIdC.isSet()		? &transId : nullptr,
 						argCorrR.isSet() 	? &red : nullptr,
 						argCorrG.isSet() 	? &green : nullptr,
-						argCorrB.isSet() 	? &blue : nullptr,
+						argCorrB.isSet() 	? &blue : nullptr);
 		}
 		else if (colorTemp)
 		{
@@ -219,7 +219,7 @@ int main(int argc, char * argv[])
 						argIdC.isSet()		? &transId : nullptr,
 						argTempR.isSet() 	? &red : nullptr,
 						argTempG.isSet() 	? &green : nullptr,
-						argTempB.isSet() 	? &blue : nullptr,
+						argTempB.isSet() 	? &blue : nullptr);
 		}
 	}
 	catch (const std::runtime_error & e)

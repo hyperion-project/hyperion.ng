@@ -1,0 +1,41 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["correction"]
+		},
+		"correction": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"id" : {
+					"type" : "string",
+					"required" : false
+				},
+				"red" : {
+					"type" : "number",
+					"required" : false,
+					"minimum": 0.0,
+					"maximum": 255.0
+				},
+				"green" : {
+					"type" : "number",
+					"required" : false,
+					"minimum": 0.0,
+					"maximum": 255.0
+				},
+				"blue" : {
+					"type" : "number",
+					"required" : false,
+					"minimum": 0.0,
+					"maximum": 255.0
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

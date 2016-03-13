@@ -309,7 +309,7 @@ void JsonConnection::setTemperature(std::string * temperatureId, int * red, int 
 	command["command"] = "temperature";
 	Json::Value & temperature = command["temperature"];
 
-	if (correctionId != nullptr)
+	if (temperatureId != nullptr)
 	{
 		temperature["id"] = *temperatureId;
 	}
