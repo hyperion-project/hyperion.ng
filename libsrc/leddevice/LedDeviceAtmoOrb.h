@@ -52,7 +52,7 @@ public:
   ///
   /// @param output is the multicast address of Orbs
   ///
-  /// @param switchOffOnBlack kill lights for black (default: false)
+  /// @param switchOffOnBlack turn off Orbs on black (default: false)
   ///
   /// @param transitiontime is optional and not used at the moment
   ///

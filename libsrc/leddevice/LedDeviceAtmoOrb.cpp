@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 #include <QTime> 
 
+//#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <set>
@@ -44,16 +45,11 @@ int LedDeviceAtmoOrb::write(const std::vector<ColorRgb> & ledValues) {
     return 0;
   }
 
-  // Iterate through colors and set Orb color.
-  unsigned int idx = 0;
+  // Iterate through colors and set Orb color
+  // Start off with idx 1 as 0 is reserved for controlling all orbs at once
+  unsigned int idx = 1;
   for (const ColorRgb& color : ledValues) 
   {
-    // If color is identical skip color setter
-    if(color.red == lastRed && color.green == lastGreen && color.blue == lastBlue)
-    {
-      continue;
-    }
-
     // Options parameter: 
     //
     // 1 = force off
@@ -63,22 +59,23 @@ int LedDeviceAtmoOrb::write(const std::vector<ColorRgb> & ledValues) {
 
     if (switchOffOnBlack && color.red == 0 && color.green == 0 && color.blue == 0) {
       // Force to black
-      for (int i = 0; i < orbIds.size(); i++) {
-        setColor(orbIds[i], color, 1);
+      for (unsigned int i = 0; i < orbIds.size(); i++) {
+        if (orbIds[i] == idx)
+        {
+          setColor(idx, color, 1);
+        }
       }
     }
     else
     {
       // Default send color
-      for (int i = 0; i < orbIds.size(); i++) {
-        setColor(orbIds[i], color, 4);
+      for (unsigned int i = 0; i < orbIds.size(); i++) {
+        if (orbIds[i] == idx)
+        {
+          setColor(idx, color, 4);
+        }
       }
     }
-
-    // Store current colors
-    lastRed = color.red;
-    lastGreen = color.green;
-    lastBlue = color.blue;
 
     // Next light id.
     idx++;
@@ -118,8 +115,7 @@ void LedDeviceAtmoOrb::sendCommand(const QByteArray & bytes) {
 int LedDeviceAtmoOrb::switchOff() {
 
   // Default send color
-  for (int i = 0; i < orbIds.size(); i++) {
-
+  for (unsigned int i = 0; i < orbIds.size(); i++) {
     QByteArray bytes;
     bytes.resize(5 + numLeds * 3);
 
