@@ -31,8 +31,8 @@ OS_OSMC=`grep -m1 -c OSMC /etc/issue`
 CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710' /proc/cpuinfo`
 CPU_IMX6=`grep -m1 -c i.MX6 /proc/cpuinfo`
 CPU_WETEK=`grep -m1 -c Amlogic /proc/cpuinfo`
-CPU_X64=`uname -m | grep x86_64 | wc -l`
-CPU_X32=`uname -m | grep 'x86_32\|i686' | wc -l`
+CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
+#CPU_X32=`uname -m | grep 'x86_32\|i686' | wc -l`
 # Check that we have a known configuration
 if [ $CPU_RPI -ne 1 ] && [ $CPU_IMX6 -ne 1 ] && [ $CPU_WETEK -ne 1 ] && [ $CPU_X64 -ne 1 ] && [ $CPU_X32 -ne 1 ]; then
 	echo '---> Critical Error: CPU information does not match any known releases -> abort'
@@ -117,12 +117,12 @@ elif [ $CPU_IMX6 -eq 1 ]; then
 elif [ $CPU_WETEK -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_wetek.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
-elif [ $CPU_X64 -eq 1 ]; then
-	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x64.tar.gz
+elif [ $CPU_X32X64 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x32x64.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-x32x64.tar.gz
-elif [ $CPU_X32 -eq 1 ]; then
-	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x32.tar.gz
-	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-x32x64.tar.gz
+#elif [ $CPU_X32 -eq 1 ]; then
+#	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_x32.tar.gz
+#	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-x32x64.tar.gz
 else
 	echo "---> Critical Error: Target platform unknown -> abort"
 	exit 1
