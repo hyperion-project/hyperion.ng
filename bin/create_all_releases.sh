@@ -1,18 +1,18 @@
 #!/bin/sh
 # create all directly for release with -DCMAKE_BUILD_TYPE=Release -Wno-dev
 # Create the x64 build
-mkdir build-x64
-cd build-x64
+mkdir build-x32x64
+cd build-x32x64
 cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 make -j 4
 cd ..
 
 # Create the x32 build
-mkdir build-x32
-cd build-x32
-cmake -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-make -j 4
-cd ..
+#mkdir build-x32
+#cd build-x32
+#cmake -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+#make -j 4
+#cd ..
 
 # Create the RPI build
 mkdir build-rpi
@@ -29,15 +29,15 @@ make -j 4
 cd ..
 
 # Create the IMX6 build
-mkdir build-imx6
-cd build-imx6
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-imx6.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-make -j 4
-cd ..
+#mkdir build-imx6
+#cd build-imx6
+#cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-imx6.cmake" -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+#make -j 4
+#cd ..
 
-bin/create_release.sh . x64
-bin/create_release.sh . x32
+bin/create_release.sh . x32x64
+#bin/create_release.sh . x32
 bin/create_release.sh . rpi
 bin/create_release.sh . wetek
-bin/create_release.sh . imx6
+#bin/create_release.sh . imx6
 

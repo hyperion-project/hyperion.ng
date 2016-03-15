@@ -18,7 +18,7 @@ fi
 outfile="$repodir/deploy/hyperion_$buildid.tar.gz"
 echo create $outfile
 
-tar --create --verbose --gzip --absolute-names --show-transformed-names --ignore-failed-read\
+tar --create --gzip --absolute-names --show-transformed-names --ignore-failed-read\
 	--file "$outfile" \
 	--transform "s:$builddir/bin/:hyperion/bin/:" \
 	--transform "s:$repodir/effects/:hyperion/effects/:" \
