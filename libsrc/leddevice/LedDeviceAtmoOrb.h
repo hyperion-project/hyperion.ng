@@ -8,7 +8,6 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QHostAddress>
-#include <QTime> 
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -41,9 +40,6 @@ public:
   int lastGreen;
   int lastBlue;
 
-  // Last command sent timer
-  QTime timer;
-
   // Multicast status
   bool joinedMulticastgroup;
 
@@ -60,7 +56,7 @@ public:
   ///
   /// @param numLeds is the total amount of leds per Orb
   ///
-  /// @param orb ids to control
+  /// @param array containing orb ids
   ///
   LedDeviceAtmoOrb(const std::string& output, bool switchOffOnBlack =
     false, int transitiontime = 0, int port = 49692, int numLeds =  24, std::vector<unsigned int> orbIds = std::vector<unsigned int>());
@@ -79,33 +75,49 @@ public:
   virtual int write(const std::vector<ColorRgb> & ledValues);
   virtual int switchOff();
 private:
-  /// Array to save the lamps.
-  std::vector<AtmoOrbLight> lights;
-
   /// QNetworkAccessManager object for sending requests.
   QNetworkAccessManager* manager;
 
+  /// String containing multicast group IP address
   QString multicastGroup;
+  
+  /// Switch off when detecting black
   bool switchOffOnBlack;
+  
+  /// Transition time between colors (not implemented)
   int transitiontime;
+  
+  /// Multicast port to send data to
   int multiCastGroupPort;
+  
+  /// Number of leds in Orb, used to determine buffer size
   int numLeds;
+  
+  /// QHostAddress object of multicast group IP address
   QHostAddress groupAddress;
+  
+  /// QUdpSocket object used to send data over
   QUdpSocket *udpSocket;
 
-  /// Array of the light ids.
+  /// Array of the orb ids.
   std::vector<unsigned int> orbIds;
-
+  
   ///
-  /// Switches the leds on.
+  /// Set Orbcolor
   ///
-  /// @param nLights the number of lights
+  /// @param orbId the orb id
   ///
-  void switchOn(unsigned int nLights);
-
-  // Set color
+  /// @param color which color to set
+  ///
+  ///
+  /// @param commandType which type of command to send (off / smoothing / etc..)
+  ///
   void setColor(unsigned int orbId, const ColorRgb& color, int commandType);
 
-  // Send color command
+  ///
+  /// Send Orb command
+  ///
+  /// @param bytes the byte array containing command to send over multicast
+  ///
   void sendCommand(const QByteArray & bytes);
 };

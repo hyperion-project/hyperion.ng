@@ -6,9 +6,7 @@
 #include <QEventLoop>
 #include <QtNetwork>
 #include <QNetworkReply>
-#include <QTime> 
 
-//#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <set>
@@ -27,14 +25,7 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(const std::string& output, bool switchOffOnBl
   udpSocket = new QUdpSocket(this);
   udpSocket->bind(multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
-  if (!udpSocket->joinMulticastGroup(groupAddress))
-  {
-    joinedMulticastgroup = false;
-  }
-  else
-  {
-    joinedMulticastgroup = true;
-  }
+  joinedMulticastgroup = udpSocket->joinMulticastGroup(groupAddress);
 }
 
 int LedDeviceAtmoOrb::write(const std::vector<ColorRgb> & ledValues) {
@@ -113,8 +104,6 @@ void LedDeviceAtmoOrb::sendCommand(const QByteArray & bytes) {
 }
 
 int LedDeviceAtmoOrb::switchOff() {
-
-  // Default send color
   for (unsigned int i = 0; i < orbIds.size(); i++) {
     QByteArray bytes;
     bytes.resize(5 + numLeds * 3);
@@ -138,9 +127,6 @@ int LedDeviceAtmoOrb::switchOff() {
     sendCommand(bytes);
   }
   return 0;
-}
-void LedDeviceAtmoOrb::switchOn(unsigned int nLights) {
-  // Not implemented
 }
 
 LedDeviceAtmoOrb::~LedDeviceAtmoOrb() {
