@@ -253,13 +253,27 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
 		const int port = deviceConfig.get("port", 1).asInt();
 		const int numLeds = deviceConfig.get("numLeds", 1).asInt();
-
+	  	const std::string orbId = deviceConfig["orbIds"].asString();
 		std::vector<unsigned int> orbIds;
-		for (Json::Value::ArrayIndex i = 0; i < deviceConfig["orbIds"].size(); i++) {
-		  orbIds.push_back(deviceConfig["orbIds"][i].asInt());
-    }
 
-    device = new LedDeviceAtmoOrb(output, switchOffOnBlack, transitiontime, port, numLeds, orbIds);
+		// If we find multiple Orb ids separate them and add to list
+		const std::string separator (",");
+		if (orbId.find(separator) != std::string::npos) {
+			std::stringstream ss(orbId);
+			std::vector<int> output;
+			unsigned int i;
+			while (ss >> i) {
+				orbIds.push_back(i);
+					if (ss.peek() == ',' || ss.peek() == ' ')
+					ss.ignore();
+			}
+		}
+		else
+		{
+			orbIds.push_back(atoi(orbId.c_str()));
+		}
+
+		device = new LedDeviceAtmoOrb(output, switchOffOnBlack, transitiontime, port, numLeds, orbIds);
   }
 	else if (type == "test")
 	{

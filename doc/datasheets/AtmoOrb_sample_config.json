@@ -10,10 +10,12 @@
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	///
-	/// * 'Specific of Philips Hue:
-	/// * 'username'  		 : The name of user registred on the Philips Hue Bridge 
-	/// * 'switchOffOnBlack': Define if Hue light switch off when black is detected 
-	/// * 'transitiontime'	 : Set the time of transition between color of Hue light 
+	/// * 'Specific for AtmoOrb:
+	/// * 'transitiontime'	 : Set the time of transition between color of Orb (not implemented)
+	/// * 'port'  		 : Multicast UDP port
+	/// * 'numLeds'	 : Number of leds in Orb
+	/// * 'orbIds'	 : The Orb ids to use 
+	/// * 'switchOffOnBlack': Define if Orb is to switch off when black is detected 
 	"device" :
 	{	
 		"name"       : "MyPi",
@@ -22,7 +24,7 @@
 		"transitiontime"     : 0,
 		"port"     : 49692,
 		"numLeds"     : 24,
-		"orbIds"   : [1],
+		"orbIds"   : "1",
 		"switchOffOnBlack"     : true,
 		"colorOrder" : "rgb"
 	},
