@@ -77,6 +77,7 @@ int LedDeviceAtmoOrb::write(const std::vector<ColorRgb> & ledValues) {
 void LedDeviceAtmoOrb::setColor(unsigned int orbId, const ColorRgb& color, int commandType) {
   QByteArray bytes;
   bytes.resize(5 + numLeds * 3);
+  bytes.fill('\0');
 
   // Command identifier: C0FFEE
   bytes[0] = 0xC0;
@@ -107,6 +108,7 @@ int LedDeviceAtmoOrb::switchOff() {
   for (unsigned int i = 0; i < orbIds.size(); i++) {
     QByteArray bytes;
     bytes.resize(5 + numLeds * 3);
+	bytes.fill('\0');
 
     // Command identifier: C0FFEE
     bytes[0] = 0xC0;
