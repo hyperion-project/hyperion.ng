@@ -60,7 +60,7 @@
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"correctionValues" :
+				"temperatureValues" :
 				{
 					"red"   : 255,
 					"green" : 255,
