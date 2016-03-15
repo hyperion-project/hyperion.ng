@@ -248,15 +248,15 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	}
   else if (type == "atmoorb")
   {
-    const std::string output = deviceConfig["output"].asString();
-    const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
-    const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
-    const int port = deviceConfig.get("port", 1).asInt();
-    const int numLeds = deviceConfig.get("numLeds", 1).asInt();
+		const std::string output = deviceConfig["output"].asString();
+		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+		const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
+		const int port = deviceConfig.get("port", 1).asInt();
+		const int numLeds = deviceConfig.get("numLeds", 1).asInt();
 
-    std::vector<unsigned int> orbIds;
-    for (Json::Value::ArrayIndex i = 0; i < deviceConfig["orbIds"].size(); i++) {
-      orbIds.push_back(deviceConfig["orbIds"][i].asInt());
+		std::vector<unsigned int> orbIds;
+		for (Json::Value::ArrayIndex i = 0; i < deviceConfig["orbIds"].size(); i++) {
+		  orbIds.push_back(deviceConfig["orbIds"][i].asInt());
     }
 
     device = new LedDeviceAtmoOrb(output, switchOffOnBlack, transitiontime, port, numLeds, orbIds);
