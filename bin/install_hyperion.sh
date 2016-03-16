@@ -34,7 +34,7 @@ CPU_WETEK=`grep -m1 -c Amlogic /proc/cpuinfo`
 CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
 #CPU_X32=`uname -m | grep 'x86_32\|i686' | wc -l`
 # Check that we have a known configuration
-if [ $CPU_RPI -ne 1 ] && [ $CPU_IMX6 -ne 1 ] && [ $CPU_WETEK -ne 1 ] && [ $CPU_X64 -ne 1 ] && [ $CPU_X32 -ne 1 ]; then
+if [ $CPU_RPI -ne 1 ] && [ $CPU_IMX6 -ne 1 ] && [ $CPU_WETEK -ne 1 ] && [ $CPU_X32X64 -ne 1 ]; then
 	echo '---> Critical Error: CPU information does not match any known releases -> abort'
 	exit 1
 fi
