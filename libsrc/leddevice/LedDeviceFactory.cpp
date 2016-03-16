@@ -37,6 +37,7 @@
 #include "LedDeviceTpm2.h"
 #include "LedDeviceAtmo.h"
 #include "LedDeviceAdalightApa102.h"
+#include "LedDeviceAtmoOrb.h"
 
 #ifdef ENABLE_WS2812BPWM
 	#include "LedDeviceWS2812b.h"
@@ -245,6 +246,35 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		}
 		device = new LedDevicePhilipsHue(output, username, switchOffOnBlack, transitiontime, lightIds);
 	}
+  else if (type == "atmoorb")
+  {
+		const std::string output = deviceConfig["output"].asString();
+		const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+		const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
+		const int port = deviceConfig.get("port", 1).asInt();
+		const int numLeds = deviceConfig.get("numLeds", 1).asInt();
+	  	const std::string orbId = deviceConfig["orbIds"].asString();
+		std::vector<unsigned int> orbIds;
+
+		// If we find multiple Orb ids separate them and add to list
+		const std::string separator (",");
+		if (orbId.find(separator) != std::string::npos) {
+			std::stringstream ss(orbId);
+			std::vector<int> output;
+			unsigned int i;
+			while (ss >> i) {
+				orbIds.push_back(i);
+					if (ss.peek() == ',' || ss.peek() == ' ')
+					ss.ignore();
+			}
+		}
+		else
+		{
+			orbIds.push_back(atoi(orbId.c_str()));
+		}
+
+		device = new LedDeviceAtmoOrb(output, switchOffOnBlack, transitiontime, port, numLeds, orbIds);
+  }
 	else if (type == "test")
 	{
 		const std::string output = deviceConfig["output"].asString();
