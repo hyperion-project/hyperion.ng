@@ -263,7 +263,7 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 			throw std::runtime_error("No lights found");
 		}
 		// Loop over all children.
-		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() <= nLights; it++) {
+		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++) {
 			int lightId = atoi(it.key().asCString());
 			lightIds.push_back(lightId);
 			std::cout << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): found light with id " << lightId
