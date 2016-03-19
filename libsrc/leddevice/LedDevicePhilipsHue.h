@@ -208,6 +208,13 @@ private:
 	QString getRoute(unsigned int lightId);
 
 	///
+	/// @param route
+	///
+	/// @return the full URL of the request.
+	///
+	QString getUrl(QString route);
+
+	///
 	/// Queries the status of all lights and saves it.
 	///
 	/// @param nLights the number of lights
