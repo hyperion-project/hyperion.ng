@@ -225,6 +225,8 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
 	// Go into the loop until the request is finished.
 	loop.exec();
+	// Free space.
+	reply->deleteLater();
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
@@ -238,7 +240,11 @@ QByteArray LedDevicePhilipsHue::get(QString route) {
 	// Go into the loop until the request is finished.
 	loop.exec();
 	// Read all data of the response.
-	return reply->readAll();
+	QByteArray response = reply->readAll();
+	// Free space.
+	reply->deleteLater();
+	// Return response
+	return response;
 }
 
 QString LedDevicePhilipsHue::getStateRoute(unsigned int lightId) {
