@@ -6,6 +6,7 @@
 // Utils includes
 #include <utils/RgbChannelTransform.h>
 #include <utils/HsvTransform.h>
+#include <utils/HslTransform.h>
 
 class ColorTransform
 {
@@ -23,4 +24,7 @@ public:
 
 	/// The HSV Transform for applying Saturation and Value transforms
 	HsvTransform _hsvTransform;
+
+	/// The HSL Transform for applying Saturation and Value transforms
+	HslTransform _hslTransform;
 };
