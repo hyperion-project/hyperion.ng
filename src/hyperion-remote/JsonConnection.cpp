@@ -280,7 +280,7 @@ void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionVa
 
 	if (correction != nullptr)
 	{
-		Json::Value & v = correction["correctionValues"];
+		Json::Value & v = correct["correctionValues"];
 		v.append(correction->valueRed);
 		v.append(correction->valueGreen);
 		v.append(correction->valueBlue);
