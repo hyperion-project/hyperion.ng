@@ -216,7 +216,7 @@ int LedDevicePhilipsHue::switchOff() {
 }
 
 void LedDevicePhilipsHue::put(QString route, QString content) {
-	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
+	QString url = getUrl(route);
 	// Perfrom request
 	QNetworkRequest request(url);
 	QNetworkReply* reply = manager->put(request, content.toLatin1());
@@ -225,10 +225,12 @@ void LedDevicePhilipsHue::put(QString route, QString content) {
 	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
 	// Go into the loop until the request is finished.
 	loop.exec();
+	// Free space.
+	reply->deleteLater();
 }
 
 QByteArray LedDevicePhilipsHue::get(QString route) {
-	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
+	QString url = getUrl(route);
 	// Perfrom request
 	QNetworkRequest request(url);
 	QNetworkReply* reply = manager->get(request);
@@ -238,7 +240,11 @@ QByteArray LedDevicePhilipsHue::get(QString route) {
 	// Go into the loop until the request is finished.
 	loop.exec();
 	// Read all data of the response.
-	return reply->readAll();
+	QByteArray response = reply->readAll();
+	// Free space.
+	reply->deleteLater();
+	// Return response
+	return response;
 }
 
 QString LedDevicePhilipsHue::getStateRoute(unsigned int lightId) {
@@ -249,6 +255,10 @@ QString LedDevicePhilipsHue::getRoute(unsigned int lightId) {
 	return QString("lights/%1").arg(lightId);
 }
 
+QString LedDevicePhilipsHue::getUrl(QString route) {
+	return QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
+}
+
 void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	// Clear saved lamps.
 	lights.clear();
@@ -257,17 +267,23 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 	Json::FastWriter writer;
 	// Read light ids if none have been supplied by the user.
 	if (lightIds.size() != nLights) {
+		lightIds.clear();
+		//
 		QByteArray response = get("lights");
 		Json::Value json;
 		if (!reader.parse(QString(response).toStdString(), json)) {
-			throw std::runtime_error("No lights found");
+			throw std::runtime_error(("No lights found at " + getUrl("lights")).toStdString());
 		}
 		// Loop over all children.
-		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() <= nLights; it++) {
+		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++) {
 			int lightId = atoi(it.key().asCString());
 			lightIds.push_back(lightId);
 			std::cout << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): found light with id " << lightId
 					<< "." << std::endl;
+		}
+		// Check if we found enough lights.
+		if (lightIds.size() != nLights) {
+			throw std::runtime_error(("Not enough lights found at " + getUrl("lights")).toStdString());
 		}
 	}
 	// Iterate lights.
@@ -278,12 +294,22 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		Json::Value json;
 		if (!reader.parse(QString(response).toStdString(), json)) {
 			// Error occured, break loop.
-			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights
-					<< "): got invalid response from light with id " << lightIds.at(i) << "." << std::endl;
+			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got invalid response from light "
+					<< getUrl(getRoute(lightIds.at(i))).toStdString() << "." << std::endl;
 			break;
 		}
 		// Get state object values which are subject to change.
 		Json::Value state(Json::objectValue);
+		if (!json.isMember("state")) {
+			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got no state for light from "
+					<< getUrl(getRoute(lightIds.at(i))).toStdString() << std::endl;
+			break;
+		}
+		if (!json["state"].isMember("on")) {
+			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got no valid state from light "
+					<< getUrl(getRoute(lightIds.at(i))).toStdString() << std::endl;
+			break;
+		}
 		state["on"] = json["state"]["on"];
 		if (json["state"]["on"] == true) {
 			state["xy"] = json["state"]["xy"];
