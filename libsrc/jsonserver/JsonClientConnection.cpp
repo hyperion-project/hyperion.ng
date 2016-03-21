@@ -595,20 +595,12 @@ void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
 		return;
 	}
 
-	if (correction.isMember("red"))
+	if (correction.isMember("correctionValues"))
 	{
-		colorCorrection->_rgbCorrection.setcorrectionR(correction["red"].asInt());
-	}
-
-	if (correction.isMember("green"))
-	{
-		colorCorrection->_rgbCorrection.setcorrectionG(correction["green"].asInt());
-	}
-	
-	if (correction.isMember("blue"))
-	{
-		colorCorrection->_rgbCorrection.setcorrectionB(correction["blue"].asInt());
-	}
+		const Json::Value & values = correction["correctionValues"];
+		colorCorrection->_rgbCorrection.setcorrectionR(values[0u].asInt());
+		colorCorrection->_rgbCorrection.setcorrectionG(values[1u].asInt());
+		colorCorrection->_rgbCorrection.setcorrectionB(values[2u].asInt());
 	
 	// commit the changes
 	_hyperion->correctionsUpdated();
@@ -628,20 +620,12 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 		return;
 	}
 
-	if (temperature.isMember("red"))
+	if (temperature.isMember("correctionValues"))
 	{
-		colorTemperature->_rgbCorrection.setcorrectionR(temperature["red"].asInt());
-	}
-
-	if (temperature.isMember("green"))
-	{
-		colorTemperature->_rgbCorrection.setcorrectionG(temperature["green"].asInt());
-	}
-	
-	if (temperature.isMember("blue"))
-	{
-		colorTemperature->_rgbCorrection.setcorrectionB(temperature["blue"].asInt());
-	}
+		const Json::Value & values = temperature["correctionValues"];
+		colorTemperature->_rgbCorrection.setcorrectionR(values[0u].asInt());
+		colorTemperature->_rgbCorrection.setcorrectionG(values[1u].asInt());
+		colorTemperature->_rgbCorrection.setcorrectionB(values[2u].asInt());
 	
 	// commit the changes
 	_hyperion->temperaturesUpdated();
