@@ -50,8 +50,15 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
+qt4_use_modules(${PROJECT_NAME}
+	Core
+	Gui
+	Network)
+
 if(ENABLE_QT5)
 	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 else(ENABLE_QT5)
 	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
 endif(ENABLE_QT5)
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )

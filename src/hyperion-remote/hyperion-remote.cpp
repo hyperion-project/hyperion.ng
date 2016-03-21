@@ -13,6 +13,9 @@
 #include "CustomParameter.h"
 #include "JsonConnection.h"
 
+#include "HyperionConfig.h"
+
+
 using namespace vlofgren;
 
 /// Count the number of true values in a list of booleans
@@ -28,6 +31,11 @@ int count(std::initializer_list<bool> values)
 
 int main(int argc, char * argv[])
 {
+	std::cout
+		<< "hyperion-remote:" << std::endl
+		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
 	QCoreApplication app(argc, argv);
 
 	// force the locale

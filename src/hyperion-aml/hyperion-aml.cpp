@@ -10,6 +10,9 @@
 #include <protoserver/ProtoConnectionWrapper.h>
 #include "AmlogicWrapper.h"
 
+#include "HyperionConfig.h"
+
+
 using namespace vlofgren;
 
 // save the image as screenshot
@@ -22,6 +25,11 @@ void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
+	std::cout
+		<< "hyperion-aml:" << std::endl
+		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
 	QCoreApplication app(argc, argv);
 
 	try

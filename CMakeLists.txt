@@ -43,6 +43,9 @@ message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 option(ENABLE_QT5 "Enable QT5" OFF)
 message(STATUS "ENABLE_QT5 = " ${ENABLE_QT5})
 
+option(ENABLE_TESTS "Compile additional test applications" OFF)
+message(STATUS "ENABLE_TESTS = " ${ENABLE_TESTS})
+
 if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
 	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
 endif(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
@@ -59,18 +62,25 @@ if(ENABLE_OSX AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and osx grabber cannot be used at the same time")
 endif(ENABLE_OSX AND ENABLE_DISPMANX)
 
+
+SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
+SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
+
 #if(ENABLE_QT5)
 # TODO vs ENABLE_QT4?
 #endif(ENABLE_QT5)
 
 # Createt the configuration file
+
+# Add project specific cmake modules (find, etc)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+find_package(GitVersion)
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
-
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(ENABLE_QT5)
 	ADD_DEFINITIONS ( -DENABLE_QT5 )
@@ -136,7 +146,10 @@ configure_file(config/hyperion_x86.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
 add_subdirectory(dependencies)
 add_subdirectory(libsrc)
 add_subdirectory(src)
-add_subdirectory(test)
+if (ENABLE_TESTS)
+	add_subdirectory(test)
+endif (ENABLE_TESTS)
+
 
 # Add the doxygen generation directory
 add_subdirectory(doc)
