@@ -392,6 +392,47 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
 	}
+	
+	// collect correction information
+	Json::Value & correctionArray = info["correction"];
+	for (const std::string& correctionId : _hyperion->getCorrectionIds())
+	{
+		const ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
+		if (colorCorrection == nullptr)
+		{
+			std::cerr << "Incorrect color correction id: " << correctionId << std::endl;
+			continue;
+		}
+
+		Json::Value & correction = correctionArray.append(Json::Value());
+		correction["id"] = correctionId;
+		
+		Json::Value & corrValues = correction["correctionValues"];
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionR());
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionG());
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionB());
+	}
+	
+	// collect temperature correction information
+	Json::Value & temperatureArray = info["temperature"];
+	for (const std::string& tempId : _hyperion->getTemperatureIds())
+	{
+		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
+		if (colorTemp == nullptr)
+		{
+			std::cerr << "Incorrect color temperature correction id: " << tempId << std::endl;
+			continue;
+		}
+
+		Json::Value & temperature = temperatureArray.append(Json::Value());
+		temperature["id"] = tempId;
+		
+		Json::Value & tempValues = temperature["correctionValues"];
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionR());
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionG());
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionB());
+	}
+
 
 	// collect transform information
 	Json::Value & transformArray = info["transform"];
