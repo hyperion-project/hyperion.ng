@@ -64,7 +64,7 @@ fi
 #Disabling and delete service files
 if [ $USE_INITCTL -eq 1 ]; then
 	echo '---> Delete and disable Hyperion initctl script'
-	rm -v /etc/init/hyperion 2>/dev/null
+	rm -v /etc/init/hyperion.conf 2>/dev/null
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
 	# Remove Hyperion from OpenELEC autostart.sh
