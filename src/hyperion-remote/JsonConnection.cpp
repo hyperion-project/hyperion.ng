@@ -264,33 +264,26 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 	parseReply(reply);
 }
 
-void JsonConnection::setCorrection(std::string * correctionId, int * red, int * green, int * blue)
+void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionValues *correction)
 {
 	std::cout << "Set color corrections" << std::endl;
 
 	// create command
 	Json::Value command;
 	command["command"] = "correction";
-	Json::Value & correction = command["correction"];
-
+	Json::Value & correct = command["correction"];
+	
 	if (correctionId != nullptr)
 	{
-		correction["id"] = *correctionId;
+		correct["id"] = *correctionId;
 	}
 
-	if (red != nullptr)
+	if (correction != nullptr)
 	{
-		correction["red"] = *red;
-	}
-
-	if (green != nullptr)
-	{
-		correction["green"] = *green;
-	}
-	
-	if (blue != nullptr)
-	{
-		correction["blue"] = *blue;
+		Json::Value & v = correction["correctionValues"];
+		v.append(correction->valueRed);
+		v.append(correction->valueGreen);
+		v.append(correction->valueBlue);
 	}
 
 	// send command message
@@ -300,33 +293,26 @@ void JsonConnection::setCorrection(std::string * correctionId, int * red, int * 
 	parseReply(reply);
 }
 
-void JsonConnection::setTemperature(std::string * temperatureId, int * red, int * green, int * blue)
+void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrectionValues *temperature)
 {
 	std::cout << "Set color temperature corrections" << std::endl;
 
 	// create command
 	Json::Value command;
 	command["command"] = "temperature";
-	Json::Value & temperature = command["temperature"];
+	Json::Value & temp = command["temperature"];
 
 	if (temperatureId != nullptr)
 	{
-		temperature["id"] = *temperatureId;
+		temp["id"] = *temperatureId;
 	}
 
-	if (red != nullptr)
+	if (temperature != nullptr)
 	{
-		temperature["red"] = *red;
-	}
-
-	if (green != nullptr)
-	{
-		temperature["green"] = *green;
-	}
-	
-	if (blue != nullptr)
-	{
-		temperature["blue"] = *blue;
+		Json::Value & v = temp["correctionValues"];
+		v.append(temperature->valueRed);
+		v.append(temperature->valueGreen);
+		v.append(temperature->valueBlue);
 	}
 
 	// send command message
