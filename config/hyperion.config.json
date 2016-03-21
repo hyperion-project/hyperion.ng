@@ -13,7 +13,7 @@
 		"name"       : "MyPi",
 		"type"       : "ws2801",
 		"output"     : "/dev/spidev0.0",
-		"rate"       : 250000,
+		"rate"     : 1000000,
 		"colorOrder" : "rgb"
 	},
 
