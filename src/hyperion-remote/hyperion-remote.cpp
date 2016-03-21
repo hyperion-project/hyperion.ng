@@ -70,13 +70,9 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
 		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
 		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "Identifier(qualifier) of the correction to set");
-		IntParameter       & argCorrR      = parameters.add<IntParameter>      ('1', "correctionR"  , "Specify the red channel correction");
-		IntParameter       & argCorrG      = parameters.add<IntParameter>      ('2', "correctionG"  , "Specify the green channel correction");
-		IntParameter       & argCorrB      = parameters.add<IntParameter>      ('3', "correctionB"  , "Specify the blue channel correction");
+		CorrectionParameter & argCorrection  = parameters.add<CorrectionParameter>('Y', "correction" , "Set the correction of the leds (requires 3 space seperated values between 0 and 255)");
 		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature to set");
-		IntParameter       & argTempR      = parameters.add<IntParameter>      ('4', "tempR"  , "Specify the red channel temperature correction");
-		IntParameter       & argTempG      = parameters.add<IntParameter>      ('5', "tempG"  , "Specify the red channel temperature correction");
-		IntParameter       & argTempB      = parameters.add<IntParameter>      ('6', "tempB"  , "Specify the red channel temperature correction");
+		CorrectionParameter & argTemperature  = parameters.add<CorrectionParameter>('Z', "temperature" , "Set the temperature correction of the leds (requires 3 space seperated values between 0 and 255)");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -96,17 +92,15 @@ int main(int argc, char * argv[])
 
 		// check if at least one of the available color transforms is set
 		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
-		bool colorCorrection = argCorrR.isSet() || argCorrG.isSet() || argCorrB.isSet();
-		bool colorTemp = argTempR.isSet() || argTempG.isSet() || argTempB.isSet();
 
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform, colorCorrection, colorTemp});
+        	int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorTransform, argCorrection.isSet(), argTemperature.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
 			std::cerr << "  " << argColor.usageLine() << std::endl;
 			std::cerr << "  " << argImage.usageLine() << std::endl;
-            std::cerr << "  " << argEffect.usageLine() << std::endl;
+            		std::cerr << "  " << argEffect.usageLine() << std::endl;
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
@@ -122,14 +116,10 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argWhitelevel.usageLine() << std::endl;
 			std::cerr << "one or more of the available color corrections:" << std::endl;
 			std::cerr << "  " << argIdC.usageLine() << std::endl;
-			std::cerr << "  " << argCorrR.usageLine() << std::endl;
-			std::cerr << "  " << argCorrG.usageLine() << std::endl;
-			std::cerr << "  " << argCorrB.usageLine() << std::endl;
+			std::cerr << "  " << argCorrection.usageLine() << std::endl;
 			std::cerr << "or one or more of the available color temperature adjustment:" << std::endl;
 			std::cerr << "  " << argIdT.usageLine() << std::endl;
-			std::cerr << "  " << argTempR.usageLine() << std::endl;
-			std::cerr << "  " << argTempG.usageLine() << std::endl;
-			std::cerr << "  " << argTempB.usageLine() << std::endl;
+			std::cerr << "  " << argTemperature.usageLine() << std::endl;
 			return 1;
 		}
 
@@ -183,43 +173,35 @@ int main(int argc, char * argv[])
 						argSaturation.isSet() ? &saturation : nullptr,
 						argValue.isSet()      ? &value      : nullptr,
 						argSaturationL.isSet() ? &saturationL : nullptr,
-						argLuminance.isSet()  ? &luminance      : nullptr,
+						argLuminance.isSet()  ? &luminance  : nullptr,
 						argThreshold.isSet()  ? &threshold  : nullptr,
 						argGamma.isSet()      ? &gamma      : nullptr,
 						argBlacklevel.isSet() ? &blacklevel : nullptr,
 						argWhitelevel.isSet() ? &whitelevel : nullptr);
 		}
-		else if (colorCorrection)
+		else if (argCorrection.isSet())
 		{
-			std::string transId;
-			int red, green, blue;
+			std::string corrId;
+			ColorCorrectionValues correction;
 
-			if (argIdC.isSet())	transId    = argId.getValue();
-			if (argCorrR.isSet())	red = argCorrR.getValue();
-			if (argCorrG.isSet())	green = argCorrG.getValue();
-			if (argCorrB.isSet())	blue = argCorrB.getValue();
-			
+			if (argIdC.isSet())	corrId    = argIdC.getValue();
+			if (argCorrection.isSet())  correction = argCorrection.getValue();
+
 			connection.setCorrection(
-						argIdC.isSet()		? &transId : nullptr,
-						argCorrR.isSet() 	? &red : nullptr,
-						argCorrG.isSet() 	? &green : nullptr,
-						argCorrB.isSet() 	? &blue : nullptr);
+						argIdC.isSet()		? &corrId : nullptr,
+						argCorrection.isSet()   ? &correction  : nullptr);
 		}
-		else if (colorTemp)
+		else if (argTemperature.isSet())
 		{
-			std::string transId;
-			int red, green, blue;
+			std::string tempId;
+			ColorCorrectionValues temperature;
 
-			if (argIdT.isSet())	transId    = argId.getValue();
-			if (argTempR.isSet())	red = argTempR.getValue();
-			if (argTempG.isSet())	green = argTempG.getValue();
-			if (argTempB.isSet())	blue = argTempB.getValue();
+			if (argIdT.isSet())	tempId    = argIdT.getValue();
+			if (argTemperature.isSet())  temperature = argTemperature.getValue();
 			
 			connection.setCorrection(
-						argIdC.isSet()		? &transId : nullptr,
-						argTempR.isSet() 	? &red : nullptr,
-						argTempG.isSet() 	? &green : nullptr,
-						argTempB.isSet() 	? &blue : nullptr);
+						argIdT.isSet()		? &tempId : nullptr,
+						argTemperature.isSet()  ? &temperature  : nullptr);
 		}
 	}
 	catch (const std::runtime_error & e)
