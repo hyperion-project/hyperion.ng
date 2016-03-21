@@ -601,6 +601,7 @@ void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
 		colorCorrection->_rgbCorrection.setcorrectionR(values[0u].asInt());
 		colorCorrection->_rgbCorrection.setcorrectionG(values[1u].asInt());
 		colorCorrection->_rgbCorrection.setcorrectionB(values[2u].asInt());
+	}
 	
 	// commit the changes
 	_hyperion->correctionsUpdated();
@@ -626,6 +627,7 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 		colorTemperature->_rgbCorrection.setcorrectionR(values[0u].asInt());
 		colorTemperature->_rgbCorrection.setcorrectionG(values[1u].asInt());
 		colorTemperature->_rgbCorrection.setcorrectionB(values[2u].asInt());
+	}
 	
 	// commit the changes
 	_hyperion->temperaturesUpdated();
