@@ -12,6 +12,7 @@
 
 // hyperion-remote includes
 #include "ColorTransformValues.h"
+#include "ColorCorrectionValues.h"
 
 /// Data parameter for a color
 typedef vlofgren::PODParameter<std::vector<QColor>> ColorParameter;
@@ -21,6 +22,9 @@ typedef vlofgren::PODParameter<QImage> ImageParameter;
 
 /// Data parameter for color transform values (list of three values)
 typedef vlofgren::PODParameter<ColorTransformValues> TransformParameter;
+
+/// Data parameter for color correction values (list of three values)
+typedef vlofgren::PODParameter<ColorCorrectionValues> CorrectionParameter;
 
 namespace vlofgren {
 	///
@@ -127,5 +131,34 @@ namespace vlofgren {
 		throw Parameter::ParameterRejected(errorMessage.str());
 
 		return transform;
+	}
+	
+	template<>
+	ColorCorrectionValues CorrectionParameter::validate(const std::string& s) throw (Parameter::ParameterRejected)
+	{
+		ColorCorrectionValues correction;
+
+		// s should be split in 3 parts
+		// seperators are either a ',' or a space
+		QStringList components = QString(s.c_str()).split(" ", QString::SkipEmptyParts);
+
+		if (components.size() == 3)
+		{
+			bool ok1, ok2, ok3;
+			correction.valueRed   = components[0].toInt(&ok1);
+			correction.valueGreen = components[1].toInt(&ok2);
+			correction.valueBlue  = components[2].toInt(&ok3);
+
+			if (ok1 && ok2 && ok3)
+			{
+				return correction;
+			}
+		}
+
+		std::stringstream errorMessage;
+		errorMessage << "Argument " << s << " can not be parsed to 3 integer values";
+		throw Parameter::ParameterRejected(errorMessage.str());
+
+		return correction;
 	}
 }
