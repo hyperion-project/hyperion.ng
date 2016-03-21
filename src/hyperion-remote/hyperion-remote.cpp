@@ -199,7 +199,7 @@ int main(int argc, char * argv[])
 			if (argIdT.isSet())	tempId    = argIdT.getValue();
 			if (argTemperature.isSet())  temperature = argTemperature.getValue();
 			
-			connection.setCorrection(
+			connection.setTemperature(
 						argIdT.isSet()		? &tempId : nullptr,
 						argTemperature.isSet()  ? &temperature  : nullptr);
 		}
