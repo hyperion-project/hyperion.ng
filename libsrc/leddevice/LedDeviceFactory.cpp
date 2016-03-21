@@ -324,11 +324,12 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	else if (type == "ws281x")
 	{
 		const int gpio = deviceConfig.get("gpio", 18).asInt();
-		const int leds = deviceConfig.get("leds", 12).asInt();
+		const int leds = deviceConfig.get("leds", 256).asInt();
 		const uint32_t freq = deviceConfig.get("freq", (Json::UInt)800000ul).asInt();
 		const int dmanum = deviceConfig.get("dmanum", 5).asInt();
+		const int invert = deviceConfig.get("invert", 0).asInt();
 
-		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum);
+		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum, invert);
 		device = ledDeviceWS281x;
 	}
 #endif
