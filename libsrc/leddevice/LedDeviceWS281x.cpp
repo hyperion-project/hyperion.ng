@@ -3,13 +3,13 @@
 #include "LedDeviceWS281x.h"
 
 // Constructor
-LedDeviceWS281x::LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, const int dmanum, const int invert)
+LedDeviceWS281x::LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, const int dmanum)
 {
 	initialized = false;
 	led_string.freq = freq;
 	led_string.dmanum = dmanum;
 	led_string.channel[0].gpionum = gpio;
-	led_string.channel[0].invert = invert;
+	led_string.channel[0].invert = 0;
 	led_string.channel[0].count = leds;
 	led_string.channel[0].brightness = 255;
 	led_string.channel[0].strip_type = WS2811_STRIP_RGB;
