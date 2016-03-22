@@ -70,6 +70,7 @@ elif [ $OS_OPENELEC -eq 1 ]; then
 	# Remove Hyperion from OpenELEC autostart.sh
 	echo "---> Remove Hyperion from OpenELEC autostart.sh"
 	sed -i "/hyperiond/d" /storage/.config/autostart.sh 2>/dev/null
+	sed -i "/hyperion-x11/d" /storage/.config/autostart.sh 2>/dev/null
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	# Delete and disable Hyperion systemd script
 	echo '---> Delete and disable Hyperion systemd script'

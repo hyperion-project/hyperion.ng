@@ -180,7 +180,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLightpack;
 	}
-	else if (type == "multi-lightpack" || type == "multi_lightpack")
+	else if (type == "multi-lightpack")
 	{
 		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
 		deviceLightpack->open();

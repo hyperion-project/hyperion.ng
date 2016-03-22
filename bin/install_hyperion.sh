@@ -4,8 +4,18 @@
 # Make sure /sbin is on the path (for service to find sub scripts)
 PATH="/sbin:$PATH"
 
+#Check which arguments are used
+if [ "$1" = "HyperConInstall" ] || [ "$2" = "HyperConInstall" ]; then
+	HCInstall=1
+else HCInstall=0
+fi
+if [ "$1" = "WS281X" ] || [ "$2" = "WS281X" ]; then
+	PWM=1
+else PWM=0
+fi
+
 #Check if HyperCon is logged in as root
-if [ $(id -u) != 0 ] && [ "$1" = "HyperConInstall" ]; then
+if [ $(id -u) != 0 ] && [ $HCInstall -eq 1 ]; then
 		echo '---> Critical Error: Please connect as user "root" through HyperCon' 
 		echo '---> We need admin privileges to install/update your Hyperion! -> abort'
 		exit 1
@@ -78,7 +88,7 @@ if [ $OS_OPENELEC -ne 1 ]; then
 fi
 
 #Check, if dtparam=spi=on is in place (not for OPENELEC)
-if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
+if [ $PWM -ne 1 ] && [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /boot/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
 			echo '---> Raspberry Pi found, but SPI is not ready, we write "dtparam=spi=on" to /boot/config.txt'
@@ -88,7 +98,7 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 fi
 
 #Check, if dtparam=spi=on is in place (just for OPENELEC)
-if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
+if [ $PWM -ne 1 ] && [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /flash/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
 			mount -o remount,rw /flash
@@ -96,6 +106,28 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 			sed -i '$a dtparam=spi=on' /flash/config.txt
 			mount -o remount,ro /flash
 			REBOOTMESSAGE="echo Please reboot your OpenELEC, we inserted dtparam=spi=on to /flash/config.txt"
+	fi
+fi
+
+#Check, if dtoverlay=pwm is in place (not for OPENELEC)
+#if [ $PWM -eq 1 ] && [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
+#	PWMOK=`grep '^\dtoverlay=pwm' /boot/config.txt | wc -l`
+#		if [ $PWMOK -ne 1 ]; then
+#			echo '---> Raspberry Pi found, but PWM is not ready, we write "dtoverlay=pwm" to /boot/config.txt'
+#			sed -i '$a dtoverlay=pwm' /boot/config.txt
+#			PWMREBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtoverlay=pwm to /boot/config.txt"
+#	fi
+#fi
+
+#Check, if dtoverlay=pwm is in place (just for OPENELEC)
+if [ $PWM -eq 1 ] && [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
+	PWMOK=`grep '^\dtoverlay=pwm' /flash/config.txt | wc -l`
+		if [ $PWMOK -ne 1 ]; then
+			mount -o remount,rw /flash
+			echo '---> Raspberry Pi with OpenELEC found, but PWM is not ready, we write "dtoverlay=pwm" to /flash/config.txt'
+			sed -i '$a dtoverlay=pwm' /flash/config.txt
+			mount -o remount,ro /flash
+			PWMREBOOTMESSAGE="echo Please reboot your OpenELEC, we inserted dtoverlay=pwm to /flash/config.txt"
 	fi
 fi
 #Backup the .conf files, if present
@@ -177,16 +209,29 @@ elif [ $OS_OPENELEC -eq 1 ]; then
 		echo "/storage/hyperion/bin/hyperiond.sh /storage/.config/hyperion.config.json > /dev/null 2>&1 &" >> /storage/.config/autostart.sh
 		chmod +x /storage/.config/autostart.sh
 	fi
+	# only add hyperion-x11 to startup, if not found and x32x64 detected
+	if [ $CPU_X32X64 -eq 1 ] && [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperion-x11 | wc -l` -eq 0 ]; then
+		echo '---> Adding Hyperion-x11 to OpenELEC autostart.sh'
+		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-x11 </dev/null >/dev/null 2>&1 &" >> /storage/.config/autostart.sh		
+	fi
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	echo '---> Installing systemd script'
 	#place startup script for systemd and activate
 	#Problem with systemd to enable symlinks - Bug? Workaround cp -n (overwrite never)
-	#Bad workaround for Jessie users that used the official script for install
+	#Bad workaround for Jessie (systemd) users that used the official script for install
 	update-rc.d -f hyperion remove 2>/dev/null
 	rm /etc/init.d/hyperion 2>/dev/null
 	cp -n /opt/hyperion/init.d/hyperion.systemd.sh /etc/systemd/system/hyperion.service
 	systemctl -q enable hyperion.service
-		if [ $OS_OSMC -eq 1 ]; then
+		if [ $PWM -eq 1 ] && [ $OS_OSMC -eq 1 ]; then
+			echo '---> Modify systemd script for OSMC usage (PWM Support)'
+			# Wait until kodi is sarted (for xbmc checker) and FIX user in case it is wrong (need root for access to pwm!)!
+			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
+			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
+			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
+			sed -i 's/Group=osmc/Group=root/g' /etc/systemd/system/hyperion.service
+			systemctl -q daemon-reload
+		elif [ $OS_OSMC -eq 1 ]; then
 			echo '---> Modify systemd script for OSMC usage'
 			# Wait until kodi is sarted (for xbmc checker) and replace user (for remote control through osmc)
 			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
@@ -226,15 +271,16 @@ echo 'Please get a new HyperCon version to benefit from the latest features!'
 echo 'Create a new config file, if you encounter problems!' 
 $HINTMESSAGE
 $REBOOTMESSAGE
+$PWMREBOOTMESSAGE
 echo '*******************************************************************************' 
 ## Force reboot and prevent prompt if spi is added during a HyperCon Install
-if [ "$1" = "HyperConInstall" ] && [ $CPU_RPI -eq 1 ] && [ $SPIOK -ne 1 ]; then
-	echo "Rebooting now, we added dtparam=spi=on to config.txt"
+if ( [ "$HCInstall" = "1" ] && [ "$CPU_RPI" = "1" ] ) && ( [ "$SPIOK" = "0" ] || [ "$PWMOK" = "0" ] ); then
+	echo "Rebooting now, we added dtparam=spi=on and/or dtoverlay=pwm to config.txt"
 	reboot
 	exit 0
 fi
 #Prompt for reboot, if spi added to config.txt
-if [ $CPU_RPI -eq 1 ] && [ $SPIOK -ne 1 ];then
+if ( [ "$CPU_RPI" = "1" ] ) && ( [ "$SPIOK" = "0" ] || [ "$PWMOK" = "0" ] ); then
         while true
         do
         echo -n "---> Do you want to reboot your Raspberry Pi now? (y or n) :"
