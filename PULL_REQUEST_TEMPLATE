@@ -1,3 +1,4 @@
+IMPORTANT: Please don´t commit to master, we will test your changes first at the beta branch!
 **1.** Tell us something about your changes.
 **2.** If this changes affect the .conf file. Please provide the changed section
 **3.** Reference a issue (optional)
