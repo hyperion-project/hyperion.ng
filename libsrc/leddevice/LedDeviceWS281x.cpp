@@ -3,22 +3,27 @@
 #include "LedDeviceWS281x.h"
 
 // Constructor
-LedDeviceWS281x::LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, const int dmanum)
+LedDeviceWS281x::LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, const int dmanum, const int pwmchannel)
 {
 	initialized = false;
 	led_string.freq = freq;
 	led_string.dmanum = dmanum;
-	led_string.channel[0].gpionum = gpio;
-	led_string.channel[0].invert = 0;
-	led_string.channel[0].count = leds;
-	led_string.channel[0].brightness = 255;
-	led_string.channel[0].strip_type = WS2811_STRIP_RGB;
+	if (pwmchannel != 0 && pwmchannel != 1) {
+		std::cout << "WS281x: invalid PWM channel; must be 0 or 1." << std::endl;
+		throw -1;
+	}
+	chan = pwmchannel;
+	led_string.channel[chan].gpionum = gpio;
+	led_string.channel[chan].invert = 0;
+	led_string.channel[chan].count = leds;
+	led_string.channel[chan].brightness = 255;
+	led_string.channel[chan].strip_type = WS2811_STRIP_RGB;
 
-	led_string.channel[1].gpionum = 0;
-	led_string.channel[1].invert = 0;
-	led_string.channel[1].count = 0;
-	led_string.channel[1].brightness = 0;
-	led_string.channel[0].strip_type = WS2811_STRIP_RGB;
+	led_string.channel[!chan].gpionum = 0;
+	led_string.channel[!chan].invert = 0;
+	led_string.channel[!chan].count = 0;
+	led_string.channel[!chan].brightness = 0;
+	led_string.channel[!chan].strip_type = WS2811_STRIP_RGB;
 	if (ws2811_init(&led_string) < 0) {
 		std::cout << "Unable to initialize ws281x library." << std::endl;
 		throw -1;
@@ -35,12 +40,12 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 	int idx = 0;
 	for (const ColorRgb& color : ledValues)
 	{
-		if (idx >= led_string.channel[0].count)
+		if (idx >= led_string.channel[chan].count)
 			break;
-		led_string.channel[0].leds[idx++] = ((uint32_t)color.red << 16) + ((uint32_t)color.green << 8) + color.blue;
+		led_string.channel[chan].leds[idx++] = ((uint32_t)color.red << 16) + ((uint32_t)color.green << 8) + color.blue;
 	}
-	while (idx < led_string.channel[0].count)
-		led_string.channel[0].leds[idx++] = 0;
+	while (idx < led_string.channel[chan].count)
+		led_string.channel[chan].leds[idx++] = 0;
 
 	if (ws2811_render(&led_string))
 		return -1;
@@ -57,8 +62,8 @@ int LedDeviceWS281x::switchOff()
 		return -1;
 
 	int idx = 0;
-	while (idx < led_string.channel[0].count)
-		led_string.channel[0].leds[idx++] = 0;
+	while (idx < led_string.channel[chan].count)
+		led_string.channel[chan].leds[idx++] = 0;
 
 	if (ws2811_render(&led_string))
 		return -1;

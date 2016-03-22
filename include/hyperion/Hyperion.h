@@ -13,6 +13,8 @@
 // Hyperion includes
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
+#include <hyperion/ColorTransform.h>
+#include <hyperion/ColorCorrection.h>
 #include <hyperion/MessageForwarder.h>
 
 // Effect engine includes
@@ -23,8 +25,12 @@ class LedDevice;
 class ColorTransform;
 class EffectEngine;
 class HsvTransform;
+class HslTransform;
 class RgbChannelTransform;
+class RgbChannelCorrection;
 class MultiColorTransform;
+class MultiColorCorrection;
+class MultiColorTemperature;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -116,19 +122,51 @@ public slots:
 	/// @return The list with transform identifiers
 	///
 	const std::vector<std::string> & getTransformIds() const;
-
+	
+	///
+	/// Returns the list with unique correction identifiers
+	/// @return The list with correction identifiers
+	///
+	const std::vector<std::string> & getCorrectionIds() const;
+	
+	///
+	/// Returns the list with unique correction identifiers
+	/// @return The list with correction identifiers
+	///
+	const std::vector<std::string> & getTemperatureIds() const;
+	
 	///
 	/// Returns the ColorTransform with the given identifier
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorTransform * getTransform(const std::string& id);
+	
+	///
+	/// Returns the ColorCorrection with the given identifier
+	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
+	///
+	ColorCorrection * getCorrection(const std::string& id);
+	
+	///
+	/// Returns the ColorCorrection with the given identifier
+	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
+	///
+	ColorCorrection * getTemperature(const std::string& id);
+	
+	///
+	/// Returns  MessageForwarder Object
+	/// @return instance of message forwarder object
+	///
+	MessageForwarder * getForwarder();
 
 	/// Tell Hyperion that the transforms have changed and the leds need to be updated
 	void transformsUpdated();
-
-	/// Returns  MessageForwarder Object
-	/// @return instance of message forwarder object
-	MessageForwarder * getForwarder();
+	
+	/// Tell Hyperion that the corrections have changed and the leds need to be updated
+	void correctionsUpdated();
+	
+	/// Tell Hyperion that the corrections have changed and the leds need to be updated
+	void temperaturesUpdated();
 
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
@@ -168,9 +206,14 @@ public:
 	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
+	static MultiColorCorrection * createLedColorsCorrection(const unsigned ledCnt, const Json::Value & colorCorrectionConfig);
+	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
 	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
+	static ColorCorrection * createColorCorrection(const Json::Value & correctionConfig);
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
+	static HslTransform * createHslTransform(const Json::Value & hslConfig);
 	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
+	static RgbChannelCorrection * createRgbChannelCorrection(const Json::Value& colorConfig);
 
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
 	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
@@ -198,15 +241,21 @@ private:
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
-	/// The transformation from raw colors to led colors
+	/// The transformation from corrected colors to led colors
 	MultiColorTransform * _raw2ledTransform;
-
+	
+	/// The correction from raw colors to led colors
+	MultiColorCorrection * _raw2ledCorrection;
+	
+	/// The temperature from corrected colors to led colors
+	MultiColorCorrection * _raw2ledTemperature;
+	
 	/// The actual LedDevice
 	LedDevice * _device;
 
 	/// Effect engine
 	EffectEngine * _effectEngine;
-
+	
 	// proto and json Message forwarder
 	MessageForwarder * _messageForwarder;
 

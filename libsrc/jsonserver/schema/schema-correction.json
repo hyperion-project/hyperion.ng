@@ -1,0 +1,34 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["correction"]
+		},
+		"correction": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"id" : {
+					"type" : "string",
+					"required" : false
+				},
+				"correctionValues" : {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

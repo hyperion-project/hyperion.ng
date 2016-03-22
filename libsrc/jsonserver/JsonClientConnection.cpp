@@ -18,6 +18,7 @@
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorTransform.h>
+#include <hyperion/ColorCorrection.h>
 #include <utils/ColorRgb.h>
 
 // project includes
@@ -231,7 +232,7 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		sendErrorReply("Error while validating json: " + errors);
 		return;
 	}
-
+	
 	// switch over all possible commands and handle them
 	if (command == "color")
 		handleColorCommand(message);
@@ -247,6 +248,10 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleClearallCommand(message);
 	else if (command == "transform")
 		handleTransformCommand(message);
+	else if (command == "correction")
+		handleCorrectionCommand(message);
+	else if (command == "temperature")
+		handleTemperatureCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -387,6 +392,47 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
 	}
+	
+	// collect correction information
+	Json::Value & correctionArray = info["correction"];
+	for (const std::string& correctionId : _hyperion->getCorrectionIds())
+	{
+		const ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
+		if (colorCorrection == nullptr)
+		{
+			std::cerr << "Incorrect color correction id: " << correctionId << std::endl;
+			continue;
+		}
+
+		Json::Value & correction = correctionArray.append(Json::Value());
+		correction["id"] = correctionId;
+		
+		Json::Value & corrValues = correction["correctionValues"];
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionR());
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionG());
+		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionB());
+	}
+	
+	// collect temperature correction information
+	Json::Value & temperatureArray = info["temperature"];
+	for (const std::string& tempId : _hyperion->getTemperatureIds())
+	{
+		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
+		if (colorTemp == nullptr)
+		{
+			std::cerr << "Incorrect color temperature correction id: " << tempId << std::endl;
+			continue;
+		}
+
+		Json::Value & temperature = temperatureArray.append(Json::Value());
+		temperature["id"] = tempId;
+		
+		Json::Value & tempValues = temperature["correctionValues"];
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionR());
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionG());
+		tempValues.append(colorTemp->_rgbCorrection.getcorrectionB());
+	}
+
 
 	// collect transform information
 	Json::Value & transformArray = info["transform"];
@@ -404,6 +450,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 		transform["saturationGain"] = colorTransform->_hsvTransform.getSaturationGain();
 		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
+		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
+		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
 
 		Json::Value & threshold = transform["threshold"];
 		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
@@ -476,7 +524,7 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
 		return;
 	}
-
+		
 	if (transform.isMember("saturationGain"))
 	{
 		colorTransform->_hsvTransform.setSaturationGain(transform["saturationGain"].asDouble());
@@ -485,6 +533,16 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	if (transform.isMember("valueGain"))
 	{
 		colorTransform->_hsvTransform.setValueGain(transform["valueGain"].asDouble());
+	}
+	
+	if (transform.isMember("saturationLGain"))
+	{
+		colorTransform->_hslTransform.setSaturationGain(transform["saturationLGain"].asDouble());
+	}
+
+	if (transform.isMember("luminanceGain"))
+	{
+		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].asDouble());
 	}
 
 	if (transform.isMember("threshold"))
@@ -518,13 +576,65 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 		colorTransform->_rgbGreenTransform.setWhitelevel(values[1u].asDouble());
 		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].asDouble());
 	}
-
+	
 	// commit the changes
 	_hyperion->transformsUpdated();
 
 	sendSuccessReply();
 }
 
+void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
+{
+	const Json::Value & correction = message["correction"];
+
+	const std::string correctionId = correction.get("id", _hyperion->getCorrectionIds().front()).asString();
+	ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
+	if (colorCorrection == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect correction identifier: ") + correctionId);
+		return;
+	}
+
+	if (correction.isMember("correctionValues"))
+	{
+		const Json::Value & values = correction["correctionValues"];
+		colorCorrection->_rgbCorrection.setcorrectionR(values[0u].asInt());
+		colorCorrection->_rgbCorrection.setcorrectionG(values[1u].asInt());
+		colorCorrection->_rgbCorrection.setcorrectionB(values[2u].asInt());
+	}
+	
+	// commit the changes
+	_hyperion->correctionsUpdated();
+
+	sendSuccessReply();
+}
+	
+void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
+{
+	const Json::Value & temperature = message["temperature"];
+
+	const std::string tempId = temperature.get("id", _hyperion->getTemperatureIds().front()).asString();
+	ColorCorrection * colorTemperature = _hyperion->getTemperature(tempId);
+	if (colorTemperature == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect temperature identifier: ") + tempId);
+		return;
+	}
+
+	if (temperature.isMember("correctionValues"))
+	{
+		const Json::Value & values = temperature["correctionValues"];
+		colorTemperature->_rgbCorrection.setcorrectionR(values[0u].asInt());
+		colorTemperature->_rgbCorrection.setcorrectionG(values[1u].asInt());
+		colorTemperature->_rgbCorrection.setcorrectionB(values[2u].asInt());
+	}
+	
+	// commit the changes
+	_hyperion->temperaturesUpdated();
+
+	sendSuccessReply();
+}
+	
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");

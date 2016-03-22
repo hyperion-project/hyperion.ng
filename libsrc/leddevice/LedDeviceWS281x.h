@@ -17,7 +17,7 @@ public:
 	/// @param freq   The target frequency for the data line, default is 800000
 	/// @param dmanum The DMA channel to use, default is 5
 	///
-	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum);
+	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
@@ -37,6 +37,7 @@ public:
 
 private:
 	ws2811_t led_string;
+	int chan;
 	bool initialized;
 };
 

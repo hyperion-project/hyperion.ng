@@ -180,7 +180,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceLightpack;
 	}
-	else if (type == "multi-lightpack" || type == "multi_lightpack")
+	else if (type == "multi-lightpack")
 	{
 		LedDeviceMultiLightpack* deviceLightpack = new LedDeviceMultiLightpack();
 		deviceLightpack->open();
@@ -327,8 +327,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const int leds = deviceConfig.get("leds", 12).asInt();
 		const uint32_t freq = deviceConfig.get("freq", (Json::UInt)800000ul).asInt();
 		const int dmanum = deviceConfig.get("dmanum", 5).asInt();
+                const int pwmchannel = deviceConfig.get("pwmchannel", 0).asInt();
 
-		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum);
+		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum, pwmchannel);
 		device = ledDeviceWS281x;
 	}
 #endif

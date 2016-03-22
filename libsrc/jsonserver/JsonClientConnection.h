@@ -112,6 +112,20 @@ private:
 	/// @param message the incoming message
 	///
 	void handleTransformCommand(const Json::Value & message);
+	
+	///
+	/// Handle an incoming JSON Correction message
+	///
+	/// @param message the incoming message
+	///
+	void handleCorrectionCommand(const Json::Value & message);
+	
+	///
+	/// Handle an incoming JSON Temperature message
+	///
+	/// @param message the incoming message
+	///
+	void handleTemperatureCommand(const Json::Value & message);
 
 	///
 	/// Handle an incoming JSON message of unknown type

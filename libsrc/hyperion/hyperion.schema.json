@@ -38,7 +38,7 @@
             "type":"object",
             "required":false,
             "properties": {
-                "hsv" : {
+				"hsv" : {
                     "type" : "object",
                     "required" : false,
                     "properties" : {
@@ -48,6 +48,23 @@
                             "minimum" : 0.0
                         },
                         "valueGain" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.0
+                        }
+                    },
+                    "additionalProperties" : false
+                },
+				"hsl" : {
+                    "type" : "object",
+                    "required" : false,
+                    "properties" : {
+                        "saturationGain" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.0
+                        },
+                        "luminanceGain" : {
                             "type" : "number",
                             "required" : false,
                             "minimum" : 0.0
