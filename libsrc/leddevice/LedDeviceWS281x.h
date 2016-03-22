@@ -16,8 +16,11 @@ public:
 	/// @param leds   The number of leds attached to the gpio pin
 	/// @param freq   The target frequency for the data line, default is 800000
 	/// @param dmanum The DMA channel to use, default is 5
+	/// @param pwmchannel The pwm channel to use
+	/// @param invert Invert the output line to support an inverting level shifter
+
 	///
-	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel);
+	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel, int invert);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
