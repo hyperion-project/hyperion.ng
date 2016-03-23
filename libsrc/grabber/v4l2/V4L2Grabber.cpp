@@ -412,7 +412,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
     _height = fmt.fmt.pix.height;
 
     // print the eventually used width and height
-    std::cout << "V4L2 width=" << _width << " height=" << _height << std::endl;
+    std::cout << "V4L2GRABBER INFO: width=" << _width << " height=" << _height << std::endl;
 
     // check pixel format and frame size
     switch (fmt.fmt.pix.pixelformat)
