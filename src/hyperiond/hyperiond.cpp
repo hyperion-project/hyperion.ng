@@ -93,7 +93,7 @@ Json::Value loadConfig(const std::string & configFile)
 int main(int argc, char** argv)
 {
 	std::cout
-		<< "Hyperion Ambilight Deamon:" << std::endl
+		<< "Hyperion Ambilight Deamon" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION_ID << std::endl
 		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
