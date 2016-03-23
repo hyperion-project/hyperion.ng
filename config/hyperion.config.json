@@ -5,7 +5,7 @@
 	/// Device configuration contains the following fields: 
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device or leds (known types for now are
-	/// APA102, Adalight, AmbiLed, Atmo, Hyperion-USBASP-WS2801, Hyperion-USBASP-WS2812, Lightberry, Lightpack, LPD6803, LPD8806, Multi-Lightpack, P9813, Paintpack, PhilipsHUE, PiBlaster, SEDU, Test, ThinkerForge, TPM2, WS2801, WS2812b, None)
+	/// APA102, Adalight, AmbiLed, Atmo, Hyperion-USBASP-WS2801, Hyperion-USBASP-WS2812, Lightberry, Lightpack, LPD6803, LPD8806, Multi-Lightpack, P9813, Paintpack, PhilipsHUE, PiBlaster, SEDU, file, ThinkerForge, TPM2, WS2801, WS2812b, None)
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	"device" :

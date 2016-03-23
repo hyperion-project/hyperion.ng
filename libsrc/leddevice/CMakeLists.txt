@@ -21,7 +21,7 @@ SET(Leddevice_QT_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 		${CURRENT_SOURCE_DIR}/LedHIDDevice.h
 		${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
 
@@ -34,7 +34,7 @@ SET(Leddevice_HEADERS
 		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.h
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.h
+		${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 		${CURRENT_SOURCE_DIR}/LedDeviceUdp.h
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
@@ -58,7 +58,7 @@ SET(Leddevice_SOURCES
 		${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
 		${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
-		${CURRENT_SOURCE_DIR}/LedDeviceTest.cpp
+		${CURRENT_SOURCE_DIR}/LedDeviceFile.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceUdp.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
