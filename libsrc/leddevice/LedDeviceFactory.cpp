@@ -29,7 +29,7 @@
 #include "LedDevicePaintpack.h"
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
-#include "LedDeviceTest.h"
+#include "LedDeviceFile.h"
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceUdp.h"
 #include "LedDeviceHyperionUsbasp.h"
@@ -275,10 +275,10 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = new LedDeviceAtmoOrb(output, switchOffOnBlack, transitiontime, port, numLeds, orbIds);
   }
-	else if (type == "test")
+	else if (type == "file")
 	{
-		const std::string output = deviceConfig["output"].asString();
-		device = new LedDeviceTest(output);
+		const std::string output = deviceConfig.get("output", "/dev/null").asString();
+		device = new LedDeviceFile(output);
 	}
 	else if (type == "fadecandy")
 	{
