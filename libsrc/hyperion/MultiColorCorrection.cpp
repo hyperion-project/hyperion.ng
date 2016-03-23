@@ -45,7 +45,7 @@ bool MultiColorCorrection::verifyCorrections() const
 	{
 		if (_ledCorrections[iLed] == nullptr)
 		{
-			std::cerr << "No correction set for " << iLed << std::endl;
+			std::cerr << "HYPERION (C.correction) ERROR: No correction set for " << iLed << std::endl;
 			allLedsSet = false;
 		}
 	}

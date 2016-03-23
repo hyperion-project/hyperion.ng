@@ -59,7 +59,7 @@ void XBMCVideoChecker::receiveReply()
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
 
-	std::cout << "Message from XBMC: " << reply.toStdString() << std::endl;
+	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
 
 	if (reply.contains("\"method\":\"Player.OnPlay\""))
 	{
@@ -197,7 +197,7 @@ void XBMCVideoChecker::receiveReply()
 
 void XBMCVideoChecker::connected()
 {
-	std::cout << "XBMC Connected" << std::endl;
+	std::cout << "KODICHECK INFO: Kodi Connected" << std::endl;
 
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
@@ -206,7 +206,7 @@ void XBMCVideoChecker::connected()
 
 void XBMCVideoChecker::disconnected()
 {
-	std::cout << "XBMC Disconnected" << std::endl;
+	std::cout << "KODICHECK INFO: Kodi Disconnected" << std::endl;
 	reconnect();
 }
 
@@ -239,7 +239,7 @@ void XBMCVideoChecker::reconnect()
 
 void XBMCVideoChecker::connectionError(QAbstractSocket::SocketError error)
 {
-	std::cout << "XBMC Connection error (" << error << ")" << std::endl;
+	std::cout << "KODICHECK ERROR: Kodi Connection error (" << error << ")" << std::endl;
 
 	// close the socket
 	_socket.close();
@@ -256,22 +256,22 @@ void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 	switch (newGrabbingMode)
 	{
 	case GRABBINGMODE_VIDEO:
-		std::cout << "XBMC checker: switching to VIDEO mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to VIDEO mode" << std::endl;
 		break;
 	case GRABBINGMODE_PHOTO:
-		std::cout << "XBMC checker: switching to PHOTO mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to PHOTO mode" << std::endl;
 		break;
 	case GRABBINGMODE_AUDIO:
-		std::cout << "XBMC checker: switching to AUDIO mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to AUDIO mode" << std::endl;
 		break;
 	case GRABBINGMODE_MENU:
-		std::cout << "XBMC checker: switching to MENU mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to MENU mode" << std::endl;
 		break;
 	case GRABBINGMODE_OFF:
-		std::cout << "XBMC checker: switching to OFF mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to OFF mode" << std::endl;
 		break;
 	case GRABBINGMODE_INVALID:
-		std::cout << "XBMC checker: switching to INVALID mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to INVALID mode" << std::endl;
 		break;
 	}
 
@@ -306,13 +306,13 @@ void XBMCVideoChecker::setVideoMode(VideoMode newVideoMode)
 	switch (newVideoMode)
 	{
 	case VIDEO_2D:
-		std::cout << "XBMC checker: switching to 2D mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to 2D mode" << std::endl;
 		break;
 	case VIDEO_3DSBS:
-		std::cout << "XBMC checker: switching to 3D SBS mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to 3D SBS mode" << std::endl;
 		break;
 	case VIDEO_3DTAB:
-		std::cout << "XBMC checker: switching to 3D TAB mode" << std::endl;
+		std::cout << "KODICHECK INFO: switching to 3D TAB mode" << std::endl;
 		break;
 	}
 

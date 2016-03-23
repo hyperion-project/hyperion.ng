@@ -73,7 +73,7 @@ void BoblightClientConnection::readData()
 		// drop messages if the buffer is too full
 		if (_receiveBuffer.size() > 100*1024)
 		{
-			std::cout << "Boblight server drops messages" << std::endl;
+			std::cout << "BOBLIGHT INFO: server drops messages (buffer full)" << std::endl;
 			_receiveBuffer.clear();
 		}
 
@@ -211,7 +211,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		}
 	}
 
-	std::cout << "unknown boblight message: " << message.toStdString() << std::endl;
+	std::cout << "BOBLIGHT INFO: unknown boblight message: " << message.toStdString() << std::endl;
 }
 
 void BoblightClientConnection::sendMessage(const std::string & message)

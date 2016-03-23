@@ -62,7 +62,7 @@ bool X11Grabber::Setup()
     _x11Display = XOpenDisplay(NULL);
     if (_x11Display == nullptr)
     {
-      std::cerr << "Unable to open display";
+      std::cerr << "X11GRABBER ERROR: Unable to open display";
       if (getenv("DISPLAY"))
 	std::cerr <<  " " << std::string(getenv("DISPLAY")) << std::endl;
       else
@@ -82,7 +82,7 @@ Image<ColorRgb> & X11Grabber::grab()
     XShmGetImage(_x11Display, _window, _xImage, _cropLeft, _cropTop, 0x00FFFFFF);
     if (_xImage == nullptr)
     {
-        std::cerr << "Grab failed" << std::endl;
+        std::cerr << "X11GRABBER ERROR: Grab failed" << std::endl;
         return _image;
     }
 
@@ -96,7 +96,7 @@ int X11Grabber::updateScreenDimensions()
     const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
     if (status == 0)
     {
-        std::cerr << "Failed to obtain window attributes" << std::endl;
+        std::cerr << "X11GRABBER ERROR: Failed to obtain window attributes" << std::endl;
         return -1;
     }
 
@@ -106,7 +106,7 @@ int X11Grabber::updateScreenDimensions()
         return 0;
     }
     
-    std::cout << "Update of screen resolution: [" << _screenWidth << "x" << _screenHeight <<"] => ";
+    std::cout << "X11GRABBER INFO: Update of screen resolution: [" << _screenWidth << "x" << _screenHeight <<"] => ";
 
     if (_screenWidth || _screenHeight)
       freeResources();

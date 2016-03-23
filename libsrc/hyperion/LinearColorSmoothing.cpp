@@ -21,7 +21,7 @@ LinearColorSmoothing::LinearColorSmoothing(
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 
-	std::cout << "Created linear-smoothing(interval_ms=" << _updateInterval << ";settlingTime_ms=" << settlingTime_ms << ";updateDelay=" << _outputDelay << std::endl;
+	std::cout << "HYPERION (CS) INFO: Created linear-smoothing(interval_ms=" << _updateInterval << ";settlingTime_ms=" << settlingTime_ms << ";updateDelay=" << _outputDelay << std::endl;
 }
 
 LinearColorSmoothing::~LinearColorSmoothing()

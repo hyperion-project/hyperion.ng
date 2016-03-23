@@ -46,7 +46,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
 	{
-		throw std::runtime_error("no such priority");
+		throw std::runtime_error("HYPERION (prioritymux) ERROR: no such priority");
 	}
 	return elemIt.value();
 }

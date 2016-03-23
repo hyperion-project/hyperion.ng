@@ -13,14 +13,14 @@ JsonServer::JsonServer(Hyperion *hyperion, uint16_t port) :
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
-		throw std::runtime_error("Json server could not bind to port");
+		throw std::runtime_error("JSONSERVER ERROR: could not bind to port");
 	}
 
 		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
 		for ( int i=0; i<list.size(); i++ )
 		{
 			if ( list.at(i).addr == QHostAddress::LocalHost && list.at(i).port == port ) {
-				throw std::runtime_error("Loop between proto server and forwarder detected. Fix your config!");
+				throw std::runtime_error("JSONSERVER ERROR: Loop between proto server and forwarder detected. Fix your config!");
 			}
 		}
 
@@ -49,7 +49,7 @@ void JsonServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "New json connection" << std::endl;
+		std::cout << "JSONSERVER INFO: New connection" << std::endl;
 		JsonClientConnection * connection = new JsonClientConnection(socket, _hyperion);
 		_openConnections.insert(connection);
 
@@ -60,7 +60,7 @@ void JsonServer::newConnection()
 
 void JsonServer::closedConnection(JsonClientConnection *connection)
 {
-	std::cout << "Json connection closed" << std::endl;
+	std::cout << "JSONSERVER INFO: Connection closed" << std::endl;
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object

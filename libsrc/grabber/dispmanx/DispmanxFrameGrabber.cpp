@@ -28,7 +28,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 		// Keep compiler happy in 'release' mode
 		(void)result;
 		assert(result == 0);
-		std::cout << "Display opened with resolution: " << vc_info.width << "x" << vc_info.height << std::endl;
+		std::cout << "DISPMANXGRABBER INFO: Display opened with resolution: " << vc_info.width << "x" << vc_info.height << std::endl;
 
 		// Close the displaye
 		vc_dispmanx_display_close(_vc_display);

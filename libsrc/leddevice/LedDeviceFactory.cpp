@@ -49,7 +49,7 @@
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
-	std::cout << "Device configuration: " << deviceConfig << std::endl;
+	std::cout << "LEDDEVICE INFO: configuration: " << deviceConfig << std::endl;
 
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
@@ -336,7 +336,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 #endif
 	else
 	{
-		std::cout << "Error: Unknown/Unimplemented device " << type << std::endl;
+		std::cout << "LEDDEVICE ERROR: Unknown/Unimplemented device " << type << std::endl;
 		// Unknown / Unimplemented device
 	}
 	return device;
