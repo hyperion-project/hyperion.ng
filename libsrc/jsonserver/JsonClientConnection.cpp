@@ -164,7 +164,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		}
 	} else
 	{
-		std::cout << "Someone is sending very big messages over several frames... it's not supported yet" << std::endl;
+		std::cout << "JSONCLIENT INFO: Someone is sending very big messages over several frames... it's not supported yet" << std::endl;
 		quint8 close[] = {0x88, 0};				
 		_socket->write((const char*)close, 2);
 		_socket->flush();
@@ -400,7 +400,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
 		if (colorCorrection == nullptr)
 		{
-			std::cerr << "Incorrect color correction id: " << correctionId << std::endl;
+			std::cerr << "JSONCLIENT ERROR: Incorrect color correction id: " << correctionId << std::endl;
 			continue;
 		}
 
@@ -420,7 +420,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
 		if (colorTemp == nullptr)
 		{
-			std::cerr << "Incorrect color temperature correction id: " << tempId << std::endl;
+			std::cerr << "JSONCLIENT ERROR: Incorrect color temperature correction id: " << tempId << std::endl;
 			continue;
 		}
 
@@ -441,7 +441,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
 		if (colorTransform == nullptr)
 		{
-			std::cerr << "Incorrect color transform id: " << transformId << std::endl;
+			std::cerr << "JSONCLIENT ERROR: Incorrect color transform id: " << transformId << std::endl;
 			continue;
 		}
 
@@ -743,7 +743,7 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages())	;
 	}
 
 	// create schema checker

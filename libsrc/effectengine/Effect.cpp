@@ -112,7 +112,7 @@ void Effect::run()
 	}
 	else
 	{
-		std::cerr << "Unable to open script file " << _script << std::endl;
+		std::cerr << "EFFECTENGINE ERROR: Unable to open script file " << _script << std::endl;
 	}
 
 	// Clean up the thread state
@@ -355,7 +355,7 @@ Effect * Effect::getEffect()
 	{
 		// something is wrong
 		Py_XDECREF(module);
-		std::cerr << "Unable to retrieve the effect object from the Python runtime" << std::endl;
+		std::cerr << "EFFECTENGINE ERROR: Unable to retrieve the effect object from the Python runtime" << std::endl;
 		return nullptr;
 	}
 
@@ -367,7 +367,7 @@ Effect * Effect::getEffect()
 	{
 		// something is wrong
 		Py_XDECREF(effectCapsule);
-		std::cerr << "Unable to retrieve the effect object from the Python runtime" << std::endl;
+		std::cerr << "EFFECTENGINE ERROR: Unable to retrieve the effect object from the Python runtime" << std::endl;
 		return nullptr;
 	}
 

@@ -27,7 +27,7 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, con
 	_fbfd = open(_fbDevice.c_str(), O_RDONLY);
 	if (_fbfd == 0)
 	{
-		std::cerr << "Error openning " << _fbDevice << std::endl;
+		std::cerr << "FRAMEBUFFERGRABBER ERROR: Error openning " << _fbDevice << std::endl;
 	}
 	else 
 	{
@@ -35,11 +35,11 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, con
 		result = ioctl (_fbfd, FBIOGET_VSCREENINFO, &vinfo);
 		if (result != 0)
 		{
-			std::cerr << "Could not get screen information" << std::endl;
+			std::cerr << "FRAMEBUFFERGRABBER ERROR: Could not get screen information" << std::endl;
 		}
 		else
 		{
-			std::cout << "Framebuffer opened with resolution: " << vinfo.xres << "x" << vinfo.yres << "@" << vinfo.bits_per_pixel << "bit" << std::endl;			
+			std::cout << "FRAMEBUFFERGRABBER INFO: opened with resolution: " << vinfo.xres << "x" << vinfo.yres << "@" << vinfo.bits_per_pixel << "bit" << std::endl;			
 		}
 		close(_fbfd);
 	}
@@ -84,7 +84,7 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	}
 	else
 	{
-		std::cerr << "Unknown pixel format: " << vinfo.bits_per_pixel << " bits per pixel" << std::endl;
+		std::cerr << "FRAMEBUFFERGRABBER ERROR: Unknown pixel format: " << vinfo.bits_per_pixel << " bits per pixel" << std::endl;
 		close(_fbfd);
 		return;
 	}

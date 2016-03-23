@@ -30,7 +30,7 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
 	_height(std::max(160u, height)),
 	_amlogicCaptureDev(-1)
 {
-	std::cout << "[" << __PRETTY_FUNCTION__ << "] constructed(" << _width << "x" << _height << ")" << std::endl;
+	std::cout << "AMLOGICGRABBER INFO: [" << __PRETTY_FUNCTION__ << "] constructed(" << _width << "x" << _height << ")" << std::endl;
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -39,7 +39,7 @@ AmlogicGrabber::~AmlogicGrabber()
 	{
 		if (close(_amlogicCaptureDev) == -1)
 		{
-			std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to close AMLOGIC device (" << errno << ")" << std::endl;
+			std::cerr << "AMLOGICGRABBER ERROR: [" << __PRETTY_FUNCTION__ << "] Failed to close device (" << errno << ")" << std::endl;
 		}
 		_amlogicCaptureDev = -1;
 	}
@@ -69,7 +69,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	int video_fd = open(videoDevice.c_str(), O_RDONLY);
 	if (video_fd < 0)
 	{
-		std::cerr << "Failed to open video device(" << videoDevice << "): " << strerror(errno) << std::endl;
+		std::cerr << "AMLOGICGRABBER ERROR: Failed to open video device(" << videoDevice << "): " << strerror(errno) << std::endl;
 		return false;
 	}
 
@@ -77,7 +77,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	int videoDisabled;
 	if (ioctl(video_fd, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) == -1)
 	{
-		std::cerr << "Failed to retrieve video state from device: " << strerror(errno) << std::endl;
+		std::cerr << "AMLOGICGRABBER ERROR: Failed to retrieve video state from device: " << strerror(errno) << std::endl;
 		close(video_fd);
 		return false;
 	}
@@ -111,7 +111,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		// If the device is still not open, there is something wrong
 		if (_amlogicCaptureDev == -1)
 		{
-			std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to open the AMLOGIC device (" << errno << "): " << strerror(errno) << std::endl;
+			std::cerr << "AMLOGICGRABBER ERROR:[" << __PRETTY_FUNCTION__ << "] Failed to open the AMLOGIC device (" << errno << "): " << strerror(errno) << std::endl;
 			return -1;
 		}
 	}
@@ -121,7 +121,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height) == -1)
 	{
 		// Failed to configure frame width
-		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Failed to configure capture size (" << errno << "): " << strerror(errno) << std::endl;
+		std::cerr << "AMLOGICGRABBER ERROR: [" << __PRETTY_FUNCTION__ << "] Failed to configure capture size (" << errno << "): " << strerror(errno) << std::endl;
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -134,7 +134,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	const ssize_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
 	if (bytesRead == -1)
 	{
-		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Read of device failed (erno=" << errno << "): " << strerror(errno) << std::endl;
+		std::cerr << "AMLOGICGRABBER ERROR: [" << __PRETTY_FUNCTION__ << "] Read of device failed (erno=" << errno << "): " << strerror(errno) << std::endl;
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -142,7 +142,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	else if (bytesToRead != bytesRead)
 	{
 		// Read of snapshot failed
-		std::cerr << "[" << __PRETTY_FUNCTION__ << "] Capture failed to grab entire image [bytesToRead(" << bytesToRead << ") != bytesRead(" << bytesRead << ")]" << std::endl;
+		std::cerr << "AMLOGICGRABBER ERROR: [" << __PRETTY_FUNCTION__ << "] Capture failed to grab entire image [bytesToRead(" << bytesToRead << ") != bytesRead(" << bytesRead << ")]" << std::endl;
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;

@@ -17,12 +17,12 @@ void MessageForwarder::addJsonSlave(std::string slave)
 {
 	QStringList parts = QString(slave.c_str()).split(":");
 	if (parts.size() != 2)
-		throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(slave.c_str()).toStdString());
+		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: unable to parse address (%1)").arg(slave.c_str()).toStdString());
 
 	bool ok;
 	quint16 port = parts[1].toUShort(&ok);
 	if (!ok)
-		throw std::runtime_error(QString("Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
+		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
 
 	JsonSlaveAddress c;
 	c.addr = QHostAddress(parts[0]);

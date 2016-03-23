@@ -45,7 +45,7 @@ bool MultiColorTransform::verifyTransforms() const
 	{
 		if (_ledTransforms[iLed] == nullptr)
 		{
-			std::cerr << "No transform set for " << iLed << std::endl;
+			std::cerr << "HYPERION (C.transform) ERROR: No transform set for " << iLed << std::endl;
 			allLedsSet = false;
 		}
 	}

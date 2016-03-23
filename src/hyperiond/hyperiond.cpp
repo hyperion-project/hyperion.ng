@@ -79,7 +79,7 @@ Json::Value loadConfig(const std::string & configFile)
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
 	}
 	JsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -93,9 +93,9 @@ Json::Value loadConfig(const std::string & configFile)
 int main(int argc, char** argv)
 {
 	std::cout
-		<< "Hyperiond:" << std::endl
-		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
-		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+		<< "Hyperion Ambilight Deamon:" << std::endl
+		<< "\tVersion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -109,17 +109,17 @@ int main(int argc, char** argv)
 
 	if (argc < 2)
 	{
-		std::cout << "Missing required configuration file. Usage:" << std::endl;
+		std::cout << "ERROR: Missing required configuration file. Usage:" << std::endl;
 		std::cout << "hyperiond [config.file]" << std::endl;
 		return 1;
 	}
 
 	const std::string configFile = argv[1];
-	std::cout << "Selected configuration file: " << configFile.c_str() << std::endl;
+	std::cout << "INFO: Selected configuration file: " << configFile.c_str() << std::endl;
 	const Json::Value config = loadConfig(configFile);
 
 	Hyperion hyperion(config);
-	std::cout << "Hyperion created and initialised" << std::endl;
+	std::cout << "INFO: Hyperion started and initialised" << std::endl;
 
 	// create boot sequence if the configuration is present
 	if (config.isMember("bootsequence"))
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 		if ( ! effectName.empty() )
 		{
 			int result;
-			std::cout << "Boot sequence '" << effectName << "' ";
+			std::cout << "INFO: Boot sequence '" << effectName << "' ";
 			if (effectConfig.isMember("args"))
 			{
 				std::cout << " (with user defined arguments) ";
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 			videoCheckerConfig.get("enable3DDetection", true).asBool());
 
 		xbmcVideoChecker->start();
-		std::cout << "XBMC video checker created and started" << std::endl;
+		std::cout << "INFO: Kodi checker created and started" << std::endl;
 	}
 
 // ---- network services -----
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 	{
 		const Json::Value & jsonServerConfig = config["jsonServer"];
 		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
-		std::cout << "Json server created and started on port " << jsonServer->getPort() << std::endl;
+		std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
 	}
 
 #ifdef ENABLE_PROTOBUF
@@ -204,7 +204,7 @@ int main(int argc, char** argv)
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
-		std::cout << "Proto server created and started on port " << protoServer->getPort() << std::endl;
+		std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
 	}
 #endif
 
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
 	{
 		const Json::Value & boblightServerConfig = config["boblightServer"];
 		boblightServer = new BoblightServer(&hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		std::cout << "Boblight server created and started on port " << boblightServer->getPort() << std::endl;
+		std::cout << "INFO: Boblight server created and started on port " << boblightServer->getPort() << std::endl;
 	}
 
 // ---- grabber -----
@@ -243,13 +243,13 @@ int main(int argc, char** argv)
 		#endif
 
 		dispmanx->start();
-		std::cout << "Frame grabber created and started" << std::endl;
+		std::cout << "INFO: Frame grabber created and started" << std::endl;
 	}
 #else
 #if !defined(ENABLE_OSX) && !defined(ENABLE_FB)
 	if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The dispmanx framegrabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERRROR: The dispmanx framegrabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
@@ -286,12 +286,12 @@ int main(int argc, char** argv)
 		#endif
 
 		v4l2Grabber->start();
-		std::cout << "V4l2 grabber created and started" << std::endl;
+		std::cout << "INFO: V4L2 grabber created and started" << std::endl;
 	}
 #else
 	if (config.isMember("grabber-v4l2"))
 	{
-		std::cerr << "The v4l2 grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The v4l2 grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 
 #endif
@@ -320,12 +320,12 @@ int main(int argc, char** argv)
 		#endif
 
 		amlGrabber->start();
-		std::cout << "AMLOGIC grabber created and started" << std::endl;
+		std::cout << "INFO: AMLOGIC grabber created and started" << std::endl;
 	}
 #else
 	if (config.isMember("amlgrabber"))
 	{
-		std::cerr << "The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 
@@ -354,17 +354,17 @@ int main(int argc, char** argv)
 		#endif
 
 		fbGrabber->start();
-		std::cout << "Framebuffer grabber created and started" << std::endl;
+		std::cout << "INFO: Framebuffer grabber created and started" << std::endl;
 	}
 #else
 	if (config.isMember("framebuffergrabber"))
 	{
-		std::cerr << "The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
 	else if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
@@ -394,17 +394,17 @@ int main(int argc, char** argv)
 		#endif
 
 		osxGrabber->start();
-		std::cout << "OSX grabber created and started" << std::endl;
+		std::cout << "INFO: OSX grabber created and started" << std::endl;
 	}
 #else
 	if (config.isMember("osxgrabber"))
 	{
-		std::cerr << "The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
 	else if (config.isMember("framegrabber"))
 	{
-		std::cerr << "The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
+		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
 	}
 #endif
 #endif
@@ -412,7 +412,7 @@ int main(int argc, char** argv)
 
 	// run the application
 	int rc = app.exec();
-	std::cout << "Application closed with code " << rc << std::endl;
+	std::cout << "INFO: Application closed with code " << rc << std::endl;
 
 	// Delete all component
 #ifdef ENABLE_DISPMANX

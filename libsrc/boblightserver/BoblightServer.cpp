@@ -14,7 +14,7 @@ BoblightServer::BoblightServer(Hyperion *hyperion, const int priority,uint16_t p
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
-		throw std::runtime_error("Boblight server could not bind to port");
+		throw std::runtime_error("BOBLIGHT ERROR: server could not bind to port");
 	}
 
 	// Set trigger for incoming connections
@@ -39,7 +39,7 @@ void BoblightServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "New boblight connection" << std::endl;
+		std::cout << "BOBLIGHT INFO: new connection" << std::endl;
 		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority, _hyperion);
 		_openConnections.insert(connection);
 
@@ -50,7 +50,7 @@ void BoblightServer::newConnection()
 
 void BoblightServer::closedConnection(BoblightClientConnection *connection)
 {
-	std::cout << "Boblight connection closed" << std::endl;
+	std::cout << "BOBLIGHT INFO: connection closed" << std::endl;
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object

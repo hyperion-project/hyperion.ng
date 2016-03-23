@@ -76,7 +76,7 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
     _noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
     _noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
 
-    std::cout << "V4L2 grabber signal threshold set to: " << _noSignalThresholdColor << std::endl;
+    std::cout << "V4L2GRABBER INFO: signal threshold set to: " << _noSignalThresholdColor << std::endl;
 }
 
 void V4L2Grabber::start()
@@ -85,7 +85,7 @@ void V4L2Grabber::start()
     {
         _streamNotifier->setEnabled(true);
         start_capturing();
-        std::cout << "V4L2 grabber started" << std::endl;
+        std::cout << "V4L2GRABBER INFO: started" << std::endl;
     }
 }
 
@@ -95,7 +95,7 @@ void V4L2Grabber::stop()
     {
         stop_capturing();
         _streamNotifier->setEnabled(false);
-        std::cout << "V4L2 grabber stopped" << std::endl;
+        std::cout << "V4L2GRABBER INFO: stopped" << std::endl;
     }
 }
 
@@ -106,7 +106,7 @@ void V4L2Grabber::open_device()
     if (-1 == stat(_deviceName.c_str(), &st))
     {
         std::ostringstream oss;
-        oss << "Cannot identify '" << _deviceName << "'";
+        oss << "V4L2GRABBER ERROR: Cannot identify '" << _deviceName << "'";
         throw_errno_exception(oss.str());
     }
 
@@ -122,7 +122,7 @@ void V4L2Grabber::open_device()
     if (-1 == _fileDescriptor)
     {
         std::ostringstream oss;
-        oss << "Cannot open '" << _deviceName << "'";
+        oss << "V4L2GRABBER ERROR: Cannot open '" << _deviceName << "'";
         throw_errno_exception(oss.str());
     }
 
@@ -154,7 +154,7 @@ void V4L2Grabber::init_read(unsigned int buffer_size)
     _buffers[0].start = malloc(buffer_size);
 
     if (!_buffers[0].start) {
-        throw_exception("Out of memory");
+        throw_exception("V4L2GRABBER ERROR: Out of memory");
     }
 }
 
@@ -239,7 +239,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
         _buffers[n_buffers].start = malloc(buffer_size);
 
         if (!_buffers[n_buffers].start) {
-            throw_exception("Out of memory");
+            throw_exception("V4L2GRABBER ERROR: Out of memory");
         }
     }
 }
@@ -420,20 +420,20 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
     case V4L2_PIX_FMT_UYVY:
         _pixelFormat = PIXELFORMAT_UYVY;
         _frameByteSize = _width * _height * 2;
-        std::cout << "V4L2 pixel format=UYVY" << std::endl;
+        std::cout << "V4L2GRABBER INFO: pixel format=UYVY" << std::endl;
         break;
     case V4L2_PIX_FMT_YUYV:
         _pixelFormat = PIXELFORMAT_YUYV;
         _frameByteSize = _width * _height * 2;
-        std::cout << "V4L2 pixel format=YUYV" << std::endl;
+        std::cout << "V4L2GRABBER INFO: pixel format=YUYV" << std::endl;
         break;
     case V4L2_PIX_FMT_RGB32:
         _pixelFormat = PIXELFORMAT_RGB32;
         _frameByteSize = _width * _height * 4;
-        std::cout << "V4L2 pixel format=RGB32" << std::endl;
+        std::cout << "V4L2GRABBER INFO: pixel format=RGB32" << std::endl;
         break;
     default:
-        throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
+        throw_exception("V4L2GRABBER ERROR: Only pixel formats UYVY, YUYV, and RGB32 are supported");
     }
 
     switch (_ioMethod) {
@@ -653,7 +653,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
         if (size != _frameByteSize)
         {
-            std::cout << "Frame too small: " << size << " != " << _frameByteSize << std::endl;
+            std::cout << "V4L2GRABBER ERROR: Frame too small: " << size << " != " << _frameByteSize << std::endl;
         }
         else
         {
@@ -694,7 +694,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
     {
         if (_noSignalCounter >= _noSignalCounterThreshold)
         {
-            std::cout << "V4L2 Grabber: " << "Signal detected" << std::endl;
+            std::cout << "V4L2GRABBER INFO: " << "Signal detected" << std::endl;
         }
 
         _noSignalCounter = 0;
@@ -706,7 +706,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
     }
     else if (_noSignalCounter == _noSignalCounterThreshold)
     {
-        std::cout << "V4L2 Grabber: " << "Signal lost" << std::endl;
+        std::cout << "V4L2GRABBER INFO: " << "Signal lost" << std::endl;
     }
 }
 
@@ -726,13 +726,13 @@ int V4L2Grabber::xioctl(int request, void *arg)
 void V4L2Grabber::throw_exception(const std::string & error)
 {
     std::ostringstream oss;
-    oss << error << " error";
+    oss << error << " ERROR";
     throw std::runtime_error(oss.str());
 }
 
 void V4L2Grabber::throw_errno_exception(const std::string & error)
 {
     std::ostringstream oss;
-    oss << error << " error " << errno << ", " << strerror(errno);
+    oss << error << " ERROR " << errno << ", " << strerror(errno);
     throw std::runtime_error(oss.str());
 }
