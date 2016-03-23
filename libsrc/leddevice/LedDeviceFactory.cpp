@@ -277,7 +277,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
   }
 	else if (type == "file")
 	{
-		const std::string output = deviceConfig["output"].asString();
+		const std::string output = deviceConfig.get("output", "/dev/null").asString();
 		device = new LedDeviceFile(output);
 	}
 	else if (type == "fadecandy")

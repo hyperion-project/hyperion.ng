@@ -3,7 +3,7 @@
 #include "LedDeviceFile.h"
 
 LedDeviceFile::LedDeviceFile(const std::string& output) :
-	_ofs(output.empty()?"/home/pi/LedDevice.out":output.c_str())
+	_ofs(output.empty()?"/dev/null":output.c_str())
 {
 	// empty
 }
