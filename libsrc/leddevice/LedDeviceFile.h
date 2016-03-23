@@ -10,18 +10,18 @@
 /// Implementation of the LedDevice that write the led-colors to an
 /// ASCII-textfile('/home/pi/LedDevice.out')
 ///
-class LedDeviceTest : public LedDevice
+class LedDeviceFile : public LedDevice
 {
 public:
 	///
 	/// Constructs the test-device, which opens an output stream to the file
 	///
-	LedDeviceTest(const std::string& output);
+	LedDeviceFile(const std::string& output);
 
 	///
 	/// Destructor of this test-device
 	///
-	virtual ~LedDeviceTest();
+	virtual ~LedDeviceFile();
 
 	///
 	/// Writes the given led-color values to the output stream
