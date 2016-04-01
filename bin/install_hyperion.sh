@@ -13,6 +13,10 @@ if [ "$1" = "WS281X" ] || [ "$2" = "WS281X" ]; then
 	PWM=1
 else PWM=0
 fi
+if [ "$1" = "USB" ] || [ "$2" = "USB" ]; then
+	USB=1
+else USB=0
+fi
 
 #Check if HyperCon is logged in as root
 if [ $(id -u) != 0 ] && [ $HCInstall -eq 1 ]; then
@@ -226,6 +230,14 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 		if [ $PWM -eq 1 ] && [ $OS_OSMC -eq 1 ]; then
 			echo '---> Modify systemd script for OSMC usage (PWM Support)'
 			# Wait until kodi is sarted (for xbmc checker) and FIX user in case it is wrong (need root for access to pwm!)!
+			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
+			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
+			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
+			sed -i 's/Group=osmc/Group=root/g' /etc/systemd/system/hyperion.service
+			systemctl -q daemon-reload
+		elif [ $USB -eq 1 ] && [ $OS_OSMC -eq 1 ]; then
+			echo '---> Modify systemd script for OSMC usage (USB Support)'
+			# Wait until kodi is sarted (for xbmc checker) and FIX user in case it is wrong (need root for access to USB!)!
 			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
 			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
 			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
