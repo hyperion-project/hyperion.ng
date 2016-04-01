@@ -68,6 +68,31 @@
 				}
 			}
 		],
+		"channelAdjustment" : 
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"pureRed" :
+				{
+					"redChannel"	: 255,
+					"greenChannel"	: 0,
+					"blueChannel"	: 0
+				},
+				"pureGreen" :
+				{
+					"redChannel"	: 0,
+					"greenChannel"	: 255,
+					"blueChannel"	: 0
+				},
+				"pureBlue" :
+				{
+					"redChannel"	: 0,
+					"greenChannel"	: 0,
+					"blueChannel"	: 255
+				}			
+			}		
+		],		
 		"transform" :
 		[
 			{

@@ -29,6 +29,8 @@ add_library(hyperion-utils
 		${CURRENT_SOURCE_DIR}/RgbChannelTransform.cpp
 		${CURRENT_HEADER_DIR}/RgbChannelCorrection.h
 		${CURRENT_SOURCE_DIR}/RgbChannelCorrection.cpp
+		${CURRENT_HEADER_DIR}/RgbChannelAdjustment.h
+		${CURRENT_SOURCE_DIR}/RgbChannelAdjustment.cpp
 
 		${CURRENT_HEADER_DIR}/jsonschema/JsonFactory.h
 		${CURRENT_HEADER_DIR}/jsonschema/JsonSchemaChecker.h

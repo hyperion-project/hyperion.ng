@@ -19,6 +19,7 @@
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorTransform.h>
 #include <hyperion/ColorCorrection.h>
+#include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
 
 // project includes
@@ -252,6 +253,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleCorrectionCommand(message);
 	else if (command == "temperature")
 		handleTemperatureCommand(message);
+	else if (command == "adjustment")
+		handleAdjustmentCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -470,6 +473,34 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		whitelevel.append(colorTransform->_rgbGreenTransform.getWhitelevel());
 		whitelevel.append(colorTransform->_rgbBlueTransform.getWhitelevel());
 	}
+	
+	// collect adjustment information
+	Json::Value & adjustmentArray = info["adjustment"];
+	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
+	{
+		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+		if (colorAdjustment == nullptr)
+		{
+			std::cerr << "JSONCLIENT ERROR: Incorrect color adjustment id: " << adjustmentId << std::endl;
+			continue;
+		}
+
+		Json::Value & adjustment = adjustmentArray.append(Json::Value());
+		adjustment["id"] = adjustmentId;
+
+		Json::Value & redAdjust = adjustment["redAdjust"];
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentR());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentG());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentB());
+		Json::Value & greenAdjust = adjustment["greenAdjust"];
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentR());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentG());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentB());
+		Json::Value & blueAdjust = adjustment["blueAdjust"];
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentR());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentG());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentB());
+	}
 
 	// collect effect info
 	Json::Value & effects = info["effects"] = Json::Value(Json::arrayValue);
@@ -634,6 +665,47 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 
 	sendSuccessReply();
 }
+
+void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
+{
+	const Json::Value & adjustment = message["adjustment"];
+
+	const std::string adjustmentId = adjustment.get("id", _hyperion->getAdjustmentIds().front()).asString();
+	ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+	if (colorAdjustment == nullptr)
+	{
+		//sendErrorReply(std::string("Incorrect transform identifier: ") + transformId);
+		return;
+	}
+		
+	if (adjustment.isMember("redAdjust"))
+	{
+		const Json::Value & values = adjustment["redAdjust"];
+		colorAdjustment->_rgbRedAdjustment.setadjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setadjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setadjustmentB(values[2u].asInt());
+	}
+
+	if (adjustment.isMember("greenAdjust"))
+	{
+		const Json::Value & values = adjustment["greenAdjust"];
+		colorAdjustment->_rgbGreenAdjustment.setadjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setadjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setadjustmentB(values[2u].asInt());
+	}
+
+	if (adjustment.isMember("blueAdjust"))
+	{
+		const Json::Value & values = adjustment["blueAdjust"];
+		colorAdjustment->_rgbBlueAdjustment.setadjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setadjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setadjustmentB(values[2u].asInt());
+	}	
+	// commit the changes
+	_hyperion->adjustmentsUpdated();
+
+	sendSuccessReply();
+}
 	
 void JsonClientConnection::handleNotImplemented()
 {
@@ -711,7 +783,6 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 	}
 
 }
-
 
 void JsonClientConnection::sendSuccessReply()
 {

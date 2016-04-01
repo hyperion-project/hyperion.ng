@@ -81,6 +81,10 @@ int main(int argc, char * argv[])
 		CorrectionParameter & argCorrection  = parameters.add<CorrectionParameter>('Y', "correction" , "Set the correction of the leds (requires 3 space seperated values between 0 and 255)");
 		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature correction to set");
 		CorrectionParameter & argTemperature  = parameters.add<CorrectionParameter>('Z', "temperature" , "Set the temperature correction of the leds (requires 3 space seperated values between 0 and 255)");
+		StringParameter    & argIdA         = parameters.add<StringParameter>   ('j', "qualifier" , "Identifier(qualifier) of the adjustment to set");
+		AdjustmentParameter & argRAdjust = parameters.add<AdjustmentParameter>('R', "redAdjustment" , "Set the adjustment of the red color (requires 3 space seperated values between 0 and 255)");
+		AdjustmentParameter & argGAdjust = parameters.add<AdjustmentParameter>('G', "greenAdjustment", "Set the adjustment of the green color (requires 3 space seperated values between 0 and 255)");
+		AdjustmentParameter & argBAdjust = parameters.add<AdjustmentParameter>('B', "blueAdjustment", "Set the adjustment of the blue color (requires 3 space seperated values between 0 and 255)");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -100,10 +104,11 @@ int main(int argc, char * argv[])
 
 		// check if at least one of the available color transforms is set
 		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
-		bool colorModding = colorTransform || argCorrection.isSet() || argTemperature.isSet();
+		bool colorAdjust = argRAdjust.isSet() || argGAdjust.isSet() || argBAdjust.isSet();
+		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        	int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -127,6 +132,10 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argCorrection.usageLine() << std::endl;
 			std::cerr << "  " << argIdT.usageLine() << std::endl;
 			std::cerr << "  " << argTemperature.usageLine() << std::endl;
+			std::cerr << "  " << argIdA.usageLine() << std::endl;
+			std::cerr << "  " << argRAdjust.usageLine() << std::endl;
+			std::cerr << "  " << argGAdjust.usageLine() << std::endl;
+			std::cerr << "  " << argBAdjust.usageLine() << std::endl;
 			return 1;
 		}
 
@@ -185,6 +194,24 @@ int main(int argc, char * argv[])
 				connection.setTemperature(
 						argIdT.isSet()		? &tempId : nullptr,
 						argTemperature.isSet()  ? &temperature  : nullptr);
+			}
+			
+			if (colorAdjust)
+			{
+				std::string adjustId;
+				ColorAdjustmentValues redChannel, greenChannel, blueChannel;
+
+				if (argIdA.isSet())			adjustId    = argIdA.getValue();
+				if (argRAdjust.isSet())  	redChannel  = argRAdjust.getValue();
+				if (argGAdjust.isSet())		greenChannel = argGAdjust.getValue();
+				if (argBAdjust.isSet()) 	blueChannel = argBAdjust.getValue();
+			
+				connection.setAdjustment(
+						argIdA.isSet()		? &adjustId    : nullptr,
+						argRAdjust.isSet()	? &redChannel  : nullptr,
+						argGAdjust.isSet()	? &greenChannel : nullptr,
+						argBAdjust.isSet()	? &blueChannel : nullptr);		
+				
 			}
 			if (colorTransform)
 			{
