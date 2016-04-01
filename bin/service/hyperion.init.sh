@@ -59,6 +59,7 @@ stop)
                     PID=`cat $PIDFILE`
                     cd $DAEMON_PATH
                 if [ -f $PIDFILE ]; then
+					hyperion-remote -c black
                     kill -HUP $PID
                     printf "%s\n" "Ok"
                     rm -f $PIDFILE
