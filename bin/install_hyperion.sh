@@ -207,16 +207,18 @@ if [ $USE_INITCTL -eq 1 ]; then
 	cp -n /opt/hyperion/init.d/hyperion.initctl.sh /etc/init/hyperion.conf 2>/dev/null
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
+	#modify all old installs with a logfile output
+	sed -i 's|/dev/null|/storage/logfiles/hyperion.log|g' /storage/.config/autostart.sh
 	# only add to start script if hyperion is not present yet
 	if [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperiond | wc -l` -eq 0 ]; then
 		echo '---> Adding Hyperion to OpenELEC autostart.sh'
-		echo "/storage/hyperion/bin/hyperiond.sh /storage/.config/hyperion.config.json > /dev/null 2>&1 &" >> /storage/.config/autostart.sh
+		echo "/storage/hyperion/bin/hyperiond.sh /storage/.config/hyperion.config.json > /storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh
 		chmod +x /storage/.config/autostart.sh
 	fi
 	# only add hyperion-x11 to startup, if not found and x32x64 detected
 	if [ $CPU_X32X64 -eq 1 ] && [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperion-x11 | wc -l` -eq 0 ]; then
 		echo '---> Adding Hyperion-x11 to OpenELEC autostart.sh'
-		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-x11 </dev/null >/dev/null 2>&1 &" >> /storage/.config/autostart.sh		
+		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-x11 </dev/null >/storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh		
 	fi
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	echo '---> Installing systemd script'
@@ -275,7 +277,7 @@ fi
 #Hint for the user with path to config
 if [ $OS_OPENELEC -eq 1 ];then
 	HINTMESSAGE="echo Path to your configuration -> /storage/.config/hyperion.config.json"
-else HINTMESSAGE="echo Path to your configuration -> /etc/hyperion.config.json"
+else HINTMESSAGE="echo Path to your configuration -> /opt/hyperion/config/hyperion.config.json"
 fi
 echo '*******************************************************************************' 
 echo 'Hyperion Installation/Update finished!' 
