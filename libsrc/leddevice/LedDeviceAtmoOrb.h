@@ -35,10 +35,10 @@ public:
 class LedDeviceAtmoOrb : public QObject, public LedDevice {
     Q_OBJECT
 public:
-    // Last color sent
-    int lastRed;
-    int lastGreen;
-    int lastBlue;
+    // Last send color map
+    QMap<int, int> lastColorRedMap;
+    QMap<int, int> lastColorGreenMap;
+    QMap<int, int> lastColorBlueMap;
 
     // Multicast status
     bool joinedMulticastgroup;
