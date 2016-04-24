@@ -514,6 +514,20 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 		effects.append(effect);
 	}
+	
+	// collect active effect info
+	Json::Value & activeEffects = info["activeEffects"] = Json::Value(Json::arrayValue);
+	const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
+	for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
+	{
+		Json::Value activeEffect;
+		activeEffect["script"] = activeEffectDefinition.script;
+		activeEffect["priority"] = activeEffectDefinition.priority;
+		activeEffect["timeout"] = activeEffectDefinition.timeout;
+		activeEffect["args"] = activeEffectDefinition.args;
+
+		activeEffects.append(activeEffect);
+	}
 
 	// send the result
 	sendMessage(result);

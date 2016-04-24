@@ -73,6 +73,23 @@ const std::list<EffectDefinition> &EffectEngine::getEffects() const
 	return _availableEffects;
 }
 
+const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
+{
+	_availableActiveEffects.clear();
+	
+	for (Effect * effect : _activeEffects)
+	{
+		ActiveEffectDefinition activeEffectDefinition;
+		activeEffectDefinition.script = effect->getScript();
+		activeEffectDefinition.priority = effect->getPriority();
+		activeEffectDefinition.timeout = effect->getTimeout();
+		activeEffectDefinition.args = effect->getArgs();
+		_availableActiveEffects.push_back(activeEffectDefinition);
+	}
+  
+	return _availableActiveEffects;
+}
+
 bool EffectEngine::loadEffectDefinition(const std::string &path, const std::string &effectConfigFile, EffectDefinition & effectDefinition)
 {
 #ifdef ENABLE_QT5

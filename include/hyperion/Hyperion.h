@@ -20,6 +20,7 @@
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/ActiveEffectDefinition.h>
 
 // Forward class declaration
 class LedDevice;
@@ -99,6 +100,10 @@ public:
 	/// Get the list of available effects
 	/// @return The list of available effects
 	const std::list<EffectDefinition> &getEffects() const;
+	
+	/// Get the list of active effects
+	/// @return The list of active effects
+	const std::list<ActiveEffectDefinition> &getActiveEffects();
 
 public slots:
 	///

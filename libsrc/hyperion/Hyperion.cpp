@@ -833,6 +833,11 @@ const std::list<EffectDefinition> & Hyperion::getEffects() const
 	return _effectEngine->getEffects();
 }
 
+const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects()
+{
+	return _effectEngine->getActiveEffects();
+}
+
 int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout);
