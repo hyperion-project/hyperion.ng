@@ -123,6 +123,12 @@ elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_2 -eq 1 ]; then
 elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_3 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi3_oe.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_OSMC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_osmc.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_OSMC -eq 1 ] && [ $RPI_2 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi2_osmc.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_OSMC -eq 1 ] && [ $RPI_3 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi3_osmc.tar.gz
 elif [ $CPU_RPI -eq 1 ] && [ $RPI_1 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi.tar.gz
 elif [ $CPU_RPI -eq 1 ] && [ $RPI_2 -eq 1 ]; then
