@@ -9,6 +9,10 @@ if [ "$1" = "HyperConInstall" ] || [ "$2" = "HyperConInstall" ]; then
 	HCInstall=1
 else HCInstall=0
 fi
+if [ "$1" = "BETA" ] || [ "$2" = "BETA" ]; then
+	BETA=1
+else BETA=0
+fi
 
 #Check, if script is running as root
 if [ $(id -u) != 0 ]; then
@@ -16,9 +20,15 @@ if [ $(id -u) != 0 ]; then
 		exit 1
 fi
 
+#Set welcome message
+if [ $BETA -eq 1 ]; then
+	WMESSAGE="echo This script will update Hyperion to the latest BETA"
+else WMESSAGE="echo This script will install/update Hyperion ambilight"
+fi
+
 #Welcome message
 echo '*******************************************************************************' 
-echo 'This script will install/update Hyperion and it´s services' 
+$WMESSAGE 
 echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
 
@@ -112,8 +122,12 @@ if [ $OS_OPENELEC -eq 1 ]; then
 else cp -v /opt/hyperion/config/*.json /tmp 2>/dev/null
 fi
  
+# Select the appropriate download path
+if [ $BETA -eq 1 ]; then
+	HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/beta
+else HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/release
+fi
 # Select the appropriate release
-HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/release
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_oe.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
@@ -247,16 +261,11 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 	service hyperion start
 fi
 
-#Hint for the user with path to config
-if [ $OS_OPENELEC -eq 1 ];then
-	HINTMESSAGE="echo Path to your configuration -> /storage/.config/hyperion.config.json"
-else HINTMESSAGE="echo Path to your configuration -> /opt/hyperion/config/hyperion.config.json"
-fi
 echo '*******************************************************************************' 
 echo 'Hyperion Installation/Update finished!' 
-echo 'Please get a new HyperCon version to benefit from the latest features!' 
-echo 'Create a new config file, if you encounter problems!' 
-$HINTMESSAGE
+echo 'Please download the latest HyperCon version to benefit from new features!' 
+echo 'To create a config, follow the HyperCon Guide at our Wiki (EN/DE)!' 
+echo 'Wiki: wiki.hyperion-project.org Webpage: www.hyperion-project.org' 
 $REBOOTMESSAGE
 echo '*******************************************************************************' 
 ## Force reboot and prevent prompt if spi is added during a HyperCon Install
