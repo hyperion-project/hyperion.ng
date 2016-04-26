@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 DAEMON=hyperiond
-DAEMONOPTS="/etc/hyperion.config.json"
+DAEMONOPTS="/opt/hyperion/config/hyperion.config.json"
 DAEMON_PATH="/usr/bin"
 
 NAME=$DAEMON

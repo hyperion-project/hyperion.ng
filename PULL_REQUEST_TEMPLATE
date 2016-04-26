@@ -3,3 +3,5 @@ IMPORTANT: Please don´t commit to master, we will test your changes first at th
 **2.** If this changes affect the .conf file. Please provide the changed section
 **3.** Reference a issue (optional)
 
+Note: For further discussions use our forum: forum.hyperion-project.org
+

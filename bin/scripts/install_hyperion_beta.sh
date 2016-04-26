@@ -120,7 +120,7 @@ else cp -v /opt/hyperion/config/*.json /tmp 2>/dev/null
 fi
  
 # Select the appropriate release
-HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/release
+HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/beta
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_oe.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
