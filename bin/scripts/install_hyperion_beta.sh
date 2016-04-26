@@ -1,5 +1,5 @@
 #!/bin/sh
-# Script for downloading and installing the latest Hyperion release
+# Script for downloading and installing the latest Hyperion beta
 
 # Make sure /sbin is on the path (for service to find sub scripts)
 PATH="/sbin:$PATH"
@@ -10,22 +10,15 @@ if [ "$1" = "HyperConInstall" ] || [ "$2" = "HyperConInstall" ]; then
 else HCInstall=0
 fi
 
-#Check if HyperCon is logged in as root
-if [ $(id -u) != 0 ] && [ $HCInstall -eq 1 ]; then
-		echo '---> Critical Error: Please connect as user "root" through HyperCon' 
-		echo '---> We need admin privileges to install/update your Hyperion! -> abort'
-		exit 1
-fi
-
 #Check, if script is running as root
 if [ $(id -u) != 0 ]; then
-		echo '---> Critical Error: Please run the script as root (sudo sh ./install_hyperion.sh) -> abort' 
+		echo '---> Critical Error: Please run the script as root (sudo sh ./install_hyperion_beta.sh) -> abort' 
 		exit 1
 fi
 
 #Welcome message
 echo '*******************************************************************************' 
-echo 'This script will install/update Hyperion and it´s services' 
+echo 'This script will install/update to the latest Hyperion BETA' 
 echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
 

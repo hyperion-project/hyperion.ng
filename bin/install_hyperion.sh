@@ -10,13 +10,6 @@ if [ "$1" = "HyperConInstall" ] || [ "$2" = "HyperConInstall" ]; then
 else HCInstall=0
 fi
 
-#Check if HyperCon is logged in as root
-if [ $(id -u) != 0 ] && [ $HCInstall -eq 1 ]; then
-		echo '---> Critical Error: Please connect as user "root" through HyperCon' 
-		echo '---> We need admin privileges to install/update your Hyperion! -> abort'
-		exit 1
-fi
-
 #Check, if script is running as root
 if [ $(id -u) != 0 ]; then
 		echo '---> Critical Error: Please run the script as root (sudo sh ./install_hyperion.sh) -> abort' 
