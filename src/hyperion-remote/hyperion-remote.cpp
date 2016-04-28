@@ -63,7 +63,7 @@ int main(int argc, char * argv[])
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
         	StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
 		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
-		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info");
+		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info and active effects with priority and duration");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
 		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
