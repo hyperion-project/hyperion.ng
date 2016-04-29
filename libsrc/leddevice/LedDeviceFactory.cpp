@@ -206,11 +206,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output     = deviceConfig.get("output",     "").asString();
 		const std::string assignment = deviceConfig.get("assignment", "").asString();
+		const Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
 
-		LedDevicePiBlaster * devicePiBlaster = new LedDevicePiBlaster(output, assignment);
-		devicePiBlaster->open();
+		if (assignment.length() > 0) {
+			std::cout << "ERROR: Sorry, the configuration syntax has changed in this version." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		if (! gpioMapping.isNull() ) {
+			LedDevicePiBlaster * devicePiBlaster = new LedDevicePiBlaster(output, gpioMapping);
+			devicePiBlaster->open();
 
-		device = devicePiBlaster;
+			device = devicePiBlaster;
+		} else {
+			std::cout << "ERROR: no gpiomap defined." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 	else if (type == "sedu")
 	{

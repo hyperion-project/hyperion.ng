@@ -2,6 +2,11 @@
 // STL includes
 #include <cerrno>
 #include <cstring>
+#include <csignal>
+
+
+// jsoncpp includes
+#include <json/json.h>
 
 // QT includes
 #include <QFile>
@@ -9,12 +14,40 @@
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
 
-LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const std::string & channelAssignment) :
+LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping) :
 	_deviceName(deviceName),
-	_channelAssignment(channelAssignment),
 	_fid(nullptr)
 {
-	// empty
+
+	signal(SIGPIPE,  SIG_IGN);
+
+// initialise the mapping tables
+// -1 is invalid
+// z is also meaningless
+// { "gpio" : 4, "ledindex" : 0, "ledcolor" : "r" },
+	#define TABLE_SZ sizeof(_gpio_to_led)/sizeof(_gpio_to_led[0])
+
+	for (int i=0; i <  TABLE_SZ; i++ )
+	{
+		_gpio_to_led[i] = -1;
+		_gpio_to_color[i] = 'z';
+	}
+
+// walk through the json config and populate the mapping tables
+	for (const Json::Value& gpioMap : gpioMapping)
+	{
+		const int gpio = gpioMap.get("gpio",-1).asInt();
+		const int ledindex = gpioMap.get("ledindex",-1).asInt();
+		const std::string ledcolor = gpioMap.get("ledcolor","z").asString();
+//		printf ("got gpio %d ledindex %d color %c\n", gpio,ledindex, ledcolor[0]);
+		// ignore missing/invalid settings
+		if ( (gpio >= 0) && (gpio < TABLE_SZ) && (ledindex >= 0) ){
+			_gpio_to_led[gpio] = ledindex;
+			_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
+		} else {
+			printf ("IGNORING gpio %d ledindex %d color %c\n", gpio,ledindex, ledcolor[0]);
+		}
+	}
 }
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
@@ -63,15 +96,6 @@ int LedDevicePiBlaster::open(bool report)
 	return 0;
 }
 
-//Channel number    GPIO number   Pin in P1 header
-//      0               4             P1-7
-//      1              17             P1-11
-//      2              18             P1-12
-//      3              21             P1-13
-//      4              22             P1-15
-//      5              23             P1-16
-//      6              24             P1-18
-//      7              25             P1-22
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {
 	// Attempt to open if not yet opened
@@ -80,32 +104,47 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 		return -1;
 	}
 
-	std::vector<int> iPins = {4, 17, 18, 27, 21, 22, 23, 24, 25};
-
-	unsigned colorIdx = 0;
-	for (unsigned iPin=0; iPin<iPins.size(); ++iPin)
+	int valueIdx = -1;
+	for (unsigned int i=0; i < TABLE_SZ; i++ )
 	{
-		double pwmDutyCycle = 0.0;
-		switch (_channelAssignment[iPin])
+		valueIdx = _gpio_to_led[ i ];
+		if ( (valueIdx >= 0) && (valueIdx < (signed) ledValues.size()) ) 
 		{
-		case 'r':
-			pwmDutyCycle = ledValues[colorIdx].red / 255.0;
-			++colorIdx;
-			break;
-		case 'g':
-			pwmDutyCycle = ledValues[colorIdx].green / 255.0;
-			++colorIdx;
-			break;
-		case 'b':
-			pwmDutyCycle = ledValues[colorIdx].blue / 255.0;
-			++colorIdx;
-			break;
-		default:
-			continue;
-		}
+			double pwmDutyCycle = 0.0;
+//			printf ("iPin %d valueIdx %d color %c\n", iPin, valueIdx, _gpio_to_color[ iPins[iPin] ] ) ;
+			switch (_gpio_to_color[ i ]) 
+			{
+			case 'r':
+				pwmDutyCycle = ledValues[valueIdx].red / 255.0;
+				break;
+			case 'g':
+				pwmDutyCycle = ledValues[valueIdx].green / 255.0;
+				break;
+			case 'b':
+				pwmDutyCycle = ledValues[valueIdx].blue / 255.0;
+				break;
+			case 'w':
+				pwmDutyCycle = ledValues[valueIdx].red;
+				pwmDutyCycle += ledValues[valueIdx].green;
+				pwmDutyCycle += ledValues[valueIdx].blue;
+				pwmDutyCycle /= (3.0*255.0);
+				break;
+			default:
+				continue;
+			}
 
-		fprintf(_fid, "%i=%f\n", iPins[iPin], pwmDutyCycle);
-		fflush(_fid);
+//			fprintf(_fid, "%i=%f\n", iPins[iPin], pwmDutyCycle);
+
+			if ( (fprintf(_fid, "%i=%f\n", i, pwmDutyCycle) < 0) 
+			  || (fflush(_fid) < 0)) {
+				if (_fid != nullptr)
+				{
+					fclose(_fid);
+					_fid = nullptr;
+					return -1;
+				}
+			}
+		}
 	}
 
 	return 0;
@@ -119,13 +158,13 @@ int LedDevicePiBlaster::switchOff()
 		return -1;
 	}
 
-	std::vector<int> iPins = {4, 17, 18, 21, 22, 23, 24, 25};
-
-	for (unsigned iPin=0; iPin<iPins.size(); ++iPin)
+	int valueIdx = -1;
+	for (unsigned int i=0; i < TABLE_SZ; i++ )
 	{
-		if (_channelAssignment[iPin] != ' ')
+		valueIdx = _gpio_to_led[ i ];
+		if (valueIdx >= 0)
 		{
-			fprintf(_fid, "%i=%f\n", iPins[iPin], 0.0);
+			fprintf(_fid, "%i=%f\n", i, 0.0);
 			fflush(_fid);
 		}
 	}
