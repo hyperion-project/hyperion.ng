@@ -15,6 +15,7 @@
 // hyperion-remote includes
 #include "ColorTransformValues.h"
 #include "ColorCorrectionValues.h"
+#include "ColorAdjustmentValues.h"
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -129,6 +130,21 @@ public:
 	void setTemperature(
 			std::string * temperatureId,
 			ColorCorrectionValues * temperature);
+
+	///
+	/// Set the color adjustment of the leds
+	///
+	/// @note Note that providing a NULL will leave the settings on the server unchanged
+	///
+	/// @param adjustmentId The identifier of the correction to set
+	/// @param redAdjustment The red channel adjustment values
+	/// @param greenAdjustment The green channel adjustment values
+	/// @param blueAdjustment The blue channel adjustment values
+	void setAdjustment(
+			std::string * adjustmentId,
+			ColorAdjustmentValues * redAdjustment,
+			ColorAdjustmentValues * greenAdjustment,
+			ColorAdjustmentValues * blueAdjustment);
 
 private:
 	///

@@ -11,6 +11,7 @@
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/ActiveEffectDefinition.h>
 
 // pre-declarioation
 class Effect;
@@ -25,6 +26,8 @@ public:
 	virtual ~EffectEngine();
 
 	const std::list<EffectDefinition> & getEffects() const;
+	
+	const std::list<ActiveEffectDefinition> & getActiveEffects();
 
 	static bool loadEffectDefinition(const std::string & path, const std::string & effectConfigFile, EffectDefinition &effectDefinition);
 
@@ -54,6 +57,8 @@ private:
 	std::list<EffectDefinition> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
+	
+	std::list<ActiveEffectDefinition> _availableActiveEffects;
 
     PyThreadState * _mainThreadState;
 };

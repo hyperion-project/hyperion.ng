@@ -29,6 +29,8 @@ cmake  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 cmake -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # or if you are not compiling on the raspberry pi (e.g. OrangePi) and need to disable the Dispmanx grabber and support for spi devices
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+# on amlogic platforms
+cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
 cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_FB=ON  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # for OSX build you need XCode, qt4 libraries and cmake (maybe libusb too). You can use macport or homebrew(recommended) to install them:

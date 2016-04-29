@@ -322,6 +322,51 @@ void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrection
 	parseReply(reply);
 }
 
+void JsonConnection::setAdjustment(std::string * adjustmentId, ColorAdjustmentValues * redAdjustment, ColorAdjustmentValues * greenAdjustment, ColorAdjustmentValues * blueAdjustment)
+{
+	std::cout << "Set color adjustments" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "adjustment";
+	Json::Value & adjust = command["adjustment"];
+
+	if (adjustmentId != nullptr)
+	{
+		adjust["id"] = *adjustmentId;
+	}
+	
+	if (redAdjustment != nullptr)
+	{
+		Json::Value & v = adjust["redAdjust"];
+		v.append(redAdjustment->valueRed);
+		v.append(redAdjustment->valueGreen);
+		v.append(redAdjustment->valueBlue);
+	}
+
+	if (greenAdjustment != nullptr)
+	{
+		Json::Value & v = adjust["greenAdjust"];
+		v.append(greenAdjustment->valueRed);
+		v.append(greenAdjustment->valueGreen);
+		v.append(greenAdjustment->valueBlue);
+	}
+
+	if (blueAdjustment != nullptr)
+	{
+		Json::Value & v = adjust["blueAdjust"];
+		v.append(blueAdjustment->valueRed);
+		v.append(blueAdjustment->valueGreen);
+		v.append(blueAdjustment->valueBlue);
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 Json::Value JsonConnection::sendMessage(const Json::Value & message)
 {
 	// serialize message (FastWriter already appends a newline)

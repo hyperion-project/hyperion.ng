@@ -20,6 +20,12 @@ public:
 	virtual void run();
 
 	int getPriority() const;
+	
+	std::string getScript() const { return _script; }
+	
+	int getTimeout() const {return _timeout; }
+	
+	Json::Value getArgs() const { return _args; }
 
 	bool isAbortRequested() const;
 

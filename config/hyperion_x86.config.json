@@ -5,7 +5,7 @@
 	/// Device configuration contains the following fields: 
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device or leds (known types for now are 'ws2801', 'ldp8806',
-	///                  'lpd6803', 'sedu', 'adalight', 'lightpack', 'file' and 'none')
+	///                  'lpd6803', 'sedu', 'adalight', 'lightpack', 'test' and 'none')
 	/// * 'output'     : The output specification depends on selected device. This can for example be the
 	///                  device specifier, device serial number, or the output file name
 	/// * 'rate'       : The baudrate of the output to the device
@@ -18,21 +18,6 @@
 		"rate"       : 115200,
 		"colorOrder" : "rgb"
 	},
-
-	/// Configuration for message forwarding to other hyperions
-	/// protobuffer and json remote interface are forwarded to configured hosts
-	/// 'proto' is mostly used for video streams and 'json' for effects
-	///
-	/// ** pay attention which port you use. use correct ports for protols  **
-	/// 
-	/// * 'proto' : list of host in form of <ip>:<port>
-	/// * 'json'  : list of host in form of <ip>:<port>
-///	"forwarder" :
-///	{
-///		"proto" : [ "127.0.0.1:19445","192.168.178.88:19445" ],
-///		"json"  : [ "127.0.0.1:19444","192.168.178.88:19444" ]
-///	},
-
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
@@ -374,10 +359,6 @@
 	/// The configuration of the effect engine, contains the following items: 
 	///  * paths        : An array with absolute location(s) of directories with effects 
 	///  * bootsequence : The effect selected as 'boot sequence'
-	///    * effect : name of the effect you want to start. Set to empty if no effect wanted
-	///    * color  : switch to static color after effect is done
-	///    * duration_ms : duration of boot effect in ms. 0 means effect stays forever
-	///    * priority : priority of boot effect and static color
 	"effects" : 
 	{
 		"paths" : 
@@ -388,23 +369,20 @@
 
 	"bootsequence" : 
 	{
-		"color"       : [0,0,0],
-		"effect"      : "Rainbow swirl fast",
-		"duration_ms" : 3000,
-		"priority"    : 990
+		"effect" : "Rainbow swirl fast",
+		"duration_ms" : 3000
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
-///	"framegrabber" : 
-///	{
-///		"width"        : 64,
-///		"height"       : 64,
-///		"frequency_Hz" : 10.0,
-///		"priority"     : 900
-///	},
+// 	"framegrabber" : 
+// 	{
+// 		"width" : 64,
+// 		"height" : 64,
+// 		"frequency_Hz" : 10.0
+// 	},
 
 	/// The configuration of the XBMC connection used to enable and disable the frame-grabber. Contains the following fields: 
 	///  * xbmcAddress       : The IP address of the XBMC-host
@@ -445,8 +423,7 @@
 	///  * port : Port at which the boblight server is started
 // 	"boblightServer" : 
 // 	{
-// 		"port" : 19333,
-//		"priority" : 900
+// 		"port" : 19333
 // 	},
 
 	"endOfJson" : "endOfJson"

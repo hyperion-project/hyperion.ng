@@ -1,0 +1,56 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["adjustment"]
+		},
+		"adjustment": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"id" : {
+					"type" : "string",
+					"required" : false
+				},
+				"redAdjust": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"greenAdjust": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"blueAdjust": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

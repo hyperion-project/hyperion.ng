@@ -21,6 +21,7 @@ fi
 echo '*******************************************************************************' 
 echo 'This script will remove Hyperion and it´s services' 
 echo '-----> Please BACKUP your hyperion.config.json if necessary <-----'
+echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
 
 #Skip the prompt if HyperCon Remove
@@ -49,6 +50,9 @@ USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
 USE_INITCTL=`which /sbin/initctl | wc -l`
 USE_SERVICE=`which /usr/sbin/service | wc -l`
 
+# set count for forwarder
+SERVICEC=1
+
 # Stop hyperion daemon if it is running
 echo '---> Stop Hyperion, if necessary'
 if [ $OS_OPENELEC -eq 1 ]; then
@@ -59,12 +63,19 @@ elif [ $USE_SERVICE -eq 1 ]; then
 	/usr/sbin/service hyperion stop 2>/dev/null
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	service hyperion stop 2>/dev/null
+		while [ $SERVICEC -le 20 ]; do
+		service hyperion_fw$SERVICEC stop 2>/dev/null
+		((SERVICEC++))
+		done
 fi
+
+#reset count
+SERVICEC=`which /usr/sbin/service | wc -l`
 
 #Disabling and delete service files
 if [ $USE_INITCTL -eq 1 ]; then
 	echo '---> Delete and disable Hyperion initctl script'
-	rm -v /etc/init/hyperion.conf 2>/dev/null
+	rm -v /etc/init/hyperion* 2>/dev/null
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
 	# Remove Hyperion from OpenELEC autostart.sh
@@ -75,12 +86,20 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 	# Delete and disable Hyperion systemd script
 	echo '---> Delete and disable Hyperion systemd script'
 	systemctl disable hyperion.service
-	rm -v /etc/systemd/system/hyperion.service 2>/dev/null
+		while [ $SERVICEC -le 20 ]; do
+		systemctl -q disable hyperion_fw$SERVICEC.service 2>/dev/null
+		((SERVICEC++))
+		done
+	rm -v /etc/systemd/system/hyperion* 2>/dev/null
 elif [ $USE_SERVICE -eq 1 ]; then
 	# Delete and disable Hyperion init.d script
 	echo '---> Delete and disable Hyperion init.d script'
 	update-rc.d -f hyperion remove
-	rm /etc/init.d/hyperion 2>/dev/null
+		while [ $SERVICEC -le 20 ]; do
+		update-rc.d -f hyperion_fw$SERVICEC remove 2>/dev/null
+		((SERVICEC++))
+		done
+	rm /etc/init.d/hyperion* 2>/dev/null
 fi
 
 # Delete Hyperion binaries

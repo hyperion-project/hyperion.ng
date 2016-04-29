@@ -9,6 +9,7 @@
         <file alias="schema-transform">schema/schema-transform.json</file>
         <file alias="schema-correction">schema/schema-correction.json</file>
         <file alias="schema-temperature">schema/schema-temperature.json</file>
+        <file alias="schema-adjustment">schema/schema-adjustment.json</file>
         <file alias="schema-effect">schema/schema-effect.json</file>
     </qresource>
 </RCC>

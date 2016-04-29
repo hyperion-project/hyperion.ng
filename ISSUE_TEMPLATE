@@ -1,8 +1,9 @@
-**Please provide some information that we could help as fast as possible.
-Please check the wiki in case your problem is already known/feature requested.**
+BEFORE YOU OPEN A NEW ISSUE!
 
-**1.** Used hardware and sofware (Wetek,RPi1,Rpi2,... Ubuntu 14.04(64bit),OSX,OpenELEC,OSMC,XBian,...)
-**2.** Your LED device and additional hardware (if used) (WS2801,APA102,WS2812B,...  connected through (direct,arduino uno,...))
-**3.** Please upload your Hyperion log to pastebin.com and insert the link. Have a look at the wiki how you get one.
-**4.** Please upload your "Hyperion Configuration File" to pastebin.com and insert the link.
+Search at our wiki: wiki.hyperion-project.org
+Our FAQ: https://hyperion-project.org/wiki/FAQ-Frequently-Asked-Questions
+And have a look at our forum: forum.hyperion-project.org
+If you need help please open a new thread their!
 
+WE PROVIDE NO SUPPORT AT GITHUB!
+All misleading issues will be closed without a announcement!

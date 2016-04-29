@@ -15,9 +15,9 @@ AtmoOrbLight::AtmoOrbLight(unsigned int id) {
     // Not implemented
 }
 
-LedDeviceAtmoOrb::LedDeviceAtmoOrb(const std::string &output, bool switchOffOnBlack,
-                                   int transitiontime, int port, int numLeds, std::vector<unsigned int> orbIds) :
-        multicastGroup(output.c_str()), switchOffOnBlack(switchOffOnBlack), transitiontime(transitiontime),
+LedDeviceAtmoOrb::LedDeviceAtmoOrb(const std::string &output, bool useOrbSmoothing,
+                                   int transitiontime, int skipSmoothingDiff, int port, int numLeds, std::vector<unsigned int> orbIds) :
+        multicastGroup(output.c_str()), useOrbSmoothing(useOrbSmoothing), transitiontime(transitiontime), skipSmoothingDiff(skipSmoothingDiff),
         multiCastGroupPort(port), numLeds(numLeds), orbIds(orbIds) {
     manager = new QNetworkAccessManager();
     groupAddress = QHostAddress(multicastGroup);
@@ -35,37 +35,64 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues) {
         return 0;
     }
 
+    // Command options:
+    //
+    // 1 = force off
+    // 2 = use lamp smoothing and validate by Orb ID
+    // 4 = validate by Orb ID
+
+    // When setting useOrbSmoothing = true it's recommended to disable Hyperion's own smoothing as it will conflict (double smoothing)
+    int commandType = 4;
+    if(useOrbSmoothing)
+    {
+        commandType = 2;
+    }
+
     // Iterate through colors and set Orb color
     // Start off with idx 1 as 0 is reserved for controlling all orbs at once
     unsigned int idx = 1;
-    for (const ColorRgb &color : ledValues) {
-        // Options parameter:
-        //
-        // 1 = force off
-        // 2 = use lamp smoothing and validate by Orb ID
-        // 4 = validate by Orb ID
-        //
 
-        if (switchOffOnBlack && color.red == 0 && color.green == 0 && color.blue == 0) {
-            // Force to black
-            for (unsigned int i = 0; i < orbIds.size(); i++) {
-                if (orbIds[i] == idx) {
-                    setColor(idx, color, 1);
-                }
-            }
+    for (const ColorRgb &color : ledValues) {
+        // Retrieve last send colors
+        int lastRed = lastColorRedMap[idx];
+        int lastGreen = lastColorGreenMap[idx];
+        int lastBlue = lastColorBlueMap[idx];
+
+        // If last colors send are identical than last send return
+        if(lastRed == color.red && lastGreen == color.green && lastBlue == color.blue)
+        {
+            return 0;
         }
-        else {
-            // Default send color
+
+        // If color difference is higher than skipSmoothingDiff than we skip Orb smoothing (if enabled) and send it right away
+        if ((skipSmoothingDiff != 0 && useOrbSmoothing) && (abs(color.red - lastRed) >= skipSmoothingDiff || abs(color.blue - lastBlue) >= skipSmoothingDiff ||
+                abs(color.green - lastGreen) >= skipSmoothingDiff))
+        {
+            // Skip Orb smoothing when using  (command type 4)
             for (unsigned int i = 0; i < orbIds.size(); i++) {
                 if (orbIds[i] == idx) {
                     setColor(idx, color, 4);
                 }
             }
         }
+        else {
+            // Send color
+            for (unsigned int i = 0; i < orbIds.size(); i++) {
+                if (orbIds[i] == idx) {
+                    setColor(idx, color, commandType);
+                }
+            }
+        }
+
+        // Store last colors send for light id
+        lastColorRedMap[idx] = color.red;
+        lastColorGreenMap[idx] = color.green;
+        lastColorBlueMap[idx] = color.blue;
 
         // Next light id.
         idx++;
     }
+
     return 0;
 }
 
@@ -80,7 +107,7 @@ void LedDeviceAtmoOrb::setColor(unsigned int orbId, const ColorRgb &color, int c
     bytes[2] = 0xEE;
 
     // Command type
-    bytes[3] = 2;
+    bytes[3] = commandType;
 
     // Orb ID
     bytes[4] = orbId;

@@ -35,10 +35,10 @@ public:
 class LedDeviceAtmoOrb : public QObject, public LedDevice {
     Q_OBJECT
 public:
-    // Last color sent
-    int lastRed;
-    int lastGreen;
-    int lastBlue;
+    // Last send color map
+    QMap<int, int> lastColorRedMap;
+    QMap<int, int> lastColorGreenMap;
+    QMap<int, int> lastColorBlueMap;
 
     // Multicast status
     bool joinedMulticastgroup;
@@ -48,9 +48,11 @@ public:
     ///
     /// @param output is the multicast address of Orbs
     ///
-    /// @param switchOffOnBlack turn off Orbs on black (default: false)
-    ///
     /// @param transitiontime is optional and not used at the moment
+    ///
+    /// @param useOrbSmoothing use Orbs own (external) smoothing algorithm (default: false)
+    ///
+    /// @param skipSmoothingDiff  minimal color (0-255) difference to override smoothing so that if current and previously received colors are higher than set dif we override smoothing
     ///
     /// @param port is the multicast port.
     ///
@@ -58,11 +60,9 @@ public:
     ///
     /// @param array containing orb ids
     ///
-    LedDeviceAtmoOrb(const std::string &output, bool switchOffOnBlack =
-    false, int transitiontime = 0, int port = 49692, int numLeds = 24,
-                     std::vector<unsigned int> orbIds = std::vector < unsigned int
-
-    >());
+    LedDeviceAtmoOrb(const std::string &output, bool useOrbSmoothing =
+    false, int transitiontime = 0, int skipSmoothingDiff = 0, int port = 49692, int numLeds = 24,
+                     std::vector<unsigned int> orbIds = std::vector < unsigned int>());
 
     ///
     /// Destructor of this device
@@ -87,11 +87,14 @@ private:
     /// String containing multicast group IP address
     QString multicastGroup;
 
-    /// Switch off when detecting black
-    bool switchOffOnBlack;
+    /// use Orbs own (external) smoothing algorithm
+    bool useOrbSmoothing;
 
     /// Transition time between colors (not implemented)
     int transitiontime;
+
+    // Maximum allowed color difference, will skip Orb (external) smoothing once reached
+    int skipSmoothingDiff;
 
     /// Multicast port to send data to
     int multiCastGroupPort;

@@ -13,7 +13,7 @@
 ### END INIT INFO
 
 DAEMON=hyperiond
-DAEMONOPTS="/etc/hyperion.config.json"
+DAEMONOPTS="/opt/hyperion/config/hyperion.config.json"
 DAEMON_PATH="/usr/bin"
 
 NAME=$DAEMON
@@ -22,7 +22,7 @@ PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 case "$1" in
 start)
-        if [ $(pgrep -l $NAME |wc -l) = 1 ]
+        if [ $(pgrep -xl $NAME |wc -l) = 1 ]
         then
                 printf  "%-50s\n" "Already running..."
                 exit 1
@@ -59,7 +59,7 @@ stop)
                     PID=`cat $PIDFILE`
                     cd $DAEMON_PATH
                 if [ -f $PIDFILE ]; then
-                    kill -HUP $PID
+                    kill $PID
                     printf "%s\n" "Ok"
                     rm -f $PIDFILE
                 else
