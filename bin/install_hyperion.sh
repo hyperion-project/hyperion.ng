@@ -32,8 +32,9 @@ $WMESSAGE
 echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
 
-# Find out if we are on OpenElec / OSMC / Raspbian
+# Find out if we are on OpenElec (Rasplex) / OSMC / Raspbian
 OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex' /etc/issue`
+OS_RASPLEX=`grep -m1 -c RasPlex /etc/issue`
 OS_OSMC=`grep -m1 -c OSMC /etc/issue`
 OS_RASPBIAN=`grep -m1 -c 'Raspbian\|RetroPie' /etc/issue`
 
@@ -99,7 +100,7 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 			echo '---> Raspberry Pi found, but SPI is not ready, we write "dtparam=spi=on" to /boot/config.txt'
 			sed -i '$a dtparam=spi=on' /boot/config.txt
 			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to /boot/config.txt"
-	fi
+		fi
 fi
 
 #Check, if dtparam=spi=on is in place (just for OPENELEC)
@@ -128,7 +129,10 @@ if [ $BETA -eq 1 ]; then
 else HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/release
 fi
 # Select the appropriate release
-if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
+if [ $CPU_RPI -eq 1 ] && [ $OS_RASPLEX -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_rasplex.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_oe.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
 elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_2 -eq 1 ]; then
