@@ -33,7 +33,7 @@ echo 'Created by brindosch - hyperion-project.org - the official Hyperion source
 echo '*******************************************************************************'
 
 # Find out if we are on OpenElec / OSMC / Raspbian
-OS_OPENELEC=`grep -m1 -c OpenELEC /etc/issue`
+OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex' /etc/issue`
 OS_OSMC=`grep -m1 -c OSMC /etc/issue`
 OS_RASPBIAN=`grep -m1 -c 'Raspbian\|RetroPie' /etc/issue`
 
