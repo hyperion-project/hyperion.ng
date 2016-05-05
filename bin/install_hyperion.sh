@@ -23,7 +23,7 @@ fi
 #Set welcome message
 if [ $BETA -eq 1 ]; then
 	WMESSAGE="echo This script will update Hyperion to the latest BETA"
-else WMESSAGE="echo This script will install/update Hyperion ambilight"
+else WMESSAGE="echo This script will install/update Hyperion Ambilight"
 fi
 
 #Welcome message
@@ -32,8 +32,10 @@ $WMESSAGE
 echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
 
-# Find out if we are on OpenElec / OSMC / Raspbian
-OS_OPENELEC=`grep -m1 -c OpenELEC /etc/issue`
+# Find out if we are on OpenElec (Rasplex) / OSMC / Raspbian
+OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex\|LibreELEC' /etc/issue`
+OS_LIBREELEC=`grep -m1 -c LibreELEC /etc/issue`
+OS_RASPLEX=`grep -m1 -c RasPlex /etc/issue`
 OS_OSMC=`grep -m1 -c OSMC /etc/issue`
 OS_RASPBIAN=`grep -m1 -c 'Raspbian\|RetroPie' /etc/issue`
 
@@ -96,22 +98,26 @@ fi
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /boot/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
-			echo '---> Raspberry Pi found, but SPI is not ready, we write "dtparam=spi=on" to /boot/config.txt'
+			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to /boot/config.txt'
 			sed -i '$a dtparam=spi=on' /boot/config.txt
-			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to /boot/config.txt"
-	fi
+				if [ $HCInstall -ne 1 ]; then
+				REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to /boot/config.txt"
+				fi
+		fi
 fi
 
-#Check, if dtparam=spi=on is in place (just for OPENELEC)
+#Check, if dtparam=spi=on is in place (just for OPENELEC/LibreELEC
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /flash/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
 			mount -o remount,rw /flash
-			echo '---> Raspberry Pi with OpenELEC found, but SPI is not ready, we write "dtparam=spi=on" to /flash/config.txt'
+			echo '---> RPi with OpenELEC/LibreELEC found, but SPI is not set, we write "dtparam=spi=on" to /flash/config.txt'
 			sed -i '$a dtparam=spi=on' /flash/config.txt
 			mount -o remount,ro /flash
-			REBOOTMESSAGE="echo Please reboot your OpenELEC, we inserted dtparam=spi=on to /flash/config.txt"
-	fi
+				if [ $HCInstall -ne 1 ]; then
+				REBOOTMESSAGE="echo Please reboot your OpenELEC/LibreELEC, we inserted dtparam=spi=on to /flash/config.txt"
+				fi
+		fi
 fi
 
 #Backup the .conf files, if present
@@ -128,7 +134,19 @@ if [ $BETA -eq 1 ]; then
 else HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/release
 fi
 # Select the appropriate release
-if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
+if [ $CPU_RPI -eq 1 ] && [ $OS_RASPLEX -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_rasplex.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_LIBREELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_le.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_LIBREELEC -eq 1 ] && [ $RPI_2 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi2_le.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_LIBREELEC -eq 1 ] && [ $RPI_3 -eq 1 ]; then
+	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi3_le.tar.gz
+	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
+elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_1 -eq 1 ]; then
 	HYPERION_RELEASE=$HYPERION_ADDRESS/hyperion_rpi_oe.tar.gz
 	OE_DEPENDECIES=$HYPERION_ADDRESS/hyperion.deps.openelec-rpi.tar.gz
 elif [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ] && [ $RPI_2 -eq 1 ]; then
@@ -167,9 +185,9 @@ fi
 echo '---> Downloading the appropriate Hyperion release'
 if [ $OS_OPENELEC -eq 1 ]; then
 	# OpenELEC has a readonly file system. Use alternative location
-	echo '---> Downloading Hyperion OpenELEC release'
+	echo '---> Downloading Hyperion OpenELEC/LibreELEC release'
 	curl -# -L --get $HYPERION_RELEASE | tar -C /storage -xz
-	echo '---> Downloading Hyperion OpenELEC dependencies'
+	echo '---> Downloading Hyperion OpenELEC/LibreELEC dependencies'
 	curl -# -L --get $OE_DEPENDECIES | tar -C /storage/hyperion/bin -xz
 	#set the executen bit (failsave)
 	chmod +x -R /storage/hyperion/bin
@@ -204,16 +222,18 @@ if [ $USE_INITCTL -eq 1 ]; then
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
 	#modify all old installs with a logfile output
-	sed -i 's|/dev/null|/storage/logfiles/hyperion.log|g' /storage/.config/autostart.sh
+	sed -i 's|/dev/null|/storage/logfiles/hyperion.log|g' /storage/.config/autostart.sh 2>/dev/null
 	# only add to start script if hyperion is not present yet
+	mkdir /storage/logfiles 2>/dev/null
+	touch /storage/.config/autostart.sh 2>/dev/null
 	if [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperiond | wc -l` -eq 0 ]; then
-		echo '---> Adding Hyperion to OpenELEC autostart.sh'
+		echo '---> Adding Hyperion to OpenELEC/LibreELEC autostart.sh'
 		echo "/storage/hyperion/bin/hyperiond.sh /storage/.config/hyperion.config.json > /storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh
 		chmod +x /storage/.config/autostart.sh
 	fi
 	# only add hyperion-x11 to startup, if not found and x32x64 detected
 	if [ $CPU_X32X64 -eq 1 ] && [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperion-x11 | wc -l` -eq 0 ]; then
-		echo '---> Adding Hyperion-x11 to OpenELEC autostart.sh'
+		echo '---> Adding Hyperion-x11 to OpenELEC/LibreELEC autostart.sh'
 		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-x11 </dev/null >/storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh		
 	fi
 elif [ $USE_SYSTEMD -eq 1 ]; then

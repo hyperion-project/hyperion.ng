@@ -42,8 +42,8 @@ esac
 done
 echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
 fi
-# Find out if we are on OpenElec
-OS_OPENELEC=`grep -m1 -c OpenELEC /etc/issue`
+# Find out if we are on OpenElec or RasPlex
+OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex\|LibreELEC' /etc/issue`
 
 # check which init script we should use
 USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
@@ -63,10 +63,10 @@ elif [ $USE_SERVICE -eq 1 ]; then
 	/usr/sbin/service hyperion stop 2>/dev/null
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	service hyperion stop 2>/dev/null
-		while [ $SERVICEC -le 20 ]; do
-		service hyperion_fw$SERVICEC stop 2>/dev/null
-		((SERVICEC++))
-		done
+#		while [ $SERVICEC -le 20 ]; do
+#		service hyperion_fw$SERVICEC stop 2>/dev/null
+#		((SERVICEC++))
+#		done
 fi
 
 #reset count
@@ -86,19 +86,19 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 	# Delete and disable Hyperion systemd script
 	echo '---> Delete and disable Hyperion systemd script'
 	systemctl disable hyperion.service
-		while [ $SERVICEC -le 20 ]; do
-		systemctl -q disable hyperion_fw$SERVICEC.service 2>/dev/null
-		((SERVICEC++))
-		done
+#		while [ $SERVICEC -le 20 ]; do
+#		systemctl -q disable hyperion_fw$SERVICEC.service 2>/dev/null
+#		((SERVICEC++))
+#		done
 	rm -v /etc/systemd/system/hyperion* 2>/dev/null
 elif [ $USE_SERVICE -eq 1 ]; then
 	# Delete and disable Hyperion init.d script
 	echo '---> Delete and disable Hyperion init.d script'
 	update-rc.d -f hyperion remove
-		while [ $SERVICEC -le 20 ]; do
-		update-rc.d -f hyperion_fw$SERVICEC remove 2>/dev/null
-		((SERVICEC++))
-		done
+#		while [ $SERVICEC -le 20 ]; do
+#		update-rc.d -f hyperion_fw$SERVICEC remove 2>/dev/null
+#		((SERVICEC++))
+#		done
 	rm /etc/init.d/hyperion* 2>/dev/null
 fi
 
