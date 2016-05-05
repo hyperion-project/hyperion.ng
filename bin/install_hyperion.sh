@@ -98,7 +98,7 @@ fi
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /boot/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
-			echo '---> Raspberry Pi found, but SPI is not ready, we write "dtparam=spi=on" to /boot/config.txt'
+			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to /boot/config.txt'
 			sed -i '$a dtparam=spi=on' /boot/config.txt
 				if [ $HCInstall -ne 1 ]; then
 				REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to /boot/config.txt"
@@ -111,7 +111,7 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /flash/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
 			mount -o remount,rw /flash
-			echo '---> Raspberry Pi with OpenELEC/LibreELEC found, but SPI is not set, we write "dtparam=spi=on" to /flash/config.txt'
+			echo '---> RPi with OpenELEC/LibreELEC found, but SPI is not set, we write "dtparam=spi=on" to /flash/config.txt'
 			sed -i '$a dtparam=spi=on' /flash/config.txt
 			mount -o remount,ro /flash
 				if [ $HCInstall -ne 1 ]; then
@@ -222,7 +222,7 @@ if [ $USE_INITCTL -eq 1 ]; then
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
 	#modify all old installs with a logfile output
-	sed -i 's|/dev/null|/storage/logfiles/hyperion.log|g' /storage/.config/autostart.sh
+	sed -i 's|/dev/null|/storage/logfiles/hyperion.log|g' /storage/.config/autostart.sh 2>/dev/null
 	# only add to start script if hyperion is not present yet
 	mkdir /storage/logfiles 2>/dev/null
 	touch /storage/.config/autostart.sh 2>/dev/null

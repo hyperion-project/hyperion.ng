@@ -43,7 +43,7 @@ done
 echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
 fi
 # Find out if we are on OpenElec or RasPlex
-OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex' /etc/issue`
+OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex\|LibreELEC' /etc/issue`
 
 # check which init script we should use
 USE_SYSTEMD=`grep -m1 -c systemd /proc/1/comm`
