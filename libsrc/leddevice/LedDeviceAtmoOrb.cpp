@@ -58,12 +58,6 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues) {
         int lastGreen = lastColorGreenMap[idx];
         int lastBlue = lastColorBlueMap[idx];
 
-        // If last colors send are identical than last send return
-        if(lastRed == color.red && lastGreen == color.green && lastBlue == color.blue)
-        {
-            return 0;
-        }
-
         // If color difference is higher than skipSmoothingDiff than we skip Orb smoothing (if enabled) and send it right away
         if ((skipSmoothingDiff != 0 && useOrbSmoothing) && (abs(color.red - lastRed) >= skipSmoothingDiff || abs(color.blue - lastBlue) >= skipSmoothingDiff ||
                 abs(color.green - lastGreen) >= skipSmoothingDiff))
