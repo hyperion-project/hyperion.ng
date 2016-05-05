@@ -107,7 +107,6 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -ne 1 ]; then
 fi
 
 #Check, if dtparam=spi=on is in place (just for OPENELEC/LibreELEC
-)
 if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 	SPIOK=`grep '^\dtparam=spi=on' /flash/config.txt | wc -l`
 		if [ $SPIOK -ne 1 ]; then
