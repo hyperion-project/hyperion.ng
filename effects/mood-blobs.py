@@ -2,10 +2,12 @@ import hyperion
 import time
 import colorsys
 import math
+from random import random
 
 # Get the parameters
 rotationTime = float(hyperion.args.get('rotationTime', 20.0))
 color = hyperion.args.get('color', (0,0,255))
+colorRandom = bool(hyperion.args.get('colorRandom', False))
 hueChange = float(hyperion.args.get('hueChange', 60.0))
 blobs = int(hyperion.args.get('blobs', 5))
 reverse = bool(hyperion.args.get('reverse', False))
@@ -34,6 +36,9 @@ baseColorChangeRate = max(0, baseColorChangeRate) # > 0
 
 # Calculate the color data
 baseHsv = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color[2]/255.0)
+if colorRandom:
+    baseHsv = (random(), baseHsv[1], baseHsv[2])
+
 colorData = bytearray()
 for i in range(hyperion.ledCount):
 	hue = (baseHsv[0] + hueChange * math.sin(2*math.pi * i / hyperion.ledCount)) % 1.0
