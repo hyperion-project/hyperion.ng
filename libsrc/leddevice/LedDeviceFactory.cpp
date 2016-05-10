@@ -124,8 +124,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
+		const unsigned ledcount  = deviceConfig.get("leds",0).asInt();
 
-		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate);
+		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate, ledcount);
 		deviceAPA102->open();
 
 		device = deviceAPA102;
@@ -349,6 +350,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		std::cout << "LEDDEVICE ERROR: Unknown/Unimplemented device " << type << std::endl;
 		// Unknown / Unimplemented device
+		exit(1);
 	}
 	return device;
 }
