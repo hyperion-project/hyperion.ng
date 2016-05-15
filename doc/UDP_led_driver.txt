@@ -55,3 +55,12 @@ Packet Format protocol 2:
 3: 1st led# of this update - low byte
 4..n 3 bytes per LED as R, G, B
 
+Packet Format protocol 3: (simple TPM2.net implementation)
+0: 0x9C
+1: 0xDA
+2: number of databytes (leds * 3) - high byte
+3: number of databytes (leds * 3) - low byte
+4: fragment number (1-255)
+5: number of fragments (1-255)
+6..n: 3 bytes per LED as R, G, B
+n+1: 0x36
