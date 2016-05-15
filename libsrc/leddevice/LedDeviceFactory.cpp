@@ -14,6 +14,7 @@
 	#include "LedDeviceLpd8806.h"
 	#include "LedDeviceP9813.h"
 	#include "LedDeviceWs2801.h"
+	#include "LedDeviceWs2812SPI.h"
 	#include "LedDeviceAPA102.h"
 #endif
 
@@ -141,6 +142,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceWs2801->open();
 
 		device = deviceWs2801;
+	}
+	else if (type == "ws2812spi")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig.get("rate",2857143).asInt();
+
+		LedDeviceWs2812SPI* deviceWs2812SPI = new LedDeviceWs2812SPI(output, rate);
+		deviceWs2812SPI->open();
+
+		device = deviceWs2812SPI;
 	}
 #endif
 #ifdef ENABLE_TINKERFORGE
