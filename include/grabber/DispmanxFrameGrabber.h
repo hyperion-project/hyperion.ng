@@ -41,6 +41,9 @@ public:
 	///
 	void setVideoMode(const VideoMode videoMode);
 
+	void setCropping(const unsigned cropLeft, const unsigned cropRight,
+			 const unsigned cropTop, const unsigned cropBottom);
+
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
 	/// provided image should have the same dimensions as the configured values (_width and
@@ -68,4 +71,17 @@ private:
 	const unsigned _width;
 	/// Height of the captured snapshot [pixels]
 	const unsigned _height;
+
+	// the selected VideoMode
+	VideoMode _videoMode;
+
+	// number of pixels to crop after capturing
+	unsigned _cropLeft, _cropRight, _cropTop, _cropBottom;
+
+	// temp buffer when capturing with unsupported pitch size or
+	// when we need to crop the image
+	ColorRgba* _captureBuffer;
+
+	// size of the capture buffer in Pixels
+	unsigned _captureBufferSize;
 };

@@ -94,3 +94,9 @@ void DispmanxWrapper::setVideoMode(const VideoMode mode)
 {
 	_frameGrabber->setVideoMode(mode);
 }
+
+void DispmanxWrapper::setCropping(const unsigned cropLeft, const unsigned cropRight,
+	const unsigned cropTop, const unsigned cropBottom)
+{
+	_frameGrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
+}

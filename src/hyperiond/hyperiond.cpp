@@ -231,6 +231,11 @@ int main(int argc, char** argv)
 			frameGrabberConfig["frequency_Hz"].asUInt(),
 			frameGrabberConfig.get("priority",900).asInt(),
 			&hyperion);
+		dispmanx->setCropping(
+					frameGrabberConfig.get("cropLeft", 0).asInt(),
+					frameGrabberConfig.get("cropRight", 0).asInt(),
+					frameGrabberConfig.get("cropTop", 0).asInt(),
+					frameGrabberConfig.get("cropBottom", 0).asInt());
 
 		if (xbmcVideoChecker != nullptr)
 		{
