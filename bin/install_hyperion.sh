@@ -191,8 +191,6 @@ if [ $OS_OPENELEC -eq 1 ]; then
 	curl -# -L --get $OE_DEPENDECIES | tar -C /storage/hyperion/bin -xz
 	#set the executen bit (failsave)
 	chmod +x -R /storage/hyperion/bin
-	# modify the default config to have a correct effect path
-	sed -i 's:/opt:/storage:g' /storage/hyperion/config/hyperion.config.json
 
 	# /storage/.config is available as samba share. A symbolic link would not be working
 	false | cp -i /storage/hyperion/config/hyperion.config.json /storage/.config/hyperion.config.json 2>/dev/null
