@@ -860,9 +860,9 @@ void Hyperion::update()
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
 	// std::vector<ColorRgb> correctedColors = _raw2ledCorrection->applyCorrection(priorityInfo.ledColors);
-	std::vector<ColorRgb> adjustedColors = _raw2ledAdjustment->applyAdjustment(priorityInfo.ledColors);
-	std::vector<ColorRgb> transformColors =_raw2ledTransform->applyTransform(adjustedColors);
-	std::vector<ColorRgb> ledColors = _raw2ledTemperature->applyCorrection(transformColors);
+	std::vector<ColorRgb> transformColors =_raw2ledTransform->applyTransform(priorityInfo.ledColors);
+	std::vector<ColorRgb> adjustedColors = _raw2ledAdjustment->applyAdjustment(transformColors);
+	std::vector<ColorRgb> ledColors = _raw2ledTemperature->applyCorrection(adjustedColors);
 	const std::vector<Led>& leds = _ledString.leds();
 	int i = 0;
 	for (ColorRgb& color : ledColors)
@@ -885,18 +885,14 @@ void Hyperion::update()
 			break;
 		case ORDER_GBR:
 		{
-			uint8_t temp = color.red;
-			color.red = color.green;
-			color.green = color.blue;
-			color.blue = temp;
+			std::swap(color.red, color.green);
+			std::swap(color.green, color.blue);
 			break;
 		}
 		case ORDER_BRG:
 		{
-			uint8_t temp = color.red;
-			color.red = color.blue;
-			color.blue = color.green;
-			color.green = temp;
+			std::swap(color.red, color.blue);
+			std::swap(color.green, color.blue);
 			break;
 		}
 		}
