@@ -7,9 +7,9 @@ if(ENABLE_QT5)
 	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 #	set(CMAKE_CXX_FLAGS "-fPIC")
-else(ENABLE_QT5)
+else()
 	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
-endif(ENABLE_QT5)
+endif()
 
 # The following I do not undrstand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
@@ -38,9 +38,12 @@ target_link_libraries(${PROJECT_NAME}
 
 if(ENABLE_QT5)
 	qt5_use_modules(${PROJECT_NAME} Widgets Core Network)
-else(ENABLE_QT5)
+else()
 	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif(ENABLE_QT5)
+endif()
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${DEPLOY_DIR}/bin" )
+if (ENABLE_SYSTEM_INSTALL)
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" )
+endif()
 

@@ -31,9 +31,9 @@ set(Hyperion_AML_SOURCES
 
 if(ENABLE_QT5)
 	QT5_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
-else(ENABLE_QT5)
+else()
 	QT4_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
-endif(ENABLE_QT5)
+endif()
 
 add_executable(${PROJECT_NAME}
 	${Hyperion_AML_HEADERS}
@@ -57,8 +57,11 @@ qt4_use_modules(${PROJECT_NAME}
 
 if(ENABLE_QT5)
 	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
-else(ENABLE_QT5)
+else()
 	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif(ENABLE_QT5)
+endif()
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "${CMAKE_SOURCE_DIR}/deploy/bin" )
+install ( TARGETS ${PROJECT_NAME} DESTINATION "${DEPLOY_DIR}/bin" )
+if (ENABLE_SYSTEM_INSTALL)
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" )
+endif()
