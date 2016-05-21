@@ -89,13 +89,15 @@ std::vector<ColorRgb> MultiColorAdjustment::applyAdjustment(const std::vector<Co
 		ColorRgb& color = ledColors[i];
 		
 		int RR = adjustment->_rgbRedAdjustment.adjustmentR(color.red);
-		int RG = adjustment->_rgbRedAdjustment.adjustmentG(color.red);
-		int RB = adjustment->_rgbRedAdjustment.adjustmentB(color.red);
-		int GR = adjustment->_rgbGreenAdjustment.adjustmentR(color.green);
+		int RG = color.red > color.green ? adjustment->_rgbRedAdjustment.adjustmentG(color.red-color.green) : 0;
+		int RB = color.red > color.blue ? adjustment->_rgbRedAdjustment.adjustmentB(color.red-color.blue) : 0;
+		
+		int GR = color.green > color.red ? adjustment->_rgbGreenAdjustment.adjustmentR(color.green-color.red) : 0;
 		int GG = adjustment->_rgbGreenAdjustment.adjustmentG(color.green);
-		int GB = adjustment->_rgbGreenAdjustment.adjustmentB(color.green);
-		int BR = adjustment->_rgbBlueAdjustment.adjustmentR(color.blue);
-		int BG = adjustment->_rgbBlueAdjustment.adjustmentG(color.blue);
+		int GB = color.green > color.blue ? adjustment->_rgbGreenAdjustment.adjustmentB(color.green-color.blue) : 0;
+		
+		int BR = color.blue > color.red ? adjustment->_rgbBlueAdjustment.adjustmentR(color.blue-color.red) : 0;
+		int BG = color.blue > color.green ? adjustment->_rgbBlueAdjustment.adjustmentG(color.blue-color.green) : 0;
 		int BB = adjustment->_rgbBlueAdjustment.adjustmentB(color.blue);
 				
 		int ledR = RR + GR + BR;
