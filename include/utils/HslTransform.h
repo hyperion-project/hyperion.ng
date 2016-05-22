@@ -112,5 +112,5 @@ private:
 	/// The luminance gain
 	double _luminanceGain;
 	/// The luminance minimum
-	double _luminanceMinimum
+	double _luminanceMinimum;
 };
