@@ -35,6 +35,11 @@
 					"required" : false,
 					"minimum" : 0.0
 				},
+				"luminanceMinimum" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0
+				},
 				"threshold": {
 					"type": "array",
 					"required": false,

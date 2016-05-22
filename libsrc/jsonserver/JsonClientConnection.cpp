@@ -455,6 +455,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
 		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
 		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
+		transform["luminanceMinimum"]   = colorTransform->_hslTransform.getLuminanceMinimum();
 
 		Json::Value & threshold = transform["threshold"];
 		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
@@ -603,6 +604,11 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	if (transform.isMember("luminanceGain"))
 	{
 		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].asDouble());
+	}
+
+	if (transform.isMember("luminanceMinimum"))
+	{
+		colorTransform->_hslTransform.setLuminanceMinimum(transform["luminanceMinimum"].asDouble());
 	}
 
 	if (transform.isMember("threshold"))

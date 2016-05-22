@@ -4,13 +4,15 @@
 
 HslTransform::HslTransform() :
 	_saturationGain(1.0),
-	_luminanceGain(1.0)
+	_luminanceGain(1.0),
+	_luminanceMinimum(0.0)
 {
 }
 
-HslTransform::HslTransform(double saturationGain, double luminanceGain) :
+HslTransform::HslTransform(double saturationGain, double luminanceGain, double luminanceMinimum) :
 	_saturationGain(saturationGain),
-	_luminanceGain(luminanceGain)
+	_luminanceGain(luminanceGain),
+	_luminanceMinimum(luminanceMinimum)
 {
 }
 
@@ -38,9 +40,19 @@ double HslTransform::getLuminanceGain() const
 	return _luminanceGain;
 }
 
+void HslTransform::setLuminanceMinimum(double luminanceMinimum)
+{
+	_luminanceMinimum = luminanceMinimum;
+}
+
+double HslTransform::getLuminanceMinimum() const
+{
+	return _luminanceMinimum;
+}
+
 void HslTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
-	if (_saturationGain != 1.0 || _luminanceGain != 1.0)
+	if (_saturationGain != 1.0 || _luminanceGain != 1.0 || _luminanceMinimum != 0.0)
 	{
 		uint16_t hue;
 		float saturation, luminance;
@@ -53,9 +65,11 @@ void HslTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 			saturation = s;
 
 		float l = luminance * _luminanceGain;
+		if (l < _luminanceMinimum)
+			l = _luminanceMinimum;
 		if (l > 1.0f)
 			luminance = 1.0f;
-		else
+		else 
 			luminance = l;
 				
 		hsl2rgb(hue, saturation, luminance, red, green, blue);

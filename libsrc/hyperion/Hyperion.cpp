@@ -452,8 +452,9 @@ HslTransform * Hyperion::createHslTransform(const Json::Value & hslConfig)
 {
 	const double saturationGain = hslConfig.get("saturationGain", 1.0).asDouble();
 	const double luminanceGain  = hslConfig.get("luminanceGain",  1.0).asDouble();
+	const double luminanceMinimum = hslConfig.get("luminanceMinimum", 0.0).asDouble();
 
-	return new HslTransform(saturationGain, luminanceGain);
+	return new HslTransform(saturationGain, luminanceGain, luminanceMinimum);
 }
 
 RgbChannelTransform* Hyperion::createRgbChannelTransform(const Json::Value& colorConfig)
