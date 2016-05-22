@@ -17,7 +17,7 @@ struct addrinfo hints, *servinfo, *p;
 //char udpbuffer[1024];
 int sockfd;
 int ledprotocol;
-int leds_per_pkt;
+unsigned leds_per_pkt;
 int update_number;
 int fragment_number;
 

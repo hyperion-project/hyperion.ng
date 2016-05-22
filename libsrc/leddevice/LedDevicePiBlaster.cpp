@@ -27,7 +27,7 @@ LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Jso
 // { "gpio" : 4, "ledindex" : 0, "ledcolor" : "r" },
 	#define TABLE_SZ sizeof(_gpio_to_led)/sizeof(_gpio_to_led[0])
 
-	for (int i=0; i <  TABLE_SZ; i++ )
+	for (unsigned i=0; i <  TABLE_SZ; i++ )
 	{
 		_gpio_to_led[i] = -1;
 		_gpio_to_color[i] = 'z';
@@ -41,7 +41,7 @@ LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Jso
 		const std::string ledcolor = gpioMap.get("ledcolor","z").asString();
 //		printf ("got gpio %d ledindex %d color %c\n", gpio,ledindex, ledcolor[0]);
 		// ignore missing/invalid settings
-		if ( (gpio >= 0) && (gpio < TABLE_SZ) && (ledindex >= 0) ){
+		if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
 			_gpio_to_led[gpio] = ledindex;
 			_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
 		} else {

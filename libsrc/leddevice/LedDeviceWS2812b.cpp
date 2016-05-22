@@ -666,15 +666,15 @@ void LedDeviceWS2812b::initHardware()
 	// Allocate memory for the DMA control block & data to be sent
 	// ---------------------------------------------------------------
 	virtbase = (uint8_t *) mmap(
-		NULL,													// Address
-		NUM_PAGES * PAGE_SIZE,									// Length
-		PROT_READ | PROT_WRITE,									// Protection
-		MAP_SHARED |											// Shared
-		MAP_ANONYMOUS |											// Not file-based, init contents to 0
-		MAP_NORESERVE |											// Don't reserve swap space
-		MAP_LOCKED,												// Lock in RAM (don't swap)
-		-1,														// File descriptor
-		0);														// Offset
+		NULL,				// Address
+		NUM_PAGES * PAGE_SIZE,		// Length
+		PROT_READ | PROT_WRITE,		// Protection
+		MAP_SHARED |			// Shared
+		MAP_ANONYMOUS |			// Not file-based, init contents to 0
+		MAP_NORESERVE |			// Don't reserve swap space
+		MAP_LOCKED,			// Lock in RAM (don't swap)
+		-1,				// File descriptor
+		0);				// Offset
 
 	if (virtbase == MAP_FAILED)
 	{

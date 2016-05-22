@@ -13,7 +13,14 @@
 
 LedDeviceWs2812SPI::LedDeviceWs2812SPI(const std::string& outputDevice, const unsigned baudrate) :
 	LedSpiDevice(outputDevice, baudrate, 0),
-	mLedCount(0)
+	mLedCount(0),
+	bitpair_to_byte {
+		0b10001000,
+		0b10001100,
+		0b11001000,
+		0b11001100,
+	}
+
 {
 	// empty
 }
