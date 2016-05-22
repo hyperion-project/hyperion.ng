@@ -1,0 +1,3 @@
+SET(CPACK_GENERATOR "DEB" "RPM" "TGZ" )
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "hyperion team")
+include (CPack)

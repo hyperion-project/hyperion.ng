@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 
 #set(CMAKE_TOOLCHAIN_FILE /opt/raspberrypi/Toolchain-RaspberryPi.cmake)
 
+
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
 SET ( DEFAULT_FB         OFF )
@@ -17,16 +18,16 @@ SET ( DEFAULT_WS281XPWM  OFF )
 if (APPLE)
 	SET ( DEFAULT_OSX ON )
 else ()
-	if ( ${PLATFORM} STREQUAL "rpi" )
+	if ( "${PLATFORM}" STREQUAL "rpi" )
 		SET ( DEFAULT_DISPMANX   ON )
 		SET ( DEFAULT_WS2812BPWM ON )
 		SET ( DEFAULT_WS281XPWM  ON )
-	elseif ( ${PLATFORM} STREQUAL "wetek" )
+	elseif ( "${PLATFORM}" STREQUAL "wetek" )
 		SET ( DEFAULT_AMLOGIC    ON )
 		SET ( DEFAULT_FB         ON )
-	elseif ( ${PLATFORM} STREQUAL "x86" )
+	elseif ( "${PLATFORM}" STREQUAL "x86" )
 		SET ( DEFAULT_X11        ON )
-	elseif ( ${PLATFORM} STREQUAL "imx6" )
+	elseif ( "${PLATFORM}" STREQUAL "imx6" )
 		SET ( DEFAULT_FB         ON )
 	endif()
 endif ()
@@ -189,3 +190,5 @@ configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${
 
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
+# enable make package - no code after this line !
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
