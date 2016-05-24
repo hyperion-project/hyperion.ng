@@ -52,6 +52,7 @@ target_link_libraries(${PROJECT_NAME}
 	protoserver
 	x11-grabber
 	${X11_LIBRARIES}
+	${X11_Xrender_LIB}
 	pthread
 )
 
