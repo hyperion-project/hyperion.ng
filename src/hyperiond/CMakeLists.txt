@@ -34,12 +34,9 @@ if (ENABLE_PROTOBUF)
 	target_link_libraries(hyperiond protoserver)
 endif ()
 
-install ( TARGETS hyperiond DESTINATION "${DEPLOY_DIR}/bin" )
-install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects DESTINATION "${DEPLOY_DIR}/share/hyperion/" )
-install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "${DEPLOY_DIR}/share/hyperion/" )
+install ( TARGETS hyperiond DESTINATION "bin" COMPONENT ambilight )
+install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects     DESTINATION "share/hyperion/" COMPONENT  ambilight )
+install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  ambilight )
+install ( DIRECTORY ${CMAKE_SOURCE_DIR}/config      DESTINATION "share/hyperion/" COMPONENT  ambilight )
 
-if (ENABLE_SYSTEM_INSTALL)
-	install ( TARGETS hyperiond DESTINATION "bin" )
-	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects DESTINATION "share/hyperion/" )
-	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" )
-endif()
+

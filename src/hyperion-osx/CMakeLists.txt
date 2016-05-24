@@ -56,5 +56,5 @@ else()
 	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
 endif()
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "${DEPLOY_DIR}/bin" )
+install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
 
