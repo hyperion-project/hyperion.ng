@@ -111,22 +111,24 @@ bool X11Grabber::Setup()
 
 Image<ColorRgb> & X11Grabber::grab()
 {
-    if (_XRenderAvailable && !_useXGetImage) {
-	XRenderComposite( _x11Display,		// *dpy,
-			  PictOpSrc,		// op,
-			  _srcPicture,		// src
-			  None,			// mask
-			  _dstPicture,		// dst
-			  _cropLeft,		// src_x
-			  _cropTop,		// src_y
-			  0,			// mask_x
-			  0,			// mask_y
-			  0,			// dst_x
-			  0,			// dst_y
-			  _croppedWidth,	// width
-			  _croppedHeight);	// height
+	updateScreenDimensions(); 
+
+	if (_XRenderAvailable && !_useXGetImage) {
+		XRenderComposite( _x11Display,		// *dpy,
+							PictOpSrc,		// op,
+							_srcPicture,		// src
+							None,			// mask
+							_dstPicture,		// dst
+							_cropLeft,		// src_x
+							_cropTop,		// src_y
+							0,			// mask_x
+							0,			// mask_y
+							0,			// dst_x
+							0,			// dst_y
+								_croppedWidth,	// width
+							_croppedHeight);	// height
 	
-	XSync(_x11Display, False);
+		XSync(_x11Display, False);
       
 	if (_XShmAvailable) {
 	    XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
