@@ -51,8 +51,7 @@ message(STATUS "ENABLE_FB = " ${ENABLE_FB})
 option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )
 message(STATUS "ENABLE_OSX = " ${ENABLE_OSX})
 
-option(ENABLE_PROTOBUF "Enable PROTOBUF server" ON)
-message(STATUS "ENABLE_PROTOBUF = " ${ENABLE_PROTOBUF})
+set(ENABLE_PROTOBUF  ON)
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = " ${ENABLE_SPIDEV})
@@ -78,9 +77,6 @@ message(STATUS "ENABLE_QT5 = " ${ENABLE_QT5})
 option(ENABLE_TESTS "Compile additional test applications" OFF)
 message(STATUS "ENABLE_TESTS = " ${ENABLE_TESTS})
 
-if(ENABLE_V4L2 AND NOT ENABLE_PROTOBUF)
-	message(FATAL_ERROR "V4L2 grabber requires PROTOBUF. Disable V4L2 or enable PROTOBUF")
-endif()
 
 if(ENABLE_FB AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and framebuffer grabber cannot be used at the same time")

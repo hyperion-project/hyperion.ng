@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ "$#" -ne 2 ] || ! [ -d "$1" ] || ! [ -d "$2" ]; then
-  echo "Usage: $0 <BUILD-DIR> <REPO-DIR>" >&2
-  exit 1
+	echo "Usage: $0 <BUILD-DIR> <REPO-DIR>" >&2
+	exit 1
 fi
 
 builddir="$1"

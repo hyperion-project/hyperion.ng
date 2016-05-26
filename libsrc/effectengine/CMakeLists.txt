@@ -13,8 +13,8 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/effectengine)
 
 # Group the headers that go through the MOC compiler
 SET(EffectEngineQT_HEADERS
-		${CURRENT_HEADER_DIR}/EffectEngine.h
-		${CURRENT_SOURCE_DIR}/Effect.h
+	${CURRENT_HEADER_DIR}/EffectEngine.h
+	${CURRENT_SOURCE_DIR}/Effect.h
 )
 
 SET(EffectEngineHEADERS
@@ -22,35 +22,34 @@ SET(EffectEngineHEADERS
 )
 
 SET(EffectEngineSOURCES
-		${CURRENT_SOURCE_DIR}/EffectEngine.cpp
-		${CURRENT_SOURCE_DIR}/Effect.cpp
+	${CURRENT_SOURCE_DIR}/EffectEngine.cpp
+	${CURRENT_SOURCE_DIR}/Effect.cpp
 )
-
 
 set(EffectEngine_RESOURCES ${CURRENT_SOURCE_DIR}/EffectEngine.qrc)
 
 if(ENABLE_QT5)
-QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
-qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
-else(ENABLE_QT5)
-QT4_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
-qt4_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
-endif(ENABLE_QT5)
+	QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
+	qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
+else()
+	QT4_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
+	qt4_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
+endif()
 
 add_library(effectengine
-		${EffectEngineHEADERS}
-		${EffectEngineQT_HEADERS}
-		${EffectEngineHEADERS_MOC}
-		${EffectEngine_RESOURCES_RCC}
-		${EffectEngineSOURCES}
+	${EffectEngineHEADERS}
+	${EffectEngineQT_HEADERS}
+	${EffectEngineHEADERS_MOC}
+	${EffectEngine_RESOURCES_RCC}
+	${EffectEngineSOURCES}
 )
 
 if(ENABLE_QT5)
-qt5_use_modules(effectengine Widgets)
-endif(ENABLE_QT5)
+	qt5_use_modules(effectengine Widgets)
+endif()
 
 target_link_libraries(effectengine
-		hyperion
-		jsoncpp
-		${QT_LIBRARIES}
-		${PYTHON_LIBRARIES})
+	hyperion
+	jsoncpp
+	${QT_LIBRARIES}
+	${PYTHON_LIBRARIES})

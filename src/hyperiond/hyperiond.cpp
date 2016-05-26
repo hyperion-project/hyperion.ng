@@ -51,10 +51,8 @@
 // JsonServer includes
 #include <jsonserver/JsonServer.h>
 
-#ifdef ENABLE_PROTOBUF
 // ProtoServer includes
 #include <protoserver/ProtoServer.h>
-#endif
 
 // BoblightServer includes
 #include <boblightserver/BoblightServer.h>
@@ -208,7 +206,6 @@ int main(int argc, char** argv)
 		std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
 	}
 
-#ifdef ENABLE_PROTOBUF
 	// Create Proto server if configuration is present
 	ProtoServer * protoServer = nullptr;
 	if (config.isMember("protoServer"))
@@ -217,7 +214,6 @@ int main(int argc, char** argv)
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
 		std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
 	}
-#endif
 
 	// Create Boblight server if configuration is present
 	BoblightServer * boblightServer = nullptr;
@@ -254,9 +250,7 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), dispmanx, SLOT(setVideoMode(VideoMode)));
 		}
 
-		#ifdef ENABLE_PROTOBUF
 		QObject::connect(dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		#endif
 
 		dispmanx->start();
 		std::cout << "INFO: Frame grabber created and started" << std::endl;
@@ -297,9 +291,7 @@ int main(int argc, char** argv)
 					grabberConfig.get("cropTop", 0).asInt(),
 					grabberConfig.get("cropBottom", 0).asInt());
 
-		#ifdef ENABLE_PROTOBUF
 		QObject::connect(v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		#endif
 
 		v4l2Grabber->start();
 		std::cout << "INFO: V4L2 grabber created and started" << std::endl;
@@ -331,9 +323,7 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)),       amlGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
-		#ifdef ENABLE_PROTOBUF
 		QObject::connect(amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		#endif
 
 		amlGrabber->start();
 		std::cout << "INFO: AMLOGIC grabber created and started" << std::endl;
@@ -365,9 +355,7 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), fbGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
-		#ifdef ENABLE_PROTOBUF
 		QObject::connect(fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		#endif
 
 		fbGrabber->start();
 		std::cout << "INFO: Framebuffer grabber created and started" << std::endl;
@@ -405,9 +393,7 @@ int main(int argc, char** argv)
 			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), osxGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 		
-		#ifdef ENABLE_PROTOBUF
 		QObject::connect(osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		#endif
 
 		osxGrabber->start();
 		std::cout << "INFO: OSX grabber created and started" << std::endl;
@@ -445,9 +431,7 @@ int main(int argc, char** argv)
 #endif
 	delete xbmcVideoChecker;
 	delete jsonServer;
-#ifdef ENABLE_PROTOBUF
 	delete protoServer;
-#endif
 	delete boblightServer;
 
 	// leave application

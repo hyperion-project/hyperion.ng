@@ -9,7 +9,7 @@ add_subdirectory(jsonserver)
 
 if (ENABLE_PROTOBUF)
 	add_subdirectory(protoserver)
-endif (ENABLE_PROTOBUF)
+endif ()
 
 add_subdirectory(boblightserver)
 add_subdirectory(leddevice)

@@ -7,16 +7,16 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	const unsigned cropLeft, const unsigned cropRight,
 	const unsigned cropTop, const unsigned cropBottom,
 	const unsigned updateRate_Hz) :
-    _timer(this),
-    _grabber(grabWidth, grabHeight)
+	_timer(this),
+	_grabber(grabWidth, grabHeight)
 {
-    _grabber.setVideoMode(videoMode);
-    _grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
-    _timer.setSingleShot(false);
-    _timer.setInterval(updateRate_Hz);
+	_grabber.setVideoMode(videoMode);
+	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	_timer.setSingleShot(false);
+	_timer.setInterval(updateRate_Hz);
 
-    // Connect capturing to the timeout signal of the timer
-    connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
+	// Connect capturing to the timeout signal of the timer
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
 }
 
 const Image<ColorRgb> & DispmanxWrapper::getScreenshot()
@@ -27,12 +27,12 @@ const Image<ColorRgb> & DispmanxWrapper::getScreenshot()
 
 void DispmanxWrapper::start()
 {
-    _timer.start();
+	_timer.start();
 }
 
 void DispmanxWrapper::stop()
 {
-    _timer.stop();
+	_timer.stop();
 }
 
 void DispmanxWrapper::capture()

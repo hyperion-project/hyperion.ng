@@ -7,35 +7,35 @@
 
 class X11Wrapper : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    X11Wrapper(int grabInterval, bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
+	X11Wrapper(int grabInterval, bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
 
-    const Image<ColorRgb> & getScreenshot();
+	const Image<ColorRgb> & getScreenshot();
 
-    ///
-    /// Starts the timed capturing of screenshots
-    ///
-    void start();
+	///
+	/// Starts the timed capturing of screenshots
+	///
+	void start();
 
-    void stop();
-    
-    bool displayInit();
+	void stop();
+	
+	bool displayInit();
 
 signals:
-    void sig_screenshot(const Image<ColorRgb> & screenshot);
+	void sig_screenshot(const Image<ColorRgb> & screenshot);
 
 private slots:
-    ///
-    /// Performs a single screenshot capture and publishes the capture screenshot on the screenshot
-    /// signal.
-    ///
-    void capture();
+	///
+	/// Performs a single screenshot capture and publishes the capture screenshot on the screenshot
+	/// signal.
+	///
+	void capture();
 
 private:
-    /// The QT timer to generate capture-publish events
-    QTimer _timer;
+	/// The QT timer to generate capture-publish events
+	QTimer _timer;
 
-    /// The grabber for creating screenshots
-    X11Grabber _grabber;
+	/// The grabber for creating screenshots
+	X11Grabber _grabber;
 };

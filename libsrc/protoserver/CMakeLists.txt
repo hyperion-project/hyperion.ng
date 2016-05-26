@@ -35,10 +35,10 @@ protobuf_generate_cpp(ProtoServer_PROTO_SRCS ProtoServer_PROTO_HDRS
 )
 
 if(ENABLE_QT5)
-qt5_wrap_cpp(ProtoServer_HEADERS_MOC ${ProtoServer_QT_HEADERS})
-else(ENABLE_QT5)
-qt4_wrap_cpp(ProtoServer_HEADERS_MOC ${ProtoServer_QT_HEADERS})
-endif(ENABLE_QT5)
+	qt5_wrap_cpp(ProtoServer_HEADERS_MOC ${ProtoServer_QT_HEADERS})
+else()
+	qt4_wrap_cpp(ProtoServer_HEADERS_MOC ${ProtoServer_QT_HEADERS})
+endif()
 
 add_library(protoserver
 	${ProtoServer_HEADERS}
@@ -50,8 +50,8 @@ add_library(protoserver
 	${ProtoServer_PROTO_HDRS}
 )
 if(ENABLE_QT5)
-qt5_use_modules(protoserver Widgets)
-endif(ENABLE_QT5)
+	qt5_use_modules(protoserver Widgets)
+endif()
 
 target_link_libraries(protoserver
 	hyperion

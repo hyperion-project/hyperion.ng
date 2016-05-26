@@ -15,7 +15,7 @@ class X11Grabber
 {
 public:
 
-    X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
+	X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
 
 	virtual ~X11Grabber();
 
@@ -26,16 +26,16 @@ public:
 	Image<ColorRgb> & grab();
 
 private:
-    ImageResampler _imageResampler;
-    
-    bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
-    int _cropLeft;
-    int _cropRight;
-    int _cropTop;
-    int _cropBottom;
-    
-    XImage* _xImage;
-    XShmSegmentInfo _shminfo;
+	ImageResampler _imageResampler;
+	
+	bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
+	int _cropLeft;
+	int _cropRight;
+	int _cropTop;
+	int _cropBottom;
+	
+	XImage* _xImage;
+	XShmSegmentInfo _shminfo;
 
 	/// Reference to the X11 display (nullptr if not opened)
 	Display* _x11Display;

@@ -2,11 +2,11 @@
 #include "protoserver/ProtoConnectionWrapper.h"
 
 ProtoConnectionWrapper::ProtoConnectionWrapper(const std::string & address, int priority, int duration_ms, bool skipProtoReply) :
-        _priority(priority),
-        _duration_ms(duration_ms),
-        _connection(address)
+	_priority(priority),
+	_duration_ms(duration_ms),
+	_connection(address)
 {
-    _connection.setSkipReply(skipProtoReply);
+	_connection.setSkipReply(skipProtoReply);
 }
 
 ProtoConnectionWrapper::~ProtoConnectionWrapper()
@@ -15,5 +15,5 @@ ProtoConnectionWrapper::~ProtoConnectionWrapper()
 
 void ProtoConnectionWrapper::receiveImage(const Image<ColorRgb> & image)
 {
-    _connection.setImage(image, _priority, _duration_ms);
+	_connection.setImage(image, _priority, _duration_ms);
 }

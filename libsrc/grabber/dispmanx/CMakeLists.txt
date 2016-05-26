@@ -23,9 +23,9 @@ SET(DispmanxGrabberSOURCES
 
 if(ENABLE_QT5)
 	QT5_WRAP_CPP(DispmanxGrabberHEADERS_MOC ${DispmanxGrabberQT_HEADERS})
-else(ENABLE_QT5)
+else()
 	QT4_WRAP_CPP(DispmanxGrabberHEADERS_MOC ${DispmanxGrabberQT_HEADERS})
-endif(ENABLE_QT5)
+endif()
 
 add_library(dispmanx-grabber
 	${DispmanxGrabberHEADERS}

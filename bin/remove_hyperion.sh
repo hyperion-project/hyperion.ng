@@ -6,15 +6,15 @@ PATH="/sbin:$PATH"
 
 #Check if HyperCon is logged in as root
 if [ $(id -u) != 0 ] && [ "$1" = "HyperConRemove" ]; then
-		echo '---> Critical Error: Please connect as user "root" through HyperCon' 
-		echo '---> We need admin privileges to remove your Hyperion! -> abort'
-		exit 1
+	echo '---> Critical Error: Please connect as user "root" through HyperCon' 
+	echo '---> We need admin privileges to remove your Hyperion! -> abort'
+	exit 1
 fi
 
 #Check, if script is running as root
 if [ $(id -u) != 0 ]; then
-		echo '---> Critical Error: Please run the script as root (sudo sh ./remove_hyperion.sh)' 
-		exit 1
+	echo '---> Critical Error: Please run the script as root (sudo sh ./remove_hyperion.sh)' 
+	exit 1
 fi
 
 #Welcome message
@@ -26,21 +26,22 @@ echo '**************************************************************************
 
 #Skip the prompt if HyperCon Remove
 if [ "$1" = "" ]; then
-#Prompt for confirmation to proceed
-while true
-do
-echo -n "---> Do you really want to remove Hyperion and it´s services? (y or n) :"
-read CONFIRM
-case $CONFIRM in
-y|Y|YES|yes|Yes) break ;;
-n|N|no|NO|No)
-echo "---> Aborting - you entered \"$CONFIRM\""
-exit
-;;
-*) echo "-> Please enter only y or n"
-esac
-done
-echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
+	#Prompt for confirmation to proceed
+	while true
+	do
+		echo -n "---> Do you really want to remove Hyperion and it´s services? (y or n) :"
+		read CONFIRM
+		case $CONFIRM in
+			y|Y|YES|yes|Yes) break ;;
+			n|N|no|NO|No)
+				echo "---> Aborting - you entered \"$CONFIRM\""
+				exit
+				;;
+			*) echo "-> Please enter only y or n"
+		esac
+	done
+
+	echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
 fi
 # Find out if we are on OpenElec or RasPlex
 OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex\|LibreELEC' /etc/issue`
@@ -124,4 +125,3 @@ echo '**************************************************************************
 echo 'Hyperion successful removed!'
 echo '*******************************************************************************'  
 exit 0
-	

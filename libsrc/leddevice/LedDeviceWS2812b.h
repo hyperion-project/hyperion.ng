@@ -86,17 +86,17 @@
 //              Raspberry Pi low-level peripherals:
 //              http://elinux.org/RPi_Low-level_peripherals
 //
-//				Richard Hirst's nice, clean code:
-//				https://github.com/richardghirst/PiBits/blob/master/PiFmDma/PiFmDma.c
+//              Richard Hirst's nice, clean code:
+//              https://github.com/richardghirst/PiBits/blob/master/PiFmDma/PiFmDma.c
 //
 //              PWM clock register:
 //              http://www.raspberrypi.org/forums/viewtopic.php?t=8467&p=124620
 //
-//				Simple (because it's in assembly) PWM+DMA setup:
-//				https://github.com/mikedurso/rpi-projects/blob/master/asm-nyancat/rpi-nyancat.s
+//              Simple (because it's in assembly) PWM+DMA setup:
+//              https://github.com/mikedurso/rpi-projects/blob/master/asm-nyancat/rpi-nyancat.s
 //
-//				Adafruit's NeoPixel driver:
-//				https://github.com/adafruit/Adafruit_NeoPixel/blob/master/Adafruit_NeoPixel.cpp
+//              Adafruit's NeoPixel driver:
+//              https://github.com/adafruit/Adafruit_NeoPixel/blob/master/Adafruit_NeoPixel.cpp
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
