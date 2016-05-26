@@ -6,8 +6,8 @@
 
 RgbChannelCorrection::RgbChannelCorrection() :
 	_correctionR(255),
-	_correctionB(255),
-	_correctionG(255)
+	_correctionG(255),
+	_correctionB(255)
 {
 	initializeMapping();
 }

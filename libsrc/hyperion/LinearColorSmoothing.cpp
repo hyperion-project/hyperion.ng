@@ -14,7 +14,8 @@ LinearColorSmoothing::LinearColorSmoothing(
 	_updateInterval(1000 / ledUpdateFrequency_hz),
 	_settlingTime(settlingTime_ms),
 	_timer(),
-	_outputDelay(updateDelay)
+	_outputDelay(updateDelay),
+	_writeToLedsEnable(true)
 {
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
@@ -82,9 +83,11 @@ void LinearColorSmoothing::updateLeds()
 		_previousTime = now;
 
 		queueColors(_previousValues);
+		_writeToLedsEnable = false;
 	}
 	else
 	{
+		_writeToLedsEnable = true;
 		float k = 1.0f - 1.0f * deltaTime / (_targetTime - _previousTime);
 
 		for (size_t i = 0; i < _previousValues.size(); ++i)
@@ -107,7 +110,8 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	if (_outputDelay == 0)
 	{
 		// No output delay => immediate write
-		_ledDevice->write(ledColors);
+		if ( _writeToLedsEnable )
+			_ledDevice->write(ledColors);
 	}
 	else
 	{
@@ -116,7 +120,8 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 		// If the delay-buffer is filled pop the front and write to device
 		if (_outputQueue.size() > _outputDelay)
 		{
-			_ledDevice->write(_outputQueue.front());
+			if ( _writeToLedsEnable )
+				_ledDevice->write(_outputQueue.front());
 			_outputQueue.pop_front();
 		}
 	}
