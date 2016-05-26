@@ -61,7 +61,7 @@ void XBMCVideoChecker::receiveReply()
 
 	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
 
-	if (reply.contains("\"method\":\"Player.OnPlay\"") || reply.contains("\"method\":\"Playlist.OnAdd\""))
+	if (reply.contains("\"method\":\"Player.OnPlay\""))
 	{
 		// send a request for the current player state
 		_socket.write(_activePlayerRequest.toUtf8());
@@ -192,6 +192,11 @@ void XBMCVideoChecker::receiveReply()
 		{
 			_xbmcVersion = regex.cap(1).toInt();
 		}
+	}
+	else if (reply.contains("picture") && reply.contains("\"method\":\"Playlist.OnAdd\""))
+	{
+		// picture viewer is playing
+		setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
 	}
 }
 
