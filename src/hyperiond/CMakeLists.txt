@@ -3,6 +3,7 @@ add_executable(hyperiond
 		hyperiond.cpp)
 
 target_link_libraries(hyperiond
+		getoptPlusPlus
 		hyperion
 		xbmcvideochecker
 		effectengine
