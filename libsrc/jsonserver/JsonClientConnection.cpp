@@ -1,6 +1,7 @@
 // system includes
 #include <stdexcept>
 #include <cassert>
+#include <iomanip>
 
 // stl includes
 #include <iostream>
@@ -530,19 +531,64 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		activeEffects.append(activeEffect);
 	}
 	
-	// collect active led colors
-	Json::Value & activeLedColors = info["activeLedColors"] = Json::Value(Json::arrayValue);
-	foreach (int priority, activePriorities) {
-		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
- 		int i=0;
+	////////////////////////////////////
+	// collect active static led color//
+	////////////////////////////////////
+	
+	// create New JSON Array Value "activeLEDColor"
+	Json::Value & activeLedColors = info["activeLedColor"] = Json::Value(Json::arrayValue);
+	// get current Priority from Hyperion Muxer
+	const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	// check if current Priority exist
+	if (priorityInfo.priority != std::numeric_limits<int>::max())
+	{
 		Json::Value LEDcolor;
-		for (auto it = priorityInfo.ledColors.begin(); it!=priorityInfo.ledColors.end(); ++it, ++i) {		    
-			LEDcolor[std::to_string(i)].append(it->red);
-			LEDcolor[std::to_string(i)].append(it->green);
-			LEDcolor[std::to_string(i)].append(it->blue);		    
+		// check if all LEDs has the same Color
+		if (std::all_of(priorityInfo.ledColors.begin(), priorityInfo.ledColors.end(), [&](ColorRgb color)
+		{
+			return ((color.red == priorityInfo.ledColors.begin()->red) &&
+				(color.green == priorityInfo.ledColors.begin()->green) &&
+				(color.blue == priorityInfo.ledColors.begin()->blue));
+		} ))
+	    {
+		// check if LED Color not Black (0,0,0)
+		if ((priorityInfo.ledColors.begin()->red != 0) &&
+		(priorityInfo.ledColors.begin()->green != 0) &&
+		(priorityInfo.ledColors.begin()->blue != 0))
+		{
+			// add RGB Value to Array
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->red);
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->green);
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->blue);
+
+			uint16_t Hue;
+			float Saturation, Luminace;
+		    
+			// add HSL Value to Array
+			HslTransform::rgb2hsl(priorityInfo.ledColors.begin()->red,
+					priorityInfo.ledColors.begin()->green,
+					priorityInfo.ledColors.begin()->blue,
+					Hue, Saturation, Luminace);
+
+			LEDcolor["HSL Value"].append(Hue);
+			LEDcolor["HSL Value"].append(Saturation);
+			LEDcolor["HSL Value"].append(Luminace);
+
+			// add HEX Value to Array
+			std::stringstream hex;
+				hex << "0x"
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
+
+			LEDcolor["HEX Value"].append(hex.str());
+		    
+			activeLedColors.append(LEDcolor);
+			}
 		}
-		
-		activeLedColors.append(LEDcolor);
 	}
 
 	// send the result

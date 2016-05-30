@@ -78,7 +78,13 @@ public:
 	/// Returns the number of attached leds
 	///
 	unsigned getLedCount() const;
-
+	
+	///
+	/// Returns the current priority
+	///
+	/// @return The current priority
+	///
+	int getCurrentPriority() const;
 	///
 	/// Returns a list of active priorities
 	///

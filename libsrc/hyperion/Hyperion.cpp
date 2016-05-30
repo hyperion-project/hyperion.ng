@@ -819,6 +819,11 @@ void Hyperion::clearall()
 	_effectEngine->allChannelsCleared();
 }
 
+int Hyperion::getCurrentPriority() const
+{
+	return _muxer.getCurrentPriority();
+}
+
 QList<int> Hyperion::getActivePriorities() const
 {
 	return _muxer.getPriorities();
