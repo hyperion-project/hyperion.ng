@@ -30,4 +30,7 @@
 // Define to enable the osx grabber
 #cmakedefine ENABLE_OSX
 
+// Define to enable the bonjour/zeroconf publishing
+#cmakedefine ENABLE_ZEROCONF
+
 #define HYPERION_VERSION_ID "${HYPERION_VERSION_ID}"

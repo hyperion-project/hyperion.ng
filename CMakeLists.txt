@@ -15,6 +15,7 @@ SET ( DEFAULT_X11        OFF )
 SET ( DEFAULT_SPIDEV     OFF )
 SET ( DEFAULT_WS2812BPWM OFF )
 SET ( DEFAULT_WS281XPWM  OFF )
+SET ( DEFAULT_ZEROCONF   OFF )
 
 if (APPLE)
 	SET ( DEFAULT_OSX ON )
@@ -39,6 +40,9 @@ else ()
 endif ()
 
 # set the build options
+option(ENABLE_ZEROCONF "Enable the avahi/zeroconf announce" ${DEFAULT_ZEROCONF} )
+message(STATUS "ENABLE_ZEROCONF = " ${ENABLE_ZEROCONF})
+
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC})
 

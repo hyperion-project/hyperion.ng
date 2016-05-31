@@ -11,6 +11,10 @@ if (ENABLE_PROTOBUF)
 	add_subdirectory(protoserver)
 endif ()
 
+if (ENABLE_ZEROCONF)
+	add_subdirectory(bonjour)
+endif (ENABLE_ZEROCONF)
+
 add_subdirectory(boblightserver)
 add_subdirectory(leddevice)
 add_subdirectory(utils)

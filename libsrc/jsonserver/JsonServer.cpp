@@ -29,6 +29,7 @@ JsonServer::JsonServer(Hyperion *hyperion, uint16_t port) :
 
 	// make sure the resources are loaded (they may be left out after static linking
 	Q_INIT_RESOURCE(JsonSchemas);
+
 }
 
 JsonServer::~JsonServer()
