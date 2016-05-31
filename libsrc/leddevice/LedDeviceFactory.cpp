@@ -363,8 +363,11 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const int dmanum = deviceConfig.get("dmanum", 5).asInt();
                 const int pwmchannel = deviceConfig.get("pwmchannel", 0).asInt();
 		const int invert = deviceConfig.get("invert", 0).asInt();
+		const int rgbw = deviceConfig.get("rgbw", 0).asInt();
+		const std::string& whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
 
-		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum, pwmchannel, invert);
+		LedDeviceWS281x * ledDeviceWS281x = new LedDeviceWS281x(gpio, leds, freq, dmanum, pwmchannel, invert, 
+			rgbw, whiteAlgorithm);
 		device = ledDeviceWS281x;
 	}
 #endif
