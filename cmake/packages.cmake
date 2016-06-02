@@ -11,7 +11,7 @@ SET ( CPACK_DEBIAN_PACKAGE_MAINTAINER "hyperion team")
 SET ( CPACK_DEBIAN_PACKAGE_NAME "hyperion" )
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst" )
 SET ( CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/hyperion-project/hyperion" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqtcore4 (>= 4:4.8.0), libqt4-network (>= 4:4.8.0)" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqtcore4 (>= 4:4.8.0), libqt4-network (>= 4:4.8.0), libusb-1.0-0, libpython2.7, libc6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 SET ( CPACK_RPM_PACKAGE_NAME "hyperion" )
