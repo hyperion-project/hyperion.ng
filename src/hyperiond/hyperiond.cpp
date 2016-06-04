@@ -242,7 +242,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 }
 
 #ifdef ENABLE_DISPMANX
-void startGrabberDispmanx(const Json::Value &config, Hyperion &hyperion, ProtoServer * protoServer, XBMCVideoChecker* xbmcVideoChecker, DispmanxWrapper * dispmanx)
+void startGrabberDispmanx(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, DispmanxWrapper* &dispmanx)
 {
 	// Construct and start the frame-grabber if the configuration is present
 	if (config.isMember("framegrabber"))
@@ -275,7 +275,7 @@ void startGrabberDispmanx(const Json::Value &config, Hyperion &hyperion, ProtoSe
 #endif
 
 #ifdef ENABLE_V4L2
-void startGrabberV4L2(const Json::Value &config, Hyperion &hyperion, ProtoServer * protoServer, V4L2Wrapper * v4l2Grabber )
+void startGrabberV4L2(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, V4L2Wrapper* &v4l2Grabber )
 {
 	// construct and start the v4l2 grabber if the configuration is present
 	if (config.isMember("grabber-v4l2"))
@@ -312,7 +312,7 @@ void startGrabberV4L2(const Json::Value &config, Hyperion &hyperion, ProtoServer
 #endif
 
 #ifdef ENABLE_AMLOGIC
-void startGrabberAmlogic(const Json::Value &config, Hyperion &hyperion, ProtoServer * protoServer, XBMCVideoChecker* xbmcVideoChecker, AmlogicWrapper * amlGrabber)
+void startGrabberAmlogic(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, AmlogicWrapper* &amlGrabber)
 {
 	// Construct and start the framebuffer grabber if the configuration is present
 	if (config.isMember("amlgrabber"))
@@ -341,7 +341,7 @@ void startGrabberAmlogic(const Json::Value &config, Hyperion &hyperion, ProtoSer
 
 
 #ifdef ENABLE_FB
-void startGrabberFramebuffer(const Json::Value &config, Hyperion &hyperion, ProtoServer * protoServer, XBMCVideoChecker* xbmcVideoChecker, FramebufferWrapper * fbGrabber)
+void startGrabberFramebuffer(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, FramebufferWrapper* &fbGrabber)
 {
 	// Construct and start the framebuffer grabber if the configuration is present
 	if (config.isMember("framebuffergrabber") || config.isMember("framegrabber"))
@@ -371,7 +371,7 @@ void startGrabberFramebuffer(const Json::Value &config, Hyperion &hyperion, Prot
 
 
 #ifdef ENABLE_OSX
-void startGrabberOsx(const Json::Value &config, Hyperion &hyperion, ProtoServer* protoServer, XBMCVideoChecker* xbmcVideoChecker, OsxWrapper * osxGrabber)
+void startGrabberOsx(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, OsxWrapper* &osxGrabber)
 {
 	// Construct and start the osx grabber if the configuration is present
 	if (config.isMember("osxgrabber") || config.isMember("framegrabber"))
