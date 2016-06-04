@@ -186,7 +186,7 @@ void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* xbmcVide
 	}
 }
 
-void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* jsonServer, ProtoServer* protoServer, BoblightServer* boblightServer)
+void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer)
 {
 	// Create Json server if configuration is present
 	if (config.isMember("jsonServer"))
@@ -194,6 +194,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 		const Json::Value & jsonServerConfig = config["jsonServer"];
 		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
 		std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
+
 #ifdef ENABLE_ZEROCONF
 		const Json::Value & deviceConfig = config["device"];
 		const std::string deviceName = deviceConfig.get("name", "").asString();
@@ -215,6 +216,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 		const Json::Value & protoServerConfig = config["protoServer"];
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
 		std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
+
 #ifdef ENABLE_ZEROCONF
 		const Json::Value & deviceConfig = config["device"];
 		const std::string deviceName = deviceConfig.get("name", "").asString();
@@ -369,7 +371,7 @@ void startGrabberFramebuffer(const Json::Value &config, Hyperion &hyperion, Prot
 
 
 #ifdef ENABLE_OSX
-void startGrabberOsx(const Json::Value &config, Hyperion &hyperion, ProtoServer * protoServer, XBMCVideoChecker* xbmcVideoChecker, OsxWrapper * osxGrabber)
+void startGrabberOsx(const Json::Value &config, Hyperion &hyperion, ProtoServer* protoServer, XBMCVideoChecker* xbmcVideoChecker, OsxWrapper * osxGrabber)
 {
 	// Construct and start the osx grabber if the configuration is present
 	if (config.isMember("osxgrabber") || config.isMember("framegrabber"))
@@ -471,7 +473,6 @@ int main(int argc, char** argv)
 	ProtoServer * protoServer = nullptr;
 	BoblightServer * boblightServer = nullptr;
 	startNetworkServices(config, hyperion, jsonServer, protoServer, boblightServer);
-
 
 // ---- grabber -----
 

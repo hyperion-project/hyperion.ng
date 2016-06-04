@@ -18,9 +18,6 @@
 // Define to enable the spi-device
 #cmakedefine ENABLE_TINKERFORGE
 
-// Define to enable PROTOBUF server
-#cmakedefine ENABLE_PROTOBUF
-
 // Define to enable the framebuffer grabber
 #cmakedefine ENABLE_FB
 

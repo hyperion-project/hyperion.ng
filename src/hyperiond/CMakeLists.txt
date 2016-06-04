@@ -9,6 +9,7 @@ target_link_libraries(hyperiond
 		effectengine
 		jsonserver
 		boblightserver
+		 protoserver
 )
 
 if (ENABLE_DISPMANX)
@@ -29,10 +30,6 @@ endif ()
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond amlogic-grabber)
-endif ()
-
-if (ENABLE_PROTOBUF)
-	target_link_libraries(hyperiond protoserver)
 endif ()
 
 if (ENABLE_ZEROCONF)
