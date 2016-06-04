@@ -166,7 +166,7 @@ void startBootsequence(const Json::Value &config, Hyperion &hyperion)
 
 
 // create XBMC video checker if the configuration is present
-void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* xbmcVideoChecker)
+void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	if (config.isMember("xbmcVideoChecker"))
 	{
