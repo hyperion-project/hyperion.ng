@@ -2,6 +2,10 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/utils)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/utils)
 
+if ( ENABLE_PROFILER )
+	SET ( PROFILER_SOURCE ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp )
+endif()
+
 add_library(hyperion-utils
 	${CURRENT_HEADER_DIR}/ColorArgb.h
 	${CURRENT_SOURCE_DIR}/ColorArgb.cpp
@@ -15,6 +19,10 @@ add_library(hyperion-utils
 	${CURRENT_SOURCE_DIR}/ColorRgbw.cpp
 	${CURRENT_HEADER_DIR}/Image.h
 	${CURRENT_HEADER_DIR}/Sleep.h
+
+	${CURRENT_HEADER_DIR}/Logger.h
+	${CURRENT_SOURCE_DIR}/Logger.cpp
+	${PROFILER_SOURCE}
 
 	${CURRENT_HEADER_DIR}/PixelFormat.h
 	${CURRENT_HEADER_DIR}/VideoMode.h

@@ -81,6 +81,9 @@ message(STATUS "ENABLE_QT5 = " ${ENABLE_QT5})
 option(ENABLE_TESTS "Compile additional test applications" OFF)
 message(STATUS "ENABLE_TESTS = " ${ENABLE_TESTS})
 
+option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
+message(STATUS "ENABLE_PROFILER = " ${ENABLE_PROFILER})
+
 
 if(ENABLE_FB AND ENABLE_DISPMANX)
 	message(FATAL_ERROR "dispmanx grabber and framebuffer grabber cannot be used at the same time")
