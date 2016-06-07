@@ -288,6 +288,10 @@
                     "type" : "boolean",
                     "required" : true
                 },
+		"grabPause" : {
+                    "type" : "boolean",
+                    "required" : false
+                },
                 "grabScreensaver" : {
                     "type" : "boolean",
                     "required" : false

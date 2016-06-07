@@ -21,7 +21,7 @@
 // {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
 // {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
 
-XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection) :
+XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection) :
 	QObject(),
 	_address(QString::fromStdString(address)),
 	_port(port),
@@ -35,6 +35,7 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_grabPhoto(grabPhoto),
 	_grabAudio(grabAudio),
 	_grabMenu(grabMenu),
+	_grabPause(grabPause),
 	_grabScreensaver(grabScreensaver),
 	_enable3DDetection(enable3DDetection),
 	_previousScreensaverMode(false),
@@ -72,6 +73,11 @@ void XBMCVideoChecker::receiveReply()
 		// the player has stopped
 		setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 		setVideoMode(VIDEO_2D);
+	}
+	else if (reply.contains("\"method\":\"Player.OnPause\""))
+	{
+		// player at pause
+		setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
 	}
 	else if (reply.contains("\"method\":\"GUI.OnScreensaverActivated\""))
 	{
@@ -271,6 +277,9 @@ void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 		break;
 	case GRABBINGMODE_MENU:
 		std::cout << "KODICHECK INFO: switching to MENU mode" << std::endl;
+		break;
+	case GRABBINGMODE_PAUSE:
+		std::cout << "KODICHECK INFO: switching to PAUSE mode" << std::endl;
 		break;
 	case GRABBINGMODE_OFF:
 		std::cout << "KODICHECK INFO: switching to OFF mode" << std::endl;

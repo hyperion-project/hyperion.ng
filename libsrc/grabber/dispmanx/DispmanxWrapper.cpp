@@ -74,6 +74,7 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 	switch (mode)
 	{
 	case GRABBINGMODE_VIDEO:
+	case GRABBINGMODE_PAUSE:
 		_frameGrabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
 		start();
 		break;
