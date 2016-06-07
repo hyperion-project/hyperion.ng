@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("X11 capture application for Hyperion");
+		OptionsParser optionParser("FrameBuffer capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
 		StringParameter        & argDevice          = parameters.add<StringParameter>       ('d', "device",           "Set the video device [default: /dev/video0]");

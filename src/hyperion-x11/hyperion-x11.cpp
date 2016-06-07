@@ -9,6 +9,7 @@
 #include "protoserver/ProtoConnectionWrapper.h"
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
+#include "utils/Profiler.h"
 
 using namespace vlofgren;
 
@@ -22,10 +23,10 @@ void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
-  std::cout
-	<< "hyperion-x11:" << std::endl
-	<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
-	<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+	 std::cout
+		<< "hyperion-x11:" << std::endl
+		<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	QCoreApplication app(argc, argv);
 

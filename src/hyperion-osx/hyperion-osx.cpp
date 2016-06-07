@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("X11 capture application for Hyperion");
+		OptionsParser optionParser("OSX capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
 		IntParameter           & argDisplay         = parameters.add<IntParameter>          ('d', "display",          "Set the display to capture [default: 0]");

@@ -30,7 +30,7 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(
 	groupAddress = QHostAddress(multicastGroup);
 
 	udpSocket = new QUdpSocket(this);
-	udpSocket->bind(QHostAddress::AnyIPv4, multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+	udpSocket->bind(QHostAddress::Any, multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
 	joinedMulticastgroup = udpSocket->joinMulticastGroup(groupAddress);
 }

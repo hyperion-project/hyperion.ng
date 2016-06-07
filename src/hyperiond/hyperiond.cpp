@@ -418,14 +418,22 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
-	OptionsParser optionParser("X11 capture application for Hyperion");
+	OptionsParser optionParser("Hyperion Daemon");
 	ParameterSet & parameters = optionParser.getParameters();
 
 	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
+	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
 
 	argParentPid.setDefault(0);
 	optionParser.parse(argc, const_cast<const char **>(argv));
 	const std::vector<std::string> configFiles = optionParser.getFiles();
+
+	// check if we need to display the usage. exit if we do.
+	if (argHelp.isSet())
+	{
+		optionParser.usage();
+		return 0;
+	}
 
 	if (configFiles.size() == 0)
 	{

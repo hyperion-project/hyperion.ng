@@ -30,7 +30,8 @@ Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
 	if ( LoggerMap->find(name) == LoggerMap->end() )
 	{
 		Logger* log = new Logger(name,minLevel);
-		Logger::LoggerMap->emplace(name,log);
+		Logger::LoggerMap->insert(std::pair<std::string,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
+		//Logger::LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
 		return log;
 	} 
 	

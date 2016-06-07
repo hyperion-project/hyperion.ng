@@ -187,7 +187,7 @@ int X11Grabber::updateScreenDimensions()
 	
 	_croppedHeight =  (_screenHeight > unsigned(_cropTop + _cropBottom))
 		? (_screenHeight - _cropTop - _cropBottom)
-		: (_croppedHeight = _screenHeight);
+		: _screenHeight;
 
 	std::cout << "X11GRABBER INFO: Using ";
 
