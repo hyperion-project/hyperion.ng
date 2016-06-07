@@ -79,6 +79,32 @@ void ProtoClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
+void ProtoClientConnection::setGrabbingMode(const GrabbingMode mode)
+{
+	int grabbing_mode = (int)mode;
+	proto::HyperionReply gMode;
+
+	// create proto message
+	gMode.set_type(proto::HyperionReply::GRABBING);
+	gMode.set_grabbing(grabbing_mode);
+
+	// send message
+	sendMessage(gMode);
+}
+
+void ProtoClientConnection::setVideoMode(const VideoMode videoMode)
+{
+	int video_Mode = (int)videoMode;
+	proto::HyperionReply vMode;
+	
+	// create proto message
+	vMode.set_type(proto::HyperionReply::VIDEO);
+	vMode.set_grabbing(video_Mode);
+
+	// send message
+	sendMessage(vMode);
+}
+
 void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message)
 {
 	// forward messages
@@ -208,6 +234,7 @@ void ProtoClientConnection::sendSuccessReply()
 {
 	// create reply
 	proto::HyperionReply reply;
+	reply.set_type(proto::HyperionReply::REPLY);
 	reply.set_success(true);
 
 	// send reply
@@ -218,6 +245,7 @@ void ProtoClientConnection::sendErrorReply(const std::string &error)
 {
 	// create reply
 	proto::HyperionReply reply;
+	reply.set_type(proto::HyperionReply::REPLY);
 	reply.set_success(false);
 	reply.set_error(error);
 

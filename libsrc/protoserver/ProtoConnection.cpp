@@ -35,7 +35,8 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	_timer.setInterval(5000);
 	_timer.setSingleShot(false);
 
-	connect(&_timer,SIGNAL(timeout()), this, SLOT(connectToHost()) );
+	connect(&_timer,SIGNAL(timeout()), this, SLOT(connectToHost()));
+	connect(&_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	_timer.start();
 }
 
@@ -43,6 +44,44 @@ ProtoConnection::~ProtoConnection()
 {
 	_timer.stop();
 	_socket.close();
+}
+
+void ProtoConnection::readData()
+{	
+	_receiveBuffer += _socket.readAll();
+
+	// check if we can read a message size
+	if (_receiveBuffer.size() <= 4)
+	{
+		return;
+	}
+
+	// read the message size
+	uint32_t messageSize =
+			((_receiveBuffer[0]<<24) & 0xFF000000) |
+			((_receiveBuffer[1]<<16) & 0x00FF0000) |
+			((_receiveBuffer[2]<< 8) & 0x0000FF00) |
+			((_receiveBuffer[3]    ) & 0x000000FF);
+
+	// check if we can read a complete message
+	if ((uint32_t) _receiveBuffer.size() < messageSize + 4)
+	{
+		return;
+	}
+	
+	// read a message
+	proto::HyperionReply reply;
+	
+	if (!reply.ParseFromArray(_receiveBuffer.data() + 4, messageSize))
+	{
+		std::cerr << "PROTOCONNECTION ERROR: Unable to parse message" << std::endl;
+		return;
+	}
+	
+	parseReply(reply);
+	
+	// remove message data from buffer
+	_receiveBuffer = _receiveBuffer.mid(messageSize + 4);
 }
 
 void ProtoConnection::setSkipReply(bool skip)
@@ -157,58 +196,51 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 		std::cerr << "PROTOCONNECTION ERROR: Error while writing data to host" << std::endl;
 		return;
 	}
-
-	if (!_skipReply)
-	{
-		// read reply data
-		QByteArray serializedReply;
-		length = -1;
-		while (length < 0 && serializedReply.size() < length+4)
-		{
-			// receive reply
-			if (!_socket.waitForReadyRead())
-			{
-				std::cerr << "PROTOCONNECTION ERROR: Error while reading data from host" << std::endl;
-				return;
-			}
-
-			serializedReply += _socket.readAll();
-
-			if (length < 0 && serializedReply.size() >= 4)
-			{
-				// read the message size
-				length =
-						((serializedReply[0]<<24) & 0xFF000000) |
-						((serializedReply[1]<<16) & 0x00FF0000) |
-						((serializedReply[2]<< 8) & 0x0000FF00) |
-						((serializedReply[3]	) & 0x000000FF);
-			}
-		}
-
-		// parse reply data
-		proto::HyperionReply reply;
-		reply.ParseFromArray(serializedReply.constData()+4, length);
-
-		// parse reply message
-		parseReply(reply);
-	}
 }
 
 bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 {
 	bool success = false;
-
-	if (!reply.success())
+	
+	switch (reply.type())
 	{
-		if (reply.has_error())
+		case proto::HyperionReply::REPLY:
 		{
-			throw std::runtime_error("PROTOCONNECTION ERROR: " + reply.error());
+			if (!_skipReply)
+			{
+				if (!reply.success())
+				{
+					if (reply.has_error())
+					{
+						throw std::runtime_error("PROTOCONNECTION ERROR: " + reply.error());
+					}
+					else
+					{
+						throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
+					}
+				}
+				else
+				{
+					success = true;
+				}
+			}
+			break;
 		}
-		else
+		case proto::HyperionReply::GRABBING:
 		{
-			throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
+			int grabbing = reply.has_grabbing() ? reply.grabbing() : 6;
+			GrabbingMode gMode = (GrabbingMode)grabbing;
+			emit setGrabbingMode(gMode);
+			break;
+		}
+		case proto::HyperionReply::VIDEO:
+		{
+			int video = reply.has_video() ? reply.video() : 0;
+			VideoMode vMode = (VideoMode)video;
+			emit setVideoMode(vMode);
+			break;
 		}
 	}
-
+	
 	return success;
 }

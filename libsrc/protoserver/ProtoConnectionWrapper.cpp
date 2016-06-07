@@ -7,6 +7,8 @@ ProtoConnectionWrapper::ProtoConnectionWrapper(const std::string & address, int 
 	_connection(address)
 {
 	_connection.setSkipReply(skipProtoReply);
+	connect(&_connection, SIGNAL(setGrabbingMode(GrabbingMode)), this, SIGNAL(setGrabbingMode(GrabbingMode)));
+	connect(&_connection, SIGNAL(setVideoMode(VideoMode)), this, SIGNAL(setVideoMode(VideoMode)));
 }
 
 ProtoConnectionWrapper::~ProtoConnectionWrapper()

@@ -187,7 +187,7 @@ void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* &xbmcVid
 	}
 }
 
-void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer)
+void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	// Create Json server if configuration is present
 	if (config.isMember("jsonServer"))
@@ -216,6 +216,11 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
 		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
+			if (xbmcVideoChecker != nullptr)
+			{
+				QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), protoServer, SIGNAL(grabbingMode(GrabbingMode)));
+				QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), protoServer, SIGNAL(videoMode(VideoMode)));
+			}
 		std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
 
 #ifdef ENABLE_ZEROCONF
@@ -481,7 +486,7 @@ int main(int argc, char** argv)
 	JsonServer * jsonServer = nullptr;
 	ProtoServer * protoServer = nullptr;
 	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(config, hyperion, jsonServer, protoServer, boblightServer);
+	startNetworkServices(config, hyperion, jsonServer, protoServer, boblightServer, xbmcVideoChecker);
 
 // ---- grabber -----
 

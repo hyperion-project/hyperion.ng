@@ -15,6 +15,8 @@
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
 
 // forward decl
 class ProtoClientConnection;
@@ -49,6 +51,13 @@ public:
 
 public slots:
 	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
+
+signals:
+	///
+	/// Forwarding XBMC Checker
+	///
+	void grabbingMode(const GrabbingMode mode);
+	void videoMode(const VideoMode VideoMode);
 
 private slots:
 	///

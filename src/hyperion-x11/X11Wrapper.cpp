@@ -39,3 +39,26 @@ void X11Wrapper::capture()
 	const Image<ColorRgb> & screenshot = _grabber.grab();
 	emit sig_screenshot(screenshot);
 }
+
+void X11Wrapper::setGrabbingMode(const GrabbingMode mode)
+{
+	switch (mode)
+	{
+	case GRABBINGMODE_VIDEO:
+	case GRABBINGMODE_PAUSE:
+	case GRABBINGMODE_AUDIO:
+	case GRABBINGMODE_PHOTO:
+	case GRABBINGMODE_MENU:
+	case GRABBINGMODE_INVALID:
+		start();
+		break;
+	case GRABBINGMODE_OFF:
+		stop();
+		break;
+	}
+}
+
+void X11Wrapper::setVideoMode(const VideoMode mode)
+{
+	_grabber.setVideoMode(mode);
+}

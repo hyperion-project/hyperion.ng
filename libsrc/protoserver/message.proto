@@ -61,9 +61,24 @@ message ClearRequest {
 }
 
 message HyperionReply {
+	enum Type {
+		REPLY = 1;
+		GRABBING = 2;
+		VIDEO = 3;
+	}
+	
+	// Identifies which field is filled in.
+	required Type type = 1;
+	
 	// flag indication success or failure
-	required bool success = 1;
+	optional bool success = 2;
 
 	// string indicating the reason for failure (if applicable)
-	optional string error = 2;
+	optional string error = 3;
+
+	// XBMC Video Checker Proto Messages for Grabbing mode
+	optional int32 grabbing = 4;
+	
+	// XBMC Video Checker Proto Messages for Video mode
+	optional int32 video = 5;
 }

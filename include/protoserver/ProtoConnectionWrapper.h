@@ -4,11 +4,13 @@
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
 
 // hyperion proto includes
 #include "protoserver/ProtoConnection.h"
 
-/// This class handles callbacks from the V4L2 grabber
+/// This class handles callbacks from the V4L2 and X11 grabber
 class ProtoConnectionWrapper : public QObject
 {
 	Q_OBJECT
@@ -16,6 +18,13 @@ class ProtoConnectionWrapper : public QObject
 public:
 	ProtoConnectionWrapper(const std::string & address, int priority, int duration_ms, bool skipProtoReply);
 	virtual ~ProtoConnectionWrapper();
+	
+signals:	
+	///
+	/// Forwarding XBMC Video Checker Message
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+	void setVideoMode(const VideoMode videoMode);
 
 public slots:
 	/// Handle a single image

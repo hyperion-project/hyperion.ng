@@ -13,6 +13,8 @@
 // hyperion util
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
 
 // jsoncpp includes
 #include <message.pb.h>
@@ -82,6 +84,18 @@ private slots:
 	/// Try to connect to the Hyperion host
 	void connectToHost();
 
+	///
+	/// Slot called when new data has arrived
+	///
+	void readData();
+
+signals:
+
+	///
+	/// XBMC Video Checker Message
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+	void setVideoMode(const VideoMode videoMode);
 
 private:
 
@@ -109,4 +123,7 @@ private:
 
 	QTimer _timer;
 	QAbstractSocket::SocketState  _prevSocketState;
+	
+	/// The buffer used for reading data from the socket
+	QByteArray _receiveBuffer;
 };

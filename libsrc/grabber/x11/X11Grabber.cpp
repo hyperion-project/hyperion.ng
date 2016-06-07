@@ -40,6 +40,11 @@ X11Grabber::~X11Grabber()
 	}
 }
 
+void X11Grabber::setVideoMode(const VideoMode videoMode)
+{
+	_imageResampler.set3D(videoMode);
+}
+
 void X11Grabber::freeResources()
 {
 	// Cleanup allocated resources of the X11 grab

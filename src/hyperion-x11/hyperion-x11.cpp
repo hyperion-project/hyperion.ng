@@ -104,6 +104,10 @@ int main(int argc, char ** argv)
 
 			// Connect the screen capturing to the proto processing
 			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			
+			// Connect the XBMC Video Checker to the proto processing
+			QObject::connect(&protoWrapper, SIGNAL(setGrabbingMode(GrabbingMode)), &x11Wrapper, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(&protoWrapper, SIGNAL(setVideoMode(VideoMode)), &x11Wrapper, SLOT(setVideoMode(VideoMode)));
 
 			// Start the capturing
 			x11Wrapper.start();

@@ -5,6 +5,10 @@
 // Hyperion-X11 includes
 #include <grabber/X11Grabber.h>
 
+//Utils includes
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
+
 class X11Wrapper : public QObject
 {
 	Q_OBJECT
@@ -24,6 +28,19 @@ public:
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);
+
+public slots:
+	///
+	/// Set the grabbing mode
+	/// @param[in] mode The new grabbing mode
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(const VideoMode videoMode);
 
 private slots:
 	///
