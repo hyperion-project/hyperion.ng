@@ -190,53 +190,59 @@ void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* &xbmcVid
 void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	// Create Json server if configuration is present
+	unsigned int jsonPort = 19444;
 	if (config.isMember("jsonServer"))
 	{
 		const Json::Value & jsonServerConfig = config["jsonServer"];
-		jsonServer = new JsonServer(&hyperion, jsonServerConfig["port"].asUInt());
-		std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
-
-#ifdef ENABLE_ZEROCONF
-		const Json::Value & deviceConfig = config["device"];
-		const std::string deviceName = deviceConfig.get("name", "").asString();
-
-		const std::string hostname = QHostInfo::localHostName().toStdString();
-		const std::string mDNSDescr = jsonServerConfig.get("mDNSDescr", hostname).asString();
-		const std::string mDNSService = jsonServerConfig.get("mDNSService", "_hyperiond_json._tcp").asString();
-		BonjourServiceRegister *bonjourRegister_json;
-		bonjourRegister_json = new BonjourServiceRegister();
-		bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-					QString()), jsonServerConfig["port"].asUInt());
-		std::cout << "INFO: Json mDNS responder started" << std::endl;
-#endif
+		//jsonEnable = jsonServerConfig.get("enable", true).asBool();
+		jsonPort   = jsonServerConfig.get("port", 19444).asUInt();
 	}
 
+	jsonServer = new JsonServer(&hyperion, jsonPort );
+	std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
+
 	// Create Proto server if configuration is present
+	unsigned int protoPort = 19445;
 	if (config.isMember("protoServer"))
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
-		protoServer = new ProtoServer(&hyperion, protoServerConfig["port"].asUInt() );
-			if (xbmcVideoChecker != nullptr)
-			{
-				QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), protoServer, SIGNAL(grabbingMode(GrabbingMode)));
-				QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), protoServer, SIGNAL(videoMode(VideoMode)));
-			}
-		std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
+		//protoEnable = protoServerConfig.get("enable", true).asBool();
+		protonPort  = protoServerConfig.get("port", 19445).asUInt();
+	}
+
+	protoServer = new ProtoServer(&hyperion, protoPort );
+	if (xbmcVideoChecker != nullptr)
+	{
+		QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), protoServer, SIGNAL(grabbingMode(GrabbingMode)));
+		QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), protoServer, SIGNAL(videoMode(VideoMode)));
+	}
+	std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
 
 #ifdef ENABLE_ZEROCONF
-		const Json::Value & deviceConfig = config["device"];
-		const std::string deviceName = deviceConfig.get("name", "").asString();
+	const Json::Value & deviceConfig = config["device"];
+	const std::string deviceName = deviceConfig.get("name", "").asString();
 
-		const std::string hostname = QHostInfo::localHostName().toStdString();
-		const std::string mDNSDescr = protoServerConfig.get("mDNSDescr", hostname).asString();
-		const std::string mDNSService = protoServerConfig.get("mDNSService", "_hyperiond_proto._tcp").asString();
-		BonjourServiceRegister *bonjourRegister_proto;
-		bonjourRegister_proto = new BonjourServiceRegister();
-		bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-					QString()), protoServerConfig["port"].asUInt());
-		std::cout << "INFO: Proto mDNS responder started" << std::endl;
+	const std::string hostname = QHostInfo::localHostName().toStdString();
+	const std::string mDNSDescr = jsonServerConfig.get("mDNSDescr", hostname).asString();
+	const std::string mDNSService = jsonServerConfig.get("mDNSService", "_hyperiond_json._tcp").asString();
+	BonjourServiceRegister *bonjourRegister_json;
+	bonjourRegister_json = new BonjourServiceRegister();
+	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
+	                                      QString()), jsonServerConfig["port"].asUInt());
+	std::cout << "INFO: Json mDNS responder started" << std::endl;
+
+	const Json::Value & deviceConfig = config["device"];
+	const std::string deviceName = deviceConfig.get("name", "").asString();
+
+	const std::string hostname = QHostInfo::localHostName().toStdString();
+	const std::string mDNSDescr = protoServerConfig.get("mDNSDescr", hostname).asString();
+	const std::string mDNSService = protoServerConfig.get("mDNSService", "_hyperiond_proto._tcp").asString();
+	BonjourServiceRegister *bonjourRegister_proto;
+	bonjourRegister_proto = new BonjourServiceRegister();
+	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
+	                                       QString()), protoServerConfig["port"].asUInt());
+	std::cout << "INFO: Proto mDNS responder started" << std::endl;
 #endif
-	}
 
 	// Create Boblight server if configuration is present
 	if (config.isMember("boblightServer"))
