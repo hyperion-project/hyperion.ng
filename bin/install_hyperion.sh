@@ -135,19 +135,27 @@ if [ -f "/opt/hyperion/bin/hyperiond" ]; then
 	echo '---> Old installation found, move configs to /etc/hyperion/ and move hyperion to /usr/share/hyperion/'
 	mv /opt/hyperion/config/*.json /etc/hyperion 2>/dev/null 
 	sed -i "s|/opt/hyperion/effects|/usr/share/hyperion/effects|g" /etc/hyperion/*.json
+		CPO1=/etc/hyperion.config.json
+		CPO2=/opt/hyperion/config/hyperion.config.json
+		CPN=/etc/hyperion/hyperion.config.json
+		BPO=/opt/hyperion/bin/hyperiond
+		BPN=/usr/bin/hyperiond
 		if [ $USE_INITCTL -eq 1 ]; then
-			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.conf
-			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.conf
+			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$CPO1|$CPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$CPO2|$CPN|g" $SERVICEP/hyperion.conf
 			initctl reload-configuration
 		elif [ $OS_OPENELEC -eq 1 ]; then
 			sleep 0
 		elif [ $USE_SYSTEMD -eq 1 ]; then
-			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.service
-			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.service
+			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$CPO1|$CPN|g" $SERVICEP/hyperion.service
+			sed -i "s|$CPO2|$CPN|g" $SERVICEP/hyperion.service
 			systemctl -q daemon-reload
 		elif [ $USE_SERVICE -eq 1 ]; then
-			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion
-			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion
+			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$CPO1|$CPN|g" $SERVICEP/hyperion
+			sed -i "s|$CPO2|$CPN|g" $SERVICEP/hyperion
 			update-rc.d hyperion defaults 98 02
 		fi
 fi
