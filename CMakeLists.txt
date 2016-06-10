@@ -172,10 +172,6 @@ if(ENABLE_OSX)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
 
-configure_file(bin/install_hyperion.sh ${LIBRARY_OUTPUT_PATH} @ONLY)
-configure_file(config/hyperion.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
-configure_file(config/hyperion_x86.config.json ${LIBRARY_OUTPUT_PATH} @ONLY)
-
 # Add the source/lib directories
 add_subdirectory(dependencies)
 add_subdirectory(libsrc)

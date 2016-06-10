@@ -23,7 +23,7 @@ fi
 #Set welcome message
 if [ $BETA -eq 1 ]; then
 	WMESSAGE="echo This script will update Hyperion to the latest BETA"
-else WMESSAGE="echo This script will install/update Hyperion Ambilight"
+else WMESSAGE="echo This script will install/update Hyperion Ambient Light"
 fi
 
 #Welcome message
@@ -74,24 +74,34 @@ if [ $BOBLIGHT_PROCNR -eq 1 ]; then
 	exit 1
 fi
 
-# Stop hyperion daemon if it is running
+#set service script path
+SERVICEL="/usr/share/hyperion/services"
+
+# Stop hyperion daemon if it is running and set service path
 echo '---> Stop Hyperion, if necessary'
 if [ $OS_OPENELEC -eq 1 ]; then
     killall hyperiond 2>/dev/null
 elif [ $USE_INITCTL -eq 1 ]; then
 	/sbin/initctl stop hyperion 2>/dev/null
-elif [ $USE_SERVICE -eq 1 ]; then
-	/usr/sbin/service hyperion stop 2>/dev/null
+	SERVICEP="/etc/init"
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	service hyperion stop 2>/dev/null
+	SERVICEP="/etc/systemd/system"
 	#many people installed with the official script and this just uses service, if both registered -> dead
 	/usr/sbin/service hyperion stop 2>/dev/null
+	#Bad workaround for Jessie (systemd) users that used the old official script for install
+	update-rc.d -f hyperion remove 2>/dev/null
+	rm /etc/init.d/hyperion 2>/dev/null
+elif [ $USE_SERVICE -eq 1 ]; then
+	/usr/sbin/service hyperion stop 2>/dev/null
+	SERVICEP="/etc/init.d"
 fi
 
-#Install dependencies for Hyperion
+#Install dependencies for Hyperion and setup preperation
 if [ $OS_OPENELEC -ne 1 ]; then
 	echo '---> Install/Update Hyperion dependencies (This may take a while)'
 	apt-get -qq update && apt-get -qq --yes install libqtcore4 libqtgui4 libqt4-network libusb-1.0-0 ca-certificates
+	mkdir /etc/hyperion 2>/dev/null
 fi
 
 #Check, if dtparam=spi=on is in place (not for OPENELEC)
@@ -119,15 +129,29 @@ if [ $CPU_RPI -eq 1 ] && [ $OS_OPENELEC -eq 1 ]; then
 				fi
 		fi
 fi
-
-#Backup the .conf files, if present
-echo '---> Backup Hyperion configuration(s), if present'
-rm -f /tmp/*.json 2>/dev/null
-if [ $OS_OPENELEC -eq 1 ]; then
-	cp -v /storage/.config/*.json /tmp 2>/dev/null
-else cp -v /opt/hyperion/config/*.json /tmp 2>/dev/null
-fi
  
+# compatibility layer to move old configs to new config dir
+if [ -f "/opt/hyperion" ]; then
+	echo '---> Old installation found, move configs to /etc/hyperion/ and move hyperion to /usr/share/hyperion/'
+	mv /opt/hyperion/config/*.json /etc/hyperion 2>/dev/null 
+	sed -i "s|/opt/hyperion/effects|/usr/share/hyperion/effects|g" /etc/hyperion/*.json
+		if [ $USE_INITCTL -eq 1 ]; then
+			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.conf
+			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.conf
+			initctl reload-configuration
+		elif [ $OS_OPENELEC -eq 1 ]; then
+			sleep 0
+		elif [ $USE_SYSTEMD -eq 1 ]; then
+			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.service
+			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion.service
+			systemctl -q daemon-reload
+		elif [ $USE_SERVICE -eq 1 ]; then
+			sed -i "s|/etc/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion
+			sed -i "s|/opt/hyperion/hyperion.config.json|/etc/hyperion/hyperion.config.json|g" $SERVICEP/hyperion
+			update-rc.d hyperion defaults 98 02
+		fi
+fi
+
 # Select the appropriate download path
 if [ $BETA -eq 1 ]; then
 	HYPERION_ADDRESS=https://sourceforge.net/projects/hyperion-project/files/beta
@@ -191,32 +215,25 @@ if [ $OS_OPENELEC -eq 1 ]; then
 	curl -# -L --get $OE_DEPENDECIES | tar -C /storage/hyperion/bin -xz
 	#set the executen bit (failsave)
 	chmod +x -R /storage/hyperion/bin
-
-	# /storage/.config is available as samba share. A symbolic link would not be working
-	false | cp -i /storage/hyperion/config/hyperion.config.json /storage/.config/hyperion.config.json 2>/dev/null
 else
-	wget -nv $HYPERION_RELEASE -O - | tar -C /opt -xz
-	#set the executen bit (failsave)
-	chmod +x -R /opt/hyperion/bin
+	BINSP=/usr/share/hyperion/bin
+	BINTP=/usr/bin
+	wget -nv $HYPERION_RELEASE -O - | tar -C /usr/share -xz	
+	#set the executen bit (failsave) and move config to /etc/hyperion
+	chmod +x -R $BINSP
 	# create links to the binaries
-	ln -fs /opt/hyperion/bin/hyperiond /usr/bin/hyperiond
-	ln -fs /opt/hyperion/bin/hyperion-remote /usr/bin/hyperion-remote
-	ln -fs /opt/hyperion/bin/hyperion-v4l2 /usr/bin/hyperion-v4l2
-	ln -fs /opt/hyperion/bin/hyperion-dispmanx /usr/bin/hyperion-dispmanx 2>/dev/null
-	ln -fs /opt/hyperion/bin/hyperion-x11 /usr/bin/hyperion-x11 2>/dev/null
-fi
-	
-# Restore backup of .conf files, if present
-echo '---> Restore Hyperion configuration(s), if present'
-if [ $OS_OPENELEC -eq 1 ]; then
-	mv -v /tmp/*.json /storage/.config/ 2>/dev/null
-else mv -v /tmp/*.json /opt/hyperion/config/ 2>/dev/null	
+	ln -fs $BINSP/hyperiond $BINTP/hyperiond
+	ln -fs $BINSP/hyperion-remote $BINTP/hyperion-remote
+	ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
+	ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
+	ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+	ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 fi
 
-# Copy the service control configuration to /etc/int (-n to respect user modified scripts)
+# Copy the service control configuration to /etc/init (-n to respect user modified scripts)
 if [ $USE_INITCTL -eq 1 ]; then
 	echo '---> Installing initctl script'
-	cp -n /opt/hyperion/init.d/hyperion.initctl.sh /etc/init/hyperion.conf 2>/dev/null
+	cp -n $SERVICEL/hyperion.initctl.sh $SERVICEP/hyperion.conf 2>/dev/null
 	initctl reload-configuration
 elif [ $OS_OPENELEC -eq 1 ]; then
 	#modify all old installs with a logfile output
@@ -237,34 +254,35 @@ elif [ $OS_OPENELEC -eq 1 ]; then
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	echo '---> Installing systemd script'
 	#place startup script for systemd and activate
-	#Problem with systemd to enable symlinks - Bug? Workaround cp -n (overwrite never)
-	#Bad workaround for Jessie (systemd) users that used the official script for install
-	update-rc.d -f hyperion remove 2>/dev/null
-	rm /etc/init.d/hyperion 2>/dev/null
-	cp -n /opt/hyperion/init.d/hyperion.systemd.sh /etc/systemd/system/hyperion.service
+	cp -n $SERVICEL/hyperion.systemd.sh $SERVICEP/hyperion.service
 	systemctl -q enable hyperion.service
 		if [ $OS_OSMC -eq 1 ]; then
 			echo '---> Modify systemd script for OSMC usage'
-			# Wait until kodi is sarted (for kodi checker)
-			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
-			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
-			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
-			sed -i 's/Group=osmc/Group=root/g' /etc/systemd/system/hyperion.service
+			# Wait until kodi is sarted
+			sed -i '/After = mediacenter.service/d' $SERVICEP/hyperion.service
+			sed -i '/Unit/a After = mediacenter.service' $SERVICEP/hyperion.service
 			systemctl -q daemon-reload
 		fi
 elif [ $USE_SERVICE -eq 1 ]; then
 	echo '---> Installing startup script in init.d'
 	# place startup script in init.d and add it to upstart (-s to respect user modified scripts)
-	ln -s /opt/hyperion/init.d/hyperion.init.sh /etc/init.d/hyperion 2>/dev/null
-	chmod +x /etc/init.d/hyperion
+	ln -s $SERVICEL/hyperion.init.sh $SERVICEP/hyperion 2>/dev/null && chmod +x $SERVICEP/hyperion
 	update-rc.d hyperion defaults 98 02
+fi
+
+#remove unwanted files/dirs
+if [ $OS_OPENELEC -eq 1 ]; then
+	rm -r /storage/hyperion/services
+else
+	rm -r /usr/share/hyperion/services
+	rm -r /opt/hyperion 2>/dev/null
 fi
 
 #chown the /config/ dir and all configs inside for hypercon config upload for non-root logins
 if [ $OS_OSMC -eq 1 ]; then
-	chown -R osmc:osmc /opt/hyperion/config
+	chown -R osmc:osmc /etc/hyperion/config
 elif [ $OS_RASPBIAN -eq 1 ]; then
-	chown -R pi:pi /opt/hyperion/config
+	chown -R pi:pi /etc/hyperion/config
 fi
 
 # Start the hyperion daemon
