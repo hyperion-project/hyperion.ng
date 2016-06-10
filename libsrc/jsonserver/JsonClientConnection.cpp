@@ -23,7 +23,6 @@
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
 #include <HyperionConfig.h>
-#include <unistd.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -597,7 +596,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & version = info["hyperion_build"] = Json::Value(Json::arrayValue);
 	Json::Value ver;
 	ver["version"] = HYPERION_VERSION_ID;
-	ver["time"] = __DATE__" "__TIME__;
+	ver["time"] = __DATE__ " " __TIME__;
 
 	version.append(ver);
 
