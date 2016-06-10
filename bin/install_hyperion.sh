@@ -148,12 +148,12 @@ if [ -f "/opt/hyperion/bin/hyperiond" ]; then
 		elif [ $OS_OPENELEC -eq 1 ]; then
 			sleep 0
 		elif [ $USE_SYSTEMD -eq 1 ]; then
-			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.service
 			sed -i "s|$CPO1|$CPN|g" $SERVICEP/hyperion.service
 			sed -i "s|$CPO2|$CPN|g" $SERVICEP/hyperion.service
 			systemctl -q daemon-reload
 		elif [ $USE_SERVICE -eq 1 ]; then
-			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion.conf
+			sed -i "s|$BPO|$BPN|g" $SERVICEP/hyperion
 			sed -i "s|$CPO1|$CPN|g" $SERVICEP/hyperion
 			sed -i "s|$CPO2|$CPN|g" $SERVICEP/hyperion
 			update-rc.d hyperion defaults 98 02
