@@ -8,4 +8,4 @@ stop on (runlevel [!2345])
 
 respawn
 
-exec /usr/bin/hyperiond /opt/hyperion/hyperion.config.json /etc/hyperion/hyperion.config.json
+exec /usr/bin/hyperiond /etc/hyperion/hyperion.config.json
