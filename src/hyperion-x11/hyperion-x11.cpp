@@ -9,7 +9,6 @@
 #include "protoserver/ProtoConnectionWrapper.h"
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
-#include "utils/Profiler.h"
 
 using namespace vlofgren;
 
