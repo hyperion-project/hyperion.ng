@@ -288,9 +288,9 @@ fi
 
 #chown the /config/ dir and all configs inside for hypercon config upload for non-root logins
 if [ $OS_OSMC -eq 1 ]; then
-	chown -R osmc:osmc /etc/hyperion/config
+	chown -R osmc:osmc /etc/hyperion
 elif [ $OS_RASPBIAN -eq 1 ]; then
-	chown -R pi:pi /etc/hyperion/config
+	chown -R pi:pi /etc/hyperion
 fi
 
 # Start the hyperion daemon
