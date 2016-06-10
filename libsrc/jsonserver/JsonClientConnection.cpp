@@ -23,6 +23,7 @@
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
 #include <HyperionConfig.h>
+#include <unistd.h>
 
 // project includes
 #include "JsonClientConnection.h"
