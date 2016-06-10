@@ -207,7 +207,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
 		//protoEnable = protoServerConfig.get("enable", true).asBool();
-		protonPort  = protoServerConfig.get("port", 19445).asUInt();
+		protoPort  = protoServerConfig.get("port", 19445).asUInt();
 	}
 
 	protoServer = new ProtoServer(&hyperion, protoPort );
