@@ -59,8 +59,8 @@ void XBMCVideoChecker::receiveReply()
 {
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
-
-	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
+// silence - no "debug" code should be at the log
+//	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
 
 	if (reply.contains("\"method\":\"Player.OnPlay\""))
 	{
