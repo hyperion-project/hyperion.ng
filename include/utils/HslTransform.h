@@ -20,7 +20,7 @@ public:
 	/// @param saturationGain The used saturation gain
 	/// @param luminanceGain The used luminance gain
 	///
-	HslTransform(double saturationGain, double luminanceGain);
+	HslTransform(double saturationGain, double luminanceGain, double luminanceMinimum);
 
 	///
 	/// Destructor
@@ -54,6 +54,20 @@ public:
 	/// @return The current luminance gain
 	///
 	double getLuminanceGain() const;
+
+	///
+	/// Updates the luminance minimum
+	///
+	/// @param luminanceMinimum New luminance minimum
+	///
+	void setLuminanceMinimum(double luminanceMinimum);
+
+	///
+	/// Returns the luminance minimum
+	///
+	/// @return The current luminance minimum
+	///
+	double getLuminanceMinimum() const;
 
 	///
 	/// Apply the transform the the given RGB values.
@@ -97,4 +111,6 @@ private:
 	double _saturationGain;
 	/// The luminance gain
 	double _luminanceGain;
+	/// The luminance minimum
+	double _luminanceMinimum;
 };

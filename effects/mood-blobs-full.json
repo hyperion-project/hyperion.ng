@@ -4,7 +4,7 @@
 	"args" :
 	{
 		"rotationTime" : 60.0,
-		"color" : [0,0,255],
+		"colorRandom" : true,
 		"hueChange" : 30.0,
 		"blobs" : 5,
 		"reverse" : false,

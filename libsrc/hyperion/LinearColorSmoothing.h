@@ -80,4 +80,6 @@ private:
 	/** The output queue */
 	std::list<std::vector<ColorRgb> > _outputQueue;
 
+	// prevent sending data to device when no intput data is sent
+	bool _writeToLedsEnable;
 };

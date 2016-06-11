@@ -41,7 +41,7 @@ public:
 	/// @param grabScreensaver Whether or not to grab when the XBMC screensaver is activated
 	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
 	///
-	XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection);
+	XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 
 	///
 	/// Start polling XBMC
@@ -76,7 +76,7 @@ private:
 	void setGrabbingMode(GrabbingMode grabbingMode);
 
 	void setScreensaverMode(bool isOnScreensaver);
-
+	
 	/// Set the video mode
 	void setVideoMode(VideoMode videoMode);
 
@@ -117,6 +117,9 @@ private:
 	/// Flag indicating whether or not to grab when XBMC is playing nothing (in menu)
 	const bool _grabMenu;
 
+	/// Flag indicating whether or not to grab when the XBMC videoplayer is at pause state
+	const bool _grabPause;
+	
 	/// Flag indicating whether or not to grab when the XBMC screensaver is activated
 	const bool _grabScreensaver;
 
@@ -125,7 +128,7 @@ private:
 
 	/// Flag indicating if XBMC is on screensaver
 	bool _previousScreensaverMode;
-
+	
 	/// Previous emitted grab mode
 	GrabbingMode _previousGrabbingMode;
 

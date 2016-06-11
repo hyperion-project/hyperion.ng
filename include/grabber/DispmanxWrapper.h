@@ -56,6 +56,9 @@ public slots:
 	///
 	void stop();
 
+	void setCropping(const unsigned cropLeft, const unsigned cropRight,
+		const unsigned cropTop, const unsigned cropBottom);
+
 	///
 	/// Set the grabbing mode
 	/// @param[in] mode The new grabbing mode

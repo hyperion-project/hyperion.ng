@@ -18,9 +18,6 @@
 // Define to enable the spi-device
 #cmakedefine ENABLE_TINKERFORGE
 
-// Define to enable PROTOBUF server
-#cmakedefine ENABLE_PROTOBUF
-
 // Define to enable the framebuffer grabber
 #cmakedefine ENABLE_FB
 
@@ -30,4 +27,11 @@
 // Define to enable the osx grabber
 #cmakedefine ENABLE_OSX
 
+// Define to enable the bonjour/zeroconf publishing
+#cmakedefine ENABLE_ZEROCONF
+
+// Define to enable profiler for development purpose
+#cmakedefine ENABLE_PROFILER
+
+// the hyperion build id string
 #define HYPERION_VERSION_ID "${HYPERION_VERSION_ID}"

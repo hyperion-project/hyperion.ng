@@ -11,6 +11,10 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+//Utils includes
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
+
 // proto includes
 #include "message.pb.h"
 #include "protoserver/ProtoConnection.h"
@@ -18,7 +22,7 @@
 class ImageProcessor;
 
 ///
-/// The Connection object created by \a ProtoServer when a new connection is establshed
+/// The Connection object created by a ProtoServer when a new connection is establshed
 ///
 class ProtoClientConnection : public QObject
 {
@@ -36,6 +40,13 @@ public:
 	/// Destructor
 	///
 	~ProtoClientConnection();
+	
+public slots:
+	///
+	/// Send XBMC Video Checker message to connected client
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+	void setVideoMode(const VideoMode videoMode);
 
 signals:
 	///

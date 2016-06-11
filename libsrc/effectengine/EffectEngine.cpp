@@ -35,21 +35,26 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	{
 		const std::string & path = paths[i].asString();
 		QDir directory(QString::fromStdString(path));
-		if (!directory.exists())
+		if (directory.exists())
 		{
-			std::cerr << "EFFECTENGINE ERROR: Effect directory can not be loaded: " << path << std::endl;
-			continue;
-		}
-
-		QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-		foreach (const QString & filename, filenames)
-		{
-			EffectDefinition def;
-			if (loadEffectDefinition(path, filename.toStdString(), def))
+			int efxCount = 0;
+			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & filename, filenames)
 			{
-				_availableEffects.push_back(def);
+				EffectDefinition def;
+				if (loadEffectDefinition(path, filename.toStdString(), def))
+				{
+					_availableEffects.push_back(def);
+					efxCount++;
+				}
 			}
+			std::cerr << "EFFECTENGINE INFO: " << efxCount << " effects loaded from directory " << path << std::endl;
 		}
+	}
+
+	if (_availableEffects.size() == 0)
+	{
+		std::cerr << "EFFECTENGINE ERROR: no effects found, check your effect directories" << std::endl;
 	}
 
 	// initialize the python interpreter

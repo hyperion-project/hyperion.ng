@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("X11 capture application for Hyperion");
+		OptionsParser optionParser("AmLogic capture application for Hyperion");
 		ParameterSet & parameters = optionParser.getParameters();
 
 		IntParameter           & argFps             = parameters.add<IntParameter>          ('f', "framerate",        "Capture frame rate [default: 10]");

@@ -93,6 +93,7 @@ public:
 	/// @param value The HSV value gain
 	/// @param saturationL The HSL saturation gain
 	/// @param luminance The HSL luminance gain
+	/// @param luminanceMin The HSL luminance minimum
 	/// @param threshold The threshold
 	/// @param gamma The gamma value
 	/// @param blacklevel The blacklevel
@@ -104,6 +105,7 @@ public:
 			double * value,
 			double * saturationL,
 			double * luminance,
+			double * luminanceMin,
 			ColorTransformValues * threshold,
 			ColorTransformValues * gamma,
 			ColorTransformValues * blacklevel,

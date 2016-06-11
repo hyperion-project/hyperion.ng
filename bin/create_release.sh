@@ -23,18 +23,14 @@ tar --create --gzip --absolute-names --show-transformed-names --ignore-failed-re
 	--transform "s:$builddir/bin/:hyperion/bin/:" \
 	--transform "s:$repodir/effects/:hyperion/effects/:" \
 	--transform "s:$repodir/config/:hyperion/config/:" \
-	--transform "s:$repodir/bin/service/hyperion.init.sh:hyperion/init.d/hyperion.init.sh:" \
-	--transform "s:$repodir/bin/service/hyperion.systemd.sh:hyperion/init.d/hyperion.systemd.sh:" \
-	--transform "s:$repodir/bin/service/hyperion.initctl.sh:hyperion/init.d/hyperion.initctl.sh:" \
+	--transform "s:$repodir/bin/service/hyperion.init.sh:hyperion/services/hyperion.init.sh:" \
+	--transform "s:$repodir/bin/service/hyperion.systemd.sh:hyperion/services/hyperion.systemd.sh:" \
+	--transform "s:$repodir/bin/service/hyperion.initctl.sh:hyperion/services/hyperion.initctl.sh:" \
 	--transform "s://:/:g" \
-	"$builddir/bin/hyperiond" \
-	"$builddir/bin/hyperion-remote" \
-	"$builddir/bin/hyperion-v4l2" \
-	"$builddir/bin/hyperion-x11" \
-	"$builddir/bin/hyperion-dispmanx" \
+	"$builddir/bin/hyperion"* \
 	"$repodir/effects/"* \
 	"$repodir/bin/service/hyperion.init.sh" \
 	"$repodir/bin/service/hyperion.systemd.sh" \
 	"$repodir/bin/service/hyperion.initctl.sh" \
-	"$repodir/config/hyperion.config.json"
+	"$repodir/config/hyperion.config.json.example"
 

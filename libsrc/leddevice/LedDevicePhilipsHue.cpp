@@ -105,10 +105,10 @@ CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue) {
 	// Convert to x,y space.
 	float cx = X / (X + Y + Z);
 	float cy = Y / (X + Y + Z);
-	if (isnan(cx)) {
+	if (std::isnan(cx)) {
 		cx = 0.0f;
 	}
-	if (isnan(cy)) {
+	if (std::isnan(cy)) {
 		cy = 0.0f;
 	}
 	// Brightness is simply Y in the XYZ space.
@@ -174,26 +174,26 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues) {
 		CiColor xy = lamp.rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f);
 		// Write color if color has been changed.
 		if (xy != lamp.color) {
-			// Switch on if the lamp has been previously switched off.
-			if (switchOffOnBlack && lamp.color == lamp.black) {
-				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
-			}
-			// Send adjust color and brightness command in JSON format.
-			// We have to set the transition time each time.
-			put(getStateRoute(lamp.id),
-					QString("{\"xy\": [%1, %2], \"bri\": %3, \"transitiontime\": %4}").arg(xy.x).arg(xy.y).arg(
-							qRound(xy.bri * 255.0f)).arg(transitiontime));
-
-		}
-		// Switch lamp off if switchOffOnBlack is enabled and the lamp is currently on.
-		if (switchOffOnBlack) {
-			// From black to a color.
-			if (lamp.color == lamp.black && xy != lamp.black) {
-				put(getStateRoute(lamp.id), QString("{\"on\": true}"));
-			}
 			// From a color to black.
-			else if (lamp.color != lamp.black && xy == lamp.black) {
+			if (switchOffOnBlack && lamp.color != lamp.black && xy == lamp.black) {
 				put(getStateRoute(lamp.id), QString("{\"on\": false}"));
+			}
+			// From black to a color
+			else if (switchOffOnBlack && lamp.color == lamp.black && xy != lamp.black) {
+				// Send adjust color and brightness command in JSON format.
+				// We have to set the transition time each time.
+				// Send also command to switch the lamp on.
+				put(getStateRoute(lamp.id),
+						QString("{\"on\": true, \"xy\": [%1, %2], \"bri\": %3, \"transitiontime\": %4}").arg(xy.x).arg(
+								xy.y).arg(qRound(xy.bri * 255.0f)).arg(transitiontime));
+			}
+			// Normal color change.
+			else {
+				// Send adjust color and brightness command in JSON format.
+				// We have to set the transition time each time.
+				put(getStateRoute(lamp.id),
+						QString("{\"xy\": [%1, %2], \"bri\": %3, \"transitiontime\": %4}").arg(xy.x).arg(xy.y).arg(
+								qRound(xy.bri * 255.0f)).arg(transitiontime));
 			}
 		}
 		// Remember last color.

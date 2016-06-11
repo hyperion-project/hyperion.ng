@@ -62,6 +62,7 @@ void FramebufferWrapper::setGrabbingMode(const GrabbingMode mode)
 	switch (mode)
 	{
 	case GRABBINGMODE_VIDEO:
+	case GRABBINGMODE_PAUSE:
 	case GRABBINGMODE_AUDIO:
 	case GRABBINGMODE_PHOTO:
 	case GRABBINGMODE_MENU:

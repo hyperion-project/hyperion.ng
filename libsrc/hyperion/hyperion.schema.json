@@ -68,6 +68,11 @@
                             "type" : "number",
                             "required" : false,
                             "minimum" : 0.0
+                        },
+                        "luminanceMinimum" : {
+                            "type" : "number",
+                            "required" : false,
+                            "minimum" : 0.0
                         }
                     },
                     "additionalProperties" : false
@@ -282,6 +287,10 @@
                 "grabMenu" : {
                     "type" : "boolean",
                     "required" : true
+                },
+		"grabPause" : {
+                    "type" : "boolean",
+                    "required" : false
                 },
                 "grabScreensaver" : {
                     "type" : "boolean",

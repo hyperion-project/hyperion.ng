@@ -192,7 +192,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
 
@@ -225,6 +225,12 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 	{
 		transform["luminanceGain"] = *luminance;
 	}
+	
+	if (luminanceMin != nullptr)
+	{
+		transform["luminanceMinimum"] = *luminanceMin;
+	}
+	
 	if (threshold != nullptr)
 	{
 		Json::Value & v = transform["threshold"];

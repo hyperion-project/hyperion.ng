@@ -3,16 +3,32 @@ import time
 import colorsys
 import socket
 import errno
+import struct 
 
 # Get the parameters
-udpPort = int(hyperion.args.get('udpPort', 2812))
+ListenPort = int(hyperion.args.get('ListenPort', 2801))
+ListenIP = hyperion.args.get('ListenIP', "")
+octets = ListenIP.split('.');
 
-UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+UDPSock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 UDPSock.setblocking(False)
 
-listen_addr = ("",udpPort)
-print "udp.py: bind socket port:",udpPort
+listen_addr = (ListenIP,ListenPort)
 UDPSock.bind(listen_addr)
+
+if ListenIP == "":
+	print "udp.py: Listening on *.*.*.*:"+str(ListenPort)
+else:
+	print "udp.py: Listening on "+ListenIP+":"+str(ListenPort)
+
+if len(octets) == 4 and int(octets[0]) >= 224 and int(octets[0]) < 240:
+	print "ListenIP is a multicast address\n"
+	# Multicast handling
+	try:
+		mreq = struct.pack("4sl", socket.inet_aton(ListenIP), socket.INADDR_ANY)
+		UDPSock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+	except socket.error:
+		print "ERROR enabling multicast\n"
 
 hyperion.setColor(hyperion.ledCount *  bytearray((int(0), int(0), int(0))) )
 

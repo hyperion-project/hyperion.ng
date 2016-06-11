@@ -1,0 +1,9 @@
+{
+	"name" : "UDP multicast listener",
+	"script" : "udp.py",
+	"args" :
+	{
+		"ListenPort" : 2801,
+		"ListenIP" : "239.255.28.01" 
+	}
+}

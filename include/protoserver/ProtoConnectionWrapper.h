@@ -4,31 +4,40 @@
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/GrabbingMode.h>
+#include <utils/VideoMode.h>
 
 // hyperion proto includes
 #include "protoserver/ProtoConnection.h"
 
-/// This class handles callbacks from the V4L2 grabber
+/// This class handles callbacks from the V4L2 and X11 grabber
 class ProtoConnectionWrapper : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    ProtoConnectionWrapper(const std::string & address, int priority, int duration_ms, bool skipProtoReply);
-    virtual ~ProtoConnectionWrapper();
+	ProtoConnectionWrapper(const std::string & address, int priority, int duration_ms, bool skipProtoReply);
+	virtual ~ProtoConnectionWrapper();
+	
+signals:	
+	///
+	/// Forwarding XBMC Video Checker Message
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+	void setVideoMode(const VideoMode videoMode);
 
 public slots:
-    /// Handle a single image
-    /// @param image The image to process
-    void receiveImage(const Image<ColorRgb> & image);
+	/// Handle a single image
+	/// @param image The image to process
+	void receiveImage(const Image<ColorRgb> & image);
 
 private:
-    /// Priority for calls to Hyperion
-    const int _priority;
+	/// Priority for calls to Hyperion
+	const int _priority;
 
-    /// Duration for color calls to Hyperion
-    const int _duration_ms;
+	/// Duration for color calls to Hyperion
+	const int _duration_ms;
 
-    /// Hyperion proto connection object
-    ProtoConnection _connection;
+	/// Hyperion proto connection object
+	ProtoConnection _connection;
 };

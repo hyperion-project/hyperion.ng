@@ -1,0 +1,32 @@
+# cmake file for generating distribution packages
+
+SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ" ) # "RPM" 
+
+SET ( CPACK_PACKAGE_NAME "hyperion" )
+SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an opensource 'AmbiLight' implementation" )
+SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
+SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
+
+SET ( CPACK_DEBIAN_PACKAGE_MAINTAINER "hyperion team")
+SET ( CPACK_DEBIAN_PACKAGE_NAME "hyperion" )
+SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst" )
+SET ( CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/hyperion-project/hyperion" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqtcore4 (>= 4:4.8.0), libqt4-network (>= 4:4.8.0), libusb-1.0-0, libpython2.7, libc6" )
+SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
+
+SET ( CPACK_RPM_PACKAGE_NAME "hyperion" )
+SET ( CPACK_RPM_PACKAGE_URL "https://github.com/hyperion-project/hyperion" )
+SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
+
+SET(CPACK_PACKAGE_VERSION_MAJOR "1")
+SET(CPACK_PACKAGE_VERSION_MINOR "3")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+
+SET ( CPACK_COMPONENTS_ALL ambilight  )
+SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
+SET ( CPACK_DEB_COMPONENT_INSTALL ON )
+SET ( CPACK_RPM_COMPONENT_INSTALL ON )
+SET ( CPACK_STRIP_FILES ON )
+
+# no code after following line!
+INCLUDE ( CPack )

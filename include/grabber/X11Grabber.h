@@ -6,7 +6,6 @@
 
 // X11 includes
 #include <X11/Xlib.h>
-
 #include <X11/extensions/Xrender.h>
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
@@ -16,31 +15,43 @@ class X11Grabber
 {
 public:
 
-    X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
+	X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
 
 	virtual ~X11Grabber();
 
-	int open();
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(const VideoMode videoMode);
 	
 	bool Setup();
 
 	Image<ColorRgb> & grab();
 
 private:
-    ImageResampler _imageResampler;
-
-    int _cropLeft;
-    int _cropRight;
-    int _cropTop;
-    int _cropBottom;
-    
-    XImage* _xImage;
-    XShmSegmentInfo _shminfo;
+	ImageResampler _imageResampler;
+	
+	bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
+	int _cropLeft;
+	int _cropRight;
+	int _cropTop;
+	int _cropBottom;
+	
+	XImage* _xImage;
+	XShmSegmentInfo _shminfo;
 
 	/// Reference to the X11 display (nullptr if not opened)
 	Display* _x11Display;
 	Window _window;
 	XWindowAttributes _windowAttr;
+	
+	Pixmap _pixmap;
+	XRenderPictFormat* _srcFormat;
+	XRenderPictFormat* _dstFormat;
+	XRenderPictureAttributes _pictAttr;
+	Picture _srcPicture;
+	Picture _dstPicture;
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;

@@ -7,9 +7,9 @@ project(hyperion-osx)
 # find QT
 if(ENABLE_QT5)
 	find_package(Qt5Widgets REQUIRED)
-else(ENABLE_QT5)
+else()
 	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork )
-endif(ENABLE_QT5)
+endif()
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
@@ -31,9 +31,9 @@ set(Hyperion_OSX_SOURCES
 
 if(ENABLE_QT5)
 	QT5_WRAP_CPP(Hyperion_OSX_HEADERS_MOC ${Hyperion_OSX_QT_HEADERS})
-else(ENABLE_QT5)
+else()
 	QT4_WRAP_CPP(Hyperion_OSX_HEADERS_MOC ${Hyperion_OSX_QT_HEADERS})
-endif(ENABLE_QT5)
+endif()
 
 add_executable( ${PROJECT_NAME}
 	${Hyperion_OSX_HEADERS}
@@ -52,6 +52,9 @@ target_link_libraries( ${PROJECT_NAME}
 
 if(ENABLE_QT5)
 	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
-else(ENABLE_QT5)
+else()
 	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif(ENABLE_QT5)
+endif()
+
+install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
+

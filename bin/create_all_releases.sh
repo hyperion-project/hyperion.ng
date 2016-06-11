@@ -1,43 +1,34 @@
 #!/bin/sh
-# create all directly for release with -DCMAKE_BUILD_TYPE=Release -Wno-dev
-# Create the x64 build
-mkdir build-x86x64
-cd build-x86x64
-cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-make -j 4
-cd ..
 
-# Create the x32 build
-#mkdir build-x32
-#cd build-x32
-#cmake -DIMPORT_PROTOC=../build-x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-#make -j 4
-#cd ..
+# make_release <release name> <platform> [<cmake args ...>]
+make_release()
+{
+	echo
+	echo "--- build release for $1 ---"
+	echo
+	RELEASE=$1
+	PLATFORM=$2
+	shift 2
 
-# Create the RPI build
-mkdir build-rpi
-cd build-rpi
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-make -j 4
-cd ..
+	mkdir -p build-${RELEASE}
+	mkdir -p deploy/${RELEASE}
+	cd  build-${RELEASE}
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DPLATFORM=${PLATFORM} $@ -DCMAKE_BUILD_TYPE=Release -Wno-dev .. || exit 1
+	make -j $(nproc)  || exit 1
+	#strip bin/*
+	make package -j $(nproc)
+	mv hyperion-*-ambilight.* ../deploy/${RELEASE}
+	cd ..
+	bin/create_release.sh . ${RELEASE}
+}
 
-# Create the WETEK build
-mkdir build-wetek
-cd build-wetek
-cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-rpi.cmake" -DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-make -j 4
-cd ..
+export PATH="$PATH:$HOME/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin"
+CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake"
 
-# Create the IMX6 build
-#mkdir build-imx6
-#cd build-imx6
-#cmake -DCMAKE_TOOLCHAIN_FILE="../Toolchain-imx6.cmake" -DIMPORT_PROTOC=../build-x32x64/protoc_export.cmake -DENABLE_DISPMANX=OFF -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-#make -j 4
-#cd ..
+make_release x86x64  x86
+#make_release x32     x86 ${CMAKE_PROTOC_FLAG}
+make_release rpi     rpi-pwm  -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake" ${CMAKE_PROTOC_FLAG}
+make_release wetek   wetek  -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake" ${CMAKE_PROTOC_FLAG}
+#make_release imx6   imx6 -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-imx6.cmake" ${CMAKE_PROTOC_FLAG}
 
-bin/create_release.sh . x86x64
-#bin/create_release.sh . x32
-bin/create_release.sh . rpi
-bin/create_release.sh . wetek
-#bin/create_release.sh . imx6
 

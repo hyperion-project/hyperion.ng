@@ -1,0 +1,57 @@
+#!/bin/sh
+
+install_file()
+{
+	src="$1"
+	dest="$2"
+
+	if [ -e "$dest" ] && ! cmp --quiet "$src" "$dest"
+	then
+		cp "$src" "${dest}.new"
+	else
+		cp "$src" "${dest}"
+	fi
+}
+
+
+echo "--- hyperion ambilight postinstall ---"
+echo "- install configuration template"
+mkdir -p /etc/hyperion
+install_file /usr/share/hyperion/config/hyperion.config.json /etc/hyperion/hyperion.config.json
+
+
+if grep -m1 systemd /proc/1/comm > /dev/null
+then
+	# systemd
+	echo
+	systemctl stop hyperion 2> /dev/null
+	install_file /usr/share/hyperion/service/hyperion.systemd.sh /etc/systemd/system/hyperion.service
+	systemctl -q enable hyperion.service
+#		if [ $OS_OSMC -eq 1 ]; then
+#			echo '---> Modify systemd script for OSMC usage'
+#			# Wait until kodi is sarted (for kodi checker)
+#			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
+#			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
+#			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
+#			sed -i 's/Group=osmc/Group=root/g' /etc/systemd/system/hyperion.service
+#			systemctl -q daemon-reload
+#		fi
+	systemctl start hyperion
+
+elif [ -e /sbin/initctl ]
+then
+	# upstart
+	install_file /usr/share/hyperion/service/hyperion.initctl.sh /etc/init/hyperion.conf
+	initctl reload-configuration
+	initctl start hyperion
+
+else
+	# sysV
+	service hyperion stop 2>/dev/null
+	install_file /usr/share/hyperion/service/hyperion.init.sh /etc/init.d/hyperion
+	chmod +x /etc/init.d/hyperion
+	update-rc.d hyperion defaults 98 02
+	service hyperion start
+fi
+echo "- done"
+

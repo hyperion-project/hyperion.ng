@@ -6,15 +6,15 @@ PATH="/sbin:$PATH"
 
 #Check if HyperCon is logged in as root
 if [ $(id -u) != 0 ] && [ "$1" = "HyperConRemove" ]; then
-		echo '---> Critical Error: Please connect as user "root" through HyperCon' 
-		echo '---> We need admin privileges to remove your Hyperion! -> abort'
-		exit 1
+	echo '---> Critical Error: Please connect as user "root" through HyperCon' 
+	echo '---> We need admin privileges to remove your Hyperion! -> abort'
+	exit 1
 fi
 
 #Check, if script is running as root
 if [ $(id -u) != 0 ]; then
-		echo '---> Critical Error: Please run the script as root (sudo sh ./remove_hyperion.sh)' 
-		exit 1
+	echo '---> Critical Error: Please run the script as root (sudo sh ./remove_hyperion.sh)' 
+	exit 1
 fi
 
 #Welcome message
@@ -26,22 +26,23 @@ echo '**************************************************************************
 
 #Skip the prompt if HyperCon Remove
 if [ "$1" = "" ]; then
-#Prompt for confirmation to proceed
-while true
-do
-echo -n "---> Do you really want to remove Hyperion and it´s services? (y or n) :"
-read CONFIRM
-case $CONFIRM in
-y|Y|YES|yes|Yes) break ;;
-n|N|no|NO|No)
-echo "---> Aborting - you entered \"$CONFIRM\""
-exit
-;;
-*) echo "-> Please enter only y or n"
-esac
-done
-echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
+	#Prompt for confirmation to proceed
+	while true
+	do
+		echo -n "---> Do you really want to remove Hyperion and it´s services? (y or n) :"
+		read CONFIRM
+		case $CONFIRM in
+			y|Y|YES|yes|Yes) break ;;
+			n|N|no|NO|No)
+				echo "---> Aborting - you entered \"$CONFIRM\""
+				exit
+				;;
+			*) echo "-> Please enter only y or n"
+		esac
+	done
+	echo "---> You entered \"$CONFIRM\". Remove Hyperion!"
 fi
+
 # Find out if we are on OpenElec or RasPlex
 OS_OPENELEC=`grep -m1 -c 'OpenELEC\|RasPlex\|LibreELEC' /etc/issue`
 
@@ -63,10 +64,6 @@ elif [ $USE_SERVICE -eq 1 ]; then
 	/usr/sbin/service hyperion stop 2>/dev/null
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	service hyperion stop 2>/dev/null
-#		while [ $SERVICEC -le 20 ]; do
-#		service hyperion_fw$SERVICEC stop 2>/dev/null
-#		((SERVICEC++))
-#		done
 fi
 
 #reset count
@@ -86,19 +83,11 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 	# Delete and disable Hyperion systemd script
 	echo '---> Delete and disable Hyperion systemd script'
 	systemctl disable hyperion.service
-#		while [ $SERVICEC -le 20 ]; do
-#		systemctl -q disable hyperion_fw$SERVICEC.service 2>/dev/null
-#		((SERVICEC++))
-#		done
 	rm -v /etc/systemd/system/hyperion* 2>/dev/null
 elif [ $USE_SERVICE -eq 1 ]; then
 	# Delete and disable Hyperion init.d script
 	echo '---> Delete and disable Hyperion init.d script'
 	update-rc.d -f hyperion remove
-#		while [ $SERVICEC -le 20 ]; do
-#		update-rc.d -f hyperion_fw$SERVICEC remove 2>/dev/null
-#		((SERVICEC++))
-#		done
 	rm /etc/init.d/hyperion* 2>/dev/null
 fi
 
@@ -116,9 +105,12 @@ else
 	rm -v /usr/bin/hyperion-v4l2 2>/dev/null
 	rm -v /usr/bin/hyperion-dispmanx 2>/dev/null
 	rm -v /usr/bin/hyperion-x11 2>/dev/null
+	rm -v /usr/bin/hyperion-aml 2>/dev/null
 	rm -v /etc/hyperion.config.json 2>/dev/null
 	echo "---> Remove binaries"
 	rm -rv /opt/hyperion 2>/dev/null
+	rm -rv /etc/hyperion 2>/dev/null
+	rm -rv /usr/share/hyperion 2>/dev/null
 fi
 echo '*******************************************************************************' 
 echo 'Hyperion successful removed!'

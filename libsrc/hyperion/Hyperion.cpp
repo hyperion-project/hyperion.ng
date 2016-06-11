@@ -452,8 +452,9 @@ HslTransform * Hyperion::createHslTransform(const Json::Value & hslConfig)
 {
 	const double saturationGain = hslConfig.get("saturationGain", 1.0).asDouble();
 	const double luminanceGain  = hslConfig.get("luminanceGain",  1.0).asDouble();
+	const double luminanceMinimum = hslConfig.get("luminanceMinimum", 0.0).asDouble();
 
-	return new HslTransform(saturationGain, luminanceGain);
+	return new HslTransform(saturationGain, luminanceGain, luminanceMinimum);
 }
 
 RgbChannelTransform* Hyperion::createRgbChannelTransform(const Json::Value& colorConfig)
@@ -479,7 +480,7 @@ RgbChannelCorrection* Hyperion::createRgbChannelCorrection(const Json::Value& co
 
 RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color)
 {
-	int varR, varG, varB;
+	int varR=0, varG=0, varB=0;
 	if (color == RED) 
 	{
 		varR = colorConfig.get("redChannel", 255).asInt();
@@ -617,10 +618,10 @@ MessageForwarder * Hyperion::getForwarder()
 Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
 	_muxer(_ledString.leds().size()),
-	_raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"])),
+	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
 	_raw2ledCorrection(createLedColorsCorrection(_ledString.leds().size(), jsonConfig["color"])),
 	_raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"])),
-	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
+	_raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"])),
 	_device(LedDeviceFactory::construct(jsonConfig["device"])),
 	_effectEngine(nullptr),
 	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
@@ -818,6 +819,11 @@ void Hyperion::clearall()
 	_effectEngine->allChannelsCleared();
 }
 
+int Hyperion::getCurrentPriority() const
+{
+	return _muxer.getCurrentPriority();
+}
+
 QList<int> Hyperion::getActivePriorities() const
 {
 	return _muxer.getPriorities();
@@ -860,9 +866,9 @@ void Hyperion::update()
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
 	// std::vector<ColorRgb> correctedColors = _raw2ledCorrection->applyCorrection(priorityInfo.ledColors);
-	std::vector<ColorRgb> adjustedColors = _raw2ledAdjustment->applyAdjustment(priorityInfo.ledColors);
-	std::vector<ColorRgb> transformColors =_raw2ledTransform->applyTransform(adjustedColors);
-	std::vector<ColorRgb> ledColors = _raw2ledTemperature->applyCorrection(transformColors);
+	std::vector<ColorRgb> transformColors =_raw2ledTransform->applyTransform(priorityInfo.ledColors);
+	std::vector<ColorRgb> adjustedColors = _raw2ledAdjustment->applyAdjustment(transformColors);
+	std::vector<ColorRgb> ledColors = _raw2ledTemperature->applyCorrection(adjustedColors);
 	const std::vector<Led>& leds = _ledString.leds();
 	int i = 0;
 	for (ColorRgb& color : ledColors)
@@ -885,18 +891,14 @@ void Hyperion::update()
 			break;
 		case ORDER_GBR:
 		{
-			uint8_t temp = color.red;
-			color.red = color.green;
-			color.green = color.blue;
-			color.blue = temp;
+			std::swap(color.red, color.green);
+			std::swap(color.green, color.blue);
 			break;
 		}
 		case ORDER_BRG:
 		{
-			uint8_t temp = color.red;
-			color.red = color.blue;
-			color.blue = color.green;
-			color.green = temp;
+			std::swap(color.red, color.blue);
+			std::swap(color.green, color.blue);
 			break;
 		}
 		}

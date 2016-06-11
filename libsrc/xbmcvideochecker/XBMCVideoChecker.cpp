@@ -6,7 +6,7 @@
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
 // Request player example:
-// {"id":666,"jsonrpc":"2.0","method":"Player.GetActivePlayers"}
+// {"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666}
 // {"id":666,"jsonrpc":"2.0","result":[{"playerid":1,"type":"video"}]}
 
 // Request playing item example:
@@ -21,11 +21,11 @@
 // {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
 // {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
 
-XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabScreensaver, bool enable3DDetection) :
+XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection) :
 	QObject(),
 	_address(QString::fromStdString(address)),
 	_port(port),
-	_activePlayerRequest(R"({"id":666,"jsonrpc":"2.0","method":"Player.GetActivePlayers"})"),
+	_activePlayerRequest(R"({"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666})"),
 	_currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})"),
 	_checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})"),
 	_getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})"),
@@ -35,6 +35,7 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	_grabPhoto(grabPhoto),
 	_grabAudio(grabAudio),
 	_grabMenu(grabMenu),
+	_grabPause(grabPause),
 	_grabScreensaver(grabScreensaver),
 	_enable3DDetection(enable3DDetection),
 	_previousScreensaverMode(false),
@@ -58,8 +59,8 @@ void XBMCVideoChecker::receiveReply()
 {
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
-
-	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
+// silence - no "debug" code should be at the log
+//	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
 
 	if (reply.contains("\"method\":\"Player.OnPlay\""))
 	{
@@ -72,6 +73,11 @@ void XBMCVideoChecker::receiveReply()
 		// the player has stopped
 		setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 		setVideoMode(VIDEO_2D);
+	}
+	else if (reply.contains("\"method\":\"Player.OnPause\""))
+	{
+		// player at pause
+		setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
 	}
 	else if (reply.contains("\"method\":\"GUI.OnScreensaverActivated\""))
 	{
@@ -193,6 +199,11 @@ void XBMCVideoChecker::receiveReply()
 			_xbmcVersion = regex.cap(1).toInt();
 		}
 	}
+	else if (reply.contains("picture") && reply.contains("\"method\":\"Playlist.OnAdd\""))
+	{
+		// picture viewer is playing
+		setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+	}
 }
 
 void XBMCVideoChecker::connected()
@@ -266,6 +277,9 @@ void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 		break;
 	case GRABBINGMODE_MENU:
 		std::cout << "KODICHECK INFO: switching to MENU mode" << std::endl;
+		break;
+	case GRABBINGMODE_PAUSE:
+		std::cout << "KODICHECK INFO: switching to PAUSE mode" << std::endl;
 		break;
 	case GRABBINGMODE_OFF:
 		std::cout << "KODICHECK INFO: switching to OFF mode" << std::endl;

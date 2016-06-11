@@ -7,9 +7,11 @@ add_subdirectory(hyperion)
 add_subdirectory(blackborder)
 add_subdirectory(jsonserver)
 
-if (ENABLE_PROTOBUF)
-	add_subdirectory(protoserver)
-endif (ENABLE_PROTOBUF)
+add_subdirectory(protoserver)
+
+if (ENABLE_ZEROCONF)
+	add_subdirectory(bonjour)
+endif (ENABLE_ZEROCONF)
 
 add_subdirectory(boblightserver)
 add_subdirectory(leddevice)

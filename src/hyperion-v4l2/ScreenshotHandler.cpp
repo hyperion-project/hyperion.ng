@@ -6,7 +6,7 @@
 #include "ScreenshotHandler.h"
 
 ScreenshotHandler::ScreenshotHandler(const std::string & filename) :
-		_filename(filename)
+	_filename(filename)
 {
 }
 

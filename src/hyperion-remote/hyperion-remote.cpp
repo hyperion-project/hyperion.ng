@@ -71,6 +71,7 @@ int main(int argc, char * argv[])
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "!DEPRECATED! Will be removed soon! Set the HSV value gain of the leds");
 		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
 		DoubleParameter    & argLuminance  = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
+		DoubleParameter    & argLuminanceMin  = parameters.add<DoubleParameter>   ('n', "luminanceMin" , "Set the HSL luminance minimum of the leds (backlight)");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
 		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
 		TransformParameter & argBlacklevel = parameters.add<TransformParameter>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
@@ -103,7 +104,7 @@ int main(int argc, char * argv[])
 		}
 
 		// check if at least one of the available color transforms is set
-		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
+		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argLuminanceMin.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
 		bool colorAdjust = argRAdjust.isSet() || argGAdjust.isSet() || argBAdjust.isSet();
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
@@ -124,6 +125,7 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argValue.usageLine() << std::endl;
 			std::cerr << "  " << argSaturationL.usageLine() << std::endl;
 			std::cerr << "  " << argLuminance.usageLine() << std::endl;
+			std::cerr << "  " << argLuminanceMin.usageLine() << std::endl;
 			std::cerr << "  " << argThreshold.usageLine() << std::endl;
 			std::cerr << "  " << argGamma.usageLine() << std::endl;
 			std::cerr << "  " << argBlacklevel.usageLine() << std::endl;
@@ -216,7 +218,7 @@ int main(int argc, char * argv[])
 			if (colorTransform)
 			{
 				std::string transId;
-				double saturation, value, saturationL, luminance;
+				double saturation, value, saturationL, luminance, luminanceMin;
 				ColorTransformValues threshold, gamma, blacklevel, whitelevel;
 
 				if (argId.isSet())         transId    = argId.getValue();
@@ -224,6 +226,7 @@ int main(int argc, char * argv[])
 				if (argValue.isSet())      value      = argValue.getValue();
 				if (argSaturationL.isSet()) saturationL = argSaturationL.getValue();
 				if (argLuminance.isSet())  luminance      = argLuminance.getValue();
+				if (argLuminanceMin.isSet())  luminanceMin = argLuminanceMin.getValue();
 				if (argThreshold.isSet())  threshold  = argThreshold.getValue();
 				if (argGamma.isSet())      gamma      = argGamma.getValue();
 				if (argBlacklevel.isSet()) blacklevel = argBlacklevel.getValue();
@@ -235,6 +238,7 @@ int main(int argc, char * argv[])
 						argValue.isSet()      ? &value      : nullptr,
 						argSaturationL.isSet() ? &saturationL : nullptr,
 						argLuminance.isSet()  ? &luminance  : nullptr,
+						argLuminanceMin.isSet() ? &luminanceMin  : nullptr,
 						argThreshold.isSet()  ? &threshold  : nullptr,
 						argGamma.isSet()      ? &gamma      : nullptr,
 						argBlacklevel.isSet() ? &blacklevel : nullptr,

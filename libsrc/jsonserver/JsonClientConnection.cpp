@@ -1,6 +1,7 @@
 // system includes
 #include <stdexcept>
 #include <cassert>
+#include <iomanip>
 
 // stl includes
 #include <iostream>
@@ -21,6 +22,7 @@
 #include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
+#include <HyperionConfig.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -455,6 +457,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
 		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
 		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
+		transform["luminanceMinimum"]   = colorTransform->_hslTransform.getLuminanceMinimum();
 
 		Json::Value & threshold = transform["threshold"];
 		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
@@ -528,6 +531,74 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 
 		activeEffects.append(activeEffect);
 	}
+	
+	////////////////////////////////////
+	// collect active static led color//
+	////////////////////////////////////
+	
+	// create New JSON Array Value "activeLEDColor"
+	Json::Value & activeLedColors = info["activeLedColor"] = Json::Value(Json::arrayValue);
+	// get current Priority from Hyperion Muxer
+	const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	// check if current Priority exist
+	if (priorityInfo.priority != std::numeric_limits<int>::max())
+	{
+		Json::Value LEDcolor;
+		// check if all LEDs has the same Color
+		if (std::all_of(priorityInfo.ledColors.begin(), priorityInfo.ledColors.end(), [&](ColorRgb color)
+		{
+			return ((color.red == priorityInfo.ledColors.begin()->red) &&
+				(color.green == priorityInfo.ledColors.begin()->green) &&
+				(color.blue == priorityInfo.ledColors.begin()->blue));
+		} ))
+	    {
+		// check if LED Color not Black (0,0,0)
+		if ((priorityInfo.ledColors.begin()->red != 0) &&
+		(priorityInfo.ledColors.begin()->green != 0) &&
+		(priorityInfo.ledColors.begin()->blue != 0))
+		{
+			// add RGB Value to Array
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->red);
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->green);
+			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->blue);
+
+			uint16_t Hue;
+			float Saturation, Luminace;
+		    
+			// add HSL Value to Array
+			HslTransform::rgb2hsl(priorityInfo.ledColors.begin()->red,
+					priorityInfo.ledColors.begin()->green,
+					priorityInfo.ledColors.begin()->blue,
+					Hue, Saturation, Luminace);
+
+			LEDcolor["HSL Value"].append(Hue);
+			LEDcolor["HSL Value"].append(Saturation);
+			LEDcolor["HSL Value"].append(Luminace);
+
+			// add HEX Value to Array
+			std::stringstream hex;
+				hex << "0x"
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
+
+			LEDcolor["HEX Value"].append(hex.str());
+		    
+			activeLedColors.append(LEDcolor);
+			}
+		}
+	}
+
+	// Add Hyperion Version, build time
+	Json::Value & version = info["hyperion_build"] = Json::Value(Json::arrayValue);
+	Json::Value ver;
+	ver["version"] = HYPERION_VERSION_ID;
+	ver["time"] = __DATE__ " " __TIME__;
+
+	version.append(ver);
 
 	// send the result
 	sendMessage(result);
@@ -588,6 +659,11 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	if (transform.isMember("luminanceGain"))
 	{
 		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].asDouble());
+	}
+
+	if (transform.isMember("luminanceMinimum"))
+	{
+		colorTransform->_hslTransform.setLuminanceMinimum(transform["luminanceMinimum"].asDouble());
 	}
 
 	if (transform.isMember("threshold"))
