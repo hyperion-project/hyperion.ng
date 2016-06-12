@@ -19,3 +19,7 @@ add_subdirectory(utils)
 add_subdirectory(xbmcvideochecker)
 add_subdirectory(effectengine)
 add_subdirectory(grabber)
+
+if(ENABLE_QT5)
+	add_subdirectory(webconfig)
+endif()

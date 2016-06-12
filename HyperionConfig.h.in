@@ -32,6 +32,7 @@
 
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
+#cmakedefine ENABLE_QT5
 
 // the hyperion build id string
 #define HYPERION_VERSION_ID "${HYPERION_VERSION_ID}"

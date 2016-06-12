@@ -17,6 +17,7 @@
 #include "hyperion/ImageProcessorFactory.h"
 #include "hyperion/ImageProcessor.h"
 #include "utils/ColorRgb.h"
+#include "HyperionConfig.h"
 
 // project includes
 #include "BoblightClientConnection.h"

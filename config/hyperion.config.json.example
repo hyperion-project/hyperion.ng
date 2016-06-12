@@ -42,7 +42,7 @@
 	///            tuning parameters:
 	///            - 'saturationGain'  The gain adjustement of the saturation
 	///            - 'luminanceGain'       The gain adjustement of the luminance
-	///			   - 'luminanceMinimum'    The minimum luminance (backlight)
+	///            - 'luminanceMinimum'    The minimum luminance (backlight)
 	///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
 	///            - 'threshold'       The minimum required input value for the channel to be on 
@@ -65,21 +65,21 @@
 				"leds" : "*",
 				"pureRed" :
 				{
-					"redChannel"		: 255,
-					"greenChannel"		: 0,
-					"blueChannel"		: 0
+					"redChannel"   : 255,
+					"greenChannel" : 0,
+					"blueChannel"  : 0
 				},
 				"pureGreen" :
 				{
-					"redChannel"		: 0,
-					"greenChannel"		: 255,
-					"blueChannel"		: 0
+					"redChannel"   : 0,
+					"greenChannel" : 255,
+					"blueChannel"  : 0
 				},
 				"pureBlue" :
 				{
-					"redChannel"		: 0,
-					"greenChannel"		: 0,
-					"blueChannel"		: 255
+					"redChannel"   : 0,
+					"greenChannel" : 0,
+					"blueChannel"  : 255
 				}
 			}
 		],
@@ -90,9 +90,9 @@
 				"leds" : "*",
 				"temperatureValues" :
 				{
-					"red" 	: 255,
-					"green"	: 255,
-					"blue" 	: 255
+					"red"   : 255,
+					"green" : 255,
+					"blue"  : 255
 				}
 			}
 		],
@@ -103,24 +103,24 @@
 				"leds" : "*",
 				"hsl" :
 				{
-					"saturationGain"	: 1.0000,
-					"luminanceGain"		: 1.0000,
-					"luminanceMinimum"	: 0.0000
+					"saturationGain"   : 1.0000,
+					"luminanceGain"    : 1.0000,
+					"luminanceMinimum" : 0.0000
 				},
 				"red" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				},
 				"green" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				},
 				"blue" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				}
 			}
 		],
@@ -135,14 +135,14 @@
 	},
 
 	/// The black border configuration, contains the following items: 
-	///  * enable    			: true if the detector should be activated
-	///  * threshold 			: Value below which a pixel is regarded as black (value between 0.0 and 1.0)
-	///  * unknownFrameCnt		: Number of frames without any detection before the border is set to 0 (default 600)
-	///  * borderFrameCnt		: Number of frames before a consistent detected border gets set (default 50)
-	///  * maxInconsistentCnt 	: Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
-	///  * blurRemoveCnt		: Number of pixels that get removed from the detected border to cut away blur (default 1)
-	///  * mode 				: Border detection mode (values=default,classic,osd)
-	"blackborderdetector" : 
+	///  * enable             : true if the detector should be activated
+	///  * threshold          : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
+	///  * unknownFrameCnt    : Number of frames without any detection before the border is set to 0 (default 600)
+	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
+	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
+	///  * blurRemoveCnt      : Number of pixels that get removed from the detected border to cut away blur (default 1)
+	///  * mode               : Border detection mode (values=default,classic,osd)
+	"blackborderdetector" :
 	{
 		"enable" : true,
 		"threshold" : 0.0,
@@ -154,19 +154,23 @@
 	},
 
 	/// The configuration of the effect engine, contains the following items: 
-	///  * paths		: An array with absolute location(s) of directories with effects 
-	///  * color 		: Set static color after boot -> set effect to "" (empty) and input the values [R,G,B] and set duration_ms NOT to 0 (use 1) instead 
-	///  * effect 		: The effect selected as 'boot sequence' 
-	///  * duration_ms	: The duration of the selected effect (0=endless) 
-	///  * priority 	: The priority of the selected effect/static color (default=990) HINT: lower value result in HIGHER priority! 
+	///  * paths : An array with absolute/relative location(s) of directories with effects 
 	"effects" : 
 	{
-		"paths" : 
+		"paths" :
 		[
-			"/opt/hyperion/effects"
+			"/usr/share/hyperion/effects"
 		]
 	},
 
+	/// Boot sequence configuration. Start effect / set color at startup of hyperion
+	/// HINT inital background color is not shown, when any other grabber is active
+	///  * color        : Set initial background color on startup -> set effect to "" (empty) and input the values [R,G,B] and set duration_ms NOT to 0 (use 1) instead 
+	///  * effect       : The effect is shown when hyperion starts
+	///  * duration_ms  : The duration of the selected effect (0=endless)
+	///  * priority     : The priority of the selected effect/initial background color (default=990, if duration is 0)
+	///                   when duration > 0 => priority is set to 0, otherwise priority is set to configured value
+	///                   HINT: lower value result in HIGHER priority!
 	"bootsequence" : 
 	{
 		"color" : [0,0,0],
@@ -175,12 +179,23 @@
 		"priority" : 990
 	},
 
+	/// Configuration of webserver integrated in hyperion.
+	///  * enable        : enable the server or not
+	///  * document_root : path to hyperion webapp files
+	///  * port          : the port where hyperion webapp is accasible
+	"webConfig" :
+	{
+		"enable" : true,
+		"document_root" : "/usr/share/hyperion/webconfig",
+		"port" : 8080
+	},
+
 	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
 	/// 'proto' is mostly used for video streams and 'json' for effects 
-	///  * proto	: Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
-	///  * json	: Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
-	///  HINT:	If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
-	/// 		Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
+	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
+	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
+	///  HINT:If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
+	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
  	"forwarder" : 
  	{
  		"proto" : ["127.0.0.1:19447"],
@@ -226,31 +241,31 @@
 
 	/// The configuration of the Json server which enables the json remote interface
 	///  * port : Port at which the json server is started
-	"jsonServer" : 
+	"jsonServer" :
 	{
 		"port" : 19444
 	},
 
 	/// The configuration of the Proto server which enables the protobuffer remote interface
 	///  * port : Port at which the protobuffer server is started
-	"protoServer" : 
+	"protoServer" :
 	{
 		"port" : 19445
 	},
 
 	/// The configuration of the boblight server which enables the boblight remote interface
-	///  * port 	: Port at which the boblight server is started
-	///  * priority: Priority of the boblight server (Default=900) HINT: lower value result in HIGHER priority! 
- 	"boblightServer" : 
+	///  * port     : Port at which the boblight server is started
+	///  * priority : Priority of the boblight server (Default=900) HINT: lower value result in HIGHER priority! 
+ 	"boblightServer" :
  	{
  		"port" : 19333,
  		"priority" : 900
  	},
 
 	/// Configuration for the embedded V4L2 grabber
-	///  * device          : V4L2 Device to use [default="/dev/video0"]
-	///  * input           : V4L2 input to use [default=0]
-	///  * standard        : Video standard (no-change/PAL/NTSC) [default="no-change"]
+	///  * device               : V4L2 Device to use [default="/dev/video0"]
+	///  * input                : V4L2 input to use [default=0]
+	///  * standard             : Video standard (no-change/PAL/NTSC) [default="no-change"]
 	///  * width                : V4L2 width to set [default=-1]
 	///  * height               : V4L2 height to set [default=-1]
 	///  * frameDecimation      : Frame decimation factor [default=2]
@@ -264,25 +279,25 @@
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
- 	"grabber-v4l2" : 
- 	{
- 		"device" : "/dev/video0",
- 		"input" : 0,
- 		"standard" : "no-change",
- 		"width" : -1,
- 		"height" : -1,
- 		"frameDecimation" : 2,
- 		"sizeDecimation" : 8,
- 		"priority" : 900,
- 		"mode" : "2D",
- 		"cropLeft" : 0,
- 		"cropRight" : 0,
- 		"cropTop" : 0,
- 		"cropBottom" : 0,
- 		"redSignalThreshold" : 0.0,
- 		"greenSignalThreshold" : 0.0,
- 		"blueSignalThreshold" : 0.0
- 	},
+	"grabber-v4l2" :
+	{
+		"device"               : "/dev/video0",
+		"input"                : 0,
+		"standard"             : "no-change",
+		"width"                : -1,
+		"height"               : -1,
+		"frameDecimation"      : 2,
+		"sizeDecimation"       : 8,
+		"priority"             : 900,
+		"mode"                 : "2D",
+		"cropLeft"             : 0,
+		"cropRight"            : 0,
+		"cropTop"              : 0,
+		"cropBottom"           : 0,
+		"redSignalThreshold"   : 0.0,
+		"greenSignalThreshold" : 0.0,
+		"blueSignalThreshold"  : 0.0
+	},
 
 	///  The configuration for each individual led. This contains the specification of the area 
 	///  averaged of an input image for each led to determine its color. Each item in the list 
@@ -293,7 +308,7 @@
 	///           (minimum and maximum inclusive)
 	///  * vscan: The fractional part of the image along the vertical used for the averaging 
 	///           (minimum and maximum inclusive)
-	"leds" : 
+	"leds" :
 	[
 		{
 			"index" : 0,

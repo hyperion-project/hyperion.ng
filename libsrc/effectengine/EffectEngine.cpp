@@ -16,6 +16,7 @@
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 #include "Effect.h"
+#include "HyperionConfig.h"
 
 EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig) :
 	_hyperion(hyperion),
