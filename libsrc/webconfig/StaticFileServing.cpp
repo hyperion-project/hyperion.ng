@@ -8,35 +8,36 @@
 #include <QPair>
 #include <QFile>
 
-StaticFileServing::StaticFileServing (QString baseUrl, quint16 port, QObject * parent)
+StaticFileServing::StaticFileServing (QString baseUrl, quint16 port, quint16 jsonPort, QObject * parent)
 		: QObject   (parent)
 		, m_baseUrl (baseUrl)
+		, _jsonPort (jsonPort)
 {
 	m_mimeDb = new QMimeDatabase;
 
-	m_server = new QtHttpServer (this);
-	m_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
+	_server = new QtHttpServer (this);
+	_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
 
-	connect (m_server, &QtHttpServer::started,           this, &StaticFileServing::onServerStarted);
-	connect (m_server, &QtHttpServer::stopped,           this, &StaticFileServing::onServerStopped);
-	connect (m_server, &QtHttpServer::error,             this, &StaticFileServing::onServerError);
-	connect (m_server, &QtHttpServer::requestNeedsReply, this, &StaticFileServing::onRequestNeedsReply);
+	connect (_server, &QtHttpServer::started,           this, &StaticFileServing::onServerStarted);
+	connect (_server, &QtHttpServer::stopped,           this, &StaticFileServing::onServerStopped);
+	connect (_server, &QtHttpServer::error,             this, &StaticFileServing::onServerError);
+	connect (_server, &QtHttpServer::requestNeedsReply, this, &StaticFileServing::onRequestNeedsReply);
 
-	m_server->start (port);
+	_server->start (port);
 }
 
 StaticFileServing::~StaticFileServing ()
 {
-	m_server->stop ();
+	_server->stop ();
 }
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	qDebug () << "QtHttpServer started on port" << port << m_server->getServerName ();
+	qDebug () << "QtHttpServer started on port" << port << _server->getServerName ();
 }
 
 void StaticFileServing::onServerStopped () {
-	qDebug () << "QtHttpServer stopped" << m_server->getServerName ();
+	qDebug () << "QtHttpServer stopped" << _server->getServerName ();
 }
 
 void StaticFileServing::onServerError (QString msg)
@@ -56,6 +57,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 	if (command == QStringLiteral ("GET"))
 	{
 		QString path = request->getUrl ().path ();
+
+		// special uri handling for server commands
+		if ( path == "/serverinfo" )
+		{
+			reply->addHeader ("Content-Type", "text/plain" );
+			reply->appendRawData (QByteArrayLiteral(":") % QString::number(_jsonPort).toUtf8() );
+			return;
+		}
+		
+		// get static files
 		if ( path == "/" || path.isEmpty() || ! QFile::exists(m_baseUrl % "/" % path) )
 			path = "index.html";
 

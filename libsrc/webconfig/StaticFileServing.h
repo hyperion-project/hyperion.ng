@@ -13,7 +13,7 @@ class StaticFileServing : public QObject {
     Q_OBJECT
 
 public:
-    explicit StaticFileServing (QString baseUrl, quint16 port, QObject * parent = NULL);
+    explicit StaticFileServing (QString baseUrl, quint16 port, quint16 jsonPort, QObject * parent = NULL);
     virtual ~StaticFileServing (void);
 
 public slots:
@@ -24,8 +24,9 @@ public slots:
 
 private:
     QString         m_baseUrl;
-    QtHttpServer  * m_server;
+    QtHttpServer  * _server;
     QMimeDatabase * m_mimeDb;
+    quint16         _jsonPort;
 };
 
 #endif // STATICFILESERVING_H
