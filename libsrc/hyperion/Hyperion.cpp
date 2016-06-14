@@ -615,7 +615,7 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig) :
+Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) :
 	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
 	_muxer(_ledString.leds().size()),
 	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
@@ -625,6 +625,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_device(LedDeviceFactory::construct(jsonConfig["device"])),
 	_effectEngine(nullptr),
 	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
+	_jsonConfig(jsonConfig),
+	_configFile(configFile),
 	_timer()
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())

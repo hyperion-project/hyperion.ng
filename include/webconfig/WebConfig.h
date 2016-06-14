@@ -5,6 +5,7 @@
 #include <QString>
 #include <string>
 #include <utils/jsonschema/JsonFactory.h>
+#include <hyperion/Hyperion.h>
 
 class StaticFileServing;
 
@@ -12,8 +13,7 @@ class WebConfig : public QObject {
 	Q_OBJECT
 
 public:
-	WebConfig (std::string baseUrl, quint16 port, quint16 jsonPort, QObject * parent = NULL);
-	WebConfig (const Json::Value &config, QObject * parent = NULL);
+	WebConfig (Hyperion *hyperion, QObject * parent = NULL);
 
 	virtual ~WebConfig (void);
 
@@ -21,10 +21,9 @@ public:
 	void stop();
 
 private:
-	QObject*             _parent;
+	Hyperion*            _hyperion;
 	QString              _baseUrl;
 	quint16              _port;
-	quint16              _jsonPort;
 	StaticFileServing*   _server;
 
 	const std::string    WEBCONFIG_DEFAULT_PATH = "/usr/share/hyperion/webconfig";

@@ -8,12 +8,15 @@
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
 #include "QtHttpHeader.h"
+#include "CgiHandler.h"
+
+#include <hyperion/Hyperion.h>
 
 class StaticFileServing : public QObject {
     Q_OBJECT
 
 public:
-    explicit StaticFileServing (QString baseUrl, quint16 port, quint16 jsonPort, QObject * parent = NULL);
+    explicit StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent = NULL);
     virtual ~StaticFileServing (void);
 
 public slots:
@@ -23,10 +26,11 @@ public slots:
     void onRequestNeedsReply  (QtHttpRequest * request, QtHttpReply * reply);
 
 private:
-    QString         m_baseUrl;
-    QtHttpServer  * _server;
-    QMimeDatabase * m_mimeDb;
-    quint16         _jsonPort;
+	Hyperion      * _hyperion;
+	QString         _baseUrl;
+	QtHttpServer  * _server;
+	QMimeDatabase * _mimeDb;
+	CgiHandler      _cgi;
 };
 
 #endif // STATICFILESERVING_H

@@ -8,12 +8,13 @@
 #include <QPair>
 #include <QFile>
 
-StaticFileServing::StaticFileServing (QString baseUrl, quint16 port, quint16 jsonPort, QObject * parent)
-		: QObject   (parent)
-		, m_baseUrl (baseUrl)
-		, _jsonPort (jsonPort)
+StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
+		:  QObject   (parent)
+		, _hyperion(hyperion)
+		, _baseUrl (baseUrl)
+		, _cgi(hyperion, this)
 {
-	m_mimeDb = new QMimeDatabase;
+	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
 	_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
@@ -57,23 +58,31 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 	if (command == QStringLiteral ("GET"))
 	{
 		QString path = request->getUrl ().path ();
+		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
 
 		// special uri handling for server commands
-		if ( path == "/serverinfo" )
+		if ( ! uri_parts.empty() && uri_parts.at(0) == "cgi"  )
 		{
-			reply->addHeader ("Content-Type", "text/plain" );
-			reply->appendRawData (QByteArrayLiteral(":") % QString::number(_jsonPort).toUtf8() );
+			uri_parts.removeAt(0);
+			try
+			{
+				_cgi.exec(uri_parts, reply);
+			}
+			catch(...)
+			{
+				printErrorToReply (reply, "cgi script failed (" % path % ")");
+			}
 			return;
 		}
 		
 		// get static files
-		if ( path == "/" || path.isEmpty() || ! QFile::exists(m_baseUrl % "/" % path) )
+		if ( path == "/" || path.isEmpty() || ! QFile::exists(_baseUrl % "/" % path) )
 			path = "index.html";
 
-		QFile file (m_baseUrl % "/" % path);
+		QFile file (_baseUrl % "/" % path);
 		if (file.exists ())
 		{
-			QMimeType mime = m_mimeDb->mimeTypeForFile (file.fileName ());
+			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
 			if (file.open (QFile::ReadOnly)) {
 				QByteArray data = file.readAll ();
 				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
@@ -82,7 +91,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			else
 			{
-				printErrorToReply (reply, "Requested file " % m_baseUrl % "/" % path % " couldn't be open for reading !");
+				printErrorToReply (reply, "Requested file " % path % " couldn't be open for reading !");
 			}
 		}
 		else

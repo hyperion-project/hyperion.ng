@@ -10,6 +10,7 @@ set(WebConfig_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/QtHttpReply.h
 	${CURRENT_SOURCE_DIR}/QtHttpRequest.h
 	${CURRENT_SOURCE_DIR}/QtHttpServer.h
+	${CURRENT_SOURCE_DIR}/CgiHandler.h
 	${CURRENT_SOURCE_DIR}/StaticFileServing.h
 	${CURRENT_HEADER_DIR}/WebConfig.h
 )
@@ -23,6 +24,7 @@ set(WebConfig_SOURCES
 	${CURRENT_SOURCE_DIR}/QtHttpReply.cpp
 	${CURRENT_SOURCE_DIR}/QtHttpRequest.cpp
 	${CURRENT_SOURCE_DIR}/QtHttpServer.cpp
+	${CURRENT_SOURCE_DIR}/CgiHandler.cpp
 	${CURRENT_SOURCE_DIR}/StaticFileServing.cpp
 	${CURRENT_SOURCE_DIR}/WebConfig.cpp
 )

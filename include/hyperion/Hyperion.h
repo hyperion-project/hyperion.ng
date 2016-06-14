@@ -67,7 +67,7 @@ public:
 	///
 	/// @param[in] jsonConfig The Json configuration
 	///
-	Hyperion(const Json::Value& jsonConfig);
+	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
 
 	///
 	/// Destructor; cleans up resourcess
@@ -110,6 +110,11 @@ public:
 	/// Get the list of active effects
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
+	
+	/// 
+	const Json::Value& getJsonConfig() { return _jsonConfig; };
+	
+	std::string getConfigFileName() { return _configFile; };
 
 public slots:
 	///
@@ -292,6 +297,12 @@ private:
 	
 	// proto and json Message forwarder
 	MessageForwarder * _messageForwarder;
+
+	// json configuration
+	const Json::Value& _jsonConfig;
+
+	// the name of config file
+	std::string _configFile;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;

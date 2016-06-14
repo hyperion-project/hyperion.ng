@@ -203,7 +203,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 	{
 		const Json::Value & jsonServerConfig = config["jsonServer"];
 		//jsonEnable = jsonServerConfig.get("enable", true).asBool();
-		jsonPort   = jsonServerConfig.get("port", 19444).asUInt();
+		jsonPort   = jsonServerConfig.get("port", jsonPort).asUInt();
 	}
 
 	jsonServer = new JsonServer(&hyperion, jsonPort );
@@ -215,7 +215,7 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 	{
 		const Json::Value & protoServerConfig = config["protoServer"];
 		//protoEnable = protoServerConfig.get("enable", true).asBool();
-		protoPort  = protoServerConfig.get("port", 19445).asUInt();
+		protoPort  = protoServerConfig.get("port", protoPort).asUInt();
 	}
 
 	protoServer = new ProtoServer(&hyperion, protoPort );
@@ -231,24 +231,33 @@ void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonSer
 	const std::string deviceName = deviceConfig.get("name", "").asString();
 
 	const std::string hostname = QHostInfo::localHostName().toStdString();
-	const std::string mDNSDescr = jsonServerConfig.get("mDNSDescr", hostname).asString();
-	const std::string mDNSService = jsonServerConfig.get("mDNSService", "_hyperiond_json._tcp").asString();
-	BonjourServiceRegister *bonjourRegister_json;
-	bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-	                                      QString()), jsonServerConfig["port"].asUInt());
+	
+	std::string mDNSDescr_json = hostname;
+	std::string mDNSService_json = "_hyperiond_json._tcp";
+	if (config.isMember("jsonServer"))
+	{
+		const Json::Value & jsonServerConfig = config["jsonServer"];
+		mDNSDescr_json = jsonServerConfig.get("mDNSDescr", mDNSDescr_json).asString();
+		mDNSService_json = jsonServerConfig.get("mDNSService", mDNSService_json).asString();
+	}
+	
+	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
+	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
+	                                      QString()), jsonServer->getPort() );
 	std::cout << "INFO: Json mDNS responder started" << std::endl;
 
-	const Json::Value & deviceConfig = config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-
-	const std::string hostname = QHostInfo::localHostName().toStdString();
-	const std::string mDNSDescr = protoServerConfig.get("mDNSDescr", hostname).asString();
-	const std::string mDNSService = protoServerConfig.get("mDNSService", "_hyperiond_proto._tcp").asString();
-	BonjourServiceRegister *bonjourRegister_proto;
-	bonjourRegister_proto = new BonjourServiceRegister();
-	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-	                                       QString()), protoServerConfig["port"].asUInt());
+	std::string mDNSDescr_proto = hostname;
+	std::string mDNSService_proto = "_hyperiond_proto._tcp";
+	if (config.isMember("protoServer"))
+	{
+		const Json::Value & protoServerConfig = config["protoServer"];
+		mDNSDescr_proto = protoServerConfig.get("mDNSDescr", mDNSDescr_proto).asString();
+		mDNSService_proto = protoServerConfig.get("mDNSService", mDNSService_proto).asString();
+	}
+	
+	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
+	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
+	                                       QString()), protoServer->getPort() );
 	std::cout << "INFO: Proto mDNS responder started" << std::endl;
 #endif
 
@@ -487,7 +496,7 @@ int main(int argc, char** argv)
 	std::cout << "INFO: Selected configuration file: " << configFile.c_str() << std::endl;
 	const Json::Value config = loadConfig(configFile);
 
-	Hyperion hyperion(config);
+	Hyperion hyperion(config, configFile);
 	std::cout << "INFO: Hyperion started and initialised" << std::endl;
 
 
@@ -503,7 +512,7 @@ int main(int argc, char** argv)
 	startNetworkServices(config, hyperion, jsonServer, protoServer, boblightServer, xbmcVideoChecker);
 
 #ifdef ENABLE_QT5
-	WebConfig webConfig(config, &app);
+	WebConfig webConfig(&hyperion, &app);
 #endif
 
 // ---- grabber -----
