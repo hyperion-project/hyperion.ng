@@ -65,7 +65,7 @@
 #include <webconfig/WebConfig.h>
 
 #include <sys/prctl.h> 
-#include <utils/logger.h>
+#include <utils/Logger.h>
 
 using namespace vlofgren;
 
