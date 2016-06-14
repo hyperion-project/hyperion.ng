@@ -274,7 +274,7 @@ elif [ $USE_SYSTEMD -eq 1 ]; then
 elif [ $USE_SERVICE -eq 1 ]; then
 	echo '---> Installing startup script in init.d'
 	# place startup script in init.d and add it to upstart (-s to respect user modified scripts)
-	ln -s $SERVICEL/hyperion.init.sh $SERVICEP/hyperion 2>/dev/null ; chmod +x $SERVICEP/hyperion
+	cp $SERVICEL/hyperion.init.sh $SERVICEP/hyperion 2>/dev/null ; chmod +x $SERVICEP/hyperion
 	update-rc.d hyperion defaults 98 02
 fi
 
