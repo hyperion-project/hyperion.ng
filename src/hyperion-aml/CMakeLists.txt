@@ -50,11 +50,6 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
-qt4_use_modules(${PROJECT_NAME}
-	Core
-	Gui
-	Network)
-
 if(ENABLE_QT5)
 	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 else()

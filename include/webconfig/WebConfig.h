@@ -13,7 +13,7 @@ class WebConfig : public QObject {
 	Q_OBJECT
 
 public:
-	WebConfig (Hyperion *hyperion, QObject * parent = NULL);
+	WebConfig (QObject * parent = NULL);
 
 	virtual ~WebConfig (void);
 
