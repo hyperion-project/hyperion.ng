@@ -1,41 +1,73 @@
-// C++ includes
 #include <cassert>
 #include <csignal>
 #include <unistd.h>
+#include <sys/prctl.h> 
 
-// QT includes
 #include <QCoreApplication>
 #include <QResource>
 #include <QLocale>
 #include <QFile>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
-// config includes
 #include "HyperionConfig.h"
 
-// Json-Schema includes
+#include <getoptPlusPlus/getoptpp.h>
 #include <utils/jsonschema/JsonFactory.h>
-
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
-
-// network servers
-#include <webconfig/WebConfig.h>
-
-#include <sys/prctl.h> 
 #include <utils/Logger.h>
+
+#include <hyperion/Hyperion.h>
+#include <webconfig/WebConfig.h>
 
 #include "hyperiond.h"
 
-
 using namespace vlofgren;
+
+void signal_handler(const int signum)
+{
+	QCoreApplication::quit();
+
+	// reset signal handler to default (in case this handler is not capable of stopping)
+	signal(signum, SIG_DFL);
+}
+
+
+Json::Value loadConfig(const std::string & configFile)
+{
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion-schema");
+	assert(schemaData.isValid());
+
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
+	}
+	JsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson);
+
+	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
+	schemaChecker.validate(jsonConfig);
+
+	return jsonConfig;
+}
+
+void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
+{
+	if ( fork() == 0 )
+	{
+		sleep(3);
+		execl(hyperionFile.c_str(), hyperionFile.c_str(), "--parent", QString::number(parentPid).toStdString().c_str(), configFile.c_str(), NULL);
+		exit(0);
+	}
+}
+
 
 int main(int argc, char** argv)
 {
-	Logger* log = Logger::getInstance("MAIN", Logger::DEBUG);
+	Logger* log = Logger::getInstance("MAIN", Logger::INFO);
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -117,8 +149,8 @@ int main(int argc, char** argv)
 	XBMCVideoChecker * xbmcVideoChecker = createXBMCVideoChecker();
 
 	// ---- network services -----
-	JsonServer * jsonServer = nullptr;
-	ProtoServer * protoServer = nullptr;
+	JsonServer * jsonServer         = nullptr;
+	ProtoServer * protoServer       = nullptr;
 	BoblightServer * boblightServer = nullptr;
 	startNetworkServices(jsonServer, protoServer, boblightServer);
 
@@ -131,13 +163,12 @@ int main(int argc, char** argv)
 		ErrorIf(config.isMember("grabber-v4l2"), log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 	#endif
 
-
 	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer);
 	#ifndef ENABLE_DISPMANX
 		ErrorIf(config.isMember("framegrabber"), log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 	#endif
 
-	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer );
+	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer);
 	#ifndef ENABLE_AMLOGIC
 		ErrorIf(config.isMember("amlgrabber"), log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 	#endif
@@ -160,7 +191,7 @@ int main(int argc, char** argv)
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
-	// Delete all component
+	// Delete all components
 	delete amlGrabber;
 	delete dispmanx;
 	delete fbGrabber;

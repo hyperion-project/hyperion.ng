@@ -1,81 +1,25 @@
-// C++ includes
-#include <cassert>
-#include <csignal>
-#include <vector>
 #include <unistd.h>
 
-// QT includes
 #include <QCoreApplication>
 #include <QResource>
 #include <QLocale>
 #include <QFile>
-
-// Json-Schema includes
-#include <utils/jsonschema/JsonFactory.h>
-
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
-// Effect engine includes
-#include <effectengine/EffectEngine.h>
-
-#include <bonjour/bonjourserviceregister.h>
-#include <bonjour/bonjourrecord.h>
 #include <QHostInfo>
 
-// network servers
+#include "HyperionConfig.h"
+
+#include <utils/jsonschema/JsonFactory.h>
+#include <utils/Logger.h>
+
+#include <hyperion/Hyperion.h>
+#include <effectengine/EffectEngine.h>
+#include <bonjour/bonjourserviceregister.h>
+#include <bonjour/bonjourrecord.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
 
-#include <sys/prctl.h> 
-
 #include "hyperiond.h"
-
-
-void signal_handler(const int signum)
-{
-	QCoreApplication::quit();
-
-	// reset signal handler to default (in case this handler is not capable of stopping)
-	signal(signum, SIG_DFL);
-}
-
-
-Json::Value loadConfig(const std::string & configFile)
-{
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	assert(schemaData.isValid());
-
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
-
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
-}
-
-
-void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
-{
-	if ( fork() == 0 )
-	{
-		sleep(3);
-		execl(hyperionFile.c_str(), hyperionFile.c_str(), "--parent", QString::number(parentPid).toStdString().c_str(), configFile.c_str(), NULL);
-		exit(0);
-	}
-}
 
 
 void startBootsequence()
@@ -151,7 +95,7 @@ XBMCVideoChecker* createXBMCVideoChecker()
 			videoCheckerConfig.get("enable3DDetection", true).asBool());
 
 		xbmcVideoChecker->start();
-		std::cout << "INFO: Kodi checker created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "Kodi checker created and started");
 	}
 	return xbmcVideoChecker;
 }
@@ -172,7 +116,7 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	}
 
 	jsonServer = new JsonServer(hyperion, jsonPort );
-	std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
+	Info(Logger::getInstance("MAIN"), "Json server created and started on port %d", jsonServer->getPort());
 
 	// Create Proto server if configuration is present
 	unsigned int protoPort = 19445;
@@ -189,7 +133,7 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 		QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), protoServer, SIGNAL(grabbingMode(GrabbingMode)));
 		QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), protoServer, SIGNAL(videoMode(VideoMode)));
 	}
-	std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
+	Info(Logger::getInstance("MAIN"), "Proto server created and started on port %d", protoServer->getPort());
 
 	const Json::Value & deviceConfig = config["device"];
 	const std::string deviceName = deviceConfig.get("name", "").asString();
@@ -208,7 +152,7 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
 	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
 	                                      QString()), jsonServer->getPort() );
-	std::cout << "INFO: Json mDNS responder started" << std::endl;
+	Info(Logger::getInstance("MAIN"), "Json mDNS responder started");
 
 	std::string mDNSDescr_proto = hostname;
 	std::string mDNSService_proto = "_hyperiond_proto._tcp";
@@ -222,14 +166,14 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
 	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
 	                                       QString()), protoServer->getPort() );
-	std::cout << "INFO: Proto mDNS responder started" << std::endl;
+	Info(Logger::getInstance("MAIN"), "Proto mDNS responder started");
 
 	// Create Boblight server if configuration is present
 	if (config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = config["boblightServer"];
 		boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		std::cout << "INFO: Boblight server created and started on port " << boblightServer->getPort() << std::endl;
+		Info(Logger::getInstance("MAIN"), "Boblight server created and started on port %d", boblightServer->getPort());
 	}
 }
 
@@ -264,7 +208,7 @@ DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer)
 		QObject::connect(dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		dispmanx->start();
-		std::cout << "INFO: Frame grabber created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "Frame grabber created and started");
 	}
 #endif
 	return dispmanx;
@@ -303,7 +247,7 @@ V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer )
 		QObject::connect(v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		v4l2Grabber->start();
-		std::cout << "INFO: V4L2 grabber created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "V4L2 grabber created and started");
 	}
 #endif
 	return v4l2Grabber;
@@ -335,7 +279,7 @@ AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer)
 		QObject::connect(amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		amlGrabber->start();
-		std::cout << "INFO: AMLOGIC grabber created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "AMLOGIC grabber created and started");
 	}
 #endif
 	return amlGrabber;
@@ -369,7 +313,7 @@ FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer)
 		QObject::connect(fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		fbGrabber->start();
-		std::cout << "INFO: Framebuffer grabber created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "Framebuffer grabber created and started");
 	}
 #endif
 	return fbGrabber;
@@ -403,7 +347,7 @@ OsxWrapper* createGrabberOsx(ProtoServer* &protoServer)
 		QObject::connect(osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		osxGrabber->start();
-		std::cout << "INFO: OSX grabber created and started" << std::endl;
+		Info(Logger::getInstance("MAIN"), "OSX grabber created and started");
 	}
 #endif
 	return osxGrabber;
