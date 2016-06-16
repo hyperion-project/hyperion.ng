@@ -63,16 +63,13 @@ public:
 	};
 
 	///
-	/// Constructs the Hyperion instance based on the given Json configuration
-	///
-	/// @param[in] jsonConfig The Json configuration
-	///
-	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
-
-	///
 	/// Destructor; cleans up resourcess
 	///
 	~Hyperion();
+
+
+	static Hyperion* initInstance(const Json::Value& jsonConfig, const std::string configFile);
+	static Hyperion* getInstance();
 
 	///
 	/// Returns the number of attached leds
@@ -228,6 +225,8 @@ public slots:
 	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
 
 public:
+	static Hyperion *_hyperion;
+
 	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	/**
 	 * Construct the 'led-string' with the integration area definition per led and the color
@@ -271,6 +270,14 @@ private slots:
 	void update();
 
 private:
+	
+	///
+	/// Constructs the Hyperion instance based on the given Json configuration
+	///
+	/// @param[in] jsonConfig The Json configuration
+	///
+	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
+
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 

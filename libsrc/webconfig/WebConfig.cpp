@@ -2,13 +2,13 @@
 #include "StaticFileServing.h"
 
 
-WebConfig::WebConfig(Hyperion *hyperion, QObject * parent)
+WebConfig::WebConfig(QObject * parent)
 	:  QObject(parent)
-	, _hyperion(hyperion)
 	, _port(WEBCONFIG_DEFAULT_PORT)
 	, _server(nullptr)
 {
-	const Json::Value &config = hyperion->getJsonConfig();
+	_hyperion = Hyperion::getInstance();
+	const Json::Value &config = _hyperion->getJsonConfig();
 	_baseUrl = QString::fromStdString(WEBCONFIG_DEFAULT_PATH);
 
 	bool webconfigEnable = true; 

@@ -17,7 +17,7 @@ SET ( DEFAULT_X11        OFF )
 SET ( DEFAULT_SPIDEV     OFF )
 SET ( DEFAULT_WS2812BPWM OFF )
 SET ( DEFAULT_WS281XPWM  OFF )
-SET ( DEFAULT_ZEROCONF   OFF )
+SET ( DEFAULT_ZEROCONF   ON )
 
 if (APPLE)
 	SET ( DEFAULT_OSX ON )
@@ -42,8 +42,7 @@ else ()
 endif ()
 
 # set the build options
-option(ENABLE_ZEROCONF "Enable the avahi/zeroconf announce" ${DEFAULT_ZEROCONF} )
-message(STATUS "ENABLE_ZEROCONF = " ${ENABLE_ZEROCONF})
+SET(ENABLE_ZEROCONF ON )
 
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = " ${ENABLE_AMLOGIC})
@@ -75,8 +74,7 @@ message(STATUS "ENABLE_WS281XPWM = " ${ENABLE_WS281XPWM})
 option(ENABLE_X11 "Enable the X11 grabber" ${DEFAULT_X11})
 message(STATUS "ENABLE_X11 = " ${ENABLE_X11})
 
-option(ENABLE_QT5 "Enable QT5" OFF)
-message(STATUS "ENABLE_QT5 = " ${ENABLE_QT5})
+SET(ENABLE_QT5 ON)
 
 option(ENABLE_TESTS "Compile additional test applications" OFF)
 message(STATUS "ENABLE_TESTS = " ${ENABLE_TESTS})
@@ -116,13 +114,6 @@ find_package(GitVersion)
 configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
 
-if( NOT ENABLE_QT5)
-	#ADD_DEFINITIONS ( -DENABLE_QT5 )
-	#find_package(Qt5Widgets)
-#else()
-	# Add specific cmake modules to find qt4 (default version finds first available QT which might not be qt4)
-	set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/qt4)
-endif()
 
 # Define the global output path of binaries
 SET(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
@@ -142,26 +133,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++11 -Wall")
 
-if(ENABLE_QT5)
-#find_package(Qt5Core REQUIRED)
-	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#	set(CMAKE_CXX_FLAGS "-fPIC")
-else()
-	# Configure the use of QT4
-	find_package(Qt4 COMPONENTS QtCore QtNetwork QtGui REQUIRED QUIET)
-endif()
+find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 #add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
-if(ENABLE_QT5)
-	#include(${QT_USE_FILE})
-	add_definitions(${QT_DEFINITIONS})
-else()
-	include(${QT_USE_FILE})
-	add_definitions(${QT_DEFINITIONS})
-endif()
+add_definitions(${QT_DEFINITIONS})
 
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
 if(NOT APPLE)
@@ -185,8 +163,9 @@ add_subdirectory(doc)
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
-
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
+
+

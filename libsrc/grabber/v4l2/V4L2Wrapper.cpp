@@ -15,7 +15,6 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double redSignalThreshold,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
-		Hyperion *hyperion,
 		int hyperionPriority) :
 	_timeout_ms(1000),
 	_priority(hyperionPriority),
@@ -29,8 +28,8 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 			pixelDecimation,
 			pixelDecimation),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
+	_hyperion(Hyperion::getInstance()),
+	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
 	_timer()
 {
 	// set the signal detection threshold of the grabber

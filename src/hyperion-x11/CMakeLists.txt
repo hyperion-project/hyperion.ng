@@ -1,17 +1,7 @@
-# Configure minimum CMAKE version
 cmake_minimum_required(VERSION 2.8)
-
-# Set the project name
 project(hyperion-x11)
 
-# find QT
-if(ENABLE_QT5)
-	find_package(Qt5Widgets REQUIRED)
-else()
-	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
-endif()
-
-# Find X11
+find_package(Qt5Widgets REQUIRED)
 find_package(X11 REQUIRED)
 
 include_directories(
@@ -32,12 +22,7 @@ set(Hyperion_X11_SOURCES
 	X11Wrapper.cpp
 )
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
-else()
-	QT4_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
-endif()
-
+QT5_WRAP_CPP(Hyperion_X11_HEADERS_MOC ${Hyperion_X11_QT_HEADERS})
 
 add_executable(${PROJECT_NAME}
 	${Hyperion_X11_HEADERS}
@@ -56,10 +41,6 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
-else()
-	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif()
+qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )

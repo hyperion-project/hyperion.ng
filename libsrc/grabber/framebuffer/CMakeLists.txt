@@ -21,11 +21,7 @@ SET(FramebufferGrabberSOURCES
 	${CURRENT_SOURCE_DIR}/FramebufferFrameGrabber.cpp
 )
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(FramebufferGrabberHEADERS_MOC ${FramebufferGrabberQT_HEADERS})
-else()
-	QT4_WRAP_CPP(FramebufferGrabberHEADERS_MOC ${FramebufferGrabberQT_HEADERS})
-endif()
+QT5_WRAP_CPP(FramebufferGrabberHEADERS_MOC ${FramebufferGrabberQT_HEADERS})
 
 add_library(framebuffer-grabber
 	${FramebufferGrabberHEADERS}

@@ -1,6 +1,7 @@
 
 // STL includes
 #include <cassert>
+#include <exception>
 
 // QT includes
 #include <QDateTime>
@@ -31,6 +32,24 @@
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 
+Hyperion* Hyperion::_hyperion = nullptr;
+
+Hyperion* Hyperion::initInstance(const Json::Value& jsonConfig, const std::string configFile)
+{
+	if ( Hyperion::_hyperion != nullptr )
+		throw std::runtime_error("Hyperion::initInstance can be called only one time");
+	Hyperion::_hyperion = new Hyperion(jsonConfig,configFile);
+
+	return Hyperion::_hyperion;
+}
+
+Hyperion* Hyperion::getInstance()
+{
+	if ( Hyperion::_hyperion == nullptr )
+		throw std::runtime_error("Hyperion::getInstance used without call of Hyperion::initInstance before");
+		
+	return Hyperion::_hyperion;
+}
 
 ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 {

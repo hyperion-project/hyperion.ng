@@ -29,19 +29,8 @@ class XBMCVideoChecker : public QObject
 Q_OBJECT
 
 public:
-	///
-	/// Constructor
-	///
-	/// @param address Network address of the XBMC instance
-	/// @param port Port number to use (XBMC default = 9090)
-	/// @param grabVideo Whether or not to grab when the XBMC video player is playing
-	/// @param grabPhoto Whether or not to grab when the XBMC photo player is playing
-	/// @param grabAudio Whether or not to grab when the XBMC audio player is playing
-	/// @param grabMenu Whether or not to grab when nothing is playing (in XBMC menu)
-	/// @param grabScreensaver Whether or not to grab when the XBMC screensaver is activated
-	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
-	///
-	XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	static XBMCVideoChecker* initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	static XBMCVideoChecker* getInstance();
 
 	///
 	/// Start polling XBMC
@@ -72,6 +61,20 @@ private slots:
 	void connectionError(QAbstractSocket::SocketError error);
 
 private:
+	///
+	/// Constructor
+	///
+	/// @param address Network address of the XBMC instance
+	/// @param port Port number to use (XBMC default = 9090)
+	/// @param grabVideo Whether or not to grab when the XBMC video player is playing
+	/// @param grabPhoto Whether or not to grab when the XBMC photo player is playing
+	/// @param grabAudio Whether or not to grab when the XBMC audio player is playing
+	/// @param grabMenu Whether or not to grab when nothing is playing (in XBMC menu)
+	/// @param grabScreensaver Whether or not to grab when the XBMC screensaver is activated
+	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
+	///
+	XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	
 	/// Set the grabbing mode
 	void setGrabbingMode(GrabbingMode grabbingMode);
 
@@ -137,4 +140,6 @@ private:
 
 	/// XBMC version number
 	int _xbmcVersion;
+	
+	static XBMCVideoChecker* _kodichecker;
 };

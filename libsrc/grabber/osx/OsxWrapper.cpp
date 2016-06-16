@@ -7,7 +7,7 @@
 #include <grabber/OsxWrapper.h>
 #include <grabber/OsxFrameGrabber.h>
 
-OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority, Hyperion * hyperion) :
+OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority) :
 	_updateInterval_ms(1000/updateRate_Hz),
 	_timeout_ms(2 * _updateInterval_ms),
 	_priority(priority),
@@ -15,8 +15,8 @@ OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const u
 	_image(grabWidth, grabHeight),
 	_frameGrabber(new OsxFrameGrabber(display, grabWidth, grabHeight)),
 	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_ledColors(hyperion->getLedCount(), ColorRgb{0,0,0}),
-	_hyperion(hyperion)
+	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
+	_hyperion(Hyperion::getInstance())
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);

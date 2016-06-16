@@ -49,9 +49,7 @@ add_library(hyperion-utils
 	${CURRENT_SOURCE_DIR}/jsonschema/JsonSchemaChecker.cpp
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(hyperion-utils Widgets)
-endif()
+qt5_use_modules(hyperion-utils Widgets)
 
 target_link_libraries(hyperion-utils
 	jsoncpp
