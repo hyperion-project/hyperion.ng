@@ -19,11 +19,9 @@
 // Effect engine includes
 #include <effectengine/EffectEngine.h>
 
-#ifdef ENABLE_ZEROCONF
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
 #include <QHostInfo>
-#endif
 
 // network servers
 #include <jsonserver/JsonServer.h>
@@ -192,7 +190,6 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	}
 	std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
 
-#ifdef ENABLE_ZEROCONF
 	const Json::Value & deviceConfig = config["device"];
 	const std::string deviceName = deviceConfig.get("name", "").asString();
 
@@ -225,7 +222,6 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
 	                                       QString()), protoServer->getPort() );
 	std::cout << "INFO: Proto mDNS responder started" << std::endl;
-#endif
 
 	// Create Boblight server if configuration is present
 	if (config.isMember("boblightServer"))

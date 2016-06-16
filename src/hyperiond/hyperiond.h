@@ -55,16 +55,9 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 void startBootsequence();
 XBMCVideoChecker* createXBMCVideoChecker();
 void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker);
+
 DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-#ifdef ENABLE_V4L2
 V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer );
-#endif
-#ifdef ENABLE_AMLOGIC
 AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-#endif
-#ifdef ENABLE_FB
 FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-#endif
-#ifdef ENABLE_OSX
 OsxWrapper* createGrabberOsx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-#endif

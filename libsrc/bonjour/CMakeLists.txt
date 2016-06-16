@@ -19,13 +19,8 @@ set(Bonjour_SOURCES
 set(Bonjour_RESOURCES
 )
 
-if(ENABLE_QT5)
 qt5_wrap_cpp(Bonjour_HEADERS_MOC ${Bonjour_QT_HEADERS})
 qt5_add_resources(Bonjour_RESOURCES_RCC ${Bonjour_RESOURCES} OPTIONS "-no-compress")
-else(ENABLE_QT5)
-qt4_wrap_cpp(Bonjour_HEADERS_MOC ${Bonjour_QT_HEADERS})
-qt4_add_resources(Bonjour_RESOURCES_RCC ${Bonjour_RESOURCES} OPTIONS "-no-compress")
-endif(ENABLE_QT5)
 
 add_library(bonjour
 		${Bonjour_HEADERS}
@@ -36,9 +31,7 @@ add_library(bonjour
 		${Bonjour_RESOURCES_RCC}
 )
 
-if(ENABLE_QT5)
 qt5_use_modules(bonjour Widgets Network)
-endif(ENABLE_QT5)
 
 target_link_libraries(bonjour
 		libdns_sd.a

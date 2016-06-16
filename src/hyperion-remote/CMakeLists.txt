@@ -1,15 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-
 project(hyperion-remote)
 
-# find Qt
-if(ENABLE_QT5)
-	find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 #	set(CMAKE_CXX_FLAGS "-fPIC")
-else()
-	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
-endif()
 
 # The following I do not undrstand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
@@ -36,11 +30,7 @@ target_link_libraries(${PROJECT_NAME}
 	getoptPlusPlus
 	${QT_LIBRARIES})
 
-if(ENABLE_QT5)
-	qt5_use_modules(${PROJECT_NAME} Widgets Core Network)
-else()
-	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif()
+qt5_use_modules(${PROJECT_NAME} Widgets Core Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
 

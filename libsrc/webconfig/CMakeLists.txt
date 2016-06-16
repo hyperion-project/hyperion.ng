@@ -29,11 +29,7 @@ set(WebConfig_SOURCES
 	${CURRENT_SOURCE_DIR}/WebConfig.cpp
 )
 
-if(ENABLE_QT5)
-	qt5_wrap_cpp(WebConfig_HEADERS_MOC ${WebConfig_QT_HEADERS})
-else()
-	qt4_wrap_cpp(WebConfigr_HEADERS_MOC ${WebConfig_QT_HEADERS})
-endif()
+qt5_wrap_cpp(WebConfig_HEADERS_MOC ${WebConfig_QT_HEADERS})
 
 add_library(webconfig
 	${WebConfig_HEADERS}
@@ -42,9 +38,7 @@ add_library(webconfig
 	${WebConfig_HEADERS_MOC}
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(webconfig Widgets Network)
-endif()
+qt5_use_modules(webconfig Widgets Network)
 
 target_link_libraries(webconfig
 	hyperion

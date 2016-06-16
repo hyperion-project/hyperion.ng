@@ -122,9 +122,7 @@ int main(int argc, char** argv)
 	BoblightServer * boblightServer = nullptr;
 	startNetworkServices(jsonServer, protoServer, boblightServer, xbmcVideoChecker);
 
-	#ifdef ENABLE_QT5
-		WebConfig webConfig(&app);
-	#endif
+	WebConfig webConfig(&app);
 
 	// ---- grabber -----
 	// if a grabber is left out of build, then <grabber>Wrapper is set to QObject as dummy and has value nullptr
