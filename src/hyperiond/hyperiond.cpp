@@ -10,44 +10,11 @@
 #include <QLocale>
 #include <QFile>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
-// config includes
-#include "HyperionConfig.h"
-
 // Json-Schema includes
 #include <utils/jsonschema/JsonFactory.h>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
-
-#ifdef ENABLE_DISPMANX
-// Dispmanx grabber includes
-#include <grabber/DispmanxWrapper.h>
-#endif
-
-#ifdef ENABLE_V4L2
-// v4l2 grabber
-#include <grabber/V4L2Wrapper.h>
-#endif
-
-#ifdef ENABLE_FB
-// Framebuffer grabber includes
-#include <grabber/FramebufferWrapper.h>
-#endif
-
-#ifdef ENABLE_AMLOGIC
-#include <grabber/AmlogicWrapper.h>
-#endif
-
-#ifdef ENABLE_OSX
-// OSX grabber includes
-#include <grabber/OsxWrapper.h>
-#endif
-
-// XBMC Video checker includes
-#include <xbmcvideochecker/XBMCVideoChecker.h>
 
 // Effect engine includes
 #include <effectengine/EffectEngine.h>
@@ -62,21 +29,11 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
-#include <webconfig/WebConfig.h>
 
 #include <sys/prctl.h> 
-#include <utils/Logger.h>
 
-using namespace vlofgren;
+#include "hyperiond.h"
 
-// ProtoServer includes
-#include <protoserver/ProtoServer.h>
-
-// BoblightServer includes
-#include <boblightserver/BoblightServer.h>
-#include <sys/prctl.h> 
-
-using namespace vlofgren;
 
 void signal_handler(const int signum)
 {
@@ -279,10 +236,10 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	}
 }
 
-#ifdef ENABLE_DISPMANX
 DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	DispmanxWrapper* dispmanx = nullptr;
+#ifdef ENABLE_DISPMANX
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the frame-grabber if the configuration is present
@@ -311,15 +268,16 @@ DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer, XBMCVideoCheck
 		dispmanx->start();
 		std::cout << "INFO: Frame grabber created and started" << std::endl;
 	}
+#endif
 	return dispmanx;
 }
-#endif
 
-#ifdef ENABLE_V4L2
+
 V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer )
 {
 	// construct and start the v4l2 grabber if the configuration is present
 	V4L2Wrapper* v4l2Grabber = nullptr;
+#ifdef ENABLE_V4L2
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 	if (config.isMember("grabber-v4l2"))
 	{
@@ -349,14 +307,14 @@ V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer )
 		v4l2Grabber->start();
 		std::cout << "INFO: V4L2 grabber created and started" << std::endl;
 	}
+#endif
 	return v4l2Grabber;
 }
-#endif
 
-#ifdef ENABLE_AMLOGIC
 AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	AmlogicWrapper* amlGrabber = nullptr;
+#ifdef ENABLE_AMLOGIC
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the framebuffer grabber if the configuration is present
@@ -380,15 +338,15 @@ AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker
 		amlGrabber->start();
 		std::cout << "INFO: AMLOGIC grabber created and started" << std::endl;
 	}
+#endif
 	return amlGrabber;
 }
-#endif
 
 
-#ifdef ENABLE_FB
 FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	FramebufferWrapper* fbGrabber = nullptr;
+#ifdef ENABLE_FB
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the framebuffer grabber if the configuration is present
@@ -413,15 +371,15 @@ FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVide
 		fbGrabber->start();
 		std::cout << "INFO: Framebuffer grabber created and started" << std::endl;
 	}
+#endif
 	return fbGrabber;
 }
-#endif
 
 
-#ifdef ENABLE_OSX
 OsxWrapper* createGrabberOsx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
 {
 	OsxWrapper* osxGrabber = nullptr;
+#ifdef ENABLE_OSX
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the osx grabber if the configuration is present
@@ -446,186 +404,6 @@ OsxWrapper* createGrabberOsx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcV
 		osxGrabber->start();
 		std::cout << "INFO: OSX grabber created and started" << std::endl;
 	}
+#endif
 	return osxGrabber;
-}
-#endif
-
-int main(int argc, char** argv)
-{
-	std::cout
-		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
-		<< "\tVersion   : " << HYPERION_VERSION_ID << std::endl
-		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-
-	// Initialising QCoreApplication
-	QCoreApplication app(argc, argv);
-
-	signal(SIGINT,  signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGCHLD, signal_handler);
-
-	// force the locale
-	setlocale(LC_ALL, "C");
-	QLocale::setDefault(QLocale::c());
-
-	OptionsParser optionParser("Hyperion Daemon");
-	ParameterSet & parameters = optionParser.getParameters();
-
-	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
-	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
-
-	argParentPid.setDefault(0);
-	optionParser.parse(argc, const_cast<const char **>(argv));
-	const std::vector<std::string> configFiles = optionParser.getFiles();
-
-	// check if we need to display the usage. exit if we do.
-	if (argHelp.isSet())
-	{
-		optionParser.usage();
-		return 0;
-	}
-
-	if (configFiles.size() == 0)
-	{
-		std::cout << "ERROR: Missing required configuration file. Usage:" << std::endl;
-		std::cout << "hyperiond <options ...> [config.file ...]" << std::endl;
-		return 1;
-	}
-
-	
-	if (argParentPid.getValue() > 0 )
-	{
-		std::cout << "hyperiond client, parent is pid " << argParentPid.getValue() << std::endl;
-		prctl(PR_SET_PDEATHSIG, SIGHUP);
-	}
-	
-	int argvId = -1;
-	for(size_t idx=0; idx < configFiles.size(); idx++) {
-		if ( QFile::exists(configFiles[idx].c_str()))
-		{
-			if (argvId < 0) argvId=idx;
-			else startNewHyperion(getpid(), argv[0], configFiles[idx].c_str());
-		}
-	}
-	
-	if ( argvId < 0)
-	{
-		std::cout << "ERROR: No valid config found " << std::endl;
-		return 1;
-	}
-	
-	const std::string configFile = configFiles[argvId];
-	std::cout << "INFO: Selected configuration file: " << configFile.c_str() << std::endl;
-	const Json::Value config = loadConfig(configFile);
-
-	Hyperion::initInstance(config, configFile);
-	std::cout << "INFO: Hyperion started and initialised" << std::endl;
-
-
-	startBootsequence();
-
-	XBMCVideoChecker * xbmcVideoChecker = createXBMCVideoChecker();
-
-	// ---- network services -----
-	JsonServer * jsonServer = nullptr;
-	ProtoServer * protoServer = nullptr;
-	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(jsonServer, protoServer, boblightServer, xbmcVideoChecker);
-
-#ifdef ENABLE_QT5
-	WebConfig webConfig(&app);
-#endif
-
-// ---- grabber -----
-
-#ifdef ENABLE_DISPMANX
-	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer, xbmcVideoChecker);
-#else
-#if !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-	if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERRROR: The dispmanx framegrabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-#endif
-
-#ifdef ENABLE_V4L2
-	V4L2Wrapper * v4l2Grabber = createGrabberV4L2(protoServer);
-#else
-	if (config.isMember("grabber-v4l2"))
-	{
-		std::cerr << "ERROR: The v4l2 grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-
-#ifdef ENABLE_AMLOGIC
-	// Construct and start the framebuffer grabber if the configuration is present
-	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer, xbmcVideoChecker );
-#else
-	if (config.isMember("amlgrabber"))
-	{
-		std::cerr << "ERROR: The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-
-#ifdef ENABLE_FB
-	// Construct and start the framebuffer grabber if the configuration is present
-	FramebufferWrapper * fbGrabber = createGrabberFramebuffer(protoServer, xbmcVideoChecker);
-#else
-	if (config.isMember("framebuffergrabber"))
-	{
-		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
-	else if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-#endif
-
-#ifdef ENABLE_OSX
-	// Construct and start the osx grabber if the configuration is present
-	OsxWrapper * osxGrabber = createGrabberDispmanx(protoServer, xbmcVideoChecker);
-#else
-	if (config.isMember("osxgrabber"))
-	{
-		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
-	else if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-#endif
-
-
-	// run the application
-	int rc = app.exec();
-	std::cout << "INFO: Application closed with code " << rc << std::endl;
-
-	// Delete all component
-#ifdef ENABLE_AMLOGIC
-	delete amlGrabber;
-#endif
-#ifdef ENABLE_DISPMANX
-	delete dispmanx;
-#endif
-#ifdef ENABLE_FB
-	delete fbGrabber;
-#endif
-#ifdef ENABLE_OSX
-	delete osxGrabber;
-#endif
-#ifdef ENABLE_V4L2
-	delete v4l2Grabber;
-#endif
-	delete xbmcVideoChecker;
-	delete jsonServer;
-	delete protoServer;
-	delete boblightServer;
-
-	// leave application
-	return rc;
 }
