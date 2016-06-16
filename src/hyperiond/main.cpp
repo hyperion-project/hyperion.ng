@@ -143,7 +143,6 @@ int main(int argc, char** argv)
 	Hyperion::initInstance(config, configFile);
 	Info(log, "Hyperion started and initialised");
 
-
 	startBootsequence();
 
 	XBMCVideoChecker * xbmcVideoChecker = createXBMCVideoChecker();

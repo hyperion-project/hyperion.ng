@@ -11,7 +11,7 @@ XBMCVideoChecker* XBMCVideoChecker::_kodichecker = nullptr;
 XBMCVideoChecker* XBMCVideoChecker::initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
 {
 	if ( XBMCVideoChecker::_kodichecker != nullptr )
-		throw std::runtime_error("Hyperion::initInstance can be called only one time");
+		throw std::runtime_error("XBMCVideoChecker::initInstance can be called only one time");
 	XBMCVideoChecker::_kodichecker = new XBMCVideoChecker(address, port, grabVideo, grabPhoto, grabAudio, grabMenu, grabPause, grabScreensaver, enable3DDetection);
 
 	return XBMCVideoChecker::_kodichecker;
@@ -19,9 +19,6 @@ XBMCVideoChecker* XBMCVideoChecker::initInstance(const std::string & address, ui
 
 XBMCVideoChecker* XBMCVideoChecker::getInstance()
 {
-	if ( XBMCVideoChecker::_kodichecker == nullptr )
-		throw std::runtime_error("XBMCVideoChecker::getInstance used without call of XBMCVideoChecker::initInstance before");
-		
 	return XBMCVideoChecker::_kodichecker;
 }
 
