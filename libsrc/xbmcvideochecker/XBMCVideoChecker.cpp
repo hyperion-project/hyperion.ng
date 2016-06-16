@@ -5,6 +5,27 @@
 
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 
+
+XBMCVideoChecker* XBMCVideoChecker::_kodichecker = nullptr;
+
+XBMCVideoChecker* XBMCVideoChecker::initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+{
+	if ( XBMCVideoChecker::_kodichecker != nullptr )
+		throw std::runtime_error("Hyperion::initInstance can be called only one time");
+	XBMCVideoChecker::_kodichecker = new XBMCVideoChecker(address, port, grabVideo, grabPhoto, grabAudio, grabMenu, grabPause, grabScreensaver, enable3DDetection);
+
+	return XBMCVideoChecker::_kodichecker;
+}
+
+XBMCVideoChecker* XBMCVideoChecker::getInstance()
+{
+	if ( XBMCVideoChecker::_kodichecker == nullptr )
+		throw std::runtime_error("XBMCVideoChecker::getInstance used without call of XBMCVideoChecker::initInstance before");
+		
+	return XBMCVideoChecker::_kodichecker;
+}
+
+
 // Request player example:
 // {"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666}
 // {"id":666,"jsonrpc":"2.0","result":[{"playerid":1,"type":"video"}]}

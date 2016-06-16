@@ -139,7 +139,7 @@ XBMCVideoChecker* createXBMCVideoChecker()
 	if (config.isMember("xbmcVideoChecker"))
 	{
 		const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
-		xbmcVideoChecker = new XBMCVideoChecker(
+		xbmcVideoChecker = XBMCVideoChecker::initInstance(
 			videoCheckerConfig["xbmcAddress"].asString(),
 			videoCheckerConfig["xbmcTcpPort"].asUInt(),
 			videoCheckerConfig["grabVideo"].asBool(),
@@ -156,9 +156,10 @@ XBMCVideoChecker* createXBMCVideoChecker()
 	return xbmcVideoChecker;
 }
 
-void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker)
+void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer)
 {
 	Hyperion *hyperion = Hyperion::getInstance();
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 	const Json::Value &config = hyperion->getJsonConfig();
 
 	// Create Json server if configuration is present
@@ -232,10 +233,11 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 	}
 }
 
-DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
+DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer)
 {
 	DispmanxWrapper* dispmanx = nullptr;
 #ifdef ENABLE_DISPMANX
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the frame-grabber if the configuration is present
@@ -307,10 +309,11 @@ V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer )
 	return v4l2Grabber;
 }
 
-AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
+AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer)
 {
 	AmlogicWrapper* amlGrabber = nullptr;
 #ifdef ENABLE_AMLOGIC
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the framebuffer grabber if the configuration is present
@@ -339,10 +342,11 @@ AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker
 }
 
 
-FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
+FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer)
 {
 	FramebufferWrapper* fbGrabber = nullptr;
 #ifdef ENABLE_FB
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the framebuffer grabber if the configuration is present
@@ -372,10 +376,11 @@ FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVide
 }
 
 
-OsxWrapper* createGrabberOsx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker)
+OsxWrapper* createGrabberOsx(ProtoServer* &protoServer)
 {
 	OsxWrapper* osxGrabber = nullptr;
 #ifdef ENABLE_OSX
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 	const Json::Value &config = Hyperion::getInstance()->getJsonConfig();
 
 	// Construct and start the osx grabber if the configuration is present

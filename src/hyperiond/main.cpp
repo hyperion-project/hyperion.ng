@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 	JsonServer * jsonServer = nullptr;
 	ProtoServer * protoServer = nullptr;
 	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(jsonServer, protoServer, boblightServer, xbmcVideoChecker);
+	startNetworkServices(jsonServer, protoServer, boblightServer);
 
 	WebConfig webConfig(&app);
 
@@ -132,22 +132,22 @@ int main(int argc, char** argv)
 	#endif
 
 
-	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer, xbmcVideoChecker);
+	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer);
 	#ifndef ENABLE_DISPMANX
 		ErrorIf(config.isMember("framegrabber"), log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 	#endif
 
-	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer, xbmcVideoChecker );
+	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer );
 	#ifndef ENABLE_AMLOGIC
 		ErrorIf(config.isMember("amlgrabber"), log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 	#endif
 
-	FramebufferWrapper * fbGrabber = createGrabberFramebuffer(protoServer, xbmcVideoChecker);
+	FramebufferWrapper * fbGrabber = createGrabberFramebuffer(protoServer);
 	#ifndef ENABLE_FB
 		ErrorIf(config.isMember("framebuffergrabber"), log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
 	#endif
 
-	OsxWrapper * osxGrabber = createGrabberDispmanx(protoServer, xbmcVideoChecker);
+	OsxWrapper * osxGrabber = createGrabberDispmanx(protoServer);
 	#ifndef ENABLE_OSX
 		ErrorIf(config.isMember("osxgrabber"), log, "The osx grabber can not be instantiated, because it has been left out from the build");
 	#endif

@@ -62,14 +62,6 @@ public:
 		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
-	
-	///
-	/// Constructs the Hyperion instance based on the given Json configuration
-	///
-	/// @param[in] jsonConfig The Json configuration
-	///
-	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
-
 	///
 	/// Destructor; cleans up resourcess
 	///
@@ -278,6 +270,14 @@ private slots:
 	void update();
 
 private:
+	
+	///
+	/// Constructs the Hyperion instance based on the given Json configuration
+	///
+	/// @param[in] jsonConfig The Json configuration
+	///
+	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
+
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 

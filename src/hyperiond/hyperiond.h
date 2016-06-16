@@ -54,10 +54,10 @@ Json::Value loadConfig(const std::string & configFile);
 void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile);
 void startBootsequence();
 XBMCVideoChecker* createXBMCVideoChecker();
-void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker);
+void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer);
 
-DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
+DispmanxWrapper* createGrabberDispmanx(ProtoServer* &protoServer);
 V4L2Wrapper* createGrabberV4L2(ProtoServer* &protoServer );
-AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
-OsxWrapper* createGrabberOsx(ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker);
+AmlogicWrapper* createGrabberAmlogic(ProtoServer* &protoServer);
+FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer);
+OsxWrapper* createGrabberOsx(ProtoServer* &protoServer);
