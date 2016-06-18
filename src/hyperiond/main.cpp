@@ -4,17 +4,15 @@
 #include <sys/prctl.h> 
 
 #include <QCoreApplication>
-#include <QResource>
 #include <QLocale>
 #include <QFile>
 
 #include "HyperionConfig.h"
 
 #include <getoptPlusPlus/getoptpp.h>
-#include <utils/jsonschema/JsonFactory.h>
 #include <utils/Logger.h>
 
-#include <hyperion/Hyperion.h>
+
 
 #include "hyperiond.h"
 
@@ -28,30 +26,6 @@ void signal_handler(const int signum)
 	signal(signum, SIG_DFL);
 }
 
-
-Json::Value loadConfig(const std::string & configFile)
-{
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	assert(schemaData.isValid());
-
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
-
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
-}
 
 void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
 {
@@ -135,14 +109,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	const std::string configFile = configFiles[argvId];
-	Info(log, "Selected configuration file: %s", configFile.c_str() );
-	const Json::Value config = loadConfig(configFile);
-
-	Hyperion::initInstance(config, configFile);
-	Info(log, "Hyperion started and initialised");
-
-	HyperionDaemon* hyperiond = new HyperionDaemon(&app);
+	HyperionDaemon* hyperiond = new HyperionDaemon(configFiles[argvId], &app);
 	hyperiond->run();
 
 	// run the application

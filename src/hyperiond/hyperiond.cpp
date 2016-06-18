@@ -21,9 +21,8 @@
 #include "hyperiond.h"
 
 
-HyperionDaemon::HyperionDaemon(QObject *parent)
+HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	: QObject(parent)
-	, _config(Hyperion::getInstance()->getJsonConfig())
 	, _log(Logger::getInstance("MAIN"))
 	, _xbmcVideoChecker(nullptr)
 	, _jsonServer(nullptr)
@@ -36,6 +35,9 @@ HyperionDaemon::HyperionDaemon(QObject *parent)
 	, _osxGrabber(nullptr)
 	, _webConfig(nullptr)
 {
+	loadConfig(configFile);
+	Hyperion::initInstance(_config, configFile);
+	Info(_log, "Hyperion started and initialised");
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -74,6 +76,30 @@ void HyperionDaemon::run()
 	#endif
 
 }
+
+void HyperionDaemon::loadConfig(const std::string & configFile)
+{
+	Info(_log, "Selected configuration file: %s", configFile.c_str() );
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion-schema");
+	assert(schemaData.isValid());
+
+	Json::Reader jsonReader;
+	Json::Value schemaJson;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
+	}
+	JsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson);
+
+	_config = JsonFactory::readJson(configFile);
+	schemaChecker.validate(_config);
+}
+
 
 void HyperionDaemon::startBootsequence()
 {

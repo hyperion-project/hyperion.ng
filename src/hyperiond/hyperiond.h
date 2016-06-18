@@ -43,9 +43,10 @@
 class HyperionDaemon : public QObject
 {
 public:
-	HyperionDaemon(QObject *parent=nullptr);
+	HyperionDaemon(std::string configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
+	void loadConfig(const std::string & configFile);
 	void run();
 
 	void startBootsequence();
@@ -60,8 +61,8 @@ public:
 	void createGrabberOsx();
 
 private:
-	const Json::Value & _config;
 	Logger*             _log;
+	Json::Value         _config;
 	XBMCVideoChecker*   _xbmcVideoChecker;
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;
