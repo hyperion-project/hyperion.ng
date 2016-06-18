@@ -151,7 +151,8 @@ int main(int argc, char** argv)
 	JsonServer * jsonServer         = nullptr;
 	ProtoServer * protoServer       = nullptr;
 	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(jsonServer, protoServer, boblightServer);
+	UDPListener * udpListener = nullptr;
+	startNetworkServices(jsonServer, protoServer, boblightServer, udpListener);
 
 	WebConfig webConfig(&app);
 
@@ -200,6 +201,7 @@ int main(int argc, char** argv)
 	delete jsonServer;
 	delete protoServer;
 	delete boblightServer;
+	delete udpListener;
 
 	return rc;
 }

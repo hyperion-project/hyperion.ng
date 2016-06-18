@@ -18,6 +18,7 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
+#include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
 
@@ -100,7 +101,10 @@ XBMCVideoChecker* createXBMCVideoChecker()
 	return xbmcVideoChecker;
 }
 
-void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer)
+void startNetworkServices(	JsonServer* &jsonServer, 
+				ProtoServer* &protoServer, 
+				BoblightServer* &boblightServer,
+				UDPListener* &udpListener)
 {
 	Hyperion *hyperion = Hyperion::getInstance();
 	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
@@ -174,6 +178,14 @@ void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, Bo
 		const Json::Value & boblightServerConfig = config["boblightServer"];
 		boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
 		Info(Logger::getInstance("MAIN"), "Boblight server created and started on port %d", boblightServer->getPort());
+	}
+
+	// Create UDP listener if configuration is present
+	if (config.isMember("udpListener"))
+	{
+		const Json::Value & udpListenerConfig = config["udpListener"];
+		udpListener = new UDPListener(hyperion, udpListenerConfig.get("priority",900).asInt(), udpListenerConfig["port"].asUInt());
+		Info(Logger::getInstance("MAIN"), "UDP listener created and started on port %d", udpListener->getPort());
 	}
 }
 

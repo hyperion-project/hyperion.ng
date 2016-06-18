@@ -36,10 +36,14 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
+#include <udplistener/UDPListener.h>
 
 void startBootsequence();
 XBMCVideoChecker* createXBMCVideoChecker();
-void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer);
+void startNetworkServices(	JsonServer* &jsonServer, 
+				ProtoServer* &protoServer, 
+				BoblightServer* &boblightServer,
+				UDPListener* &udpListener);
 
 // grabber creators
 DispmanxWrapper*    createGrabberDispmanx(ProtoServer* &protoServer);
