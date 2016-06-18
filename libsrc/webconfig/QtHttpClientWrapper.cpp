@@ -10,6 +10,7 @@
 #include <QStringBuilder>
 #include <QStringList>
 #include <QDateTime>
+#include <QHostAddress>
 
 const QByteArray & QtHttpClientWrapper::CRLF = QByteArrayLiteral ("\r\n");
 
@@ -54,6 +55,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                             //          << "url :"     << url
                             //          << "version :" << version;
                             m_currentRequest = new QtHttpRequest (m_serverHandle);
+                            m_currentRequest->setClientInfo(m_sockClient->localAddress(), m_sockClient->peerAddress());
                             m_currentRequest->setUrl     (QUrl (url));
                             m_currentRequest->setCommand (command);
                             m_parsingStatus = AwaitingHeaders;

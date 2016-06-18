@@ -9,6 +9,7 @@
 #include <hyperion/Hyperion.h>
 
 #include "QtHttpReply.h"
+#include "QtHttpRequest.h"
 
 class CgiHandler : public QObject {
 	Q_OBJECT
@@ -17,7 +18,7 @@ public:
 	CgiHandler (Hyperion * hyperion, QObject * parent = NULL);
 	virtual ~CgiHandler (void);
 
-	void exec(const QStringList & args, QtHttpReply * reply);
+	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
 	
 	// cgi commands
 	void cmd_cfg_jsonserver(const QStringList & args, QtHttpReply * reply);

@@ -4,18 +4,15 @@
 #include <sys/prctl.h> 
 
 #include <QCoreApplication>
-#include <QResource>
 #include <QLocale>
 #include <QFile>
 
 #include "HyperionConfig.h"
 
 #include <getoptPlusPlus/getoptpp.h>
-#include <utils/jsonschema/JsonFactory.h>
 #include <utils/Logger.h>
 
-#include <hyperion/Hyperion.h>
-#include <webconfig/WebConfig.h>
+
 
 #include "hyperiond.h"
 
@@ -29,30 +26,6 @@ void signal_handler(const int signum)
 	signal(signum, SIG_DFL);
 }
 
-
-Json::Value loadConfig(const std::string & configFile)
-{
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	assert(schemaData.isValid());
-
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
-
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
-}
 
 void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
 {
@@ -136,70 +109,14 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	const std::string configFile = configFiles[argvId];
-	Info(log, "Selected configuration file: %s", configFile.c_str() );
-	const Json::Value config = loadConfig(configFile);
-
-	Hyperion::initInstance(config, configFile);
-	Info(log, "Hyperion started and initialised");
-
-	startBootsequence();
-
-	XBMCVideoChecker * xbmcVideoChecker = createXBMCVideoChecker();
-
-	// ---- network services -----
-	JsonServer * jsonServer         = nullptr;
-	ProtoServer * protoServer       = nullptr;
-	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(jsonServer, protoServer, boblightServer);
-
-	WebConfig webConfig(&app);
-
-	// ---- grabber -----
-	// if a grabber is left out of build, then <grabber>Wrapper is set to QObject as dummy and has value nullptr
-	V4L2Wrapper * v4l2Grabber = createGrabberV4L2(protoServer);
-	#ifndef ENABLE_V4L2
-		ErrorIf(config.isMember("grabber-v4l2"), log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer);
-	#ifndef ENABLE_DISPMANX
-		ErrorIf(config.isMember("framegrabber"), log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer);
-	#ifndef ENABLE_AMLOGIC
-		ErrorIf(config.isMember("amlgrabber"), log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	FramebufferWrapper * fbGrabber = createGrabberFramebuffer(protoServer);
-	#ifndef ENABLE_FB
-		ErrorIf(config.isMember("framebuffergrabber"), log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	OsxWrapper * osxGrabber = createGrabberDispmanx(protoServer);
-	#ifndef ENABLE_OSX
-		ErrorIf(config.isMember("osxgrabber"), log, "The osx grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-		ErrorIf(config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build");
-	#endif
+	HyperionDaemon* hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+	hyperiond->run();
 
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
-	// Delete all components
-	delete amlGrabber;
-	delete dispmanx;
-	delete fbGrabber;
-	delete osxGrabber;
-	delete v4l2Grabber;
-	delete xbmcVideoChecker;
-	delete jsonServer;
-	delete protoServer;
-	delete boblightServer;
+	delete hyperiond;
 
 	return rc;
 }

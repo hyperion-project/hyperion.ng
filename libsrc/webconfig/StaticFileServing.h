@@ -16,7 +16,7 @@ class StaticFileServing : public QObject {
     Q_OBJECT
 
 public:
-    explicit StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent = NULL);
+    explicit StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent = nullptr);
     virtual ~StaticFileServing (void);
 
 public slots:

@@ -27,7 +27,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	JsonServer(Hyperion * hyperion, uint16_t port = 19444);
+	JsonServer(uint16_t port = 19444);
 	~JsonServer();
 
 	///

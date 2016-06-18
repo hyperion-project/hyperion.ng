@@ -5,9 +5,9 @@
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
-JsonServer::JsonServer(Hyperion *hyperion, uint16_t port) :
+JsonServer::JsonServer(uint16_t port) :
 	QObject(),
-	_hyperion(hyperion),
+	_hyperion(Hyperion::getInstance()),
 	_server(),
 	_openConnections()
 {
