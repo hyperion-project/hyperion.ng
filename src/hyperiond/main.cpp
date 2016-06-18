@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 
 	HyperionDaemon* hyperiond = new HyperionDaemon(&app);
 	hyperiond->run();
-	
+
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
