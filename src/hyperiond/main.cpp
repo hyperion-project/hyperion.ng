@@ -15,7 +15,6 @@
 #include <utils/Logger.h>
 
 #include <hyperion/Hyperion.h>
-#include <webconfig/WebConfig.h>
 
 #include "hyperiond.h"
 
@@ -143,63 +142,14 @@ int main(int argc, char** argv)
 	Hyperion::initInstance(config, configFile);
 	Info(log, "Hyperion started and initialised");
 
-	startBootsequence();
-
-	XBMCVideoChecker * xbmcVideoChecker = createXBMCVideoChecker();
-
-	// ---- network services -----
-	JsonServer * jsonServer         = nullptr;
-	ProtoServer * protoServer       = nullptr;
-	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(jsonServer, protoServer, boblightServer);
-
-	WebConfig webConfig(&app);
-
-	// ---- grabber -----
-	// if a grabber is left out of build, then <grabber>Wrapper is set to QObject as dummy and has value nullptr
-	V4L2Wrapper * v4l2Grabber = createGrabberV4L2(protoServer);
-	#ifndef ENABLE_V4L2
-		ErrorIf(config.isMember("grabber-v4l2"), log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	DispmanxWrapper * dispmanx = createGrabberDispmanx(protoServer);
-	#ifndef ENABLE_DISPMANX
-		ErrorIf(config.isMember("framegrabber"), log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	AmlogicWrapper * amlGrabber = createGrabberAmlogic(protoServer);
-	#ifndef ENABLE_AMLOGIC
-		ErrorIf(config.isMember("amlgrabber"), log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	FramebufferWrapper * fbGrabber = createGrabberFramebuffer(protoServer);
-	#ifndef ENABLE_FB
-		ErrorIf(config.isMember("framebuffergrabber"), log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	OsxWrapper * osxGrabber = createGrabberDispmanx(protoServer);
-	#ifndef ENABLE_OSX
-		ErrorIf(config.isMember("osxgrabber"), log, "The osx grabber can not be instantiated, because it has been left out from the build");
-	#endif
-
-	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-		ErrorIf(config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build" << std::endl;
-	#endif
-
+	HyperionDaemon* hyperiond = new HyperionDaemon(&app);
+	hyperiond->run();
+	
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
-	// Delete all components
-	delete amlGrabber;
-	delete dispmanx;
-	delete fbGrabber;
-	delete osxGrabber;
-	delete v4l2Grabber;
-	delete xbmcVideoChecker;
-	delete jsonServer;
-	delete protoServer;
-	delete boblightServer;
+	delete hyperiond;
 
 	return rc;
 }

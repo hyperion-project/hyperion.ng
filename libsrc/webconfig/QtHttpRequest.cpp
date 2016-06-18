@@ -23,6 +23,10 @@ QString QtHttpRequest::getCommand (void) const {
     return m_command;
 }
 
+QtHttpRequest::ClientInfo QtHttpRequest::getClientInfo (void) const {
+    return m_clientInfo;
+}
+
 int QtHttpRequest::getRawDataSize (void) const {
     return m_data.size ();
 }
@@ -46,6 +50,11 @@ void QtHttpRequest::setUrl (const QUrl & url) {
 
 void QtHttpRequest::setCommand (const QString & command) {
     m_command = command;
+}
+
+void QtHttpRequest::setClientInfo (const QHostAddress & server, const QHostAddress & client) {
+    m_clientInfo.serverAddress = server;
+    m_clientInfo.clientAddress = client;
 }
 
 void QtHttpRequest::addHeader (const QByteArray & header, const QByteArray & value) {

@@ -32,18 +32,44 @@
 	typedef QObject OsxWrapper;
 #endif
 
+#include <utils/Logger.h>
+
 #include <xbmcvideochecker/XBMCVideoChecker.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
+#include <webconfig/WebConfig.h>
 
-void startBootsequence();
-XBMCVideoChecker* createXBMCVideoChecker();
-void startNetworkServices(JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer);
+class HyperionDaemon : public QObject
+{
+public:
+	HyperionDaemon(QObject *parent=nullptr);
+	~HyperionDaemon();
+	
+	void run();
 
-// grabber creators
-DispmanxWrapper*    createGrabberDispmanx(ProtoServer* &protoServer);
-V4L2Wrapper*        createGrabberV4L2(ProtoServer* &protoServer );
-AmlogicWrapper*     createGrabberAmlogic(ProtoServer* &protoServer);
-FramebufferWrapper* createGrabberFramebuffer(ProtoServer* &protoServer);
-OsxWrapper*         createGrabberOsx(ProtoServer* &protoServer);
+	void startBootsequence();
+	void createXBMCVideoChecker();
+	void startNetworkServices();
+
+	// grabber creators
+	void createGrabberDispmanx();
+	void createGrabberV4L2();
+	void createGrabberAmlogic();
+	void createGrabberFramebuffer();
+	void createGrabberOsx();
+
+private:
+	const Json::Value & _config;
+	Logger*             _log;
+	XBMCVideoChecker*   _xbmcVideoChecker;
+	JsonServer*         _jsonServer;
+	ProtoServer*        _protoServer;
+	BoblightServer*     _boblightServer;
+	V4L2Wrapper*        _v4l2Grabber;
+	DispmanxWrapper*    _dispmanx;
+	AmlogicWrapper*     _amlGrabber;
+	FramebufferWrapper* _fbGrabber; 
+	OsxWrapper*         _osxGrabber;
+	WebConfig*          _webConfig;
+};
