@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 	#endif
 
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-		ErrorIf(config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build" << std::endl;
+		ErrorIf(config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
 	// run the application
