@@ -26,15 +26,15 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-//#include "bonjourserviceregister.h"
 #include <bonjour/bonjourserviceregister.h>
-
+#include <stdlib.h>
 
 #include <QtCore/QSocketNotifier>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)
 {
+	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
 }
 
 BonjourServiceRegister::~BonjourServiceRegister()
