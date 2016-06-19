@@ -20,13 +20,9 @@ set(JsonServer_SOURCES
 set(JsonServer_RESOURCES
 	${CURRENT_SOURCE_DIR}/JsonSchemas.qrc
 )
-if(ENABLE_QT5)
-	qt5_wrap_cpp(JsonServer_HEADERS_MOC ${JsonServer_QT_HEADERS})
-	qt5_add_resources(JsonServer_RESOURCES_RCC ${JsonServer_RESOURCES} OPTIONS "-no-compress")
-else()
-	qt4_wrap_cpp(JsonServer_HEADERS_MOC ${JsonServer_QT_HEADERS})
-	qt4_add_resources(JsonServer_RESOURCES_RCC ${JsonServer_RESOURCES} OPTIONS "-no-compress")
-endif()
+
+qt5_wrap_cpp(JsonServer_HEADERS_MOC ${JsonServer_QT_HEADERS})
+qt5_add_resources(JsonServer_RESOURCES_RCC ${JsonServer_RESOURCES} OPTIONS "-no-compress")
 
 add_library(jsonserver
 	${JsonServer_HEADERS}
@@ -37,9 +33,7 @@ add_library(jsonserver
 	${JsonServer_RESOURCES_RCC}
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(jsonserver Widgets Network)
-endif()
+qt5_use_modules(jsonserver Widgets Network)
 
 target_link_libraries(jsonserver
 	hyperion

@@ -1,0 +1,14 @@
+{
+  "name": "hyperion remote control",
+  "description": "Client side app for controlling the hyperion server over the local network.",
+  "launch_path": "/hyperion-remote/index.html",
+  "icons": {
+    "128": "/hyperion-remote/res/icon_128.png"
+  },
+  "developer": {
+    "name": "Daniel Wiese",
+    "email": "gamadril.dev@gmail.com",
+    "url": "https://github.com/Gamadril"
+  },
+  "default_locale": "en"
+}

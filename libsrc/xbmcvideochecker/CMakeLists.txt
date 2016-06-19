@@ -15,11 +15,7 @@ SET(XBMCVideoChecker_SOURCES
 	${CURRENT_SOURCE_DIR}/XBMCVideoChecker.cpp
 )
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(XBMCVideoChecker_HEADERS_MOC ${XBMCVideoChecker_QT_HEADERS})
-else()
-	QT4_WRAP_CPP(XBMCVideoChecker_HEADERS_MOC ${XBMCVideoChecker_QT_HEADERS})
-endif()
+QT5_WRAP_CPP(XBMCVideoChecker_HEADERS_MOC ${XBMCVideoChecker_QT_HEADERS})
 
 add_library(xbmcvideochecker
 	${XBMCVideoChecker_HEADERS}
@@ -28,9 +24,7 @@ add_library(xbmcvideochecker
 	${XBMCVideoChecker_SOURCES}
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(xbmcvideochecker Widgets)
-endif()
+qt5_use_modules(xbmcvideochecker Widgets)
 
 target_link_libraries(xbmcvideochecker
 	hyperion

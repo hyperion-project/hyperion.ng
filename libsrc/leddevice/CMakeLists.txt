@@ -17,7 +17,6 @@ SET(Leddevice_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/LedRs232Device.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.h
-	${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 	${CURRENT_SOURCE_DIR}/LedHIDDevice.h
@@ -53,7 +52,6 @@ SET(Leddevice_SOURCES
 
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.cpp
-	${CURRENT_SOURCE_DIR}/LedDeviceAmbiLed.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
@@ -129,11 +127,7 @@ if(ENABLE_TINKERFORGE)
 	)
 endif()
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
-else()
-	QT4_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
-endif()
+QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
 
 
 add_library(leddevice
@@ -143,9 +137,7 @@ add_library(leddevice
 	${Leddevice_SOURCES}
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(leddevice Widgets Network)
-endif()
+qt5_use_modules(leddevice Widgets Network)
 
 target_link_libraries(leddevice
 	hyperion-utils

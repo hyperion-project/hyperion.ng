@@ -1,0 +1,32 @@
+{
+    "name": "hyperion remote control",
+	"short_name": "hyperion remote",
+    "description": "Client side app for controlling the hyperion server over the local network.",
+	"author": {
+		"name": "Daniel Wiese",
+		"email": "gamadril.dev@gmail.com"
+	},
+    "manifest_version": 2,
+    "version": "0.6.0",
+    "minimum_chrome_version": "36",
+    "permissions": [
+        "storage", "system.network"
+    ],
+    "app": {
+        "background": {
+            "scripts": ["js/background.js"]
+        }
+    },
+    "sockets": {
+        "tcp": {
+            "connect": "*"
+        },
+        "udp": {
+            "send": "*",
+            "bind": "*"
+        }
+    },
+	"icons": {
+	    "128": "res/icon_128.png"
+	}
+}

@@ -16,6 +16,7 @@
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 #include "Effect.h"
+#include "HyperionConfig.h"
 
 EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig) :
 	_hyperion(hyperion),
@@ -97,11 +98,7 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 
 bool EffectEngine::loadEffectDefinition(const std::string &path, const std::string &effectConfigFile, EffectDefinition & effectDefinition)
 {
-#ifdef ENABLE_QT5
 	std::string fileName = path + QDir::separator().toLatin1() + effectConfigFile;
-#else
-	std::string fileName = path + QDir::separator().toAscii() + effectConfigFile;
-#endif
 	std::ifstream file(fileName.c_str());
 
 	if (!file.is_open())
@@ -136,11 +133,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 
 	// setup the definition
 	effectDefinition.name = config["name"].asString();
-#ifdef ENABLE_QT5
 	effectDefinition.script = path + QDir::separator().toLatin1() + config["script"].asString();
-#else
-	effectDefinition.script = path + QDir::separator().toAscii() + config["script"].asString();
-#endif
 	effectDefinition.args = config["args"];
 
 	// return succes //BLACKLIST OUTPUT TO LOG (Spam). This is more a effect development thing and the list gets longer and longer

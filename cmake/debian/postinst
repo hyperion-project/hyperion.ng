@@ -20,7 +20,7 @@ install_file()
 echo "--- hyperion ambilight postinstall ---"
 echo "- install configuration template"
 mkdir -p /etc/hyperion
-install_file /usr/share/hyperion/config/hyperion.config.json /etc/hyperion/hyperion.config.json
+install_file /usr/share/hyperion/config/hyperion.config.json.example /etc/hyperion/hyperion.config.json
 
 
 HYPERION_RUNNING=false

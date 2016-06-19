@@ -114,6 +114,7 @@ void Effect::run()
 	{
 		std::cerr << "EFFECTENGINE ERROR: Unable to open script file " << _script << std::endl;
 	}
+	fclose(file);
 
 	// Clean up the thread state
 	Py_EndInterpreter(_interpreterThreadState);

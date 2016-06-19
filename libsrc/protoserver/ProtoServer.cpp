@@ -7,14 +7,14 @@
 #include "protoserver/ProtoConnection.h"
 #include "ProtoClientConnection.h"
 
-ProtoServer::ProtoServer(Hyperion *hyperion, uint16_t port) :
+ProtoServer::ProtoServer(uint16_t port) :
 	QObject(),
-	_hyperion(hyperion),
+	_hyperion(Hyperion::getInstance()),
 	_server(),
 	_openConnections()
 {
 
-	MessageForwarder * forwarder = hyperion->getForwarder();
+	MessageForwarder * forwarder = _hyperion->getForwarder();
 	QStringList slaves = forwarder->getProtoSlaves();
 
 	for (int i = 0; i < slaves.size(); ++i) {

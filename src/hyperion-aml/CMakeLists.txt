@@ -1,15 +1,7 @@
-# Configure minimum CMAKE version
 cmake_minimum_required(VERSION 2.8)
-
-# Set the project name
 project(hyperion-aml)
 
-# find QT
-if(ENABLE_QT5)
-	find_package(Qt5Widgets REQUIRED)
-else(ENABLE_QT5)
-	find_package(Qt4 REQUIRED QtCore QtGui QtNetwork)
-endif(ENABLE_QT5)
+find_package(Qt5Widgets REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
@@ -29,11 +21,7 @@ set(Hyperion_AML_SOURCES
 	AmlogicWrapper.cpp
 )
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
-else()
-	QT4_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
-endif()
+QT5_WRAP_CPP(Hyperion_AML_HEADERS_MOC ${Hyperion_AML_QT_HEADERS})
 
 add_executable(${PROJECT_NAME}
 	${Hyperion_AML_HEADERS}
@@ -50,15 +38,6 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
-qt4_use_modules(${PROJECT_NAME}
-	Core
-	Gui
-	Network)
-
-if(ENABLE_QT5)
-	qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
-else()
-	qt4_use_modules(${PROJECT_NAME} Core Gui Network )
-endif()
+qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
