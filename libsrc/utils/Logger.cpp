@@ -46,7 +46,11 @@ Logger::Logger ( std::string name, LogLevel minLevel ):
 	_syslogEnabled(true),
 	_loggerId(loggerId++)
 {
+#ifdef __GLIBC__
 	_appname = std::string(program_invocation_short_name);
+#else
+	_appname = std::string(getprogname());
+#endif
 	std::transform(_appname.begin(), _appname.end(),_appname.begin(), ::toupper);
 
 	loggerCount++;

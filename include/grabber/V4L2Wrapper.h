@@ -26,7 +26,6 @@ public:
 			double redSignalThreshold,
 			double greenSignalThreshold,
 			double blueSignalThreshold,
-			Hyperion * hyperion,
 			int hyperionPriority);
 	virtual ~V4L2Wrapper();
 

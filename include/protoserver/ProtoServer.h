@@ -41,7 +41,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	ProtoServer(Hyperion * hyperion, uint16_t port = 19445);
+	ProtoServer(uint16_t port = 19445);
 	~ProtoServer();
 
 	///

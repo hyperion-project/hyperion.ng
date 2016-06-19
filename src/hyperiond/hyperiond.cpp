@@ -1,86 +1,85 @@
-// C++ includes
-#include <cassert>
-#include <csignal>
-#include <vector>
 #include <unistd.h>
 
-// QT includes
 #include <QCoreApplication>
 #include <QResource>
 #include <QLocale>
 #include <QFile>
+#include <QHostInfo>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
-// config includes
 #include "HyperionConfig.h"
 
-// Json-Schema includes
 #include <utils/jsonschema/JsonFactory.h>
 
-// Hyperion includes
 #include <hyperion/Hyperion.h>
-
-#ifdef ENABLE_DISPMANX
-// Dispmanx grabber includes
-#include <grabber/DispmanxWrapper.h>
-#endif
-
-#ifdef ENABLE_V4L2
-// v4l2 grabber
-#include <grabber/V4L2Wrapper.h>
-#endif
-
-#ifdef ENABLE_FB
-// Framebuffer grabber includes
-#include <grabber/FramebufferWrapper.h>
-#endif
-
-#ifdef ENABLE_AMLOGIC
-#include <grabber/AmlogicWrapper.h>
-#endif
-
-#ifdef ENABLE_OSX
-// OSX grabber includes
-#include <grabber/OsxWrapper.h>
-#endif
-
-// XBMC Video checker includes
-#include <xbmcvideochecker/XBMCVideoChecker.h>
-
-// Effect engine includes
 #include <effectengine/EffectEngine.h>
-
-#ifdef ENABLE_ZEROCONF
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
-#include <QHostInfo>
-#endif
-
-// JsonServer includes
 #include <jsonserver/JsonServer.h>
-
-// ProtoServer includes
 #include <protoserver/ProtoServer.h>
-
-// BoblightServer includes
 #include <boblightserver/BoblightServer.h>
-#include <sys/prctl.h> 
 
-using namespace vlofgren;
+#include "hyperiond.h"
 
-void signal_handler(const int signum)
+
+HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
+	: QObject(parent)
+	, _log(Logger::getInstance("MAIN"))
+	, _xbmcVideoChecker(nullptr)
+	, _jsonServer(nullptr)
+	, _protoServer(nullptr)
+	, _boblightServer(nullptr)
+	, _v4l2Grabber(nullptr)
+	, _dispmanx(nullptr)
+	, _amlGrabber(nullptr)
+	, _fbGrabber(nullptr)
+	, _osxGrabber(nullptr)
+	, _webConfig(nullptr)
 {
-	QCoreApplication::quit();
-
-	// reset signal handler to default (in case this handler is not capable of stopping)
-	signal(signum, SIG_DFL);
+	loadConfig(configFile);
+	Hyperion::initInstance(_config, configFile);
+	Info(_log, "Hyperion started and initialised");
 }
 
-
-Json::Value loadConfig(const std::string & configFile)
+HyperionDaemon::~HyperionDaemon()
 {
+	delete _amlGrabber;
+	delete _dispmanx;
+	delete _fbGrabber;
+	delete _osxGrabber;
+	delete _v4l2Grabber;
+	delete _xbmcVideoChecker;
+	delete _jsonServer;
+	delete _protoServer;
+	delete _boblightServer;
+	delete _webConfig;
+
+}
+
+void HyperionDaemon::run()
+{
+	startBootsequence();
+	createXBMCVideoChecker();
+
+	// ---- network services -----
+	startNetworkServices();
+	_webConfig = new WebConfig(this);
+
+	// ---- grabber -----
+	createGrabberV4L2();
+	createGrabberDispmanx();
+	createGrabberAmlogic();
+	createGrabberFramebuffer();
+	createGrabberDispmanx();
+
+	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
+		ErrorIf(_config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build");
+	#endif
+
+}
+
+void HyperionDaemon::loadConfig(const std::string & configFile)
+{
+	Info(_log, "Selected configuration file: %s", configFile.c_str() );
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
@@ -97,30 +96,19 @@ Json::Value loadConfig(const std::string & configFile)
 	JsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
 
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
+	_config = JsonFactory::readJson(configFile);
+	schemaChecker.validate(_config);
 }
 
 
-void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
+void HyperionDaemon::startBootsequence()
 {
-	if ( fork() == 0 )
-	{
-		sleep(3);
-		execl(hyperionFile.c_str(), hyperionFile.c_str(), "--parent", QString::number(parentPid).toStdString().c_str(), configFile.c_str(), NULL);
-		exit(0);
-	}
-}
+	Hyperion *hyperion = Hyperion::getInstance();
 
-
-void startBootsequence(const Json::Value &config, Hyperion &hyperion)
-{
 	// create boot sequence if the configuration is present
-	if (config.isMember("bootsequence"))
+	if (_config.isMember("bootsequence"))
 	{
-		const Json::Value effectConfig = config["bootsequence"];
+		const Json::Value effectConfig = _config["bootsequence"];
 
 		// Get the parameters for the bootsequence
 		const std::string effectName = effectConfig["effect"].asString();
@@ -130,7 +118,7 @@ void startBootsequence(const Json::Value &config, Hyperion &hyperion)
 
 		// clear the leds
 		ColorRgb boot_color = ColorRgb::BLACK;
-		hyperion.setColor(bootcolor_priority, boot_color, 0, false);
+		hyperion->setColor(bootcolor_priority, boot_color, 0, false);
 
 		// start boot effect
 		if ( ! effectName.empty() )
@@ -141,11 +129,11 @@ void startBootsequence(const Json::Value &config, Hyperion &hyperion)
 			{
 				std::cout << " (with user defined arguments) ";
 				const Json::Value effectConfigArgs = effectConfig["args"];
-				result = hyperion.setEffect(effectName, effectConfigArgs, priority, duration_ms);
+				result = hyperion->setEffect(effectName, effectConfigArgs, priority, duration_ms);
 			}
 			else
 			{
-				result = hyperion.setEffect(effectName, priority, duration_ms);
+				result = hyperion->setEffect(effectName, priority, duration_ms);
 			}
 			std::cout << ((result == 0) ? "started" : "failed") << std::endl;
 		}
@@ -160,18 +148,18 @@ void startBootsequence(const Json::Value &config, Hyperion &hyperion)
 			};
 		}
 
-		hyperion.setColor(bootcolor_priority, boot_color, 0, false);
+		hyperion->setColor(bootcolor_priority, boot_color, 0, false);
 	}
 }
 
 
-// create XBMC video checker if the configuration is present
-void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* &xbmcVideoChecker)
+// create XBMC video checker if the _configuration is present
+void HyperionDaemon::createXBMCVideoChecker()
 {
-	if (config.isMember("xbmcVideoChecker"))
+	if (_config.isMember("xbmcVideoChecker"))
 	{
-		const Json::Value & videoCheckerConfig = config["xbmcVideoChecker"];
-		xbmcVideoChecker = new XBMCVideoChecker(
+		const Json::Value & videoCheckerConfig = _config["xbmcVideoChecker"];
+		_xbmcVideoChecker = XBMCVideoChecker::initInstance(
 			videoCheckerConfig["xbmcAddress"].asString(),
 			videoCheckerConfig["xbmcTcpPort"].asUInt(),
 			videoCheckerConfig["grabVideo"].asBool(),
@@ -182,118 +170,133 @@ void startXBMCVideoChecker(const Json::Value &config, XBMCVideoChecker* &xbmcVid
 			videoCheckerConfig.get("grabScreensaver", true).asBool(),
 			videoCheckerConfig.get("enable3DDetection", true).asBool());
 
-		xbmcVideoChecker->start();
-		std::cout << "INFO: Kodi checker created and started" << std::endl;
+		_xbmcVideoChecker->start();
+		Info(_log, "Kodi checker created and started");
 	}
 }
 
-void startNetworkServices(const Json::Value &config, Hyperion &hyperion, JsonServer* &jsonServer, ProtoServer* &protoServer, BoblightServer* &boblightServer, XBMCVideoChecker* &xbmcVideoChecker)
+void HyperionDaemon::startNetworkServices()
 {
+	Hyperion *hyperion = Hyperion::getInstance();
+	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
+
 	// Create Json server if configuration is present
 	unsigned int jsonPort = 19444;
-	if (config.isMember("jsonServer"))
+	if (_config.isMember("jsonServer"))
 	{
-		const Json::Value & jsonServerConfig = config["jsonServer"];
+		const Json::Value & jsonServerConfig = _config["jsonServer"];
 		//jsonEnable = jsonServerConfig.get("enable", true).asBool();
-		jsonPort   = jsonServerConfig.get("port", 19444).asUInt();
+		jsonPort   = jsonServerConfig.get("port", jsonPort).asUInt();
 	}
 
-	jsonServer = new JsonServer(&hyperion, jsonPort );
-	std::cout << "INFO: Json server created and started on port " << jsonServer->getPort() << std::endl;
+	_jsonServer = new JsonServer(jsonPort );
+	Info(_log, "Json server created and started on port %d", _jsonServer->getPort());
 
 	// Create Proto server if configuration is present
 	unsigned int protoPort = 19445;
-	if (config.isMember("protoServer"))
+	if (_config.isMember("protoServer"))
 	{
-		const Json::Value & protoServerConfig = config["protoServer"];
+		const Json::Value & protoServerConfig = _config["protoServer"];
 		//protoEnable = protoServerConfig.get("enable", true).asBool();
-		protoPort  = protoServerConfig.get("port", 19445).asUInt();
+		protoPort  = protoServerConfig.get("port", protoPort).asUInt();
 	}
 
-	protoServer = new ProtoServer(&hyperion, protoPort );
+	_protoServer = new ProtoServer(protoPort );
 	if (xbmcVideoChecker != nullptr)
 	{
-		QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), protoServer, SIGNAL(grabbingMode(GrabbingMode)));
-		QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), protoServer, SIGNAL(videoMode(VideoMode)));
+		QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _protoServer, SIGNAL(grabbingMode(GrabbingMode)));
+		QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _protoServer, SIGNAL(videoMode(VideoMode)));
 	}
-	std::cout << "INFO: Proto server created and started on port " << protoServer->getPort() << std::endl;
-
-#ifdef ENABLE_ZEROCONF
-	const Json::Value & deviceConfig = config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-
-	const std::string hostname = QHostInfo::localHostName().toStdString();
-	const std::string mDNSDescr = jsonServerConfig.get("mDNSDescr", hostname).asString();
-	const std::string mDNSService = jsonServerConfig.get("mDNSService", "_hyperiond_json._tcp").asString();
-	BonjourServiceRegister *bonjourRegister_json;
-	bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-	                                      QString()), jsonServerConfig["port"].asUInt());
-	std::cout << "INFO: Json mDNS responder started" << std::endl;
-
-	const Json::Value & deviceConfig = config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-
-	const std::string hostname = QHostInfo::localHostName().toStdString();
-	const std::string mDNSDescr = protoServerConfig.get("mDNSDescr", hostname).asString();
-	const std::string mDNSService = protoServerConfig.get("mDNSService", "_hyperiond_proto._tcp").asString();
-	BonjourServiceRegister *bonjourRegister_proto;
-	bonjourRegister_proto = new BonjourServiceRegister();
-	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr).c_str(), mDNSService.c_str(),
-	                                       QString()), protoServerConfig["port"].asUInt());
-	std::cout << "INFO: Proto mDNS responder started" << std::endl;
-#endif
+	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
 	// Create Boblight server if configuration is present
-	if (config.isMember("boblightServer"))
+	if (_config.isMember("boblightServer"))
 	{
-		const Json::Value & boblightServerConfig = config["boblightServer"];
-		boblightServer = new BoblightServer(&hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		std::cout << "INFO: Boblight server created and started on port " << boblightServer->getPort() << std::endl;
+		const Json::Value & boblightServerConfig = _config["boblightServer"];
+		_boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
+		Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
 	}
+
+	// zeroconf
+	const Json::Value & deviceConfig = _config["device"];
+	const std::string deviceName = deviceConfig.get("name", "").asString();
+	const std::string hostname = QHostInfo::localHostName().toStdString();
+
+	// zeroconf json
+	std::string mDNSDescr_json = hostname;
+	std::string mDNSService_json = "_hyperiond_json._tcp";
+	if (_config.isMember("jsonServer"))
+	{
+		const Json::Value & jsonServerConfig = _config["jsonServer"];
+		mDNSDescr_json = jsonServerConfig.get("mDNSDescr", mDNSDescr_json).asString();
+		mDNSService_json = jsonServerConfig.get("mDNSService", mDNSService_json).asString();
+	}
+	
+	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
+	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
+	                                      QString()), _jsonServer->getPort() );
+	Info(_log, "Json mDNS responder started");
+
+	// zeroconf proto
+	std::string mDNSDescr_proto = hostname;
+	std::string mDNSService_proto = "_hyperiond_proto._tcp";
+	if (_config.isMember("protoServer"))
+	{
+		const Json::Value & protoServerConfig = _config["protoServer"];
+		mDNSDescr_proto = protoServerConfig.get("mDNSDescr", mDNSDescr_proto).asString();
+		mDNSService_proto = protoServerConfig.get("mDNSService", mDNSService_proto).asString();
+	}
+	
+	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
+	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
+	                                       QString()), _protoServer->getPort() );
+	Info(_log, "Proto mDNS responder started");
+
 }
 
-#ifdef ENABLE_DISPMANX
-void startGrabberDispmanx(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, DispmanxWrapper* &dispmanx)
+void HyperionDaemon::createGrabberDispmanx()
 {
+#ifdef ENABLE_DISPMANX
 	// Construct and start the frame-grabber if the configuration is present
-	if (config.isMember("framegrabber"))
+	if (_config.isMember("framegrabber"))
 	{
-		const Json::Value & frameGrabberConfig = config["framegrabber"];
-		dispmanx = new DispmanxWrapper(
+		const Json::Value & frameGrabberConfig = _config["framegrabber"];
+		_dispmanx = new DispmanxWrapper(
 			frameGrabberConfig["width"].asUInt(),
 			frameGrabberConfig["height"].asUInt(),
 			frameGrabberConfig["frequency_Hz"].asUInt(),
-			frameGrabberConfig.get("priority",900).asInt(),
-			&hyperion);
-		dispmanx->setCropping(
+			frameGrabberConfig.get("priority",900).asInt());
+		_dispmanx->setCropping(
 					frameGrabberConfig.get("cropLeft", 0).asInt(),
 					frameGrabberConfig.get("cropRight", 0).asInt(),
 					frameGrabberConfig.get("cropTop", 0).asInt(),
 					frameGrabberConfig.get("cropBottom", 0).asInt());
 
-		if (xbmcVideoChecker != nullptr)
+		if (_xbmcVideoChecker != nullptr)
 		{
-			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), dispmanx, SLOT(setVideoMode(VideoMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 		}
 
-		QObject::connect(dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		dispmanx->start();
-		std::cout << "INFO: Frame grabber created and started" << std::endl;
+		_dispmanx->start();
+		Info(_log, "Frame grabber created and started");
 	}
-}
+#else
+	ErrorIf(_config.isMember("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 #endif
+}
 
-#ifdef ENABLE_V4L2
-void startGrabberV4L2(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, V4L2Wrapper* &v4l2Grabber )
+
+void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
-	if (config.isMember("grabber-v4l2"))
+#ifdef ENABLE_V4L2
+	if (_config.isMember("grabber-v4l2"))
 	{
-		const Json::Value & grabberConfig = config["grabber-v4l2"];
-		v4l2Grabber = new V4L2Wrapper(
+		const Json::Value & grabberConfig = _config["grabber-v4l2"];
+		_v4l2Grabber = new V4L2Wrapper(
 					grabberConfig.get("device", "/dev/video0").asString(),
 					grabberConfig.get("input", 0).asInt(),
 					parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
@@ -305,287 +308,111 @@ void startGrabberV4L2(const Json::Value &config, Hyperion &hyperion, ProtoServer
 					grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
 					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
 					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
-					&hyperion,
 					grabberConfig.get("priority", 900).asInt());
-		v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
-		v4l2Grabber->setCropping(
+		_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
+		_v4l2Grabber->setCropping(
 					grabberConfig.get("cropLeft", 0).asInt(),
 					grabberConfig.get("cropRight", 0).asInt(),
 					grabberConfig.get("cropTop", 0).asInt(),
 					grabberConfig.get("cropBottom", 0).asInt());
 
-		QObject::connect(v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		v4l2Grabber->start();
-		std::cout << "INFO: V4L2 grabber created and started" << std::endl;
+		_v4l2Grabber->start();
+		Info(_log, "V4L2 grabber created and started");
 	}
-
-}
+#else
+	ErrorIf(_config.isMember("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
+}
 
-#ifdef ENABLE_AMLOGIC
-void startGrabberAmlogic(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, AmlogicWrapper* &amlGrabber)
+void HyperionDaemon::createGrabberAmlogic()
 {
+#ifdef ENABLE_AMLOGIC
 	// Construct and start the framebuffer grabber if the configuration is present
-	if (config.isMember("amlgrabber"))
+	if (_config.isMember("amlgrabber"))
 	{
-		const Json::Value & grabberConfig = config["amlgrabber"];
-		amlGrabber = new AmlogicWrapper(
+		const Json::Value & grabberConfig = _config["amlgrabber"];
+		_amlGrabber = new AmlogicWrapper(
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
-			grabberConfig.get("priority",900).asInt(),
-			&hyperion);
+			grabberConfig.get("priority",900).asInt());
 
-		if (xbmcVideoChecker != nullptr)
+		if (_xbmcVideoChecker != nullptr)
 		{
-			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)),       amlGrabber, SLOT(setVideoMode(VideoMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
-		QObject::connect(amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		amlGrabber->start();
-		std::cout << "INFO: AMLOGIC grabber created and started" << std::endl;
+		_amlGrabber->start();
+		Info(_log, "AMLOGIC grabber created and started");
 	}
-}
+#else
+	ErrorIf(_config.isMember("amlgrabber"), _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 #endif
+}
 
 
-#ifdef ENABLE_FB
-void startGrabberFramebuffer(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, FramebufferWrapper* &fbGrabber)
+void HyperionDaemon::createGrabberFramebuffer()
 {
+#ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
-	if (config.isMember("framebuffergrabber") || config.isMember("framegrabber"))
+	if (_config.isMember("framebuffergrabber") || _config.isMember("framegrabber"))
 	{
-		const Json::Value & grabberConfig = config.isMember("framebuffergrabber")? config["framebuffergrabber"] : config["framegrabber"];
-		fbGrabber = new FramebufferWrapper(
+		const Json::Value & grabberConfig = _config.isMember("framebuffergrabber")? _config["framebuffergrabber"] : _config["framegrabber"];
+		_fbGrabber = new FramebufferWrapper(
 			grabberConfig.get("device", "/dev/fb0").asString(),
 			grabberConfig["width"].asUInt(),
 			grabberConfig["height"].asUInt(),
 			grabberConfig["frequency_Hz"].asUInt(),
-			grabberConfig.get("priority",900).asInt(),
-			&hyperion);
+			grabberConfig.get("priority",900).asInt());
 
-		if (xbmcVideoChecker != nullptr)
+		if (_xbmcVideoChecker != nullptr)
 		{
-			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), fbGrabber, SLOT(setVideoMode(VideoMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 
-		QObject::connect(fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		fbGrabber->start();
-		std::cout << "INFO: Framebuffer grabber created and started" << std::endl;
+		_fbGrabber->start();
+		Info(_log, "Framebuffer grabber created and started");
 	}
-}
+#else
+	ErrorIf(_config.isMember("framebuffergrabber"), _log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
 #endif
+}
 
 
-#ifdef ENABLE_OSX
-void startGrabberOsx(const Json::Value &config, Hyperion &hyperion, ProtoServer* &protoServer, XBMCVideoChecker* &xbmcVideoChecker, OsxWrapper* &osxGrabber)
+void HyperionDaemon::createGrabberOsx()
 {
+#ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
-	if (config.isMember("osxgrabber") || config.isMember("framegrabber"))
+	if (_config.isMember("framegrabber"))
 	{
-		const Json::Value & grabberConfig = config.isMember("osxgrabber")? config["osxgrabber"] : config["framegrabber"];
-		osxGrabber = new OsxWrapper(
+		const Json::Value & grabberConfig = _config.isMember("osxgrabber")? _config["osxgrabber"] : _config["framegrabber"];
+		_osxGrabber = new OsxWrapper(
 									grabberConfig.get("display", 0).asUInt(),
 									grabberConfig["width"].asUInt(),
 									grabberConfig["height"].asUInt(),
 									grabberConfig["frequency_Hz"].asUInt(),
-									grabberConfig.get("priority",900).asInt(),
-									&hyperion );
+									grabberConfig.get("priority",900).asInt());
 
-		if (xbmcVideoChecker != nullptr)
+		if (_xbmcVideoChecker != nullptr)
 		{
-			QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), osxGrabber, SLOT(setVideoMode(VideoMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
 		}
 		
-		QObject::connect(osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		osxGrabber->start();
-		std::cout << "INFO: OSX grabber created and started" << std::endl;
+		_osxGrabber->start();
+		Info(_log, "OSX grabber created and started");
 	}
-}
-#endif
-
-int main(int argc, char** argv)
-{
-	std::cout
-		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
-		<< "\tVersion   : " << HYPERION_VERSION_ID << std::endl
-		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-
-	// Initialising QCoreApplication
-	QCoreApplication app(argc, argv);
-
-	signal(SIGINT,  signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGCHLD, signal_handler);
-
-	// force the locale
-	setlocale(LC_ALL, "C");
-	QLocale::setDefault(QLocale::c());
-
-	OptionsParser optionParser("Hyperion Daemon");
-	ParameterSet & parameters = optionParser.getParameters();
-
-	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
-	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
-
-	argParentPid.setDefault(0);
-	optionParser.parse(argc, const_cast<const char **>(argv));
-	const std::vector<std::string> configFiles = optionParser.getFiles();
-
-	// check if we need to display the usage. exit if we do.
-	if (argHelp.isSet())
-	{
-		optionParser.usage();
-		return 0;
-	}
-
-	if (configFiles.size() == 0)
-	{
-		std::cout << "ERROR: Missing required configuration file. Usage:" << std::endl;
-		std::cout << "hyperiond <options ...> [config.file ...]" << std::endl;
-		return 1;
-	}
-
-	
-	if (argParentPid.getValue() > 0 )
-	{
-		std::cout << "hyperiond client, parent is pid " << argParentPid.getValue() << std::endl;
-		prctl(PR_SET_PDEATHSIG, SIGHUP);
-	}
-	
-	int argvId = -1;
-	for(size_t idx=0; idx < configFiles.size(); idx++) {
-		if ( QFile::exists(configFiles[idx].c_str()))
-		{
-			if (argvId < 0) argvId=idx;
-			else startNewHyperion(getpid(), argv[0], configFiles[idx].c_str());
-		}
-	}
-	
-	if ( argvId < 0)
-	{
-		std::cout << "ERROR: No valid config found " << std::endl;
-		return 1;
-	}
-	
-	const std::string configFile = configFiles[argvId];
-	std::cout << "INFO: Selected configuration file: " << configFile.c_str() << std::endl;
-	const Json::Value config = loadConfig(configFile);
-
-	Hyperion hyperion(config);
-	std::cout << "INFO: Hyperion started and initialised" << std::endl;
-
-
-	startBootsequence(config, hyperion);
-
-	XBMCVideoChecker * xbmcVideoChecker = nullptr;
-	startXBMCVideoChecker(config, xbmcVideoChecker);
-
-	// ---- network services -----
-	JsonServer * jsonServer = nullptr;
-	ProtoServer * protoServer = nullptr;
-	BoblightServer * boblightServer = nullptr;
-	startNetworkServices(config, hyperion, jsonServer, protoServer, boblightServer, xbmcVideoChecker);
-
-// ---- grabber -----
-
-#ifdef ENABLE_DISPMANX
-	DispmanxWrapper * dispmanx = nullptr;
-	startGrabberDispmanx(config, hyperion, protoServer, xbmcVideoChecker, dispmanx);
 #else
-#if !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-	if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERRROR: The dispmanx framegrabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
+	ErrorIf(_config.isMember("osxgrabber"), _log, "The osx grabber can not be instantiated, because it has been left out from the build");
 #endif
-#endif
-
-#ifdef ENABLE_V4L2
-	V4L2Wrapper * v4l2Grabber = nullptr;
-	startGrabberV4L2(config, hyperion, protoServer, v4l2Grabber);
-#else
-	if (config.isMember("grabber-v4l2"))
-	{
-		std::cerr << "ERROR: The v4l2 grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-
-#ifdef ENABLE_AMLOGIC
-	// Construct and start the framebuffer grabber if the configuration is present
-	AmlogicWrapper * amlGrabber = nullptr;
-	startGrabberAmlogic(config, hyperion, protoServer, xbmcVideoChecker, amlGrabber);
-#else
-	if (config.isMember("amlgrabber"))
-	{
-		std::cerr << "ERROR: The AMLOGIC grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-
-#ifdef ENABLE_FB
-	// Construct and start the framebuffer grabber if the configuration is present
-	FramebufferWrapper * fbGrabber = nullptr;
-	startGrabberFramebuffer(config, hyperion, protoServer, xbmcVideoChecker, fbGrabber);
-#else
-	if (config.isMember("framebuffergrabber"))
-	{
-		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX)
-	else if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERROR: The framebuffer grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-#endif
-
-#ifdef ENABLE_OSX
-	// Construct and start the osx grabber if the configuration is present
-	OsxWrapper * osxGrabber = nullptr;
-	startGrabberDispmanx(config, hyperion, protoServer, xbmcVideoChecker, osxGrabber);
-#else
-	if (config.isMember("osxgrabber"))
-	{
-		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_FB)
-	else if (config.isMember("framegrabber"))
-	{
-		std::cerr << "ERROR: The osx grabber can not be instantiated, because it has been left out from the build" << std::endl;
-	}
-#endif
-#endif
-
-
-	// run the application
-	int rc = app.exec();
-	std::cout << "INFO: Application closed with code " << rc << std::endl;
-
-	// Delete all component
-#ifdef ENABLE_DISPMANX
-	delete dispmanx;
-#endif
-#ifdef ENABLE_FB
-	delete fbGrabber;
-#endif
-#ifdef ENABLE_OSX
-	delete osxGrabber;
-#endif
-#ifdef ENABLE_V4L2
-	delete v4l2Grabber;
-#endif
-	delete xbmcVideoChecker;
-	delete jsonServer;
-	delete protoServer;
-	delete boblightServer;
-
-	// leave application
-	return rc;
 }

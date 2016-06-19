@@ -129,11 +129,7 @@ if(ENABLE_TINKERFORGE)
 	)
 endif()
 
-if(ENABLE_QT5)
-	QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
-else()
-	QT4_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
-endif()
+QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
 
 
 add_library(leddevice
@@ -143,9 +139,7 @@ add_library(leddevice
 	${Leddevice_SOURCES}
 )
 
-if(ENABLE_QT5)
-	qt5_use_modules(leddevice Widgets Network)
-endif()
+qt5_use_modules(leddevice Widgets Network)
 
 target_link_libraries(leddevice
 	hyperion-utils

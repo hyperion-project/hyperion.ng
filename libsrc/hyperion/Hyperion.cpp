@@ -1,6 +1,7 @@
 
 // STL includes
 #include <cassert>
+#include <exception>
 
 // QT includes
 #include <QDateTime>
@@ -31,6 +32,24 @@
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 
+Hyperion* Hyperion::_hyperion = nullptr;
+
+Hyperion* Hyperion::initInstance(const Json::Value& jsonConfig, const std::string configFile)
+{
+	if ( Hyperion::_hyperion != nullptr )
+		throw std::runtime_error("Hyperion::initInstance can be called only one time");
+	Hyperion::_hyperion = new Hyperion(jsonConfig,configFile);
+
+	return Hyperion::_hyperion;
+}
+
+Hyperion* Hyperion::getInstance()
+{
+	if ( Hyperion::_hyperion == nullptr )
+		throw std::runtime_error("Hyperion::getInstance used without call of Hyperion::initInstance before");
+		
+	return Hyperion::_hyperion;
+}
 
 ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 {
@@ -615,7 +634,7 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig) :
+Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) :
 	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
 	_muxer(_ledString.leds().size()),
 	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
@@ -625,6 +644,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig) :
 	_device(LedDeviceFactory::construct(jsonConfig["device"])),
 	_effectEngine(nullptr),
 	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
+	_jsonConfig(jsonConfig),
+	_configFile(configFile),
 	_timer()
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())

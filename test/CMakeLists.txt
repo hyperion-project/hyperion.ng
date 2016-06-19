@@ -35,10 +35,8 @@ if (ENABLE_DISPMANX)
 	add_subdirectory(dispmanx2png)
 endif (ENABLE_DISPMANX)
 
-add_executable(test_blackborderdetector
-		TestBlackBorderDetector.cpp)
-target_link_libraries(test_blackborderdetector
-		hyperion)
+add_executable(test_blackborderdetector TestBlackBorderDetector.cpp)
+target_link_libraries(test_blackborderdetector hyperion)
 
 add_executable(test_blackborderprocessor
 		TestBlackBorderProcessor.cpp)
@@ -53,10 +51,8 @@ add_executable(test_qtscreenshot TestQtScreenshot.cpp)
 target_link_libraries(test_qtscreenshot
 		${QT_LIBRARIES})
 
-if(ENABLE_QT5)
 qt5_use_modules(test_qregexp Widgets)
 qt5_use_modules(test_qtscreenshot Widgets)
-endif(ENABLE_QT5)
 
 if(ENABLE_X11)
     # Find X11
@@ -64,8 +60,7 @@ if(ENABLE_X11)
 
     add_executable(test_x11performance TestX11Performance.cpp)
 	target_link_libraries(test_x11performance ${X11_LIBRARIES} ${QT_LIBRARIES})
-if(ENABLE_QT5)
-qt5_use_modules(test_x11performance Widgets)
-endif(ENABLE_QT5)
 
+	qt5_use_modules(test_x11performance Widgets)
 endif(ENABLE_X11)
+

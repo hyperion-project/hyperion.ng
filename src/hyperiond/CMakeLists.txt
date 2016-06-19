@@ -1,6 +1,6 @@
 
 add_executable(hyperiond
-		hyperiond.cpp)
+		hyperiond.cpp hyperiond.h main.cpp)
 
 target_link_libraries(hyperiond
 		getoptPlusPlus
@@ -9,7 +9,9 @@ target_link_libraries(hyperiond
 		effectengine
 		jsonserver
 		boblightserver
-		 protoserver
+		protoserver
+		webconfig
+		bonjour
 )
 
 if (ENABLE_DISPMANX)
@@ -32,12 +34,8 @@ if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond amlogic-grabber)
 endif ()
 
-if (ENABLE_ZEROCONF)
-	target_link_libraries(hyperiond bonjour)
-endif()
-
 install ( TARGETS hyperiond DESTINATION "bin" COMPONENT ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects     DESTINATION "share/hyperion/" COMPONENT  ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/config      DESTINATION "share/hyperion/" COMPONENT  ambilight )
-
+install ( DIRECTORY ${CMAKE_SOURCE_DIR}/assets/webconfig      DESTINATION "share/hyperion/" COMPONENT  ambilight )
