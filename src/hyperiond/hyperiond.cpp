@@ -72,7 +72,7 @@ void HyperionDaemon::run()
 	createGrabberDispmanx();
 
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-		ErrorIf(_config.isMember("framegrabber"), log, "No grabber can be instantiated, because all grabbers have been left out from the build");
+                ErrorIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
 }
