@@ -4,7 +4,7 @@
 #include <cstdint>
 
 // Qt includes
-#include <QTcpServer>
+#include <QUdpSocket>
 #include <QSet>
 
 // Hyperion includes
@@ -13,7 +13,7 @@
 class UDPClientConnection;
 
 ///
-/// This class creates a TCP server which accepts connections from boblight clients.
+/// This class creates a UDP server which accepts connections from boblight clients.
 ///
 class UDPListener : public QObject
 {
@@ -25,11 +25,11 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(Hyperion * hyperion, const int priority, uint16_t port = 19333);
+	UDPListener(Hyperion * hyperion, const int priority, uint16_t port = 2801);
 	~UDPListener();
 
 	///
-	/// @return the port number on which this TCP listens for incoming connections
+	/// @return the port number on which this UDP listens for incoming connections
 	///
 	uint16_t getPort() const;
 
@@ -37,20 +37,22 @@ private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
 	///
-	void newConnection();
+//	void newConnection();
+	void readPendingDatagrams();
+
 
 	///
 	/// Slot which is called when a client closes a connection
 	/// @param connection The Connection object which is being closed
 	///
-	void closedConnection(UDPClientConnection * connection);
+//	void closedConnection(UDPClientConnection * connection);
 
 private:
 	/// Hyperion instance
 	Hyperion * _hyperion;
 
-	/// The TCP server object
-	QTcpServer _server;
+	/// The UDP server object
+	QUdpSocket * _server;
 
 	/// List with open connections
 	QSet<UDPClientConnection *> _openConnections;

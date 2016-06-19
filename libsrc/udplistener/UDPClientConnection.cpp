@@ -22,10 +22,10 @@
 // project includes
 #include "UDPClientConnection.h"
 
-UDPClientConnection::UDPClientConnection(QTcpSocket *socket, const int priority, Hyperion * hyperion) :
+UDPClientConnection::UDPClientConnection(QByteArray * datagram , const int priority, Hyperion * hyperion) :
 	QObject(),
 	_locale(QLocale::C),
-	_socket(socket),
+	_datagram(datagram),
 	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
 	_receiveBuffer(),
@@ -36,8 +36,8 @@ UDPClientConnection::UDPClientConnection(QTcpSocket *socket, const int priority,
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
 
 	// connect internal signals and slots
-	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
-	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+//	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
+//	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 }
 
 UDPClientConnection::~UDPClientConnection()
@@ -49,12 +49,13 @@ UDPClientConnection::~UDPClientConnection()
 		_priority = 255;
 	}
 
-	delete _socket;
+	delete _datagram;
 }
 
 void UDPClientConnection::readData()
 {
-	_receiveBuffer += _socket->readAll();
+//	_receiveBuffer += _socket->readAll();
+	_receiveBuffer = *_datagram;
 
 	int bytes = _receiveBuffer.indexOf('\n') + 1;
 	while(bytes > 0)
@@ -99,30 +100,7 @@ void UDPClientConnection::handleMessage(const QString & message)
 
 	if (messageParts.size() > 0)
 	{
-		if (messageParts[0] == "hello")
-		{
-			sendMessage("hello\n");
-			return;
-		}
-		else if (messageParts[0] == "ping")
-		{
-			sendMessage("ping 1\n");
-			return;
-		}
-		else if (messageParts[0] == "get" && messageParts.size() > 1)
-		{
-			if (messageParts[1] == "version")
-			{
-				sendMessage("version 5\n");
-				return;
-			}
-			else if (messageParts[1] == "lights")
-			{
-				sendLightMessage();
-				return;
-			}
-		}
-		else if (messageParts[0] == "set" && messageParts.size() > 2)
+		if (messageParts[0] == "set" && messageParts.size() > 2)
 		{
 			if (messageParts.size() > 3 && messageParts[1] == "light")
 			{
@@ -214,26 +192,12 @@ void UDPClientConnection::handleMessage(const QString & message)
 void UDPClientConnection::sendMessage(const std::string & message)
 {
 	//std::cout << "send udp message: " << message;
-	_socket->write(message.c_str(), message.size());
+//	_socket->write(message.c_str(), message.size());
 }
 
 void UDPClientConnection::sendMessage(const char * message, int size)
 {
 	//std::cout << "send udp message: " << std::string(message, size);
-	_socket->write(message, size);
+//	_socket->write(message, size);
 }
 
-void UDPClientConnection::sendLightMessage()
-{
-	char buffer[256];
-	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
-	sendMessage(buffer, n);
-
-	for (unsigned i = 0; i < _hyperion->getLedCount(); ++i)
-	{
-		double h0, h1, v0, v1;
-		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
-		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
-		sendMessage(buffer, n);
-	}
-}

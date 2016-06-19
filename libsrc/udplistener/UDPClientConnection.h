@@ -5,7 +5,7 @@
 
 // Qt includes
 #include <QByteArray>
-#include <QTcpSocket>
+#include <QUdpSocket>
 #include <QLocale>
 
 // Hyperion includes
@@ -26,7 +26,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	UDPClientConnection(QTcpSocket * socket, const int priority, Hyperion * hyperion);
+	UDPClientConnection(QByteArray * datagram, const int priority, Hyperion * hyperion);
 
 	///
 	/// Destructor
@@ -84,7 +84,7 @@ private:
 	QLocale _locale;
 
 	/// The TCP-Socket that is connected tot the boblight-client
-	QTcpSocket * _socket;
+	QByteArray * _datagram;
 
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;
