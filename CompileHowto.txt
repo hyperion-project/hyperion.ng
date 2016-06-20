@@ -24,15 +24,15 @@ mkdir "$HYPERION_DIR/build"
 cd "$HYPERION_DIR/build"
 
 # run cmake to generate make files on the raspberry pi WITHOUT PWM SUPPORT
-cmake -DENABLE_SPIDEV=ON -DENABLE_DISPMANX=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DPLATFORM=rpi -DCMAKE_BUILD_TYPE=Release ..
 # run cmake to generate make files on the raspberry pi WITH PWM SUPPORT
-cmake -DENABLE_SPIDEV=ON -DENABLE_DISPMANX=ON -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-# or if you are not compiling on the raspberry pi (e.g. OrangePi) and need to disable the Dispmanx grabber and support for spi devices
-cmake -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DPLATFORM=rpi-pwm -DCMAKE_BUILD_TYPE=Release ..
+# or if you want to compile on x86x64
+cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release ..
 # on amlogic platforms
-cmake -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DPLATFORM=aml -DCMAKE_BUILD_TYPE=Release ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
-cmake -DENABLE_FB=ON  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release ..
 # ToDo: QT5 libs!! for OSX build you need XCode, qt4 libraries and cmake (maybe libusb too). You can use macport or homebrew(recommended) to install them:
 #for port:
 sudo port install qt4-mac
@@ -58,4 +58,4 @@ sudo cp ./bin/hyperion-remote /usr/bin/
 sudo cp ./bin/hyperiond /usr/bin/
 
 # Copy the effect folder (if you did not use the normal installation methode before)
-sudo mkdir -p /opt/hyperion/effects && sudo cp -R ../effects/ /opt/hyperion/
+sudo mkdir -p /usr/share/hyperion/effects && sudo cp -R ../effects/ /usr/share/hyperion/
