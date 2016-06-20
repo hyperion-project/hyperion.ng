@@ -218,26 +218,52 @@ void HyperionDaemon::startNetworkServices()
 	if (_config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
-		_boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		if ( boblightServerConfig.get("enable", true).asBool() )
+		{
+			_boblightServer = new BoblightServer(hyperion,
+						boblightServerConfig.get("priority",900).asInt(),
+						boblightServerConfig["port"].asUInt()
+						);
+			Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		}
 	}
 
         // Create UDP listener if configuration is present
         if (_config.isMember("udpListener"))
         {
                 const Json::Value & udpListenerConfig = _config["udpListener"];
-                _udpListener = new UDPListener(hyperion,
-                                        udpListenerConfig.get("priority",890).asInt(),
-                                        udpListenerConfig.get("timeout",10000).asInt(),
-                                        udpListenerConfig["port"].asUInt()
-                                );
-                Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+		if ( udpListenerConfig.get("enable", true).asBool() )
+		{
+			_udpListener = new UDPListener(hyperion,
+						udpListenerConfig.get("priority",890).asInt(),
+						udpListenerConfig.get("timeout",10000).asInt(),
+						udpListenerConfig.get("port", 2801).asUInt()
+					);
+			Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+		}
         }
 
 	// zeroconf
 	const Json::Value & deviceConfig = _config["device"];
 	const std::string deviceName = deviceConfig.get("name", "").asString();
 	const std::string hostname = QHostInfo::localHostName().toStdString();
+	const std::string default_mDNSDescr = (deviceName + "@" + hostname);
+
+	// udp listener json
+	std::string mDNSService_udp = "_hyperiond_2801._udp";
+	std::string mDNSDescr_udp = default_mDNSDescr;
+	if (_udpListener != nullptr) {
+		if (_config.isMember("udpListener"))
+		{
+			const Json::Value & udpListenerConfig = _config["udpListener"];
+			mDNSDescr_udp = udpListenerConfig.get("mDNSDescr", default_mDNSDescr).asString();
+			mDNSService_udp = udpListenerConfig.get("mDNSService", mDNSService_udp).asString();
+		}
+
+		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
+		bonjourRegister_udp->registerService(BonjourRecord(mDNSDescr_udp.c_str(), mDNSService_udp.c_str(), QString()), _udpListener->getPort() );
+		Info(_log, "UDP LIstener mDNS responder started");
+	}
 
 	// zeroconf json
 	std::string mDNSDescr_json = hostname;
