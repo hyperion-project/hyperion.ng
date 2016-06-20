@@ -37,15 +37,9 @@ private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
 	///
-//	void newConnection();
 	void readPendingDatagrams();
+	void processTheDatagram(const QByteArray * _datagram);
 
-
-	///
-	/// Slot which is called when a client closes a connection
-	/// @param connection The Connection object which is being closed
-	///
-//	void closedConnection(UDPClientConnection * connection);
 
 private:
 	/// Hyperion instance
@@ -58,5 +52,8 @@ private:
 	QSet<UDPClientConnection *> _openConnections;
 
 	/// hyperion priority
-	const int _priority;
+	int _priority;
+
+        /// The latest led color data
+        std::vector<ColorRgb> _ledColors;
 };

@@ -5,12 +5,20 @@
 #include <udplistener/UDPListener.h>
 #include "UDPClientConnection.h"
 
+// hyperion util includes
+#include "hyperion/ImageProcessorFactory.h"
+#include "hyperion/ImageProcessor.h"
+#include "utils/ColorRgb.h"
+#include "HyperionConfig.h"
+
 UDPListener::UDPListener(Hyperion *hyperion, const int priority, uint16_t port) :
 	QObject(),
 	_hyperion(hyperion),
 	_server(),
 	_openConnections(),
-	_priority(priority)
+	_priority(priority),
+        _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
+
 {
 	_server = new QUdpSocket(this);
 	if (!_server->bind(QHostAddress::Any, port))
@@ -24,10 +32,15 @@ UDPListener::UDPListener(Hyperion *hyperion, const int priority, uint16_t port) 
 
 UDPListener::~UDPListener()
 {
-	foreach (UDPClientConnection * connection, _openConnections) {
-		delete connection;
-	}
+        if (_priority < 255)
+        {
+                // clear the current channel
+                _hyperion->clear(_priority);
+                _priority = 255;
+        }
+
 }
+
 
 
 uint16_t UDPListener::getPort() const
@@ -47,25 +60,32 @@ void UDPListener::readPendingDatagrams()
 		_server->readDatagram(datagram.data(), datagram.size(),
 					&sender, &senderPort);
 
-//		processTheDatagram(datagram);
-
 		std::cout << "UDPLISTENER INFO: new packet from " << std::endl;
+		processTheDatagram(&datagram);
 
-//		UDPClientConnection * connection = new UDPClientConnection(& datagram, _priority, _hyperion);
-//		_openConnections.insert(connection);
-
-		// register slot for cleaning up after the connection closed
-//		connect(connection, SIGNAL(connectionClosed(UDPClientConnection*)), this, SLOT(closedConnection(UDPClientConnection*)));
 	}
 }
 
-/*
-void UDPListener::closedConnection(UDPClientConnection *connection)
-{
-	std::cout << "UDPLISTENER INFO: connection closed" << std::endl;
-	_openConnections.remove(connection);
 
-	// schedule to delete the connection object
-	connection->deleteLater();
+void UDPListener::processTheDatagram(const QByteArray * datagram)
+{
+//        std::cout << "udp message: " << datagram->data() << std::endl;
+
+	int packlen = datagram->size()/3;
+	int ledlen = _ledColors.size();
+//	int maxled = std::min(datagram->size()/3, _ledColors.size());
+	int maxled = std::min(packlen , ledlen);
+
+	for (int ledIndex=0; ledIndex < maxled; ledIndex++) {
+		ColorRgb & rgb =  _ledColors[ledIndex];
+		rgb.red = datagram->at(ledIndex*3+0);
+		rgb.green = datagram->at(ledIndex*3+1);
+		rgb.blue = datagram->at(ledIndex*3+2);
+		printf("%02x%02x%02x%02x ", ledIndex, rgb.red, rgb.green, rgb.blue);
+//		std::cout << "ledIndex " << ledIndex << " red " << rgb.red << " green " << rgb.green << " blue " << rgb.blue <<std::endl;
+	}
+	printf ("\n");
+
+	_hyperion->setColors(_priority, _ledColors, -1);
+
 }
-*/
