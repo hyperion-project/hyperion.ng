@@ -6,10 +6,10 @@ This is a (alpha) development branch for the next major version of hyperion
 
 Current new deps (libs)
 QT5
-sudo apt-get install qt5-default (ToDo no the full package of qt5 is required)
+- sudo apt-get install qt5-default (ToDo no the full package of qt5 is required)
 
 zeroconf
-apt-get install libavahi-core-dev libavahi-compat-libdnssd-dev
+- apt-get install libavahi-core-dev libavahi-compat-libdnssd-dev
 
 More information can be found on the official Hyperion [Wiki](https://wiki.hyperion-project.org) 
 
