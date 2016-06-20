@@ -25,7 +25,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(Hyperion * hyperion, const int priority, uint16_t port = 2801);
+	UDPListener(Hyperion * hyperion, const int priority, const int timeout, uint16_t port = 2801);
 	~UDPListener();
 
 	///
@@ -53,6 +53,9 @@ private:
 
 	/// hyperion priority
 	int _priority;
+
+	/// hyperion priority
+	int _timeout;
 
         /// The latest led color data
         std::vector<ColorRgb> _ledColors;

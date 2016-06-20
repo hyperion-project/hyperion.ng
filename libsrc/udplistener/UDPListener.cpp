@@ -11,12 +11,13 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(Hyperion *hyperion, const int priority, uint16_t port) :
+UDPListener::UDPListener(Hyperion *hyperion, const int priority, const int timeout, uint16_t port) :
 	QObject(),
 	_hyperion(hyperion),
 	_server(),
 	_openConnections(),
 	_priority(priority),
+	_timeout(timeout),
         _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
 
 {
@@ -41,8 +42,6 @@ UDPListener::~UDPListener()
 
 }
 
-
-
 uint16_t UDPListener::getPort() const
 {
 	return _server->localPort();
@@ -60,7 +59,7 @@ void UDPListener::readPendingDatagrams()
 		_server->readDatagram(datagram.data(), datagram.size(),
 					&sender, &senderPort);
 
-		std::cout << "UDPLISTENER INFO: new packet from " << std::endl;
+//		std::cout << "UDPLISTENER INFO: new packet from " << std::endl;
 		processTheDatagram(&datagram);
 
 	}
@@ -81,11 +80,10 @@ void UDPListener::processTheDatagram(const QByteArray * datagram)
 		rgb.red = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);
 		rgb.blue = datagram->at(ledIndex*3+2);
-		printf("%02x%02x%02x%02x ", ledIndex, rgb.red, rgb.green, rgb.blue);
-//		std::cout << "ledIndex " << ledIndex << " red " << rgb.red << " green " << rgb.green << " blue " << rgb.blue <<std::endl;
+//		printf("%02x%02x%02x%02x ", ledIndex, rgb.red, rgb.green, rgb.blue);
 	}
-	printf ("\n");
+//	printf ("\n");
 
-	_hyperion->setColors(_priority, _ledColors, -1);
+	_hyperion->setColors(_priority, _ledColors, _timeout, -1);
 
 }

@@ -184,7 +184,11 @@ void startNetworkServices(	JsonServer* &jsonServer,
 	if (config.isMember("udpListener"))
 	{
 		const Json::Value & udpListenerConfig = config["udpListener"];
-		udpListener = new UDPListener(hyperion, udpListenerConfig.get("priority",900).asInt(), udpListenerConfig["port"].asUInt());
+		udpListener = new UDPListener(hyperion,
+					udpListenerConfig.get("priority",900).asInt(),
+					udpListenerConfig.get("timeout",10000).asInt(),
+					udpListenerConfig["port"].asUInt()
+				);
 		Info(Logger::getInstance("MAIN"), "UDP listener created and started on port %d", udpListener->getPort());
 	}
 }
