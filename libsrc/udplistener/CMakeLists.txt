@@ -6,7 +6,6 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/udplistener)
 # Group the headers that go through the MOC compiler
 set(UDPListener_QT_HEADERS
 	${CURRENT_HEADER_DIR}/UDPListener.h
-#	${CURRENT_SOURCE_DIR}/UDPClientConnection.h
 )
 
 set(UDPListener_HEADERS
@@ -14,7 +13,6 @@ set(UDPListener_HEADERS
 
 set(UDPListener_SOURCES
 	${CURRENT_SOURCE_DIR}/UDPListener.cpp
-#	${CURRENT_SOURCE_DIR}/UDPClientConnection.cpp
 )
 
 qt5_wrap_cpp(UDPListener_HEADERS_MOC ${UDPListener_QT_HEADERS})

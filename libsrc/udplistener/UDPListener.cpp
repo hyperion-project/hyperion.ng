@@ -3,7 +3,6 @@
 
 // project includes
 #include <udplistener/UDPListener.h>
-#include "UDPClientConnection.h"
 
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
@@ -33,13 +32,8 @@ UDPListener::UDPListener(Hyperion *hyperion, const int priority, const int timeo
 
 UDPListener::~UDPListener()
 {
-        if (_priority < 255)
-        {
-                // clear the current channel
-                _hyperion->clear(_priority);
-                _priority = 255;
-        }
-
+	// clear the current channel
+	_hyperion->clear(_priority);
 }
 
 uint16_t UDPListener::getPort() const
