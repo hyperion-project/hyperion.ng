@@ -235,7 +235,7 @@ void HyperionDaemon::startNetworkServices()
 		if ( udpListenerConfig.get("enable", true).asBool() )
 		{
 			_udpListener = new UDPListener(hyperion,
-						udpListenerConfig.get("priority",890).asInt(),
+						udpListenerConfig.get("priority",700).asInt(),
 						udpListenerConfig.get("timeout",10000).asInt(),
 						udpListenerConfig.get("port", 2801).asUInt()
 					);
