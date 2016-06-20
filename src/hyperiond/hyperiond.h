@@ -75,4 +75,5 @@ private:
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;
 	WebConfig*          _webConfig;
+        Hyperion*           _hyperion;
 };

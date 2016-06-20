@@ -36,9 +36,10 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
 	, _webConfig(nullptr)
+	, _hyperion(nullptr)
 {
 	loadConfig(configFile);
-	Hyperion::initInstance(_config, configFile);
+	_hyperion = Hyperion::initInstance(_config, configFile);
 	Info(_log, "Hyperion started and initialised");
 }
 
@@ -55,6 +56,7 @@ HyperionDaemon::~HyperionDaemon()
 	delete _boblightServer;
 	delete _udpListener;
 	delete _webConfig;
+	delete _hyperion;
 
 }
 
