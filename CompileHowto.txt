@@ -12,7 +12,7 @@ sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /opt
 # create hyperion directory and checkout the code from github
 # You might want to add "--depth 1" if you only want to recompile the current source or dont want to use git any further
 export HYPERION_DIR="hyperion"
-git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 
 # if you forget the --recursive in above statement or you are updating an existing clone you need
 # to clone the protobuf submodule by runnning the follwing two statements:
