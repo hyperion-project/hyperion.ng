@@ -243,56 +243,37 @@ void HyperionDaemon::startNetworkServices()
 		}
         }
 
-	// zeroconf
+	// zeroconf description - $leddevicename@$hostname
 	const Json::Value & deviceConfig = _config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-	const std::string hostname = QHostInfo::localHostName().toStdString();
-	const std::string default_mDNSDescr = (deviceName + "@" + hostname);
+	const std::string mDNSDescr = ( deviceConfig.get("name", "").asString()
+					+ "@" +
+					QHostInfo::localHostName().toStdString()
+					);
 
-	// udp listener json
-	std::string mDNSService_udp = "_hyperiond_2801._udp";
-	std::string mDNSDescr_udp = default_mDNSDescr;
+	// zeroconf udp listener 
 	if (_udpListener != nullptr) {
-		if (_config.isMember("udpListener"))
-		{
-			const Json::Value & udpListenerConfig = _config["udpListener"];
-			mDNSDescr_udp = udpListenerConfig.get("mDNSDescr", default_mDNSDescr).asString();
-			mDNSService_udp = udpListenerConfig.get("mDNSService", mDNSService_udp).asString();
-		}
-
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
-		bonjourRegister_udp->registerService(BonjourRecord(mDNSDescr_udp.c_str(), mDNSService_udp.c_str(), QString()), _udpListener->getPort() );
+		bonjourRegister_udp->registerService(
+					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
+					_udpListener->getPort()
+					);
 		Info(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
-	std::string mDNSDescr_json = hostname;
-	std::string mDNSService_json = "_hyperiond_json._tcp";
-	if (_config.isMember("jsonServer"))
-	{
-		const Json::Value & jsonServerConfig = _config["jsonServer"];
-		mDNSDescr_json = jsonServerConfig.get("mDNSDescr", mDNSDescr_json).asString();
-		mDNSService_json = jsonServerConfig.get("mDNSService", mDNSService_json).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
-	                                      QString()), _jsonServer->getPort() );
+	bonjourRegister_json->registerService( 
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
+				_jsonServer->getPort()
+				);
 	Info(_log, "Json mDNS responder started");
 
 	// zeroconf proto
-	std::string mDNSDescr_proto = hostname;
-	std::string mDNSService_proto = "_hyperiond_proto._tcp";
-	if (_config.isMember("protoServer"))
-	{
-		const Json::Value & protoServerConfig = _config["protoServer"];
-		mDNSDescr_proto = protoServerConfig.get("mDNSDescr", mDNSDescr_proto).asString();
-		mDNSService_proto = protoServerConfig.get("mDNSService", mDNSService_proto).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
-	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
-	                                       QString()), _protoServer->getPort() );
+	bonjourRegister_proto->registerService(
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-proto._tcp", QString()),
+				_protoServer->getPort()
+				);
 	Info(_log, "Proto mDNS responder started");
 
 }
