@@ -66,7 +66,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			uri_parts.removeAt(0);
 			try
 			{
-				_cgi.exec(uri_parts, reply);
+				_cgi.exec(uri_parts, request, reply);
 			}
 			catch(...)
 			{
