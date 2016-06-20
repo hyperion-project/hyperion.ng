@@ -9,6 +9,7 @@ target_link_libraries(hyperiond
 		effectengine
 		jsonserver
 		boblightserver
+		udplistener
 		protoserver
 		webconfig
 		bonjour

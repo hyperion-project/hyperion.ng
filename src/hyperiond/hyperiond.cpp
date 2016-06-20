@@ -17,6 +17,7 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
+#include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
 
@@ -28,6 +29,7 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _jsonServer(nullptr)
 	, _protoServer(nullptr)
 	, _boblightServer(nullptr)
+	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
 	, _amlGrabber(nullptr)
@@ -51,6 +53,7 @@ HyperionDaemon::~HyperionDaemon()
 	delete _jsonServer;
 	delete _protoServer;
 	delete _boblightServer;
+	delete _udpListener;
 	delete _webConfig;
 
 }
@@ -216,6 +219,18 @@ void HyperionDaemon::startNetworkServices()
 		_boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
 		Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
 	}
+
+        // Create UDP listener if configuration is present
+        if (_config.isMember("udpListener"))
+        {
+                const Json::Value & udpListenerConfig = _config["udpListener"];
+                _udpListener = new UDPListener(hyperion,
+                                        udpListenerConfig.get("priority",890).asInt(),
+                                        udpListenerConfig.get("timeout",10000).asInt(),
+                                        udpListenerConfig["port"].asUInt()
+                                );
+                Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+        }
 
 	// zeroconf
 	const Json::Value & deviceConfig = _config["device"];
