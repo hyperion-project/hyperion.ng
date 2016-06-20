@@ -218,55 +218,62 @@ void HyperionDaemon::startNetworkServices()
 	if (_config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
-		_boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		if ( boblightServerConfig.get("enable", true).asBool() )
+		{
+			_boblightServer = new BoblightServer(hyperion,
+						boblightServerConfig.get("priority",900).asInt(),
+						boblightServerConfig["port"].asUInt()
+						);
+			Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		}
 	}
 
         // Create UDP listener if configuration is present
         if (_config.isMember("udpListener"))
         {
                 const Json::Value & udpListenerConfig = _config["udpListener"];
-                _udpListener = new UDPListener(hyperion,
-                                        udpListenerConfig.get("priority",890).asInt(),
-                                        udpListenerConfig.get("timeout",10000).asInt(),
-                                        udpListenerConfig["port"].asUInt()
-                                );
-                Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+		if ( udpListenerConfig.get("enable", true).asBool() )
+		{
+			_udpListener = new UDPListener(hyperion,
+						udpListenerConfig.get("priority",700).asInt(),
+						udpListenerConfig.get("timeout",10000).asInt(),
+						udpListenerConfig.get("port", 2801).asUInt()
+					);
+			Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+		}
         }
 
-	// zeroconf
+	// zeroconf description - $leddevicename@$hostname
 	const Json::Value & deviceConfig = _config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-	const std::string hostname = QHostInfo::localHostName().toStdString();
+	const std::string mDNSDescr = ( deviceConfig.get("name", "").asString()
+					+ "@" +
+					QHostInfo::localHostName().toStdString()
+					);
+
+	// zeroconf udp listener 
+	if (_udpListener != nullptr) {
+		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
+		bonjourRegister_udp->registerService(
+					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
+					_udpListener->getPort()
+					);
+		Info(_log, "UDP LIstener mDNS responder started");
+	}
 
 	// zeroconf json
-	std::string mDNSDescr_json = hostname;
-	std::string mDNSService_json = "_hyperiond_json._tcp";
-	if (_config.isMember("jsonServer"))
-	{
-		const Json::Value & jsonServerConfig = _config["jsonServer"];
-		mDNSDescr_json = jsonServerConfig.get("mDNSDescr", mDNSDescr_json).asString();
-		mDNSService_json = jsonServerConfig.get("mDNSService", mDNSService_json).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
-	                                      QString()), _jsonServer->getPort() );
+	bonjourRegister_json->registerService( 
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
+				_jsonServer->getPort()
+				);
 	Info(_log, "Json mDNS responder started");
 
 	// zeroconf proto
-	std::string mDNSDescr_proto = hostname;
-	std::string mDNSService_proto = "_hyperiond_proto._tcp";
-	if (_config.isMember("protoServer"))
-	{
-		const Json::Value & protoServerConfig = _config["protoServer"];
-		mDNSDescr_proto = protoServerConfig.get("mDNSDescr", mDNSDescr_proto).asString();
-		mDNSService_proto = protoServerConfig.get("mDNSService", mDNSService_proto).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
-	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
-	                                       QString()), _protoServer->getPort() );
+	bonjourRegister_proto->registerService(
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-proto._tcp", QString()),
+				_protoServer->getPort()
+				);
 	Info(_log, "Proto mDNS responder started");
 
 }
