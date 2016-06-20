@@ -24,16 +24,16 @@ mkdir "$HYPERION_DIR/build"
 cd "$HYPERION_DIR/build"
 
 # run cmake to generate make files on the raspberry pi WITHOUT PWM SUPPORT
-cmake  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DENABLE_SPIDEV=ON -DENABLE_DISPMANX=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # run cmake to generate make files on the raspberry pi WITH PWM SUPPORT
-cmake -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DENABLE_SPIDEV=ON -DENABLE_DISPMANX=ON -DENABLE_WS2812BPWM=ON -DENABLE_WS281XPWM=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # or if you are not compiling on the raspberry pi (e.g. OrangePi) and need to disable the Dispmanx grabber and support for spi devices
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DENABLE_X11=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # on amlogic platforms
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+cmake -DENABLE_AMLOGIC=ON -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
 # as an alternative for the dispmanx grabber on non-rpi devices (e.g. cubox-i) you could try the framebuffer grabber
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_FB=ON  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-# for OSX build you need XCode, qt4 libraries and cmake (maybe libusb too). You can use macport or homebrew(recommended) to install them:
+cmake -DENABLE_FB=ON  -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
+# ToDo: QT5 libs!! for OSX build you need XCode, qt4 libraries and cmake (maybe libusb too). You can use macport or homebrew(recommended) to install them:
 #for port:
 sudo port install qt4-mac
 sudo port install cmake
@@ -42,7 +42,7 @@ sudo port install cmake
 sudo brew install qt4-mac
 sudo brew install cmake
 #sudo brew install libusb
-cmake -DENABLE_DISPMANX=OFF -DENABLE_SPIDEV=OFF -DENABLE_V4L2=OFF -DENABLE_OSX=ON ..
+cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON ..
 
 # run make to build Hyperion
 make
