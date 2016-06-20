@@ -37,7 +37,6 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
-	, _webConfig(nullptr)
 	, _hyperion(nullptr)
 {
 	loadConfig(configFile);
@@ -57,7 +56,6 @@ HyperionDaemon::~HyperionDaemon()
 	delete _protoServer;
 	delete _boblightServer;
 	delete _udpListener;
-	delete _webConfig;
 	delete _hyperion;
 
 }
@@ -69,7 +67,6 @@ void HyperionDaemon::run()
 
 	// ---- network services -----
 	startNetworkServices();
-	_webConfig = new WebConfig(this);
 
 	// ---- grabber -----
 	createGrabberV4L2();
@@ -124,7 +121,13 @@ void HyperionDaemon::startInitialEffect()
 
 		// initial foreground effect/color
 		const Json::Value fgEffectConfig = effectConfig["foreground-effect"];
-		const int fg_duration_ms = effectConfig.get("foreground-effect-duration_ms",3000).asUInt();
+		int default_fg_duration_ms = 3000;
+		int fg_duration_ms = effectConfig.get("foreground-effect-duration_ms",default_fg_duration_ms).asUInt();
+		if (fg_duration_ms == DURATION_INFINITY)
+		{
+			fg_duration_ms = default_fg_duration_ms;
+			Warning(_log, "foreground effect duration 'infinity' is forbidden, set to default value %d ms",default_fg_duration_ms);
+		}
 		if ( ! fgEffectConfig.isNull() && fgEffectConfig.isArray() && fgEffectConfig.size() == 3 )
 		{
 			ColorRgb fg_color = {
