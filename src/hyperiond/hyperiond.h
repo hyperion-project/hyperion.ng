@@ -50,7 +50,7 @@ public:
 	void loadConfig(const std::string & configFile);
 	void run();
 
-	void startBootsequence();
+	void startInitialEffect();
 	void createXBMCVideoChecker();
 	void startNetworkServices();
 

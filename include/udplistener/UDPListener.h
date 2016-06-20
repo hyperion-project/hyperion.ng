@@ -25,7 +25,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(Hyperion * hyperion, const int priority, const int timeout, uint16_t port = 2801);
+	UDPListener(const int priority, const int timeout, uint16_t port = 2801);
 	~UDPListener();
 
 	///
