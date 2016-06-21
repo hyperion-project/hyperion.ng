@@ -11,8 +11,7 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 #include <utils/Logger.h>
-
-
+#include <webconfig/WebConfig.h>
 
 #include "hyperiond.h"
 
@@ -109,13 +108,24 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	HyperionDaemon* hyperiond = new HyperionDaemon(configFiles[argvId], &app);
-	hyperiond->run();
+	HyperionDaemon* hyperiond = nullptr;
+	try
+	{
+		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond->run();
+	}
+	catch (...)
+	{
+		Error(log, "Hyperion Daemon aborted");
+	}
 
+	WebConfig* webConfig = new WebConfig(&app);
+	
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
+	delete webConfig;
 	delete hyperiond;
 
 	return rc;

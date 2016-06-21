@@ -5,6 +5,8 @@
 #include <QLocale>
 #include <QFile>
 #include <QHostInfo>
+#include <cstdint>
+#include <limits>
 
 #include "HyperionConfig.h"
 
@@ -17,6 +19,7 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
+#include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
 
@@ -28,15 +31,16 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _jsonServer(nullptr)
 	, _protoServer(nullptr)
 	, _boblightServer(nullptr)
+	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
-	, _webConfig(nullptr)
+	, _hyperion(nullptr)
 {
 	loadConfig(configFile);
-	Hyperion::initInstance(_config, configFile);
+	_hyperion = Hyperion::initInstance(_config, configFile);
 	Info(_log, "Hyperion started and initialised");
 }
 
@@ -51,28 +55,27 @@ HyperionDaemon::~HyperionDaemon()
 	delete _jsonServer;
 	delete _protoServer;
 	delete _boblightServer;
-	delete _webConfig;
+	delete _udpListener;
+	delete _hyperion;
 
 }
 
 void HyperionDaemon::run()
 {
-	startBootsequence();
+	startInitialEffect();
 	createXBMCVideoChecker();
 
 	// ---- network services -----
 	startNetworkServices();
-	_webConfig = new WebConfig(this);
 
 	// ---- grabber -----
 	createGrabberV4L2();
 	createGrabberDispmanx();
 	createGrabberAmlogic();
 	createGrabberFramebuffer();
-	createGrabberDispmanx();
 
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-                ErrorIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
+		ErrorIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
 }
@@ -101,54 +104,69 @@ void HyperionDaemon::loadConfig(const std::string & configFile)
 }
 
 
-void HyperionDaemon::startBootsequence()
+void HyperionDaemon::startInitialEffect()
 {
 	Hyperion *hyperion = Hyperion::getInstance();
 
 	// create boot sequence if the configuration is present
-	if (_config.isMember("bootsequence"))
+	if (_config.isMember("initialEffect"))
 	{
-		const Json::Value effectConfig = _config["bootsequence"];
-
-		// Get the parameters for the bootsequence
-		const std::string effectName = effectConfig["effect"].asString();
-		const unsigned duration_ms   = effectConfig["duration_ms"].asUInt();
-		const int priority           = (duration_ms != 0) ? 0 : effectConfig.get("priority",990).asInt();
-		const int bootcolor_priority = (priority > 990) ? priority+1 : 990;
+		const Json::Value effectConfig = _config["initialEffect"];
+		const int HIGHEST_PRIORITY = 0;
+		const int DURATION_INFINITY = 0;
+		const int LOWEST_PRIORITY = std::numeric_limits<int>::max()-1;
 
 		// clear the leds
-		ColorRgb boot_color = ColorRgb::BLACK;
-		hyperion->setColor(bootcolor_priority, boot_color, 0, false);
+		hyperion->setColor(HIGHEST_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
 
-		// start boot effect
-		if ( ! effectName.empty() )
+		// initial foreground effect/color
+		const Json::Value fgEffectConfig = effectConfig["foreground-effect"];
+		int default_fg_duration_ms = 3000;
+		int fg_duration_ms = effectConfig.get("foreground-effect-duration_ms",default_fg_duration_ms).asUInt();
+		if (fg_duration_ms == DURATION_INFINITY)
 		{
-			int result;
-			std::cout << "INFO: Boot sequence '" << effectName << "' ";
-			if (effectConfig.isMember("args"))
-			{
-				std::cout << " (with user defined arguments) ";
-				const Json::Value effectConfigArgs = effectConfig["args"];
-				result = hyperion->setEffect(effectName, effectConfigArgs, priority, duration_ms);
-			}
-			else
-			{
-				result = hyperion->setEffect(effectName, priority, duration_ms);
-			}
-			std::cout << ((result == 0) ? "started" : "failed") << std::endl;
+			fg_duration_ms = default_fg_duration_ms;
+			Warning(_log, "foreground effect duration 'infinity' is forbidden, set to default value %d ms",default_fg_duration_ms);
 		}
-
-		// static color
-		if ( ! effectConfig["color"].isNull() && effectConfig["color"].isArray() && effectConfig["color"].size() == 3 )
+		if ( ! fgEffectConfig.isNull() && fgEffectConfig.isArray() && fgEffectConfig.size() == 3 )
 		{
-			boot_color = {
-				(uint8_t)effectConfig["color"][0].asUInt(),
-				(uint8_t)effectConfig["color"][1].asUInt(),
-				(uint8_t)effectConfig["color"][2].asUInt()
+			ColorRgb fg_color = {
+				(uint8_t)fgEffectConfig[0].asUInt(),
+				(uint8_t)fgEffectConfig[1].asUInt(),
+				(uint8_t)fgEffectConfig[2].asUInt()
 			};
+			hyperion->setColor(HIGHEST_PRIORITY, fg_color, fg_duration_ms, false);
+			Info(_log,"Inital foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
+		}
+		else if (! fgEffectConfig.isNull() && fgEffectConfig.isString())
+		{
+			const std::string bgEffectName = fgEffectConfig.asString();
+			int result = effectConfig.isMember("foreground-effect-args")
+			           ? hyperion->setEffect(bgEffectName, effectConfig["foreground-effect-args"], HIGHEST_PRIORITY, fg_duration_ms)
+			           : hyperion->setEffect(bgEffectName, HIGHEST_PRIORITY, fg_duration_ms);
+			Info(_log,"Inital foreground effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
 		}
 
-		hyperion->setColor(bootcolor_priority, boot_color, 0, false);
+		// initial background effect/color
+		const Json::Value bgEffectConfig = effectConfig["background-effect"];
+		if ( ! bgEffectConfig.isNull() && bgEffectConfig.isArray() && bgEffectConfig.size() == 3 )
+		{
+			ColorRgb bg_color = {
+				(uint8_t)bgEffectConfig[0].asUInt(),
+				(uint8_t)bgEffectConfig[1].asUInt(),
+				(uint8_t)bgEffectConfig[2].asUInt()
+			};
+			hyperion->setColor(LOWEST_PRIORITY, bg_color, DURATION_INFINITY, false);
+			Info(_log,"Inital background color set (%d %d %d)",bg_color.red,bg_color.green,bg_color.blue);
+		}
+		else if (! bgEffectConfig.isNull() && bgEffectConfig.isString())
+		{
+			const std::string bgEffectName = bgEffectConfig.asString();
+			int result = effectConfig.isMember("background-effect-args")
+			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], LOWEST_PRIORITY, DURATION_INFINITY)
+			           : hyperion->setEffect(bgEffectName, LOWEST_PRIORITY, DURATION_INFINITY);
+			Info(_log,"Inital background effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+		}
 	}
 }
 
@@ -177,7 +195,6 @@ void HyperionDaemon::createXBMCVideoChecker()
 
 void HyperionDaemon::startNetworkServices()
 {
-	Hyperion *hyperion = Hyperion::getInstance();
 	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
 
 	// Create Json server if configuration is present
@@ -213,45 +230,63 @@ void HyperionDaemon::startNetworkServices()
 	if (_config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
-		_boblightServer = new BoblightServer(hyperion, boblightServerConfig.get("priority",900).asInt(), boblightServerConfig["port"].asUInt());
-		Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		if ( boblightServerConfig.get("enable", true).asBool() )
+		{
+			_boblightServer = new BoblightServer(
+						boblightServerConfig.get("priority",900).asInt(),
+						boblightServerConfig["port"].asUInt()
+						);
+			Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+		}
 	}
 
-	// zeroconf
+	// Create UDP listener if configuration is present
+	if (_config.isMember("udpListener"))
+	{
+		const Json::Value & udpListenerConfig = _config["udpListener"];
+		if ( udpListenerConfig.get("enable", true).asBool() )
+		{
+			_udpListener = new UDPListener(
+						udpListenerConfig.get("priority",700).asInt(),
+						udpListenerConfig.get("timeout",10000).asInt(),
+						udpListenerConfig.get("port", 2801).asUInt()
+					);
+			Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());
+		}
+	}
+
+	// zeroconf description - $leddevicename@$hostname
 	const Json::Value & deviceConfig = _config["device"];
-	const std::string deviceName = deviceConfig.get("name", "").asString();
-	const std::string hostname = QHostInfo::localHostName().toStdString();
+	const std::string mDNSDescr = ( deviceConfig.get("name", "").asString()
+					+ "@" +
+					QHostInfo::localHostName().toStdString()
+					);
+
+	// zeroconf udp listener 
+	if (_udpListener != nullptr) {
+		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
+		bonjourRegister_udp->registerService(
+					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
+					_udpListener->getPort()
+					);
+		Info(_log, "UDP LIstener mDNS responder started");
+	}
 
 	// zeroconf json
-	std::string mDNSDescr_json = hostname;
-	std::string mDNSService_json = "_hyperiond_json._tcp";
-	if (_config.isMember("jsonServer"))
-	{
-		const Json::Value & jsonServerConfig = _config["jsonServer"];
-		mDNSDescr_json = jsonServerConfig.get("mDNSDescr", mDNSDescr_json).asString();
-		mDNSService_json = jsonServerConfig.get("mDNSService", mDNSService_json).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_json).c_str(), mDNSService_json.c_str(),
-	                                      QString()), _jsonServer->getPort() );
+	bonjourRegister_json->registerService( 
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
+				_jsonServer->getPort()
+				);
 	Info(_log, "Json mDNS responder started");
 
 	// zeroconf proto
-	std::string mDNSDescr_proto = hostname;
-	std::string mDNSService_proto = "_hyperiond_proto._tcp";
-	if (_config.isMember("protoServer"))
-	{
-		const Json::Value & protoServerConfig = _config["protoServer"];
-		mDNSDescr_proto = protoServerConfig.get("mDNSDescr", mDNSDescr_proto).asString();
-		mDNSService_proto = protoServerConfig.get("mDNSService", mDNSService_proto).asString();
-	}
-	
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
-	bonjourRegister_proto->registerService(BonjourRecord((deviceName + " @ " + mDNSDescr_proto).c_str(), mDNSService_proto.c_str(),
-	                                       QString()), _protoServer->getPort() );
+	bonjourRegister_proto->registerService(
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-proto._tcp", QString()),
+				_protoServer->getPort()
+				);
 	Info(_log, "Proto mDNS responder started");
-
 }
 
 void HyperionDaemon::createGrabberDispmanx()
