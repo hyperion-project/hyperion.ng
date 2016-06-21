@@ -10,15 +10,14 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(Hyperion *hyperion, const int priority, const int timeout, uint16_t port) :
+UDPListener::UDPListener(const int priority, const int timeout, uint16_t port) :
 	QObject(),
-	_hyperion(hyperion),
+	_hyperion(Hyperion::getInstance()),
 	_server(),
 	_openConnections(),
 	_priority(priority),
 	_timeout(timeout),
-        _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
-
+	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
 {
 	_server = new QUdpSocket(this);
 	if (!_server->bind(QHostAddress::Any, port))

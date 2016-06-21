@@ -25,7 +25,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(Hyperion * hyperion, const int priority, uint16_t port = 19333);
+	BoblightServer(const int priority, uint16_t port = 19333);
 	~BoblightServer();
 
 	///
