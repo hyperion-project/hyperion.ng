@@ -46,7 +46,7 @@ add_library(protoserver
 	${ProtoServer_PROTO_HDRS}
 )
 
-qt5_use_modules(protoserver Widgets)
+qt5_use_modules(protoserver Gui)
 
 target_link_libraries(protoserver
 	hyperion

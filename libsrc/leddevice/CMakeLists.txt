@@ -137,7 +137,7 @@ add_library(leddevice
 	${Leddevice_SOURCES}
 )
 
-qt5_use_modules(leddevice Widgets Network)
+qt5_use_modules(leddevice Network)
 
 target_link_libraries(leddevice
 	hyperion-utils

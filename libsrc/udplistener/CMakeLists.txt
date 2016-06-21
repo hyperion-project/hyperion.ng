@@ -24,8 +24,6 @@ add_library(udplistener
 	${UDPListener_HEADERS_MOC}
 )
 
-qt5_use_modules(udplistener Widgets)
-
 target_link_libraries(udplistener
 	hyperion
 	hyperion-utils
