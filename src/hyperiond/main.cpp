@@ -39,7 +39,9 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 int main(int argc, char** argv)
 {
-	Logger* log = Logger::getInstance("MAIN", Logger::INFO);
+	// initialize main logger and set global log level
+	Logger* log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::INFO);
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -125,8 +127,10 @@ int main(int argc, char** argv)
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
+	// delete components
 	delete webConfig;
 	delete hyperiond;
+	Logger::deleteInstance();
 
 	return rc;
 }

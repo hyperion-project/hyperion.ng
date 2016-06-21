@@ -13,31 +13,67 @@ std::string getBaseName( std::string sourceFile)
 	return fi.fileName().toStdString();
 }
 
-static const char * LogLevelStrings[] = { "DEBUG", "INFO", "WARNING", "ERROR" };
-static const int    LogLevelSysLog[]  = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+static const char * LogLevelStrings[] = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
+static const int    LogLevelSysLog[]  = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 static unsigned int loggerCount = 0;
 static unsigned int loggerId = 0;
+
 std::map<std::string,Logger*> *Logger::LoggerMap = nullptr;
+Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;
 
 
 Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
 {
-	if (Logger::LoggerMap == nullptr)
+	if (LoggerMap == nullptr)
 	{
-		Logger::LoggerMap = new std::map<std::string,Logger*>;
+		LoggerMap = new std::map<std::string,Logger*>;
 	}
 	
 	if ( LoggerMap->find(name) == LoggerMap->end() )
 	{
 		Logger* log = new Logger(name,minLevel);
-		Logger::LoggerMap->insert(std::pair<std::string,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
-		//Logger::LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
+		LoggerMap->insert(std::pair<std::string,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
+		//LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
 		return log;
 	} 
 	
-	return Logger::LoggerMap->at(name);
+	return LoggerMap->at(name);
 }
 
+void Logger::deleteInstance(std::string name)
+{
+	if (LoggerMap == nullptr)
+		return;
+	
+	if ( name.empty() )
+	{
+		std::map<std::string,Logger*>::iterator it;
+		for ( it=LoggerMap->begin(); it != LoggerMap->end(); it++)
+		{
+			delete it->second;
+		}
+		LoggerMap->clear();
+	}
+	else if (LoggerMap->find(name) != LoggerMap->end())
+	{
+		delete LoggerMap->at(name);
+		LoggerMap->erase(name);
+	}
+
+}
+
+void Logger::setLogLevel(LogLevel level,std::string name)
+{
+	if ( name.empty() )
+	{
+		GLOBAL_MIN_LOG_LEVEL = level;
+	}
+	else
+	{
+		Logger* log = Logger::getInstance(name,level);
+		log->setMinLevel(level);
+	}
+}
 
 
 Logger::Logger ( std::string name, LogLevel minLevel ):
@@ -54,12 +90,7 @@ Logger::Logger ( std::string name, LogLevel minLevel ):
 	std::transform(_appname.begin(), _appname.end(),_appname.begin(), ::toupper);
 
 	loggerCount++;
-	
-// 	if (pLoggerMap == NULL)
-// 		pLoggerMap = new std::map<unsigned int,Logger*>;
-// 
-// 	
-	
+
 	if (_syslogEnabled && loggerCount == 1 )
 	{
 		openlog (program_invocation_short_name, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
@@ -68,7 +99,7 @@ Logger::Logger ( std::string name, LogLevel minLevel ):
 
 Logger::~Logger()
 {
-	//LoggerMap.erase(_loggerId);
+	Debug(this, "logger '%s' destroyed", _name.c_str() );
 	loggerCount--;
 	if ( loggerCount == 0 )
 		closelog();
@@ -77,8 +108,10 @@ Logger::~Logger()
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
-	if ( level < _minLevel )
+	if ( (GLOBAL_MIN_LOG_LEVEL == Logger::UNSET && level < _minLevel) // no global level, use level from logger
+	  || (GLOBAL_MIN_LOG_LEVEL > Logger::UNSET && level < GLOBAL_MIN_LOG_LEVEL) ) // global level set, use global level
 		return;
+
 
 	char msg[512];
 	va_list args;
