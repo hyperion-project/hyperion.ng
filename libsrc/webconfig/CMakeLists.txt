@@ -38,7 +38,7 @@ add_library(webconfig
 	${WebConfig_HEADERS_MOC}
 )
 
-qt5_use_modules(webconfig Widgets Network)
+qt5_use_modules(webconfig Network)
 
 target_link_libraries(webconfig
 	hyperion
