@@ -6,9 +6,6 @@
 // Qt includes
 #include <QTimer>
 
-// Serial includes
-#include <serial/serial.h>
-
 // Local Hyperion includes
 #include "LedRs232Device.h"
 
@@ -17,7 +14,8 @@ LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned b
 	_baudRate_Hz(baudrate),
 	_delayAfterConnect_ms(delayAfterConnect_ms),
 	_rs232Port(this),
-	_blockedForDelay(false)
+	_blockedForDelay(false),
+	_log(Logger::getInstance("LedDevice"))
 {
 }
 
@@ -33,9 +31,8 @@ int LedRs232Device::open()
 {
 	try
 	{
-		std::cout << "Opening UART: " << _deviceName << std::endl;
+		Info(_log, "Opening UART: %s", _deviceName.c_str());
 		_rs232Port.setPortName(_deviceName.c_str());
-		//_rs232Port.setPort(_deviceName);
 		_rs232Port.setBaudRate(_baudRate_Hz);
 		_rs232Port.open( QIODevice::WriteOnly);
 
@@ -43,12 +40,12 @@ int LedRs232Device::open()
 		{
 			_blockedForDelay = true;
 			QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
-			std::cout << "Device blocked for " << _delayAfterConnect_ms << " ms" << std::endl;
+			Debug(_log, "Device blocked for %d ms", _delayAfterConnect_ms);
 		}
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Unable to open RS232 device (" << e.what() << ")" << std::endl;
+		Error(_log, "Unable to open RS232 device (%s)", e.what());
 		return -1;
 	}
 
@@ -71,57 +68,20 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 			int seconds = 3000;
 			_blockedForDelay = true;
 			QTimer::singleShot(seconds, this, SLOT(unblockAfterDelay()));
-			std::cout << "Device blocked for " << seconds << " ms" << std::endl;
+			Debug(_log, "Device blocked for %d ms", seconds);
 		}
 		return status;
 	}
 
-//	for (int i = 0; i < 20; ++i)
-//		std::cout << std::hex << (int)data[i] << " ";
-//	std::cout << std::endl;
+	_rs232Port.flush();
+	int result = _rs232Port.write((const char*)data, size);
+	_rs232Port.flush();
 
-	try
-	{
-		_rs232Port.flush();
-		_rs232Port.write((const char*)data, size);
-		_rs232Port.flush();
-	}
-	catch (const serial::SerialException & serialExc)
-	{
-		// TODO[TvdZ]: Maybe we should limit the frequency of this error report somehow
-		std::cerr << "Serial exception caught while writing to device: " << serialExc.what() << std::endl;
-		std::cout << "Attempting to re-open the device." << std::endl;
-
-		// First make sure the device is properly closed
-		try
-		{
-			_rs232Port.close();
-		}
-		catch (const std::exception & e) {}
-
-		// Attempt to open the device and write the data
-		try
-		{
-			_rs232Port.open(QIODevice::WriteOnly);
-			_rs232Port.write((const char*)data, size);
-			_rs232Port.flush();
-		}
-		catch (const std::exception & e)
-		{
-			// We failed again, this not good, do nothing maybe in the next loop we have more success
-		}
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Unable to write to RS232 device (" << e.what() << ")" << std::endl;
-		return -1;
-	}
-
-	return 0;
+	return (result<0) ? -1 : 0;
 }
 
 void LedRs232Device::unblockAfterDelay()
 {
-	std::cout << "Device unblocked" << std::endl;
+	Debug(_log, "Device unblocked");
 	_blockedForDelay = false;
 }

@@ -34,4 +34,5 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff() = 0;
+	
 };

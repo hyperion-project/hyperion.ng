@@ -1,5 +1,6 @@
 // Stl includes
 #include <string>
+#include <sstream>
 #include <algorithm>
 
 // Build configuration

@@ -3,11 +3,10 @@
 #include <QObject>
 #include <QSerialPort>
 
-// Serial includes
-#include <serial/serial.h>
-
 // Leddevice includes
 #include <leddevice/LedDevice.h>
+
+#include <utils/Logger.h>
 
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
@@ -63,8 +62,8 @@ private:
 	const int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	//serial::Serial _rs232Port;
 	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
+	Logger* _log;
 };
