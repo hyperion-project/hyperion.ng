@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QSerialPort>
 
 // Serial includes
 #include <serial/serial.h>
@@ -56,13 +57,14 @@ private:
 	const std::string _deviceName;
 
 	/// The used baudrate of the output device
-	const int _baudRate_Hz;
+	const qint32 _baudRate_Hz;
 
 	/// Sleep after the connect before continuing
 	const int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	serial::Serial _rs232Port;
+	//serial::Serial _rs232Port;
+	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 };

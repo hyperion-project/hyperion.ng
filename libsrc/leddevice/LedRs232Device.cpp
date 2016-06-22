@@ -16,10 +16,9 @@ LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned b
 	_deviceName(outputDevice),
 	_baudRate_Hz(baudrate),
 	_delayAfterConnect_ms(delayAfterConnect_ms),
-	_rs232Port(),
+	_rs232Port(this),
 	_blockedForDelay(false)
 {
-	// empty
 }
 
 LedRs232Device::~LedRs232Device()
@@ -35,9 +34,10 @@ int LedRs232Device::open()
 	try
 	{
 		std::cout << "Opening UART: " << _deviceName << std::endl;
-		_rs232Port.setPort(_deviceName);
-		_rs232Port.setBaudrate(_baudRate_Hz);
-		_rs232Port.open();
+		_rs232Port.setPortName(_deviceName.c_str());
+		//_rs232Port.setPort(_deviceName);
+		_rs232Port.setBaudRate(_baudRate_Hz);
+		_rs232Port.open( QIODevice::WriteOnly);
 
 		if (_delayAfterConnect_ms > 0)
 		{
@@ -65,7 +65,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 	if (!_rs232Port.isOpen())
 	{
 		// try to reopen
-		int status = open();
+		int status = _rs232Port.open(QIODevice::WriteOnly);
 		if(status == -1){
 			// Try again in 3 seconds
 			int seconds = 3000;
@@ -82,8 +82,8 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 
 	try
 	{
-		_rs232Port.flushOutput();
-		_rs232Port.write(data, size);
+		_rs232Port.flush();
+		_rs232Port.write((const char*)data, size);
 		_rs232Port.flush();
 	}
 	catch (const serial::SerialException & serialExc)
@@ -102,8 +102,8 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 		// Attempt to open the device and write the data
 		try
 		{
-			_rs232Port.open();
-			_rs232Port.write(data, size);
+			_rs232Port.open(QIODevice::WriteOnly);
+			_rs232Port.write((const char*)data, size);
 			_rs232Port.flush();
 		}
 		catch (const std::exception & e)
