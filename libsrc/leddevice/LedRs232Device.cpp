@@ -29,24 +29,20 @@ LedRs232Device::~LedRs232Device()
 
 int LedRs232Device::open()
 {
-	try
+	Info(_log, "Opening UART: %s", _deviceName.c_str());
+	_rs232Port.setPortName(_deviceName.c_str());
+	_rs232Port.setBaudRate(_baudRate_Hz);
+	if ( ! _rs232Port.open( QIODevice::WriteOnly) )
 	{
-		Info(_log, "Opening UART: %s", _deviceName.c_str());
-		_rs232Port.setPortName(_deviceName.c_str());
-		_rs232Port.setBaudRate(_baudRate_Hz);
-		_rs232Port.open( QIODevice::WriteOnly);
-
-		if (_delayAfterConnect_ms > 0)
-		{
-			_blockedForDelay = true;
-			QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
-			Debug(_log, "Device blocked for %d ms", _delayAfterConnect_ms);
-		}
-	}
-	catch (const std::exception& e)
-	{
-		Error(_log, "Unable to open RS232 device (%s)", e.what());
+		Error(_log, "Unable to open RS232 device (%s)", _deviceName.c_str());
 		return -1;
+	}
+
+	if (_delayAfterConnect_ms > 0)
+	{
+		_blockedForDelay = true;
+		QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
+		Debug(_log, "Device blocked for %d ms", _delayAfterConnect_ms);
 	}
 
 	return 0;
@@ -62,8 +58,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 	if (!_rs232Port.isOpen())
 	{
 		// try to reopen
-		int status = _rs232Port.open(QIODevice::WriteOnly);
-		if(status == -1){
+		if( ! _rs232Port.open(QIODevice::WriteOnly) ){
 			// Try again in 3 seconds
 			int seconds = 3000;
 			_blockedForDelay = true;
