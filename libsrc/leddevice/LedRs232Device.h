@@ -52,6 +52,9 @@ private slots:
 	void unblockAfterDelay();
 
 private:
+	// tries to open device if not opened
+	bool tryOpen();
+	
 	/// The name of the output device
 	const std::string _deviceName;
 
@@ -59,11 +62,13 @@ private:
 	const qint32 _baudRate_Hz;
 
 	/// Sleep after the connect before continuing
-	const int _delayAfterConnect_ms;
+	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
 	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
+
+	/// logger instance
 	Logger* _log;
 };
