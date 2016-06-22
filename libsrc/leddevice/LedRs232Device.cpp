@@ -31,12 +31,12 @@ int LedRs232Device::open()
 {
 	Info(_log, "Opening UART: %s", _deviceName.c_str());
 	_rs232Port.setPortName(_deviceName.c_str());
-	_rs232Port.setBaudRate(_baudRate_Hz);
 	if ( ! _rs232Port.open( QIODevice::WriteOnly) )
 	{
 		Error(_log, "Unable to open RS232 device (%s)", _deviceName.c_str());
 		return -1;
 	}
+	_rs232Port.setBaudRate(_baudRate_Hz);
 
 	if (_delayAfterConnect_ms > 0)
 	{
@@ -64,8 +64,9 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 			_blockedForDelay = true;
 			QTimer::singleShot(seconds, this, SLOT(unblockAfterDelay()));
 			Debug(_log, "Device blocked for %d ms", seconds);
+			return -1;
 		}
-		return status;
+		return 0;
 	}
 
 	_rs232Port.flush();
