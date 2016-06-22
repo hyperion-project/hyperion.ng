@@ -30,7 +30,7 @@ target_link_libraries(${PROJECT_NAME}
 	getoptPlusPlus
 	${QT_LIBRARIES})
 
-qt5_use_modules(${PROJECT_NAME} Widgets Core Network)
+qt5_use_modules(${PROJECT_NAME} Gui Core Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
 

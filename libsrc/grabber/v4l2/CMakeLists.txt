@@ -25,8 +25,6 @@ add_library(v4l2-grabber
 	${V4L2_HEADERS_MOC}
 )
 
-qt5_use_modules(v4l2-grabber Widgets)
-
 target_link_libraries(v4l2-grabber
 	hyperion
 	${QT_LIBRARIES}
