@@ -31,7 +31,7 @@ add_library(bonjour
 		${Bonjour_RESOURCES_RCC}
 )
 
-qt5_use_modules(bonjour Widgets Network)
+qt5_use_modules(bonjour Network)
 
 target_link_libraries(bonjour
 		hyperion

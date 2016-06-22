@@ -38,6 +38,6 @@ target_link_libraries(${PROJECT_NAME}
 	pthread
 )
 
-qt5_use_modules(${PROJECT_NAME} Widgets Core Gui Network)
+qt5_use_modules(${PROJECT_NAME} Core Gui Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
