@@ -10,6 +10,7 @@
 
 // effect engin eincludes
 #include "Effect.h"
+#include <utils/Logger.h>
 
 // Python method table
 PyMethodDef Effect::effectMethods[] = {
@@ -112,7 +113,7 @@ void Effect::run()
 	}
 	else
 	{
-		std::cerr << "EFFECTENGINE ERROR: Unable to open script file " << _script << std::endl;
+		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s", _script.c_str());
 	}
 	fclose(file);
 
@@ -356,7 +357,7 @@ Effect * Effect::getEffect()
 	{
 		// something is wrong
 		Py_XDECREF(module);
-		std::cerr << "EFFECTENGINE ERROR: Unable to retrieve the effect object from the Python runtime" << std::endl;
+		Error(Logger::getInstance("EFFECTENGINE"), "Unable to retrieve the effect object from the Python runtime");
 		return nullptr;
 	}
 
@@ -368,7 +369,7 @@ Effect * Effect::getEffect()
 	{
 		// something is wrong
 		Py_XDECREF(effectCapsule);
-		std::cerr << "EFFECTENGINE ERROR: Unable to retrieve the effect object from the Python runtime" << std::endl;
+		Error(Logger::getInstance("EFFECTENGINE"), "Unable to retrieve the effect object from the Python runtime");
 		return nullptr;
 	}
 

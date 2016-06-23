@@ -12,6 +12,7 @@
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
+#include <utils/Logger.h>
 
 // pre-declarioation
 class Effect;
@@ -57,8 +58,10 @@ private:
 	std::list<EffectDefinition> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
-	
+
 	std::list<ActiveEffectDefinition> _availableActiveEffects;
 
-    PyThreadState * _mainThreadState;
+	PyThreadState * _mainThreadState;
+
+	Logger * _log;
 };
