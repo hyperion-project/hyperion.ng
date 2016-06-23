@@ -11,8 +11,7 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 #include <utils/Logger.h>
-
-
+#include <webconfig/WebConfig.h>
 
 #include "hyperiond.h"
 
@@ -40,7 +39,9 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 int main(int argc, char** argv)
 {
-	Logger* log = Logger::getInstance("MAIN", Logger::INFO);
+	// initialize main logger and set global log level
+	Logger* log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::INFO);
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -109,14 +110,27 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	HyperionDaemon* hyperiond = new HyperionDaemon(configFiles[argvId], &app);
-	hyperiond->run();
+	HyperionDaemon* hyperiond = nullptr;
+	try
+	{
+		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond->run();
+	}
+	catch (...)
+	{
+		Error(log, "Hyperion Daemon aborted");
+	}
 
+	WebConfig* webConfig = new WebConfig(&app);
+	
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
+	// delete components
+	delete webConfig;
 	delete hyperiond;
+	Logger::deleteInstance();
 
 	return rc;
 }

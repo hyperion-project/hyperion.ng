@@ -33,7 +33,7 @@ add_library(jsonserver
 	${JsonServer_RESOURCES_RCC}
 )
 
-qt5_use_modules(jsonserver Widgets Network)
+qt5_use_modules(jsonserver Network)
 
 target_link_libraries(jsonserver
 	hyperion
