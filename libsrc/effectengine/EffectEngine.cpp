@@ -50,17 +50,17 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 					efxCount++;
 				}
 			}
-			Info(_log, "EFFECTENGINE INFO: %d effects loaded from directory %s", efxCount, path);
+			Info(_log, "%d effects loaded from directory %s", efxCount, path);
 		}
 	}
 
 	if (_availableEffects.size() == 0)
 	{
-		Error(_log, "EFFECTENGINE ERROR: no effects found, check your effect directories");
+		Error(_log, "no effects found, check your effect directories");
 	}
 
 	// initialize the python interpreter
-	Debug(_log,"EFFECTENGINE INFO: Initializing Python interpreter");
+	Debug(_log,"Initializing Python interpreter");
     Effect::registerHyperionExtensionModule();
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
@@ -70,7 +70,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 EffectEngine::~EffectEngine()
 {
 	// clean up the Python interpreter
-	Debug(_log, "EFFECTENGINE INFO: Cleaning up Python interpreter");
+	Debug(_log, "Cleaning up Python interpreter");
 	PyEval_RestoreThread(_mainThreadState);
 	Py_Finalize();
 }
@@ -105,7 +105,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	Logger * log = Logger::getInstance("EFFECTENGINE");
 	if (!file.is_open())
 	{
-		Error( log, "EFFECTENGINE ERROR: Effect file '%s' could not be loaded", fileName.c_str());
+		Error( log, "Effect file '%s' could not be loaded", fileName.c_str());
 		return false;
 	}
 
@@ -114,7 +114,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	Json::Value config;
 	if (!jsonReader.parse(file, config, false))
 	{
-		Error( log, "EFFECTENGINE ERROR: Error while reading effect '%s': %s", fileName.c_str(), jsonReader.getFormattedErrorMessages().c_str());
+		Error( log, "Error while reading effect '%s': %s", fileName.c_str(), jsonReader.getFormattedErrorMessages().c_str());
 		return false;
 	}
 
@@ -128,7 +128,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
 		foreach (const std::string & error, errors) {
-			Error( log, "EFFECTENGINE ERROR: Error while checking '%s':", fileName.c_str(), error.c_str());
+			Error( log, "Error while checking '%s':", fileName.c_str(), error.c_str());
 		}
 		return false;
 	}
@@ -215,7 +215,7 @@ void EffectEngine::effectFinished(Effect *effect)
 		_hyperion->clear(effect->getPriority());
 	}
 
-	Info( _log, "EFFECTENGINE INFO: effect finished");
+	Info( _log, "effect finished");
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{
 		if (*effectIt == effect)
