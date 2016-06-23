@@ -10,6 +10,7 @@
 
 // effect engin eincludes
 #include "Effect.h"
+#include <utils/Logger.h>
 
 // Python method table
 PyMethodDef Effect::effectMethods[] = {

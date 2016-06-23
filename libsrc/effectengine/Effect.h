@@ -8,7 +8,6 @@
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
-#include <utils/Logger.h>
 
 class Effect : public QThread
 {
