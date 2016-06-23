@@ -50,7 +50,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 					efxCount++;
 				}
 			}
-			Info(_log, "%d effects loaded from directory %s", efxCount, path);
+			Info(_log, "%d effects loaded from directory %s", efxCount, path.c_str());
 		}
 	}
 
