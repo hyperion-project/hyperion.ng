@@ -8,6 +8,7 @@
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
+#include <utils/Logger.h>
 
 class Effect : public QThread
 {
@@ -83,3 +84,4 @@ private:
 	/// Buffer for colorData
 	std::vector<ColorRgb> _colors;
 };
+	
