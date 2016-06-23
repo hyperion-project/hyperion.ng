@@ -58,6 +58,5 @@ target_link_libraries(hyperion
 	hyperion-utils
 	leddevice
 	effectengine
-	serialport
 	${QT_LIBRARIES}
 )
