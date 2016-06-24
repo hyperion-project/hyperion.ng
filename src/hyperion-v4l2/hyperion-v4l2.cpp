@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 {
   std::cout
 	<< "hyperion-v4l2:" << std::endl
-	<< "\tversion   : " << HYPERION_VERSION_ID << std::endl
+	<< "\tversion   : " << HYPERION_BUILD_ID << std::endl
 	<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	QCoreApplication app(argc, argv);
