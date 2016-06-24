@@ -21,7 +21,6 @@ SET(Leddevice_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 	${CURRENT_SOURCE_DIR}/LedHIDDevice.h
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
-	${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
 
