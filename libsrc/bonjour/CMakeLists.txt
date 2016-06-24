@@ -38,7 +38,7 @@ target_link_libraries(bonjour
 		hyperion-utils
         ${QT_LIBRARIES})
 
-set(USE_SHARED_AVAHI_LIBS OFF CACHE BOOL "use avahi libraries from system")
+set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
 
 if (USE_SHARED_AVAHI_LIBS)
 	target_link_libraries(bonjour

@@ -22,7 +22,8 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	_hyperion(hyperion),
 	_availableEffects(),
 	_activeEffects(),
-	_mainThreadState(nullptr)
+	_mainThreadState(nullptr),
+	_log(Logger::getInstance("EFFECTENGINE"))
 {
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
@@ -49,17 +50,17 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 					efxCount++;
 				}
 			}
-			std::cerr << "EFFECTENGINE INFO: " << efxCount << " effects loaded from directory " << path << std::endl;
+			Info(_log, "%d effects loaded from directory %s", efxCount, path.c_str());
 		}
 	}
 
 	if (_availableEffects.size() == 0)
 	{
-		std::cerr << "EFFECTENGINE ERROR: no effects found, check your effect directories" << std::endl;
+		Error(_log, "no effects found, check your effect directories");
 	}
 
 	// initialize the python interpreter
-	std::cout << "EFFECTENGINE INFO: Initializing Python interpreter" << std::endl;
+	Debug(_log,"Initializing Python interpreter");
     Effect::registerHyperionExtensionModule();
 	Py_InitializeEx(0);
 	PyEval_InitThreads(); // Create the GIL
@@ -69,7 +70,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 EffectEngine::~EffectEngine()
 {
 	// clean up the Python interpreter
-	std::cout << "EFFECTENGINE INFO: Cleaning up Python interpreter" << std::endl;
+	Debug(_log, "Cleaning up Python interpreter");
 	PyEval_RestoreThread(_mainThreadState);
 	Py_Finalize();
 }
@@ -101,9 +102,10 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	std::string fileName = path + QDir::separator().toLatin1() + effectConfigFile;
 	std::ifstream file(fileName.c_str());
 
+	Logger * log = Logger::getInstance("EFFECTENGINE");
 	if (!file.is_open())
 	{
-		std::cerr << "EFFECTENGINE ERROR: Effect file '" << fileName << "' could not be loaded" << std::endl;
+		Error( log, "Effect file '%s' could not be loaded", fileName.c_str());
 		return false;
 	}
 
@@ -112,7 +114,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	Json::Value config;
 	if (!jsonReader.parse(file, config, false))
 	{
-		std::cerr << "EFFECTENGINE ERROR: Error while reading effect '" << fileName << "': " << jsonReader.getFormattedErrorMessages() << std::endl;
+		Error( log, "Error while reading effect '%s': %s", fileName.c_str(), jsonReader.getFormattedErrorMessages().c_str());
 		return false;
 	}
 
@@ -126,7 +128,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
 		foreach (const std::string & error, errors) {
-			std::cerr << "EFFECTENGINE ERROR: Error while checking '" << fileName << "':" << error << std::endl;
+			Error( log, "Error while checking '%s':", fileName.c_str(), error.c_str());
 		}
 		return false;
 	}
@@ -148,7 +150,7 @@ int EffectEngine::runEffect(const std::string &effectName, int priority, int tim
 
 int EffectEngine::runEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
 {
-	std::cout << "EFFECTENGINE INFO: run effect " << effectName << " on channel " << priority << std::endl;
+	Info( _log, "run effect %s on channel %d", effectName.c_str(), priority);
 
 	const EffectDefinition * effectDefinition = nullptr;
 	for (const EffectDefinition & e : _availableEffects)
@@ -162,7 +164,7 @@ int EffectEngine::runEffect(const std::string &effectName, const Json::Value &ar
 	if (effectDefinition == nullptr)
 	{
 		// no such effect
-		std::cerr << "EFFECTENGINE ERROR: effect " << effectName << " not found" << std::endl;
+		Error(_log, "effect %s not found",  effectName.c_str());
 		return -1;
 	}
 
@@ -213,7 +215,7 @@ void EffectEngine::effectFinished(Effect *effect)
 		_hyperion->clear(effect->getPriority());
 	}
 
-	std::cout << "EFFECTENGINE INFO: effect finished" << std::endl;
+	Info( _log, "effect finished");
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{
 		if (*effectIt == effect)
