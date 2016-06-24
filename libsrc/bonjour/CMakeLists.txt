@@ -5,7 +5,7 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/bonjour)
 
 # Group the headers that go through the MOC compiler
 set(Bonjour_QT_HEADERS
-		${CURRENT_HEADER_DIR}/bonjourrecord.h
+#		${CURRENT_HEADER_DIR}/bonjourrecord.h
 		${CURRENT_HEADER_DIR}/bonjourserviceregister.h
 )
 
