@@ -5,6 +5,7 @@
 
 #include <leddevice/LedDevice.h>
 #include <ws2811.h>
+#include <utils/Logger.h>
 
 class LedDeviceWS281x : public LedDevice
 {
