@@ -10,10 +10,6 @@ include_directories(
 	${X11_INCLUDES}
 )
 
-SET(X11_QT_HEADERS
-		${CURRENT_HEADER_DIR}/X11Grabber.h
-)
-
 SET(X11_HEADERS
 	${CURRENT_HEADER_DIR}/X11Grabber.h
 )
