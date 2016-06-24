@@ -7,6 +7,7 @@
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
+#include <utils/Logger.h>
 
 ///
 /// The LedUdpDevice implements an abstract base-class for LedDevices using the SPI-device.
