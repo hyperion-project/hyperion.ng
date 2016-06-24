@@ -6,7 +6,6 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/webconfig)
 # Group the headers that go through the MOC compiler
 set(WebConfig_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/QtHttpClientWrapper.h
-	${CURRENT_SOURCE_DIR}/QtHttpHeader.h
 	${CURRENT_SOURCE_DIR}/QtHttpReply.h
 	${CURRENT_SOURCE_DIR}/QtHttpRequest.h
 	${CURRENT_SOURCE_DIR}/QtHttpServer.h
