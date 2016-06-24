@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
 {
 	std::cout
 		<< "hyperion-dispmanx:" << std::endl
-		<< "\tversion   : " << HYPERION_BUILD_ID << std::endl
+		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 	QCoreApplication app(argc, argv);

@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 	{
 	std::cout
 		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
-		<< "\tVersion   : " << HYPERION_BUILD_ID << std::endl
+		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 		return 0;
