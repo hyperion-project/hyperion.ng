@@ -9,6 +9,7 @@
 
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
+#include <utils/Logger.h>
 
 class LedDevicePiBlaster : public LedDevice
 {
@@ -58,4 +59,7 @@ private:
 
 	/// File-Pointer to the PiBlaster device
 	FILE * _fid;
+
+        /// logger instance
+        Logger* _log;
 };
