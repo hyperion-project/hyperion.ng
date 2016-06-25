@@ -36,7 +36,7 @@ int LedSpiDevice::open()
 
 	if (mFid < 0)
 	{
-		Error( Logger::getInstance("LedDevice"), "Failed to open device (%s). Error message: %s", mDeviceName.c_str(),  strerror(errno) );
+		Error( _log, "Failed to open device (%s). Error message: %s", mDeviceName.c_str(),  strerror(errno) );
 		return -1;
 	}
 

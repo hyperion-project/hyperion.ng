@@ -37,19 +37,19 @@ int LedHIDDevice::open()
 	int error = hid_init();
 	if (error != 0)
 	{
-		std::cerr << "Error while initializing the hidapi context" << std::endl;
+		Error(_log, "Error while initializing the hidapi context");
 		return -1;
 	}
-	std::cout << "Hidapi initialized" << std::endl;
+	Debug(_log,"Hidapi initialized");
 
 	// Open the device
-	printf("Opening device: VID %04hx PID %04hx\n", _VendorId, _ProductId);
+	Info(_log, "Opening device: VID %04hx PID %04hx\n", _VendorId, _ProductId);
 	_deviceHandle = hid_open(_VendorId, _ProductId, nullptr);
 		
 	if (_deviceHandle == nullptr)
 	{
 		// Failed to open the device
-		std::cerr << "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." << std::endl;
+		Error(_log,"Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo.");
 		
 		// http://www.signal11.us/oss/hidapi/
 		/*
@@ -70,8 +70,9 @@ int LedHIDDevice::open()
 		
 		return -1;
 	}
-	else{
-		std::cout << "Opened HID device successful" << std::endl;
+	else
+	{
+		Info(_log,"Opened HID device successful");
 	}
 	
 	// Wait after device got opened if enabled
@@ -79,7 +80,7 @@ int LedHIDDevice::open()
 	{
 		_blockedForDelay = true;
 		QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
-		std::cout << "Device blocked for " << _delayAfterConnect_ms << " ms" << std::endl;
+		Debug(_log, "Device blocked for %d  ms", _delayAfterConnect_ms);
 	}
 
 	return 0;
@@ -98,10 +99,10 @@ int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
 		auto status = open();
 		if(status < 0){
 			// Try again in 3 seconds
-			int seconds = 3000;
+			int delay_ms = 3000;
 			_blockedForDelay = true;
-			QTimer::singleShot(seconds, this, SLOT(unblockAfterDelay()));
-			std::cout << "Device blocked for " << seconds << " ms" << std::endl;
+			QTimer::singleShot(delay_ms, this, SLOT(unblockAfterDelay()));
+			Debug(_log,"Device blocked for %d ms", delay_ms);
 		}
 		// Return here, to not write led data if the device should be blocked after connect
 		return status;
@@ -123,7 +124,7 @@ int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
 	
 	// Handle first error
 	if(ret < 0){
-		std::cerr << "Failed to write to HID device." << std::endl;
+		Error(_log,"Failed to write to HID device.");
 
 		// Try again
 		if(_useFeature){
@@ -135,7 +136,7 @@ int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
 
 		// Writing failed again, device might have disconnected
 		if(ret < 0){
-			std::cerr << "Failed to write to HID device." << std::endl;
+			Error(_log,"Failed to write to HID device.");
 		
 			hid_close(_deviceHandle);
 			_deviceHandle = nullptr;
@@ -147,6 +148,6 @@ int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
 
 void LedHIDDevice::unblockAfterDelay()
 {
-	std::cout << "Device unblocked" << std::endl;
+	Debug(_log,"Device unblocked");
 	_blockedForDelay = false;
 }

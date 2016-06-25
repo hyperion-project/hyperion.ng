@@ -62,10 +62,10 @@ int LedDeviceLightpackHidapi::open(const std::string & serialNumber)
 	int error = hid_init();
 	if (error != 0)
 	{
-		std::cerr << "Error while initializing the hidapi context" << std::endl;
+		Error(_log, "Error while initializing the hidapi context");
 		return -1;
 	}
-	std::cout << "Hidapi initialized" << std::endl;
+	Info("Hidapi initialized");
 
 	// retrieve the list of usb devices
 	hid_device_info * deviceList = hid_enumerate(0x0, 0x0);
@@ -90,11 +90,11 @@ int LedDeviceLightpackHidapi::open(const std::string & serialNumber)
 	{
 		if (_serialNumber.empty())
 		{
-			std::cerr << "No Lightpack device has been found" << std::endl;
+			Error(_log, "No Lightpack device has been found");
 		}
 		else
 		{
-			std::cerr << "No Lightpack device has been found with serial " << _serialNumber << std::endl;
+			Error(_log, "No Lightpack device has been found with serial %s", _serialNumber);
 		}
 	}
 
@@ -106,7 +106,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 	if ((device->vendor_id == USB_VENDOR_ID && device->product_id == USB_PRODUCT_ID) ||
 		(device->vendor_id == USB_OLD_VENDOR_ID && device->product_id == USB_OLD_PRODUCT_ID))
 	{
-		std::cout << "Found a lightpack device. Retrieving more information..." << std::endl;
+		Debug(_log, "Found a lightpack device. Retrieving more information...");
 
 		// get the serial number
 		std::string serialNumber = "";
@@ -126,10 +126,10 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 		}
 		else
 		{
-			std::cerr << "No serial number for Lightpack device" << std::endl;
+			Error(_log, "No serial number for Lightpack device");
 		}
 
-		std::cout << "Lightpack device found: path=" << device->path << " serial=" << serialNumber << std::endl;
+		Debug(_log, "Lightpack device found: path=%s serial=%s", device->path.c_str(), serialNumber.c_str());
 
 		// check if this is the device we are looking for
 		if (requestedSerialNumber.empty() || requestedSerialNumber == serialNumber)
@@ -141,7 +141,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 			{
 				_serialNumber = serialNumber;
 
-				std::cout << "Lightpack device successfully opened" << std::endl;
+				Info(_log, "Lightpack device successfully opened");
 
 				// get the firmware version
 				uint8_t buffer[256];
@@ -149,7 +149,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 				int error = hid_get_feature_report(_deviceHandle, buffer, sizeof(buffer));
 				if (error < 4)
 				{
-					std::cerr << "Unable to retrieve firmware version number from Lightpack device" << std::endl;
+					Error(_log, "Unable to retrieve firmware version number from Lightpack device");
 				}
 				else
 				{
@@ -190,12 +190,12 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 				_ledBuffer[1] = CMD_UPDATE_LEDS;
 
 				// return success
-				std::cout << "Lightpack device opened: path=" << device->path << " serial=" << _serialNumber << " version=" << _firmwareVersion.majorVersion << "." << _firmwareVersion.minorVersion << std::endl;
+				Debug(_log,"Lightpack device opened: path=%s serial=%s version=%s.%s.%s", device->path.c_str(), _serialNumber.c_str(), _firmwareVersion.majorVersion.c_str(),  _firmwareVersion.minorVersion.c_str());
 				return 0;
 			}
 			else
 			{
-				std::cerr << "Unable to open Lightpack device. Searching for other device" << std::endl;
+				Warning(_log, "Unable to open Lightpack device. Searching for other device");
 			}
 		}
 	}
@@ -259,7 +259,7 @@ int LedDeviceLightpackHidapi::writeBytes(uint8_t *data, int size)
 		return 0;
 	}
 
-	std::cerr << "Unable to write " << size << " bytes to Lightpack device(" << error << ")" << std::endl;
+	Error(_log, "Unable to write %s bytes to Lightpack device(%s)", size, error);
 	return error;
 }
 

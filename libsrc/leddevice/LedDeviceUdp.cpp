@@ -54,7 +54,7 @@ LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, c
 	hints.ai_socktype = SOCK_DGRAM;
 
 	if ((rv = getaddrinfo(hostname.c_str() , port.c_str(), &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		Debug(_log, "getaddrinfo: %s", gai_strerror(rv));
 		assert(rv==0);
 	}
 
@@ -70,7 +70,7 @@ LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, c
 	}
 
 	if (p == NULL) {
-		fprintf(stderr, "talker: failed to create socket\n");
+		Error(_log,"talker: failed to create socket");
 		assert(p!=NULL);
 	}
 }

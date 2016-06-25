@@ -16,8 +16,7 @@
 
 LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping) :
 	_deviceName(deviceName),
-	_fid(nullptr),
-        _log(Logger::getInstance("LedDevice"))
+	_fid(nullptr)
 {
 
 	signal(SIGPIPE,  SIG_IGN);
