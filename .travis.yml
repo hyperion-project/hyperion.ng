@@ -1,4 +1,6 @@
 language: cpp
+sudo: required
+dist: trusty
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -qq -y qtbase5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
