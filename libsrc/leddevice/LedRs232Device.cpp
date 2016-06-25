@@ -14,8 +14,7 @@ LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned b
 	_baudRate_Hz(baudrate),
 	_delayAfterConnect_ms(delayAfterConnect_ms),
 	_rs232Port(this),
-	_blockedForDelay(false),
-	_log(Logger::getInstance("LedDevice"))
+	_blockedForDelay(false)
 {
 }
 
