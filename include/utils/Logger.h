@@ -25,9 +25,11 @@
 class Logger
 {
 public:
-	enum LogLevel { DEBUG=0, INFO=1,WARNING=2,ERROR=3 };
+	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
 
 	static Logger* getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
+	static void deleteInstance(std::string name="");
+	static void setLogLevel(LogLevel level,std::string name="");
 
 	void Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void setMinLevel(LogLevel level) { _minLevel = level; };
@@ -38,6 +40,7 @@ protected:
 
 private:
 	static std::map<std::string,Logger*> *LoggerMap;
+	static LogLevel GLOBAL_MIN_LOG_LEVEL;
 
 	std::string _name;
 	std::string _appname;

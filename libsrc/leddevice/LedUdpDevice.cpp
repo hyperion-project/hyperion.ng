@@ -15,7 +15,6 @@
 // Local Hyperion includes
 #include "LedUdpDevice.h"
 
-
 LedUdpDevice::LedUdpDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns) :
 	mDeviceName(outputDevice),
 	mBaudRate_Hz(baudrate),
@@ -26,7 +25,7 @@ LedUdpDevice::LedUdpDevice(const std::string& outputDevice, const unsigned baudr
 	QString str = QString::fromStdString(mDeviceName);
 	QStringList _list = str.split(":");
 	if (_list.size() != 2)  {
-		printf ("ERROR: LedUdpDevice: Error parsing hostname:port\n");
+		Error( Logger::getInstance("LedDevice"), "LedUdpDevice: Error parsing hostname:port");
 		exit (-1);
 	}
 	QHostInfo info = QHostInfo::fromName(_list.at(0));

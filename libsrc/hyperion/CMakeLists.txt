@@ -53,13 +53,10 @@ add_library(hyperion
 	${Hyperion_RESOURCES_RCC}
 )
 
-qt5_use_modules(hyperion Widgets)
-
 target_link_libraries(hyperion
 	blackborder
 	hyperion-utils
 	leddevice
 	effectengine
-	serialport
 	${QT_LIBRARIES}
 )

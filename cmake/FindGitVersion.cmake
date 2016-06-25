@@ -4,6 +4,6 @@ execute_process( COMMAND sh -c "git branch | grep '^*' | sed 's;^*;;g' " WORKING
 
 STRING ( STRIP "${BUILD_ID}" BUILD_ID )
 STRING ( STRIP "${VERSION_ID}" VERSION_ID )
-SET ( HYPERION_VERSION_ID "${VERSION_ID} (${BUILD_ID}" )
-message ( STATUS "Current Version: ${HYPERION_VERSION_ID})" )
+SET ( HYPERION_BUILD_ID "${VERSION_ID} (${BUILD_ID})" )
+message ( STATUS "Current Version: ${HYPERION_BUILD_ID}" )
 

@@ -24,8 +24,6 @@ add_library(xbmcvideochecker
 	${XBMCVideoChecker_SOURCES}
 )
 
-qt5_use_modules(xbmcvideochecker Widgets)
-
 target_link_libraries(xbmcvideochecker
 	hyperion
 	${QT_LIBRARIES})
