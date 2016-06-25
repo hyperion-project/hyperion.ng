@@ -40,7 +40,7 @@ int LedDeviceTinkerforge::open()
 	// Check if connection is already createds
 	if (_ipConnection != nullptr)
 	{
-		std::cout << "Attempt to open existing connection; close before opening" << std::endl;
+		Error(_log, "Attempt to open existing connection; close before opening");
 		return -1;
 	}
 
@@ -51,7 +51,7 @@ int LedDeviceTinkerforge::open()
 	int connectionStatus = ipcon_connect(_ipConnection, _host.c_str(), _port);
 	if (connectionStatus < 0) 
 	{
-		std::cerr << "Attempt to connect to master brick (" << _host << ":" << _port << ") failed with status " << connectionStatus << std::endl;
+		Warning(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", _host.c_str(), _port, connectionStatus);
 		return -1;
 	}
 
@@ -62,7 +62,7 @@ int LedDeviceTinkerforge::open()
 	int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
 	if (frameStatus < 0) 
 	{
-		std::cerr << "Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status " << frameStatus << std::endl;
+		Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
 		return -1;
 	}
 
@@ -75,7 +75,7 @@ int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 
 	if (nrLedValues > MAX_NUM_LEDS) 
 	{
-		std::cerr << "Invalid attempt to write led values. Not more than " << MAX_NUM_LEDS << " leds are allowed." << std::endl;
+		Error(_log,"Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
 		return -1;
 	}
 
@@ -134,7 +134,7 @@ int LedDeviceTinkerforge::transferLedData(LEDStrip *ledStrip, unsigned index, un
 		const int status = led_strip_set_rgb_values(ledStrip, i, copyLength, reds, greens, blues);
 		if (status != E_OK)
 		{
-			std::cerr << "Setting led values failed with status " << status << std::endl;
+			Warning(_log, "Setting led values failed with status %d", status);
 			return status;
 		}
 	}
