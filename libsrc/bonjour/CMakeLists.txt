@@ -5,7 +5,6 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/bonjour)
 
 # Group the headers that go through the MOC compiler
 set(Bonjour_QT_HEADERS
-		${CURRENT_HEADER_DIR}/bonjourrecord.h
 		${CURRENT_HEADER_DIR}/bonjourserviceregister.h
 )
 
@@ -38,7 +37,7 @@ target_link_libraries(bonjour
 		hyperion-utils
         ${QT_LIBRARIES})
 
-set(USE_SHARED_AVAHI_LIBS OFF CACHE BOOL "use avahi libraries from system")
+set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
 
 if (USE_SHARED_AVAHI_LIBS)
 	target_link_libraries(bonjour

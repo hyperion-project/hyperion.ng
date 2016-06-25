@@ -83,3 +83,4 @@ private:
 	/// Buffer for colorData
 	std::vector<ColorRgb> _colors;
 };
+	

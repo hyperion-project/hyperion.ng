@@ -1,6 +1,6 @@
 # Install the required tools and dependencies
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 
 # RPI ONLY: when you build on the rapberry pi and include the dispmanx grabber (which is the default) 
 # you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github

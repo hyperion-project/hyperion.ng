@@ -5,6 +5,7 @@
 #include <QLocale>
 #include <QFile>
 #include <QHostInfo>
+#include <QHostAddress>
 #include <cstdint>
 #include <limits>
 
@@ -249,6 +250,7 @@ void HyperionDaemon::startNetworkServices()
 			_udpListener = new UDPListener(
 						udpListenerConfig.get("priority",700).asInt(),
 						udpListenerConfig.get("timeout",10000).asInt(),
+						udpListenerConfig.get("address", "").asString(),
 						udpListenerConfig.get("port", 2801).asUInt()
 					);
 			Info(_log, "UDP listener created and started on port %d", _udpListener->getPort());

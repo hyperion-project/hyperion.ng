@@ -16,7 +16,8 @@
 
 LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping) :
 	_deviceName(deviceName),
-	_fid(nullptr)
+	_fid(nullptr),
+        _log(Logger::getInstance("LedDevice"))
 {
 
 	signal(SIGPIPE,  SIG_IGN);
@@ -39,13 +40,13 @@ LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Jso
 		const int gpio = gpioMap.get("gpio",-1).asInt();
 		const int ledindex = gpioMap.get("ledindex",-1).asInt();
 		const std::string ledcolor = gpioMap.get("ledcolor","z").asString();
-//		printf ("got gpio %d ledindex %d color %c\n", gpio,ledindex, ledcolor[0]);
+
 		// ignore missing/invalid settings
 		if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
 			_gpio_to_led[gpio] = ledindex;
 			_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
 		} else {
-			printf ("IGNORING gpio %d ledindex %d color %c\n", gpio,ledindex, ledcolor[0]);
+			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
 		}
 	}
 }
@@ -67,7 +68,7 @@ int LedDevicePiBlaster::open(bool report)
 		// The file pointer is already open
 		if (report)
 		{
-			std::cerr << "Attempt to open allready opened device (" << _deviceName << ")" << std::endl;
+			Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
 		}
 		return -1;
 	}
@@ -76,7 +77,7 @@ int LedDevicePiBlaster::open(bool report)
 	{
 		if (report)
 		{
-			std::cerr << "The device(" << _deviceName << ") does not yet exist, can not connect (yet)." << std::endl;
+			Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
 		}
 		return -1;
 	}
@@ -86,12 +87,12 @@ int LedDevicePiBlaster::open(bool report)
 	{
 		if (report)
 		{
-			std::cerr << "Failed to open device (" << _deviceName << "). Error message: " << strerror(errno) << std::endl;
+			Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
 		}
 		return -1;
 	}
 
-	std::cout << "Connect to device(" << _deviceName << ")" << std::endl;
+	Info( _log, "Connected to device(%s)", _deviceName.c_str());
 
 	return 0;
 }
@@ -111,7 +112,6 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 		if ( (valueIdx >= 0) && (valueIdx < (signed) ledValues.size()) ) 
 		{
 			double pwmDutyCycle = 0.0;
-//			printf ("iPin %d valueIdx %d color %c\n", iPin, valueIdx, _gpio_to_color[ iPins[iPin] ] ) ;
 			switch (_gpio_to_color[ i ]) 
 			{
 			case 'r':

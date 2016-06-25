@@ -25,7 +25,7 @@
 class Logger
 {
 public:
-	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4 };
+	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
 
 	static Logger* getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
 	static void deleteInstance(std::string name="");
