@@ -18,31 +18,13 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_priority(priority),
 	_timeout(timeout),
 	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK),
-	_log(Logger::getInstance("UDPLISTENER"))
+	_log(Logger::getInstance("UDPLISTENER")),
+	_isActive(false)
 {
 	_server = new QUdpSocket(this);
-	QHostAddress listenAddress = QHostAddress(QHostAddress::Any);
-
-	if (address.empty()) {
-		listenAddress = QHostAddress::Any;
-	} else {
-		listenAddress = QHostAddress( QString::fromStdString(address) );
-	}
-
-	if (!_server->bind(listenAddress, listenPort))
-	{
-		Warning(_log, "Could not bind to %s:%d parsed from %s", listenAddress.toString().toStdString().c_str(), listenPort, address.c_str());
-	} else {
-		Info(_log, "Started, listening on %s:%d", listenAddress.toString().toStdString().c_str(), listenPort);
-//		if (listenAddress.QHostAddress::isMulticast() ) {	// needs qt >= 5.6
-		if (listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4"))) {
-			if (_server->joinMulticastGroup(listenAddress)) {
-				Info(_log, "Multicast enabled");
-			} else {
-				Warning(_log, "Multicast failed");
-			}
-		}
-	}
+	QHostAddress listenAddress = address.empty() 
+	                           ? QHostAddress::Any 
+	                           : QHostAddress( QString::fromStdString(address) );
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
@@ -51,8 +33,43 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 UDPListener::~UDPListener()
 {
 	// clear the current channel
+	stop();
+	delete _server;
 	_hyperion->clear(_priority);
 }
+
+
+void UDPListener::start()
+{
+	if ( active() )
+		return;
+
+	if (!_server->bind(listenAddress, listenPort))
+	{
+		Warning(_log, "Could not bind to %s:%d parsed from %s", listenAddress.toString().toStdString().c_str(), listenPort, address.c_str());
+	}
+	else
+	{
+		Info(_log, "Started, listening on %s:%d", listenAddress.toString().toStdString().c_str(), listenPort);
+//		if (listenAddress.QHostAddress::isMulticast() ) {	// needs qt >= 5.6
+		if (listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4"))) {
+			bool joinGroupOK = _server->joinMulticastGroup(listenAddress));
+			InfoIf   (   joinGroupOK, _log, "Multicast enabled");
+			WarningIf( ! joinGroupOK, _log, "Multicast failed");
+		}
+		_isActive = true;
+	}
+}
+
+void UDPListener::stop()
+{
+	if ( ! active() )
+		return;
+
+	_server->close();
+	_isActive = false;
+}
+
 
 uint16_t UDPListener::getPort() const
 {
