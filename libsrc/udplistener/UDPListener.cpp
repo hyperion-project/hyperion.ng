@@ -10,7 +10,7 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort) :
+UDPListener::UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
@@ -21,25 +21,32 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_log(Logger::getInstance("UDPLISTENER"))
 {
 	_server = new QUdpSocket(this);
-	QHostAddress listenAddress = QHostAddress(QHostAddress::Any);
 
-	if (address.empty()) {
-		listenAddress = QHostAddress::Any;
-	} else {
+	QAbstractSocket::BindFlag bondage = QAbstractSocket::DefaultForPlatform;
+	if (shared) {
+		bondage = QAbstractSocket::ShareAddress;
+	}
+	QHostAddress listenAddress = QHostAddress(QHostAddress::Any);
+	QHostAddress mcastGroup;
+
+	if (!address.empty()) {
 		listenAddress = QHostAddress( QString::fromStdString(address) );
 	}
+	if (listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4"))) {
+		mcastGroup = listenAddress;
+		listenAddress = QHostAddress(QHostAddress::AnyIPv4);
+	}
 
-	if (!_server->bind(listenAddress, listenPort))
+	if (!_server->bind(listenAddress, listenPort, bondage))
 	{
 		Warning(_log, "Could not bind to %s:%d parsed from %s", listenAddress.toString().toStdString().c_str(), listenPort, address.c_str());
 	} else {
 		Info(_log, "Started, listening on %s:%d", listenAddress.toString().toStdString().c_str(), listenPort);
-//		if (listenAddress.QHostAddress::isMulticast() ) {	// needs qt >= 5.6
-		if (listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4"))) {
-			if (_server->joinMulticastGroup(listenAddress)) {
-				Info(_log, "Multicast enabled");
+		if (!mcastGroup.isNull()) {
+			if (_server->joinMulticastGroup(mcastGroup)) {
+				Info(_log, "Multicast listening on %s",mcastGroup.toString().toStdString().c_str());
 			} else {
-				Warning(_log, "Multicast failed");
+				Warning(_log, "Multicast failed for %s", mcastGroup.toString().toStdString().c_str());
 			}
 		}
 	}
