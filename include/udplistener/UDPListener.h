@@ -27,7 +27,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort);
+	UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared);
 	~UDPListener();
 
 	///
@@ -84,6 +84,7 @@ private:
 	bool _isActive;
 	
 	/// address to bind
-	QHostAddress _listenAddress
+	QHostAddress _listenAddress;
 	quint16      _listenPort;
+	QAbstractSocket::BindFlag _bondage;
 };

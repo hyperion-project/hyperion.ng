@@ -249,14 +249,15 @@ void HyperionDaemon::startNetworkServices()
 					udpListenerConfig.get("priority",700).asInt(),
 					udpListenerConfig.get("timeout",10000).asInt(),
 					udpListenerConfig.get("address", "").asString(),
-					udpListenerConfig.get("port", 2801).asUInt()
+					udpListenerConfig.get("port", 2801).asUInt(),
+					udpListenerConfig.get("shared", false).asBool()
 				);
 		Info(_log, "UDP listener created on port %d", _udpListener->getPort());
 
 		if ( udpListenerConfig.get("enable", true).asBool() )
 		{
 			Info(_log, "UDP listener started" );
-			UDPListener->start();
+			_udpListener->start();
 		}
 	}
 
