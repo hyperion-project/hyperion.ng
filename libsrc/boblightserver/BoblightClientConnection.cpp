@@ -22,15 +22,16 @@
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority, Hyperion * hyperion) :
-	QObject(),
-	_locale(QLocale::C),
-	_socket(socket),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_receiveBuffer(),
-	_priority(priority),
-	_ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
+BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority, Hyperion * hyperion)
+	: QObject()
+	, _locale(QLocale::C)
+	, _socket(socket)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(hyperion)
+	, _receiveBuffer()
+	, _priority(priority)
+	, _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
+	, _log(Logger::getInstance("BOBLIGHT"))
 {
 	// initalize the locale. Start with the default C-locale
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
@@ -70,7 +71,7 @@ void BoblightClientConnection::readData()
 		// drop messages if the buffer is too full
 		if (_receiveBuffer.size() > 100*1024)
 		{
-			std::cout << "BOBLIGHT INFO: server drops messages (buffer full)" << std::endl;
+			Debug(_log, "server drops messages (buffer full)");
 			_receiveBuffer.clear();
 		}
 
@@ -208,7 +209,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		}
 	}
 
-	std::cout << "BOBLIGHT INFO: unknown boblight message: " << message.toStdString() << std::endl;
+	Debug(_log, "unknown boblight message: %s", message.toStdString().c_str());
 }
 
 void BoblightClientConnection::sendMessage(const std::string & message)
