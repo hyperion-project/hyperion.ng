@@ -160,7 +160,7 @@
 	
     "boblightServer" :
     {
-        "enable" : false,
+		"enable" : false,
 		"port" : 19333,
 		"priority" : 800
 	},
