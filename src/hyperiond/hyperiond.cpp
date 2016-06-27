@@ -231,13 +231,15 @@ void HyperionDaemon::startNetworkServices()
 	if (_config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
+		_boblightServer = new BoblightServer(
+			boblightServerConfig.get("priority",900).asInt(),
+			boblightServerConfig["port"].asUInt()
+		);
+		Debug(_log, "Boblight server created");
+
 		if ( boblightServerConfig.get("enable", true).asBool() )
 		{
-			_boblightServer = new BoblightServer(
-						boblightServerConfig.get("priority",900).asInt(),
-						boblightServerConfig["port"].asUInt()
-						);
-			Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+			_boblightServer->start();
 		}
 	}
 
@@ -252,11 +254,10 @@ void HyperionDaemon::startNetworkServices()
 					udpListenerConfig.get("port", 2801).asUInt(),
 					udpListenerConfig.get("shared", false).asBool()
 				);
-		Info(_log, "UDP listener created on port %d", _udpListener->getPort());
+		Debug(_log, "UDP listener created");
 
 		if ( udpListenerConfig.get("enable", true).asBool() )
 		{
-			Info(_log, "UDP listener started" );
 			_udpListener->start();
 		}
 	}

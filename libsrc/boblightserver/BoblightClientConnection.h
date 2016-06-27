@@ -10,6 +10,7 @@
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
+#include <utils/Logger.h>
 
 class ImageProcessor;
 
@@ -100,4 +101,7 @@ private:
 
 	/// The latest led color data
 	std::vector<ColorRgb> _ledColors;
+	
+	/// logger instance
+	Logger * _log;
 };
