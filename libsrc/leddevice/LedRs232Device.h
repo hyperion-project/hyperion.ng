@@ -1,9 +1,7 @@
 #pragma once
 
 #include <QObject>
-
-// Serial includes
-#include <serial/serial.h>
+#include <QSerialPort>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -52,17 +50,20 @@ private slots:
 	void unblockAfterDelay();
 
 private:
+	// tries to open device if not opened
+	bool tryOpen();
+	
 	/// The name of the output device
 	const std::string _deviceName;
 
 	/// The used baudrate of the output device
-	const int _baudRate_Hz;
+	const qint32 _baudRate_Hz;
 
 	/// Sleep after the connect before continuing
-	const int _delayAfterConnect_ms;
+	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	serial::Serial _rs232Port;
+	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 };

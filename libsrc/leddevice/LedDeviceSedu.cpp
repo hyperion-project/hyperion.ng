@@ -47,7 +47,7 @@ int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)
 
 		if (_ledBuffer.size() == 0)
 		{
-			std::cout << "More rgb-channels required then available" << std::endl;
+			Warning(_log, "More rgb-channels required then available");
 			return -1;
 		}
 	}

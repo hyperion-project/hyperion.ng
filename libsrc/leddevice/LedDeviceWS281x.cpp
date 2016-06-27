@@ -6,13 +6,13 @@
 LedDeviceWS281x::LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, const int dmanum, const int pwmchannel, const int invert, const int rgbw, const std::string& whiteAlgorithm)
 {
 	_whiteAlgorithm = whiteAlgorithm;
-std::cout << "whiteAlgorithm :" << whiteAlgorithm << ":\n";
+	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
 
 	initialized = false;
 	led_string.freq = freq;
 	led_string.dmanum = dmanum;
 	if (pwmchannel != 0 && pwmchannel != 1) {
-		std::cout << "WS281x: invalid PWM channel; must be 0 or 1." << std::endl;
+		Error( _log, "WS281x: invalid PWM channel; must be 0 or 1.");
 		throw -1;
 	}
 	chan = pwmchannel;
@@ -32,7 +32,7 @@ std::cout << "whiteAlgorithm :" << whiteAlgorithm << ":\n";
 	led_string.channel[!chan].brightness = 0;
 	led_string.channel[!chan].strip_type = WS2811_STRIP_RGB;
 	if (ws2811_init(&led_string) < 0) {
-		std::cout << "Unable to initialize ws281x library." << std::endl;
+		Error( _log,  "Unable to initialize ws281x library.");
 		throw -1;
 	}
 	initialized = true;
@@ -95,7 +95,6 @@ LedDeviceWS281x::~LedDeviceWS281x()
 {
 	if (initialized)
 	{
-		std::cout << "Shutdown WS281x PWM and DMA channel" << std::endl;
 		ws2811_fini(&led_string);
 	}
 	initialized = false;

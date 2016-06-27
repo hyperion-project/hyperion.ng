@@ -11,8 +11,7 @@
 
 #include <getoptPlusPlus/getoptpp.h>
 #include <utils/Logger.h>
-
-
+#include <webconfig/WebConfig.h>
 
 #include "hyperiond.h"
 
@@ -40,7 +39,9 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 int main(int argc, char** argv)
 {
-	Logger* log = Logger::getInstance("MAIN", Logger::INFO);
+	// initialize main logger and set global log level
+	Logger* log = Logger::getInstance("MAIN");
+	Logger::setLogLevel(Logger::WARNING);
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);
@@ -58,12 +59,40 @@ int main(int argc, char** argv)
 
 	SwitchParameter<>      & argVersion               = parameters.add<SwitchParameter<>>     (0x0, "version",       "Show version information");
 	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
+	SwitchParameter<>      & argSilent                = parameters.add<SwitchParameter<>>     (0x0, "silent",        "do not print any outputs");
+	SwitchParameter<>      & argVerbose               = parameters.add<SwitchParameter<>>     (0x0, "verbose",       "Increase verbosity");
+	SwitchParameter<>      & argDebug                 = parameters.add<SwitchParameter<>>     (0x0, "debug",         "Show debug messages");
 	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
 
 	argParentPid.setDefault(0);
 	optionParser.parse(argc, const_cast<const char **>(argv));
 	const std::vector<std::string> configFiles = optionParser.getFiles();
 
+	int logLevelCheck = 0;
+	if (argSilent.isSet())
+	{
+		Logger::setLogLevel(Logger::OFF);
+		logLevelCheck++;
+	}
+
+	if (argVerbose.isSet())
+	{
+		Logger::setLogLevel(Logger::INFO);
+		logLevelCheck++;
+	}
+
+	if (argDebug.isSet())
+	{
+		Logger::setLogLevel(Logger::DEBUG);
+		logLevelCheck++;
+	}
+
+	if (logLevelCheck > 1)
+	{
+		Error(log, "aborting, because options --silent --verbose --debug can't used together");
+		return 0;
+	}
+	
 	// check if we need to display the usage. exit if we do.
 	if (argHelp.isSet())
 	{
@@ -75,7 +104,7 @@ int main(int argc, char** argv)
 	{
 	std::cout
 		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
-		<< "\tVersion   : " << HYPERION_VERSION_ID << std::endl
+		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 		return 0;
@@ -108,15 +137,28 @@ int main(int argc, char** argv)
 		Error(log, "No valid config found");
 		return 1;
 	}
-	
-	HyperionDaemon* hyperiond = new HyperionDaemon(configFiles[argvId], &app);
-	hyperiond->run();
 
+	HyperionDaemon* hyperiond = nullptr;
+	try
+	{
+		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond->run();
+	}
+	catch (...)
+	{
+		Error(log, "Hyperion Daemon aborted");
+	}
+
+	WebConfig* webConfig = new WebConfig(&app);
+	
 	// run the application
 	int rc = app.exec();
 	Info(log, "INFO: Application closed with code %d", rc);
 
+	// delete components
+	delete webConfig;
 	delete hyperiond;
+	Logger::deleteInstance();
 
 	return rc;
 }

@@ -1,5 +1,6 @@
 // Stl includes
 #include <string>
+#include <sstream>
 #include <algorithm>
 
 // Build configuration
@@ -7,6 +8,7 @@
 
 // Leddevice includes
 #include <leddevice/LedDeviceFactory.h>
+#include <utils/Logger.h>
 
 // Local Leddevice includes
 #ifdef ENABLE_SPIDEV
@@ -50,7 +52,10 @@
 
 LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 {
-	std::cout << "LEDDEVICE INFO: configuration: " << deviceConfig << std::endl;
+	Logger * log = Logger::getInstance("LedDevice");
+	std::stringstream ss;
+	ss << deviceConfig;
+	Info(log, "configuration: %s ", ss.str().c_str());
 
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
@@ -287,11 +292,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = new LedDeviceAtmoOrb(output, useOrbSmoothing, transitiontime, skipSmoothingDiff, port, numLeds, orbIds);
 	}
-	else if (type == "file")
-	{
-		const std::string output = deviceConfig.get("output", "/dev/null").asString();
-		device = new LedDeviceFile(output);
-	}
 	else if (type == "fadecandy")
 	{
 		const std::string host  = deviceConfig.get("output", "127.0.0.1").asString();
@@ -361,9 +361,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 #endif
 	else
 	{
-		std::cout << "LEDDEVICE ERROR: Unknown/Unimplemented device " << type << std::endl;
-		// Unknown / Unimplemented device
-		exit(1);
+		if (type != "file")
+		{
+			Error(log, "Dummy device used, because unknown device %s set.", type.c_str());
+		}
+		const std::string output = deviceConfig.get("output", "/dev/null").asString();
+		device = new LedDeviceFile(output);
 	}
+
 	return device;
 }

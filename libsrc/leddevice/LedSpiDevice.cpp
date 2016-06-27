@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <cerrno>
 
 // Linux includes
 #include <fcntl.h>
@@ -10,6 +11,7 @@
 
 // Local Hyperion includes
 #include "LedSpiDevice.h"
+#include <utils/Logger.h>
 
 
 LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns) :
@@ -34,7 +36,7 @@ int LedSpiDevice::open()
 
 	if (mFid < 0)
 	{
-		std::cerr << "Failed to open device('" << mDeviceName << "') " << std::endl;
+		Error( _log, "Failed to open device (%s). Error message: %s", mDeviceName.c_str(),  strerror(errno) );
 		return -1;
 	}
 

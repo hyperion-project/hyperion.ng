@@ -7,6 +7,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
+#include <utils/Logger.h>
 
 ///
 /// Interface (pure virtual base class) for LedDevices.
@@ -14,14 +15,11 @@
 class LedDevice
 {
 public:
-
+	LedDevice();
 	///
 	/// Empty virtual destructor for pure virtual base class
 	///
-	virtual ~LedDevice()
-	{
-		// empty
-	}
+	virtual ~LedDevice() {}
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -34,4 +32,7 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff() = 0;
+	
+protected:
+	Logger * _log;
 };

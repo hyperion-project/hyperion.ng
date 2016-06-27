@@ -26,8 +26,6 @@ add_library(boblightserver
 	${BoblightServer_HEADERS_MOC}
 )
 
-qt5_use_modules(boblightserver Widgets)
-
 target_link_libraries(boblightserver
 	hyperion
 	hyperion-utils

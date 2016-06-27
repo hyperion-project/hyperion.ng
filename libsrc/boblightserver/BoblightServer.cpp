@@ -5,9 +5,9 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
-BoblightServer::BoblightServer(Hyperion *hyperion, const int priority,uint16_t port) :
+BoblightServer::BoblightServer(const int priority,uint16_t port) :
 	QObject(),
-	_hyperion(hyperion),
+	_hyperion(Hyperion::getInstance()),
 	_server(),
 	_openConnections(),
 	_priority(priority)

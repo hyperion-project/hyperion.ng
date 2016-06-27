@@ -58,4 +58,5 @@ private:
 
 	/// File-Pointer to the PiBlaster device
 	FILE * _fid;
+
 };

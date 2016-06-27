@@ -39,6 +39,7 @@
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
 #include <webconfig/WebConfig.h>
+#include <udplistener/UDPListener.h>
 
 class HyperionDaemon : public QObject
 {
@@ -49,7 +50,7 @@ public:
 	void loadConfig(const std::string & configFile);
 	void run();
 
-	void startBootsequence();
+	void startInitialEffect();
 	void createXBMCVideoChecker();
 	void startNetworkServices();
 
@@ -67,10 +68,12 @@ private:
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;
 	BoblightServer*     _boblightServer;
+	UDPListener*        _udpListener;
 	V4L2Wrapper*        _v4l2Grabber;
 	DispmanxWrapper*    _dispmanx;
 	AmlogicWrapper*     _amlGrabber;
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;
 	WebConfig*          _webConfig;
+        Hyperion*           _hyperion;
 };

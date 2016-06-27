@@ -22,8 +22,8 @@ int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 	// (19 bytes) for the hardware to recognize the data
 	if (ledValues.size() != 5)
 	{
-			std::cerr << "AtmoLight: " << ledValues.size() << " channels configured. This should always be 5!" << std::endl;
-			return 0;
+		Error( _log, "%d channels configured. This should always be 5!", ledValues.size());
+		return 0;
 	}
 
 	// write data

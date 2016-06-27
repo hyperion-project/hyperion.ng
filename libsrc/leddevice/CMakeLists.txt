@@ -5,7 +5,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 
 #add libusb and pthreads (required for the Lighpack usb device)
 find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
+#find_package(Threads REQUIRED)
 
 include_directories(
 	../../include/hidapi
@@ -21,7 +21,6 @@ SET(Leddevice_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 	${CURRENT_SOURCE_DIR}/LedHIDDevice.h
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
-	${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
 
@@ -45,6 +44,7 @@ SET(Leddevice_HEADERS
 )
 
 SET(Leddevice_SOURCES
+	${CURRENT_SOURCE_DIR}/LedDevice.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
 	${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
@@ -137,11 +137,11 @@ add_library(leddevice
 	${Leddevice_SOURCES}
 )
 
-qt5_use_modules(leddevice Widgets Network)
+qt5_use_modules(leddevice Network SerialPort)
 
 target_link_libraries(leddevice
 	hyperion-utils
-	serialport
+#	serialport
 	${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
