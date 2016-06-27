@@ -40,6 +40,7 @@ public:
 	///
 	bool active() { return _isActive; };
 
+public slots:
 	///
 	/// bind server to network
 	///
@@ -50,13 +51,15 @@ public:
 	///
 	void stop();
 
+signals:
+	statusChanged(bool isActive);
+
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
 	///
 	void readPendingDatagrams();
 	void processTheDatagram(const QByteArray * _datagram);
-
 
 private:
 	/// Hyperion instance

@@ -63,6 +63,7 @@ void UDPListener::start()
 			WarningIf( ! joinGroupOK, _log, "Multicast failed");
 		}
 		_isActive = true;
+		emit statusChanged(_isActive);
 	}
 }
 
@@ -73,6 +74,7 @@ void UDPListener::stop()
 
 	_server->close();
 	_isActive = false;
+	emit statusChanged(_isActive);
 }
 
 
