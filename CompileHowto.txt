@@ -44,11 +44,8 @@ sudo brew install cmake
 #sudo brew install libusb
 cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON ..
 
-# run make to build Hyperion
-make
-# or if you have a system with more then 1 cpu core
-make -j 4
-# "4" is  the number of cpu cores (e.g. 4 on RPi2 and RPi3), this makes compile faster
+# run make to build Hyperion (all available cpu cores are used)
+make -j $(nproc)
 
 #after compile, to remove any stuff not needed for a release version.
 strip bin/*

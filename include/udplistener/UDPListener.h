@@ -6,6 +6,7 @@
 // Qt includes
 #include <QUdpSocket>
 #include <QSet>
+#include <QHostAddress>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -26,13 +27,32 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort);
+	UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared);
 	~UDPListener();
 
 	///
 	/// @return the port number on which this UDP listens for incoming connections
 	///
 	uint16_t getPort() const;
+	
+	///
+	/// @return true if server is active (bind to a port)
+	///
+	bool active() { return _isActive; };
+
+public slots:
+	///
+	/// bind server to network
+	///
+	void start();
+	
+	///
+	/// close server
+	///
+	void stop();
+
+signals:
+	void statusChanged(bool isActive);
 
 private slots:
 	///
@@ -40,7 +60,6 @@ private slots:
 	///
 	void readPendingDatagrams();
 	void processTheDatagram(const QByteArray * _datagram);
-
 
 private:
 	/// Hyperion instance
@@ -58,9 +77,17 @@ private:
 	/// hyperion priority
 	int _timeout;
 
-        /// The latest led color data
-        std::vector<ColorRgb> _ledColors;
+	/// The latest led color data
+	std::vector<ColorRgb> _ledColors;
 
 	/// Logger instance
 	Logger * _log;
+	
+	/// state of connection
+	bool _isActive;
+	
+	/// address to bind
+	QHostAddress _listenAddress;
+	quint16      _listenPort;
+	QAbstractSocket::BindFlag _bondage;
 };

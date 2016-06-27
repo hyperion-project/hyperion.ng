@@ -24,7 +24,7 @@ LedUdpDevice::LedUdpDevice(const std::string& outputDevice, const unsigned baudr
 	QString str = QString::fromStdString(mDeviceName);
 	QStringList _list = str.split(":");
 	if (_list.size() != 2)  {
-		Error( Logger::getInstance("LedDevice"), "LedUdpDevice: Error parsing hostname:port");
+		Error( _log, "Error parsing hostname:port");
 		exit (-1);
 	}
 	QHostInfo info = QHostInfo::fromName(_list.at(0));
@@ -46,7 +46,7 @@ int LedUdpDevice::open()
 	quint16 _localPort = 0;
 
 	WarningIf( !udpSocket->bind(_localAddress, _localPort), 
-		Logger::getInstance("LedDevice"), "LedUdpDevice: Couldnt bind local address: %s", strerror(errno));
+		_log, "Couldnt bind local address: %s", strerror(errno));
 
 	return 0;
 }
@@ -66,7 +66,7 @@ int LedUdpDevice::writeBytes(const unsigned size, const uint8_t * data)
 		// Sleep to latch the leds (only if write succesfull)
 		nanosleep(&latchTime, NULL);
 	} else {
-		Warning( Logger::getInstance("LedDevice"), "LedUdpDevice: Error sending: %s", strerror(errno));
+		Warning( _log, "Error sending: %s", strerror(errno));
 	}
 
 	return retVal;
