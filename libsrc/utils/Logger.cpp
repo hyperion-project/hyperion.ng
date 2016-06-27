@@ -75,6 +75,16 @@ void Logger::setLogLevel(LogLevel level,std::string name)
 	}
 }
 
+Logger::LogLevel Logger::getLogLevel(std::string name)
+{
+	if ( name.empty() )
+	{
+		return GLOBAL_MIN_LOG_LEVEL;
+	}
+
+	Logger* log = Logger::getInstance(name);
+	return log->getMinLevel();
+}
 
 Logger::Logger ( std::string name, LogLevel minLevel ):
 	_name(name),
