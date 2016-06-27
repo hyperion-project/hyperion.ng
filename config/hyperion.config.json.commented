@@ -4,6 +4,12 @@
 
 
 {
+	/// set log level: silent warn verbose debug
+	"logger" :
+	{
+		"level" : "warn"
+	},
+
 	/// Device configuration contains the following fields: 
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device or leds (known types for now are
