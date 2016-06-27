@@ -1,0 +1,568 @@
+// This is a example config (hyperion.config.json) with comments, in any case you need to create your own one with HyperCon!
+// location of all configs: /etc/hyperion
+// Webpage: https://www.hyperion-project.org
+
+
+{
+	/// Device configuration contains the following fields: 
+	/// * 'name'       : The user friendly name of the device (only used for display purposes)
+	/// * 'type'       : The type of the device or leds (known types for now are
+	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
+	/// * [device type specific configuration]
+	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
+	"device" :
+	{
+		"name"       : "MyHyperionConfig",
+		"type"       : "file",
+		"output"     : "/dev/null",
+		"rate"     : 1000000,
+		"colorOrder" : "rgb"
+	},
+
+	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
+	/// The configuration contains a list of color-transforms. Each transform contains the 
+	/// following fields:
+	///  * 'channelAdjustment'
+	///  * 'id'   : The unique identifier of the channel adjustments (eg 'device_1')
+	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
+	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
+	///                           following tuning parameters for each channel:
+	///  * 'temperature'
+	///  * 'id'   : The unique identifier of the temperature (eg 'device_1')
+	///  * 'leds'   : The indices (or index ranges) of the leds to which this temperature applies
+	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///  * 'red'/'green'/'blue' : The temperature manipulation in the Red-Green-Blue color domain with the 
+	///                           following tuning parameters for each channel:
+	///  * 'transform'
+	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
+	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
+	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
+	///            tuning parameters:
+	///            - 'saturationGain'  The gain adjustement of the saturation
+	///            - 'luminanceGain'       The gain adjustement of the luminance
+	///            - 'luminanceMinimum'    The minimum luminance (backlight)
+	///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
+	///                           following tuning parameters for each channel:
+	///            - 'threshold'       The minimum required input value for the channel to be on 
+	///                                (else zero)
+	///            - 'gamma'           The gamma-curve correction factor
+	///
+	/// Next to the list with color transforms there is also a smoothing option.
+	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
+	///                  parameters:
+	///            - 'type'            The type of smoothing algorithm ('linear' or 'none')
+	///            - 'time_ms'         The time constant for smoothing algorithm in milliseconds
+	///            - 'updateFrequency' The update frequency of the leds in Hz
+	///            - 'updateDelay'     The delay of the output to leds (in periods of smoothing)
+	"color" :
+	{
+		"channelAdjustment" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"pureRed" :
+				{
+					"redChannel"   : 255,
+					"greenChannel" : 0,
+					"blueChannel"  : 0
+				},
+				"pureGreen" :
+				{
+					"redChannel"   : 0,
+					"greenChannel" : 255,
+					"blueChannel"  : 0
+				},
+				"pureBlue" :
+				{
+					"redChannel"   : 0,
+					"greenChannel" : 0,
+					"blueChannel"  : 255
+				}
+			}
+		],
+		"temperature" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"temperatureValues" :
+				{
+					"red"   : 255,
+					"green" : 255,
+					"blue"  : 255
+				}
+			}
+		],
+		"transform" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"hsl" :
+				{
+					"saturationGain"   : 1.0000,
+					"luminanceGain"    : 1.0000,
+					"luminanceMinimum" : 0.0000
+				},
+				"red" :
+				{
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
+				},
+				"green" :
+				{
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
+				},
+				"blue" :
+				{
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
+				}
+			}
+		],
+
+		"smoothing" :
+		{
+			"type"            : "linear",
+			"time_ms"         : 200,
+			"updateFrequency" : 20.0000,
+			"updateDelay"     : 0
+		}
+	},
+
+	/// Configuration for the embedded V4L2 grabber
+	///  * device               : V4L2 Device to use [default="/dev/video0"]
+	///  * input                : V4L2 input to use [default=0]
+	///  * standard             : Video standard (no-change/PAL/NTSC) [default="no-change"]
+	///  * width                : V4L2 width to set [default=-1]
+	///  * height               : V4L2 height to set [default=-1]
+	///  * frameDecimation      : Frame decimation factor [default=2]
+	///  * sizeDecimation       : Size decimation factor [default=8]
+	///  * priority             : Hyperion priority channel [default=900]
+	///  * mode                 : 3D mode to use 2D/3DSBS/3DTAB (note: no autodetection) [default="2D"]
+	///  * cropLeft             : Cropping from the left [default=0]
+	///  * cropRight            : Cropping from the right [default=0]
+	///  * cropTop              : Cropping from the top [default=0]
+	///  * cropBottom           : Cropping from the bottom [default=0]
+	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
+	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
+	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
+	"grabber-v4l2" :
+	{
+		"device"               : "/dev/video0",
+		"input"                : 0,
+		"standard"             : "no-change",
+		"width"                : -1,
+		"height"               : -1,
+		"frameDecimation"      : 2,
+		"sizeDecimation"       : 8,
+		"priority"             : 900,
+		"mode"                 : "2D",
+		"cropLeft"             : 0,
+		"cropRight"            : 0,
+		"cropTop"              : 0,
+		"cropBottom"           : 0,
+		"redSignalThreshold"   : 0.0,
+		"greenSignalThreshold" : 0.0,
+		"blueSignalThreshold"  : 0.0
+	},
+
+	///  The configuration for the frame-grabber, contains the following items: 
+	///   * width        : The width of the grabbed frames [pixels]
+	///   * height       : The height of the grabbed frames [pixels]
+	///   * frequency_Hz : The frequency of the frame grab [Hz]
+	///   * priority     : The priority of the frame-gabber (Default=890) HINT: lower value result in HIGHER priority! 
+	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
+	"framegrabber" : 
+	{
+		"width" : 64,
+		"height" : 64,
+		"frequency_Hz" : 10.0,
+		"priority" : 890
+	},
+
+	/// The black border configuration, contains the following items: 
+	///  * enable             : true if the detector should be activated
+	///  * threshold          : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
+	///  * unknownFrameCnt    : Number of frames without any detection before the border is set to 0 (default 600)
+	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
+	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
+	///  * blurRemoveCnt      : Number of pixels that get removed from the detected border to cut away blur (default 1)
+	///  * mode               : Border detection mode (values=default,classic,osd)
+	"blackborderdetector" :
+	{
+		"enable" : true,
+		"threshold" : 0.0,
+		"unknownFrameCnt" : 600,
+		"borderFrameCnt" : 50,
+		"maxInconsistentCnt" : 10,
+		"blurRemoveCnt" : 1,
+		"mode" : "default"
+	},
+
+	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields: 
+	///  * xbmcAddress       : The IP address of the Kodi-host
+	///  * xbmcTcpPort       : The TCP-port of the Kodi-server
+	///  * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback
+	///  * grabPictures      : Flag indicating that the frame-grabber is on(true) during picture show
+	///  * grabAudio         : Flag indicating that the frame-grabber is on(true) during audio playback
+	///  * grabMenu          : Flag indicating that the frame-grabber is on(true) at the Kodi menu
+	///  * grabPause         : Flag indicating that the frame-grabber is on(true) at player state "pause"
+	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when Kodi is on screensaver
+	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
+ 	"xbmcVideoChecker" : 
+ 	{
+ 		"xbmcAddress" : "127.0.0.1",
+ 		"xbmcTcpPort" : 9090,
+ 		"grabVideo" : true,
+ 		"grabPictures" : true,
+ 		"grabAudio" : true,
+ 		"grabMenu" : false,
+ 		"grabPause" : false,
+		"grabScreensaver" : true,
+ 		"enable3DDetection" : true
+ 	},
+
+	/// Initial Effect sets a "booteffect" or "color" (foreground-effect) and optional set a "effect" or "color" during inactive grabbers and network receivers (background-effect) 
+	///  * background-effect		: 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
+	///  * background-effect-args 	: Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * foreground-effect		: 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
+	///  * foreground-effect-args	: Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * foreground-duration_ms	: The duration of the selected foreground-effect or color (0=endless)
+	///                   		HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
+	///                   		HINT: Set a empty value if you want to disable a component (example: "")
+	"initialEffect" : 
+	{
+        "background-effect" :  "Full color mood blobs",
+        "background-effect-args" : {},
+        "foreground-effect" : "Rainbow swirl fast",
+        "foreground-effect-args" : {},
+        "foreground-duration_ms" : 3000
+	},
+
+	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
+	/// 'proto' is mostly used for video streams and 'json' for effects 
+	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
+	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
+	///  HINT:If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
+	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
+ 	"forwarder" : 
+	{
+ 		"proto" : ["127.0.0.1:19447"],
+ 		"json" : ["127.0.0.1:19446"]
+	},
+
+	/// The configuration of the Json server which enables the json remote interface
+	///  * port : Port at which the json server is started
+	"jsonServer" :
+	{
+		"port" : 19444
+	},
+
+	/// The configuration of the Proto server which enables the protobuffer remote interface
+	///  * port : Port at which the protobuffer server is started
+	"protoServer" :
+	{
+		"port" : 19445
+	},
+
+	/// The configuration of the boblight server which enables the boblight remote interface
+	///  * enable  	: Enable or disable the boblight server (true/false)
+	///  * port     : Port at which the boblight server is started
+	///  * priority : Priority of the boblight server (Default=800) HINT: lower value result in HIGHER priority! 
+ 	"boblightServer" :
+	{
+ 		"enable" : false,
+ 		"port" : 19333,
+ 		"priority" : 800
+ 	},
+
+	/// The configuration of the udp listener
+	///  * enable  	: Enable or disable the udp listener (true/false)
+	///  * address 	: The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
+	///  * port   	: Port at which the udp listener starts
+	///  * priority	: Priority of the udp lstener server (Default=800)
+	///  * timeout	: The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
+	///  * shared	: If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
+	"udpListener" :
+	{
+		"enable" : false,
+		"address" : "239.255.28.01",
+		"port" : 2801,
+		"priority" : 800,
+		"timeout" : 10000,
+		"shared" : false
+	},
+
+	/// Configuration of the Hyperion webserver
+	///  * enable        : enable ir disable the webserver (true/false)
+	///  * document_root : path to hyperion webapp files
+	///  * port          : the port where hyperion webapp is accasible
+	"webConfig" :
+	{
+		"enable" : true,
+		"document_root" : "/usr/share/hyperion/webconfig",
+		"port" : 8099
+	},
+
+	/// The configuration of the effect engine, contains the following items: 
+	///  * paths : An array with absolute/relative location(s) of directories with effects 
+	"effects" : 
+	{
+		"paths" :
+		[
+			"/storage/hyperion/effects",
+			"/usr/share/hyperion/effects"
+		]
+	},
+	
+	///  The configuration for each individual led. This contains the specification of the area 
+	///  averaged of an input image for each led to determine its color. Each item in the list 
+	///  contains the following fields:
+	///  * index: The index of the led. This determines its location in the string of leds; zero 
+	///           being the first led.
+	///  * hscan: The fractional part of the image along the horizontal used for the averaging 
+	///           (minimum and maximum inclusive)
+	///  * vscan: The fractional part of the image along the vertical used for the averaging 
+	///           (minimum and maximum inclusive)
+	
+	"leds" :
+	[
+		{
+			"index" : 0,
+			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 1,
+			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 2,
+			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 3,
+			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 4,
+			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 5,
+			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 6,
+			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 7,
+			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 8,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 9,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 10,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+		},
+		{
+			"index" : 11,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+		},
+		{
+			"index" : 12,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+		},
+		{
+			"index" : 13,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+		},
+		{
+			"index" : 14,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+		},
+		{
+			"index" : 15,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+		},
+		{
+			"index" : 16,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 17,
+			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 18,
+			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 19,
+			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 20,
+			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 21,
+			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 22,
+			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 23,
+			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 24,
+			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 25,
+			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 26,
+			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 27,
+			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 28,
+			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 29,
+			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 30,
+			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 31,
+			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 32,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+		},
+		{
+			"index" : 33,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+		},
+		{
+			"index" : 34,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+		},
+		{
+			"index" : 35,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+		},
+		{
+			"index" : 36,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+		},
+		{
+			"index" : 37,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+		},
+		{
+			"index" : 38,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 39,
+			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 40,
+			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 41,
+			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 42,
+			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 43,
+			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 44,
+			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 45,
+			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		}
+	],
+
+	"endOfJson" : "endOfJson"
+}
