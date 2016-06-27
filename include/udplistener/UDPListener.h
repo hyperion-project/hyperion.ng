@@ -52,7 +52,7 @@ public slots:
 	void stop();
 
 signals:
-	statusChanged(bool isActive);
+	void statusChanged(bool isActive);
 
 private slots:
 	///
