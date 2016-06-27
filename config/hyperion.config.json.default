@@ -1,0 +1,429 @@
+{
+	"device" :
+	{
+		"name"       : "DefaultHyperionConfig",
+		"type"       : "file",
+		"output"     : "/dev/null",
+		"rate"     : 1000000,
+		"colorOrder" : "rgb"
+	},
+
+	"color" :
+	{
+		"channelAdjustment" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"pureRed" :
+				{
+					"redChannel"		: 255,
+					"greenChannel"		: 0,
+					"blueChannel"		: 0
+				},
+				"pureGreen" :
+				{
+					"redChannel"		: 0,
+					"greenChannel"		: 255,
+					"blueChannel"		: 0
+				},
+				"pureBlue" :
+				{
+					"redChannel"		: 0,
+					"greenChannel"		: 0,
+					"blueChannel"		: 255
+				}
+			}
+		],
+		"temperature" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"correctionValues" :
+				{
+					"red" 	: 255,
+					"green"	: 255,
+					"blue" 	: 255
+				}
+			}
+		],
+		"transform" :
+		[
+			{
+				"id"   : "default",
+				"leds" : "*",
+				"hsl" :
+				{
+					"saturationGain"	: 1.0000,
+					"luminanceGain"		: 1.0000,
+					"luminanceMinimum"	: 0.0000
+				},
+				"red" :
+				{
+					"threshold" 	: 0.0000,
+					"gamma"     	: 2.5000
+				},
+				"green" :
+				{
+					"threshold" 	: 0.0000,
+					"gamma"     	: 2.5000
+				},
+				"blue" :
+				{
+					"threshold" 	: 0.0000,
+					"gamma"     	: 2.5000
+				}
+			}
+		],
+		"smoothing" :
+		{
+			"type"            : "linear",
+			"time_ms"         : 200,
+			"updateFrequency" : 20.0000,
+			"updateDelay"     : 0
+		}
+	},
+	
+	"grabber-v4l2" : 
+	{
+		"device" : "/dev/video0",
+		"input" : 0,
+		"standard" : "PAL",
+		"width" : -1,
+		"height" : -1,
+		"frameDecimation" : 2,
+		"sizeDecimation" : 8,
+		"priority" : 900,
+		"mode" : "2D",
+		"cropLeft" : 15,
+		"cropRight" : 12,
+		"cropTop" : 5,
+		"cropBottom" : 5,
+		"redSignalThreshold" : 0.0,
+		"greenSignalThreshold" : 0.0,
+		"blueSignalThreshold" : 0.0
+	},
+
+	"framegrabber" : 
+	{
+		"width" : 128,
+		"height" : 128,
+		"frequency_Hz" : 10.0,
+		"priority" : 890
+	},
+
+	"blackborderdetector" : 
+	{
+		"enable" : true,
+		"threshold" : 0.0,
+		"mode" : "default"
+	},
+
+	"xbmcVideoChecker" : 
+	{
+		"xbmcAddress" : "localhost",
+		"xbmcTcpPort" : 9090,
+		"grabVideo" : true,
+		"grabPictures" : true,
+		"grabAudio" : true,
+		"grabMenu" : false,
+		"grabPause" : false,
+		"grabScreensaver" : true,
+		"enable3DDetection" : true
+	},
+
+	"initialEffect" : 
+    {
+        "background-effect" :  "Full color mood blobs",
+        "background-effect-args" : {},
+        "foreground-effect" : "Rainbow swirl fast",
+        "foreground-effect-args" : {},
+        "foreground-duration_ms" : 3000
+    },
+
+	"forwarder" : 
+	{
+		"json" : ["127.0.0.1:19446"],
+		"proto" : ["127.0.0.1:19447"]
+	},
+
+	"jsonServer" : 
+	{
+		"port" : 19444
+	},
+
+	"protoServer" : 
+	{
+		"port" : 19445
+	},
+	
+    "boblightServer" :
+    {
+        "enable" : false,
+		"port" : 19333,
+		"priority" : 800
+	},
+	
+	"udpListener" :
+	{
+		"enable" : false,
+		"address" : "239.255.28.01",
+		"port" : 2801,
+		"priority" : 800,
+		"timeout" : 10000,
+		"shared" : false
+	},
+
+	"webConfig" :
+	{
+    	"enable" : true,
+    	"document_root" : "/usr/share/hyperion/webconfig",
+    	"port" : 8099
+	},
+
+	"effects" : 
+	{
+		"paths" : 
+		[
+			"/storage/hyperion/effects",
+			"/usr/share/hyperion/effects"
+		]
+	},
+	
+	"leds" : 
+	[
+		{
+			"index" : 0,
+			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 1,
+			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 2,
+			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 3,
+			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 4,
+			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 5,
+			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 6,
+			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 7,
+			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 8,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 9,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 10,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+		},
+		{
+			"index" : 11,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+		},
+		{
+			"index" : 12,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+		},
+		{
+			"index" : 13,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+		},
+		{
+			"index" : 14,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+		},
+		{
+			"index" : 15,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+		},
+		{
+			"index" : 16,
+			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 17,
+			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 18,
+			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 19,
+			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 20,
+			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 21,
+			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 22,
+			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 23,
+			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 24,
+			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 25,
+			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 26,
+			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 27,
+			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 28,
+			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 29,
+			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 30,
+			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 31,
+			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+		},
+		{
+			"index" : 32,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+		},
+		{
+			"index" : 33,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+		},
+		{
+			"index" : 34,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+		},
+		{
+			"index" : 35,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+		},
+		{
+			"index" : 36,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+		},
+		{
+			"index" : 37,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+		},
+		{
+			"index" : 38,
+			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 39,
+			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 40,
+			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 41,
+			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 42,
+			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 43,
+			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 44,
+			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		},
+		{
+			"index" : 45,
+			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
+			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+		}
+	],
+
+	"endOfJson" : "endOfJson"
+}
