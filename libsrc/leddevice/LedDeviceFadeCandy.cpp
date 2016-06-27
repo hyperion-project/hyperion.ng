@@ -33,7 +33,7 @@ bool LedDeviceFadeCandy::tryConnect()
 	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
 		_client.connectToHost( _host.c_str(), _port);
 		if ( _client.waitForConnected(1000) )
-			qDebug("fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
+			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
 	}
 
 	return isConnected();
@@ -48,7 +48,7 @@ int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 
 	if (nrLedValues > MAX_NUM_LEDS)
 	{
-		std::cerr << "fadecandy/opc: Invalid attempt to write led values. Not more than " << MAX_NUM_LEDS << " leds are allowed." << std::endl;
+		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
 		return -1;
 	}
 

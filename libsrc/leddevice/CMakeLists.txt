@@ -44,6 +44,7 @@ SET(Leddevice_HEADERS
 )
 
 SET(Leddevice_SOURCES
+	${CURRENT_SOURCE_DIR}/LedDevice.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
 	${CURRENT_SOURCE_DIR}/LedRs232Device.cpp

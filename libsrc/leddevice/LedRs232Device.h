@@ -6,8 +6,6 @@
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
-#include <utils/Logger.h>
-
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
 ///
@@ -68,7 +66,4 @@ private:
 	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
-
-	/// logger instance
-	Logger* _log;
 };

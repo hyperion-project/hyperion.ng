@@ -278,8 +278,7 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++) {
 			int lightId = atoi(it.key().asCString());
 			lightIds.push_back(lightId);
-			std::cout << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): found light with id " << lightId
-					<< "." << std::endl;
+			Debug(_log, "nLights=%d: found light with id %d.",  nLights, lightId);
 		}
 		// Check if we found enough lights.
 		if (lightIds.size() != nLights) {
@@ -294,20 +293,17 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights) {
 		Json::Value json;
 		if (!reader.parse(QString(response).toStdString(), json)) {
 			// Error occured, break loop.
-			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got invalid response from light "
-					<< getUrl(getRoute(lightIds.at(i))).toStdString() << "." << std::endl;
+			Error(_log, "saveStates(nLights=%d): got invalid response from light %s.", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
 		// Get state object values which are subject to change.
 		Json::Value state(Json::objectValue);
 		if (!json.isMember("state")) {
-			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got no state for light from "
-					<< getUrl(getRoute(lightIds.at(i))).toStdString() << std::endl;
+			Error(_log, "saveStates(nLights=%d): got no state for light from %s", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
 		if (!json["state"].isMember("on")) {
-			std::cerr << "LedDevicePhilipsHue::saveStates(nLights=" << nLights << "): got no valid state from light "
-					<< getUrl(getRoute(lightIds.at(i))).toStdString() << std::endl;
+			Error(_log, "saveStates(nLights=%d,): got no valid state from light %s", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
 		state["on"] = json["state"]["on"];
