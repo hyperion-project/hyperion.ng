@@ -1,7 +1,9 @@
 #!/bin/bash
 # install osx deps for hyperion compile
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-	sudo brew install qt5-mac cmake libusb
+	brew update
+	brew install qt5
+	brew install libusb
 fi
 
 # install linux deps for hyperion compile
