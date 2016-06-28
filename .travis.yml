@@ -6,7 +6,6 @@ matrix:
       sudo: required
     - os: osx
 before_install:
-  - pwd
   - chmod +x ./.travis/travis_install.sh
   - ./.travis/travis_install.sh
 script:
