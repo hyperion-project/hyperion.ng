@@ -1,5 +1,6 @@
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
+#include <utils/Logger.h>
 
 void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, std::string _whiteAlgorithm) {
 	if (_whiteAlgorithm == "subtract_minimum") {
@@ -18,7 +19,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, std::string _whiteAlgorithm
 		output->white = 0;
 	}
 	else {
-		std::cout << "ERROR: unknown whiteAlgorithm " << _whiteAlgorithm << std::endl;
+		Error(Logger::getInstance("RGBtoRGBW"), "unknown whiteAlgorithm %s", _whiteAlgorithm.c_str());
 	}
 }
 
