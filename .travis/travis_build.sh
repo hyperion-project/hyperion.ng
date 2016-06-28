@@ -1,7 +1,7 @@
 #!/bin/bash
 # compile hyperion on osx
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
-	mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_V4L2=OFF -DENABLE_TESTS=ON .. && make -j$(nproc) package
+	mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON .. && make -j$(nproc) package
 fi
 
 # compile hyperion on linux
