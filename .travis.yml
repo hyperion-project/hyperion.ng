@@ -1,7 +1,11 @@
 language: cpp
-sudo: required
-dist: trusty
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -qq -y qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
-script: mkdir build && cd build && cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release .. && make -j 2
+  - ./.travis/travis_install.sh
+script:
+  - ./.travis/travis_build.sh
