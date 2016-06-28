@@ -1,4 +1,5 @@
 #include "utils/ImageResampler.h"
+#include <utils/Logger.h>
 
 ImageResampler::ImageResampler() :
 	_horizontalDecimation(1),
@@ -124,7 +125,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
                 }
                 break;
             case PIXELFORMAT_NO_CHANGE:
-                std::cerr << "Invalid pixel format given" << std::endl;
+				Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");
 				break;
 			}
 		}
