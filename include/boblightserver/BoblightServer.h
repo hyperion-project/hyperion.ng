@@ -9,6 +9,7 @@
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
+#include <utils/Logger.h>
 
 class BoblightClientConnection;
 
@@ -32,6 +33,24 @@ public:
 	/// @return the port number on which this TCP listens for incoming connections
 	///
 	uint16_t getPort() const;
+	
+	/// @return true if server is active (bind to a port)
+	///
+	bool active() { return _isActive; };
+	
+public slots:
+	///
+	/// bind server to network
+	///
+	void start();
+	
+	///
+	/// close server
+	///
+	void stop();
+
+signals:
+	void statusChanged(bool isActive);
 
 private slots:
 	///
@@ -57,4 +76,12 @@ private:
 
 	/// hyperion priority
 	const int _priority;
+
+	/// Logger instance
+	Logger * _log;
+
+	/// state of connection
+	bool _isActive;
+
+	uint16_t      _port;
 };

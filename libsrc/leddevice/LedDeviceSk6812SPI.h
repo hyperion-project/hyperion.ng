@@ -7,18 +7,19 @@
 #include "LedSpiDevice.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2801 led device.
+/// Implementation of the LedDevice interface for writing to Sk6801 led device.
 ///
-class LedDeviceWs2812SPI : public LedSpiDevice
+class LedDeviceSk6812SPI : public LedSpiDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type Ws2812SPI
+	/// Constructs the LedDevice for a string containing leds of the type Sk6812SPI
 	///
 	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceWs2812SPI(const std::string& outputDevice,
+
+	LedDeviceSk6812SPI(const std::string& outputDevice,
 					const unsigned baudrate);
 
 	///

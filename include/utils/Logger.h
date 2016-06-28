@@ -27,12 +27,14 @@ class Logger
 public:
 	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
 
-	static Logger* getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
-	static void deleteInstance(std::string name="");
-	static void setLogLevel(LogLevel level,std::string name="");
+	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
+	static void     deleteInstance(std::string name="");
+	static void     setLogLevel(LogLevel level,std::string name="");
+	static LogLevel getLogLevel(std::string name="");
 
-	void Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
-	void setMinLevel(LogLevel level) { _minLevel = level; };
+	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
+	void     setMinLevel(LogLevel level) { _minLevel = level; };
+	LogLevel getMinLevel() { return _minLevel; };
 
 protected:
 	Logger( std::string name="", LogLevel minLevel=INFO);
