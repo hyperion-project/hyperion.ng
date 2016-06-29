@@ -55,4 +55,6 @@ private:
 
 	/** The snapshot/capture device of the amlogic video chip */
 	int _amlogicCaptureDev;
+	
+	Logger * _log;
 };
