@@ -5,6 +5,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 	brew update
 	brew install qt5
 	brew install libusb
+	brew install cmake
 fi
 
 # install linux deps for hyperion compile
