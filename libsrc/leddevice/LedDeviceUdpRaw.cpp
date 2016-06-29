@@ -11,13 +11,6 @@
 // hyperion local includes
 #include "LedDeviceUdpRaw.h"
 
-LedDeviceUdpRaw::LedDeviceUdpRaw(const std::string& outputDevice, const unsigned baudrate) :
-	LedUdpDevice(outputDevice, baudrate, 500000),
-	mLedCount(0)
-{
-	// empty
-}
-
 LedDeviceUdpRaw::LedDeviceUdpRaw(const std::string& outputDevice, const unsigned baudrate, const unsigned latchTime) :
 	LedUdpDevice(outputDevice, baudrate, latchTime),
 	mLedCount(0)
