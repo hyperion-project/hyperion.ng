@@ -30,7 +30,7 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
 	_height(std::max(160u, height)),
 	_amlogicCaptureDev(-1)
 {
-	std::cout << "AMLOGICGRABBER INFO: [" << __PRETTY_FUNCTION__ << "] constructed(" << _width << "x" << _height << ")" << std::endl;
+	Info(_log, "AMLOGICGRABBER INFO: [%s] constructed(%s x %s)",__PRETTY_FUNCTION__,_width,_height);
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -69,7 +69,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	int video_fd = open(videoDevice.c_str(), O_RDONLY);
 	if (video_fd < 0)
 	{
-		Error(_log, "Failed to open video device(%s): %s",videoDevice,strerror(errno));
+		Error(_log, "Failed to open video device(%s): %s",videoDevice.c_str(),strerror(errno));
 		return false;
 	}
 
