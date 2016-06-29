@@ -27,9 +27,6 @@
 // Define to enable the osx grabber
 #cmakedefine ENABLE_OSX
 
-// Define to enable the bonjour/zeroconf publishing
-#cmakedefine ENABLE_ZEROCONF
-
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
 
