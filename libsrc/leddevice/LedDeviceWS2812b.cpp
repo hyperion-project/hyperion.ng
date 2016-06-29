@@ -313,7 +313,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	unsigned int wireBit = 1;			// Holds the current bit we will set in PWMWaveform, start with 1 and skip the other two for speed
 
 	// Copy PWM waveform to DMA's data buffer
-	//printf("Copying %d words to DMA data buffer\n", NUM_DATA_WORDS);
 	struct control_data_s *ctl = (struct control_data_s *)virtbase;
 	dma_cb_t *cbp = ctl->cb;
 
@@ -335,10 +334,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	for(size_t i=0; i<mLedCount; i++)
 	{
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
-		//printf("RGB: %d, %d, %d\n", ledValues[i].red, ledValues[i].green, ledValues[i].blue);
 		colorBits = ((unsigned int)ledValues[i].red << 8) | ((unsigned int)ledValues[i].green << 16) | ledValues[i].blue;
-		//printBinary(colorBits, 24);
-		//printf(" (binary, GRB order)\n");
 
 		// Iterate through color bits to get wire bits
 		for(int j=23; j>=0; j--) {
@@ -380,7 +376,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 #ifdef WS2812_ASM_OPTI
 	// calculate the bits manually since it is not needed with asm
 	//wireBit += mLedCount * 24 *3;
-	//printf(" %d\n", wireBit);
 #endif
 	//remove one to undo optimization
 	wireBit --;
@@ -389,9 +384,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	int rest = 32 - wireBit % 32; // 64: 32 - used Bits
 	startbitPattern = (1 << (rest-1)); // set new bitpattern to start at the benigining of one bit (3 bit in wave form)
 	rest += 32; // add one int extra for pwm
-
-//	printBinary(startbitPattern, 32);
-//	printf(" startbit\n");
 
 	unsigned int oldwireBitValue = wireBit;
 	unsigned int oldbitPattern = startbitPattern;

@@ -4,7 +4,7 @@
 #include <iomanip>
 
 // QT includes
-#include <QImage>
+#include <QtGui/QImage>
 
 // getoptPlusPLus includes
 #include <getoptPlusPlus/getoptpp.h>
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 		ParameterSet & parameters = optionParser.getParameters();
 
 		QString flagDescr = QString("Set the grab flags of the dispmanx frame grabber [default: 0x%1]").arg(grabFlags, 8, 16, QChar('0'));
-		StringParameter   & argFlags = parameters.add<StringParameter>   ('f', "flags", flagDescr.toAscii().constData());
+		StringParameter   & argFlags = parameters.add<StringParameter>   ('f', "flags", flagDescr.toLatin1().constData());
 		IntParameter      & argCount = parameters.add<IntParameter>      ('n', "count", "Number of images to capture (default infinite)");
 		argCount.setDefault(grabCount);
 		SwitchParameter<> & argList  = parameters.add<SwitchParameter<> >('l', "list",  "List the possible flags");
