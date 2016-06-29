@@ -30,7 +30,7 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
 	_height(std::max(160u, height)),
 	_amlogicCaptureDev(-1)
 {
-	Info(_log, "AMLOGICGRABBER INFO: [%s] constructed(%s x %s)",__PRETTY_FUNCTION__,_width,_height);
+	Info(_log, "[%s] constructed(%s x %s)",__PRETTY_FUNCTION__,_width,_height);
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -121,7 +121,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height) == -1)
 	{
 		// Failed to configure frame width
-		Error(_log,"AMLOGICGRABBER ERROR: [%s] Failed to configure capture size (%s)",__PRETTY_FUNCTION__,errno,strerror(errno));
+		Error(_log,"[%s] Failed to configure capture size (%s)",__PRETTY_FUNCTION__,errno,strerror(errno));
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -134,7 +134,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	const ssize_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
 	if (bytesRead == -1)
 	{
-		Error(_log,"AMLOGICGRABBER ERROR: [%s] Read of device failed (erno=%s): %s",__PRETTY_FUNCTION__,errno,strerror(errno));
+		Error(_log,"[%s] Read of device failed (erno=%s): %s",__PRETTY_FUNCTION__,errno,strerror(errno));
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -142,7 +142,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	else if (bytesToRead != bytesRead)
 	{
 		// Read of snapshot failed
-		Error(_log,"AMLOGICGRABBER ERROR: [%s] Capture failed to grab entire image [bytesToRead(%s) != bytesRead(%s)]",__PRETTY_FUNCTION__,bytesToRead,bytesRead);
+		Error(_log,"[%s] Capture failed to grab entire image [bytesToRead(%s) != bytesRead(%s)]",__PRETTY_FUNCTION__,bytesToRead,bytesRead);
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
