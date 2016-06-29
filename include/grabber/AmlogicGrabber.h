@@ -2,7 +2,7 @@
 
 // STL includes
 #include <cstdint>
-
+#include <utils/Logger.h>
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorBgr.h>
