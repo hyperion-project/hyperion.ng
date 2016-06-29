@@ -22,8 +22,6 @@ int update_number;
 int fragment_number;
 
 LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, const unsigned protocol, const unsigned maxPacket) 
-//LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate) :
-//	_ofs(output.empty()?"/home/pi/LedDevice.out":output.c_str())
 {
 	std::string hostname;
 	std::string port;
@@ -33,7 +31,6 @@ LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, c
 		leds_per_pkt = 200;
 	}
 
-//printf ("leds_per_pkt is %d\n", leds_per_pkt);
 	int got_colon=0;
 	for (unsigned int i=0; i<output.length(); i++) {
 		if (output[i] == ':') {
@@ -44,7 +41,6 @@ LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, c
 			port+=output[i];
 		}
 	}
-	//std::cout << "output " << output << " hostname " << hostname << " port " << port <<std::endl;
 	assert(got_colon==1);
 
 	int rv;
@@ -62,7 +58,8 @@ LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, c
 	for(p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype,
 				p->ai_protocol)) == -1) {
-			perror("talker: socket");
+			Error(_log,"talker: socket %s", strerror(errno));
+//			perror("talker: socket");
 			continue;
 		}
 
@@ -98,7 +95,6 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 				udpbuffer[i++] = color.green;
 				udpbuffer[i++] = color.blue;
 			}
-			//printf ("c.red %d sz c.red %d\n", color.red, sizeof(color.red));
 		}
 		sendto(sockfd, udpbuffer, i, 0, p->ai_addr, p->ai_addrlen);
 	}
