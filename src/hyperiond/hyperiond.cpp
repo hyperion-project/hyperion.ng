@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <cassert>
 
 #include <QCoreApplication>
 #include <QResource>
