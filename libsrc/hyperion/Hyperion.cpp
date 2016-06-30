@@ -937,7 +937,7 @@ void Hyperion::update()
 
 	if ( _hwLedsCount > _ledBuffer.size() )
 	{
-		_ledBuffer.resize(_hwLedsCount, ColorRgb::RED);
+		_ledBuffer.resize(_hwLedsCount, ColorRgb::BLACK);
 	}
 	
 	// Write the data to the device
