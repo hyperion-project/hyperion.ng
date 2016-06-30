@@ -3,6 +3,7 @@
 #include <cassert>
 
 // Hyperion includes
+#include <utils/Logger.h>
 #include "MultiColorCorrection.h"
 
 MultiColorCorrection::MultiColorCorrection(const unsigned ledCnt) :
@@ -40,16 +41,15 @@ void MultiColorCorrection::setCorrectionForLed(const std::string& id, const unsi
 
 bool MultiColorCorrection::verifyCorrections() const
 {
-	bool allLedsSet = true;
 	for (unsigned iLed=0; iLed<_ledCorrections.size(); ++iLed)
 	{
 		if (_ledCorrections[iLed] == nullptr)
 		{
-			std::cerr << "HYPERION (C.correction) ERROR: No correction set for " << iLed << std::endl;
-			allLedsSet = false;
+			Warning(Logger::getInstance("ColorCorrect"), "No adjustment set for %d", iLed);
+			return false;
 		}
 	}
-	return allLedsSet;
+	return true;
 }
 
 const std::vector<std::string> & MultiColorCorrection::getCorrectionIds()

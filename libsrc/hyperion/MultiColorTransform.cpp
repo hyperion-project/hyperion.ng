@@ -3,6 +3,7 @@
 #include <cassert>
 
 // Hyperion includes
+#include <utils/Logger.h>
 #include "MultiColorTransform.h"
 
 MultiColorTransform::MultiColorTransform(const unsigned ledCnt) :
@@ -40,16 +41,15 @@ void MultiColorTransform::setTransformForLed(const std::string& id, const unsign
 
 bool MultiColorTransform::verifyTransforms() const
 {
-	bool allLedsSet = true;
 	for (unsigned iLed=0; iLed<_ledTransforms.size(); ++iLed)
 	{
 		if (_ledTransforms[iLed] == nullptr)
 		{
-			std::cerr << "HYPERION (C.transform) ERROR: No transform set for " << iLed << std::endl;
-			allLedsSet = false;
+			Warning(Logger::getInstance("ColorTransform"), "No adjustment set for %d", iLed);
+			return false;
 		}
 	}
-	return allLedsSet;
+	return true;
 }
 
 const std::vector<std::string> & MultiColorTransform::getTransformIds()
