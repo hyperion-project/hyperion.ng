@@ -1,6 +1,7 @@
 #!/bin/bash
 # compile hyperion on osx
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+	cmake . -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.6.1-1
 	mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON .. && make -j$(nproc) package
 fi
 
