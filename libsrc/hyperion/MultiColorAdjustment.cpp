@@ -72,12 +72,9 @@ ColorAdjustment* MultiColorAdjustment::getAdjustment(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorAdjustment::applyAdjustment(const std::vector<ColorRgb>& rawColors)
+void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the adjustment in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledAdjustments.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledAdjustments.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorAdjustment* adjustment = _ledAdjustments[i];
@@ -122,5 +119,4 @@ std::vector<ColorRgb> MultiColorAdjustment::applyAdjustment(const std::vector<Co
 		else
 		  color.blue = (uint8_t)ledB;
 	}
-	return ledColors;
 }

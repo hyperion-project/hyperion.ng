@@ -72,12 +72,9 @@ ColorTransform* MultiColorTransform::getTransform(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorTransform::applyTransform(const std::vector<ColorRgb>& rawColors)
+void MultiColorTransform::applyTransform(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the transformation in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledTransforms.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledTransforms.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorTransform* transform = _ledTransforms[i];
@@ -94,5 +91,4 @@ std::vector<ColorRgb> MultiColorTransform::applyTransform(const std::vector<Colo
 		color.green = transform->_rgbGreenTransform.transform(color.green);
 		color.blue  = transform->_rgbBlueTransform.transform(color.blue);
 	}
-	return ledColors;
 }

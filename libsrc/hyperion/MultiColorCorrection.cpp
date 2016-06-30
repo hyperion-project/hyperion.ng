@@ -72,12 +72,9 @@ ColorCorrection* MultiColorCorrection::getCorrection(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<ColorRgb>& rawColors)
+void MultiColorCorrection::applyCorrection(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the correction in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledCorrections.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledCorrections.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorCorrection * correction = _ledCorrections[i];
@@ -92,5 +89,4 @@ std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<Co
 		color.green = correction->_rgbCorrection.correctionG(color.green);
 		color.blue  = correction->_rgbCorrection.correctionB(color.blue);
 	}
-	return ledColors;
 }

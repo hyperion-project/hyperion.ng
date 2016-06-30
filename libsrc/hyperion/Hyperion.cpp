@@ -883,16 +883,21 @@ void Hyperion::update()
 	// Obtain the current priority channel
 	int priority = _muxer.getCurrentPriority();
 	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
+	
+	if ( priorityInfo.ledColors.size() != _ledBuffer.size() )
+		_ledBuffer.resize(priorityInfo.ledColors.size());
 
+	_ledBuffer = priorityInfo.ledColors;
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
-	// std::vector<ColorRgb> correctedColors = _raw2ledCorrection->applyCorrection(priorityInfo.ledColors);
-	std::vector<ColorRgb> transformColors =_raw2ledTransform->applyTransform(priorityInfo.ledColors);
-	std::vector<ColorRgb> adjustedColors = _raw2ledAdjustment->applyAdjustment(transformColors);
-	std::vector<ColorRgb> ledColors = _raw2ledTemperature->applyCorrection(adjustedColors);
+	_raw2ledTransform->applyTransform(_ledBuffer);
+	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
+	_raw2ledTemperature->applyCorrection(_ledBuffer);
+
 	const std::vector<Led>& leds = _ledString.leds();
+
 	int i = 0;
-	for (ColorRgb& color : ledColors)
+	for (ColorRgb& color : _ledBuffer)
 	{
 		const ColorOrder ledColorOrder = leds.at(i).colorOrder;
 		// correct the color byte order
@@ -927,7 +932,7 @@ void Hyperion::update()
 	}
 
 	// Write the data to the device
-	_device->write(ledColors);
+	_device->write(_ledBuffer);
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)

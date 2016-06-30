@@ -1,9 +1,10 @@
-#include "utils/Logger.h"
 #include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
 #include <map>
+#include <utils/Logger.h>
+#include <HyperionConfig.h>
 
 #ifndef ENABLE_PROFILER
 	#error "Profiler is not for productive code, enable it via cmake or remove header include"
