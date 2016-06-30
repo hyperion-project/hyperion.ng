@@ -10,6 +10,7 @@
 // hyperion-utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/Logger.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -314,5 +315,10 @@ private:
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
+	
+	/// buffer for leds
 	std::vector<ColorRgb> _ledBuffer;
+	
+	// Logger instance
+	Logger * _log;
 };

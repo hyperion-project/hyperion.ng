@@ -646,7 +646,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) 
 	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
 	_jsonConfig(jsonConfig),
 	_configFile(configFile),
-	_timer()
+	_timer(),
+	_log(Logger::getInstance("Core"))
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
