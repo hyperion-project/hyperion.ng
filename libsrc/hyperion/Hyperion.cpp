@@ -647,7 +647,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) 
 	_jsonConfig(jsonConfig),
 	_configFile(configFile),
 	_timer(),
-	_log(Logger::getInstance("Core"))
+	_log(Logger::getInstance("Core")),
+	_hwLedsCount(_ledString.leds().size())
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -680,6 +681,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) 
 
 	// create the effect engine
 	_effectEngine = new EffectEngine(this, jsonConfig["effects"]);
+	
+	_hwLedsCount = std::max(jsonConfig["device"].get("ledCount",getLedCount()).asUInt(), getLedCount());
+	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedsCount);
 
 	// initialize the leds
 	update();
@@ -884,10 +888,9 @@ void Hyperion::update()
 	// Obtain the current priority channel
 	int priority = _muxer.getCurrentPriority();
 	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
-	
-	if ( priorityInfo.ledColors.size() != _ledBuffer.size() )
-		_ledBuffer.resize(priorityInfo.ledColors.size());
 
+	// copy ledcolors to local buffer
+	_ledBuffer.reserve(_hwLedsCount);
 	_ledBuffer = priorityInfo.ledColors;
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
@@ -932,6 +935,11 @@ void Hyperion::update()
 		i++;
 	}
 
+	if ( _hwLedsCount > _ledBuffer.size() )
+	{
+		_ledBuffer.resize(_hwLedsCount, ColorRgb::RED);
+	}
+	
 	// Write the data to the device
 	_device->write(_ledBuffer);
 

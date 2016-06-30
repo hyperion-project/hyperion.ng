@@ -319,6 +319,9 @@ private:
 	/// buffer for leds
 	std::vector<ColorRgb> _ledBuffer;
 	
-	// Logger instance
+	/// Logger instance
 	Logger * _log;
+	
+	/// count of hardware leds
+	unsigned _hwLedsCount;
 };
