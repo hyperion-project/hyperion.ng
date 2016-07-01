@@ -9,6 +9,8 @@
 
 // hyperion-utils includes
 #include <utils/Image.h>
+#include <utils/ColorRgb.h>
+#include <utils/Logger.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -33,7 +35,6 @@ class RgbChannelCorrection;
 class RgbChannelAdjustment;
 class MultiColorTransform;
 class MultiColorCorrection;
-class MultiColorTemperature;
 class MultiColorAdjustment;
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -142,12 +143,6 @@ public slots:
 	/// Returns the list with unique correction identifiers
 	/// @return The list with correction identifiers
 	///
-	const std::vector<std::string> & getCorrectionIds() const;
-	
-	///
-	/// Returns the list with unique correction identifiers
-	/// @return The list with correction identifiers
-	///
 	const std::vector<std::string> & getTemperatureIds() const;
 	
 	///
@@ -161,12 +156,6 @@ public slots:
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorTransform * getTransform(const std::string& id);
-	
-	///
-	/// Returns the ColorCorrection with the given identifier
-	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorCorrection * getCorrection(const std::string& id);
 	
 	///
 	/// Returns the ColorCorrection with the given identifier
@@ -238,7 +227,6 @@ public:
 	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
-	static MultiColorCorrection * createLedColorsCorrection(const unsigned ledCnt, const Json::Value & colorCorrectionConfig);
 	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const Json::Value & colorAdjustmentConfig);
 	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
@@ -287,9 +275,6 @@ private:
 	/// The transformation from raw colors to led colors
 	MultiColorTransform * _raw2ledTransform;
 	
-	/// The correction from raw colors to led colors
-	MultiColorCorrection * _raw2ledCorrection;
-	
 	/// The temperature from raw colors to led colors
 	MultiColorCorrection * _raw2ledTemperature;
 	
@@ -313,4 +298,13 @@ private:
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
+	
+	/// buffer for leds
+	std::vector<ColorRgb> _ledBuffer;
+	
+	/// Logger instance
+	Logger * _log;
+	
+	/// count of hardware leds
+	unsigned _hwLedCount;
 };

@@ -3,10 +3,11 @@
 #include <cassert>
 
 // Hyperion includes
+#include <utils/Logger.h>
 #include "MultiColorAdjustment.h"
 
-MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt) :
-	_ledAdjustments(ledCnt, nullptr)
+MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt)
+	: _ledAdjustments(ledCnt, nullptr)
 {
 }
 
@@ -40,16 +41,15 @@ void MultiColorAdjustment::setAdjustmentForLed(const std::string& id, const unsi
 
 bool MultiColorAdjustment::verifyAdjustments() const
 {
-	bool allLedsSet = true;
 	for (unsigned iLed=0; iLed<_ledAdjustments.size(); ++iLed)
 	{
 		if (_ledAdjustments[iLed] == nullptr)
 		{
-			std::cerr << "HYPERION (C.adjustment) ERROR: No adjustment set for " << iLed << std::endl;
-			allLedsSet = false;
+			Warning(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
+			return false;
 		}
 	}
-	return allLedsSet;
+	return true;
 }
 
 const std::vector<std::string> & MultiColorAdjustment::getAdjustmentIds()
@@ -72,12 +72,9 @@ ColorAdjustment* MultiColorAdjustment::getAdjustment(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorAdjustment::applyAdjustment(const std::vector<ColorRgb>& rawColors)
+void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the adjustment in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledAdjustments.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledAdjustments.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorAdjustment* adjustment = _ledAdjustments[i];
@@ -122,5 +119,4 @@ std::vector<ColorRgb> MultiColorAdjustment::applyAdjustment(const std::vector<Co
 		else
 		  color.blue = (uint8_t)ledB;
 	}
-	return ledColors;
 }
