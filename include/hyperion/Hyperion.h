@@ -35,7 +35,6 @@ class RgbChannelCorrection;
 class RgbChannelAdjustment;
 class MultiColorTransform;
 class MultiColorCorrection;
-class MultiColorTemperature;
 class MultiColorAdjustment;
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -229,7 +228,7 @@ public slots:
 public:
 	static Hyperion *_hyperion;
 
-	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
+	ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	/**
 	 * Construct the 'led-string' with the integration area definition per led and the color
 	 * ordering of the RGB channels
@@ -240,7 +239,6 @@ public:
 	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
-	static MultiColorCorrection * createLedColorsCorrection(const unsigned ledCnt, const Json::Value & colorCorrectionConfig);
 	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const Json::Value & colorAdjustmentConfig);
 	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
@@ -289,9 +287,6 @@ private:
 	/// The transformation from raw colors to led colors
 	MultiColorTransform * _raw2ledTransform;
 	
-	/// The correction from raw colors to led colors
-	MultiColorCorrection * _raw2ledCorrection;
-	
 	/// The temperature from raw colors to led colors
 	MultiColorCorrection * _raw2ledTemperature;
 	
@@ -323,5 +318,5 @@ private:
 	Logger * _log;
 	
 	/// count of hardware leds
-	unsigned _hwLedsCount;
+	unsigned _hwLedCount;
 };
