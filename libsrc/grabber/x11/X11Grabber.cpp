@@ -1,6 +1,7 @@
 // STL includes
 #include <iostream>
 #include <cstdint>
+#include <utils/Logger.h>
 
 // X11Grabber includes
 #include <grabber/X11Grabber.h>
@@ -22,7 +23,8 @@ X11Grabber::X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropT
 	_screenHeight(0),
 	_croppedWidth(0),
 	_croppedHeight(0),
-	_image(0,0)
+	_image(0,0),
+	_log(Logger::getInstance("X11GRABBER"))
 {
 	_imageResampler.setHorizontalPixelDecimation(horizontalPixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(verticalPixelDecimation);
@@ -94,11 +96,11 @@ bool X11Grabber::Setup()
 	_x11Display = XOpenDisplay(NULL);
 	if (_x11Display == nullptr)
 	{
-		std::cerr << "X11GRABBER ERROR: Unable to open display";
+		Error(_log, "Unable to open display");
 		if (getenv("DISPLAY")) {
-			std::cerr <<  " " << std::string(getenv("DISPLAY")) << std::endl;
+			Error(_log, "%s",getenv("DISPLAY"));
 		} else {
-			std::cerr << ". DISPLAY environment variable not set" << std::endl;
+			Error(_log, "DISPLAY environment variable not set");
 		}
 		return false;
 	}
@@ -151,7 +153,7 @@ Image<ColorRgb> & X11Grabber::grab()
 
 	if (_xImage == nullptr)
 	{
-		std::cerr << "X11GRABBER ERROR: Grab failed" << std::endl;
+		Error(_log, "Grab Failed!");
 		return _image;
 	}
 
@@ -165,7 +167,7 @@ int X11Grabber::updateScreenDimensions()
 	const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
 	if (status == 0)
 	{
-		std::cerr << "X11GRABBER ERROR: Failed to obtain window attributes" << std::endl;
+		Error(_log, "Failed to obtain window attributes");
 		return -1;
 	}
 

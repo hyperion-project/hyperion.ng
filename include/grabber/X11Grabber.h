@@ -3,7 +3,7 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/ImageResampler.h>
-
+#include <utils/Logger.h>
 // X11 includes
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrender.h>
@@ -64,4 +64,6 @@ private:
 	void setupResources();
 	
 	int updateScreenDimensions();
+	
+	Logger * _log;
 };
