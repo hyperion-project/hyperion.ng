@@ -216,7 +216,7 @@ public slots:
 public:
 	static Hyperion *_hyperion;
 
-	ColorOrder createColorOrder(const Json::Value & deviceConfig);
+	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
 	/**
 	 * Construct the 'led-string' with the integration area definition per led and the color
 	 * ordering of the RGB channels

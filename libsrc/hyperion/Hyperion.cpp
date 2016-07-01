@@ -76,7 +76,7 @@ ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 		return ORDER_GRB;
 	}
 
-	WarningIf( order != "rgb", _log, "Unknown color order defined (%s). Using RGB.", order.c_str());
+	WarningIf( order != "rgb", Logger::getInstance("Core"), "Unknown color order defined (%s). Using RGB.", order.c_str());
 
 	return ORDER_RGB;
 }
