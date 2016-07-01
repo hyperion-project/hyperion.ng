@@ -143,12 +143,6 @@ public slots:
 	/// Returns the list with unique correction identifiers
 	/// @return The list with correction identifiers
 	///
-	const std::vector<std::string> & getCorrectionIds() const;
-	
-	///
-	/// Returns the list with unique correction identifiers
-	/// @return The list with correction identifiers
-	///
 	const std::vector<std::string> & getTemperatureIds() const;
 	
 	///
@@ -162,12 +156,6 @@ public slots:
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorTransform * getTransform(const std::string& id);
-	
-	///
-	/// Returns the ColorCorrection with the given identifier
-	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorCorrection * getCorrection(const std::string& id);
 	
 	///
 	/// Returns the ColorCorrection with the given identifier

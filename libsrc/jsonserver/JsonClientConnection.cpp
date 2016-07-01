@@ -251,8 +251,6 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleClearallCommand(message);
 	else if (command == "transform")
 		handleTransformCommand(message);
-	else if (command == "correction")
-		handleCorrectionCommand(message);
 	else if (command == "temperature")
 		handleTemperatureCommand(message);
 	else if (command == "adjustment")
@@ -396,26 +394,6 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		{
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
-	}
-	
-	// collect correction information
-	Json::Value & correctionArray = info["correction"];
-	for (const std::string& correctionId : _hyperion->getCorrectionIds())
-	{
-		const ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
-		if (colorCorrection == nullptr)
-		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color correction id: " << correctionId << std::endl;
-			continue;
-		}
-
-		Json::Value & correction = correctionArray.append(Json::Value());
-		correction["id"] = correctionId;
-		
-		Json::Value & corrValues = correction["correctionValues"];
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionR());
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionG());
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionB());
 	}
 	
 	// collect temperature correction information
@@ -706,32 +684,7 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
-void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
-{
-	const Json::Value & correction = message["correction"];
 
-	const std::string correctionId = correction.get("id", _hyperion->getCorrectionIds().front()).asString();
-	ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
-	if (colorCorrection == nullptr)
-	{
-		//sendErrorReply(std::string("Incorrect correction identifier: ") + correctionId);
-		return;
-	}
-
-	if (correction.isMember("correctionValues"))
-	{
-		const Json::Value & values = correction["correctionValues"];
-		colorCorrection->_rgbCorrection.setcorrectionR(values[0u].asInt());
-		colorCorrection->_rgbCorrection.setcorrectionG(values[1u].asInt());
-		colorCorrection->_rgbCorrection.setcorrectionB(values[2u].asInt());
-	}
-	
-	// commit the changes
-	_hyperion->correctionsUpdated();
-
-	sendSuccessReply();
-}
-	
 void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 {
 	const Json::Value & temperature = message["temperature"];
