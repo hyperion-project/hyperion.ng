@@ -470,17 +470,17 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		adjustment["id"] = adjustmentId;
 
 		Json::Value & redAdjust = adjustment["redAdjust"];
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentR());
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentG());
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentB());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
 		Json::Value & greenAdjust = adjustment["greenAdjust"];
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentR());
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentG());
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentB());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
 		Json::Value & blueAdjust = adjustment["blueAdjust"];
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentR());
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentG());
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentB());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
 	}
 
 	// collect effect info
@@ -726,25 +726,25 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 	if (adjustment.isMember("redAdjust"))
 	{
 		const Json::Value & values = adjustment["redAdjust"];
-		colorAdjustment->_rgbRedAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbRedAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbRedAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentB(values[2u].asInt());
 	}
 
 	if (adjustment.isMember("greenAdjust"))
 	{
 		const Json::Value & values = adjustment["greenAdjust"];
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentB(values[2u].asInt());
 	}
 
 	if (adjustment.isMember("blueAdjust"))
 	{
 		const Json::Value & values = adjustment["blueAdjust"];
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].asInt());
 	}	
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
