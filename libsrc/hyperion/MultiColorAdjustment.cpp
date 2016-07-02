@@ -98,11 +98,11 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		int BB = adjustment->_rgbBlueAdjustment.adjustmentB(color.blue);
 				
 		int ledR = RR + GR + BR;
-		int maxR = (int)adjustment->_rgbRedAdjustment.getadjustmentR();
+		int maxR = (int)adjustment->_rgbRedAdjustment.getAdjustmentR();
 		int ledG = RG + GG + BG;
-		int maxG = (int)adjustment->_rgbGreenAdjustment.getadjustmentG();
+		int maxG = (int)adjustment->_rgbGreenAdjustment.getAdjustmentG();
 		int ledB = RB + GB + BB;
-		int maxB = (int)adjustment->_rgbBlueAdjustment.getadjustmentB();
+		int maxB = (int)adjustment->_rgbBlueAdjustment.getAdjustmentB();
 		
 		if (ledR > maxR)
 		  color.red = (uint8_t)maxR;

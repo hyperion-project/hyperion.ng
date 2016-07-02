@@ -1,107 +1,84 @@
 // STL includes
 #include <cmath>
+#include <cstdint>
+#include <algorithm>
 
 // Utils includes
 #include <utils/RgbChannelAdjustment.h>
 
-RgbChannelAdjustment::RgbChannelAdjustment() :
-	_adjustR(255),
-	_adjustG(255),
-	_adjustB(255)
+RgbChannelAdjustment::RgbChannelAdjustment()
 {
-	initializeMapping();
+	setAdjustment(UINT8_MAX, UINT8_MAX, UINT8_MAX);
 }
 
-RgbChannelAdjustment::RgbChannelAdjustment(int adjustR, int adjustG, int adjustB) :
-	_adjustR(adjustR),
-	_adjustG(adjustG),
-	_adjustB(adjustB)
+RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
 {
-	initializeMapping();
+	setAdjustment(adjustR, adjustG, adjustB);
 }
 
 RgbChannelAdjustment::~RgbChannelAdjustment()
 {
 }
 
-uint8_t RgbChannelAdjustment::getadjustmentR() const
+void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
 {
-	return _adjustR;
-}
-
-void RgbChannelAdjustment::setadjustmentR(uint8_t adjustR)
-{
-	_adjustR = adjustR;
+	_adjust[RED] = adjustR;
+	_adjust[GREEN] = adjustG;
+	_adjust[BLUE] = adjustB;
 	initializeMapping();
 }
 
-uint8_t RgbChannelAdjustment::getadjustmentG() const
+uint8_t RgbChannelAdjustment::getAdjustmentR() const
 {
-	return _adjustG;
+	return _adjust[RED];
 }
 
-void RgbChannelAdjustment::setadjustmentG(uint8_t adjustG)
+void RgbChannelAdjustment::setAdjustmentR(uint8_t adjustR)
 {
-	_adjustG = adjustG;
-	initializeMapping();
+	setAdjustment(adjustR, _adjust[GREEN], _adjust[BLUE]);
 }
 
-uint8_t RgbChannelAdjustment::getadjustmentB() const
+uint8_t RgbChannelAdjustment::getAdjustmentG() const
 {
-	return _adjustB;
+	return _adjust[GREEN];
 }
 
-void RgbChannelAdjustment::setadjustmentB(uint8_t adjustB)
+void RgbChannelAdjustment::setAdjustmentG(uint8_t adjustG)
 {
-	_adjustB = adjustB;
-	initializeMapping();
+	setAdjustment(_adjust[RED], adjustG, _adjust[BLUE]);
+}
+
+uint8_t RgbChannelAdjustment::getAdjustmentB() const
+{
+	return _adjust[BLUE];
+}
+
+void RgbChannelAdjustment::setAdjustmentB(uint8_t adjustB)
+{
+	setAdjustment(_adjust[RED], _adjust[GREEN], adjustB);
 }
 
 uint8_t RgbChannelAdjustment::adjustmentR(uint8_t inputR) const
 {
-	return _mappingR[inputR];
+	return _mapping[RED][inputR];
 }
 
 uint8_t RgbChannelAdjustment::adjustmentG(uint8_t inputG) const
 {
-	return _mappingG[inputG];
+	return _mapping[GREEN][inputG];
 }
 
 uint8_t RgbChannelAdjustment::adjustmentB(uint8_t inputB) const
 {
-	return _mappingB[inputB];
+	return _mapping[BLUE][inputB];
 }
 
 void RgbChannelAdjustment::initializeMapping()
 {
-	// initialize the mapping
-	for (int i = 0; i < 256; ++i)
-	{
-		int outputR = (i * _adjustR) / 255;
-    		if (outputR > 255)
+	// initialize linear mapping
+	for (unsigned channel=0; channel<3; channel++)
+		for (unsigned idx=0; idx<=UINT8_MAX; idx++)
 		{
-			outputR = 255;
+			_mapping[channel][idx] = std::min( ((idx * _adjust[channel]) / UINT8_MAX), (unsigned)UINT8_MAX);
 		}
-		_mappingR[i] = outputR;
-	}
-	for (int i = 0; i < 256; ++i)
-	{
-		int outputG = (i * _adjustG) / 255;
-		if (outputG > 255)
-		{
-			outputG = 255;
-		}
-		_mappingG[i] = outputG;
-	}
-	for (int i = 0; i < 256; ++i)
-	{
-		int outputB = (i * _adjustB) / 255;
-		if (outputB > 255)
-		{
-			outputB = 255;
-		}
-		_mappingB[i] = outputB;
-	}
-		
-
 }
