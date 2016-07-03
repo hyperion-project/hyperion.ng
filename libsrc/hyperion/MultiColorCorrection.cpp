@@ -85,8 +85,8 @@ void MultiColorCorrection::applyCorrection(std::vector<ColorRgb>& ledColors)
 		}
 		ColorRgb& color = ledColors[i];
 
-		color.red   = correction->_rgbCorrection.correctionR(color.red);
-		color.green = correction->_rgbCorrection.correctionG(color.green);
-		color.blue  = correction->_rgbCorrection.correctionB(color.blue);
+		color.red   = correction->_rgbCorrection.adjustmentR(color.red);
+		color.green = correction->_rgbCorrection.adjustmentG(color.green);
+		color.blue  = correction->_rgbCorrection.adjustmentB(color.blue);
 	}
 }

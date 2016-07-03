@@ -28,6 +28,13 @@ public:
 	/// Destructor
 	~RgbChannelTransform();
 
+	/// setAdjustment RGB
+	/// @param threshold  The minimum threshold
+	/// @param gamma The gamma of the gamma-curve correction
+	/// @param blacklevel The minimum value for the RGB-Channel
+	/// @param whitelevel The maximum value for the RGB-Channel
+	void setTransform(double threshold, double gamma, double blacklevel, double whitelevel);
+
 	/// @return The current threshold value
 	double getThreshold() const;
 

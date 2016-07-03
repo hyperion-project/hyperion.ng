@@ -20,14 +20,14 @@ public:
 	/// Destructor
 	~RgbChannelAdjustment();
 
-	/// @return The current adjustR value
-	uint8_t getAdjustmentR() const;
-
 	/// setAdjustment RGB
 	/// @param adjustR  
 	/// @param adjustG 
 	/// @param adjustB 
 	void setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB);
+
+	/// @return The current adjustR value
+	uint8_t getAdjustmentR() const;
 
 	/// @param threshold New adjustR value
 	void setAdjustmentR(uint8_t adjustR);

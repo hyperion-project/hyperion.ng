@@ -411,9 +411,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		temperature["id"] = tempId;
 		
 		Json::Value & tempValues = temperature["correctionValues"];
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionR());
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionG());
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionB());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentR());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentG());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentB());
 	}
 
 
@@ -700,9 +700,9 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 	if (temperature.isMember("correctionValues"))
 	{
 		const Json::Value & values = temperature["correctionValues"];
-		colorTemperature->_rgbCorrection.setcorrectionR(values[0u].asInt());
-		colorTemperature->_rgbCorrection.setcorrectionG(values[1u].asInt());
-		colorTemperature->_rgbCorrection.setcorrectionB(values[2u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentR(values[0u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentG(values[1u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentB(values[2u].asInt());
 	}
 	
 	// commit the changes

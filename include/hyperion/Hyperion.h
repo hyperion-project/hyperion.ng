@@ -235,7 +235,7 @@ public:
 	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
 	static HslTransform * createHslTransform(const Json::Value & hslConfig);
 	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
-	static RgbChannelCorrection * createRgbChannelCorrection(const Json::Value& colorConfig);
+	static RgbChannelAdjustment * createRgbChannelCorrection(const Json::Value& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color);
 
 	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);

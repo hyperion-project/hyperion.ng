@@ -116,7 +116,7 @@ ColorCorrection * Hyperion::createColorCorrection(const Json::Value & correction
 {
 	const std::string id = correctionConfig.get("id", "default").asString();
 
-	RgbChannelCorrection * rgbCorrection   = createRgbChannelCorrection(correctionConfig["correctionValues"]);
+	RgbChannelAdjustment * rgbCorrection   = createRgbChannelCorrection(correctionConfig["correctionValues"]);
 
 	ColorCorrection * correction = new ColorCorrection();
 	correction->_id = id;
@@ -404,13 +404,13 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const Json::Value& colo
 	return transform;
 }
 
-RgbChannelCorrection* Hyperion::createRgbChannelCorrection(const Json::Value& colorConfig)
+RgbChannelAdjustment* Hyperion::createRgbChannelCorrection(const Json::Value& colorConfig)
 {
 	const int varR = colorConfig.get("red", 255).asInt();
 	const int varG = colorConfig.get("green", 255).asInt();
 	const int varB = colorConfig.get("blue", 255).asInt();
 
-	RgbChannelCorrection* correction = new RgbChannelCorrection(varR, varG, varB);
+	RgbChannelAdjustment* correction = new RgbChannelAdjustment(varR, varG, varB);
 	return correction;
 }
 
