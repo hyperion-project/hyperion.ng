@@ -3,6 +3,7 @@
 #include <cassert>
 
 // Hyperion includes
+#include <utils/Logger.h>
 #include "MultiColorTransform.h"
 
 MultiColorTransform::MultiColorTransform(const unsigned ledCnt) :
@@ -40,16 +41,15 @@ void MultiColorTransform::setTransformForLed(const std::string& id, const unsign
 
 bool MultiColorTransform::verifyTransforms() const
 {
-	bool allLedsSet = true;
 	for (unsigned iLed=0; iLed<_ledTransforms.size(); ++iLed)
 	{
 		if (_ledTransforms[iLed] == nullptr)
 		{
-			std::cerr << "HYPERION (C.transform) ERROR: No transform set for " << iLed << std::endl;
-			allLedsSet = false;
+			Warning(Logger::getInstance("ColorTransform"), "No adjustment set for %d", iLed);
+			return false;
 		}
 	}
-	return allLedsSet;
+	return true;
 }
 
 const std::vector<std::string> & MultiColorTransform::getTransformIds()
@@ -72,12 +72,9 @@ ColorTransform* MultiColorTransform::getTransform(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorTransform::applyTransform(const std::vector<ColorRgb>& rawColors)
+void MultiColorTransform::applyTransform(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the transformation in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledTransforms.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledTransforms.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorTransform* transform = _ledTransforms[i];
@@ -94,5 +91,4 @@ std::vector<ColorRgb> MultiColorTransform::applyTransform(const std::vector<Colo
 		color.green = transform->_rgbGreenTransform.transform(color.green);
 		color.blue  = transform->_rgbBlueTransform.transform(color.blue);
 	}
-	return ledColors;
 }

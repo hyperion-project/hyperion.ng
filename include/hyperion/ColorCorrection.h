@@ -4,7 +4,7 @@
 #include <string>
 
 // Utils includes
-#include <utils/RgbChannelCorrection.h>
+#include <utils/RgbChannelAdjustment.h>
 
 class ColorCorrection
 {
@@ -14,5 +14,5 @@ public:
 	std::string _id;
 
 	/// The RGB correction
-	RgbChannelCorrection _rgbCorrection;
+	RgbChannelAdjustment _rgbCorrection;
 };
