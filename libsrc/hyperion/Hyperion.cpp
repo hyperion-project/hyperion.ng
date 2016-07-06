@@ -445,27 +445,37 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 	LedString ledString;
 
 	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
+	int maxLedId = ledsConfig.size();
 	for (const Json::Value& ledConfig : ledsConfig)
 	{
 		Led led;
 		led.index = ledConfig["index"].asInt();
-
-		const Json::Value& hscanConfig = ledConfig["hscan"];
-		const Json::Value& vscanConfig = ledConfig["vscan"];
-		led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
-		led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
-		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
-
-		// Fix if the user swapped min and max
-		if (led.minX_frac > led.maxX_frac)
+		led.clone = ledConfig.get("clone",-1).asInt();
+		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
-			std::swap(led.minX_frac, led.maxX_frac);
+			Warning(Logger::getInstance("Core"), "index out of range");
+			led.clone = -1;
 		}
-		if (led.minY_frac > led.maxY_frac)
-		{
-			std::swap(led.minY_frac, led.maxY_frac);
-		}
+
+// 		if ( led.clone >= 0 )
+// 		{
+			const Json::Value& hscanConfig = ledConfig["hscan"];
+			const Json::Value& vscanConfig = ledConfig["vscan"];
+			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
+			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
+			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+
+			// Fix if the user swapped min and max
+			if (led.minX_frac > led.maxX_frac)
+			{
+				std::swap(led.minX_frac, led.maxX_frac);
+			}
+			if (led.minY_frac > led.maxY_frac)
+			{
+				std::swap(led.minY_frac, led.maxY_frac);
+			}
+// 		}
 
 		// Get the order of the rgb channels for this led (default is device order)
 		const std::string ledOrderStr = ledConfig.get("colorOrder", deviceOrderStr).asString();
@@ -795,7 +805,18 @@ void Hyperion::update()
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)
 	{
+		int ledClone = leds.at(i).clone;
+		if (ledClone >= 0 )
+		{
+			color = _ledBuffer.at(ledClone);
+		}
+		i++;
+	}
+	i = 0;
+	for (ColorRgb& color : _ledBuffer)
+	{
 		const ColorOrder ledColorOrder = leds.at(i).colorOrder;
+
 		// correct the color byte order
 		switch (ledColorOrder)
 		{
