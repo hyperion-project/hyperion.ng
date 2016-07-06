@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <cassert>
 
 #include <QCoreApplication>
 #include <QResource>
@@ -42,6 +43,26 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 {
 	loadConfig(configFile);
 	_hyperion = Hyperion::initInstance(_config, configFile);
+	
+	if (Logger::getLogLevel() == Logger::WARNING)
+	{
+		if (_config.isMember("logger"))
+		{
+			const Json::Value & logConfig = _config["logger"];
+			std::string level = logConfig.get("level", "warn").asString(); // silent warn verbose debug
+			if (level == "silent") Logger::setLogLevel(Logger::OFF);
+			else if (level == "warn")    Logger::setLogLevel(Logger::WARNING);
+			else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
+			else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
+			else Error(Logger::getInstance("LOGGER"), "log level '%s' used in config is unknown. valid: silent warn verbose debug", level.c_str());
+			
+		}
+	}
+	else
+	{
+		WarningIf(_config.isMember("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
+	}
+	
 	Info(_log, "Hyperion started and initialised");
 }
 
@@ -231,13 +252,15 @@ void HyperionDaemon::startNetworkServices()
 	if (_config.isMember("boblightServer"))
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
+		_boblightServer = new BoblightServer(
+			boblightServerConfig.get("priority",900).asInt(),
+			boblightServerConfig["port"].asUInt()
+		);
+		Debug(_log, "Boblight server created");
+
 		if ( boblightServerConfig.get("enable", true).asBool() )
 		{
-			_boblightServer = new BoblightServer(
-						boblightServerConfig.get("priority",900).asInt(),
-						boblightServerConfig["port"].asUInt()
-						);
-			Info(_log, "Boblight server created and started on port %d", _boblightServer->getPort());
+			_boblightServer->start();
 		}
 	}
 
@@ -252,11 +275,10 @@ void HyperionDaemon::startNetworkServices()
 					udpListenerConfig.get("port", 2801).asUInt(),
 					udpListenerConfig.get("shared", false).asBool()
 				);
-		Info(_log, "UDP listener created on port %d", _udpListener->getPort());
+		Debug(_log, "UDP listener created");
 
 		if ( udpListenerConfig.get("enable", true).asBool() )
 		{
-			Info(_log, "UDP listener started" );
 			_udpListener->start();
 		}
 	}

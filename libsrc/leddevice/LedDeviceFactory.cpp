@@ -17,6 +17,7 @@
 	#include "LedDeviceP9813.h"
 	#include "LedDeviceWs2801.h"
 	#include "LedDeviceWs2812SPI.h"
+	#include "LedDeviceSk6812SPI.h"
 	#include "LedDeviceAPA102.h"
 #endif
 
@@ -119,9 +120,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
-		const unsigned ledcount  = deviceConfig.get("leds",0).asInt();
 
-		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate, ledcount);
+		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate);
 		deviceAPA102->open();
 
 		device = deviceAPA102;
@@ -146,6 +146,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		deviceWs2812SPI->open();
 
 		device = deviceWs2812SPI;
+	}
+	else if (type == "sk6812spi")
+	{
+		const std::string output = deviceConfig["output"].asString();
+		const unsigned rate      = deviceConfig.get("rate",2857143).asInt();
+
+		LedDeviceSk6812SPI* deviceSk6812SPI = new LedDeviceSk6812SPI(output, rate);
+		deviceSk6812SPI->open();
+
+		device = deviceSk6812SPI;
 	}
 #endif
 #ifdef ENABLE_TINKERFORGE
@@ -215,7 +225,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		const Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
 
 		if (assignment.length() > 0) {
-			std::cout << "ERROR: Sorry, the configuration syntax has changed in this version." << std::endl;
+			Error(log, "Piblaster: The piblaster configuration syntax has changed in this version.");
 			exit(EXIT_FAILURE);
 		}
 		if (! gpioMapping.isNull() ) {
@@ -224,7 +234,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 			device = devicePiBlaster;
 		} else {
-			std::cout << "ERROR: no gpiomap defined." << std::endl;
+			Error(log, "Piblaster: no gpiomap defined.");
 			exit(EXIT_FAILURE);
 		}
 	}

@@ -1,4 +1,9 @@
 {
+	"logger" :
+	{
+		"level" : "warn"
+	},
+
 	"device" :
 	{
 		"name"       : "DefaultHyperionConfig",

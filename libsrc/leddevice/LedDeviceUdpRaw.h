@@ -18,8 +18,6 @@ public:
 	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceUdpRaw(const std::string& outputDevice,
-					const unsigned baudrate);
 
 	LedDeviceUdpRaw(const std::string& outputDevice,
 					const unsigned baudrate,

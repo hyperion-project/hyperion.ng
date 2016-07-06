@@ -48,11 +48,9 @@ public:
 	///
 	/// Performs the color transoformation from raw-color to led-color
 	///
-	/// @param rawColors The list with raw colors
+	/// @param ledColors The list with raw colors
 	///
-	/// @return The list with led-colors
-	///
-	std::vector<ColorRgb> applyTransform(const std::vector<ColorRgb>& rawColors);
+	void applyTransform(std::vector<ColorRgb>& ledColors);
 
 private:
 	/// List with transform ids

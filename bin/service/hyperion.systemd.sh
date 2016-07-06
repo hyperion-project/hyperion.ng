@@ -1,15 +1,15 @@
 [Unit]
-Description=Hyperion Systemd service
+Description=Hyperion ambient light systemd service
 
 [Service]
 Type=simple
-User=root
-Group=root
-UMask=007
+User=hyperion
+Group=hyperion
 ExecStart=/usr/bin/hyperiond /etc/hyperion/hyperion.config.json
 ExecReload=/bin/kill -HUP $MAINPID
-Restart=on-failure
-TimeoutStopSec=10
+TimeoutStopSec=2
+Restart=always
+RestartSec=2
  
 [Install]
 WantedBy=multi-user.target

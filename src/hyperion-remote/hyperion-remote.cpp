@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
 				if (argIdC.isSet())	corrId    = argIdC.getValue();
 				if (argCorrection.isSet())  correction = argCorrection.getValue();
 
-				connection.setCorrection(
+				connection.setTemperature(
 						argIdC.isSet()		? &corrId : nullptr,
 						argCorrection.isSet()   ? &correction  : nullptr);
 			}

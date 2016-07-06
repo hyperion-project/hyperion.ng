@@ -5,28 +5,52 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
-BoblightServer::BoblightServer(const int priority,uint16_t port) :
-	QObject(),
-	_hyperion(Hyperion::getInstance()),
-	_server(),
-	_openConnections(),
-	_priority(priority)
+BoblightServer::BoblightServer(const int priority, uint16_t port)
+	: QObject()
+	, _hyperion(Hyperion::getInstance())
+	, _server()
+	, _openConnections()
+	, _priority(priority)
+	, _log(Logger::getInstance("BOBLIGHT"))
+	, _isActive(false)
+	, _port(port)
 {
-	if (!_server.listen(QHostAddress::Any, port))
-	{
-		throw std::runtime_error("BOBLIGHT ERROR: server could not bind to port");
-	}
-
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 }
 
 BoblightServer::~BoblightServer()
 {
+	stop();
+}
+
+void BoblightServer::start()
+{
+	if ( active() )
+		return;
+		
+	if (!_server.listen(QHostAddress::Any, _port))
+	{
+		throw std::runtime_error("BOBLIGHT ERROR: server could not bind to port");
+	}
+	Info(_log, "Boblight server started on port %d", _port);
+
+	_isActive = true;
+	emit statusChanged(_isActive);
+}
+
+void BoblightServer::stop()
+{
+	if ( ! active() )
+		return;
+		
 	foreach (BoblightClientConnection * connection, _openConnections) {
 		delete connection;
 	}
+	_isActive = false;
+	emit statusChanged(_isActive);
 }
+
 
 uint16_t BoblightServer::getPort() const
 {
@@ -39,7 +63,7 @@ void BoblightServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "BOBLIGHT INFO: new connection" << std::endl;
+		Info(_log, "new connection");
 		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority, _hyperion);
 		_openConnections.insert(connection);
 
@@ -50,7 +74,7 @@ void BoblightServer::newConnection()
 
 void BoblightServer::closedConnection(BoblightClientConnection *connection)
 {
-	std::cout << "BOBLIGHT INFO: connection closed" << std::endl;
+	Debug(_log, "connection closed");
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object
