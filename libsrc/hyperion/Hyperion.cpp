@@ -443,7 +443,6 @@ RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const Json::Value& co
 LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
 {
 	LedString ledString;
-
 	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
 	int maxLedId = ledsConfig.size();
 	for (const Json::Value& ledConfig : ledsConfig)
@@ -453,29 +452,39 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 		led.clone = ledConfig.get("clone",-1).asInt();
 		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
-			Warning(Logger::getInstance("Core"), "index out of range");
+			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
 			led.clone = -1;
 		}
 
-// 		if ( led.clone >= 0 )
-// 		{
+		if ( led.clone >= 0 )
+		{
+			const Json::Value& hscanConfig = ledsConfig[led.clone]["hscan"];
+			const Json::Value& vscanConfig = ledsConfig[led.clone]["vscan"];
+			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
+			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
+			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			Debug(Logger::getInstance("Core"), "LED %d: clone from led %d", led.index, led.clone);
+		}
+		else
+		{
 			const Json::Value& hscanConfig = ledConfig["hscan"];
 			const Json::Value& vscanConfig = ledConfig["vscan"];
 			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
 			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
 			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
 			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+		}
 
-			// Fix if the user swapped min and max
-			if (led.minX_frac > led.maxX_frac)
-			{
-				std::swap(led.minX_frac, led.maxX_frac);
-			}
-			if (led.minY_frac > led.maxY_frac)
-			{
-				std::swap(led.minY_frac, led.maxY_frac);
-			}
-// 		}
+		// Fix if the user swapped min and max
+		if (led.minX_frac > led.maxX_frac)
+		{
+			std::swap(led.minX_frac, led.maxX_frac);
+		}
+		if (led.minY_frac > led.maxY_frac)
+		{
+			std::swap(led.minY_frac, led.maxY_frac);
+		}
 
 		// Get the order of the rgb channels for this led (default is device order)
 		const std::string ledOrderStr = ledConfig.get("colorOrder", deviceOrderStr).asString();
