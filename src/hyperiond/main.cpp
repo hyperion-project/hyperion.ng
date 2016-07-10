@@ -2,6 +2,7 @@
 #include <csignal>
 #include <unistd.h>
 #include <sys/prctl.h> 
+#include <exception>
 
 #include <QCoreApplication>
 #include <QLocale>
@@ -144,16 +145,24 @@ int main(int argc, char** argv)
 		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
 		hyperiond->run();
 	}
-	catch (...)
+	catch (std::exception& e)
 	{
-		Error(log, "Hyperion Daemon aborted");
+		Error(log, "Hyperion Daemon aborted:\n  %s", e.what());
 	}
 
-	WebConfig* webConfig = new WebConfig(&app);
-	
-	// run the application
-	int rc = app.exec();
-	Info(log, "INFO: Application closed with code %d", rc);
+	int rc = 1;
+	WebConfig* webConfig = nullptr;
+	try
+	{
+		webConfig = new WebConfig(&app);
+		// run the application
+		rc = app.exec();
+		Info(log, "INFO: Application closed with code %d", rc);
+	}
+	catch (std::exception& e)
+	{
+		Error(log, "Hyperion aborted:\n  %s", e.what());
+	}
 
 	// delete components
 	delete webConfig;
