@@ -19,8 +19,8 @@ public:
 	/// @param baudrate The used baudrate for writing to the output device
 	///
 
-	LedDeviceSk6812SPI(const std::string& outputDevice,
-					const unsigned baudrate);
+	LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate,
+				const std::string& whiteAlgorithm);
 
 	///
 	/// Writes the led color values to the led-device
@@ -39,5 +39,7 @@ private:
 	size_t mLedCount;
 	std::vector<uint8_t> _spiBuffer;
 
-        uint8_t bitpair_to_byte[4];
+	uint8_t bitpair_to_byte[4];
+	std::string _whiteAlgorithm;
+	ColorRgbw _temp_rgbw;
 };

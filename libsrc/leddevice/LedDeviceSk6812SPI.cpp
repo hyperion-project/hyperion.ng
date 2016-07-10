@@ -11,7 +11,7 @@
 // hyperion local includes
 #include "LedDeviceSk6812SPI.h"
 
-LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate) :
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate, const std::string& whiteAlgorithm) :
 	LedSpiDevice(outputDevice, baudrate, 0),
 	mLedCount(0),
 	bitpair_to_byte {
@@ -30,7 +30,7 @@ int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 	mLedCount = ledValues.size();
 
 // 4 colours, 4 spi bytes per colour + 3 frame end latch bytes
-#define COLOURS_PER_LED		3
+#define COLOURS_PER_LED		4
 #define SPI_BYTES_PER_COLOUR	4
 #define SPI_BYTES_PER_LED 	COLOURS_PER_LED * SPI_BYTES_PER_COLOUR
 
