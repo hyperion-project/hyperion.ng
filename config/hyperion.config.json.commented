@@ -141,6 +141,7 @@
 	},
 
 	/// Configuration for the embedded V4L2 grabber
+	///  * enable  	            : Enable or disable the v4lgrabber (true/false)
 	///  * device               : V4L2 Device to use [default="/dev/video0"]
 	///  * input                : V4L2 input to use [default=0]
 	///  * standard             : Video standard (no-change/PAL/NTSC) [default="no-change"]
@@ -159,6 +160,7 @@
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
 	"grabber-v4l2" :
 	{
+		"enable"               : false,
 		"device"               : "/dev/video0",
 		"input"                : 0,
 		"standard"             : "no-change",

@@ -92,6 +92,7 @@
 	
 	"grabber-v4l2" : 
 	{
+		"enable" : false,
 		"device" : "/dev/video0",
 		"input" : 0,
 		"standard" : "PAL",
