@@ -310,7 +310,7 @@ void KODIVideoChecker::reconnect()
 
 void KODIVideoChecker::connectionError(QAbstractSocket::SocketError error)
 {
-	Error(_log,"Connection error (%s)", error);
+	Error(_log,"Connection error (%s)", _socket.errorString().toStdString().c_str());
 
 	// close the socket
 	_socket.close();
