@@ -522,7 +522,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
 {
 		MessageForwarder * forwarder = new MessageForwarder();
-		if ( ! forwarderConfig.isNull() )
+		if ( ( ! forwarderConfig.isNull() ) && (  forwarderConfig.get("enable", true).asBool() ) )
 		{
 			if ( ! forwarderConfig["json"].isNull() && forwarderConfig["json"].isArray() )
 			{
