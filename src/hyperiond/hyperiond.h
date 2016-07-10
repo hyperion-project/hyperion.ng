@@ -34,7 +34,7 @@
 
 #include <utils/Logger.h>
 
-#include <xbmcvideochecker/XBMCVideoChecker.h>
+#include <kodivideochecker/KODIVideoChecker.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
@@ -51,7 +51,7 @@ public:
 	void run();
 
 	void startInitialEffect();
-	void createXBMCVideoChecker();
+	void createKODIVideoChecker();
 	void startNetworkServices();
 
 	// grabber creators
@@ -64,7 +64,7 @@ public:
 private:
 	Logger*             _log;
 	Json::Value         _config;
-	XBMCVideoChecker*   _xbmcVideoChecker;
+	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;
 	BoblightServer*     _boblightServer;

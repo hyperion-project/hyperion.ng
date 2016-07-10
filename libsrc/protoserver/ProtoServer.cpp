@@ -65,7 +65,7 @@ void ProtoServer::newConnection()
 		connect(connection, SIGNAL(connectionClosed(ProtoClientConnection*)), this, SLOT(closedConnection(ProtoClientConnection*)));
 		connect(connection, SIGNAL(newMessage(const proto::HyperionRequest*)), this, SLOT(newMessage(const proto::HyperionRequest*)));
 		
-		// register forward signal for xbmc checker
+		// register forward signal for kodi checker
 		connect(this, SIGNAL(grabbingMode(GrabbingMode)), connection, SLOT(setGrabbingMode(GrabbingMode)));
 		connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
 

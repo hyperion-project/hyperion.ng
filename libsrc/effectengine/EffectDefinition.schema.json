@@ -227,16 +227,16 @@
             },
             "additionalProperties" : false
         },
-        "xbmcVideoChecker" :
+        "kodiVideoChecker" :
         {
             "type" : "object",
             "required" : false,
             "properties" : {
-                "xbmcAddress" : {
+                "kodiAddress" : {
                     "type" : "string",
                     "required" : true
                 },
-                "xbmcTcpPort" : {
+                "kodiTcpPort" : {
                     "type" : "integer",
                     "required" : true
                 },

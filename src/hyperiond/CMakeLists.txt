@@ -5,7 +5,7 @@ add_executable(hyperiond
 target_link_libraries(hyperiond
 		getoptPlusPlus
 		hyperion
-		xbmcvideochecker
+		kodivideochecker
 		effectengine
 		jsonserver
 		boblightserver

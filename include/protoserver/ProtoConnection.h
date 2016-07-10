@@ -92,7 +92,7 @@ private slots:
 signals:
 
 	///
-	/// XBMC Video Checker Message
+	/// KODI Video Checker Message
 	///
 	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);
