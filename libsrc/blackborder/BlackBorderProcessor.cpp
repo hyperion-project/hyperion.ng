@@ -1,8 +1,6 @@
 #include <iostream>
-/*
-#include <iomanip>
-using std::setw;
-//*/
+
+#include <utils/Logger.h>
 
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
@@ -10,20 +8,19 @@ using std::setw;
 
 using namespace hyperion;
 
-BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig) :
-	_unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt()),
-	_borderSwitchCnt(blackborderConfig.get("borderFrameCnt", 50).asUInt()),
-	_maxInconsistentCnt(blackborderConfig.get("maxInconsistentCnt", 10).asUInt()),
-	_blurRemoveCnt(blackborderConfig.get("blurRemoveCnt", 1).asUInt()),
-	_detectionMode(blackborderConfig.get("mode", "default").asString()),
-	_detector(blackborderConfig.get("threshold", 0.01).asDouble()),
-	_currentBorder({true, -1, -1}),
-	_previousDetectedBorder({true, -1, -1}),
-	_consistentCnt(0),
-	_inconsistentCnt(10)
+BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig)
+	: _unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt())
+	, _borderSwitchCnt(blackborderConfig.get("borderFrameCnt", 50).asUInt())
+	, _maxInconsistentCnt(blackborderConfig.get("maxInconsistentCnt", 10).asUInt())
+	, _blurRemoveCnt(blackborderConfig.get("blurRemoveCnt", 1).asUInt())
+	, _detectionMode(blackborderConfig.get("mode", "default").asString())
+	, _detector(blackborderConfig.get("threshold", 0.01).asDouble())
+	, _currentBorder({true, -1, -1})
+	, _previousDetectedBorder({true, -1, -1})
+	, _consistentCnt(0)
+	, _inconsistentCnt(10)
 {
-	std::cout << "BLACKBORDER INFO: mode:" << _detectionMode << std::endl;
-	// empty
+	Info(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
 }
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const

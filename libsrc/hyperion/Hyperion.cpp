@@ -202,7 +202,7 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 			for (int i=0; i<ledIndexList.size(); ++i) {
 				if (i > 0)
 				{
-					std::cout << ", ";
+					ss << ", ";
 				}
 				if (ledIndexList[i].contains("-"))
 				{
@@ -211,13 +211,13 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 					int endInd   = ledIndices[1].toInt();
 
 					transform->setTransformForLed(colorTransform->_id, startInd, endInd);
-					std::cout << startInd << "-" << endInd;
+					ss << startInd << "-" << endInd;
 				}
 				else
 				{
 					int index = ledIndexList[i].toInt();
 					transform->setTransformForLed(colorTransform->_id, index, index);
-					std::cout << index;
+					ss << index;
 				}
 			}
 			Info(log, "ColorTransform '%s' => [%s]", colorTransform->_id.c_str(), ss.str().c_str()); 
