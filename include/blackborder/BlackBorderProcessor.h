@@ -3,6 +3,7 @@
 
 // Jsoncpp includes
 #include <json/json.h>
+
 // Local Hyperion includes
 #include "BlackBorderDetector.h"
 
@@ -107,6 +108,5 @@ namespace hyperion
 		unsigned _consistentCnt;
 		/// The number of frame the previous detected border NOT matched the incomming border
 		unsigned _inconsistentCnt;
-
 	};
 } // end namespace hyperion

@@ -138,8 +138,6 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	effectDefinition.script = path + QDir::separator().toLatin1() + config["script"].asString();
 	effectDefinition.args = config["args"];
 
-	// return succes //BLACKLIST OUTPUT TO LOG (Spam). This is more a effect development thing and the list gets longer and longer
-//	std::cout << "EFFECTENGINE INFO: Effect loaded: " + effectDefinition.name << std::endl;
 	return true;
 }
 
