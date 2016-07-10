@@ -33,10 +33,19 @@ public:
 	static KODIVideoChecker* initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 	static KODIVideoChecker* getInstance();
 
+	~KODIVideoChecker();
+	void setConfig(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+
+public slots:
 	///
 	/// Start polling KODI
 	///
 	void start();
+
+	///
+	/// Stop polling KODI
+	///
+	void stop();
 
 signals:
 	/// Signal emitted when the grabbing mode changes
@@ -86,10 +95,10 @@ private:
 
 private:
 	/// The network address of the KODI instance
-	const QString _address;
+	QString _address;
 
 	/// The port number of KODI
-	const uint16_t _port;
+	uint16_t _port;
 
 	/// The JSON-RPC message to check the active player
 	const QString _activePlayerRequest;
@@ -104,31 +113,31 @@ private:
 	const QString _getStereoscopicMode;
 
 	/// The JSON-RPC message to check the kodi version
-	const QString _getKodiVersion;
+	QString _getKodiVersion;
 
 	/// The QT TCP Socket with connection to KODI
 	QTcpSocket _socket;
 
 	/// Flag indicating whether or not to grab when the KODI video player is playing
-	const bool _grabVideo;
+	bool _grabVideo;
 
 	/// Flag indicating whether or not to grab when the KODI photo player is playing
-	const bool _grabPhoto;
+	bool _grabPhoto;
 
 	/// Flag indicating whether or not to grab when the KODI audio player is playing
-	const bool _grabAudio;
+	bool _grabAudio;
 
 	/// Flag indicating whether or not to grab when KODI is playing nothing (in menu)
-	const bool _grabMenu;
+	bool _grabMenu;
 
 	/// Flag indicating whether or not to grab when the KODI videoplayer is at pause state
-	const bool _grabPause;
+	bool _grabPause;
 	
 	/// Flag indicating whether or not to grab when the KODI screensaver is activated
-	const bool _grabScreensaver;
+	bool _grabScreensaver;
 
 	/// Flag indicating wheter or not to enable the detection of 3D movies playing
-	const bool _enable3DDetection;
+	bool _enable3DDetection;
 
 	/// Flag indicating if KODI is on screensaver
 	bool _previousScreensaverMode;
@@ -144,6 +153,9 @@ private:
 
 	/// Logger Instance
 	Logger * _log;
+	
+	/// flag indicating state
+	bool _active;
 
 	static KODIVideoChecker* _kodichecker;
 };

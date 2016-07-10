@@ -61,6 +61,7 @@ KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, b
 	, _previousVideoMode(VIDEO_2D)
 	, _kodiVersion(0)
 	, _log(Logger::getInstance("KODI"))
+	, _active(false)
 {
 	// setup socket
 	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
@@ -69,10 +70,49 @@ KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, b
 	connect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionError(QAbstractSocket::SocketError)));
 }
 
+KODIVideoChecker::~KODIVideoChecker()
+{
+	stop();
+}
+
+
+void KODIVideoChecker::setConfig(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+{
+	_address                 = QString::fromStdString(address);
+	_port                    = port;
+	_grabVideo               = grabVideo;
+	_grabPhoto               = grabPhoto;
+	_grabAudio               = grabAudio;
+	_grabMenu                = grabMenu;
+	_grabPause               = grabPause;
+	_grabScreensaver         = grabScreensaver;
+	_enable3DDetection       = enable3DDetection;
+	_previousScreensaverMode = false;
+	_previousGrabbingMode    = GRABBINGMODE_INVALID;
+	_previousVideoMode       = VIDEO_2D;
+	_kodiVersion             = 0;
+
+	// restart if active
+	if (_active)
+	{
+		stop();
+		QTimer::singleShot(2000, this, SLOT(()));
+	}
+}
+
+
 void KODIVideoChecker::start()
 {
 	Info(_log, "started");
+	_active = true;
 	reconnect();
+}
+
+void KODIVideoChecker::stop()
+{
+	Info(_log, "stopped");
+	_active = false;
+	_socket.close();
 }
 
 void KODIVideoChecker::receiveReply()
@@ -242,7 +282,7 @@ void KODIVideoChecker::disconnected()
 
 void KODIVideoChecker::reconnect()
 {
-	if (_socket.state() == QTcpSocket::ConnectedState)
+	if (_socket.state() == QTcpSocket::ConnectedState || ! _active )
 	{
 		return;
 	}
