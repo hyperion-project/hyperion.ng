@@ -21,7 +21,7 @@ public:
 	
 signals:	
 	///
-	/// Forwarding XBMC Video Checker Message
+	/// Forwarding KODI Video Checker Message
 	///
 	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);

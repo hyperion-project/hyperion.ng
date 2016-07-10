@@ -126,10 +126,10 @@
 		"mode" : "default"
 	},
 
-	"xbmcVideoChecker" : 
+	"kodiVideoChecker" : 
 	{
-		"xbmcAddress" : "localhost",
-		"xbmcTcpPort" : 9090,
+		"kodiAddress" : "localhost",
+		"kodiTcpPort" : 9090,
 		"grabVideo" : true,
 		"grabPictures" : true,
 		"grabAudio" : true,

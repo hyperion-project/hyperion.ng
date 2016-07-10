@@ -54,7 +54,7 @@ public slots:
 
 signals:
 	///
-	/// Forwarding XBMC Checker
+	/// Forwarding KODI Checker
 	///
 	void grabbingMode(const GrabbingMode mode);
 	void videoMode(const VideoMode VideoMode);

@@ -213,8 +213,8 @@
 	},
 
 	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields: 
-	///  * xbmcAddress       : The IP address of the Kodi-host
-	///  * xbmcTcpPort       : The TCP-port of the Kodi-server
+	///  * kodiAddress       : The IP address of the Kodi-host
+	///  * kodiTcpPort       : The TCP-port of the Kodi-server
 	///  * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback
 	///  * grabPictures      : Flag indicating that the frame-grabber is on(true) during picture show
 	///  * grabAudio         : Flag indicating that the frame-grabber is on(true) during audio playback
@@ -222,10 +222,10 @@
 	///  * grabPause         : Flag indicating that the frame-grabber is on(true) at player state "pause"
 	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when Kodi is on screensaver
 	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
- 	"xbmcVideoChecker" : 
+ 	"kodiVideoChecker" : 
  	{
- 		"xbmcAddress" : "127.0.0.1",
- 		"xbmcTcpPort" : 9090,
+ 		"kodiAddress" : "127.0.0.1",
+ 		"kodiTcpPort" : 9090,
  		"grabVideo" : true,
  		"grabPictures" : true,
  		"grabAudio" : true,

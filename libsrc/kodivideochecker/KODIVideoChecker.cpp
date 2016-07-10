@@ -3,23 +3,23 @@
 #include <QRegExp>
 #include <QStringRef>
 
-#include <xbmcvideochecker/XBMCVideoChecker.h>
+#include <kodivideochecker/KODIVideoChecker.h>
 
 
-XBMCVideoChecker* XBMCVideoChecker::_kodichecker = nullptr;
+KODIVideoChecker* KODIVideoChecker::_kodichecker = nullptr;
 
-XBMCVideoChecker* XBMCVideoChecker::initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+KODIVideoChecker* KODIVideoChecker::initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
 {
-	if ( XBMCVideoChecker::_kodichecker != nullptr )
-		throw std::runtime_error("XBMCVideoChecker::initInstance can be called only one time");
-	XBMCVideoChecker::_kodichecker = new XBMCVideoChecker(address, port, grabVideo, grabPhoto, grabAudio, grabMenu, grabPause, grabScreensaver, enable3DDetection);
+	if ( KODIVideoChecker::_kodichecker != nullptr )
+		throw std::runtime_error("KODIVideoChecker::initInstance can be called only one time");
+	KODIVideoChecker::_kodichecker = new KODIVideoChecker(address, port, grabVideo, grabPhoto, grabAudio, grabMenu, grabPause, grabScreensaver, enable3DDetection);
 
-	return XBMCVideoChecker::_kodichecker;
+	return KODIVideoChecker::_kodichecker;
 }
 
-XBMCVideoChecker* XBMCVideoChecker::getInstance()
+KODIVideoChecker* KODIVideoChecker::getInstance()
 {
-	return XBMCVideoChecker::_kodichecker;
+	return KODIVideoChecker::_kodichecker;
 }
 
 
@@ -39,27 +39,28 @@ XBMCVideoChecker* XBMCVideoChecker::getInstance()
 // {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
 // {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
 
-XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection) :
-	QObject(),
-	_address(QString::fromStdString(address)),
-	_port(port),
-	_activePlayerRequest(R"({"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666})"),
-	_currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})"),
-	_checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})"),
-	_getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})"),
-	_getXbmcVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":670})"),
-	_socket(),
-	_grabVideo(grabVideo),
-	_grabPhoto(grabPhoto),
-	_grabAudio(grabAudio),
-	_grabMenu(grabMenu),
-	_grabPause(grabPause),
-	_grabScreensaver(grabScreensaver),
-	_enable3DDetection(enable3DDetection),
-	_previousScreensaverMode(false),
-	_previousGrabbingMode(GRABBINGMODE_INVALID),
-	_previousVideoMode(VIDEO_2D),
-	_xbmcVersion(0)
+KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+	: QObject()
+	, _address(QString::fromStdString(address))
+	, _port(port)
+	, _activePlayerRequest(R"({"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666})")
+	, _currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})")
+	, _checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})")
+	, _getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})")
+	, _getKodiVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":670})")
+	, _socket()
+	, _grabVideo(grabVideo)
+	, _grabPhoto(grabPhoto)
+	, _grabAudio(grabAudio)
+	, _grabMenu(grabMenu)
+	, _grabPause(grabPause)
+	, _grabScreensaver(grabScreensaver)
+	, _enable3DDetection(enable3DDetection)
+	, _previousScreensaverMode(false)
+	, _previousGrabbingMode(GRABBINGMODE_INVALID)
+	, _previousVideoMode(VIDEO_2D)
+	, _kodiVersion(0)
+	, _log(Logger::getInstance("KODI"))
 {
 	// setup socket
 	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
@@ -68,17 +69,17 @@ XBMCVideoChecker::XBMCVideoChecker(const std::string & address, uint16_t port, b
 	connect(&_socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connectionError(QAbstractSocket::SocketError)));
 }
 
-void XBMCVideoChecker::start()
+void KODIVideoChecker::start()
 {
+	Info(_log, "started");
 	reconnect();
 }
 
-void XBMCVideoChecker::receiveReply()
+void KODIVideoChecker::receiveReply()
 {
 	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
 	QString reply(_socket.readAll());
-// silence - no "debug" code should be at the log
-//	std::cout << "KODICHECK INFO: Kodi Message: " << reply.toStdString() << std::endl;
+	Debug(_log, "message: %s", reply.toStdString().c_str());
 
 	if (reply.contains("\"method\":\"Player.OnPlay\""))
 	{
@@ -147,7 +148,7 @@ void XBMCVideoChecker::receiveReply()
 	}
 	else if (reply.contains("\"id\":667"))
 	{
-		if (_xbmcVersion >= 13)
+		if (_kodiVersion >= 13)
 		{
 			// check of active stereoscopicmode
 			_socket.write(_getStereoscopicMode.toUtf8());
@@ -182,12 +183,12 @@ void XBMCVideoChecker::receiveReply()
 		bool active = reply.contains("\"System.ScreenSaverActive\":true");
 		setScreensaverMode(!_grabScreensaver && active);
 
-		// check here xbmc version
+		// check here kodi version
 		if (_socket.state() == QTcpSocket::ConnectedState)
 		{
-			if (_xbmcVersion == 0)
+			if (_kodiVersion == 0)
 			{
-				_socket.write(_getXbmcVersion.toUtf8());
+				_socket.write(_getKodiVersion.toUtf8());
 			}
 		}
 	}
@@ -214,7 +215,7 @@ void XBMCVideoChecker::receiveReply()
 		int pos = regex.indexIn(reply);
 		if (pos > 0)
 		{
-			_xbmcVersion = regex.cap(1).toInt();
+			_kodiVersion = regex.cap(1).toInt();
 		}
 	}
 	else if (reply.contains("picture") && reply.contains("\"method\":\"Playlist.OnAdd\""))
@@ -224,33 +225,34 @@ void XBMCVideoChecker::receiveReply()
 	}
 }
 
-void XBMCVideoChecker::connected()
+void KODIVideoChecker::connected()
 {
-	std::cout << "KODICHECK INFO: Kodi Connected" << std::endl;
+	Info(_log, "Connected");
 
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
 	_socket.write(_checkScreensaverRequest.toUtf8());
 }
 
-void XBMCVideoChecker::disconnected()
+void KODIVideoChecker::disconnected()
 {
-	std::cout << "KODICHECK INFO: Kodi Disconnected" << std::endl;
+	Info(_log, "Disconnected");
 	reconnect();
 }
 
-void XBMCVideoChecker::reconnect()
+void KODIVideoChecker::reconnect()
 {
 	if (_socket.state() == QTcpSocket::ConnectedState)
 	{
 		return;
 	}
+	Debug(_log, "try reconnect");
 
 	// try to connect
 	switch (_socket.state())
 	{
 	case QTcpSocket::ConnectingState:
-		// Somehow when XBMC restarts we get stuck in connecting state
+		// Somehow when KODI restarts we get stuck in connecting state
 		// If we get here we tried to connect already for 5 seconds. abort and try again in 1 second.
 		_socket.reset();
 		_socket.waitForDisconnected(50);
@@ -266,15 +268,15 @@ void XBMCVideoChecker::reconnect()
 	}
 }
 
-void XBMCVideoChecker::connectionError(QAbstractSocket::SocketError error)
+void KODIVideoChecker::connectionError(QAbstractSocket::SocketError error)
 {
-	std::cout << "KODICHECK ERROR: Kodi Connection error (" << error << ")" << std::endl;
+	Error(_log,"Connection error (%s)", error);
 
 	// close the socket
 	_socket.close();
 }
 
-void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
+void KODIVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 {
 	if (newGrabbingMode == _previousGrabbingMode)
 	{
@@ -285,25 +287,25 @@ void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 	switch (newGrabbingMode)
 	{
 	case GRABBINGMODE_VIDEO:
-		std::cout << "KODICHECK INFO: switching to VIDEO mode" << std::endl;
+		Info(_log, "switching to VIDEO mode");
 		break;
 	case GRABBINGMODE_PHOTO:
-		std::cout << "KODICHECK INFO: switching to PHOTO mode" << std::endl;
+		Info(_log, "switching to PHOTO mode");
 		break;
 	case GRABBINGMODE_AUDIO:
-		std::cout << "KODICHECK INFO: switching to AUDIO mode" << std::endl;
+		Info(_log, "switching to AUDIO mode");
 		break;
 	case GRABBINGMODE_MENU:
-		std::cout << "KODICHECK INFO: switching to MENU mode" << std::endl;
+		Info(_log, "switching to MENU mode");
 		break;
 	case GRABBINGMODE_PAUSE:
-		std::cout << "KODICHECK INFO: switching to PAUSE mode" << std::endl;
+		Info(_log, "switching to PAUSE mode");
 		break;
 	case GRABBINGMODE_OFF:
-		std::cout << "KODICHECK INFO: switching to OFF mode" << std::endl;
+		Info(_log, "switching to OFF mode");
 		break;
-	case GRABBINGMODE_INVALID:
-		std::cout << "KODICHECK INFO: switching to INVALID mode" << std::endl;
+	default:
+		Warning(_log, "switching to INVALID mode");
 		break;
 	}
 
@@ -315,7 +317,7 @@ void XBMCVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 	_previousGrabbingMode = newGrabbingMode;
 }
 
-void XBMCVideoChecker::setScreensaverMode(bool isOnScreensaver)
+void KODIVideoChecker::setScreensaverMode(bool isOnScreensaver)
 {
 	if (isOnScreensaver == _previousScreensaverMode)
 	{
@@ -327,7 +329,7 @@ void XBMCVideoChecker::setScreensaverMode(bool isOnScreensaver)
 	_previousScreensaverMode = isOnScreensaver;
 }
 
-void XBMCVideoChecker::setVideoMode(VideoMode newVideoMode)
+void KODIVideoChecker::setVideoMode(VideoMode newVideoMode)
 {
 	if (newVideoMode == _previousVideoMode)
 	{
@@ -338,13 +340,13 @@ void XBMCVideoChecker::setVideoMode(VideoMode newVideoMode)
 	switch (newVideoMode)
 	{
 	case VIDEO_2D:
-		std::cout << "KODICHECK INFO: switching to 2D mode" << std::endl;
+		Info(_log, "KODICHECK INFO: switching to 2D mode");
 		break;
 	case VIDEO_3DSBS:
-		std::cout << "KODICHECK INFO: switching to 3D SBS mode" << std::endl;
+		Info(_log, "KODICHECK INFO: switching to 3D SBS mode");
 		break;
 	case VIDEO_3DTAB:
-		std::cout << "KODICHECK INFO: switching to 3D TAB mode" << std::endl;
+		Info(_log, "KODICHECK INFO: switching to 3D TAB mode");
 		break;
 	}
 
