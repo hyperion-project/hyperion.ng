@@ -120,9 +120,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig["rate"].asInt();
-		const unsigned ledcount  = deviceConfig.get("leds",0).asInt();
 
-		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate, ledcount);
+		LedDeviceAPA102* deviceAPA102 = new LedDeviceAPA102(output, rate);
 		deviceAPA102->open();
 
 		device = deviceAPA102;
@@ -148,12 +147,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 		device = deviceWs2812SPI;
 	}
-	else if (type == "sk6812spi")
+	else if (type == "sk6812rgbw-spi")
 	{
 		const std::string output = deviceConfig["output"].asString();
 		const unsigned rate      = deviceConfig.get("rate",2857143).asInt();
+		const std::string& whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
 
-		LedDeviceSk6812SPI* deviceSk6812SPI = new LedDeviceSk6812SPI(output, rate);
+		LedDeviceSk6812SPI* deviceSk6812SPI = new LedDeviceSk6812SPI(output, rate, whiteAlgorithm);
 		deviceSk6812SPI->open();
 
 		device = deviceSk6812SPI;

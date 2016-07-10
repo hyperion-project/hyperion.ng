@@ -251,8 +251,6 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleClearallCommand(message);
 	else if (command == "transform")
 		handleTransformCommand(message);
-	else if (command == "correction")
-		handleCorrectionCommand(message);
 	else if (command == "temperature")
 		handleTemperatureCommand(message);
 	else if (command == "adjustment")
@@ -398,26 +396,6 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		}
 	}
 	
-	// collect correction information
-	Json::Value & correctionArray = info["correction"];
-	for (const std::string& correctionId : _hyperion->getCorrectionIds())
-	{
-		const ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
-		if (colorCorrection == nullptr)
-		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color correction id: " << correctionId << std::endl;
-			continue;
-		}
-
-		Json::Value & correction = correctionArray.append(Json::Value());
-		correction["id"] = correctionId;
-		
-		Json::Value & corrValues = correction["correctionValues"];
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionR());
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionG());
-		corrValues.append(colorCorrection->_rgbCorrection.getcorrectionB());
-	}
-	
 	// collect temperature correction information
 	Json::Value & temperatureArray = info["temperature"];
 	for (const std::string& tempId : _hyperion->getTemperatureIds())
@@ -433,9 +411,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		temperature["id"] = tempId;
 		
 		Json::Value & tempValues = temperature["correctionValues"];
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionR());
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionG());
-		tempValues.append(colorTemp->_rgbCorrection.getcorrectionB());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentR());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentG());
+		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentB());
 	}
 
 
@@ -492,17 +470,17 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		adjustment["id"] = adjustmentId;
 
 		Json::Value & redAdjust = adjustment["redAdjust"];
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentR());
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentG());
-		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getadjustmentB());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
 		Json::Value & greenAdjust = adjustment["greenAdjust"];
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentR());
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentG());
-		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getadjustmentB());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
 		Json::Value & blueAdjust = adjustment["blueAdjust"];
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentR());
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentG());
-		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getadjustmentB());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
 	}
 
 	// collect effect info
@@ -706,32 +684,7 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	sendSuccessReply();
 }
 
-void JsonClientConnection::handleCorrectionCommand(const Json::Value &message)
-{
-	const Json::Value & correction = message["correction"];
 
-	const std::string correctionId = correction.get("id", _hyperion->getCorrectionIds().front()).asString();
-	ColorCorrection * colorCorrection = _hyperion->getCorrection(correctionId);
-	if (colorCorrection == nullptr)
-	{
-		//sendErrorReply(std::string("Incorrect correction identifier: ") + correctionId);
-		return;
-	}
-
-	if (correction.isMember("correctionValues"))
-	{
-		const Json::Value & values = correction["correctionValues"];
-		colorCorrection->_rgbCorrection.setcorrectionR(values[0u].asInt());
-		colorCorrection->_rgbCorrection.setcorrectionG(values[1u].asInt());
-		colorCorrection->_rgbCorrection.setcorrectionB(values[2u].asInt());
-	}
-	
-	// commit the changes
-	_hyperion->correctionsUpdated();
-
-	sendSuccessReply();
-}
-	
 void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 {
 	const Json::Value & temperature = message["temperature"];
@@ -747,9 +700,9 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 	if (temperature.isMember("correctionValues"))
 	{
 		const Json::Value & values = temperature["correctionValues"];
-		colorTemperature->_rgbCorrection.setcorrectionR(values[0u].asInt());
-		colorTemperature->_rgbCorrection.setcorrectionG(values[1u].asInt());
-		colorTemperature->_rgbCorrection.setcorrectionB(values[2u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentR(values[0u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentG(values[1u].asInt());
+		colorTemperature->_rgbCorrection.setAdjustmentB(values[2u].asInt());
 	}
 	
 	// commit the changes
@@ -773,25 +726,25 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 	if (adjustment.isMember("redAdjust"))
 	{
 		const Json::Value & values = adjustment["redAdjust"];
-		colorAdjustment->_rgbRedAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbRedAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbRedAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustmentB(values[2u].asInt());
 	}
 
 	if (adjustment.isMember("greenAdjust"))
 	{
 		const Json::Value & values = adjustment["greenAdjust"];
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbGreenAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustmentB(values[2u].asInt());
 	}
 
 	if (adjustment.isMember("blueAdjust"))
 	{
 		const Json::Value & values = adjustment["blueAdjust"];
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentR(values[0u].asInt());
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentG(values[1u].asInt());
-		colorAdjustment->_rgbBlueAdjustment.setadjustmentB(values[2u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentR(values[0u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].asInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].asInt());
 	}	
 	// commit the changes
 	_hyperion->adjustmentsUpdated();

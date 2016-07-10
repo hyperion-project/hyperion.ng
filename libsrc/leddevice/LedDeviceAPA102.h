@@ -17,11 +17,10 @@ public:
 	///
 	/// Constructs the LedDevice for a string containing leds of the type APA102
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
+	/// @param outputDevice The name of the output device (eg '/dev/spidev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceAPA102(const std::string& outputDevice,
-					const unsigned baudrate, const unsigned ledcount );
+	LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate );
 
 
 	///
@@ -39,7 +38,6 @@ private:
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
-	unsigned int _HW_ledcount;
 	unsigned int _mLedCount;
 
 };

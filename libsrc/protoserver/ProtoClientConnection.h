@@ -43,7 +43,7 @@ public:
 	
 public slots:
 	///
-	/// Send XBMC Video Checker message to connected client
+	/// Send KODI Video Checker message to connected client
 	///
 	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);

@@ -4,26 +4,27 @@
 // Utils includes
 #include <utils/RgbChannelTransform.h>
 
-RgbChannelTransform::RgbChannelTransform() :
-	_threshold(0),
-	_gamma(1.0),
-	_blacklevel(0.0),
-	_whitelevel(1.0)
+RgbChannelTransform::RgbChannelTransform()
 {
-	initializeMapping();
+	setTransform(0.0, 1.0, 0.0, 1.0);
 }
 
-RgbChannelTransform::RgbChannelTransform(double threshold, double gamma, double blacklevel, double whitelevel) :
-	_threshold(threshold),
-	_gamma(gamma),
-	_blacklevel(blacklevel),
-	_whitelevel(whitelevel)
+RgbChannelTransform::RgbChannelTransform(double threshold, double gamma, double blacklevel, double whitelevel)
 {
-	initializeMapping();
+	setTransform(threshold, gamma, blacklevel, whitelevel);
 }
 
 RgbChannelTransform::~RgbChannelTransform()
 {
+}
+
+void RgbChannelTransform::setTransform(double threshold, double gamma, double blacklevel, double whitelevel)
+{
+	_threshold  = threshold;
+	_gamma      = gamma;
+	_blacklevel = blacklevel;
+	_whitelevel = whitelevel;
+	initializeMapping();
 }
 
 double RgbChannelTransform::getThreshold() const
@@ -33,8 +34,7 @@ double RgbChannelTransform::getThreshold() const
 
 void RgbChannelTransform::setThreshold(double threshold)
 {
-	_threshold = threshold;
-	initializeMapping();
+	setTransform(threshold, _gamma, _blacklevel, _whitelevel);
 }
 
 double RgbChannelTransform::getGamma() const
@@ -44,8 +44,7 @@ double RgbChannelTransform::getGamma() const
 
 void RgbChannelTransform::setGamma(double gamma)
 {
-	_gamma = gamma;
-	initializeMapping();
+	setTransform(_threshold, gamma, _blacklevel, _whitelevel);
 }
 
 double RgbChannelTransform::getBlacklevel() const
@@ -55,8 +54,7 @@ double RgbChannelTransform::getBlacklevel() const
 
 void RgbChannelTransform::setBlacklevel(double blacklevel)
 {
-	_blacklevel = blacklevel;
-	initializeMapping();
+	setTransform(_threshold, _gamma, blacklevel, _whitelevel);
 }
 
 double RgbChannelTransform::getWhitelevel() const
@@ -66,8 +64,7 @@ double RgbChannelTransform::getWhitelevel() const
 
 void RgbChannelTransform::setWhitelevel(double whitelevel)
 {
-	_whitelevel = whitelevel;
-	initializeMapping();
+	setTransform(_threshold, _gamma, _blacklevel, whitelevel);
 }
 
 void RgbChannelTransform::initializeMapping()

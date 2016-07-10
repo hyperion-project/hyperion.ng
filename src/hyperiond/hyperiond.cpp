@@ -29,7 +29,7 @@
 HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MAIN"))
-	, _xbmcVideoChecker(nullptr)
+	, _kodiVideoChecker(nullptr)
 	, _jsonServer(nullptr)
 	, _protoServer(nullptr)
 	, _boblightServer(nullptr)
@@ -73,7 +73,7 @@ HyperionDaemon::~HyperionDaemon()
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _v4l2Grabber;
-	delete _xbmcVideoChecker;
+	delete _kodiVideoChecker;
 	delete _jsonServer;
 	delete _protoServer;
 	delete _boblightServer;
@@ -85,7 +85,7 @@ HyperionDaemon::~HyperionDaemon()
 void HyperionDaemon::run()
 {
 	startInitialEffect();
-	createXBMCVideoChecker();
+	createKODIVideoChecker();
 
 	// ---- network services -----
 	startNetworkServices();
@@ -193,31 +193,33 @@ void HyperionDaemon::startInitialEffect()
 }
 
 
-// create XBMC video checker if the _configuration is present
-void HyperionDaemon::createXBMCVideoChecker()
+// create KODI video checker if the _configuration is present
+void HyperionDaemon::createKODIVideoChecker()
 {
-	if (_config.isMember("xbmcVideoChecker"))
-	{
-		const Json::Value & videoCheckerConfig = _config["xbmcVideoChecker"];
-		_xbmcVideoChecker = XBMCVideoChecker::initInstance(
-			videoCheckerConfig["xbmcAddress"].asString(),
-			videoCheckerConfig["xbmcTcpPort"].asUInt(),
-			videoCheckerConfig["grabVideo"].asBool(),
-			videoCheckerConfig["grabPictures"].asBool(),
-			videoCheckerConfig["grabAudio"].asBool(),
-			videoCheckerConfig["grabMenu"].asBool(),
-			videoCheckerConfig.get("grabPause", true).asBool(),
-			videoCheckerConfig.get("grabScreensaver", true).asBool(),
-			videoCheckerConfig.get("enable3DDetection", true).asBool());
+	bool kodiCheckerConfigured = _config.isMember("kodiVideoChecker");
 
-		_xbmcVideoChecker->start();
-		Info(_log, "Kodi checker created and started");
+	const Json::Value & videoCheckerConfig = _config["kodiVideoChecker"];
+	_kodiVideoChecker = KODIVideoChecker::initInstance(
+		videoCheckerConfig.get("kodiAddress","127.0.0.1").asString(),
+		videoCheckerConfig.get("kodiTcpPort",9090).asUInt(),
+		videoCheckerConfig.get("grabVideo",true).asBool(),
+		videoCheckerConfig.get("grabPictures",true).asBool(),
+		videoCheckerConfig.get("grabAudio",true).asBool(),
+		videoCheckerConfig.get("grabMenu",false).asBool(),
+		videoCheckerConfig.get("grabPause", true).asBool(),
+		videoCheckerConfig.get("grabScreensaver", false).asBool(),
+		videoCheckerConfig.get("enable3DDetection", true).asBool());
+		Debug(_log, "KODI checker created ");
+
+	if( kodiCheckerConfigured && videoCheckerConfig.get("enable", true).asBool() )
+	{
+		_kodiVideoChecker->start();
 	}
 }
 
 void HyperionDaemon::startNetworkServices()
 {
-	XBMCVideoChecker* xbmcVideoChecker = XBMCVideoChecker::getInstance();
+	KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
 
 	// Create Json server if configuration is present
 	unsigned int jsonPort = 19444;
@@ -241,10 +243,10 @@ void HyperionDaemon::startNetworkServices()
 	}
 
 	_protoServer = new ProtoServer(protoPort );
-	if (xbmcVideoChecker != nullptr)
+	if (kodiVideoChecker != nullptr)
 	{
-		QObject::connect(xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _protoServer, SIGNAL(grabbingMode(GrabbingMode)));
-		QObject::connect(xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _protoServer, SIGNAL(videoMode(VideoMode)));
+		QObject::connect(kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _protoServer, SIGNAL(grabbingMode(GrabbingMode)));
+		QObject::connect(kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _protoServer, SIGNAL(videoMode(VideoMode)));
 	}
 	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
@@ -335,12 +337,8 @@ void HyperionDaemon::createGrabberDispmanx()
 					frameGrabberConfig.get("cropTop", 0).asInt(),
 					frameGrabberConfig.get("cropBottom", 0).asInt());
 
-		if (_xbmcVideoChecker != nullptr)
-		{
-			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
-		}
-
+		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
+		QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 		QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		_dispmanx->start();
@@ -359,30 +357,33 @@ void HyperionDaemon::createGrabberV4L2()
 	if (_config.isMember("grabber-v4l2"))
 	{
 		const Json::Value & grabberConfig = _config["grabber-v4l2"];
-		_v4l2Grabber = new V4L2Wrapper(
-					grabberConfig.get("device", "/dev/video0").asString(),
-					grabberConfig.get("input", 0).asInt(),
-					parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
-					parsePixelFormat(grabberConfig.get("pixelFormat", "no-change").asString()),
-					grabberConfig.get("width", -1).asInt(),
-					grabberConfig.get("height", -1).asInt(),
-					grabberConfig.get("frameDecimation", 2).asInt(),
-					grabberConfig.get("sizeDecimation", 8).asInt(),
-					grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
-					grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
-					grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
-					grabberConfig.get("priority", 900).asInt());
-		_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
-		_v4l2Grabber->setCropping(
-					grabberConfig.get("cropLeft", 0).asInt(),
-					grabberConfig.get("cropRight", 0).asInt(),
-					grabberConfig.get("cropTop", 0).asInt(),
-					grabberConfig.get("cropBottom", 0).asInt());
+		if (grabberConfig.get("enable", true).asBool())
+		{
+			_v4l2Grabber = new V4L2Wrapper(
+						grabberConfig.get("device", "/dev/video0").asString(),
+						grabberConfig.get("input", 0).asInt(),
+						parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
+						parsePixelFormat(grabberConfig.get("pixelFormat", "no-change").asString()),
+						grabberConfig.get("width", -1).asInt(),
+						grabberConfig.get("height", -1).asInt(),
+						grabberConfig.get("frameDecimation", 2).asInt(),
+						grabberConfig.get("sizeDecimation", 8).asInt(),
+						grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
+						grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
+						grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
+						grabberConfig.get("priority", 900).asInt());
+			_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
+			_v4l2Grabber->setCropping(
+						grabberConfig.get("cropLeft", 0).asInt(),
+						grabberConfig.get("cropRight", 0).asInt(),
+						grabberConfig.get("cropTop", 0).asInt(),
+						grabberConfig.get("cropBottom", 0).asInt());
 
-		QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+			QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-		_v4l2Grabber->start();
-		Info(_log, "V4L2 grabber created and started");
+			_v4l2Grabber->start();
+			Info(_log, "V4L2 grabber created and started");
+		}
 	}
 #else
 	ErrorIf(_config.isMember("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
@@ -402,12 +403,8 @@ void HyperionDaemon::createGrabberAmlogic()
 			grabberConfig["frequency_Hz"].asUInt(),
 			grabberConfig.get("priority",900).asInt());
 
-		if (_xbmcVideoChecker != nullptr)
-		{
-			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
-		}
-
+		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+		QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
 		QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		_amlGrabber->start();
@@ -433,12 +430,8 @@ void HyperionDaemon::createGrabberFramebuffer()
 			grabberConfig["frequency_Hz"].asUInt(),
 			grabberConfig.get("priority",900).asInt());
 
-		if (_xbmcVideoChecker != nullptr)
-		{
-			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
-		}
-
+		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+		QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
 		QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		_fbGrabber->start();
@@ -464,12 +457,8 @@ void HyperionDaemon::createGrabberOsx()
 									grabberConfig["frequency_Hz"].asUInt(),
 									grabberConfig.get("priority",900).asInt());
 
-		if (_xbmcVideoChecker != nullptr)
-		{
-			QObject::connect(_xbmcVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_xbmcVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
-		}
-		
+		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+		QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
 		QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 		_osxGrabber->start();

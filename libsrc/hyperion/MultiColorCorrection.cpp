@@ -3,6 +3,7 @@
 #include <cassert>
 
 // Hyperion includes
+#include <utils/Logger.h>
 #include "MultiColorCorrection.h"
 
 MultiColorCorrection::MultiColorCorrection(const unsigned ledCnt) :
@@ -40,16 +41,15 @@ void MultiColorCorrection::setCorrectionForLed(const std::string& id, const unsi
 
 bool MultiColorCorrection::verifyCorrections() const
 {
-	bool allLedsSet = true;
 	for (unsigned iLed=0; iLed<_ledCorrections.size(); ++iLed)
 	{
 		if (_ledCorrections[iLed] == nullptr)
 		{
-			std::cerr << "HYPERION (C.correction) ERROR: No correction set for " << iLed << std::endl;
-			allLedsSet = false;
+			Warning(Logger::getInstance("ColorCorrect"), "No adjustment set for %d", iLed);
+			return false;
 		}
 	}
-	return allLedsSet;
+	return true;
 }
 
 const std::vector<std::string> & MultiColorCorrection::getCorrectionIds()
@@ -72,12 +72,9 @@ ColorCorrection* MultiColorCorrection::getCorrection(const std::string& id)
 	return nullptr;
 }
 
-std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<ColorRgb>& rawColors)
+void MultiColorCorrection::applyCorrection(std::vector<ColorRgb>& ledColors)
 {
-	// Create a copy, as we will do the rest of the correction in place
-	std::vector<ColorRgb> ledColors(rawColors);
-
-	const size_t itCnt = std::min(_ledCorrections.size(), rawColors.size());
+	const size_t itCnt = std::min(_ledCorrections.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorCorrection * correction = _ledCorrections[i];
@@ -88,9 +85,8 @@ std::vector<ColorRgb> MultiColorCorrection::applyCorrection(const std::vector<Co
 		}
 		ColorRgb& color = ledColors[i];
 
-		color.red   = correction->_rgbCorrection.correctionR(color.red);
-		color.green = correction->_rgbCorrection.correctionG(color.green);
-		color.blue  = correction->_rgbCorrection.correctionB(color.blue);
+		color.red   = correction->_rgbCorrection.adjustmentR(color.red);
+		color.green = correction->_rgbCorrection.adjustmentG(color.green);
+		color.blue  = correction->_rgbCorrection.adjustmentB(color.blue);
 	}
-	return ledColors;
 }
