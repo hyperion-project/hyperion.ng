@@ -20,10 +20,11 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK),
 	_log(Logger::getInstance("UDPLISTENER")),
 	_isActive(false),
+	_listenPort(listenPort),
 	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
 {
 	_server = new QUdpSocket(this);
-	QHostAddress listenAddress = address.empty() 
+	_listenAddress = address.empty()
 	                           ? QHostAddress::AnyIPv4 
 	                           : QHostAddress( QString::fromStdString(address) );
 

@@ -252,12 +252,14 @@
 
 	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
 	/// 'proto' is mostly used for video streams and 'json' for effects 
+	///  * enable  	: Enable or disable the forwarder (true/false)
 	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
 	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
 	///  HINT:If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
 	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
  	"forwarder" : 
  	{
+		"enable" : false,
  		"proto" : ["127.0.0.1:19447"],
  		"json" : ["127.0.0.1:19446"]
  	},
