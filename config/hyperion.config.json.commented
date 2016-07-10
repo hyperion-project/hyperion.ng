@@ -258,6 +258,7 @@
 	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
  	"forwarder" : 
  	{
+		"enable" : false,
  		"proto" : ["127.0.0.1:19447"],
  		"json" : ["127.0.0.1:19446"]
  	},
