@@ -9,7 +9,7 @@
 		"name"       : "DefaultHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
-		"rate"     : 1000000,
+		"rate"       : 1000000,
 		"colorOrder" : "rgb"
 	},
 
@@ -22,21 +22,21 @@
 				"leds" : "*",
 				"pureRed" :
 				{
-					"redChannel"		: 255,
-					"greenChannel"		: 0,
-					"blueChannel"		: 0
+					"redChannel"   : 255,
+					"greenChannel" : 0,
+					"blueChannel"  : 0
 				},
 				"pureGreen" :
 				{
-					"redChannel"		: 0,
-					"greenChannel"		: 255,
-					"blueChannel"		: 0
+					"redChannel"   : 0,
+					"greenChannel" : 255,
+					"blueChannel"  : 0
 				},
 				"pureBlue" :
 				{
-					"redChannel"		: 0,
-					"greenChannel"		: 0,
-					"blueChannel"		: 255
+					"redChannel"   : 0,
+					"greenChannel" : 0,
+					"blueChannel"  : 255
 				}
 			}
 		],
@@ -47,9 +47,9 @@
 				"leds" : "*",
 				"correctionValues" :
 				{
-					"red" 	: 255,
-					"green"	: 255,
-					"blue" 	: 255
+					"red"   : 255,
+					"green" : 255,
+					"blue"  : 255
 				}
 			}
 		],
@@ -60,24 +60,24 @@
 				"leds" : "*",
 				"hsl" :
 				{
-					"saturationGain"	: 1.0000,
-					"luminanceGain"		: 1.0000,
-					"luminanceMinimum"	: 0.0000
+					"saturationGain"   : 1.0000,
+					"luminanceGain"    : 1.0000,
+					"luminanceMinimum" : 0.0000
 				},
 				"red" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				},
 				"green" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				},
 				"blue" :
 				{
-					"threshold" 	: 0.0000,
-					"gamma"     	: 2.5000
+					"threshold" : 0.0000,
+					"gamma"     : 2.5000
 				}
 			}
 		],
@@ -90,28 +90,28 @@
 		}
 	},
 	
-	"grabber-v4l2" : 
+	"grabber-v4l2" :
 	{
-		"enable" : false,
-		"device" : "/dev/video0",
-		"input" : 0,
+		"enable"   : false,
+		"device"   : "/dev/video0",
+		"input"    : 0,
 		"standard" : "PAL",
-		"width" : -1,
-		"height" : -1,
+		"width"    : -1,
+		"height"   : -1,
 		"frameDecimation" : 2,
-		"sizeDecimation" : 8,
-		"priority" : 900,
-		"mode" : "2D",
-		"cropLeft" : 15,
-		"cropRight" : 12,
-		"cropTop" : 5,
-		"cropBottom" : 5,
-		"redSignalThreshold" : 0.0,
+		"sizeDecimation"  : 8,
+		"priority"    : 900,
+		"mode"        : "2D",
+		"cropLeft"    : 15,
+		"cropRight"   : 12,
+		"cropTop"     : 5,
+		"cropBottom"  : 5,
+		"redSignalThreshold"   : 0.0,
 		"greenSignalThreshold" : 0.0,
-		"blueSignalThreshold" : 0.0
+		"blueSignalThreshold"  : 0.0
 	},
 
-	"framegrabber" : 
+	"framegrabber" :
 	{
 		"width" : 128,
 		"height" : 128,
@@ -119,86 +119,87 @@
 		"priority" : 890
 	},
 
-	"blackborderdetector" : 
+	"blackborderdetector" :
 	{
 		"enable" : true,
 		"threshold" : 0.0,
 		"mode" : "default"
 	},
 
-	"kodiVideoChecker" : 
+	"kodiVideoChecker" :
 	{
-		"kodiAddress" : "localhost",
-		"kodiTcpPort" : 9090,
-		"grabVideo" : true,
-		"grabPictures" : true,
-		"grabAudio" : true,
-		"grabMenu" : false,
-		"grabPause" : false,
-		"grabScreensaver" : true,
+		"enable"            : true,
+		"kodiAddress"       : "localhost",
+		"kodiTcpPort"       : 9090,
+		"grabVideo"         : true,
+		"grabPictures"      : true,
+		"grabAudio"         : true,
+		"grabMenu"          : false,
+		"grabPause"         : false,
+		"grabScreensaver"   : true,
 		"enable3DDetection" : true
 	},
 
-	"initialEffect" : 
+	"initialEffect" :
 	{
-        "background-effect" :  "Full color mood blobs",
-        "background-effect-args" : {},
-        "foreground-effect" : "Rainbow swirl fast",
-        "foreground-effect-args" : {},
-        "foreground-duration_ms" : 3000
+		"background-effect"      : "Full color mood blobs",
+		"background-effect-args" : {},
+		"foreground-effect"      : "Rainbow swirl fast",
+		"foreground-effect-args" : {},
+		"foreground-duration_ms" : 3000
 	},
 
-	"forwarder" : 
+	"forwarder" :
 	{
 		"enable" : false,
-		"json" : ["127.0.0.1:19446"],
-		"proto" : ["127.0.0.1:19447"]
+		"json"   : ["127.0.0.1:19446"],
+		"proto"  : ["127.0.0.1:19447"]
 	},
 
-	"jsonServer" : 
+	"jsonServer" :
 	{
 		"port" : 19444
 	},
 
-	"protoServer" : 
+	"protoServer" :
 	{
 		"port" : 19445
 	},
 	
     "boblightServer" :
 	{
-		"enable" : false,
-		"port" : 19333,
+		"enable"   : false,
+		"port"     : 19333,
 		"priority" : 800
 	},
 	
 	"udpListener" :
 	{
-		"enable" : false,
-		"address" : "239.255.28.01",
-		"port" : 2801,
+		"enable"   : false,
+		"address"  : "239.255.28.01",
+		"port"     : 2801,
 		"priority" : 800,
-		"timeout" : 10000,
-		"shared" : false
+		"timeout"  : 10000,
+		"shared"   : false
 	},
 
 	"webConfig" :
 	{
-    	"enable" : true,
-    	"document_root" : "/usr/share/hyperion/webconfig",
-    	"port" : 8099
+		"enable"        : true,
+		"document_root" : "/usr/share/hyperion/webconfig",
+		"port"          : 8099
 	},
 
-	"effects" : 
+	"effects" :
 	{
-		"paths" : 
+		"paths" :
 		[
 			"/storage/hyperion/effects",
 			"/usr/share/hyperion/effects"
 		]
 	},
-	
-	"leds" : 
+
+	"leds" :
 	[
 		{
 			"index" : 0,

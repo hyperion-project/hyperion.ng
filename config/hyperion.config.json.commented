@@ -29,13 +29,13 @@
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
 	///  * 'channelAdjustment'
-	///  * 'id'   : The unique identifier of the channel adjustments (eg 'device_1')
+	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
 	///  * 'temperature'
-	///  * 'id'   : The unique identifier of the temperature (eg 'device_1')
+	///  * 'id'     : The unique identifier of the temperature (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this temperature applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'red'/'green'/'blue' : The temperature manipulation in the Red-Green-Blue color domain with the 
@@ -141,7 +141,7 @@
 	},
 
 	/// Configuration for the embedded V4L2 grabber
-	///  * enable  	            : Enable or disable the v4lgrabber (true/false)
+	///  * enable               : Enable or disable the v4lgrabber (true/false)
 	///  * device               : V4L2 Device to use [default="/dev/video0"]
 	///  * input                : V4L2 input to use [default=0]
 	///  * standard             : Video standard (no-change/PAL/NTSC) [default="no-change"]
@@ -185,12 +185,12 @@
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
 	///   * priority     : The priority of the frame-gabber (Default=890) HINT: lower value result in HIGHER priority! 
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
-	"framegrabber" : 
+	"framegrabber" :
 	{
-		"width" : 64,
-		"height" : 64,
+		"width"        : 64,
+		"height"       : 64,
 		"frequency_Hz" : 10.0,
-		"priority" : 890
+		"priority"     : 890
 	},
 
 	/// The black border configuration, contains the following items: 
@@ -203,16 +203,17 @@
 	///  * mode               : Border detection mode (values=default,classic,osd)
 	"blackborderdetector" :
 	{
-		"enable" : true,
-		"threshold" : 0.0,
-		"unknownFrameCnt" : 600,
-		"borderFrameCnt" : 50,
+		"enable"             : true,
+		"threshold"          : 0.0,
+		"unknownFrameCnt"    : 600,
+		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
-		"blurRemoveCnt" : 1,
-		"mode" : "default"
+		"blurRemoveCnt"      : 1,
+		"mode"               : "default"
 	},
 
 	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields: 
+	///  * enable            : enable/disable Kodi-Checker
 	///  * kodiAddress       : The IP address of the Kodi-host
 	///  * kodiTcpPort       : The TCP-port of the Kodi-server
 	///  * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback
@@ -222,49 +223,50 @@
 	///  * grabPause         : Flag indicating that the frame-grabber is on(true) at player state "pause"
 	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when Kodi is on screensaver
 	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
- 	"kodiVideoChecker" : 
- 	{
- 		"kodiAddress" : "127.0.0.1",
- 		"kodiTcpPort" : 9090,
- 		"grabVideo" : true,
- 		"grabPictures" : true,
- 		"grabAudio" : true,
- 		"grabMenu" : false,
- 		"grabPause" : false,
-		"grabScreensaver" : true,
- 		"enable3DDetection" : true
- 	},
+	"kodiVideoChecker" : 
+	{
+		"enable"            : true,
+		"kodiAddress"       : "127.0.0.1",
+		"kodiTcpPort"       : 9090,
+		"grabVideo"         : true,
+		"grabPictures"      : true,
+		"grabAudio"         : true,
+		"grabMenu"          : false,
+		"grabPause"         : false,
+		"grabScreensaver"   : true,
+		"enable3DDetection" : true
+	},
 
 	/// Initial Effect sets a "booteffect" or "color" (foreground-effect) and optional set a "effect" or "color" during inactive grabbers and network receivers (background-effect) 
-	///  * background-effect		: 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * background-effect-args 	: Set optional effect arguments (Have a look at the select effect to get the possible values)
-	///  * foreground-effect		: 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * foreground-effect-args	: Set optional effect arguments (Have a look at the select effect to get the possible values)
-	///  * foreground-duration_ms	: The duration of the selected foreground-effect or color (0=endless)
-	///                   		HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
-	///                   		HINT: Set a empty value if you want to disable a component (example: "")
-	"initialEffect" : 
-    {
-        "background-effect" :  "Full color mood blobs",
-        "background-effect-args" : {},
-        "foreground-effect" : "Rainbow swirl fast",
-        "foreground-effect-args" : {},
-        "foreground-duration_ms" : 3000
-    },
+	///  * background-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
+	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * foreground-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
+	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * foreground-duration_ms : The duration of the selected foreground-effect or color (0=endless)
+	///                       HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
+	///                       HINT: Set a empty value if you want to disable a component (example: "")
+	"initialEffect" :
+	{
+		"background-effect"      : "Full color mood blobs",
+		"background-effect-args" : {},
+		"foreground-effect"      : "Rainbow swirl fast",
+		"foreground-effect-args" : {},
+		"foreground-duration_ms" : 3000
+	},
 
 	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
 	/// 'proto' is mostly used for video streams and 'json' for effects 
-	///  * enable  	: Enable or disable the forwarder (true/false)
+	///  * enable : Enable or disable the forwarder (true/false)
 	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
 	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
 	///  HINT:If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
 	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
- 	"forwarder" : 
- 	{
+	"forwarder" :
+	{
 		"enable" : false,
- 		"proto" : ["127.0.0.1:19447"],
- 		"json" : ["127.0.0.1:19446"]
- 	},
+		"proto"  : ["127.0.0.1:19447"],
+		"json"   : ["127.0.0.1:19446"]
+	},
 
 	/// The configuration of the Json server which enables the json remote interface
 	///  * port : Port at which the json server is started
@@ -281,31 +283,31 @@
 	},
 
 	/// The configuration of the boblight server which enables the boblight remote interface
-	///  * enable  	: Enable or disable the boblight server (true/false)
+	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
 	///  * priority : Priority of the boblight server (Default=800) HINT: lower value result in HIGHER priority! 
  	"boblightServer" :
  	{
- 		"enable" : false,
- 		"port" : 19333,
+ 		"enable"   : false,
+ 		"port"     : 19333,
  		"priority" : 800
  	},
 
 	/// The configuration of the udp listener
-	///  * enable  	: Enable or disable the udp listener (true/false)
-	///  * address 	: The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
-	///  * port   	: Port at which the udp listener starts
-	///  * priority	: Priority of the udp lstener server (Default=800)
-	///  * timeout	: The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
-	///  * shared	: If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
+	///  * enable   : Enable or disable the udp listener (true/false)
+	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
+	///  * port     : Port at which the udp listener starts
+	///  * priority : Priority of the udp lstener server (Default=800)
+	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
+	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
 	"udpListener" :
 	{
-		"enable" : false,
-		"address" : "239.255.28.01",
-		"port" : 2801,
+		"enable"   : false,
+		"address"  : "239.255.28.01",
+		"port"     : 2801,
 		"priority" : 800,
-		"timeout" : 10000,
-		"shared" : false
+		"timeout"  : 10000,
+		"shared"   : false
 	},
 
 	/// Configuration of the Hyperion webserver
@@ -314,9 +316,9 @@
 	///  * port          : the port where hyperion webapp is accasible
 	"webConfig" :
 	{
-		"enable" : true,
+		"enable"        : true,
 		"document_root" : "/usr/share/hyperion/webconfig",
-		"port" : 8099
+		"port"          : 8099
 	},
 
 	/// The configuration of the effect engine, contains the following items: 
