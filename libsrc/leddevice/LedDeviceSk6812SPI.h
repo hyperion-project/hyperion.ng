@@ -39,7 +39,7 @@ private:
 	size_t mLedCount;
 	std::vector<uint8_t> _spiBuffer;
 
-	uint8_t bitpair_to_byte[4];
 	std::string _whiteAlgorithm;
+	uint8_t bitpair_to_byte[4];
 	ColorRgbw _temp_rgbw;
 };
