@@ -20,7 +20,7 @@ ProtoServer::ProtoServer(uint16_t port) :
 
 	for (int i = 0; i < slaves.size(); ++i) {
 		if ( QString("127.0.0.1:%1").arg(port) == slaves.at(i) ) {
-			Error(_log, "Loop between proto server and forwarder detected. Fix your config!");
+			throw std::runtime_error("PROTOSERVER ERROR: Loop between proto server and forwarder detected. Fix your config!");
 		}
 
 		ProtoConnection* p = new ProtoConnection(slaves.at(i).toLocal8Bit().constData());
@@ -30,7 +30,7 @@ ProtoServer::ProtoServer(uint16_t port) :
 
 	if (!_server.listen(QHostAddress::Any, port))
 	{
-		Error(_log, "Could not bind to port");
+		throw std::runtime_error("PROTOSERVER ERROR: Could not bind to port");
 	}
 
 	// Set trigger for incoming connections

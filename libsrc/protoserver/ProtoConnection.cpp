@@ -213,11 +213,11 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 				{
 					if (reply.has_error())
 					{
-						Error(_log, "%s", reply.error().c_str());
+						throw std::runtime_error("PROTOCONNECTION ERROR: " + reply.error());
 					}
 					else
 					{
-						Error(_log, "No error info");
+						throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
 					}
 				}
 				else
