@@ -28,7 +28,7 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, con
 	_fbfd = open(_fbDevice.c_str(), O_RDONLY);
 	if (_fbfd == 0)
 	{
-		Error(_log, "Error openning %s", _fbDevice);
+		Error(_log, "Error openning %s", _fbDevice.c_str());
 	}
 	else 
 	{
