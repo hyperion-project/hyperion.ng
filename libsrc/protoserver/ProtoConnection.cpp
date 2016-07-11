@@ -156,11 +156,11 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 	  switch (_socket.state() )
 	  {
 		case QAbstractSocket::UnconnectedState:
-		  Info(_log, "No connection to Hyperion: &s:&d", _host.toStdString().c_str(), _port);
+		  Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 
 		case QAbstractSocket::ConnectedState:
-		  Info(_log, "Connected to Hyperion: &s:&d", _host.toStdString().c_str(), _port);
+		  Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 
 		default:
