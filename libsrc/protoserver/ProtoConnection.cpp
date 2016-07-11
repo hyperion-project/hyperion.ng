@@ -11,13 +11,13 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	_socket(),
 	_skipReply(false),
 	_prevSocketState(QAbstractSocket::UnconnectedState),
-	_log(Logger::getInstance("PROTOCON"))
+	_log(Logger::getInstance("PROTOCONNECTION"))
 	{
 	QString address(a.c_str());
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
-		Error(_log (QString"Wrong address: Unable to parse address (%1)").arg(address).toStdString().c_str());
+		throw std::runtime_error(QString("PROTOCONNECTION ERROR: Wrong address: Unable to parse address (%1)").arg(address).toStdString());
 	}
 	_host = parts[0];
 
@@ -25,7 +25,7 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	_port = parts[1].toUShort(&ok);
 	if (!ok)
 	{
-		Error(_log, "Wrong port: Unable to parse the port number (%1)", .arg(parts[1]).toStdString().c_str());
+		throw std::runtime_error(QString("PROTOCONNECTION ERROR: Wrong port: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
 	}
 
 	// try to connect to host

@@ -34,7 +34,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperi
 	_hyperion(hyperion),
 	_receiveBuffer(),
 	_webSocketHandshakeDone(false),
-	_log(Logger::getInstance("JSONCLIENTCON"))
+	_log(Logger::getInstance("JSONCLIENTCONNECTION"))
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
