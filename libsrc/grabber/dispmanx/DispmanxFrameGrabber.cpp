@@ -90,11 +90,7 @@ void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, un
 
 	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
 	{
-		Info(_log, "Cropping from image (width x height) %dx%d", _width, _height);
-		Info(_log, " left: %d", cropLeft);
-		Info(_log, " right: %d", cropRight);
-		Info(_log, " top: %d", cropTop);
-		Info(_log, " bottom: %d", cropBottom);
+		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
 }
 
