@@ -77,9 +77,6 @@ private:
 	/// hyperion priority
 	int _timeout;
 
-	/// The latest led color data
-	std::vector<ColorRgb> _ledColors;
-
 	/// Logger instance
 	Logger * _log;
 	
