@@ -11,7 +11,8 @@ ProtoServer::ProtoServer(uint16_t port) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
-	_openConnections()
+	_openConnections(),
+	_log(Logger::getInstance("PROTOSERVER"))
 {
 
 	MessageForwarder * forwarder = _hyperion->getForwarder();
@@ -57,7 +58,7 @@ void ProtoServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "PROTOSERVER INFO: New connection" << std::endl;
+		Debug(_log, "New connection");
 		ProtoClientConnection * connection = new ProtoClientConnection(socket, _hyperion);
 		_openConnections.insert(connection);
 
@@ -86,7 +87,7 @@ void ProtoServer::sendImageToProtoSlaves(int priority, const Image<ColorRgb> & i
 
 void ProtoServer::closedConnection(ProtoClientConnection *connection)
 {
-	std::cout << "PROTOSERVER INFO: Connection closed" << std::endl;
+	Debug(_log, "Connection closed");
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object

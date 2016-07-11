@@ -9,7 +9,8 @@ JsonServer::JsonServer(uint16_t port) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
-	_openConnections()
+	_openConnections(),
+	_log(Logger::getInstance("JSONSERVER"))
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
@@ -50,7 +51,7 @@ void JsonServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "JSONSERVER INFO: New connection" << std::endl;
+		Debug(_log, "New connection");
 		JsonClientConnection * connection = new JsonClientConnection(socket, _hyperion);
 		_openConnections.insert(connection);
 
@@ -61,7 +62,7 @@ void JsonServer::newConnection()
 
 void JsonServer::closedConnection(JsonClientConnection *connection)
 {
-	std::cout << "JSONSERVER INFO: Connection closed" << std::endl;
+	Debug(_log, "Connection closed");
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object

@@ -17,7 +17,6 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_openConnections(),
 	_priority(priority),
 	_timeout(timeout),
-	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK),
 	_log(Logger::getInstance("UDPLISTENER")),
 	_isActive(false),
 	_listenPort(listenPort),
@@ -104,11 +103,13 @@ void UDPListener::readPendingDatagrams()
 
 void UDPListener::processTheDatagram(const QByteArray * datagram)
 {
-	int packlen = datagram->size()/3;
-	int ledlen = _ledColors.size();
-	int maxled = std::min(packlen , ledlen);
+	int packetLedCount = datagram->size()/3;
+	int hyperionLedCount = Hyperion::getInstance()->getLedCount();
+	DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
 
-	for (int ledIndex=0; ledIndex < maxled; ledIndex++) {
+        std::vector<ColorRgb> _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK);
+
+	for (int ledIndex=0; ledIndex < std::min(packetLedCount, hyperionLedCount);  ledIndex++) {
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);

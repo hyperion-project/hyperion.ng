@@ -3,5 +3,5 @@
 	url = https://github.com/hyperion-project/protobuf.git
 [submodule "dependencies/external/rpi_ws281x"]
 	path = dependencies/external/rpi_ws281x
-	url = https://github.com/penfold42/rpi_ws281x.git
+	url = https://github.com/hyperion-project/rpi_ws281x.git
 	branch = sk6812
