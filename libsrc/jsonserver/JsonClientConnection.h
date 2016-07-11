@@ -15,6 +15,7 @@
 
 // util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
+#include <utils/Logger.h>
 
 class ImageProcessor;
 
@@ -194,4 +195,6 @@ private:
 	
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
+	
+	Logger * _log;
 };

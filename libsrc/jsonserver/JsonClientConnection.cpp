@@ -33,7 +33,8 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperi
 	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
 	_hyperion(hyperion),
 	_receiveBuffer(),
-	_webSocketHandshakeDone(false)
+	_webSocketHandshakeDone(false),
+	_log(Logger::getInstance("JSONCLIENTCON"))
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -167,7 +168,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		}
 	} else
 	{
-		std::cout << "JSONCLIENT INFO: Someone is sending very big messages over several frames... it's not supported yet" << std::endl;
+		Error(_log, "Someone is sending very big messages over several frames... it's not supported yet");
 		quint8 close[] = {0x88, 0};				
 		_socket->write((const char*)close, 2);
 		_socket->flush();
@@ -178,7 +179,7 @@ void JsonClientConnection::handleWebSocketFrame()
 void JsonClientConnection::doWebSocketHandshake()
 {
 	// http header, might not be a very reliable check...
-	std::cout << "Websocket handshake" << std::endl;
+	Debug(_log, "Websocket handshake");
 
 	// get the key to prepare an answer
 	int start = _receiveBuffer.indexOf("Sec-WebSocket-Key") + 19;
@@ -403,7 +404,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
 		if (colorTemp == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color temperature correction id: " << tempId << std::endl;
+			Error(_log, "Incorrect color temperature correction id: %s", tempId.c_str());
 			continue;
 		}
 
@@ -424,7 +425,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
 		if (colorTransform == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color transform id: " << transformId << std::endl;
+			Error(_log, "Incorrect color transform id: %s", transformId.c_str());
 			continue;
 		}
 
@@ -462,7 +463,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color adjustment id: " << adjustmentId << std::endl;
+			Error(_log, "Incorrect color adjustment id: %s", adjustmentId.c_str());
 			continue;
 		}
 
@@ -799,7 +800,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 	socket->write(serializedMessage.c_str());
 	if (!socket->waitForBytesWritten())
 	{
-		//std::cout << "Error while writing data to host" << std::endl;
+		Debug(_log, "Error while writing data to host");
 		return;
 	}
 
@@ -810,7 +811,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 		// receive reply
 		if (!socket->waitForReadyRead())
 		{
-			//std::cout << "Error while reading data from host" << std::endl;
+			Debug(_log, "Error while writing data from host");
 			return;
 		}
 
@@ -823,7 +824,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 	Json::Value reply;
 	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
 	{
-		//std::cout <<  "Error while parsing reply: invalid json" << std::endl;
+		Error(_log, "Error while parsing reply: invalid json");
 		return;
 	}
 
@@ -859,7 +860,7 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages())	;
+		Error(_log, "Schema error: %s", jsonReader.getFormattedErrorMessages().c_str());
 	}
 
 	// create schema checker

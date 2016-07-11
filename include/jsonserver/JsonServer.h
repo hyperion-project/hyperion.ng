@@ -9,6 +9,7 @@
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
+#include <utils/Logger.h>
 
 class JsonClientConnection;
 
@@ -56,4 +57,6 @@ private:
 
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
+	
+	Logger * _log;
 };
