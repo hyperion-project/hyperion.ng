@@ -30,7 +30,7 @@ ProtoServer::ProtoServer(uint16_t port) :
 
 	if (!_server.listen(QHostAddress::Any, port))
 	{
-		Error(_log "Could not bind to port: %d", port);
+		Error(_log, "Could not bind to port: %d", port);
 	}
 
 	// Set trigger for incoming connections
