@@ -17,7 +17,7 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
-		Error(_log, "Wrong address: Unable to parse address (%1)", .arg(address).toStdString().c_str());
+		Error(_log (QString"Wrong address: Unable to parse address (%1)").arg(address).toStdString().c_str());
 	}
 	_host = parts[0];
 

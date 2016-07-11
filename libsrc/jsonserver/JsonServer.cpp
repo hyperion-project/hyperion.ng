@@ -14,7 +14,7 @@ JsonServer::JsonServer(uint16_t port) :
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
-		Error(log, "Could not bind to port");
+		Error(_log, "Could not bind to port");
 	}
 
 		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
