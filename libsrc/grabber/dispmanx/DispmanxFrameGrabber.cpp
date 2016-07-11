@@ -18,7 +18,8 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	_cropTop(0),
 	_cropBottom(0),
 	_captureBuffer(new ColorRgba[0]),
-	_captureBufferSize(0)
+	_captureBufferSize(0),
+	_log(Logger::getInstance("DISPMANXGRABBER"))
 {
 	// Initiase BCM
 	bcm_host_init();
@@ -35,7 +36,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 		// Keep compiler happy in 'release' mode
 		(void)result;
 		assert(result == 0);
-		std::cout << "DISPMANXGRABBER INFO: Display opened with resolution: " << vc_info.width << "x" << vc_info.height << std::endl;
+		Info(_log, "Display opened with resolution: %dx%d", vc_info.width, vc_info.height);
 
 		// Close the displaye
 		vc_dispmanx_display_close(_vc_display);
@@ -79,13 +80,7 @@ void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, un
 {
 	if (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height)
 	{
-		std::cout
-			<< "DISPMANXGRABBER ERROR: Rejecting invalid crop values"
-			<< " left: " << cropLeft
-			<< " right: " << cropRight
-			<< " top: " << cropTop
-			<< " bottom: " << cropBottom
-			<< std::endl;
+		Error(_log, "Rejecting invalid crop values\n left: %d\n right: %d\n top: %d\n bottom: %d", cropLeft, cropRight, cropTop, cropBottom);
 		return;
 	}
 	_cropLeft = cropLeft;
@@ -95,13 +90,7 @@ void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, un
 
 	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
 	{
-		std::cout
-			<< "DISPMANXGRABBER INFO: Cropping " << _width << "x" << _height << " image"
-			<< " left: " << cropLeft
-			<< " right: " << cropRight
-			<< " top: " << cropTop
-			<< " bottom: " << cropBottom
-			<< std::endl;
+		Info(_log, "Cropping %dx%d\n left: %d\n right: %d\n top: %d\n bottom: %d", _widht, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
 }
 
@@ -151,7 +140,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	_vc_display = vc_dispmanx_display_open(0);
 	if (_vc_display < 0)
 	{
-		std::cout << "DISPMANXGRABBER ERROR: Cannot open display: " << _vc_display << std::endl;
+		Error(_log, "Cannot open display: %d", _vc_display);
 		return;
 	}
 
@@ -159,7 +148,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	ret = vc_dispmanx_snapshot(_vc_display, _vc_resource, (DISPMANX_TRANSFORM_T) _vc_flags);
 	if (ret < 0)
 	{
-		std::cout << "DISPMANXGRABBER ERROR: Snapshot failed: " << ret << std::endl;
+		Error(log, "Snapshot failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
 		return;
 	}
@@ -193,7 +182,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	ret = vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, capturePtr, capturePitch);
 	if (ret < 0)
 	{
-		std::cout << "DISPMANXGRABBER ERROR: vc_dispmanx_resource_read_data failed: " << ret << std::endl;
+		Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
 		return;
 	}
