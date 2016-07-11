@@ -90,7 +90,7 @@ void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, un
 
 	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
 	{
-		Info(_log, "Cropping %dx%d\n left: %d\n right: %d\n top: %d\n bottom: %d", _widht, _height, cropLeft, cropRight, cropTop, cropBottom);
+		Info(_log, "Cropping %dx%d\n left: %d\n right: %d\n top: %d\n bottom: %d", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
 }
 
@@ -148,7 +148,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	ret = vc_dispmanx_snapshot(_vc_display, _vc_resource, (DISPMANX_TRANSFORM_T) _vc_flags);
 	if (ret < 0)
 	{
-		Error(log, "Snapshot failed: %d", ret);
+		Error(_log, "Snapshot failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
 		return;
 	}
