@@ -299,7 +299,7 @@ void HyperionDaemon::startNetworkServices()
 					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
 					_udpListener->getPort()
 					);
-		Info(_log, "UDP LIstener mDNS responder started");
+		Debug(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
@@ -308,7 +308,7 @@ void HyperionDaemon::startNetworkServices()
 				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
 				_jsonServer->getPort()
 				);
-	Info(_log, "Json mDNS responder started");
+	Debug(_log, "Json mDNS responder started");
 
 	// zeroconf proto
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
@@ -316,7 +316,7 @@ void HyperionDaemon::startNetworkServices()
 				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-proto._tcp", QString()),
 				_protoServer->getPort()
 				);
-	Info(_log, "Proto mDNS responder started");
+	Debug(_log, "Proto mDNS responder started");
 }
 
 void HyperionDaemon::createGrabberDispmanx()

@@ -17,6 +17,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
+#include <utils/Logger.h>
 
 // forward decl
 class ProtoClientConnection;
@@ -86,5 +87,6 @@ private:
 
 	/// Hyperion proto connection object for forwarding
 	QList<ProtoConnection*> _proxy_connections;
-
+	
+	Logger * _log;
 };

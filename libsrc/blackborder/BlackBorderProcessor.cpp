@@ -20,7 +20,7 @@ BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig)
 	, _consistentCnt(0)
 	, _inconsistentCnt(10)
 {
-	Info(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
+	Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
 }
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
