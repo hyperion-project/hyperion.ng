@@ -11,6 +11,7 @@
 #include "AmlogicWrapper.h"
 
 #include "HyperionConfig.h"
+#include <utils/Logger.h>
 
 
 using namespace vlofgren;
@@ -68,7 +69,8 @@ int main(int argc, char ** argv)
 		int height = argHeight.getValue();
 		if (width < 160 || height < 160)
 		{
-			std::cout << "Minimum width and height is 160" << std::endl;
+			Warning(Logger::getInstance("AMLOGIC"), "Minimum width and height is 160");
+
 			width  = std::max(160, width);
 			height = std::max(160, height);
 		}
@@ -100,7 +102,7 @@ int main(int argc, char ** argv)
 	catch (const std::runtime_error & e)
 	{
 		// An error occured. Display error and quit
-		std::cerr << e.what() << std::endl;
+		Error(Logger::getInstance("AMLOGIC"), "%s", e.what());
 		return -1;
 	}
 	return 0;
