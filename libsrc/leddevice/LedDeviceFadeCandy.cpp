@@ -6,14 +6,16 @@ static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
-LedDeviceFadeCandy::LedDeviceFadeCandy(const std::string& host, const uint16_t port, const unsigned channel) :
-	_host(host), _port(port), _channel(channel)
+LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
 {
+	setConfig(deviceConfig);
 	_opc_data.resize( OPC_HEADER_SIZE );
-	_opc_data[0] = channel;
+	_opc_data[0] = _channel;
 	_opc_data[1] = OPC_SET_PIXELS;
 	_opc_data[2] = 0;
 	_opc_data[3] = 0;
+	
+	
 }
 
 
@@ -22,6 +24,31 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 	_client.close();
 }
 
+bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
+{
+	_host      = deviceConfig.get("output", "127.0.0.1").asString();
+	_port      = deviceConfig.get("port", 7890).asInt();
+	_channel   = deviceConfig.get("channel", 0).asInt();
+	_gamma     = deviceConfig.get("gamma", 1.0).asDouble();
+	_noDither  = ! deviceConfig.get("dither", false).asBool();
+	_noInterp  = ! deviceConfig.get("interpolation", false).asBool();
+	_manualLED = deviceConfig.get("manualLed", false).asBool();
+	_ledOnOff  = deviceConfig.get("ledOn", false).asBool();
+
+	_whitePoint_r = 1.0;
+	_whitePoint_g = 1.0;
+	_whitePoint_b = 1.0;
+
+	const Json::Value whitePointConfig = deviceConfig["whitePoint"];
+	if ( whitePointConfig.isArray() && whitePointConfig.size() == 3 )
+	{
+		_whitePoint_r = whitePointConfig[0].asDouble();
+		_whitePoint_g = whitePointConfig[1].asDouble();
+		_whitePoint_b = whitePointConfig[2].asDouble();
+	}
+
+	return true;
+}
 
 bool LedDeviceFadeCandy::isConnected()
 {
@@ -35,7 +62,7 @@ bool LedDeviceFadeCandy::tryConnect()
 		_client.connectToHost( _host.c_str(), _port);
 		if ( _client.waitForConnected(1000) )
 		{
-			setFirmwareConfig(false,false,true,false);
+			sendFadeCandyConfiguration();
 			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
 		}
 	}
@@ -98,7 +125,8 @@ int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArra
 	{
 		QByteArray sysExData;
 		ssize_t data_size = msg.size() + 4;
-		sysExData.resize( data_size + OPC_HEADER_SIZE );
+		sysExData.resize( 4 + OPC_HEADER_SIZE );
+
 		sysExData[0] = 0;
 		sysExData[1] = OPC_SYS_EX;
 		sysExData[2] = data_size >>8;
@@ -109,19 +137,17 @@ int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArra
 		sysExData[7] = commandId &0xff;
 
 		sysExData += msg;
+
 		return _client.write( sysExData, sysExData.size() );
 	}
 	return -1;
 }
 
-void LedDeviceFadeCandy::setGlobalColorCorrection(double gamma, double r, double g, double b)
+void LedDeviceFadeCandy::sendFadeCandyConfiguration()
 {
-	QString data = "{'gamma': "+QString::number(gamma,'g',4)+", 'whitepoint': ["+QString::number(r,'g',4)+", "+QString::number(g,'g',4)+", "+QString::number(b,'g',4)+"]}";
+	QString data = "{\"gamma\": "+QString::number(_gamma,'g',4)+", \"whitepoint\": ["+QString::number(_whitePoint_r,'g',4)+", "+QString::number(_whitePoint_g,'g',4)+", "+QString::number(_whitePoint_b,'g',4)+"]}";
 	sendSysEx(1, 1, data.toLocal8Bit() );
-}
 
-void LedDeviceFadeCandy::setFirmwareConfig(bool noDither, bool noInterp, bool manualLED, bool ledOnOff)
-{
-	char data = ((uint8_t)noDither | ((uint8_t)noInterp << 1) | ((uint8_t)manualLED << 2) | ((uint8_t)ledOnOff << 3) );
-	sendSysEx(1, 2, QByteArray(1,data) );
+	char firmware_data = ((uint8_t)_noDither | ((uint8_t)_noInterp << 1) | ((uint8_t)_manualLED << 2) | ((uint8_t)_ledOnOff << 3) );
+	sendSysEx(1, 2, QByteArray(1,firmware_data) );
 }

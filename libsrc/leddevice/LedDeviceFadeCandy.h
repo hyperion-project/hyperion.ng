@@ -7,6 +7,7 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
+#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for sending to
@@ -20,15 +21,38 @@ public:
 	///
 	/// Constructs the LedDevice for fadecandy/opc server
 	///
-	/// @param host The ip address/host name of fadecandy/opc server
-	/// @param port The port to use (fadecandy default is 7890)
+	/// following code shows all config options
+	/// @code
+	/// "device" :
+	/// {
+	/// 	"name"          : "MyPi",
+	/// 	"type"          : "fadecandy",
+	/// 	"output"        : "localhost",
+	/// 	"colorOrder"    : "rgb",
+	/// 	"gamma"         : 1.0,
+	/// 	"whitepoint"    : [1.0, 1.0, 1.0],
+	/// 	"dither"        : false,
+	/// 	"interpolation" : false,
+	/// 	"manualLed"     : false,
+	/// 	"ledOn"         : false
+	/// }, 
+	///@endcode
 	///
-	LedDeviceFadeCandy(const std::string& host, const uint16_t port, const unsigned channel);
+	/// @param deviceConfig json config for fadecandy
+	///
+	LedDeviceFadeCandy(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
 	///
 	virtual ~LedDeviceFadeCandy();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -43,11 +67,21 @@ public:
 
 
 private:
-	QTcpSocket        _client;
-	const std::string _host;
-	const uint16_t    _port;
-	const unsigned    _channel;
-	QByteArray        _opc_data;
+	QTcpSocket  _client;
+	std::string _host;
+	uint16_t    _port;
+	unsigned    _channel;
+	QByteArray  _opc_data;
+
+	// fadecandy sysEx
+	double      _gamma;
+	double      _whitePoint_r;
+	double      _whitePoint_g;
+	double      _whitePoint_b;
+	bool        _noDither;
+	bool        _noInterp;
+	bool        _manualLED;
+	bool        _ledOnOff;
 
 	/// try to establish connection to opc server, if not connected yet
 	///
@@ -61,17 +95,21 @@ private:
 	///
 	bool isConnected();
 
-
 	/// transfer current opc_data buffer to opc server
 	///
 	/// @return amount of transfered bytes. -1 error while transfering, -2 error while connecting
 	///
 	int transferData();
 	
+	/// send system exclusive commands
+	///
+	/// @param systemId fadecandy device identifier (for standard fadecandy always: 1)
+	/// @param commandId id of command
+	/// @param msg the sysEx message
+	/// @return amount bytes written, -1 if fail
 	int sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg);
 
-	void setGlobalColorCorrection(double gamma, double r=1.0, double g=1.0, double b=1.0);
+	/// sends the configuration to fcserver
+	void sendFadeCandyConfiguration();
 
-	void setFirmwareConfig(bool noDither, bool noInterp, bool manualLED, bool ledOnOff);
-	
 };
