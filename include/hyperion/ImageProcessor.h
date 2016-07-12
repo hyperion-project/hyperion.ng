@@ -119,7 +119,7 @@ private:
 	{
 		if(_enableBlackBorderRemoval && _borderProcessor->process(image))
 		{
-			Info(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
+			Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
 
 			const hyperion::BlackBorder border = _borderProcessor->getCurrentBorder();
 
@@ -137,7 +137,7 @@ private:
 				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, _ledString.leds());
 			}
 
-			Info(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d", 
+			Debug(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d", 
 				border.unknown, border.horizontalSize, border.verticalSize );
 		}
 	}
