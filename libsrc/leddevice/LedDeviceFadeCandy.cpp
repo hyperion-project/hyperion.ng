@@ -2,6 +2,7 @@
 
 static const signed MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
 static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
+static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
@@ -33,7 +34,10 @@ bool LedDeviceFadeCandy::tryConnect()
 	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
 		_client.connectToHost( _host.c_str(), _port);
 		if ( _client.waitForConnected(1000) )
+		{
+			setFirmwareConfig(false,false,true,false);
 			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
+		}
 	}
 
 	return isConnected();
@@ -88,3 +92,36 @@ int LedDeviceFadeCandy::switchOff()
 	return ( transferData()<0 ? -1 : 0 );
 }
 
+int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg)
+{
+	if ( isConnected() )
+	{
+		QByteArray sysExData;
+		ssize_t data_size = msg.size() + 4;
+		sysExData.resize( data_size + OPC_HEADER_SIZE );
+		sysExData[0] = 0;
+		sysExData[1] = OPC_SYS_EX;
+		sysExData[2] = data_size >>8;
+		sysExData[3] = data_size &0xff;
+		sysExData[4] = systemId >>8;
+		sysExData[5] = systemId &0xff;
+		sysExData[6] = commandId >>8;
+		sysExData[7] = commandId &0xff;
+
+		sysExData += msg;
+		return _client.write( sysExData, sysExData.size() );
+	}
+	return -1;
+}
+
+void LedDeviceFadeCandy::setGlobalColorCorrection(double gamma, double r, double g, double b)
+{
+	QString data = "{'gamma': "+QString::number(gamma,'g',4)+", 'whitepoint': ["+QString::number(r,'g',4)+", "+QString::number(g,'g',4)+", "+QString::number(b,'g',4)+"]}";
+	sendSysEx(1, 1, data.toLocal8Bit() );
+}
+
+void LedDeviceFadeCandy::setFirmwareConfig(bool noDither, bool noInterp, bool manualLED, bool ledOnOff)
+{
+	char data = ((uint8_t)noDither | ((uint8_t)noInterp << 1) | ((uint8_t)manualLED << 2) | ((uint8_t)ledOnOff << 3) );
+	sendSysEx(1, 2, QByteArray(1,data) );
+}

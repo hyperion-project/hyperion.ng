@@ -68,4 +68,10 @@ private:
 	///
 	int transferData();
 	
+	int sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg);
+
+	void setGlobalColorCorrection(double gamma, double r=1.0, double g=1.0, double b=1.0);
+
+	void setFirmwareConfig(bool noDither, bool noInterp, bool manualLED, bool ledOnOff);
+	
 };
