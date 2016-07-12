@@ -8,6 +8,7 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/LedString.h>
 #include <hyperion/ImageToLedsMap.h>
+#include <utils/Logger.h>
 
 // Black border includes
 #include <blackborder/BlackBorderProcessor.h>
@@ -118,7 +119,7 @@ private:
 	{
 		if(_enableBlackBorderRemoval && _borderProcessor->process(image))
 		{
-			std::cout << "BORDER SWITCH REQUIRED!!" << std::endl;
+			Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
 
 			const hyperion::BlackBorder border = _borderProcessor->getCurrentBorder();
 
@@ -136,7 +137,8 @@ private:
 				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, _ledString.leds());
 			}
 
-			std::cout << "CURRENT BORDER TYPE: unknown=" << border.unknown << " hor.size=" << border.horizontalSize << " vert.size=" << border.verticalSize << std::endl;
+			Debug(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d", 
+				border.unknown, border.horizontalSize, border.verticalSize );
 		}
 	}
 

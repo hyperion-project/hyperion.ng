@@ -1,6 +1,5 @@
 
 // STL includes
-#include <cerrno>
 #include <cstring>
 #include <csignal>
 
