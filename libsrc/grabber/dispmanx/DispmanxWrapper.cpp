@@ -1,5 +1,4 @@
 // QT includes
-#include <QDebug>
 #include <QDateTime>
 
 // Hyperion includes

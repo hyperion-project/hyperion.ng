@@ -164,7 +164,7 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 		  break;
 
 		default:
-		  //std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+		  Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 	  }
 	  _prevSocketState = _socket.state();

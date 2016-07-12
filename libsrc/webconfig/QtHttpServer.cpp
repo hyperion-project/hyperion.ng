@@ -7,7 +7,6 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QHostAddress>
-#include <QDebug>
 
 const QString & QtHttpServer::HTTP_VERSION = QStringLiteral ("HTTP/1.1");
 
