@@ -532,9 +532,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		} ))
 	    {
 		// check if LED Color not Black (0,0,0)
-		if ((priorityInfo.ledColors.begin()->red != 0) &&
-		(priorityInfo.ledColors.begin()->green != 0) &&
-		(priorityInfo.ledColors.begin()->blue != 0))
+		if ((priorityInfo.ledColors.begin()->red +
+		priorityInfo.ledColors.begin()->green +
+		priorityInfo.ledColors.begin()->blue != 0))
 		{
 			// add RGB Value to Array
 			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->red);
