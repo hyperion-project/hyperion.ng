@@ -138,11 +138,7 @@
 			"enable"           : true,
 			"type"             : "linear",
 			"time_ms"          : 200,
-<<<<<<< HEAD
-			"updateFrequency"  : 20.0000,
-=======
 			"updateFrequency"  : 25.0000,
->>>>>>> upstream/master
 			"updateDelay"      : 0,
 			"continuousOutput" : true
 		}
