@@ -42,7 +42,8 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	_currentFrame(0),
 	_noSignalCounter(0),
 	_streamNotifier(nullptr),
-	_imageResampler()
+	_imageResampler(),
+	_log(Logger::getInstance("V4L2GRABBER"))
 {
 	_imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
 	_imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
@@ -76,7 +77,7 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
 	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
 
-	std::cout << "V4L2GRABBER INFO: signal threshold set to: " << _noSignalThresholdColor << std::endl;
+	Info(_log, "Signal threshold set to: %d", _noSignalThresholdColor);
 }
 
 void V4L2Grabber::start()
@@ -85,7 +86,7 @@ void V4L2Grabber::start()
 	{
 		_streamNotifier->setEnabled(true);
 		start_capturing();
-		std::cout << "V4L2GRABBER INFO: started" << std::endl;
+		Info(_log, "Started");
 	}
 }
 
@@ -95,7 +96,7 @@ void V4L2Grabber::stop()
 	{
 		stop_capturing();
 		_streamNotifier->setEnabled(false);
-		std::cout << "V4L2GRABBER INFO: stopped" << std::endl;
+		Info(_log, "Stopped");
 	}
 }
 
@@ -411,8 +412,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	_width = fmt.fmt.pix.width;
 	_height = fmt.fmt.pix.height;
 
-	// print the eventually used width and height
-	std::cout << "V4L2GRABBER INFO: width=" << _width << " height=" << _height << std::endl;
+	// display the used width and height
+	Info(Logger::getInstance("V4l2GRABBER"), "width=%d height=%d", _width, _height );
+
 
 	// check pixel format and frame size
 	switch (fmt.fmt.pix.pixelformat)
@@ -420,17 +422,17 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	case V4L2_PIX_FMT_UYVY:
 		_pixelFormat = PIXELFORMAT_UYVY;
 		_frameByteSize = _width * _height * 2;
-		std::cout << "V4L2GRABBER INFO: pixel format=UYVY" << std::endl;
+		Debug(_log, "Pixel format=UYVY");
 		break;
 	case V4L2_PIX_FMT_YUYV:
 		_pixelFormat = PIXELFORMAT_YUYV;
 		_frameByteSize = _width * _height * 2;
-		std::cout << "V4L2GRABBER INFO: pixel format=YUYV" << std::endl;
+		Debug(_log, "Pixel format=YUYV");
 		break;
 	case V4L2_PIX_FMT_RGB32:
 		_pixelFormat = PIXELFORMAT_RGB32;
 		_frameByteSize = _width * _height * 4;
-		std::cout << "V4L2GRABBER INFO: pixel format=RGB32" << std::endl;
+		Debug(_log, "Pixel format=RGB32");
 		break;
 	default:
 		throw_exception("V4L2GRABBER ERROR: Only pixel formats UYVY, YUYV, and RGB32 are supported");
@@ -653,7 +655,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 		if (size != _frameByteSize)
 		{
-			std::cout << "V4L2GRABBER ERROR: Frame too small: " << size << " != " << _frameByteSize << std::endl;
+			Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 		}
 		else
 		{
@@ -694,7 +696,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	{
 		if (_noSignalCounter >= _noSignalCounterThreshold)
 		{
-			std::cout << "V4L2GRABBER INFO: " << "Signal detected" << std::endl;
+			Info(_log, "Signal detected");
 		}
 
 		_noSignalCounter = 0;
@@ -706,7 +708,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	}
 	else if (_noSignalCounter == _noSignalCounterThreshold)
 	{
-		std::cout << "V4L2GRABBER INFO: " << "Signal lost" << std::endl;
+		Info(_log, "Signal lost");
 	}
 }
 

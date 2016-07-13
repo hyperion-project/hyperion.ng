@@ -14,6 +14,7 @@
 #include <utils/PixelFormat.h>
 #include <utils/VideoMode.h>
 #include <utils/ImageResampler.h>
+#include <utils/Logger.h>
 
 // grabber includes
 #include <grabber/VideoStandard.h>
@@ -122,4 +123,6 @@ private:
 	QSocketNotifier * _streamNotifier;
 
 	ImageResampler _imageResampler;
+	
+	Logger * _log;
 };

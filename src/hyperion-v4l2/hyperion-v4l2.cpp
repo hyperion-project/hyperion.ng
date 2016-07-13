@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 	catch (const std::runtime_error & e)
 	{
 		// An error occured. Display error and quit
-		std::cerr << e.what() << std::endl;
+                Error(Logger::getInstance("V4L2GRABBER"), "%s", e.what());
 		return 1;
 	}
 

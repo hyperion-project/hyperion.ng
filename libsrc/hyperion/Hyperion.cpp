@@ -482,28 +482,34 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 
 LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
 {
+	Logger * log = Logger::getInstance("Core");
 	std::string type = smoothingConfig.get("type", "none").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	if ( ! smoothingConfig.get("enable", true).asBool() )
+	{
+		Info(log,"Smoothing disabled in config");
+		return ledDevice;
+	}
 	if (type == "none")
 	{
-		std::cout << "HYPERION INFO: Not creating any smoothing" << std::endl;
+		Info(log, "Smoothing set to none");
 		return ledDevice;
 	}
 	else if (type == "linear")
 	{
 		if (!smoothingConfig.isMember("time_ms"))
 		{
-			std::cout << "HYPERION ERROR: Unable to create smoothing of type linear because of missing parameter 'time_ms'" << std::endl;
+			Error(log, "Unable to create smoothing of type linear because of missing parameter 'time_ms'");
 		}
 		else if (!smoothingConfig.isMember("updateFrequency"))
 		{
-			std::cout << "HYPERION ERROR: Unable to create smoothing of type linear because of missing parameter 'updateFrequency'" << std::endl;
+			Error(log, "Unable to create smoothing of type linear because of missing parameter 'updateFrequency'");
 		}
 		else
 		{
 			const unsigned updateDelay = smoothingConfig.get("updateDelay", Json::Value(0u)).asUInt();
-			std::cout << "INFO: Creating linear smoothing" << std::endl;
+			Info(log, "Creating linear smoothing");
 			return new LinearColorSmoothing(
 					ledDevice,
 					smoothingConfig["updateFrequency"].asDouble(),
@@ -513,7 +519,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	}
 	else
 	{
-		std::cout << "HYPERION ERROR: Unable to create smoothing of type " << type << std::endl;
+		Error(log, "Unknown smoothing type %s.", type.c_str());
 	}
 
 	return ledDevice;
