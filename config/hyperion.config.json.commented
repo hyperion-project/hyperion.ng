@@ -58,6 +58,7 @@
 	/// Next to the list with color transforms there is also a smoothing option.
 	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
 	///                  parameters:
+	///            - 'enable'          Enable or disable the smoothing (true/false)
 	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
 	///            - 'time_ms'          The time constant for smoothing algorithm in milliseconds
 	///            - 'updateFrequency'  The update frequency of the leds in Hz
@@ -137,7 +138,11 @@
 			"enable"           : true,
 			"type"             : "linear",
 			"time_ms"          : 200,
+<<<<<<< HEAD
 			"updateFrequency"  : 20.0000,
+=======
+			"updateFrequency"  : 25.0000,
+>>>>>>> upstream/master
 			"updateDelay"      : 0,
 			"continuousOutput" : true
 		}
@@ -183,6 +188,7 @@
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
+	///   * enable       : true if the framegrabber (platform grabber) should be activated
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
@@ -190,8 +196,9 @@
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
-		"width"        : 64,
-		"height"       : 64,
+		"enable"       : true,
+		"width"        : 96,
+		"height"       : 96,
 		"frequency_Hz" : 10.0,
 		"priority"     : 890
 	},
