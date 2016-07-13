@@ -582,7 +582,7 @@ unsigned int LedDeviceWS2812b::mem_phys_to_virt(uint32_t phys)
 // Map a peripheral's IO memory into our virtual memory, so we can read/write it directly
 void * LedDeviceWS2812b::map_peripheral(uint32_t base, uint32_t len)
 {
-	int fd = open("/dev/mem", O_RDWR);
+	int fd = ::open("/dev/mem", O_RDWR);
 	void * vaddr;
 
 	if (fd < 0)
@@ -691,7 +691,7 @@ void LedDeviceWS2812b::initHardware()
 	// Use /proc/self/pagemap to figure out the mapping between virtual and physical addresses
 	pid = getpid();
 	sprintf(pagemap_fn, "/proc/%d/pagemap", pid);
-	fd = open(pagemap_fn, O_RDONLY);
+	fd = ::open(pagemap_fn, O_RDONLY);
 
 	if (fd < 0)
 	{
@@ -704,7 +704,7 @@ void LedDeviceWS2812b::initHardware()
 		fatal("Failed to seek on %s: %m\n", pagemap_fn);
 	}
 
-	printf("Page map: %d pages\n", NUM_PAGES);
+	printf("Page map: %i pages\n", (int)NUM_PAGES);
 	for (unsigned int i = 0; i < NUM_PAGES; i++)
 	{
 		uint64_t pfn;
