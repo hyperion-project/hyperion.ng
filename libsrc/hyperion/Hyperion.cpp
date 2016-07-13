@@ -481,47 +481,31 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 }
 
 LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
-{
+{      
 	Logger * log = Logger::getInstance("Core");
-	std::string type = smoothingConfig.get("type", "none").asString();
+	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	if ( ! smoothingConfig.get("enable", true).asBool() )
 	{
-		Info(log,"Smoothing disabled in config");
+		Info(log,"Smoothing disabled");
 		return ledDevice;
-	}
-	if (type == "none")
-	{
-		Info(log, "Smoothing set to none");
-		return ledDevice;
-	}
-	else if (type == "linear")
-	{
-		if (!smoothingConfig.isMember("time_ms"))
-		{
-			Error(log, "Unable to create smoothing of type linear because of missing parameter 'time_ms'");
-		}
-		else if (!smoothingConfig.isMember("updateFrequency"))
-		{
-			Error(log, "Unable to create smoothing of type linear because of missing parameter 'updateFrequency'");
-		}
-		else
-		{
-			const unsigned updateDelay = smoothingConfig.get("updateDelay", Json::Value(0u)).asUInt();
-			Info(log, "Creating linear smoothing");
-			return new LinearColorSmoothing(
-					ledDevice,
-					smoothingConfig["updateFrequency"].asDouble(),
-					smoothingConfig["time_ms"].asInt(),
-					updateDelay);
-		}
-	}
-	else
-	{
-		Error(log, "Unknown smoothing type %s.", type.c_str());
 	}
 
+	if (type == "linear")
+	{
+		Info(log, "Creating linear smoothing");
+		return new LinearColorSmoothing(
+		            ledDevice,
+		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
+		            smoothingConfig.get("time_ms", 200).asInt(),
+		            smoothingConfig.get("updateDelay", 0).asUInt(),
+		            smoothingConfig.get("continuousOutput", false).asBool()
+		            );
+	}
+
+	Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
 	return ledDevice;
 }
 

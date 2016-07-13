@@ -26,14 +26,15 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 
 bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 {
-	_host      = deviceConfig.get("output", "127.0.0.1").asString();
-	_port      = deviceConfig.get("port", 7890).asInt();
-	_channel   = deviceConfig.get("channel", 0).asInt();
-	_gamma     = deviceConfig.get("gamma", 1.0).asDouble();
-	_noDither  = ! deviceConfig.get("dither", false).asBool();
-	_noInterp  = ! deviceConfig.get("interpolation", false).asBool();
-	_manualLED = deviceConfig.get("manualLed", false).asBool();
-	_ledOnOff  = deviceConfig.get("ledOn", false).asBool();
+	_host        = deviceConfig.get("output", "127.0.0.1").asString();
+	_port        = deviceConfig.get("port", 7890).asInt();
+	_channel     = deviceConfig.get("channel", 0).asInt();
+	_gamma       = deviceConfig.get("gamma", 1.0).asDouble();
+	_noDither    = ! deviceConfig.get("dither", false).asBool();
+	_noInterp    = ! deviceConfig.get("interpolation", false).asBool();
+	_manualLED   = deviceConfig.get("manualLed", false).asBool();
+	_ledOnOff    = deviceConfig.get("ledOn", false).asBool();
+	_setFcConfig = deviceConfig.get("setFcConfig", false).asBool();
 
 	_whitePoint_r = 1.0;
 	_whitePoint_g = 1.0;
@@ -62,8 +63,11 @@ bool LedDeviceFadeCandy::tryConnect()
 		_client.connectToHost( _host.c_str(), _port);
 		if ( _client.waitForConnected(1000) )
 		{
-			sendFadeCandyConfiguration();
 			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
+			if (_setFcConfig)
+			{
+				sendFadeCandyConfiguration();
+			}
 		}
 	}
 
@@ -145,6 +149,7 @@ int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArra
 
 void LedDeviceFadeCandy::sendFadeCandyConfiguration()
 {
+	Debug(_log, "send configuration to fadecandy");
 	QString data = "{\"gamma\": "+QString::number(_gamma,'g',4)+", \"whitepoint\": ["+QString::number(_whitePoint_r,'g',4)+", "+QString::number(_whitePoint_g,'g',4)+", "+QString::number(_whitePoint_b,'g',4)+"]}";
 	sendSysEx(1, 1, data.toLocal8Bit() );
 
