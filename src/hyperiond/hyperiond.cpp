@@ -397,9 +397,9 @@ void HyperionDaemon::createGrabberAmlogic()
 {
 #ifdef ENABLE_AMLOGIC
 	// Construct and start the amlogic grabber if the configuration is present
-	if (_config.isMember("framegrabber"))
+	if (_config.isMember("amlgrabber"))
 	{
-		const Json::Value & grabberConfig = _config["framegrabber"];
+		const Json::Value & grabberConfig = _config["amlgrabber"];
 		if (grabberConfig.get("enable", true).asBool())
 		{
 			_amlGrabber = new AmlogicWrapper(
@@ -417,7 +417,7 @@ void HyperionDaemon::createGrabberAmlogic()
 		}
 	}
 #else
-	ErrorIf(_config.isMember("framegrabber"), _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
+	ErrorIf(_config.isMember("amlgrabber"), _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 
