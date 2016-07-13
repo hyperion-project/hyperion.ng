@@ -86,7 +86,7 @@
 			"enable"           : true,
 			"type"             : "linear",
 			"time_ms"          : 200,
-			"updateFrequency"  : 20.0000,
+			"updateFrequency"  : 25.0000,
 			"updateDelay"      : 0,
 			"continuousOutput" : false
 		}
@@ -115,8 +115,9 @@
 
 	"framegrabber" :
 	{
-		"width" : 128,
-		"height" : 128,
+		"enable" : true,
+		"width" : 96,
+		"height" : 96,
 		"frequency_Hz" : 10.0,
 		"priority" : 890
 	},
@@ -130,7 +131,7 @@
 
 	"kodiVideoChecker" :
 	{
-		"enable"            : true,
+		"enable"            : false,
 		"kodiAddress"       : "localhost",
 		"kodiTcpPort"       : 9090,
 		"grabVideo"         : true,
