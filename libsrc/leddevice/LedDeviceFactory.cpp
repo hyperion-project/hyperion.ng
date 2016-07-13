@@ -289,7 +289,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 #ifdef ENABLE_WS2812BPWM
 	else if (type == "ws2812b")
 	{
-		device = new LedDeviceWS2812b()
+		device = new LedDeviceWS2812b();
 	}
 #endif
 #ifdef ENABLE_WS281XPWM
