@@ -20,7 +20,9 @@ public:
 	///
 	/// Constructs the LedDeviceLightpack
 	///
-	LedDeviceLightpack();
+	/// @param serialNumber serial output device
+	///
+	LedDeviceLightpack(const std::string & serialNumber = "");
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -32,7 +34,7 @@ public:
 	///
 	/// @return Zero on succes else negative
 	///
-	int open(const std::string & serialNumber = "");
+	int open();
 
 	///
 	/// Writes the RGB-Color values to the leds.

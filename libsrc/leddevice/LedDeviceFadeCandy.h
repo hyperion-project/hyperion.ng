@@ -29,6 +29,7 @@ public:
 	/// 	"type"          : "fadecandy",
 	/// 	"output"        : "localhost",
 	/// 	"colorOrder"    : "rgb",
+	/// 	"setFcConfig"   : false,
 	/// 	"gamma"         : 1.0,
 	/// 	"whitepoint"    : [1.0, 1.0, 1.0],
 	/// 	"dither"        : false,
@@ -74,6 +75,7 @@ private:
 	QByteArray  _opc_data;
 
 	// fadecandy sysEx
+	bool        _setFcConfig;
 	double      _gamma;
 	double      _whitePoint_r;
 	double      _whitePoint_g;
