@@ -190,6 +190,7 @@
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
+		"enable"       : true,
 		"width"        : 96,
 		"height"       : 96,
 		"frequency_Hz" : 10.0,
