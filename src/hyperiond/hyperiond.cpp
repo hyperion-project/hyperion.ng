@@ -426,9 +426,9 @@ void HyperionDaemon::createGrabberFramebuffer()
 {
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
-	if (_config.isMember("framegrabber"))
+	if (_config.isMember("framebuffergrabber"))
 	{
-		const Json::Value & grabberConfig = _config["framegrabber"];
+		const Json::Value & grabberConfig = _config["framebuffergrabber"];
 		if (grabberConfig.get("enable", true).asBool())
 		{
 			_fbGrabber = new FramebufferWrapper(
@@ -447,7 +447,7 @@ void HyperionDaemon::createGrabberFramebuffer()
 		}
 	}
 #else
-	ErrorIf(_config.isMember("framegrabber"), _log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
+	ErrorIf(_config.isMember("framebuffergrabber"), _log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 
@@ -456,9 +456,9 @@ void HyperionDaemon::createGrabberOsx()
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
-	if (_config.isMember("framegrabber"))
+	if (_config.isMember("osxgrabber"))
 	{
-		const Json::Value & grabberConfig = _config["framegrabber"];
+		const Json::Value & grabberConfig = _config["osxgrabber"];
 		if (grabberConfig.get("enable", true).asBool())
 		{
 			_osxGrabber = new OsxWrapper(
@@ -477,6 +477,6 @@ void HyperionDaemon::createGrabberOsx()
 		}
 	}
 #else
-	ErrorIf(_config.isMember("framegrabber"), _log, "The osx grabber can not be instantiated, because it has been left out from the build");
+	ErrorIf(_config.isMember("osxgrabber"), _log, "The osx grabber can not be instantiated, because it has been left out from the build");
 #endif
 }

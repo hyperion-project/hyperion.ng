@@ -83,20 +83,12 @@
 		],
 		"smoothing" :
 		{
-<<<<<<< HEAD
-			"enable"          : true,
-			"type"            : "linear",
-			"time_ms"         : 200,
-			"updateFrequency" : 25.0000,
-			"updateDelay"     : 0
-=======
 			"enable"           : true,
 			"type"             : "linear",
 			"time_ms"          : 200,
-			"updateFrequency"  : 20.0000,
+			"updateFrequency"  : 25.0000,
 			"updateDelay"      : 0,
 			"continuousOutput" : false
->>>>>>> refs/remotes/hyperion-project/master
 		}
 	},
 	
