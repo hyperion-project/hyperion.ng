@@ -289,21 +289,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 #ifdef ENABLE_WS2812BPWM
 	else if (type == "ws2812b")
 	{
-		device = new LedDeviceWS2812b();
+		device = new LedDeviceWS2812b()
 	}
 #endif
 #ifdef ENABLE_WS281XPWM
 	else if (type == "ws281x")
 	{
 		device = new LedDeviceWS281x(
-			deviceConfig.get("gpio", 18).asInt();
-			leds = deviceConfig.get("leds", 256).asInt();
-			freq = deviceConfig.get("freq", (Json::UInt)800000ul).asInt();
-			dmanum = deviceConfig.get("dmanum", 5).asInt();
-			deviceConfig.get("pwmchannel", 0).asInt();
-			deviceConfig.get("invert", 0).asInt();
-			deviceConfig.get("rgbw", 0).asInt();
-			whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
+			deviceConfig.get("gpio", 18).asInt(),
+			deviceConfig.get("leds", 256).asInt(),
+			deviceConfig.get("freq", (Json::UInt)800000ul).asInt(),
+			deviceConfig.get("dmanum", 5).asInt(),
+			deviceConfig.get("pwmchannel", 0).asInt(),
+			deviceConfig.get("invert", 0).asInt(),
+			deviceConfig.get("rgbw", 0).asInt(),
+			deviceConfig.get("white_algorithm","").asString()
 		);
 	}
 #endif
