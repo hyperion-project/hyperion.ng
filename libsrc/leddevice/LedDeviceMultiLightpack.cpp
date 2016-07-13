@@ -42,8 +42,8 @@ int LedDeviceMultiLightpack::open()
 	// open each lightpack device
 	for (const std::string & serial : serialList)
 	{
-		LedDeviceLightpack * device = new LedDeviceLightpack();	
-		int error = device->open(serial);
+		LedDeviceLightpack * device = new LedDeviceLightpack(serial);	
+		int error = device->open();
 
 		if (error == 0)
 		{

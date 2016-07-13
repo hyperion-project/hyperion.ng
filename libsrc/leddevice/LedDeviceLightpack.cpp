@@ -32,17 +32,17 @@ enum DATA_VERSION_INDEXES{
 	INDEX_FW_VER_MINOR
 };
 
-LedDeviceLightpack::LedDeviceLightpack() :
-	LedDevice(),
-	_libusbContext(nullptr),
-	_deviceHandle(nullptr),
-	_busNumber(-1),
-	_addressNumber(-1),
-	_serialNumber(""),
-	_firmwareVersion({-1,-1}),
-	_ledCount(-1),
-	_bitsPerChannel(-1),
-	_ledBuffer()
+LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
+	: LedDevice()
+	, _libusbContext(nullptr)
+	, _deviceHandle(nullptr)
+	, _busNumber(-1)
+	, _addressNumber(-1)
+	, _serialNumber(serialNumber)
+	, _firmwareVersion({-1,-1})
+	, _ledCount(-1)
+	, _bitsPerChannel(-1)
+	, _ledBuffer()
 {
 }
 
@@ -64,7 +64,7 @@ LedDeviceLightpack::~LedDeviceLightpack()
 	}
 }
 
-int LedDeviceLightpack::open(const std::string & serialNumber)
+int LedDeviceLightpack::open()
 {
 	int error;
 
@@ -86,7 +86,7 @@ int LedDeviceLightpack::open(const std::string & serialNumber)
 	for (ssize_t i = 0 ; i < deviceCount; ++i)
 	{
 		// try to open and initialize the device
-		error = testAndOpen(deviceList[i], serialNumber);
+		error = testAndOpen(deviceList[i], _serialNumber);
 
 		if (error == 0)
 		{
