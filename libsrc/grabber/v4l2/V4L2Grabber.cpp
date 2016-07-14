@@ -26,38 +26,74 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 		int height,
 		int frameDecimation,
 		int horizontalPixelDecimation,
-		int verticalPixelDecimation) :
-		_deviceName(device),
-	_ioMethod(IO_METHOD_MMAP),
-	_fileDescriptor(-1),
-	_buffers(),
-	_pixelFormat(pixelFormat),
-	_width(width),
-	_height(height),
-	_lineLength(-1),
-	_frameByteSize(-1),
-	_frameDecimation(std::max(1, frameDecimation)),
-	_noSignalCounterThreshold(50),
-	_noSignalThresholdColor(ColorRgb{0,0,0}),
-	_currentFrame(0),
-	_noSignalCounter(0),
-	_streamNotifier(nullptr),
-	_imageResampler(),
-	_log(Logger::getInstance("V4L2GRABBER"))
+		int verticalPixelDecimation)
+	: _deviceName(device)
+	, _input(input)
+	, _videoStandard(videoStandard)
+	, _ioMethod(IO_METHOD_MMAP)
+	, _fileDescriptor(-1)
+	, _buffers()
+	, _pixelFormat(pixelFormat)
+	, _width(width)
+	, _height(height)
+	, _lineLength(-1)
+	, _frameByteSize(-1)
+	, _frameDecimation(std::max(1, frameDecimation))
+	, _noSignalCounterThreshold(50)
+	, _noSignalThresholdColor(ColorRgb{0,0,0})
+	, _currentFrame(0)
+	, _noSignalCounter(0)
+	, _streamNotifier(nullptr)
+	, _imageResampler()
+	, _log(Logger::getInstance("V4L2GRABBER"))
+	,_initialized(false)
 {
 	_imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
 	_imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
 
-	open_device();
-	init_device(videoStandard, input);
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
+	uninit();
+}
+
+void V4L2Grabber::uninit()
+{
 	// stop if the grabber was not stopped
-	stop();
-	uninit_device();
-	close_device();
+	if (_initialized)
+	{
+		stop();
+		uninit_device();
+		close_device();
+		_initialized = false;
+	}
+}
+
+
+bool V4L2Grabber::init()
+{
+	if (! _initialized)
+	{
+		bool opened = false;
+		try
+		{
+			open_device();
+			opened = true;
+			init_device(_videoStandard, _input);
+			_initialized = true;
+		}
+		catch(std::exception& e)
+		{
+			if (opened)
+			{
+				close_device();
+			}
+			Error( _log, "V4l2 init failed (%s)", e.what());
+		}
+	}
+	
+	return _initialized;
 }
 
 void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -80,14 +116,17 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	Info(_log, "Signal threshold set to: %d", _noSignalThresholdColor);
 }
 
-void V4L2Grabber::start()
+bool V4L2Grabber::start()
 {
-	if (_streamNotifier != nullptr && !_streamNotifier->isEnabled())
+	if (init() && _streamNotifier != nullptr && !_streamNotifier->isEnabled())
 	{
 		_streamNotifier->setEnabled(true);
 		start_capturing();
 		Info(_log, "Started");
+		return true;
 	}
+
+	return false;
 }
 
 void V4L2Grabber::stop()
@@ -106,25 +145,19 @@ void V4L2Grabber::open_device()
 
 	if (-1 == stat(_deviceName.c_str(), &st))
 	{
-		std::ostringstream oss;
-		oss << "V4L2GRABBER ERROR: Cannot identify '" << _deviceName << "'";
-		throw_errno_exception(oss.str());
+		throw_errno_exception("Cannot identify '" + _deviceName + "'");
 	}
 
 	if (!S_ISCHR(st.st_mode))
 	{
-		std::ostringstream oss;
-		oss << "'" << _deviceName << "' is no device";
-		throw_exception(oss.str());
+		throw_exception("'" + _deviceName + "' is no device");
 	}
 
 	_fileDescriptor = open(_deviceName.c_str(), O_RDWR /* required */ | O_NONBLOCK, 0);
 
 	if (-1 == _fileDescriptor)
 	{
-		std::ostringstream oss;
-		oss << "V4L2GRABBER ERROR: Cannot open '" << _deviceName << "'";
-		throw_errno_exception(oss.str());
+		throw_errno_exception("Cannot open '" + _deviceName + "'");
 	}
 
 	// create the notifier for when a new frame is available
@@ -155,7 +188,7 @@ void V4L2Grabber::init_read(unsigned int buffer_size)
 	_buffers[0].start = malloc(buffer_size);
 
 	if (!_buffers[0].start) {
-		throw_exception("V4L2GRABBER ERROR: Out of memory");
+		throw_exception("Out of memory");
 	}
 }
 
@@ -171,18 +204,14 @@ void V4L2Grabber::init_mmap()
 
 	if (-1 == xioctl(VIDIOC_REQBUFS, &req)) {
 		if (EINVAL == errno) {
-			std::ostringstream oss;
-			oss << "'" << _deviceName << "' does not support memory mapping";
-			throw_exception(oss.str());
+			throw_exception("'" + _deviceName + "' does not support memory mapping");
 		} else {
 			throw_errno_exception("VIDIOC_REQBUFS");
 		}
 	}
 
 	if (req.count < 2) {
-		std::ostringstream oss;
-		oss << "Insufficient buffer memory on " << _deviceName;
-		throw_exception(oss.str());
+		throw_exception("Insufficient buffer memory on " + _deviceName);
 	}
 
 	_buffers.resize(req.count);
@@ -225,9 +254,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 	if (-1 == xioctl(VIDIOC_REQBUFS, &req)) {
 		if (EINVAL == errno)
 		{
-			std::ostringstream oss;
-			oss << "'" << _deviceName << "' does not support user pointer";
-			throw_exception(oss.str());
+			throw_exception("'" + _deviceName + "' does not support user pointer");
 		} else {
 			throw_errno_exception("VIDIOC_REQBUFS");
 		}
@@ -240,7 +267,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 		_buffers[n_buffers].start = malloc(buffer_size);
 
 		if (!_buffers[n_buffers].start) {
-			throw_exception("V4L2GRABBER ERROR: Out of memory");
+			throw_exception("Out of memory");
 		}
 	}
 }
@@ -251,9 +278,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	if (-1 == xioctl(VIDIOC_QUERYCAP, &cap))
 	{
 		if (EINVAL == errno) {
-			std::ostringstream oss;
-			oss << "'" << _deviceName << "' is no V4L2 device";
-			throw_exception(oss.str());
+			throw_exception("'" + _deviceName + "' is no V4L2 device");
 		} else {
 			throw_errno_exception("VIDIOC_QUERYCAP");
 		}
@@ -261,18 +286,14 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
 	{
-		std::ostringstream oss;
-		oss << "'" << _deviceName << "' is no video capture device";
-		throw_exception(oss.str());
+		throw_exception("'" + _deviceName + "' is no video capture device");
 	}
 
 	switch (_ioMethod) {
 	case IO_METHOD_READ:
 		if (!(cap.capabilities & V4L2_CAP_READWRITE))
 		{
-			std::ostringstream oss;
-			oss << "'" << _deviceName << "' does not support read i/o";
-			throw_exception(oss.str());
+			throw_exception("'" + _deviceName + "' does not support read i/o");
 		}
 		break;
 
@@ -280,9 +301,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	case IO_METHOD_USERPTR:
 		if (!(cap.capabilities & V4L2_CAP_STREAMING))
 		{
-			std::ostringstream oss;
-			oss << "'" << _deviceName << "' does not support streaming i/o";
-			throw_exception(oss.str());
+			throw_exception("'" + _deviceName + "' does not support streaming i/o");
 		}
 		break;
 	}
@@ -413,7 +432,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	_height = fmt.fmt.pix.height;
 
 	// display the used width and height
-	Info(Logger::getInstance("V4l2GRABBER"), "width=%d height=%d", _width, _height );
+	Info(_log, "width=%d height=%d", _width, _height );
 
 
 	// check pixel format and frame size
@@ -435,7 +454,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		Debug(_log, "Pixel format=RGB32");
 		break;
 	default:
-		throw_exception("V4L2GRABBER ERROR: Only pixel formats UYVY, YUYV, and RGB32 are supported");
+		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
 	}
 
 	switch (_ioMethod) {
@@ -727,14 +746,12 @@ int V4L2Grabber::xioctl(int request, void *arg)
 
 void V4L2Grabber::throw_exception(const std::string & error)
 {
-	std::ostringstream oss;
-	oss << error << " ERROR";
-	throw std::runtime_error(oss.str());
+	throw std::runtime_error(error);
 }
 
 void V4L2Grabber::throw_errno_exception(const std::string & error)
 {
 	std::ostringstream oss;
-	oss << error << " ERROR " << errno << ", " << strerror(errno);
+	oss << error << " error code " << errno << ", " << strerror(errno);
 	throw std::runtime_error(oss.str());
 }

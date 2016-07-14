@@ -68,9 +68,13 @@ V4L2Wrapper::~V4L2Wrapper()
 	delete _processor;
 }
 
-void V4L2Wrapper::start()
+bool V4L2Wrapper::start()
 {
-	_grabber.start();
+	bool grabber_started = _grabber.start();
+	if ( ! grabber_started )
+		_timer.stop();
+	
+	return grabber_started;
 }
 
 void V4L2Wrapper::stop()

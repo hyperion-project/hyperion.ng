@@ -50,7 +50,7 @@ public slots:
 					double blueSignalThreshold,
 					int noSignalCounterThreshold);
 
-	void start();
+	bool start();
 
 	void stop();
 
@@ -61,6 +61,9 @@ private slots:
 	int read_frame();
 
 private:
+	bool init();
+	void uninit();
+
 	void open_device();
 
 	void close_device();
@@ -103,6 +106,8 @@ private:
 
 private:
 	const std::string _deviceName;
+	int _input;
+	VideoStandard _videoStandard;
 	const io_method _ioMethod;
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
@@ -125,4 +130,5 @@ private:
 	ImageResampler _imageResampler;
 	
 	Logger * _log;
+	bool _initialized;
 };

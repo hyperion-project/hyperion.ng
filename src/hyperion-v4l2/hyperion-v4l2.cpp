@@ -164,8 +164,8 @@ int main(int argc, char** argv)
 		{
 			ProtoConnectionWrapper handler(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
-			grabber.start();
-			QCoreApplication::exec();
+			if (grabber.start())
+				QCoreApplication::exec();
 			grabber.stop();
 		}
 	}
