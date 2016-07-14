@@ -360,8 +360,6 @@ void HyperionDaemon::createGrabberV4L2()
 	if (_config.isMember("grabber-v4l2"))
 	{
 		const Json::Value & grabberConfig = _config["grabber-v4l2"];
-		if (grabberConfig.get("enable", true).asBool())
-		{
 			_v4l2Grabber = new V4L2Wrapper(
 						grabberConfig.get("device", "/dev/video0").asString(),
 						grabberConfig.get("input", 0).asInt(),
@@ -381,11 +379,12 @@ void HyperionDaemon::createGrabberV4L2()
 						grabberConfig.get("cropRight", 0).asInt(),
 						grabberConfig.get("cropTop", 0).asInt(),
 						grabberConfig.get("cropBottom", 0).asInt());
+			Debug(_log, "V4L2 grabber created");
 
-			QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-
-			_v4l2Grabber->start();
-			Info(_log, "V4L2 grabber created and started");
+		QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+		if (grabberConfig.get("enable", true).asBool() && _v4l2Grabber->start())
+		{
+			Info(_log, "V4L2 grabber started");
 		}
 	}
 #else
