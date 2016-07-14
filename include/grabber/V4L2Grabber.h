@@ -3,6 +3,7 @@
 // stl includes
 #include <string>
 #include <vector>
+#include <map>
 
 // Qt includes
 #include <QObject>
@@ -61,6 +62,8 @@ private slots:
 	int read_frame();
 
 private:
+	void getV4Ldevices();
+	
 	bool init();
 	void uninit();
 
@@ -105,10 +108,11 @@ private:
 	};
 
 private:
-	const std::string _deviceName;
+	std::string _deviceName;
+	std::map<std::string,std::string> _v4lDevices;
 	int _input;
 	VideoStandard _videoStandard;
-	const io_method _ioMethod;
+	io_method _ioMethod;
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 

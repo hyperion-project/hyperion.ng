@@ -7,12 +7,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
+#include <QDirIterator>
+#include <QFileInfo>
 
 #include "grabber/V4L2Grabber.h"
 
@@ -51,6 +54,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	_imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
 	_imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
 
+	getV4Ldevices();
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -73,6 +77,20 @@ void V4L2Grabber::uninit()
 
 bool V4L2Grabber::init()
 {
+	if ( _deviceName == "auto" )
+	{
+		for (auto& dev: _v4lDevices)
+		{
+			Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+			_deviceName = dev.first;
+			if ( init() )
+			{
+				Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+				break;
+			}
+		}
+	}
+	
 	if (! _initialized)
 	{
 		bool opened = false;
@@ -87,6 +105,7 @@ bool V4L2Grabber::init()
 		{
 			if (opened)
 			{
+				uninit_device();
 				close_device();
 			}
 			Error( _log, "V4l2 init failed (%s)", e.what());
@@ -94,6 +113,29 @@ bool V4L2Grabber::init()
 	}
 	
 	return _initialized;
+}
+
+void V4L2Grabber::getV4Ldevices()
+{
+	QDirIterator it("/sys/class/video4linux/", QDirIterator::NoIteratorFlags);
+	while(it.hasNext())
+	{ 
+		//_v4lDevices
+		QString dev = it.next();
+		if (it.fileName().startsWith("video"))
+		{
+			QFile devNameFile(dev+"/name");
+			QString devName;
+			if ( devNameFile.exists())
+			{
+				devNameFile.open(QFile::ReadOnly);
+				devName = devNameFile.readLine();
+				devName = devName.trimmed();
+				devNameFile.close();
+			}
+			_v4lDevices.emplace("/dev/"+it.fileName().toStdString(), devName.toStdString());
+		}
+    }
 }
 
 void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -113,7 +155,9 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
 	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
 
-	Info(_log, "Signal threshold set to: %d", _noSignalThresholdColor);
+	std::stringstream ss;
+	ss << _noSignalThresholdColor;
+	Info(_log, "Signal threshold set to: %s", ss.str().c_str() );
 }
 
 bool V4L2Grabber::start()
