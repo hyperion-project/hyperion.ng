@@ -39,7 +39,7 @@ public:
 	void setSize(const unsigned width, const unsigned height);
 
 	/// Enable or disable the black border detector
-	void enableBalckBorderDetector(bool enable);
+	void enableBlackBorderDetector(bool enable);
 
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
@@ -117,7 +117,7 @@ private:
 	template <typename Pixel_T>
 	void verifyBorder(const Image<Pixel_T> & image)
 	{
-		if(_enableBlackBorderRemoval && _borderProcessor->process(image))
+		if(_borderProcessor->enabled() && _borderProcessor->process(image))
 		{
 			Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
 
@@ -145,9 +145,6 @@ private:
 private:
 	/// The Led-string specification
 	const LedString _ledString;
-
-	/// Flag the enables(true)/disabled(false) blackborder detector
-	bool _enableBlackBorderRemoval;
 
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;
