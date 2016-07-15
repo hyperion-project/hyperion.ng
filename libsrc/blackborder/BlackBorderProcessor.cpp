@@ -9,7 +9,8 @@
 using namespace hyperion;
 
 BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig)
-	: _unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt())
+	: _enabled(blackborderConfig.get("enable", true).asBool())
+	, _unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt())
 	, _borderSwitchCnt(blackborderConfig.get("borderFrameCnt", 50).asUInt())
 	, _maxInconsistentCnt(blackborderConfig.get("maxInconsistentCnt", 10).asUInt())
 	, _blurRemoveCnt(blackborderConfig.get("blurRemoveCnt", 1).asUInt())
@@ -20,12 +21,25 @@ BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig)
 	, _consistentCnt(0)
 	, _inconsistentCnt(10)
 {
-	Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
+	if (_enabled)
+	{
+		Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
+	}
 }
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
 {
 	return _currentBorder;
+}
+
+bool BlackBorderProcessor::enabled() const
+{
+	return _enabled;
+}
+
+void BlackBorderProcessor::setEnabled(bool enable)
+{
+	_enabled = enable;
 }
 
 bool BlackBorderProcessor::updateBorder(const BlackBorder & newDetectedBorder)

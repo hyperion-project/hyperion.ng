@@ -66,7 +66,7 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
 
 	// disable the black border detector for effects
-	_imageProcessor->enableBalckBorderDetector(false);
+	_imageProcessor->enableBlackBorderDetector(false);
 
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
