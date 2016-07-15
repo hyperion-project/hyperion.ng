@@ -37,6 +37,9 @@ void BoblightServer::start()
 
 	_isActive = true;
 	emit statusChanged(_isActive);
+
+	_hyperion->registerPriority("Boblight", _priority);
+
 }
 
 void BoblightServer::stop()
@@ -49,6 +52,9 @@ void BoblightServer::stop()
 	}
 	_isActive = false;
 	emit statusChanged(_isActive);
+
+	_hyperion->unRegisterPriority("Boblight");
+
 }
 
 
@@ -64,7 +70,7 @@ void BoblightServer::newConnection()
 	if (socket != nullptr)
 	{
 		Info(_log, "new connection");
-		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority, _hyperion);
+		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

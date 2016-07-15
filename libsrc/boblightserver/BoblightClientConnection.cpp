@@ -22,15 +22,15 @@
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority, Hyperion * hyperion)
+BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
-	, _hyperion(hyperion)
+	, _hyperion(Hyperion::getInstance())
 	, _receiveBuffer()
 	, _priority(priority)
-	, _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
 	, _log(Logger::getInstance("BOBLIGHT"))
 {
 	// initalize the locale. Start with the default C-locale

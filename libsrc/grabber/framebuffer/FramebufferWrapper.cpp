@@ -26,6 +26,8 @@ FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigne
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+
+	_hyperion->registerPriority("FrameBuffer Grabber", _priority);
 }
 
 FramebufferWrapper::~FramebufferWrapper()

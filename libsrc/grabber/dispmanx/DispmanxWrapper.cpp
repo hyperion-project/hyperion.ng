@@ -31,6 +31,8 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+
+	_hyperion->registerPriority("Dispmanx Grabber", _priority);
 }
 
 DispmanxWrapper::~DispmanxWrapper()

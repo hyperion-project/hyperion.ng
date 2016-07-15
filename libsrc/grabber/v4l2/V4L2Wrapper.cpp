@@ -15,10 +15,10 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double redSignalThreshold,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
-		int hyperionPriority) :
-	_timeout_ms(1000),
-	_priority(hyperionPriority),
-	_grabber(device,
+		int hyperionPriority)
+	: _timeout_ms(1000)
+	, _priority(hyperionPriority)
+	, _grabber(device,
 			input,
 			videoStandard,
 			pixelFormat,
@@ -26,18 +26,16 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 			height,
 			frameDecimation,
 			pixelDecimation,
-			pixelDecimation),
-	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(Hyperion::getInstance()),
-	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
-	_timer()
+			pixelDecimation)
+	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
+	, _timer()
 {
 	// set the signal detection threshold of the grabber
-	_grabber.setSignalThreshold(
-			redSignalThreshold,
-			greenSignalThreshold,
-			blueSignalThreshold,
-			50);
+	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
+
+	_hyperion->registerPriority("V4L2", _priority);
 
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
@@ -55,6 +53,7 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 				_hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)),
 				Qt::QueuedConnection);
 
+	
 	// setup the higher prio source checker
 	// this will disable the v4l2 grabber when a source with hisher priority is active
 	_timer.setInterval(500);

@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <map>
 
 // QT includes
 #include <QObject>
@@ -46,6 +47,7 @@ class Hyperion : public QObject
 public:
 	///  Type definition of the info structure used by the priority muxer
 	typedef PriorityMuxer::InputInfo InputInfo;
+	typedef std::map<std::string,int> PriorityRegister;
 
 	///
 	/// RGB-Color channel enumeration
@@ -109,11 +111,24 @@ public:
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
 	
-	/// 
+	/// gets the current json config object
+	/// @return json config
 	const Json::Value& getJsonConfig() { return _jsonConfig; };
-	
+
+	/// get filename of configfile
+	/// @return the current config filename
 	std::string getConfigFileName() { return _configFile; };
 
+	/// register a input source to a priority channel
+	/// @param name uniq name of input source
+	/// @param priority priority channel
+	void registerPriority(const std::string name, const int priority);
+	
+	/// unregister a input source to a priority channel
+	/// @param name uniq name of input source
+	void unRegisterPriority(const std::string name);
+	
+	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -307,4 +322,7 @@ private:
 	
 	/// count of hardware leds
 	unsigned _hwLedCount;
+	
+	/// register of input sources and it's prio channel
+	PriorityRegister _priorityRegister;
 };

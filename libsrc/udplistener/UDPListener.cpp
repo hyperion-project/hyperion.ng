@@ -29,6 +29,9 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+	
+	_hyperion->registerPriority("UDPLISTENER", _priority);
+
 }
 
 UDPListener::~UDPListener()

@@ -31,6 +31,8 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+	
+	_hyperion->registerPriority("Amlogic Grabber", _priority);
 }
 
 AmlogicWrapper::~AmlogicWrapper()

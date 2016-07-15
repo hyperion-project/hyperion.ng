@@ -26,6 +26,8 @@ OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const u
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+
+	_hyperion->registerPriority("OsxFrameGrabber", _priority);
 }
 
 OsxWrapper::~OsxWrapper()
