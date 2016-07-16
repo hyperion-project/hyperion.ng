@@ -35,8 +35,6 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 	// set the signal detection threshold of the grabber
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 
-	_hyperion->registerPriority("V4L2", _priority);
-
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
@@ -71,14 +69,21 @@ bool V4L2Wrapper::start()
 {
 	bool grabber_started = _grabber.start();
 	if ( ! grabber_started )
+	{
 		_timer.stop();
-	
+	}
+	else
+	{
+		_hyperion->registerPriority("V4L2", _priority);
+	}
+
 	return grabber_started;
 }
 
 void V4L2Wrapper::stop()
 {
 	_grabber.stop();
+	_hyperion->unRegisterPriority("V4L2");
 }
 
 void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)

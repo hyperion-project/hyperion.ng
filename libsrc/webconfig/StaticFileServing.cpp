@@ -17,7 +17,7 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
-	_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
+	_server->setServerName (QStringLiteral ("Hyperion WebConfig"));
 
 	connect (_server, &QtHttpServer::started,           this, &StaticFileServing::onServerStarted);
 	connect (_server, &QtHttpServer::stopped,           this, &StaticFileServing::onServerStopped);

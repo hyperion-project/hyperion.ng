@@ -31,8 +31,6 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
-	
-	_hyperion->registerPriority("Amlogic Grabber", _priority);
 }
 
 AmlogicWrapper::~AmlogicWrapper()
@@ -46,6 +44,7 @@ void AmlogicWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("Amlogic Grabber");
 }
 
 void AmlogicWrapper::action()
@@ -72,6 +71,8 @@ void AmlogicWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("Amlogic Grabber", _priority);
+
 }
 
 void AmlogicWrapper::setGrabbingMode(const GrabbingMode mode)

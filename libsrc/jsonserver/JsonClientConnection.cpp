@@ -387,6 +387,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
+	const Hyperion::PriorityRegister& priorityRegister = _hyperion->getPriorityRegister();
 	foreach (int priority, activePriorities) {
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		Json::Value & item = priorities[priorities.size()];
@@ -394,6 +395,16 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		if (priorityInfo.timeoutTime_ms != -1)
 		{
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
+		}
+		
+		item["owner"] = "unknown";
+		for(auto const &entry : priorityRegister)
+		{
+			if (entry.second == priority)
+			{
+				item["owner"] = entry.first;
+				break;
+			}
 		}
 	}
 	

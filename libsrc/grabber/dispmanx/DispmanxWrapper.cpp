@@ -31,8 +31,6 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
-
-	_hyperion->registerPriority("Dispmanx Grabber", _priority);
 }
 
 DispmanxWrapper::~DispmanxWrapper()
@@ -46,6 +44,7 @@ void DispmanxWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("Dispmanx Grabber", _priority);
 }
 
 void DispmanxWrapper::action()
@@ -68,6 +67,7 @@ void DispmanxWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("Dispmanx Grabber");
 }
 
 void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)

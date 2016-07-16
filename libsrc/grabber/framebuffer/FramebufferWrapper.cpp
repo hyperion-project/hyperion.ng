@@ -26,8 +26,6 @@ FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigne
 
 	// Connect the QTimer to this
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
-
-	_hyperion->registerPriority("FrameBuffer Grabber", _priority);
 }
 
 FramebufferWrapper::~FramebufferWrapper()
@@ -41,6 +39,7 @@ void FramebufferWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("FrameBuffer Grabber", _priority);
 }
 
 void FramebufferWrapper::action()
@@ -57,6 +56,7 @@ void FramebufferWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("FrameBuffer Grabber");
 }
 
 void FramebufferWrapper::setGrabbingMode(const GrabbingMode mode)
