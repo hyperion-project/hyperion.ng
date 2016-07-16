@@ -541,32 +541,32 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) :
-	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
-	_muxer(_ledString.leds().size()),
-	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
-	_raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"])),
-	_raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"])),
-	_device(LedDeviceFactory::construct(jsonConfig["device"])),
-	_effectEngine(nullptr),
-	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
-	_jsonConfig(jsonConfig),
-	_configFile(configFile),
-	_timer(),
-	_log(Logger::getInstance("Core")),
-	_hwLedCount(_ledString.leds().size())
+Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
+	: _ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"])))
+	, _muxer(_ledString.leds().size())
+	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"]))
+	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"]))
+	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"]))
+	, _device(LedDeviceFactory::construct(jsonConfig["device"]))
+	, _effectEngine(nullptr)
+	, _messageForwarder(createMessageForwarder(jsonConfig["forwarder"]))
+	, _jsonConfig(jsonConfig)
+	, _configFile(configFile)
+	, _timer()
+	, _log(Logger::getInstance("Core"))
+	, _hwLedCount(_ledString.leds().size())
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color adjustment incorrectly set");
+		throw std::runtime_error("Color adjustment incorrectly set");
 	}
 	if (!_raw2ledTemperature->verifyCorrections())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color temperature incorrectly set");
+		throw std::runtime_error("Color temperature incorrectly set");
 	}
 	if (!_raw2ledTransform->verifyTransforms())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color transformation incorrectly set");
+		throw std::runtime_error("Color transformation incorrectly set");
 	}
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
@@ -613,6 +613,26 @@ unsigned Hyperion::getLedCount() const
 {
 	return _ledString.leds().size();
 }
+
+void Hyperion::registerPriority(const std::string name, const int priority)
+{
+	Info(_log, "Register new input source named '%s' for priority channel '%d'", name.c_str(), priority );
+	
+	for(auto const &entry : _priorityRegister)
+	{
+		WarningIf( ( entry.first != name && entry.second == priority), _log,
+		           "Input source '%s' uses same priority channel (%d) as '%s'.", name.c_str(), priority, entry.first.c_str());
+	}
+
+	_priorityRegister.emplace(name,priority);
+}
+
+void Hyperion::unRegisterPriority(const std::string name)
+{
+	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
+	_priorityRegister.erase(name);
+}
+
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
 {

@@ -39,6 +39,7 @@ void FramebufferWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("FrameBuffer Grabber", _priority);
 }
 
 void FramebufferWrapper::action()
@@ -55,6 +56,7 @@ void FramebufferWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("FrameBuffer Grabber");
 }
 
 void FramebufferWrapper::setGrabbingMode(const GrabbingMode mode)

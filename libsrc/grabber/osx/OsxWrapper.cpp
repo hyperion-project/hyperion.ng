@@ -39,6 +39,7 @@ void OsxWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("OsxFrameGrabber", _priority);
 }
 
 void OsxWrapper::action()
@@ -55,6 +56,7 @@ void OsxWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("OsxFrameGrabber");
 }
 
 void OsxWrapper::setGrabbingMode(const GrabbingMode mode)

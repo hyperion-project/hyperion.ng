@@ -181,6 +181,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 	_activeEffects.push_back(effect);
 
 	// start the effect
+	_hyperion->registerPriority("EFFECT: "+script, priority);
 	effect->start();
 
 	return 0;
@@ -225,4 +226,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
+	_hyperion->unRegisterPriority("EFFECT: " + effect->getScript());
 }

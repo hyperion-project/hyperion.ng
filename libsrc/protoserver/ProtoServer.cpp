@@ -7,12 +7,12 @@
 #include "protoserver/ProtoConnection.h"
 #include "ProtoClientConnection.h"
 
-ProtoServer::ProtoServer(uint16_t port) :
-	QObject(),
-	_hyperion(Hyperion::getInstance()),
-	_server(),
-	_openConnections(),
-	_log(Logger::getInstance("PROTOSERVER"))
+ProtoServer::ProtoServer(uint16_t port)
+	: QObject()
+	, _hyperion(Hyperion::getInstance())
+	, _server()
+	, _openConnections()
+	, _log(Logger::getInstance("PROTOSERVER"))
 {
 
 	MessageForwarder * forwarder = _hyperion->getForwarder();
@@ -59,7 +59,7 @@ void ProtoServer::newConnection()
 	if (socket != nullptr)
 	{
 		Debug(_log, "New connection");
-		ProtoClientConnection * connection = new ProtoClientConnection(socket, _hyperion);
+		ProtoClientConnection * connection = new ProtoClientConnection(socket);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
