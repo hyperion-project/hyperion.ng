@@ -44,7 +44,7 @@ void AmlogicWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
-	_hyperion->registerPriority("Amlogic Grabber");
+	_hyperion->registerPriority("Amlogic Grabber",_priority);
 }
 
 void AmlogicWrapper::action()
