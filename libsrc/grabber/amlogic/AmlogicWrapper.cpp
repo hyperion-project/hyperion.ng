@@ -71,7 +71,7 @@ void AmlogicWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
-	_hyperion->unRegisterPriority("Amlogic Grabber", _priority);
+	_hyperion->unRegisterPriority("Amlogic Grabber");
 
 }
 
