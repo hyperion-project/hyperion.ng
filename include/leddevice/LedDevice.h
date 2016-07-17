@@ -38,7 +38,7 @@ public:
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	virtual int open();
 
 protected:
 	Logger * _log;
