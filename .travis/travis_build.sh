@@ -28,10 +28,3 @@ then
 	make -j$(nproc) package || exit 4
 fi
 
-
-######################################
-## EXEC TESTS
-
-../.travis/testrunner.sh && exit 0
-
-

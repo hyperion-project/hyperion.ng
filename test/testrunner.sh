@@ -31,8 +31,10 @@ echo
 echo "Hyperion test execution"
 echo
 exec_test "hyperiond is executable and show version" bin/hyperiond --version
-exec_test "test config" bin/test_configfile ../config/hyperion.config.json.commented
-exec_test "test config" bin/test_configfile ../config/hyperion.config.json.default
+for cfg in ../config/*json*
+do
+	exec_test "test $(basename $cfg)" bin/test_configfile $cfg
+done
 
 echo
 echo
