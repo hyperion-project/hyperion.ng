@@ -95,7 +95,7 @@
 	"grabber-v4l2" :
 	{
 		"enable"   : false,
-		"device"   : "/dev/video0",
+		"device"   : "auto",
 		"input"    : 0,
 		"standard" : "PAL",
 		"width"    : -1,
@@ -104,10 +104,10 @@
 		"sizeDecimation"  : 8,
 		"priority"    : 900,
 		"mode"        : "2D",
-		"cropLeft"    : 15,
-		"cropRight"   : 12,
-		"cropTop"     : 5,
-		"cropBottom"  : 5,
+		"cropLeft"    : 0,
+		"cropRight"   : 0,
+		"cropTop"     : 0,
+		"cropBottom"  : 0,
 		"redSignalThreshold"   : 0.0,
 		"greenSignalThreshold" : 0.0,
 		"blueSignalThreshold"  : 0.0
@@ -146,9 +146,7 @@
 	"initialEffect" :
 	{
 		"background-effect"      : "Full color mood blobs",
-		"background-effect-args" : {},
 		"foreground-effect"      : "Rainbow swirl fast",
-		"foreground-effect-args" : {},
 		"foreground-duration_ms" : 3000
 	},
 
@@ -169,7 +167,7 @@
 		"port" : 19445
 	},
 	
-    "boblightServer" :
+	"boblightServer" :
 	{
 		"enable"   : false,
 		"port"     : 19333,
