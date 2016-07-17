@@ -165,12 +165,10 @@ void KODIVideoChecker::receiveReply()
 									// audio is playing
 									setGrabbingMode(_grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF);
 								}
-								else
-								{
-									// Nothing is playing.
-									setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
-								}
 							}
+							else
+								// Nothing is playing.
+								setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 						}
 						break;
 					}
