@@ -125,7 +125,7 @@ void KODIVideoChecker::receiveReply()
 	{
 		if (doc.isObject())
 		{
-			Debug(_log, "message: %s", doc.toJson(QJsonDocument::Compact).toStdString().c_str());
+			Debug(_log, "message: %s", doc.toJson(QJsonDocument::Compact).constData());
 
 			// Reply
 			if (doc.object().contains("id"))
@@ -267,7 +267,7 @@ void KODIVideoChecker::receiveReply()
 					(doc.object()["params"]
 					.toObject()["data"]
 					.toObject()["item"]
-					.toObject()["type"]) == "picture")
+					.toObject()["type"]) == QString("picture"))
 				{
 					// picture viewer is playing
 					setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
