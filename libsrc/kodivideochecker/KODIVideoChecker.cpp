@@ -1,7 +1,7 @@
 // Qt includes
-#include <QUrl>
-#include <QRegExp>
-#include <QStringRef>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #include <kodivideochecker/KODIVideoChecker.h>
 
@@ -117,151 +117,166 @@ void KODIVideoChecker::stop()
 
 void KODIVideoChecker::receiveReply()
 {
-	// expect that the reply is received as a single message. Probably oke considering the size of the expected reply
-	QString reply(_socket.readAll());
-	Debug(_log, "message: %s", reply.toStdString().c_str());
-
-	if (reply.contains("\"method\":\"Player.OnPlay\""))
+	QJsonParseError error;
+	QByteArray qtreply = _socket.readAll();
+	QJsonDocument doc = QJsonDocument::fromJson(qtreply, &error);
+	
+	if (error.error == QJsonParseError::NoError)
 	{
-		// send a request for the current player state
-		_socket.write(_activePlayerRequest.toUtf8());
-		return;
-	}
-	else if (reply.contains("\"method\":\"Player.OnStop\""))
-	{
-		// the player has stopped
-		setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
-		setVideoMode(VIDEO_2D);
-	}
-	else if (reply.contains("\"method\":\"Player.OnPause\""))
-	{
-		// player at pause
-		setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
-	}
-	else if (reply.contains("\"method\":\"GUI.OnScreensaverActivated\""))
-	{
-		setScreensaverMode(!_grabScreensaver);
-	}
-	else if (reply.contains("\"method\":\"GUI.OnScreensaverDeactivated\""))
-	{
-		setScreensaverMode(false);
-	}
-	else if (reply.contains("\"id\":666"))
-	{
-		// Result of Player.GetActivePlayers
-
-		// always start a new video in 2D mode
-		emit videoMode(VIDEO_2D);
-
-		if (reply.contains("video"))
+		if (doc.isObject())
 		{
-			// video is playing
-			setGrabbingMode(_grabVideo ? GRABBINGMODE_VIDEO : GRABBINGMODE_OFF);
+			Debug(_log, "message: %s", doc.toJson(QJsonDocument::Compact).constData());
 
-			// we need to get the filename
-			// first retrieve the playerid
-			QString key = "\"playerid\":";
-			QRegExp regex(key + "(\\d+)");
-			int pos = regex.indexIn(reply);
-			if (pos > 0)
+			// Reply
+			if (doc.object().contains("id"))
 			{
-				// now request info of the playing item
-				QStringRef idText(&reply, pos + key.length(), regex.matchedLength() - key.length());
-				_socket.write(_currentPlayingItemRequest.arg(idText.toString()).toUtf8());
+				int id = doc.object()["id"].toInt();
+				switch (id)
+				{
+					case 666:
+					{
+						if (doc.object()["result"].isArray())
+						{
+							QJsonArray resultArray = doc.object()["result"].toArray();
+							
+							if (!resultArray.isEmpty())
+							{
+								// always start a new video in 2D mode
+								emit videoMode(VIDEO_2D);
+
+								QString type = resultArray[0].toObject()["type"].toString();
+								int playerid = resultArray[0].toObject()["playerid"].toInt();								
+
+								if (type == "video")
+								{
+									// video is playing
+									setGrabbingMode(_grabVideo ? GRABBINGMODE_VIDEO : GRABBINGMODE_OFF);
+
+									// request info of the playing item
+									_socket.write(_currentPlayingItemRequest.arg(playerid).toUtf8());
+								}
+								else if (type == "picture")
+								{
+									// picture viewer is playing
+									setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+								}
+								else if (type == "audio")
+								{
+									// audio is playing
+									setGrabbingMode(_grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF);
+								}
+								else
+								{
+									// Nothing is playing.
+									setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+								}
+							}
+						}
+						break;
+					}
+					case 667:
+					{
+						if (_kodiVersion >= 13)
+						{
+							// check of active stereoscopicmode
+							_socket.write(_getStereoscopicMode.toUtf8());
+						}
+						else
+						{
+							if (doc.object()["result"].toObject()["item"].toObject().contains("file"))
+							{
+								
+								QString filename = doc.object()["result"].toObject()["item"].toObject()["file"].toString();
+								if (filename.contains("3DSBS", Qt::CaseInsensitive) || filename.contains("HSBS", Qt::CaseInsensitive))
+									setVideoMode(VIDEO_3DSBS);
+								else if (filename.contains("3DTAB", Qt::CaseInsensitive) || filename.contains("HTAB", Qt::CaseInsensitive))
+									setVideoMode(VIDEO_3DTAB);
+								else
+									setVideoMode(VIDEO_2D);
+							}
+						}
+						break;
+					}
+					case 668:
+					{
+						if (doc.object()["result"].toObject().contains("System.ScreenSaverActive"))
+						{
+							// result of System.ScreenSaverActive
+							setScreensaverMode(!_grabScreensaver && doc.object()["result"].toObject()["System.ScreenSaverActive"].toBool());
+
+							// check here kodi version
+							if (_socket.state() == QTcpSocket::ConnectedState)
+							{
+								if (_kodiVersion == 0)
+								{
+									_socket.write(_getKodiVersion.toUtf8());
+								}
+							}
+						}
+						break;
+					}
+					case 669:
+					{
+						if (doc.object()["result"].toObject()["stereoscopicmode"].toObject().contains("mode"))
+						{
+							// result of stereoscopicmode
+							QString mode = doc.object()["result"].toObject()["stereoscopicmode"].toObject()["mode"].toString();
+							if (mode == "split_vertical")
+								setVideoMode(VIDEO_3DSBS);
+							else if (mode == "split_horizontal")
+								setVideoMode(VIDEO_3DTAB);
+						}
+						break;
+					}
+					case 670:
+					{
+						if (doc.object()["result"].toObject()["version"].toObject().contains("major"))
+						{
+							// kodi major version
+							_kodiVersion = doc.object()["result"].toObject()["version"].toObject()["major"].toInt();
+						}
+						break;
+					}
+				}
 			}
-		}
-		else if (reply.contains("picture"))
-		{
-			// picture viewer is playing
-			setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
-		}
-		else if (reply.contains("audio"))
-		{
-			// audio is playing
-			setGrabbingMode(_grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF);
-		}
-		else
-		{
-			// Nothing is playing.
-			setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
-		}
-	}
-	else if (reply.contains("\"id\":667"))
-	{
-		if (_kodiVersion >= 13)
-		{
-			// check of active stereoscopicmode
-			_socket.write(_getStereoscopicMode.toUtf8());
-		}
-		else
-		{
-			// result of Player.GetItem
-			// TODO: what if the filename contains a '"'. In Json this should have been escaped
-			QRegExp regex("\"file\":\"((?!\").)*\"");
-			int pos = regex.indexIn(reply);
-			if (pos > 0)
+			
+			// Notification
+			else if (doc.object().contains("method"))
 			{
-				QStringRef filename = QStringRef(&reply, pos+8, regex.matchedLength()-9);
-				if (filename.contains("3DSBS", Qt::CaseInsensitive) || filename.contains("HSBS", Qt::CaseInsensitive))
+				QString method = doc.object()["method"].toString();
+				if (method == "Player.OnPlay")
 				{
-					setVideoMode(VIDEO_3DSBS);
+					// send a request for the current player state
+					_socket.write(_activePlayerRequest.toUtf8());
+					return;
 				}
-				else if (filename.contains("3DTAB", Qt::CaseInsensitive) || filename.contains("HTAB", Qt::CaseInsensitive))
+				else if (method == "Player.OnStop")
 				{
-					setVideoMode(VIDEO_3DTAB);
-				}
-				else
-				{
+					// the player has stopped
+					setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 					setVideoMode(VIDEO_2D);
 				}
+				else if (method == "Player.OnPause")
+					// player at pause
+					setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
+				else if (method == "GUI.OnScreensaverActivated")
+					setScreensaverMode(!_grabScreensaver);
+				else if (method == "GUI.OnScreensaverDeactivated")
+					setScreensaverMode(false);
+				else if (method == "Playlist.OnAdd" &&
+					(doc.object()["params"]
+					.toObject()["data"]
+					.toObject()["item"]
+					.toObject()["type"]) == QString("picture"))
+				{
+					// picture viewer is playing
+					setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+					return;
+				}
 			}
 		}
-	}
-	else if (reply.contains("\"id\":668"))
-	{
-		// result of System.ScreenSaverActive
-		bool active = reply.contains("\"System.ScreenSaverActive\":true");
-		setScreensaverMode(!_grabScreensaver && active);
-
-		// check here kodi version
-		if (_socket.state() == QTcpSocket::ConnectedState)
-		{
-			if (_kodiVersion == 0)
-			{
-				_socket.write(_getKodiVersion.toUtf8());
-			}
-		}
-	}
-	else if (reply.contains("\"id\":669"))
-	{
-		QRegExp regex("\"mode\":\"(split_vertical|split_horizontal)\"");
-		int pos = regex.indexIn(reply);
-		if (pos > 0)
-		{
-			QString sMode = regex.cap(1);
-			if (sMode == "split_vertical")
-			{
-				setVideoMode(VIDEO_3DSBS);
-			}
-			else if (sMode == "split_horizontal")
-			{
-				setVideoMode(VIDEO_3DTAB);
-			}
-		}
-	}
-	else if (reply.contains("\"id\":670"))
-	{
-		QRegExp regex("\"major\":(\\d+)");
-		int pos = regex.indexIn(reply);
-		if (pos > 0)
-		{
-			_kodiVersion = regex.cap(1).toInt();
-		}
-	}
-	else if (reply.contains("picture") && reply.contains("\"method\":\"Playlist.OnAdd\""))
-	{
-		// picture viewer is playing
-		setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+		else
+			Debug(_log, "Incomplete data");
 	}
 }
 
