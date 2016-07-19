@@ -23,7 +23,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]
 then
 	mkdir build || exit 1
 	cd build
-	cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release -DENABLE_AMLOGIC=ON -DENABLE_TESTS=ON -DENABLE_SPIDEV=ON -DENABLE_WS281XPWM=ON .. || exit 2
+	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Release .. || exit 2
 	make -j$(nproc) || exit 3
 	make -j$(nproc) package || exit 4
 fi

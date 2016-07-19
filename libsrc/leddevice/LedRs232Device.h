@@ -66,4 +66,6 @@ private:
 	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
+	
+	bool _stateChanged;
 };
