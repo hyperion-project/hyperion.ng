@@ -245,18 +245,18 @@
 
 	/// Initial Effect sets a "booteffect" or "color" (foreground-effect) and optional set a "effect" or "color" during inactive grabbers and network receivers (background-effect) 
 	///  * background-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
 	///  * foreground-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
 	///  * foreground-duration_ms : The duration of the selected foreground-effect or color (0=endless)
 	///                       HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
 	///                       HINT: Set a empty value if you want to disable a component (example: "")
 	"initialEffect" :
 	{
 		"background-effect"      : "Full color mood blobs",
-		"background-effect-args" : {},
+		//"background-effect-args" : {},
 		"foreground-effect"      : "Rainbow swirl fast",
-		"foreground-effect-args" : {},
+		//"foreground-effect-args" : {},
 		"foreground-duration_ms" : 3000
 	},
 
