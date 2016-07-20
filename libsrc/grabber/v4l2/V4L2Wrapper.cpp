@@ -57,7 +57,6 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 	_timer.setInterval(500);
 	_timer.setSingleShot(false);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSources()));
-	_timer.start();
 }
 
 V4L2Wrapper::~V4L2Wrapper()
@@ -67,6 +66,7 @@ V4L2Wrapper::~V4L2Wrapper()
 
 bool V4L2Wrapper::start()
 {
+	_timer.start();
 	bool grabber_started = _grabber.start();
 	if ( ! grabber_started )
 	{

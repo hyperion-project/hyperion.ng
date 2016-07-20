@@ -77,22 +77,27 @@ void V4L2Grabber::uninit()
 
 bool V4L2Grabber::init()
 {
-	if ( _deviceName == "auto" )
-	{
-		for (auto& dev: _v4lDevices)
-		{
-			Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
-			_deviceName = dev.first;
-			if ( init() )
-			{
-				Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
-				break;
-			}
-		}
-	}
-	
 	if (! _initialized)
 	{
+		getV4Ldevices();
+		if ( _deviceName == "auto" )
+		{
+			for (auto& dev: _v4lDevices)
+			{
+				Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+				_deviceName = dev.first;
+				if ( init() )
+				{
+					Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+					break;
+				}
+			}
+		}
+		else
+		{
+			Info(_log, "configured v4l device: %s", _deviceName.c_str());
+		}
+
 		bool opened = false;
 		try
 		{

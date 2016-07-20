@@ -9,19 +9,23 @@
 // Local Hyperion includes
 #include "LedRs232Device.h"
 
-LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms) :
-	_deviceName(outputDevice),
-	_baudRate_Hz(baudrate),
-	_delayAfterConnect_ms(delayAfterConnect_ms),
-	_rs232Port(this),
-	_blockedForDelay(false)
+LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms)
+	: _deviceName(outputDevice)
+	, _baudRate_Hz(baudrate)
+	, _delayAfterConnect_ms(delayAfterConnect_ms)
+	, _rs232Port(this)
+	, _blockedForDelay(false)
+	, _stateChanged(true)
 {
 }
 
 LedRs232Device::~LedRs232Device()
 {
 	if (_rs232Port.isOpen())
+	{
 		_rs232Port.close();
+		Debug(_log,"Close UART: %s", _deviceName.c_str());
+	}
 }
 
 
@@ -40,12 +44,17 @@ bool LedRs232Device::tryOpen()
 	{
 		if ( ! _rs232Port.open(QIODevice::WriteOnly) )
 		{
-			Error(_log, "Unable to open RS232 device (%s)", _deviceName.c_str());
+			if ( _stateChanged )
+			{
+				Error(_log, "Unable to open RS232 device (%s)", _deviceName.c_str());
+				_stateChanged = false;
+			}
 			return false;
 		}
 		_rs232Port.setBaudRate(_baudRate_Hz);
+		_stateChanged = true;
 	}
-	
+
 	if (_delayAfterConnect_ms > 0)
 	{
 		_blockedForDelay = true;
