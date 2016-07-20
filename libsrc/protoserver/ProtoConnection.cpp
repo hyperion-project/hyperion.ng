@@ -229,7 +229,7 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 		}
 		case proto::HyperionReply::GRABBING:
 		{
-			int grabbing = reply.has_grabbing() ? reply.grabbing() : 6;
+			int grabbing = reply.has_grabbing() ? reply.grabbing() : 7;
 			GrabbingMode gMode = (GrabbingMode)grabbing;
 			emit setGrabbingMode(gMode);
 			break;
