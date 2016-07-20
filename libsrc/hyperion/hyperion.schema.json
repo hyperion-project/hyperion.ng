@@ -540,6 +540,30 @@
 					"minimum" : 0.0,
 					"maximum" : 1.0
 				},
+				"unknownFrameCnt"    :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0
+				},
+				"borderFrameCnt" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0
+				},
+				"maxInconsistentCnt" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0
+				},
+				"blurRemoveCnt" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0
+				},
 				"mode" :
 				{
 					"type" : "string",

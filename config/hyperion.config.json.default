@@ -126,6 +126,10 @@
 	{
 		"enable" : true,
 		"threshold" : 0.0,
+		"unknownFrameCnt"    : 600,
+		"borderFrameCnt"     : 50,
+		"maxInconsistentCnt" : 10,
+		"blurRemoveCnt"      : 1,
 		"mode" : "default"
 	},
 
