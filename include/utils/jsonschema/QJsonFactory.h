@@ -9,8 +9,10 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 
 #include <QFile>
+#include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QRegularExpression>
 
 class QJsonFactory
 {
@@ -55,8 +57,10 @@ public:
 			throw std::runtime_error(sstream.str());
 		}
 
-		QByteArray config = file.readAll();
-		QJsonDocument doc = QJsonDocument::fromJson(config, &error);
+		QString config = QString(file.readAll());
+		config.remove(QRegularExpression("([^:]?\\/\\/.*)"));
+		
+		QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8(), &error);
 		
 		if (error.error != QJsonParseError::NoError)
 		{
@@ -81,12 +85,4 @@ public:
 		file.close();
 		return doc.object();
 	}
-	
-// 	static void writeJson(const std::string& filename, Json::Value& jsonTree)
-// 	{
-// 		Json::StyledStreamWriter writer;
-// 		
-// 		std::ofstream ofs(filename.c_str());
-// 		writer.write(ofs, jsonTree);
-// 	}
 };
