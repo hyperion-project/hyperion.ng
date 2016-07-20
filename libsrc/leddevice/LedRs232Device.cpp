@@ -2,7 +2,6 @@
 // STL includes
 #include <cstring>
 #include <iostream>
-#include <unistd.h>
 
 // Qt includes
 #include <QTimer>
