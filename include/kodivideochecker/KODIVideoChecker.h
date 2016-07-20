@@ -87,8 +87,6 @@ private:
 	
 	/// Set the grabbing mode
 	void setGrabbingMode(GrabbingMode grabbingMode);
-
-	void setScreensaverMode(bool isOnScreensaver);
 	
 	/// Set the video mode
 	void setVideoMode(VideoMode videoMode);
@@ -138,9 +136,6 @@ private:
 
 	/// Flag indicating wheter or not to enable the detection of 3D movies playing
 	bool _enable3DDetection;
-
-	/// Flag indicating if KODI is on screensaver
-	bool _previousScreensaverMode;
 	
 	/// Previous emitted grab mode
 	GrabbingMode _previousGrabbingMode;
