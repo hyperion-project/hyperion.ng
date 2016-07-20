@@ -70,6 +70,7 @@ bool loadConfig(const QString & configFile)
 			std::cout << *i << std::endl;
 		}
 		
+		std::cout << "FAILED" << std::endl;
 		exit(1);
 		return false;
 	}
@@ -92,10 +93,12 @@ int main(int argc, char** argv)
 	try
 	{
 		if (loadConfig(configFile))
+			std::cout << "PASSED" << std::endl;
 			exit(0);
 	}
 	catch (std::runtime_error exception)
 	{
+		std::cout << "FAILED" << std::endl;
 		std::cout << exception.what() << std::endl;
 		exit(1);
 	}
