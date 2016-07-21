@@ -12,8 +12,11 @@ target_link_libraries(hyperiond
 		udplistener
 		protoserver
 		webconfig
-		bonjour
 )
+
+if (ENABLE_AVAHI)
+	target_link_libraries(hyperiond bonjour)
+endif ()
 
 if (ENABLE_DISPMANX)
 	target_link_libraries(hyperiond dispmanx-grabber)
