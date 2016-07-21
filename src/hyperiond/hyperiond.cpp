@@ -16,8 +16,10 @@
 
 #include <hyperion/Hyperion.h>
 #include <effectengine/EffectEngine.h>
+#ifdef ENABLE_AVAHI
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
+#endif
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
@@ -292,6 +294,7 @@ void HyperionDaemon::startNetworkServices()
 					QHostInfo::localHostName().toStdString()
 					);
 
+#ifdef ENABLE_AVAHI
 	// zeroconf udp listener 
 	if (_udpListener != nullptr) {
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
@@ -317,6 +320,7 @@ void HyperionDaemon::startNetworkServices()
 				_protoServer->getPort()
 				);
 	Debug(_log, "Proto mDNS responder started");
+#endif
 }
 
 void HyperionDaemon::createGrabberDispmanx()
