@@ -82,6 +82,7 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 	case GRABBINGMODE_AUDIO:
 	case GRABBINGMODE_PHOTO:
 	case GRABBINGMODE_MENU:
+	case GRABBINGMODE_SCREENSAVER:
 	case GRABBINGMODE_INVALID:
 		_frameGrabber->setFlags(0);
 		start();

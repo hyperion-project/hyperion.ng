@@ -56,7 +56,6 @@ KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, b
 	, _grabPause(grabPause)
 	, _grabScreensaver(grabScreensaver)
 	, _enable3DDetection(enable3DDetection)
-	, _previousScreensaverMode(false)
 	, _previousGrabbingMode(GRABBINGMODE_INVALID)
 	, _previousVideoMode(VIDEO_2D)
 	, _kodiVersion(0)
@@ -87,7 +86,6 @@ void KODIVideoChecker::setConfig(const std::string & address, uint16_t port, boo
 	_grabPause               = grabPause;
 	_grabScreensaver         = grabScreensaver;
 	_enable3DDetection       = enable3DDetection;
-	_previousScreensaverMode = false;
 	_previousGrabbingMode    = GRABBINGMODE_INVALID;
 	_previousVideoMode       = VIDEO_2D;
 	_kodiVersion             = 0;
@@ -126,7 +124,7 @@ void KODIVideoChecker::receiveReply()
 		if (doc.isObject())
 		{
 			Debug(_log, "message: %s", doc.toJson(QJsonDocument::Compact).constData());
-
+			
 			// Reply
 			if (doc.object().contains("id"))
 			{
@@ -145,7 +143,7 @@ void KODIVideoChecker::receiveReply()
 								emit videoMode(VIDEO_2D);
 
 								QString type = resultArray[0].toObject()["type"].toString();
-								int playerid = resultArray[0].toObject()["playerid"].toInt();								
+								int playerid = resultArray[0].toObject()["playerid"].toInt();
 
 								if (type == "video")
 								{
@@ -200,7 +198,10 @@ void KODIVideoChecker::receiveReply()
 						if (doc.object()["result"].toObject().contains("System.ScreenSaverActive"))
 						{
 							// result of System.ScreenSaverActive
-							setScreensaverMode(!_grabScreensaver && doc.object()["result"].toObject()["System.ScreenSaverActive"].toBool());
+							if (doc.object()["result"].toObject()["System.ScreenSaverActive"].toBool())
+								setGrabbingMode(_grabScreensaver ? GRABBINGMODE_SCREENSAVER : GRABBINGMODE_OFF);
+							else
+								_socket.write(_activePlayerRequest.toUtf8());
 
 							// check here kodi version
 							if (_socket.state() == QTcpSocket::ConnectedState)
@@ -258,9 +259,9 @@ void KODIVideoChecker::receiveReply()
 					// player at pause
 					setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
 				else if (method == "GUI.OnScreensaverActivated")
-					setScreensaverMode(!_grabScreensaver);
+					setGrabbingMode(_grabScreensaver ? GRABBINGMODE_SCREENSAVER : GRABBINGMODE_OFF);
 				else if (method == "GUI.OnScreensaverDeactivated")
-					setScreensaverMode(false);
+					_socket.write(_activePlayerRequest.toUtf8());
 				else if (method == "Playlist.OnAdd" &&
 					(doc.object()["params"]
 					.toObject()["data"]
@@ -290,6 +291,9 @@ void KODIVideoChecker::connected()
 void KODIVideoChecker::disconnected()
 {
 	Info(_log, "Disconnected");
+	_previousGrabbingMode    = GRABBINGMODE_INVALID;
+	_previousVideoMode       = VIDEO_2D;
+	_kodiVersion             = 0;
 	reconnect();
 }
 
@@ -357,29 +361,16 @@ void KODIVideoChecker::setGrabbingMode(GrabbingMode newGrabbingMode)
 	case GRABBINGMODE_OFF:
 		Info(_log, "switching to OFF mode");
 		break;
+	case GRABBINGMODE_SCREENSAVER:
+		Info(_log, "switching to SCREENSAVER mode");
+		break;
 	default:
 		Warning(_log, "switching to INVALID mode");
 		break;
 	}
 
-	// only emit the new state when we want to grab in screensaver mode or when the screensaver is deactivated
-	if (!_previousScreensaverMode)
-	{
-		emit grabbingMode(newGrabbingMode);
-	}
+	emit grabbingMode(newGrabbingMode);
 	_previousGrabbingMode = newGrabbingMode;
-}
-
-void KODIVideoChecker::setScreensaverMode(bool isOnScreensaver)
-{
-	if (isOnScreensaver == _previousScreensaverMode)
-	{
-		// no change
-		return;
-	}
-
-	emit grabbingMode(isOnScreensaver ? GRABBINGMODE_OFF : _previousGrabbingMode);
-	_previousScreensaverMode = isOnScreensaver;
 }
 
 void KODIVideoChecker::setVideoMode(VideoMode newVideoMode)
