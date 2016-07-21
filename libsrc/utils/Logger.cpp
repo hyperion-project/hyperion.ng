@@ -122,11 +122,11 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	  || (GLOBAL_MIN_LOG_LEVEL > Logger::UNSET && level < GLOBAL_MIN_LOG_LEVEL) ) // global level set, use global level
 		return;
 
-
-	char msg[512];
+	const size_t max_msg_length = 1024;
+	char msg[max_msg_length];
 	va_list args;
 	va_start (args, fmt);
-	vsprintf (msg,fmt, args);
+	vsnprintf (msg, max_msg_length, fmt, args);
 	va_end (args);
 
 	std::string location;
