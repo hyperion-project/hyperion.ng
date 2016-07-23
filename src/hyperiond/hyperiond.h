@@ -32,6 +32,12 @@
 	typedef QObject OsxWrapper;
 #endif
 
+#ifdef ENABLE_X11
+	#include <grabber/X11Wrapper.h>
+#else
+	typedef QObject X11Wrapper;
+#endif
+
 #include <utils/Logger.h>
 
 #include <kodivideochecker/KODIVideoChecker.h>
@@ -55,13 +61,16 @@ public:
 	void startNetworkServices();
 
 	// grabber creators
-	void createGrabberDispmanx();
 	void createGrabberV4L2();
-	void createGrabberAmlogic();
-	void createGrabberFramebuffer();
-	void createGrabberOsx();
+	void createSystemFrameGrabber();
 
 private:
+	void createGrabberDispmanx(const Json::Value & grabberConfig);
+	void createGrabberAmlogic(const Json::Value & grabberConfig);
+	void createGrabberFramebuffer(const Json::Value & grabberConfig);
+	void createGrabberOsx(const Json::Value & grabberConfig);
+	void createGrabberX11(const Json::Value & grabberConfig);
+
 	Logger*             _log;
 	Json::Value         _config;
 	KODIVideoChecker*   _kodiVideoChecker;
@@ -71,6 +80,7 @@ private:
 	UDPListener*        _udpListener;
 	V4L2Wrapper*        _v4l2Grabber;
 	DispmanxWrapper*    _dispmanx;
+	X11Wrapper*         _x11Grabber;
 	AmlogicWrapper*     _amlGrabber;
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;

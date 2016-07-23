@@ -116,6 +116,7 @@
 	"framegrabber" :
 	{
 		"enable" : true,
+		"type"   : "auto",
 		"width" : 96,
 		"height" : 96,
 		"frequency_Hz" : 10.0,

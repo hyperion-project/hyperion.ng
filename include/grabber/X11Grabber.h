@@ -28,7 +28,11 @@ public:
 	bool Setup();
 
 	Image<ColorRgb> & grab();
+	int grabFrame(Image<ColorRgb> & image);
+	int updateScreenDimensions();
 
+	const unsigned getImageWidth() { return _croppedWidth; };
+	const unsigned getImageHeight() { return _croppedHeight; };
 private:
 	ImageResampler _imageResampler;
 	
@@ -63,7 +67,6 @@ private:
 	void freeResources();
 	void setupResources();
 	
-	int updateScreenDimensions();
 	
 	Logger * _log;
 };
