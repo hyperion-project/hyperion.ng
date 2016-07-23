@@ -164,8 +164,6 @@ Image<ColorRgb> & X11Grabber::grab()
 
 int X11Grabber::grabFrame(Image<ColorRgb> & image)
 {
-	 
-
 	if (_XRenderAvailable && !_useXGetImage) {
 		XRenderComposite( _x11Display,		// *dpy,
 							PictOpSrc,		// op,
