@@ -112,6 +112,9 @@ private:
 
 	/// The JSON-RPC message to check the kodi version
 	QString _getKodiVersion;
+	
+	/// The JSON-RPC message to check the current Playback State
+	const QString _getCurrentPlaybackState; 
 
 	/// The QT TCP Socket with connection to KODI
 	QTcpSocket _socket;
@@ -142,6 +145,12 @@ private:
 
 	/// Previous emitted video mode
 	VideoMode _previousVideoMode;
+	
+	/// Current Playback State
+	bool _currentPlaybackState;
+	
+	/// Current Kodi PlayerID
+	int _currentPlayerID;
 
 	/// KODI version number
 	int _kodiVersion;
