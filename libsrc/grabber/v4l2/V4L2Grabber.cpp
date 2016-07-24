@@ -110,7 +110,7 @@ bool V4L2Grabber::init()
 		{
 			for (auto& dev: _v4lDevices)
 			{
-				if ( _deviceName == dev.second )
+				if ( QString(_deviceName.c_str()).toLower() == QString(dev.second.c_str()).toLower() )
 				{
 					_deviceName = dev.first;
 					Info(_log, "found v4l2 device with configured name: %s (%s)", dev.second.c_str(), dev.first.c_str() );

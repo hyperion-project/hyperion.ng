@@ -68,7 +68,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = new LedDeviceAdalight(
 			deviceConfig["output"].asString(),
 			deviceConfig["rate"].asInt(),
-			deviceConfig.get("delayAfterConnect",1000).asInt()
+			deviceConfig.get("delayAfterConnect",500).asInt()
 		);
 	}
 	else if (type == "adalightapa102")
@@ -76,7 +76,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		device = new LedDeviceAdalightApa102(
 			deviceConfig["output"].asString(),
 			deviceConfig["rate"].asInt(),
-			deviceConfig.get("delayAfterConnect",1000).asInt()
+			deviceConfig.get("delayAfterConnect",500).asInt()
 		);
 	}
 #ifdef ENABLE_SPIDEV
