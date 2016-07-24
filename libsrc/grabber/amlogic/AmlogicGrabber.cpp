@@ -29,6 +29,7 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
 	: _width(std::max(160u, width))    // Minimum required width or height is 160
 	, _height(std::max(160u, height))
 	, _amlogicCaptureDev(-1)
+	, _log(Logger::getInstance("AMLOGICGRABBER"))
 {
 	Debug(_log, "constructed(%d x %d)",_width,_height);
 }
