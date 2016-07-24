@@ -48,6 +48,7 @@ KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, b
 	, _checkScreensaverRequest(R"({"id":668,"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params":{"booleans":["System.ScreenSaverActive"]}})")
 	, _getStereoscopicMode(R"({"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669})")
 	, _getKodiVersion(R"({"jsonrpc":"2.0","method":"Application.GetProperties","params":{"properties":["version"]},"id":670})")
+	, _getCurrentPlaybackState(R"({"id":671,"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":%1,"properties":["speed"]}})")
 	, _socket()
 	, _grabVideo(grabVideo)
 	, _grabPhoto(grabPhoto)
@@ -58,6 +59,8 @@ KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, b
 	, _enable3DDetection(enable3DDetection)
 	, _previousGrabbingMode(GRABBINGMODE_INVALID)
 	, _previousVideoMode(VIDEO_2D)
+	, _currentPlaybackState(false)
+	, _currentPlayerID(0)
 	, _kodiVersion(0)
 	, _log(Logger::getInstance("KODI"))
 	, _active(false)
@@ -143,30 +146,56 @@ void KODIVideoChecker::receiveReply()
 								emit videoMode(VIDEO_2D);
 
 								QString type = resultArray[0].toObject()["type"].toString();
-								int playerid = resultArray[0].toObject()["playerid"].toInt();
+								_currentPlayerID = resultArray[0].toObject()["playerid"].toInt();
 
 								if (type == "video")
-								{
-									// video is playing
-									setGrabbingMode(_grabVideo ? GRABBINGMODE_VIDEO : GRABBINGMODE_OFF);
+								{									
+									if (_currentPlaybackState)
+									{
+										// video is playing
+										setGrabbingMode(_grabVideo ? GRABBINGMODE_VIDEO : GRABBINGMODE_OFF);
+									}
+									else
+									{
+										setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
+									}
 
 									// request info of the playing item
-									_socket.write(_currentPlayingItemRequest.arg(playerid).toUtf8());
+									_socket.write(_currentPlayingItemRequest.arg(_currentPlayerID).toUtf8());
 								}
 								else if (type == "picture")
 								{
-									// picture viewer is playing
-									setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+									if (_currentPlaybackState)
+									{
+										// picture is playing
+										setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
+									}
+									else
+									{
+										setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
+									}
 								}
 								else if (type == "audio")
 								{
 									// audio is playing
-									setGrabbingMode(_grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF);
+									if (_currentPlaybackState)
+									{
+										// audio is playing
+										setGrabbingMode(_grabAudio ? GRABBINGMODE_AUDIO : GRABBINGMODE_OFF);
+									}
+									else
+									{
+										setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
+									}
 								}
 							}
 							else
 								// Nothing is playing.
 								setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+						}
+						else
+						{
+							setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 						}
 						break;
 					}
@@ -190,6 +219,10 @@ void KODIVideoChecker::receiveReply()
 								else
 									setVideoMode(VIDEO_2D);
 							}
+							else
+							{
+								setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+							}
 						}
 						break;
 					}
@@ -212,6 +245,10 @@ void KODIVideoChecker::receiveReply()
 								}
 							}
 						}
+						else
+						{
+							setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+						}
 						break;
 					}
 					case 669:
@@ -225,6 +262,10 @@ void KODIVideoChecker::receiveReply()
 							else if (mode == "split_horizontal")
 								setVideoMode(VIDEO_3DTAB);
 						}
+						else
+						{
+							setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+						}
 						break;
 					}
 					case 670:
@@ -233,6 +274,27 @@ void KODIVideoChecker::receiveReply()
 						{
 							// kodi major version
 							_kodiVersion = doc.object()["result"].toObject()["version"].toObject()["major"].toInt();
+						}
+						else
+						{
+							setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+						}
+						break;
+					}
+					case 671:
+					{
+						if (doc.object()["result"].toObject().contains("speed"))
+						{
+							// result of Player.PlayPause 
+							_currentPlaybackState = static_cast<bool>(doc.object()["result"].toObject()["speed"].toInt());
+// 							if (doc.object()["result"].toObject()["speed"].toInt() == 0)
+// 								_currentPlaybackState = false;	//Pause
+// 							else
+// 								_currentPlaybackState = true;	//Play
+						}
+						else
+						{
+							setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
 						}
 						break;
 					}
@@ -245,6 +307,9 @@ void KODIVideoChecker::receiveReply()
 				QString method = doc.object()["method"].toString();
 				if (method == "Player.OnPlay")
 				{
+					if (doc.object()["params"].toObject()["data"].toObject()["player"].toObject().contains("speed"))
+						_currentPlaybackState = static_cast<bool>(doc.object()["params"].toObject()["data"].toObject()["player"].toObject()["speed"].toInt());
+
 					// send a request for the current player state
 					_socket.write(_activePlayerRequest.toUtf8());
 					return;
@@ -256,8 +321,13 @@ void KODIVideoChecker::receiveReply()
 					setVideoMode(VIDEO_2D);
 				}
 				else if (method == "Player.OnPause")
+				{
+					if (doc.object()["params"].toObject()["data"].toObject()["player"].toObject().contains("speed"))
+						_currentPlaybackState = static_cast<bool>(doc.object()["params"].toObject()["data"].toObject()["player"].toObject()["speed"].toInt());
+
 					// player at pause
 					setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
+				}
 				else if (method == "GUI.OnScreensaverActivated")
 					setGrabbingMode(_grabScreensaver ? GRABBINGMODE_SCREENSAVER : GRABBINGMODE_OFF);
 				else if (method == "GUI.OnScreensaverDeactivated")
@@ -271,6 +341,14 @@ void KODIVideoChecker::receiveReply()
 					// picture viewer is playing
 					setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
 					return;
+				}
+				else if (method == "Input.OnInputFinished")
+				{
+					// This Event is fired when Kodi Login
+					_socket.write(_activePlayerRequest.toUtf8());
+					_socket.write(_checkScreensaverRequest.toUtf8());
+					if (_currentPlayerID != 0)
+						_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
 				}
 			}
 		}
@@ -286,6 +364,8 @@ void KODIVideoChecker::connected()
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
 	_socket.write(_checkScreensaverRequest.toUtf8());
+	if (_currentPlayerID != 0)
+		_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
 }
 
 void KODIVideoChecker::disconnected()
