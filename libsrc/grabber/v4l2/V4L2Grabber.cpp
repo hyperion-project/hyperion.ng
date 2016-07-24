@@ -80,15 +80,40 @@ bool V4L2Grabber::init()
 	if (! _initialized)
 	{
 		getV4Ldevices();
-		if ( _deviceName == "auto" )
+		std::string v4lDevices_str;
+		
+		// show list only once
+		if ( ! QString(_deviceName.c_str()).startsWith("/dev/") )
 		{
 			for (auto& dev: _v4lDevices)
 			{
-				Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+				v4lDevices_str += "\t"+ dev.first + "\t" + dev.second + "\n";
+			}
+			Info(_log, "available V4L2 devices:\n%s", v4lDevices_str.c_str());
+		}
+
+		if ( _deviceName == "auto" )
+		{
+			_deviceName = "unknown";
+			for (auto& dev: _v4lDevices)
+			{
+				//Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
 				_deviceName = dev.first;
 				if ( init() )
 				{
 					Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+					break;
+				}
+			}
+		}
+		else if ( ! QString(_deviceName.c_str()).startsWith("/dev/") )
+		{
+			for (auto& dev: _v4lDevices)
+			{
+				if ( _deviceName == dev.second )
+				{
+					_deviceName = dev.first;
+					Info(_log, "found v4l2 device with configured name: %s (%s)", dev.second.c_str(), dev.first.c_str() );
 					break;
 				}
 			}

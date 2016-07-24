@@ -255,7 +255,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
 		_boblightServer = new BoblightServer(
-			boblightServerConfig.get("priority",900).asInt(),
+			boblightServerConfig.get("priority",899).asInt(),
 			boblightServerConfig["port"].asUInt()
 		);
 		Debug(_log, "Boblight server created");
@@ -441,9 +441,9 @@ void HyperionDaemon::createGrabberX11(const Json::Value & grabberConfig)
 				grabberConfig.get("priority",900).asInt()
 	);
 
-	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
-	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 	_x11Grabber->start();
 	Info(_log, "X11 grabber created and started");
@@ -518,7 +518,7 @@ void HyperionDaemon::createGrabberV4L2()
 						grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
 						grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
 						grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
-						grabberConfig.get("priority", 900).asInt());
+						grabberConfig.get("priority", 890).asInt());
 			_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
 			_v4l2Grabber->setCropping(
 						grabberConfig.get("cropLeft", 0).asInt(),
