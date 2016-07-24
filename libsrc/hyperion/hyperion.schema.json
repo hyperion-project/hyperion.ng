@@ -499,15 +499,20 @@
 					"type" : "boolean",
 					"required" : true
 				},
+				"type" :
+				{
+					"type" : "string",
+					"required" : true
+				},
 				"width" :
 				{
 					"type" : "integer",
-					"required" : true
+					"required" : false
 				},
 				"height" :
 				{
 					"type" : "integer",
-					"required" : true
+					"required" : false
 				},
 				"frequency_Hz" :
 				{
@@ -520,7 +525,7 @@
 					"required" : true
 				}
 			},
-			"additionalProperties" : false
+			"additionalProperties" : true
 		},
 		"blackborderdetector" :
 		{

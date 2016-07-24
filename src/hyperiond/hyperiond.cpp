@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <cassert>
+#include <stdlib.h>
 
 #include <QCoreApplication>
 #include <QResource>
@@ -36,6 +37,7 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
+	, _x11Grabber(nullptr)
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
@@ -92,9 +94,7 @@ void HyperionDaemon::run()
 
 	// ---- grabber -----
 	createGrabberV4L2();
-	createGrabberDispmanx();
-	createGrabberAmlogic();
-	createGrabberFramebuffer();
+	createSystemFrameGrabber();
 
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
 		ErrorIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
@@ -255,7 +255,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
 		_boblightServer = new BoblightServer(
-			boblightServerConfig.get("priority",900).asInt(),
+			boblightServerConfig.get("priority",899).asInt(),
 			boblightServerConfig["port"].asUInt()
 		);
 		Debug(_log, "Boblight server created");
@@ -319,36 +319,182 @@ void HyperionDaemon::startNetworkServices()
 	Debug(_log, "Proto mDNS responder started");
 }
 
-void HyperionDaemon::createGrabberDispmanx()
+
+void HyperionDaemon::createSystemFrameGrabber()
+{
+	if (_config.isMember("framegrabber"))
+	{
+		const Json::Value & grabberConfig = _config["framegrabber"];
+		if (grabberConfig.get("enable", true).asBool())
+		{
+			#ifdef ENABLE_OSX
+				std::string type = "osx";
+			#else
+				std::string type = grabberConfig.get("type", "auto").asString();
+			#endif
+				
+			QFile amvideo("/dev/amvideo");
+			// auto eval of type
+			if ( type == "auto" )
+			{
+				// dispmanx -> on raspi
+				// TODO currently a compile option
+				#ifdef ENABLE_DISPMANX
+				if (true)
+				#else
+				if (false)
+				#endif
+				{
+					type = "dispmanx";
+				}
+				// amlogic -> /dev/amvideo exists
+				else if ( amvideo.exists() )
+				{
+					type = "amlogic";
+				}
+				// x11 -> if DISPLAY is set
+				else if (getenv("DISPLAY") != NULL ) 
+				{
+					type = "x11";
+				}
+				// framebuffer -> if nothing other applies
+				else
+				{
+					type == "framebuffer";
+				}
+				InfoIf( type != "auto", _log, "set screen capture device to '%s'", type.c_str());
+			}
+			
+			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
+			else if (type == "dispmanx") createGrabberDispmanx(grabberConfig);
+			else if (type == "amlogic")  createGrabberAmlogic(grabberConfig);
+			else if (type == "osx")      createGrabberOsx(grabberConfig);
+			else if (type == "x11")      createGrabberX11(grabberConfig);
+			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.c_str());
+			InfoIf( type == "", _log, "screen capture device disabled");
+		}
+	}
+}
+
+
+void HyperionDaemon::createGrabberDispmanx(const Json::Value & grabberConfig)
 {
 #ifdef ENABLE_DISPMANX
 	// Construct and start the dispmanx grabber if the configuration is present
-	if (_config.isMember("framegrabber"))
-	{
-		const Json::Value & frameGrabberConfig = _config["framegrabber"];
-		if (frameGrabberConfig.get("enable", true).asBool())
-		{
-			_dispmanx = new DispmanxWrapper(
-						frameGrabberConfig["width"].asUInt(),
-						frameGrabberConfig["height"].asUInt(),
-						frameGrabberConfig["frequency_Hz"].asUInt(),
-						frameGrabberConfig.get("priority",900).asInt());
-					_dispmanx->setCropping(
-						frameGrabberConfig.get("cropLeft", 0).asInt(),
-						frameGrabberConfig.get("cropRight", 0).asInt(),
-						frameGrabberConfig.get("cropTop", 0).asInt(),
-						frameGrabberConfig.get("cropBottom", 0).asInt());
+	_dispmanx = new DispmanxWrapper(
+				grabberConfig["width"].asUInt(),
+				grabberConfig["height"].asUInt(),
+				grabberConfig.get("frequency_Hz",10).asUInt(),
+				grabberConfig.get("priority",900).asInt());
+			_dispmanx->setCropping(
+				grabberConfig.get("cropLeft", 0).asInt(),
+				grabberConfig.get("cropRight", 0).asInt(),
+				grabberConfig.get("cropTop", 0).asInt(),
+				grabberConfig.get("cropBottom", 0).asInt());
 
-			QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
-			QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
-			_dispmanx->start();
-			Info(_log, "DISPMANX frame grabber created and started");
-		}
-	}
+	_dispmanx->start();
+	Info(_log, "DISPMANX frame grabber created and started");
 #else
 	ErrorIf(_config.isMember("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+
+void HyperionDaemon::createGrabberAmlogic(const Json::Value & grabberConfig)
+{
+#ifdef ENABLE_AMLOGIC
+	// Construct and start the amlogic grabber if the configuration is present
+	_amlGrabber = new AmlogicWrapper(
+				grabberConfig["width"].asUInt(),
+				grabberConfig["height"].asUInt(),
+				grabberConfig.get("frequency_Hz",10).asUInt(),
+				grabberConfig.get("priority",900).asInt());
+
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+
+	_amlGrabber->start();
+	Info(_log, "AMLOGIC grabber created and started");
+#else
+	Error( _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+void HyperionDaemon::createGrabberX11(const Json::Value & grabberConfig)
+{
+#ifdef ENABLE_X11
+	// Construct and start the amlogic grabber if the configuration is present
+	_x11Grabber = new X11Wrapper(
+				grabberConfig.get("useXGetImage",false).asBool(),
+				grabberConfig.get("cropLeft", 0).asInt(),
+				grabberConfig.get("cropRight", 0).asInt(),
+				grabberConfig.get("cropTop", 0).asInt(),
+				grabberConfig.get("cropBottom", 0).asInt(),
+				grabberConfig.get("horizontalPixelDecimation", 8).asInt(),
+				grabberConfig.get("verticalPixelDecimation", 8).asInt(),
+				grabberConfig.get("frequency_Hz",10).asUInt(),
+				grabberConfig.get("priority",900).asInt()
+	);
+
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+
+	_x11Grabber->start();
+	Info(_log, "X11 grabber created and started");
+#else
+	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+
+void HyperionDaemon::createGrabberFramebuffer(const Json::Value & grabberConfig)
+{
+#ifdef ENABLE_FB
+	// Construct and start the framebuffer grabber if the configuration is present
+	_fbGrabber = new FramebufferWrapper(
+				grabberConfig.get("device", "/dev/fb0").asString(),
+				grabberConfig["width"].asUInt(),
+				grabberConfig["height"].asUInt(),
+				grabberConfig.get("frequency_Hz",10).asUInt(),
+				grabberConfig.get("priority",900).asInt());
+
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+
+	_fbGrabber->start();
+	Info(_log, "Framebuffer grabber created and started");
+#else
+	Error(_log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+
+void HyperionDaemon::createGrabberOsx(const Json::Value & grabberConfig)
+{
+#ifdef ENABLE_OSX
+	// Construct and start the osx grabber if the configuration is present
+	_osxGrabber = new OsxWrapper(
+				grabberConfig.get("display", 0).asUInt(),
+				grabberConfig["width"].asUInt(),
+				grabberConfig["height"].asUInt(),
+				grabberConfig.get("frequency_Hz",10).asUInt(),
+				grabberConfig.get("priority",900).asInt());
+
+	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
+	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+
+	_osxGrabber->start();
+	Info(_log, "OSX grabber created and started");
+#else
+	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 
@@ -372,7 +518,7 @@ void HyperionDaemon::createGrabberV4L2()
 						grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
 						grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
 						grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
-						grabberConfig.get("priority", 900).asInt());
+						grabberConfig.get("priority", 890).asInt());
 			_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
 			_v4l2Grabber->setCropping(
 						grabberConfig.get("cropLeft", 0).asInt(),
@@ -389,93 +535,5 @@ void HyperionDaemon::createGrabberV4L2()
 	}
 #else
 	ErrorIf(_config.isMember("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-void HyperionDaemon::createGrabberAmlogic()
-{
-#ifdef ENABLE_AMLOGIC
-	// Construct and start the amlogic grabber if the configuration is present
-	if (_config.isMember("amlgrabber"))
-	{
-		const Json::Value & grabberConfig = _config["amlgrabber"];
-		if (grabberConfig.get("enable", true).asBool())
-		{
-			_amlGrabber = new AmlogicWrapper(
-						grabberConfig["width"].asUInt(),
-						grabberConfig["height"].asUInt(),
-						grabberConfig["frequency_Hz"].asUInt(),
-						grabberConfig.get("priority",900).asInt());
-
-			QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
-			QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-
-			_amlGrabber->start();
-			Info(_log, "AMLOGIC grabber created and started");
-		}
-	}
-#else
-	ErrorIf(_config.isMember("amlgrabber"), _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-
-void HyperionDaemon::createGrabberFramebuffer()
-{
-#ifdef ENABLE_FB
-	// Construct and start the framebuffer grabber if the configuration is present
-	if (_config.isMember("framebuffergrabber"))
-	{
-		const Json::Value & grabberConfig = _config["framebuffergrabber"];
-		if (grabberConfig.get("enable", true).asBool())
-		{
-			_fbGrabber = new FramebufferWrapper(
-						grabberConfig.get("device", "/dev/fb0").asString(),
-						grabberConfig["width"].asUInt(),
-						grabberConfig["height"].asUInt(),
-						grabberConfig["frequency_Hz"].asUInt(),
-						grabberConfig.get("priority",900).asInt());
-
-			QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
-			QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-
-			_fbGrabber->start();
-			Info(_log, "Framebuffer grabber created and started");
-		}
-	}
-#else
-	ErrorIf(_config.isMember("framebuffergrabber"), _log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
-#endif
-}
-
-
-void HyperionDaemon::createGrabberOsx()
-{
-#ifdef ENABLE_OSX
-	// Construct and start the osx grabber if the configuration is present
-	if (_config.isMember("osxgrabber"))
-	{
-		const Json::Value & grabberConfig = _config["osxgrabber"];
-		if (grabberConfig.get("enable", true).asBool())
-		{
-			_osxGrabber = new OsxWrapper(
-						grabberConfig.get("display", 0).asUInt(),
-						grabberConfig["width"].asUInt(),
-						grabberConfig["height"].asUInt(),
-						grabberConfig["frequency_Hz"].asUInt(),
-						grabberConfig.get("priority",900).asInt());
-
-			QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
-			QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
-			QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-
-			_osxGrabber->start();
-			Info(_log, "OSX grabber created and started");
-		}
-	}
-#else
-	ErrorIf(_config.isMember("osxgrabber"), _log, "The osx grabber can not be instantiated, because it has been left out from the build");
 #endif
 }

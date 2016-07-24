@@ -102,7 +102,7 @@
 		"height"   : -1,
 		"frameDecimation" : 2,
 		"sizeDecimation"  : 8,
-		"priority"    : 900,
+		"priority"    : 890,
 		"mode"        : "2D",
 		"cropLeft"    : 0,
 		"cropRight"   : 0,
@@ -116,6 +116,7 @@
 	"framegrabber" :
 	{
 		"enable" : true,
+		"type"   : "auto",
 		"width" : 96,
 		"height" : 96,
 		"frequency_Hz" : 10.0,

@@ -172,7 +172,7 @@
 		"height"               : -1,
 		"frameDecimation"      : 2,
 		"sizeDecimation"       : 8,
-		"priority"             : 900,
+		"priority"             : 890,
 		"mode"                 : "2D",
 		"cropLeft"             : 0,
 		"cropRight"            : 0,
@@ -185,6 +185,7 @@
 
 	///  The configuration for the frame-grabber, contains the following items: 
 	///   * enable       : true if the framegrabber (platform grabber) should be activated
+	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer) [auto]
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
@@ -192,11 +193,29 @@
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
+		// for all type of grabbers
 		"enable"       : true,
+		"type"         : "framebuffer",
+		"frequency_Hz" : 10,
+		"priority"     : 890,
+
+		// valid for grabber: osx|dispmanx|amlogic|framebuffer
 		"width"        : 96,
 		"height"       : 96,
-		"frequency_Hz" : 10.0,
-		"priority"     : 890
+		
+		// valid for x11
+		"useXGetImage"              : false,
+		"horizontalPixelDecimation" : 8,
+		"verticalPixelDecimation"   : 8,
+		
+		// valid for dispmanx and x11
+		"cropLeft"   : 0,
+		"cropRight"  : 0,
+		"cropTop"    : 0,
+		"cropBottom" : 0,
+
+		// valid for framebuffer
+		"device"     : "/dev/fb0"
 	},
 
 	/// The black border configuration, contains the following items: 

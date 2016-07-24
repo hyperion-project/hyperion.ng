@@ -44,11 +44,11 @@ void setup() {
 
   // initial RGB flash
   LEDS.showColor(CRGB(255, 0, 0));
-  delay(500);
+  delay(250);
   LEDS.showColor(CRGB(0, 255, 0));
-  delay(500);
+  delay(250);
   LEDS.showColor(CRGB(0, 0, 255));
-  delay(500);
+  delay(250);
   LEDS.showColor(CRGB(0, 0, 0));
 
   Serial.begin(serialRate);
