@@ -287,10 +287,6 @@ void KODIVideoChecker::receiveReply()
 						{
 							// result of Player.PlayPause 
 							_currentPlaybackState = static_cast<bool>(doc.object()["result"].toObject()["speed"].toInt());
-// 							if (doc.object()["result"].toObject()["speed"].toInt() == 0)
-// 								_currentPlaybackState = false;	//Pause
-// 							else
-// 								_currentPlaybackState = true;	//Play
 						}
 						else
 						{
