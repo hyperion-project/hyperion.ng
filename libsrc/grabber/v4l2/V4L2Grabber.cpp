@@ -4,16 +4,18 @@
 #include <cstdio>
 #include <cassert>
 #include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <sstream>
+
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
+
 #include <QDirIterator>
 #include <QFileInfo>
 
@@ -97,12 +99,11 @@ bool V4L2Grabber::init()
 			_deviceName = "unknown";
 			for (auto& dev: _v4lDevices)
 			{
-				//Debug(_log, "check v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
 				_deviceName = dev.first;
 				if ( init() )
 				{
 					Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
-					break;
+					return _initialized;
 				}
 			}
 		}
