@@ -96,8 +96,8 @@ void HyperionDaemon::run()
 	createGrabberV4L2();
 	createSystemFrameGrabber();
 
-	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB)
-		ErrorIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
+	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
+		WarningIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
 }
@@ -367,7 +367,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			
 			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx(grabberConfig);
-			else if (type == "amlogic")  createGrabberAmlogic(grabberConfig);
+			else if (type == "amlogic")  { createGrabberAmlogic(grabberConfig); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
 			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.c_str());
