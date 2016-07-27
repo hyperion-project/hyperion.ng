@@ -255,7 +255,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		const Json::Value & boblightServerConfig = _config["boblightServer"];
 		_boblightServer = new BoblightServer(
-			boblightServerConfig.get("priority",899).asInt(),
+			boblightServerConfig.get("priority",710).asInt(),
 			boblightServerConfig["port"].asUInt()
 		);
 		Debug(_log, "Boblight server created");

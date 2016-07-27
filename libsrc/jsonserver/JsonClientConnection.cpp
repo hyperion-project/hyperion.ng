@@ -387,7 +387,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
-	const Hyperion::PriorityRegister& priorityRegister = _hyperion->getPriorityRegister();
+	Hyperion::PriorityRegister priorityRegister = _hyperion->getPriorityRegister();
+
 	foreach (int priority, activePriorities) {
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		Json::Value & item = priorities[priorities.size()];
@@ -398,14 +399,23 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		}
 		
 		item["owner"] = "unknown";
-		for(auto const &entry : priorityRegister)
+		item["active"] = "true";
+		foreach(auto const &entry, priorityRegister)
 		{
 			if (entry.second == priority)
 			{
 				item["owner"] = entry.first;
+				priorityRegister.erase(entry.first);
 				break;
 			}
 		}
+	}
+	foreach(auto const &entry, priorityRegister)
+	{
+		Json::Value & item = priorities[priorities.size()];
+		item["priority"] = entry.second;
+		item["active"] = "false";
+		item["owner"] = entry.first;
 	}
 	
 	// collect temperature correction information
