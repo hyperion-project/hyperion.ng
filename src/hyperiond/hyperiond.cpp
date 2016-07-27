@@ -412,7 +412,7 @@ void HyperionDaemon::createGrabberAmlogic(const Json::Value & grabberConfig)
 				grabberConfig["width"].asUInt(),
 				grabberConfig["height"].asUInt(),
 				grabberConfig.get("frequency_Hz",10).asUInt(),
-				grabberConfig.get("priority",900).asInt());
+				grabberConfig.get("priority",900).asInt()-1 );
 
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
