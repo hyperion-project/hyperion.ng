@@ -28,18 +28,21 @@
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
+	///  * 'channelAdjustment_enable' : true/false enables/disables this channelAdjustment section
 	///  * 'channelAdjustment'
 	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
+	///  * 'temperature_enable' : true/false enables/disables this temperature section
 	///  * 'temperature'
 	///  * 'id'     : The unique identifier of the temperature (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this temperature applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'red'/'green'/'blue' : The temperature manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
+	///  * 'transform_enable' : true/false enables/disables this transform section
 	///  * 'transform'
 	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
 	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
@@ -56,7 +59,7 @@
 	///            - 'gamma'           The gamma-curve correction factor
 	"color" :
 	{
-		"channelAdjustment_enable" : false,
+		"channelAdjustment_enable" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -82,7 +85,7 @@
 				}
 			}
 		],
-		"temperature_enable" : false,
+		"temperature_enable" : true,
 		"temperature" :
 		[
 			{
@@ -96,6 +99,7 @@
 				}
 			}
 		],
+		"transform_enable" : true,
 		"transform" :
 		[
 			{
