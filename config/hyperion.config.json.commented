@@ -54,18 +54,9 @@
 	///            - 'threshold'       The minimum required input value for the channel to be on 
 	///                                (else zero)
 	///            - 'gamma'           The gamma-curve correction factor
-	///
-	/// Next to the list with color transforms there is also a smoothing option.
-	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
-	///                  parameters:
-	///            - 'enable'          Enable or disable the smoothing (true/false)
-	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
-	///            - 'time_ms'          The time constant for smoothing algorithm in milliseconds
-	///            - 'updateFrequency'  The update frequency of the leds in Hz
-	///            - 'updateDelay'      The delay of the output to leds (in periods of smoothing)
-	///            - 'continuousOutput' Flag for enabling continuous output to Leds regardless of new input or not
 	"color" :
 	{
+		"channelAdjustment_enable" : false,
 		"channelAdjustment" :
 		[
 			{
@@ -91,6 +82,7 @@
 				}
 			}
 		],
+		"temperature_enable" : false,
 		"temperature" :
 		[
 			{
@@ -131,17 +123,26 @@
 					"gamma"     : 2.5000
 				}
 			}
-		],
+		]
+	},
 
-		"smoothing" :
-		{
-			"enable"           : true,
-			"type"             : "linear",
-			"time_ms"          : 200,
-			"updateFrequency"  : 25.0000,
-			"updateDelay"      : 0,
-			"continuousOutput" : true
-		}
+	/// smoothing
+	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
+	///                  parameters:
+	///            - 'enable'          Enable or disable the smoothing (true/false)
+	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
+	///            - 'time_ms'          The time constant for smoothing algorithm in milliseconds
+	///            - 'updateFrequency'  The update frequency of the leds in Hz
+	///            - 'updateDelay'      The delay of the output to leds (in periods of smoothing)
+	///            - 'continuousOutput' Flag for enabling continuous output to Leds regardless of new input or not
+	"smoothing" :
+	{
+		"enable"           : true,
+		"type"             : "linear",
+		"time_ms"          : 200,
+		"updateFrequency"  : 25.0000,
+		"updateDelay"      : 0,
+		"continuousOutput" : true
 	},
 
 	/// Configuration for the embedded V4L2 grabber

@@ -15,6 +15,7 @@
 
 	"color" :
 	{
+		"channelAdjustment_enable" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -40,6 +41,7 @@
 				}
 			}
 		],
+		"temperature_enable" : true,
 		"temperature" :
 		[
 			{
@@ -53,6 +55,7 @@
 				}
 			}
 		],
+		"transform_enable" : true,
 		"transform" :
 		[
 			{
@@ -80,18 +83,19 @@
 					"gamma"     : 2.5000
 				}
 			}
-		],
-		"smoothing" :
-		{
-			"enable"           : true,
-			"type"             : "linear",
-			"time_ms"          : 200,
-			"updateFrequency"  : 25.0000,
-			"updateDelay"      : 0,
-			"continuousOutput" : false
-		}
+		]
 	},
-	
+
+	"smoothing" :
+	{
+		"enable"           : true,
+		"type"             : "linear",
+		"time_ms"          : 200,
+		"updateFrequency"  : 25.0000,
+		"updateDelay"      : 0,
+		"continuousOutput" : true
+	},
+
 	"grabber-v4l2" :
 	{
 		"enable"   : false,

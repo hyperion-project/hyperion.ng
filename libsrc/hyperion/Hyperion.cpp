@@ -501,7 +501,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
 		            smoothingConfig.get("time_ms", 200).asInt(),
 		            smoothingConfig.get("updateDelay", 0).asUInt(),
-		            smoothingConfig.get("continuousOutput", false).asBool()
+		            smoothingConfig.get("continuousOutput", true).asBool()
 		            );
 	}
 
@@ -568,6 +568,15 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	{
 		throw std::runtime_error("Color transformation incorrectly set");
 	}
+	// set color correction activity state
+	_transformEnabled   = jsonConfig["color"].get("transform_enable",true).asBool();
+	_adjustmentEnabled  = jsonConfig["color"].get("channelAdjustment_enable",true).asBool();
+	_temperatureEnabled = jsonConfig["color"].get("temperature_enable",true).asBool();
+
+	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
+	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
+	InfoIf(!_temperatureEnabled, _log, "Color temperature disabled" );
+	
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
@@ -575,7 +584,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	);
 
 	// initialize the color smoothing filter
-	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);
+	_device = createColorSmoothing(jsonConfig["smoothing"], _device);
+
 
 	// setup the timer
 	_timer.setSingleShot(true);
@@ -796,9 +806,9 @@ void Hyperion::update()
 
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
-	_raw2ledTransform->applyTransform(_ledBuffer);
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-	_raw2ledTemperature->applyCorrection(_ledBuffer);
+	if (_transformEnabled)   _raw2ledTransform->applyTransform(_ledBuffer);
+	if (_adjustmentEnabled)  _raw2ledAdjustment->applyAdjustment(_ledBuffer);
+	if (_temperatureEnabled) _raw2ledTemperature->applyCorrection(_ledBuffer);
 
 	const std::vector<Led>& leds = _ledString.leds();
 
