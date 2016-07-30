@@ -128,10 +128,21 @@ public:
 	/// @param name uniq name of input source
 	void unRegisterPriority(const std::string name);
 	
+	/// gets current priority register
+	/// @return the priority register
 	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
 	
+	/// enable/disable automatic/priorized source selection
+	/// @param enable the state
 	void setSourceAutoSelectEnabled(bool enabled);
+	
+	/// set current input source to visible
+	/// @param priority the priority channel which should be vidible
+	/// @return true if success, false on error
 	bool setCurrentSourcePriority(int priority );
+	
+	/// gets current state of automatic/priorized source selection
+	/// @return the state
 	bool sourceAutoSelectEnabled() { return _sourceAutoSelectEnabled; };
 public slots:
 	///
@@ -330,10 +341,18 @@ private:
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 
+	/// flag for color transform enable
 	bool _transformEnabled;
+
+	/// flag for color adjustment enable
 	bool _adjustmentEnabled;
+
+	/// flag for color temperature enable
 	bool _temperatureEnabled;
-	
+
+	/// flag indicates state for autoselection of input source
 	bool _sourceAutoSelectEnabled;
+	
+	/// holds the current priority channel that is manualy selected
 	int _currentSourcePriority;
 };

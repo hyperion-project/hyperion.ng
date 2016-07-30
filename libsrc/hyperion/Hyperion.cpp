@@ -657,14 +657,16 @@ void Hyperion::setSourceAutoSelectEnabled(bool enabled)
 
 bool Hyperion::setCurrentSourcePriority(int priority )
 {
-	if ( _muxer.hasPriority(priority))
+	bool priorityValid = _muxer.hasPriority(priority);
+	if (priorityValid)
 	{
 		DebugIf(_sourceAutoSelectEnabled, _log, "source auto select is disabled");
 		_sourceAutoSelectEnabled = false;
 		_currentSourcePriority = priority;
 		Info(_log, "set current input source to priority channel %d", _currentSourcePriority);
 	}
-	return _muxer.hasPriority(priority);
+
+	return priorityValid;
 }
 
 
@@ -782,7 +784,8 @@ void Hyperion::clearall()
 
 int Hyperion::getCurrentPriority() const
 {
-	return _muxer.getCurrentPriority();
+	
+	return _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
 }
 
 QList<int> Hyperion::getActivePriorities() const

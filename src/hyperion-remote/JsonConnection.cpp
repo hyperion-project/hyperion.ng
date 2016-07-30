@@ -7,9 +7,9 @@
 // hyperion-remote includes
 #include "JsonConnection.h"
 
-JsonConnection::JsonConnection(const std::string & a, bool printJson) :
-	_printJson(printJson),
-	_socket()
+JsonConnection::JsonConnection(const std::string & a, bool printJson)
+	: _printJson(printJson)
+	, _socket()
 {
 	QString address(a.c_str());
 	QStringList parts = address.split(":");
@@ -197,8 +197,7 @@ void JsonConnection::setSource(int priority)
 	// create command
 	Json::Value command;
 	command["command"] = "sourceselect";
-	Json::Value & sourceselect = command["sourceselect"];
-	sourceselect["priority"] = priority;
+	command["priority"] = priority;
 
 	// send command message
 	Json::Value reply = sendMessage(command);
@@ -212,8 +211,7 @@ void JsonConnection::setSourceAutoSelect()
 	// create command
 	Json::Value command;
 	command["command"] = "sourceselect";
-	Json::Value & sourceselect = command["sourceselect"];
-	sourceselect["auto"] = true;
+	command["auto"] = true;
 
 	// send command message
 	Json::Value reply = sendMessage(command);

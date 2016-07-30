@@ -32,7 +32,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	JsonClientConnection(QTcpSocket * socket, Hyperion * hyperion);
+	JsonClientConnection(QTcpSocket * socket);
 
 	///
 	/// Destructor
@@ -202,6 +202,7 @@ private:
 	
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
-	
+
+	/// the logger instance
 	Logger * _log;
 };

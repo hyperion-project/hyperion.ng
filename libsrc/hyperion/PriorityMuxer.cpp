@@ -6,10 +6,10 @@
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
 
-PriorityMuxer::PriorityMuxer(int ledCount) :
-	_currentPriority(LOWEST_PRIORITY),
-	_activeInputs(),
-	_lowestPriorityInfo()
+PriorityMuxer::PriorityMuxer(int ledCount)
+	: _currentPriority(LOWEST_PRIORITY)
+	, _activeInputs()
+	, _lowestPriorityInfo()
 {
 	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;

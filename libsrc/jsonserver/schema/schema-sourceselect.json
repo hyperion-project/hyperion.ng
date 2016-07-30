@@ -2,6 +2,17 @@
     "type":"object",
     "required":false,
     "properties":{
-    },
-    "additionalProperties": true
+        "command": {
+            "type" : "string",
+            "required" : true,
+            "enum" : ["sourceselect"]
+        },
+        "priority": {
+            "type": "integer"
+        },
+        "auto": {
+            "type": "boolean"
+        }
+     },
+    "additionalProperties": false
 }
