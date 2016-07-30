@@ -313,16 +313,20 @@ private:
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
-	
+
 	/// buffer for leds
 	std::vector<ColorRgb> _ledBuffer;
-	
+
 	/// Logger instance
 	Logger * _log;
-	
+
 	/// count of hardware leds
 	unsigned _hwLedCount;
-	
+
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
+
+	bool _transformEnabled;
+	bool _adjustmentEnabled;
+	bool _temperatureEnabled;
 };
