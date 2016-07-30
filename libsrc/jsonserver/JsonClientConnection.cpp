@@ -417,7 +417,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	{
 		Json::Value & item = priorities[priorities.size()];
 		item["priority"] = entry.second;
-		item["active"] = "false";
+		item["active"] = false;
+		item["visible"] = false;
 		item["owner"] = entry.first;
 	}
 	
