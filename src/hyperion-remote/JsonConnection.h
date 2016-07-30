@@ -84,6 +84,15 @@ public:
 	void clearAll();
 
 	///
+	/// Clear the given priority channel
+	///
+	/// @param priority The priority
+	///
+	void setSource(int priority);
+	
+	void setSourceAutoSelect();
+
+	///
 	/// Set the color transform of the leds
 	///
 	/// @note Note that providing a NULL will leave the settings on the server unchanged

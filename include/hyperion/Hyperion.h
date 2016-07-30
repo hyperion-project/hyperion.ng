@@ -129,6 +129,10 @@ public:
 	void unRegisterPriority(const std::string name);
 	
 	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
+	
+	void setSourceAutoSelectEnabled(bool enabled);
+	bool setCurrentSourcePriority(int priority );
+	bool sourceAutoSelectEnabled() { return _sourceAutoSelectEnabled; };
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -329,4 +333,7 @@ private:
 	bool _transformEnabled;
 	bool _adjustmentEnabled;
 	bool _temperatureEnabled;
+	
+	bool _sourceAutoSelectEnabled;
+	int _currentSourcePriority;
 };

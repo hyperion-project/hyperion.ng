@@ -129,6 +129,13 @@ private:
 	void handleAdjustmentCommand(const Json::Value & message);
 
 	///
+	/// Handle an incoming JSON SourceSelect message
+	///
+	/// @param message the incoming message
+	///
+	void handleSourceSelectCommand(const Json::Value & message);
+
+	///
 	/// Handle an incoming JSON message of unknown type
 	///
 	void handleNotImplemented();

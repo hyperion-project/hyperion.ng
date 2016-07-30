@@ -555,6 +555,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _timer()
 	, _log(Logger::getInstance("Core"))
 	, _hwLedCount(_ledString.leds().size())
+	, _sourceAutoSelectEnabled(true)
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -641,6 +642,29 @@ void Hyperion::unRegisterPriority(const std::string name)
 {
 	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
 	_priorityRegister.erase(name);
+}
+
+void Hyperion::setSourceAutoSelectEnabled(bool enabled)
+{
+	_sourceAutoSelectEnabled = enabled;
+	if (! _sourceAutoSelectEnabled)
+	{
+		setCurrentSourcePriority(_muxer.getCurrentPriority());
+	}
+	DebugIf( !_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+	InfoIf(_sourceAutoSelectEnabled, _log, "set current input source to auto select");
+}
+
+bool Hyperion::setCurrentSourcePriority(int priority )
+{
+	if ( _muxer.hasPriority(priority))
+	{
+		DebugIf(_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+		_sourceAutoSelectEnabled = false;
+		_currentSourcePriority = priority;
+		Info(_log, "set current input source to priority channel %d", _currentSourcePriority);
+	}
+	return _muxer.hasPriority(priority);
 }
 
 
@@ -797,8 +821,8 @@ void Hyperion::update()
 	_muxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
 
 	// Obtain the current priority channel
-	int priority = _muxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
+	int priority = _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
+	const PriorityMuxer::InputInfo & priorityInfo  =  _muxer.getInputInfo(priority);
 
 	// copy ledcolors to local buffer
 	_ledBuffer.reserve(_hwLedCount);

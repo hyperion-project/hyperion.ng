@@ -256,6 +256,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleTemperatureCommand(message);
 	else if (command == "adjustment")
 		handleAdjustmentCommand(message);
+	else if (command == "sourceselect")
+		handleSourceSelectCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -773,7 +775,20 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 
 	sendSuccessReply();
 }
+
+void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message)
+{
+	bool autoselect = message["sourceselect"].get("auto",false).asBool();
+	if (autoselect)
+		_hyperion->setSourceAutoSelectEnabled(true);
+	else if (message["sourceselect"].isMember("priority"))
+	{
+		_hyperion->setCurrentSourcePriority(message["sourceselect"]["priority"].asInt());
+	}
 	
+	sendSuccessReply();
+}
+
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");

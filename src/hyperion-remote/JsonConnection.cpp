@@ -192,6 +192,36 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
+void JsonConnection::setSource(int priority)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	Json::Value & sourceselect = command["sourceselect"];
+	sourceselect["priority"] = priority;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setSourceAutoSelect()
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	Json::Value & sourceselect = command["sourceselect"];
+	sourceselect["auto"] = true;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
