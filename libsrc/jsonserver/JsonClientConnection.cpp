@@ -27,14 +27,14 @@
 // project includes
 #include "JsonClientConnection.h"
 
-JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
-	QObject(),
-	_socket(socket),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_receiveBuffer(),
-	_webSocketHandshakeDone(false),
-	_log(Logger::getInstance("JSONCLIENTCONNECTION"))
+JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
+	: QObject()
+	, _socket(socket)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _receiveBuffer()
+	, _webSocketHandshakeDone(false)
+	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -256,6 +256,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleTemperatureCommand(message);
 	else if (command == "adjustment")
 		handleAdjustmentCommand(message);
+	else if (command == "sourceselect")
+		handleSourceSelectCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -388,7 +390,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
 	Hyperion::PriorityRegister priorityRegister = _hyperion->getPriorityRegister();
-
+	int currentPriority = _hyperion->getCurrentPriority();
 	foreach (int priority, activePriorities) {
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		Json::Value & item = priorities[priorities.size()];
@@ -399,7 +401,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		}
 		
 		item["owner"] = "unknown";
-		item["active"] = "true";
+		item["active"] = true;
+		item["visible"] = (priority == currentPriority);
 		foreach(auto const &entry, priorityRegister)
 		{
 			if (entry.second == priority)
@@ -414,7 +417,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	{
 		Json::Value & item = priorities[priorities.size()];
 		item["priority"] = entry.second;
-		item["active"] = "false";
+		item["active"] = false;
+		item["visible"] = false;
 		item["owner"] = entry.first;
 	}
 	
@@ -773,7 +777,30 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 
 	sendSuccessReply();
 }
-	
+
+void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message)
+{
+	bool success = false;
+	if (message.get("auto",false).asBool())
+	{
+		_hyperion->setSourceAutoSelectEnabled(true);
+		success = true;
+	}
+	else if (message.isMember("priority"))
+	{
+		success =  _hyperion->setCurrentSourcePriority(message["priority"].asInt());
+	}
+
+	if (success)
+	{
+		sendSuccessReply();
+	}
+	else
+	{
+		sendErrorReply("setting current priority failed");
+	}
+}
+
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");

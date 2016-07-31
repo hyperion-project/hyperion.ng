@@ -32,7 +32,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	JsonClientConnection(QTcpSocket * socket, Hyperion * hyperion);
+	JsonClientConnection(QTcpSocket * socket);
 
 	///
 	/// Destructor
@@ -129,6 +129,13 @@ private:
 	void handleAdjustmentCommand(const Json::Value & message);
 
 	///
+	/// Handle an incoming JSON SourceSelect message
+	///
+	/// @param message the incoming message
+	///
+	void handleSourceSelectCommand(const Json::Value & message);
+
+	///
 	/// Handle an incoming JSON message of unknown type
 	///
 	void handleNotImplemented();
@@ -195,6 +202,7 @@ private:
 	
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
-	
+
+	/// the logger instance
 	Logger * _log;
 };

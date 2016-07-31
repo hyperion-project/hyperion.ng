@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 		IntParameter       & argDuration   = parameters.add<IntParameter>      ('d', "duration"  , "Specify how long the leds should be switched on in millseconds [default: infinity]");
 		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
-        	StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
+		StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
 		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info and active effects with priority and duration");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
@@ -65,8 +65,8 @@ int main(int argc, char * argv[])
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "!DEPRECATED! Will be removed soon! Set the HSV value gain of the leds");
 		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
-		DoubleParameter    & argLuminance  = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
-		DoubleParameter    & argLuminanceMin  = parameters.add<DoubleParameter>   ('n', "luminanceMin" , "Set the HSL luminance minimum of the leds (backlight)");
+		DoubleParameter    & argLuminance   = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
+		DoubleParameter    & argLuminanceMin= parameters.add<DoubleParameter>   ('n', "luminanceMin" , "Set the HSL luminance minimum of the leds (backlight)");
 		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
 		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
 		TransformParameter & argBlacklevel = parameters.add<TransformParameter>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
@@ -74,13 +74,15 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
 		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
 		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
-		CorrectionParameter & argCorrection  = parameters.add<CorrectionParameter>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires 3 space seperated values between 0 and 255)");
+		CorrectionParameter & argCorrection= parameters.add<CorrectionParameter>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires 3 space seperated values between 0 and 255)");
 		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature correction to set");
-		CorrectionParameter & argTemperature  = parameters.add<CorrectionParameter>('Z', "temperature" , "Set the temperature correction of the leds (requires 3 space seperated values between 0 and 255)");
-		StringParameter    & argIdA         = parameters.add<StringParameter>   ('j', "qualifier" , "Identifier(qualifier) of the adjustment to set");
+		CorrectionParameter & argTemperature= parameters.add<CorrectionParameter>('Z', "temperature" , "Set the temperature correction of the leds (requires 3 space seperated values between 0 and 255)");
+		StringParameter    & argIdA      = parameters.add<StringParameter>    ('j', "qualifier" , "Identifier(qualifier) of the adjustment to set");
 		AdjustmentParameter & argRAdjust = parameters.add<AdjustmentParameter>('R', "redAdjustment" , "Set the adjustment of the red color (requires 3 space seperated values between 0 and 255)");
 		AdjustmentParameter & argGAdjust = parameters.add<AdjustmentParameter>('G', "greenAdjustment", "Set the adjustment of the green color (requires 3 space seperated values between 0 and 255)");
 		AdjustmentParameter & argBAdjust = parameters.add<AdjustmentParameter>('B', "blueAdjustment", "Set the adjustment of the blue color (requires 3 space seperated values between 0 and 255)");
+		IntParameter       & argSource   = parameters.add<IntParameter>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
+		SwitchParameter<>  & argSourceAuto = parameters.add<SwitchParameter<> >(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -104,7 +106,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -164,6 +166,14 @@ int main(int argc, char * argv[])
 		else if (argClearAll.isSet())
 		{
 			connection.clearAll();
+		}
+		else if (argSource.isSet())
+		{
+			connection.setSource(argSource.getValue());
+		}
+		else if (argSourceAuto.isSet())
+		{
+			connection.setSourceAutoSelect();
 		}
 		else if (colorModding)
 		{	

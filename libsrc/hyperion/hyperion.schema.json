@@ -58,7 +58,10 @@
 			"required" : true,
 			"properties":
 			{
-				"channelAdjustment_enable" : "boolean",
+				"channelAdjustment_enable" :
+				{
+					"type" : "boolean"
+				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
@@ -173,7 +176,10 @@
 						"additionalProperties" : false
 					}
 				},
-				"temperature_enable" : "boolean",
+				"temperature_enable" :
+				{
+					"type" : "boolean"
+				},
 				"temperature" :
 				{
 					"type" : "array",
@@ -228,7 +234,10 @@
 						"additionalProperties" : false
 					}
 				},
-				"transform_enable" : "boolean",
+				"transform_enable" :
+				{
+					"type" : "boolean"
+				},
 				"transform" :
 				{
 					"type" : "array",
