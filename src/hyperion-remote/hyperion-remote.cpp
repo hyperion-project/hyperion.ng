@@ -61,6 +61,8 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info and active effects with priority and duration");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
+		StringParameter    & argEnableComponent     = parameters.add<StringParameter>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
+		StringParameter    & argDisableComponent     = parameters.add<StringParameter>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
 		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "!DEPRECATED! Will be removed soon! Set the HSV value gain of the leds");
@@ -106,7 +108,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet()});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -116,6 +118,8 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
+			std::cerr << "  " << argEnableComponent.usageLine() << std::endl;
+			std::cerr << "  " << argDisableComponent.usageLine() << std::endl;
 			std::cerr << "or one or more of the available color modding operations:" << std::endl;
 			std::cerr << "  " << argId.usageLine() << std::endl;
 			std::cerr << "  " << argSaturation.usageLine() << std::endl;
@@ -166,6 +170,14 @@ int main(int argc, char * argv[])
 		else if (argClearAll.isSet())
 		{
 			connection.clearAll();
+		}
+		else if (argEnableComponent.isSet())
+		{
+			connection.setComponentState(argEnableComponent.getValue(), true);
+		}
+		else if (argDisableComponent.isSet())
+		{
+			connection.setComponentState(argDisableComponent.getValue(), false);
 		}
 		else if (argSource.isSet())
 		{
