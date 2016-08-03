@@ -669,6 +669,33 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 	return priorityValid;
 }
 
+void Hyperion::setComponentState(const Components component, const bool state)
+{
+	switch(component)
+	{
+		case SMOOTHING:
+			break;
+		case BLACKBORDER:
+			break;
+		case KODICHECKER:
+		{
+			KODIVideoChecker* _kodiVideoChecker = KODIVideoChecker::getInstance();
+			if (_kodiVideoChecker != nullptr)
+				state ? _kodiVideoChecker->start() : _kodiVideoChecker->stop();
+			else
+ 				Debug(_log, "Can't get instance from: '%s'", componentToString(component));
+			break;
+		}
+		case FORWARDER:
+			break;
+		case UDPLISTENER:
+			break;
+		case BOBLIGHTSERVER:
+			break;
+		case GRABBER:
+			break;
+	}
+}
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
 {
