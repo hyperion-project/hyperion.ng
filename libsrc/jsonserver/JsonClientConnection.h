@@ -16,6 +16,7 @@
 // util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 class ImageProcessor;
 
@@ -134,6 +135,13 @@ private:
 	/// @param message the incoming message
 	///
 	void handleSourceSelectCommand(const Json::Value & message);
+	
+	///
+	/// Handle an incoming JSON Component State message
+	///
+	/// @param message the incoming message
+	///
+	void handleComponentStateCommand(const Json::Value & message);
 
 	///
 	/// Handle an incoming JSON message of unknown type

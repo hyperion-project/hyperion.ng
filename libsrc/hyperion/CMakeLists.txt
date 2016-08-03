@@ -54,6 +54,7 @@ add_library(hyperion
 )
 
 target_link_libraries(hyperion
+	kodivideochecker
 	blackborder
 	hyperion-utils
 	leddevice

@@ -12,6 +12,7 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -25,6 +26,9 @@
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
 
+// KodiVideoChecker includes
+#include <kodivideochecker/KODIVideoChecker.h>
+
 // Forward class declaration
 class LedDevice;
 class ColorTransform;
@@ -37,6 +41,7 @@ class RgbChannelAdjustment;
 class MultiColorTransform;
 class MultiColorCorrection;
 class MultiColorAdjustment;
+class KODIVideoChecker;
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
@@ -144,6 +149,14 @@ public:
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
 	bool sourceAutoSelectEnabled() { return _sourceAutoSelectEnabled; };
+	
+	///
+	/// Enable/Disable components during runtime
+	///
+	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param state The state of the component [true | false]
+	///
+	void setComponentState(const Components component, const bool state);
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
