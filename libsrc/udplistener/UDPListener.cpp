@@ -10,7 +10,7 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared) :
+UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
@@ -23,9 +23,9 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
 {
 	_server = new QUdpSocket(this);
-	_listenAddress = address.empty()
+	_listenAddress = address.isEmpty()
 	                           ? QHostAddress::AnyIPv4 
-	                           : QHostAddress( QString::fromStdString(address) );
+	                           : QHostAddress(address);
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
