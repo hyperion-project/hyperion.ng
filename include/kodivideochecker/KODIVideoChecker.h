@@ -30,11 +30,11 @@ class KODIVideoChecker : public QObject
 Q_OBJECT
 
 public:
-	static KODIVideoChecker* initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	static KODIVideoChecker* initInstance(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 	static KODIVideoChecker* getInstance();
 
 	~KODIVideoChecker();
-	void setConfig(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	void setConfig(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 
 public slots:
 	///
@@ -83,7 +83,7 @@ private:
 	/// @param grabScreensaver Whether or not to grab when the KODI screensaver is activated
 	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
 	///
-	KODIVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	KODIVideoChecker(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 	
 	/// Set the grabbing mode
 	void setGrabbingMode(GrabbingMode grabbingMode);
