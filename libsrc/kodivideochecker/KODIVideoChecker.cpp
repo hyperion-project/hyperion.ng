@@ -8,7 +8,7 @@
 
 KODIVideoChecker* KODIVideoChecker::_kodichecker = nullptr;
 
-KODIVideoChecker* KODIVideoChecker::initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+KODIVideoChecker* KODIVideoChecker::initInstance(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
 {
 	if ( KODIVideoChecker::_kodichecker != nullptr )
 		throw std::runtime_error("KODIVideoChecker::initInstance can be called only one time");
@@ -39,9 +39,9 @@ KODIVideoChecker* KODIVideoChecker::getInstance()
 // {"jsonrpc":"2.0","method":"GUI.GetProperties","params":{"properties":["stereoscopicmode"]},"id":669}
 // {"id":669,"jsonrpc":"2.0","result":{"stereoscopicmode":{"label":"Nebeneinander","mode":"split_vertical"}}}
 
-KODIVideoChecker::KODIVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+KODIVideoChecker::KODIVideoChecker(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
 	: QObject()
-	, _address(QString::fromStdString(address))
+	, _address(address)
 	, _port(port)
 	, _activePlayerRequest(R"({"jsonrpc":"2.0","method":"Player.GetActivePlayers", "id":666})")
 	, _currentPlayingItemRequest(R"({"id":667,"jsonrpc":"2.0","method":"Player.GetItem","params":{"playerid":%1,"properties":["file"]}})")
@@ -78,9 +78,9 @@ KODIVideoChecker::~KODIVideoChecker()
 }
 
 
-void KODIVideoChecker::setConfig(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
+void KODIVideoChecker::setConfig(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection)
 {
-	_address                 = QString::fromStdString(address);
+	_address                 = address;
 	_port                    = port;
 	_grabVideo               = grabVideo;
 	_grabPhoto               = grabPhoto;
