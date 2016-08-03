@@ -82,6 +82,14 @@ public:
 	/// Clear all priority channels
 	///
 	void clearAll();
+	
+	///
+	/// Enable/Disable components during runtime
+	///
+	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param state The state of the component [true | false]
+	///
+	void setComponentState(const std::string & component, const bool state);
 
 	///
 	/// Clear the given priority channel
