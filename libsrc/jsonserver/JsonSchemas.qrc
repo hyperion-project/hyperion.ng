@@ -12,5 +12,6 @@
         <file alias="schema-adjustment">schema/schema-adjustment.json</file>
         <file alias="schema-effect">schema/schema-effect.json</file>
         <file alias="schema-sourceselect">schema/schema-sourceselect.json</file>
+        <file alias="schema-configget">schema/schema-configget.json</file>
     </qresource>
 </RCC>

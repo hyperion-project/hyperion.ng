@@ -84,13 +84,21 @@ public:
 	void clearAll();
 
 	///
-	/// Clear the given priority channel
+	/// Set current active priority channel and deactivate auto source switching
 	///
 	/// @param priority The priority
 	///
 	void setSource(int priority);
 	
+	///
+	/// Enables auto source, if disabled prio by manual selecting input source
+	///
 	void setSourceAutoSelect();
+	
+	///
+	/// Print the current loaded Hyperion configuration file 
+	///
+	QString getConfigFile();
 
 	///
 	/// Set the color transform of the leds
