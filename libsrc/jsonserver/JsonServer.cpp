@@ -5,19 +5,18 @@
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
-JsonServer::JsonServer(uint16_t port) :
-	QObject(),
-	_hyperion(Hyperion::getInstance()),
-	_server(),
-	_openConnections(),
-	_log(Logger::getInstance("JSONSERVER"))
+JsonServer::JsonServer(uint16_t port)
+	: QObject()
+	, _server()
+	, _openConnections()
+	, _log(Logger::getInstance("JSONSERVER"))
 {
 	if (!_server.listen(QHostAddress::Any, port))
 	{
 		throw std::runtime_error("JSONSERVER ERROR: could not bind to port");
 	}
 
-		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+		QList<MessageForwarder::JsonSlaveAddress> list = Hyperion::getInstance()->getForwarder()->getJsonSlaves();
 		for ( int i=0; i<list.size(); i++ )
 		{
 			if ( list.at(i).addr == QHostAddress::LocalHost && list.at(i).port == port ) {
@@ -52,7 +51,7 @@ void JsonServer::newConnection()
 	if (socket != nullptr)
 	{
 		Debug(_log, "New connection");
-		JsonClientConnection * connection = new JsonClientConnection(socket, _hyperion);
+		JsonClientConnection * connection = new JsonClientConnection(socket);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

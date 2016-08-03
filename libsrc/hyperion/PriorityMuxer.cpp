@@ -6,10 +6,10 @@
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
 
-PriorityMuxer::PriorityMuxer(int ledCount) :
-	_currentPriority(LOWEST_PRIORITY),
-	_activeInputs(),
-	_lowestPriorityInfo()
+PriorityMuxer::PriorityMuxer(int ledCount)
+	: _currentPriority(LOWEST_PRIORITY)
+	, _activeInputs()
+	, _lowestPriorityInfo()
 {
 	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;
@@ -46,6 +46,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
 	{
+		std::cout << "error " << priority << std::endl;
 		throw std::runtime_error("HYPERION (prioritymux) ERROR: no such priority");
 	}
 	return elemIt.value();

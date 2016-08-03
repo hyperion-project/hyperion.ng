@@ -501,7 +501,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
 		            smoothingConfig.get("time_ms", 200).asInt(),
 		            smoothingConfig.get("updateDelay", 0).asUInt(),
-		            smoothingConfig.get("continuousOutput", false).asBool()
+		            smoothingConfig.get("continuousOutput", true).asBool()
 		            );
 	}
 
@@ -555,6 +555,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _timer()
 	, _log(Logger::getInstance("Core"))
 	, _hwLedCount(_ledString.leds().size())
+	, _sourceAutoSelectEnabled(true)
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -568,6 +569,15 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	{
 		throw std::runtime_error("Color transformation incorrectly set");
 	}
+	// set color correction activity state
+	_transformEnabled   = jsonConfig["color"].get("transform_enable",true).asBool();
+	_adjustmentEnabled  = jsonConfig["color"].get("channelAdjustment_enable",true).asBool();
+	_temperatureEnabled = jsonConfig["color"].get("temperature_enable",true).asBool();
+
+	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
+	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
+	InfoIf(!_temperatureEnabled, _log, "Color temperature disabled" );
+	
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
@@ -575,7 +585,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	);
 
 	// initialize the color smoothing filter
-	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);
+	_device = createColorSmoothing(jsonConfig["smoothing"], _device);
+
 
 	// setup the timer
 	_timer.setSingleShot(true);
@@ -631,6 +642,31 @@ void Hyperion::unRegisterPriority(const std::string name)
 {
 	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
 	_priorityRegister.erase(name);
+}
+
+void Hyperion::setSourceAutoSelectEnabled(bool enabled)
+{
+	_sourceAutoSelectEnabled = enabled;
+	if (! _sourceAutoSelectEnabled)
+	{
+		setCurrentSourcePriority(_muxer.getCurrentPriority());
+	}
+	DebugIf( !_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+	InfoIf(_sourceAutoSelectEnabled, _log, "set current input source to auto select");
+}
+
+bool Hyperion::setCurrentSourcePriority(int priority )
+{
+	bool priorityValid = _muxer.hasPriority(priority);
+	if (priorityValid)
+	{
+		DebugIf(_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+		_sourceAutoSelectEnabled = false;
+		_currentSourcePriority = priority;
+		Info(_log, "set current input source to priority channel %d", _currentSourcePriority);
+	}
+
+	return priorityValid;
 }
 
 
@@ -748,7 +784,8 @@ void Hyperion::clearall()
 
 int Hyperion::getCurrentPriority() const
 {
-	return _muxer.getCurrentPriority();
+	
+	return _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
 }
 
 QList<int> Hyperion::getActivePriorities() const
@@ -787,8 +824,8 @@ void Hyperion::update()
 	_muxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
 
 	// Obtain the current priority channel
-	int priority = _muxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
+	int priority = _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
+	const PriorityMuxer::InputInfo & priorityInfo  =  _muxer.getInputInfo(priority);
 
 	// copy ledcolors to local buffer
 	_ledBuffer.reserve(_hwLedCount);
@@ -796,9 +833,9 @@ void Hyperion::update()
 
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
-	_raw2ledTransform->applyTransform(_ledBuffer);
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-	_raw2ledTemperature->applyCorrection(_ledBuffer);
+	if (_transformEnabled)   _raw2ledTransform->applyTransform(_ledBuffer);
+	if (_adjustmentEnabled)  _raw2ledAdjustment->applyAdjustment(_ledBuffer);
+	if (_temperatureEnabled) _raw2ledTemperature->applyCorrection(_ledBuffer);
 
 	const std::vector<Led>& leds = _ledString.leds();
 

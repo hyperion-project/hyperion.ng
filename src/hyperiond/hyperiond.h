@@ -65,8 +65,8 @@ public:
 	void createSystemFrameGrabber();
 
 private:
-	void createGrabberDispmanx(const Json::Value & grabberConfig);
-	void createGrabberAmlogic(const Json::Value & grabberConfig);
+	void createGrabberDispmanx();
+	void createGrabberAmlogic();
 	void createGrabberFramebuffer(const Json::Value & grabberConfig);
 	void createGrabberOsx(const Json::Value & grabberConfig);
 	void createGrabberX11(const Json::Value & grabberConfig);
@@ -86,4 +86,13 @@ private:
 	OsxWrapper*         _osxGrabber;
 	WebConfig*          _webConfig;
 	Hyperion*           _hyperion;
+	
+	unsigned            _grabber_width;
+	unsigned            _grabber_height;
+	unsigned            _grabber_frequency;
+	int                 _grabber_priority;
+	unsigned            _grabber_cropLeft;
+	unsigned            _grabber_cropRight;
+	unsigned            _grabber_cropTop;
+    unsigned            _grabber_cropBottom;
 };

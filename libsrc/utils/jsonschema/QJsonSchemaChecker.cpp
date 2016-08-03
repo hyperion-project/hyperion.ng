@@ -180,7 +180,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (required != schema.end() && required.value().toBool())
+		else if (required != propertyValue.toObject().end() && required.value().toBool())
 		{
 			_error = true;
 			setMessage("missing member");
@@ -208,7 +208,7 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 			}
 			else
 			{
-				validate(value[property], schema.toObject());
+				validate(value[property].toObject(), schema.toObject());
 			}
 			_currentPath.pop_back();
 		}

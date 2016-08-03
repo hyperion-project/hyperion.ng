@@ -58,6 +58,10 @@
 			"required" : true,
 			"properties":
 			{
+				"channelAdjustment_enable" :
+				{
+					"type" : "boolean"
+				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
@@ -172,6 +176,10 @@
 						"additionalProperties" : false
 					}
 				},
+				"temperature_enable" :
+				{
+					"type" : "boolean"
+				},
 				"temperature" :
 				{
 					"type" : "array",
@@ -225,6 +233,10 @@
 						},
 						"additionalProperties" : false
 					}
+				},
+				"transform_enable" :
+				{
+					"type" : "boolean"
 				},
 				"transform" :
 				{
@@ -345,51 +357,51 @@
 						},
 						"additionalProperties" : false
 					}
+				}
+			},
+			"additionalProperties" : false
+		},
+		"smoothing":
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"required" : true
 				},
-				"smoothing":
-                		{
-					"type" : "object",
-					"required" : true,
-					"properties" :
-					{
-						"enable" :
-						{
-							"type" : "boolean",
-							"required" : true
-						},
-						"type" :
-						{
-							"enum" : ["none", "linear"],
-							"required" : true
-						},
-						"time_ms" :
-						{
-							"type" : "integer",
-							"required" : false,
-							"minimum" : 25,
-							"maximum": 600
-						},
-						"updateFrequency" :
-						{
-							"type" : "number",
-							"required" : false,
-							"minimum" : 1.000,
-							"maximum": 100.000
-						},
-						"updateDelay" :
-						{
-							"type" : "integer",
-							"required" : false,
-							"minimum" : 0,
-							"maximum": 2048
-						},
-						"continuousOutput" :
-						{
-							"type" : "boolean",
-							"required" : false
-						}
-					},
-					"additionalProperties" : false
+				"type" :
+				{
+					"enum" : ["none", "linear"],
+					"required" : true
+				},
+				"time_ms" :
+				{
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 25,
+					"maximum": 600
+				},
+				"updateFrequency" :
+				{
+					"type" : "number",
+					"required" : false,
+					"minimum" : 1.000,
+					"maximum": 100.000
+				},
+				"updateDelay" :
+				{
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum": 2048
+				},
+				"continuousOutput" :
+				{
+					"type" : "boolean",
+					"required" : false
 				}
 			},
 			"additionalProperties" : false
