@@ -8,12 +8,17 @@
 #include <QFile>
 #include <QHostInfo>
 #include <QHostAddress>
+#include <QString>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <cstdint>
 #include <limits>
 
 #include "HyperionConfig.h"
 
-#include <utils/jsonschema/JsonFactory.h>
+#include <utils/jsonschema/JsonFactory.h> // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
+#include <utils/jsonschema/QJsonFactory.h>
 
 #include <hyperion/Hyperion.h>
 #include <effectengine/EffectEngine.h>
@@ -43,15 +48,17 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
 {
-	loadConfig(configFile);
+	loadConfig(configFile); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
+	loadConfig(QString::fromStdString(configFile));
+	
 	_hyperion = Hyperion::initInstance(_config, configFile);
 	
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
-		if (_config.isMember("logger"))
+		if (_qconfig.contains("logger"))
 		{
-			const Json::Value & logConfig = _config["logger"];
-			std::string level = logConfig.get("level", "warn").asString(); // silent warn verbose debug
+			const QJsonObject & logConfig = _qconfig["logger"].toObject();
+			std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 			if (level == "silent") Logger::setLogLevel(Logger::OFF);
 			else if (level == "warn")    Logger::setLogLevel(Logger::WARNING);
 			else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
@@ -62,7 +69,7 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	}
 	else
 	{
-		WarningIf(_config.isMember("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
+		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
 	}
 	
 	Info(_log, "Hyperion started and initialised");
@@ -97,12 +104,12 @@ void HyperionDaemon::run()
 	createSystemFrameGrabber();
 
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
-		WarningIf(_config.isMember("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
+		WarningIf(_qconfig.contains("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
 }
 
-void HyperionDaemon::loadConfig(const std::string & configFile)
+void HyperionDaemon::loadConfig(const std::string & configFile) // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 {
 	Info(_log, "Selected configuration file: %s", configFile.c_str() );
 	// make sure the resources are loaded (they may be left out after static linking)
@@ -125,6 +132,61 @@ void HyperionDaemon::loadConfig(const std::string & configFile)
 	schemaChecker.validate(_config);
 }
 
+void HyperionDaemon::loadConfig(const QString & configFile)
+{
+//	Info(_log, "Selected configuration file: %s", configFile.toStdString().c_str()); // uncommend this line only if JsonCpp is removed. Otherwise appears this line twice in the debug output
+
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+	QJsonParseError error;
+
+	// read the json schema from the resource
+	QFile schemaData(":/hyperion-schema");
+	if (!schemaData.open(QIODevice::ReadOnly))
+	{
+		std::stringstream error;
+		error << "Schema not found: " << schemaData.errorString().toStdString();
+		throw std::runtime_error(error.str());
+	}
+	
+	QByteArray schema = schemaData.readAll();
+	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
+	
+	if (error.error != QJsonParseError::NoError)
+	{
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(schema.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		std::stringstream sstream;
+		sstream << "ERROR: Json schema wrong: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+
+		throw std::runtime_error(sstream.str());
+	}
+
+	QJsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson.object());
+
+	_qconfig = QJsonFactory::readJson(configFile);
+	if (!schemaChecker.validate(_qconfig))
+	{
+		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		{
+			std::cout << *i << std::endl;
+		}
+		
+		throw std::runtime_error("ERROR: Json validation failed");
+	}
+}
 
 void HyperionDaemon::startInitialEffect()
 {
@@ -196,22 +258,22 @@ void HyperionDaemon::startInitialEffect()
 // create KODI video checker if the _configuration is present
 void HyperionDaemon::createKODIVideoChecker()
 {
-	bool kodiCheckerConfigured = _config.isMember("kodiVideoChecker");
+	bool kodiCheckerConfigured = _qconfig.contains("kodiVideoChecker");
 
-	const Json::Value & videoCheckerConfig = _config["kodiVideoChecker"];
+	const QJsonObject & videoCheckerConfig = _qconfig["kodiVideoChecker"].toObject();
 	_kodiVideoChecker = KODIVideoChecker::initInstance(
-		videoCheckerConfig.get("kodiAddress","127.0.0.1").asString(),
-		videoCheckerConfig.get("kodiTcpPort",9090).asUInt(),
-		videoCheckerConfig.get("grabVideo",true).asBool(),
-		videoCheckerConfig.get("grabPictures",true).asBool(),
-		videoCheckerConfig.get("grabAudio",true).asBool(),
-		videoCheckerConfig.get("grabMenu",false).asBool(),
-		videoCheckerConfig.get("grabPause", true).asBool(),
-		videoCheckerConfig.get("grabScreensaver", false).asBool(),
-		videoCheckerConfig.get("enable3DDetection", true).asBool());
+		videoCheckerConfig["kodiAddress"].toString("127.0.0.1"),
+		videoCheckerConfig["kodiTcpPort"].toInt(9090),
+		videoCheckerConfig["grabVideo"].toBool(true),
+		videoCheckerConfig["grabPictures"].toBool(true),
+		videoCheckerConfig["grabAudio"].toBool(true),
+		videoCheckerConfig["grabMenu"].toBool(false),
+		videoCheckerConfig["grabPause"].toBool(true),
+		videoCheckerConfig["grabScreensaver"].toBool(false),
+		videoCheckerConfig["enable3DDetection"].toBool(true));
 		Debug(_log, "KODI checker created ");
 
-	if( kodiCheckerConfigured && videoCheckerConfig.get("enable", true).asBool() )
+	if( kodiCheckerConfigured && videoCheckerConfig["enable"].toBool(true))
 	{
 		_kodiVideoChecker->start();
 	}
@@ -223,26 +285,26 @@ void HyperionDaemon::startNetworkServices()
 
 	// Create Json server if configuration is present
 	unsigned int jsonPort = 19444;
-	if (_config.isMember("jsonServer"))
+	if (_qconfig.contains("jsonServer"))
 	{
-		const Json::Value & jsonServerConfig = _config["jsonServer"];
+		const QJsonObject & jsonServerConfig = _qconfig["jsonServer"].toObject();
 		//jsonEnable = jsonServerConfig.get("enable", true).asBool();
-		jsonPort   = jsonServerConfig.get("port", jsonPort).asUInt();
+		jsonPort   = jsonServerConfig["port"].toInt(jsonPort);
 	}
 
-	_jsonServer = new JsonServer(jsonPort );
+	_jsonServer = new JsonServer(jsonPort);
 	Info(_log, "Json server created and started on port %d", _jsonServer->getPort());
 
 	// Create Proto server if configuration is present
 	unsigned int protoPort = 19445;
-	if (_config.isMember("protoServer"))
+	if (_qconfig.contains("protoServer"))
 	{
-		const Json::Value & protoServerConfig = _config["protoServer"];
+		const QJsonObject & protoServerConfig = _qconfig["protoServer"].toObject();
 		//protoEnable = protoServerConfig.get("enable", true).asBool();
-		protoPort  = protoServerConfig.get("port", protoPort).asUInt();
+		protoPort  = protoServerConfig["port"].toInt(protoPort);
 	}
 
-	_protoServer = new ProtoServer(protoPort );
+	_protoServer = new ProtoServer(protoPort);
 	if (kodiVideoChecker != nullptr)
 	{
 		QObject::connect(kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _protoServer, SIGNAL(grabbingMode(GrabbingMode)));
@@ -251,43 +313,43 @@ void HyperionDaemon::startNetworkServices()
 	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
 	// Create Boblight server if configuration is present
-	if (_config.isMember("boblightServer"))
+	if (_qconfig.contains("boblightServer"))
 	{
-		const Json::Value & boblightServerConfig = _config["boblightServer"];
+		const QJsonObject & boblightServerConfig = _qconfig["boblightServer"].toObject();
 		_boblightServer = new BoblightServer(
-			boblightServerConfig.get("priority",710).asInt(),
-			boblightServerConfig["port"].asUInt()
+			boblightServerConfig["priority"].toInt(710),
+			boblightServerConfig["port"].toInt()
 		);
 		Debug(_log, "Boblight server created");
 
-		if ( boblightServerConfig.get("enable", true).asBool() )
+		if ( boblightServerConfig["enable"].toBool(true))
 		{
 			_boblightServer->start();
 		}
 	}
 
 	// Create UDP listener if configuration is present
-	if (_config.isMember("udpListener"))
+	if (_qconfig.contains("udpListener"))
 	{
-		const Json::Value & udpListenerConfig = _config["udpListener"];
+		const QJsonObject & udpListenerConfig = _qconfig["udpListener"].toObject();
 		_udpListener = new UDPListener(
-					udpListenerConfig.get("priority",700).asInt(),
-					udpListenerConfig.get("timeout",10000).asInt(),
-					udpListenerConfig.get("address", "").asString(),
-					udpListenerConfig.get("port", 2801).asUInt(),
-					udpListenerConfig.get("shared", false).asBool()
-				);
+					udpListenerConfig["priority"].toInt(700),
+					udpListenerConfig["timeout"].toInt(10000),
+					udpListenerConfig["address"].toString(""),
+					udpListenerConfig["port"].toInt(2801),
+					udpListenerConfig["shared"].toBool(false));
+
 		Debug(_log, "UDP listener created");
 
-		if ( udpListenerConfig.get("enable", true).asBool() )
+		if ( udpListenerConfig["enable"].toBool(true))
 		{
 			_udpListener->start();
 		}
 	}
 
 	// zeroconf description - $leddevicename@$hostname
-	const Json::Value & deviceConfig = _config["device"];
-	const std::string mDNSDescr = ( deviceConfig.get("name", "").asString()
+	const QJsonObject & deviceConfig = _qconfig["device"].toObject();
+	const std::string mDNSDescr = ( deviceConfig["name"].toString("").toStdString()
 					+ "@" +
 					QHostInfo::localHostName().toStdString()
 					);
@@ -322,25 +384,25 @@ void HyperionDaemon::startNetworkServices()
 
 void HyperionDaemon::createSystemFrameGrabber()
 {
-	if (_config.isMember("framegrabber"))
+	if (_qconfig.contains("framegrabber"))
 	{
-		const Json::Value & grabberConfig = _config["framegrabber"];
-		if (grabberConfig.get("enable", true).asBool())
+		const QJsonObject & grabberConfig = _qconfig["framegrabber"].toObject();
+		if (grabberConfig["enable"].toBool(true))
 		{
-			_grabber_width     = grabberConfig.get("width", 96).asUInt();
-			_grabber_height    = grabberConfig.get("height", 96).asUInt();
-			_grabber_frequency = grabberConfig.get("frequency_Hz",10).asUInt();
-			_grabber_priority  = grabberConfig.get("priority",900).asInt();
+			_grabber_width     = grabberConfig["width"].toInt(96);
+			_grabber_height    = grabberConfig["height"].toInt(96);
+			_grabber_frequency = grabberConfig["frequency_Hz"].toInt(10);
+			_grabber_priority  = grabberConfig["priority"].toInt(900);
 
-			_grabber_cropLeft   = grabberConfig.get("cropLeft", 0).asUInt();
-			_grabber_cropRight  = grabberConfig.get("cropRight", 0).asUInt();
-			_grabber_cropTop    = grabberConfig.get("cropTop", 0).asUInt();
-			_grabber_cropBottom = grabberConfig.get("cropBottom", 0).asUInt();
+			_grabber_cropLeft   = grabberConfig["cropLeft"].toInt(0);
+			_grabber_cropRight  = grabberConfig["cropRight"].toInt(0);
+			_grabber_cropTop    = grabberConfig["cropTop"].toInt(0);
+			_grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
 
 			#ifdef ENABLE_OSX
-				std::string type = "osx";
+				QString type = "osx";
 			#else
-				std::string type = grabberConfig.get("type", "auto").asString();
+				QString type = grabberConfig["type"].toString("auto");
 			#endif
 				
 			QFile amvideo("/dev/amvideo");
@@ -372,7 +434,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				{
 					type == "framebuffer";
 				}
-				Info(  _log, "set screen capture device to '%s'", type.c_str());
+				Info(  _log, "set screen capture device to '%s'", type.constData());
 			}
 			
 			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
@@ -380,7 +442,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.c_str());
+			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.constData());
 			InfoIf( type == "", _log, "screen capture device disabled");
 		}
 	}
@@ -400,7 +462,7 @@ void HyperionDaemon::createGrabberDispmanx()
 	_dispmanx->start();
 	Info(_log, "DISPMANX frame grabber created and started");
 #else
-	ErrorIf(_config.isMember("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
+	ErrorIf(_qconfig.contains("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 
@@ -421,14 +483,14 @@ void HyperionDaemon::createGrabberAmlogic()
 #endif
 }
 
-void HyperionDaemon::createGrabberX11(const Json::Value & grabberConfig)
+void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 {
 #ifdef ENABLE_X11
 	_x11Grabber = new X11Wrapper(
-				grabberConfig.get("useXGetImage",false).asBool(),
+				grabberConfig["useXGetImage"].toBool(false),
 				_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-				grabberConfig.get("horizontalPixelDecimation", 8).asInt(),
-				grabberConfig.get("verticalPixelDecimation", 8).asInt(),
+				grabberConfig["horizontalPixelDecimation"].toInt(8),
+				grabberConfig["verticalPixelDecimation"].toInt(8),
 				_grabber_frequency, _grabber_priority );
 
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
@@ -443,12 +505,12 @@ void HyperionDaemon::createGrabberX11(const Json::Value & grabberConfig)
 }
 
 
-void HyperionDaemon::createGrabberFramebuffer(const Json::Value & grabberConfig)
+void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 {
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
 	_fbGrabber = new FramebufferWrapper(
-				grabberConfig.get("device", "/dev/fb0").asString(),
+				grabberConfig["device"].toString("/dev/fb0").toStdString(),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
@@ -463,12 +525,12 @@ void HyperionDaemon::createGrabberFramebuffer(const Json::Value & grabberConfig)
 }
 
 
-void HyperionDaemon::createGrabberOsx(const Json::Value & grabberConfig)
+void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
 	_osxGrabber = new OsxWrapper(
-				grabberConfig.get("display", 0).asUInt(),
+				grabberConfig["display"].toInt(0),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
@@ -487,37 +549,37 @@ void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
 #ifdef ENABLE_V4L2
-	if (_config.isMember("grabber-v4l2"))
+	if (_qconfig.contains("grabber-v4l2"))
 	{
-		const Json::Value & grabberConfig = _config["grabber-v4l2"];
+		const QJsonObject & grabberConfig = _qconfig["grabber-v4l2"].toObject();
 			_v4l2Grabber = new V4L2Wrapper(
-						grabberConfig.get("device", "/dev/video0").asString(),
-						grabberConfig.get("input", 0).asInt(),
-						parseVideoStandard(grabberConfig.get("standard", "no-change").asString()),
-						parsePixelFormat(grabberConfig.get("pixelFormat", "no-change").asString()),
-						grabberConfig.get("width", -1).asInt(),
-						grabberConfig.get("height", -1).asInt(),
-						grabberConfig.get("frameDecimation", 2).asInt(),
-						grabberConfig.get("sizeDecimation", 8).asInt(),
-						grabberConfig.get("redSignalThreshold", 0.0).asDouble(),
-						grabberConfig.get("greenSignalThreshold", 0.0).asDouble(),
-						grabberConfig.get("blueSignalThreshold", 0.0).asDouble(),
-						grabberConfig.get("priority", 890).asInt());
-			_v4l2Grabber->set3D(parse3DMode(grabberConfig.get("mode", "2D").asString()));
+						grabberConfig["device"].toString("/dev/video0").toStdString(),
+						grabberConfig["input"].toInt(0),
+						parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
+						parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
+						grabberConfig["width"].toInt(-1),
+						grabberConfig["height"].toInt(-1),
+						grabberConfig["frameDecimation"].toInt(2),
+						grabberConfig["sizeDecimation"].toInt(8),
+						grabberConfig["redSignalThreshold"].toDouble(0.0),
+						grabberConfig["greenSignalThreshold"].toDouble(0.0),
+						grabberConfig["blueSignalThreshold"].toDouble(0.0),
+						grabberConfig["priority"].toInt(890));
+			_v4l2Grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
 			_v4l2Grabber->setCropping(
-						grabberConfig.get("cropLeft", 0).asInt(),
-						grabberConfig.get("cropRight", 0).asInt(),
-						grabberConfig.get("cropTop", 0).asInt(),
-						grabberConfig.get("cropBottom", 0).asInt());
+						grabberConfig["cropLeft"].toInt(0),
+						grabberConfig["cropRight"].toInt(0),
+						grabberConfig["cropTop"].toInt(0),
+						grabberConfig["cropBottom"].toInt(0));
 			Debug(_log, "V4L2 grabber created");
 
 		QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		if (grabberConfig.get("enable", true).asBool() && _v4l2Grabber->start())
+		if (grabberConfig["enable"].toBool(true) && _v4l2Grabber->start())
 		{
 			Info(_log, "V4L2 grabber started");
 		}
 	}
 #else
-	ErrorIf(_config.isMember("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+	ErrorIf(_qconfig.contains("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
