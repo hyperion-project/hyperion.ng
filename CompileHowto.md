@@ -73,6 +73,7 @@ First you need to install the dependencies:
 brew install qt5
 brew install cmake
 brew install libusb
+brew install doxygen
 ```
 
 After which you can run cmake with the correct qt5 path:
