@@ -13,5 +13,6 @@
         <file alias="schema-effect">schema/schema-effect.json</file>
         <file alias="schema-sourceselect">schema/schema-sourceselect.json</file>
         <file alias="schema-configget">schema/schema-configget.json</file>
+        <file alias="schema-componentstate">schema/schema-componentstate.json</file>
     </qresource>
 </RCC>
