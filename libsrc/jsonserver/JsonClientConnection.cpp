@@ -260,6 +260,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleSourceSelectCommand(message);
 	else if (command == "configget")
 		handleConfigGetCommand(message);
+	else if (command == "componentstate")
+		handleComponentStateCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -813,6 +815,29 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
 	
 	// send the result
 	sendMessage(result);
+}
+
+void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
+{
+	const Json::Value & componentState = message["componentstate"];
+	std::string component = componentState.get("component", "").asString();
+	
+	if (component == "SMOOTHING")
+		_hyperion->setComponentState((Components)0, componentState.get("state", true).asBool());
+	else if (component == "BLACKBORDER")
+		_hyperion->setComponentState((Components)1, componentState.get("state", true).asBool());
+	else if (component == "KODICHECKER")
+		_hyperion->setComponentState((Components)2, componentState.get("state", true).asBool());
+	else if (component == "FORWARDER")
+		_hyperion->setComponentState((Components)3, componentState.get("state", true).asBool());
+	else if (component == "UDPLISTENER")
+		_hyperion->setComponentState((Components)4, componentState.get("state", true).asBool());
+	else if (component == "BOBLIGHTSERVER")
+		_hyperion->setComponentState((Components)5, componentState.get("state", true).asBool());
+	else if (component == "GRABBER")
+		_hyperion->setComponentState((Components)6, componentState.get("state", true).asBool());
+	
+	sendSuccessReply();
 }
 
 void JsonClientConnection::handleNotImplemented()
