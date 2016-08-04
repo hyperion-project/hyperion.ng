@@ -21,6 +21,7 @@
 #include <utils/jsonschema/QJsonFactory.h>
 
 #include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
 #include <effectengine/EffectEngine.h>
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
@@ -32,7 +33,7 @@
 #include "hyperiond.h"
 
 
-HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
+HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MAIN"))
 	, _kodiVideoChecker(nullptr)
@@ -48,10 +49,9 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
 {
-	loadConfig(configFile); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
-	loadConfig(QString::fromStdString(configFile));
+	loadConfig(configFile);
 	
-	_hyperion = Hyperion::initInstance(_config, configFile);
+	_hyperion = Hyperion::initInstance(_config, configFile.toStdString());
 	
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -72,7 +72,7 @@ HyperionDaemon::HyperionDaemon(std::string configFile, QObject *parent)
 		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
 	}
 	
-	Info(_log, "Hyperion started and initialised");
+	Info(_log, "Hyperion initialised");
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -106,35 +106,14 @@ void HyperionDaemon::run()
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
 		WarningIf(_qconfig.contains("framegrabber"), _log, "No grabber can be instantiated, because all grabbers have been left out from the build");
 	#endif
+	Info(_log, "Hyperion started");
 
-}
 
-void HyperionDaemon::loadConfig(const std::string & configFile) // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
-{
-	Info(_log, "Selected configuration file: %s", configFile.c_str() );
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	assert(schemaData.isValid());
-
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
-	{
-		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
-	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
-
-	_config = JsonFactory::readJson(configFile);
-	schemaChecker.validate(_config);
 }
 
 void HyperionDaemon::loadConfig(const QString & configFile)
 {
-//	Info(_log, "Selected configuration file: %s", configFile.toStdString().c_str()); // uncommend this line only if JsonCpp is removed. Otherwise appears this line twice in the debug output
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
 
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
@@ -176,6 +155,7 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson.object());
 
+	_config  = JsonFactory::readJson(configFile.toStdString()); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	_qconfig = QJsonFactory::readJson(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
@@ -196,12 +176,12 @@ void HyperionDaemon::startInitialEffect()
 	if (_config.isMember("initialEffect"))
 	{
 		const Json::Value effectConfig = _config["initialEffect"];
-		const int HIGHEST_PRIORITY = 0;
+		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
-		const int LOWEST_PRIORITY = std::numeric_limits<int>::max()-1;
+		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
 
 		// clear the leds
-		hyperion->setColor(HIGHEST_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
+		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
 
 		// initial foreground effect/color
 		const Json::Value fgEffectConfig = effectConfig["foreground-effect"];
@@ -219,16 +199,16 @@ void HyperionDaemon::startInitialEffect()
 				(uint8_t)fgEffectConfig[1].asUInt(),
 				(uint8_t)fgEffectConfig[2].asUInt()
 			};
-			hyperion->setColor(HIGHEST_PRIORITY, fg_color, fg_duration_ms, false);
+			hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms, false);
 			Info(_log,"Inital foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
 		}
-		else if (! fgEffectConfig.isNull() && fgEffectConfig.isString())
+		else if (! fgEffectConfig.isNull() && fgEffectConfig.isArray() && fgEffectConfig.size() == 1 && fgEffectConfig[0].isString())
 		{
-			const std::string bgEffectName = fgEffectConfig.asString();
+			const std::string fgEffectName = fgEffectConfig[0].asString();
 			int result = effectConfig.isMember("foreground-effect-args")
-			           ? hyperion->setEffect(bgEffectName, effectConfig["foreground-effect-args"], HIGHEST_PRIORITY, fg_duration_ms)
-			           : hyperion->setEffect(bgEffectName, HIGHEST_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+			           ? hyperion->setEffect(fgEffectName, effectConfig["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
+			           : hyperion->setEffect(fgEffectName, FG_PRIORITY, fg_duration_ms);
+			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
 		}
 
 		// initial background effect/color
@@ -240,15 +220,15 @@ void HyperionDaemon::startInitialEffect()
 				(uint8_t)bgEffectConfig[1].asUInt(),
 				(uint8_t)bgEffectConfig[2].asUInt()
 			};
-			hyperion->setColor(LOWEST_PRIORITY, bg_color, DURATION_INFINITY, false);
+			hyperion->setColor(BG_PRIORITY, bg_color, DURATION_INFINITY, false);
 			Info(_log,"Inital background color set (%d %d %d)",bg_color.red,bg_color.green,bg_color.blue);
 		}
-		else if (! bgEffectConfig.isNull() && bgEffectConfig.isString())
+		else if (! bgEffectConfig.isNull() && bgEffectConfig.isArray() && bgEffectConfig.size() == 1 && bgEffectConfig[0].isString())
 		{
-			const std::string bgEffectName = bgEffectConfig.asString();
+			const std::string bgEffectName = bgEffectConfig[0].asString();
 			int result = effectConfig.isMember("background-effect-args")
-			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], LOWEST_PRIORITY, DURATION_INFINITY)
-			           : hyperion->setEffect(bgEffectName, LOWEST_PRIORITY, DURATION_INFINITY);
+			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], BG_PRIORITY, DURATION_INFINITY)
+			           : hyperion->setEffect(bgEffectName, BG_PRIORITY, DURATION_INFINITY);
 			Info(_log,"Inital background effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
 		}
 	}
@@ -271,7 +251,7 @@ void HyperionDaemon::createKODIVideoChecker()
 		videoCheckerConfig["grabPause"].toBool(true),
 		videoCheckerConfig["grabScreensaver"].toBool(false),
 		videoCheckerConfig["enable3DDetection"].toBool(true));
-		Debug(_log, "KODI checker created ");
+	Debug(_log, "KODI checker created ");
 
 	if( kodiCheckerConfigured && videoCheckerConfig["enable"].toBool(true))
 	{

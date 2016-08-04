@@ -33,7 +33,7 @@ QList<int> PriorityMuxer::getPriorities() const
 
 bool PriorityMuxer::hasPriority(const int priority) const
 {
-	return _activeInputs.contains(priority);
+	return (priority == LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
 const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) const
@@ -46,8 +46,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
 	{
-		std::cout << "error " << priority << std::endl;
-		throw std::runtime_error("HYPERION (prioritymux) ERROR: no such priority");
+		throw std::runtime_error("HYPERION (prioritymuxer) ERROR: no such priority");
 	}
 	return elemIt.value();
 }

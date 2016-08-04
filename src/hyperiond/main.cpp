@@ -7,6 +7,7 @@
 #include <QCoreApplication>
 #include <QLocale>
 #include <QFile>
+#include <QString>
 
 #include "HyperionConfig.h"
 
@@ -143,7 +144,7 @@ int main(int argc, char** argv)
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond = new HyperionDaemon(QString::fromStdString(configFiles[argvId]), &app);
 		hyperiond->run();
 	}
 	catch (std::exception& e)

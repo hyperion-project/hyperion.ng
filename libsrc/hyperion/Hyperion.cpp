@@ -679,14 +679,15 @@ void Hyperion::setComponentState(const Components component, const bool state)
 			break;
 		case KODICHECKER:
 		{
-			KODIVideoChecker* _kodiVideoChecker = KODIVideoChecker::getInstance();
-			if (_kodiVideoChecker != nullptr)
-				state ? _kodiVideoChecker->start() : _kodiVideoChecker->stop();
+			KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
+			if (kodiVideoChecker != nullptr)
+				state ? kodiVideoChecker->start() : kodiVideoChecker->stop();
 			else
  				Debug(_log, "Can't get instance from: '%s'", componentToString(component));
 			break;
 		}
 		case FORWARDER:
+			//_messageForwarder
 			break;
 		case UDPLISTENER:
 			break;
