@@ -178,7 +178,6 @@ void HyperionDaemon::startInitialEffect()
 	// create boot sequence if the configuration is present
 	if (_config.isMember("initialEffect"))
 	{
-		//const Json::Value effectConfig = _config["initialEffect"];
 		const QJsonObject & effectConfig = _qconfig["initialEffect"].toObject();
 		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
