@@ -557,6 +557,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 {
+	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
+	
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
 		throw std::runtime_error("Color adjustment incorrectly set");
