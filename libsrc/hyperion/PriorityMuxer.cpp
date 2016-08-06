@@ -14,6 +14,8 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;
 	_lowestPriorityInfo.ledColors = std::vector<ColorRgb>(ledCount, {0, 0, 0});
+	
+	_activeInputs[_currentPriority] = _lowestPriorityInfo;
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -33,21 +35,15 @@ QList<int> PriorityMuxer::getPriorities() const
 
 bool PriorityMuxer::hasPriority(const int priority) const
 {
-	return _activeInputs.contains(priority);
+	return (priority == LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
 const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) const
 {
-	if (priority == LOWEST_PRIORITY)
-	{
-		return _lowestPriorityInfo;
-	}
-
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
 	{
-		std::cout << "error " << priority << std::endl;
-		throw std::runtime_error("HYPERION (prioritymux) ERROR: no such priority");
+		throw std::runtime_error("HYPERION (prioritymuxer) ERROR: no such priority");
 	}
 	return elemIt.value();
 }
@@ -64,14 +60,10 @@ void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 
 void PriorityMuxer::clearInput(const int priority)
 {
-	_activeInputs.remove(priority);
-	if (_currentPriority == priority)
+	if (priority < LOWEST_PRIORITY)
 	{
-		if (_activeInputs.empty())
-		{
-			_currentPriority = LOWEST_PRIORITY;
-		}
-		else
+		_activeInputs.remove(priority);
+		if (_currentPriority == priority)
 		{
 			QList<int> keys = _activeInputs.keys();
 			_currentPriority = *std::min_element(keys.begin(), keys.end());
@@ -83,6 +75,7 @@ void PriorityMuxer::clearAll()
 {
 	_activeInputs.clear();
 	_currentPriority = LOWEST_PRIORITY;
+	_activeInputs[_currentPriority] = _lowestPriorityInfo;
 }
 
 void PriorityMuxer::setCurrentTime(const int64_t& now)

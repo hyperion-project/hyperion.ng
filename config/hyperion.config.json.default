@@ -150,8 +150,8 @@
 
 	"initialEffect" :
 	{
-		"background-effect"      : "Full color mood blobs",
-		"foreground-effect"      : "Rainbow swirl fast",
+		"background-effect"      : ["Full color mood blobs"],
+		"foreground-effect"      : ["Rainbow swirl fast"],
 		"foreground-duration_ms" : 3000
 	},
 

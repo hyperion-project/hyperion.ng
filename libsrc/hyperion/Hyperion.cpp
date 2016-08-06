@@ -557,6 +557,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 {
+	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
+	
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
 		throw std::runtime_error("Color adjustment incorrectly set");
@@ -679,14 +681,15 @@ void Hyperion::setComponentState(const Components component, const bool state)
 			break;
 		case KODICHECKER:
 		{
-			KODIVideoChecker* _kodiVideoChecker = KODIVideoChecker::getInstance();
-			if (_kodiVideoChecker != nullptr)
-				state ? _kodiVideoChecker->start() : _kodiVideoChecker->stop();
+			KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
+			if (kodiVideoChecker != nullptr)
+				state ? kodiVideoChecker->start() : kodiVideoChecker->stop();
 			else
  				Debug(_log, "Can't get instance from: '%s'", componentToString(component));
 			break;
 		}
 		case FORWARDER:
+			//_messageForwarder
 			break;
 		case UDPLISTENER:
 			break;

@@ -6,13 +6,11 @@
 		"logger" :
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"level" :
 				{
-					"type" : "string",
-					"required" : true
+					"enum" : ["silent", "warn", "verbose", "debug"]
 				}
 			},
 			"additionalProperties" : false
@@ -50,7 +48,7 @@
 					"required" : false
 				}
 			},
-			"additionalProperties" : false
+			"additionalProperties" : true
 		},
 		"color" :
 		{
@@ -364,44 +362,37 @@
 		"smoothing":
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"type" :
 				{
-					"enum" : ["none", "linear"],
-					"required" : true
+					"enum" : ["linear"]
 				},
 				"time_ms" :
 				{
 					"type" : "integer",
-					"required" : false,
 					"minimum" : 25,
 					"maximum": 600
 				},
 				"updateFrequency" :
 				{
 					"type" : "number",
-					"required" : false,
 					"minimum" : 1.000,
 					"maximum": 100.000
 				},
 				"updateDelay" :
 				{
 					"type" : "integer",
-					"required" : false,
 					"minimum" : 0,
 					"maximum": 2048
 				},
 				"continuousOutput" :
 				{
-					"type" : "boolean",
-					"required" : false
+					"type" : "boolean"
 				}
 			},
 			"additionalProperties" : false
@@ -503,88 +494,120 @@
 		"framegrabber" :
 		{
 			"type" : "object",
-			"required" : false,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"type" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
 				},
 				"width" :
 				{
-					"type" : "integer",
-					"required" : false
+					"type" : "integer"
 				},
 				"height" :
 				{
-					"type" : "integer",
-					"required" : false
+					"type" : "integer"
 				},
 				"frequency_Hz" :
 				{
 					"type" : "integer",
-					"required" : true
+					"minimum" : 0
 				},
 				"priority" :
 				{
+					"type" : "integer"
+				},
+				"cropLeft" :
+				{
 					"type" : "integer",
-					"required" : true
+					"minimum" : 0
+				},
+				"cropRight" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"cropTop" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"cropBottom" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"useXGetImage" :
+				{
+					"type" : "boolean"
+				},
+				"horizontalPixelDecimation" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"verticalPixelDecimation" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"device" :
+				{
+					"type" : "string"
+				},
+				"display" :
+				{
+					"type" : "integer",
+					"minimum" : 0
 				}
 			},
-			"additionalProperties" : true
+			"additionalProperties" : false
 		},
 		"blackborderdetector" :
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"threshold" :
 				{
 					"type" : "number",
-					"required" : true,
 					"minimum" : 0.0,
 					"maximum" : 1.0
 				},
 				"unknownFrameCnt"    :
 				{
 					"type" : "number",
-					"required" : false,
 					"minimum" : 0
 				},
 				"borderFrameCnt" :
 				{
 					"type" : "number",
-					"required" : false,
 					"minimum" : 0
 				},
 				"maxInconsistentCnt" :
 				{
 					"type" : "number",
-					"required" : false,
 					"minimum" : 0
 				},
 				"blurRemoveCnt" :
 				{
 					"type" : "number",
-					"required" : false,
 					"minimum" : 0
 				},
 				"mode" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" :
+					{
+						"enum" : ["default", "classic", "osd"]
+					}
 				}
 			},
 			"additionalProperties" : false
@@ -592,58 +615,47 @@
 		"kodiVideoChecker" :
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"kodiAddress" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
 				},
 				"kodiTcpPort" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"grabVideo" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"grabPictures" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"grabAudio" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"grabMenu" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"grabPause" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"grabScreensaver" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"enable3DDetection" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				}
 			},
 			"additionalProperties" : false
@@ -651,34 +663,28 @@
 		"initialEffect" :
 		{
 			"type" : "object",
-			"required" : false,
 			"properties" :
 			{
 				"background-effect" :
 				{
-					"type" : "string",
-					"required" : false
+					"type" : "array"
 				},
 				"background-effect-args" :
 				{
-					"type" : "object",
-					"required" : false
+					"type" : "object"
 				},
 				"foreground-effect" :
 				{
-					"type" : "string",
-					"required" : false
+					"type" : "array"
 				},
 				"foreground-effect-args" :
 				{
-					"type" : "object",
-					"required" : false
+					"type" : "object"
 				},
 				"foreground-duration_ms" :
 				{
-					"type" : "integer",
-					"required" : false
-				}				
+					"type" : "integer"
+				}
 			},
 			"additionalProperties" : false
 		},		
@@ -741,13 +747,11 @@
 		"boblightServer" :
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"port" :
 				{
@@ -758,8 +762,7 @@
 				},
 				"priority" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				}
 			},
 			"additionalProperties" : false
@@ -767,13 +770,11 @@
 		"udpListener" :
 		{
 			"type" : "object",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"address" :
 				{
@@ -783,24 +784,20 @@
 				"port" :
 				{
 					"type" : "integer",
-					"required" : true,
 					"minimum" : 0,
 					"maximum" : 65535
 				},
 				"priority" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"timeout" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"shared" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				}
 			},
 			"additionalProperties" : false
@@ -832,13 +829,11 @@
 		"effects" :
 		{
 			"type" : "object",
-			"required" : false,
 			"properties" :
 			{
 				"paths" :
 				{
-					"type" : "array",
-					"required" : false
+					"type" : "array"
 				}
 			},
 			"additionalProperties" : false
@@ -906,8 +901,7 @@
 		},
 		"endOfJson" :
 		{
-			"type" : "string",
-			"required" : false
+			"type" : "string"
 		}
 	},
 	"additionalProperties" : false

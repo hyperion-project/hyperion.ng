@@ -51,10 +51,9 @@
 class HyperionDaemon : public QObject
 {
 public:
-	HyperionDaemon(std::string configFile, QObject *parent=nullptr);
+	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const std::string & configFile); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	void loadConfig(const QString & configFile);
 	void run();
 

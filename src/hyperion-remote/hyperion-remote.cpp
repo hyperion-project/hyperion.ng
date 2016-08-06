@@ -1,6 +1,7 @@
 // stl includes
 #include <clocale>
 #include <initializer_list>
+#include <limits>
 
 // Qt includes
 #include <QCoreApplication>
@@ -85,6 +86,7 @@ int main(int argc, char * argv[])
 		AdjustmentParameter & argBAdjust = parameters.add<AdjustmentParameter>('B', "blueAdjustment", "Set the adjustment of the blue color (requires 3 space seperated values between 0 and 255)");
 		IntParameter       & argSource   = parameters.add<IntParameter>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		SwitchParameter<>  & argSourceAuto = parameters.add<SwitchParameter<> >(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
+		SwitchParameter<>  & argSourceOff = parameters.add<SwitchParameter<> >(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
 		SwitchParameter<>  & argConfigGet   = parameters.add<SwitchParameter<> >(0x0, "configget"  , "Print the current loaded Hyperion configuration file");
 
 		// set the default values
@@ -109,7 +111,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argConfigGet.isSet()});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argSourceOff.isSet(), argConfigGet.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -182,6 +184,10 @@ int main(int argc, char * argv[])
 		else if (argDisableComponent.isSet())
 		{
 			connection.setComponentState(argDisableComponent.getValue(), false);
+		}
+		else if (argSourceOff.isSet())
+		{
+			connection.setSource(std::numeric_limits<int>::max());
 		}
 		else if (argSource.isSet())
 		{

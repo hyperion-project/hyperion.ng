@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QHostInfo>
+#include <QString>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -820,7 +821,7 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
 {
 	const Json::Value & componentState = message["componentstate"];
-	std::string component = componentState.get("component", "").asString();
+	QString component = QString::fromStdString(componentState.get("component", "").asString()).toUpper();
 	
 	if (component == "SMOOTHING")
 		_hyperion->setComponentState((Components)0, componentState.get("state", true).asBool());
