@@ -2,3 +2,10 @@
 /build*
 .DS_Store
 
+*.cmake
+moc_*.cpp
+moc_*.cpp_parameters
+CMakeFiles/
+CMakeCache.txt
+Makefile
+*.qrc.depends
