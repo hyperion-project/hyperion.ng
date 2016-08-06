@@ -192,6 +192,25 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
+void JsonConnection::setComponentState(const std::string& component, const bool state)
+{
+	state ? std::cout << "Enable Component " : std::cout << "Disable Component ";
+	std::cout << component << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "componentstate";
+	Json::Value & parameter = command["componentstate"];
+	parameter["component"] = component;
+	parameter["state"] = state;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 void JsonConnection::setSource(int priority)
 {
 	// create command

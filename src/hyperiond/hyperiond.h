@@ -46,14 +46,15 @@
 #include <boblightserver/BoblightServer.h>
 #include <webconfig/WebConfig.h>
 #include <udplistener/UDPListener.h>
+#include <QJsonObject>
 
 class HyperionDaemon : public QObject
 {
 public:
-	HyperionDaemon(std::string configFile, QObject *parent=nullptr);
+	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const std::string & configFile);
+	void loadConfig(const QString & configFile);
 	void run();
 
 	void startInitialEffect();
@@ -67,12 +68,13 @@ public:
 private:
 	void createGrabberDispmanx();
 	void createGrabberAmlogic();
-	void createGrabberFramebuffer(const Json::Value & grabberConfig);
-	void createGrabberOsx(const Json::Value & grabberConfig);
-	void createGrabberX11(const Json::Value & grabberConfig);
+	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
+	void createGrabberOsx(const QJsonObject & grabberConfig);
+	void createGrabberX11(const QJsonObject & grabberConfig);
 
 	Logger*             _log;
-	Json::Value         _config;
+	Json::Value         _config; // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
+	QJsonObject         _qconfig;
 	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;

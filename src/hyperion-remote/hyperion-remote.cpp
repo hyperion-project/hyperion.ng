@@ -1,6 +1,7 @@
 // stl includes
 #include <clocale>
 #include <initializer_list>
+#include <limits>
 
 // Qt includes
 #include <QCoreApplication>
@@ -61,6 +62,8 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info and active effects with priority and duration");
 		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
+		StringParameter    & argEnableComponent     = parameters.add<StringParameter>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
+		StringParameter    & argDisableComponent     = parameters.add<StringParameter>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
 		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
 		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "!DEPRECATED! Will be removed soon! Set the HSV value gain of the leds");
@@ -83,6 +86,7 @@ int main(int argc, char * argv[])
 		AdjustmentParameter & argBAdjust = parameters.add<AdjustmentParameter>('B', "blueAdjustment", "Set the adjustment of the blue color (requires 3 space seperated values between 0 and 255)");
 		IntParameter       & argSource   = parameters.add<IntParameter>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		SwitchParameter<>  & argSourceAuto = parameters.add<SwitchParameter<> >(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
+		SwitchParameter<>  & argSourceOff = parameters.add<SwitchParameter<> >(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
 		SwitchParameter<>  & argConfigGet   = parameters.add<SwitchParameter<> >(0x0, "configget"  , "Print the current loaded Hyperion configuration file");
 
 		// set the default values
@@ -107,7 +111,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argConfigGet.isSet()});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argSourceOff.isSet(), argConfigGet.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -117,6 +121,8 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
 			std::cerr << "  " << argClear.usageLine() << std::endl;
 			std::cerr << "  " << argClearAll.usageLine() << std::endl;
+			std::cerr << "  " << argEnableComponent.usageLine() << std::endl;
+			std::cerr << "  " << argDisableComponent.usageLine() << std::endl;
 			std::cerr << "  " << argSource.usageLine() << std::endl;
 			std::cerr << "  " << argSourceAuto.usageLine() << std::endl;
 			std::cerr << "  " << argConfigGet.usageLine() << std::endl;
@@ -170,6 +176,18 @@ int main(int argc, char * argv[])
 		else if (argClearAll.isSet())
 		{
 			connection.clearAll();
+		}
+		else if (argEnableComponent.isSet())
+		{
+			connection.setComponentState(argEnableComponent.getValue(), true);
+		}
+		else if (argDisableComponent.isSet())
+		{
+			connection.setComponentState(argDisableComponent.getValue(), false);
+		}
+		else if (argSourceOff.isSet())
+		{
+			connection.setSource(std::numeric_limits<int>::max());
 		}
 		else if (argSource.isSet())
 		{

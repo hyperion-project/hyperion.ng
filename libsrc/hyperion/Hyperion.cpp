@@ -557,6 +557,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 {
+	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
+	
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
 		throw std::runtime_error("Color adjustment incorrectly set");
@@ -669,6 +671,34 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 	return priorityValid;
 }
 
+void Hyperion::setComponentState(const Components component, const bool state)
+{
+	switch(component)
+	{
+		case SMOOTHING:
+			break;
+		case BLACKBORDER:
+			break;
+		case KODICHECKER:
+		{
+			KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
+			if (kodiVideoChecker != nullptr)
+				state ? kodiVideoChecker->start() : kodiVideoChecker->stop();
+			else
+ 				Debug(_log, "Can't get instance from: '%s'", componentToString(component));
+			break;
+		}
+		case FORWARDER:
+			//_messageForwarder
+			break;
+		case UDPLISTENER:
+			break;
+		case BOBLIGHTSERVER:
+			break;
+		case GRABBER:
+			break;
+	}
+}
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
 {
