@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -v
 
 # for executing in non travis environment
 [ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$( uname -s | tr '[:upper:]' '[:lower:]' )"
@@ -10,10 +10,11 @@
 # compile hyperion on osx
 if [[ $TRAVIS_OS_NAME == 'osx' ]]
 then
-	cmake . -DCMAKE_PREFIX_PATH=$(ls /usr/local/Cellar/qt5/ | sort -nr | head -n 1)
+    qt5_path=$(find /usr/local/Cellar/qt5 -maxdepth 1 | sort -nr | head -n 1 | xargs)
 	mkdir build || exit 1
 	cd build
-	cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
+	cmake -DCMAKE_PREFIX_PATH="$qt5_path" -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
+	cd ..
 	make -j$(sysctl -n hw.ncpu) || exit 3
 	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
 fi

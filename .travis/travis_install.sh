@@ -2,8 +2,10 @@
 # install osx deps for hyperion compile
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 	echo "Install OSX deps"
-	brew update
-	brew install libusb cmake qt5
+	time brew update
+	time brew install qt5 || true
+	time brew install libusb || true
+	time brew install cmake || true
 fi
 
 # install linux deps for hyperion compile
