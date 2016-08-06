@@ -6,6 +6,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 	time brew install qt5 || true
 	time brew install libusb || true
 	time brew install cmake || true
+	time brew install doxygen || true
 fi
 
 # install linux deps for hyperion compile

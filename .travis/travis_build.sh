@@ -1,4 +1,4 @@
-#!/bin/bash -v
+#!/bin/bash
 
 # for executing in non travis environment
 [ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$( uname -s | tr '[:upper:]' '[:lower:]' )"
@@ -11,11 +11,14 @@
 if [[ $TRAVIS_OS_NAME == 'osx' ]]
 then
     qt5_path=$(find /usr/local/Cellar/qt5 -maxdepth 1 | sort -nr | head -n 1 | xargs)
+    procs=$(sysctl -n hw.ncpu | xargs)
+    echo "Qt5 path: $qt5_path"
+    echo "Processes: $procs"
+
 	mkdir build || exit 1
-	cd build
+    cd build
 	cmake -DCMAKE_PREFIX_PATH="$qt5_path" -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
-	cd ..
-	make -j$(sysctl -n hw.ncpu) || exit 3
+	make -j$procs || exit 3
 	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
 fi
 
