@@ -258,6 +258,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleAdjustmentCommand(message);
 	else if (command == "sourceselect")
 		handleSourceSelectCommand(message);
+	else if (command == "configget")
+		handleConfigGetCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -799,6 +801,18 @@ void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message
 	{
 		sendErrorReply("setting current priority failed");
 	}
+}
+
+void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
+{
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	Json::Value & config = result["result"];
+	config = _hyperion->getJsonConfig();
+	
+	// send the result
+	sendMessage(result);
 }
 
 void JsonClientConnection::handleNotImplemented()

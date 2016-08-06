@@ -220,6 +220,32 @@ void JsonConnection::setSourceAutoSelect()
 	parseReply(reply);
 }
 
+QString JsonConnection::getConfigFile()
+{
+	std::cout << "Get configuration file from Hyperion Server" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "configget";
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	if (parseReply(reply))
+	{
+		if (!reply.isMember("result") || !reply["result"].isObject())
+		{
+			throw std::runtime_error("No configuration file available in result");
+		}
+
+		const Json::Value & config = reply["result"];
+		return QString(config.toStyledString().c_str());
+	}
+
+	return QString();
+}
+
 void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
