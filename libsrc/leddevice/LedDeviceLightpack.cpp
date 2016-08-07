@@ -71,7 +71,7 @@ int LedDeviceLightpack::open()
 	// initialize the usb context
 	if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
 	{
-		Error(_log, "Error while initializing USB context(%s): %s", error, libusb_error_name(error));
+		Error(_log, "Error while initializing USB context(%d): %s", error, libusb_error_name(error));
 		_libusbContext = nullptr;
 		return -1;
 	}
@@ -119,7 +119,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(_log, "Error while retrieving device descriptor(%s): %s", error, libusb_error_name(error));
+		Error(_log, "Error while retrieving device descriptor(%d): %s", error, libusb_error_name(error));
 		return -1;
 	}
 
@@ -142,7 +142,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 			}
 			catch (int e)
 			{
-				Error(_log, "unable to retrieve serial number from Lightpack device(%s): %s", e, libusb_error_name(e));
+				Error(_log, "unable to retrieve serial number from Lightpack device(%d): %s", e, libusb_error_name(e));
 				serialNumber = "";
 			}
 		}
@@ -173,7 +173,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 							buffer, sizeof(buffer), 1000);
 				if (error < 3)
 				{
-					Error(_log, "Unable to retrieve firmware version number from Lightpack device(%s): %s", error, libusb_error_name(error));
+					Error(_log, "Unable to retrieve firmware version number from Lightpack device(%d): %s", error, libusb_error_name(error));
 				}
 				else
 				{
@@ -219,7 +219,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 			catch(int e)
 			{
 				_deviceHandle = nullptr;
-				Warning(_log, "Unable to open Lightpack device. Searching for other device(%s): %s", e, libusb_error_name(e));
+				Warning(_log, "Unable to open Lightpack device. Searching for other device(%d): %s", e, libusb_error_name(e));
 			}
 		}
 	}
@@ -289,7 +289,7 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 		return 0;
 	}
 
-	Error(_log, "Unable to write %d bytes to Lightpack device(%s): %s", size, error, libusb_error_name(error));
+	Error(_log, "Unable to write %d bytes to Lightpack device(%d): %s", size, error, libusb_error_name(error));
 	return error;
 }
 
@@ -306,7 +306,7 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 	int error = libusb_open(device, &handle);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to open device(%s): %s", error, libusb_error_name(error));
+		Error(log, "unable to open device(%d): %s", error, libusb_error_name(error));
 		throw error;
 	}
 
@@ -316,7 +316,7 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 		error = libusb_detach_kernel_driver(handle, LIGHTPACK_INTERFACE);
 		if (error != LIBUSB_SUCCESS)
 		{
-			Error(log, "unable to detach kernel driver(%s): %s", error, libusb_error_name(error));
+			Error(log, "unable to detach kernel driver(%d): %s", error, libusb_error_name(error));
 			libusb_close(handle);
 			throw error;
 		}
@@ -325,7 +325,7 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 	error = libusb_claim_interface(handle, LIGHTPACK_INTERFACE);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to claim interface(%s): %s", error, libusb_error_name(error));
+		Error(log, "unable to claim interface(%d): %s", error, libusb_error_name(error));
 		libusb_attach_kernel_driver(handle, LIGHTPACK_INTERFACE);
 		libusb_close(handle);
 		throw error;
