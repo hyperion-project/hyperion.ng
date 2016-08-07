@@ -128,7 +128,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
 		foreach (const std::string & error, errors) {
-			Error( log, "Error while checking '%s':", fileName.c_str(), error.c_str());
+			Error( log, "Error while checking '%s':%s", fileName.c_str(), error.c_str());
 		}
 		return false;
 	}
