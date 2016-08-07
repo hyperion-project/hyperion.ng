@@ -864,11 +864,15 @@
 							"minimum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							},
 							"maximum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							}
 						},
@@ -882,11 +886,15 @@
 							"minimum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							},
 							"maximum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							}
 						},

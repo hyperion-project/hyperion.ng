@@ -143,7 +143,7 @@ void setup_io()
    );
 
    if ((long)gpio_map < 0) {
-      printf("mmap error %d\n", (long)gpio_map);
+      printf("mmap error %l\n", (long)gpio_map);
       exit (-1);
    }
    gpio = (volatile unsigned *)gpio_map;
@@ -166,10 +166,10 @@ void setup_io()
    );
 
 
-   printf("SPI mapped from 0x%p to 0x%p\n",SPI0_BASE,spi0_map);
+   printf("SPI mapped from 0x%d to 0x%p\n",SPI0_BASE,spi0_map);
 
    if ((long)spi0_map < 0) {
-      printf("mmap error %d\n", (long)spi0_map);
+      printf("mmap error %l\n", (long)spi0_map);
       exit (-1);
    }
    spi0 = (volatile unsigned *)spi0_map;

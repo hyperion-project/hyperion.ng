@@ -18,12 +18,12 @@
 #include "Effect.h"
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig) :
-	_hyperion(hyperion),
-	_availableEffects(),
-	_activeEffects(),
-	_mainThreadState(nullptr),
-	_log(Logger::getInstance("EFFECTENGINE"))
+EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig)
+	: _hyperion(hyperion)
+	, _availableEffects()
+	, _activeEffects()
+	, _mainThreadState(nullptr)
+	, _log(Logger::getInstance("EFFECTENGINE"))
 {
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
