@@ -10,11 +10,13 @@
 # compile hyperion on osx
 if [[ $TRAVIS_OS_NAME == 'osx' ]]
 then
-	cmake . -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.6.1-1
+    procs=$(sysctl -n hw.ncpu | xargs)
+    echo "Processes: $procs"
+
 	mkdir build || exit 1
-	cd build
+    cd build
 	cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
-	make -j$(nproc) || exit 3
+	make -j$procs || exit 3
 	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
 fi
 

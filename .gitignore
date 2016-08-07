@@ -1,4 +1,5 @@
 /*.user
 /build*
 .DS_Store
-
+CMakeFiles/
+__/
