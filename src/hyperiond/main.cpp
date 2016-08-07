@@ -1,7 +1,12 @@
 #include <cassert>
 #include <csignal>
 #include <unistd.h>
-#include <sys/prctl.h> 
+
+#ifndef __APPLE__
+/* prctl is Linux only */
+#include <sys/prctl.h>
+#endif
+
 #include <exception>
 
 #include <QCoreApplication>
@@ -123,7 +128,9 @@ int main(int argc, char** argv)
 	if (argParentPid.getValue() > 0 )
 	{
 		Info(log, "hyperiond client, parent is pid %d",argParentPid.getValue());
+#ifndef __APPLE__
 		prctl(PR_SET_PDEATHSIG, SIGHUP);
+#endif
 	}
 	
 	int argvId = -1;

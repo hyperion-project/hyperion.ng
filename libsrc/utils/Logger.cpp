@@ -93,17 +93,18 @@ Logger::Logger ( std::string name, LogLevel minLevel ):
 	_loggerId(loggerId++)
 {
 #ifdef __GLIBC__
-	_appname = std::string(program_invocation_short_name);
+    const char* _appname_char = program_invocation_short_name;
 #else
-	_appname = std::string(getprogname());
+    const char* _appname_char = getprogname();
 #endif
+	_appname = std::string(_appname_char);
 	std::transform(_appname.begin(), _appname.end(),_appname.begin(), ::toupper);
 
 	loggerCount++;
 
 	if (_syslogEnabled && loggerCount == 1 )
 	{
-		openlog (program_invocation_short_name, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+		openlog (_appname_char, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 	}
 }
 
