@@ -9,7 +9,7 @@
 			"properties" :
 			{
 				"level" :
-				{
+				{ 
 					"enum" : ["silent", "warn", "verbose", "debug"]
 				}
 			},
@@ -33,19 +33,19 @@
 				},
 				"output" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
 				},
 				"rate" :
 				{
 					"type" : "integer",
-					"required" : false,
 					"minimum" : 0
 				},
 				"colorOrder" :
 				{
-					"type" : "string",
-					"required" : false
+					"type":
+					{
+						"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
+					}
 				}
 			},
 			"additionalProperties" : true
@@ -852,20 +852,27 @@
 						"type":"integer",
 						"required":true
 					},
+					"clone":
+					{
+						"type":"integer"
+					},
 					"hscan":
 					{
 						"type":"object",
-						"required":true,
 						"properties":
 						{
 							"minimum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							},
 							"maximum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							}
 						},
@@ -874,17 +881,20 @@
 					"vscan":
 					{
 						"type":"object",
-						"required":true,
 						"properties":
 						{
 							"minimum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							},
 							"maximum":
 							{
 								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
 								"required":true
 							}
 						},
@@ -892,8 +902,10 @@
 					},
 					"colorOrder":
 					{
-						"type":"string",
-						"required":false
+						"type":
+						{
+							"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
+						}
 					}
 				},
 				"additionalProperties" : false

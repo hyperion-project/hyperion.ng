@@ -21,7 +21,7 @@ unsigned leds_per_pkt;
 int update_number;
 int fragment_number;
 
-LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned baudrate, const unsigned protocol, const unsigned maxPacket) 
+LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned protocol, const unsigned maxPacket) 
 {
 	std::string hostname;
 	std::string port;

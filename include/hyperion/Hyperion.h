@@ -268,6 +268,7 @@ public:
 	 * @return The constructed ledstring
 	 */
 	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
+	static LedString createLedStringClone(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
 	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
@@ -312,6 +313,10 @@ private:
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
+	/// specifiation of cloned leds
+	LedString _ledStringClone;
+
+	std::vector<ColorOrder> _ledStringColorOrder;
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
@@ -368,4 +373,5 @@ private:
 	
 	/// holds the current priority channel that is manualy selected
 	int _currentSourcePriority;
+	
 };
