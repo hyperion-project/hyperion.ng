@@ -460,10 +460,10 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 		{
 			const Json::Value& hscanConfig = ledsConfig[led.clone]["hscan"];
 			const Json::Value& vscanConfig = ledsConfig[led.clone]["vscan"];
-			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
-			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
-			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			led.minX_frac = 0;
+			led.maxX_frac = 0;
+			led.minY_frac = 0;
+			led.maxY_frac = 0;
 			Debug(Logger::getInstance("Core"), "LED %d: clone from led %d", led.index, led.clone);
 		}
 		else
