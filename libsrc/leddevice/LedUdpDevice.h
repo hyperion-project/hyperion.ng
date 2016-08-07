@@ -13,14 +13,13 @@ class LedUdpDevice : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice attached to a SPI-device
+	/// Constructs the LedDevice sendig data via udp
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/UdpDev.0.0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param[in] outputDevice string hostname:port
 	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
 	/// means no latch required) [ns]
 	///
-	LedUdpDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1);
+	LedUdpDevice(const std::string& outputDevice, const int latchTime_ns = -1);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -49,8 +48,6 @@ protected:
 private:
 	/// The UDP destination as "host:port"
 	const std::string _target;
-	/// The used baudrate of the output device for rate limiting
-	const int _BaudRate_Hz;
 	/// The time which the device should be untouched after a write
 	const int _LatchTime_ns;
 

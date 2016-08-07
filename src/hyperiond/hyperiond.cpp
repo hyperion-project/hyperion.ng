@@ -420,7 +420,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				// framebuffer -> if nothing other applies
 				else
 				{
-					type == "framebuffer";
+					type = "framebuffer";
 				}
 				Info(  _log, "set screen capture device to '%s'", type.constData());
 			}

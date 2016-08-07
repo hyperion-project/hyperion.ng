@@ -44,7 +44,6 @@
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
-#include <webconfig/WebConfig.h>
 #include <udplistener/UDPListener.h>
 #include <QJsonObject>
 
@@ -86,7 +85,6 @@ private:
 	AmlogicWrapper*     _amlGrabber;
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;
-	WebConfig*          _webConfig;
 	Hyperion*           _hyperion;
 	
 	unsigned            _grabber_width;
