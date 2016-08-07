@@ -33,6 +33,13 @@ public:
 	/// Switch the leds off
 	virtual int switchOff() = 0;
 	
+	///
+	/// Opens and configures the output device
+	///
+	/// @return Zero on succes else negative
+	///
+	virtual int open();
+
 protected:
 	Logger * _log;
 };

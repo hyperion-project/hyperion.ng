@@ -128,7 +128,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
 		foreach (const std::string & error, errors) {
-			Error( log, "Error while checking '%s':", fileName.c_str(), error.c_str());
+			Error( log, "Error while checking '%s':%s", fileName.c_str(), error.c_str());
 		}
 		return false;
 	}
@@ -138,8 +138,6 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	effectDefinition.script = path + QDir::separator().toLatin1() + config["script"].asString();
 	effectDefinition.args = config["args"];
 
-	// return succes //BLACKLIST OUTPUT TO LOG (Spam). This is more a effect development thing and the list gets longer and longer
-//	std::cout << "EFFECTENGINE INFO: Effect loaded: " + effectDefinition.name << std::endl;
 	return true;
 }
 
@@ -183,6 +181,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 	_activeEffects.push_back(effect);
 
 	// start the effect
+	_hyperion->registerPriority("EFFECT: "+script, priority);
 	effect->start();
 
 	return 0;
@@ -227,4 +226,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
+	_hyperion->unRegisterPriority("EFFECT: " + effect->getScript());
 }

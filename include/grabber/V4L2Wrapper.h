@@ -30,7 +30,7 @@ public:
 	virtual ~V4L2Wrapper();
 
 public slots:
-	void start();
+	bool start();
 
 	void stop();
 

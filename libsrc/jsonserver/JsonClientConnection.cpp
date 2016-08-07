@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QHostInfo>
+#include <QString>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -27,13 +28,14 @@
 // project includes
 #include "JsonClientConnection.h"
 
-JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
-	QObject(),
-	_socket(socket),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_receiveBuffer(),
-	_webSocketHandshakeDone(false)
+JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
+	: QObject()
+	, _socket(socket)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _receiveBuffer()
+	, _webSocketHandshakeDone(false)
+	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -167,7 +169,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		}
 	} else
 	{
-		std::cout << "JSONCLIENT INFO: Someone is sending very big messages over several frames... it's not supported yet" << std::endl;
+		Error(_log, "Someone is sending very big messages over several frames... it's not supported yet");
 		quint8 close[] = {0x88, 0};				
 		_socket->write((const char*)close, 2);
 		_socket->flush();
@@ -178,7 +180,7 @@ void JsonClientConnection::handleWebSocketFrame()
 void JsonClientConnection::doWebSocketHandshake()
 {
 	// http header, might not be a very reliable check...
-	std::cout << "Websocket handshake" << std::endl;
+	Debug(_log, "Websocket handshake");
 
 	// get the key to prepare an answer
 	int start = _receiveBuffer.indexOf("Sec-WebSocket-Key") + 19;
@@ -255,6 +257,12 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 		handleTemperatureCommand(message);
 	else if (command == "adjustment")
 		handleAdjustmentCommand(message);
+	else if (command == "sourceselect")
+		handleSourceSelectCommand(message);
+	else if (command == "configget")
+		handleConfigGetCommand(message);
+	else if (command == "componentstate")
+		handleComponentStateCommand(message);
 	else
 		handleNotImplemented();
 }
@@ -386,6 +394,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
+	Hyperion::PriorityRegister priorityRegister = _hyperion->getPriorityRegister();
+	int currentPriority = _hyperion->getCurrentPriority();
 	foreach (int priority, activePriorities) {
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		Json::Value & item = priorities[priorities.size()];
@@ -394,6 +404,27 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		{
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
+		
+		item["owner"] = "unknown";
+		item["active"] = true;
+		item["visible"] = (priority == currentPriority);
+		foreach(auto const &entry, priorityRegister)
+		{
+			if (entry.second == priority)
+			{
+				item["owner"] = entry.first;
+				priorityRegister.erase(entry.first);
+				break;
+			}
+		}
+	}
+	foreach(auto const &entry, priorityRegister)
+	{
+		Json::Value & item = priorities[priorities.size()];
+		item["priority"] = entry.second;
+		item["active"] = false;
+		item["visible"] = false;
+		item["owner"] = entry.first;
 	}
 	
 	// collect temperature correction information
@@ -403,7 +434,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
 		if (colorTemp == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color temperature correction id: " << tempId << std::endl;
+			Error(_log, "Incorrect color temperature correction id: %s", tempId.c_str());
 			continue;
 		}
 
@@ -424,7 +455,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
 		if (colorTransform == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color transform id: " << transformId << std::endl;
+			Error(_log, "Incorrect color transform id: %s", transformId.c_str());
 			continue;
 		}
 
@@ -462,7 +493,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
-			std::cerr << "JSONCLIENT ERROR: Incorrect color adjustment id: " << adjustmentId << std::endl;
+			Error(_log, "Incorrect color adjustment id: %s", adjustmentId.c_str());
 			continue;
 		}
 
@@ -531,9 +562,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		} ))
 	    {
 		// check if LED Color not Black (0,0,0)
-		if ((priorityInfo.ledColors.begin()->red != 0) &&
-		(priorityInfo.ledColors.begin()->green != 0) &&
-		(priorityInfo.ledColors.begin()->blue != 0))
+		if ((priorityInfo.ledColors.begin()->red +
+		priorityInfo.ledColors.begin()->green +
+		priorityInfo.ledColors.begin()->blue != 0))
 		{
 			// add RGB Value to Array
 			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->red);
@@ -751,7 +782,65 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 
 	sendSuccessReply();
 }
+
+void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message)
+{
+	bool success = false;
+	if (message.get("auto",false).asBool())
+	{
+		_hyperion->setSourceAutoSelectEnabled(true);
+		success = true;
+	}
+	else if (message.isMember("priority"))
+	{
+		success =  _hyperion->setCurrentSourcePriority(message["priority"].asInt());
+	}
+
+	if (success)
+	{
+		sendSuccessReply();
+	}
+	else
+	{
+		sendErrorReply("setting current priority failed");
+	}
+}
+
+void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
+{
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	Json::Value & config = result["result"];
+	config = _hyperion->getJsonConfig();
 	
+	// send the result
+	sendMessage(result);
+}
+
+void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
+{
+	const Json::Value & componentState = message["componentstate"];
+	QString component = QString::fromStdString(componentState.get("component", "").asString()).toUpper();
+	
+	if (component == "SMOOTHING")
+		_hyperion->setComponentState((Components)0, componentState.get("state", true).asBool());
+	else if (component == "BLACKBORDER")
+		_hyperion->setComponentState((Components)1, componentState.get("state", true).asBool());
+	else if (component == "KODICHECKER")
+		_hyperion->setComponentState((Components)2, componentState.get("state", true).asBool());
+	else if (component == "FORWARDER")
+		_hyperion->setComponentState((Components)3, componentState.get("state", true).asBool());
+	else if (component == "UDPLISTENER")
+		_hyperion->setComponentState((Components)4, componentState.get("state", true).asBool());
+	else if (component == "BOBLIGHTSERVER")
+		_hyperion->setComponentState((Components)5, componentState.get("state", true).asBool());
+	else if (component == "GRABBER")
+		_hyperion->setComponentState((Components)6, componentState.get("state", true).asBool());
+	
+	sendSuccessReply();
+}
+
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
@@ -799,7 +888,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 	socket->write(serializedMessage.c_str());
 	if (!socket->waitForBytesWritten())
 	{
-		//std::cout << "Error while writing data to host" << std::endl;
+		Debug(_log, "Error while writing data to host");
 		return;
 	}
 
@@ -810,7 +899,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 		// receive reply
 		if (!socket->waitForReadyRead())
 		{
-			//std::cout << "Error while reading data from host" << std::endl;
+			Debug(_log, "Error while writing data from host");
 			return;
 		}
 
@@ -823,7 +912,7 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 	Json::Value reply;
 	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
 	{
-		//std::cout <<  "Error while parsing reply: invalid json" << std::endl;
+		Error(_log, "Error while parsing reply: invalid json");
 		return;
 	}
 
@@ -859,7 +948,7 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages())	;
+		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages());
 	}
 
 	// create schema checker

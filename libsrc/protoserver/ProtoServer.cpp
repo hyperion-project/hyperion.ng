@@ -7,11 +7,12 @@
 #include "protoserver/ProtoConnection.h"
 #include "ProtoClientConnection.h"
 
-ProtoServer::ProtoServer(uint16_t port) :
-	QObject(),
-	_hyperion(Hyperion::getInstance()),
-	_server(),
-	_openConnections()
+ProtoServer::ProtoServer(uint16_t port)
+	: QObject()
+	, _hyperion(Hyperion::getInstance())
+	, _server()
+	, _openConnections()
+	, _log(Logger::getInstance("PROTOSERVER"))
 {
 
 	MessageForwarder * forwarder = _hyperion->getForwarder();
@@ -57,15 +58,15 @@ void ProtoServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		std::cout << "PROTOSERVER INFO: New connection" << std::endl;
-		ProtoClientConnection * connection = new ProtoClientConnection(socket, _hyperion);
+		Debug(_log, "New connection");
+		ProtoClientConnection * connection = new ProtoClientConnection(socket);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
 		connect(connection, SIGNAL(connectionClosed(ProtoClientConnection*)), this, SLOT(closedConnection(ProtoClientConnection*)));
 		connect(connection, SIGNAL(newMessage(const proto::HyperionRequest*)), this, SLOT(newMessage(const proto::HyperionRequest*)));
 		
-		// register forward signal for xbmc checker
+		// register forward signal for kodi checker
 		connect(this, SIGNAL(grabbingMode(GrabbingMode)), connection, SLOT(setGrabbingMode(GrabbingMode)));
 		connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
 
@@ -86,7 +87,7 @@ void ProtoServer::sendImageToProtoSlaves(int priority, const Image<ColorRgb> & i
 
 void ProtoServer::closedConnection(ProtoClientConnection *connection)
 {
-	std::cout << "PROTOSERVER INFO: Connection closed" << std::endl;
+	Debug(_log, "Connection closed");
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object

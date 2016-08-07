@@ -11,6 +11,7 @@
 
 #include <stdexcept>
 #include <set>
+#include <cmath>
 
 bool operator ==(CiColor p1, CiColor p2) {
 	return (p1.x == p2.x) && (p1.y == p2.y) && (p1.bri == p2.bri);

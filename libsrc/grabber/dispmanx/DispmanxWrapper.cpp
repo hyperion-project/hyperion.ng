@@ -1,5 +1,4 @@
 // QT includes
-#include <QDebug>
 #include <QDateTime>
 
 // Hyperion includes
@@ -45,6 +44,7 @@ void DispmanxWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
+	_hyperion->registerPriority("Dispmanx Grabber", _priority);
 }
 
 void DispmanxWrapper::action()
@@ -67,6 +67,7 @@ void DispmanxWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
+	_hyperion->unRegisterPriority("Dispmanx Grabber");
 }
 
 void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
@@ -81,6 +82,7 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 	case GRABBINGMODE_AUDIO:
 	case GRABBINGMODE_PHOTO:
 	case GRABBINGMODE_MENU:
+	case GRABBINGMODE_SCREENSAVER:
 	case GRABBINGMODE_INVALID:
 		_frameGrabber->setFlags(0);
 		start();

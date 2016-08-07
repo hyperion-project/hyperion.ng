@@ -2,9 +2,6 @@
 
 #include <QUdpSocket>
 
-// Linux-SPI includes
-#include <linux/spi/spidev.h>
-
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
@@ -50,15 +47,13 @@ protected:
 	int writeBytes(const unsigned size, const uint8_t *data);
 
 private:
-	/// The name of the output device
-	const std::string mDeviceName;
-	/// The used baudrate of the output device
-	const int mBaudRate_Hz;
+	/// The UDP destination as "host:port"
+	const std::string _target;
+	/// The used baudrate of the output device for rate limiting
+	const int _BaudRate_Hz;
 	/// The time which the device should be untouched after a write
-	const int mLatchTime_ns;
+	const int _LatchTime_ns;
 
-	/// The File Identifier of the opened output device (or -1 if not opened)
-	int mFid;
 	///
 	QUdpSocket *udpSocket;
 	QHostAddress _address;

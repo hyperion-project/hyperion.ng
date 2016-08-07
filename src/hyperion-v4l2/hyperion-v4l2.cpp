@@ -164,15 +164,15 @@ int main(int argc, char** argv)
 		{
 			ProtoConnectionWrapper handler(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
-			grabber.start();
-			QCoreApplication::exec();
+			if (grabber.start())
+				QCoreApplication::exec();
 			grabber.stop();
 		}
 	}
 	catch (const std::runtime_error & e)
 	{
 		// An error occured. Display error and quit
-		std::cerr << e.what() << std::endl;
+                Error(Logger::getInstance("V4L2GRABBER"), "%s", e.what());
 		return 1;
 	}
 

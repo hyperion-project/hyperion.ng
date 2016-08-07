@@ -15,10 +15,10 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double redSignalThreshold,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
-		int hyperionPriority) :
-	_timeout_ms(1000),
-	_priority(hyperionPriority),
-	_grabber(device,
+		int hyperionPriority)
+	: _timeout_ms(1000)
+	, _priority(hyperionPriority)
+	, _grabber(device,
 			input,
 			videoStandard,
 			pixelFormat,
@@ -26,18 +26,14 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 			height,
 			frameDecimation,
 			pixelDecimation,
-			pixelDecimation),
-	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(Hyperion::getInstance()),
-	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
-	_timer()
+			pixelDecimation)
+	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
+	, _timer()
 {
 	// set the signal detection threshold of the grabber
-	_grabber.setSignalThreshold(
-			redSignalThreshold,
-			greenSignalThreshold,
-			blueSignalThreshold,
-			50);
+	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
@@ -55,12 +51,12 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 				_hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)),
 				Qt::QueuedConnection);
 
+	
 	// setup the higher prio source checker
 	// this will disable the v4l2 grabber when a source with hisher priority is active
 	_timer.setInterval(500);
 	_timer.setSingleShot(false);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSources()));
-	_timer.start();
 }
 
 V4L2Wrapper::~V4L2Wrapper()
@@ -68,14 +64,26 @@ V4L2Wrapper::~V4L2Wrapper()
 	delete _processor;
 }
 
-void V4L2Wrapper::start()
+bool V4L2Wrapper::start()
 {
-	_grabber.start();
+	_timer.start();
+	bool grabber_started = _grabber.start();
+	if ( ! grabber_started )
+	{
+		_timer.stop();
+	}
+	else
+	{
+		_hyperion->registerPriority("V4L2", _priority);
+	}
+
+	return grabber_started;
 }
 
 void V4L2Wrapper::stop()
 {
 	_grabber.stop();
+	_hyperion->unRegisterPriority("V4L2");
 }
 
 void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)

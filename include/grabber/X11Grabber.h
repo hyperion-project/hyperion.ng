@@ -28,6 +28,26 @@ public:
 	bool Setup();
 
 	Image<ColorRgb> & grab();
+	
+	///
+	/// Captures a single snapshot of the display and writes the data to the given image. The
+	/// provided image should have the same dimensions as the configured values (_width and
+	/// _height)
+	///
+	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
+	/// height)
+	///
+	int grabFrame(Image<ColorRgb> & image);
+	
+	///
+	/// update dimension according current screen
+	int updateScreenDimensions();
+
+	/// gets resulting height of image
+	const unsigned getImageWidth() { return _croppedWidth; };
+
+	/// gets resulting width of image
+	const unsigned getImageHeight() { return _croppedHeight; };
 
 private:
 	ImageResampler _imageResampler;
@@ -63,7 +83,6 @@ private:
 	void freeResources();
 	void setupResources();
 	
-	int updateScreenDimensions();
 	
 	Logger * _log;
 };
