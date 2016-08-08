@@ -116,6 +116,17 @@ void KODIVideoChecker::stop()
 	_socket.close();
 }
 
+void KODIVideoChecker::componentStateChanged(const Components component, bool enable)
+{
+	if (component == KODICHECKER && _active != enable)
+	{
+		if ( enable && ! _active ) start();
+		if ( ! enable && _active ) stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
+
+
 void KODIVideoChecker::receiveReply()
 {
 	QJsonParseError error;

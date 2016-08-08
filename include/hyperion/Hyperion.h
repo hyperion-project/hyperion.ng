@@ -294,6 +294,8 @@ signals:
 	/// This signal will not be emitted when a priority channel time out
 	void allChannelsCleared();
 
+	void componentStateChanged(const Components component, bool enabled);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied

@@ -11,6 +11,7 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 class UDPClientConnection;
 
@@ -39,6 +40,7 @@ public:
 	/// @return true if server is active (bind to a port)
 	///
 	bool active() { return _isActive; };
+	bool componentState() { return active(); };
 
 public slots:
 	///
@@ -50,6 +52,8 @@ public slots:
 	/// close server
 	///
 	void stop();
+
+	void componentStateChanged(const Components component, bool enable);
 
 signals:
 	void statusChanged(bool isActive);

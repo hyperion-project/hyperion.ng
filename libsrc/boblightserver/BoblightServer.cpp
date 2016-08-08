@@ -50,6 +50,7 @@ void BoblightServer::stop()
 	foreach (BoblightClientConnection * connection, _openConnections) {
 		delete connection;
 	}
+	_server.close();
 	_isActive = false;
 	emit statusChanged(_isActive);
 
@@ -57,6 +58,15 @@ void BoblightServer::stop()
 
 }
 
+void BoblightServer::componentStateChanged(const Components component, bool enable)
+{
+	if (component == BOBLIGHTSERVER && _isActive != enable)
+	{
+		if ( enable && ! _isActive ) start();
+		if ( ! enable && _isActive ) stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 uint16_t BoblightServer::getPort() const
 {

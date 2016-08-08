@@ -80,6 +80,15 @@ void UDPListener::stop()
 	emit statusChanged(_isActive);
 }
 
+void UDPListener::componentStateChanged(const Components component, bool enable)
+{
+	if (component == UDPLISTENER && _isActive != enable)
+	{
+		if ( enable && ! _isActive ) start();
+		if ( ! enable && _isActive ) stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 uint16_t UDPListener::getPort() const
 {
