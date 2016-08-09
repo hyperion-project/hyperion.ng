@@ -609,7 +609,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	if ( smoothing != nullptr )
 	{
 		_device = smoothing;
-		connect(this, SIGNAL(componentStateChanged(Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(Components,bool)));
+		connect(this, SIGNAL(componentStateChanged(hyperion::Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(hyperion::Components,bool)));
 	}
 
 	// setup the timer

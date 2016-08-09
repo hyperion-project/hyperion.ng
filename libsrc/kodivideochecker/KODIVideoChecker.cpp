@@ -121,8 +121,8 @@ void KODIVideoChecker::componentStateChanged(const hyperion::Components componen
 {
 	if (component == COMP_KODICHECKER && _active != enable)
 	{
-		if ( enable && ! _active ) start();
-		if ( ! enable && _active ) stop();
+		if (enable) start();
+		else        stop();
 		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
 	}
 }

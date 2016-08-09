@@ -265,7 +265,7 @@ void HyperionDaemon::createKODIVideoChecker()
 	{
 		_kodiVideoChecker->start();
 	}
-	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(Components,bool)));
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -314,7 +314,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_boblightServer->start();
 	}
-	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(Components,bool)), _boblightServer, SLOT(componentStateChanged(Components,bool)));
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _boblightServer, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// Create UDP listener if configuration is present
 	bool udpListenerConfigured = _qconfig.contains("udpListener");
@@ -332,7 +332,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_udpListener->start();
 	}
-	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(Components,bool)), _udpListener, SLOT(componentStateChanged(Components,bool)));
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & deviceConfig = _qconfig["device"].toObject();
@@ -421,7 +421,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				{
 					type = "framebuffer";
 				}
-				Info(  _log, "set screen capture device to '%s'", type.constData());
+				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
 			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
@@ -429,7 +429,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.constData());
+			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.toUtf8().constData());
 			InfoIf( type == "", _log, "screen capture device disabled");
 		}
 	}

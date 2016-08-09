@@ -64,8 +64,8 @@ void BoblightServer::componentStateChanged(const hyperion::Components component,
 {
 	if (component == COMP_BOBLIGHTSERVER && _isActive != enable)
 	{
-		if ( enable && ! _isActive ) start();
-		if ( ! enable && _isActive ) stop();
+		if (enable) start();
+		else        stop();
 		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
 	}
 }

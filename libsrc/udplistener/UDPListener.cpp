@@ -86,8 +86,8 @@ void UDPListener::componentStateChanged(const hyperion::Components component, bo
 {
 	if (component == COMP_UDPLISTENER && _isActive != enable)
 	{
-		if ( enable && ! _isActive ) start();
-		if ( ! enable && _isActive ) stop();
+		if (enable) start();
+		else        stop();
 		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
 	}
 }
@@ -106,8 +106,7 @@ void UDPListener::readPendingDatagrams()
 		QHostAddress sender;
 		quint16 senderPort;
 
-		_server->readDatagram(datagram.data(), datagram.size(),
-					&sender, &senderPort);
+		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
 		processTheDatagram(&datagram);
 
