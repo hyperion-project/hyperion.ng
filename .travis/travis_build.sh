@@ -10,8 +10,8 @@
 # compile hyperion on osx
 if [[ $TRAVIS_OS_NAME == 'osx' ]]
 then
-    procs=$(sysctl -n hw.ncpu | xargs)
-    echo "Processes: $procs"
+	procs=$(sysctl -n hw.ncpu | xargs)
+	echo "Processes: $procs"
 
 	mkdir build || exit 1
     cd build
