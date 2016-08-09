@@ -46,7 +46,7 @@ private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
 
-	void componentStateChanged(const Components component, bool enable);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 	
 private:
 	/**

@@ -53,7 +53,7 @@ public slots:
 	///
 	void stop();
 
-	void componentStateChanged(const Components component, bool enable);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	void statusChanged(bool isActive);

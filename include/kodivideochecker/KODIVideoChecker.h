@@ -50,7 +50,7 @@ public slots:
 	///
 	void stop();
 
-	void componentStateChanged(const Components component, bool enable);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	/// Signal emitted when the grabbing mode changes

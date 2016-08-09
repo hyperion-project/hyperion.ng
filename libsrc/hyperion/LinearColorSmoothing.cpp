@@ -3,6 +3,7 @@
 
 #include "LinearColorSmoothing.h"
 
+using namespace hyperion;
 
 LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms, unsigned updateDelay, bool continuousOutput)
 	: QObject()
@@ -139,9 +140,9 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	}
 }
 
-void LinearColorSmoothing::componentStateChanged(const Components component, bool enable)
+void LinearColorSmoothing::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == SMOOTHING && _bypass == enable)
+	if (component == COMP_SMOOTHING && _bypass == enable)
 	{
 		_bypass = !enable;
 		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );

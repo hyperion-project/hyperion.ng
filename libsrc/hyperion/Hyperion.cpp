@@ -693,7 +693,7 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 	return priorityValid;
 }
 
-void Hyperion::setComponentState(const Components component, const bool state)
+void Hyperion::setComponentState(const hyperion::Components component, const bool state)
 {
 	emit componentStateChanged(component, state);
 }

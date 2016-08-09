@@ -10,6 +10,8 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
+using namespace hyperion;
+
 UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
@@ -80,9 +82,9 @@ void UDPListener::stop()
 	emit statusChanged(_isActive);
 }
 
-void UDPListener::componentStateChanged(const Components component, bool enable)
+void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == UDPLISTENER && _isActive != enable)
+	if (component == COMP_UDPLISTENER && _isActive != enable)
 	{
 		if ( enable && ! _isActive ) start();
 		if ( ! enable && _isActive ) stop();
