@@ -13,7 +13,7 @@ OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const u
 	, _timeout_ms(2 * _updateInterval_ms)
 	, _image(grabWidth, grabHeight)
 	, _grabber(new OsxFrameGrabber(display, grabWidth, grabHeight))
-	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
