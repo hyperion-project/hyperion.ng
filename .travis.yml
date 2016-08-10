@@ -1,3 +1,7 @@
+cache:
+  - ccache
+  - directories:
+    - /usr/local/Cellar/
 notifications:
   email: false
   slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
