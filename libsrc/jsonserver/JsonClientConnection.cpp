@@ -216,55 +216,64 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 {
 	Json::Reader reader;
 	Json::Value message;
-	if (!reader.parse(messageString, message, false))
-	{
-		sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
-		return;
-	}
-
-	// check basic message
 	std::string errors;
-	if (!checkJson(message, ":schema", errors))
-	{
-		sendErrorReply("Error while validating json: " + errors);
-		return;
-	}
+ 	try
+ 	{
+		if (!reader.parse(messageString, message, false))
+		{
+			sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
+			return;
+		}
 
-	// check specific message
-	const std::string command = message["command"].asString();
-	if (!checkJson(message, QString(":schema-%1").arg(QString::fromStdString(command)), errors))
-	{
-		sendErrorReply("Error while validating json: " + errors);
-		return;
-	}
-	
-	// switch over all possible commands and handle them
-	if (command == "color")
-		handleColorCommand(message);
-	else if (command == "image")
-		handleImageCommand(message);
-	else if (command == "effect")
-		handleEffectCommand(message);
-	else if (command == "serverinfo")
-		handleServerInfoCommand(message);
-	else if (command == "clear")
-		handleClearCommand(message);
-	else if (command == "clearall")
-		handleClearallCommand(message);
-	else if (command == "transform")
-		handleTransformCommand(message);
-	else if (command == "temperature")
-		handleTemperatureCommand(message);
-	else if (command == "adjustment")
-		handleAdjustmentCommand(message);
-	else if (command == "sourceselect")
-		handleSourceSelectCommand(message);
-	else if (command == "configget")
-		handleConfigGetCommand(message);
-	else if (command == "componentstate")
-		handleComponentStateCommand(message);
-	else
-		handleNotImplemented();
+		// check basic message
+		if (!checkJson(message, ":schema", errors))
+		{
+			sendErrorReply("Error while validating json: " + errors);
+			return;
+		}
+
+		// check specific message
+		const std::string command = message["command"].asString();
+		if (!checkJson(message, QString(":schema-%1").arg(QString::fromStdString(command)), errors))
+		{
+			sendErrorReply("Error while validating json: " + errors);
+			return;
+		}
+
+		// switch over all possible commands and handle them
+		if (command == "color")
+			handleColorCommand(message);
+		else if (command == "image")
+			handleImageCommand(message);
+		else if (command == "effect")
+			handleEffectCommand(message);
+		else if (command == "serverinfo")
+			handleServerInfoCommand(message);
+		else if (command == "clear")
+			handleClearCommand(message);
+		else if (command == "clearall")
+			handleClearallCommand(message);
+		else if (command == "transform")
+			handleTransformCommand(message);
+		else if (command == "temperature")
+			handleTemperatureCommand(message);
+		else if (command == "adjustment")
+			handleAdjustmentCommand(message);
+		else if (command == "sourceselect")
+			handleSourceSelectCommand(message);
+		else if (command == "configget")
+			handleConfigGetCommand(message);
+		else if (command == "componentstate")
+			handleComponentStateCommand(message);
+		else
+			handleNotImplemented();
+ 	}
+ 	catch (std::exception& e)
+ 	{
+ 		sendErrorReply("Error while processing incoming json message: " + std::string(e.what()) + " " + errors );
+ 		Warning(_log, "Error while processing incoming json message: %s (%s)", e.what(), errors.c_str());
+ 	}
+
 }
 
 
@@ -948,7 +957,8 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages());
+		errorMessage = "Schema error: " + jsonReader.getFormattedErrorMessages();
+		return false;
 	}
 
 	// create schema checker
