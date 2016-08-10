@@ -2,7 +2,6 @@ cache:
     - ccache
     - directories:
         - $HOME/brew-cache
-        - /usr/local/Cellar/
 notifications:
     email: false
     slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
