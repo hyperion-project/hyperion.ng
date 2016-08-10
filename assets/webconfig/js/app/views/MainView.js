@@ -353,7 +353,13 @@ define([
             rgb.g = Math.round(rgb.g * this.brightness);
             rgb.b = Math.round(rgb.b * this.brightness);
 
-            this.inputbox.value = tools.b2hexstr(rgb.r) + tools.b2hexstr(rgb.g) + tools.b2hexstr(rgb.b);
+            this.inputbox.value = this.inputbox.style.backgroundColor = (
+                '#'
+                + tools.b2hexstr(rgb.r)
+                + tools.b2hexstr(rgb.g)
+                + tools.b2hexstr(rgb.b)
+            );
+            this.inputbox.style.color = (rgb.r + rgb.g + rgb.b) < 384 ? '#fff' : '#000';
         },
 
         /**
