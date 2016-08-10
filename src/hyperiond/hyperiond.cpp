@@ -536,38 +536,42 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
-#ifdef ENABLE_V4L2
 	if (_qconfig.contains("grabber-v4l2"))
 	{
 		const QJsonObject & grabberConfig = _qconfig["grabber-v4l2"].toObject();
-			_v4l2Grabber = new V4L2Wrapper(
-						grabberConfig["device"].toString("/dev/video0").toStdString(),
-						grabberConfig["input"].toInt(0),
-						parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
-						parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
-						grabberConfig["width"].toInt(-1),
-						grabberConfig["height"].toInt(-1),
-						grabberConfig["frameDecimation"].toInt(2),
-						grabberConfig["sizeDecimation"].toInt(8),
-						grabberConfig["redSignalThreshold"].toDouble(0.0),
-						grabberConfig["greenSignalThreshold"].toDouble(0.0),
-						grabberConfig["blueSignalThreshold"].toDouble(0.0),
-						grabberConfig["priority"].toInt(890));
-			_v4l2Grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
-			_v4l2Grabber->setCropping(
-						grabberConfig["cropLeft"].toInt(0),
-						grabberConfig["cropRight"].toInt(0),
-						grabberConfig["cropTop"].toInt(0),
-						grabberConfig["cropBottom"].toInt(0));
-			Debug(_log, "V4L2 grabber created");
+        if (grabberConfig["enable"].toBool(true)) {
+#ifdef ENABLE_V4L2
+            _v4l2Grabber = new V4L2Wrapper(
+                    grabberConfig["device"].toString("/dev/video0").toStdString(),
+                    grabberConfig["input"].toInt(0),
+                    parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
+                    parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
+                    grabberConfig["width"].toInt(-1),
+                    grabberConfig["height"].toInt(-1),
+                    grabberConfig["frameDecimation"].toInt(2),
+                    grabberConfig["sizeDecimation"].toInt(8),
+                    grabberConfig["redSignalThreshold"].toDouble(0.0),
+                    grabberConfig["greenSignalThreshold"].toDouble(0.0),
+                    grabberConfig["blueSignalThreshold"].toDouble(0.0),
+                    grabberConfig["priority"].toInt(890));
+            _v4l2Grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
+            _v4l2Grabber->setCropping(
+                    grabberConfig["cropLeft"].toInt(0),
+                    grabberConfig["cropRight"].toInt(0),
+                    grabberConfig["cropTop"].toInt(0),
+                    grabberConfig["cropBottom"].toInt(0));
+            Debug(_log, "V4L2 grabber created");
 
-		QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
-		if (grabberConfig["enable"].toBool(true) && _v4l2Grabber->start())
-		{
-			Info(_log, "V4L2 grabber started");
-		}
-	}
+            QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int,
+                                                          const Image<ColorRgb>&, const int)), _protoServer,
+                             SLOT(sendImageToProtoSlaves(int,
+                                          const Image<ColorRgb>&, const int)));
+            if (_v4l2Grabber->start()) {
+                Info(_log, "V4L2 grabber started");
+            }
 #else
-	ErrorIf(_qconfig.contains("grabber-v4l2"), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+            Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
+        }
+	}
 }
