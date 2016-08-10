@@ -1,22 +1,25 @@
 cache:
-  - ccache
-  - directories:
-    - /usr/local/Cellar/
+    - ccache
+    - directories:
+        - $HOME/brew-cache
+        - /usr/local/Cellar/
+env:
+    - HOMEBREW_CACHE=$HOME/brew-cache
 notifications:
-  email: false
-  slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
+    email: false
+    slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
 language: cpp
 matrix:
-  include:
-    - os: linux
-      dist: trusty
-      sudo: required
-    - os: osx
-      osx_image: xcode7.3
+    include:
+        - os: linux
+          dist: trusty
+          sudo: required
+        - os: osx
+          osx_image: xcode7.3
 before_install:
-  - chmod +x ./.travis/travis_install.sh
-  - ./.travis/travis_install.sh
+    - chmod +x ./.travis/travis_install.sh
+    - ./.travis/travis_install.sh
 script:
-  - chmod +x ./.travis/travis_build.sh ./test/testrunner.sh
-  - ./.travis/travis_build.sh
-  - ./test/testrunner.sh
+    - chmod +x ./.travis/travis_build.sh ./test/testrunner.sh
+    - ./.travis/travis_build.sh
+    - ./test/testrunner.sh
