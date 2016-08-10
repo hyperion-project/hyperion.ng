@@ -158,8 +158,15 @@ void KODIVideoChecker::receiveReply()
 								emit videoMode(VIDEO_2D);
 
 								QString type = resultArray[0].toObject()["type"].toString();
+								int prevCurrentPlayerID = _currentPlayerID;
 								_currentPlayerID = resultArray[0].toObject()["playerid"].toInt();
 
+								// set initial player state
+								if (prevCurrentPlayerID == 0 && _currentPlayerID != 0)
+								{
+									_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
+									return;
+								}
 								if (type == "video")
 								{									
 									if (_currentPlaybackState)
@@ -372,8 +379,6 @@ void KODIVideoChecker::connected()
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
 	_socket.write(_checkScreensaverRequest.toUtf8());
-	if (_currentPlayerID != 0)
-		_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
 }
 
 void KODIVideoChecker::disconnected()
