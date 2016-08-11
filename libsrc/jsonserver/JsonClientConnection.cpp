@@ -28,6 +28,8 @@
 // project includes
 #include "JsonClientConnection.h"
 
+using namespace hyperion;
+
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
 	, _socket(socket)
@@ -36,10 +38,12 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _receiveBuffer()
 	, _webSocketHandshakeDone(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	, _forwarder_enabled(true)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
 
@@ -276,19 +280,30 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 
 }
 
+void JsonClientConnection::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_FORWARDER && _forwarder_enabled != enable)
+	{
+		_forwarder_enabled = enable;
+		Info(_log, "forwarder change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 void JsonClientConnection::forwardJsonMessage(const Json::Value & message)
 {
-	QTcpSocket client;
-	QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
-
-	for ( int i=0; i<list.size(); i++ )
+	if (_forwarder_enabled)
 	{
-		client.connectToHost(list.at(i).addr, list.at(i).port);
-		if ( client.waitForConnected(500) )
+		QTcpSocket client;
+		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+
+		for ( int i=0; i<list.size(); i++ )
 		{
-			sendMessage(message,&client);
-			client.close();
+			client.connectToHost(list.at(i).addr, list.at(i).port);
+			if ( client.waitForConnected(500) )
+			{
+				sendMessage(message,&client);
+				client.close();
+			}
 		}
 	}
 }
@@ -830,24 +845,17 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
 {
 	const Json::Value & componentState = message["componentstate"];
-	QString component = QString::fromStdString(componentState.get("component", "").asString()).toUpper();
+	Components component = stringToComponent(QString::fromStdString(componentState.get("component", "invalid").asString()));
 	
-	if (component == "SMOOTHING")
-		_hyperion->setComponentState((Components)0, componentState.get("state", true).asBool());
-	else if (component == "BLACKBORDER")
-		_hyperion->setComponentState((Components)1, componentState.get("state", true).asBool());
-	else if (component == "KODICHECKER")
-		_hyperion->setComponentState((Components)2, componentState.get("state", true).asBool());
-	else if (component == "FORWARDER")
-		_hyperion->setComponentState((Components)3, componentState.get("state", true).asBool());
-	else if (component == "UDPLISTENER")
-		_hyperion->setComponentState((Components)4, componentState.get("state", true).asBool());
-	else if (component == "BOBLIGHTSERVER")
-		_hyperion->setComponentState((Components)5, componentState.get("state", true).asBool());
-	else if (component == "GRABBER")
-		_hyperion->setComponentState((Components)6, componentState.get("state", true).asBool());
-	
-	sendSuccessReply();
+	if (component != COMP_INVALID)
+	{
+		_hyperion->setComponentState(component, componentState.get("state", true).asBool());
+		sendSuccessReply();
+	}
+	else
+	{
+		sendErrorReply("invalid component name");
+	}
 }
 
 void JsonClientConnection::handleNotImplemented()

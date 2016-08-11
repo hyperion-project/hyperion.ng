@@ -1,19 +1,15 @@
 #pragma once
 
-// QT includes
-#include <QObject>
-#include <QTimer>
-
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
+#include <hyperion/GrabberWrapper.h>
 
 // Forward class declaration
 class OsxFrameGrabber;
-class Hyperion;
 class ImageProcessor;
 
 ///
@@ -21,7 +17,7 @@ class ImageProcessor;
 /// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
 /// attached Hyperion.
 ///
-class OsxWrapper: public QObject
+class OsxWrapper: public GrabberWrapper
 {
 	Q_OBJECT
 public:
@@ -43,19 +39,9 @@ public:
 
 public slots:
 	///
-	/// Starts the grabber wich produces led values with the specified update rate
-	///
-	void start();
-
-	///
 	/// Performs a single frame grab and computes the led-colors
 	///
-	void action();
-
-	///
-	/// Stops the grabber
-	///
-	void stop();
+	virtual void action();
 
 	///
 	/// Set the grabbing mode
@@ -69,30 +55,17 @@ public slots:
 	///
 	void setVideoMode(const VideoMode videoMode);
 
-signals:
-	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
-
 private:
 	/// The update rate [Hz]
 	const int _updateInterval_ms;
 	/// The timeout of the led colors [ms]
 	const int _timeout_ms;
-	/// The priority of the led colors
-	const int _priority;
-
-	/// The timer for generating events with the specified update rate
-	QTimer _timer;
 
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
 	/// The actual grabber
-	OsxFrameGrabber * _frameGrabber;
-	/// The processor for transforming images to led colors
-	ImageProcessor * _processor;
+	OsxFrameGrabber * _grabber;
 
 	/// The list with computed led colors
 	std::vector<ColorRgb> _ledColors;
-
-	/// Pointer to Hyperion for writing led values
-	Hyperion * _hyperion;
 };

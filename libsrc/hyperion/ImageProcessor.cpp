@@ -48,6 +48,11 @@ void ImageProcessor::enableBlackBorderDetector(bool enable)
 	_borderProcessor->setEnabled(enable);
 }
 
+bool ImageProcessor::blackBorderDetectorEnabled()
+{
+	return _borderProcessor->enabled();
+}
+
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	if (led < _ledString.leds().size())

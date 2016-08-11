@@ -265,6 +265,7 @@ void HyperionDaemon::createKODIVideoChecker()
 	{
 		_kodiVideoChecker->start();
 	}
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -301,39 +302,37 @@ void HyperionDaemon::startNetworkServices()
 	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
 	// Create Boblight server if configuration is present
-	if (_qconfig.contains("boblightServer"))
-	{
-		const QJsonObject & boblightServerConfig = _qconfig["boblightServer"].toObject();
-		_boblightServer = new BoblightServer(
-			boblightServerConfig["priority"].toInt(710),
-			boblightServerConfig["port"].toInt()
-		);
-		Debug(_log, "Boblight server created");
+	bool boblightConfigured = _qconfig.contains("boblightServer");
 
-		if ( boblightServerConfig["enable"].toBool(true))
-		{
-			_boblightServer->start();
-		}
+	const QJsonObject & boblightServerConfig = _qconfig["boblightServer"].toObject();
+	_boblightServer = new BoblightServer(
+		boblightServerConfig["priority"].toInt(710),
+		boblightServerConfig["port"].toInt(19333) );
+	Debug(_log, "Boblight server created");
+
+	if ( boblightConfigured && boblightServerConfig["enable"].toBool(true))
+	{
+		_boblightServer->start();
 	}
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _boblightServer, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// Create UDP listener if configuration is present
-	if (_qconfig.contains("udpListener"))
+	bool udpListenerConfigured = _qconfig.contains("udpListener");
+	const QJsonObject & udpListenerConfig = _qconfig["udpListener"].toObject();
+	_udpListener = new UDPListener(
+				udpListenerConfig["priority"].toInt(700),
+				udpListenerConfig["timeout"].toInt(10000),
+				udpListenerConfig["address"].toString(""),
+				udpListenerConfig["port"].toInt(2801),
+				udpListenerConfig["shared"].toBool(false));
+
+	Debug(_log, "UDP listener created");
+
+	if ( udpListenerConfigured && udpListenerConfig["enable"].toBool(true))
 	{
-		const QJsonObject & udpListenerConfig = _qconfig["udpListener"].toObject();
-		_udpListener = new UDPListener(
-					udpListenerConfig["priority"].toInt(700),
-					udpListenerConfig["timeout"].toInt(10000),
-					udpListenerConfig["address"].toString(""),
-					udpListenerConfig["port"].toInt(2801),
-					udpListenerConfig["shared"].toBool(false));
-
-		Debug(_log, "UDP listener created");
-
-		if ( udpListenerConfig["enable"].toBool(true))
-		{
-			_udpListener->start();
-		}
+		_udpListener->start();
 	}
+	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & deviceConfig = _qconfig["device"].toObject();
@@ -422,7 +421,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				{
 					type = "framebuffer";
 				}
-				Info(  _log, "set screen capture device to '%s'", type.constData());
+				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
 			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
@@ -430,7 +429,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.constData());
+			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.toUtf8().constData());
 			InfoIf( type == "", _log, "screen capture device disabled");
 		}
 	}

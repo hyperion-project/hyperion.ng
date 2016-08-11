@@ -44,7 +44,7 @@ echo "    total: $STATS_TOTAL"
 echo "  success: $STATS_SUCCESS"
 echo "   failed: $STATS_FAILED"
 
+sleep 2
+
 [ $STATS_FAILED -gt 0 ] && exit 200
 exit 0
-
- 

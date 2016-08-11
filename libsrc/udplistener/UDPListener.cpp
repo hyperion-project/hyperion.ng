@@ -10,6 +10,8 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
+using namespace hyperion;
+
 UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
@@ -80,6 +82,15 @@ void UDPListener::stop()
 	emit statusChanged(_isActive);
 }
 
+void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_UDPLISTENER && _isActive != enable)
+	{
+		if (enable) start();
+		else        stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 uint16_t UDPListener::getPort() const
 {
@@ -95,8 +106,7 @@ void UDPListener::readPendingDatagrams()
 		QHostAddress sender;
 		quint16 senderPort;
 
-		_server->readDatagram(datagram.data(), datagram.size(),
-					&sender, &senderPort);
+		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
 		processTheDatagram(&datagram);
 

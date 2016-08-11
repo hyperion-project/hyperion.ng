@@ -40,6 +40,9 @@ public:
 	///
 	~JsonClientConnection();
 
+public slots:
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
 signals:
 	///
 	/// Signal which is emitted when the connection is being closed
@@ -217,6 +220,9 @@ private:
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
 
-	/// the logger instance
+	/// The logger instance
 	Logger * _log;
+
+	/// Flag if forwarder is enabled
+	bool _forwarder_enabled;
 };

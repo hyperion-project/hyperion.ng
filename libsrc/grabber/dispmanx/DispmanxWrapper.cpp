@@ -11,46 +11,29 @@
 #include <grabber/DispmanxFrameGrabber.h>
 
 
-DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority) :
-	_updateInterval_ms(1000/updateRate_Hz),
-	_timeout_ms(2 * _updateInterval_ms),
-	_priority(priority),
-	_timer(),
-	_image(grabWidth, grabHeight),
-	_frameGrabber(new DispmanxFrameGrabber(grabWidth, grabHeight)),
-	_processor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0}),
-	_hyperion(Hyperion::getInstance())
+DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
+	: GrabberWrapper("Dispmanx", priority)
+	, _updateInterval_ms(1000/updateRate_Hz)
+	, _timeout_ms(2 * _updateInterval_ms)
+	, _image(grabWidth, grabHeight)
+	, _grabber(new DispmanxFrameGrabber(grabWidth, grabHeight))
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-	_timer.setSingleShot(false);
 
 	_processor->setSize(grabWidth, grabHeight);
-	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
-
-	// Connect the QTimer to this
-	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }
 
 DispmanxWrapper::~DispmanxWrapper()
 {
-	// Cleanup used resources (ImageProcessor and FrameGrabber)
-	delete _processor;
-	delete _frameGrabber;
-}
-
-void DispmanxWrapper::start()
-{
-	// Start the timer with the pre configured interval
-	_timer.start();
-	_hyperion->registerPriority("Dispmanx Grabber", _priority);
+	delete _grabber;
 }
 
 void DispmanxWrapper::action()
 {
 	// Grab frame into the allocated image
-	_frameGrabber->grabFrame(_image);
+	_grabber->grabFrame(_image);
 
 	if ( _forward )
 	{
@@ -63,20 +46,13 @@ void DispmanxWrapper::action()
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 
-void DispmanxWrapper::stop()
-{
-	// Stop the timer, effectivly stopping the process
-	_timer.stop();
-	_hyperion->unRegisterPriority("Dispmanx Grabber");
-}
-
 void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 {
 	switch (mode)
 	{
 	case GRABBINGMODE_VIDEO:
 	case GRABBINGMODE_PAUSE:
-		_frameGrabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
+		_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
 		start();
 		break;
 	case GRABBINGMODE_AUDIO:
@@ -84,7 +60,7 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 	case GRABBINGMODE_MENU:
 	case GRABBINGMODE_SCREENSAVER:
 	case GRABBINGMODE_INVALID:
-		_frameGrabber->setFlags(0);
+		_grabber->setFlags(0);
 		start();
 		break;
 	case GRABBINGMODE_OFF:
@@ -95,11 +71,11 @@ void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
 
 void DispmanxWrapper::setVideoMode(const VideoMode mode)
 {
-	_frameGrabber->setVideoMode(mode);
+	_grabber->setVideoMode(mode);
 }
 
 void DispmanxWrapper::setCropping(const unsigned cropLeft, const unsigned cropRight,
 	const unsigned cropTop, const unsigned cropBottom)
 {
-	_frameGrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	_grabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }

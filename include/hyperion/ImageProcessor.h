@@ -41,6 +41,9 @@ public:
 	/// Enable or disable the black border detector
 	void enableBlackBorderDetector(bool enable);
 
+	/// Returns starte of black border detector
+	bool blackBorderDetectorEnabled();
+	
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -104,7 +107,6 @@ private:
 	/// given led-string specification
 	///
 	/// @param[in] ledString  The led-string specification
-	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
 	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
 	ImageProcessor(const LedString &ledString, const Json::Value &blackborderConfig);

@@ -8,34 +8,24 @@
 #include <grabber/X11Grabber.h>
 
 X11Wrapper::X11Wrapper(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation, const unsigned updateRate_Hz, const int priority)
-	: _updateInterval_ms(1000/updateRate_Hz)
+	: GrabberWrapper("X11", priority)
+	, _updateInterval_ms(1000/updateRate_Hz)
 	, _timeout_ms(2 * _updateInterval_ms)
-	, _priority(priority)
-	, _timer()
-//	, _image(grabWidth, grabHeight)
 	, _grabber(new X11Grabber(useXGetImage, cropLeft, cropRight, cropTop, cropBottom, horizontalPixelDecimation, verticalPixelDecimation))
-	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
-	, _hyperion(Hyperion::getInstance())
 	, _init(false)
 	, _x11SetupSuccess(false)
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-	_timer.setSingleShot(false);
-
-	// Connect the QTimer to this
-	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }
 
 X11Wrapper::~X11Wrapper()
 {
-	// Cleanup used resources (ImageProcessor and FrameGrabber)
-	delete _processor;
 	delete _grabber;
 }
 
-void X11Wrapper::start()
+bool X11Wrapper::start()
 {
 	if (! _init )
 	{
@@ -51,11 +41,11 @@ void X11Wrapper::start()
 	// Start the timer with the pre configured interval
 	if ( _x11SetupSuccess )
 	{
-		_timer.start();
-		_hyperion->registerPriority("X11 Grabber", _priority);
+		GrabberWrapper::start();
 	}
 
-	ErrorIf( ! _x11SetupSuccess, Logger::getInstance("X11"), "X11 Grabber start failed");
+	ErrorIf( ! _x11SetupSuccess, _log, "X11 Grabber start failed");
+	return _x11SetupSuccess;
 }
 
 
@@ -74,16 +64,13 @@ void X11Wrapper::action()
 	// Grab frame into the allocated image
 	_grabber->grabFrame(_image);
 
-	emit emitImage(_priority, _image, _timeout_ms);
+	if ( _forward )
+	{
+		emit emitImage(_priority, _image, _timeout_ms);
+	}
 
 	_processor->process(_image, _ledColors);
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
-}
-void X11Wrapper::stop()
-{
-	// Stop the timer, effectivly stopping the process
-	_timer.stop();
-	_hyperion->unRegisterPriority("X11 Grabber");
 }
 
 void X11Wrapper::setGrabbingMode(const GrabbingMode mode)
