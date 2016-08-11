@@ -765,16 +765,15 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	if (++_currentFrame >= _frameDecimation)
 	{
 		// We do want a new frame...
-		bool frameSizeOk = (size == _frameByteSize);
-		if (frameSizeOk)
+		if (size != _frameByteSize)
+		{
+			Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
+		}
+		else
 		{
 			process_image(reinterpret_cast<const uint8_t *>(p));
 			_currentFrame = 0; // restart counting
 			return true;
-		}
-		else
-		{
-			Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 		}
 	}
 
