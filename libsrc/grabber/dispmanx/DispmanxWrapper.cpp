@@ -49,14 +49,14 @@ void DispmanxWrapper::action()
 void DispmanxWrapper::kodiPlay()
 {
 	_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
-	GrabberWrapper::kodiStart();
+	GrabberWrapper::kodiPlay();
 	
 }
 
 void DispmanxWrapper::kodiPause()
 {
 	_grabber->setFlags(0);
-	GrabberWrapper::kodiStart();
+	GrabberWrapper::kodiPause();
 }
 
 void DispmanxWrapper::setVideoMode(const VideoMode mode)
