@@ -13,6 +13,7 @@ ProtoServer::ProtoServer(uint16_t port)
 	, _server()
 	, _openConnections()
 	, _log(Logger::getInstance("PROTOSERVER"))
+	, _forwarder_enabled(true)
 {
 
 	MessageForwarder * forwarder = _hyperion->getForwarder();
@@ -35,6 +36,8 @@ ProtoServer::ProtoServer(uint16_t port)
 
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+
 }
 
 ProtoServer::~ProtoServer()
@@ -81,8 +84,20 @@ void ProtoServer::newMessage(const proto::HyperionRequest * message)
 
 void ProtoServer::sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms)
 {
-	for (int i = 0; i < _proxy_connections.size(); ++i)
-		_proxy_connections.at(i)->setImage(image, priority, duration_ms);
+	if ( _forwarder_enabled )
+	{
+		for (int i = 0; i < _proxy_connections.size(); ++i)
+			_proxy_connections.at(i)->setImage(image, priority, duration_ms);
+	}
+}
+
+void ProtoServer::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
+	{
+		_forwarder_enabled = enable;
+		Info(_log, "forwarder change state to %s", (enable ? "enabled" : "disabled") );
+	}
 }
 
 void ProtoServer::closedConnection(ProtoClientConnection *connection)

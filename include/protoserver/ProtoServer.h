@@ -52,6 +52,7 @@ public:
 
 public slots:
 	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	///
@@ -87,6 +88,10 @@ private:
 
 	/// Hyperion proto connection object for forwarding
 	QList<ProtoConnection*> _proxy_connections;
-	
+
+	/// Logger instance
 	Logger * _log;
+	
+	/// flag if forwarder is enabled
+	bool _forwarder_enabled;
 };

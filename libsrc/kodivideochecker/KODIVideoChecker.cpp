@@ -5,6 +5,7 @@
 
 #include <kodivideochecker/KODIVideoChecker.h>
 
+using namespace hyperion;
 
 KODIVideoChecker* KODIVideoChecker::_kodichecker = nullptr;
 
@@ -115,6 +116,17 @@ void KODIVideoChecker::stop()
 	_active = false;
 	_socket.close();
 }
+
+void KODIVideoChecker::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_KODICHECKER && _active != enable)
+	{
+		if (enable) start();
+		else        stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
+
 
 void KODIVideoChecker::receiveReply()
 {
