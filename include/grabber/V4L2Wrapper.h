@@ -32,10 +32,7 @@ public slots:
 
 	void stop();
 
-	void setCropping(int cropLeft,
-					 int cropRight,
-					 int cropTop,
-					 int cropBottom);
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 
 	void set3D(VideoMode mode);
 

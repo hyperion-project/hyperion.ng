@@ -400,93 +400,79 @@
 		"grabber-v4l2" :
 		{
 			"type" : "object",
-			"required" : false,
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean",
-					"required" : true
+					"type" : "boolean"
 				},
 				"device" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
 				},
 				"input" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"standard" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
 				},
 				"width" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"height" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"frameDecimation" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"sizeDecimation" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"priority" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"mode" :
 				{
-					"type" : "string",
-					"required" : true
+					"type" : "string"
+				},
+				"useKodiChecker" :
+				{
+					"type" : "boolean"
 				},
 				"cropLeft" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"cropRight" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"cropTop" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"cropBottom" :
 				{
-					"type" : "integer",
-					"required" : true
+					"type" : "integer"
 				},
 				"redSignalThreshold" :
 				{
-					"type" : "number",
-					"required" : true
+					"type" : "number"
 				},
 				"greenSignalThreshold" :
 				{
-					"type" : "number",
-					"required" : true
+					"type" : "number"
 				},
 				"blueSignalThreshold" :
 				{
-					"type" : "number",
-					"required" : true
+					"type" : "number"
 				}
 			},
 			"additionalProperties" : false

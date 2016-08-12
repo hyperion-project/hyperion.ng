@@ -40,25 +40,6 @@ void FramebufferWrapper::action()
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 
-void FramebufferWrapper::setGrabbingMode(const GrabbingMode mode)
-{
-	switch (mode)
-	{
-	case GRABBINGMODE_VIDEO:
-	case GRABBINGMODE_PAUSE:
-	case GRABBINGMODE_AUDIO:
-	case GRABBINGMODE_PHOTO:
-	case GRABBINGMODE_MENU:
-	case GRABBINGMODE_SCREENSAVER:
-	case GRABBINGMODE_INVALID:
-		start();
-		break;
-	case GRABBINGMODE_OFF:
-		stop();
-		break;
-	}
-}
-
 void FramebufferWrapper::setVideoMode(const VideoMode mode)
 {
 	_grabber->setVideoMode(mode);

@@ -3,7 +3,6 @@
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
 
@@ -45,12 +44,6 @@ public slots:
 	/// Performs a single frame grab and computes the led-colors
 	///
 	virtual void action();
-
-	///
-	/// Set the grabbing mode
-	/// @param[in] mode The new grabbing mode
-	///
-	void setGrabbingMode(const GrabbingMode mode);
 
 	///
 	/// Set the video mode (2D/3D)
