@@ -1,0 +1,15 @@
+{
+	"token": {
+		"I am translated":"Ich bin übersetzt.",
+		"tokentest":"Ich bin ein Token Test",
+		"English":"Englisch",
+		"German":"Deutsch",
+		"lighttesttoken":"Bitte wähle eine Farbe.",
+		"Light test":"Lichttest",
+		"menulighttesttoken":"Lichttest"
+	},
+	"regex": [
+		["^Something at start of text", ""],
+		["This will be case insensitive", "i", ""]
+	]
+}

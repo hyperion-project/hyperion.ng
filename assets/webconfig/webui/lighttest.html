@@ -1,0 +1,42 @@
+<script src="js/bootstrap-colorpicker.js"></script>
+<link href="css/bootstrap-colorpicker.css" rel="stylesheet">
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header" lang="en">Light test</h1>
+			<span lang="en" data-lang-token="lighttesttoken">Please select a Color.</span>
+			<div id="cp2" class="input-group colorpicker-component">
+				<input type="text" value="#00AABB" class="form-control" />
+				<span class="input-group-addon"><i></i></span>
+			</div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+	
+	
+	
+	var webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
+	var serverInfo;
+	
+	webSocket.onerror = function(event) {
+		alert(event.data);
+	};
+	
+	webSocket.onopen = function(event) {
+		$(function() {
+        $('#cp2').colorpicker({
+			format: 'rgb',
+			colorSelectors: {'default': '#777777'}
+		});
+		
+		$('#cp2').colorpicker().on('changeColor', function(e) {
+			//console.log(e.color.toRGB());
+			webSocket.send('{"command":"color", "color":['+e.color.toRGB().r+','+e.color.toRGB().g+','+e.color.toRGB().b+'], "priority":1}');
+        });
+    });
+	};
+</script>
