@@ -4,9 +4,10 @@
 		"tokentest":"Ich bin ein Token Test",
 		"English":"Englisch",
 		"German":"Deutsch",
-		"lighttesttoken":"Bitte wähle eine Farbe.",
+		"lighttesttoken":"Farbe: ",
 		"Light test":"Lichttest",
-		"menulighttesttoken":"Lichttest"
+		"menulighttesttoken":"Lichttest",
+		"buttoncolorresettoken":"Farbe zurücksetzen"
 	},
 	"regex": [
 		["^Something at start of text", ""],
