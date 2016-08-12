@@ -273,9 +273,16 @@
                         <li>
                             <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
-                        <li>
-                            <a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken"> Light test</span></a>
-                        </li>
+						<li>
+						    <ul class="nav nav-second-level">
+                                <li>
+									<a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken"> Light test</span></a>
+								</li>
+                                <li>
+									<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken"> Effects</span></a>
+								</li>
+							</ul>
+						</li>
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
@@ -319,6 +326,10 @@
 		$(document).ready( function() {
 			$("#load_lighttest").on("click", function() {
 				$("#page-wrapper").load("lighttest.html");		
+			});
+			
+			$("#load_effects").on("click", function() {
+				$("#page-wrapper").load("effects.html");		
 			});
 		});
 

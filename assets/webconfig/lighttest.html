@@ -26,7 +26,6 @@
 <script>
 	
 	var webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
-	var serverInfo;
 	
 	webSocket.onerror = function(event) {
 		alert(event.data);
@@ -47,9 +46,12 @@
 		
 		
 		$("#reset_color").on("click", function() {
-			webSocket.send('{"command":"clear", "priority":1}');		
+			webSocket.send('{"command":"clear", "priority":1}');
 		});
 	
-	
 	};
+	
+	webSocket.onmessage = function(event){
+	console.log(event.data);
+	}
 </script>
