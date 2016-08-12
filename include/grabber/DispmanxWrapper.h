@@ -45,11 +45,8 @@ public slots:
 	void setCropping(const unsigned cropLeft, const unsigned cropRight,
 		const unsigned cropTop, const unsigned cropBottom);
 
-	///
-	/// Set the grabbing mode
-	/// @param[in] mode The new grabbing mode
-	///
-	void setGrabbingMode(const GrabbingMode mode);
+	virtual void kodiPlay();
+	virtual void kodiPlause();
 
 	///
 	/// Set the video mode (2D/3D)
