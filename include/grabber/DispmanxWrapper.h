@@ -46,7 +46,7 @@ public slots:
 		const unsigned cropTop, const unsigned cropBottom);
 
 	virtual void kodiPlay();
-	virtual void kodiPlause();
+	virtual void kodiPause();
 
 	///
 	/// Set the video mode (2D/3D)
