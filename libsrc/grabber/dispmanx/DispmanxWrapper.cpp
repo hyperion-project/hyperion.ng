@@ -46,27 +46,17 @@ void DispmanxWrapper::action()
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 
-void DispmanxWrapper::setGrabbingMode(const GrabbingMode mode)
+void DispmanxWrapper::kodiPlay()
 {
-	switch (mode)
-	{
-	case GRABBINGMODE_VIDEO:
-	case GRABBINGMODE_PAUSE:
-		_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
-		start();
-		break;
-	case GRABBINGMODE_AUDIO:
-	case GRABBINGMODE_PHOTO:
-	case GRABBINGMODE_MENU:
-	case GRABBINGMODE_SCREENSAVER:
-	case GRABBINGMODE_INVALID:
-		_grabber->setFlags(0);
-		start();
-		break;
-	case GRABBINGMODE_OFF:
-		stop();
-		break;
-	}
+	_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
+	GrabberWrapper::kodiPlay();
+	
+}
+
+void DispmanxWrapper::kodiPause()
+{
+	_grabber->setFlags(0);
+	GrabberWrapper::kodiPause();
 }
 
 void DispmanxWrapper::setVideoMode(const VideoMode mode)

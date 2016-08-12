@@ -67,3 +67,41 @@ void GrabberWrapper::componentStateChanged(const hyperion::Components component,
 		Info(_log, "bb detector change state to %s", (_processor->blackBorderDetectorEnabled() ? "enabled" : "disabled") );
 	}
 }
+
+void GrabberWrapper::kodiPlay()
+{
+	start();
+}
+
+void GrabberWrapper::kodiPause()
+{
+	start();
+}
+
+void GrabberWrapper::kodiOff()
+{
+	stop();
+}
+
+
+void GrabberWrapper::setGrabbingMode(const GrabbingMode mode)
+{
+	switch (mode)
+	{
+	case GRABBINGMODE_VIDEO:
+	case GRABBINGMODE_PAUSE:
+		kodiPause();
+		break;
+	case GRABBINGMODE_AUDIO:
+	case GRABBINGMODE_PHOTO:
+	case GRABBINGMODE_MENU:
+	case GRABBINGMODE_SCREENSAVER:
+	case GRABBINGMODE_INVALID:
+		kodiPlay();
+		break;
+	case GRABBINGMODE_OFF:
+		kodiOff();
+		break;
+	}
+}
+
