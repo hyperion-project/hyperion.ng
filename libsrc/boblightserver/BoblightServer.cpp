@@ -5,6 +5,8 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
+using namespace hyperion;
+
 BoblightServer::BoblightServer(const int priority, uint16_t port)
 	: QObject()
 	, _hyperion(Hyperion::getInstance())
@@ -50,6 +52,7 @@ void BoblightServer::stop()
 	foreach (BoblightClientConnection * connection, _openConnections) {
 		delete connection;
 	}
+	_server.close();
 	_isActive = false;
 	emit statusChanged(_isActive);
 
@@ -57,6 +60,15 @@ void BoblightServer::stop()
 
 }
 
+void BoblightServer::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_BOBLIGHTSERVER && _isActive != enable)
+	{
+		if (enable) start();
+		else        stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 uint16_t BoblightServer::getPort() const
 {

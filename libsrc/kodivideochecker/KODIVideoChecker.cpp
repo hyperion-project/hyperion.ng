@@ -5,6 +5,7 @@
 
 #include <kodivideochecker/KODIVideoChecker.h>
 
+using namespace hyperion;
 
 KODIVideoChecker* KODIVideoChecker::_kodichecker = nullptr;
 
@@ -116,6 +117,17 @@ void KODIVideoChecker::stop()
 	_socket.close();
 }
 
+void KODIVideoChecker::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_KODICHECKER && _active != enable)
+	{
+		if (enable) start();
+		else        stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
+
+
 void KODIVideoChecker::receiveReply()
 {
 	QJsonParseError error;
@@ -146,8 +158,15 @@ void KODIVideoChecker::receiveReply()
 								emit videoMode(VIDEO_2D);
 
 								QString type = resultArray[0].toObject()["type"].toString();
+								int prevCurrentPlayerID = _currentPlayerID;
 								_currentPlayerID = resultArray[0].toObject()["playerid"].toInt();
 
+								// set initial player state
+								if (prevCurrentPlayerID == 0 && _currentPlayerID != 0)
+								{
+									_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
+									return;
+								}
 								if (type == "video")
 								{									
 									if (_currentPlaybackState)
@@ -360,8 +379,6 @@ void KODIVideoChecker::connected()
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
 	_socket.write(_checkScreensaverRequest.toUtf8());
-	if (_currentPlayerID != 0)
-		_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
 }
 
 void KODIVideoChecker::disconnected()

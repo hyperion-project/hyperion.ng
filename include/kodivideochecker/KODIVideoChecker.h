@@ -18,6 +18,7 @@
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 ///
 /// This class will check if KODI is playing something. When it does not, this class will send all black data to Hyperion.
@@ -36,6 +37,8 @@ public:
 	~KODIVideoChecker();
 	void setConfig(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 
+	bool componentState() { return _active; }
+
 public slots:
 	///
 	/// Start polling KODI
@@ -46,6 +49,8 @@ public slots:
 	/// Stop polling KODI
 	///
 	void stop();
+
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	/// Signal emitted when the grabbing mode changes

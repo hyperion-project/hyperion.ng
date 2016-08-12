@@ -156,7 +156,7 @@ public:
 	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
-	void setComponentState(const Components component, const bool state);
+	void setComponentState(const hyperion::Components component, const bool state);
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -293,6 +293,8 @@ signals:
 	/// Signal which is emitted when all priority channels are actively cleared
 	/// This signal will not be emitted when a priority channel time out
 	void allChannelsCleared();
+
+	void componentStateChanged(const hyperion::Components component, bool enabled);
 
 private slots:
 	///

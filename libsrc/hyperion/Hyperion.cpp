@@ -498,7 +498,7 @@ LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const Co
 }
 
 LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
-{      
+{
 	Logger * log = Logger::getInstance("Core");
 	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
@@ -507,7 +507,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	if ( ! smoothingConfig.get("enable", true).asBool() )
 	{
 		Info(log,"Smoothing disabled");
-		return ledDevice;
+		return nullptr;
 	}
 
 	if (type == "linear")
@@ -523,7 +523,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	}
 
 	Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
-	return ledDevice;
+	return nullptr;
 }
 
 MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
@@ -605,8 +605,12 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	);
 
 	// initialize the color smoothing filter
-	_device = createColorSmoothing(jsonConfig["smoothing"], _device);
-
+	LedDevice* smoothing = createColorSmoothing(jsonConfig["smoothing"], _device);
+	if ( smoothing != nullptr )
+	{
+		_device = smoothing;
+		connect(this, SIGNAL(componentStateChanged(hyperion::Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(hyperion::Components,bool)));
+	}
 
 	// setup the timer
 	_timer.setSingleShot(true);
@@ -689,33 +693,9 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 	return priorityValid;
 }
 
-void Hyperion::setComponentState(const Components component, const bool state)
+void Hyperion::setComponentState(const hyperion::Components component, const bool state)
 {
-	switch(component)
-	{
-		case SMOOTHING:
-			break;
-		case BLACKBORDER:
-			break;
-		case KODICHECKER:
-		{
-			KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
-			if (kodiVideoChecker != nullptr)
-				state ? kodiVideoChecker->start() : kodiVideoChecker->stop();
-			else
- 				Debug(_log, "Can't get instance from: '%s'", componentToString(component));
-			break;
-		}
-		case FORWARDER:
-			//_messageForwarder
-			break;
-		case UDPLISTENER:
-			break;
-		case BOBLIGHTSERVER:
-			break;
-		case GRABBER:
-			break;
-	}
+	emit componentStateChanged(component, state);
 }
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
