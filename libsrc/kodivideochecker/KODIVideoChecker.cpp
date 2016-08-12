@@ -65,6 +65,7 @@ KODIVideoChecker::KODIVideoChecker(const QString & address, uint16_t port, bool 
 	, _kodiVersion(0)
 	, _log(Logger::getInstance("KODI"))
 	, _active(false)
+	, _getCurrentPlaybackStateInitialized(false)
 {
 	// setup socket
 	connect(&_socket, SIGNAL(readyRead()), this, SLOT(receiveReply()));
@@ -139,10 +140,11 @@ void KODIVideoChecker::receiveReply()
 		if (doc.isObject())
 		{
 			Debug(_log, "message: %s", doc.toJson(QJsonDocument::Compact).constData());
-			
+
 			// Reply
 			if (doc.object().contains("id"))
 			{
+
 				int id = doc.object()["id"].toInt();
 				switch (id)
 				{
@@ -158,17 +160,20 @@ void KODIVideoChecker::receiveReply()
 								emit videoMode(VIDEO_2D);
 
 								QString type = resultArray[0].toObject()["type"].toString();
+
 								int prevCurrentPlayerID = _currentPlayerID;
 								_currentPlayerID = resultArray[0].toObject()["playerid"].toInt();
 
 								// set initial player state
-								if (prevCurrentPlayerID == 0 && _currentPlayerID != 0)
+								if (! _getCurrentPlaybackStateInitialized && prevCurrentPlayerID == 0 && _currentPlayerID != 0)
 								{
 									_socket.write(_getCurrentPlaybackState.arg(_currentPlayerID).toUtf8());
+									_getCurrentPlaybackStateInitialized = true;
 									return;
 								}
+
 								if (type == "video")
-								{									
+								{
 									if (_currentPlaybackState)
 									{
 										// video is playing
@@ -209,8 +214,10 @@ void KODIVideoChecker::receiveReply()
 								}
 							}
 							else
+							{
 								// Nothing is playing.
 								setGrabbingMode(_grabMenu ? GRABBINGMODE_MENU : GRABBINGMODE_OFF);
+							}
 						}
 						else
 						{
@@ -229,7 +236,6 @@ void KODIVideoChecker::receiveReply()
 						{
 							if (doc.object()["result"].toObject()["item"].toObject().contains("file"))
 							{
-								
 								QString filename = doc.object()["result"].toObject()["item"].toObject()["file"].toString();
 								if (filename.contains("3DSBS", Qt::CaseInsensitive) || filename.contains("HSBS", Qt::CaseInsensitive))
 									setVideoMode(VIDEO_3DSBS);
@@ -315,7 +321,6 @@ void KODIVideoChecker::receiveReply()
 					}
 				}
 			}
-			
 			// Notification
 			else if (doc.object().contains("method"))
 			{
@@ -323,8 +328,10 @@ void KODIVideoChecker::receiveReply()
 				if (method == "Player.OnPlay")
 				{
 					if (doc.object()["params"].toObject()["data"].toObject()["player"].toObject().contains("speed"))
+					{
+						_getCurrentPlaybackStateInitialized = true;
 						_currentPlaybackState = static_cast<bool>(doc.object()["params"].toObject()["data"].toObject()["player"].toObject()["speed"].toInt());
-
+					}
 					// send a request for the current player state
 					_socket.write(_activePlayerRequest.toUtf8());
 					return;
@@ -338,8 +345,10 @@ void KODIVideoChecker::receiveReply()
 				else if (method == "Player.OnPause")
 				{
 					if (doc.object()["params"].toObject()["data"].toObject()["player"].toObject().contains("speed"))
+					{
+						_getCurrentPlaybackStateInitialized = true;
 						_currentPlaybackState = static_cast<bool>(doc.object()["params"].toObject()["data"].toObject()["player"].toObject()["speed"].toInt());
-
+					}
 					// player at pause
 					setGrabbingMode(_grabPause ? GRABBINGMODE_PAUSE : GRABBINGMODE_OFF);
 				}
@@ -355,7 +364,6 @@ void KODIVideoChecker::receiveReply()
 				{
 					// picture viewer is playing
 					setGrabbingMode(_grabPhoto ? GRABBINGMODE_PHOTO : GRABBINGMODE_OFF);
-					return;
 				}
 				else if (method == "Input.OnInputFinished")
 				{
@@ -368,14 +376,16 @@ void KODIVideoChecker::receiveReply()
 			}
 		}
 		else
+		{
 			Debug(_log, "Incomplete data");
+		}
 	}
 }
 
 void KODIVideoChecker::connected()
 {
 	Info(_log, "Connected");
-
+	_getCurrentPlaybackStateInitialized = false;
 	// send a request for the current player state
 	_socket.write(_activePlayerRequest.toUtf8());
 	_socket.write(_checkScreensaverRequest.toUtf8());
