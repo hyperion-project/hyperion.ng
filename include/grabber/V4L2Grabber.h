@@ -57,6 +57,7 @@ public slots:
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
+	void readError(const char* err);
 
 private slots:
 	int read_frame();
@@ -135,4 +136,5 @@ private:
 	
 	Logger * _log;
 	bool _initialized;
+	bool _deviceAutoDiscoverEnabled;
 };
