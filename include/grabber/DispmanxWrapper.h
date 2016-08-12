@@ -62,8 +62,6 @@ private:
 	const int _updateInterval_ms;
 	/// The timeout of the led colors [ms]
 	const int _timeout_ms;
-	/// The priority of the led colors
-	const int _priority;
 
 	/// The image used for grabbing frames
 	Image<ColorRgba> _image;

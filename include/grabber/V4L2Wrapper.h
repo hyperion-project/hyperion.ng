@@ -44,6 +44,7 @@ public slots:
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
+	void readError(const char* err);
 
 	virtual void action();
 	void checkSources();

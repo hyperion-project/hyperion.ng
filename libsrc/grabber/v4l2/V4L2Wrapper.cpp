@@ -37,10 +37,9 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// Handle the image in the captured thread using a direct connection
-	QObject::connect(
-				&_grabber, SIGNAL(newFrame(Image<ColorRgb>)),
-				this, SLOT(newFrame(Image<ColorRgb>)),
-				Qt::DirectConnection);
+	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
+
+	QObject::connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 
 	// send color data to Hyperion using a queued connection to handle the data over to the main event loop
 // 	QObject::connect(
@@ -92,6 +91,12 @@ void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
 }
 
+void V4L2Wrapper::readError(const char* err)
+{
+	Error(_log, "stop grabber, because reading device failed. (%s)", err);
+	stop();
+}
+	
 void V4L2Wrapper::checkSources()
 {
 	QList<int> activePriorities = _hyperion->getActivePriorities();

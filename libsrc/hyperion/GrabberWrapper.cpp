@@ -51,7 +51,14 @@ void GrabberWrapper::componentStateChanged(const hyperion::Components component,
 
 		_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 
-		Info(_log, "grabber change state to %s", (enable ? "enabled" : "disabled") );
+		if ( enable == _timer.isActive() )
+		{
+			Info(_log, "grabber change state to %s", (_timer.isActive() ? "enabled" : "disabled") );
+		}
+		else
+		{
+			WarningIf( enable, _log, "enable grabber failed");
+		}
 	}
 
 	if (component == hyperion::COMP_BLACKBORDER && _processor->blackBorderDetectorEnabled() != enable)
