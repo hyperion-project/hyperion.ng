@@ -562,6 +562,10 @@ void HyperionDaemon::createGrabberV4L2()
 	Debug(_log, "V4L2 grabber created");
 
 	QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
+	if (grabberConfig["useKodiChecker"].toBool(false))
+	{
+		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _v4l2Grabber, SLOT(setGrabbingMode(GrabbingMode)));
+	}
 	InfoIf( enableV4l && _v4l2Grabber->start(), _log, "V4L2 grabber started");
 #endif
 
