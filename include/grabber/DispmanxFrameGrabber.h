@@ -11,6 +11,7 @@
 #include <utils/Image.h>
 #include <utils/ColorRgba.h>
 #include <utils/VideoMode.h>
+#include <utils/Logger.h>
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
@@ -84,4 +85,6 @@ private:
 
 	// size of the capture buffer in Pixels
 	unsigned _captureBufferSize;
+	
+	Logger * _log;
 };

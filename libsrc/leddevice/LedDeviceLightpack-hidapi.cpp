@@ -259,7 +259,7 @@ int LedDeviceLightpackHidapi::writeBytes(uint8_t *data, int size)
 		return 0;
 	}
 
-	Error(_log, "Unable to write %s bytes to Lightpack device(%s)", size, error);
+	Error(_log, "Unable to write %d bytes to Lightpack device(%d)", size, error);
 	return error;
 }
 

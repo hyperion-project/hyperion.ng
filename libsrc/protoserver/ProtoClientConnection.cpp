@@ -20,16 +20,19 @@
 // project includes
 #include "ProtoClientConnection.h"
 
-ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
-	QObject(),
-	_socket(socket),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_receiveBuffer()
+ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket)
+	: QObject()
+	, _socket(socket)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _receiveBuffer()
+	, _priority(-1)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	
+	_priorityChannelName = "proto@"+ _socket->peerAddress().toString().toStdString();
 }
 
 ProtoClientConnection::~ProtoClientConnection()
@@ -76,6 +79,7 @@ void ProtoClientConnection::readData()
 
 void ProtoClientConnection::socketClosed()
 {
+	_hyperion->unRegisterPriority(_priorityChannelName);
 	emit connectionClosed(this);
 }
 
@@ -110,6 +114,7 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	// forward messages
 	emit newMessage(&message);
 
+	int prevPriority = _priority;
 	switch (message.command())
 	{
 	case proto::HyperionRequest::COLOR:
@@ -142,12 +147,18 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	default:
 		handleNotImplemented();
 	}
+	
+	if (prevPriority != _priority)
+	{
+		_hyperion->registerPriority(_priorityChannelName, _priority);
+		prevPriority = _priority;
+	}
 }
 
 void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &message)
 {
 	// extract parameters
-	int priority = message.priority();
+	_priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
 	ColorRgb color;
 	color.red = qRed(message.rgbcolor());
@@ -155,7 +166,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	color.blue = qBlue(message.rgbcolor());
 
 	// set output
-	_hyperion->setColor(priority, color, duration);
+	_hyperion->setColor(_priority, color, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -164,7 +175,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &message)
 {
 	// extract parameters
-	int priority = message.priority();
+	_priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
 	int width = message.imagewidth();
 	int height = message.imageheight();
@@ -186,7 +197,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 
 	// process the image
 	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
-	_hyperion->setColors(priority, ledColors, duration);
+	_hyperion->setColors(_priority, ledColors, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -196,11 +207,11 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &message)
 {
 	// extract parameters
-	int priority = message.priority();
+	_priority = message.priority();
 
 	// clear priority
-	_hyperion->clear(priority);
-
+	_hyperion->clear(_priority);
+	_hyperion->unRegisterPriority(_priorityChannelName);
 	// send reply
 	sendSuccessReply();
 }

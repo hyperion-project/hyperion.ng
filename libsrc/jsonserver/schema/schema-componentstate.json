@@ -1,0 +1,33 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":
+	{
+		"command":
+		{
+			"type" : "string",
+			"required" : true,
+			"enum" : ["componentstate"]
+		},
+		"componentstate":
+		{
+			"type": "object",
+			"required": true,
+			"properties":
+			{
+				"component":
+				{
+					"enum" : ["SMOOTHING", "BLACKBORDER", "KODICHECKER", "FORWARDER", "UDPLISTENER", "BOBLIGHTSERVER", "GRABBER"],
+					"required": true
+				},
+				"state":
+				{
+					"type": "bool",
+					"required": true
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

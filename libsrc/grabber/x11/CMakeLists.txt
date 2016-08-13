@@ -9,6 +9,9 @@ include_directories(
 	${QT_INCLUDES}
 	${X11_INCLUDES}
 )
+SET(X11_QT_HEADERS
+	${CURRENT_HEADER_DIR}/X11Wrapper.h
+)
 
 SET(X11_HEADERS
 	${CURRENT_HEADER_DIR}/X11Grabber.h
@@ -16,6 +19,7 @@ SET(X11_HEADERS
 
 SET(X11_SOURCES
 	${CURRENT_SOURCE_DIR}/X11Grabber.cpp
+	${CURRENT_SOURCE_DIR}/X11Wrapper.cpp
 )
 
 QT5_WRAP_CPP(X11_HEADERS_MOC ${X11_QT_HEADERS})
@@ -29,5 +33,7 @@ add_library(x11-grabber
 
 target_link_libraries(x11-grabber
 	hyperion
-	${QT_LIBRARIES}
+		${X11_LIBRARIES}
+		${X11_Xrender_LIB}
+		${QT_LIBRARIES}
 )

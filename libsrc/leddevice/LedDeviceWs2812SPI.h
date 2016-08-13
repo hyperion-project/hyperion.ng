@@ -18,8 +18,8 @@ public:
 	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceWs2812SPI(const std::string& outputDevice,
-					const unsigned baudrate);
+	LedDeviceWs2812SPI(const std::string& outputDevice, const unsigned baudrate,
+					const int spiMode, const bool spiDataInvert);
 
 	///
 	/// Writes the led color values to the led-device

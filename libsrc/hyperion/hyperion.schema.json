@@ -1,386 +1,906 @@
 {
-    "type" : "object",
-    "required" : true,
-    "properties" : {
-        "device" : {
-            "type" : "object",
-            "required" : true,
-            "properties" : {
-                "name" : {
-                    "type" : "string",
-                    "required" : true
-                },
-                "type" : {
-                    "type" : "string",
-                    "required" : true
-                },
-                "output" : {
-                    "type" : "string",
-                    "required" : true
-                },
-                "rate" : {
-                    "type" : "integer",
-                    "required" : true,
-                    "minimum" : 0
-                },
-                "colorOrder" : {
-                    "type" : "string",
-                    "required" : false
-                },
-                "bgr-output" : { // deprecated
-                    "type" : "boolean",
-                    "required" : false
-                }
-            },
-            "additionalProperties" : false
-        },
-        "color": {
-            "type":"object",
-            "required":false,
-            "properties": {
-				"hsv" : {
-                    "type" : "object",
-                    "required" : false,
-                    "properties" : {
-                        "saturationGain" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.0
-                        },
-                        "valueGain" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.0
-                        }
-                    },
-                    "additionalProperties" : false
-                },
-				"hsl" : {
-                    "type" : "object",
-                    "required" : false,
-                    "properties" : {
-                        "saturationGain" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.0
-                        },
-                        "luminanceGain" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.0
-                        },
-                        "luminanceMinimum" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.0
-                        }
-                    },
-                    "additionalProperties" : false
-                },
-                "red": {
-                    "type":"object",
-                    "required":false,
-                    "properties":{
-                        "gamma": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "blacklevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "whitelevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "threshold": {
-                            "type":"number",
-                            "required":false,
-                            "minimum" : 0.0,
-                            "maximum" : 1.0
-                        }
-                    },
-                    "additionalProperties" : false
-                },
-                "green": {
-                    "type":"object",
-                    "required":false,
-                    "properties":{
-                        "gamma": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "blacklevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "whitelevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "threshold": {
-                            "type":"number",
-                            "required":false,
-                            "minimum" : 0.0,
-                            "maximum" : 1.0
-                        }
-                    },
-                    "additionalProperties" : false
-                },
-                "blue": {
-                    "type":"object",
-                    "required":false,
-                    "properties":{
-                        "gamma": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "whitelevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "blacklevel": {
-                            "type":"number",
-                            "required":false
-                        },
-                        "threshold": {
-                            "type":"number",
-                            "required":false,
-                            "minimum" : 0.0,
-                            "maximum" : 1.0
-                        }
-                    },
-                    "additionalProperties" : false
-                },
-                "smoothing" : {
-                    "type" : "object",
-                    "required" : false,
-                    "properties" : {
-                        "type" : {
-                            "type" : "enum",
-                            "required" : true,
-                            "values" : ["none", "linear"]
-                        },
-                        "time_ms" : {
-                            "type" : "integer",
-                            "required" : false,
-                            "minimum" : 10
-                        },
-                        "updateFrequency" : {
-                            "type" : "number",
-                            "required" : false,
-                            "minimum" : 0.001
-                        }
-                    },
-                    "additionalProperties" : false
-                }
-
-            },
-            "additionalProperties" : false
-        },
-        "leds": {
-            "type":"array",
-            "required":true,
-            "items": {
-                "type":"object",
-                "properties": {
-                    "index": {
-                        "type":"integer",
-                        "required":true
-                    },
-                    "hscan": {
-                        "type":"object",
-                        "required":true,
-                        "properties": {
-                            "minimum": {
-                                "type":"number",
-                                "required":true
-                            },
-                            "maximum": {
-                                "type":"number",
-                                "required":true
-                            }
-                        },
-                        "additionalProperties" : false
-                    },
-                    "vscan": {
-                        "type":"object",
-                        "required":true,
-                        "properties": {
-                            "minimum": {
-                                "type":"number",
-                                "required":true
-                            },
-                            "maximum": {
-                                "type":"number",
-                                "required":true
-                            }
-                        },
-                        "additionalProperties" : false
-                    },
-                    "colorOrder" : {
-                        "type" : "string",
-                        "required" : false
-                    }
-                },
-                "additionalProperties" : false
-            }
-        },
-        "effects" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "paths" : {
-                    "type" : "array",
-                    "required" : false,
-                    "items" : {
-                        "type" : "string"
-                    }
-                }
-            },
-            "additionalProperties" : false
-        },
-        "blackborderdetector" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "enable" : {
-                    "type" : "boolean",
-                    "required" : true
-                },
-                "threshold" : {
-                    "type" : "number",
-                    "required" : false,
-                    "minimum" : 0.0,
-                    "maximum" : 1.0
-                }
-            },
-            "additionalProperties" : false
-        },
-        "kodiVideoChecker" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "kodiAddress" : {
-                    "type" : "string",
-                    "required" : true
-                },
-                "kodiTcpPort" : {
-                    "type" : "integer",
-                    "required" : true
-                },
-                "grabVideo" : {
-                    "type" : "boolean",
-                    "required" : true
-                },
-                "grabPictures" : {
-                    "type" : "boolean",
-                    "required" : true
-                },
-                "grabAudio" : {
-                    "type" : "boolean",
-                    "required" : true
-                },
-                "grabMenu" : {
-                    "type" : "boolean",
-                    "required" : true
-                },
-		"grabPause" : {
-                    "type" : "boolean",
-                    "required" : false
-                },
-                "grabScreensaver" : {
-                    "type" : "boolean",
-                    "required" : false
-                },
-                "enable3DDetection" : {
-                    "type" : "boolean",
-                    "required" : false
-                }
-            },
-            "additionalProperties" : false
-        },
-        "bootsequence" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "path" : {
-                    "type" : "string",
-                    "required" : true
-                },
-                "effect" : {
-                    "type" : "string",
-                    "required" : true
-                }
-            },
-            "additionalProperties" : false
-        },
-        "framegrabber" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "width" : {
-                    "type" : "integer",
-                    "required" : true
-                },
-                "height" : {
-                    "type" : "integer",
-                    "required" : true
-                },
-                "frequency_Hz" : {
-                    "type" : "integer",
-                    "required" : true
-                }
-            },
-            "additionalProperties" : false
-        },
-        "jsonServer" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "port" : {
-                    "type" : "integer",
-                    "required" : true,
-                    "minimum" : 0,
-                    "maximum" : 65535
-                }
-            },
-            "additionalProperties" : false
-        },
-        "protoServer" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "port" : {
-                    "type" : "integer",
-                    "required" : true,
-                    "minimum" : 0,
-                    "maximum" : 65535
-                }
-            },
-            "additionalProperties" : false
-        },
-        "boblightServer" :
-        {
-            "type" : "object",
-            "required" : false,
-            "properties" : {
-                "port" : {
-                    "type" : "integer",
-                    "required" : true,
-                    "minimum" : 0,
-                    "maximum" : 65535
-                }
-            },
-            "additionalProperties" : false
-        }
-    },
-    "additionalProperties" : false
+	"type" : "object",
+	"required" : true,
+	"properties" :
+	{
+		"logger" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"level" :
+				{ 
+					"enum" : ["silent", "warn", "verbose", "debug"]
+				}
+			},
+			"additionalProperties" : false
+		},
+		"device" :
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"name" :
+				{
+					"type" : "string",
+					"required" : true
+				},
+				"type" :
+				{
+					"type" : "string",
+					"required" : true
+				},
+				"output" :
+				{
+					"type" : "string"
+				},
+				"rate" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"colorOrder" :
+				{
+					"type":
+					{
+						"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
+					}
+				}
+			},
+			"additionalProperties" : true
+		},
+		"color" :
+		{
+			"type":"object",
+			"required" : true,
+			"properties":
+			{
+				"channelAdjustment_enable" :
+				{
+					"type" : "boolean"
+				},
+				"channelAdjustment" :
+				{
+					"type" : "array",
+					"required" : true,
+					"items" :
+					{
+						"type" : "object",
+						"required" : true,
+						"properties" :
+						{
+							"id" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"leds" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"pureRed" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"pureGreen" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"pureBlue" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							}
+						},
+						"additionalProperties" : false
+					}
+				},
+				"temperature_enable" :
+				{
+					"type" : "boolean"
+				},
+				"temperature" :
+				{
+					"type" : "array",
+					"required" : true,
+					"items" :
+					{
+						"type" : "object",
+						"required" : true,
+						"properties" :
+						{
+							"id" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"leds" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"correctionValues" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"red" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"green" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blue" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							}
+						},
+						"additionalProperties" : false
+					}
+				},
+				"transform_enable" :
+				{
+					"type" : "boolean"
+				},
+				"transform" :
+				{
+					"type" : "array",
+					"required" : true,
+					"items" :
+					{
+						"type" : "object",
+						"required" : true,
+						"properties" :
+						{
+							"id" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"leds" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"hsl" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"saturationGain" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									},
+									"luminanceGain" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									},
+									"luminanceMinimum" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"red" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"green" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"blue" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							}
+						},
+						"additionalProperties" : false
+					}
+				}
+			},
+			"additionalProperties" : false
+		},
+		"smoothing":
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"type" :
+				{
+					"enum" : ["linear"]
+				},
+				"time_ms" :
+				{
+					"type" : "integer",
+					"minimum" : 25,
+					"maximum": 600
+				},
+				"updateFrequency" :
+				{
+					"type" : "number",
+					"minimum" : 1.000,
+					"maximum": 100.000
+				},
+				"updateDelay" :
+				{
+					"type" : "integer",
+					"minimum" : 0,
+					"maximum": 2048
+				},
+				"continuousOutput" :
+				{
+					"type" : "boolean"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"grabber-v4l2" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"device" :
+				{
+					"type" : "string"
+				},
+				"input" :
+				{
+					"type" : "integer"
+				},
+				"standard" :
+				{
+					"type" : "string"
+				},
+				"width" :
+				{
+					"type" : "integer"
+				},
+				"height" :
+				{
+					"type" : "integer"
+				},
+				"frameDecimation" :
+				{
+					"type" : "integer"
+				},
+				"sizeDecimation" :
+				{
+					"type" : "integer"
+				},
+				"priority" :
+				{
+					"type" : "integer"
+				},
+				"mode" :
+				{
+					"type" : "string"
+				},
+				"useKodiChecker" :
+				{
+					"type" : "boolean"
+				},
+				"cropLeft" :
+				{
+					"type" : "integer"
+				},
+				"cropRight" :
+				{
+					"type" : "integer"
+				},
+				"cropTop" :
+				{
+					"type" : "integer"
+				},
+				"cropBottom" :
+				{
+					"type" : "integer"
+				},
+				"redSignalThreshold" :
+				{
+					"type" : "number"
+				},
+				"greenSignalThreshold" :
+				{
+					"type" : "number"
+				},
+				"blueSignalThreshold" :
+				{
+					"type" : "number"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"framegrabber" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"type" :
+				{
+					"type" : "string"
+				},
+				"width" :
+				{
+					"type" : "integer"
+				},
+				"height" :
+				{
+					"type" : "integer"
+				},
+				"frequency_Hz" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"priority" :
+				{
+					"type" : "integer"
+				},
+				"cropLeft" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"cropRight" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"cropTop" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"cropBottom" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"useXGetImage" :
+				{
+					"type" : "boolean"
+				},
+				"horizontalPixelDecimation" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"verticalPixelDecimation" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				"device" :
+				{
+					"type" : "string"
+				},
+				"display" :
+				{
+					"type" : "integer",
+					"minimum" : 0
+				}
+			},
+			"additionalProperties" : false
+		},
+		"blackborderdetector" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"threshold" :
+				{
+					"type" : "number",
+					"minimum" : 0.0,
+					"maximum" : 1.0
+				},
+				"unknownFrameCnt"    :
+				{
+					"type" : "number",
+					"minimum" : 0
+				},
+				"borderFrameCnt" :
+				{
+					"type" : "number",
+					"minimum" : 0
+				},
+				"maxInconsistentCnt" :
+				{
+					"type" : "number",
+					"minimum" : 0
+				},
+				"blurRemoveCnt" :
+				{
+					"type" : "number",
+					"minimum" : 0
+				},
+				"mode" :
+				{
+					"type" :
+					{
+						"enum" : ["default", "classic", "osd"]
+					}
+				}
+			},
+			"additionalProperties" : false
+		},
+		"kodiVideoChecker" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"kodiAddress" :
+				{
+					"type" : "string"
+				},
+				"kodiTcpPort" :
+				{
+					"type" : "integer"
+				},
+				"grabVideo" :
+				{
+					"type" : "boolean"
+				},
+				"grabPictures" :
+				{
+					"type" : "boolean"
+				},
+				"grabAudio" :
+				{
+					"type" : "boolean"
+				},
+				"grabMenu" :
+				{
+					"type" : "boolean"
+				},
+				"grabPause" :
+				{
+					"type" : "boolean"
+				},
+				"grabScreensaver" :
+				{
+					"type" : "boolean"
+				},
+				"enable3DDetection" :
+				{
+					"type" : "boolean"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"initialEffect" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"background-effect" :
+				{
+					"type" : "array"
+				},
+				"background-effect-args" :
+				{
+					"type" : "object"
+				},
+				"foreground-effect" :
+				{
+					"type" : "array"
+				},
+				"foreground-effect-args" :
+				{
+					"type" : "object"
+				},
+				"foreground-duration_ms" :
+				{
+					"type" : "integer"
+				}
+			},
+			"additionalProperties" : false
+		},		
+		"forwarder" :
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"required" : true
+				},
+				"json" :
+				{
+					"type" : "array",
+					"required" : true
+				},
+				"proto" :
+				{
+					"type" : "array",
+					"required" : true
+				}
+			},
+			"additionalProperties" : false
+		},
+		"jsonServer" :
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"minimum" : 0,
+					"maximum" : 65535
+				}
+			},
+			"additionalProperties" : false
+		},
+		"protoServer" :
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"minimum" : 0,
+					"maximum" : 65535
+				}
+			},
+			"additionalProperties" : false
+		},
+		"boblightServer" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"minimum" : 0,
+					"maximum" : 65535
+				},
+				"priority" :
+				{
+					"type" : "integer"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"udpListener" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean"
+				},
+				"address" :
+				{
+					"type" : "string",
+					"required" : true
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"minimum" : 0,
+					"maximum" : 65535
+				},
+				"priority" :
+				{
+					"type" : "integer"
+				},
+				"timeout" :
+				{
+					"type" : "integer"
+				},
+				"shared" :
+				{
+					"type" : "boolean"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"webConfig" :
+		{
+			"type" : "object",
+			"required" : true,
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"required" : true
+				},
+				"document_root" :
+				{
+					"type" : "string",
+					"required" : true
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true
+				}
+			},
+			"additionalProperties" : false
+		},
+		"effects" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"paths" :
+				{
+					"type" : "array"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"leds":
+		{
+			"type":"array",
+			"required":true,
+			"items":
+			{
+				"type":"object",
+				"properties":
+				{
+					"index":
+					{
+						"type":"integer",
+						"required":true
+					},
+					"clone":
+					{
+						"type":"integer"
+					},
+					"hscan":
+					{
+						"type":"object",
+						"properties":
+						{
+							"minimum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							},
+							"maximum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							}
+						},
+						"additionalProperties" : false
+					},
+					"vscan":
+					{
+						"type":"object",
+						"properties":
+						{
+							"minimum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							},
+							"maximum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							}
+						},
+						"additionalProperties" : false
+					},
+					"colorOrder":
+					{
+						"type":
+						{
+							"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
+						}
+					}
+				},
+				"additionalProperties" : false
+			}
+		},
+		"endOfJson" :
+		{
+			"type" : "string"
+		}
+	},
+	"additionalProperties" : false
 }

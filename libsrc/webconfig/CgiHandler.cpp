@@ -23,8 +23,6 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 	{
 // 		QByteArray header = reply->getHeader(QtHttpHeader::Host);
 // 		QtHttpRequest::ClientInfo info = request->getClientInfo();
-// 		qDebug() << info.clientAddress.toString();
-// 		qDebug() << info.serverAddress.toString();
 		
 		cmd_cfg_jsonserver(args,reply);
 		cmd_cfg_hyperion(args,reply);

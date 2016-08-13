@@ -48,7 +48,7 @@ protected:
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
-
+	void error(QSerialPort::SerialPortError error);
 private:
 	// tries to open device if not opened
 	bool tryOpen();
@@ -66,4 +66,6 @@ private:
 	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
+	
+	bool _stateChanged;
 };

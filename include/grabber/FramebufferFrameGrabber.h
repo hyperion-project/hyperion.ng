@@ -5,6 +5,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/VideoMode.h>
 #include <utils/ImageResampler.h>
+#include <utils/Logger.h>
 
 ///
 /// The FramebufferFrameGrabber is used for creating snapshots of the display (screenshots) 
@@ -56,4 +57,6 @@ private:
 
 	/// Image resampler for downscaling the image
 	ImageResampler * _imgResampler;
+	
+	Logger * _log;
 };

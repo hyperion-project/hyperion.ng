@@ -20,7 +20,8 @@ public:
 	///
 
 	LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate,
-				const std::string& whiteAlgorithm);
+				const std::string& whiteAlgorithm,
+				const int spiMode, const bool spiDataInvert);
 
 	///
 	/// Writes the led color values to the led-device

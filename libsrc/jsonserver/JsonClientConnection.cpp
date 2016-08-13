@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QHostInfo>
+#include <QString>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -27,18 +28,22 @@
 // project includes
 #include "JsonClientConnection.h"
 
-JsonClientConnection::JsonClientConnection(QTcpSocket *socket, Hyperion * hyperion) :
-	QObject(),
-	_socket(socket),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_hyperion(hyperion),
-	_receiveBuffer(),
-	_webSocketHandshakeDone(false),
-	_log(Logger::getInstance("JSONCLIENTCONNECTION"))
+using namespace hyperion;
+
+JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
+	: QObject()
+	, _socket(socket)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _hyperion(Hyperion::getInstance())
+	, _receiveBuffer()
+	, _webSocketHandshakeDone(false)
+	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	, _forwarder_enabled(true)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
 
@@ -215,64 +220,90 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 {
 	Json::Reader reader;
 	Json::Value message;
-	if (!reader.parse(messageString, message, false))
-	{
-		sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
-		return;
-	}
-
-	// check basic message
 	std::string errors;
-	if (!checkJson(message, ":schema", errors))
-	{
-		sendErrorReply("Error while validating json: " + errors);
-		return;
-	}
+ 	try
+ 	{
+		if (!reader.parse(messageString, message, false))
+		{
+			sendErrorReply("Error while parsing json: " + reader.getFormattedErrorMessages());
+			return;
+		}
 
-	// check specific message
-	const std::string command = message["command"].asString();
-	if (!checkJson(message, QString(":schema-%1").arg(QString::fromStdString(command)), errors))
-	{
-		sendErrorReply("Error while validating json: " + errors);
-		return;
-	}
-	
-	// switch over all possible commands and handle them
-	if (command == "color")
-		handleColorCommand(message);
-	else if (command == "image")
-		handleImageCommand(message);
-	else if (command == "effect")
-		handleEffectCommand(message);
-	else if (command == "serverinfo")
-		handleServerInfoCommand(message);
-	else if (command == "clear")
-		handleClearCommand(message);
-	else if (command == "clearall")
-		handleClearallCommand(message);
-	else if (command == "transform")
-		handleTransformCommand(message);
-	else if (command == "temperature")
-		handleTemperatureCommand(message);
-	else if (command == "adjustment")
-		handleAdjustmentCommand(message);
-	else
-		handleNotImplemented();
+		// check basic message
+		if (!checkJson(message, ":schema", errors))
+		{
+			sendErrorReply("Error while validating json: " + errors);
+			return;
+		}
+
+		// check specific message
+		const std::string command = message["command"].asString();
+		if (!checkJson(message, QString(":schema-%1").arg(QString::fromStdString(command)), errors))
+		{
+			sendErrorReply("Error while validating json: " + errors);
+			return;
+		}
+
+		// switch over all possible commands and handle them
+		if (command == "color")
+			handleColorCommand(message);
+		else if (command == "image")
+			handleImageCommand(message);
+		else if (command == "effect")
+			handleEffectCommand(message);
+		else if (command == "serverinfo")
+			handleServerInfoCommand(message);
+		else if (command == "clear")
+			handleClearCommand(message);
+		else if (command == "clearall")
+			handleClearallCommand(message);
+		else if (command == "transform")
+			handleTransformCommand(message);
+		else if (command == "temperature")
+			handleTemperatureCommand(message);
+		else if (command == "adjustment")
+			handleAdjustmentCommand(message);
+		else if (command == "sourceselect")
+			handleSourceSelectCommand(message);
+		else if (command == "configget")
+			handleConfigGetCommand(message);
+		else if (command == "componentstate")
+			handleComponentStateCommand(message);
+		else
+			handleNotImplemented();
+ 	}
+ 	catch (std::exception& e)
+ 	{
+ 		sendErrorReply("Error while processing incoming json message: " + std::string(e.what()) + " " + errors );
+ 		Warning(_log, "Error while processing incoming json message: %s (%s)", e.what(), errors.c_str());
+ 	}
+
 }
 
+void JsonClientConnection::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_FORWARDER && _forwarder_enabled != enable)
+	{
+		_forwarder_enabled = enable;
+		Info(_log, "forwarder change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 void JsonClientConnection::forwardJsonMessage(const Json::Value & message)
 {
-	QTcpSocket client;
-	QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
-
-	for ( int i=0; i<list.size(); i++ )
+	if (_forwarder_enabled)
 	{
-		client.connectToHost(list.at(i).addr, list.at(i).port);
-		if ( client.waitForConnected(500) )
+		QTcpSocket client;
+		QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+
+		for ( int i=0; i<list.size(); i++ )
 		{
-			sendMessage(message,&client);
-			client.close();
+			client.connectToHost(list.at(i).addr, list.at(i).port);
+			if ( client.waitForConnected(500) )
+			{
+				sendMessage(message,&client);
+				client.close();
+			}
 		}
 	}
 }
@@ -387,6 +418,8 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	Json::Value & priorities = info["priorities"] = Json::Value(Json::arrayValue);
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
+	Hyperion::PriorityRegister priorityRegister = _hyperion->getPriorityRegister();
+	int currentPriority = _hyperion->getCurrentPriority();
 	foreach (int priority, activePriorities) {
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		Json::Value & item = priorities[priorities.size()];
@@ -395,6 +428,27 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		{
 			item["duration_ms"] = Json::Value::UInt(priorityInfo.timeoutTime_ms - now);
 		}
+		
+		item["owner"] = "unknown";
+		item["active"] = true;
+		item["visible"] = (priority == currentPriority);
+		foreach(auto const &entry, priorityRegister)
+		{
+			if (entry.second == priority)
+			{
+				item["owner"] = entry.first;
+				priorityRegister.erase(entry.first);
+				break;
+			}
+		}
+	}
+	foreach(auto const &entry, priorityRegister)
+	{
+		Json::Value & item = priorities[priorities.size()];
+		item["priority"] = entry.second;
+		item["active"] = false;
+		item["visible"] = false;
+		item["owner"] = entry.first;
 	}
 	
 	// collect temperature correction information
@@ -532,9 +586,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 		} ))
 	    {
 		// check if LED Color not Black (0,0,0)
-		if ((priorityInfo.ledColors.begin()->red != 0) &&
-		(priorityInfo.ledColors.begin()->green != 0) &&
-		(priorityInfo.ledColors.begin()->blue != 0))
+		if ((priorityInfo.ledColors.begin()->red +
+		priorityInfo.ledColors.begin()->green +
+		priorityInfo.ledColors.begin()->blue != 0))
 		{
 			// add RGB Value to Array
 			LEDcolor["RGB Value"].append(priorityInfo.ledColors.begin()->red);
@@ -752,7 +806,58 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 
 	sendSuccessReply();
 }
+
+void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message)
+{
+	bool success = false;
+	if (message.get("auto",false).asBool())
+	{
+		_hyperion->setSourceAutoSelectEnabled(true);
+		success = true;
+	}
+	else if (message.isMember("priority"))
+	{
+		success =  _hyperion->setCurrentSourcePriority(message["priority"].asInt());
+	}
+
+	if (success)
+	{
+		sendSuccessReply();
+	}
+	else
+	{
+		sendErrorReply("setting current priority failed");
+	}
+}
+
+void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
+{
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	Json::Value & config = result["result"];
+	config = _hyperion->getJsonConfig();
 	
+	// send the result
+	sendMessage(result);
+}
+
+void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
+{
+	const Json::Value & componentState = message["componentstate"];
+	Components component = stringToComponent(QString::fromStdString(componentState.get("component", "invalid").asString()));
+	
+	if (component != COMP_INVALID)
+	{
+		_hyperion->setComponentState(component, componentState.get("state", true).asBool());
+		sendSuccessReply();
+	}
+	else
+	{
+		sendErrorReply("invalid component name");
+	}
+}
+
 void JsonClientConnection::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
@@ -860,7 +965,8 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	Json::Value schemaJson;
 	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
 	{
-		throw std::runtime_error("JSONCLIENT ERROR: Schema error: " + jsonReader.getFormattedErrorMessages());
+		errorMessage = "Schema error: " + jsonReader.getFormattedErrorMessages();
+		return false;
 	}
 
 	// create schema checker

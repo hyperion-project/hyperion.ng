@@ -9,7 +9,8 @@ OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, c
 	_screenIndex(display),
 	_width(width),
 	_height(height),
-	_imgResampler(new ImageResampler())
+	_imgResampler(new ImageResampler()),
+	_log(Logger::getInstance("OSXGRABBER"))
 {
 	CGImageRef image;
 	CGDisplayCount displayCount;
@@ -19,7 +20,7 @@ OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, c
 	CGGetActiveDisplayList(8, displays, &displayCount);
 	if (_screenIndex + 1 > displayCount)
 	{
-		std::cerr << "OSXGRABBER ERROR: display with index " << _screenIndex << " is not available. Using main display" << std::endl;
+		Error(_log, "Display with index %d is not available. Using main display", _screenIndex);
 		_display = kCGDirectMainDisplay;
 	} else {
 		_display = displays[_screenIndex];
@@ -28,7 +29,7 @@ OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, c
 	image = CGDisplayCreateImage(_display);
 	assert(image != NULL);
 
-	std::cout << "OSXGRABBER INFO: display opened with resolution: " << CGImageGetWidth(image) << "x" << CGImageGetHeight(image) << "@" << CGImageGetBitsPerPixel(image) << "bit" << std::endl;
+	Info(_log, "Display opened with resolution: %dx%d@%dbit", CGImageGetWidth(image), CGImageGetHeight(image), CGImageGetBitsPerPixel(image));
 
 	CGImageRelease(image);
 }
@@ -59,7 +60,7 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		// no displays connected, return
 		if (dispImage == NULL)
 		{
-			std::cerr << "OSXGRABBER ERROR: no display connected..." << std::endl;
+			Error(_log, "No display connected...");
 			return;
 		}
 	}

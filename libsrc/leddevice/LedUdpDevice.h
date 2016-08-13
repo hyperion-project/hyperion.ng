@@ -2,9 +2,6 @@
 
 #include <QUdpSocket>
 
-// Linux-SPI includes
-#include <linux/spi/spidev.h>
-
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
@@ -16,14 +13,13 @@ class LedUdpDevice : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice attached to a SPI-device
+	/// Constructs the LedDevice sendig data via udp
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/UdpDev.0.0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param[in] outputDevice string hostname:port
 	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
 	/// means no latch required) [ns]
 	///
-	LedUdpDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1);
+	LedUdpDevice(const std::string& outputDevice, const int latchTime_ns = -1);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -50,15 +46,11 @@ protected:
 	int writeBytes(const unsigned size, const uint8_t *data);
 
 private:
-	/// The name of the output device
-	const std::string mDeviceName;
-	/// The used baudrate of the output device
-	const int mBaudRate_Hz;
+	/// The UDP destination as "host:port"
+	const std::string _target;
 	/// The time which the device should be untouched after a write
-	const int mLatchTime_ns;
+	const int _LatchTime_ns;
 
-	/// The File Identifier of the opened output device (or -1 if not opened)
-	int mFid;
 	///
 	QUdpSocket *udpSocket;
 	QHostAddress _address;

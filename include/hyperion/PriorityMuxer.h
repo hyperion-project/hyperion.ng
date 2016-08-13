@@ -34,6 +34,9 @@ public:
 		std::vector<ColorRgb> ledColors;
 	};
 
+	/// The lowest possible priority, which is used when no priority channels are active
+	const static int LOWEST_PRIORITY = std::numeric_limits<int>::max();
+
 	///
 	/// Constructs the PriorityMuxer for the given number of leds (used to switch to black when
 	/// there are no priority channels
@@ -118,6 +121,4 @@ private:
 	/// The information of the lowest priority channel
 	InputInfo _lowestPriorityInfo;
 
-	/// The lowest possible priority, which is used when no priority channels are active
-	const static int LOWEST_PRIORITY = std::numeric_limits<int>::max();
 };
