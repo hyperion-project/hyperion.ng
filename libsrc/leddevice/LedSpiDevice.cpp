@@ -15,13 +15,13 @@
 
 
 LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns,
-				const int spiMode, const bool spiDataInvert) :
-	mDeviceName(outputDevice),
-	mBaudRate_Hz(baudrate),
-	mLatchTime_ns(latchTime_ns),
-	mFid(-1),
-	mSpiMode(spiMode),
-	mSpiDataInvert(spiDataInvert)
+				const int spiMode, const bool spiDataInvert)
+	: mDeviceName(outputDevice)
+	, mBaudRate_Hz(baudrate)
+	, mLatchTime_ns(latchTime_ns)
+	, mFid(-1)
+	, mSpiMode(spiMode)
+	, mSpiDataInvert(spiDataInvert)
 {
 	memset(&spi, 0, sizeof(spi));
 }

@@ -12,9 +12,9 @@
 #include "LedDeviceWs2801.h"
 
 LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned baudrate, const unsigned latchTime,
-						const int spiMode, const bool spiDataInvert) :
-	LedSpiDevice(outputDevice, baudrate, latchTime, spiMode, spiDataInvert),
-	mLedCount(0)
+						const int spiMode, const bool spiDataInvert)
+	: LedSpiDevice(outputDevice, baudrate, latchTime, spiMode, spiDataInvert)
+	, mLedCount(0)
 {
 	// empty
 }
