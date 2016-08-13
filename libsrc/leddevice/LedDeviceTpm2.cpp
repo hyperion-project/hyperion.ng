@@ -7,9 +7,8 @@
 // hyperion local includes
 #include "LedDeviceTpm2.h"
 
-LedDeviceTpm2::LedDeviceTpm2(const std::string& outputDevice, const unsigned baudrate) :
-	LedRs232Device(outputDevice, baudrate),
-	_ledBuffer(0)
+LedDeviceTpm2::LedDeviceTpm2(const std::string& outputDevice, const unsigned baudrate)
+	: LedRs232Device(outputDevice, baudrate)
 {
 	// empty
 }

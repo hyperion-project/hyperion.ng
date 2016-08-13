@@ -6,8 +6,7 @@
 using namespace hyperion;
 
 LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms, unsigned updateDelay, bool continuousOutput)
-	: QObject()
-	, LedDevice()
+	: LedDevice()
 	, _ledDevice(ledDevice)
 	, _updateInterval(1000 / ledUpdateFrequency_hz)
 	, _settlingTime(settlingTime_ms)

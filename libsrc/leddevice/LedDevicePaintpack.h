@@ -32,8 +32,4 @@ public:
 	/// @return Zero on success else negative
 	///
 	virtual int switchOff();
-
-private:
-	/// buffer for led data
-	std::vector<uint8_t> _ledBuffer;
 };

@@ -2,8 +2,9 @@
 // Local-Hyperion includes
 #include "LedDeviceFile.h"
 
-LedDeviceFile::LedDeviceFile(const std::string& output) :
-	_ofs(output.empty()?"/dev/null":output.c_str())
+LedDeviceFile::LedDeviceFile(const std::string& output)
+	: LedDevice()
+	, _ofs( output.empty() ? "/dev/null" : output.c_str())
 {
 	// empty
 }

@@ -50,21 +50,23 @@ protected:
 
 private:
 	/// The name of the output device
-	const std::string mDeviceName;
+	const std::string _deviceName;
+
 	/// The used baudrate of the output device
-	const int mBaudRate_Hz;
+	const int _baudRate_Hz;
+
 	/// The time which the device should be untouched after a write
-	const int mLatchTime_ns;
+	const int _latchTime_ns;
 
 	/// The File Identifier of the opened output device (or -1 if not opened)
-	int mFid;
+	int _fid;
 
 	/// which spi clock mode do we use? (0..3)
-	int mSpiMode;
+	int _spiMode;
 
 	/// 1=>invert the data pattern
-	bool mSpiDataInvert;
+	bool _spiDataInvert;
 
 	/// The transfer structure for writing to the spi-device
-	spi_ioc_transfer spi;
+	spi_ioc_transfer _spi;
 };

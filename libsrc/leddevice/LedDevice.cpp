@@ -1,7 +1,11 @@
 #include <leddevice/LedDevice.h>
 
 LedDevice::LedDevice()
-	: _log(Logger::getInstance("LedDevice"))
+	: QObject()
+	, _log(Logger::getInstance("LedDevice"))
+	, _ledCount(0)
+	, _ledBuffer(0)
+
 {
 }
 

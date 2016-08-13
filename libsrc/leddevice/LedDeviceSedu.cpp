@@ -17,9 +17,8 @@ struct FrameSpec
 	size_t size;
 };
 
-LedDeviceSedu::LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate) :
-	LedRs232Device(outputDevice, baudrate),
-	_ledBuffer(0)
+LedDeviceSedu::LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate)
+	: LedRs232Device(outputDevice, baudrate)
 {
 	// empty
 }
