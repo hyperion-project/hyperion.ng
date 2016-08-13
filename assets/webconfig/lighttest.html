@@ -35,7 +35,26 @@
 		$(function() {
 			$('#cp2').colorpicker({
 				format: 'rgb',
-				colorSelectors: {'default': '#777777'}
+				colorSelectors: {'default': '#777777',
+					'primary': '#337ab7',
+					'success': '#5cb85c',
+					'info': '#5bc0de',
+					'warning': '#f0ad4e',
+					'danger': '#d9534f'
+					},
+				customClass: 'colorpicker-2x',
+				sliders: {
+					saturation: {
+						maxLeft: 200,
+						maxTop: 200
+					},
+					hue: {
+						maxTop: 200
+					},
+					alpha: {
+						maxTop: 200
+                },
+            }
 			});
 		
 			$('#cp2').colorpicker().on('changeColor', function(e) {
