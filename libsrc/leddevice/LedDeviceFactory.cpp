@@ -116,14 +116,18 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			device = new LedDeviceWs2801(
 				deviceConfig["output"].asString(),
 				deviceConfig["rate"].asInt(),
-				deviceConfig.get("latchtime",500000).asInt()
+				deviceConfig.get("latchtime",500000).asInt(),
+				deviceConfig.get("spimode",0).asInt(),
+				deviceConfig.get("invert",false).asBool()
 			);
 		}
 		else if (type == "ws2812spi")
 		{
 			device = new LedDeviceWs2812SPI(
 				deviceConfig["output"].asString(),
-				deviceConfig.get("rate",2857143).asInt()
+				deviceConfig.get("rate",2857143).asInt(),
+				deviceConfig.get("spimode",0).asInt(),
+				deviceConfig.get("invert",false).asBool()
 			);
 		}
 		else if (type == "sk6812rgbw-spi")
@@ -131,7 +135,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			device = new LedDeviceSk6812SPI(
 				deviceConfig["output"].asString(),
 				deviceConfig.get("rate",2857143).asInt(),
-				deviceConfig.get("white_algorithm","").asString()
+				deviceConfig.get("white_algorithm","").asString(),
+				deviceConfig.get("spimode",0).asInt(),
+				deviceConfig.get("invert",false).asBool()
 			);
 		}
 	#endif

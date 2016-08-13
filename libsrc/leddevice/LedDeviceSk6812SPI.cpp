@@ -11,8 +11,10 @@
 // hyperion local includes
 #include "LedDeviceSk6812SPI.h"
 
-LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate, const std::string& whiteAlgorithm) :
-	LedSpiDevice(outputDevice, baudrate, 0),
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate, const std::string& whiteAlgorithm,
+                                                const int spiMode, const bool spiDataInvert) :
+
+	LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert),
 	mLedCount(0),
 	_whiteAlgorithm(whiteAlgorithm),
 	bitpair_to_byte {
