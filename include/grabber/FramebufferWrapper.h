@@ -42,12 +42,6 @@ public slots:
 	virtual void action();
 
 	///
-	/// Set the grabbing mode
-	/// @param[in] mode The new grabbing mode
-	///
-	void setGrabbingMode(const GrabbingMode mode);
-
-	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///

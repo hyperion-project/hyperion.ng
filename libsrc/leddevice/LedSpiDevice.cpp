@@ -14,11 +14,14 @@
 #include <utils/Logger.h>
 
 
-LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns) :
-	mDeviceName(outputDevice),
-	mBaudRate_Hz(baudrate),
-	mLatchTime_ns(latchTime_ns),
-	mFid(-1)
+LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns,
+				const int spiMode, const bool spiDataInvert)
+	: mDeviceName(outputDevice)
+	, mBaudRate_Hz(baudrate)
+	, mLatchTime_ns(latchTime_ns)
+	, mFid(-1)
+	, mSpiMode(spiMode)
+	, mSpiDataInvert(spiDataInvert)
 {
 	memset(&spi, 0, sizeof(spi));
 }
@@ -30,6 +33,7 @@ LedSpiDevice::~LedSpiDevice()
 
 int LedSpiDevice::open()
 {
+//printf ("mSpiDataInvert %d  mSpiMode %d\n",mSpiDataInvert,  mSpiMode);
 	const int bitsPerWord = 8;
 
 	mFid = ::open(mDeviceName.c_str(), O_RDWR);
@@ -40,8 +44,7 @@ int LedSpiDevice::open()
 		return -1;
 	}
 
-	int mode = SPI_MODE_0;
-	if (ioctl(mFid, SPI_IOC_WR_MODE, &mode) == -1 || ioctl(mFid, SPI_IOC_RD_MODE, &mode) == -1)
+	if (ioctl(mFid, SPI_IOC_WR_MODE, &mSpiMode) == -1 || ioctl(mFid, SPI_IOC_RD_MODE, &mSpiMode) == -1)
 	{
 		return -2;
 	}
@@ -68,6 +71,14 @@ int LedSpiDevice::writeBytes(const unsigned size, const uint8_t * data)
 
 	spi.tx_buf = __u64(data);
 	spi.len    = __u32(size);
+
+	if (mSpiDataInvert) {
+		uint8_t * newdata = (uint8_t *)malloc(size);
+		for (unsigned i = 0; i<size; i++) {
+			newdata[i] = data[i] ^ 0xff;
+		}
+		spi.tx_buf = __u64(newdata);
+	}
 
 	int retVal = ioctl(mFid, SPI_IOC_MESSAGE(1), &spi);
 

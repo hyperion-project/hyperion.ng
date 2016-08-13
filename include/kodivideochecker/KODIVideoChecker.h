@@ -166,5 +166,8 @@ private:
 	/// flag indicating state
 	bool _active;
 
+	/// flag indicates if playbackState is valid
+	bool _getCurrentPlaybackStateInitialized;
+
 	static KODIVideoChecker* _kodichecker;
 };
