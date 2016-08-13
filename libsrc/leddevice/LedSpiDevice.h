@@ -20,7 +20,9 @@ public:
 	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
 	/// means no latch required) [ns]
 	///
-	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1);
+	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1,
+                                const int spiMode = SPI_MODE_0, const bool spiDataInvert = false);
+
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -56,6 +58,13 @@ private:
 
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int mFid;
+
+	/// which spi clock mode do we use? (0..3)
+	int mSpiMode;
+
+	/// 1=>invert the data pattern
+	bool mSpiDataInvert;
+
 	/// The transfer structure for writing to the spi-device
 	spi_ioc_transfer spi;
 };
