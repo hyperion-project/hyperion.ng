@@ -243,12 +243,12 @@
                         <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
-                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        <li><a href="#"><i class="fa fa-user fa-fw"></i>User Profile</a>
                         </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i>Settings</a>
                         </li>
                         <li class="divider"></li>
-                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
                         </li>
                     </ul>
                     <!-- /.dropdown-user -->
@@ -272,19 +272,30 @@
                             <!-- /input-group -->
                         </li>
                         <li>
-                            <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                            <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
                         </li>
 						<li>
-						    <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken"> Remote Control</span><span class="fa arrow"></span></a>
+						    <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i>Configuration<span class="fa arrow"></span></a>
 						    <ul class="nav nav-second-level">
                                 <li>
-									<a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken"> Light test</span></a>
-								</li>
-                                <li>
-									<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken"> Effects</span></a>
+									<a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i>Kodi Watch</a>
 								</li>
 							</ul>
 						</li>
+						<li>
+						    <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken">Remote Control</span><span class="fa arrow"></span></a>
+						    <ul class="nav nav-second-level">
+                                <li>
+									<a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken">Light test</span></a>
+								</li>
+                                <li>
+									<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken">Effects</span></a>
+								</li>
+							</ul>
+						</li>
+						<li>
+                            <a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i>Support</a>
+                        </li>
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
@@ -298,16 +309,42 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">Dashboard</h1>
-						<span lang="en">I am translated</span> <br />
-						<span lang="en" data-lang-token="tokentest">I am a TOKEN TEST</span>
-						 
+									<div class="alert alert-info alert-dismissible" role="alert">
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+										<strong>Info!</strong> A newer version of Hyperion is available!
+									</div>
+							<div class="col-lg-4">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<i class="fa fa-info-circle fa-fw"></i>
+										Information
+									</div>
+									<div class="panel-body">
+										<p>Your Hyperion version:</p>
+										<p>Latest version:</p>
+										<p>Device:</p>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-8">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<i class="fa fa-newspaper-o fa-fw"></i>
+										Latest Blog posts
+									</div>
+									<div class="panel-body">
+
+									</div>
+								</div>
+							</div>
+						
                     </div>
                     <!-- /.col-lg-12 -->
                 </div>
                 <!-- /.row -->
             </div>
             <!-- /.container-fluid -->
-        </div>
+		</div>
         <!-- /#page-wrapper -->
 
     </div>
@@ -332,6 +369,12 @@
 			
 			$("#load_effects").on("click", function() {
 				$("#page-wrapper").load("effects.html");		
+			});
+			$("#load_support").on("click", function() {
+				$("#page-wrapper").load("support.html");		
+			});
+			$("#load_confKodi").on("click", function() {
+				$("#page-wrapper").load("confKodi.html");		
 			});
 		});
 
