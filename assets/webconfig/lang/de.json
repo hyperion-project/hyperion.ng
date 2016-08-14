@@ -1,0 +1,19 @@
+{
+	"token": {
+		"I am translated":"Ich bin übersetzt.",
+		"tokentest":"Ich bin ein Token Test",
+		"English":"Englisch",
+		"German":"Deutsch",
+		"lighttesttoken":"Farbe: ",
+		"Light test":"Lichttest",
+		"menulighttesttoken":"Lichttest",
+		"buttoncolorresettoken":"Farbe zurücksetzen",
+		"menueffectstoken":"Effekte",
+		"buttoneffectstoptoken":"Stoppe Effekte",
+		"menuremotecontroltoken":"Fernbedienung"
+	},
+	"regex": [
+		["^Something at start of text", ""],
+		["This will be case insensitive", "i", ""]
+	]
+}

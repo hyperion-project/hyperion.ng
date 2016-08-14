@@ -26,9 +26,10 @@ bool JsonSchemaChecker::setSchema(const Json::Value & schema)
 	return true;
 }
 
-bool JsonSchemaChecker::validate(const Json::Value & value)
+bool JsonSchemaChecker::validate(const Json::Value & value, bool ignoreRequired)
 {
 	// initialize state
+	_ignoreRequired = ignoreRequired;
 	_error = false;
 	_messages.clear();
 	_currentPath.clear();
@@ -201,7 +202,7 @@ void JsonSchemaChecker::checkProperties(const Json::Value & value, const Json::V
 		{
 			validate(value[property], propertyValue);
 		}
-		else if (propertyValue.get("required", false).asBool())
+		else if (propertyValue.get("required", false).asBool() && !_ignoreRequired)
 		{
 			_error = true;
 			setMessage("missing member");

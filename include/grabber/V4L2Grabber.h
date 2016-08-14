@@ -3,6 +3,7 @@
 // stl includes
 #include <string>
 #include <vector>
+#include <map>
 
 // Qt includes
 #include <QObject>
@@ -14,6 +15,7 @@
 #include <utils/PixelFormat.h>
 #include <utils/VideoMode.h>
 #include <utils/ImageResampler.h>
+#include <utils/Logger.h>
 
 // grabber includes
 #include <grabber/VideoStandard.h>
@@ -49,17 +51,23 @@ public slots:
 					double blueSignalThreshold,
 					int noSignalCounterThreshold);
 
-	void start();
+	bool start();
 
 	void stop();
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
+	void readError(const char* err);
 
 private slots:
 	int read_frame();
 
 private:
+	void getV4Ldevices();
+	
+	bool init();
+	void uninit();
+
 	void open_device();
 
 	void close_device();
@@ -101,8 +109,11 @@ private:
 	};
 
 private:
-	const std::string _deviceName;
-	const io_method _ioMethod;
+	std::string _deviceName;
+	std::map<std::string,std::string> _v4lDevices;
+	int _input;
+	VideoStandard _videoStandard;
+	io_method _ioMethod;
 	int _fileDescriptor;
 	std::vector<buffer> _buffers;
 
@@ -122,4 +133,8 @@ private:
 	QSocketNotifier * _streamNotifier;
 
 	ImageResampler _imageResampler;
+	
+	Logger * _log;
+	bool _initialized;
+	bool _deviceAutoDiscoverEnabled;
 };

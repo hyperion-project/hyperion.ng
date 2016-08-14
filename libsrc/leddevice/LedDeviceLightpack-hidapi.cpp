@@ -16,7 +16,7 @@
 
 // from commands.h (http://code.google.com/p/light-pack/source/browse/CommonHeaders/commands.h)
 // Commands to device, sends it in first byte of data[]
-enum COMMANDS{
+enum COMMANDS {
 	CMD_UPDATE_LEDS = 1,
 	CMD_OFF_ALL,
 	CMD_SET_TIMER_OPTIONS,
@@ -28,20 +28,19 @@ enum COMMANDS{
 };
 
 // from commands.h (http://code.google.com/p/light-pack/source/browse/CommonHeaders/commands.h)
-enum DATA_VERSION_INDEXES{
+enum DATA_VERSION_INDEXES {
 	INDEX_FW_VER_MAJOR = 1,
 	INDEX_FW_VER_MINOR
 };
 
-LedDeviceLightpackHidapi::LedDeviceLightpackHidapi() :
-	LedDevice(),
-	_deviceHandle(nullptr),
-	_serialNumber(""),
-	_firmwareVersion({-1,-1}),
-	_ledCount(-1),
-	_bitsPerChannel(-1),
-	_ledBuffer()
+LedDeviceLightpackHidapi::LedDeviceLightpackHidapi()
+	: LedDevice()
+	, _deviceHandle(nullptr)
+	, _serialNumber("")
+	, _firmwareVersion({-1,-1})
+	, _bitsPerChannel(-1)
 {
+	_ledCount = -1;
 }
 
 LedDeviceLightpackHidapi::~LedDeviceLightpackHidapi()
@@ -259,7 +258,7 @@ int LedDeviceLightpackHidapi::writeBytes(uint8_t *data, int size)
 		return 0;
 	}
 
-	Error(_log, "Unable to write %s bytes to Lightpack device(%s)", size, error);
+	Error(_log, "Unable to write %d bytes to Lightpack device(%d)", size, error);
 	return error;
 }
 

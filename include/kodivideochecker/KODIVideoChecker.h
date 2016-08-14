@@ -18,6 +18,7 @@
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 ///
 /// This class will check if KODI is playing something. When it does not, this class will send all black data to Hyperion.
@@ -30,11 +31,13 @@ class KODIVideoChecker : public QObject
 Q_OBJECT
 
 public:
-	static KODIVideoChecker* initInstance(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	static KODIVideoChecker* initInstance(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 	static KODIVideoChecker* getInstance();
 
 	~KODIVideoChecker();
-	void setConfig(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	void setConfig(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+
+	bool componentState() { return _active; }
 
 public slots:
 	///
@@ -46,6 +49,8 @@ public slots:
 	/// Stop polling KODI
 	///
 	void stop();
+
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	/// Signal emitted when the grabbing mode changes
@@ -83,12 +88,10 @@ private:
 	/// @param grabScreensaver Whether or not to grab when the KODI screensaver is activated
 	/// @param enable3DDetection Wheter or not to enable the detection of 3D movies playing
 	///
-	KODIVideoChecker(const std::string & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
+	KODIVideoChecker(const QString & address, uint16_t port, bool grabVideo, bool grabPhoto, bool grabAudio, bool grabMenu, bool grabPause, bool grabScreensaver, bool enable3DDetection);
 	
 	/// Set the grabbing mode
 	void setGrabbingMode(GrabbingMode grabbingMode);
-
-	void setScreensaverMode(bool isOnScreensaver);
 	
 	/// Set the video mode
 	void setVideoMode(VideoMode videoMode);
@@ -114,6 +117,9 @@ private:
 
 	/// The JSON-RPC message to check the kodi version
 	QString _getKodiVersion;
+	
+	/// The JSON-RPC message to check the current Playback State
+	const QString _getCurrentPlaybackState; 
 
 	/// The QT TCP Socket with connection to KODI
 	QTcpSocket _socket;
@@ -138,15 +144,18 @@ private:
 
 	/// Flag indicating wheter or not to enable the detection of 3D movies playing
 	bool _enable3DDetection;
-
-	/// Flag indicating if KODI is on screensaver
-	bool _previousScreensaverMode;
 	
 	/// Previous emitted grab mode
 	GrabbingMode _previousGrabbingMode;
 
 	/// Previous emitted video mode
 	VideoMode _previousVideoMode;
+	
+	/// Current Playback State
+	bool _currentPlaybackState;
+	
+	/// Current Kodi PlayerID
+	int _currentPlayerID;
 
 	/// KODI version number
 	int _kodiVersion;
@@ -156,6 +165,9 @@ private:
 	
 	/// flag indicating state
 	bool _active;
+
+	/// flag indicates if playbackState is valid
+	bool _getCurrentPlaybackStateInitialized;
 
 	static KODIVideoChecker* _kodichecker;
 };

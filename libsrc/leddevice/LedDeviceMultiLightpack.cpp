@@ -17,9 +17,9 @@ bool compareLightpacks(LedDeviceLightpack * lhs, LedDeviceLightpack * rhs)
 	return lhs->getSerialNumber() < rhs->getSerialNumber();
 }
 
-LedDeviceMultiLightpack::LedDeviceMultiLightpack() :
-	LedDevice(),
-	_lightpacks()
+LedDeviceMultiLightpack::LedDeviceMultiLightpack()
+	: LedDevice()
+	, _lightpacks()
 {
 }
 
@@ -42,8 +42,8 @@ int LedDeviceMultiLightpack::open()
 	// open each lightpack device
 	for (const std::string & serial : serialList)
 	{
-		LedDeviceLightpack * device = new LedDeviceLightpack();	
-		int error = device->open(serial);
+		LedDeviceLightpack * device = new LedDeviceLightpack(serial);	
+		int error = device->open();
 
 		if (error == 0)
 		{
@@ -114,7 +114,7 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 	int error = libusb_init(&libusbContext);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log,"Error while initializing USB context(%s): %s", error, libusb_error_name(error));
+		Error(log,"Error while initializing USB context(%d): %s", error, libusb_error_name(error));
 		libusbContext = nullptr;
 		return serialList;
 	}
@@ -132,7 +132,7 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 		error = libusb_get_device_descriptor(deviceList[i], &deviceDescriptor);
 		if (error != LIBUSB_SUCCESS)
 		{
-			Error(log, "Error while retrieving device descriptor(%s): %s", error, libusb_error_name(error));
+			Error(log, "Error while retrieving device descriptor(%d): %s", error, libusb_error_name(error));
 			continue;
 		}
 
@@ -151,7 +151,7 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 				}
 				catch (int e)
 				{
-					Error(log,"Unable to retrieve serial number(%s): %s", e, libusb_error_name(e));
+					Error(log,"Unable to retrieve serial number(%d): %s", e, libusb_error_name(e));
 					continue;
 				}
 			}

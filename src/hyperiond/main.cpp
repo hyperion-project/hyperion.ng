@@ -1,12 +1,18 @@
 #include <cassert>
 #include <csignal>
 #include <unistd.h>
-#include <sys/prctl.h> 
+
+#ifndef __APPLE__
+/* prctl is Linux only */
+#include <sys/prctl.h>
+#endif
+
 #include <exception>
 
 #include <QCoreApplication>
 #include <QLocale>
 #include <QFile>
+#include <QString>
 
 #include "HyperionConfig.h"
 
@@ -50,6 +56,7 @@ int main(int argc, char** argv)
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
 	signal(SIGCHLD, signal_handler);
+	signal(SIGPIPE, signal_handler);
 
 	// force the locale
 	setlocale(LC_ALL, "C");
@@ -121,7 +128,9 @@ int main(int argc, char** argv)
 	if (argParentPid.getValue() > 0 )
 	{
 		Info(log, "hyperiond client, parent is pid %d",argParentPid.getValue());
+#ifndef __APPLE__
 		prctl(PR_SET_PDEATHSIG, SIGHUP);
+#endif
 	}
 	
 	int argvId = -1;
@@ -142,7 +151,7 @@ int main(int argc, char** argv)
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond = new HyperionDaemon(QString::fromStdString(configFiles[argvId]), &app);
 		hyperiond->run();
 	}
 	catch (std::exception& e)

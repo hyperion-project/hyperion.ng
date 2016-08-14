@@ -1,0 +1,23 @@
+/*Header*/
+.navbar-brand{padding: 5px;height:90px;}
+.sidebar{margin-top:91px;}
+.dropdown{font-size:18px;}
+@media (max-width: 767px) {.sidebar{margin-top:0px;}}
+
+/*Colopicker 2x*/
+    .colorpicker-2x .colorpicker-saturation {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .colorpicker-2x .colorpicker-hue,
+    .colorpicker-2x .colorpicker-alpha {
+        width: 30px;
+        height: 200px;
+    }
+    
+    .colorpicker-2x .colorpicker-color,
+    .colorpicker-2x .colorpicker-color div {
+        height: 30px;
+    }
+	 .colorpicker-2x .colorpicker-selectors i{height:20px;width:20px;}

@@ -27,6 +27,9 @@
 // Define to enable the osx grabber
 #cmakedefine ENABLE_OSX
 
+// Define to enable the x11 grabber
+#cmakedefine ENABLE_X11
+
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
 
