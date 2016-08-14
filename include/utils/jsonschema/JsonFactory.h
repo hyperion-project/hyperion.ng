@@ -63,4 +63,12 @@ public:
 		}
 		return jsonTree;
 	}
+
+	static void writeJson(const std::string& filename, Json::Value& jsonTree)
+	{
+		Json::StyledStreamWriter writer;
+		
+		std::ofstream ofs(filename.c_str());
+		writer.write(ofs, jsonTree);
+	}
 };
