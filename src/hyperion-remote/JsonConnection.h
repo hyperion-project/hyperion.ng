@@ -109,6 +109,14 @@ public:
 	QString getConfigFile();
 
 	///
+	/// Write JSON Value(s) to the actual loaded configuration file
+	///
+	/// @param jsonString The JSON String(s) to write
+	/// @param create Specifies whether the nonexistent json string to be created
+	///
+	void setConfigFile(const std::string & jsonString, bool create);
+
+	///
 	/// Set the color transform of the leds
 	///
 	/// @note Note that providing a NULL will leave the settings on the server unchanged
