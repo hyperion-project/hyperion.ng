@@ -144,6 +144,11 @@ private:
 	/// @param message the incoming message
 	///
 	void handleConfigGetCommand(const Json::Value & message);
+
+	///
+	/// Handle an incoming JSON SetConfig message
+	///
+	void handleConfigSetCommand(const Json::Value & message);
 	
 	///
 	/// Handle an incoming JSON Component State message
@@ -197,12 +202,13 @@ private:
 	/// Check if a JSON messag is valid according to a given JSON schema
 	///
 	/// @param message JSON message which need to be checked
-	/// @param schemaResource Qt esource identifier with the JSON schema
+	/// @param schemaResource Qt Resource identifier with the JSON schema
 	/// @param errors Output error message
+	/// @param ignoreRequired ignore the required value in JSON schema
 	///
 	/// @return true if message conforms the given JSON schema
 	///
-	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors);
+	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
 
 private:
 	/// The TCP-Socket that is connected tot the Json-client
