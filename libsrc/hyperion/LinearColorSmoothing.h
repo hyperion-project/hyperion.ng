@@ -15,7 +15,7 @@
 ///
 /// This class processes the requested led values and forwards them to the device after applying
 /// a linear smoothing effect. This class can be handled as a generic LedDevice.
-class LinearColorSmoothing : public QObject, public LedDevice
+class LinearColorSmoothing : public LedDevice
 {
 	Q_OBJECT
 

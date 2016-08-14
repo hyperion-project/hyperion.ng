@@ -232,17 +232,13 @@
 
 
 
-LedDeviceWS2812b::LedDeviceWS2812b() :
-	LedDevice(),
-	mLedCount(0)
-
+LedDeviceWS2812b::LedDeviceWS2812b()
+	: LedDevice()
 #ifdef BENCHMARK
-	,
-	runCount(0),
-	combinedNseconds(0),
-	shortestNseconds(2147483647)
+	, runCount(0)
+	, combinedNseconds(0)
+	, shortestNseconds(2147483647)
 #endif
-
 {
 	//shortestNseconds = 2147483647;
 	// Init PWM generator and clear LED buffer
@@ -306,7 +302,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeStart);
 #endif
 
-	mLedCount = ledValues.size();
+	_ledCount = ledValues.size();
 
 	// Read data from LEDBuffer[], translate it into wire format, and write to PWMWaveform
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
@@ -319,11 +315,11 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
-	cbp->length = ((mLedCount * 2.25) + 1) * 4;
+	cbp->length = ((_ledCount * 2.25) + 1) * 4;
 	if(cbp->length > NUM_DATA_WORDS * 4)
 	{
 		cbp->length = NUM_DATA_WORDS * 4;
-		mLedCount = (NUM_DATA_WORDS - 1) / 2.25;
+		_ledCount = (NUM_DATA_WORDS - 1) / 2.25;
 	}
 
 #ifdef WS2812_ASM_OPTI
@@ -331,7 +327,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 #endif
 
 
-	for(size_t i=0; i<mLedCount; i++)
+	for(size_t i=0; i<_ledCount; i++)
 	{
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
 		colorBits = ((unsigned int)ledValues[i].red << 8) | ((unsigned int)ledValues[i].green << 16) | ledValues[i].blue;
@@ -375,7 +371,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 #ifdef WS2812_ASM_OPTI
 	// calculate the bits manually since it is not needed with asm
-	//wireBit += mLedCount * 24 *3;
+	//wireBit += _ledCount * 24 *3;
 #endif
 	//remove one to undo optimization
 	wireBit --;
@@ -455,7 +451,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceWS2812b::switchOff()
 {
-	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
 
 LedDeviceWS2812b::~LedDeviceWS2812b()
@@ -746,7 +742,7 @@ void LedDeviceWS2812b::initHardware()
 	// 72 bits per pixel / 32 bits per word = 2.25 words per pixel
 	// Add 1 to make sure the PWM FIFO gets the message: "we're sending zeroes"
 	// Times 4 because DMA works in bytes, not words
-	cbp->length = ((mLedCount * 2.25) + 1) * 4;
+	cbp->length = ((_ledCount * 2.25) + 1) * 4;
 	if(cbp->length > NUM_DATA_WORDS * 4)
 	{
 		cbp->length = NUM_DATA_WORDS * 4;

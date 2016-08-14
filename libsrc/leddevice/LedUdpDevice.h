@@ -38,7 +38,7 @@ protected:
 	/// Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the
 	/// values are latched.
 	///
-	/// @param[in[ size The length of the data
+	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
 	/// @return Zero on succes else negative
@@ -48,12 +48,13 @@ protected:
 private:
 	/// The UDP destination as "host:port"
 	const std::string _target;
+	
 	/// The time which the device should be untouched after a write
 	const int _LatchTime_ns;
 
 	///
-	QUdpSocket *udpSocket;
+	QUdpSocket * _udpSocket;
 	QHostAddress _address;
-	quint16 _port;
+	quint16      _port;
 };
 

@@ -20,8 +20,7 @@ public:
 	///
 
 	LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate,
-				const std::string& whiteAlgorithm,
-				const int spiMode, const bool spiDataInvert);
+	                   const std::string& whiteAlgorithm, const int spiMode, const bool spiDataInvert);
 
 	///
 	/// Writes the led color values to the led-device
@@ -35,12 +34,9 @@ public:
 	virtual int switchOff();
 
 private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
-	std::vector<uint8_t> _spiBuffer;
-
 	std::string _whiteAlgorithm;
+	
 	uint8_t bitpair_to_byte[4];
+	
 	ColorRgbw _temp_rgbw;
 };

@@ -1,6 +1,8 @@
 
 // Local-Hyperion includes
 #include "LedDeviceUdp.h"
+
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,7 +23,8 @@ unsigned leds_per_pkt;
 int update_number;
 int fragment_number;
 
-LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned protocol, const unsigned maxPacket) 
+LedDeviceUdp::LedDeviceUdp(const std::string& output, const unsigned protocol, const unsigned maxPacket)
+: LedDevice()
 {
 	std::string hostname;
 	std::string port;
@@ -79,6 +82,7 @@ LedDeviceUdp::~LedDeviceUdp()
 
 int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 {
+	_ledCount = ledValues.size();
 
 	char udpbuffer[4096];
 	int udpPtr=0;
@@ -86,11 +90,13 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 	update_number++;
 	update_number &= 0xf;
 
-	if (ledprotocol == 0) {
+	if (ledprotocol == 0)
+	{
 		int i=0;
 		for (const ColorRgb& color : ledValues)
 		{
-			if (i<4090) {
+			if (i<4090)
+			{
 				udpbuffer[i++] = color.red;
 				udpbuffer[i++] = color.green;
 				udpbuffer[i++] = color.blue;
@@ -98,30 +104,35 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 		}
 		sendto(sockfd, udpbuffer, i, 0, p->ai_addr, p->ai_addrlen);
 	}
-	if (ledprotocol == 1) {
+	if (ledprotocol == 1)
+	{
 #define MAXLEDperFRAG 450
-		int mLedCount = ledValues.size();
-
-		for (int frag=0; frag<4; frag++) {
+		for (int frag=0; frag<4; frag++)
+		{
 			udpPtr=0;
 			udpbuffer[udpPtr++] = 0;
 			udpbuffer[udpPtr++] = 0;
 			udpbuffer[udpPtr++] = (frag*MAXLEDperFRAG)/256;	// high byte
 			udpbuffer[udpPtr++] = (frag*MAXLEDperFRAG)%256;	// low byte
 			int ct=0;
-			for (int this_led = frag*300; ((this_led<mLedCount) && (ct++<MAXLEDperFRAG)); this_led++) {
+			for (int this_led = frag*300; ((this_led<_ledCount) && (ct++<MAXLEDperFRAG)); this_led++)
+			{
 				const ColorRgb& color = ledValues[this_led];
-				if (udpPtr<4090) {
+				if (udpPtr<4090)
+				{
 					udpbuffer[udpPtr++] = color.red;
 					udpbuffer[udpPtr++] = color.green;
 					udpbuffer[udpPtr++] = color.blue;
 				}
 			}
 			if (udpPtr > 7)
+			{
 				sendto(sockfd, udpbuffer, udpPtr, 0, p->ai_addr, p->ai_addrlen);
+			}
 		}
 	}
-	if (ledprotocol == 2) {
+	if (ledprotocol == 2)
+	{
 		udpPtr = 0;
 		unsigned int ledCtr = 0;
 		fragment_number = 0;
@@ -150,7 +161,8 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 		}
 	}
 
-	if (ledprotocol == 3) {
+	if (ledprotocol == 3)
+	{
 		udpPtr = 0;
 		unsigned int ledCtr = 0;
 		unsigned int fragments = 1;
@@ -168,13 +180,15 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 
 		for (const ColorRgb& color : ledValues)
 		{
-			if (udpPtr<4090) {
+			if (udpPtr<4090)
+			{
 				udpbuffer[udpPtr++] = color.red;
 				udpbuffer[udpPtr++] = color.green;
 				udpbuffer[udpPtr++] = color.blue;
 			}
 			ledCtr++;
-			if ( (ledCtr % leds_per_pkt == 0) || (ledCtr == ledValues.size()) ) {
+			if ( (ledCtr % leds_per_pkt == 0) || (ledCtr == ledValues.size()) )
+			{
 				udpbuffer[udpPtr++] = 0x36;
 				sendto(sockfd, udpbuffer, udpPtr, 0, p->ai_addr, p->ai_addrlen);
 				memset(udpbuffer, 0, sizeof udpbuffer);
@@ -194,6 +208,6 @@ int LedDeviceUdp::write(const std::vector<ColorRgb> & ledValues)
 
 int LedDeviceUdp::switchOff()
 {
-//		return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+//		return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 	return 0;
 }

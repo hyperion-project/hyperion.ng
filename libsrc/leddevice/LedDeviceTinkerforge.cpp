@@ -9,15 +9,15 @@
 static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 
-LedDeviceTinkerforge::LedDeviceTinkerforge(const std::string & host, uint16_t port, const std::string & uid, const unsigned interval) :
-		LedDevice(),
-		_host(host),
-		_port(port),
-		_uid(uid),
-		_interval(interval),
-		_ipConnection(nullptr),
-		_ledStrip(nullptr),
-		_colorChannelSize(0)
+LedDeviceTinkerforge::LedDeviceTinkerforge(const std::string & host, uint16_t port, const std::string & uid, const unsigned interval)
+		: LedDevice()
+		, _host(host)
+		, _port(port)
+		, _uid(uid)
+		, _interval(interval)
+		, _ipConnection(nullptr)
+		, _ledStrip(nullptr)
+		, _colorChannelSize(0)
 {
 	// empty
 }

@@ -33,10 +33,5 @@ public:
 	virtual int switchOff();
 
 private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
-	std::vector<uint8_t> _spiBuffer;
-
-        uint8_t bitpair_to_byte[4];
+	uint8_t bitpair_to_byte[4];
 };

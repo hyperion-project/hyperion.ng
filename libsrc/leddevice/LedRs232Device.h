@@ -9,7 +9,7 @@
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
 ///
-class LedRs232Device : public QObject, public LedDevice
+class LedRs232Device : public LedDevice
 {
 	Q_OBJECT
 
@@ -49,6 +49,7 @@ private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
 	void error(QSerialPort::SerialPortError error);
+
 private:
 	// tries to open device if not opened
 	bool tryOpen();

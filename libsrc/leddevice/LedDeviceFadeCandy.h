@@ -13,7 +13,7 @@
 /// Implementation of the LedDevice interface for sending to
 /// fadecandy/opc-server via network by using the 'open pixel control' protocol.
 ///
-class LedDeviceFadeCandy : public QObject, public LedDevice
+class LedDeviceFadeCandy : public LedDevice
 {
 	Q_OBJECT
 

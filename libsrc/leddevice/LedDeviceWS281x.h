@@ -1,6 +1,3 @@
-#ifndef LEDDEVICEWS281X_H_
-#define LEDDEVICEWS281X_H_
-
 #pragma once
 
 #include <leddevice/LedDevice.h>
@@ -41,11 +38,9 @@ public:
 	virtual int switchOff();
 
 private:
-	ws2811_t led_string;
-	int chan;
-	bool initialized;
-        std::string _whiteAlgorithm;
-	ColorRgbw _temp_rgbw;
+	ws2811_t    _led_string;
+	int         _channel;
+	bool        _initialized;
+	std::string _whiteAlgorithm;
+	ColorRgbw   _temp_rgbw;
 };
-
-#endif /* LEDDEVICEWS281X_H_ */

@@ -11,12 +11,11 @@ uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
 std::string LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
 
 
-LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(uint8_t writeLedsCommand) :
-	LedDevice(),
-	_writeLedsCommand(writeLedsCommand),
-	_libusbContext(nullptr),
-	_deviceHandle(nullptr),
-	_ledCount(256)
+LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(uint8_t writeLedsCommand)
+	: LedDevice()
+	, _writeLedsCommand(writeLedsCommand)
+	, _libusbContext(nullptr)
+	, _deviceHandle(nullptr)
 {
 }
 

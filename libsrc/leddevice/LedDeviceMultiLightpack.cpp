@@ -17,9 +17,9 @@ bool compareLightpacks(LedDeviceLightpack * lhs, LedDeviceLightpack * rhs)
 	return lhs->getSerialNumber() < rhs->getSerialNumber();
 }
 
-LedDeviceMultiLightpack::LedDeviceMultiLightpack() :
-	LedDevice(),
-	_lightpacks()
+LedDeviceMultiLightpack::LedDeviceMultiLightpack()
+	: LedDevice()
+	, _lightpacks()
 {
 }
 

@@ -12,9 +12,8 @@
 #include "LedDeviceSk6812SPI.h"
 
 LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate, const std::string& whiteAlgorithm,
-                                                const int spiMode, const bool spiDataInvert)
+                                       const int spiMode, const bool spiDataInvert)
 	: LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert)
-	, mLedCount(0)
 	, _whiteAlgorithm(whiteAlgorithm)
 	, bitpair_to_byte {
 		0b10001000,
@@ -29,16 +28,16 @@ LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const un
 
 int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 {
-	mLedCount = ledValues.size();
+	_ledCount = ledValues.size();
 
 // 4 colours, 4 spi bytes per colour + 3 frame end latch bytes
 #define COLOURS_PER_LED		4
 #define SPI_BYTES_PER_COLOUR	4
 #define SPI_BYTES_PER_LED 	COLOURS_PER_LED * SPI_BYTES_PER_COLOUR
 
-	unsigned spi_size = mLedCount * SPI_BYTES_PER_LED + 3;
-	if(_spiBuffer.size() != spi_size){
-                _spiBuffer.resize(spi_size, 0x00);
+	unsigned spi_size = _ledCount * SPI_BYTES_PER_LED + 3;
+	if(_ledBuffer.size() != spi_size){
+                _ledBuffer.resize(spi_size, 0x00);
 	}
 
 	unsigned spi_ptr = 0;
@@ -52,19 +51,19 @@ int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 			_temp_rgbw.white;
 
 		for (int j=SPI_BYTES_PER_LED - 1; j>=0; j--) {
-			_spiBuffer[spi_ptr+j] = bitpair_to_byte[ colorBits & 0x3 ];
+			_ledBuffer[spi_ptr+j] = bitpair_to_byte[ colorBits & 0x3 ];
 			colorBits >>= 2;
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
         }
-	_spiBuffer[spi_ptr++] = 0;
-	_spiBuffer[spi_ptr++] = 0;
-	_spiBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr++] = 0;
 
-	return writeBytes(spi_size, _spiBuffer.data());
+	return writeBytes(spi_size, _ledBuffer.data());
 }
 
 int LedDeviceSk6812SPI::switchOff()
 {
-	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

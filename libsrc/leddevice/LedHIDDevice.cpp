@@ -9,13 +9,13 @@
 // Local Hyperion includes
 #include "LedHIDDevice.h"
 
-LedHIDDevice::LedHIDDevice(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms, const bool useFeature) :
-	_VendorId(VendorId),
-	_ProductId(ProductId),
-	_useFeature(useFeature),
-	_deviceHandle(nullptr),
-	_delayAfterConnect_ms(delayAfterConnect_ms),
-	_blockedForDelay(false)
+LedHIDDevice::LedHIDDevice(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms, const bool useFeature)
+	: _VendorId(VendorId)
+	, _ProductId(ProductId)
+	, _useFeature(useFeature)
+	, _deviceHandle(nullptr)
+	, _delayAfterConnect_ms(delayAfterConnect_ms)
+	, _blockedForDelay(false)
 {
 	// empty
 }

@@ -18,8 +18,7 @@ public:
 	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceP9813(const std::string& outputDevice,
-					const unsigned baudrate);
+	LedDeviceP9813(const std::string& outputDevice, const unsigned baudrate);
 
 	///
 	/// Writes the led color values to the led-device
@@ -33,13 +32,6 @@ public:
 	virtual int switchOff();
 
 private:
-
-	/// the number of leds
-	size_t _ledCount;
-
-	/// Buffer for writing/written led data
-	std::vector<uint8_t> _ledBuf;
-
 	///
 	/// Calculates the required checksum for one led
 	///
