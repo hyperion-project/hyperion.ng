@@ -24,6 +24,7 @@
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
 #include <HyperionConfig.h>
+#include <utils/jsonschema/JsonFactory.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -267,6 +268,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 			handleSourceSelectCommand(message);
 		else if (command == "configget")
 			handleConfigGetCommand(message);
+		else if (command == "configset")
+			handleConfigSetCommand(message);
 		else if (command == "componentstate")
 			handleComponentStateCommand(message);
 		else
@@ -842,6 +845,53 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
 	sendMessage(result);
 }
 
+void JsonClientConnection::handleConfigSetCommand(const Json::Value &message)
+{
+	struct nested
+	{
+		static void configSetCommand(const Json::Value& message, Json::Value& config, bool& create)
+		{
+			if (!config.isObject() || !message.isObject())
+				return;
+
+			for (const auto& key : message.getMemberNames()) {
+				if ((config.isObject() && config.isMember(key)) || create)
+				{
+					if (config[key].type() == Json::objectValue && message[key].type() == Json::objectValue)
+					{
+						configSetCommand(message[key], config[key], create);
+					}
+					else
+						if ( !config[key].empty() || create)
+							config[key] = message[key];
+				}
+			}
+		}
+	};
+
+	if(message.size() > 0)
+	{
+		if (message.isObject() && message.isMember("configset"))
+		{	
+			std::string errors;
+			if (!checkJson(message["configset"], ":/hyperion-schema", errors, true))
+			{
+				sendErrorReply("Error while validating json: " + errors);
+				return;
+			}
+			
+			bool createKey = message.isMember("create");
+			Json::Value hyperionConfig = _hyperion->getJsonConfig();
+			nested::configSetCommand(message["configset"], hyperionConfig, createKey);
+			
+			JsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfig);
+			
+			sendSuccessReply();
+		}
+	} else
+		sendErrorReply("Error while parsing json: Message size " + message.size());
+}
+
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
 {
 	const Json::Value & componentState = message["componentstate"];
@@ -956,7 +1006,7 @@ void JsonClientConnection::sendErrorReply(const std::string &error)
 	sendMessage(reply);
 }
 
-bool JsonClientConnection::checkJson(const Json::Value & message, const QString & schemaResource, std::string & errorMessage)
+bool JsonClientConnection::checkJson(const Json::Value & message, const QString & schemaResource, std::string & errorMessage, bool ignoreRequired)
 {
 	// read the json schema from the resource
 	QResource schemaData(schemaResource);
@@ -974,7 +1024,7 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 	schema.setSchema(schemaJson);
 
 	// check the message
-	if (!schema.validate(message))
+	if (!schema.validate(message, ignoreRequired))
 	{
 		const std::list<std::string> & errors = schema.getMessages();
 		std::stringstream ss;

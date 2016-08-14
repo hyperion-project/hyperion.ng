@@ -896,10 +896,6 @@
 				},
 				"additionalProperties" : false
 			}
-		},
-		"endOfJson" :
-		{
-			"type" : "string"
 		}
 	},
 	"additionalProperties" : false

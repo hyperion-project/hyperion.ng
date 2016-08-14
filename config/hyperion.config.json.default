@@ -437,7 +437,5 @@
 			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
 			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
 		}
-	],
-
-	"endOfJson" : "endOfJson"
+	]
 }

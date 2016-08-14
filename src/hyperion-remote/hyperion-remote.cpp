@@ -87,7 +87,9 @@ int main(int argc, char * argv[])
 		IntParameter       & argSource   = parameters.add<IntParameter>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		SwitchParameter<>  & argSourceAuto = parameters.add<SwitchParameter<> >(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 		SwitchParameter<>  & argSourceOff = parameters.add<SwitchParameter<> >(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
-		SwitchParameter<>  & argConfigGet   = parameters.add<SwitchParameter<> >(0x0, "configget"  , "Print the current loaded Hyperion configuration file");
+		SwitchParameter<>  & argConfigGet   = parameters.add<SwitchParameter<> >(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
+		StringParameter & argConfigSet = parameters.add<StringParameter>('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
+		SwitchParameter<> & argCreate = parameters.add<SwitchParameter<> >(0x0, "createkeys", "Create non exist Json Entry(s) in the actual loaded configuration file. Argument to use in combination with configSet.");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -111,7 +113,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argSourceOff.isSet(), argConfigGet.isSet()});
+        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), argEnableComponent.isSet(), argDisableComponent.isSet(), colorModding, argSource.isSet(), argSourceAuto.isSet(), argSourceOff.isSet(), argConfigGet.isSet(), argConfigSet.isSet()});
 		if (commandCount != 1)
 		{
 			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
@@ -126,6 +128,7 @@ int main(int argc, char * argv[])
 			std::cerr << "  " << argSource.usageLine() << std::endl;
 			std::cerr << "  " << argSourceAuto.usageLine() << std::endl;
 			std::cerr << "  " << argConfigGet.usageLine() << std::endl;
+			std::cerr << "  " << argConfigSet.usageLine() << std::endl;
 			std::cerr << "or one or more of the available color modding operations:" << std::endl;
 			std::cerr << "  " << argId.usageLine() << std::endl;
 			std::cerr << "  " << argSaturation.usageLine() << std::endl;
@@ -201,6 +204,10 @@ int main(int argc, char * argv[])
 		{
 			QString info = connection.getConfigFile();
 			std::cout << "Configuration File:\n" << info.toStdString() << std::endl;
+		}
+		else if (argConfigSet.isSet())
+		{
+			connection.setConfigFile(argConfigSet.getValue(), argCreate.isSet());
 		}
 		else if (colorModding)
 		{	
