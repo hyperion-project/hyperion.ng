@@ -10,39 +10,39 @@
 
 
     <title>Hyperion</title>
-	
-	
+
+
 	<!-- jQuery -->
     <script src="js/jquery.min.js"></script>
 
 	<!--Language Support -->
 	<script src="js/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
 	<script src="js/js.cookie.js"></script>
-	
+
 	<script type="text/javascript">
 		// Create language switcher instance
 		var lang = new Lang();
 
 		lang.dynamic('de', 'lang/de.json');
-		
+
 		lang.init({
 			defaultLang: 'en',
-			
+
 			cookie: {
 				name: 'langCookie',
 				expiry: 365,
 				path: '/'
 			},
 
-    
+
 			allowCookieOverride: true
 		});
 	</script>
-	
+
 
     <!-- Bootstrap Core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-	
+
 	<!-- Flags -->
 	<link href="css/flag-icon.min.css" rel="stylesheet">
 
@@ -53,7 +53,7 @@
     <link href="css/sb-admin-2.css" rel="stylesheet">
 
 	<link href="css/hyperion.css" rel="stylesheet">
-	
+
     <!-- Custom Fonts -->
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
@@ -277,39 +277,32 @@
                         <li>
                             <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
                         </li>
-						<li>
-<<<<<<< HEAD
-                            <a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i> Hue Bridge</a>
+						            <li>
+                            <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i>Configuration<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+									                  <a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i>Kodi Watch</a>
+								                </li>
+                                <li>
+                                    <a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i> Hue Bridge</a>
+                                </li>
+							              </ul>
+						            </li>
+						            <li>
+						                <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken">Remote Control</span><span class="fa arrow"></span></a>
+						                <ul class="nav nav-second-level">
+                                <li>
+									                  <a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken">Light test</span></a>
+								                </li>
+                                <li>
+                									  <a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken">Effects</span></a>
+                								</li>
+							              </ul>
                         </li>
-						<li>
-						    <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken"> Remote Control</span><span class="fa arrow"></span></a>
-=======
-						    <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i>Configuration<span class="fa arrow"></span></a>
->>>>>>> refs/remotes/hyperion-project/master
-						    <ul class="nav nav-second-level">
-                                <li>
-									<a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i>Kodi Watch</a>
-								</li>
-							</ul>
-						</li>
-						<li>
-						    <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken">Remote Control</span><span class="fa arrow"></span></a>
-						    <ul class="nav nav-second-level">
-                                <li>
-									<a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken">Light test</span></a>
-								</li>
-                                <li>
-									<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken">Effects</span></a>
-								</li>
-							</ul>
-<<<<<<< HEAD
-						</li>	
-=======
-						</li>
-						<li>
+						            <li>
                             <a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i>Support</a>
                         </li>
->>>>>>> refs/remotes/hyperion-project/master
+
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
@@ -351,7 +344,7 @@
 									</div>
 								</div>
 							</div>
-						
+
                     </div>
                     <!-- /.col-lg-12 -->
                 </div>
@@ -363,8 +356,8 @@
 
     </div>
     <!-- /#wrapper -->
-	
-    
+
+
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/bootstrap.min.js"></script>
@@ -378,26 +371,25 @@
 
 		$(document).ready( function() {
 			$("#load_lighttest").on("click", function() {
-				$("#page-wrapper").load("lighttest.html");		
+				$("#page-wrapper").load("lighttest.html");
 			});
-			
-			$("#load_effects").on("click", function() {
-				$("#page-wrapper").load("effects.html");		
-			});
-<<<<<<< HEAD
-			
-			$("#load_huebridge").on("click", function() {
-				$("#page-wrapper").load("huebridge.html");		
-=======
-			$("#load_support").on("click", function() {
-				$("#page-wrapper").load("support.html");		
-			});
-			$("#load_confKodi").on("click", function() {
-				$("#page-wrapper").load("confKodi.html");		
->>>>>>> refs/remotes/hyperion-project/master
-			});
-		});
 
+			$("#load_effects").on("click", function() {
+				$("#page-wrapper").load("effects.html");
+			});
+
+			$("#load_huebridge").on("click", function() {
+				$("#page-wrapper").load("huebridge.html");
+      });
+
+			$("#load_support").on("click", function() {
+				$("#page-wrapper").load("support.html");
+			});
+
+			$("#load_confKodi").on("click", function() {
+				$("#page-wrapper").load("confkodi.html");
+			});
+    });
 		$(function(){
 			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
 
