@@ -51,12 +51,9 @@
 
     <!-- Custom CSS -->
     <link href="css/sb-admin-2.css" rel="stylesheet">
-<<<<<<< HEAD
 
-=======
 	<link href="css/hyperion.css" rel="stylesheet">
 	
->>>>>>> refs/remotes/hyperion-project/master
     <!-- Custom Fonts -->
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
@@ -82,11 +79,9 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-<<<<<<< HEAD
-                <a class="navbar-brand" href="index.html">Hyperion</a>
-=======
+
                 <a class="navbar-brand" href="index.html"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!"></a>
->>>>>>> refs/remotes/hyperion-project/master
+
             </div>
             <!-- /.navbar-header -->
 
@@ -283,6 +278,9 @@
                             <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
                         </li>
 						<li>
+                            <a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i> Hue Bridge</a>
+                        </li>
+						<li>
 						    <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken"> Remote Control</span><span class="fa arrow"></span></a>
 						    <ul class="nav nav-second-level">
                                 <li>
@@ -292,7 +290,7 @@
 									<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken"> Effects</span></a>
 								</li>
 							</ul>
-						</li>
+						</li>	
                     </ul>
                 </div>
                 <!-- /.sidebar-collapse -->
@@ -340,6 +338,10 @@
 			
 			$("#load_effects").on("click", function() {
 				$("#page-wrapper").load("effects.html");		
+			});
+			
+			$("#load_huebridge").on("click", function() {
+				$("#page-wrapper").load("huebridge.html");		
 			});
 		});
 
