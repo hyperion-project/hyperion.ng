@@ -265,6 +265,29 @@ QString JsonConnection::getConfigFile()
 	return QString();
 }
 
+void JsonConnection::setConfigFile(const std::string &jsonString, bool create)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "configset";
+	command["create"] = create;
+	Json::Value & config = command["configset"];
+	if (jsonString.size() > 0)
+	{
+		Json::Reader reader;
+		if (!reader.parse(jsonString, config, false))
+		{
+			throw std::runtime_error("Error in configset arguments: " + reader.getFormattedErrorMessages());
+		}
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
