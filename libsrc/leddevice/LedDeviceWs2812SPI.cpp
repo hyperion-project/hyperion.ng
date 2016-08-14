@@ -11,55 +11,53 @@
 // hyperion local includes
 #include "LedDeviceWs2812SPI.h"
 
-LedDeviceWs2812SPI::LedDeviceWs2812SPI(const std::string& outputDevice, const unsigned baudrate,
-                                                const int spiMode, const bool spiDataInvert)
-        : LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert)
-	, mLedCount(0)
+LedDeviceWs2812SPI::LedDeviceWs2812SPI(const std::string& outputDevice, const unsigned baudrate, const int spiMode, const bool spiDataInvert)
+	: LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
 		0b11001000,
 		0b11001100,
 	}
-
 {
 	// empty
 }
 
 int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 {
-	mLedCount = ledValues.size();
+	_ledCount = ledValues.size();
 
-// 3 colours, 4 spi bytes per colour + 3 frame end latch bytes
-#define COLOURS_PER_LED		3
-#define SPI_BYTES_PER_COLOUR	4
-#define SPI_BYTES_PER_LED 	COLOURS_PER_LED * SPI_BYTES_PER_COLOUR
+	// 3 colours, 4 spi bytes per colour + 3 frame end latch bytes
+	const int SPI_BYTES_PER_LED  = 3 * 4;
+	unsigned spi_size = _ledCount * SPI_BYTES_PER_LED + 3;
 
-	unsigned spi_size = mLedCount * SPI_BYTES_PER_LED + 3;
-	if(_spiBuffer.size() != spi_size){
-                _spiBuffer.resize(spi_size, 0x00);
+	if(_ledBuffer.size() != spi_size)
+	{
+		_ledBuffer.resize(spi_size, 0x00);
 	}
 
 	unsigned spi_ptr = 0;
-        for (unsigned i=0; i< mLedCount; ++i) {
+	for (unsigned i=0; i< (unsigned)_ledCount; ++i)
+	{
 		uint32_t colorBits = ((unsigned int)ledValues[i].red << 16) 
 			| ((unsigned int)ledValues[i].green << 8) 
 			| ledValues[i].blue;
 
-		for (int j=SPI_BYTES_PER_LED - 1; j>=0; j--) {
-			_spiBuffer[spi_ptr+j] = bitpair_to_byte[ colorBits & 0x3 ];
+		for (int j=SPI_BYTES_PER_LED - 1; j>=0; j--)
+		{
+			_ledBuffer[spi_ptr+j] = bitpair_to_byte[ colorBits & 0x3 ];
 			colorBits >>= 2;
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
-        }
-	_spiBuffer[spi_ptr++] = 0;
-	_spiBuffer[spi_ptr++] = 0;
-	_spiBuffer[spi_ptr++] = 0;
+	}
+	_ledBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr++] = 0;
+	_ledBuffer[spi_ptr++] = 0;
 
-	return writeBytes(spi_size, _spiBuffer.data());
+	return writeBytes(spi_size, _ledBuffer.data());
 }
 
 int LedDeviceWs2812SPI::switchOff()
 {
-	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

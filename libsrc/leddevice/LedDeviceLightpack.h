@@ -110,12 +110,6 @@ private:
 	/// firmware version of the device
 	Version _firmwareVersion;
 
-	/// the number of leds of the device
-	int _ledCount;
-
 	/// the number of bits per channel
 	int _bitsPerChannel;
-
-	/// buffer for led data
-	std::vector<uint8_t> _ledBuffer;
 };

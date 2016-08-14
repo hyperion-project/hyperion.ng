@@ -41,9 +41,6 @@ private slots:
 	void rewriteLeds();
 
 protected:
-	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
-
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// The Adalight device will switch off when it does not receive data at least
 	/// every 15 seconds

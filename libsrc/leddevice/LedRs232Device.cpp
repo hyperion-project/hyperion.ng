@@ -18,8 +18,6 @@ LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned b
 	, _stateChanged(true)
 {
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
-	
-	
 }
 
 void LedRs232Device::error(QSerialPort::SerialPortError error)
@@ -109,7 +107,9 @@ bool LedRs232Device::tryOpen()
 int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 {
 	if (_blockedForDelay)
+	{
 		return 0;
+	}
 
 	if (!_rs232Port.isOpen())
 	{

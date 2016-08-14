@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes0
-#include <fstream>
-
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -35,7 +32,4 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
-private:
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
 };

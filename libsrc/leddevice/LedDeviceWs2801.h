@@ -35,9 +35,4 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
-private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
 };

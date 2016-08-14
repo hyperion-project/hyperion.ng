@@ -40,10 +40,9 @@ LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
 	, _addressNumber(-1)
 	, _serialNumber(serialNumber)
 	, _firmwareVersion({-1,-1})
-	, _ledCount(-1)
 	, _bitsPerChannel(-1)
-	, _ledBuffer()
 {
+	_ledCount = -1;
 }
 
 LedDeviceLightpack::~LedDeviceLightpack()
