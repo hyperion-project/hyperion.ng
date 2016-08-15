@@ -60,9 +60,7 @@ public:
 	/// https://github.com/PhilipsHue/PhilipsHueSDK-iOS-OSX/blob/master/ApplicationDesignNotes/RGB%20to%20xy%20Color%20conversion.md
 	///
 	/// @param red the red component in [0, 1]
-	///
 	/// @param green the green component in [0, 1]
-	///
 	/// @param blue the blue component in [0, 1]
 	///
 	/// @return color point
@@ -71,14 +69,12 @@ public:
 
 	///
 	/// @param p the color point to check
-	///
 	/// @return true if the color point is covered by the lamp color space
 	///
 	bool isPointInLampsReach(CiColor p);
 
 	///
 	/// @param p1 point one
-	///
 	/// @param p2 point tow
 	///
 	/// @return the cross product between p1 and p2
@@ -87,9 +83,7 @@ public:
 
 	///
 	/// @param a reference point one
-	///
 	/// @param b reference point two
-	///
 	/// @param p the point to which the closest point is to be found
 	///
 	/// @return the closest color point of p to a and b
@@ -98,7 +92,6 @@ public:
 
 	///
 	/// @param p1 point one
-	///
 	/// @param p2 point tow
 	///
 	/// @return the distance between the two points
@@ -116,20 +109,18 @@ public:
  *
  * @author ntim (github), bimsarck (github)
  */
-class LedDevicePhilipsHue: public QObject, public LedDevice {
-Q_OBJECT
+class LedDevicePhilipsHue: public LedDevice {
+
+	Q_OBJECT
+
 public:
 	///
 	/// Constructs the device.
 	///
 	/// @param output the ip address of the bridge
-	///
 	/// @param username username of the hue bridge (default: newdeveloper)
-	///
 	/// @param switchOffOnBlack kill lights for black (default: false)
-	///
 	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
-	///
 	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
 	///
 	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =

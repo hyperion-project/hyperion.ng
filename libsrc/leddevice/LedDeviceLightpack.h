@@ -20,7 +20,9 @@ public:
 	///
 	/// Constructs the LedDeviceLightpack
 	///
-	LedDeviceLightpack();
+	/// @param serialNumber serial output device
+	///
+	LedDeviceLightpack(const std::string & serialNumber = "");
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -32,7 +34,7 @@ public:
 	///
 	/// @return Zero on succes else negative
 	///
-	int open(const std::string & serialNumber = "");
+	int open();
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -108,12 +110,6 @@ private:
 	/// firmware version of the device
 	Version _firmwareVersion;
 
-	/// the number of leds of the device
-	int _ledCount;
-
 	/// the number of bits per channel
 	int _bitsPerChannel;
-
-	/// buffer for led data
-	std::vector<uint8_t> _ledBuffer;
 };

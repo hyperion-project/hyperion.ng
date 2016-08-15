@@ -21,7 +21,9 @@ public:
 
 	LedDeviceWs2801(const std::string& outputDevice,
 					const unsigned baudrate,
-					const unsigned latchTime);
+					const unsigned latchTime,
+					const int spiMode,
+					const bool spiDataInvert);
 
 	///
 	/// Writes the led color values to the led-device
@@ -33,9 +35,4 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
-private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
 };

@@ -1,14 +1,11 @@
 #pragma once
 
-// STL includes0
-#include <fstream>
-
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
 ///
-/// Implementation of the LedDevice that write the led-colors to an
-/// ASCII-textfile('/home/pi/LedDevice.out')
+/// Implementation of the LedDevice that write the led-colors via udp
+/// 
 ///
 class LedDeviceUdp : public LedDevice
 {
@@ -16,7 +13,7 @@ public:
 	///
 	/// Constructs the test-device, which opens an output stream to the file
 	///
-	LedDeviceUdp(const std::string& output,  const unsigned baudrate, const unsigned protocol, const unsigned maxPacket);
+	LedDeviceUdp(const std::string& output,  const unsigned protocol, const unsigned maxPacket);
 
 	///
 	/// Destructor of this test-device
@@ -35,10 +32,4 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
-private:
-	/// The outputstream
-//	std::ofstream _ofs;
-
-        /// the number of leds (needed when switching off)
-        size_t mLedCount;
 };

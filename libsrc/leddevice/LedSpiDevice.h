@@ -15,12 +15,14 @@ public:
 	///
 	/// Constructs the LedDevice attached to a SPI-device
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
+	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev.0.0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
 	/// means no latch required) [ns]
 	///
-	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1);
+	LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1,
+                                const int spiMode = SPI_MODE_0, const bool spiDataInvert = false);
+
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -48,14 +50,23 @@ protected:
 
 private:
 	/// The name of the output device
-	const std::string mDeviceName;
+	const std::string _deviceName;
+
 	/// The used baudrate of the output device
-	const int mBaudRate_Hz;
+	const int _baudRate_Hz;
+
 	/// The time which the device should be untouched after a write
-	const int mLatchTime_ns;
+	const int _latchTime_ns;
 
 	/// The File Identifier of the opened output device (or -1 if not opened)
-	int mFid;
+	int _fid;
+
+	/// which spi clock mode do we use? (0..3)
+	int _spiMode;
+
+	/// 1=>invert the data pattern
+	bool _spiDataInvert;
+
 	/// The transfer structure for writing to the spi-device
-	spi_ioc_transfer spi;
+	spi_ioc_transfer _spi;
 };

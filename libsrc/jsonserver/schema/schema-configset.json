@@ -1,0 +1,20 @@
+{
+	"type" : "object",
+	"required" : true,
+	"properties" : {
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["configset"]
+		},
+		"configset": {
+			"type" : "object",
+			"required" : true
+		},
+		"create": {
+			"type" : "boolean",
+			"required" : false
+		}
+	},
+	"additionalProperties": false
+}

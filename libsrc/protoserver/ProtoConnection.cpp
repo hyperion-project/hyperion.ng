@@ -164,7 +164,7 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 		  break;
 
 		default:
-		  //std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+		  Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 	  }
 	  _prevSocketState = _socket.state();
@@ -229,7 +229,7 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 		}
 		case proto::HyperionReply::GRABBING:
 		{
-			int grabbing = reply.has_grabbing() ? reply.grabbing() : 6;
+			int grabbing = reply.has_grabbing() ? reply.grabbing() : 7;
 			GrabbingMode gMode = (GrabbingMode)grabbing;
 			emit setGrabbingMode(gMode);
 			break;

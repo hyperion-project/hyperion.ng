@@ -10,7 +10,9 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared) :
+using namespace hyperion;
+
+UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
@@ -23,12 +25,15 @@ UDPListener::UDPListener(const int priority, const int timeout, const std::strin
 	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
 {
 	_server = new QUdpSocket(this);
-	_listenAddress = address.empty()
+	_listenAddress = address.isEmpty()
 	                           ? QHostAddress::AnyIPv4 
-	                           : QHostAddress( QString::fromStdString(address) );
+	                           : QHostAddress(address);
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+	
+	_hyperion->registerPriority("UDPLISTENER", _priority);
+
 }
 
 UDPListener::~UDPListener()
@@ -77,6 +82,15 @@ void UDPListener::stop()
 	emit statusChanged(_isActive);
 }
 
+void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_UDPLISTENER && _isActive != enable)
+	{
+		if (enable) start();
+		else        stop();
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
 
 uint16_t UDPListener::getPort() const
 {
@@ -92,8 +106,7 @@ void UDPListener::readPendingDatagrams()
 		QHostAddress sender;
 		quint16 senderPort;
 
-		_server->readDatagram(datagram.data(), datagram.size(),
-					&sender, &senderPort);
+		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
 		processTheDatagram(&datagram);
 

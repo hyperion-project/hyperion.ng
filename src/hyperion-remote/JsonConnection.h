@@ -82,6 +82,39 @@ public:
 	/// Clear all priority channels
 	///
 	void clearAll();
+	
+	///
+	/// Enable/Disable components during runtime
+	///
+	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param state The state of the component [true | false]
+	///
+	void setComponentState(const std::string & component, const bool state);
+
+	///
+	/// Set current active priority channel and deactivate auto source switching
+	///
+	/// @param priority The priority
+	///
+	void setSource(int priority);
+	
+	///
+	/// Enables auto source, if disabled prio by manual selecting input source
+	///
+	void setSourceAutoSelect();
+	
+	///
+	/// Print the current loaded Hyperion configuration file 
+	///
+	QString getConfigFile();
+
+	///
+	/// Write JSON Value(s) to the actual loaded configuration file
+	///
+	/// @param jsonString The JSON String(s) to write
+	/// @param create Specifies whether the nonexistent json string to be created
+	///
+	void setConfigFile(const std::string & jsonString, bool create);
 
 	///
 	/// Set the color transform of the leds

@@ -33,11 +33,4 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
-private:
-
-	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
-	unsigned int _mLedCount;
-
 };

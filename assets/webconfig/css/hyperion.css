@@ -1,0 +1,43 @@
+/**General**/
+@font-face {
+    font-family: "Roboto";
+    src: url("../fonts/Roboto-Regular.woff") format('woff'),
+		 url("../fonts/Roboto-Regular.ttf") format('ttf');
+}
+body{font-family:Roboto;font-size:15px;}
+
+/*Header*/
+.navbar-brand{padding: 5px;height:90px;}
+.sidebar{margin-top:91px;}
+.dropdown{font-size:18px;}
+@media (max-width: 767px) {.sidebar{margin-top:0px;}}
+
+/*Sidebar*/
+.sidebar .fa-fw{width:1.9em}
+
+/*Panels*/
+.panel-heading{font-size:18px;}
+
+/*Colorpicker 2x*/
+.colorpicker-2x .colorpicker-saturation {width: 200px;height: 200px;}
+.colorpicker-2x .colorpicker-hue,.colorpicker-2x .colorpicker-alpha {width: 30px;height: 200px;}
+.colorpicker-2x .colorpicker-color,.colorpicker-2x .colorpicker-color div {height: 30px;}
+.colorpicker-2x .colorpicker-selectors i{height:20px;width:20px;}
+	 
+/*Support page*/
+.unlink,.unlink:hover{color:#333;text-decoration:none;}
+.support-container ul{padding-left:0px;list-style-type: none;}
+.support-container{text-align: center;margin-top:15px;color:#333;}
+.support-container .fa{line-height:58px;font-size:40px;width:100px;height:100px;padding:20px;border-radius: 120px;border: 1px solid;transition: background-color 0.5s linear, color 0.5s linear;}
+.support-container h4{margin-top:13px;}
+.support-container:hover .bg-color-fb{background-color:#3b5998;color:white;}
+.support-container:hover .bg-color-tw{background-color:#1da1f2; color:white;}
+.support-container:hover .bg-color-g{background-color:#cc181e; color:white;}
+.support-container:hover .bg-color-wf{background-color:#0088cc; color:white;}
+.support-container:hover .bg-color-btc{background-color:#f7931a; color:white;}
+.support-container:hover .bg-color-pp{background-color:#0070ba; color:white;}
+.support-container:hover .bg-color-am{background-color:#ef9c00; color:white;}
+
+/*Config introduction*/
+.introd{padding-left:14px;border-left:5px solid #0088cc;}
+.introd h4{line-height:25px;}

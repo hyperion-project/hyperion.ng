@@ -50,23 +50,23 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args) :
-	QThread(),
-	_mainThreadState(mainThreadState),
-	_priority(priority),
-	_timeout(timeout),
-	_script(script),
-	_args(args),
-	_endTime(-1),
-	_interpreterThreadState(nullptr),
-	_abortRequested(false),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_colors()
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args)
+	: QThread()
+	, _mainThreadState(mainThreadState)
+	, _priority(priority)
+	, _timeout(timeout)
+	, _script(script)
+	, _args(args)
+	, _endTime(-1)
+	, _interpreterThreadState(nullptr)
+	, _abortRequested(false)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _colors()
 {
 	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
 
 	// disable the black border detector for effects
-	_imageProcessor->enableBalckBorderDetector(false);
+	_imageProcessor->enableBlackBorderDetector(false);
 
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
