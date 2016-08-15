@@ -12,6 +12,9 @@
 			"required" : true,
 			"enum" : ["getconfig","setconfig","getschema"]
 		},
+		"config": {
+			"type" : "object"
+		},
 		"create": {
 			"type" : "boolean"
 		}

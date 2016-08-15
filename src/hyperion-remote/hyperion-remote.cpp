@@ -219,7 +219,7 @@ int main(int argc, char * argv[])
 		}
 		else if (argConfigSet.isSet())
 		{
-			connection.setConfigFile(argConfigSet.getValue(), argCreate.isSet());
+			connection.setConfig(argConfigSet.getValue(), argCreate.isSet());
 		}
 		else if (colorModding)
 		{	

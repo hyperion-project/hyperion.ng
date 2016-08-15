@@ -268,7 +268,7 @@ QString JsonConnection::getConfig(std::string type)
 	return QString();
 }
 
-void JsonConnection::setConfigFile(const std::string &jsonString, bool create)
+void JsonConnection::setConfig(const std::string &jsonString, bool create)
 {
 	// create command
 	Json::Value command;

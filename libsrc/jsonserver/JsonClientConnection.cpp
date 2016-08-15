@@ -915,10 +915,10 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message)
 
 	if(message.size() > 0)
 	{
-		if (message.isObject() && message.isMember("configset"))
+		if (message.isObject() && message.isMember("config"))
 		{	
 			std::string errors;
-			if (!checkJson(message["configset"], ":/hyperion-schema", errors, true))
+			if (!checkJson(message["config"], ":/hyperion-schema", errors, true))
 			{
 				sendErrorReply("Error while validating json: " + errors);
 				return;
@@ -926,7 +926,7 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message)
 			
 			bool createKey = message.isMember("create");
 			Json::Value hyperionConfig = _hyperion->getJsonConfig();
-			nested::configSetCommand(message["configset"], hyperionConfig, createKey);
+			nested::configSetCommand(message["config"], hyperionConfig, createKey);
 			
 			JsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfig);
 			
