@@ -1,5 +1,6 @@
 // stl includes
 #include <stdexcept>
+#include <cassert>
 
 // Qt includes
 #include <QRgb>
@@ -239,13 +240,15 @@ void JsonConnection::setSourceAutoSelect()
 	parseReply(reply);
 }
 
-QString JsonConnection::getConfigFile()
+QString JsonConnection::getConfig(std::string type)
 {
+	assert( type == "schema" || type == "config" );
 	std::cout << "Get configuration file from Hyperion Server" << std::endl;
 
 	// create command
 	Json::Value command;
-	command["command"] = "configget";
+	command["command"] = "config";
+	command["subcommand"] = (type == "schema")? "getschema" : "getconfig";
 
 	// send command message
 	Json::Value reply = sendMessage(command);
@@ -265,13 +268,15 @@ QString JsonConnection::getConfigFile()
 	return QString();
 }
 
-void JsonConnection::setConfigFile(const std::string &jsonString, bool create)
+void JsonConnection::setConfig(const std::string &jsonString, bool create)
 {
 	// create command
 	Json::Value command;
-	command["command"] = "configset";
+	command["command"] = "config";
+	command["subcommand"] = "setconfig";
+	
 	command["create"] = create;
-	Json::Value & config = command["configset"];
+	Json::Value & config = command["config"];
 	if (jsonString.size() > 0)
 	{
 		Json::Reader reader;
