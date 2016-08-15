@@ -106,7 +106,7 @@ public:
 	///
 	/// Print the current loaded Hyperion configuration file 
 	///
-	QString getConfigFile();
+	QString getConfig(std::string type);
 
 	///
 	/// Write JSON Value(s) to the actual loaded configuration file
@@ -114,7 +114,7 @@ public:
 	/// @param jsonString The JSON String(s) to write
 	/// @param create Specifies whether the nonexistent json string to be created
 	///
-	void setConfigFile(const std::string & jsonString, bool create);
+	void setConfig(const std::string & jsonString, bool create);
 
 	///
 	/// Set the color transform of the leds

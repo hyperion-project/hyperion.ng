@@ -1,0 +1,23 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["config"]
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["getconfig","setconfig","getschema"]
+		},
+		"config": {
+			"type" : "object"
+		},
+		"create": {
+			"type" : "boolean"
+		}
+	},
+	"additionalProperties": false
+}
