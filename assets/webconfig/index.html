@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -92,11 +92,11 @@
                     </a>
                     <ul class="dropdown-menu dropdown-language">
                         <li>
-                            <a href="#lang-en" onclick="window.lang.change('en'); return false;"><span lang="en" class="flag-icon flag-icon-gb">&emsp; English</span></a>
+                            <a href="#lang-en" onclick="window.lang.change('en'); return false;"><span lang="en" class="flag-icon flag-icon-gb" data-lang-token="general_speech_en">&emsp; English</span></a>
                         </li>
                         <li class="divider"></li>
                         <li>
-                            <a href="#lang-de" onclick="window.lang.change('de'); return false;"><span lang="en" class="flag-icon flag-icon-de">&emsp; German</span></a>
+                            <a href="#lang-de" onclick="window.lang.change('de'); return false;"><span lang="en" class="flag-icon flag-icon-de" data-lang-token="general_speech_de">&emsp; German</span></a>
                         </li>
 					</ul>
                     <!-- /.dropdown-language -->
@@ -275,32 +275,32 @@
                             <!-- /input-group -->
                         </li>
                         <li>
-                            <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                            <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></a>
                         </li>
 						            <li>
-                            <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i>Configuration<span class="fa arrow"></span></a>
+                            <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-									                  <a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i>Kodi Watch</a>
+									                  <a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a>
 								                </li>
                                 <li>
-                                    <a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i> Hue Bridge</a>
+                                    <a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a>
                                 </li>
 							              </ul>
 						            </li>
 						            <li>
-						                <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menuremotecontroltoken">Remote Control</span><span class="fa arrow"></span></a>
+						                <a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span><span class="fa arrow"></span></a>
 						                <ul class="nav nav-second-level">
                                 <li>
-									                  <a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="menulighttesttoken">Light test</span></a>
+									                  <a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_colors_token">Colors</span></a>
 								                </li>
                                 <li>
-                									  <a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="menueffectstoken">Effects</span></a>
+                									  <a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="main_menu_effects_token">Effects</span></a>
                 								</li>
 							              </ul>
                         </li>
 						            <li>
-                            <a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i>Support</a>
+                            <a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a>
                         </li>
 
                     </ul>
@@ -316,6 +316,10 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <h1 class="page-header">Dashboard</h1>
+						<div class="introd">
+							<h4 lang="en" data-lang-token="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
+						</div>
+						<hr>
 									<div class="alert alert-info alert-dismissible" role="alert">
 									<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 										<strong>Info!</strong> A newer version of Hyperion is available!
@@ -324,20 +328,52 @@
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-info-circle fa-fw"></i>
-										Information
+										<span lang="en" data-lang-token="dashboard_label_infobox_title">Information</span>
 									</div>
 									<div class="panel-body">
-										<p>Your Hyperion version:</p>
-										<p>Latest version:</p>
-										<p>Device:</p>
+										<p lang="en" data-lang-token="dashboard_label_infobox_currenthyp">Your Hyperion version:</p>
+										<p lang="en" data-lang-token="dashboard_label_infobox_latesthyp">Latest version:</p>
+										<p lang="en" data-lang-token="dashboard_label_infobox_device">Device:</p>
 									</div>
 								</div>
 							</div>
-							<div class="col-lg-8">
+							<div class="col-lg-3">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<i class="fa fa-eye fa-fw"></i>
+										<span lang="en" data-lang-token="dashboard_label_componentbox_title">Components status</span>
+									</div>
+									<div class="panel-body">
+										  <table class="table">
+											<thead>
+												<tr>
+													<th>Component</th>
+													<th>Status</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>Kodi Watch</td>
+													<td><i class="fa fa-circle component-on"></i></td>
+												</tr>
+													<tr>
+													<td>Blackborder</td>
+													<td><i class="fa fa-circle component-off"></i></td>
+												</tr>
+												<tr>
+													<td>Booteffect</td>
+													<td><i class="fa fa-circle component-off"></i></td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-5">
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-newspaper-o fa-fw"></i>
-										Latest Blog posts
+										<span lang="en" data-lang-token="dashboard_label_newsbox_title">Latest blog posts</span>
 									</div>
 									<div class="panel-body">
 

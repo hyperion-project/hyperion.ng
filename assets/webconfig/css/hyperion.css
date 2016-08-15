@@ -1,10 +1,10 @@
-/**General**/
+﻿/**General**/
 @font-face {
     font-family: "Roboto";
     src: url("../fonts/Roboto-Regular.woff") format('woff'),
 		 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
-body{font-family:Roboto;font-size:15px;}
+body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;}
 
 /*Header*/
 .navbar-brand{padding: 5px;height:90px;}
@@ -17,6 +17,10 @@ body{font-family:Roboto;font-size:15px;}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
+
+/*Dashboard*/
+.component-on{color:green;}
+.component-off{color:grey;}
 
 /*Colorpicker 2x*/
 .colorpicker-2x .colorpicker-saturation {width: 200px;height: 200px;}
