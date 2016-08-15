@@ -1,9 +1,9 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header" lang="en" data-lang-token="menueffectstoken">Effects</h1>
+            <h1 class="page-header" lang="en" data-lang-token="menu_effects_token">Effects</h1>
 			<div class="col-lg-12" id="buttondiv">
-				<button type="button" class="btn btn-danger" id="effect_stop"><i class="fa fa-stop"></i></button><span lang="en" data-lang-token="buttoneffectstoptoken"> Stop Effect</span><br />
+				<button type="button" class="btn btn-danger" id="effect_stop"><i class="fa fa-stop"></i></button><span lang="en" data-lang-token="button_effect_stop_token"> Stop Effect</span><br />
 			</div>
 		</div>
 	</div>
@@ -12,39 +12,39 @@
 <script>
 
 	$(document).ready( function() {
-			
+
 		webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
 		var serverInfo;
-		
+
 		webSocket.onerror = function(event) {
 			alert(event.data);
 		};
-		
-		
+
+
 		webSocket.onopen = function(event) {
 			webSocket.send('{"command":"serverinfo"}');
 		};
-		
+
 		webSocket.onmessage = function(response){
 			responseJSON = JSON.parse(response.data );
 			//console.log(response.data);
 			for(i = 0; i < responseJSON.info.effects.length; i++) {
 				//console.log(responseJSON.info.effects[i].name);
 				var effectName = responseJSON.info.effects[i].name;
-				
+
 				$('#buttondiv').append('<button type="button" class="btn btn-success" onclick="playEffect(\''+effectName+'\')"><i class="fa fa-play"></i></button> '+effectName+'<br />');
 			}
 		}
-		
+
 		$("#effect_stop").on("click", function() {
-			webSocket.send('{"command":"clear", "priority":1}');			
+			webSocket.send('{"command":"clear", "priority":1}');
 		});
 	});
-	
-	
+
+
 	function playEffect(effectName) {
 		console.log(effectName);
 		webSocket.send('{"command":"effect","effect":{"name":"'+effectName+'"},"priority":1}');
-	}	
+	}
 
 </script>
