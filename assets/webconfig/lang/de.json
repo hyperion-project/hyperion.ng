@@ -1,16 +1,19 @@
 {
 	"token": {
-		"I am translated":"Ich bin übersetzt.",
-		"tokentest":"Ich bin ein Token Test",
 		"English":"Englisch",
 		"German":"Deutsch",
 		"lighttesttoken":"Farbe: ",
-		"Light test":"Lichttest",
 		"menulighttesttoken":"Lichttest",
 		"buttoncolorresettoken":"Farbe zurücksetzen",
 		"menueffectstoken":"Effekte",
 		"buttoneffectstoptoken":"Stoppe Effekte",
-		"menuremotecontroltoken":"Fernbedienung"
+		"menuremotecontroltoken":"Fernbedienung",
+		"hue_failure_ip_token":"Bitte überprüfe deine IP Adresse.",
+		"Username:":"Benutzername:",
+		"hue_button_create_user_token":"Benutzer anlegen",
+		"hue_press_link_modal":"Link Taste auf der Hue Bridge drücken und mit Button bestätigen.",
+		"hue_press_link_modal_failure":"Bitte drücke die Link Taste auf deiner Hue Bridge.",
+		"hue_button_pair":"Verbinden"
 	},
 	"regex": [
 		["^Something at start of text", ""],

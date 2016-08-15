@@ -1,0 +1,113 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Hue Bridge</h1>
+			<div class="col-lg-12" >
+				<div class="col-lg-6" >
+					<span id="ip_alert" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_ip_token">Please check your IP Address.</span>
+					<div class="form-group">
+					  <label for="ip">IP:</label>
+					  <input type="text" class="form-control" id="ip">
+					  <label for="user" lang="en">Username:</label>
+					  <input type="text" class="form-control" id="user" disabled>
+					  <br />
+					  <button type="button" class="btn btn-success" id="create_user_first"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_create_user_token"> Create User</span></button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr />
+	<div id="hue_lights" class="row">
+
+	</div>
+</div>
+
+
+
+<div class="modal fade bs-pair-modal-lg" id="pairmodal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+		<span lang="en" data-lang-token="hue_press_link_modal">Press link button on the Hue Bridge now and confirm with the "Pair" button.</span> <br /><br />
+
+		<span id="link_not_pressed" style="display:none; color: red" lang="en" data-lang-token="hue_press_link_modal_failure">Please press link button on your Hue Bridge.</span>
+		<center>
+			<button type="button" class="btn btn-success" id="create_user_second"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_pair"> Pair</span>
+		</center>
+    </div>
+  </div>
+</div>
+
+<script>
+
+	$(document).ready( function() {
+
+		if($("#ip").val() != '' && $("#user").val() != '') {
+			get_hue_lights();
+		}
+
+
+		$("#create_user_first").on("click", function() {
+			var data = {"devicetype":"hyperion#"+Date.now()};
+			$.ajax({
+				type: "POST",
+				url: 'http://'+$("#ip").val()+'/api',
+				processData: false,
+				timeout: 1000,
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function(r) {
+					$("#ip_alert").hide();
+					if (typeof r[0].error != 'undefined') {
+						if (r[0].error.description == "link button not pressed"){
+							$('#pairmodal').modal('show')
+						}
+					}
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown) {
+					$("#ip_alert").show();
+				 }
+			});
+		});
+
+
+		$("#create_user_second").on("click", function() {
+			var data = {"devicetype":"my_hue_app#iphone pet2er"};
+			$.ajax({
+				type: "POST",
+				url: 'http://'+$("#ip").val()+'/api',
+				processData: false,
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function(r) {
+					if (typeof r[0].error != 'undefined') {
+						$("#link_not_pressed").show();
+					}
+					if (typeof r[0].success != 'undefined') {
+						$('#pairmodal').modal('hide');
+						$('#user').val(r[0].success.username);
+						$("#link_not_pressed").hide();
+						get_hue_lights();
+					}
+				}
+			});
+		});
+
+
+		function get_hue_lights(){
+			$.ajax({
+				type: "GET",
+				url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
+				processData: false,
+				contentType: 'application/json',
+				success: function(r) {
+					for(var lightid in r){
+						//console.log(r[lightid].name);
+						$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
+					}
+				}
+			});
+		}
+	});
+
+</script>
