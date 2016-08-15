@@ -37,6 +37,7 @@
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceUdp.h"
 #include "LedDeviceUdpRaw.h"
+#include "LedDeviceUdpE131.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -275,6 +276,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		else if (type == "udpraw")
 		{
 			device = new LedDeviceUdpRaw(
+				deviceConfig["output"].asString(),
+				deviceConfig.get("latchtime",500000).asInt()
+			);
+		}
+		else if (type == "e131")
+		{
+			device = new LedDeviceUdpE131(
 				deviceConfig["output"].asString(),
 				deviceConfig.get("latchtime",500000).asInt()
 			);
