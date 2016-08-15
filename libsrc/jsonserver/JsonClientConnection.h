@@ -143,6 +143,18 @@ private:
 	///
 	/// @param message the incoming message
 	///
+	void handleConfigCommand(const Json::Value & message);
+
+	/// Handle an incoming JSON GetConfig message
+	///
+	/// @param message the incoming message
+	///
+	void handleSchemaGetCommand(const Json::Value & message);
+
+	/// Handle an incoming JSON GetConfig message
+	///
+	/// @param message the incoming message
+	///
 	void handleConfigGetCommand(const Json::Value & message);
 
 	///

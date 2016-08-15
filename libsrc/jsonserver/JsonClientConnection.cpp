@@ -14,6 +14,7 @@
 #include <QCryptographicHash>
 #include <QHostInfo>
 #include <QString>
+#include <QFile>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -266,10 +267,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 			handleAdjustmentCommand(message);
 		else if (command == "sourceselect")
 			handleSourceSelectCommand(message);
-		else if (command == "configget")
-			handleConfigGetCommand(message);
-		else if (command == "configset")
-			handleConfigSetCommand(message);
+		else if (command == "config")
+			handleConfigCommand(message);
 		else if (command == "componentstate")
 			handleComponentStateCommand(message);
 		else
@@ -833,7 +832,28 @@ void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message
 	}
 }
 
-void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
+void JsonClientConnection::handleConfigCommand(const Json::Value & message)
+{
+	std::string subcommand = message.get("subcommand","").asString();
+	if (subcommand == "getschema")
+	{
+		handleSchemaGetCommand(message);
+	}
+	else if (subcommand == "getconfig")
+	{
+		handleConfigGetCommand(message);
+	}
+	else if (subcommand == "setconfig")
+	{
+		handleConfigSetCommand(message);
+	} 
+	else
+	{
+		sendErrorReply("unknown or missing subcommand");
+	}
+}
+
+void JsonClientConnection::handleConfigGetCommand(const Json::Value & message)
 {
 	// create result
 	Json::Value result;
@@ -841,6 +861,30 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value &)
 	Json::Value & config = result["result"];
 	config = _hyperion->getJsonConfig();
 	
+	// send the result
+	sendMessage(result);
+}
+
+void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message)
+{
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	Json::Value & schemaJson = result["result"];
+	
+	// make sure the resources are loaded (they may be left out after static linking)
+	Q_INIT_RESOURCE(resource);
+
+	// read the json schema from the resource
+	QResource schemaData(":/hyperion-schema");
+	assert(schemaData.isValid());
+
+	Json::Reader jsonReader;
+	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	{
+		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
+	}
+
 	// send the result
 	sendMessage(result);
 }

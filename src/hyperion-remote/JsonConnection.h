@@ -106,7 +106,7 @@ public:
 	///
 	/// Print the current loaded Hyperion configuration file 
 	///
-	QString getConfigFile();
+	QString getConfig(std::string type);
 
 	///
 	/// Write JSON Value(s) to the actual loaded configuration file
