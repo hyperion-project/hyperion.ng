@@ -7,8 +7,8 @@ SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient ligh
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 
-SET ( CPACK_DEBIAN_PACKAGE_MAINTAINER "hyperion team")
-SET ( CPACK_DEBIAN_PACKAGE_NAME "hyperion" )
+SET ( CPACK_DEBIAN_PACKAGE_MAINTAINER "Hyperion Team")
+SET ( CPACK_DEBIAN_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst" )
 SET ( CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.hyperion-project.org" )
 SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.2.0), libqt5network5 (>= 5.2.0), libqt5gui5 (>= 5.2.0), libqt5serialport5 (>= 5.2.0), libavahi-core-dev (>= 0.6.0), libavahi-compat-libdnssd-dev (>= 0.6.0), libusb-1.0-0, libpython2.7, libc6" )
