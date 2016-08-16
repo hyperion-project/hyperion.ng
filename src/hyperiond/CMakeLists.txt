@@ -39,7 +39,7 @@ if (ENABLE_X11)
 	target_link_libraries(hyperiond	x11-grabber	)
 endif ()
 
-install ( TARGETS hyperiond DESTINATION "share/hyperion/bin" COMPONENT ambilight )
+install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects     DESTINATION "share/hyperion/" COMPONENT  ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/config      DESTINATION "share/hyperion/" COMPONENT  ambilight )
