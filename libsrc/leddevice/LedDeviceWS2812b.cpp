@@ -327,7 +327,7 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 #endif
 
 
-	for(size_t i=0; i<_ledCount; i++)
+	for(size_t i=0; i<(size_t)_ledCount; i++)
 	{
 		// Create bits necessary to represent one color triplet (in GRB, not RGB, order)
 		colorBits = ((unsigned int)ledValues[i].red << 8) | ((unsigned int)ledValues[i].green << 16) | ledValues[i].blue;
