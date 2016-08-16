@@ -187,7 +187,7 @@ void QtHttpClientWrapper::onReplySendDataRequested (void) {
 QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHttpReply * reply) {
     if (reply != Q_NULLPTR) {
         if (!reply->useChunked ()) {
-            reply->appendRawData (CRLF);
+            //reply->appendRawData (CRLF);
             // send all headers and all data in one shot
             reply->requestSendHeaders ();
             reply->requestSendData ();
