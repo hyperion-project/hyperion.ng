@@ -74,100 +74,100 @@ private:
 	///
 	/// @param message the incoming message
 	///
-	void handleColorCommand(const Json::Value & message);
+	void handleColorCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Image message
 	///
 	/// @param message the incoming message
 	///
-	void handleImageCommand(const Json::Value & message);
+	void handleImageCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Effect message
 	///
 	/// @param message the incoming message
 	///
-	void handleEffectCommand(const Json::Value & message);
+	void handleEffectCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message
 	///
-	void handleServerInfoCommand(const Json::Value & message);
+	void handleServerInfoCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearCommand(const Json::Value & message);
+	void handleClearCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clearall message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearallCommand(const Json::Value & message);
+	void handleClearallCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Transform message
 	///
 	/// @param message the incoming message
 	///
-	void handleTransformCommand(const Json::Value & message);
+	void handleTransformCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Temperature message
 	///
 	/// @param message the incoming message
 	///
-	void handleTemperatureCommand(const Json::Value & message);
+	void handleTemperatureCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Adjustment message
 	///
 	/// @param message the incoming message
 	///
-	void handleAdjustmentCommand(const Json::Value & message);
+	void handleAdjustmentCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON SourceSelect message
 	///
 	/// @param message the incoming message
 	///
-	void handleSourceSelectCommand(const Json::Value & message);
+	void handleSourceSelectCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigCommand(const Json::Value & message);
+	void handleConfigCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleSchemaGetCommand(const Json::Value & message);
+	void handleSchemaGetCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigGetCommand(const Json::Value & message);
+	void handleConfigGetCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON SetConfig message
 	///
-	void handleConfigSetCommand(const Json::Value & message);
+	void handleConfigSetCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Component State message
 	///
 	/// @param message the incoming message
 	///
-	void handleComponentStateCommand(const Json::Value & message);
+	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type
@@ -185,14 +185,14 @@ private:
 	///
 	/// Send a standard reply indicating success
 	///
-	void sendSuccessReply();
+	void sendSuccessReply(const std::string &command="", const int tan=0);
 
 	///
 	/// Send an error message back to the client
 	///
 	/// @param error String describing the error
 	///
-	void sendErrorReply(const std::string & error);
+	void sendErrorReply(const std::string & error, const std::string &command="", const int tan=0);
 	
 	///
 	/// Do handshake for a websocket connection

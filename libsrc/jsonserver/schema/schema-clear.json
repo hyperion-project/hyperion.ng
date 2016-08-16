@@ -1,16 +1,19 @@
 {
-    "type":"object",
-    "required":true,
-    "properties":{
-        "command": {
-            "type" : "string",
-            "required" : true,
-            "enum" : ["clear"]
-        },
-        "priority": {
-            "type": "integer",
-            "required": true
-        }
-    },
-    "additionalProperties": false
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["clear"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer",
+			"required": true
+		}
+	},
+	"additionalProperties": false
 }

@@ -9,6 +9,9 @@
 			"required" : true,
 			"enum" : ["componentstate"]
 		},
+		"tan" : {
+			"type" : "integer"
+		},
 		"componentstate":
 		{
 			"type": "object",
@@ -17,6 +20,7 @@
 			{
 				"component":
 				{
+					"type" : "string",
 					"enum" : ["SMOOTHING", "BLACKBORDER", "KODICHECKER", "FORWARDER", "UDPLISTENER", "BOBLIGHTSERVER", "GRABBER"],
 					"required": true
 				},
