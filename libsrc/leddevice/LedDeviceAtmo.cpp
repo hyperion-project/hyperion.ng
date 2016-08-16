@@ -1,15 +1,10 @@
-
-// STL includes
-#include <cstring>
-#include <iostream>
-
 // hyperion local includes
 #include "LedDeviceAtmo.h"
 
-LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned baudrate) :
-	LedRs232Device(outputDevice, baudrate),
-	_ledBuffer(4 + 5*3) // 4-byte header, 5 RGB values
+LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned baudrate)
+	: LedRs232Device(outputDevice, baudrate)
 {
+	_ledBuffer.resize(4 + 5*3); // 4-byte header, 5 RGB values
 	_ledBuffer[0] = 0xFF; // Startbyte
 	_ledBuffer[1] = 0x00; // StartChannel(Low)
 	_ledBuffer[2] = 0x00; // StartChannel(High)

@@ -9,12 +9,13 @@
 
 // hyperion incluse
 #include <leddevice/LedDevice.h>
+#include <utils/Components.h>
 
 /// Linear Smooting class
 ///
 /// This class processes the requested led values and forwards them to the device after applying
 /// a linear smoothing effect. This class can be handled as a generic LedDevice.
-class LinearColorSmoothing : public QObject, public LedDevice
+class LinearColorSmoothing : public LedDevice
 {
 	Q_OBJECT
 
@@ -24,7 +25,7 @@ public:
 	/// @param LedUpdatFrequency The frequency at which the leds will be updated (Hz)
 	/// @param settingTime The time after which the updated led values have been fully applied (sec)
 	/// @param updateDelay The number of frames to delay outgoing led updates
-	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime, unsigned updateDelay);
+	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime, unsigned updateDelay, bool continuousOutput);
 
 	/// Destructor
 	virtual ~LinearColorSmoothing();
@@ -39,10 +40,14 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
+	bool componentState() { return _bypass; }
+
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
 
+	void componentStateChanged(const hyperion::Components component, bool enable);
+	
 private:
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
@@ -75,11 +80,16 @@ private:
 	/// The previously written led data
 	std::vector<ColorRgb> _previousValues;
 
-	/** The number of updates to keep in the output queue (delayed) before being output */
+	/// The number of updates to keep in the output queue (delayed) before being output
 	const unsigned _outputDelay;
-	/** The output queue */
+	/// The output queue
 	std::list<std::vector<ColorRgb> > _outputQueue;
 
-	// prevent sending data to device when no intput data is sent
+	/// Prevent sending data to device when no intput data is sent
 	bool _writeToLedsEnable;
+	
+	/// Flag for dis/enable continuous output to led device regardless there is new data or not
+	bool _continuousOutput;
+	
+	bool _bypass;
 };

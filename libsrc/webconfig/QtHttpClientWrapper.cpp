@@ -50,10 +50,6 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                         QString url     = parts.at (1);
                         QString version = parts.at (2);
                         if (version == QtHttpServer::HTTP_VERSION) {
-                            //qDebug () << "Debug : HTTP"
-                            //          << "command :" << command
-                            //          << "url :"     << url
-                            //          << "version :" << version;
                             m_currentRequest = new QtHttpRequest (m_serverHandle);
                             m_currentRequest->setClientInfo(m_sockClient->localAddress(), m_sockClient->peerAddress());
                             m_currentRequest->setUrl     (QUrl (url));
@@ -78,9 +74,6 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                         if (pos > 0) {
                             QByteArray header = raw.left (pos).trimmed ();
                             QByteArray value  = raw.mid  (pos +1).trimmed ();
-                            //qDebug () << "Debug : HTTP"
-                            //          << "header :" << header
-                            //          << "value :"  << value;
                             m_currentRequest->addHeader (header, value);
                             if (header == QtHttpHeader::ContentLength) {
                                 int  len = -1;
@@ -97,7 +90,6 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                         }
                     }
                     else { // end of headers
-                        //qDebug () << "Debug : HTTP end of headers";
                         if (m_currentRequest->getHeader (QtHttpHeader::ContentLength).toInt () > 0) {
                             m_parsingStatus = AwaitingContent;
                         }
@@ -109,11 +101,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                 }
                 case AwaitingContent: { // raw data × N (until EOF ??)
                     m_currentRequest->appendRawData (line);
-                    //qDebug () << "Debug : HTTP"
-                    //          << "content :" << m_currentRequest->getRawData ().toHex ()
-                    //          << "size :"    << m_currentRequest->getRawData ().size  ();
                     if (m_currentRequest->getRawDataSize () == m_currentRequest->getHeader (QtHttpHeader::ContentLength).toInt ()) {
-                        //qDebug () << "Debug : HTTP end of content";
                         m_parsingStatus = RequestParsed;
                     }
                     break;

@@ -3,26 +3,27 @@
 
 #include "LinearColorSmoothing.h"
 
-LinearColorSmoothing::LinearColorSmoothing(
-		LedDevice * ledDevice,
-		double ledUpdateFrequency_hz,
-		int settlingTime_ms,
-		unsigned updateDelay) :
-	QObject(),
-	LedDevice(),
-	_ledDevice(ledDevice),
-	_updateInterval(1000 / ledUpdateFrequency_hz),
-	_settlingTime(settlingTime_ms),
-	_timer(),
-	_outputDelay(updateDelay),
-	_writeToLedsEnable(true)
+using namespace hyperion;
+
+LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms, unsigned updateDelay, bool continuousOutput)
+	: LedDevice()
+	, _ledDevice(ledDevice)
+	, _updateInterval(1000 / ledUpdateFrequency_hz)
+	, _settlingTime(settlingTime_ms)
+	, _timer()
+	, _outputDelay(updateDelay)
+	, _writeToLedsEnable(true)
+	, _continuousOutput(continuousOutput)
+	, _bypass(false)
 {
+	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 
-	std::cout << "HYPERION (CS) INFO: Created linear-smoothing(interval_ms=" << _updateInterval << ";settlingTime_ms=" << settlingTime_ms << ";updateDelay=" << _outputDelay << std::endl;
+	Info( _log, "Created linear-smoothing with interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",
+	      _updateInterval, settlingTime_ms,  _outputDelay );
 }
 
 LinearColorSmoothing::~LinearColorSmoothing()
@@ -34,21 +35,28 @@ LinearColorSmoothing::~LinearColorSmoothing()
 
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
-	// received a new target color
-	if (_previousValues.empty())
+	if (_bypass)
 	{
-		// not initialized yet
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		_targetValues = ledValues;
-
-		_previousTime = QDateTime::currentMSecsSinceEpoch();
-		_previousValues = ledValues;
-		_timer.start();
+		_ledDevice->write(ledValues);
 	}
 	else
 	{
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+		// received a new target color
+		if (_previousValues.empty())
+		{
+			// not initialized yet
+			_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+			_targetValues = ledValues;
+
+			_previousTime = QDateTime::currentMSecsSinceEpoch();
+			_previousValues = ledValues;
+			_timer.start();
+		}
+		else
+		{
+			_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+			memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+		}
 	}
 
 	return 0;
@@ -83,7 +91,7 @@ void LinearColorSmoothing::updateLeds()
 		_previousTime = now;
 
 		queueColors(_previousValues);
-		_writeToLedsEnable = false;
+		_writeToLedsEnable = _continuousOutput;
 	}
 	else
 	{
@@ -115,14 +123,28 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	}
 	else
 	{
-		// Push the new colors in the delay-buffer
-		_outputQueue.push_back(ledColors);
+		// Push new colors in the delay-buffer
+		if ( _writeToLedsEnable )
+			_outputQueue.push_back(ledColors);
+
 		// If the delay-buffer is filled pop the front and write to device
-		if (_outputQueue.size() > _outputDelay)
+		if (_outputQueue.size() > 0 )
 		{
-			if ( _writeToLedsEnable )
+			if ( _outputQueue.size() > _outputDelay || !_writeToLedsEnable )
+			{
 				_ledDevice->write(_outputQueue.front());
-			_outputQueue.pop_front();
+				_outputQueue.pop_front();
+			}
 		}
 	}
 }
+
+void LinearColorSmoothing::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_SMOOTHING && _bypass == enable)
+	{
+		_bypass = !enable;
+		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+	}
+}
+

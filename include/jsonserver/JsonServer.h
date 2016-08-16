@@ -49,14 +49,12 @@ private slots:
 	void closedConnection(JsonClientConnection * connection);
 
 private:
-	/// Hyperion instance
-	Hyperion * _hyperion;
-
 	/// The TCP server object
 	QTcpServer _server;
 
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
-	
+
+	/// the logger instance
 	Logger * _log;
 };

@@ -149,10 +149,6 @@ public:
 	virtual int switchOff();
 
 private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
-
 	page_map_t *page_map;						// This will hold the page map, which we'll allocate
 	uint8_t *virtbase;					// Pointer to some virtual memory that will be allocated
 

@@ -8,6 +8,7 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/LedString.h>
 #include <hyperion/ImageToLedsMap.h>
+#include <utils/Logger.h>
 
 // Black border includes
 #include <blackborder/BlackBorderProcessor.h>
@@ -38,8 +39,11 @@ public:
 	void setSize(const unsigned width, const unsigned height);
 
 	/// Enable or disable the black border detector
-	void enableBalckBorderDetector(bool enable);
+	void enableBlackBorderDetector(bool enable);
 
+	/// Returns starte of black border detector
+	bool blackBorderDetectorEnabled();
+	
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -103,7 +107,6 @@ private:
 	/// given led-string specification
 	///
 	/// @param[in] ledString  The led-string specification
-	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
 	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
 	ImageProcessor(const LedString &ledString, const Json::Value &blackborderConfig);
@@ -116,9 +119,9 @@ private:
 	template <typename Pixel_T>
 	void verifyBorder(const Image<Pixel_T> & image)
 	{
-		if(_enableBlackBorderRemoval && _borderProcessor->process(image))
+		if(_borderProcessor->enabled() && _borderProcessor->process(image))
 		{
-			std::cout << "BORDER SWITCH REQUIRED!!" << std::endl;
+			Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
 
 			const hyperion::BlackBorder border = _borderProcessor->getCurrentBorder();
 
@@ -136,16 +139,14 @@ private:
 				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, _ledString.leds());
 			}
 
-			std::cout << "CURRENT BORDER TYPE: unknown=" << border.unknown << " hor.size=" << border.horizontalSize << " vert.size=" << border.verticalSize << std::endl;
+			Debug(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d", 
+				border.unknown, border.horizontalSize, border.verticalSize );
 		}
 	}
 
 private:
 	/// The Led-string specification
 	const LedString _ledString;
-
-	/// Flag the enables(true)/disabled(false) blackborder detector
-	bool _enableBlackBorderRemoval;
 
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;

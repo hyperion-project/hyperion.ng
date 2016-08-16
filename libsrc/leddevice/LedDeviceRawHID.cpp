@@ -12,10 +12,9 @@
 #include "LedDeviceRawHID.h"
 
 // Use feature report HID device
-LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms) :
-	LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, true),
-	_ledBuffer(0),
-	_timer()
+LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
+	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, true)
+	, _timer()
 {
 	// setup the timer
 	_timer.setSingleShot(false);

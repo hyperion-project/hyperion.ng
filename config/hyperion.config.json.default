@@ -15,6 +15,7 @@
 
 	"color" :
 	{
+		"channelAdjustment_enable" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -40,6 +41,7 @@
 				}
 			}
 		],
+		"temperature_enable" : true,
 		"temperature" :
 		[
 			{
@@ -53,6 +55,7 @@
 				}
 			}
 		],
+		"transform_enable" : true,
 		"transform" :
 		[
 			{
@@ -80,32 +83,35 @@
 					"gamma"     : 2.5000
 				}
 			}
-		],
-		"smoothing" :
-		{
-			"type"            : "linear",
-			"time_ms"         : 200,
-			"updateFrequency" : 20.0000,
-			"updateDelay"     : 0
-		}
+		]
 	},
-	
+
+	"smoothing" :
+	{
+		"enable"           : true,
+		"type"             : "linear",
+		"time_ms"          : 200,
+		"updateFrequency"  : 25.0000,
+		"updateDelay"      : 0,
+		"continuousOutput" : true
+	},
+
 	"grabber-v4l2" :
 	{
 		"enable"   : false,
-		"device"   : "/dev/video0",
+		"device"   : "auto",
 		"input"    : 0,
 		"standard" : "PAL",
 		"width"    : -1,
 		"height"   : -1,
 		"frameDecimation" : 2,
 		"sizeDecimation"  : 8,
-		"priority"    : 900,
+		"priority"    : 890,
 		"mode"        : "2D",
-		"cropLeft"    : 15,
-		"cropRight"   : 12,
-		"cropTop"     : 5,
-		"cropBottom"  : 5,
+		"cropLeft"    : 0,
+		"cropRight"   : 0,
+		"cropTop"     : 0,
+		"cropBottom"  : 0,
 		"redSignalThreshold"   : 0.0,
 		"greenSignalThreshold" : 0.0,
 		"blueSignalThreshold"  : 0.0
@@ -113,8 +119,10 @@
 
 	"framegrabber" :
 	{
-		"width" : 128,
-		"height" : 128,
+		"enable" : true,
+		"type"   : "auto",
+		"width" : 96,
+		"height" : 96,
 		"frequency_Hz" : 10.0,
 		"priority" : 890
 	},
@@ -128,7 +136,7 @@
 
 	"kodiVideoChecker" :
 	{
-		"enable"            : true,
+		"enable"            : false,
 		"kodiAddress"       : "localhost",
 		"kodiTcpPort"       : 9090,
 		"grabVideo"         : true,
@@ -142,10 +150,8 @@
 
 	"initialEffect" :
 	{
-		"background-effect"      : "Full color mood blobs",
-		"background-effect-args" : {},
-		"foreground-effect"      : "Rainbow swirl fast",
-		"foreground-effect-args" : {},
+		"background-effect"      : ["Full color mood blobs"],
+		"foreground-effect"      : ["Rainbow swirl fast"],
 		"foreground-duration_ms" : 3000
 	},
 
@@ -166,7 +172,7 @@
 		"port" : 19445
 	},
 	
-    "boblightServer" :
+	"boblightServer" :
 	{
 		"enable"   : false,
 		"port"     : 19333,
@@ -431,7 +437,5 @@
 			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
 			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
 		}
-	],
-
-	"endOfJson" : "endOfJson"
+	]
 }

@@ -3,7 +3,6 @@
 
 #include <QStringBuilder>
 #include <QUrlQuery>
-#include <QDebug>
 #include <QList>
 #include <QPair>
 #include <QFile>
@@ -13,11 +12,12 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 		, _hyperion(hyperion)
 		, _baseUrl (baseUrl)
 		, _cgi(hyperion, this)
+		, _log(Logger::getInstance("WEBSERVER"))
 {
 	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
-	_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
+	_server->setServerName (QStringLiteral ("Hyperion WebConfig"));
 
 	connect (_server, &QtHttpServer::started,           this, &StaticFileServing::onServerStarted);
 	connect (_server, &QtHttpServer::stopped,           this, &StaticFileServing::onServerStopped);
@@ -34,16 +34,16 @@ StaticFileServing::~StaticFileServing ()
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	qDebug () << "QtHttpServer started on port" << port << _server->getServerName ();
+	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
 }
 
 void StaticFileServing::onServerStopped () {
-	qDebug () << "QtHttpServer stopped" << _server->getServerName ();
+	Info(_log, "stopped %s", _server->getServerName().toStdString().c_str());
 }
 
 void StaticFileServing::onServerError (QString msg)
 {
-	qDebug () << "QtHttpServer error :" << msg;
+	Error(_log, "%s", msg.toStdString().c_str());
 }
 
 static inline void printErrorToReply (QtHttpReply * reply, QString errorMessage)

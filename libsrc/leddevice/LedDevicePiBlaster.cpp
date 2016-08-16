@@ -1,6 +1,5 @@
 
 // STL includes
-#include <cerrno>
 #include <cstring>
 #include <csignal>
 
@@ -14,9 +13,9 @@
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
 
-LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping) :
-	_deviceName(deviceName),
-	_fid(nullptr)
+LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping)
+	: _deviceName(deviceName)
+	, _fid(nullptr)
 {
 
 	signal(SIGPIPE,  SIG_IGN);
@@ -60,34 +59,25 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 	}
 }
 
-int LedDevicePiBlaster::open(bool report)
+int LedDevicePiBlaster::open()
 {
 	if (_fid != nullptr)
 	{
 		// The file pointer is already open
-		if (report)
-		{
-			Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
-		}
+		Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
 		return -1;
 	}
 
 	if (!QFile::exists(_deviceName.c_str()))
 	{
-		if (report)
-		{
-			Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
-		}
+		Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
 		return -1;
 	}
 
 	_fid = fopen(_deviceName.c_str(), "w");
 	if (_fid == nullptr)
 	{
-		if (report)
-		{
-			Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
-		}
+		Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
 		return -1;
 	}
 
@@ -99,7 +89,7 @@ int LedDevicePiBlaster::open(bool report)
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {
 	// Attempt to open if not yet opened
-	if (_fid == nullptr && open(false) < 0)
+	if (_fid == nullptr && open() < 0)
 	{
 		return -1;
 	}
@@ -152,7 +142,7 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 int LedDevicePiBlaster::switchOff()
 {
 	// Attempt to open if not yet opened
-	if (_fid == nullptr && open(false) < 0)
+	if (_fid == nullptr && open() < 0)
 	{
 		return -1;
 	}

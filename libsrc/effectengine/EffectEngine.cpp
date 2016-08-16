@@ -18,12 +18,12 @@
 #include "Effect.h"
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig) :
-	_hyperion(hyperion),
-	_availableEffects(),
-	_activeEffects(),
-	_mainThreadState(nullptr),
-	_log(Logger::getInstance("EFFECTENGINE"))
+EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig)
+	: _hyperion(hyperion)
+	, _availableEffects()
+	, _activeEffects()
+	, _mainThreadState(nullptr)
+	, _log(Logger::getInstance("EFFECTENGINE"))
 {
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
@@ -128,7 +128,7 @@ bool EffectEngine::loadEffectDefinition(const std::string &path, const std::stri
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
 		foreach (const std::string & error, errors) {
-			Error( log, "Error while checking '%s':", fileName.c_str(), error.c_str());
+			Error( log, "Error while checking '%s':%s", fileName.c_str(), error.c_str());
 		}
 		return false;
 	}
@@ -181,6 +181,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 	_activeEffects.push_back(effect);
 
 	// start the effect
+	_hyperion->registerPriority("EFFECT: "+script, priority);
 	effect->start();
 
 	return 0;
@@ -225,4 +226,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
+	_hyperion->unRegisterPriority("EFFECT: " + effect->getScript());
 }

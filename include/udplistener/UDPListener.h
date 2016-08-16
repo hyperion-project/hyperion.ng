@@ -11,6 +11,7 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 class UDPClientConnection;
 
@@ -27,7 +28,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared);
+	UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared);
 	~UDPListener();
 
 	///
@@ -39,6 +40,7 @@ public:
 	/// @return true if server is active (bind to a port)
 	///
 	bool active() { return _isActive; };
+	bool componentState() { return active(); };
 
 public slots:
 	///
@@ -50,6 +52,8 @@ public slots:
 	/// close server
 	///
 	void stop();
+
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	void statusChanged(bool isActive);

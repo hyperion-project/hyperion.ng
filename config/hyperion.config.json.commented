@@ -28,18 +28,21 @@
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
+	///  * 'channelAdjustment_enable' : true/false enables/disables this channelAdjustment section
 	///  * 'channelAdjustment'
 	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
+	///  * 'temperature_enable' : true/false enables/disables this temperature section
 	///  * 'temperature'
 	///  * 'id'     : The unique identifier of the temperature (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this temperature applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'red'/'green'/'blue' : The temperature manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
+	///  * 'transform_enable' : true/false enables/disables this transform section
 	///  * 'transform'
 	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
 	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
@@ -54,16 +57,9 @@
 	///            - 'threshold'       The minimum required input value for the channel to be on 
 	///                                (else zero)
 	///            - 'gamma'           The gamma-curve correction factor
-	///
-	/// Next to the list with color transforms there is also a smoothing option.
-	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
-	///                  parameters:
-	///            - 'type'            The type of smoothing algorithm ('linear' or 'none')
-	///            - 'time_ms'         The time constant for smoothing algorithm in milliseconds
-	///            - 'updateFrequency' The update frequency of the leds in Hz
-	///            - 'updateDelay'     The delay of the output to leds (in periods of smoothing)
 	"color" :
 	{
+		"channelAdjustment_enable" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -89,12 +85,13 @@
 				}
 			}
 		],
+		"temperature_enable" : true,
 		"temperature" :
 		[
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"temperatureValues" :
+				"correctionValues" :
 				{
 					"red"   : 255,
 					"green" : 255,
@@ -102,6 +99,7 @@
 				}
 			}
 		],
+		"transform_enable" : true,
 		"transform" :
 		[
 			{
@@ -129,15 +127,26 @@
 					"gamma"     : 2.5000
 				}
 			}
-		],
+		]
+	},
 
-		"smoothing" :
-		{
-			"type"            : "linear",
-			"time_ms"         : 200,
-			"updateFrequency" : 20.0000,
-			"updateDelay"     : 0
-		}
+	/// smoothing
+	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
+	///                  parameters:
+	///            - 'enable'          Enable or disable the smoothing (true/false)
+	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
+	///            - 'time_ms'          The time constant for smoothing algorithm in milliseconds
+	///            - 'updateFrequency'  The update frequency of the leds in Hz
+	///            - 'updateDelay'      The delay of the output to leds (in periods of smoothing)
+	///            - 'continuousOutput' Flag for enabling continuous output to Leds regardless of new input or not
+	"smoothing" :
+	{
+		"enable"           : true,
+		"type"             : "linear",
+		"time_ms"          : 200,
+		"updateFrequency"  : 25.0000,
+		"updateDelay"      : 0,
+		"continuousOutput" : true
 	},
 
 	/// Configuration for the embedded V4L2 grabber
@@ -168,7 +177,7 @@
 		"height"               : -1,
 		"frameDecimation"      : 2,
 		"sizeDecimation"       : 8,
-		"priority"             : 900,
+		"priority"             : 890,
 		"mode"                 : "2D",
 		"cropLeft"             : 0,
 		"cropRight"            : 0,
@@ -180,6 +189,8 @@
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 
+	///   * enable       : true if the framegrabber (platform grabber) should be activated
+	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer) [auto]
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
@@ -187,10 +198,29 @@
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
-		"width"        : 64,
-		"height"       : 64,
-		"frequency_Hz" : 10.0,
-		"priority"     : 890
+		// for all type of grabbers
+		"enable"       : true,
+		"type"         : "framebuffer",
+		"frequency_Hz" : 10,
+		"priority"     : 890,
+
+		// valid for grabber: osx|dispmanx|amlogic|framebuffer
+		"width"        : 96,
+		"height"       : 96,
+		
+		// valid for x11
+		"useXGetImage"              : false,
+		"horizontalPixelDecimation" : 8,
+		"verticalPixelDecimation"   : 8,
+		
+		// valid for dispmanx and x11
+		"cropLeft"   : 0,
+		"cropRight"  : 0,
+		"cropTop"    : 0,
+		"cropBottom" : 0,
+
+		// valid for framebuffer
+		"device"     : "/dev/fb0"
 	},
 
 	/// The black border configuration, contains the following items: 
@@ -238,19 +268,19 @@
 	},
 
 	/// Initial Effect sets a "booteffect" or "color" (foreground-effect) and optional set a "effect" or "color" during inactive grabbers and network receivers (background-effect) 
-	///  * background-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
-	///  * foreground-effect      : 2 options: set a effect (example: "Rainbow swirl fast") or set a color (RGB) (example: [255,134,0])
-	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values)
+	///  * background-effect      : 2 options: set a effect (example: ["Rainbow swirl fast"]) or set a color (RGB) (example: [255,134,0])
+	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
+	///  * foreground-effect      : 2 options: set a effect (example: ["Rainbow swirl fast"]) or set a color (RGB) (example: [255,134,0])
+	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
 	///  * foreground-duration_ms : The duration of the selected foreground-effect or color (0=endless)
 	///                       HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
 	///                       HINT: Set a empty value if you want to disable a component (example: "")
 	"initialEffect" :
 	{
-		"background-effect"      : "Full color mood blobs",
-		"background-effect-args" : {},
-		"foreground-effect"      : "Rainbow swirl fast",
-		"foreground-effect-args" : {},
+		"background-effect"      : ["Full color mood blobs"],
+		//"background-effect-args" : {},
+		"foreground-effect"      : ["Rainbow swirl fast"],
+		//"foreground-effect-args" : {},
 		"foreground-duration_ms" : 3000
 	},
 
@@ -574,7 +604,5 @@
 			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
 			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
 		}
-	],
-
-	"endOfJson" : "endOfJson"
+	]
 }
