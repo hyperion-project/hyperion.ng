@@ -17,7 +17,7 @@ install_file()
 }
 
 
-echo "--- hyperion ambilight postinstall ---"
+echo "--- hyperion ambient light postinstall ---"
 echo "- install configuration template"
 mkdir -p /etc/hyperion
 install_file /usr/share/hyperion/config/hyperion.config.json.default /etc/hyperion/hyperion.config.json
@@ -30,17 +30,7 @@ start_msg=""
 restart_msg=""
 SERVICE_POSTFIX=""
 
-if [ -e /sbin/initctl ]
-then
-	echo "- init deamon: upstart"
-	# upstart
-	$HYPERION_RUNNING && initctl stop hyperion
-	install_file /usr/share/hyperion/service/hyperion.initctl.sh /etc/init/hyperion.conf || SERVICE_POSTFIX=".new"
-	initctl reload-configuration
-	start_msg="initctl start hyperion"
-	$HYPERION_RUNNING && initctl start hyperion
-
-elif grep -m1 systemd /proc/1/comm > /dev/null
+if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "- init deamon: systemd"
 	# systemd
@@ -50,16 +40,15 @@ then
 	start_msg="systemctl start hyperion"
 	$HYPERION_RUNNING && systemctl start hyperion
 
-#		if [ $OS_OSMC -eq 1 ]; then
-#			echo '---> Modify systemd script for OSMC usage'
-#			# Wait until kodi is sarted (for kodi checker)
-#			sed -i '/After = mediacenter.service/d' /etc/systemd/system/hyperion.service
-#			sed -i '/Unit/a After = mediacenter.service' /etc/systemd/system/hyperion.service
-#			sed -i 's/User=osmc/User=root/g' /etc/systemd/system/hyperion.service
-#			sed -i 's/Group=osmc/Group=root/g' /etc/systemd/system/hyperion.service
-#			systemctl -q daemon-reload
-#		fi
-#	systemctl start hyperion
+elif [ -e /sbin/initctl ]
+then
+	echo "- init deamon: upstart"
+	# upstart
+	$HYPERION_RUNNING && initctl stop hyperion
+	install_file /usr/share/hyperion/service/hyperion.initctl.sh /etc/init/hyperion.conf || SERVICE_POSTFIX=".new"
+	initctl reload-configuration
+	start_msg="initctl start hyperion"
+	$HYPERION_RUNNING && initctl start hyperion
 
 else
 	echo "- init deamon: sysV"
