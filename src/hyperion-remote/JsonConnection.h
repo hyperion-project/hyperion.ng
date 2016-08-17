@@ -114,7 +114,7 @@ public:
 	/// @param jsonString The JSON String(s) to write
 	/// @param create Specifies whether the nonexistent json string to be created
 	///
-	void setConfig(const std::string & jsonString, bool create);
+	void setConfig(const std::string & jsonString, bool create, bool overwrite);
 
 	///
 	/// Set the color transform of the leds
