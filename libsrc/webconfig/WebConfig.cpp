@@ -4,9 +4,9 @@
 
 WebConfig::WebConfig(QObject * parent)
 	:  QObject(parent)
-	, _port(WEBCONFIG_DEFAULT_PORT)
 	, _server(nullptr)
 {
+	_port = WEBCONFIG_DEFAULT_PORT;
 	_hyperion = Hyperion::getInstance();
 	const Json::Value &config = _hyperion->getJsonConfig();
 	_baseUrl = QString::fromStdString(WEBCONFIG_DEFAULT_PATH);

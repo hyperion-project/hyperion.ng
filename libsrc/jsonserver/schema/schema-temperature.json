@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["temperature"]
 		},
+		"tan" : {
+			"type" : "integer"
+		},
 		"temperature": {
 			"type": "object",
 			"required": true,

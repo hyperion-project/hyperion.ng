@@ -34,7 +34,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	ProtoClientConnection(QTcpSocket * socket, Hyperion * hyperion);
+	ProtoClientConnection(QTcpSocket * socket);
 
 	///
 	/// Destructor
@@ -137,4 +137,8 @@ private:
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
+	
+	int _priority;
+	
+	std::string _priorityChannelName;
 };

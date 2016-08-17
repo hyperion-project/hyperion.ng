@@ -1,5 +1,6 @@
 // stl includes
 #include <stdexcept>
+#include <cassert>
 
 // Qt includes
 #include <QRgb>
@@ -7,9 +8,9 @@
 // hyperion-remote includes
 #include "JsonConnection.h"
 
-JsonConnection::JsonConnection(const std::string & a, bool printJson) :
-	_printJson(printJson),
-	_socket()
+JsonConnection::JsonConnection(const std::string & a, bool printJson)
+	: _printJson(printJson)
+	, _socket()
 {
 	QString address(a.c_str());
 	QStringList parts = address.split(":");
@@ -184,6 +185,106 @@ void JsonConnection::clearAll()
 	// create command
 	Json::Value command;
 	command["command"] = "clearall";
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setComponentState(const std::string& component, const bool state)
+{
+	state ? std::cout << "Enable Component " : std::cout << "Disable Component ";
+	std::cout << component << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "componentstate";
+	Json::Value & parameter = command["componentstate"];
+	parameter["component"] = component;
+	parameter["state"] = state;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setSource(int priority)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	command["priority"] = priority;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setSourceAutoSelect()
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	command["auto"] = true;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+QString JsonConnection::getConfig(std::string type)
+{
+	assert( type == "schema" || type == "config" );
+	std::cout << "Get configuration file from Hyperion Server" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "config";
+	command["subcommand"] = (type == "schema")? "getschema" : "getconfig";
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	if (parseReply(reply))
+	{
+		if (!reply.isMember("result") || !reply["result"].isObject())
+		{
+			throw std::runtime_error("No configuration file available in result");
+		}
+
+		const Json::Value & config = reply["result"];
+		return QString(config.toStyledString().c_str());
+	}
+
+	return QString();
+}
+
+void JsonConnection::setConfig(const std::string &jsonString, bool create)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "config";
+	command["subcommand"] = "setconfig";
+	
+	command["create"] = create;
+	Json::Value & config = command["config"];
+	if (jsonString.size() > 0)
+	{
+		Json::Reader reader;
+		if (!reader.parse(jsonString, config, false))
+		{
+			throw std::runtime_error("Error in configset arguments: " + reader.getFormattedErrorMessages());
+		}
+	}
 
 	// send command message
 	Json::Value reply = sendMessage(command);

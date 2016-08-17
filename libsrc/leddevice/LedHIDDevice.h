@@ -11,7 +11,7 @@
 ///
 /// The LedHIDDevice implements an abstract base-class for LedDevices using an HID-device.
 ///
-class LedHIDDevice : public QObject, public LedDevice
+class LedHIDDevice : public LedDevice
 {
 	Q_OBJECT
 

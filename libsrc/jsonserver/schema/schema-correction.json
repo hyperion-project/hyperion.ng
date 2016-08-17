@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["correction"]
 		},
+		"tan" : {
+			"type" : "integer"
+		},
 		"correction": {
 			"type": "object",
 			"required": true,

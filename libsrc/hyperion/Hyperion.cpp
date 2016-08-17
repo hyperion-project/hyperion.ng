@@ -54,31 +54,7 @@ Hyperion* Hyperion::getInstance()
 
 ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
 {
-	std::string order = deviceConfig.get("colorOrder", "rgb").asString();
-	if (order == "bgr")
-	{
-		return ORDER_BGR;
-	}
-	if (order == "rbg")
-	{
-		return ORDER_RBG;
-	}
-	if (order == "brg")
-	{
-		return ORDER_BRG;
-	}
-	if (order == "gbr")
-	{
-		return ORDER_GBR;
-	}
-	if (order == "grb")
-	{
-		return ORDER_GRB;
-	}
-
-	WarningIf( order != "rgb", Logger::getInstance("Core"), "Unknown color order defined (%s). Using RGB.", order.c_str());
-
-	return ORDER_RGB;
+	return stringToColorOrder( deviceConfig.get("colorOrder", "rgb").asString() );
 }
 
 ColorTransform * Hyperion::createColorTransform(const Json::Value & transformConfig)
@@ -443,80 +419,111 @@ RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const Json::Value& co
 LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
 {
 	LedString ledString;
-
 	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
+	int maxLedId = ledsConfig.size();
 	for (const Json::Value& ledConfig : ledsConfig)
 	{
 		Led led;
 		led.index = ledConfig["index"].asInt();
-
-		const Json::Value& hscanConfig = ledConfig["hscan"];
-		const Json::Value& vscanConfig = ledConfig["vscan"];
-		led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
-		led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-		led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
-		led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
-
-		// Fix if the user swapped min and max
-		if (led.minX_frac > led.maxX_frac)
+		led.clone = ledConfig.get("clone",-1).asInt();
+		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
-			std::swap(led.minX_frac, led.maxX_frac);
-		}
-		if (led.minY_frac > led.maxY_frac)
-		{
-			std::swap(led.minY_frac, led.maxY_frac);
+			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
+			led.clone = -1;
 		}
 
-		// Get the order of the rgb channels for this led (default is device order)
-		const std::string ledOrderStr = ledConfig.get("colorOrder", deviceOrderStr).asString();
-		led.colorOrder = stringToColorOrder(ledOrderStr);
+		if ( led.clone < 0 )
+		{
+			const Json::Value& hscanConfig = ledConfig["hscan"];
+			const Json::Value& vscanConfig = ledConfig["vscan"];
+			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
+			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
+			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			// Fix if the user swapped min and max
+			if (led.minX_frac > led.maxX_frac)
+			{
+				std::swap(led.minX_frac, led.maxX_frac);
+			}
+			if (led.minY_frac > led.maxY_frac)
+			{
+				std::swap(led.minY_frac, led.maxY_frac);
+			}
 
-		ledString.leds().push_back(led);
+			// Get the order of the rgb channels for this led (default is device order)
+			led.colorOrder = stringToColorOrder(ledConfig.get("colorOrder", deviceOrderStr).asString());
+			ledString.leds().push_back(led);
+		}
 	}
 
 	// Make sure the leds are sorted (on their indices)
 	std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
+	return ledString;
+}
 
+LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
+{
+	LedString ledString;
+	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
+	int maxLedId = ledsConfig.size();
+	for (const Json::Value& ledConfig : ledsConfig)
+	{
+		Led led;
+		led.index = ledConfig["index"].asInt();
+		led.clone = ledConfig.get("clone",-1).asInt();
+		if ( led.clone < -1 || led.clone >= maxLedId )
+		{
+			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
+			led.clone = -1;
+		}
+
+		if ( led.clone >= 0 )
+		{
+			Debug(Logger::getInstance("Core"), "LED %d: clone from led %d", led.index, led.clone);
+			led.minX_frac = 0;
+			led.maxX_frac = 0;
+			led.minY_frac = 0;
+			led.maxY_frac = 0;
+			// Get the order of the rgb channels for this led (default is device order)
+			led.colorOrder = stringToColorOrder(ledConfig.get("colorOrder", deviceOrderStr).asString());
+
+			ledString.leds().push_back(led);
+		}
+
+	}
+
+	// Make sure the leds are sorted (on their indices)
+	std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
 	return ledString;
 }
 
 LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
 {
-	std::string type = smoothingConfig.get("type", "none").asString();
+	Logger * log = Logger::getInstance("Core");
+	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
-	if (type == "none")
+	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
+	if ( ! smoothingConfig.get("enable", true).asBool() )
 	{
-		std::cout << "HYPERION INFO: Not creating any smoothing" << std::endl;
-		return ledDevice;
-	}
-	else if (type == "linear")
-	{
-		if (!smoothingConfig.isMember("time_ms"))
-		{
-			std::cout << "HYPERION ERROR: Unable to create smoothing of type linear because of missing parameter 'time_ms'" << std::endl;
-		}
-		else if (!smoothingConfig.isMember("updateFrequency"))
-		{
-			std::cout << "HYPERION ERROR: Unable to create smoothing of type linear because of missing parameter 'updateFrequency'" << std::endl;
-		}
-		else
-		{
-			const unsigned updateDelay = smoothingConfig.get("updateDelay", Json::Value(0u)).asUInt();
-			std::cout << "INFO: Creating linear smoothing" << std::endl;
-			return new LinearColorSmoothing(
-					ledDevice,
-					smoothingConfig["updateFrequency"].asDouble(),
-					smoothingConfig["time_ms"].asInt(),
-					updateDelay);
-		}
-	}
-	else
-	{
-		std::cout << "HYPERION ERROR: Unable to create smoothing of type " << type << std::endl;
+		Info(log,"Smoothing disabled");
+		return nullptr;
 	}
 
-	return ledDevice;
+	if (type == "linear")
+	{
+		Info(log, "Creating linear smoothing");
+		return new LinearColorSmoothing(
+		            ledDevice,
+		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
+		            smoothingConfig.get("time_ms", 200).asInt(),
+		            smoothingConfig.get("updateDelay", 0).asUInt(),
+		            smoothingConfig.get("continuousOutput", true).asBool()
+		            );
+	}
+
+	Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
+	return nullptr;
 }
 
 MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
@@ -551,33 +558,46 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) :
-	_ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"]))),
-	_muxer(_ledString.leds().size()),
-	_raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"])),
-	_raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"])),
-	_raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"])),
-	_device(LedDeviceFactory::construct(jsonConfig["device"])),
-	_effectEngine(nullptr),
-	_messageForwarder(createMessageForwarder(jsonConfig["forwarder"])),
-	_jsonConfig(jsonConfig),
-	_configFile(configFile),
-	_timer(),
-	_log(Logger::getInstance("Core")),
-	_hwLedCount(_ledString.leds().size())
+Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
+	: _ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"])))
+	, _ledStringClone(createLedStringClone(jsonConfig["leds"], createColorOrder(jsonConfig["device"])))
+	, _muxer(_ledString.leds().size())
+	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"]))
+	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"]))
+	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"]))
+	, _device(LedDeviceFactory::construct(jsonConfig["device"]))
+	, _effectEngine(nullptr)
+	, _messageForwarder(createMessageForwarder(jsonConfig["forwarder"]))
+	, _jsonConfig(jsonConfig)
+	, _configFile(configFile)
+	, _timer()
+	, _log(Logger::getInstance("Core"))
+	, _hwLedCount(_ledString.leds().size())
+	, _sourceAutoSelectEnabled(true)
 {
+	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
+	
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color adjustment incorrectly set");
+		throw std::runtime_error("Color adjustment incorrectly set");
 	}
 	if (!_raw2ledTemperature->verifyCorrections())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color temperature incorrectly set");
+		throw std::runtime_error("Color temperature incorrectly set");
 	}
 	if (!_raw2ledTransform->verifyTransforms())
 	{
-		throw std::runtime_error("HYPERION ERROR: Color transformation incorrectly set");
+		throw std::runtime_error("Color transformation incorrectly set");
 	}
+	// set color correction activity state
+	_transformEnabled   = jsonConfig["color"].get("transform_enable",true).asBool();
+	_adjustmentEnabled  = jsonConfig["color"].get("channelAdjustment_enable",true).asBool();
+	_temperatureEnabled = jsonConfig["color"].get("temperature_enable",true).asBool();
+
+	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
+	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
+	InfoIf(!_temperatureEnabled, _log, "Color temperature disabled" );
+	
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
@@ -585,14 +605,19 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile) 
 	);
 
 	// initialize the color smoothing filter
-	_device = createColorSmoothing(jsonConfig["color"]["smoothing"], _device);
+	LedDevice* smoothing = createColorSmoothing(jsonConfig["smoothing"], _device);
+	if ( smoothing != nullptr )
+	{
+		_device = smoothing;
+		connect(this, SIGNAL(componentStateChanged(hyperion::Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(hyperion::Components,bool)));
+	}
 
 	// setup the timer
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
 	// create the effect engine
-	_effectEngine = new EffectEngine(this, jsonConfig["effects"]);
+	_effectEngine = new EffectEngine(this,jsonConfig["effects"]);
 	
 	unsigned int hwLedCount = jsonConfig["device"].get("ledCount",getLedCount()).asUInt();
 	_hwLedCount = std::max(hwLedCount, getLedCount());
@@ -622,6 +647,55 @@ Hyperion::~Hyperion()
 unsigned Hyperion::getLedCount() const
 {
 	return _ledString.leds().size();
+}
+
+void Hyperion::registerPriority(const std::string name, const int priority)
+{
+	Info(_log, "Register new input source named '%s' for priority channel '%d'", name.c_str(), priority );
+	
+	for(auto const &entry : _priorityRegister)
+	{
+		WarningIf( ( entry.first != name && entry.second == priority), _log,
+		           "Input source '%s' uses same priority channel (%d) as '%s'.", name.c_str(), priority, entry.first.c_str());
+	}
+
+	_priorityRegister.emplace(name,priority);
+}
+
+void Hyperion::unRegisterPriority(const std::string name)
+{
+	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
+	_priorityRegister.erase(name);
+}
+
+void Hyperion::setSourceAutoSelectEnabled(bool enabled)
+{
+	_sourceAutoSelectEnabled = enabled;
+	if (! _sourceAutoSelectEnabled)
+	{
+		setCurrentSourcePriority(_muxer.getCurrentPriority());
+	}
+	DebugIf( !_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+	InfoIf(_sourceAutoSelectEnabled, _log, "set current input source to auto select");
+}
+
+bool Hyperion::setCurrentSourcePriority(int priority )
+{
+	bool priorityValid = _muxer.hasPriority(priority);
+	if (priorityValid)
+	{
+		DebugIf(_sourceAutoSelectEnabled, _log, "source auto select is disabled");
+		_sourceAutoSelectEnabled = false;
+		_currentSourcePriority = priority;
+		Info(_log, "set current input source to priority channel %d", _currentSourcePriority);
+	}
+
+	return priorityValid;
+}
+
+void Hyperion::setComponentState(const hyperion::Components component, const bool state)
+{
+	emit componentStateChanged(component, state);
 }
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
@@ -738,7 +812,8 @@ void Hyperion::clearall()
 
 int Hyperion::getCurrentPriority() const
 {
-	return _muxer.getCurrentPriority();
+	
+	return _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
 }
 
 QList<int> Hyperion::getActivePriorities() const
@@ -777,8 +852,8 @@ void Hyperion::update()
 	_muxer.setCurrentTime(QDateTime::currentMSecsSinceEpoch());
 
 	// Obtain the current priority channel
-	int priority = _muxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo & priorityInfo  = _muxer.getInputInfo(priority);
+	int priority = _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
+	const PriorityMuxer::InputInfo & priorityInfo  =  _muxer.getInputInfo(priority);
 
 	// copy ledcolors to local buffer
 	_ledBuffer.reserve(_hwLedCount);
@@ -786,18 +861,36 @@ void Hyperion::update()
 
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
-	_raw2ledTransform->applyTransform(_ledBuffer);
-	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-	_raw2ledTemperature->applyCorrection(_ledBuffer);
+	if (_transformEnabled)   _raw2ledTransform->applyTransform(_ledBuffer);
+	if (_adjustmentEnabled)  _raw2ledAdjustment->applyAdjustment(_ledBuffer);
+	if (_temperatureEnabled) _raw2ledTemperature->applyCorrection(_ledBuffer);
 
-	const std::vector<Led>& leds = _ledString.leds();
-
+	// init colororder vector, if nempty
+	if (_ledStringColorOrder.empty())
+	{
+		for (Led& led : _ledString.leds())
+		{
+			_ledStringColorOrder.push_back(led.colorOrder);
+		}
+		for (Led& led : _ledStringClone.leds())
+		{
+			_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
+		}
+	}
+	
+	// insert cloned leds into buffer
+	for (Led& led : _ledStringClone.leds())
+	{
+		_ledBuffer.insert(_ledBuffer.begin() + led.index, _ledBuffer.at(led.clone));
+	}
+	
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)
 	{
-		const ColorOrder ledColorOrder = leds.at(i).colorOrder;
+		//const ColorOrder ledColorOrder = leds.at(i).colorOrder;
+
 		// correct the color byte order
-		switch (ledColorOrder)
+		switch (_ledStringColorOrder.at(i))
 		{
 		case ORDER_RGB:
 			// leave as it is

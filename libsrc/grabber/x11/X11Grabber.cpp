@@ -162,6 +162,49 @@ Image<ColorRgb> & X11Grabber::grab()
 	return _image;
 }
 
+int X11Grabber::grabFrame(Image<ColorRgb> & image)
+{
+	if (_XRenderAvailable && !_useXGetImage) {
+		XRenderComposite( _x11Display,		// *dpy,
+							PictOpSrc,		// op,
+							_srcPicture,		// src
+							None,			// mask
+							_dstPicture,		// dst
+							_cropLeft,		// src_x
+							_cropTop,		// src_y
+							0,			// mask_x
+							0,			// mask_y
+							0,			// dst_x
+							0,			// dst_y
+								_croppedWidth,	// width
+							_croppedHeight);	// height
+	
+		XSync(_x11Display, False);
+
+		if (_XShmAvailable) {
+			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
+		} else {
+			_xImage = XGetImage(_x11Display, _pixmap, 0, 0, _croppedWidth, _croppedHeight, AllPlanes, ZPixmap);   
+		}
+	} else {
+		if (_XShmAvailable && !_useXGetImage) {
+			XShmGetImage(_x11Display, _window, _xImage, _cropLeft, _cropTop, AllPlanes);
+		} else {
+			_xImage = XGetImage(_x11Display, _window, _cropLeft, _cropTop, _croppedWidth, _croppedHeight, AllPlanes, ZPixmap);
+		}
+	}
+
+	if (_xImage == nullptr)
+	{
+		Error(_log, "Grab Failed!");
+		return -1;
+	}
+
+	_imageResampler.processImage(reinterpret_cast<const uint8_t *>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PIXELFORMAT_BGR32, image);
+
+	return 0;
+}
+
 int X11Grabber::updateScreenDimensions()
 {
 	const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
@@ -176,17 +219,14 @@ int X11Grabber::updateScreenDimensions()
 		// No update required
 		return 0;
 	}
-	
-	std::cout << "X11GRABBER INFO: Update of screen resolution: [" << _screenWidth << "x" << _screenHeight <<"] => ";
 
 	if (_screenWidth || _screenHeight) {
 		freeResources();
 	}
 
+	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _screenWidth, _screenHeight, _windowAttr.width, _windowAttr.height);
 	_screenWidth  = _windowAttr.width;
 	_screenHeight = _windowAttr.height;
-	
-	std::cout << "[" << _screenWidth << "x" << _screenHeight <<"]" << std::endl;
 	
 	_croppedWidth  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
 		? (_screenWidth - _cropLeft - _cropRight)
@@ -196,15 +236,13 @@ int X11Grabber::updateScreenDimensions()
 		? (_screenHeight - _cropTop - _cropBottom)
 		: _screenHeight;
 
-	std::cout << "X11GRABBER INFO: Using ";
-
 	if (_XRenderAvailable && !_useXGetImage) {
-		std::cout << "XRender for grabbing" << std::endl;
+		Info(_log, "Using XRender for grabbing");
 	} else {
-		std::cout << "XGetImage for grabbing" << std::endl;
+		Info(_log, "Using XGetImage for grabbing");
 	}
 
 	setupResources();
 
-	return 0;
+	return 1;
 }

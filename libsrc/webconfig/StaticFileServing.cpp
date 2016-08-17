@@ -3,21 +3,22 @@
 
 #include <QStringBuilder>
 #include <QUrlQuery>
-#include <QDebug>
 #include <QList>
 #include <QPair>
 #include <QFile>
+#include <QFileInfo>
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
 		:  QObject   (parent)
 		, _hyperion(hyperion)
 		, _baseUrl (baseUrl)
 		, _cgi(hyperion, this)
+		, _log(Logger::getInstance("WEBSERVER"))
 {
 	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
-	_server->setServerName (QStringLiteral ("Qt Static HTTP File Server"));
+	_server->setServerName (QStringLiteral ("Hyperion WebConfig"));
 
 	connect (_server, &QtHttpServer::started,           this, &StaticFileServing::onServerStarted);
 	connect (_server, &QtHttpServer::stopped,           this, &StaticFileServing::onServerStopped);
@@ -34,16 +35,16 @@ StaticFileServing::~StaticFileServing ()
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	qDebug () << "QtHttpServer started on port" << port << _server->getServerName ();
+	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
 }
 
 void StaticFileServing::onServerStopped () {
-	qDebug () << "QtHttpServer stopped" << _server->getServerName ();
+	Info(_log, "stopped %s", _server->getServerName().toStdString().c_str());
 }
 
 void StaticFileServing::onServerError (QString msg)
 {
-	qDebug () << "QtHttpServer error :" << msg;
+	Error(_log, "%s", msg.toStdString().c_str());
 }
 
 static inline void printErrorToReply (QtHttpReply * reply, QString errorMessage)
@@ -74,13 +75,24 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			return;
 		}
-		
-		// get static files
-		if ( path == "/" || path.isEmpty() || ! QFile::exists(_baseUrl % "/" % path) )
-			path = "index.html";
 
-		QFile file (_baseUrl % "/" % path);
-		if (file.exists ())
+		QFileInfo info(_baseUrl % "/" % path);
+		if ( path == "/" || path.isEmpty() || ! info.exists() )
+		{
+			path = "index.html";
+		}
+		else if (info.isDir() && path.endsWith("/") )
+		{
+			path += "index.html";
+		}
+		else if (info.isDir() && ! path.endsWith("/") )
+		{
+			path += "/index.html";
+		}
+
+		// get static files
+		QFile file(_baseUrl % "/" % path);
+		if (file.exists())
 		{
 			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
 			if (file.open (QFile::ReadOnly)) {

@@ -16,6 +16,7 @@
 // util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 class ImageProcessor;
 
@@ -32,12 +33,15 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	JsonClientConnection(QTcpSocket * socket, Hyperion * hyperion);
+	JsonClientConnection(QTcpSocket * socket);
 
 	///
 	/// Destructor
 	///
 	~JsonClientConnection();
+
+public slots:
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	///
@@ -70,63 +74,100 @@ private:
 	///
 	/// @param message the incoming message
 	///
-	void handleColorCommand(const Json::Value & message);
+	void handleColorCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Image message
 	///
 	/// @param message the incoming message
 	///
-	void handleImageCommand(const Json::Value & message);
+	void handleImageCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Effect message
 	///
 	/// @param message the incoming message
 	///
-	void handleEffectCommand(const Json::Value & message);
+	void handleEffectCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message
 	///
-	void handleServerInfoCommand(const Json::Value & message);
+	void handleServerInfoCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearCommand(const Json::Value & message);
+	void handleClearCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clearall message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearallCommand(const Json::Value & message);
+	void handleClearallCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Transform message
 	///
 	/// @param message the incoming message
 	///
-	void handleTransformCommand(const Json::Value & message);
+	void handleTransformCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Temperature message
 	///
 	/// @param message the incoming message
 	///
-	void handleTemperatureCommand(const Json::Value & message);
+	void handleTemperatureCommand(const Json::Value & message, const std::string &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Adjustment message
 	///
 	/// @param message the incoming message
 	///
-	void handleAdjustmentCommand(const Json::Value & message);
+	void handleAdjustmentCommand(const Json::Value & message, const std::string &command, const int tan);
+
+	///
+	/// Handle an incoming JSON SourceSelect message
+	///
+	/// @param message the incoming message
+	///
+	void handleSourceSelectCommand(const Json::Value & message, const std::string &command, const int tan);
+	
+	/// Handle an incoming JSON GetConfig message
+	///
+	/// @param message the incoming message
+	///
+	void handleConfigCommand(const Json::Value & message, const std::string &command, const int tan);
+
+	/// Handle an incoming JSON GetConfig message
+	///
+	/// @param message the incoming message
+	///
+	void handleSchemaGetCommand(const Json::Value & message, const std::string &command, const int tan);
+
+	/// Handle an incoming JSON GetConfig message
+	///
+	/// @param message the incoming message
+	///
+	void handleConfigGetCommand(const Json::Value & message, const std::string &command, const int tan);
+
+	///
+	/// Handle an incoming JSON SetConfig message
+	///
+	void handleConfigSetCommand(const Json::Value & message, const std::string &command, const int tan);
+	
+	///
+	/// Handle an incoming JSON Component State message
+	///
+	/// @param message the incoming message
+	///
+	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type
@@ -144,14 +185,14 @@ private:
 	///
 	/// Send a standard reply indicating success
 	///
-	void sendSuccessReply();
+	void sendSuccessReply(const std::string &command="", const int tan=0);
 
 	///
 	/// Send an error message back to the client
 	///
 	/// @param error String describing the error
 	///
-	void sendErrorReply(const std::string & error);
+	void sendErrorReply(const std::string & error, const std::string &command="", const int tan=0);
 	
 	///
 	/// Do handshake for a websocket connection
@@ -173,12 +214,13 @@ private:
 	/// Check if a JSON messag is valid according to a given JSON schema
 	///
 	/// @param message JSON message which need to be checked
-	/// @param schemaResource Qt esource identifier with the JSON schema
+	/// @param schemaResource Qt Resource identifier with the JSON schema
 	/// @param errors Output error message
+	/// @param ignoreRequired ignore the required value in JSON schema
 	///
 	/// @return true if message conforms the given JSON schema
 	///
-	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors);
+	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
 
 private:
 	/// The TCP-Socket that is connected tot the Json-client
@@ -195,6 +237,10 @@ private:
 	
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
-	
+
+	/// The logger instance
 	Logger * _log;
+
+	/// Flag if forwarder is enabled
+	bool _forwarder_enabled;
 };

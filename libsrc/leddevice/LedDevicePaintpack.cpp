@@ -3,9 +3,8 @@
 #include "LedDevicePaintpack.h"
 
 // Use out report HID device
-LedDevicePaintpack::LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms) :
-	LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, false),
-	_ledBuffer(0)
+LedDevicePaintpack::LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
+	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, false)
 {
 	// empty
 }

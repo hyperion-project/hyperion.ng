@@ -78,11 +78,8 @@ private:
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
 
-	/// Number of leds
-	int _ledCount;
-
 	/// Usb device identifiers
-	static uint16_t _usbVendorId;
-	static uint16_t _usbProductId;
+	static uint16_t     _usbVendorId;
+	static uint16_t     _usbProductId;
 	static std::string _usbProductDescription;
 };

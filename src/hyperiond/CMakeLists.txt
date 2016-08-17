@@ -35,6 +35,10 @@ if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond amlogic-grabber)
 endif ()
 
+if (ENABLE_X11)
+	target_link_libraries(hyperiond	x11-grabber	)
+endif ()
+
 install ( TARGETS hyperiond DESTINATION "bin" COMPONENT ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/effects     DESTINATION "share/hyperion/" COMPONENT  ambilight )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  ambilight )

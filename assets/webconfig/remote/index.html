@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+    <title>Hyperion remote control</title>
+    <meta charset="utf-8"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width"/>
+    <link href="css/index.css" rel="stylesheet">
+    <link rel="apple-touch-icon" href="res/icon_128.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+<div id="app">
+    <div class="work">
+        <div class="container">
+            <div id="color" class="contentarea">
+                <div id="colorpicker">
+                    <img id="colorwheelbg" src="res/colorwheel.png" width="auto" height="90%"/>
+                    <div id="pointer"></div>
+                    <div class="touchrect"></div>
+                </div>
+                <div class="slider" id="brightness">
+                    <div class="track"></div>
+                    <div class="thumb"></div>
+                </div>
+                <div id="buttonctrl">
+                    <div class="icon" id="clear_button">&#xe807;</div>
+                    <input type="text" class="value" autocomplete="off" autocorrect="off" autocapitalize="off"/>
+                    <div class="icon" id="clearall_button">&#xe617;</div>
+                </div>
+            </div>
+            <div id="effects" class="contentarea">
+                <label class="info">Need server connection to fetch list.</label>
+                <ul></ul>
+            </div>
+            <div id="transform" class="contentarea">
+                <label class="info">Need server connection to fetch list.</label>
+                <div class="values"></div>
+            </div>
+            <div id="settings" class="contentarea">
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="button selected" id="colorButton" data-area="color">
+            <div class="icon">&#xe800;</div>
+            <div class="title">Color</div>
+            <div class="touchrect"></div>
+        </div>
+        <div class="button" id="effectsButton" data-area="effects">
+            <div class="icon">&#xe602;</div>
+            <div class="title">Effects</div>
+            <div class="touchrect"></div>
+        </div>
+        <div class="button" id="thresholdButton" data-area="transform">
+            <div class="icon">&#xe601;</div>
+            <div class="title">Transform</div>
+            <div class="touchrect"></div>
+        </div>
+        <div class="button" id="settingsButton" data-area="settings">
+            <div class="icon">&#x6e;</div>
+            <div class="title">Settings</div>
+            <div class="touchrect"></div>
+        </div>
+    </div>
+</div>
+<script src="js/vendor/require.js" data-main="js/app/main"></script>
+</body>
+</html>

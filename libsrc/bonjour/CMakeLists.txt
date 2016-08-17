@@ -46,7 +46,7 @@ if (USE_SHARED_AVAHI_LIBS)
 		avahi-common
 		avahi-core
 		dbus-1)
-else()
+elseif (DEFAULT_USE_AVAHI_LIBS)
 	target_link_libraries(bonjour
 		libdns_sd.a
 		libavahi-client.a

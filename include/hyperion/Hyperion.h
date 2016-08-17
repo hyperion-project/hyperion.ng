@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <map>
 
 // QT includes
 #include <QObject>
@@ -11,6 +12,7 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -24,6 +26,9 @@
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
 
+// KodiVideoChecker includes
+#include <kodivideochecker/KODIVideoChecker.h>
+
 // Forward class declaration
 class LedDevice;
 class ColorTransform;
@@ -36,6 +41,7 @@ class RgbChannelAdjustment;
 class MultiColorTransform;
 class MultiColorCorrection;
 class MultiColorAdjustment;
+class KODIVideoChecker;
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
@@ -46,6 +52,7 @@ class Hyperion : public QObject
 public:
 	///  Type definition of the info structure used by the priority muxer
 	typedef PriorityMuxer::InputInfo InputInfo;
+	typedef std::map<std::string,int> PriorityRegister;
 
 	///
 	/// RGB-Color channel enumeration
@@ -109,11 +116,47 @@ public:
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
 	
-	/// 
+	/// gets the current json config object
+	/// @return json config
 	const Json::Value& getJsonConfig() { return _jsonConfig; };
-	
+
+	/// get filename of configfile
+	/// @return the current config filename
 	std::string getConfigFileName() { return _configFile; };
 
+	/// register a input source to a priority channel
+	/// @param name uniq name of input source
+	/// @param priority priority channel
+	void registerPriority(const std::string name, const int priority);
+	
+	/// unregister a input source to a priority channel
+	/// @param name uniq name of input source
+	void unRegisterPriority(const std::string name);
+	
+	/// gets current priority register
+	/// @return the priority register
+	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
+	
+	/// enable/disable automatic/priorized source selection
+	/// @param enable the state
+	void setSourceAutoSelectEnabled(bool enabled);
+	
+	/// set current input source to visible
+	/// @param priority the priority channel which should be vidible
+	/// @return true if success, false on error
+	bool setCurrentSourcePriority(int priority );
+	
+	/// gets current state of automatic/priorized source selection
+	/// @return the state
+	bool sourceAutoSelectEnabled() { return _sourceAutoSelectEnabled; };
+	
+	///
+	/// Enable/Disable components during runtime
+	///
+	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param state The state of the component [true | false]
+	///
+	void setComponentState(const hyperion::Components component, const bool state);
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -225,6 +268,7 @@ public:
 	 * @return The constructed ledstring
 	 */
 	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
+	static LedString createLedStringClone(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
 	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
@@ -250,6 +294,8 @@ signals:
 	/// This signal will not be emitted when a priority channel time out
 	void allChannelsCleared();
 
+	void componentStateChanged(const hyperion::Components component, bool enabled);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -269,6 +315,10 @@ private:
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
+	/// specifiation of cloned leds
+	LedString _ledStringClone;
+
+	std::vector<ColorOrder> _ledStringColorOrder;
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
@@ -298,13 +348,32 @@ private:
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
-	
+
 	/// buffer for leds
 	std::vector<ColorRgb> _ledBuffer;
-	
+
 	/// Logger instance
 	Logger * _log;
-	
+
 	/// count of hardware leds
 	unsigned _hwLedCount;
+
+	/// register of input sources and it's prio channel
+	PriorityRegister _priorityRegister;
+
+	/// flag for color transform enable
+	bool _transformEnabled;
+
+	/// flag for color adjustment enable
+	bool _adjustmentEnabled;
+
+	/// flag for color temperature enable
+	bool _temperatureEnabled;
+
+	/// flag indicates state for autoselection of input source
+	bool _sourceAutoSelectEnabled;
+	
+	/// holds the current priority channel that is manualy selected
+	int _currentSourcePriority;
+	
 };
