@@ -91,6 +91,7 @@ int main(int argc, char * argv[])
 		SwitchParameter<>  & argSchemaGet   = parameters.add<SwitchParameter<> >(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
 		StringParameter & argConfigSet      = parameters.add<StringParameter>('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
 		SwitchParameter<> & argCreate       = parameters.add<SwitchParameter<> >(0x0, "createkeys", "Create non exist Json Entry(s) in the actual loaded configuration file. Argument to use in combination with configSet.");
+		SwitchParameter<> & argOverwriteConfig       = parameters.add<SwitchParameter<> >(0x0, "overwrite", "Overwrite the actual loaded configuration file with the Json object string from configSet. Argument to use in combination with configSet.");
 
 		// set the default values
 		argAddress.setDefault(defaultServerAddress.toStdString());
@@ -219,7 +220,7 @@ int main(int argc, char * argv[])
 		}
 		else if (argConfigSet.isSet())
 		{
-			connection.setConfig(argConfigSet.getValue(), argCreate.isSet());
+			connection.setConfig(argConfigSet.getValue(), argCreate.isSet(), argOverwriteConfig.isSet());
 		}
 		else if (colorModding)
 		{	
