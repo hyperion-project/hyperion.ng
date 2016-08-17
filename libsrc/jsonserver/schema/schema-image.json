@@ -1,34 +1,37 @@
 {
-    "type":"object",
-    "required":true,
-    "properties":{
-        "command": {
-            "type" : "string",
-            "required" : true,
-            "enum" : ["image"]
-        },
-        "priority": {
-            "type": "integer",
-            "required": true
-        },
-        "duration": {
-            "type": "integer",
-            "required": false
-        },
-        "imagewidth": {
-            "type" : "integer",
-            "required": true,
-            "minimum": 0
-        },
-        "imageheight": {
-            "type" : "integer",
-            "required": true,
-            "minimum": 0
-        },
-        "imagedata": {
-            "type": "string",
-            "required": true
-        }
-    },
-    "additionalProperties": false
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["image"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer",
+			"required": true
+		},
+		"duration": {
+			"type": "integer",
+			"required": false
+		},
+		"imagewidth": {
+			"type" : "integer",
+			"required": true,
+			"minimum": 0
+		},
+		"imageheight": {
+			"type" : "integer",
+			"required": true,
+			"minimum": 0
+		},
+		"imagedata": {
+			"type": "string",
+			"required": true
+		}
+	},
+	"additionalProperties": false
 }
