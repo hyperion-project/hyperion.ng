@@ -328,6 +328,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		}
 		else
 		{
+			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
 			throw std::runtime_error("unknown device");
 		}
 	}
