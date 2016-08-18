@@ -931,8 +931,9 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message, co
 				return;
 			}
 			
-			bool createKey = message.isMember("create");
-			Json::Value hyperionConfig = _hyperion->getJsonConfig();
+			bool createKey = message["create"].asBool();
+			Json::Value hyperionConfig;
+			message["overwrite"].asBool() ? createKey = true : hyperionConfig = _hyperion->getJsonConfig();
 			nested::configSetCommand(message["config"], hyperionConfig, createKey);
 			
 			JsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfig);
