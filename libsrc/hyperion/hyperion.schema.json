@@ -6,11 +6,13 @@
 		"logger" :
 		{
 			"type" : "object",
+			"title" : "Logging",
 			"properties" :
 			{
 				"level" :
-				{ 
-					"enum" : ["silent", "warn", "verbose", "debug"]
+				{
+					"enum" : ["silent", "warn", "verbose", "debug"],
+					"title" : "Log-Level"
 				}
 			},
 			"additionalProperties" : false
@@ -673,7 +675,7 @@
 				}
 			},
 			"additionalProperties" : false
-		},		
+		},
 		"forwarder" :
 		{
 			"type" : "object",
@@ -702,12 +704,14 @@
 		{
 			"type" : "object",
 			"required" : true,
+			"title" : "JSON Server",
 			"properties" :
 			{
 				"port" :
 				{
 					"type" : "integer",
 					"required" : true,
+					"title" : "Port",
 					"minimum" : 0,
 					"maximum" : 65535
 				}
@@ -718,12 +722,14 @@
 		{
 			"type" : "object",
 			"required" : true,
+			"title" : "Proto Server",
 			"properties" :
 			{
 				"port" :
 				{
 					"type" : "integer",
 					"required" : true,
+					"title" : "Port",
 					"minimum" : 0,
 					"maximum" : 65535
 				}
@@ -733,22 +739,26 @@
 		"boblightServer" :
 		{
 			"type" : "object",
+			"title" : "Boblight Server",
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"title" : "Activate"
 				},
 				"port" :
 				{
 					"type" : "integer",
 					"required" : true,
+					"title" : "Port",
 					"minimum" : 0,
 					"maximum" : 65535
 				},
 				"priority" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Priority"
 				}
 			},
 			"additionalProperties" : false
@@ -756,34 +766,41 @@
 		"udpListener" :
 		{
 			"type" : "object",
+			"title" : "UDP Listener",
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"title" : "Activate"
 				},
 				"address" :
 				{
 					"type" : "string",
+					"title" : "Address",
 					"required" : true
 				},
 				"port" :
 				{
 					"type" : "integer",
+					"title" : "Port",
 					"minimum" : 0,
 					"maximum" : 65535
 				},
 				"priority" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Priority"
 				},
 				"timeout" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Timeout"
 				},
 				"shared" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"title" : "Shared"
 				}
 			},
 			"additionalProperties" : false
@@ -791,22 +808,26 @@
 		"webConfig" :
 		{
 			"type" : "object",
+			"title" : "WebUI - DANGER CHANGES CAN MAKE THE WEBUI UNREACHABLE!",
 			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
+					"title" : "Activate",
 					"required" : true
 				},
 				"document_root" :
 				{
 					"type" : "string",
+					"title" : "Document Root",
 					"required" : true
 				},
 				"port" :
 				{
 					"type" : "integer",
+					"description" : "Port",
 					"required" : true
 				}
 			},

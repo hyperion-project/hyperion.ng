@@ -15,6 +15,10 @@
 	<!-- jQuery -->
     <script src="js/jquery.min.js"></script>
 
+  <!-- JSONForm -->
+    <script src="js/underscore.js"></script>
+    <script src="js/jsonform.js"></script>
+
 	<!--Language Support -->
 	<script src="js/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
 	<script src="js/js.cookie.js"></script>
@@ -41,7 +45,7 @@
 
 
     <!-- Bootstrap Core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
 
 	<!-- Flags -->
 	<link href="css/flag-icon.min.css" rel="stylesheet">
@@ -281,6 +285,9 @@
                             <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
+                                    <a class="inactive" href="#" id="load_confGeneral"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a>
+                                </li>
+                                <li>
 									                  <a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a>
 								                </li>
                                 <li>
@@ -424,6 +431,10 @@
 
 			$("#load_confKodi").on("click", function() {
 				$("#page-wrapper").load("kodiconf.html");
+			});
+
+      $("#load_confGeneral").on("click", function() {
+				$("#page-wrapper").load("generalconf.html");
 			});
     });
 		$(function(){
