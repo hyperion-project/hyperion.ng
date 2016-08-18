@@ -44,10 +44,8 @@
 				},
 				"colorOrder" :
 				{
-					"type":
-					{
-						"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
-					}
+					"type" : "string",
+					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"]
 				}
 			},
 			"additionalProperties" : true
@@ -909,10 +907,8 @@
 					},
 					"colorOrder":
 					{
-						"type":
-						{
-							"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
-						}
+						"type": "string",
+						"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
 					}
 				},
 				"additionalProperties" : false
