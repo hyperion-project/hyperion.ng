@@ -50,6 +50,7 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
         e131_packet.property_value_count = htons(513);
 
 	int i=0;
+	e131_packet.property_values[i++] = 0;
 	for (int led_idx=0; led_idx <std::min(_ledCount,170); led_idx++) {
 		e131_packet.property_values[i++] = ledValues[led_idx].red;
 		e131_packet.property_values[i++] = ledValues[led_idx].green;
