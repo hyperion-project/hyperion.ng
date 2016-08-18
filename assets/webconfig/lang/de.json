@@ -9,7 +9,7 @@
 		"general_country_nl" : "Niederlande",
 		"general_speech_de" : "Deutsch",
 		"general_speech_en" : "Englisch",
-		"dashboard_label_intro" : "Das Dashboard zeigt dir Informationen zum Systemstatus, ob Updates verfügbar sind, den Komponenten Status sowie die letzten Blog-Posts vom Hyperion Team",
+		"dashboard_label_intro" : "Das Dashboard zeigt dir Informationen zum Systemstatus, ob Updates verfügbar sind, den Komponentenstatus sowie die letzten Blog-Posts vom Hyperion Team.",
 		"dashboard_label_infobox_title" : "Informationen",
 		"dashboard_label_infobox_currenthyp" : "Deine Hyperion Version:",
 		"dashboard_label_infobox_latesthyp" : "Aktuellste Hyperion Version:",
@@ -56,7 +56,9 @@
 		"support_label_wikititle" : "Wiki",
 		"support_label_wikitext" : "Von A bis Z - Alles wissenwerte zu Hyperion",
 		"support_label_forumtitle" : "Forum",
-		"support_label_forumtext" : "Diskussion und Hilfestellung von der Community"
+		"support_label_forumtext" : "Diskussion und Hilfestellung von der Community",
+		"main_menu_general_conf_token":"Allgemein",
+		"remote_general_conf_intro":"Hier kannst du allgemeine Einstellungen von Hyperion vornehmen."
 	},
 	"regex": [
 		["^Something at start of text", ""],

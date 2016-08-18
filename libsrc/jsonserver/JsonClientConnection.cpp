@@ -246,31 +246,32 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 			return;
 		}
 
+		int tan = message.get("tan",0).asInt();
 		// switch over all possible commands and handle them
 		if (command == "color")
-			handleColorCommand(message);
+			handleColorCommand(message, command, tan);
 		else if (command == "image")
-			handleImageCommand(message);
+			handleImageCommand(message, command, tan);
 		else if (command == "effect")
-			handleEffectCommand(message);
+			handleEffectCommand(message, command, tan);
 		else if (command == "serverinfo")
-			handleServerInfoCommand(message);
+			handleServerInfoCommand(message, command, tan);
 		else if (command == "clear")
-			handleClearCommand(message);
+			handleClearCommand(message, command, tan);
 		else if (command == "clearall")
-			handleClearallCommand(message);
+			handleClearallCommand(message, command, tan);
 		else if (command == "transform")
-			handleTransformCommand(message);
+			handleTransformCommand(message, command, tan);
 		else if (command == "temperature")
-			handleTemperatureCommand(message);
+			handleTemperatureCommand(message, command, tan);
 		else if (command == "adjustment")
-			handleAdjustmentCommand(message);
+			handleAdjustmentCommand(message, command, tan);
 		else if (command == "sourceselect")
-			handleSourceSelectCommand(message);
+			handleSourceSelectCommand(message, command, tan);
 		else if (command == "config")
-			handleConfigCommand(message);
+			handleConfigCommand(message, command, tan);
 		else if (command == "componentstate")
-			handleComponentStateCommand(message);
+			handleComponentStateCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -310,7 +311,7 @@ void JsonClientConnection::forwardJsonMessage(const Json::Value & message)
 	}
 }
 
-void JsonClientConnection::handleColorCommand(const Json::Value &message)
+void JsonClientConnection::handleColorCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	forwardJsonMessage(message);
 
@@ -346,10 +347,10 @@ void JsonClientConnection::handleColorCommand(const Json::Value &message)
 	_hyperion->setColors(priority, colorData, duration);
 
 	// send reply
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleImageCommand(const Json::Value &message)
+void JsonClientConnection::handleImageCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	forwardJsonMessage(message);
 
@@ -363,7 +364,7 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 	// check consistency of the size of the received data
 	if (data.size() != width*height*3)
 	{
-		sendErrorReply("Size of image data does not match with the width and height");
+		sendErrorReply("Size of image data does not match with the width and height", command, tan);
 		return;
 	}
 
@@ -379,10 +380,10 @@ void JsonClientConnection::handleImageCommand(const Json::Value &message)
 	_hyperion->setColors(priority, ledColors, duration);
 
 	// send reply
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleEffectCommand(const Json::Value &message)
+void JsonClientConnection::handleEffectCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	forwardJsonMessage(message);
 
@@ -403,14 +404,16 @@ void JsonClientConnection::handleEffectCommand(const Json::Value &message)
 	}
 
 	// send reply
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
+void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const std::string &command, const int tan)
 {
 	// create result
 	Json::Value result;
 	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
 	Json::Value & info = result["info"];
 	
 	// add host name for remote clients
@@ -641,7 +644,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &)
 	sendMessage(result);
 }
 
-void JsonClientConnection::handleClearCommand(const Json::Value &message)
+void JsonClientConnection::handleClearCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	forwardJsonMessage(message);
 
@@ -652,10 +655,10 @@ void JsonClientConnection::handleClearCommand(const Json::Value &message)
 	_hyperion->clear(priority);
 
 	// send reply
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleClearallCommand(const Json::Value & message)
+void JsonClientConnection::handleClearallCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	forwardJsonMessage(message);
 
@@ -663,10 +666,10 @@ void JsonClientConnection::handleClearallCommand(const Json::Value & message)
 	_hyperion->clearall();
 
 	// send reply
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleTransformCommand(const Json::Value &message)
+void JsonClientConnection::handleTransformCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	const Json::Value & transform = message["transform"];
 
@@ -738,11 +741,11 @@ void JsonClientConnection::handleTransformCommand(const Json::Value &message)
 	// commit the changes
 	_hyperion->transformsUpdated();
 
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
 
-void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
+void JsonClientConnection::handleTemperatureCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	const Json::Value & temperature = message["temperature"];
 
@@ -765,10 +768,10 @@ void JsonClientConnection::handleTemperatureCommand(const Json::Value &message)
 	// commit the changes
 	_hyperion->temperaturesUpdated();
 
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
+void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	const Json::Value & adjustment = message["adjustment"];
 
@@ -806,10 +809,10 @@ void JsonClientConnection::handleAdjustmentCommand(const Json::Value &message)
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
 
-	sendSuccessReply();
+	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message)
+void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	bool success = false;
 	if (message.get("auto",false).asBool())
@@ -819,45 +822,47 @@ void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message
 	}
 	else if (message.isMember("priority"))
 	{
-		success =  _hyperion->setCurrentSourcePriority(message["priority"].asInt());
+		success = _hyperion->setCurrentSourcePriority(message["priority"].asInt());
 	}
 
 	if (success)
 	{
-		sendSuccessReply();
+		sendSuccessReply(command, tan);
 	}
 	else
 	{
-		sendErrorReply("setting current priority failed");
+		sendErrorReply("setting current priority failed", command, tan);
 	}
 }
 
-void JsonClientConnection::handleConfigCommand(const Json::Value & message)
+void JsonClientConnection::handleConfigCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	std::string subcommand = message.get("subcommand","").asString();
 	if (subcommand == "getschema")
 	{
-		handleSchemaGetCommand(message);
+		handleSchemaGetCommand(message, command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
-		handleConfigGetCommand(message);
+		handleConfigGetCommand(message, command, tan);
 	}
 	else if (subcommand == "setconfig")
 	{
-		handleConfigSetCommand(message);
+		handleConfigSetCommand(message, command, tan);
 	} 
 	else
 	{
-		sendErrorReply("unknown or missing subcommand");
+		sendErrorReply("unknown or missing subcommand", command, tan);
 	}
 }
 
-void JsonClientConnection::handleConfigGetCommand(const Json::Value & message)
+void JsonClientConnection::handleConfigGetCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	// create result
 	Json::Value result;
 	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
 	Json::Value & config = result["result"];
 	config = _hyperion->getJsonConfig();
 	
@@ -865,11 +870,13 @@ void JsonClientConnection::handleConfigGetCommand(const Json::Value & message)
 	sendMessage(result);
 }
 
-void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message)
+void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	// create result
 	Json::Value result;
 	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
 	Json::Value & schemaJson = result["result"];
 	
 	// make sure the resources are loaded (they may be left out after static linking)
@@ -889,7 +896,7 @@ void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message)
 	sendMessage(result);
 }
 
-void JsonClientConnection::handleConfigSetCommand(const Json::Value &message)
+void JsonClientConnection::handleConfigSetCommand(const Json::Value &message, const std::string &command, const int tan)
 {
 	struct nested
 	{
@@ -920,23 +927,24 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message)
 			std::string errors;
 			if (!checkJson(message["config"], ":/hyperion-schema", errors, true))
 			{
-				sendErrorReply("Error while validating json: " + errors);
+				sendErrorReply("Error while validating json: " + errors, command, tan);
 				return;
 			}
 			
-			bool createKey = message.isMember("create");
-			Json::Value hyperionConfig = _hyperion->getJsonConfig();
+			bool createKey = message["create"].asBool();
+			Json::Value hyperionConfig;
+			message["overwrite"].asBool() ? createKey = true : hyperionConfig = _hyperion->getJsonConfig();
 			nested::configSetCommand(message["config"], hyperionConfig, createKey);
 			
 			JsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfig);
 			
-			sendSuccessReply();
+			sendSuccessReply(command, tan);
 		}
 	} else
-		sendErrorReply("Error while parsing json: Message size " + message.size());
+		sendErrorReply("Error while parsing json: Message size " + message.size(), command, tan);
 }
 
-void JsonClientConnection::handleComponentStateCommand(const Json::Value& message)
+void JsonClientConnection::handleComponentStateCommand(const Json::Value& message, const std::string &command, const int tan)
 {
 	const Json::Value & componentState = message["componentstate"];
 	Components component = stringToComponent(QString::fromStdString(componentState.get("component", "invalid").asString()));
@@ -944,11 +952,11 @@ void JsonClientConnection::handleComponentStateCommand(const Json::Value& messag
 	if (component != COMP_INVALID)
 	{
 		_hyperion->setComponentState(component, componentState.get("state", true).asBool());
-		sendSuccessReply();
+		sendSuccessReply(command, tan);
 	}
 	else
 	{
-		sendErrorReply("invalid component name");
+		sendErrorReply("invalid component name", command, tan);
 	}
 }
 
@@ -1029,22 +1037,26 @@ void JsonClientConnection::sendMessage(const Json::Value & message, QTcpSocket *
 
 }
 
-void JsonClientConnection::sendSuccessReply()
+void JsonClientConnection::sendSuccessReply(const std::string &command, const int tan)
 {
 	// create reply
 	Json::Value reply;
 	reply["success"] = true;
+	reply["command"] = command;
+	reply["tan"] = tan;
 
 	// send reply
 	sendMessage(reply);
 }
 
-void JsonClientConnection::sendErrorReply(const std::string &error)
+void JsonClientConnection::sendErrorReply(const std::string &error, const std::string &command, const int tan)
 {
 	// create reply
 	Json::Value reply;
 	reply["success"] = false;
 	reply["error"] = error;
+	reply["command"] = command;
+	reply["tan"] = tan;
 
 	// send reply
 	sendMessage(reply);

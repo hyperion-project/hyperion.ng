@@ -12,10 +12,16 @@
 			"required" : true,
 			"enum" : ["getconfig","setconfig","getschema"]
 		},
+		"tan" : {
+			"type" : "integer"
+		},
 		"config": {
 			"type" : "object"
 		},
 		"create": {
+			"type" : "boolean"
+		},
+		"overwrite": {
 			"type" : "boolean"
 		}
 	},

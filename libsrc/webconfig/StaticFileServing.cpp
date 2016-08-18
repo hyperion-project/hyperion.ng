@@ -6,6 +6,7 @@
 #include <QList>
 #include <QPair>
 #include <QFile>
+#include <QFileInfo>
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
 		:  QObject   (parent)
@@ -74,13 +75,24 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			return;
 		}
-		
-		// get static files
-		if ( path == "/" || path.isEmpty() || ! QFile::exists(_baseUrl % "/" % path) )
-			path = "index.html";
 
-		QFile file (_baseUrl % "/" % path);
-		if (file.exists ())
+		QFileInfo info(_baseUrl % "/" % path);
+		if ( path == "/" || path.isEmpty() || ! info.exists() )
+		{
+			path = "index.html";
+		}
+		else if (info.isDir() && path.endsWith("/") )
+		{
+			path += "index.html";
+		}
+		else if (info.isDir() && ! path.endsWith("/") )
+		{
+			path += "/index.html";
+		}
+
+		// get static files
+		QFile file(_baseUrl % "/" % path);
+		if (file.exists())
 		{
 			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
 			if (file.open (QFile::ReadOnly)) {
