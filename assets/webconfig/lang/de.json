@@ -57,8 +57,23 @@
 		"support_label_wikitext" : "Von A bis Z - Alles wissenwerte zu Hyperion",
 		"support_label_forumtitle" : "Forum",
 		"support_label_forumtext" : "Diskussion und Hilfestellung von der Community",
-		"main_menu_general_conf_token":"Allgemein",
-		"remote_general_conf_intro":"Hier kannst du allgemeine Einstellungen von Hyperion vornehmen."
+		"main_menu_general_conf_token" : "Allgemein",
+		"remote_general_conf_intro" : "Hier kannst du allgemeine Einstellungen von Hyperion vornehmen.",
+		"generalConfForm_jsonform-0-elt-logger.level" : "Stufe Logging",
+		"generalConfForm_jsonform-0-elt-jsonServer.port" : "Port",
+		"generalConfForm_jsonform-0-elt-protoServer.port" : "Port",
+		"generalConfForm_jsonform-0-elt-boblightServer.enable" : "Aktivieren",
+		"generalConfForm_jsonform-0-elt-boblightServer.port" : "Port",
+		"generalConfForm_jsonform-0-elt-boblightServer.priority" : "Prioität",
+		"generalConfForm_jsonform-0-elt-udpListener.address" : "IP-Addresse",
+		"generalConfForm_jsonform-0-elt-udpListener.enable" : "Aktivieren",
+		"generalConfForm_jsonform-0-elt-udpListener.port" : "Port",
+		"generalConfForm_jsonform-0-elt-udpListener.priority" : "Prioität",
+		"generalConfForm_jsonform-0-elt-udpListener.shared" : "Shared",
+		"generalConfForm_jsonform-0-elt-udpListener.timeout" : "Timeout",
+		"generalConfForm_jsonform-0-elt-webConfig.document_root" : "Root Verzeichnis",
+		"generalConfForm_jsonform-0-elt-webConfig.enable" : "Aktivieren"
+
 	},
 	"regex": [
 		["^Something at start of text", ""],
