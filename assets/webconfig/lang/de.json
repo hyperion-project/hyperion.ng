@@ -24,6 +24,8 @@
 		"main_menu_colors_token" : "Farben",
 		"main_menu_effects_token" : "Effekte",
 		"main_menu_support_token" : "Hilfe",
+		"main_menu_update_token" : "Update",
+		"main_menu_general_conf_token":"Allgemein",
 		"remote_colors_label_color":"Farbe: ",
 		"remote_colors_button_reset":"Farbe zurücksetzen",
 		"remote_effects_intro" : "Die Effekt-Fernbedienung ermöglicht es dir Effekte zu starten für Demonstrations- oder Testzwecke. Vergessse nicht den Effekt wieder zu stoppen, wenn du fertig bist.",
@@ -57,8 +59,12 @@
 		"support_label_wikitext" : "Von A bis Z - Alles wissenwerte zu Hyperion",
 		"support_label_forumtitle" : "Forum",
 		"support_label_forumtext" : "Diskussion und Hilfestellung von der Community",
-		"main_menu_general_conf_token":"Allgemein",
-		"remote_general_conf_intro":"Hier kannst du allgemeine Einstellungen von Hyperion vornehmen."
+		"remote_general_conf_intro":"Hier kannst du allgemeine Einstellungen von Hyperion vornehmen.",
+		"update_label_intro" : "Diese Seite zeigt dir alle verfügbaren Versionen von Hyperion, du kannst nach Belieben eine aktuellere Version installieren oder eine Ältere. Die aktuellsten Versionen befinden sich immer oben.",
+		"update_label_description" : "Beschreibung:",
+		"update_button_install" : "Installieren",
+		"update_button_changelog" : "Zeige Änderungsprotokoll",
+		"update_label_type" : "Art:"
 	},
 	"regex": [
 		["^Something at start of text", ""],
