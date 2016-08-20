@@ -5,6 +5,7 @@
 
 // hyperion incluse
 #include "LedRs232Device.h"
+#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to SEDU led device.
@@ -18,7 +19,10 @@ public:
 	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceSedu(const Json::Value &deviceConfig);
+
+	/// create leddevice when type in config is set to this type
+	static LedDevice* createLedDevice(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -31,3 +35,7 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 };
+
+
+/// register led device create function. must be AFTER class definition
+REGISTER_LEDDEVICE(sedu,LedDeviceSedu::createLedDevice);

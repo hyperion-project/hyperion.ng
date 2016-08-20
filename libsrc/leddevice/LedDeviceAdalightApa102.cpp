@@ -11,10 +11,16 @@
 // hyperion local includes
 #include "LedDeviceAdalightApa102.h"
 
-LedDeviceAdalightApa102::LedDeviceAdalightApa102(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms)
-	: LedDeviceAdalight(outputDevice, baudrate, delayAfterConnect_ms)
+LedDeviceAdalightApa102::LedDeviceAdalightApa102(const Json::Value &deviceConfig)
+	: LedDeviceAdalight(deviceConfig)
 {
 }
+
+LedDevice* LedDeviceAdalightApa102::createLedDevice(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAdalightApa102(deviceConfig);
+}
+
 
 //comparing to ws2801 adalight, the following changes were needed:
 // 1- differnt data frame (4 bytes instead of 3)

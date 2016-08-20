@@ -17,10 +17,15 @@ struct FrameSpec
 	size_t size;
 };
 
-LedDeviceSedu::LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate)
-	: LedRs232Device(outputDevice, baudrate)
+LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
+	: LedRs232Device(deviceConfig)
 {
 	// empty
+}
+
+LedDevice* LedDeviceSedu::createLedDevice(const Json::Value &deviceConfig)
+{
+	return new LedDeviceSedu(deviceConfig);
 }
 
 int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)

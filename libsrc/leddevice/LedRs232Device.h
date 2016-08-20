@@ -5,6 +5,7 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
+#include <json/json.h>
 
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
@@ -20,7 +21,14 @@ public:
 	/// @param[in] outputDevice The name of the output device (eg '/etc/ttyS0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	///
-	LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms = 0);
+	LedRs232Device(const Json::Value &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -55,10 +63,10 @@ private:
 	bool tryOpen();
 	
 	/// The name of the output device
-	const std::string _deviceName;
+	std::string _deviceName;
 
 	/// The used baudrate of the output device
-	const qint32 _baudRate_Hz;
+	qint32 _baudRate_Hz;
 
 	/// Sleep after the connect before continuing
 	int _delayAfterConnect_ms;

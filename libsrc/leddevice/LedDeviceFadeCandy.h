@@ -48,6 +48,9 @@ public:
 	///
 	virtual ~LedDeviceFadeCandy();
 
+	/// create leddevice when type in config is set to this type
+	static LedDevice* createLedDevice(const Json::Value &deviceConfig);
+
 	///
 	/// Sets configuration
 	///
@@ -65,7 +68,6 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
 
 private:
 	QTcpSocket  _client;
@@ -115,3 +117,8 @@ private:
 	void sendFadeCandyConfiguration();
 
 };
+
+/// register led device create function. must be AFTER class definition
+REGISTER_LEDDEVICE(fadecandy,LedDeviceFadeCandy::createLedDevice);
+
+

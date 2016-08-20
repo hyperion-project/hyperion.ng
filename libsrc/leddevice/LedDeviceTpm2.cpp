@@ -6,11 +6,17 @@
 
 // hyperion local includes
 #include "LedDeviceTpm2.h"
+#include <json/json.h>
 
-LedDeviceTpm2::LedDeviceTpm2(const std::string& outputDevice, const unsigned baudrate)
-	: LedRs232Device(outputDevice, baudrate)
+LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
+	: LedRs232Device(deviceConfig)
 {
 	// empty
+}
+
+LedDevice* LedDeviceTpm2::createLedDevice(const Json::Value &deviceConfig)
+{
+	return new LedDeviceTpm2(deviceConfig);
 }
 
 int LedDeviceTpm2::write(const std::vector<ColorRgb> &ledValues)

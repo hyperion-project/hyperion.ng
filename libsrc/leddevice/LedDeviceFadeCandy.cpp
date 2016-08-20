@@ -1,6 +1,6 @@
 #include "LedDeviceFadeCandy.h"
 
-static const signed MAX_NUM_LEDS      = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
+static const signed   MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
 static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
 static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
@@ -15,8 +15,6 @@ LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
 	_opc_data[1] = OPC_SET_PIXELS;
 	_opc_data[2] = 0;
 	_opc_data[3] = 0;
-	
-	
 }
 
 
@@ -24,6 +22,12 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
 	_client.close();
 }
+
+LedDevice* LedDeviceFadeCandy::createLedDevice(const Json::Value &deviceConfig)
+{
+	return new LedDeviceFadeCandy(deviceConfig);
+}
+
 
 bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 {

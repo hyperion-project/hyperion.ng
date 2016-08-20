@@ -66,32 +66,21 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
-	for ( auto dev: devList)
-	{
-		Info(log,"-> %s",dev.first.c_str());
-	}
-	
 	LedDevice* device = nullptr;
 	try
 	{
-		if (false) {}
-		else if (type == "adalight")
+		for ( auto dev: devList)
 		{
-			device = new LedDeviceAdalight(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt(),
-				deviceConfig.get("delayAfterConnect",500).asInt()
-			);
+			if (dev.first == type)
+			{
+				device = dev.second(deviceConfig);
+				Info(log,"LedDevice '%s' configured.", dev.first.c_str());
+				break;
+			}
 		}
-		else if (type == "adalightapa102")
-		{
-			device = new LedDeviceAdalightApa102(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt(),
-				deviceConfig.get("delayAfterConnect",500).asInt()
-			);
-		}
-	#ifdef ENABLE_SPIDEV
+	
+		if (device != nullptr) { /* do nothing */ }
+		#ifdef ENABLE_SPIDEV
 		else if (type == "lpd6803" || type == "ldp6803")
 		{
 			device = new LedDeviceLpd6803(
@@ -212,13 +201,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			}
 			device = new LedDevicePiBlaster(output, gpioMapping);
 		}
-		else if (type == "sedu")
-		{
-			device = new LedDeviceSedu(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
 		else if (type == "hyperion-usbasp-ws2801")
 		{
 			device = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2801);
@@ -269,10 +251,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 			device = new LedDeviceAtmoOrb(output, useOrbSmoothing, transitiontime, skipSmoothingDiff, port, numLeds, orbIds);
 		}
-		else if (type == "fadecandy")
-		{
-			device = new LedDeviceFadeCandy(deviceConfig);
-		}
 		else if (type == "udp")
 		{
 			device = new LedDeviceUdp(
@@ -294,20 +272,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig["output"].asString(),
 				deviceConfig.get("latchtime",500000).asInt(),
 				deviceConfig.get("universe",1).asInt()
-			);
-		}
-		else if (type == "tpm2")
-		{
-			device = new LedDeviceTpm2(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
-		else if (type == "atmo")
-		{
-			device = new LedDeviceAtmo(
-				deviceConfig["output"].asString(),
-				38400
 			);
 		}
 	#ifdef ENABLE_WS2812BPWM
@@ -341,7 +305,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			throw std::runtime_error("unknown device");
 		}
 	}
-	catch(std::exception e)
+	catch(std::exception& e)
 	{
 		
 		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
