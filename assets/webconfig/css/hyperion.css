@@ -5,15 +5,14 @@
 		 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
 body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;}
+/*icon spacing*/
+.fa-fw{margin-right:5px;}
 
 /*Header*/
 .navbar-brand{padding: 5px;height:90px;}
 .sidebar{margin-top:91px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
-
-/*Sidebar*/
-.sidebar .fa-fw{width:1.9em}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
