@@ -62,6 +62,8 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 {
 	int retVal = 0;
 
+	int _thisChannelCount = 0;
+
 	_e131_seq++;
 
 	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
@@ -74,45 +76,28 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 	{
 		if (rawIdx % 512 == 0) // start of new packet
 		{
-			if (_dmxChannelCount - rawIdx < 512)	// last packet
-			{
-				prepare(_e131_universe + rawIdx / 512, _dmxChannelCount % 512);
-			}
-			else
-			{
-				prepare(_e131_universe + rawIdx / 512, 512);
-			}
+			_thisChannelCount = (_dmxChannelCount - rawIdx < 512) ? _dmxChannelCount % 512 : 512;
+//			                     is this the last packet?         ?    ^^ last packet      : ^^ earlier packets
+
+			prepare(_e131_universe + rawIdx / 512, _thisChannelCount);
 			e131_packet.sequence_number = _e131_seq;
 		}
 
 		e131_packet.property_values[1 + rawIdx%512] = rawdata[rawIdx];
 
-printf ("rawidx %d  ", rawIdx);
-		if ( rawIdx == _dmxChannelCount-1 )		// last packet
+		if ( (rawIdx == _dmxChannelCount-1) || (rawIdx %512 == 511) )
+//			last byte of last packet    ||   last byte of other packets
 		{
-printf ( "send last packet: dmxchannelcount %d universe: %d, packetsz %d\n"
-	, _dmxChannelCount
-	, _e131_universe + rawIdx / 512
-	, E131_DMP_DATA + 1 + _dmxChannelCount%512
-	);
-			retVal &= writeBytes(E131_DMP_DATA + 1 + _dmxChannelCount%512, e131_packet.raw);
-		}
-		else if( (rawIdx) && (rawIdx %512 == 511) )
-		{
-printf ( "send 512  packet: dmxchannelcount %d universe: %d, packetsz %d\n"
-	, _dmxChannelCount
-	, _e131_universe + rawIdx / 512
-	, E131_DMP_DATA + 1 + 512
-	);
-			retVal &= writeBytes(E131_DMP_DATA + 1 + 512, e131_packet.raw);
-		}
-		else 
-		{
-printf ( "not send  packet: dmxchannelcount %d universe: %d, packetsz %d\n"
-	, _dmxChannelCount
-	, _e131_universe + rawIdx / 512
-	, E131_DMP_DATA + 1 + 512
-	);
+#undef e131debug
+#if e131debug
+			printf ( "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d\n"
+				, rawIdx
+				, _dmxChannelCount
+				, _e131_universe + rawIdx / 512
+				, E131_DMP_DATA + 1 + _thisChannelCount
+				);
+#endif
+			retVal &= writeBytes(E131_DMP_DATA + 1 + _thisChannelCount, e131_packet.raw);
 		}
 	}
 
