@@ -25,6 +25,7 @@
 		"main_menu_effects_token" : "Effekte",
 		"main_menu_support_token" : "Hilfe",
 		"main_menu_update_token" : "Update",
+		"main_menu_system_token" : "System",
 		"main_menu_general_conf_token":"Allgemein",
 		"remote_colors_label_color":"Farbe: ",
 		"remote_colors_button_reset":"Farbe zurücksetzen",
