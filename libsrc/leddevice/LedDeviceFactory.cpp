@@ -3,6 +3,7 @@
 #include <sstream>
 #include <algorithm>
 #include <exception>
+#include <map>
 
 // Build configuration
 #include <HyperionConfig.h>
@@ -10,6 +11,7 @@
 // Leddevice includes
 #include <leddevice/LedDeviceFactory.h>
 #include <utils/Logger.h>
+#include <leddevice/LedDevice.h>
 
 // Local Leddevice includes
 #ifdef ENABLE_SPIDEV
@@ -62,6 +64,12 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
+	for ( auto dev: devList)
+	{
+		Info(log,"-> %s",dev.first.c_str());
+	}
+	
 	LedDevice* device = nullptr;
 	try
 	{
