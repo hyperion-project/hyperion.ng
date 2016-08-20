@@ -63,7 +63,7 @@
 		"update_label_description" : "Beschreibung:",
 		"update_button_install" : "Installieren",
 		"update_button_changelog" : "Zeige Änderungsprotokoll",
-		"update_label_type" : "Art:"
+		"update_label_type" : "Art:",
 		"remote_general_conf_intro" : "Hier kannst du allgemeine Einstellungen von Hyperion vornehmen.",
 		"generalConfForm_jsonform-0-elt-logger.level" : "Stufe Logging",
 		"generalConfForm_jsonform-0-elt-jsonServer.port" : "Port",
