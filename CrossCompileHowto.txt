@@ -1,10 +1,10 @@
 #!/bin/bash
-#Updated: 13 March 2016, by TPmodding
+#Updated: 18 August 2016, by brindosch
 #Just use a clean Ubunut 14.04 and run this script
 ##############
 #ON TARGET
 #--------------
-#sudo apt-get install libQt4-dev libusb-1.0-0-dev python-dev rsync
+#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev python-dev rsync
 #############
 
 #ON HOST
@@ -12,7 +12,8 @@
 sudo apt-get update
 sudo apt-get upgrade
 #TO-DO verify what is really required
-sudo apt-get install git rsync cmake build-essential libQt4-dev libusb-1.0-0-dev python-dev libxrender-dev protobuf-compiler lib32z1 lib32ncurses5 lib32bz2-1.0 zlib1g-dev
+#blacklist: protobuf-compiler lib32z1 lib32ncurses5 lib32bz2-1.0 zlib1g-dev
+sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 
 echo 'PATH=$PATH:$HOME/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin' >> .bashrc
 #---------
@@ -36,10 +37,10 @@ rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/{lib,usr} 
 ######## RPi specific #########
 
 mkdir -p "$RASCROSS_DIR/firmware"
-git clone https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
+git clone --depth 1 https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
 ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$ROOTFS_DIR/opt"
 
-git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
+git clone --depth 1 git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
 
 ##### End of RPi specific ######
 
@@ -55,7 +56,7 @@ git clone git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
 ######## NOT TESTED     #########
 
 # get the Hyperion sources
-git clone --recursive https://github.com/tvdzwan/hyperion.git "$HYPERION_DIR"
+git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 
 # do a native build (to build the protobuf compiler for the native platform)
 mkdir -p "$NATIVE_BUILD_DIR"
@@ -67,9 +68,6 @@ mkdir -p "$TARGET_BUILD_DIR"
 cmake -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -DIMPORT_PROTOC=$NATIVE_BUILD_DIR/protoc_export.cmake --build "$TARGET_BUILD_DIR" "$HYPERION_DIR"
 
 #compile
-cd "$HYPERION_DIR/deploy"
-rm -rf hummingboard_prerelease.tar.gz hyperion.deps.openelec-imx6.tar.gz hyperion.deps.openelec-rpi.tar.gz hyperion_imx6.tar.gz hyperion_rpi.tar.gz hyperion_wetek.tar.gz hyperion_x32.tar.gz hyperion_x64.tar.gz
-cd
 cd "$HYPERION_DIR/bin"
 chmod +x *
 cp "$HYPERION_DIR/bin/create_all_releases.sh" "$HYPERION_DIR"

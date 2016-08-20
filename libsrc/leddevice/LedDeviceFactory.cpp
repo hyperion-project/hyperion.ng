@@ -39,6 +39,7 @@
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceUdp.h"
 #include "LedDeviceUdpRaw.h"
+#include "LedDeviceUdpE131.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -287,6 +288,14 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig.get("latchtime",500000).asInt()
 			);
 		}
+		else if (type == "e131")
+		{
+			device = new LedDeviceUdpE131(
+				deviceConfig["output"].asString(),
+				deviceConfig.get("latchtime",500000).asInt(),
+				deviceConfig.get("universe",1).asInt()
+			);
+		}
 		else if (type == "tpm2")
 		{
 			device = new LedDeviceTpm2(
@@ -328,6 +337,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		}
 		else
 		{
+			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
 			throw std::runtime_error("unknown device");
 		}
 	}
