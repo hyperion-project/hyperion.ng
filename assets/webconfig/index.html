@@ -11,9 +11,13 @@
 
     <title>Hyperion - WebUI</title>
 
-
-	<!-- jQuery -->
+  <!-- jQuery -->
     <script src="js/jquery.min.js"></script>
+    <script src="js/hyperion.js"></script>
+
+  <!-- Bootstrap Switch -->
+    <script src="js/bootstrap-switch.min.js"></script>
+    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   <!-- JSONForm -->
     <script src="js/underscore.js"></script>
@@ -436,6 +440,10 @@
       $("#load_confGeneral").on("click", function() {
 				$("#page-wrapper").load("generalconf.html");
 			});
+
+      //Change all Checkboxes to Switches
+      $("[type='checkbox']").bootstrapSwitch();
+
     });
 		$(function(){
 			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
