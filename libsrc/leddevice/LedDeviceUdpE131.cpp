@@ -74,26 +74,26 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 
 	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
-		if (rawIdx % 512 == 0) // start of new packet
+		if (rawIdx % DMX_MAX == 0) // start of new packet
 		{
-			_thisChannelCount = (_dmxChannelCount - rawIdx < 512) ? _dmxChannelCount % 512 : 512;
+			_thisChannelCount = (_dmxChannelCount - rawIdx < DMX_MAX) ? _dmxChannelCount % DMX_MAX : DMX_MAX;
 //			                     is this the last packet?         ?    ^^ last packet      : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / 512, _thisChannelCount);
+			prepare(_e131_universe + rawIdx / DMX_MAX, _thisChannelCount);
 			e131_packet.sequence_number = _e131_seq;
 		}
 
-		e131_packet.property_values[1 + rawIdx%512] = rawdata[rawIdx];
+		e131_packet.property_values[1 + rawIdx%DMX_MAX] = rawdata[rawIdx];
 
-		if ( (rawIdx == _dmxChannelCount-1) || (rawIdx %512 == 511) )
-//			last byte of last packet    ||   last byte of other packets
+//     is this the      last byte of last packet    ||   last byte of other packets
+		if ( (rawIdx == _dmxChannelCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
 		{
 #undef e131debug
 #if e131debug
 			printf ( "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d\n"
 				, rawIdx
 				, _dmxChannelCount
-				, _e131_universe + rawIdx / 512
+				, _e131_universe + rawIdx / DMX_MAX
 				, E131_DMP_DATA + 1 + _thisChannelCount
 				);
 #endif
