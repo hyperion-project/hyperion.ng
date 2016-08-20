@@ -53,6 +53,8 @@ protected:
 	 */
 	int writeBytes(const unsigned size, const uint8_t *data);
 
+	void closeDevice();
+
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();

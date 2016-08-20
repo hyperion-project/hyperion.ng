@@ -10,11 +10,6 @@ LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
 : LedDevice()
 {
 	setConfig(deviceConfig);
-	_opc_data.resize( OPC_HEADER_SIZE );
-	_opc_data[0] = _channel;
-	_opc_data[1] = OPC_SET_PIXELS;
-	_opc_data[2] = 0;
-	_opc_data[3] = 0;
 }
 
 
@@ -31,6 +26,8 @@ LedDevice* LedDeviceFadeCandy::createLedDevice(const Json::Value &deviceConfig)
 
 bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 {
+	_client.close();
+
 	_host        = deviceConfig.get("output", "127.0.0.1").asString();
 	_port        = deviceConfig.get("port", 7890).asInt();
 	_channel     = deviceConfig.get("channel", 0).asInt();
@@ -52,6 +49,12 @@ bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 		_whitePoint_g = whitePointConfig[1].asDouble();
 		_whitePoint_b = whitePointConfig[2].asDouble();
 	}
+
+	_opc_data.resize( OPC_HEADER_SIZE );
+	_opc_data[0] = _channel;
+	_opc_data[1] = OPC_SET_PIXELS;
+	_opc_data[2] = 0;
+	_opc_data[3] = 0;
 
 	return true;
 }
