@@ -1,4 +1,3 @@
-<script>
 
 /**
 * Enables translation for the form
@@ -21,7 +20,3 @@ $inputs.each(function() {
   $("label[for='" + $(this).attr('id') + "']").html('<span lang="en" data-lang-token="' + tokenPrefix + "_" + $(this).attr('id') + '">' + oldtext + '</span>');
 });
 }
-
-});
-
-</script>
