@@ -284,7 +284,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		{
 			device = new LedDeviceUdpE131(
 				deviceConfig["output"].asString(),
-				deviceConfig.get("latchtime",500000).asInt(),
+				deviceConfig.get("latchtime",104000).asInt(),
 				deviceConfig.get("universe",1).asInt()
 			);
 		}
