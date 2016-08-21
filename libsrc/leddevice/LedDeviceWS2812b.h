@@ -137,6 +137,11 @@ public:
 	LedDeviceWS2812b();
 
 	~LedDeviceWS2812b();
+
+	bool setConfig(const Json::Value&) {};
+
+	static LedDevice* construct(const Json::Value &);
+
 	///
 	/// Writes the led color values to the led-device
 	///

@@ -84,6 +84,19 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("sk6812rgbw-spi", LedDeviceSk6812SPI::construct);
 	#endif
 	
+	// pwm devices
+	#ifdef ENABLE_WS2812BPWM
+	LedDevice::addToDeviceMap("ws2812b", LedDeviceWS2812b::construct);
+	#endif
+
+	// other
+	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
+	
+	// network lights
+	#ifdef ENABLE_TINKERFORGE
+	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
+	#endif
+	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
 	try
@@ -98,19 +111,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			}
 		}
 	
+	// ===== old config =====
 		if (device != nullptr) { /* do nothing */ }
-	#ifdef ENABLE_TINKERFORGE
-		else if (type=="tinkerforge")
-		{
-			device = new LedDeviceTinkerforge(
-				deviceConfig.get("output", "127.0.0.1").asString(),
-				deviceConfig.get("port", 4223).asInt(),
-				deviceConfig["uid"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-
-		}
-	#endif
 		else if (type == "rawhid")
 		{
 			const int delay_ms        = deviceConfig["delayAfterConnect"].asInt();
@@ -125,9 +127,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		}
 		else if (type == "lightpack")
 		{
-			device = new LedDeviceLightpack(
-				deviceConfig.get("output", "").asString()
-			);
+			device = new LedDeviceLightpack(deviceConfig.get("output", "").asString());
 		}
 		else if (type == "multi-lightpack")
 		{
@@ -234,12 +234,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig.get("universe",1).asInt()
 			);
 		}
-	#ifdef ENABLE_WS2812BPWM
-		else if (type == "ws2812b")
-		{
-			device = new LedDeviceWS2812b();
-		}
-	#endif
+
 	#ifdef ENABLE_WS281XPWM
 		else if (type == "ws281x")
 		{
@@ -255,10 +250,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			);
 		}
 	#endif
-		else if (type == "file")
-		{
-			device = new LedDeviceFile( deviceConfig.get("output", "/dev/null").asString() );
-		}
 		else
 		{
 			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
@@ -269,7 +260,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	{
 		
 		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
-		device = new LedDeviceFile( "/dev/null" );
+		const Json::Value dummyDeviceConfig;
+		device = LedDeviceFile::construct(dummyDeviceConfig);
 	}
 
 	device->open();
