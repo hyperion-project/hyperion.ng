@@ -65,6 +65,13 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	LedDevice::addToDeviceMap("adalight"      , LedDeviceAdalight::construct);
+	LedDevice::addToDeviceMap("adalightapa102", LedDeviceAdalightApa102::construct);
+	LedDevice::addToDeviceMap("sedu"          , LedDeviceSedu::construct);
+	LedDevice::addToDeviceMap("tpm2"          , LedDeviceTpm2::construct);
+	LedDevice::addToDeviceMap("atmo"          , LedDeviceAtmo::construct);
+	LedDevice::addToDeviceMap("fadecandy"     , LedDeviceFadeCandy::construct);
+
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
 	try
@@ -81,14 +88,14 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	
 		if (device != nullptr) { /* do nothing */ }
 		#ifdef ENABLE_SPIDEV
-		else if (type == "lpd6803" || type == "ldp6803")
+		else if (type == "lpd6803")
 		{
 			device = new LedDeviceLpd6803(
 				deviceConfig["output"].asString(),
 				deviceConfig["rate"].asInt()
 			);
 		}
-		else if (type == "lpd8806" || type == "ldp8806")
+		else if (type == "lpd8806")
 		{
 			device = new LedDeviceLpd8806(
 				deviceConfig["output"].asString(),
@@ -109,7 +116,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig["rate"].asInt()
 			);
 		}
-		else if (type == "ws2801" || type == "lightberry")
+		else if (type == "ws2801")
 		{
 			device = new LedDeviceWs2801(
 				deviceConfig["output"].asString(),

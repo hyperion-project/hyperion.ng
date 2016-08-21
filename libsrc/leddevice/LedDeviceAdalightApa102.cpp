@@ -16,7 +16,7 @@ LedDeviceAdalightApa102::LedDeviceAdalightApa102(const Json::Value &deviceConfig
 {
 }
 
-LedDevice* LedDeviceAdalightApa102::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceAdalightApa102(deviceConfig);
 }

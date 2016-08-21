@@ -25,7 +25,7 @@ LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
 	_timer.start();
 }
 
-LedDevice* LedDeviceAdalight::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAdalight::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceAdalight(deviceConfig);
 }

@@ -18,7 +18,7 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 	_client.close();
 }
 
-LedDevice* LedDeviceFadeCandy::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceFadeCandy::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceFadeCandy(deviceConfig);
 }

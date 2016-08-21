@@ -49,7 +49,7 @@ public:
 	virtual ~LedDeviceFadeCandy();
 
 	/// create leddevice when type in config is set to this type
-	static LedDevice* createLedDevice(const Json::Value &deviceConfig);
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Sets configuration
@@ -119,6 +119,6 @@ private:
 };
 
 /// register led device create function. must be AFTER class definition
-REGISTER_LEDDEVICE(fadecandy,LedDeviceFadeCandy::createLedDevice);
+//REGISTER_LEDDEVICE(fadecandy,LedDeviceFadeCandy::construct);
 
 

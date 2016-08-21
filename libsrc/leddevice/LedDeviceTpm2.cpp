@@ -14,7 +14,7 @@ LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
 	// empty
 }
 
-LedDevice* LedDeviceTpm2::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceTpm2(deviceConfig);
 }

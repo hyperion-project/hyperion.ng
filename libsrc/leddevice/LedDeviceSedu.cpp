@@ -23,7 +23,7 @@ LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
 	// empty
 }
 
-LedDevice* LedDeviceSedu::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceSedu::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceSedu(deviceConfig);
 }

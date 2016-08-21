@@ -32,10 +32,7 @@ cd build || exit 1
 echo
 echo "Hyperion test execution"
 echo
-if ! exec_test "hyperiond is executable and show version" bin/hyperiond --version
-then
-	gdb --batch --ex run --ex bt  bin/hyperiond --args bin/hyperiond --debug --version
-fi
+exec_test "hyperiond is executable and show version" bin/hyperiond --version
 
 for cfg in ../config/*json*
 do

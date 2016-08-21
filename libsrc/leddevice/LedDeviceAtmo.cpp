@@ -11,7 +11,7 @@ LedDeviceAtmo::LedDeviceAtmo(const Json::Value &deviceConfig)
 	_ledBuffer[3] = 0x0F; // Number of Databytes send (always! 15)
 }
 
-LedDevice* LedDeviceAtmo::createLedDevice(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAtmo::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceAtmo(deviceConfig);
 }

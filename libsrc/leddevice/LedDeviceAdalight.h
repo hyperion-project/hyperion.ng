@@ -27,7 +27,7 @@ public:
 	LedDeviceAdalight(const Json::Value &deviceConfig);
 
 	/// create leddevice when type in config is set to this type
-	static LedDevice* createLedDevice(const Json::Value &deviceConfig);
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -52,5 +52,5 @@ protected:
 };
 
 /// register led device create function. must be AFTER class definition
-REGISTER_LEDDEVICE(adalight,LedDeviceAdalight::createLedDevice);
+//REGISTER_LEDDEVICE(adalight,LedDeviceAdalight::construct);
 
