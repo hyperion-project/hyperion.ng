@@ -941,7 +941,7 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message, co
 			sendSuccessReply(command, tan);
 		}
 	} else
-		sendErrorReply("Error while parsing json: Message size " + message.size(), command, tan);
+		sendErrorReply("Error while parsing json: Message size " + std::to_string(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message, const std::string &command, const int tan)
