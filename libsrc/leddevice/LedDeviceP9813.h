@@ -18,7 +18,10 @@ public:
 	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceP9813(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceP9813(const Json::Value &deviceConfig);
+
+	/// create leddevice when type in config is set to this type
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

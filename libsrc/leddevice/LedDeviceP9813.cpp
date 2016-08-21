@@ -11,10 +11,14 @@
 // hyperion local includes
 #include "LedDeviceP9813.h"
 
-LedDeviceP9813::LedDeviceP9813(const std::string& outputDevice, const unsigned baudrate)
-	: LedSpiDevice(outputDevice, baudrate, 0)
+LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
+	: LedSpiDevice(deviceConfig)
 {
-	// empty
+}
+
+LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceP9813(deviceConfig);
 }
 
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)

@@ -51,6 +51,3 @@ protected:
 	QTimer _timer;
 };
 
-/// register led device create function. must be AFTER class definition
-//REGISTER_LEDDEVICE(adalight,LedDeviceAdalight::construct);
-

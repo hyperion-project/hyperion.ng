@@ -65,6 +65,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	// rs232 devices
 	LedDevice::addToDeviceMap("adalight"      , LedDeviceAdalight::construct);
 	LedDevice::addToDeviceMap("adalightapa102", LedDeviceAdalightApa102::construct);
 	LedDevice::addToDeviceMap("sedu"          , LedDeviceSedu::construct);
@@ -72,6 +73,17 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("atmo"          , LedDeviceAtmo::construct);
 	LedDevice::addToDeviceMap("fadecandy"     , LedDeviceFadeCandy::construct);
 
+	// spi devices
+	#ifdef ENABLE_SPIDEV
+	LedDevice::addToDeviceMap("apa102"        , LedDeviceAPA102::construct);
+	LedDevice::addToDeviceMap("lpd6803"       , LedDeviceLpd6803::construct);
+	LedDevice::addToDeviceMap("lpd8806"       , LedDeviceLpd8806::construct);
+	LedDevice::addToDeviceMap("p9813"         , LedDeviceP9813::construct);
+	LedDevice::addToDeviceMap("ws2801"        , LedDeviceWs2801::construct);
+	LedDevice::addToDeviceMap("ws2812spi"     , LedDeviceWs2812SPI::construct);
+	LedDevice::addToDeviceMap("sk6812rgbw-spi", LedDeviceSk6812SPI::construct);
+	#endif
+	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
 	try
@@ -87,65 +99,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		}
 	
 		if (device != nullptr) { /* do nothing */ }
-		#ifdef ENABLE_SPIDEV
-		else if (type == "lpd6803")
-		{
-			device = new LedDeviceLpd6803(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
-		else if (type == "lpd8806")
-		{
-			device = new LedDeviceLpd8806(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
-		else if (type == "p9813")
-		{
-			device = new LedDeviceP9813(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
-		else if (type == "apa102")
-		{
-			device = new LedDeviceAPA102(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt()
-			);
-		}
-		else if (type == "ws2801")
-		{
-			device = new LedDeviceWs2801(
-				deviceConfig["output"].asString(),
-				deviceConfig["rate"].asInt(),
-				deviceConfig.get("latchtime",500000).asInt(),
-				deviceConfig.get("spimode",0).asInt(),
-				deviceConfig.get("invert",false).asBool()
-			);
-		}
-		else if (type == "ws2812spi")
-		{
-			device = new LedDeviceWs2812SPI(
-				deviceConfig["output"].asString(),
-				deviceConfig.get("rate",2857143).asInt(),
-				deviceConfig.get("spimode",0).asInt(),
-				deviceConfig.get("invert",false).asBool()
-			);
-		}
-		else if (type == "sk6812rgbw-spi")
-		{
-			device = new LedDeviceSk6812SPI(
-				deviceConfig["output"].asString(),
-				deviceConfig.get("rate",2857143).asInt(),
-				deviceConfig.get("white_algorithm","").asString(),
-				deviceConfig.get("spimode",0).asInt(),
-				deviceConfig.get("invert",false).asBool()
-			);
-		}
-	#endif
 	#ifdef ENABLE_TINKERFORGE
 		else if (type=="tinkerforge")
 		{

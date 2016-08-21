@@ -38,6 +38,3 @@ public:
 	virtual int switchOff();
 };
 
-/// register led device create function. must be AFTER class definition
-///REGISTER_LEDDEVICE(adalightapa102,LedDeviceAdalightApa102::createLedDevice);
-

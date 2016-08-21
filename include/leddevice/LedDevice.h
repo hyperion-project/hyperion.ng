@@ -17,11 +17,6 @@ class LedDevice;
 typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const Json::Value& );
 typedef std::map<std::string,LedDeviceCreateFuncType> LedDeviceRegistry;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#define REGISTER_LEDDEVICE(name,func) const int bla_##name = LedDevice::addToDeviceMap(#name, func);
-#pragma GCC diagnostic pop
-
 ///
 /// Interface (pure virtual base class) for LedDevices.
 ///

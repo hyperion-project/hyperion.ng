@@ -35,7 +35,3 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 };
-
-/// register led device create function. must be AFTER class definition
-///REGISTER_LEDDEVICE(atmo,LedDeviceAtmo::construct);
-

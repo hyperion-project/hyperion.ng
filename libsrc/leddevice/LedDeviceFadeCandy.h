@@ -118,7 +118,3 @@ private:
 
 };
 
-/// register led device create function. must be AFTER class definition
-//REGISTER_LEDDEVICE(fadecandy,LedDeviceFadeCandy::construct);
-
-

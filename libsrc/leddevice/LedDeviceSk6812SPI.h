@@ -19,9 +19,18 @@ public:
 	/// @param baudrate The used baudrate for writing to the output device
 	///
 
-	LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate,
-	                   const std::string& whiteAlgorithm, const int spiMode, const bool spiDataInvert);
+	LedDeviceSk6812SPI(const Json::Value &deviceConfig);
 
+	/// create leddevice when type in config is set to this type
+	static LedDevice* construct(const Json::Value &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+	
 	///
 	/// Writes the led color values to the led-device
 	///

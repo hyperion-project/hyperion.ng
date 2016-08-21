@@ -11,7 +11,6 @@
 LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
 	: LedRs232Device(deviceConfig)
 {
-	// empty
 }
 
 LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)

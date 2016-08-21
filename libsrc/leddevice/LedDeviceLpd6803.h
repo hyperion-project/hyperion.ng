@@ -2,6 +2,7 @@
 
 // Local hyperion incluse
 #include "LedSpiDevice.h"
+#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 led device.
@@ -23,7 +24,10 @@ public:
 	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev0.0')
 	/// @param[in] baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceLpd6803(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceLpd6803(const Json::Value &deviceConfig);
+
+	/// create leddevice when type in config is set to this type
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

@@ -36,7 +36,3 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 };
-
-
-/// register led device create function. must be AFTER class definition
-//REGISTER_LEDDEVICE(tpm2,LedDeviceTpm2::construct);
