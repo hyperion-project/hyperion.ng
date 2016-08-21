@@ -72,6 +72,10 @@ private:
 	XRenderPictureAttributes _pictAttr;
 	Picture _srcPicture;
 	Picture _dstPicture;
+	
+	XTransform _transform;
+	int _horizontalDecimation;
+	int _verticalDecimation;
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;
