@@ -6,27 +6,27 @@
 // X11Grabber includes
 #include <grabber/X11Grabber.h>
 
-X11Grabber::X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation) :
-	_imageResampler(),
-	_useXGetImage(useXGetImage),
-	_cropLeft(cropLeft),
-	_cropRight(cropRight),
-	_cropTop(cropTop),
-	_cropBottom(cropBottom),
-	_x11Display(nullptr),
-	_pixmap(None),
-	_srcFormat(nullptr),
-	_dstFormat(nullptr),
-	_srcPicture(None),
-	_dstPicture(None),
-	_horizontalDecimation(horizontalPixelDecimation),
-	_verticalDecimation(verticalPixelDecimation),
-	_screenWidth(0),
-	_screenHeight(0),
-	_croppedWidth(0),
-	_croppedHeight(0),
-	_image(0,0),
-	_log(Logger::getInstance("X11GRABBER"))
+X11Grabber::X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation)
+	: _imageResampler()
+	, _useXGetImage(useXGetImage)
+	, _cropLeft(cropLeft)
+	, _cropRight(cropRight)
+	, _cropTop(cropTop)
+	, _cropBottom(cropBottom)
+	, _x11Display(nullptr)
+	, _pixmap(None)
+	, _srcFormat(nullptr)
+	, _dstFormat(nullptr)
+	, _srcPicture(None)
+	, _dstPicture(None)
+	, _horizontalDecimation(horizontalPixelDecimation)
+	, _verticalDecimation(verticalPixelDecimation)
+	, _screenWidth(0)
+	, _screenHeight(0)
+	, _croppedWidth(0)
+	, _croppedHeight(0)
+	, _image(0,0)
+	, _log(Logger::getInstance("X11GRABBER"))
 {
 	_imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XRender, XShmGetImage or XGetImage
 	memset(&_pictAttr, 0, sizeof(_pictAttr));
