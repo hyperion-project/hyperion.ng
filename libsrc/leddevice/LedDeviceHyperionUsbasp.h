@@ -26,7 +26,11 @@ public:
 	///
 	/// Constructs the LedDeviceLightpack
 	///
-	LedDeviceHyperionUsbasp(uint8_t writeLedsCommand);
+	LedDeviceHyperionUsbasp(const Json::Value &deviceConfig);
+
+	bool setConfig(const Json::Value &deviceConfig);
+
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -70,7 +74,7 @@ private:
 
 private:
 	/// command to write the leds
-	const uint8_t _writeLedsCommand;
+	uint8_t _writeLedsCommand;
 
 	/// libusb context
 	libusb_context * _libusbContext;

@@ -20,8 +20,10 @@ public:
 	///
 	/// Constructs the LedDevice for attached RawHID device
 	///
-	LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
+	LedDeviceRawHID(const Json::Value &deviceConfig);
 
+	static LedDevice* construct(const Json::Value &deviceConfig);
+	
 	///
 	/// Writes the led color values to the led-device
 	///

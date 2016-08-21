@@ -16,15 +16,17 @@ public:
 	/// @param pwmchannel The pwm channel to use
 	/// @param invert Invert the output line to support an inverting level shifter
 	/// @param rgbw   Send 32 bit rgbw colour data for sk6812
-
 	///
-	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel, int invert, 
-		int rgbw, const std::string& whiteAlgorithm);
+	LedDeviceWS281x(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
 	///
 	~LedDeviceWS281x();
+	
+	bool setConfig(const Json::Value &deviceConfig);
+
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

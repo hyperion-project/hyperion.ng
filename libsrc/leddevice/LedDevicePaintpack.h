@@ -15,7 +15,9 @@ public:
 	/**
 	 * Constructs the paintpack device
 	 */
-	LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
+	LedDevicePaintpack(const Json::Value &deviceConfig);
+
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the RGB-Color values to the leds.

@@ -88,6 +88,9 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	#ifdef ENABLE_WS2812BPWM
 	LedDevice::addToDeviceMap("ws2812b", LedDeviceWS2812b::construct);
 	#endif
+	#ifdef ENABLE_WS281XPWM
+	LedDevice::addToDeviceMap("ws281x", LedDeviceWS281x::construct);
+	#endif
 
 	// other
 	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
@@ -96,6 +99,23 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	#ifdef ENABLE_TINKERFORGE
 	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
 	#endif
+	
+	// direct usb
+	LedDevice::addToDeviceMap("hyperion-usbasp", LedDeviceHyperionUsbasp::construct);
+	LedDevice::addToDeviceMap("rawhid", LedDeviceRawHID::construct);
+	LedDevice::addToDeviceMap("paintpack", LedDevicePaintpack::construct);
+	
+	/* todo
+	LedDeviceAtmoOrb
+	LedDeviceLightpack
+	LedDeviceLightpack-hidapi
+	LedDeviceMultiLightpack
+	LedDevicePhilipsHue
+	LedDevicePiBlaster
+	LedDeviceUdp
+	LedDeviceUdpRaw
+	LedDeviceUdpE131
+	*/
 	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
@@ -113,18 +133,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	
 	// ===== old config =====
 		if (device != nullptr) { /* do nothing */ }
-		else if (type == "rawhid")
-		{
-			const int delay_ms        = deviceConfig["delayAfterConnect"].asInt();
-			auto VendorIdString       = deviceConfig.get("VID", "0x2341").asString();
-			auto ProductIdString      = deviceConfig.get("PID", "0x8036").asString();
-
-			// Convert HEX values to integer
-			auto VendorId = std::stoul(VendorIdString, nullptr, 16);
-			auto ProductId = std::stoul(ProductIdString, nullptr, 16);
-
-			device = new LedDeviceRawHID(VendorId, ProductId, delay_ms);
-		}
 		else if (type == "lightpack")
 		{
 			device = new LedDeviceLightpack(deviceConfig.get("output", "").asString());
@@ -133,41 +141,16 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		{
 			device = new LedDeviceMultiLightpack();
 		}
-		else if (type == "paintpack")
-		{
-			const int delay_ms        = deviceConfig["delayAfterConnect"].asInt();
-			auto VendorIdString       = deviceConfig.get("VID", "0x0EBF").asString();
-			auto ProductIdString      = deviceConfig.get("PID", "0x0025").asString();
-
-			// Convert HEX values to integer
-			auto VendorId = std::stoul(VendorIdString, nullptr, 16);
-			auto ProductId = std::stoul(ProductIdString, nullptr, 16);
-
-			device = new LedDevicePaintpack(VendorId, ProductId, delay_ms);
-		}
 		else if (type == "piblaster")
 		{
-			const std::string output     = deviceConfig.get("output",     "").asString();
-			const std::string assignment = deviceConfig.get("assignment", "").asString();
+			const std::string output      = deviceConfig.get("output",  "").asString();
 			const Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
 
-			if (! assignment.empty())
-			{
-				throw std::runtime_error("Piblaster: The piblaster configuration syntax has changed in this version.");
-			}
 			if (gpioMapping.isNull())
 			{
 				throw std::runtime_error("Piblaster: no gpiomap defined.");
 			}
 			device = new LedDevicePiBlaster(output, gpioMapping);
-		}
-		else if (type == "hyperion-usbasp-ws2801")
-		{
-			device = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2801);
-		}
-		else if (type == "hyperion-usbasp-ws2812")
-		{
-			device = new LedDeviceHyperionUsbasp(LedDeviceHyperionUsbasp::CMD_WRITE_WS2812);
 		}
 		else if (type == "philipshue")
 		{
@@ -234,22 +217,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig.get("universe",1).asInt()
 			);
 		}
-
-	#ifdef ENABLE_WS281XPWM
-		else if (type == "ws281x")
-		{
-			device = new LedDeviceWS281x(
-				deviceConfig.get("gpio", 18).asInt(),
-				deviceConfig.get("leds", 256).asInt(),
-				deviceConfig.get("freq", (Json::UInt)800000ul).asInt(),
-				deviceConfig.get("dmanum", 5).asInt(),
-				deviceConfig.get("pwmchannel", 0).asInt(),
-				deviceConfig.get("invert", 0).asInt(),
-				deviceConfig.get("rgbw", 0).asInt(),
-				deviceConfig.get("white_algorithm","").asString()
-			);
-		}
-	#endif
 		else
 		{
 			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
@@ -261,7 +228,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 		
 		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
 		const Json::Value dummyDeviceConfig;
-		device = LedDeviceFile::construct(dummyDeviceConfig);
+		device = LedDeviceFile::construct(Json::nullValue);
 	}
 
 	device->open();

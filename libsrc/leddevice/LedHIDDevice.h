@@ -22,12 +22,14 @@ public:
 	/// @param[in] VendorId The USB VID of the output device
 	/// @param[in] ProductId The USB PID of the output device
 	///
-	LedHIDDevice(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms = 0, const bool useFeature = false);
+	LedHIDDevice(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
 	virtual ~LedHIDDevice();
+
+	virtual bool setConfig(const Json::Value &deviceConfig);
 
 	///
 	/// Opens and configures the output device
@@ -46,21 +48,20 @@ protected:
 	 */
 	int writeBytes(const unsigned size, const uint8_t *data);
 
-private slots:
-	/// Unblock the device after a connection delay
-	void unblockAfterDelay();
-
-private:
 	// HID VID and PID
-	const unsigned short _VendorId;
-	const unsigned short _ProductId;
-	const bool _useFeature;
+	unsigned short _VendorId;
+	unsigned short _ProductId;
+	bool _useFeature;
 
 	/// libusb device handle
 	hid_device * _deviceHandle;
 
 	/// Sleep after the connect before continuing
-	const int _delayAfterConnect_ms;
+	int _delayAfterConnect_ms;
 
 	bool _blockedForDelay;
+
+private slots:
+	/// Unblock the device after a connection delay
+	void unblockAfterDelay();
 };
