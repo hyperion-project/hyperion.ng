@@ -5,7 +5,6 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
-#include <json/json.h>
 
 ///
 /// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.

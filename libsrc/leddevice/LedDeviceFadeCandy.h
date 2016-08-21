@@ -7,7 +7,6 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
-#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for sending to

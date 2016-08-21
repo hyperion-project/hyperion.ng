@@ -5,7 +5,6 @@
 
 // hyperion incluse
 #include "LedRs232Device.h"
-#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to SEDU led device.

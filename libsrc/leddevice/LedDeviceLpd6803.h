@@ -2,7 +2,6 @@
 
 // Local hyperion incluse
 #include "LedSpiDevice.h"
-#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 led device.

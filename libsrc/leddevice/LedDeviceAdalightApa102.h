@@ -5,7 +5,6 @@
 
 // hyperion include
 #include "LedDeviceAdalight.h"
-#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device for APA102.

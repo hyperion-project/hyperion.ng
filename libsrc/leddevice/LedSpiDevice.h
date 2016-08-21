@@ -5,7 +5,6 @@
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
-#include <json/json.h>
 
 ///
 /// The LedSpiDevice implements an abstract base-class for LedDevices using the SPI-device.

@@ -12,6 +12,7 @@
 #include <utils/Logger.h>
 #include <functional>
 #include <json/json.h>
+
 class LedDevice;
 
 typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const Json::Value& );
