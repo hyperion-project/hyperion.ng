@@ -53,6 +53,8 @@ public:
 
 	static int addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();
+	static void setActiveDevice(std::string dev);
+	static std::string activeDevice() { return _activeDevice; };
 protected:
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
@@ -61,4 +63,7 @@ protected:
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
+
+	static std::string _activeDevice;
+	static LedDeviceRegistry _ledDeviceMap;
 };

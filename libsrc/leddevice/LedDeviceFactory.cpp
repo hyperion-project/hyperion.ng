@@ -37,7 +37,7 @@
 #include "LedDeviceSedu.h"
 #include "LedDeviceFile.h"
 #include "LedDeviceFadeCandy.h"
-#include "LedDeviceUdp.h"
+#include "LedDeviceTpm2net.h"
 #include "LedDeviceUdpRaw.h"
 #include "LedDeviceUdpE131.h"
 #include "LedDeviceHyperionUsbasp.h"
@@ -106,6 +106,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("hyperion-usbasp", LedDeviceHyperionUsbasp::construct);
 	LedDevice::addToDeviceMap("rawhid", LedDeviceRawHID::construct);
 	LedDevice::addToDeviceMap("paintpack", LedDevicePaintpack::construct);
+	LedDevice::addToDeviceMap("tmp2net", LedDeviceTpm2net::construct);
 	
 	/* todo
 	LedDeviceAtmoOrb
@@ -114,7 +115,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDeviceMultiLightpack
 	LedDevicePhilipsHue
 	LedDevicePiBlaster
-	LedDeviceUdp
 	*/
 	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
@@ -126,6 +126,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			if (dev.first == type)
 			{
 				device = dev.second(deviceConfig);
+				LedDevice::setActiveDevice(dev.first);
 				Info(log,"LedDevice '%s' configured.", dev.first.c_str());
 				break;
 			}
@@ -177,30 +178,23 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 
 			// If we find multiple Orb ids separate them and add to list
 			const std::string separator (",");
-			if (orbId.find(separator) != std::string::npos) {
-			std::stringstream ss(orbId);
-			std::vector<int> output;
-			unsigned int i;
-			while (ss >> i) {
-				orbIds.push_back(i);
-				if (ss.peek() == ',' || ss.peek() == ' ')
-					ss.ignore();
-			}
+			if (orbId.find(separator) != std::string::npos)
+			{
+				std::stringstream ss(orbId);
+				std::vector<int> output;
+				unsigned int i;
+				while (ss >> i)
+				{
+					orbIds.push_back(i);
+					if (ss.peek() == ',' || ss.peek() == ' ') ss.ignore();
+				}
 			}
 			else
 			{
-			orbIds.push_back(atoi(orbId.c_str()));
+				orbIds.push_back(atoi(orbId.c_str()));
 			}
 
 			device = new LedDeviceAtmoOrb(output, useOrbSmoothing, transitiontime, skipSmoothingDiff, port, numLeds, orbIds);
-		}
-		else if (type == "udp")
-		{
-			device = new LedDeviceUdp(
-				deviceConfig["output"].asString(),
-				deviceConfig["protocol"].asInt(),
-				deviceConfig["maxpacket"].asInt()
-			);
 		}
 		else
 		{

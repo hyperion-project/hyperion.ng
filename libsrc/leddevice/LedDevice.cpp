@@ -1,6 +1,7 @@
 #include <leddevice/LedDevice.h>
 
-static LedDeviceRegistry _ledDeviceMap;
+LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
+std::string LedDevice::_activeDevice = "";
 
 LedDevice::LedDevice()
 	: QObject()
@@ -26,4 +27,9 @@ int LedDevice::addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr)
 const LedDeviceRegistry& LedDevice::getDeviceMap()
 {
 	return _ledDeviceMap;
+}
+
+void LedDevice::setActiveDevice(std::string dev)
+{
+	_activeDevice = dev;
 }
