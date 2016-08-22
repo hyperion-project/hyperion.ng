@@ -105,8 +105,11 @@ public:
 	/// @param outputDevice hostname:port
 	/// @param latchTime
 	///
+	LedDeviceUdpE131(const Json::Value &deviceConfig);
 
-	LedDeviceUdpE131(const std::string& outputDevice, const unsigned latchTime, const unsigned universe);
+	bool setConfig(const Json::Value &deviceConfig);
+
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 
 	///

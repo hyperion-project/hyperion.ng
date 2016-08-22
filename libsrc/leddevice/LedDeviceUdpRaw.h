@@ -18,8 +18,11 @@ public:
 	/// @param outputDevice hostname:port
 	/// @param latchTime 
 	///
+	LedDeviceUdpRaw(const Json::Value &deviceConfig);
 
-	LedDeviceUdpRaw(const std::string& outputDevice, const unsigned latchTime);
+	bool setConfig(const Json::Value &deviceConfig);
+
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

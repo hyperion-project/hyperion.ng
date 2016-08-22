@@ -96,6 +96,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
 	
 	// network lights
+	LedDevice::addToDeviceMap("udpraw", LedDeviceUdpRaw::construct);
+	LedDevice::addToDeviceMap("e131", LedDeviceUdpE131::construct);
 	#ifdef ENABLE_TINKERFORGE
 	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
 	#endif
@@ -113,8 +115,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevicePhilipsHue
 	LedDevicePiBlaster
 	LedDeviceUdp
-	LedDeviceUdpRaw
-	LedDeviceUdpE131
 	*/
 	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
@@ -200,21 +200,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 				deviceConfig["output"].asString(),
 				deviceConfig["protocol"].asInt(),
 				deviceConfig["maxpacket"].asInt()
-			);
-		}
-		else if (type == "udpraw")
-		{
-			device = new LedDeviceUdpRaw(
-				deviceConfig["output"].asString(),
-				deviceConfig.get("latchtime",500000).asInt()
-			);
-		}
-		else if (type == "e131")
-		{
-			device = new LedDeviceUdpE131(
-				deviceConfig["output"].asString(),
-				deviceConfig.get("latchtime",104000).asInt(),
-				deviceConfig.get("universe",1).asInt()
 			);
 		}
 		else
