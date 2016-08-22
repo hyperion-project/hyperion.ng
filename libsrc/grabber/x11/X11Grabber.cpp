@@ -178,7 +178,7 @@ Image<ColorRgb> & X11Grabber::grab()
     
 		XSync(_x11Display, False);
 		
-		if (!_XShmAvailable)
+		if (_XShmAvailable)
 		{
 			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
 		}
@@ -257,7 +257,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image)
     
 		XSync(_x11Display, False);
 		
-		if (!_XShmAvailable)
+		if (_XShmAvailable)
 		{
 			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
 		}
