@@ -337,6 +337,7 @@ int X11Grabber::updateScreenDimensions()
 		Info(_log, "Using XGetImage for grabbing");
 	}
 
+	_image.resize(_croppedWidth, _croppedHeight);
 	setupResources();
 
 	return 1;
