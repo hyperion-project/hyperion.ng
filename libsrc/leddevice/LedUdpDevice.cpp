@@ -33,7 +33,7 @@ bool LedUdpDevice::setConfig(const Json::Value &deviceConfig)
 	QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["output"].asString()) );
 	if (info.addresses().isEmpty())
 	{
-		throw("invalid target address");
+		throw std::runtime_error("invalid target address");
 	}
 	_address = info.addresses().first();
 	_port    = deviceConfig["port"].asUInt();
