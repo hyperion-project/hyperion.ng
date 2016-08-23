@@ -16,6 +16,8 @@
 		"dashboard_label_infobox_device" : "Geräteinformation:",
 		"dashboard_label_componentbox_title" : "Komponenten Status",
 		"dashboard_label_newsbox_title" : "Die letzten Blogposts",
+		"dashboard_message_infobox_updatewarning" : "Eine aktuellere Version von Hyperion ist verfügbar!",
+		"dashboard_message_infobox_updatesuccess" : "Du nutzt die aktuellste Version von Hyperion.",
 		"main_menu_dashboard_token" : "Dashboard",
 		"main_menu_configuration_token" : "Konfiguration",
 		"main_menu_kodiwatch_token" : "Kodi Überwachung",
