@@ -92,6 +92,7 @@ void X11Grabber::setupResources()
 		_dstFormat = XRenderFindVisualFormat(_x11Display, _windowAttr.visual);
 		_srcPicture = XRenderCreatePicture(_x11Display, _window, _srcFormat, CPRepeat, &_pictAttr);
 		_dstPicture = XRenderCreatePicture(_x11Display, _pixmap, _dstFormat, CPRepeat, &_pictAttr);
+		XRenderSetPictureFilter(_x11Display, _srcPicture, FilterBilinear, NULL, 0);
 	}
 }
 
@@ -160,7 +161,6 @@ Image<ColorRgb> & X11Grabber::grab()
 		};
 		
 		XRenderSetPictureTransform (_x11Display, _srcPicture, &_transform);
-		XRenderSetPictureFilter(_x11Display, _srcPicture, FilterBilinear, NULL, 0);
 		
 		XRenderComposite( _x11Display,					// dpy
 					PictOpSrc,				// op
@@ -178,7 +178,7 @@ Image<ColorRgb> & X11Grabber::grab()
     
 		XSync(_x11Display, False);
 		
-		if (!_XShmAvailable)
+		if (_XShmAvailable)
 		{
 			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
 		}
@@ -239,7 +239,6 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image)
 		};
 		
 		XRenderSetPictureTransform (_x11Display, _srcPicture, &_transform);
-		XRenderSetPictureFilter(_x11Display, _srcPicture, FilterBilinear, NULL, 0);
 		
 		XRenderComposite( _x11Display,					// dpy
 					PictOpSrc,				// op
@@ -257,7 +256,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image)
     
 		XSync(_x11Display, False);
 		
-		if (!_XShmAvailable)
+		if (_XShmAvailable)
 		{
 			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
 		}
@@ -338,6 +337,7 @@ int X11Grabber::updateScreenDimensions()
 		Info(_log, "Using XGetImage for grabbing");
 	}
 
+	_image.resize(_croppedWidth, _croppedHeight);
 	setupResources();
 
 	return 1;
