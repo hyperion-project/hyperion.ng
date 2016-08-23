@@ -12,20 +12,25 @@
     <title>Hyperion - WebUI</title>
 
   <!-- jQuery -->
-    <script src="js/jquery.min.js"></script>
+    <script src="js/lib/jquery.min.js"></script>
+
     <script src="js/hyperion.js"></script>
 
+  <!-- Colorpicker -->
+    <script src="js/lib/bootstrap-colorpicker.min.js"></script>
+    <link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+
   <!-- Bootstrap Switch -->
-    <script src="js/bootstrap-switch.min.js"></script>
+    <script src="js/lib/bootstrap-switch.min.js"></script>
     <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   <!-- JSONForm -->
-    <script src="js/underscore.js"></script>
-    <script src="js/jsonform.js"></script>
+    <script src="js/lib/underscore.js"></script>
+    <script src="js/lib/jsonform.js"></script>
 
 	<!--Language Support -->
-	<script src="js/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
-	<script src="js/js.cookie.js"></script>
+	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
+	<script src="js/lib/js.cookie.js"></script>
 
 	<script type="text/javascript">
 		// Create language switcher instance
@@ -416,13 +421,13 @@
 
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="js/metisMenu.min.js"></script>
+    <script src="js/lib/metisMenu.min.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="js/sb-admin-2.js"></script>
+    <script src="js/lib/sb-admin-2.js"></script>
 	<script>
 
 		$(document).ready( function() {
@@ -445,11 +450,11 @@
 			$("#load_confKodi").on("click", function() {
 				$("#page-wrapper").load("kodiconf.html");
 			});
-			
+
       $("#load_update").on("click", function() {
 				$("#page-wrapper").load("update.html");
 			});
-			
+
       $("#load_confGeneral").on("click", function() {
 				$("#page-wrapper").load("generalconf.html");
 			});
