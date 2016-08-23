@@ -130,7 +130,13 @@ if(ENABLE_TINKERFORGE)
 	)
 endif()
 
+set(LedDevice_RESOURCES
+	${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc
+)
+
 QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
+qt5_add_resources(LedDevice_RESOURCES_RCC ${LedDevice_RESOURCES} OPTIONS "-no-compress")
+
 
 
 add_library(leddevice
@@ -138,13 +144,14 @@ add_library(leddevice
 	${Leddevice_QT_HEADERS}
 	${Leddevice_HEADERS_MOC}
 	${Leddevice_SOURCES}
+	${LedDevice_RESOURCES}
+	${LedDevice_RESOURCES_RCC}
 )
 
 qt5_use_modules(leddevice Network SerialPort)
 
 target_link_libraries(leddevice
 	hyperion-utils
-#	serialport
 	${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 	${CMAKE_THREAD_LIBS_INIT}
 	${QT_LIBRARIES}
