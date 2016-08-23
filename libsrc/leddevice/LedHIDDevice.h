@@ -17,10 +17,9 @@ class LedHIDDevice : public LedDevice
 
 public:
 	///
-	/// Constructs the LedDevice attached to an HID-device
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] VendorId The USB VID of the output device
-	/// @param[in] ProductId The USB PID of the output device
+	/// @param deviceConfig json device config
 	///
 	LedHIDDevice(const Json::Value &deviceConfig);
 
@@ -29,6 +28,11 @@ public:
 	///
 	virtual ~LedHIDDevice();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	virtual bool setConfig(const Json::Value &deviceConfig);
 
 	///

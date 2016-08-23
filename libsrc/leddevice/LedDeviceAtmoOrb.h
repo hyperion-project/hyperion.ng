@@ -45,20 +45,21 @@ public:
 	bool joinedMulticastgroup;
 
 	///
-	/// Constructs the device.
+	/// Constructs specific LedDevice
 	///
-	/// @param output is the multicast address of Orbs
-	/// @param transitiontime is optional and not used at the moment
-	/// @param useOrbSmoothing use Orbs own (external) smoothing algorithm (default: false)
-	/// @param skipSmoothingDiff  minimal color (0-255) difference to override smoothing so that if current and previously received colors are higher than set dif we override smoothing
-	/// @param port is the multicast port.
-	/// @param numLeds is the total amount of leds per Orb
-	/// @param array containing orb ids
+	/// @param deviceConfig json device config
 	///
-	LedDeviceAtmoOrb(const std::string &output, bool useOrbSmoothing =
-	false, int transitiontime = 0, int skipSmoothingDiff = 0, int port = 49692, int numLeds = 24,
-					 std::vector<unsigned int> orbIds = std::vector<unsigned int>());
+	LedDeviceAtmoOrb(const Json::Value &deviceConfig);
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 	///
 	/// Destructor of this device
 	///

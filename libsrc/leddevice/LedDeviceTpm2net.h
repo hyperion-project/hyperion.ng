@@ -13,14 +13,22 @@ class LedDeviceTpm2net : public LedDevice
 {
 public:
 	///
-	/// Constructs the test-device, which opens an output stream to the file
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
 	///
 	LedDeviceTpm2net(const Json::Value &deviceConfig);
 
 	virtual ~LedDeviceTpm2net();
 	
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

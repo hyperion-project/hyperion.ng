@@ -12,11 +12,14 @@
 class LedDevicePaintpack : public LedHIDDevice
 {
 public:
-	/**
-	 * Constructs the paintpack device
-	 */
+	///
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
 	LedDevicePaintpack(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

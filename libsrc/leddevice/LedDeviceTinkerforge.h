@@ -16,13 +16,23 @@ extern "C" {
 class LedDeviceTinkerforge : public LedDevice
 {
 public:
-	
+	///
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
 	LedDeviceTinkerforge(const Json::Value &deviceConfig);
 
 	virtual ~LedDeviceTinkerforge();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

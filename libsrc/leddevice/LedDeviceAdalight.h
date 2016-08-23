@@ -18,14 +18,13 @@ class LedDeviceAdalight : public LedRs232Device
 
 public:
 	///
-	/// Constructs the LedDevice for attached Adalight device
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
 	LedDeviceAdalight(const Json::Value &deviceConfig);
 
-	/// create leddevice when type in config is set to this type
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

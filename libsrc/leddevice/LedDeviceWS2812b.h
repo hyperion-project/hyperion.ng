@@ -133,13 +133,22 @@ class LedDeviceWS2812b : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type WS2812
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
 	LedDeviceWS2812b();
 
 	~LedDeviceWS2812b();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value&) {};
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &);
 
 	///

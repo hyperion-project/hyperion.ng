@@ -13,14 +13,10 @@ class LedSpiDevice : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice attached to a SPI-device
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev.0.0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
-	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
-	/// means no latch required) [ns]
+	/// @param deviceConfig json device config
 	///
-	//(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns = -1,  const int spiMode = SPI_MODE_0, const bool spiDataInvert = false);
 	LedSpiDevice(const Json::Value &deviceConfig);
 
 	///

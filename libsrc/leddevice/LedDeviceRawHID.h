@@ -18,12 +18,15 @@ class LedDeviceRawHID : public LedHIDDevice
 
 public:
 	///
-	/// Constructs the LedDevice for attached RawHID device
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
 	///
 	LedDeviceRawHID(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
-	
+
 	///
 	/// Writes the led color values to the led-device
 	///

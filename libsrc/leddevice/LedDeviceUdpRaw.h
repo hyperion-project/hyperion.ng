@@ -13,15 +13,20 @@ class LedDeviceUdpRaw : public LedUdpDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for sending led colors via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice hostname:port
-	/// @param latchTime 
+	/// @param deviceConfig json device config
 	///
 	LedDeviceUdpRaw(const Json::Value &deviceConfig);
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

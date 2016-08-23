@@ -47,7 +47,7 @@ public:
 	///
 	virtual ~LedDeviceFadeCandy();
 
-	/// create leddevice when type in config is set to this type
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

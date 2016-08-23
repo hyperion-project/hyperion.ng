@@ -15,10 +15,9 @@ class LedRs232Device : public LedDevice
 
 public:
 	///
-	/// Constructs the LedDevice attached to a RS232-device
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/ttyS0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
 	LedRs232Device(const Json::Value &deviceConfig);
 

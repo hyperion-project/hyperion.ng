@@ -13,14 +13,13 @@ class LedDeviceWs2812SPI : public LedSpiDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type Ws2812SPI
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
 	LedDeviceWs2812SPI(const Json::Value &deviceConfig);
 
-	/// create leddevice when type in config is set to this type
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

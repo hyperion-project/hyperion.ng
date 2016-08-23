@@ -92,30 +92,26 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("ws281x", LedDeviceWS281x::construct);
 	#endif
 
-	// other
-	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
-	
 	// network lights
+	LedDevice::addToDeviceMap("tmp2net", LedDeviceTpm2net::construct);
 	LedDevice::addToDeviceMap("udpraw", LedDeviceUdpRaw::construct);
 	LedDevice::addToDeviceMap("e131", LedDeviceUdpE131::construct);
 	#ifdef ENABLE_TINKERFORGE
 	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
 	#endif
+	LedDevice::addToDeviceMap("philipshue", LedDevicePhilipsHue::construct);
+	LedDevice::addToDeviceMap("atmoorb", LedDeviceAtmoOrb::construct);
 	
 	// direct usb
 	LedDevice::addToDeviceMap("hyperion-usbasp", LedDeviceHyperionUsbasp::construct);
 	LedDevice::addToDeviceMap("rawhid", LedDeviceRawHID::construct);
 	LedDevice::addToDeviceMap("paintpack", LedDevicePaintpack::construct);
-	LedDevice::addToDeviceMap("tmp2net", LedDeviceTpm2net::construct);
+	LedDevice::addToDeviceMap("lightpack", LedDeviceLightpack::construct);
+	LedDevice::addToDeviceMap("multi-lightpack", LedDeviceMultiLightpack::construct);
 	
-	/* todo
-	LedDeviceAtmoOrb
-	LedDeviceLightpack
-	LedDeviceLightpack-hidapi
-	LedDeviceMultiLightpack
-	LedDevicePhilipsHue
-	LedDevicePiBlaster
-	*/
+	// other
+	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
+	LedDevice::addToDeviceMap("piblaster", LedDevicePiBlaster::construct);
 	
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
@@ -132,71 +128,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 			}
 		}
 	
-	// ===== old config =====
-		if (device != nullptr) { /* do nothing */ }
-		else if (type == "lightpack")
-		{
-			device = new LedDeviceLightpack(deviceConfig.get("output", "").asString());
-		}
-		else if (type == "multi-lightpack")
-		{
-			device = new LedDeviceMultiLightpack();
-		}
-		else if (type == "piblaster")
-		{
-			const std::string output      = deviceConfig.get("output",  "").asString();
-			const Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
-
-			if (gpioMapping.isNull())
-			{
-				throw std::runtime_error("Piblaster: no gpiomap defined.");
-			}
-			device = new LedDevicePiBlaster(output, gpioMapping);
-		}
-		else if (type == "philipshue")
-		{
-			const std::string output = deviceConfig["output"].asString();
-			const std::string username = deviceConfig.get("username", "newdeveloper").asString();
-			const bool switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
-			const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
-			std::vector<unsigned int> lightIds;
-			for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++) {
-				lightIds.push_back(deviceConfig["lightIds"][i].asInt());
-			}
-			device = new LedDevicePhilipsHue(output, username, switchOffOnBlack, transitiontime, lightIds);
-		}
-		else if (type == "atmoorb")
-		{
-			const std::string output = deviceConfig["output"].asString();
-			const bool useOrbSmoothing = deviceConfig.get("useOrbSmoothing", false).asBool();
-			const int transitiontime = deviceConfig.get("transitiontime", 1).asInt();
-			const int skipSmoothingDiff = deviceConfig.get("skipSmoothingDiff", 0).asInt();
-			const int port = deviceConfig.get("port", 1).asInt();
-			const int numLeds = deviceConfig.get("numLeds", 1).asInt();
-			const std::string orbId = deviceConfig["orbIds"].asString();
-			std::vector<unsigned int> orbIds;
-
-			// If we find multiple Orb ids separate them and add to list
-			const std::string separator (",");
-			if (orbId.find(separator) != std::string::npos)
-			{
-				std::stringstream ss(orbId);
-				std::vector<int> output;
-				unsigned int i;
-				while (ss >> i)
-				{
-					orbIds.push_back(i);
-					if (ss.peek() == ',' || ss.peek() == ' ') ss.ignore();
-				}
-			}
-			else
-			{
-				orbIds.push_back(atoi(orbId.c_str()));
-			}
-
-			device = new LedDeviceAtmoOrb(output, useOrbSmoothing, transitiontime, skipSmoothingDiff, port, numLeds, orbIds);
-		}
-		else
+		if (device == nullptr)
 		{
 			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
 			throw std::runtime_error("unknown device");

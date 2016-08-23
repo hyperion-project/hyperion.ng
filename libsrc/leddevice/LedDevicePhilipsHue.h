@@ -115,22 +115,27 @@ class LedDevicePhilipsHue: public LedDevice {
 
 public:
 	///
-	/// Constructs the device.
+	/// Constructs specific LedDevice
 	///
-	/// @param output the ip address of the bridge
-	/// @param username username of the hue bridge (default: newdeveloper)
-	/// @param switchOffOnBlack kill lights for black (default: false)
-	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
-	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
+	/// @param deviceConfig json device config
 	///
-	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 1, std::vector<unsigned int> lightIds = std::vector<unsigned int>());
+	LedDevicePhilipsHue(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of this device
 	///
 	virtual ~LedDevicePhilipsHue();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
+	
 	///
 	/// Sends the given led-color values via put request to the hue system
 	///

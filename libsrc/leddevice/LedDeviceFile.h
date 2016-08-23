@@ -14,7 +14,9 @@ class LedDeviceFile : public LedDevice
 {
 public:
 	///
-	/// Constructs the test-device, which opens an output stream to the file
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
 	///
 	LedDeviceFile(const Json::Value &deviceConfig);
 
@@ -23,7 +25,7 @@ public:
 	///
 	virtual ~LedDeviceFile();
 
-	/// create leddevice when type in config is set to this type
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///

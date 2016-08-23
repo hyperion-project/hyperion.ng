@@ -13,11 +13,9 @@ class LedUdpDevice : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice sendig data via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice string hostname:port
-	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
-	/// means no latch required) [ns]
+	/// @param deviceConfig json device config
 	///
 	LedUdpDevice(const Json::Value &deviceConfig);
 
@@ -26,6 +24,11 @@ public:
 	///
 	virtual ~LedUdpDevice();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
 	///

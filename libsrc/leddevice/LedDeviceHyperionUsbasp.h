@@ -24,12 +24,20 @@ public:
 	};
 
 	///
-	/// Constructs the LedDeviceLightpack
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
 	///
 	LedDeviceHyperionUsbasp(const Json::Value &deviceConfig);
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
+	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
