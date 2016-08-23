@@ -2,22 +2,22 @@
 	"versionlist":
 	[
 		{
-		"versionnr" : "2.1.0",
-		"versiondesc": "This version introduces feature x and some small bugfixes at the web configuration",
-		"versionchangelog":"https://www.hyperion-project.org/blog/id1",
-		"channel" : "Stable"
+			"versionnr" : "2.1.0",
+			"versiondesc": "This version introduces feature x and some small bugfixes at the web configuration",
+			"versionchangelog":"https://www.hyperion-project.org/blog/id1",
+			"channel" : "Stable"
 		},
 		{
-		"versionnr" : "2.0.1"
-		"versiondesc": "This is a bugfix release for 2.0.0",
-		"versionchangelog": "https://www.hyperion-project.org/blog/id3",
-		"channel" : "Stable"
+			"versionnr" : "2.0.1",
+			"versiondesc": "This is a bugfix release for 2.0.0",
+			"versionchangelog": "https://www.hyperion-project.org/blog/id3",
+			"channel" : "Stable"
 		},
 		{
-		"versionnr" : "2.0.0"
-		"versiondesc": "Version 2.0.0 introduces the succesor of Hyperion 1.0 with plenty new features to discover with a entire code rework and a highly extended JSON RPC!",
-		"versionchangelog": "https://www.hyperion-project.org/blog/id0",
-		"channel" : "Stable"
+			"versionnr" : "2.0.0",
+			"versiondesc": "Version 2.0.0 introduces the succesor of Hyperion 1.0 with plenty new features to discover with a entire code rework and a highly extended JSON RPC!",
+			"versionchangelog": "https://www.hyperion-project.org/blog/id0",
+			"channel" : "Stable"
 		}
 	]
 }
