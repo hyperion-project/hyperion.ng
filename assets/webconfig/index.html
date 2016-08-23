@@ -11,9 +11,13 @@
 
     <title>Hyperion - WebUI</title>
 
-
-	<!-- jQuery -->
+  <!-- jQuery -->
     <script src="js/jquery.min.js"></script>
+    <script src="js/hyperion.js"></script>
+
+  <!-- Bootstrap Switch -->
+    <script src="js/bootstrap-switch.min.js"></script>
+    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   <!-- JSONForm -->
     <script src="js/underscore.js"></script>
@@ -309,6 +313,15 @@
 						            <li>
                             <a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a>
                         </li>
+						<li>
+						    <a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+                                <li>
+									<a class="inactive" href="#" id="load_update"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></a>
+								</li>
+							</ul>
+                        </li>
+                        </li>
 
                     </ul>
                 </div>
@@ -432,10 +445,18 @@
 			$("#load_confKodi").on("click", function() {
 				$("#page-wrapper").load("kodiconf.html");
 			});
-
+			
+      $("#load_update").on("click", function() {
+				$("#page-wrapper").load("update.html");
+			});
+			
       $("#load_confGeneral").on("click", function() {
 				$("#page-wrapper").load("generalconf.html");
 			});
+
+      //Change all Checkboxes to Switches
+      $("[type='checkbox']").bootstrapSwitch();
+
     });
 		$(function(){
 			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance

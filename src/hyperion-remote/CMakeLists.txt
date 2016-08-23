@@ -34,5 +34,4 @@ target_link_libraries(${PROJECT_NAME}
 
 qt5_use_modules(${PROJECT_NAME} Gui Core Network)
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
-
+install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
