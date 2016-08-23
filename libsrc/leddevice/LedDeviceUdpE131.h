@@ -91,7 +91,7 @@ typedef union {
 #define E131_E131_UNIVERSE_DISCOVERY_INTERVAL	10		// seconds
 #define E131_NETWORK_DATA_LOSS_TIMEOUT		2500		// milli econds
 #define E131_DISCOVERY_UNIVERSE			64214
-
+#define DMX_MAX					512		// 512 usable slots
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
@@ -121,6 +121,8 @@ public:
 	virtual int switchOff();
 
 private:
+	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
+
 	e131_packet_t e131_packet;
 	uint8_t	_e131_seq = 0;
 	uint8_t	_e131_universe = 1;
