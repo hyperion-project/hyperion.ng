@@ -1,3 +1,4 @@
+*.swp
 /*.user
 /build*
 .DS_Store
