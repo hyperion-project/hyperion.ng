@@ -15,7 +15,7 @@ then
 
 	mkdir build || exit 1
     cd build
-	cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
+	cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=ON -Wno-dev .. || exit 2
 	make -j$procs || exit 3
 	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
 fi
@@ -25,7 +25,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]
 then
 	mkdir build || exit 1
 	cd build
-	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Release .. || exit 2
+	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 2
 	make -j$(nproc) || exit 3
 	make -j$(nproc) package || exit 4
 fi

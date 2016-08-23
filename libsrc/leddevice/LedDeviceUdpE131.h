@@ -100,13 +100,21 @@ class LedDeviceUdpE131 : public LedUdpDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for sending led colors via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice hostname:port
-	/// @param latchTime
+	/// @param deviceConfig json device config
 	///
+	LedDeviceUdpE131(const Json::Value &deviceConfig);
 
-	LedDeviceUdpE131(const std::string& outputDevice, const unsigned latchTime, const unsigned universe);
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 
 	///

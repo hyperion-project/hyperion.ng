@@ -13,15 +13,22 @@ class LedDeviceSk6812SPI : public LedSpiDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type Sk6812SPI
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
+	LedDeviceSk6812SPI(const Json::Value &deviceConfig);
 
-	LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate,
-	                   const std::string& whiteAlgorithm, const int spiMode, const bool spiDataInvert);
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+	
 	///
 	/// Writes the led color values to the led-device
 	///

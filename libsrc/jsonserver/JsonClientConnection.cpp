@@ -24,6 +24,7 @@
 #include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
+#include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/JsonFactory.h>
 
@@ -624,21 +625,31 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
 
 			LEDcolor["HEX Value"].append(hex.str());
-		    
+
 			activeLedColors.append(LEDcolor);
 			}
 		}
 	}
 
+	// get available led devices
+	info["ledDevices"]["active"]    = LedDevice::activeDevice();
+	info["ledDevices"]["available"] = Json::Value(Json::arrayValue);
+	for ( auto dev: LedDevice::getDeviceMap())
+	{
+		info["ledDevices"]["available"].append(dev.first);
+	}
+
+	
 	// Add Hyperion Version, build time
-	Json::Value & version = info["hyperion"] = Json::Value(Json::arrayValue);
+	//Json::Value & version = 
+	info["hyperion"] = Json::Value(Json::arrayValue);
 	Json::Value ver;
 	ver["jsonrpc_version"] = HYPERION_JSON_VERSION;
 	ver["version"] = HYPERION_VERSION;
-	ver["build"] = HYPERION_BUILD_ID;
-	ver["time"] = __DATE__ " " __TIME__;
+	ver["build"]   = HYPERION_BUILD_ID;
+	ver["time"]    = __DATE__ " " __TIME__;
 
-	version.append(ver);
+	info["hyperion"].append(ver);
 
 	// send the result
 	sendMessage(result);
@@ -941,7 +952,7 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message, co
 			sendSuccessReply(command, tan);
 		}
 	} else
-		sendErrorReply("Error while parsing json: Message size " + message.size(), command, tan);
+		sendErrorReply("Error while parsing json: Message size " + std::to_string(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message, const std::string &command, const int tan)

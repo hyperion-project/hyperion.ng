@@ -14,14 +14,11 @@
 #include <utils/Logger.h>
 
 
-LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudrate, const int latchTime_ns, const int spiMode, const bool spiDataInvert)
-	: _deviceName(outputDevice)
-	, _baudRate_Hz(baudrate)
-	, _latchTime_ns(latchTime_ns)
+LedSpiDevice::LedSpiDevice(const Json::Value &deviceConfig)
+	: LedDevice()
 	, _fid(-1)
-	, _spiMode(spiMode)
-	, _spiDataInvert(spiDataInvert)
 {
+	setConfig(deviceConfig);
 	memset(&_spi, 0, sizeof(_spi));
 	Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
 }
@@ -29,6 +26,17 @@ LedSpiDevice::LedSpiDevice(const std::string& outputDevice, const unsigned baudr
 LedSpiDevice::~LedSpiDevice()
 {
 //	close(_fid);
+}
+
+bool LedSpiDevice::setConfig(const Json::Value &deviceConfig)
+{
+	_deviceName    = deviceConfig.get("output","/dev/spidev.0.0").asString();
+	_baudRate_Hz   = deviceConfig.get("rate",1000000).asInt();
+	_latchTime_ns  = deviceConfig.get("latchtime",0).asInt();
+	_spiMode       = deviceConfig.get("spimode",SPI_MODE_0).asInt();
+	_spiDataInvert = deviceConfig.get("invert",false).asBool();
+
+	return true;
 }
 
 int LedSpiDevice::open()

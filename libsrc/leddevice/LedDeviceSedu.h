@@ -13,12 +13,14 @@ class LedDeviceSedu : public LedRs232Device
 {
 public:
 	///
-	/// Constructs the LedDevice for attached via SEDU device
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceSedu(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

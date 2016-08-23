@@ -3,12 +3,16 @@
 #include "LedDevicePaintpack.h"
 
 // Use out report HID device
-LedDevicePaintpack::LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
-	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, false)
+LedDevicePaintpack::LedDevicePaintpack(const Json::Value &deviceConfig)
+	: LedHIDDevice(deviceConfig)
 {
-	// empty
+	_useFeature = false;
 }
 
+LedDevice* LedDevicePaintpack::construct(const Json::Value &deviceConfig)
+{
+	return new LedDevicePaintpack(deviceConfig);
+}
 
 int LedDevicePaintpack::write(const std::vector<ColorRgb> & ledValues)
 {

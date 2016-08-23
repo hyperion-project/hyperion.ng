@@ -79,12 +79,14 @@ class LedDeviceLpd8806 : public LedSpiDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type LPD8806
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev0.0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceLpd8806(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceLpd8806(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

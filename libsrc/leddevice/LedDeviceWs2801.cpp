@@ -11,11 +11,14 @@
 // hyperion local includes
 #include "LedDeviceWs2801.h"
 
-LedDeviceWs2801::LedDeviceWs2801(const std::string& outputDevice, const unsigned baudrate, const unsigned latchTime,
-                                const int spiMode, const bool spiDataInvert)
-	: LedSpiDevice(outputDevice, baudrate, latchTime, spiMode, spiDataInvert)
+LedDeviceWs2801::LedDeviceWs2801(const Json::Value &deviceConfig)
+	: LedSpiDevice(deviceConfig)
 {
-	// empty
+}
+
+LedDevice* LedDeviceWs2801::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceWs2801(deviceConfig);
 }
 
 int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)

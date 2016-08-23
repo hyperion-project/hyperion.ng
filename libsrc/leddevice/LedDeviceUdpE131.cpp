@@ -12,12 +12,25 @@
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
 
-LedDeviceUdpE131::LedDeviceUdpE131(const std::string& outputDevice, const unsigned latchTime, const unsigned universe)
-	: LedUdpDevice(outputDevice, latchTime)
-	, _e131_universe(universe)
+LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
+	: LedUdpDevice(deviceConfig)
 
 {
-	// empty
+	setConfig(deviceConfig);
+}
+
+bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
+{
+	LedUdpDevice::setConfig(deviceConfig);
+	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
+	_e131_universe = deviceConfig.get("universe",1).asInt();
+
+	return true;
+}
+
+LedDevice* LedDeviceUdpE131::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceUdpE131(deviceConfig);
 }
 
 #define CID "hyperion!\0"
