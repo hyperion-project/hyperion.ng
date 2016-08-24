@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 
 #include <stdexcept>
+#include <sstream>
 #include <string>
 #include <set>
 
@@ -15,23 +16,10 @@ AtmoOrbLight::AtmoOrbLight(unsigned int id) {
 	// Not implemented
 }
 
-LedDeviceAtmoOrb::LedDeviceAtmoOrb(
-		const std::string &output,
-		bool useOrbSmoothing,
-		int transitiontime,
-		int skipSmoothingDiff,
-		int port,
-		int numLeds,
-		std::vector<unsigned int> orbIds)
+LedDeviceAtmoOrb::LedDeviceAtmoOrb(const Json::Value &deviceConfig)
 	: LedDevice()
-	, _multicastGroup(output.c_str())
-	, _useOrbSmoothing(useOrbSmoothing)
-	, _transitiontime(transitiontime)
-	, _skipSmoothingDiff(skipSmoothingDiff)
-	, _multiCastGroupPort(port)
-	, _numLeds(numLeds)
-	, _orbIds(orbIds)
 {
+	setConfig(deviceConfig);
 	_manager = new QNetworkAccessManager();
 	_groupAddress = QHostAddress(_multicastGroup);
 
@@ -39,6 +27,44 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(
 	_udpSocket->bind(QHostAddress::Any, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
 	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+}
+
+bool LedDeviceAtmoOrb::setConfig(const Json::Value &deviceConfig)
+{
+	_multicastGroup     = deviceConfig["output"].asString().c_str();
+	_useOrbSmoothing    = deviceConfig.get("useOrbSmoothing", false).asBool();
+	_transitiontime     = deviceConfig.get("transitiontime", 0).asInt();
+	_skipSmoothingDiff  = deviceConfig.get("skipSmoothingDiff", 0).asInt();
+	_multiCastGroupPort = deviceConfig.get("port", 49692).asInt();
+	_numLeds            = deviceConfig.get("numLeds", 24).asInt();
+	
+	const std::string orbId = deviceConfig["orbIds"].asString();
+	_orbIds.clear();
+
+	// If we find multiple Orb ids separate them and add to list
+	const std::string separator (",");
+	if (orbId.find(separator) != std::string::npos)
+	{
+		std::stringstream ss(orbId);
+		std::vector<int> output;
+		unsigned int i;
+		while (ss >> i)
+		{
+			_orbIds.push_back(i);
+			if (ss.peek() == ',' || ss.peek() == ' ') ss.ignore();
+		}
+	}
+	else
+	{
+		_orbIds.push_back(atoi(orbId.c_str()));
+	}
+
+	return true;
+}
+
+LedDevice* LedDeviceAtmoOrb::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAtmoOrb(deviceConfig);
 }
 
 int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)

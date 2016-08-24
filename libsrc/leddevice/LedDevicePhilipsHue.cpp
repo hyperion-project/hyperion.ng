@@ -164,14 +164,11 @@ CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue)
 	return xy;
 }
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::string& username, bool switchOffOnBlack,	int transitiontime, std::vector<unsigned int> lightIds)
+LedDevicePhilipsHue::LedDevicePhilipsHue(const Json::Value &deviceConfig)
 	: LedDevice()
-	, host(output.c_str())
-	, username(username.c_str())
-	, switchOffOnBlack(switchOffOnBlack)
-	, transitiontime(transitiontime)
-	, lightIds(lightIds)
 {
+	setConfig(deviceConfig);
+
 	manager = new QNetworkAccessManager();
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
@@ -181,6 +178,26 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const std::string& output, const std::s
 LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 	delete manager;
+}
+
+bool LedDevicePhilipsHue::setConfig(const Json::Value &deviceConfig)
+{
+	host = deviceConfig["output"].asString().c_str();
+	username = deviceConfig.get("username", "newdeveloper").asString().c_str();
+	switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
+	transitiontime = deviceConfig.get("transitiontime", 1).asInt();
+	lightIds.clear();
+	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++)
+	{
+		lightIds.push_back(deviceConfig["lightIds"][i].asInt());
+	}
+
+	return true;
+}
+
+LedDevice* LedDevicePhilipsHue::construct(const Json::Value &deviceConfig)
+{
+	return new LedDevicePhilipsHue(deviceConfig);
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)

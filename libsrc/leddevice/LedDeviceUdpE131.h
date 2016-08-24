@@ -91,7 +91,7 @@ typedef union {
 #define E131_E131_UNIVERSE_DISCOVERY_INTERVAL	10		// seconds
 #define E131_NETWORK_DATA_LOSS_TIMEOUT		2500		// milli econds
 #define E131_DISCOVERY_UNIVERSE			64214
-
+#define DMX_MAX					512		// 512 usable slots
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
@@ -100,13 +100,21 @@ class LedDeviceUdpE131 : public LedUdpDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for sending led colors via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice hostname:port
-	/// @param latchTime
+	/// @param deviceConfig json device config
 	///
+	LedDeviceUdpE131(const Json::Value &deviceConfig);
 
-	LedDeviceUdpE131(const std::string& outputDevice, const unsigned latchTime, const unsigned universe);
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 
 	///
@@ -121,6 +129,8 @@ public:
 	virtual int switchOff();
 
 private:
+	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
+
 	e131_packet_t e131_packet;
 	uint8_t	_e131_seq = 0;
 	uint8_t	_e131_universe = 1;

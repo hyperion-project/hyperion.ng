@@ -11,8 +11,8 @@
 // hyperion local includes
 #include "LedDeviceWs2812SPI.h"
 
-LedDeviceWs2812SPI::LedDeviceWs2812SPI(const std::string& outputDevice, const unsigned baudrate, const int spiMode, const bool spiDataInvert)
-	: LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert)
+LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
+	: LedSpiDevice(deviceConfig)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
@@ -20,7 +20,11 @@ LedDeviceWs2812SPI::LedDeviceWs2812SPI(const std::string& outputDevice, const un
 		0b11001100,
 	}
 {
-	// empty
+}
+
+LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceWs2812SPI(deviceConfig);
 }
 
 int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)

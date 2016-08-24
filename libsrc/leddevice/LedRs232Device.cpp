@@ -9,15 +9,23 @@
 // Local Hyperion includes
 #include "LedRs232Device.h"
 
-LedRs232Device::LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms)
-	: _deviceName(outputDevice)
-	, _baudRate_Hz(baudrate)
-	, _delayAfterConnect_ms(delayAfterConnect_ms)
-	, _rs232Port(this)
+LedRs232Device::LedRs232Device(const Json::Value &deviceConfig)
+	: _rs232Port(this)
 	, _blockedForDelay(false)
 	, _stateChanged(true)
 {
+	setConfig(deviceConfig);
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
+}
+
+bool LedRs232Device::setConfig(const Json::Value &deviceConfig)
+{
+	closeDevice();
+	_deviceName           = deviceConfig["output"].asString();
+	_baudRate_Hz          = deviceConfig["rate"].asInt();
+	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect",250).asInt();
+
+	return true;
 }
 
 void LedRs232Device::error(QSerialPort::SerialPortError error)
@@ -59,13 +67,17 @@ void LedRs232Device::error(QSerialPort::SerialPortError error)
 LedRs232Device::~LedRs232Device()
 {
 	disconnect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
+	closeDevice();
+}
+
+void LedRs232Device::closeDevice()
+{
 	if (_rs232Port.isOpen())
 	{
 		_rs232Port.close();
 		Debug(_log,"Close UART: %s", _deviceName.c_str());
 	}
 }
-
 
 int LedRs232Device::open()
 {

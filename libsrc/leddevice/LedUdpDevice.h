@@ -13,18 +13,23 @@ class LedUdpDevice : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice sendig data via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice string hostname:port
-	/// @param[in] latchTime_ns The latch-time to latch in the values across the SPI-device (negative
-	/// means no latch required) [ns]
+	/// @param deviceConfig json device config
 	///
-	LedUdpDevice(const std::string& outputDevice, const int latchTime_ns = -1);
+	LedUdpDevice(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
 	virtual ~LedUdpDevice();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
 
 	///
 	/// Opens and configures the output device
@@ -45,12 +50,8 @@ protected:
 	///
 	int writeBytes(const unsigned size, const uint8_t *data);
 
-private:
-	/// The UDP destination as "host:port"
-	const std::string _target;
-	
 	/// The time which the device should be untouched after a write
-	const int _LatchTime_ns;
+	int _LatchTime_ns;
 
 	///
 	QUdpSocket * _udpSocket;

@@ -15,29 +15,30 @@
 // Local Hyperion includes
 #include "LedUdpDevice.h"
 
-LedUdpDevice::LedUdpDevice(const std::string& output, const int latchTime_ns)
-	: _target(output)
-	, _LatchTime_ns(latchTime_ns)
+LedUdpDevice::LedUdpDevice(const Json::Value &deviceConfig)
+	: LedDevice()
+	, _LatchTime_ns(-1)
 {
+	setConfig(deviceConfig);
 	_udpSocket = new QUdpSocket();
-	QString str = QString::fromStdString(_target);
-	QStringList str_splitted = str.split(":");
-	if (str_splitted.size() != 2)
-	{
-		throw("Error parsing hostname:port");
-	}
-	QHostInfo info = QHostInfo::fromName(str_splitted.at(0));
-	if (!info.addresses().isEmpty())
-	{
-		// use the first IP address
-		_address = info.addresses().first();
-	}
-	_port = str_splitted.at(1).toInt();
 }
 
 LedUdpDevice::~LedUdpDevice()
 {
 	_udpSocket->close();
+}
+
+bool LedUdpDevice::setConfig(const Json::Value &deviceConfig)
+{
+	QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["host"].asString()) );
+	if (info.addresses().isEmpty())
+	{
+		throw std::runtime_error("invalid target address");
+	}
+	_address = info.addresses().first();
+	_port    = deviceConfig["port"].asUInt();
+	
+	return true;
 }
 
 int LedUdpDevice::open()

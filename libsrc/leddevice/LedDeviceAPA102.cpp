@@ -12,9 +12,15 @@
 // hyperion local includes
 #include "LedDeviceAPA102.h"
 
-LedDeviceAPA102::LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate)
-	: LedSpiDevice(outputDevice, baudrate, 500000)
+LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)
+	: LedSpiDevice(deviceConfig)
 {
+	_latchTime_ns = 500000;
+}
+
+LedDevice* LedDeviceAPA102::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAPA102(deviceConfig);
 }
 
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)

@@ -45,6 +45,12 @@ LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
 	_ledCount = -1;
 }
 
+LedDeviceLightpack::LedDeviceLightpack(const Json::Value &deviceConfig)
+	: LedDeviceLightpack()
+{
+	setConfig(deviceConfig);
+}
+
 LedDeviceLightpack::~LedDeviceLightpack()
 {
 	if (_deviceHandle != nullptr)
@@ -61,6 +67,18 @@ LedDeviceLightpack::~LedDeviceLightpack()
 		libusb_exit(_libusbContext);
 		_libusbContext = nullptr;
 	}
+}
+
+bool LedDeviceLightpack::setConfig(const Json::Value &deviceConfig)
+{
+	_serialNumber = deviceConfig.get("output", "").asString();
+
+	return true;
+}
+
+LedDevice* LedDeviceLightpack::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceLightpack(deviceConfig);
 }
 
 int LedDeviceLightpack::open()

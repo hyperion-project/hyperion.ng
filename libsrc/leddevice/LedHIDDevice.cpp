@@ -9,15 +9,12 @@
 // Local Hyperion includes
 #include "LedHIDDevice.h"
 
-LedHIDDevice::LedHIDDevice(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms, const bool useFeature)
-	: _VendorId(VendorId)
-	, _ProductId(ProductId)
-	, _useFeature(useFeature)
+LedHIDDevice::LedHIDDevice(const Json::Value &deviceConfig)
+	: _useFeature(false)
 	, _deviceHandle(nullptr)
-	, _delayAfterConnect_ms(delayAfterConnect_ms)
 	, _blockedForDelay(false)
 {
-	// empty
+	setConfig(deviceConfig);
 }
 
 LedHIDDevice::~LedHIDDevice()
@@ -29,6 +26,19 @@ LedHIDDevice::~LedHIDDevice()
 	}
 
 	hid_exit();
+}
+
+bool LedHIDDevice::setConfig(const Json::Value &deviceConfig)
+{
+	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect", 0 ).asInt();
+	auto VendorIdString   = deviceConfig.get("VID", "0x2341").asString();
+	auto ProductIdString  = deviceConfig.get("PID", "0x8036").asString();
+
+	// Convert HEX values to integer
+	_VendorId = std::stoul(VendorIdString, nullptr, 16);
+	_ProductId = std::stoul(ProductIdString, nullptr, 16);
+
+	return true;
 }
 
 int LedHIDDevice::open()

@@ -13,17 +13,14 @@ class LedDeviceWs2801 : public LedSpiDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type Ws2801
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
+	LedDeviceWs2801(const Json::Value &deviceConfig);
 
-	LedDeviceWs2801(const std::string& outputDevice,
-					const unsigned baudrate,
-					const unsigned latchTime,
-					const int spiMode,
-					const bool spiDataInvert);
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

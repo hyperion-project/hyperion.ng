@@ -15,12 +15,18 @@ class LedRs232Device : public LedDevice
 
 public:
 	///
-	/// Constructs the LedDevice attached to a RS232-device
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/etc/ttyS0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedRs232Device(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms = 0);
+	LedRs232Device(const Json::Value &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool setConfig(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -45,6 +51,8 @@ protected:
 	 */
 	int writeBytes(const unsigned size, const uint8_t *data);
 
+	void closeDevice();
+
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
@@ -55,10 +63,10 @@ private:
 	bool tryOpen();
 	
 	/// The name of the output device
-	const std::string _deviceName;
+	std::string _deviceName;
 
 	/// The used baudrate of the output device
-	const qint32 _baudRate_Hz;
+	qint32 _baudRate_Hz;
 
 	/// Sleep after the connect before continuing
 	int _delayAfterConnect_ms;

@@ -7,7 +7,6 @@
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
-#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for sending to
@@ -48,6 +47,9 @@ public:
 	///
 	virtual ~LedDeviceFadeCandy();
 
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
+
 	///
 	/// Sets configuration
 	///
@@ -65,7 +67,6 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
 
 private:
 	QTcpSocket  _client;
@@ -115,3 +116,4 @@ private:
 	void sendFadeCandyConfiguration();
 
 };
+

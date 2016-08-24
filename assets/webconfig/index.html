@@ -12,20 +12,25 @@
     <title>Hyperion - WebUI</title>
 
   <!-- jQuery -->
-    <script src="js/jquery.min.js"></script>
+    <script src="js/lib/jquery.min.js"></script>
+
     <script src="js/hyperion.js"></script>
 
+  <!-- Colorpicker -->
+    <script src="js/lib/bootstrap-colorpicker.min.js"></script>
+    <link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+
   <!-- Bootstrap Switch -->
-    <script src="js/bootstrap-switch.min.js"></script>
+    <script src="js/lib/bootstrap-switch.min.js"></script>
     <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   <!-- JSONForm -->
-    <script src="js/underscore.js"></script>
-    <script src="js/jsonform.js"></script>
+    <script src="js/lib/underscore.js"></script>
+    <script src="js/lib/jsonform.js"></script>
 
 	<!--Language Support -->
-	<script src="js/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
-	<script src="js/js.cookie.js"></script>
+	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
+	<script src="js/lib/js.cookie.js"></script>
 
 	<script type="text/javascript">
 		// Create language switcher instance
@@ -340,10 +345,6 @@
 							<h4 lang="en" data-lang-token="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
 						</div>
 						<hr>
-									<div class="alert alert-info alert-dismissible" role="alert">
-									<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-										<strong>Info!</strong> A newer version of Hyperion is available!
-									</div>
 							<div class="col-lg-4">
 								<div class="panel panel-default">
 									<div class="panel-heading">
@@ -351,9 +352,24 @@
 										<span lang="en" data-lang-token="dashboard_label_infobox_title">Information</span>
 									</div>
 									<div class="panel-body">
-										<p lang="en" data-lang-token="dashboard_label_infobox_currenthyp">Your Hyperion version:</p>
-										<p lang="en" data-lang-token="dashboard_label_infobox_latesthyp">Latest version:</p>
-										<p lang="en" data-lang-token="dashboard_label_infobox_device">Device:</p>
+										<table class="table borderless">
+											<tbody>
+												<tr>
+													<td lang="en" data-lang-token="dashboard_label_infobox_currenthyp">Your Hyperion version:</td>
+													<td id="currentversion"></td>
+												</tr>
+													<tr>
+													<td lang="en" data-lang-token="dashboard_label_infobox_latesthyp">Latest version:</td>
+													<td id="latestversion"></td>
+												</tr>
+												<tr>
+													<td lang="en" data-lang-token="dashboard_label_infobox_device">Device:</td>
+													<td></td>
+												</tr>
+											</tbody>
+										</table>
+										<hr>
+										<span id="versioninforesult"></span>
 									</div>
 								</div>
 							</div>
@@ -416,13 +432,13 @@
 
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="js/metisMenu.min.js"></script>
+    <script src="js/lib/metisMenu.min.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="js/sb-admin-2.js"></script>
+    <script src="js/lib/sb-admin-2.js"></script>
 	<script>
 
 		$(document).ready( function() {
@@ -445,11 +461,11 @@
 			$("#load_confKodi").on("click", function() {
 				$("#page-wrapper").load("kodiconf.html");
 			});
-			
+
       $("#load_update").on("click", function() {
 				$("#page-wrapper").load("update.html");
 			});
-			
+
       $("#load_confGeneral").on("click", function() {
 				$("#page-wrapper").load("generalconf.html");
 			});
@@ -457,6 +473,47 @@
       //Change all Checkboxes to Switches
       $("[type='checkbox']").bootstrapSwitch();
 
+	  	  // vesion check
+	  	var currentVersion;
+		var cleanCurrentVersion;
+		var latestVersion;
+		var cleanLatestVersion;
+		
+		webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
+		var serverInfo;
+
+		webSocket.onerror = function(event) {
+			alert(event.data);
+		};
+
+
+		webSocket.onopen = function(event) {
+			webSocket.send('{"command":"serverinfo"}');
+		};
+
+		webSocket.onmessage = function(response){
+			responseJSON = JSON.parse(response.data );
+			currentVersion = responseJSON.info.hyperion[0].version;
+			cleanCurrentVersion = currentVersion.replace(/\./g, '');
+		
+			$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
+				var responseJSON = JSON.parse(data);
+				latestVersion = responseJSON[0].versionnr;
+				cleanLatestVersion = latestVersion.replace(/\./g, '');
+				
+				$('#currentversion').append(' V'+currentVersion);
+				$('#latestversion').append(' V'+latestVersion);
+
+				if ( cleanCurrentVersion < cleanLatestVersion ) {
+					$('#versioninforesult').append('<div lang="en" data-lang-token="dashboard_message_infobox_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+					}
+				else{
+					$('#versioninforesult').append('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+					}
+			});
+		
+		};
+	  
     });
 		$(function(){
 			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance

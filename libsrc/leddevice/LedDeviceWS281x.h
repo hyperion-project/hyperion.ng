@@ -7,24 +7,26 @@ class LedDeviceWS281x : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for WS281x (one wire 800kHz)
+	/// Constructs specific LedDevice
 	///
-	/// @param gpio   The gpio pin to use (BCM chip counting, default is 18)
-	/// @param leds   The number of leds attached to the gpio pin
-	/// @param freq   The target frequency for the data line, default is 800000
-	/// @param dmanum The DMA channel to use, default is 5
-	/// @param pwmchannel The pwm channel to use
-	/// @param invert Invert the output line to support an inverting level shifter
-	/// @param rgbw   Send 32 bit rgbw colour data for sk6812
-
+	/// @param deviceConfig json device config
 	///
-	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel, int invert, 
-		int rgbw, const std::string& whiteAlgorithm);
+	LedDeviceWS281x(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
 	///
 	~LedDeviceWS281x();
+	
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
