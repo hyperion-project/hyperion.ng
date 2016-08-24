@@ -549,12 +549,15 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
 	for (const EffectDefinition & effectDefinition : effectsDefinitions)
 	{
-		Json::Value effect;
-		effect["name"] = effectDefinition.name;
-		effect["script"] = effectDefinition.script;
-		effect["args"] = effectDefinition.args;
-
-		effects.append(effect);
+		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
+		{
+			Json::Value effect;
+			effect["name"] = effectDefinition.name;
+			effect["script"] = effectDefinition.script;
+			effect["args"] = effectDefinition.args;
+	
+			effects.append(effect);
+		}
 	}
 	
 	// collect active effect info
