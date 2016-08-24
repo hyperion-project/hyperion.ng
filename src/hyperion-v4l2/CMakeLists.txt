@@ -35,7 +35,7 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	v4l2-grabber
-	getoptPlusPlus
+    commandline
 	blackborder
 	hyperion-utils
 	protoserver

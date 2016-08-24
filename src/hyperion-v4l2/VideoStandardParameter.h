@@ -1,10 +1,5 @@
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 // grabber includes
 #include <grabber/VideoStandard.h>
-
-using namespace vlofgren;
 
 /// Data parameter for the video standard
 typedef vlofgren::PODParameter<VideoStandard> VideoStandardParameter;

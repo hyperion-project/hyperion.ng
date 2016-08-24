@@ -6,9 +6,6 @@
 // QT includes
 #include <QCoreApplication>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 // blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
@@ -25,8 +22,6 @@
 #include "ScreenshotHandler.h"
 
 #include "HyperionConfig.h"
-
-using namespace vlofgren;
 
 // save the image as screenshot
 void saveScreenshot(void *, const Image<ColorRgb> & image)

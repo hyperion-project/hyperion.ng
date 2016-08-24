@@ -6,13 +6,8 @@
 // QT includes
 #include <QtGui/QImage>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 // Dispmanx grabber includes
 #include <grabber/DispmanxFrameGrabber.h>
-
-using namespace vlofgren;
 
 static bool running = true;
 

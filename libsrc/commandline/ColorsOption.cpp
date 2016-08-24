@@ -1,0 +1,36 @@
+#include <QRegularExpression>
+#include "commandline/ColorsOption.h"
+
+using namespace commandline;
+
+bool ColorsOption::validate(QString &value)
+{
+    // Clear any old results
+    _colors.clear();
+
+    // Check if we can create the color by name
+    QColor color(value);
+    if (color.isValid()) {
+        _colors.push_back(color);
+        return true;
+    }
+
+    // check if we can create the color by hex RRGGBB getColors
+    QRegularExpression hexRe("^([0-9A-F]{6})+$", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch match = hexRe.match(value);
+    if(match.hasMatch()) {
+        Q_FOREACH(const QString m, match.capturedTexts()){
+            _colors.push_back(QColor(QString("#%1").arg(m)));
+        }
+        return true;
+    }
+
+    QStringList error;
+    error << "Invalid color. A color is specified by a six lettered RRGGBB hex getColors or one of the following names:";
+    Q_FOREACH(const QString name, QColor::colorNames()){
+        error << "  " << name;
+    }
+    _error = error.join('\n');
+
+    return false;
+}

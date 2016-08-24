@@ -3,14 +3,9 @@
 #include <QCoreApplication>
 #include <QImage>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 #include "protoserver/ProtoConnectionWrapper.h"
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
-
-using namespace vlofgren;
 
 // save the image as screenshot
 void saveScreenshot(const char * filename, const Image<ColorRgb> & image)

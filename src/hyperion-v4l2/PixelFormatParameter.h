@@ -1,6 +1,3 @@
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 // grabber includes
 #include <utils/PixelFormat.h>
 

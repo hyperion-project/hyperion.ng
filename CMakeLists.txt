@@ -124,10 +124,6 @@ message(STATUS "ENABLE_PROFILER = " ${ENABLE_PROFILER})
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
-#if(ENABLE_QT5)
-# TODO vs ENABLE_QT4?
-#endif(ENABLE_QT5)
-
 # Createt the configuration file
 
 # Add project specific cmake modules (find, etc)

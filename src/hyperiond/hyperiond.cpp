@@ -43,7 +43,9 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
+#ifdef ENABLE_X11
 	, _x11Grabber(nullptr)
+#endif
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)

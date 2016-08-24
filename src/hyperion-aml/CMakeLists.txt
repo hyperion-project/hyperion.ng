@@ -30,7 +30,7 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	getoptPlusPlus
+    commandline
 	blackborder
 	hyperion-utils
 	protoserver
