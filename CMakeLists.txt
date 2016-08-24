@@ -152,8 +152,20 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
 # enable C++11
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -Wall")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++11 -Wall")
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+if(COMPILER_SUPPORTS_CXX11)
+    message(STATUS "Using C++11 mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+    message(STATUS "Using C++0x mode")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+    message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+endif()
 
 SET(QT_MIN_VERSION "5.2.0")
 find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
