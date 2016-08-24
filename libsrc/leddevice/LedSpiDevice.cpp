@@ -30,7 +30,7 @@ LedSpiDevice::~LedSpiDevice()
 
 bool LedSpiDevice::setConfig(const Json::Value &deviceConfig)
 {
-	_deviceName    = deviceConfig.get("output","/dev/spidev.0.0").asString();
+	_deviceName    = deviceConfig.get("output","/dev/spidev0.0").asString();
 	_baudRate_Hz   = deviceConfig.get("rate",1000000).asInt();
 	_latchTime_ns  = deviceConfig.get("latchtime",0).asInt();
 	_spiMode       = deviceConfig.get("spimode",SPI_MODE_0).asInt();
