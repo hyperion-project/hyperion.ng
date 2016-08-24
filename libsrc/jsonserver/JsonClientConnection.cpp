@@ -549,15 +549,12 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
 	for (const EffectDefinition & effectDefinition : effectsDefinitions)
 	{
-		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
-		{
-			Json::Value effect;
-			effect["name"] = effectDefinition.name;
-			effect["script"] = effectDefinition.script;
-			effect["args"] = effectDefinition.args;
-	
-			effects.append(effect);
-		}
+		Json::Value effect;
+		effect["name"] = effectDefinition.name;
+		effect["script"] = effectDefinition.script;
+		effect["args"] = effectDefinition.args;
+
+		effects.append(effect);
 	}
 	
 	// collect active effect info
@@ -565,13 +562,16 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
 	for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
 	{
-		Json::Value activeEffect;
-		activeEffect["script"] = activeEffectDefinition.script;
-		activeEffect["priority"] = activeEffectDefinition.priority;
-		activeEffect["timeout"] = activeEffectDefinition.timeout;
-		activeEffect["args"] = activeEffectDefinition.args;
-
-		activeEffects.append(activeEffect);
+		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
+		{
+			Json::Value activeEffect;
+			activeEffect["script"] = activeEffectDefinition.script;
+			activeEffect["priority"] = activeEffectDefinition.priority;
+			activeEffect["timeout"] = activeEffectDefinition.timeout;
+			activeEffect["args"] = activeEffectDefinition.args;
+	
+			activeEffects.append(activeEffect);
+		}
 	}
 	
 	////////////////////////////////////
