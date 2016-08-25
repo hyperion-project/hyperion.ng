@@ -30,13 +30,24 @@ LedUdpDevice::~LedUdpDevice()
 
 bool LedUdpDevice::setConfig(const Json::Value &deviceConfig)
 {
-	QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["host"].asString()) );
-	if (info.addresses().isEmpty())
+	if (_address.setAddress( QString::fromStdString(deviceConfig["host"].asString()) ) )
 	{
-		throw std::runtime_error("invalid target address");
+		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].asString().c_str());
 	}
-	_address = info.addresses().first();
+	else
+	{
+		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].asString().c_str());
+		QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["host"].asString()) );
+		if (info.addresses().isEmpty())
+		{
+			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].asString().c_str());
+			throw std::runtime_error("invalid target address");
+		}
+		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
+		_address = info.addresses().first();
+	}
 	_port    = deviceConfig["port"].asUInt();
+	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
 	return true;
 }
@@ -46,7 +57,7 @@ int LedUdpDevice::open()
 	QHostAddress localAddress = QHostAddress::Any;
 	quint16      localPort = 0;
 
-	WarningIf( !_udpSocket->bind(localAddress, localPort), _log, "Couldnt bind local address: %s", strerror(errno));
+	WarningIf( !_udpSocket->bind(localAddress, localPort), _log, "Could not bind local address: %s", strerror(errno));
 
 	return 0;
 }
