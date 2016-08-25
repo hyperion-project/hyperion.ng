@@ -17,11 +17,12 @@
 #include "protoserver/ProtoConnectionWrapper.h"
 
 // hyperion-v4l2 includes
-#include "VideoStandardParameter.h"
-#include "PixelFormatParameter.h"
 #include "ScreenshotHandler.h"
 
 #include "HyperionConfig.h"
+#include <commandline/Parser.h>
+
+using namespace commandline;
 
 // save the image as screenshot
 void saveScreenshot(void *, const Image<ColorRgb> & image)
@@ -50,104 +51,90 @@ int main(int argc, char** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("V4L capture application for Hyperion");
-		ParameterSet & parameters = optionParser.getParameters();
+		Parser parser("V4L capture application for Hyperion");
 
-		StringParameter		& argDevice		  = parameters.add<StringParameter>	   ('d', "device",		   "The device to use [default: /dev/video0]");
-		VideoStandardParameter & argVideoStandard   = parameters.add<VideoStandardParameter>('v', "video-standard",   "The used video standard. Valid values are PAL or NTSC (optional)");
-		PixelFormatParameter   & argPixelFormat	 = parameters.add<PixelFormatParameter>  (0x0, "pixel-format",	 "The use pixel format. Valid values are YUYV, UYVY, and RGB32 (optional)");
-		IntParameter		   & argInput		   = parameters.add<IntParameter>		  (0x0, "input",			"Input channel (optional)");
-		IntParameter		   & argWidth		   = parameters.add<IntParameter>		  (0x0, "width",			"Try to set the width of the video input (optional)");
-		IntParameter		   & argHeight		  = parameters.add<IntParameter>		  (0x0, "height",		   "Try to set the height of the video input (optional)");
-		IntParameter		   & argCropWidth	   = parameters.add<IntParameter>		  (0x0, "crop-width",	   "Number of pixels to crop from the left and right sides of the picture before decimation [default: 0]");
-		IntParameter		   & argCropHeight	  = parameters.add<IntParameter>		  (0x0, "crop-height",	  "Number of pixels to crop from the top and the bottom of the picture before decimation [default: 0]");
-		IntParameter		   & argCropLeft		= parameters.add<IntParameter>		  (0x0, "crop-left",		"Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
-		IntParameter		   & argCropRight	   = parameters.add<IntParameter>		  (0x0, "crop-right",	   "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
-		IntParameter		   & argCropTop		 = parameters.add<IntParameter>		  (0x0, "crop-top",		 "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
-		IntParameter		   & argCropBottom	  = parameters.add<IntParameter>		  (0x0, "crop-bottom",	  "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
-		IntParameter		   & argSizeDecimation  = parameters.add<IntParameter>		  ('s', "size-decimator",   "Decimation factor for the output size [default=1]");
-		IntParameter		   & argFrameDecimation = parameters.add<IntParameter>		  ('f', "frame-decimator",  "Decimation factor for the video frames [default=1]");
-		SwitchParameter<>	  & argScreenshot	  = parameters.add<SwitchParameter<>>	 (0x0, "screenshot",	   "Take a single screenshot, save it to file and quit");
-		DoubleParameter		& argSignalThreshold = parameters.add<DoubleParameter>	   ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.");
-		DoubleParameter		& argRedSignalThreshold = parameters.add<DoubleParameter>	(0x0, "red-threshold",	"The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-		DoubleParameter		& argGreenSignalThreshold = parameters.add<DoubleParameter>  (0x0, "green-threshold",  "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-		DoubleParameter		& argBlueSignalThreshold = parameters.add<DoubleParameter>   (0x0, "blue-threshold",   "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-		SwitchParameter<>	  & arg3DSBS		   = parameters.add<SwitchParameter<>>	 (0x0, "3DSBS",			"Interpret the incoming video stream as 3D side-by-side");
-		SwitchParameter<>	  & arg3DTAB		   = parameters.add<SwitchParameter<>>	 (0x0, "3DTAB",			"Interpret the incoming video stream as 3D top-and-bottom");
-		StringParameter		& argAddress		 = parameters.add<StringParameter>	   ('a', "address",		  "Set the address of the hyperion server [default: 127.0.0.1:19445]");
-		IntParameter		   & argPriority		= parameters.add<IntParameter>		  ('p', "priority",		 "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
-		SwitchParameter<>	  & argSkipReply	   = parameters.add<SwitchParameter<>>	 (0x0, "skip-reply",	   "Do not receive and check reply messages from Hyperion");
-		SwitchParameter<>	  & argHelp			= parameters.add<SwitchParameter<>>	 ('h', "help",			 "Show this help message and exit");
+		Option		& argDevice		  = parser.add<Option>	   ('d', "device",		   "The device to use [default: %1]", "/dev/video0");
+		SwitchOption<VideoStandard> & argVideoStandard   = parser.add<SwitchOption<VideoStandard>>('v', "video-standard",   "The used video standard. Valid values are PAL or NTSC (optional)", "no-change");
+		SwitchOption<PixelFormat> & argPixelFormat	 = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format",	 "The use pixel format. Valid values are YUYV, UYVY, and RGB32 (optional)", "no-change");
+		IntOption		   & argInput		   = parser.add<IntOption>		  (0x0, "input",			"Input channel (optional)", "-1");
+		IntOption		   & argWidth		   = parser.add<IntOption>		  (0x0, "width",			"Try to set the width of the video input (optional)", "-1");
+		IntOption		   & argHeight		  = parser.add<IntOption>		  (0x0, "height",		   "Try to set the height of the video input (optional)", "-1");
+		IntOption		   & argCropWidth	   = parser.add<IntOption>		  (0x0, "crop-width",	   "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
+		IntOption		   & argCropHeight	  = parser.add<IntOption>		  (0x0, "crop-height",	  "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
+		IntOption		   & argCropLeft		= parser.add<IntOption>		  (0x0, "crop-left",		"Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
+		IntOption		   & argCropRight	   = parser.add<IntOption>		  (0x0, "crop-right",	   "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
+		IntOption		   & argCropTop		 = parser.add<IntOption>		  (0x0, "crop-top",		 "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
+		IntOption		   & argCropBottom	  = parser.add<IntOption>		  (0x0, "crop-bottom",	  "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
+		IntOption		   & argSizeDecimation  = parser.add<IntOption>		  ('s', "size-decimator",   "Decimation factor for the output size [default=%1]", "1");
+		IntOption		   & argFrameDecimation = parser.add<IntOption>		  ('f', "frame-decimator",  "Decimation factor for the video frames [default=%1]", "1");
+		Option	  & argScreenshot	  = parser.add<Option>	 (0x0, "screenshot",	   "Take a single screenshot, save it to file and quit");
+		DoubleOption		& argSignalThreshold = parser.add<DoubleOption>	   ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
+		DoubleOption		& argRedSignalThreshold = parser.add<DoubleOption>	(0x0, "red-threshold",	"The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleOption		& argGreenSignalThreshold = parser.add<DoubleOption>  (0x0, "green-threshold",  "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		DoubleOption		& argBlueSignalThreshold = parser.add<DoubleOption>   (0x0, "blue-threshold",   "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+		Option	  & arg3DSBS		   = parser.add<Option>	 (0x0, "3DSBS",			"Interpret the incoming video stream as 3D side-by-side");
+		Option	  & arg3DTAB		   = parser.add<Option>	 (0x0, "3DTAB",			"Interpret the incoming video stream as 3D top-and-bottom");
+		Option		& argAddress		 = parser.add<Option>	   ('a', "address",		  "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
+		IntOption		   & argPriority		= parser.add<IntOption>		  ('p', "priority",		 "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
+		Option	  & argSkipReply	   = parser.add<Option>	 (0x0, "skip-reply",	   "Do not receive and check reply messages from Hyperion");
+		Option	  & argHelp			= parser.add<Option>	 ('h', "help",			 "Show this help message and exit");
 
-		// set defaults
-		argDevice.setDefault("/dev/video0");
-		argVideoStandard.setDefault(VIDEOSTANDARD_NO_CHANGE);
-		argPixelFormat.setDefault(PIXELFORMAT_NO_CHANGE);
-		argInput.setDefault(-1);
-		argWidth.setDefault(-1);
-		argHeight.setDefault(-1);
-		argCropWidth.setDefault(0);
-		argCropHeight.setDefault(0);
-		argSizeDecimation.setDefault(1);
-		argFrameDecimation.setDefault(1);
-		argAddress.setDefault("127.0.0.1:19445");
-		argPriority.setDefault(800);
-		argSignalThreshold.setDefault(-1);
+		argVideoStandard.addSwitch("pal", VIDEOSTANDARD_PAL);
+		argVideoStandard.addSwitch("ntsc", VIDEOSTANDARD_NTSC);
+		argVideoStandard.addSwitch("no-change", VIDEOSTANDARD_NO_CHANGE);
+
+		argPixelFormat.addSwitch("yuyv", PIXELFORMAT_YUYV);
+		argPixelFormat.addSwitch("uyvy", PIXELFORMAT_UYVY);
+		argPixelFormat.addSwitch("rgb32", PIXELFORMAT_RGB32);
+		argPixelFormat.addSwitch("no-change", PIXELFORMAT_NO_CHANGE);
 
 		// parse all options
-		optionParser.parse(argc, const_cast<const char **>(argv));
+		parser.process(app);
 
 		// check if we need to display the usage. exit if we do.
-		if (argHelp.isSet())
+		if (parser.isSet(argHelp))
 		{
-			optionParser.usage();
-			return 0;
+			parser.showHelp(0);
 		}
-
-		// cropping values if not defined
-		if (!argCropLeft.isSet())   argCropLeft.setDefault(argCropWidth.getValue());
-		if (!argCropRight.isSet())  argCropRight.setDefault(argCropWidth.getValue());
-		if (!argCropTop.isSet())	argCropTop.setDefault(argCropHeight.getValue());
-		if (!argCropBottom.isSet()) argCropBottom.setDefault(argCropHeight.getValue());
 
 		// initialize the grabber
 		V4L2Grabber grabber(
-					argDevice.getValue(),
-					argInput.getValue(),
-					argVideoStandard.getValue(),
-					argPixelFormat.getValue(),
-					argWidth.getValue(),
-					argHeight.getValue(),
-					std::max(1, argFrameDecimation.getValue()),
-					std::max(1, argSizeDecimation.getValue()),
-					std::max(1, argSizeDecimation.getValue()));
+					argDevice.getStdString(parser),
+					argInput.getInt(parser),
+					argVideoStandard.switchValue(parser),
+					argPixelFormat.switchValue(parser),
+					argWidth.getInt(parser),
+					argHeight.getInt(parser),
+					std::max(1, argFrameDecimation.getInt(parser)),
+					std::max(1, argSizeDecimation.getInt(parser)),
+					std::max(1, argSizeDecimation.getInt(parser)));
 
 		// set signal detection
 		grabber.setSignalThreshold(
-					std::min(1.0, std::max(0.0, argRedSignalThreshold.isSet() ? argRedSignalThreshold.getValue() : argSignalThreshold.getValue())),
-					std::min(1.0, std::max(0.0, argGreenSignalThreshold.isSet() ? argGreenSignalThreshold.getValue() : argSignalThreshold.getValue())),
-					std::min(1.0, std::max(0.0, argBlueSignalThreshold.isSet() ? argBlueSignalThreshold.getValue() : argSignalThreshold.getValue())),
+					std::min(1.0, std::max(0.0, parser.isSet(argRedSignalThreshold) ? argRedSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
+					std::min(1.0, std::max(0.0, parser.isSet(argGreenSignalThreshold) ? argGreenSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
+					std::min(1.0, std::max(0.0, parser.isSet(argBlueSignalThreshold) ? argBlueSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
 					50);
 
 		// set cropping values
 		grabber.setCropping(
-					std::max(0, argCropLeft.getValue()),
-					std::max(0, argCropRight.getValue()),
-					std::max(0, argCropTop.getValue()),
-					std::max(0, argCropBottom.getValue()));
+			parser.isSet(argCropLeft) ? argCropLeft.getInt(parser) : argCropWidth.getInt(parser),
+			parser.isSet(argCropRight) ? argCropRight.getInt(parser) : argCropWidth.getInt(parser),
+			parser.isSet(argCropTop) ? argCropTop.getInt(parser) : argCropHeight.getInt(parser),
+			parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser));
 
 		// set 3D mode if applicable
-		if (arg3DSBS.isSet())
+		if (parser.isSet(arg3DSBS))
 		{
 			grabber.set3D(VIDEO_3DSBS);
 		}
-		else if (arg3DTAB.isSet())
+		else if (parser.isSet(arg3DTAB))
 		{
 			grabber.set3D(VIDEO_3DTAB);
 		}
 
 		// run the grabber
-		if (argScreenshot.isSet())
+		if (parser.isSet(argScreenshot))
 		{
 			ScreenshotHandler handler("screenshot.png");
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
@@ -157,8 +144,8 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ProtoConnectionWrapper handler(argAddress.getValue(), argPriority.getValue(), 1000, argSkipReply.isSet());
-			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
+			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
 			if (grabber.start())
 				QCoreApplication::exec();
 			grabber.stop();

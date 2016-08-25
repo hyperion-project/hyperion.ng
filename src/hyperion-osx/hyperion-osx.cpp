@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
         else {
             // Create the Proto-connection with hyperiond
             ProtoConnectionWrapper protoWrapper
-                (argAddress.getStdString(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
+                (argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
 
             // Connect the screen capturing to the proto processing
             QObject::connect(&osxWrapper,

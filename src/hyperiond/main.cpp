@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 	}
 
 	int argvId = -1;
-	for(size_t idx=0; idx < configFiles.size(); idx++) {
+	for(int idx=0; idx < configFiles.size(); idx++) {
 		if ( QFile::exists(configFiles[idx]))
 		{
 			if (argvId < 0) argvId=idx;

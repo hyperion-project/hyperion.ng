@@ -2,45 +2,42 @@
 #define HYPERION_SWITCHCOMMANDLINEOPTION_H
 
 #include <QtCore>
-#include "ValidatorOption.h"
+#include "Option.h"
 
 namespace commandline
 {
 
-class SwitchOption: public ValidatorOption
+template <class T>
+class SwitchOption: public Option
 {
-private:
-    QStringList _switches;
-    bool _changed = true;
+protected:
+    QMap<QString, T> _switches;
 public:
     SwitchOption(const QString &name,
                  const QString &description = QString(),
                  const QString &valueName = QString(),
                  const QString &defaultValue = QString(),
-                 const QStringList switches = QStringList())
-        : ValidatorOption(name, description, valueName, defaultValue), _switches(switches)
+				 const QMap<QString, T> &switches=QMap<QString, T>())
+        : Option(name, description, valueName, defaultValue), _switches(switches)
     {}
     SwitchOption(const QStringList &names,
                  const QString &description = QString(),
                  const QString &valueName = QString(),
                  const QString &defaultValue = QString(),
-                 const QStringList switches = QStringList())
-        : ValidatorOption(names, description, valueName, defaultValue), _switches(switches)
+                 const QMap<QString, T> &switches=QMap<QString, T>())
+        : Option(names, description, valueName, defaultValue), _switches(switches)
     {}
-    SwitchOption(const QCommandLineOption &other, const QStringList switches)
-        : ValidatorOption(other), _switches(switches)
+    SwitchOption(const QCommandLineOption &other, const QMap<QString, T> &switches)
+        : Option(other), _switches(switches)
     {}
 
-    const QStringList &get_switches() const;
-    virtual bool validate(QString &value) override;
-    bool has_switch(const QString &switch_, Qt::CaseSensitivity case_sensitive = Qt::CaseInsensitive);
-
-    void set_switches(const QStringList &_switches);
-    void add_switch(const QString &switch_);
-    void remove_switch(const QString &switch_);
-    void updateRegularExpression();
-
-    void switchesChanged(const QStringList &_switches);
+    const QMap<QString, T> &getSwitches() const{return _switches;};
+    virtual bool validate(QString &switch_) override{return _switches.contains(switch_);}
+    bool hasSwitch(const QString &switch_){return _switches.contains(switch_);}
+    void setSwitches(const QMap<QString, T> &_switches){this->_switches = _switches;}
+    void addSwitch(const QString &switch_, T value=T()){_switches[switch_] = value;}
+    void removeSwitch(const QString &switch_){_switches.remove(switch_);}
+	T & switchValue(Parser & parser){return _switches[value(parser)];}
 };
 
 }

@@ -55,9 +55,9 @@ int main(int argc, char * argv[])
 		ImageOption     & argImage       = parser.add<ImageOption>    ('i', "image"     , "Set the leds to the colors according to the given image file");
 		Option    		& argEffect      = parser.add<Option>   ('e', "effect"    , "Enable the effect with the given name");
 		Option    		& argEffectArgs  = parser.add<Option>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
-		SwitchOption  	& argServerInfo  = parser.add<SwitchOption> ('l', "list"      , "List server info and active effects with priority and duration");
-		SwitchOption  	& argClear       = parser.add<SwitchOption> ('x', "clear"     , "Clear data for the priority channel provided by the -p option");
-		SwitchOption  	& argClearAll    = parser.add<SwitchOption> (0x0, "clearall"  , "Clear data for all active priority channels");
+		Option  	& argServerInfo  = parser.add<Option> ('l', "list"      , "List server info and active effects with priority and duration");
+		Option  	& argClear       = parser.add<Option> ('x', "clear"     , "Clear data for the priority channel provided by the -p option");
+		Option  	& argClearAll    = parser.add<Option> (0x0, "clearall"  , "Clear data for all active priority channels");
 		Option          & argEnableComponent  = parser.add<Option>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
 		Option          & argDisableComponent = parser.add<Option>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
 		Option          & argId          = parser.add<Option>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
@@ -70,8 +70,8 @@ int main(int argc, char * argv[])
 		ColorOption     & argThreshold   = parser.add<ColorOption>('t', "threshold" , "Set the threshold of the leds (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBlacklevel  = parser.add<ColorOption>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
 		ColorOption     & argWhitelevel  = parser.add<ColorOption>('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
-		SwitchOption    & argPrint       = parser.add<SwitchOption>(0x0, "print"     , "Print the json input and output messages on stdout");
-		SwitchOption    & argHelp        = parser.add<SwitchOption>('h', "help"      , "Show this help message and exit");
+		Option    & argPrint       = parser.add<Option>(0x0, "print"     , "Print the json input and output messages on stdout");
+		Option    & argHelp        = parser.add<Option>('h', "help"      , "Show this help message and exit");
 		Option          & argIdC         = parser.add<Option>   ('y', "qualifier" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
 		ColorOption     & argCorrection = parser.add<ColorOption>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires colors in hex format as RRGGBB)");
 		Option          & argIdT         = parser.add<Option>   ('z', "qualifier" , "Identifier(qualifier) of the temperature correction to set");
@@ -81,13 +81,13 @@ int main(int argc, char * argv[])
 		ColorOption     & argGAdjust    = parser.add<ColorOption>('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBAdjust    = parser.add<ColorOption>('B', "blueAdjustment", "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
 		IntOption       & argSource      = parser.add<IntOption>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
-		SwitchOption    & argSourceAuto  = parser.add<SwitchOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
-		SwitchOption    & argSourceOff   = parser.add<SwitchOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
-		SwitchOption    & argConfigGet   = parser.add<SwitchOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
-		SwitchOption    & argSchemaGet   = parser.add<SwitchOption>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
+		Option    & argSourceAuto  = parser.add<Option>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
+		Option    & argSourceOff   = parser.add<Option>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
+		Option    & argConfigGet   = parser.add<Option>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
+		Option    & argSchemaGet   = parser.add<Option>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
 		Option          & argConfigSet      = parser.add<Option>('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
-		SwitchOption    & argCreate       = parser.add<SwitchOption>(0x0, "createkeys", "Create non exist Json Entry(s) in the actual loaded configuration file. Argument to use in combination with configSet.");
-		SwitchOption    & argOverwriteConfig       = parser.add<SwitchOption>(0x0, "overwrite", "Overwrite the actual loaded configuration file with the Json object string from configSet. Argument to use in combination with configSet.");
+		Option    & argCreate       = parser.add<Option>(0x0, "createkeys", "Create non exist Json Entry(s) in the actual loaded configuration file. Argument to use in combination with configSet.");
+		Option    & argOverwriteConfig       = parser.add<Option>(0x0, "overwrite", "Overwrite the actual loaded configuration file with the Json object string from configSet. Argument to use in combination with configSet.");
 
 		// parse all _options
         parser.process(app);

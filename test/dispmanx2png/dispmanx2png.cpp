@@ -26,26 +26,26 @@ int main(int argc, char** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("Simple application to send a command to hyperion using the Json interface");
+		Parser parser("Simple application to send a command to hyperion using the Json interface");
 		ParameterSet & parameters = optionParser.getParameters();
 
 		QString flagDescr = QString("Set the grab flags of the dispmanx frame grabber [default: 0x%1]").arg(grabFlags, 8, 16, QChar('0'));
-		StringParameter   & argFlags = parameters.add<StringParameter>   ('f', "flags", flagDescr.toLatin1().constData());
-		IntParameter      & argCount = parameters.add<IntParameter>      ('n', "count", "Number of images to capture (default infinite)");
+		Option   & argFlags = parser.add<Option>   ('f', "flags", flagDescr.toLatin1().constData());
+		IntOption      & argCount = parser.add<IntOption>      ('n', "count", "Number of images to capture (default infinite)");
 		argCount.setDefault(grabCount);
-		SwitchParameter<> & argList  = parameters.add<SwitchParameter<> >('l', "list",  "List the possible flags");
-		SwitchParameter<> & argHelp  = parameters.add<SwitchParameter<> >('h', "help",  "Show this help message and exit");
+		Option & argList  = parser.add<Option >('l', "list",  "List the possible flags");
+		Option & argHelp  = parser.add<Option >('h', "help",  "Show this help message and exit");
 
 		// parse all options
 		optionParser.parse(argc, const_cast<const char **>(argv));
 
 		// check if we need to display the usage. exit if we do.
-		if (argHelp.isSet())
+		if (parser.isSet(argHelp))
 		{
 			optionParser.usage();
 			return 0;
 		}
-		if (argList.isSet())
+		if (parser.isSet(argList))
 		{
 			std::cout.width(15);
 			std::cout.width(10);
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 			std::cout << "DISPMANX_SNAPSHOT_PACK          | 0x" << std::hex << std::setfill('0') << std::setw(8) << DISPMANX_SNAPSHOT_PACK << std::endl;
 			return 0;
 		}
-		if (argFlags.isSet())
+		if (parser.isSet(argFlags))
 		{
 			QString flagStr = QString::fromStdString(argFlags.getValue());
 
