@@ -11,20 +11,21 @@ bool Parser::parse(const QStringList &arguments)
     }
 
     Q_FOREACH(Option * option, _options) {
-           if(!_parser.isSet(*option)){
-               continue;
-           }
-            QString value = this->value(*option);
-            if (!option->validate(value)) {
-                const QString error = option->getError();
-                if (error.size()) {
-                    _errorText = tr("%1 is not a valid option for %2\n%3").arg(value, option->name(), error);
-                }
-                else {
-                    _errorText = tr("%1 is not a valid option for %2").arg(value, option->name());
-                }
-                return false;
-            }
+		    if(!_parser.isSet(*option)){
+		  	    continue;
+			}
+
+			QString value = this->value(*option);
+			if (!option->validate(*this, value)) {
+				const QString error = option->getError();
+				if (error.size()) {
+					_errorText = tr("%1 is not a valid option for %2\n%3").arg(value, option->name(), error);
+				}
+				else {
+					_errorText = tr("%1 is not a valid option for %2").arg(value, option->name());
+				}
+				return false;
+			}
         }
     return true;
 }

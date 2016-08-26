@@ -26,6 +26,17 @@ int count(std::initializer_list<bool> values)
 	return count;
 }
 
+void showHelp(Option & option){
+	QString shortOption;
+	QString longOption = QString("-%1").arg(option.names().last());
+
+	if(option.names().size() == 2){
+		shortOption = QString("-%1").arg(option.names().first());
+	}
+
+	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
+}
+
 int main(int argc, char * argv[])
 {
 	std::cout
@@ -72,11 +83,11 @@ int main(int argc, char * argv[])
 		ColorOption     & argWhitelevel  = parser.add<ColorOption>('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
 		Option    & argPrint       = parser.add<Option>(0x0, "print"     , "Print the json input and output messages on stdout");
 		Option    & argHelp        = parser.add<Option>('h', "help"      , "Show this help message and exit");
-		Option          & argIdC         = parser.add<Option>   ('y', "qualifier" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
+		Option          & argIdC         = parser.add<Option>   ('y', "qualifier-c" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
 		ColorOption     & argCorrection = parser.add<ColorOption>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires colors in hex format as RRGGBB)");
-		Option          & argIdT         = parser.add<Option>   ('z', "qualifier" , "Identifier(qualifier) of the temperature correction to set");
+		Option          & argIdT         = parser.add<Option>   ('z', "qualifier-t" , "Identifier(qualifier) of the temperature correction to set");
 		ColorOption     & argTemperature= parser.add<ColorOption>('Z', "temperature" , "Set the temperature correction of the leds (requires colors in hex format as RRGGBB)");
-		Option          & argIdA         = parser.add<Option>    ('j', "qualifier" , "Identifier(qualifier) of the adjustment to set");
+		Option          & argIdA         = parser.add<Option>    ('j', "qualifier-a" , "Identifier(qualifier) of the adjustment to set");
 		ColorOption     & argRAdjust    = parser.add<ColorOption>('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argGAdjust    = parser.add<ColorOption>('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBAdjust    = parser.add<ColorOption>('B', "blueAdjustment", "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
@@ -108,36 +119,36 @@ int main(int argc, char * argv[])
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
-			qWarning() << "  " << argColor.description();
-			qWarning() << "  " << argImage.description();
-            qWarning() << "  " << argEffect.description();
-			qWarning() << "  " << argServerInfo.description();
-			qWarning() << "  " << argClear.description();
-			qWarning() << "  " << argClearAll.description();
-			qWarning() << "  " << argEnableComponent.description();
-			qWarning() << "  " << argDisableComponent.description();
-			qWarning() << "  " << argSource.description();
-			qWarning() << "  " << argSourceAuto.description();
-			qWarning() << "  " << argConfigGet.description();
+			showHelp(argColor);
+			showHelp(argImage);
+            showHelp(argEffect);
+			showHelp(argServerInfo);
+			showHelp(argClear);
+			showHelp(argClearAll);
+			showHelp(argEnableComponent);
+			showHelp(argDisableComponent);
+			showHelp(argSource);
+			showHelp(argSourceAuto);
+			showHelp(argConfigGet);
 			qWarning() << "or one or more of the available color modding operations:";
-			qWarning() << "  " << argId.description();
-			qWarning() << "  " << argSaturation.description();
-			qWarning() << "  " << argValue.description();
-			qWarning() << "  " << argSaturationL.description();
-			qWarning() << "  " << argLuminance.description();
-			qWarning() << "  " << argLuminanceMin.description();
-			qWarning() << "  " << argThreshold.description();
-			qWarning() << "  " << argGamma.description();
-			qWarning() << "  " << argBlacklevel.description();
-			qWarning() << "  " << argWhitelevel.description();
-			qWarning() << "  " << argIdC.description();
-			qWarning() << "  " << argCorrection.description();
-			qWarning() << "  " << argIdT.description();
-			qWarning() << "  " << argTemperature.description();
-			qWarning() << "  " << argIdA.description();
-			qWarning() << "  " << argRAdjust.description();
-			qWarning() << "  " << argGAdjust.description();
-			qWarning() << "  " << argBAdjust.description();
+			showHelp(argId);
+			showHelp(argSaturation);
+			showHelp(argValue);
+			showHelp(argSaturationL);
+			showHelp(argLuminance);
+			showHelp(argLuminanceMin);
+			showHelp(argThreshold);
+			showHelp(argGamma);
+			showHelp(argBlacklevel);
+			showHelp(argWhitelevel);
+			showHelp(argIdC);
+			showHelp(argCorrection);
+			showHelp(argIdT);
+			showHelp(argTemperature);
+			showHelp(argIdA);
+			showHelp(argRAdjust);
+			showHelp(argGAdjust);
+			showHelp(argBAdjust);
 			return 1;
 		}
 

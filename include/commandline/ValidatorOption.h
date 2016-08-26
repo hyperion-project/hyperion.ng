@@ -35,7 +35,7 @@ public:
     {}
 
     virtual const QValidator *getValidator() const;
-    virtual bool validate(QString &value) override;
+    virtual bool validate(Parser & parser, QString &value) override;
 };
 
 }

@@ -31,7 +31,7 @@ public:
         : Option(other)
     {}
 
-    virtual bool validate(QString &value) override;
+    virtual bool validate(Parser & parser, QString & value) override;
     QImage &getImage(Parser &parser)
     { return _image; }
 };

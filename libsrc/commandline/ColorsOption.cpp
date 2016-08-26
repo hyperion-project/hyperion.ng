@@ -3,7 +3,7 @@
 
 using namespace commandline;
 
-bool ColorsOption::validate(QString &value)
+bool ColorsOption::validate(Parser & parser, QString & value)
 {
     // Clear any old results
     _colors.clear();

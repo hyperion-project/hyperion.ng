@@ -3,7 +3,7 @@
 
 using namespace commandline;
 
-bool ColorOption::validate(QString &value)
+bool ColorOption::validate(Parser & parser, QString & value)
 {
     // Check if we can create the color by name
     _color = QColor(value);

@@ -36,15 +36,14 @@ public:
         : QCommandLineOption(other)
     {}
 
-    virtual bool validate(QString &value);
+    virtual bool validate(Parser &parser, QString &value);
     bool isValidated()
     { return _validated; }
     QString name()
     { return this->names().last();}
     QString getError()
     { return this->_error; }
-    QString value(Parser &parser)
-    { return _value; }
+    QString value(Parser &parser);
     std::string getStdString(Parser &parser)
     { return _value.toStdString(); }
     std::wstring getStdWString(Parser &parser)

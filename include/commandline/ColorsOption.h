@@ -31,7 +31,7 @@ public:
         : Option(other)
     {}
 
-    virtual bool validate(QString &value) override;
+    virtual bool validate(Parser & parser, QString & value) override;
     QList<QColor> &getColors(Parser &parser)
     { return _colors; }
 };

@@ -2,7 +2,7 @@
 
 using namespace commandline;
 
-bool ImageOption::validate(QString &value)
+bool ImageOption::validate(Parser & parser, QString & value)
 {
     _image = QImage(value);
 

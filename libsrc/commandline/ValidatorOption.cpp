@@ -2,7 +2,7 @@
 
 using namespace commandline;
 
-bool ValidatorOption::validate(QString &value)
+bool ValidatorOption::validate(Parser & parser, QString & value)
 {
     _value = value;
     /* Fix the value if possible */
