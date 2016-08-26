@@ -1,33 +1,32 @@
 #!/bin/bash
 
 # for executing in non travis environment
-[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$( uname -s | tr '[:upper:]' '[:lower:]' )"
 
+[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$(uname -s | tr 'A-Z' 'a-z')"
 
-######################################
-## COMPILE HYPERION
+# Detect number of processor cores
 
-# compile hyperion on osx
-if [[ $TRAVIS_OS_NAME == 'osx' || $TRAVIS_OS_NAME == 'darwin' ]]
-then
+if [[ $TRAVIS_OS_NAME == 'osx' || $TRAVIS_OS_NAME == 'darwin' ]]; then
 	procs=$(sysctl -n hw.ncpu | xargs)
-	echo "Processes: $procs"
-
-	mkdir build || exit 1
-    cd build
-	cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTS=ON -Wno-dev .. || exit 2
-	make -j$procs || exit 3
-	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
-# compile hyperion on linux
-elif [[ $TRAVIS_OS_NAME == 'linux' ]]
-then
-	mkdir build || exit 1
-	cd build
-	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 2
-	make -j$(nproc) || exit 3
-	make -j$(nproc) package || exit 4
+elif [[ $TRAVIS_OS_NAME == 'linux' ]]; then
+    procs=$(nproc)
 else
-    echo "Unsupported platform: $TRAVIS_OS_NAME"
-    exit 5
+    # For most modern systems, including the pi, this is a sane default
+    procs=4
+fi
+
+
+# Compile hyperion
+
+mkdir build || exit 1
+cd build
+cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 2
+make -j$(nproc) || exit 3
+
+
+# Build the package on Linux
+
+if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
+    make -j$(nproc) package || exit 4
 fi
 
