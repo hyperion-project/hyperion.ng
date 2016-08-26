@@ -10,6 +10,7 @@ namespace commandline
 
 class BooleanOption: public Option
 {
+public:
 	BooleanOption(const QString &name,
 				const QString &description = QString(),
 				const QString &valueName = QString(),
