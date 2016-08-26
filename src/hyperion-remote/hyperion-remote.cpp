@@ -52,15 +52,11 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		// some default settings
-		QString defaultServerAddress("localhost:19444");
-		int defaultPriority = 100;
-
 		// create the option parser and initialize all parameters
 		Parser parser("Simple application to send a command to hyperion using the Json interface");
 
-        Option          & argAddress     = parser.add<Option>   ('a', "address"   , "Set the address of the hyperion server [default: %1]", defaultServerAddress);
-		IntOption       & argPriority    = parser.add<IntOption>      ('p', "priority"  , "Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]", QString(defaultPriority));
+        Option          & argAddress     = parser.add<Option>   ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
+		IntOption       & argPriority    = parser.add<IntOption>      ('p', "priority"  , "Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]", "100");
 		IntOption       & argDuration    = parser.add<IntOption>      ('d', "duration"  , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
 		ColorsOption    & argColor       = parser.add<ColorsOption>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption     & argImage       = parser.add<ImageOption>    ('i', "image"     , "Set the leds to the colors according to the given image file");
@@ -81,8 +77,8 @@ int main(int argc, char * argv[])
 		ColorOption     & argThreshold   = parser.add<ColorOption>('t', "threshold" , "Set the threshold of the leds (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBlacklevel  = parser.add<ColorOption>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
 		ColorOption     & argWhitelevel  = parser.add<ColorOption>('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
-		Option    & argPrint       = parser.add<Option>(0x0, "print"     , "Print the json input and output messages on stdout");
-		Option    & argHelp        = parser.add<Option>('h', "help"      , "Show this help message and exit");
+		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
+		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
 		Option          & argIdC         = parser.add<Option>   ('y', "qualifier-c" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
 		ColorOption     & argCorrection = parser.add<ColorOption>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires colors in hex format as RRGGBB)");
 		Option          & argIdT         = parser.add<Option>   ('z', "qualifier-t" , "Identifier(qualifier) of the temperature correction to set");

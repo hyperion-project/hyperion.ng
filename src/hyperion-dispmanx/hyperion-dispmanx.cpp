@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
 		Option    & argAddress    = parser.add<Option>    ('a', "address",     "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
 		IntOption & argPriority   = parser.add<IntOption> ('p', "priority",    "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
 		Option    & argSkipReply  = parser.add<Option>    (0x0, "skip-reply",  "Do not receive and check reply messages from Hyperion");
-		Option    & argHelp       = parser.add<Option>    ('h', "help",        "Show this help message and exit");
+		BooleanOption    & argHelp       = parser.add<BooleanOption>    ('h', "help",        "Show this help message and exit");
 
 		IntOption & argCropLeft   = parser.add<IntOption> (0x0, "crop-left",   "pixels to remove on left after grabbing");
 		IntOption & argCropRight  = parser.add<IntOption> (0x0, "crop-right",  "pixels to remove on right after grabbing");

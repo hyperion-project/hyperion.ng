@@ -13,6 +13,7 @@ set(Parser_HEADERS
         ${CURRENT_HEADER_DIR}/RegularExpressionOption.h
         ${CURRENT_HEADER_DIR}/SwitchOption.h
         ${CURRENT_HEADER_DIR}/ValidatorOption.h
+        ${CURRENT_HEADER_DIR}/BooleanOption.h
 )
 
 set(Parser_SOURCES
@@ -26,6 +27,7 @@ set(Parser_SOURCES
         ${CURRENT_SOURCE_DIR}/RegularExpressionOption.cpp
         ${CURRENT_SOURCE_DIR}/SwitchOption.cpp
         ${CURRENT_SOURCE_DIR}/ValidatorOption.cpp
+        ${CURRENT_SOURCE_DIR}/BooleanOption.cpp
 )
 
 add_library(commandline

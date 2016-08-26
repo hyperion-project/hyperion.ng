@@ -11,10 +11,6 @@ bool Parser::parse(const QStringList &arguments)
     }
 
     Q_FOREACH(Option * option, _options) {
-		    if(!_parser.isSet(*option)){
-		  	    continue;
-			}
-
 			QString value = this->value(*option);
 			if (!option->validate(*this, value)) {
 				const QString error = option->getError();
@@ -34,7 +30,8 @@ void Parser::process(const QStringList &arguments)
 {
     _parser.process(arguments);
     if (!parse(arguments)) {
-        qCritical() << "Error: " << _errorText << "\n";
+
+		fprintf(stdout, "%s", qPrintable(tr("Error: %1").arg(_errorText)));
         showHelp(EXIT_FAILURE);
     }
 }
@@ -64,5 +61,27 @@ bool Parser::addOption(Option * const option)
 {
     _options[option->name()] = option;
     return _parser.addOption(*option);
+}
+QStringList Parser::_getNames(const char shortOption, const QString longOption)
+{
+	QStringList names;
+	if (shortOption != 0x0) {
+		names << QString(shortOption);
+	}
+	if (longOption.size()) {
+		names << longOption;
+	}
+	return names;
+}
+QString Parser::_getDescription(const QString description, const QString default_)
+{
+	/* Add the translations if available */
+	QString formattedDescription(tr(qPrintable(description)));
+
+	/* Fill in the default if needed */
+	if (default_.size()) {
+		formattedDescription = formattedDescription.arg(default_);
+	}
+	return formattedDescription;
 }
 

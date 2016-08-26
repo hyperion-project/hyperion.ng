@@ -5,7 +5,7 @@ using namespace commandline;
 
 int IntOption::getInt(Parser &parser, bool *ok, int base)
 {
-    _int = _value.toInt(ok, base);
+    _int = value(parser).toInt(ok, base);
     return _int;
 }
 

@@ -1,14 +1,17 @@
 #include "commandline/ValidatorOption.h"
+#include "commandline/Parser.h"
 
 using namespace commandline;
 
 bool ValidatorOption::validate(Parser & parser, QString & value)
 {
-    _value = value;
-    /* Fix the value if possible */
-    this->validator->fixup(value);
-    int pos=0;
-    return this->validator->validate(value, pos) == QValidator::Acceptable;
+	if (parser.isSet(*this) || !defaultValues().empty()) {
+		int pos = 0;
+		validator->fixup(value);
+		return validator->validate(value, pos) == QValidator::Acceptable;
+	} else {
+		return true;
+	}
 }
 
 const QValidator *ValidatorOption::getValidator() const
@@ -18,10 +21,5 @@ const QValidator *ValidatorOption::getValidator() const
 void ValidatorOption::setValidator(const QValidator *validator)
 {
     ValidatorOption::validator = validator;
-}
-
-void ValidatorOption::setValidator(const QValidator &validator)
-{
-    this->validator = &validator;
 }
 

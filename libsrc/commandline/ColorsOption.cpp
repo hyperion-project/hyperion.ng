@@ -1,5 +1,6 @@
 #include <QRegularExpression>
 #include "commandline/ColorsOption.h"
+#include "commandline/Parser.h"
 
 using namespace commandline;
 
@@ -25,12 +26,12 @@ bool ColorsOption::validate(Parser & parser, QString & value)
         return true;
     }
 
-    QStringList error;
-    error << "Invalid color. A color is specified by a six lettered RRGGBB hex getColors or one of the following names:";
-    Q_FOREACH(const QString name, QColor::colorNames()){
-        error << "  " << name;
-    }
-    _error = error.join('\n');
+	if(!parser.isSet(*this)){
+		// Return true if no value is available
+		return true;
+	}
+
+    _error = QString("Invalid color. A color is specified by a six lettered RRGGBB hex getColors or one of the following names:\n\t- %1").arg(QColor::colorNames().join("\n\t- "));
 
     return false;
 }

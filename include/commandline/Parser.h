@@ -12,39 +12,21 @@
 #include "RegularExpressionOption.h"
 #include "SwitchOption.h"
 #include "ValidatorOption.h"
+#include "BooleanOption.h"
 
 namespace commandline
 {
 
 class Parser : public QObject
 {
-private:
+protected:
     QHash<QString, Option *> _options;
     QString _errorText;
     /* No public inheritance because we need to modify a few methods */
     QCommandLineParser _parser;
 
-    QStringList _getNames(const char shortOption, const QString longOption){
-        QStringList names;
-        if (shortOption != 0x0) {
-            names << QString(shortOption);
-        }
-        if (longOption.size()) {
-            names << longOption;
-        }
-        return names;
-    }
-
-    QString _getDescription(const QString description, const QString default_=QString()){
-        /* Add the translations if available */
-        QString formattedDescription(tr(qPrintable(description)));
-
-        /* Fill in the default if needed */
-        if (default_.size()) {
-            formattedDescription = formattedDescription.arg(default_);
-        }
-        return formattedDescription;
-    }
+    QStringList _getNames(const char shortOption, const QString longOption);
+    QString _getDescription(const QString description, const QString default_=QString());
 
 public:
     bool parse(const QStringList &arguments);
@@ -53,16 +35,17 @@ public:
     QString errorText() const;
 
     template<class OptionT, class ... Args>
-    OptionT &add(const char shortOption,
-           const QString longOption,
-           const QString description,
-           const QString default_,
-           Args ... args)
+    OptionT &add(
+        const char shortOption,
+        const QString longOption,
+		const QString description,
+		const QString default_,
+		Args ... args)
     {
         OptionT * option = new OptionT(
             _getNames(shortOption, longOption),
             _getDescription(description, default_),
-            QString(),
+            longOption,
             default_,
             args...);
         addOption(option);
@@ -72,15 +55,16 @@ public:
     /* gcc does not support default arguments for variadic templates which
      * makes this method necessary */
     template<class OptionT>
-    OptionT &add(const char shortOption,
-           const QString longOption,
-           const QString description,
-           const QString default_ = QString())
+    OptionT &add(
+        const char shortOption,
+		const QString longOption,
+		const QString description,
+		const QString default_ = QString())
     {
         OptionT * option = new OptionT(
             _getNames(shortOption, longOption),
             _getDescription(description, default_),
-            QString(),
+            longOption,
             default_);
         addOption(option);
         return *option;

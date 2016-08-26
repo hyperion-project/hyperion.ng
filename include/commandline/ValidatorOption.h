@@ -13,7 +13,6 @@ class ValidatorOption: public Option
 protected:
     const QValidator *validator;
     virtual void setValidator(const QValidator *validator);
-    virtual void setValidator(const QValidator &validator);
 public:
     ValidatorOption(const QString &name,
                     const QString &description = QString(),

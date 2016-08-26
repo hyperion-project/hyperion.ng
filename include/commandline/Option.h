@@ -15,8 +15,6 @@ class Option: public QCommandLineOption
 {
 protected:
     QString _error;
-    QString _value;
-    bool _validated = false;
 public:
     Option(const QString &name,
            const QString &description = QString(),
@@ -37,17 +35,13 @@ public:
     {}
 
     virtual bool validate(Parser &parser, QString &value);
-    bool isValidated()
-    { return _validated; }
     QString name()
     { return this->names().last();}
     QString getError()
     { return this->_error; }
     QString value(Parser &parser);
-    std::string getStdString(Parser &parser)
-    { return _value.toStdString(); }
-    std::wstring getStdWString(Parser &parser)
-    { return _value.toStdWString(); }
+    std::string getStdString(Parser &parser);
+    std::wstring getStdWString(Parser &parser);
 };
 
 }

@@ -5,18 +5,22 @@ using namespace commandline;
 
 bool Option::validate(Parser & parser, QString &value)
 {
-    /* Set to null string if value is not given */
-    _value = value.size() ? value : parser.value(*this);
-    _validated = true;
+	/* By default everything is accepted */
     return true;
 }
 
 QString Option::value(Parser &parser)
 {
-    if (_validated) {
-        return _value;
-    } else {
-        return parser.value(*this);
-    }
+    return parser.value(*this);
+}
+
+std::string Option::getStdString(Parser &parser)
+{
+    return value(parser).toStdString();
+}
+
+std::wstring Option::getStdWString(Parser &parser)
+{
+    return value(parser).toStdWString();
 }
 

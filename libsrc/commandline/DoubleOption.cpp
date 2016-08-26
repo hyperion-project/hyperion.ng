@@ -5,7 +5,7 @@ using namespace commandline;
 
 double DoubleOption::getDouble(Parser &parser, bool *ok)
 {
-    _double = _value.toDouble(ok);
+    _double = value(parser).toDouble(ok);
     return _double;
 }
 
