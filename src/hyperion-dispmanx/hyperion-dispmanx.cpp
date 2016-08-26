@@ -7,6 +7,9 @@
 #include "DispmanxWrapper.h"
 
 #include "HyperionConfig.h"
+#include <commandline/Parser.h>
+
+using namespace commandline;
 
 // save the image as screenshot
 void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
@@ -29,40 +32,27 @@ int main(int argc, char ** argv)
 	{
 		// create the option parser and initialize all parameters
 		Parser parser("Dispmanx capture application for Hyperion");
-		ParameterSet & parameters = optionParser.getParameters();
 
-		IntOption           & argFps        = parser.add<IntOption>          ('f', "framerate",   "Capture frame rate [default: 10]");
-		IntOption           & argWidth      = parser.add<IntOption>          (0x0, "width",       "The width of the grabbed frames [pixels]");
-		IntOption           & argHeight     = parser.add<IntOption>          (0x0, "height",      "The height of the grabbed frames");
+		IntOption & argFps        = parser.add<IntOption> ('f', "framerate",   "Capture frame rate [default: %1]", "10");
+		IntOption & argWidth      = parser.add<IntOption> (0x0, "width",       "Width of the captured image [default: %1]", "64", 32, 4096);
+		IntOption & argHeight     = parser.add<IntOption> (0x0, "height",      "Height of the captured image [default: %1]", "64", 32, 4096);
 
-		Option      & argScreenshot = parser.add<Option>     (0x0, "screenshot",  "Take a single screenshot, save it to file and quit");
-		Option        & argAddress    = parser.add<Option>       ('a', "address",     "Set the address of the hyperion server [default: 127.0.0.1:19445]");
-		IntOption           & argPriority   = parser.add<IntOption>          ('p', "priority",    "Use the provided priority channel (the lower the number, the higher the priority) [default: 800]");
-		Option      & argSkipReply  = parser.add<Option>     (0x0, "skip-reply",  "Do not receive and check reply messages from Hyperion");
-		Option      & argHelp       = parser.add<Option>     ('h', "help",        "Show this help message and exit");
+		Option    & argScreenshot = parser.add<Option>    (0x0, "screenshot",  "Take a single screenshot, save it to file and quit");
+		Option    & argAddress    = parser.add<Option>    ('a', "address",     "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
+		IntOption & argPriority   = parser.add<IntOption> ('p', "priority",    "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
+		Option    & argSkipReply  = parser.add<Option>    (0x0, "skip-reply",  "Do not receive and check reply messages from Hyperion");
+		Option    & argHelp       = parser.add<Option>    ('h', "help",        "Show this help message and exit");
 
-		IntOption           & argCropLeft   = parser.add<IntOption>          (0x0, "crop-left",       "pixels to remove on left after grabbing");
-		IntOption           & argCropRight  = parser.add<IntOption>          (0x0, "crop-right",       "pixels to remove on right after grabbing");
-		IntOption           & argCropTop    = parser.add<IntOption>          (0x0, "crop-top",       "pixels to remove on top after grabbing");
-		IntOption           & argCropBottom = parser.add<IntOption>          (0x0, "crop-bottom",       "pixels to remove on bottom after grabbing");
+		IntOption & argCropLeft   = parser.add<IntOption> (0x0, "crop-left",   "pixels to remove on left after grabbing");
+		IntOption & argCropRight  = parser.add<IntOption> (0x0, "crop-right",  "pixels to remove on right after grabbing");
+		IntOption & argCropTop    = parser.add<IntOption> (0x0, "crop-top",    "pixels to remove on top after grabbing");
+		IntOption & argCropBottom = parser.add<IntOption> (0x0, "crop-bottom", "pixels to remove on bottom after grabbing");
 
-		Option      & arg3DSBS           = parser.add<Option>     (0x0, "3DSBS",            "Interpret the incoming video stream as 3D side-by-side");
-		Option      & arg3DTAB           = parser.add<Option>     (0x0, "3DTAB",            "Interpret the incoming video stream as 3D top-and-bottom");
-
-		// set defaults
-		argFps.setDefault(10);
-		argWidth.setDefault(64);
-		argHeight.setDefault(64);
-		argAddress.setDefault("127.0.0.1:19445");
-		argPriority.setDefault(800);
-
-		argCropLeft.setDefault(0);
-		argCropRight.setDefault(0);
-		argCropTop.setDefault(0);
-		argCropBottom.setDefault(0);
+		Option    & arg3DSBS      = parser.add<Option>    (0x0, "3DSBS",       "Interpret the incoming video stream as 3D side-by-side");
+		Option    & arg3DTAB      = parser.add<Option>    (0x0, "3DTAB",       "Interpret the incoming video stream as 3D top-and-bottom");
 
 		// parse all options
-		optionParser.parse(argc, const_cast<const char **>(argv));
+		parser.process(app);
 
 		VideoMode videoMode = VIDEO_2D;
 
@@ -83,14 +73,15 @@ int main(int argc, char ** argv)
 		}
 
 		// Create the dispmanx grabbing stuff
-		int grabInterval = 1000 / argFps.getValue();
-		DispmanxWrapper dispmanxWrapper(argWidth.getValue(),argHeight.getValue(),
+		DispmanxWrapper dispmanxWrapper(
+			argWidth.getInt(parser),
+			argHeight.getInt(parser),
 			videoMode,
-			std::max(0, argCropLeft.getValue()),
-			std::max(0, argCropRight.getValue()),
-			std::max(0, argCropTop.getValue()),
-			std::max(0, argCropBottom.getValue()),
-			grabInterval);
+			argCropLeft.getInt(Parser),
+			argCropRight.getInt(Parser),
+			argCropTop.getInt(Parser),
+			argCropBottom.getInt(Parser),
+			1000 / argFps.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{
@@ -101,7 +92,7 @@ int main(int argc, char ** argv)
 		else
 		{
 			// Create the Proto-connection with hyperiond
-			ProtoConnectionWrapper protoWrapper(argAddress.getValue(), argPriority.getValue(), 1000, parser.isSet(argSkipReply));
+			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
 
 			// Connect the screen capturing to the proto processing
 			QObject::connect(&dispmanxWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
