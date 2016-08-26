@@ -68,8 +68,7 @@ int main(int argc, char ** argv)
 		// check if we need to display the usage. exit if we do.
 		if (parser.isSet(argHelp))
 		{
-			optionParser.usage();
-			return 0;
+			parser.showHelp(1);
 		}
 
 		// Create the dispmanx grabbing stuff
@@ -77,10 +76,10 @@ int main(int argc, char ** argv)
 			argWidth.getInt(parser),
 			argHeight.getInt(parser),
 			videoMode,
-			argCropLeft.getInt(Parser),
-			argCropRight.getInt(Parser),
-			argCropTop.getInt(Parser),
-			argCropBottom.getInt(Parser),
+			argCropLeft.getInt(parser),
+			argCropRight.getInt(parser),
+			argCropTop.getInt(parser),
+			argCropBottom.getInt(parser),
 			1000 / argFps.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
