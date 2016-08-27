@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
 		IntOption           & argCropTop         = parser.add<IntOption>          (0x0, "crop-top",         "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 		IntOption           & argCropBottom      = parser.add<IntOption>          (0x0, "crop-bottom",      "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
 		IntOption           & argSizeDecimation  = parser.add<IntOption>          ('s', "size-decimator",   "Decimation factor for the output size [default=%1]", "8");
-		Option      & argScreenshot      = parser.add<Option>     (0x0, "screenshot",       "Take a single screenshot, save it to file and quit", "screenshot.png");
+		BooleanOption  & argScreenshot  = parser.add<BooleanOption> (0x0, "screenshot",   "Take a single screenshot, save it to file and quit");
 		Option        & argAddress         = parser.add<Option>       ('a', "address",          "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
 		IntOption           & argPriority        = parser.add<IntOption>          ('p', "priority",         "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
 		BooleanOption      & argSkipReply       = parser.add<BooleanOption>     (0x0, "skip-reply",       "Do not receive and check reply messages from Hyperion");
@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
 		{
 			// Capture a single screenshot and finish
 			const Image<ColorRgb> & screenshot = x11Wrapper.getScreenshot();
-			saveScreenshot(argScreenshot.value(parser), screenshot);
+			saveScreenshot("screenshot.png", screenshot);
 		}
 		else
 		{

@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 		IntOption		   & argCropBottom	  = parser.add<IntOption>		  (0x0, "crop-bottom",	  "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
 		IntOption		   & argSizeDecimation  = parser.add<IntOption>		  ('s', "size-decimator",   "Decimation factor for the output size [default=%1]", "1");
 		IntOption		   & argFrameDecimation = parser.add<IntOption>		  ('f', "frame-decimator",  "Decimation factor for the video frames [default=%1]", "1");
-		Option	  & argScreenshot	  = parser.add<Option>	 (0x0, "screenshot",	   "Take a single screenshot, save it to file and quit", "screenshot.png");
+		BooleanOption  & argScreenshot  = parser.add<BooleanOption> (0x0, "screenshot",   "Take a single screenshot, save it to file and quit");
 		DoubleOption		& argSignalThreshold = parser.add<DoubleOption>	   ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
 		DoubleOption		& argRedSignalThreshold = parser.add<DoubleOption>	(0x0, "red-threshold",	"The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption		& argGreenSignalThreshold = parser.add<DoubleOption>  (0x0, "green-threshold",  "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 		// run the grabber
 		if (parser.isSet(argScreenshot))
 		{
-			ScreenshotHandler handler(argScreenshot.value(parser));
+			ScreenshotHandler handler("screenshot.png");
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
 			grabber.start();
 			QCoreApplication::exec();
