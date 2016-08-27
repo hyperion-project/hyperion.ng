@@ -32,12 +32,12 @@ public:
     {}
 
     const QMap<QString, T> &getSwitches() const{return _switches;};
-    virtual bool validate(Parser &parser, QString &switch_) override{return _switches.contains(switch_);}
-    bool hasSwitch(const QString &switch_){return _switches.contains(switch_);}
+    virtual bool validate(Parser &parser, QString &switch_) override{return true; return hasSwitch(switch_);}
+    bool hasSwitch(const QString &switch_){return _switches.contains(switch_.toLower());}
     void setSwitches(const QMap<QString, T> &_switches){this->_switches = _switches;}
-    void addSwitch(const QString &switch_, T value=T()){_switches[switch_] = value;}
-    void removeSwitch(const QString &switch_){_switches.remove(switch_);}
-	T & switchValue(Parser & parser){return _switches[value(parser)];}
+    void addSwitch(const QString &switch_, T value=T()){_switches[switch_.toLower()] = value;}
+    void removeSwitch(const QString &switch_){_switches.remove(switch_.toLower());}
+	T & switchValue(Parser & parser){return _switches[value(parser).toLower()];}
 };
 
 }

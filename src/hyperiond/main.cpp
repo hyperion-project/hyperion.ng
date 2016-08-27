@@ -66,25 +66,11 @@ int main(int argc, char** argv)
 	Parser parser("Hyperion Daemon");
 	parser.addHelpOption();
 
-	Option versionOption("version");
-	versionOption.setDescription(QCoreApplication::translate("main", "Show version information"));
-	versionOption.setDefaultValue("0");
-	parser.addOption(versionOption);
-
+	BooleanOption & versionOption = parser.add<BooleanOption>(0x0, "version", "Show version information");
 	IntOption & parentOption = parser.add<IntOption>('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
-
-	Option silentOption(QStringList() << "s" << "silent");
-    silentOption.setDescription(QCoreApplication::translate("main", "do not print any outputs"));
-	parser.addOption(silentOption);
-
-	Option verboseOption(QStringList() << "v" << "verbose");
-    verboseOption.setDescription(QCoreApplication::translate("main", "Increase verbosity"));
-	parser.addOption(verboseOption);
-
-	Option debugOption(QStringList() << "d" << "debug");
-    debugOption.setDescription(QCoreApplication::translate("main", "Show debug messages"));
-	parser.addOption(debugOption);
-
+	BooleanOption & silentOption = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
+	BooleanOption & debugOption = parser.add<BooleanOption>('d', "debug", "Show debug messages");
 	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration files"), "[files...]");
 
     parser.process(app);

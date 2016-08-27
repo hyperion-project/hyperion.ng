@@ -11,7 +11,7 @@
 using namespace commandline;
 
 // save the image as screenshot
-void saveScreenshot(const char * filename, const Image<ColorRgb> & image)
+void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 {
 	// store as PNG
 	QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
@@ -31,10 +31,10 @@ int main(int argc, char ** argv)
 		IntOption    & argFps        = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10", 1, 600);
 		IntOption    & argWidth      = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160, 4096);
 		IntOption    & argHeight     = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160, 4096);
-		Option       & argScreenshot = parser.add<Option>       (0x0, "screenshot", "Take a single screenshot, save it to file and quit");
+		Option       & argScreenshot = parser.add<Option>       (0x0, "screenshot", "Take a single screenshot, save it to file and quit", "screenshot.png");
 		Option       & argAddress    = parser.add<Option>       ('a', "address",    "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
 		IntOption    & argPriority   = parser.add<IntOption>    ('p', "priority",   "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
-		Option 		 & argSkipReply  = parser.add<Option>       (0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
+		BooleanOption 		 & argSkipReply  = parser.add<BooleanOption>       (0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption    & argHelp       = parser.add<BooleanOption>    ('h', "help",        "Show this help message and exit");
 
 		// parse all arguments
@@ -52,7 +52,7 @@ int main(int argc, char ** argv)
         if (parser.isSet(argScreenshot)) {
             // Capture a single screenshot and finish
             const Image<ColorRgb> &screenshot = osxWrapper.getScreenshot();
-            saveScreenshot("screenshot.png", screenshot);
+            saveScreenshot(argScreenshot.value(parser), screenshot);
         }
         else {
             // Create the Proto-connection with hyperiond

@@ -80,6 +80,9 @@ QString Parser::_getDescription(const QString description, const QString default
 
 	/* Fill in the default if needed */
 	if (default_.size()) {
+		if(!formattedDescription.contains("%1")){
+			formattedDescription += " [default: %1]";
+		}
 		formattedDescription = formattedDescription.arg(default_);
 	}
 	return formattedDescription;
