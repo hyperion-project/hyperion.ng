@@ -32,7 +32,7 @@ public:
     {}
 
     const QMap<QString, T> &getSwitches() const{return _switches;};
-    virtual bool validate(Parser &parser, QString &switch_) override{return true; return hasSwitch(switch_);}
+    virtual bool validate(Parser &parser, QString &switch_) override{return hasSwitch(switch_);}
     bool hasSwitch(const QString &switch_){return _switches.contains(switch_.toLower());}
     void setSwitches(const QMap<QString, T> &_switches){this->_switches = _switches;}
     void addSwitch(const QString &switch_, T value=T()){_switches[switch_.toLower()] = value;}
