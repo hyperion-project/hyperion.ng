@@ -4,7 +4,9 @@
 #include <string>
 
 // hyperion includes
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
+
+#include <QUuid>
 
 /*
 *
@@ -55,12 +57,12 @@ typedef union {
         uint8_t  acn_id[12];
         uint16_t root_flength;
         uint32_t root_vector;
-        uint8_t  cid[16];
+        char     cid[16];
 
         /* Frame Layer */
         uint16_t frame_flength;
         uint32_t frame_vector;
-        uint8_t  source_name[64];
+        char     source_name[64];
         uint8_t  priority;
         uint16_t reserved;
         uint8_t  sequence_number;
@@ -96,7 +98,7 @@ typedef union {
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
 ///
-class LedDeviceUdpE131 : public LedUdpDevice
+class LedDeviceUdpE131 : public ProviderUdp
 {
 public:
 	///
@@ -135,4 +137,6 @@ private:
 	uint8_t	_e131_seq = 0;
 	uint8_t	_e131_universe = 1;
         uint8_t _acn_id[12] = {0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 0x37, 0x00, 0x00, 0x00 };
+	std::string _e131_source_name;
+	QUuid _e131_cid;
 };

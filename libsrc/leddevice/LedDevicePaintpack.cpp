@@ -4,7 +4,7 @@
 
 // Use out report HID device
 LedDevicePaintpack::LedDevicePaintpack(const Json::Value &deviceConfig)
-	: LedHIDDevice(deviceConfig)
+	: ProviderHID(deviceConfig)
 {
 	_useFeature = false;
 }

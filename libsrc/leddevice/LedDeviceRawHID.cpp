@@ -13,7 +13,7 @@
 
 // Use feature report HID device
 LedDeviceRawHID::LedDeviceRawHID(const Json::Value &deviceConfig)
-	: LedHIDDevice(deviceConfig)
+	: ProviderHID(deviceConfig)
 	, _timer()
 {
 	_useFeature = true;

@@ -189,7 +189,7 @@ void HyperionDaemon::startInitialEffect()
 		// initial foreground effect/color
 		const QJsonValue fgEffectConfig = effectConfig["foreground-effect"];
 		int default_fg_duration_ms = 3000;
-		int fg_duration_ms = effectConfig["foreground-effect-duration_ms"].toInt(default_fg_duration_ms);
+		int fg_duration_ms = effectConfig["foreground-duration_ms"].toInt(default_fg_duration_ms);
 		if (fg_duration_ms == DURATION_INFINITY)
 		{
 			fg_duration_ms = default_fg_duration_ms;

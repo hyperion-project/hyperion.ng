@@ -13,7 +13,7 @@
 #include <leddevice/LedDevice.h>
 
 LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
-	: LedRs232Device(deviceConfig)
+	: ProviderRs232(deviceConfig)
 	, _timer()
 {
 	// setup the timer

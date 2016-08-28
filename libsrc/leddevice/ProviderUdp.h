@@ -7,9 +7,9 @@
 #include <utils/Logger.h>
 
 ///
-/// The LedUdpDevice implements an abstract base-class for LedDevices using the SPI-device.
+/// The ProviderUdp implements an abstract base-class for LedDevices using the SPI-device.
 ///
-class LedUdpDevice : public LedDevice
+class ProviderUdp : public LedDevice
 {
 public:
 	///
@@ -17,12 +17,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedUdpDevice(const Json::Value &deviceConfig);
+	ProviderUdp(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedUdpDevice();
+	virtual ~ProviderUdp();
 
 	///
 	/// Sets configuration

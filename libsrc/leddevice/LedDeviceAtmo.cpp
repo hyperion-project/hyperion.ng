@@ -2,7 +2,7 @@
 #include "LedDeviceAtmo.h"
 
 LedDeviceAtmo::LedDeviceAtmo(const Json::Value &deviceConfig)
-	: LedRs232Device(deviceConfig)
+	: ProviderRs232(deviceConfig)
 {
 	_ledBuffer.resize(4 + 5*3); // 4-byte header, 5 RGB values
 	_ledBuffer[0] = 0xFF; // Startbyte

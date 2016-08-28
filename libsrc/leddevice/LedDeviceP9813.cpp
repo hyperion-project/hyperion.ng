@@ -12,7 +12,7 @@
 #include "LedDeviceP9813.h"
 
 LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
-	: LedSpiDevice(deviceConfig)
+	: ProviderSpi(deviceConfig)
 {
 }
 

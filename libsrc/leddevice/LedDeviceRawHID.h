@@ -7,12 +7,12 @@
 #include <QTimer>
 
 // hyperion include
-#include "LedHIDDevice.h"
+#include "ProviderHID.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an RawHID led device.
 ///
-class LedDeviceRawHID : public LedHIDDevice
+class LedDeviceRawHID : public ProviderHID
 {
 	Q_OBJECT
 

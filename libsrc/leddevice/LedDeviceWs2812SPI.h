@@ -4,12 +4,12 @@
 #include <string>
 
 // hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to Ws2801 led device.
 ///
-class LedDeviceWs2812SPI : public LedSpiDevice
+class LedDeviceWs2812SPI : public ProviderSpi
 {
 public:
 	///

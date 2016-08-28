@@ -10,11 +10,11 @@
 #include <sys/ioctl.h>
 
 // Local Hyperion includes
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 #include <utils/Logger.h>
 
 
-LedSpiDevice::LedSpiDevice(const Json::Value &deviceConfig)
+ProviderSpi::ProviderSpi(const Json::Value &deviceConfig)
 	: LedDevice()
 	, _fid(-1)
 {
@@ -23,12 +23,12 @@ LedSpiDevice::LedSpiDevice(const Json::Value &deviceConfig)
 	Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
 }
 
-LedSpiDevice::~LedSpiDevice()
+ProviderSpi::~ProviderSpi()
 {
 //	close(_fid);
 }
 
-bool LedSpiDevice::setConfig(const Json::Value &deviceConfig)
+bool ProviderSpi::setConfig(const Json::Value &deviceConfig)
 {
 	_deviceName    = deviceConfig.get("output","/dev/spidev0.0").asString();
 	_baudRate_Hz   = deviceConfig.get("rate",1000000).asInt();
@@ -39,7 +39,7 @@ bool LedSpiDevice::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-int LedSpiDevice::open()
+int ProviderSpi::open()
 {
 	const int bitsPerWord = 8;
 
@@ -69,7 +69,7 @@ int LedSpiDevice::open()
 	return 0;
 }
 
-int LedSpiDevice::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)
 {
 	if (_fid < 0)
 	{

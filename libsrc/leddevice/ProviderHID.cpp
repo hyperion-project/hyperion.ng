@@ -7,9 +7,9 @@
 #include <QTimer>
 
 // Local Hyperion includes
-#include "LedHIDDevice.h"
+#include "ProviderHID.h"
 
-LedHIDDevice::LedHIDDevice(const Json::Value &deviceConfig)
+ProviderHID::ProviderHID(const Json::Value &deviceConfig)
 	: _useFeature(false)
 	, _deviceHandle(nullptr)
 	, _blockedForDelay(false)
@@ -17,7 +17,7 @@ LedHIDDevice::LedHIDDevice(const Json::Value &deviceConfig)
 	setConfig(deviceConfig);
 }
 
-LedHIDDevice::~LedHIDDevice()
+ProviderHID::~ProviderHID()
 {
 	if (_deviceHandle != nullptr)
 	{
@@ -28,7 +28,7 @@ LedHIDDevice::~LedHIDDevice()
 	hid_exit();
 }
 
-bool LedHIDDevice::setConfig(const Json::Value &deviceConfig)
+bool ProviderHID::setConfig(const Json::Value &deviceConfig)
 {
 	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect", 0 ).asInt();
 	auto VendorIdString   = deviceConfig.get("VID", "0x2341").asString();
@@ -41,7 +41,7 @@ bool LedHIDDevice::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-int LedHIDDevice::open()
+int ProviderHID::open()
 {
 	// Initialize the usb context
 	int error = hid_init();
@@ -97,7 +97,7 @@ int LedHIDDevice::open()
 }
 
 
-int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderHID::writeBytes(const unsigned size, const uint8_t * data)
 {
 	if (_blockedForDelay) {
 		return 0;
@@ -156,7 +156,7 @@ int LedHIDDevice::writeBytes(const unsigned size, const uint8_t * data)
 	return ret;
 }
 
-void LedHIDDevice::unblockAfterDelay()
+void ProviderHID::unblockAfterDelay()
 {
 	Debug(_log,"Device unblocked");
 	_blockedForDelay = false;
