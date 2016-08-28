@@ -12,7 +12,7 @@
 #include "LedDeviceWs2812SPI.h"
 
 LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
-	: LedSpiDevice(deviceConfig)
+	: ProviderSpi(deviceConfig)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,

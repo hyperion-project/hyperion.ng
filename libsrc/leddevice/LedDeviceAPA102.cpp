@@ -13,7 +13,7 @@
 #include "LedDeviceAPA102.h"
 
 LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)
-	: LedSpiDevice(deviceConfig)
+	: ProviderSpi(deviceConfig)
 {
 	_latchTime_ns = 500000;
 }

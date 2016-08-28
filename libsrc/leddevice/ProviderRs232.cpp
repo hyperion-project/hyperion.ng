@@ -7,9 +7,9 @@
 #include <QTimer>
 
 // Local Hyperion includes
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
-LedRs232Device::LedRs232Device(const Json::Value &deviceConfig)
+ProviderRs232::ProviderRs232(const Json::Value &deviceConfig)
 	: _rs232Port(this)
 	, _blockedForDelay(false)
 	, _stateChanged(true)
@@ -18,7 +18,7 @@ LedRs232Device::LedRs232Device(const Json::Value &deviceConfig)
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 }
 
-bool LedRs232Device::setConfig(const Json::Value &deviceConfig)
+bool ProviderRs232::setConfig(const Json::Value &deviceConfig)
 {
 	closeDevice();
 	_deviceName           = deviceConfig["output"].asString();
@@ -28,7 +28,7 @@ bool LedRs232Device::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-void LedRs232Device::error(QSerialPort::SerialPortError error)
+void ProviderRs232::error(QSerialPort::SerialPortError error)
 {
 	if ( error != QSerialPort::NoError )
 	{
@@ -64,13 +64,13 @@ void LedRs232Device::error(QSerialPort::SerialPortError error)
 	}
 }
 
-LedRs232Device::~LedRs232Device()
+ProviderRs232::~ProviderRs232()
 {
 	disconnect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	closeDevice();
 }
 
-void LedRs232Device::closeDevice()
+void ProviderRs232::closeDevice()
 {
 	if (_rs232Port.isOpen())
 	{
@@ -79,7 +79,7 @@ void LedRs232Device::closeDevice()
 	}
 }
 
-int LedRs232Device::open()
+int ProviderRs232::open()
 {
 	Info(_log, "Opening UART: %s", _deviceName.c_str());
 	_rs232Port.setPortName(_deviceName.c_str());
@@ -88,7 +88,7 @@ int LedRs232Device::open()
 }
 
 
-bool LedRs232Device::tryOpen()
+bool ProviderRs232::tryOpen()
 {
 	if ( ! _rs232Port.isOpen() )
 	{
@@ -116,7 +116,7 @@ bool LedRs232Device::tryOpen()
 }
 
 
-int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderRs232::writeBytes(const unsigned size, const uint8_t * data)
 {
 	if (_blockedForDelay)
 	{
@@ -143,7 +143,7 @@ int LedRs232Device::writeBytes(const unsigned size, const uint8_t * data)
 }
 
 
-void LedRs232Device::unblockAfterDelay()
+void ProviderRs232::unblockAfterDelay()
 {
 	Debug(_log, "Device unblocked");
 	_blockedForDelay = false;

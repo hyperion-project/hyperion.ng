@@ -4,7 +4,7 @@
 #include <string>
 
 // hyperion includes
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
 /*
 *
@@ -96,7 +96,7 @@ typedef union {
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
 ///
-class LedDeviceUdpE131 : public LedUdpDevice
+class LedDeviceUdpE131 : public ProviderUdp
 {
 public:
 	///

@@ -4,13 +4,13 @@
 #include <string>
 
 // hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 #include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.
 ///
-class LedDeviceAPA102 : public LedSpiDevice
+class LedDeviceAPA102 : public ProviderSpi
 {
 public:
 	///

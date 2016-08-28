@@ -1,7 +1,7 @@
 #pragma once
 
 // Local hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 led device.
@@ -14,7 +14,7 @@
 /// (R, G and B in the above illustration) making 16 bits per led. Total bytes = 4 + (2 x number of
 /// leds)
 ///
-class LedDeviceLpd6803 : public LedSpiDevice
+class LedDeviceLpd6803 : public ProviderSpi
 {
 public:
 	///

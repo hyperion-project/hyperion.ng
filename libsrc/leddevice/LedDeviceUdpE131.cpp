@@ -13,7 +13,7 @@
 #include "LedDeviceUdpE131.h"
 
 LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
-	: LedUdpDevice(deviceConfig)
+	: ProviderUdp(deviceConfig)
 
 {
 	setConfig(deviceConfig);
@@ -21,7 +21,7 @@ LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
 
 bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
 {
-	LedUdpDevice::setConfig(deviceConfig);
+	ProviderUdp::setConfig(deviceConfig);
 	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
 	_e131_universe = deviceConfig.get("universe",1).asInt();
 

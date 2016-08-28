@@ -18,7 +18,7 @@ struct FrameSpec
 };
 
 LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
-	: LedRs232Device(deviceConfig)
+	: ProviderRs232(deviceConfig)
 {
 	// empty
 }

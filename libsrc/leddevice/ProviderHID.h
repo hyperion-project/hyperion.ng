@@ -9,9 +9,9 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// The LedHIDDevice implements an abstract base-class for LedDevices using an HID-device.
+/// The ProviderHID implements an abstract base-class for LedDevices using an HID-device.
 ///
-class LedHIDDevice : public LedDevice
+class ProviderHID : public LedDevice
 {
 	Q_OBJECT
 
@@ -21,12 +21,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedHIDDevice(const Json::Value &deviceConfig);
+	ProviderHID(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedHIDDevice();
+	virtual ~ProviderHID();
 
 	///
 	/// Sets configuration

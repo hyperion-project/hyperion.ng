@@ -7,9 +7,9 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// The LedSpiDevice implements an abstract base-class for LedDevices using the SPI-device.
+/// The ProviderSpi implements an abstract base-class for LedDevices using the SPI-device.
 ///
-class LedSpiDevice : public LedDevice
+class ProviderSpi : public LedDevice
 {
 public:
 	///
@@ -17,7 +17,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedSpiDevice(const Json::Value &deviceConfig);
+	ProviderSpi(const Json::Value &deviceConfig);
 
 	///
 	/// Sets configuration
@@ -29,7 +29,7 @@ public:
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedSpiDevice();
+	virtual ~ProviderSpi();
 
 	///
 	/// Opens and configures the output device
