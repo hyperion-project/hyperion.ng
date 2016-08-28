@@ -13,9 +13,9 @@
 #include <QHostInfo>
 
 // Local Hyperion includes
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
-LedUdpDevice::LedUdpDevice(const Json::Value &deviceConfig)
+ProviderUdp::ProviderUdp(const Json::Value &deviceConfig)
 	: LedDevice()
 	, _LatchTime_ns(-1)
 {
@@ -23,12 +23,12 @@ LedUdpDevice::LedUdpDevice(const Json::Value &deviceConfig)
 	_udpSocket = new QUdpSocket();
 }
 
-LedUdpDevice::~LedUdpDevice()
+ProviderUdp::~ProviderUdp()
 {
 	_udpSocket->close();
 }
 
-bool LedUdpDevice::setConfig(const Json::Value &deviceConfig)
+bool ProviderUdp::setConfig(const Json::Value &deviceConfig)
 {
 	if (_address.setAddress( QString::fromStdString(deviceConfig["host"].asString()) ) )
 	{
@@ -52,7 +52,7 @@ bool LedUdpDevice::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-int LedUdpDevice::open()
+int ProviderUdp::open()
 {
 	QHostAddress localAddress = QHostAddress::Any;
 	quint16      localPort = 0;
@@ -62,7 +62,7 @@ int LedUdpDevice::open()
 	return 0;
 }
 
-int LedUdpDevice::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 {
 
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);

@@ -12,14 +12,14 @@
 #include "LedDeviceUdpRaw.h"
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
-	: LedUdpDevice(deviceConfig)
+	: ProviderUdp(deviceConfig)
 {
 	setConfig(deviceConfig);
 }
 
 bool LedDeviceUdpRaw::setConfig(const Json::Value &deviceConfig)
 {
-	LedUdpDevice::setConfig(deviceConfig);
+	ProviderUdp::setConfig(deviceConfig);
 	_LatchTime_ns = deviceConfig.get("latchtime",500000).asInt();
 
 	return true;

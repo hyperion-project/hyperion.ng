@@ -11,7 +11,7 @@
 #include "LedDeviceLpd8806.h"
 
 LedDeviceLpd8806::LedDeviceLpd8806(const Json::Value &deviceConfig)
-	: LedSpiDevice(deviceConfig)
+	: ProviderSpi(deviceConfig)
 {
 }
 

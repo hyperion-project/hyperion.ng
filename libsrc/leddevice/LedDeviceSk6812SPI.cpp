@@ -12,7 +12,7 @@
 #include "LedDeviceSk6812SPI.h"
 
 LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)
-	: LedSpiDevice(deviceConfig)
+	: ProviderSpi(deviceConfig)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
@@ -32,7 +32,7 @@ LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
 
 bool LedDeviceSk6812SPI::setConfig(const Json::Value &deviceConfig)
 {
-	LedSpiDevice::setConfig(deviceConfig);
+	ProviderSpi::setConfig(deviceConfig);
 	_whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
 
 	return true;

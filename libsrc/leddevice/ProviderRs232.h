@@ -7,9 +7,9 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// The LedRs232Device implements an abstract base-class for LedDevices using a RS232-device.
+/// The ProviderRs232 implements an abstract base-class for LedDevices using a RS232-device.
 ///
-class LedRs232Device : public LedDevice
+class ProviderRs232 : public LedDevice
 {
 	Q_OBJECT
 
@@ -19,7 +19,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedRs232Device(const Json::Value &deviceConfig);
+	ProviderRs232(const Json::Value &deviceConfig);
 
 	///
 	/// Sets configuration
@@ -31,7 +31,7 @@ public:
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedRs232Device();
+	virtual ~ProviderRs232();
 
 	///
 	/// Opens and configures the output device
