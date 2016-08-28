@@ -15,9 +15,7 @@ ENDIF()
 include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
-	CustomParameter.h
-	JsonConnection.h
-	ColorTransformValues.h)
+	JsonConnection.h)
 
 set(hyperion-remote_SOURCES
 	hyperion-remote.cpp
@@ -28,8 +26,8 @@ add_executable(${PROJECT_NAME}
 	${hyperion-remote_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
+    commandline
 	jsoncpp
-	getoptPlusPlus
 	${QT_LIBRARIES})
 
 qt5_use_modules(${PROJECT_NAME} Gui Core Network)
