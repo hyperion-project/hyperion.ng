@@ -9,6 +9,9 @@
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 
+#include <QHostInfo>
+#include <QUuid>
+
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
 
@@ -24,6 +27,17 @@ bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
 	ProviderUdp::setConfig(deviceConfig);
 	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
 	_e131_universe = deviceConfig.get("universe",1).asInt();
+	_e131_source_name = deviceConfig.get("source-name","hyperion on "+QHostInfo::localHostName().toStdString()).asString();
+	QString _json_cid = QString::fromStdString(deviceConfig.get("cid","").asString());
+
+	if (_json_cid.isEmpty()) 
+	{
+		_e131_cid = QUuid::createUuid();
+		Debug( _log, "e131 no cid found, generated %s", _e131_cid.toString().toStdString().c_str());
+	} else {
+		_e131_cid = QUuid(_json_cid);
+		Debug( _log, "e131  cid found, using %s", _e131_cid.toString().toStdString().c_str());
+	}
 
 	return true;
 }
@@ -33,8 +47,6 @@ LedDevice* LedDeviceUdpE131::construct(const Json::Value &deviceConfig)
 	return new LedDeviceUdpE131(deviceConfig);
 }
 
-#define CID "hyperion!\0"
-#define SOURCE_NAME "hyperion on hostname\0"
 
 // populates the headers
 void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this_dmxChannelCount)
@@ -47,12 +59,12 @@ void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this
 	memcpy (e131_packet.acn_id, _acn_id, 12);
 	e131_packet.root_flength = htons(0x7000 | (110+this_dmxChannelCount) );
 	e131_packet.root_vector = htonl(VECTOR_ROOT_E131_DATA);
-	memcpy (e131_packet.cid, CID, sizeof(CID) );
+	memcpy (e131_packet.cid, _e131_cid.toRfc4122().constData() , sizeof(e131_packet.cid) );
 
 	/* Frame Layer */
 	e131_packet.frame_flength = htons(0x7000 | (88+this_dmxChannelCount));
 	e131_packet.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
-	memcpy (e131_packet.source_name, SOURCE_NAME, sizeof(SOURCE_NAME));
+	snprintf (e131_packet.source_name, sizeof(e131_packet.source_name), "%s", _e131_source_name.c_str() );
 	e131_packet.priority = 100;
 	e131_packet.reserved = htons(0);
 	e131_packet.options = 0;	// Bit 7 =  Preview_Data
