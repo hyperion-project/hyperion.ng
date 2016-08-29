@@ -186,7 +186,7 @@ void HyperionDaemon::startInitialEffect()
 		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
 
 		// clear the leds
-		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
+		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
 
 		// initial foreground effect/color
 		const QJsonValue fgEffectConfig = effectConfig["foreground-effect"];
