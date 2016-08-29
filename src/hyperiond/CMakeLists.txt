@@ -3,7 +3,7 @@ add_executable(hyperiond
 		hyperiond.cpp hyperiond.h main.cpp)
 
 target_link_libraries(hyperiond
-		getoptPlusPlus
+		commandline
 		hyperion
 		kodivideochecker
 		effectengine
