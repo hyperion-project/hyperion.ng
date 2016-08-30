@@ -1,7 +1,7 @@
 #pragma once
 
 // Local hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to LPD8806 led device.
@@ -75,7 +75,7 @@
 ///
 /// The number of zeroes in the 'clear data' is (#led/32 + 1)bytes (or *8 for bits)
 ///
-class LedDeviceLpd8806 : public LedSpiDevice
+class LedDeviceLpd8806 : public ProviderSpi
 {
 public:
 	///

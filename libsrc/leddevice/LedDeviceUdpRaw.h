@@ -4,12 +4,12 @@
 #include <string>
 
 // hyperion incluse
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp.
 ///
-class LedDeviceUdpRaw : public LedUdpDevice
+class LedDeviceUdpRaw : public ProviderUdp
 {
 public:
 	///

@@ -4,12 +4,12 @@
 #include <string>
 
 // hyperion incluse
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to serial device using tpm2 protocol.
 ///
-class LedDeviceTpm2 : public LedRs232Device
+class LedDeviceTpm2 : public ProviderRs232
 {
 public:
 	///

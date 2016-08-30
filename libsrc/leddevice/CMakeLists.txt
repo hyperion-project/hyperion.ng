@@ -15,12 +15,12 @@ include_directories(
 # Group the headers that go through the MOC compiler
 SET(Leddevice_QT_HEADERS
 	${CURRENT_HEADER_DIR}/LedDevice.h
-	${CURRENT_SOURCE_DIR}/LedRs232Device.h
+	${CURRENT_SOURCE_DIR}/ProviderRs232.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
-	${CURRENT_SOURCE_DIR}/LedHIDDevice.h
+	${CURRENT_SOURCE_DIR}/ProviderHID.h
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
@@ -36,7 +36,7 @@ SET(Leddevice_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.h
-	${CURRENT_SOURCE_DIR}/LedUdpDevice.h
+	${CURRENT_SOURCE_DIR}/ProviderUdp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2net.h
@@ -47,8 +47,8 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/LedDevice.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceFactory.cpp
 
-	${CURRENT_SOURCE_DIR}/LedRs232Device.cpp
-	${CURRENT_SOURCE_DIR}/LedHIDDevice.cpp
+	${CURRENT_SOURCE_DIR}/ProviderRs232.cpp
+	${CURRENT_SOURCE_DIR}/ProviderHID.cpp
 
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.cpp
@@ -63,7 +63,7 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.cpp
-	${CURRENT_SOURCE_DIR}/LedUdpDevice.cpp
+	${CURRENT_SOURCE_DIR}/ProviderUdp.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2.cpp
@@ -74,7 +74,7 @@ SET(Leddevice_SOURCES
 if(ENABLE_SPIDEV)
 	SET(Leddevice_HEADERS
 		${Leddevice_HEADERS}
-		${CURRENT_SOURCE_DIR}/LedSpiDevice.h
+		${CURRENT_SOURCE_DIR}/ProviderSpi.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.h
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.h
 		${CURRENT_SOURCE_DIR}/LedDeviceP9813.h
@@ -85,7 +85,7 @@ if(ENABLE_SPIDEV)
 	)
 	SET(Leddevice_SOURCES
 		${Leddevice_SOURCES}
-		${CURRENT_SOURCE_DIR}/LedSpiDevice.cpp
+		${CURRENT_SOURCE_DIR}/ProviderSpi.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd6803.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceLpd8806.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceP9813.cpp

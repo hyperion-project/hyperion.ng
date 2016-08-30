@@ -4,12 +4,12 @@
 #include <string>
 
 // hyperion incluse
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to SEDU led device.
 ///
-class LedDeviceSedu : public LedRs232Device
+class LedDeviceSedu : public ProviderRs232
 {
 public:
 	///

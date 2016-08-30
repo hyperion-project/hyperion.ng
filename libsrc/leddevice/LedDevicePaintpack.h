@@ -4,12 +4,12 @@
 #include <vector>
 
 // Hyperion includes
-#include "LedHIDDevice.h"
+#include "ProviderHID.h"
 
 ///
 /// LedDevice implementation for a paintpack device ()
 ///
-class LedDevicePaintpack : public LedHIDDevice
+class LedDevicePaintpack : public ProviderHID
 {
 public:
 	///

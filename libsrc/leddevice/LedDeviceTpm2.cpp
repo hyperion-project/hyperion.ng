@@ -9,7 +9,7 @@
 #include <json/json.h>
 
 LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
-	: LedRs232Device(deviceConfig)
+	: ProviderRs232(deviceConfig)
 {
 }
 
