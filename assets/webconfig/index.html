@@ -350,6 +350,8 @@
 							<h4 lang="en" data-lang-token="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
 						</div>
 						<hr>
+						<button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Change JSON port</button>
+						<hr>
 							<div class="col-lg-4">
 								<div class="panel panel-default">
 									<div class="panel-heading">
@@ -361,15 +363,19 @@
 											<tbody>
 												<tr>
 													<td lang="en" data-lang-token="dashboard_label_infobox_currenthyp">Your Hyperion version:</td>
-													<td id="currentversion"></td>
+													<td id="currentversion">unknown</td>
 												</tr>
-													<tr>
+												<tr>
 													<td lang="en" data-lang-token="dashboard_label_infobox_latesthyp">Latest version:</td>
-													<td id="latestversion"></td>
+													<td id="latestversion">unknown</td>
+												</tr>
+												<tr>
+													<td lang="en" data-lang-token="dashboard_label_infobox_leddevice">LED type:</td>
+													<td id="dash_leddevice">unknown</td>
 												</tr>
 												<tr>
 													<td lang="en" data-lang-token="dashboard_label_infobox_device">Device:</td>
-													<td></td>
+													<td id="dash_systeminfo"></td>
 												</tr>
 											</tbody>
 										</table>
@@ -434,7 +440,49 @@
     </div>
     <!-- /#wrapper -->
 
+	<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
 
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Modal Test and port changer</h4>
+      </div>
+      <div class="modal-body">
+        <p>Input the JSON port you want to connect and press reload</p>
+		<form class="form-inline">
+			<div class="form-group">
+				<label for="port">Your JSON Port:</label>
+				<input type="number" min="100" max="65535" value="19444" class="form-control" id="json_port">
+			</div>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="button_reloaddata()" class="btn btn-primary" data-dismiss="modal">Reload!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="con_error_modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+	    <!-- Modal content-->
+    <div class="modal-content" id="con_error_modal">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Oh noes! Something went wrong!</h4>
+      </div>
+      <div class="modal-body">
+        <p>We are sorry, the json port was not found. Just try another one!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Okay!</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="js/lib/bootstrap.min.js"></script>

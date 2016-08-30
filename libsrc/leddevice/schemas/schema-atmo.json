@@ -2,6 +2,20 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output": {
+			"type": "string",
+			"title":"Output path"
+		},
+		"rate": {
+			"type": "integer",
+			"title":"Baudrate",
+			"default": 1000000
+		},
+		"delayAfterConnect": {
+			"type": "integer",
+			"title":"Delay after connect",
+			"default": 250
+		}
 	},
 	"additionalProperties": true
 }

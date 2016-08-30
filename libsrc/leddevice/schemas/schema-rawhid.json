@@ -2,6 +2,21 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"VID": {
+			"type": "string",
+			"title":"VID",
+			"default" : "0x2341"
+		},
+		"PID": {
+			"type": "string",
+			"title":"PID",
+			"default" : "0x8036"
+		},
+		"delayAfterConnect": {
+			"type": "integer",
+			"title":"Delay after connect",
+			"default": 0
+		}
 	},
 	"additionalProperties": true
 }
