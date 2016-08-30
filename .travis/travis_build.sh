@@ -21,8 +21,6 @@ cd build
 
 # Compile hyperion for tags
 if [[ -n $TRAVIS_TAG ]]; then
-	echo "This is a tag build "
-	exit 10
 	cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release .. || exit 2
 	make -j$(nproc) || exit 3
 
