@@ -7,23 +7,25 @@
 #include <QTimer>
 
 // hyperion include
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device.
 ///
-class LedDeviceAdalight : public LedRs232Device
+class LedDeviceAdalight : public ProviderRs232
 {
 	Q_OBJECT
 
 public:
 	///
-	/// Constructs the LedDevice for attached Adalight device
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms);
+	LedDeviceAdalight(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -46,3 +48,4 @@ protected:
 	/// every 15 seconds
 	QTimer _timer;
 };
+

@@ -15,6 +15,5 @@ add_executable(dispmanx2png
 
 target_link_libraries(dispmanx2png
 		dispmanx-grabber
-		getoptPlusPlus
 		Qt5Gui
 		${QT_LIBRARIES})

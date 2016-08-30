@@ -43,7 +43,9 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
+#ifdef ENABLE_X11
 	, _x11Grabber(nullptr)
+#endif
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
@@ -184,12 +186,12 @@ void HyperionDaemon::startInitialEffect()
 		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
 
 		// clear the leds
-		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
+		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
 
 		// initial foreground effect/color
 		const QJsonValue fgEffectConfig = effectConfig["foreground-effect"];
 		int default_fg_duration_ms = 3000;
-		int fg_duration_ms = effectConfig["foreground-effect-duration_ms"].toInt(default_fg_duration_ms);
+		int fg_duration_ms = effectConfig["foreground-duration_ms"].toInt(default_fg_duration_ms);
 		if (fg_duration_ms == DURATION_INFINITY)
 		{
 			fg_duration_ms = default_fg_duration_ms;

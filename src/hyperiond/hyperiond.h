@@ -81,7 +81,9 @@ private:
 	UDPListener*        _udpListener;
 	V4L2Wrapper*        _v4l2Grabber;
 	DispmanxWrapper*    _dispmanx;
+#ifdef ENABLE_X11
 	X11Wrapper*         _x11Grabber;
+#endif
 	AmlogicWrapper*     _amlGrabber;
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;

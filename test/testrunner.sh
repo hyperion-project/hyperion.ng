@@ -16,9 +16,11 @@ function exec_test()
 	then
 		echo -e "   ... success"
 		(( STATS_SUCCESS++ ))
+		return 0
 	else
 		echo -e "   ... failed"
 		(( STATS_FAILED++ ))
+		return 1
 	fi
 	echo
 }
@@ -31,6 +33,7 @@ echo
 echo "Hyperion test execution"
 echo
 exec_test "hyperiond is executable and show version" bin/hyperiond --version
+
 for cfg in ../config/*json*
 do
 	exec_test "test $(basename $cfg)" bin/test_configfile $cfg

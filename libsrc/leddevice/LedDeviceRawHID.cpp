@@ -12,10 +12,12 @@
 #include "LedDeviceRawHID.h"
 
 // Use feature report HID device
-LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
-	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, true)
+LedDeviceRawHID::LedDeviceRawHID(const Json::Value &deviceConfig)
+	: ProviderHID(deviceConfig)
 	, _timer()
 {
+	_useFeature = true;
+
 	// setup the timer
 	_timer.setSingleShot(false);
 	_timer.setInterval(5000);
@@ -23,6 +25,11 @@ LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned s
 
 	// start the timer
 	_timer.start();
+}
+
+LedDevice* LedDeviceRawHID::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceRawHID(deviceConfig);
 }
 
 int LedDeviceRawHID::write(const std::vector<ColorRgb> & ledValues)
