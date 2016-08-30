@@ -21,14 +21,6 @@
 
 
 <script>
-
-	var webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
-
-	webSocket.onerror = function(event) {
-		alert(event.data);
-	};
-
-	webSocket.onopen = function(event) {
 		$(function() {
 			$('#cp2').colorpicker({
 				format: 'rgb',
@@ -66,7 +58,7 @@
 			webSocket.send('{"command":"clear", "priority":1}');
 		});
 
-	};
+	
 
 	webSocket.onmessage = function(event){
 	console.log(event.data);
