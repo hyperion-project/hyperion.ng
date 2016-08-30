@@ -15,18 +15,26 @@ else
     procs=4
 fi
 
-
-# Compile hyperion
-
+# compile prepare
 mkdir build || exit 1
 cd build
-cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 2
-make -j$(nproc) || exit 3
 
+# Compile hyperion for tags
+if [[ -n $TRAVIS_TAG ]]
+	echo "This is a tag build"
+	exit 10
+	cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release .. || exit 2
+	make -j$(nproc) || exit 3
 
+# Compile hyperion for cron or PR
+else 
+	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 4
+	make -j$(nproc) || exit 5
+fi
+	
 # Build the package on Linux
 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
-    make -j$(nproc) package || exit 4
+    make -j$(nproc) package || exit 6
 fi
 
