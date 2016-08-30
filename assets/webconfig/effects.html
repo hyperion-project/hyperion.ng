@@ -17,28 +17,13 @@
 
 	$(document).ready( function() {
 
-		webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
-		var serverInfo;
-
-		webSocket.onerror = function(event) {
-			alert(event.data);
-		};
-
-
-		webSocket.onopen = function(event) {
-			webSocket.send('{"command":"serverinfo"}');
-		};
-
-		webSocket.onmessage = function(response){
-			responseJSON = JSON.parse(response.data );
-			//console.log(response.data);
-			for(i = 0; i < responseJSON.info.effects.length; i++) {
-				//console.log(responseJSON.info.effects[i].name);
-				var effectName = responseJSON.info.effects[i].name;
+			for(i = 0; i < parsedServerInfoJSON.info.effects.length; i++) {
+				//console.log(parsedServerInfoJSON.info.effects[i].name);
+				var effectName = parsedServerInfoJSON.info.effects[i].name;
 
 				$('#buttondiv').append('<button type="button" class="btn btn-success" onclick="playEffect(\''+effectName+'\')"><i class="fa fa-play"></i></button> '+effectName+'<br />');
 			}
-		}
+		
 
 		$("#effect_stop").on("click", function() {
 			webSocket.send('{"command":"clear", "priority":1}');

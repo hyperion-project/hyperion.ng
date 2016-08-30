@@ -2,6 +2,11 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output": {
+			"type": "string",
+			"title":"Output",
+			"default" : "/dev/null",
+		}
 	},
 	"additionalProperties": true
 }

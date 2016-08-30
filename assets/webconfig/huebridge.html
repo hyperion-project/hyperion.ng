@@ -28,12 +28,18 @@
 <div class="modal fade bs-pair-modal-lg" id="pairmodal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-		<span lang="en" data-lang-token="hue_press_link_modal">Press link button on the Hue Bridge now and confirm with the "Pair" button.</span> <br /><br />
-
-		<span id="link_not_pressed" style="display:none; color: red" lang="en" data-lang-token="hue_press_link_modal_failure">Please press link button on your Hue Bridge.</span>
-		<center>
-			<button type="button" class="btn btn-success" id="create_user_second"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_pair"> Pair</span>
-		</center>
+		<div class="modal-header">
+			<h4 class="modal-title">Hue Bridge</h4>
+		</div>
+		<div class="modal-body">
+			<span lang="en" data-lang-token="hue_press_link_modal">Press link button on the Hue Bridge now and confirm with the "Pair" button.</span> <br /><br />
+			<span id="link_not_pressed" style="display:none; color: red" lang="en" data-lang-token="hue_press_link_modal_failure">Please press link button on your Hue Bridge.</span>
+		</div>
+		<div class="modal-footer">
+			<center>
+				<button type="button" class="btn btn-success" id="create_user_second"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_pair"> Pair</span>
+			</center>
+		</div>
     </div>
   </div>
 </div>
