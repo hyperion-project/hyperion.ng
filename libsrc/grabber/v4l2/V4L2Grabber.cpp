@@ -50,7 +50,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	, _noSignalCounter(0)
 	, _streamNotifier(nullptr)
 	, _imageResampler()
-	, _log(Logger::getInstance("V4L2"))
+	, _log(Logger::getInstance("V4L2:"+device))
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
 {

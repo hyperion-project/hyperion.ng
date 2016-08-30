@@ -168,25 +168,27 @@
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
 	"grabber-v4l2" :
-	{
-		"enable"               : false,
-		"device"               : "/dev/video0",
-		"input"                : 0,
-		"standard"             : "no-change",
-		"width"                : -1,
-		"height"               : -1,
-		"frameDecimation"      : 2,
-		"sizeDecimation"       : 8,
-		"priority"             : 890,
-		"mode"                 : "2D",
-		"cropLeft"             : 0,
-		"cropRight"            : 0,
-		"cropTop"              : 0,
-		"cropBottom"           : 0,
-		"redSignalThreshold"   : 0.0,
-		"greenSignalThreshold" : 0.0,
-		"blueSignalThreshold"  : 0.0
-	},
+	[
+		{
+			"enable"   : false,
+			"device"   : "auto",
+			"input"    : 0,
+			"standard" : "PAL",
+			"width"    : -1,
+			"height"   : -1,
+			"frameDecimation" : 2,
+			"sizeDecimation"  : 8,
+			"priority"    : 890,
+			"mode"        : "2D",
+			"cropLeft"    : 0,
+			"cropRight"   : 0,
+			"cropTop"     : 0,
+			"cropBottom"  : 0,
+			"redSignalThreshold"   : 0.0,
+			"greenSignalThreshold" : 0.0,
+			"blueSignalThreshold"  : 0.0
+		}
+	]
 
 	///  The configuration for the frame-grabber, contains the following items: 
 	///   * enable       : true if the framegrabber (platform grabber) should be activated

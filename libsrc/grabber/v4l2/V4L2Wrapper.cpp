@@ -16,7 +16,7 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
 		const int priority)
-	: GrabberWrapper("V4L2", priority)
+	: GrabberWrapper("V4L2:"+device, priority)
 	, _timeout_ms(1000)
 	, _grabber(device,
 			input,
