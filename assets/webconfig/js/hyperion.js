@@ -10,7 +10,7 @@
 * Default language in "lang" attribute will always be "en"
 * @param {String} tokenPrefix
 * @param {String} formID
-*/
+
 function enableFormTranslation(tokenPrefix, formID) {
 var $inputs = $("#" + formID + " label");
 
@@ -20,7 +20,7 @@ $inputs.each(function() {
   $("label[for='" + $(this).attr('id') + "']").html('<span lang="en" data-lang-token="' + tokenPrefix + "_" + $(this).attr('id') + '">' + oldtext + '</span>');
 });
 }
-
+*/
 // global vars
 var currentVersion;
 var cleanCurrentVersion;
