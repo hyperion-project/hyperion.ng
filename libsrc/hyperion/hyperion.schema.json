@@ -744,6 +744,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate"
 				},
 				"port" :
@@ -771,6 +772,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate"
 				},
 				"address" :
@@ -799,6 +801,7 @@
 				"shared" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Shared"
 				}
 			},
@@ -814,6 +817,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate",
 					"required" : true
 				},
