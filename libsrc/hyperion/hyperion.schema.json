@@ -11,6 +11,7 @@
 			{
 				"level" :
 				{
+					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
 					"title" : "Log-Level"
 				}
