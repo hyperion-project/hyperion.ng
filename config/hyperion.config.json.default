@@ -117,7 +117,7 @@
 			"greenSignalThreshold" : 0.0,
 			"blueSignalThreshold"  : 0.0
 		}
-	]
+	],
 
 	"framegrabber" :
 	{

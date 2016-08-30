@@ -15,7 +15,8 @@ enum Components
 	COMP_FORWARDER,
 	COMP_UDPLISTENER,
 	COMP_BOBLIGHTSERVER,
-	COMP_GRABBER
+	COMP_GRABBER,
+	COMP_V4L
 };
 
 inline const char* componentToString(Components c)
@@ -29,6 +30,7 @@ inline const char* componentToString(Components c)
 		case COMP_UDPLISTENER:   return "UDP listener";
 		case COMP_BOBLIGHTSERVER:return "Boblight server";
 		case COMP_GRABBER:       return "Framegrabber";
+		case COMP_V4L:           return "V4l Capture device";
 		default:                 return "";
 	}
 }
@@ -43,6 +45,7 @@ inline  Components stringToComponent(QString component)
 	if (component == "UDPLISTENER")   return COMP_UDPLISTENER;
 	if (component == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
 	if (component == "GRABBER")       return COMP_GRABBER;
+	if (component == "V4L")           return COMP_V4L;
 
 	return COMP_INVALID;
 }

@@ -65,8 +65,8 @@ int main(int argc, char * argv[])
 		BooleanOption  	& argServerInfo  = parser.add<BooleanOption> ('l', "list"      , "List server info and active effects with priority and duration");
 		BooleanOption  	& argClear       = parser.add<BooleanOption> ('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption  	& argClearAll    = parser.add<BooleanOption> (0x0, "clearall"  , "Clear data for all active priority channels");
-		Option          & argEnableComponent  = parser.add<Option>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
-		Option          & argDisableComponent = parser.add<Option>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]");
+		Option          & argEnableComponent  = parser.add<Option>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
+		Option          & argDisableComponent = parser.add<Option>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
 		Option          & argId          = parser.add<Option>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
 		DoubleOption    & argSaturation  = parser.add<DoubleOption>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
 		DoubleOption    & argValue       = parser.add<DoubleOption>   ('v', "getColors"     , "!DEPRECATED! Will be removed soon! Set the HSV getColors gain of the leds");

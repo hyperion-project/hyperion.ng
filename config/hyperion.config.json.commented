@@ -188,7 +188,7 @@
 			"greenSignalThreshold" : 0.0,
 			"blueSignalThreshold"  : 0.0
 		}
-	]
+	],
 
 	///  The configuration for the frame-grabber, contains the following items: 
 	///   * enable       : true if the framegrabber (platform grabber) should be activated
