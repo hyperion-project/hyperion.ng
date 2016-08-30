@@ -12,7 +12,7 @@
 * @param {String} formID
 */
 function enableFormTranslation(tokenPrefix, formID) {
-var $inputs = $("#" + formID + " :input");
+var $inputs = $("#" + formID + " label");
 
 $inputs.each(function() {
   console.log("InputID: " + $(this).attr('id'));
@@ -34,13 +34,13 @@ function button_reloaddata(){
 	hyperionport = $("#json_port").val();
 	loaddata();
 	};
-	
+
 function loaddata() {
-	
+
 		webSocket = new WebSocket('ws://'+document.location.hostname+':'+hyperionport);
 
 		webSocket.onerror = function(event) {
-			$('#con_error_modal').modal('show');			
+			$('#con_error_modal').modal('show');
 		};
 
 		webSocket.onopen = function(event) {
@@ -57,12 +57,12 @@ function loaddata() {
 			// get host
 			var hostname = parsedServerInfoJSON.info.hostname;
 			$('#dash_systeminfo').html(hostname+':'+hyperionport);
-			
+
 			$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 				parsedUpdateJSON = JSON.parse(data);
 				latestVersion = parsedUpdateJSON[0].versionnr;
 				cleanLatestVersion = latestVersion.replace(/\./g, '');
-				
+
 				$('#currentversion').html(' V'+currentVersion);
 				$('#latestversion').html(' V'+latestVersion);
 
@@ -73,6 +73,6 @@ function loaddata() {
 					$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
 					}
 			});
-		
+
 		};
 };

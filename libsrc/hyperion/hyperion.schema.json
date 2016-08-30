@@ -826,7 +826,7 @@
 				"port" :
 				{
 					"type" : "integer",
-					"description" : "Port",
+					"title" : "Port",
 					"required" : true
 				}
 			},
