@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -25,8 +25,9 @@
     <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   <!-- JSONForm -->
-    <script src="js/lib/underscore.js"></script>
-    <script src="js/lib/jsonform.js"></script>
+    <!--<script src="js/lib/underscore.js"></script>
+    <script src="js/lib/jsonform.js"></script>-->
+    <script src="js/lib/jsoneditor.min.js"></script>
 
 	<!--Language Support -->
 	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
@@ -35,19 +36,14 @@
 	<script type="text/javascript">
 		// Create language switcher instance
 		var lang = new Lang();
-
 		lang.dynamic('de', 'lang/de.json');
-
 		lang.init({
 			defaultLang: 'en',
-
 			cookie: {
 				name: 'langCookie',
 				expiry: 365,
 				path: '/'
 			},
-
-
 			allowCookieOverride: true
 		});
 	</script>
@@ -490,49 +486,39 @@
     <!-- Custom Theme JavaScript -->
     <script src="js/lib/sb-admin-2.js"></script>
 	<script>
-
 		$(document).ready( function() {
 			$("#load_lighttest").on("click", function() {
 				$("#page-wrapper").load("lighttest.html");
 			});
-
 			$("#load_effects").on("click", function() {
 				$("#page-wrapper").load("effects.html");
 			});
-			
+
 			$("#load_components").on("click", function() {
 				$("#page-wrapper").load("remote_components.html");
 			});
-
 			$("#load_huebridge").on("click", function() {
 				$("#page-wrapper").load("huebridge.html");
       });
-
 			$("#load_support").on("click", function() {
 				$("#page-wrapper").load("support.html");
 			});
-
 			$("#load_confKodi").on("click", function() {
 				$("#page-wrapper").load("kodiconf.html");
 			});
-
       $("#load_update").on("click", function() {
 				$("#page-wrapper").load("update.html");
 			});
-
       $("#load_confGeneral").on("click", function() {
 				$("#page-wrapper").load("generalconf.html");
 			});
-
       //Change all Checkboxes to Switches
       $("[type='checkbox']").bootstrapSwitch();
+	     loaddata();
 
-	loaddata();
-	  
     });
 		$(function(){
 			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-
 			sidebar.delegate('a.inactive','click',function(){
 				sidebar.find('.active').toggleClass('active inactive');
 				$(this).toggleClass('active inactive');

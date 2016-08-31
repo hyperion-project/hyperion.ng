@@ -11,6 +11,7 @@
 			{
 				"level" :
 				{
+					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
 					"title" : "Log-Level"
 				}
@@ -747,6 +748,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate"
 				},
 				"port" :
@@ -774,6 +776,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate"
 				},
 				"address" :
@@ -802,6 +805,7 @@
 				"shared" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Shared"
 				}
 			},
@@ -817,6 +821,7 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Activate",
 					"required" : true
 				},
@@ -829,7 +834,7 @@
 				"port" :
 				{
 					"type" : "integer",
-					"description" : "Port",
+					"title" : "Port",
 					"required" : true
 				}
 			},
