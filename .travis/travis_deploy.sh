@@ -13,17 +13,16 @@ sf_upload()
 	EOD
 }
 
-
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
+	cd $TRAVIS_BUILD_DIR/build
 	if [[ -n $TRAVIS_TAG ]]; then
 		echo "tag upload"
-		echo "build dir: ${TRAVIS_BUILD_DIR}"
-		sf_upload $TRAVIS_BUILD_DIR/afile nightly
+		sf_upload hyperion-2.0.0-Linux-x86.deb release
 	elif [[ $TRAVIS_EVENT_TYPE == 'cron' ]]; then
-		sf_upload abinary nightly
+		echo "cron upload"
+		sf_upload hyperion-2.0.0-Linux-x86.deb nightly
 	else
 		echo "PR upload"
-		echo "build dir: ${TRAVIS_BUILD_DIR}"
-		sf_upload /home/travis/build/brindosch/hyperion.ngBeta/build/hyperion-2.0.0-Linux-x86-dev.deb beta
+		sf_upload hyperion-2.0.0-Linux-x86-dev.deb pullrequest
 	fi
 fi
