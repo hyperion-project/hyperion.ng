@@ -17,7 +17,7 @@ matrix:
       env:
         - HOMEBREW_CACHE=$HOME/brew-cache
 before_install:
-    - chmod +x ./.travis/travis_install.sh
+    - chmod +x ./.travis/travis_install.sh ./.travis/travis_deploy.sh
     - ./.travis/travis_install.sh
 script:
     - chmod +x ./.travis/travis_build.sh ./test/testrunner.sh
