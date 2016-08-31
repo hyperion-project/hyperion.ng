@@ -399,83 +399,87 @@
 		},
 		"grabber-v4l2" :
 		{
-			"type" : "object",
-			"properties" :
+			"type":"array",
+			"items":
 			{
-				"enable" :
+				"type" : "object",
+				"properties" :
 				{
-					"type" : "boolean"
+					"enable" :
+					{
+						"type" : "boolean"
+					},
+					"device" :
+					{
+						"type" : "string"
+					},
+					"input" :
+					{
+						"type" : "integer"
+					},
+					"standard" :
+					{
+						"type" : "string"
+					},
+					"width" :
+					{
+						"type" : "integer"
+					},
+					"height" :
+					{
+						"type" : "integer"
+					},
+					"frameDecimation" :
+					{
+						"type" : "integer"
+					},
+					"sizeDecimation" :
+					{
+						"type" : "integer"
+					},
+					"priority" :
+					{
+						"type" : "integer"
+					},
+					"mode" :
+					{
+						"type" : "string"
+					},
+					"useKodiChecker" :
+					{
+						"type" : "boolean"
+					},
+					"cropLeft" :
+					{
+						"type" : "integer"
+					},
+					"cropRight" :
+					{
+						"type" : "integer"
+					},
+					"cropTop" :
+					{
+						"type" : "integer"
+					},
+					"cropBottom" :
+					{
+						"type" : "integer"
+					},
+					"redSignalThreshold" :
+					{
+						"type" : "number"
+					},
+					"greenSignalThreshold" :
+					{
+						"type" : "number"
+					},
+					"blueSignalThreshold" :
+					{
+						"type" : "number"
+					}
 				},
-				"device" :
-				{
-					"type" : "string"
-				},
-				"input" :
-				{
-					"type" : "integer"
-				},
-				"standard" :
-				{
-					"type" : "string"
-				},
-				"width" :
-				{
-					"type" : "integer"
-				},
-				"height" :
-				{
-					"type" : "integer"
-				},
-				"frameDecimation" :
-				{
-					"type" : "integer"
-				},
-				"sizeDecimation" :
-				{
-					"type" : "integer"
-				},
-				"priority" :
-				{
-					"type" : "integer"
-				},
-				"mode" :
-				{
-					"type" : "string"
-				},
-				"useKodiChecker" :
-				{
-					"type" : "boolean"
-				},
-				"cropLeft" :
-				{
-					"type" : "integer"
-				},
-				"cropRight" :
-				{
-					"type" : "integer"
-				},
-				"cropTop" :
-				{
-					"type" : "integer"
-				},
-				"cropBottom" :
-				{
-					"type" : "integer"
-				},
-				"redSignalThreshold" :
-				{
-					"type" : "number"
-				},
-				"greenSignalThreshold" :
-				{
-					"type" : "number"
-				},
-				"blueSignalThreshold" :
-				{
-					"type" : "number"
-				}
-			},
 			"additionalProperties" : false
+			}
 		},
 		"framegrabber" :
 		{

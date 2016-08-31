@@ -4,7 +4,7 @@
 #include <hyperion/GrabberWrapper.h>
 
 
-GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority)
+GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
 	, _priority(priority)
@@ -12,6 +12,7 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority)
 	, _log(Logger::getInstance(grabberName.c_str()))
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _grabberComponentId(grabberComponentId)
 {
 	_timer.setSingleShot(false);
 
@@ -44,7 +45,7 @@ void GrabberWrapper::stop()
 
 void GrabberWrapper::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == hyperion::COMP_GRABBER && _timer.isActive() != enable)
+	if (component == _grabberComponentId && _timer.isActive() != enable)
 	{
 		if (enable) start();
 		else        stop();
