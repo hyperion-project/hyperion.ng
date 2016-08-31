@@ -27,4 +27,3 @@ deploy:
   provider: script
   script: .travis/travis_deploy.sh
   on:
-    branch: master
