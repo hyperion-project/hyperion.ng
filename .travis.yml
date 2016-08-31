@@ -24,6 +24,7 @@ script:
     - ./.travis/travis_build.sh
     - ./test/testrunner.sh
 deploy:
+  skip_cleanup: true
   provider: script
   script: .travis/travis_deploy.sh
   on:
