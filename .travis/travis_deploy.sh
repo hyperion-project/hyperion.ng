@@ -25,4 +25,5 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 		echo "PR upload"
 		echo "build dir: ${TRAVIS_BUILD_DIR}"
 		sf_upload /home/travis/build/brindosch/hyperion.ngBeta/build/hyperion-2.0.0-Linux-x86-dev.deb beta
+	fi
 fi
