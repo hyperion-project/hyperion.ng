@@ -3,7 +3,7 @@
 # sf_upload <binarylist> <sf_dir>
 sf_upload()
 {
-	/usr/bin/expect <<EOD
+	/usr/bin/expect <<-EOD
 	spawn scp $1 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/$2
 	expect "*(yes/no)*"
 	send "yes\r"
