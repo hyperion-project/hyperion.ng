@@ -423,6 +423,7 @@
 			"items":
 			{
 				"type" : "object",
+				"required": ["mode"],
 				"properties" :
 				{
 					"enable" :
