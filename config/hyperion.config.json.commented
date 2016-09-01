@@ -160,6 +160,7 @@
 	///  * sizeDecimation       : Size decimation factor [default=8]
 	///  * priority             : Hyperion priority channel [default=900]
 	///  * mode                 : 3D mode to use 2D/3DSBS/3DTAB (note: no autodetection) [default="2D"]
+	///  * useKodiChecker       : Enable/disable V4L2 according kodichecker sate if set to true [default=false]
 	///  * cropLeft             : Cropping from the left [default=0]
 	///  * cropRight            : Cropping from the right [default=0]
 	///  * cropTop              : Cropping from the top [default=0]
@@ -180,6 +181,7 @@
 			"sizeDecimation"  : 8,
 			"priority"    : 890,
 			"mode"        : "2D",
+			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
 			"cropTop"     : 0,
