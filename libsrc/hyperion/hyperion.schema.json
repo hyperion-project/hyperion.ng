@@ -702,46 +702,50 @@
 				{
 					"type" : "string",
 					"title" : "Kodi IP address",
+					"default" : "127.0.0.1"
 				},
 				"kodiTcpPort" :
 				{
 					"type" : "integer",
 					"title" : "Kodi TCP port",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 9090
 				},
 				"grabVideo" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Video",
+					"title" : "Video",
 					"default" : true
 				},
 				"grabPictures" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Pictures",
+					"title" : "Pictures",
 					"default" : true
 				},
 				"grabAudio" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Audio",
+					"title" : "Audio",
 					"default" : true
 				},
 				"grabMenu" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Menu",
+					"title" : "Menu",
 					"default" : false
 				},
 				"grabPause" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Pause",
+					"title" : "Pause",
 					"default" : false
 				},
 				"grabScreensaver" :
 				{
 					"type" : "boolean",
-					"title" : "Capture Screensaver",
+					"title" : "Screensaver",
 					"default" : false
 				},
 				"enable3DDetection" :
