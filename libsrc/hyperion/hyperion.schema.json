@@ -7,13 +7,15 @@
 		{
 			"type" : "object",
 			"title" : "Logging",
+			"required": ["level"],
 			"properties" :
 			{
 				"level" :
 				{
 					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
-					"title" : "Log-Level"
+					"title" : "Log-Level",
+					"default" : "warn"
 				}
 			},
 			"additionalProperties" : false
