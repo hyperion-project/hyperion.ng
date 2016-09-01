@@ -423,8 +423,6 @@
 			"items":
 			{
 				"type" : "object",
-				"title" : "USB Grabber",
-				"required": ["standard","mode"],
 				"properties" :
 				{
 					"enable" :
