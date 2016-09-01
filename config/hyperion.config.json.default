@@ -109,6 +109,7 @@
 			"sizeDecimation"  : 8,
 			"priority"    : 890,
 			"mode"        : "2D",
+			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
 			"cropTop"     : 0,
