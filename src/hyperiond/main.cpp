@@ -16,13 +16,14 @@
 
 #include "HyperionConfig.h"
 
-#include <getoptPlusPlus/getoptpp.h>
 #include <utils/Logger.h>
 #include <webconfig/WebConfig.h>
+#include <commandline/Parser.h>
+#include <commandline/IntOption.h>
 
 #include "hyperiond.h"
 
-using namespace vlofgren;
+using namespace commandline;
 
 void signal_handler(const int signum)
 {
@@ -62,34 +63,34 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
-	OptionsParser optionParser("Hyperion Daemon");
-	ParameterSet & parameters = optionParser.getParameters();
+	Parser parser("Hyperion Daemon");
+	parser.addHelpOption();
 
-	SwitchParameter<>      & argVersion               = parameters.add<SwitchParameter<>>     (0x0, "version",       "Show version information");
-	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
-	SwitchParameter<>      & argSilent                = parameters.add<SwitchParameter<>>     (0x0, "silent",        "do not print any outputs");
-	SwitchParameter<>      & argVerbose               = parameters.add<SwitchParameter<>>     (0x0, "verbose",       "Increase verbosity");
-	SwitchParameter<>      & argDebug                 = parameters.add<SwitchParameter<>>     (0x0, "debug",         "Show debug messages");
-	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
+	BooleanOption & versionOption = parser.add<BooleanOption>(0x0, "version", "Show version information");
+	IntOption & parentOption = parser.add<IntOption>('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
+	BooleanOption & silentOption = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
+	BooleanOption & debugOption = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration files"), "[files...]");
 
-	argParentPid.setDefault(0);
-	optionParser.parse(argc, const_cast<const char **>(argv));
-	const std::vector<std::string> configFiles = optionParser.getFiles();
+    parser.process(app);
+
+	const QStringList configFiles = parser.positionalArguments();
 
 	int logLevelCheck = 0;
-	if (argSilent.isSet())
+	if (parser.isSet(silentOption))
 	{
 		Logger::setLogLevel(Logger::OFF);
 		logLevelCheck++;
 	}
 
-	if (argVerbose.isSet())
+	if (parser.isSet(verboseOption))
 	{
 		Logger::setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}
 
-	if (argDebug.isSet())
+	if (parser.isSet(debugOption))
 	{
 		Logger::setLogLevel(Logger::DEBUG);
 		logLevelCheck++;
@@ -100,15 +101,8 @@ int main(int argc, char** argv)
 		Error(log, "aborting, because options --silent --verbose --debug can't used together");
 		return 0;
 	}
-	
-	// check if we need to display the usage. exit if we do.
-	if (argHelp.isSet())
-	{
-		optionParser.usage();
-		return 0;
-	}
 
-	if (argVersion.isSet())
+	if (parser.isSet(versionOption))
 	{
 	std::cout
 		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
@@ -124,24 +118,25 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	
-	if (argParentPid.getValue() > 0 )
+
+    int parentPid = parser.value(parentOption).toInt();
+	if (parentPid > 0 )
 	{
-		Info(log, "hyperiond client, parent is pid %d",argParentPid.getValue());
+		Info(log, "hyperiond client, parent is pid %d", parentPid);
 #ifndef __APPLE__
 		prctl(PR_SET_PDEATHSIG, SIGHUP);
 #endif
 	}
-	
+
 	int argvId = -1;
-	for(size_t idx=0; idx < configFiles.size(); idx++) {
-		if ( QFile::exists(configFiles[idx].c_str()))
+	for(int idx=0; idx < configFiles.size(); idx++) {
+		if ( QFile::exists(configFiles[idx]))
 		{
 			if (argvId < 0) argvId=idx;
-			else startNewHyperion(getpid(), argv[0], configFiles[idx].c_str());
+			else startNewHyperion(getpid(), argv[0], configFiles[idx].toStdString());
 		}
 	}
-	
+
 	if ( argvId < 0)
 	{
 		Error(log, "No valid config found");
@@ -151,7 +146,7 @@ int main(int argc, char** argv)
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(QString::fromStdString(configFiles[argvId]), &app);
+		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
 		hyperiond->run();
 	}
 	catch (std::exception& e)

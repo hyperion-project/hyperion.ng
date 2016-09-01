@@ -1,0 +1,21 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"universe": {
+			"type": "integer",
+			"title":"Universe",
+			"default": 1
+		},
+		"latchtinme": {
+			"type": "integer",
+			"title":"Latchtime",
+			"default": 104000
+		},
+		"cid": {
+			"type": "string",
+			"title":"CID",
+		}
+	},
+	"additionalProperties": true
+}

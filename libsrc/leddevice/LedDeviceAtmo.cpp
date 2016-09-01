@@ -1,8 +1,8 @@
 // hyperion local includes
 #include "LedDeviceAtmo.h"
 
-LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned baudrate)
-	: LedRs232Device(outputDevice, baudrate)
+LedDeviceAtmo::LedDeviceAtmo(const Json::Value &deviceConfig)
+	: ProviderRs232(deviceConfig)
 {
 	_ledBuffer.resize(4 + 5*3); // 4-byte header, 5 RGB values
 	_ledBuffer[0] = 0xFF; // Startbyte
@@ -10,6 +10,12 @@ LedDeviceAtmo::LedDeviceAtmo(const std::string& outputDevice, const unsigned bau
 	_ledBuffer[2] = 0x00; // StartChannel(High)
 	_ledBuffer[3] = 0x0F; // Number of Databytes send (always! 15)
 }
+
+LedDevice* LedDeviceAtmo::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAtmo(deviceConfig);
+}
+
 
 int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 {

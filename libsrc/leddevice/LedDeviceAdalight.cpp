@@ -10,9 +10,10 @@
 
 // hyperion local includes
 #include "LedDeviceAdalight.h"
+#include <leddevice/LedDevice.h>
 
-LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms)
-	: LedRs232Device(outputDevice, baudrate, delayAfterConnect_ms)
+LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
+	: ProviderRs232(deviceConfig)
 	, _timer()
 {
 	// setup the timer
@@ -22,6 +23,11 @@ LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsi
 
 	// start the timer
 	_timer.start();
+}
+
+LedDevice* LedDeviceAdalight::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAdalight(deviceConfig);
 }
 
 int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)

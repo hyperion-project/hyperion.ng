@@ -11,7 +11,7 @@ class ScreenshotHandler : public QObject
 	Q_OBJECT
 
 public:
-	ScreenshotHandler(const std::string & filename);
+	ScreenshotHandler(const QString & filename);
 	virtual ~ScreenshotHandler();
 
 public slots:
@@ -20,5 +20,5 @@ public slots:
 	void receiveImage(const Image<ColorRgb> & image);
 
 private:
-	const std::string _filename;
+	const QString _filename;
 };

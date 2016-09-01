@@ -4,23 +4,24 @@
 #include <string>
 
 // hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
+#include <json/json.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.
 ///
-/// APA102 is
-///
-class LedDeviceAPA102 : public LedSpiDevice
+class LedDeviceAPA102 : public ProviderSpi
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type APA102
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/spidev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate );
+	LedDeviceAPA102(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 
 	///

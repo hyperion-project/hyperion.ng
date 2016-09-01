@@ -16,10 +16,24 @@ extern "C" {
 class LedDeviceTinkerforge : public LedDevice
 {
 public:
-	
-	LedDeviceTinkerforge(const std::string &host, uint16_t port, const std::string &uid, const unsigned interval);
+	///
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
+	LedDeviceTinkerforge(const Json::Value &deviceConfig);
 
 	virtual ~LedDeviceTinkerforge();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Attempts to open a connection to the master bricklet and the led strip bricklet.
@@ -50,16 +64,16 @@ private:
 	int transferLedData(LEDStrip *ledstrip, unsigned int index, unsigned int length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel);
 
 	/// The host of the master brick
-	const std::string _host;
+	std::string _host;
 
 	/// The port of the master brick
-	const uint16_t _port;
+	uint16_t _port;
 
 	/// The uid of the led strip bricklet
-	const std::string _uid;
+	std::string _uid;
 
 	/// The interval/rate
-	const unsigned _interval;
+	unsigned _interval;
 
 	/// ip connection handle 
 	IPConnection *_ipConnection;

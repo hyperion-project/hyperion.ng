@@ -565,7 +565,6 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"]))
 	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"]))
 	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"]))
-	, _device(LedDeviceFactory::construct(jsonConfig["device"]))
 	, _effectEngine(nullptr)
 	, _messageForwarder(createMessageForwarder(jsonConfig["forwarder"]))
 	, _jsonConfig(jsonConfig)
@@ -575,6 +574,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 {
+	_device = LedDeviceFactory::construct(jsonConfig["device"]);
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 	
 	if (!_raw2ledAdjustment->verifyAdjustments())

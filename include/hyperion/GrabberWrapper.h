@@ -15,7 +15,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(std::string grabberName, const int priority);
+	GrabberWrapper(std::string grabberName, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	
@@ -72,4 +72,5 @@ protected:
 	/// The processor for transforming images to led colors
 	ImageProcessor * _processor;
 
+	hyperion::Components _grabberComponentId;
 };

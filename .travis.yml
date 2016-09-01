@@ -4,7 +4,6 @@ cache:
         - $HOME/brew-cache
 notifications:
     email: false
-    slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
 language: cpp
 matrix:
   include:
