@@ -374,7 +374,8 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Enable",
+					"format": "checkbox",
+					"title" : "Activate",
 					"default" : true
 				},
 				"type" :
@@ -411,6 +412,7 @@
 				"continuousOutput" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Continuous output",
 					"default" : true
 				}
@@ -423,13 +425,14 @@
 			"items":
 			{
 				"type" : "object",
-				"required": ["mode"],
+				"required": ["mode","standard"],
 				"properties" :
 				{
 					"enable" :
 					{
 						"type" : "boolean",
-						"title" : "Enable",
+						"format": "checkbox",
+						"title" : "Activate",
 						"default" : false
 					},
 					"device" :
@@ -491,6 +494,7 @@
 					"useKodiChecker" :
 					{
 						"type" : "boolean",
+						"format": "checkbox",
 						"title" : "Use Kodi Watch",
 						"default" : false
 					},
@@ -559,7 +563,8 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Enable",
+					"format": "checkbox",
+					"title" : "Activate",
 					"default" : true
 				},
 				"type" :
@@ -624,6 +629,7 @@
 				"useXGetImage" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Use XGetImage",
 					"default" : false
 				},
@@ -666,7 +672,8 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Enable",
+					"format": "checkbox",
+					"title" : "Activate",
 					"default" : true
 				},
 				"threshold" :
@@ -696,7 +703,8 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Enable",
+					"format": "checkbox",
+					"title" : "Activate",
 					"default" : false
 				},
 				"kodiAddress" :
@@ -716,42 +724,49 @@
 				"grabVideo" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Video",
 					"default" : true
 				},
 				"grabPictures" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Pictures",
 					"default" : true
 				},
 				"grabAudio" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Audio",
 					"default" : true
 				},
 				"grabMenu" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Menu",
 					"default" : false
 				},
 				"grabPause" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Pause",
 					"default" : false
 				},
 				"grabScreensaver" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Screensaver",
 					"default" : false
 				},
 				"enable3DDetection" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Detect 3D",
 					"default" : false
 				}
@@ -802,6 +817,8 @@
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
 					"required" : true
 				},
 				"json" :
@@ -881,7 +898,7 @@
 					"type" : "integer",
 					"title" : "Priority",
 					"minimum" : 0,
-					"deafult" : 800
+					"default" : 800
 				}
 			},
 			"additionalProperties" : false
@@ -929,6 +946,7 @@
 				"shared" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
 					"title" : "Shared",
 					"default" : false
 				}
