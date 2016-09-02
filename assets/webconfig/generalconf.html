@@ -21,7 +21,7 @@
 
 	$(document).ready( function() {
 
-		webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
+		webSocket = new WebSocket('ws://'+document.location.hostname+':'+hyperionport);
 		var serverInfo;
 
 		webSocket.onerror = function(event) {
@@ -34,16 +34,29 @@
 		};
 
 		webSocket.onmessage = function(response){
-			logger = JSON.parse(response.data).result.properties.logger;
-      jsonServer = JSON.parse(response.data).result.properties.jsonServer;
-      protoServer = JSON.parse(response.data).result.properties.protoServer;
-      boblightServer = JSON.parse(response.data).result.properties.boblightServer;
-      udpListener = JSON.parse(response.data).result.properties.udpListener;
-      webConfig = JSON.parse(response.data).result.properties.webConfig;
+			parsedConfSchemaJSON = JSON.parse(response.data);
+			console.log(parsedConfSchemaJSON)
+			
+			schema_smoothing = parsedConfSchemaJSON.result.properties.smoothing;
+			schema_kodiVideoChecker = parsedConfSchemaJSON.result.properties.kodiVideoChecker;
+			schema_initialEffect = parsedConfSchemaJSON.result.properties.initialEffect;
+			//schema_grabber-v4l2 = parsedConfSchemaJSON.result.properties.grabber-v4l2;
+			schema_framegrabber = parsedConfSchemaJSON.result.properties.framegrabber;
+			schema_forwarder = parsedConfSchemaJSON.result.properties.forwarder;
+			schema_effects = parsedConfSchemaJSON.result.properties.effects;
+			schema_device = parsedConfSchemaJSON.result.properties.device;
+			schema_color = parsedConfSchemaJSON.result.properties.color;
+			schema_blackborderdetector = parsedConfSchemaJSON.result.properties.blackborderdetector;
+			schema_logger = parsedConfSchemaJSON.result.properties.logger;
+			schema_jsonServer = parsedConfSchemaJSON.result.properties.jsonServer;
+			schema_protoServer = parsedConfSchemaJSON.result.properties.protoServer;
+			schema_boblightServer = parsedConfSchemaJSON.result.properties.boblightServer;
+			schema_udpListener = parsedConfSchemaJSON.result.properties.udpListener;
+			schema_webConfig = parsedConfSchemaJSON.result.properties.webConfig;
 
       var element = document.getElementById('editor_holder');
       //JSONEditor.defaults.options.theme = 'bootstrap3';
-      var editor = new JSONEditor(element,{
+      var general_conf_editor = new JSONEditor(element,{
         theme: 'bootstrap3',
         disable_collapse: 'true',
         form_name_root: 'sa',
@@ -53,23 +66,33 @@
         schema: {
           title:' ',
           properties: {
-            logger,
-            jsonServer,
-            protoServer,
-            boblightServer,
-            udpListener,
-            webConfig
+            schema_blackborderdetector,
+			schema_color,
+			schema_device,
+			schema_effects,
+			schema_forwarder,
+			schema_framegrabber,
+			//schema_grabber-v4l2,
+			schema_initialEffect,
+			schema_kodiVideoChecker,
+			schema_smoothing,
+			schema_logger,
+            schema_jsonServer,
+            schema_protoServer,
+            schema_boblightServer,
+            schema_udpListener,
+            schema_webConfig
           }
         }
       });
 
       document.getElementById('submit').addEventListener('click',function() {
         // Get the value from the editor
-        console.log(editor.getValue());
+        console.log(general_conf_editor.getValue());
       });
 
 
-      $("[type='checkbox']").bootstrapSwitch();
+    //  $("[type='checkbox']").bootstrapSwitch();
 
 
 		}
