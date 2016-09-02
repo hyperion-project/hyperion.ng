@@ -28,6 +28,7 @@ var latestVersion;
 var cleanLatestVersion;
 var parsedServerInfoJSON;
 var parsedUpdateJSON;
+var parsedConfSchemaJSON;
 var hyperionport = 19444;
 
 function button_reloaddata(){

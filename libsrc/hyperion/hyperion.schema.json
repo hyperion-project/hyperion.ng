@@ -7,13 +7,15 @@
 		{
 			"type" : "object",
 			"title" : "Logging",
+			"required": ["level"],
 			"properties" :
 			{
 				"level" :
 				{
 					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
-					"title" : "Log-Level"
+					"title" : "Log-Level",
+					"default" : "warn"
 				}
 			},
 			"additionalProperties" : false
@@ -21,6 +23,7 @@
 		"device" :
 		{
 			"type" : "object",
+			"title" : "LED Device",
 			"required" : true,
 			"properties" :
 			{
@@ -54,6 +57,7 @@
 		"color" :
 		{
 			"type":"object",
+			"title" : "Color Calibration",
 			"required" : true,
 			"properties":
 			{
@@ -363,37 +367,54 @@
 		"smoothing":
 		{
 			"type" : "object",
+			"title" : "Smoothing",
+			"required": ["type"],
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
+					"default" : true
 				},
 				"type" :
 				{
-					"enum" : ["linear"]
+					"type" : "string",
+					"title" : "Type",
+					"enum" : ["linear"],
+					"default" : "linear"
 				},
 				"time_ms" :
 				{
 					"type" : "integer",
+					"title" : "Time",
 					"minimum" : 25,
-					"maximum": 600
+					"maximum": 600,
+					"default" : 200
 				},
 				"updateFrequency" :
 				{
 					"type" : "number",
+					"title" : "Update frequency",
 					"minimum" : 1.000,
-					"maximum": 100.000
+					"maximum" : 100.000,
+					"default" : 25.000
 				},
 				"updateDelay" :
 				{
 					"type" : "integer",
+					"title" : "Update delay",
 					"minimum" : 0,
-					"maximum": 2048
+					"maximum": 2048,
+					"default" : 0
 				},
 				"continuousOutput" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Continuous output",
+					"default" : true
 				}
 			},
 			"additionalProperties" : false
@@ -404,79 +425,130 @@
 			"items":
 			{
 				"type" : "object",
+				"required": ["mode","standard"],
 				"properties" :
 				{
 					"enable" :
 					{
-						"type" : "boolean"
+						"type" : "boolean",
+						"format": "checkbox",
+						"title" : "Activate",
+						"default" : false
 					},
 					"device" :
 					{
-						"type" : "string"
+						"type" : "string",
+						"title" : "Device",
+						"default" : "auto"
 					},
 					"input" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Input",
+						"default" : 0
 					},
 					"standard" :
 					{
-						"type" : "string"
+						"type" : "string",
+						"title" : "Video standard",
+						"enum" : ["PAL","NTSC"],
+						"default" : "PAL"
 					},
 					"width" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Width",
+						"default" : -1
 					},
 					"height" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Height",
+						"default" : -1
 					},
 					"frameDecimation" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Frame decimation",
+						"default" : 2
 					},
 					"sizeDecimation" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Size decimation",
+						"default" : 6
 					},
 					"priority" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Priority channel",
+						"default" : 900
 					},
 					"mode" :
 					{
-						"type" : "string"
+						"type" : "string",
+						"title" : "Mode",
+						"enum" : ["2D","3DSBS","3DTAB"],
+						"default" : "2D"
 					},
 					"useKodiChecker" :
 					{
-						"type" : "boolean"
+						"type" : "boolean",
+						"format": "checkbox",
+						"title" : "Use Kodi Watch",
+						"default" : false
 					},
 					"cropLeft" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Crop left",
+						"minimum" : 0,
+						"default" : 0
 					},
 					"cropRight" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Crop right",
+						"minimum" : 0,
+						"default" : 0
 					},
 					"cropTop" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Crop top",
+						"minimum" : 0,
+						"default" : 0
 					},
 					"cropBottom" :
 					{
-						"type" : "integer"
+						"type" : "integer",
+						"title" : "Crop bottom",
+						"minimum" : 0,
+						"default" : 0
 					},
 					"redSignalThreshold" :
 					{
-						"type" : "number"
+						"type" : "number",
+						"title" : "Red signal threshold",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1
 					},
 					"greenSignalThreshold" :
 					{
-						"type" : "number"
+						"type" : "number",
+						"title" : "Green signal threshold",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1
 					},
 					"blueSignalThreshold" :
 					{
-						"type" : "number"
+						"type" : "number",
+						"title" : "Blue signal threshold",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1
 					}
 				},
 			"additionalProperties" : false
@@ -485,74 +557,106 @@
 		"framegrabber" :
 		{
 			"type" : "object",
+			"title" : "Framegrabber",
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
+					"default" : true
 				},
 				"type" :
 				{
-					"type" : "string"
+					"type" : "string",
+					"title" : "Type"
 				},
 				"width" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Width",
+					"default" : 96
 				},
 				"height" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Height",
+					"default" : 96
 				},
 				"frequency_Hz" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Frequency",
+					"minimum" : 0,
+					"default" : 10
 				},
 				"priority" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Priority channel",
+					"minimum" : 0,
+					"default" : 890
 				},
 				"cropLeft" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Crop left",
+					"minimum" : 0,
+					"default" : 0
 				},
 				"cropRight" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Crop right",
+					"minimum" : 0,
+					"default" : 0
 				},
 				"cropTop" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Crop top",
+					"minimum" : 0,
+					"default" : 0
 				},
 				"cropBottom" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Crop bottom",
+					"minimum" : 0,
+					"default" : 0
 				},
 				"useXGetImage" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Use XGetImage",
+					"default" : false
 				},
 				"horizontalPixelDecimation" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Horizontal pixel decimation",
+					"minimum" : 0,
+					"default" : 8
 				},
 				"verticalPixelDecimation" :
 				{
 					"type" : "integer",
-					"minimum" : 0
+					"title" : "Vertical pixel decimation",
+					"minimum" : 0,
+					"default" : 8
 				},
 				"device" :
 				{
-					"type" : "string"
+					"type" : "string",
+					"title" : "Device",
+					"default" : "/dev/fb0"
 				},
 				"display" :
 				{
 					"type" : "integer",
+					"title" : "Display",
 					"minimum" : 0
 				}
 			},
@@ -561,44 +665,31 @@
 		"blackborderdetector" :
 		{
 			"type" : "object",
+			"title" : "Blackbar detector",
+			"required": ["mode"],
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
+					"default" : true
 				},
 				"threshold" :
 				{
 					"type" : "number",
+					"title" : "Threshold",
 					"minimum" : 0.0,
-					"maximum" : 1.0
-				},
-				"unknownFrameCnt"    :
-				{
-					"type" : "number",
-					"minimum" : 0
-				},
-				"borderFrameCnt" :
-				{
-					"type" : "number",
-					"minimum" : 0
-				},
-				"maxInconsistentCnt" :
-				{
-					"type" : "number",
-					"minimum" : 0
-				},
-				"blurRemoveCnt" :
-				{
-					"type" : "number",
-					"minimum" : 0
+					"maximum" : 1.0,
+					"default" : 0.05
 				},
 				"mode" :
 				{
-					"type" :
-					{
-						"enum" : ["default", "classic", "osd"]
-					}
+					"type" : "string",
+					"title": "Mode",
+					"enum" : ["default", "classic", "osd"],
+					"default" : "default"
 				}
 			},
 			"additionalProperties" : false
@@ -606,47 +697,78 @@
 		"kodiVideoChecker" :
 		{
 			"type" : "object",
+			"title" : "Kodi Watch",
 			"properties" :
 			{
 				"enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
+					"default" : false
 				},
 				"kodiAddress" :
 				{
-					"type" : "string"
+					"type" : "string",
+					"title" : "Kodi IP address",
+					"default" : "127.0.0.1"
 				},
 				"kodiTcpPort" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Kodi TCP port",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 9090
 				},
 				"grabVideo" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Video",
+					"default" : true
 				},
 				"grabPictures" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Pictures",
+					"default" : true
 				},
 				"grabAudio" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Audio",
+					"default" : true
 				},
 				"grabMenu" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Menu",
+					"default" : false
 				},
 				"grabPause" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Pause",
+					"default" : false
 				},
 				"grabScreensaver" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Screensaver",
+					"default" : false
 				},
 				"enable3DDetection" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Detect 3D",
+					"default" : false
 				}
 			},
 			"additionalProperties" : false
@@ -654,27 +776,33 @@
 		"initialEffect" :
 		{
 			"type" : "object",
+			"title" : "Initial Effect",
 			"properties" :
 			{
 				"background-effect" :
 				{
-					"type" : "array"
+					"type" : "array",
+					"title" : "Background effect"
 				},
 				"background-effect-args" :
 				{
-					"type" : "object"
+					"type" : "object",
+					"title" : "Background effect arguments"
 				},
 				"foreground-effect" :
 				{
-					"type" : "array"
+					"type" : "array",
+					"title" : "Boot effect"
 				},
 				"foreground-effect-args" :
 				{
-					"type" : "object"
+					"type" : "object",
+					"title" : "Boot effect arguments"
 				},
 				"foreground-duration_ms" :
 				{
-					"type" : "integer"
+					"type" : "integer",
+					"title" : "Boot effect duration"
 				}
 			},
 			"additionalProperties" : false
@@ -682,12 +810,15 @@
 		"forwarder" :
 		{
 			"type" : "object",
+			"title" : "Forwarder",
 			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
+					"format": "checkbox",
+					"title" : "Activate",
 					"required" : true
 				},
 				"json" :
@@ -716,7 +847,8 @@
 					"required" : true,
 					"title" : "Port",
 					"minimum" : 0,
-					"maximum" : 65535
+					"maximum" : 65535,
+					"default" : 19444
 				}
 			},
 			"additionalProperties" : false
@@ -734,7 +866,8 @@
 					"required" : true,
 					"title" : "Port",
 					"minimum" : 0,
-					"maximum" : 65535
+					"maximum" : 65535,
+					"default" : 19445
 				}
 			},
 			"additionalProperties" : false
@@ -749,7 +882,8 @@
 				{
 					"type" : "boolean",
 					"format": "checkbox",
-					"title" : "Activate"
+					"title" : "Activate",
+					"default" : false
 				},
 				"port" :
 				{
@@ -762,7 +896,9 @@
 				"priority" :
 				{
 					"type" : "integer",
-					"title" : "Priority"
+					"title" : "Priority",
+					"minimum" : 0,
+					"default" : 800
 				}
 			},
 			"additionalProperties" : false
@@ -777,12 +913,14 @@
 				{
 					"type" : "boolean",
 					"format": "checkbox",
-					"title" : "Activate"
+					"title" : "Activate",
+					"default" : false
 				},
 				"address" :
 				{
 					"type" : "string",
 					"title" : "Address",
+					"default" : "239.255.28.01",
 					"required" : true
 				},
 				"port" :
@@ -790,23 +928,27 @@
 					"type" : "integer",
 					"title" : "Port",
 					"minimum" : 0,
-					"maximum" : 65535
+					"maximum" : 65535,
+					"default" : 2801
 				},
 				"priority" :
 				{
 					"type" : "integer",
-					"title" : "Priority"
+					"title" : "Priority",
+					"default" : 800
 				},
 				"timeout" :
 				{
 					"type" : "integer",
-					"title" : "Timeout"
+					"title" : "Timeout",
+					"default" : 10000
 				},
 				"shared" :
 				{
 					"type" : "boolean",
 					"format": "checkbox",
-					"title" : "Shared"
+					"title" : "Shared",
+					"default" : false
 				}
 			},
 			"additionalProperties" : false
@@ -823,6 +965,7 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
+					"default" : true,
 					"required" : true
 				},
 				"document_root" :
@@ -835,6 +978,7 @@
 				{
 					"type" : "integer",
 					"title" : "Port",
+					"default" : 8099,
 					"required" : true
 				}
 			},
