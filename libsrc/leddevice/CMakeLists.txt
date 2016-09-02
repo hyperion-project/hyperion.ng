@@ -8,7 +8,7 @@ find_package(libusb-1.0 REQUIRED)
 #find_package(Threads REQUIRED)
 
 include_directories(
-	../../include/hidapi
+	${CMAKE_SOURCE_DIR}/include/hidapi
 	${LIBUSB_1_INCLUDE_DIRS}
 ) # for Lightpack device
 
