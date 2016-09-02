@@ -33,6 +33,7 @@ var hyperionport = 19444;
 var websocket = null;
 var hyperion = {};
 var serverInfo;
+var wsTan = 1;
 
 function initWebSocket()
 {
@@ -44,7 +45,6 @@ function initWebSocket()
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
-					ev = jQuery.Event( "open" );
 					$(hyperion).trigger({type:"open"});
 				};
 
@@ -90,6 +90,7 @@ function initWebSocket()
 					}
 					catch(exception_error)
 					{
+						console.log(event.data);
 						$(hyperion).trigger({type:"error",error:exception_error});
 						console.log("[websocket::onmessage] "+exception_error)
 					}
@@ -110,7 +111,10 @@ function initWebSocket()
 	}
 }
 
-function updateServerInfo() {
-	websocket.send('{"command":"serverinfo", "tan":1}');
+function requestServerInfo() {
+	websocket.send('{"command":"serverinfo", "tan":'+wsTan+'}');
 }
 
+function requestServerConfigSchema() {
+	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getschema"}');
+}

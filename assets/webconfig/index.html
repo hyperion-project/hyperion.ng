@@ -516,7 +516,7 @@
 			$("[type='checkbox']").bootstrapSwitch();
 			
 			$(hyperion).on("open",function(event){
-				updateServerInfo();
+				requestServerInfo();
 			});
 
 			$(hyperion).on("cmd-serverinfo",function(event){

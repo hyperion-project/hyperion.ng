@@ -852,21 +852,22 @@ void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message
 void JsonClientConnection::handleConfigCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	std::string subcommand = message.get("subcommand","").asString();
+	std::string full_command = command + "-" + subcommand;
 	if (subcommand == "getschema")
 	{
-		handleSchemaGetCommand(message, command, tan);
+		handleSchemaGetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
-		handleConfigGetCommand(message, command, tan);
+		handleConfigGetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "setconfig")
 	{
-		handleConfigSetCommand(message, command, tan);
+		handleConfigSetCommand(message, full_command, tan);
 	} 
 	else
 	{
-		sendErrorReply("unknown or missing subcommand", command, tan);
+		sendErrorReply("unknown or missing subcommand", full_command, tan);
 	}
 }
 
