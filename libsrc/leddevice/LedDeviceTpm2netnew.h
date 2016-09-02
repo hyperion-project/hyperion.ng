@@ -45,4 +45,7 @@ public:
 
 private:
 	int _tpm2_max;
+        int _tpm2ByteCount;
+        int _tpm2TotalPackets;
+        int _tpm2ThisPacket;
 };
