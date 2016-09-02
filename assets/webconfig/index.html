@@ -15,6 +15,7 @@
 	<script src="js/lib/jquery.min.js"></script>
 
 	<script src="js/hyperion.js"></script>
+	<script src="js/ui_utils.js"></script>
 
   <!-- Colorpicker -->
 	<script src="js/lib/bootstrap-colorpicker.min.js"></script>
@@ -486,32 +487,15 @@
 	<script>
 		$(document).ready( function() {
 			initWebSocket();
-			$("#load_lighttest").on("click", function() {
-				$("#page-wrapper").load("lighttest.html");
-			});
-			$("#load_effects").on("click", function() {
-				$("#page-wrapper").load("effects.html");
-			});
+			loadNavContent("#load_lighttest","lighttest");
+			loadNavContent("#load_effects","effects");
+			loadNavContent("#load_components","remote_components");
+			loadNavContent("#load_huebridge","huebridge");
+			loadNavContent("#load_support","support");
+			loadNavContent("#load_confKodi","kodiconf");
+			loadNavContent("#load_update","update");
+			loadNavContent("#load_confGeneral","generalconf");
 
-			$("#load_components").on("click", function() {
-				$("#page-wrapper").load("remote_components.html");
-			});
-			$("#load_huebridge").on("click", function() {
-				$("#page-wrapper").load("huebridge.html");
-			});
-			$("#load_support").on("click", function() {
-				$("#page-wrapper").load("support.html");
-			});
-			$("#load_confKodi").on("click", function() {
-				$("#page-wrapper").load("kodiconf.html");
-			});
-			$("#load_update").on("click", function() {
-				$("#page-wrapper").load("update.html");
-			});
-			$("#load_confGeneral").on("click", function() {
-				$("#page-wrapper").load("generalconf.html");
-			});
-			
 			//Change all Checkboxes to Switches
 			$("[type='checkbox']").bootstrapSwitch();
 			
@@ -520,13 +504,14 @@
 			});
 
 			$(hyperion).on("cmd-serverinfo",function(event){
-				currentVersion = event.response.info.hyperion[0].version;
+				parsedServerInfoJSON = event.response;
+				currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 				cleanCurrentVersion = currentVersion.replace(/\./g, '');
 				// get active led device
-				var leddevice = event.response.info.ledDevices.active;
+				var leddevice = parsedServerInfoJSON.info.ledDevices.active;
 				$('#dash_leddevice').html(leddevice);
 				// get host
-				var hostname = event.response.info.hostname;
+				var hostname = parsedServerInfoJSON.info.hostname;
 				$('#dash_systeminfo').html(hostname+':'+hyperionport);
 
 				$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {

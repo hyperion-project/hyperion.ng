@@ -111,6 +111,9 @@ function initWebSocket()
 	}
 }
 
+// -----------------------------------------------------------
+// wrapped server commands
+
 function requestServerInfo() {
 	websocket.send('{"command":"serverinfo", "tan":'+wsTan+'}');
 }
@@ -118,3 +121,24 @@ function requestServerInfo() {
 function requestServerConfigSchema() {
 	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getschema"}');
 }
+
+function requestPriorityClear() {
+	websocket.send('{"command":"clear", "tan":'+wsTan+', "priority":1}');
+}
+
+function requestPlayEffect(effectName) {
+	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'"},"priority":1}');
+}
+
+function requestSetColor(r,g,b) {
+	websocket.send('{"command":"color", "tan":'+wsTan+', "color":['+r+','+g+','+b+'], "priority":1}');
+}
+
+
+function requestSetComponentState(comp, state){
+	state_str = state?"true":"false";
+	websocket.send('{"command":"componentstate","componentstate":{"component":"'+comp+'","state":'+state_str+'}}');
+	console.log(comp+' state: '+state_str);
+}
+
+
