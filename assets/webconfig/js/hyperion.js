@@ -32,9 +32,9 @@ var parsedConfSchemaJSON;
 var hyperionport = 19444;
 var websocket = null;
 var hyperion = {};
-var serverInfo;
 var wsTan = 1;
 
+// init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
 {
 	if ("WebSocket" in window)
@@ -42,6 +42,7 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
+				hyperionport = data.substr(1);
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
@@ -90,7 +91,6 @@ function initWebSocket()
 					}
 					catch(exception_error)
 					{
-						console.log(event.data);
 						$(hyperion).trigger({type:"error",error:exception_error});
 						console.log("[websocket::onmessage] "+exception_error)
 					}

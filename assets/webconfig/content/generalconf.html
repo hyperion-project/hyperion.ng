@@ -17,25 +17,47 @@
 
 
 <script>
-	$(hyperion).on("cmd-config-getschema", function(event) {
-		parsedConfSchemaJSON = event.response;
+	function removeAdvanced(obj,searchStack = [])
+	{
+		$.each(obj, function(key, val) {
+			if ( typeof(val) == 'object' )
+			{
+				searchStack.push(key);
+				if (! removeAdvanced(val,searchStack) )
+					searchStack.pop();
+			}
+			else if ( key == "advanced" && val == true )
+			{
+				console.log(searchStack);
+				return true;
+			}
+		});
+		return false;
+	}
 
-		schema_smoothing = parsedConfSchemaJSON.result.properties.smoothing;
-		schema_kodiVideoChecker = parsedConfSchemaJSON.result.properties.kodiVideoChecker;
-		schema_initialEffect = parsedConfSchemaJSON.result.properties.initialEffect;
-		//schema_grabber-v4l2 = parsedConfSchemaJSON.result.properties.grabber-v4l2;
-		schema_framegrabber = parsedConfSchemaJSON.result.properties.framegrabber;
-		schema_forwarder = parsedConfSchemaJSON.result.properties.forwarder;
-		schema_effects = parsedConfSchemaJSON.result.properties.effects;
-		schema_device = parsedConfSchemaJSON.result.properties.device;
-		schema_color = parsedConfSchemaJSON.result.properties.color;
-		schema_blackborderdetector = parsedConfSchemaJSON.result.properties.blackborderdetector;
-		schema_logger = parsedConfSchemaJSON.result.properties.logger;
-		schema_jsonServer = parsedConfSchemaJSON.result.properties.jsonServer;
-		schema_protoServer = parsedConfSchemaJSON.result.properties.protoServer;
-		schema_boblightServer = parsedConfSchemaJSON.result.properties.boblightServer;
-		schema_udpListener = parsedConfSchemaJSON.result.properties.udpListener;
-		schema_webConfig = parsedConfSchemaJSON.result.properties.webConfig;
+	$(hyperion).on("cmd-config-getschema", function(event) {
+		parsedConfSchemaJSON = event.response.result;
+
+		// remove all "advanced" options from schema
+		//removeAdvanced(parsedConfSchemaJSON); // not working atm
+		//console.log(JSON.stringify(parsedConfSchemaJSON));
+		
+		schema_smoothing = parsedConfSchemaJSON.properties.smoothing;
+		schema_kodiVideoChecker = parsedConfSchemaJSON.properties.kodiVideoChecker;
+		schema_initialEffect = parsedConfSchemaJSON.properties.initialEffect;
+		//schema_grabber-v4l2 = parsedConfSchemaJSON.properties.grabber-v4l2;
+		schema_framegrabber = parsedConfSchemaJSON.properties.framegrabber;
+		schema_forwarder = parsedConfSchemaJSON.properties.forwarder;
+		schema_effects = parsedConfSchemaJSON.properties.effects;
+		schema_device = parsedConfSchemaJSON.properties.device;
+		schema_color = parsedConfSchemaJSON.properties.color;
+		schema_blackborderdetector = parsedConfSchemaJSON.properties.blackborderdetector;
+		schema_logger = parsedConfSchemaJSON.properties.logger;
+		schema_jsonServer = parsedConfSchemaJSON.properties.jsonServer;
+		schema_protoServer = parsedConfSchemaJSON.properties.protoServer;
+		schema_boblightServer = parsedConfSchemaJSON.properties.boblightServer;
+		schema_udpListener = parsedConfSchemaJSON.properties.udpListener;
+		schema_webConfig = parsedConfSchemaJSON.properties.webConfig;
 
 		var element = document.getElementById('editor_holder');
 		//JSONEditor.defaults.options.theme = 'bootstrap3';
