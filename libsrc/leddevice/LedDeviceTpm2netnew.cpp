@@ -13,16 +13,16 @@
 #include <QUuid>
 
 // hyperion local includes
-#include "LedDeviceTpm2Netnew.h"
+#include "LedDeviceTpm2netnew.h"
 
-LedDeviceTpm2Netnew::LedDeviceTpm2Netnew(const Json::Value &deviceConfig)
+LedDeviceTpm2netnew::LedDeviceTpm2netnew(const Json::Value &deviceConfig)
 	: ProviderUdp(deviceConfig)
 
 {
 	setConfig(deviceConfig);
 }
 
-bool LedDeviceTpm2Netnew::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceTpm2netnew::setConfig(const Json::Value &deviceConfig)
 {
 	ProviderUdp::setConfig(deviceConfig);
 	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
@@ -31,17 +31,17 @@ bool LedDeviceTpm2Netnew::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceTpm2Netnew::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceTpm2netnew::construct(const Json::Value &deviceConfig)
 {
-	return new LedDeviceTpm2Netnew(deviceConfig);
+	return new LedDeviceTpm2netnew(deviceConfig);
 }
 
 
 // populates the headers
 
-int LedDeviceTpm2Netnew::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceTpm2netnew::write(const std::vector<ColorRgb> &ledValues)
 {
-	uint8_t * _tpm2_buffer = (uint8_t) malloc(_tpm2_max+7);
+	uint8_t * _tpm2_buffer = (uint8_t*) malloc(_tpm2_max+7);
 
 	int retVal = 0;
 
@@ -89,7 +89,7 @@ int LedDeviceTpm2Netnew::write(const std::vector<ColorRgb> &ledValues)
 	return retVal;
 }
 
-int LedDeviceTpm2Netnew::switchOff()
+int LedDeviceTpm2netnew::switchOff()
 {
 	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

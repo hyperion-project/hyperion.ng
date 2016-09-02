@@ -11,7 +11,7 @@
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
 ///
-class LedDeviceTpm2Netnew : public ProviderUdp
+class LedDeviceTpm2netnew : public ProviderUdp
 {
 public:
 	///
@@ -19,7 +19,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTpm2Netnew(const Json::Value &deviceConfig);
+	LedDeviceTpm2netnew(const Json::Value &deviceConfig);
 
 	///
 	/// Sets configuration
@@ -44,4 +44,5 @@ public:
 	virtual int switchOff();
 
 private:
+	int _tpm2_max;
 };
