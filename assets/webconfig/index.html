@@ -28,7 +28,7 @@
   <!-- JSONForm -->
 	<!--<script src="js/lib/underscore.js"></script>
 	<script src="js/lib/jsonform.js"></script>-->
-	<script src="js/lib/jsoneditor.min.js"></script>
+	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
 	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
@@ -273,7 +273,7 @@
 
 			//Change all Checkboxes to Switches
 			$("[type='checkbox']").bootstrapSwitch();
-			
+
 			$(hyperion).on("open",function(event){
 				requestServerInfo();
 			});
@@ -307,7 +307,7 @@
 					}
 				});
 			}); // end cmd-serverinfo
-			
+
 			$(hyperion).on("error",function(event){
 				$('#error_dialog .modal-title').html("error");
 				$('#error_dialog .modal-body').html(event.reason);
