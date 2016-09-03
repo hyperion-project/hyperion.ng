@@ -12,7 +12,7 @@
 
 // hyperion util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
-#include <utils/Fileutils.h>
+#include <utils/FileUtils.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
