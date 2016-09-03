@@ -33,7 +33,7 @@ private:
 	QtHttpServer  * _server;
 	QMimeDatabase * _mimeDb;
 	CgiHandler      _cgi;
-        Logger * _log;
+	Logger        * _log;
 
 };
 

@@ -1,4 +1,5 @@
-#include "utils/Logger.h"
+#include <utils/Logger.h>
+#include <utils/FileUtils.h>
 
 #include <iostream>
 #include <algorithm>
@@ -7,11 +8,6 @@
 #include <QFileInfo>
 #include <QString>
 
-std::string getBaseName( std::string sourceFile)
-{
-	QFileInfo fi( sourceFile.c_str() );
-	return fi.fileName().toStdString();
-}
 
 static const char * LogLevelStrings[] = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
 static const int    LogLevelSysLog[]  = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
@@ -134,7 +130,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	std::string function(func);
 	if ( level == Logger::DEBUG )
 	{
-		location = "<" + getBaseName(sourceFile) + ":" + QString::number(line).toStdString()+":"+ function + "()> ";
+		location = "<" + FileUtils::getBaseName(sourceFile) + ":" + QString::number(line).toStdString()+":"+ function + "()> ";
 	}
 	
 	std::cout

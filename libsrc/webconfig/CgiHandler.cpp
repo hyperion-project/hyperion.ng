@@ -5,11 +5,13 @@
 
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
+#include <utils/FileUtils.h>
 
-CgiHandler::CgiHandler (Hyperion * hyperion, QObject * parent)
+CgiHandler::CgiHandler (Hyperion * hyperion, QString baseUrl, QObject * parent)
 	: QObject(parent)
 	, _hyperion(hyperion)
 	, _hyperionConfig(_hyperion->getJsonConfig())
+	, _baseUrl(baseUrl)
 {
 }
 
@@ -26,6 +28,7 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 		
 		cmd_cfg_jsonserver(args,reply);
 		cmd_cfg_hyperion(args,reply);
+		cmd_runscript(args,reply);
 		throw 1;
 	}
 	catch(int e)
@@ -69,5 +72,36 @@ void CgiHandler::cmd_cfg_hyperion(const QStringList & args, QtHttpReply * reply)
 			}
 		}
 		throw 0;
+	}
+}
+
+void CgiHandler::cmd_runscript(const QStringList & args, QtHttpReply * reply)
+{
+	if ( args.at(0) == "run" )
+	{
+		QStringList scriptFilePathList(args);
+		scriptFilePathList.removeAt(0);
+		
+		QString scriptFilePath = scriptFilePathList.join('/');
+		// relative path not allowed
+		if (scriptFilePath.indexOf("..") >=0)
+		{
+			throw 1;
+		}
+
+		scriptFilePath = _baseUrl+"/server_scripts/"+scriptFilePath;
+		QString interpreter = "";
+		if (scriptFilePath.endsWith(".sh")) interpreter = "sh";
+		if (scriptFilePath.endsWith(".py")) interpreter = "python";
+			
+ 		if (QFile::exists(scriptFilePath) && !interpreter.isEmpty())
+		{
+			QByteArray data = FileUtils::command_exec(QString(interpreter + " " + scriptFilePath).toUtf8().constData()).c_str();
+			
+			reply->addHeader ("Content-Type", "text/plain");
+			reply->appendRawData (data);
+			throw 0;
+		}
+		throw 1;
 	}
 }
