@@ -1,0 +1,23 @@
+<div id="hyperion_inputs"></div> 
+
+<script>
+	$(hyperion).on("cmd-serverinfo", function(event) {
+		var data = "";
+		var i;
+ 		for(i = 0; i < parsedServerInfoJSON.info.priorities.length; i++) {
+			var owner    = parsedServerInfoJSON.info.priorities[i].owner;
+			var active   = parsedServerInfoJSON.info.priorities[i].active;
+			var visible  = parsedServerInfoJSON.info.priorities[i].visible;
+			var priority = parsedServerInfoJSON.info.priorities[i].priority;
+			var btn_type = "default";
+			if (active) btn_type = "warning";
+			if (visible) btn_type = "success";
+			
+ 			data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+'" style="margin:10px;min-width:200px" title="prio '+priority+'" onclick="requestSetSource('+priority+');">'+owner+'</button><br/>';
+		}
+		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');">auto select</button><br/>';
+		$('#hyperion_inputs').html(data);
+	});
+</script>
+
+

@@ -33,6 +33,13 @@ var hyperionport = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
+var cronId = 0;
+
+// 
+function cron()
+{
+	requestServerInfo();
+}
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -47,6 +54,7 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
+					cronId = window.setInterval(cron,3000);
 				};
 
 				websocket.onclose = function (event) {
@@ -85,19 +93,19 @@ function initWebSocket()
 						else
 						{
 							error = response.hasOwnProperty("error")? response.error : "unknown";
-							$(hyperion).trigger({type:"error",error:error});
+							$(hyperion).trigger({type:"error",reason:error});
 							console.log("[websocket::onmessage] "+error)
 						}
 					}
 					catch(exception_error)
 					{
-						$(hyperion).trigger({type:"error",error:exception_error});
+						$(hyperion).trigger({type:"error",reason:exception_error});
 						console.log("[websocket::onmessage] "+exception_error)
 					}
 				};
 
 				websocket.onerror = function (error) {
-					$(hyperion).trigger({type:"error",error:error});
+					$(hyperion).trigger({type:"error",reason:error});
 					console.log("[websocket::onerror] "+error)
 				};
 			});
@@ -137,8 +145,15 @@ function requestSetColor(r,g,b) {
 
 function requestSetComponentState(comp, state){
 	state_str = state?"true":"false";
-	websocket.send('{"command":"componentstate","componentstate":{"component":"'+comp+'","state":'+state_str+'}}');
+	websocket.send('{"command":"componentstate", "tan":'+wsTan+',"componentstate":{"component":"'+comp+'","state":'+state_str+'}}');
 	console.log(comp+' state: '+state_str);
 }
 
+function requestSetSource( prio )
+{
+	if ( prio == "auto" )
+		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "auto" : true}');
+	else
+		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
+}
 
