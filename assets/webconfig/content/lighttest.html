@@ -1,7 +1,7 @@
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-12">
-            <h1 class="page-header" lang="en" data-lang-token="main_menu_colors_token">Colors</h1>
+	<div class="row">
+		<div class="col-lg-12">
+			<h1 class="page-header" lang="en" data-lang-token="main_menu_colors_token">Colors</h1>
 			<div class="col-lg-1">
 				<span lang="en" data-lang-token="remote_colors_label_color">Set color: </span>
 			</div>
@@ -25,12 +25,13 @@
 			$('#cp2').colorpicker({
 				format: 'rgb',
 
-				colorSelectors: {'default': '#777777',
+				colorSelectors: {
+					'default': '#777777',
 					'primary': '#337ab7',
 					'success': '#5cb85c',
-					'info': '#5bc0de',
+					'info'   : '#5bc0de',
 					'warning': '#f0ad4e',
-					'danger': '#d9534f'
+					'danger' : '#d9534f'
 					},
 				customClass: 'colorpicker-2x',
 				sliders: {
@@ -48,19 +49,10 @@
 			});
 
 			$('#cp2').colorpicker().on('changeColor', function(e) {
-				//console.log(e.color.toRGB());
-				webSocket.send('{"command":"color", "color":['+e.color.toRGB().r+','+e.color.toRGB().g+','+e.color.toRGB().b+'], "priority":1}');
+				color = e.color.toRGB();
+				requestSetColor(color.r, color.g, color.b);
 			});
 		});
 
-
-		$("#reset_color").on("click", function() {
-			webSocket.send('{"command":"clear", "priority":1}');
-		});
-
-	
-
-	webSocket.onmessage = function(event){
-	console.log(event.data);
-	}
+		$("#reset_color").on("click", requestPriorityClear);
 </script>

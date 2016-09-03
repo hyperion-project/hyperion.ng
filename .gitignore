@@ -16,3 +16,4 @@ CMakeCache.txt
 *.log
 /HyperionConfig.h
 /lib
+.directory
