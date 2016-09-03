@@ -79,7 +79,7 @@ private:
 	ProtoServer*        _protoServer;
 	BoblightServer*     _boblightServer;
 	UDPListener*        _udpListener;
-	V4L2Wrapper*        _v4l2Grabber;
+	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
 	DispmanxWrapper*    _dispmanx;
 #ifdef ENABLE_X11
 	X11Wrapper*         _x11Grabber;
