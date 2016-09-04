@@ -17,8 +17,9 @@
 
 
 <script>
-	function removeAdvanced(obj,searchStack = [])
+	function removeAdvanced(obj)
 	{
+		searchStack = [];
 		$.each(obj, function(key, val) {
 			if ( typeof(val) == 'object' )
 			{
@@ -41,7 +42,7 @@
 		// remove all "advanced" options from schema
 		//removeAdvanced(parsedConfSchemaJSON); // not working atm
 		//console.log(JSON.stringify(parsedConfSchemaJSON));
-		
+
 		schema_smoothing = parsedConfSchemaJSON.properties.smoothing;
 		schema_kodiVideoChecker = parsedConfSchemaJSON.properties.kodiVideoChecker;
 		schema_initialEffect = parsedConfSchemaJSON.properties.initialEffect;
