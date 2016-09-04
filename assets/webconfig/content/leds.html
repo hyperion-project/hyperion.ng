@@ -13,6 +13,12 @@
 </div>
 
 <script>
+	function updateLedColors()
+	{
+		if($("#leds_canvas").length > 0) requestLedColors();
+		else $(hyperion).off("cron", updateLedColors );
+	}
+
 	$(document).ready(function() {
 		$(hyperion).on("cmd-ledcolors",function(event){
 			ledColors = (event.response.result);
@@ -42,7 +48,7 @@
 
 			}
 			$('#leds_canvas').html(leds_html);
-			$(hyperion).on("cron",requestLedColors);
+			$(hyperion).on("cron", updateLedColors);
 		});
 		
 		requestServerConfig();
