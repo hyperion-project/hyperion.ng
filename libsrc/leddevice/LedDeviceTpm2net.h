@@ -1,15 +1,17 @@
 #pragma once
 
 // STL includes
-#include <fstream>
 #include <string>
-#include <QUdpSocket>
-#include <QStringList>
-// Leddevice includes
-#include <leddevice/LedDevice.h>
+
+// hyperion includes
+#include "ProviderUdp.h"
+
+#define TPM2_DEFAULT_PORT 65506
 
 ///
-class LedDeviceTpm2net : public LedDevice
+/// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
+///
+class LedDeviceTpm2net : public ProviderUdp
 {
 public:
 	///
@@ -19,8 +21,6 @@ public:
 	///
 	LedDeviceTpm2net(const Json::Value &deviceConfig);
 
-	virtual ~LedDeviceTpm2net();
-	
 	///
 	/// Sets configuration
 	///
@@ -31,23 +31,21 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
+
 	///
-	/// Writes the given led-color values to the output stream
+	/// Writes the led color values to the led-device
 	///
 	/// @param ledValues The color-value per led
+	/// @return Zero on succes else negative
 	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	/// Switch the leds off
 	virtual int switchOff();
 
 private:
-	/// The host of the master brick
-	QHostAddress _host;
-
-	/// The port of the master brick
-	uint16_t _port;
-	QUdpSocket _socket;
+	int _tpm2_max;
+        int _tpm2ByteCount;
+        int _tpm2TotalPackets;
+        int _tpm2ThisPacket;
 };
