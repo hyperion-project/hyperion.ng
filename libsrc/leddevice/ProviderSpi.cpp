@@ -20,7 +20,6 @@ ProviderSpi::ProviderSpi(const Json::Value &deviceConfig)
 {
 	setConfig(deviceConfig);
 	memset(&_spi, 0, sizeof(_spi));
-	Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
 }
 
 ProviderSpi::~ProviderSpi()
@@ -41,6 +40,9 @@ bool ProviderSpi::setConfig(const Json::Value &deviceConfig)
 
 int ProviderSpi::open()
 {
+	Debug(_log, "_baudRate_Hz %d,  _latchTime_ns %d", _baudRate_Hz, _latchTime_ns);
+	Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
+
 	const int bitsPerWord = 8;
 
 	_fid = ::open(_deviceName.c_str(), O_RDWR);
