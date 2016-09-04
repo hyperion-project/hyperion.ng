@@ -10,7 +10,7 @@
 		"rate": {
 			"type": "integer",
 			"title":"Baudrate",
-			"default": 1000000
+			"default": 2666666
 		},
 		"invert": {
 			"type": "boolean",

@@ -28,7 +28,7 @@
   <!-- JSONForm -->
 	<!--<script src="js/lib/underscore.js"></script>
 	<script src="js/lib/jsonform.js"></script>-->
-	<script src="js/lib/jsoneditor.min.js"></script>
+	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
 	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
@@ -261,19 +261,19 @@
 		$(document).ready( function() {
 			initWebSocket();
 			bindNavToContent("#load_dashboard","dashboard",true);
-			bindNavToContent("#load_lighttest","lighttest");
-			bindNavToContent("#load_effects","effects");
-			bindNavToContent("#load_components","remote_components");
-			bindNavToContent("#load_input_selection","input_selection");
-			bindNavToContent("#load_huebridge","huebridge");
-			bindNavToContent("#load_support","support");
-			bindNavToContent("#load_confKodi","kodiconf");
-			bindNavToContent("#load_update","update");
-			bindNavToContent("#load_confGeneral","generalconf");
+			bindNavToContent("#load_lighttest","lighttest",false);
+			bindNavToContent("#load_effects","effects",false);
+			bindNavToContent("#load_components","remote_components",false);
+			bindNavToContent("#load_input_selection","input_selection",false);
+			bindNavToContent("#load_huebridge","huebridge",false);
+			bindNavToContent("#load_support","support",false);
+			bindNavToContent("#load_confKodi","kodiconf",false);
+			bindNavToContent("#load_update","update",false);
+			bindNavToContent("#load_confGeneral","generalconf",false);
 
 			//Change all Checkboxes to Switches
 			$("[type='checkbox']").bootstrapSwitch();
-			
+
 			$(hyperion).on("open",function(event){
 				requestServerInfo();
 			});
@@ -307,7 +307,7 @@
 					}
 				});
 			}); // end cmd-serverinfo
-			
+
 			$(hyperion).on("error",function(event){
 				$('#error_dialog .modal-title').html("error");
 				$('#error_dialog .modal-body').html(event.reason);
