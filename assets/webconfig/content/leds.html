@@ -42,7 +42,7 @@
 
 			}
 			$('#leds_canvas').html(leds_html);
-			requestLedColors();
+			$(hyperion).on("cron",requestLedColors);
 		});
 		
 		requestServerConfig();

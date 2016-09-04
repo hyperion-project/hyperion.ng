@@ -40,6 +40,7 @@ var cronId = 0;
 function cron()
 {
 	requestServerInfo();
+	$(hyperion).trigger({type:"cron"});
 }
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
@@ -55,7 +56,7 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
-					cronId = window.setInterval(cron,3000);
+					cronId = window.setInterval(cron,2000);
 				};
 
 				websocket.onclose = function (event) {
