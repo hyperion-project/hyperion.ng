@@ -90,6 +90,7 @@ public:
 	/// @return The current priority
 	///
 	int getCurrentPriority() const;
+	
 	///
 	/// Returns a list of active priorities
 	///

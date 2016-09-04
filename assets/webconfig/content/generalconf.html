@@ -40,25 +40,9 @@
 		parsedConfSchemaJSON = event.response.result;
 
 		// remove all "advanced" options from schema
-		removeAdvanced(parsedConfSchemaJSON, []); // not working atm
+		//removeAdvanced(parsedConfSchemaJSON, []); // not working atm
 		//console.log(JSON.stringify(parsedConfSchemaJSON));
-
-		schema_smoothing = parsedConfSchemaJSON.properties.smoothing;
-		schema_kodiVideoChecker = parsedConfSchemaJSON.properties.kodiVideoChecker;
-		schema_initialEffect = parsedConfSchemaJSON.properties.initialEffect;
-		//schema_grabber-v4l2 = parsedConfSchemaJSON.properties.grabber-v4l2;
-		schema_framegrabber = parsedConfSchemaJSON.properties.framegrabber;
-		schema_forwarder = parsedConfSchemaJSON.properties.forwarder;
-		schema_effects = parsedConfSchemaJSON.properties.effects;
-		schema_device = parsedConfSchemaJSON.properties.device;
-		schema_color = parsedConfSchemaJSON.properties.color;
-		schema_blackborderdetector = parsedConfSchemaJSON.properties.blackborderdetector;
-		schema_logger = parsedConfSchemaJSON.properties.logger;
-		schema_jsonServer = parsedConfSchemaJSON.properties.jsonServer;
-		schema_protoServer = parsedConfSchemaJSON.properties.protoServer;
-		schema_boblightServer = parsedConfSchemaJSON.properties.boblightServer;
-		schema_udpListener = parsedConfSchemaJSON.properties.udpListener;
-		schema_webConfig = parsedConfSchemaJSON.properties.webConfig;
+		schema = parsedConfSchemaJSON.properties;
 
 		var element = document.getElementById('editor_holder');
 		//JSONEditor.defaults.options.theme = 'bootstrap3';
@@ -72,22 +56,22 @@
 			schema: {
 				title:' ',
 				properties: {
-					schema_blackborderdetector,
-					schema_color,
-					schema_device,
-					schema_effects,
-					schema_forwarder,
-					schema_framegrabber,
-					//schema_grabber-v4l2,
-					schema_initialEffect,
-					schema_kodiVideoChecker,
-					schema_smoothing,
-					schema_logger,
-					schema_jsonServer,
-					schema_protoServer,
-					schema_boblightServer,
-					schema_udpListener,
-					schema_webConfig
+					schema.blackborderdetector,
+					schema.color,
+					schema.device,
+					schema.effects,
+					schema.forwarder,
+					schema.framegrabber,
+					//schema.grabber-v4l2,
+					schema.initialEffect,
+					schema.kodiVideoChecker,
+					schema.smoothing,
+					schema.logger,
+					schema.jsonServer,
+					schema.protoServer,
+					schema.boblightServer,
+					schema.udpListener,
+					schema.webConfig
 				}
 			}
 		});

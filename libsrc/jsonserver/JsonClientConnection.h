@@ -169,6 +169,12 @@ private:
 	///
 	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
 
+	/// Handle an incoming JSON Led Colors message
+	///
+	/// @param message the incoming message
+	///
+	void handleLedColorsCommand(const Json::Value &, const std::string &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

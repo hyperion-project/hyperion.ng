@@ -1,6 +1,15 @@
-<div style="text-align:center;margin:auto;padding:auto">
-	<div id="hyperion_inputs" />
-</div> 
+
+<div  class="container-fluid">
+	<h1 class="page-header" lang="en" data-lang-token="main_menu_input_selection_token">Input Selection</h1>
+<!--	<div class="introd">
+		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
+	</div>-->
+
+	<div style="text-align:center;margin:auto;padding:auto">
+		<div id="hyperion_inputs" />
+	</div> 
+</div>
+
 
 <script>
 	$(hyperion).on("cmd-serverinfo", function(event) {
@@ -22,10 +31,8 @@
 		
 		var max_width=200;
 		$('.btn_input_selection').each(function() {
-			elem_width = $(this).css('width')
-			elem_width = elem_width.substring(0, elem_width.length - 2);
-			if (elem_width > max_width)
-				max_width = elem_width;
+			if ($(this).innerWidth() > max_width)
+				max_width = $(this).innerWidth();
 		});
 		$('.btn_input_selection').css("min-width",max_width+"px"); 
 	});

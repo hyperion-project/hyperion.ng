@@ -1,0 +1,50 @@
+<style>
+#leds_canvas {width:800px; height:600px; background-color:#AAAAAA; position:absolute; margin:10px; box-shadow: 10px 10px 5px #888888;}
+.led { display:inline; background-color:green; border: 1px solid black; position:absolute; opacity:0.8}
+</style>
+
+<div  class="container-fluid">
+	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">Led Configuration</h1>
+<!--	<div class="introd">
+		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
+	</div>-->
+
+	<div id="leds_canvas" />
+</div>
+
+<script>
+	$(document).ready(function() {
+		$(hyperion).on("cmd-ledcolors",function(event){
+			ledColors = (event.response.result);
+			for(var idx=0; idx<ledColors.length; idx++)
+			{
+				led = ledColors[idx]
+				$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
+			}
+		});
+
+		$(hyperion).on("cmd-config-getconfig",function(event){
+			parsedConfJSON = event.response.result;
+			leds = parsedConfJSON.leds;
+			canvas_height = $('#leds_canvas').innerHeight();
+			canvas_width = $('#leds_canvas').innerWidth();
+
+			leds_html = "";
+			for(var idx=0; idx<leds.length; idx++)
+			{
+				led = leds[idx];
+				led_id='led_'+led.index;
+				pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
+					"top:"+(led.vscan.minimum * canvas_height)+"px;"+
+					"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
+					"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
+				leds_html += '<div id="'+led_id+'" class="led" style="'+pos+'" title="'+led.index+'"></div>';
+
+			}
+			$('#leds_canvas').html(leds_html);
+			requestLedColors();
+		});
+		
+		requestServerConfig();
+	});
+</script>

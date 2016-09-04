@@ -273,6 +273,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 			handleConfigCommand(message, command, tan);
 		else if (command == "componentstate")
 			handleComponentStateCommand(message, command, tan);
+		else if (command == "ledcolors")
+			handleLedColorsCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -973,6 +975,31 @@ void JsonClientConnection::handleComponentStateCommand(const Json::Value& messag
 	{
 		sendErrorReply("invalid component name", command, tan);
 	}
+}
+
+void JsonClientConnection::handleLedColorsCommand(const Json::Value&, const std::string &command, const int tan)
+{
+	// create result
+	Json::Value result;
+	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
+	Json::Value & leds = result["result"] = Json::Value(Json::arrayValue);
+	
+	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	std::vector<ColorRgb> ledBuffer =  priorityInfo.ledColors;
+
+	for (ColorRgb& color : ledBuffer)
+	{
+		int idx = leds.size();
+		Json::Value & item = leds[idx];
+		item["index"] = idx;
+		item["red"]   = color.red;
+		item["green"] = color.green;
+		item["blue"]  = color.blue;
+	}
+	// send the result
+	sendMessage(result);
 }
 
 void JsonClientConnection::handleNotImplemented()

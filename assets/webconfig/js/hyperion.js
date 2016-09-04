@@ -26,9 +26,10 @@ var currentVersion;
 var cleanCurrentVersion;
 var latestVersion;
 var cleanLatestVersion;
-var parsedServerInfoJSON;
-var parsedUpdateJSON;
-var parsedConfSchemaJSON;
+var parsedServerInfoJSON = {};
+var parsedUpdateJSON = {};
+var parsedConfSchemaJSON = {};
+var parsedConfJSON = {};
 var hyperionport = 19444;
 var websocket = null;
 var hyperion = {};
@@ -130,6 +131,14 @@ function requestServerConfigSchema() {
 	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getschema"}');
 }
 
+function requestServerConfig() {
+	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
+}
+
+function requestLedColors() {
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+'}');
+}
+
 function requestPriorityClear() {
 	websocket.send('{"command":"clear", "tan":'+wsTan+', "priority":1}');
 }
@@ -141,7 +150,6 @@ function requestPlayEffect(effectName) {
 function requestSetColor(r,g,b) {
 	websocket.send('{"command":"color", "tan":'+wsTan+', "color":['+r+','+g+','+b+'], "priority":1}');
 }
-
 
 function requestSetComponentState(comp, state){
 	state_str = state?"true":"false";
