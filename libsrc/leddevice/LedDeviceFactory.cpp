@@ -38,7 +38,6 @@
 #include "LedDeviceFile.h"
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceTpm2net.h"
-#include "LedDeviceTpm2netnew.h"
 #include "LedDeviceUdpRaw.h"
 #include "LedDeviceUdpE131.h"
 #include "LedDeviceHyperionUsbasp.h"
@@ -97,7 +96,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("tpm2net", LedDeviceTpm2net::construct);
 	LedDevice::addToDeviceMap("udpraw", LedDeviceUdpRaw::construct);
 	LedDevice::addToDeviceMap("e131", LedDeviceUdpE131::construct);
-	LedDevice::addToDeviceMap("tpm2net-new", LedDeviceTpm2netnew::construct);
 	#ifdef ENABLE_TINKERFORGE
 	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
 	#endif

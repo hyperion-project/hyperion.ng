@@ -6,7 +6,6 @@
 		<file alias="schema-atmo">schemas/schema-atmo.json</file>
 		<file alias="schema-atmoorb">schemas/schema-atmoorb.json</file>
 		<file alias="schema-e131">schemas/schema-e131.json</file>
-		<file alias="schema-tpm2netnew">schemas/schema-tpm2netnew.json</file>
 		<file alias="schema-fadecandy">schemas/schema-fadecandy.json</file>
 		<file alias="schema-file">schemas/schema-file.json</file>
 		<file alias="schema-hyperion-usbasp">schemas/schema-hyperion-usbasp.json</file>
