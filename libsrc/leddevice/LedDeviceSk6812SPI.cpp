@@ -33,6 +33,7 @@ LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
 bool LedDeviceSk6812SPI::setConfig(const Json::Value &deviceConfig)
 {
 	ProviderSpi::setConfig(deviceConfig);
+        _baudRate_Hz   = deviceConfig.get("rate",2800000).asInt();
 	_whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
 
 	return true;

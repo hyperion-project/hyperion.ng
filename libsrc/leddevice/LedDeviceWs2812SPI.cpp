@@ -19,12 +19,23 @@ LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
 		0b11001000,
 		0b11001100,
 	}
+
 {
+	setConfig(deviceConfig);
+
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
 {
 	return new LedDeviceWs2812SPI(deviceConfig);
+}
+
+bool LedDeviceWs2812SPI::setConfig(const Json::Value &deviceConfig)
+{
+        ProviderSpi::setConfig(deviceConfig);
+        _baudRate_Hz   = deviceConfig.get("rate",2800000).asInt();
+
+        return true;
 }
 
 int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
