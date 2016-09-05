@@ -202,6 +202,7 @@
 							<ul class="nav nav-second-level">
 								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
 								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a> </li>
+								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LEDs</span></a> </li>
 								<li> <a class="inactive" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a> </li>
 							</ul>
 						</li>
@@ -261,15 +262,16 @@
 		$(document).ready( function() {
 			initWebSocket();
 			bindNavToContent("#load_dashboard","dashboard",true);
-			bindNavToContent("#load_lighttest","lighttest");
-			bindNavToContent("#load_effects","effects");
-			bindNavToContent("#load_components","remote_components");
-			bindNavToContent("#load_input_selection","input_selection");
-			bindNavToContent("#load_huebridge","huebridge");
-			bindNavToContent("#load_support","support");
-			bindNavToContent("#load_confKodi","kodiconf");
-			bindNavToContent("#load_update","update");
-			bindNavToContent("#load_confGeneral","generalconf");
+			bindNavToContent("#load_lighttest","lighttest",false);
+			bindNavToContent("#load_effects","effects",false);
+			bindNavToContent("#load_components","remote_components",false);
+			bindNavToContent("#load_input_selection","input_selection",false);
+			bindNavToContent("#load_huebridge","huebridge",false);
+			bindNavToContent("#load_support","support",false);
+			bindNavToContent("#load_confKodi","kodiconf",false);
+			bindNavToContent("#load_update","update",false);
+			bindNavToContent("#load_confGeneral","generalconf",false);
+			bindNavToContent("#load_confLeds","leds",false);
 
 			//Change all Checkboxes to Switches
 			$("[type='checkbox']").bootstrapSwitch();
@@ -313,7 +315,6 @@
 				$('#error_dialog .modal-body').html(event.reason);
 				$('#error_dialog').modal('show');
 			});
-
 	});
 
 	$(function(){
