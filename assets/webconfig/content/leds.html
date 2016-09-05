@@ -1,6 +1,11 @@
 <style>
-#leds_canvas {width:800px; height:600px; background-color:#AAAAAA; position:absolute; margin:10px; box-shadow: 10px 10px 5px #888888;}
-.led { display:inline; background-color:green; border: 1px solid black; position:absolute; opacity:0.8}
+	#leds_canvas {width:800px; height:450px; background-color:#AAAAAA; position:absolute; margin:10px; box-shadow: 10px 10px 5px #BBBBBB;
+	background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center; border-radius:2px; }
+	.led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center;
+	vertical-align:middle; padding:4px;  border-radius:2px;}
+	.led_num {display:none; position:relative; color:black; background-color: white; 
+		border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
+	#leds_controls {white-space:nowrap; margin-top:530px;}
 </style>
 
 <div  class="container-fluid">
@@ -9,18 +14,52 @@
 		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
 	</div>-->
 
-	<div id="leds_canvas" />
+		<div id="leds_canvas"/>
+	
+		<div id="leds_controls">
+			<button lang="en" type="button" class="btn btn-success" id="leds_toggle">toggle leds</button>
+			<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num">toggle led numbers</button>
+			<button lang="en" type="button" class="btn btn-success" id="leds_toggle_live">toggle live leds</button>
+		</div>
 </div>
 
 <script>
+
 	function updateLedColors()
 	{
-		if($("#leds_canvas").length > 0) requestLedColors();
-		else $(hyperion).off("cron", updateLedColors );
+		if($("#leds_canvas").length > 0 && ledStreamActive)
+		{
+			requestLedColorsStart();
+		}
+		else
+		{
+			ledStreamActivate(false);
+		}
 	}
 
+	function ledStreamActivate(enable)
+	{
+		$(hyperion).off("cron", updateLedColors );
+		if ( enable && ! ledStreamActive )
+		{
+			$(hyperion).on("cron", updateLedColors );
+		}
+
+		ledStreamActive=enable;
+	}
+	
+	
 	$(document).ready(function() {
 		$(hyperion).on("cmd-ledcolors",function(event){
+			ledColors = (event.response.result);
+			for(var idx=0; idx<ledColors.length; idx++)
+			{
+				led = ledColors[idx]
+				$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
+			}
+		});
+
+		$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
 			ledColors = (event.response.result);
 			for(var idx=0; idx<ledColors.length; idx++)
 			{
@@ -40,15 +79,45 @@
 			{
 				led = leds[idx];
 				led_id='led_'+led.index;
+				bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
 				pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
 					"top:"+(led.vscan.minimum * canvas_height)+"px;"+
 					"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
 					"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
-				leds_html += '<div id="'+led_id+'" class="led" style="'+pos+'" title="'+led.index+'"></div>';
-
+				leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+led.index+'"><span id="'+led_id+'_num" class="led_num">'+led.index+'</span></div>';
 			}
 			$('#leds_canvas').html(leds_html);
-			$(hyperion).on("cron", updateLedColors);
+			$('#led_0').css("border","2px dotted red");
+			ledStreamActivate(true)
+		});
+		
+		$('#leds_toggle_num').on("click", function() {
+			$('.led_num').toggle();
+			toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
+		});
+		
+		$('#leds_toggle').on("click", function() {
+			$('.led').toggle();
+			toggleClass('#leds_toggle', "btn-success", "btn-danger");
+		});
+		
+		$('#leds_toggle_live').on("click", function() {
+			setClassByBool('#leds_toggle_live',ledStreamActive,"btn-success","btn-danger");
+			if ( ledStreamActive )
+			{
+				ledStreamActivate(false);
+
+				led_count = $(".led").length;
+				for(var idx=0; idx<led_count; idx++)
+				{
+					$('#led_'+idx).css("background-color","hsl("+(idx*360/led_count)+",100%,50%)");
+				}
+			}
+			else
+			{
+				ledStreamActivate(true);
+			}
+			
 		});
 		
 		requestServerConfig();

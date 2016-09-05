@@ -228,7 +228,6 @@ private:
 	///
 	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
 
-private:
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
@@ -249,4 +248,8 @@ private:
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled;
+	
+	/// 
+	QTimer _timer_ledcolors;
+
 };

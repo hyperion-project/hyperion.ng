@@ -35,6 +35,8 @@ var websocket = null;
 var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
+var ledStreamActive=false;
+
 
 // 
 function cron()
@@ -136,8 +138,8 @@ function requestServerConfig() {
 	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
 }
 
-function requestLedColors() {
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+'}');
+function requestLedColorsStart() {
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream_start"}');
 }
 
 function requestPriorityClear() {
