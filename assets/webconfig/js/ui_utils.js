@@ -11,6 +11,12 @@ function bindNavToContent(containerId, fileName, loadNow)
 	}
 }
 
+function loadContentTo(containerId, fileName)
+{
+	$(containerId).load("/content/"+fileName+".html");
+}
+
+
 
 function toggleClass(obj,class1,class2)
 {
@@ -41,3 +47,18 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
+function showErrorDialog(header,message)
+{
+	$('#error_dialog .modal-title').html(header);
+	$('#error_dialog .modal-body').html(message);
+	$('#error_dialog').modal('show');
+}
+
+function isJsonString(str) {
+	try {
+		JSON.parse(str);
+	} catch (e) {
+		return e;
+	}
+	return "";
+}
