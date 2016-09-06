@@ -1,5 +1,3 @@
-env:
-    - secure "O/EnzMYIVTNe/GDiv2/bfV/R4dt8H+2Jvonh44L3P1mWEEtq467etiTv1lHLpFtTltImHKXPtk0ZYGUWNzD6Oh9ncSEVpFlCuvJp3bd78+f2rhqKjh3D2ck+lCNgYIjVmNpTPnPopYZfxNzF957HJC0L5xK1QnwA7ZyxWidcCF+LCfihAZncRUHIdN9wkWNmMbw5BaCtqCBOXZExfohwoz//+rZ0QDwXjO1wLr9wWcdM4B1M1Wg8gkZv2SHALG4j6AXJ10NuF0Fi+45f4wh1e0SxikTP/huBic5enHbHAovzOrpe+pErv3SbIqaXiCBjeQEn+sQBgc3aIC2/eeZqKxXLkDQsoOesD0ynU3S7xNIXnO1meIWn2Xzw9FKWbSXGlRiexhEOYxt5i8P3GP8mliZq7YYtCAAFBDGG38RWVkFRQ0GRIHMzoFpr7rLWl64Bi9FeTz4y/62g0nQgONJPg0g82bC+vcEFaWV/DED7yb88elibRFLpop/x+byTlq5y2nF8AqPehU5AuwLb0n8JdxoxuFMY+kFZ7r52dLHeIVtVNzlVWyC48n3KAT7XMVKifI3Gwt/1NE5Zso4+ohp+Toztz+lBjoDts8rjGVw7ul5lcla+6kDpi+L2Ql0AS+1QC9BZLWi2gRziQEJXMuCOiCctqJ9I9BUFgan8gmODaDc="
 cache:
     - ccache
     - directories:
@@ -24,3 +22,5 @@ script:
 after_success:
     - ./test/testrunner.sh
     - ./.travis/travis_deploy.sh
+env:
+    - secure "O/EnzMYIVTNe/GDiv2/bfV/R4dt8H+2Jvonh44L3P1mWEEtq467etiTv1lHLpFtTltImHKXPtk0ZYGUWNzD6Oh9ncSEVpFlCuvJp3bd78+f2rhqKjh3D2ck+lCNgYIjVmNpTPnPopYZfxNzF957HJC0L5xK1QnwA7ZyxWidcCF+LCfihAZncRUHIdN9wkWNmMbw5BaCtqCBOXZExfohwoz//+rZ0QDwXjO1wLr9wWcdM4B1M1Wg8gkZv2SHALG4j6AXJ10NuF0Fi+45f4wh1e0SxikTP/huBic5enHbHAovzOrpe+pErv3SbIqaXiCBjeQEn+sQBgc3aIC2/eeZqKxXLkDQsoOesD0ynU3S7xNIXnO1meIWn2Xzw9FKWbSXGlRiexhEOYxt5i8P3GP8mliZq7YYtCAAFBDGG38RWVkFRQ0GRIHMzoFpr7rLWl64Bi9FeTz4y/62g0nQgONJPg0g82bC+vcEFaWV/DED7yb88elibRFLpop/x+byTlq5y2nF8AqPehU5AuwLb0n8JdxoxuFMY+kFZ7r52dLHeIVtVNzlVWyC48n3KAT7XMVKifI3Gwt/1NE5Zso4+ohp+Toztz+lBjoDts8rjGVw7ul5lcla+6kDpi+L2Ql0AS+1QC9BZLWi2gRziQEJXMuCOiCctqJ9I9BUFgan8gmODaDc="
