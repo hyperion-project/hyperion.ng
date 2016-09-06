@@ -9,20 +9,32 @@
 </style>
 
 
-	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">Led Configuration</h1>
+	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</h1>
 <!--	<div class="introd">
 		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
 	</div>-->
 
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
-		<li class="active"><a data-toggle="tab" href="#menu_display">Display LEDs</a></li>
-		<li><a data-toggle="tab" href="#menu_gencfg">Generate Config</a></li>
-		<li><a data-toggle="tab" href="#menu_customcfg">Custom Config</a></li>
+		<li class="active"><a data-toggle="tab" href="#menu_controller">LED Controller</a></li>
+		<li><a data-toggle="tab" href="#menu_gencfg">Generate LED Config</a></li>
+		<li><a data-toggle="tab" href="#menu_display">LED Testing</a></li>
 	</ul>
 
 	<div class="tab-content">
 
-		<div id="menu_display" class="tab-pane fade in active">
+		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
+			<div class="panel panel-primary">
+					<div class="panel-heading form-group" style="font-size:90%">
+						<label for="leddevices">Controller Type</label>
+						<select id="leddevices" style="color:black" />
+					</div>
+					<div class="panel-body">
+					... device specific options ...
+					</div>
+			</div>
+		</div>
+	
+		<div id="menu_display" class="tab-pane fade" style="padding-top:10px">
 			<div  class="container-fluid">
 				<div id="leds_canvas"/>
 	
@@ -34,13 +46,58 @@
 			</div>
 		</div>
 
-		<div id="menu_gencfg" class="tab-pane fade">
-			<h3>coming soon</h3>
-			<p>led config generator ...</p>
-		</div>
+		<div id="menu_gencfg" class="tab-pane fade" style="padding-top:10px">
 
-		<div id="menu_customcfg" class="tab-pane fade">
-			<p>
+			<div class="row">
+				<div class="col-sm-6">
+			
+					<div class="panel-group" id="accordion">
+					
+						<div class="panel panel-primary">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1">Frame Configuration (ambient light)</a>
+								</h4>
+							</div>
+							<div id="collapse1" class="panel-collapse collapse in">
+								<div class="panel-body">
+								just a reminder ... this are the needed form elements:
+<pre>
+led count horizontal:
+led count vertical:
+cabling: zick zack/snake
+order: horizontal/vertical
+led 0 position: top-left / top-right / bottom-left / bottom-right
+</pre>
+								</div>
+							</div>
+						</div> 
+	
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h4 class="panel-title">
+								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2">Matrix Configuration (LED wall)</a>
+							</h4>
+						</div>
+						<div id="collapse2" class="panel-collapse collapse">
+							<div class="panel-body">
+							just a reminder ... this are the needed form elements:
+<pre>
+led count links
+led count rechts
+led count oben
+led count unten rechts
+led count unten links
+start
+</pre>
+							</div>
+						</div>
+					</div>
+		
+			</div> <!-- accordion -->
+		</div>
+		
+		<div class="col-sm-6">
 			<div class="form-group">
 				<div style="margin-bottom:5px">
 					<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
@@ -48,8 +105,13 @@
 				</div>
 				<textarea  rows="20" id="ledconfig" style="width:90%"></textarea>
 			</div>
-			</p>
 		</div>
+
+		</div> <!-- row layout -->
+	</div>
+
+	</div>
+
 
 	</div> <!-- tab content -->
 

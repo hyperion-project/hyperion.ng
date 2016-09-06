@@ -47,6 +47,21 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
+	$(hyperion).one("cmd-serverinfo",function(event){
+		server = event.response;
+		ledDevices = server.info.ledDevices.available
+
+		ledDevicesHtml = "";
+		for (idx=0; idx<ledDevices.length; idx++)
+		{
+			ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+'</option>';
+		}
+		$("#leddevices").html(ledDevicesHtml);
+		$("#leddevices").val(server.info.ledDevices.active);
+	});
+
+	
+	// ------------------------------------------------------------------
 	$(hyperion).on("cmd-config-getconfig",function(event){
 		parsedConfJSON = event.response.result;
 		leds = parsedConfJSON.leds;
@@ -118,10 +133,14 @@ $(document).ready(function() {
 
 	$('#leds_cfg_nav a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
-		if (target == "#menu_customcfg" && !ledsCustomCfgInitialized)
+		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
 			ledsCustomCfgInitialized = true;
 			$("#ledconfig").linedtextarea();
+			if($("#ledconfig").length)
+			{
+				$("#ledconfig").scrollTop( $("#ledconfig")[0].scrollHeight - $("#ledconfig").height() );
+			}
 		}
 	});
 
