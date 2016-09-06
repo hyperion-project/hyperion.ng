@@ -47,6 +47,7 @@ function cron()
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
 		$("body").html($("#container_connection_lost").html());
+		connectionLostAction();
 	}
 
 	requestServerInfo();
