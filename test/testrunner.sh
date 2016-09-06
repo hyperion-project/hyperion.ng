@@ -56,4 +56,3 @@ else
 	[ $STATS_FAILED -gt 0 ] && exit 200
 	exit 0
 fi
-
