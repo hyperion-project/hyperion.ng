@@ -5,10 +5,10 @@
 	vertical-align:middle; padding:4px;  border-radius:2px;}
 	.led_num {display:none; position:relative; color:black; background-color: white; 
 		border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
-	#leds_controls {white-space:nowrap; margin-top:530px;}
+	#leds_controls {white-space:nowrap; margin-top:500px;}
 </style>
 
-
+<div class="container-fluid">
 	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</h1>
 <!--	<div class="introd">
 		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
@@ -24,12 +24,12 @@
 
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
 			<div class="panel panel-primary">
-					<div class="panel-heading form-group" style="font-size:90%">
+					<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
 						<label for="leddevices">Controller Type</label>
-						<select id="leddevices" style="color:black" />
+						<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 					</div>
 					<div class="panel-body">
-					... device specific options ...
+					... device specific options ... we need some cpp code extension to get schema for all leds
 					</div>
 			</div>
 		</div>
@@ -56,7 +56,7 @@
 						<div class="panel panel-primary">
 							<div class="panel-heading">
 								<h4 class="panel-title">
-									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1">Frame Configuration (ambient light)</a>
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1"><i class="fa fa-television fa-fw"></i>Frame Configuration (ambient light)</a>
 								</h4>
 							</div>
 							<div id="collapse1" class="panel-collapse collapse in">
@@ -76,7 +76,7 @@ led 0 position: top-left / top-right / bottom-left / bottom-right
 					<div class="panel panel-primary">
 						<div class="panel-heading">
 							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2">Matrix Configuration (LED wall)</a>
+								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><i class="fa fa-th fa-fw"></i>Matrix Configuration (LED wall)</a>
 							</h4>
 						</div>
 						<div id="collapse2" class="panel-collapse collapse">
@@ -100,14 +100,14 @@ start
 		<div class="col-sm-6">
 			<div class="panel panel-primary" style="margin-bottom:5px">
 				<div class="panel-heading">
-					<h4 class="panel-title">Generated Configuration</h4>
+					<h4 class="panel-title"><i class="fa fa-wrench fa-fw"></i>Generated Configuration</h4>
 				</div>
 				<div class="panel-body">
 					<div class="form-group">
 						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
 						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
 					</div>
-					<textarea  rows="20" id="ledconfig" style="width:90%"></textarea>
+					<textarea rows="25" id="ledconfig" style="width:100%"></textarea>
 				</div>
 			</div>
 		</div> <!-- left pane -->
@@ -119,6 +119,7 @@ start
 
 
 	</div> <!-- tab content -->
+</div>
 
 <script src="/js/content_leds.js"></script>
 

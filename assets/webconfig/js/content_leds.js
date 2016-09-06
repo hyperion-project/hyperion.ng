@@ -120,6 +120,7 @@ $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$("#leds_custom_check").on("click", function() {
 		e = isJsonString($("#ledconfig").val());
+		
 		if (e.length == 0)
 			showErrorDialog("Validation success", "Your config is valid!");
 		else
@@ -137,10 +138,6 @@ $(document).ready(function() {
 		{
 			ledsCustomCfgInitialized = true;
 			$("#ledconfig").linedtextarea();
-			if($("#ledconfig").length)
-			{
-				$("#ledconfig").scrollTop( $("#ledconfig")[0].scrollHeight - $("#ledconfig").height() );
-			}
 		}
 	});
 

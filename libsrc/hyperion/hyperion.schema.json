@@ -59,6 +59,7 @@
 			"type":"object",
 			"title" : "Color Calibration",
 			"required" : true,
+			"defaultProperties": ["channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
 			"properties":
 			{
 				"channelAdjustment_enable" :
@@ -570,7 +571,9 @@
 				"type" :
 				{
 					"type" : "string",
-					"title" : "Type"
+					"title" : "Type",
+					"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
+					"default" : "auto"
 				},
 				"width" :
 				{
@@ -667,6 +670,7 @@
 			"type" : "object",
 			"title" : "Blackbar detector",
 			"required": ["mode"],
+			"defaultProperties": ["enable","mode","threshold"],
 			"properties" :
 			{
 				"enable" :
@@ -687,26 +691,22 @@
 				"unknownFrameCnt"    :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"borderFrameCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"maxInconsistentCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"blurRemoveCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"mode" :
 				{

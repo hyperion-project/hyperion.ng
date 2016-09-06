@@ -13,7 +13,7 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 table.borderless td,table.borderless th{border: none !important;}
 
 /*Header*/
-.navbar-brand{padding: 5px;height:90px;}
+.navbar-brand{padding: 5px;padding-left:20px;height:60px;}
 .sidebar{margin-top:91px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
