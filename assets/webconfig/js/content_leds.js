@@ -137,7 +137,10 @@ $(document).ready(function() {
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
 			ledsCustomCfgInitialized = true;
-			$("#ledconfig").linedtextarea();
+// 			$("#ledconfig").linedtextarea();
+// 			$(window).resize(function(){
+// 				$("#ledconfig").trigger("resize");
+// 			});
 		}
 	});
 
