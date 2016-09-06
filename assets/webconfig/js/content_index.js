@@ -1,4 +1,5 @@
 $(document).ready( function() {
+	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
 	bindNavToContent("#load_lighttest","lighttest",false);

@@ -11,6 +11,12 @@ function bindNavToContent(containerId, fileName, loadNow)
 	}
 }
 
+function loadContentTo(containerId, fileName)
+{
+	$(containerId).load("/content/"+fileName+".html");
+}
+
+
 
 function toggleClass(obj,class1,class2)
 {
