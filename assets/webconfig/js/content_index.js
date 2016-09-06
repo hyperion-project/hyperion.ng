@@ -12,6 +12,8 @@ $(document).ready( function() {
 	bindNavToContent("#load_update","update",false);
 	bindNavToContent("#load_confGeneral","generalconf",false);
 	bindNavToContent("#load_confLeds","leds",false);
+	bindNavToContent("#load_confGrabber","grabber",false);
+
 
 	//Change all Checkboxes to Switches
 	$("[type='checkbox']").bootstrapSwitch();

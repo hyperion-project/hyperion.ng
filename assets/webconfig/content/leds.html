@@ -98,14 +98,19 @@ start
 		</div>
 		
 		<div class="col-sm-6">
-			<div class="form-group">
-				<div style="margin-bottom:5px">
-					<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
-					<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
+			<div class="panel panel-primary" style="margin-bottom:5px">
+				<div class="panel-heading">
+					<h4 class="panel-title">Generated Configuration</h4>
 				</div>
-				<textarea  rows="20" id="ledconfig" style="width:90%"></textarea>
+				<div class="panel-body">
+					<div class="form-group">
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
+					</div>
+					<textarea  rows="20" id="ledconfig" style="width:90%"></textarea>
+				</div>
 			</div>
-		</div>
+		</div> <!-- left pane -->
 
 		</div> <!-- row layout -->
 	</div>
