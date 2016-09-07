@@ -40,7 +40,7 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
-	bool componentState() { return _bypass; }
+	bool componentState() { return !_bypass; }
 
 private slots:
 	/// Timer callback which writes updated led values to the led device

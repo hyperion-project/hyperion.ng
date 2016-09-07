@@ -33,6 +33,14 @@ $(document).ready( function() {
 		var hostname = parsedServerInfoJSON.info.hostname;
 		$('#dash_systeminfo').html(hostname+':'+hyperionport);
 
+		var components = parsedServerInfoJSON.info.components;
+		components_html = "";
+		for ( idx=0; idx<components.length;idx++)
+		{
+			components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+		}
+		$("#tab_components").html(components_html);
+
 		$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 			parsedUpdateJSON = JSON.parse(data);
 			latestVersion = parsedUpdateJSON[0].versionnr;

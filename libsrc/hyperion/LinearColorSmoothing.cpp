@@ -2,6 +2,7 @@
 #include <QDateTime>
 
 #include "LinearColorSmoothing.h"
+#include <hyperion/Hyperion.h>
 
 using namespace hyperion;
 
@@ -21,7 +22,6 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	_timer.setInterval(_updateInterval);
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
-
 	Info( _log, "Created linear-smoothing with interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",
 	      _updateInterval, settlingTime_ms,  _outputDelay );
 }
@@ -141,10 +141,11 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 
 void LinearColorSmoothing::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == COMP_SMOOTHING && _bypass == enable)
+	if (component == COMP_SMOOTHING)
 	{
+		InfoIf(_bypass == enable, _log, "change state to %s", (enable ? "enabled" : "disabled") );
+		Hyperion::getInstance()->getComponentRegister().componentStateChanged(component, enable);
 		_bypass = !enable;
-		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
 	}
 }
 

@@ -647,6 +647,18 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 		info["ledDevices"]["available"].append(dev.first);
 	}
 
+	// get components
+	info["components"] = Json::Value(Json::arrayValue);
+	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+	for(auto comp : components)
+	{
+		Json::Value item;
+		item["id"] = comp.first;
+		item["name"] = hyperion::componentToIdString(comp.first);
+		item["title"] = hyperion::componentToString(comp.first);
+		item["enabled"] = comp.second;
+		info["components"].append(item);
+	}
 	
 	// Add Hyperion Version, build time
 	//Json::Value & version = 
@@ -991,7 +1003,7 @@ void JsonClientConnection::handleLedColorsCommand(const Json::Value& message, co
 	if (subcommand == "ledstream-start")
 	{
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
-		_timer_ledcolors.start(250);
+		_timer_ledcolors.start(125);
 	}
 	else if (subcommand == "ledstream-stop")
 	{

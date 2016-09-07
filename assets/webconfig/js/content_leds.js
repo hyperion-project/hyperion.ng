@@ -5,11 +5,18 @@ var ledsCustomCfgInitialized = false;
 $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
-		ledColors = (event.response.result);
-		for(var idx=0; idx<ledColors.length; idx++)
+		if ($("#leddevices").length == 0)
 		{
-			led = ledColors[idx]
-			$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
+			requestLedColorsStop();
+		}
+		else
+		{
+			ledColors = (event.response.result);
+			for(var idx=0; idx<ledColors.length; idx++)
+			{
+				led = ledColors[idx]
+				$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
+			}
 		}
 	});
 
