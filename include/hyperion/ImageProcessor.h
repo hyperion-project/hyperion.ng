@@ -119,6 +119,14 @@ private:
 	template <typename Pixel_T>
 	void verifyBorder(const Image<Pixel_T> & image)
 	{
+		if (!_borderProcessor->enabled() && ( _imageToLeds->horizontalBorder()!=0 || _imageToLeds->verticalBorder()!=0 ))
+		{
+			Debug(Logger::getInstance("BLACKBORDER"), "disabled, reset border");
+			_borderProcessor->process(image);
+			delete _imageToLeds;
+			_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), 0, 0, _ledString.leds());
+		}
+		
 		if(_borderProcessor->enabled() && _borderProcessor->process(image))
 		{
 			Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
