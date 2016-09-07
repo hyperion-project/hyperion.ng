@@ -36,12 +36,12 @@ var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
 var ledStreamActive=false;
-var watchdog = true;
+var watchdog = 0;
 
 // 
 function cron()
 {
-	if ( ! watchdog )
+	if ( watchdog > 3)
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -69,7 +69,7 @@ function initWebSocket()
 					$(hyperion).trigger({type:"open"});
 					
 					$(hyperion).on("cmd-serverinfo", function(event) {
-						watchdog = true;
+						watchdog = 0;
 					});
 					cronId = window.setInterval(cron,2000);
 				};
@@ -143,7 +143,7 @@ function initWebSocket()
 
 // also used for watchdog
 function requestServerInfo() {
-	watchdog = false;
+	watchdog++;
 	websocket.send('{"command":"serverinfo", "tan":'+wsTan+'}');
 }
 
@@ -156,11 +156,13 @@ function requestServerConfig() {
 }
 
 function requestLedColorsStart() {
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream_start"}');
+	ledStreamActive=true;
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
 }
 
 function requestLedColorsStop() {
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream_stop"}');
+	ledStreamActive=false;
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-stop"}');
 }
 
 function requestPriorityClear() {

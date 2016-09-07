@@ -25,15 +25,12 @@ UDPListener::UDPListener(const int priority, const int timeout, const QString& a
 	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
 {
 	_server = new QUdpSocket(this);
-	_listenAddress = address.isEmpty()
-	                           ? QHostAddress::AnyIPv4 
-	                           : QHostAddress(address);
+	_listenAddress = address.isEmpty()? QHostAddress::AnyIPv4 : QHostAddress(address);
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
-	
-	_hyperion->registerPriority("UDPLISTENER", _priority);
 
+	_hyperion->registerPriority("UDPLISTENER", _priority);
 }
 
 UDPListener::~UDPListener()
@@ -84,11 +81,15 @@ void UDPListener::stop()
 
 void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == COMP_UDPLISTENER && _isActive != enable)
+	if (component == COMP_UDPLISTENER)
 	{
-		if (enable) start();
-		else        stop();
-		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+		if (_isActive != enable)
+		{
+			if (enable) start();
+			else        stop();
+			Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, enable);
 	}
 }
 
