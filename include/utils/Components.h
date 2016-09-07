@@ -35,6 +35,22 @@ inline const char* componentToString(Components c)
 	}
 }
 
+inline const char* componentToIdString(Components c)
+{
+	switch (c)
+	{
+		case COMP_SMOOTHING:     return "SMOOTHING";
+		case COMP_BLACKBORDER:   return "BLACKBORDER";
+		case COMP_KODICHECKER:   return "KODICHECKER";
+		case COMP_FORWARDER:     return "FORWARDER";
+		case COMP_UDPLISTENER:   return "UDPLISTENER";
+		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
+		case COMP_GRABBER:       return "GRABBER";
+		case COMP_V4L:           return "V4L";
+		default:                 return "";
+	}
+}
+
 inline  Components stringToComponent(QString component)
 {
 	component = component.toUpper();

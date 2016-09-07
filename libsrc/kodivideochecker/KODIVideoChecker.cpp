@@ -4,6 +4,7 @@
 #include <QJsonArray>
 
 #include <kodivideochecker/KODIVideoChecker.h>
+#include <hyperion/Hyperion.h>
 
 using namespace hyperion;
 
@@ -120,11 +121,15 @@ void KODIVideoChecker::stop()
 
 void KODIVideoChecker::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == COMP_KODICHECKER && _active != enable)
+	if (component == COMP_KODICHECKER)
 	{
-		if (enable) start();
-		else        stop();
-		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+		if (_active != enable)
+		{
+			if (enable) start();
+			else        stop();
+			Info(_log, "change state to %s", (_active ? "enabled" : "disabled") );
+		}
+		Hyperion::getInstance()->getComponentRegister().componentStateChanged(component, _active);
 	}
 }
 

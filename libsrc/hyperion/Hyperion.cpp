@@ -507,6 +507,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	if ( ! smoothingConfig.get("enable", true).asBool() )
 	{
 		Info(log,"Smoothing disabled");
+		Hyperion::getInstance()->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, false);
 		return nullptr;
 	}
 
@@ -603,12 +604,16 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 				_ledString,
 				jsonConfig["blackborderdetector"]
 	);
+	//_hyperion->getComponentRegister().componentStateChanged(component, _processor->blackBorderDetectorEnabled());
 
+	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
+	
 	// initialize the color smoothing filter
 	LedDevice* smoothing = createColorSmoothing(jsonConfig["smoothing"], _device);
 	if ( smoothing != nullptr )
 	{
 		_device = smoothing;
+		getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, ((LinearColorSmoothing*)_device)->componentState());
 		connect(this, SIGNAL(componentStateChanged(hyperion::Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(hyperion::Components,bool)));
 	}
 

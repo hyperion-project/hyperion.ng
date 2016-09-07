@@ -19,6 +19,7 @@
 
 #include <utils/jsonschema/JsonFactory.h> // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 #include <utils/jsonschema/QJsonFactory.h>
+#include <utils/Components.h>
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
@@ -270,6 +271,7 @@ void HyperionDaemon::createKODIVideoChecker()
 	{
 		_kodiVideoChecker->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_KODICHECKER, _kodiVideoChecker->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
@@ -319,6 +321,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_boblightServer->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BOBLIGHTSERVER, _boblightServer->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _boblightServer, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// Create UDP listener if configuration is present
@@ -337,6 +340,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_udpListener->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_UDPLISTENER, _udpListener->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
@@ -429,13 +433,16 @@ void HyperionDaemon::createSystemFrameGrabber()
 				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
-			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
+			bool grabberCompState = true;
+			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
+			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx();
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.toUtf8().constData());
-			InfoIf( type == "", _log, "screen capture device disabled");
+			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
+			
+			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 		}
 	}
 }
@@ -452,6 +459,7 @@ void HyperionDaemon::createGrabberDispmanx()
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 	_dispmanx->start();
+
 	Info(_log, "DISPMANX frame grabber created and started");
 #else
 	ErrorIf(_qconfig.contains("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
@@ -541,6 +549,7 @@ void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
 	bool v4lConfigured = _qconfig.contains("grabber-v4l2");
+	bool v4lStarted = false;
 	unsigned v4lEnableCount = 0;
 	
 	if (_qconfig["grabber-v4l2"].isArray())
@@ -581,12 +590,16 @@ void HyperionDaemon::createGrabberV4L2()
 			{
 				QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), grabber, SLOT(setGrabbingMode(GrabbingMode)));
 			}
-			InfoIf( enableV4l && grabber->start(), _log, "V4L2 grabber started");
+			if (enableV4l && grabber->start())
+			{
+				v4lStarted = true;
+				Info(_log, "V4L2 grabber started");
+			}
 			_v4l2Grabbers.push_back(grabber);
 			#endif
 		}
 	}
 
 	ErrorIf( (v4lEnableCount>0 && _v4l2Grabbers.size()==0), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
-
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, (_v4l2Grabbers.size()>0 && v4lEnableCount>0 && v4lStarted) );
 }

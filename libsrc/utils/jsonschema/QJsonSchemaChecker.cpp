@@ -108,7 +108,8 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
  			; // nothing to do. value is present so always oke
  		else if (attribute == "id")
  			; // references have already been collected
- 		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format" || attribute == "advanced")
+ 		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format" 
+			|| attribute == "defaultProperties" || attribute == "propertyOrder")
  			; // nothing to do.
 		else
 		{

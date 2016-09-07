@@ -1,16 +1,39 @@
 <div id="wrapper">
-	<div class="container-fluid">
-		connection lost: <a href="/">reconnect</a>
+	<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom:0">
+		<div class="navbar-header">
+			<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
+		</div>
+	</nav>
+
+	<div class="container" style="margin-top:50px">
+		<div class="panel panel-danger" style="box-shadow: 10px 10px 5px #BBBBBB;">
+			<div class="panel-heading"><i class="fa fa-exclamation-triangle"></i> Connection to Hyperion Service lost!</div>
+			<div class="panel-body"><a href="/">reconnect</a></div>
+		</div>
 	</div>
 </div>
 
+
+<!-- ************************************ -->
+
 <script>
+var connectionLost = false;
+var connectionTimer;
+
+function tryReconnect()
+{
+	$.ajax({ url: "/" }).done(function(data) {
+		window.clearInterval(connectionTimer);
+		window.location.href ="/";
+	});
+}
+
 function connectionLostAction()
 {
-	// demo code to see if this works
-	$("#wrapper").css("margin","auto");
-	$("#wrapper").css("background-color","#BBBBBB");
+	connectionLost = true;
+	connectionTimer = window.setInterval(tryReconnect, 5000);
 }
+
 </script>
 
 

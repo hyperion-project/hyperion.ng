@@ -59,16 +59,20 @@
 			"type":"object",
 			"title" : "Color Calibration",
 			"required" : true,
+			"defaultProperties": ["channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
 			"properties":
 			{
 				"channelAdjustment_enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"propertyOrder" : 1
 				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"required" : true,
+					"propertyOrder" : 2,
 					"items" :
 					{
 						"type" : "object",
@@ -239,12 +243,15 @@
 				},
 				"transform_enable" :
 				{
-					"type" : "boolean"
+					"type" : "boolean",
+					"format": "checkbox",
+					"propertyOrder" : 3
 				},
 				"transform" :
 				{
 					"type" : "array",
 					"required" : true,
+					"propertyOrder" : 4,
 					"items" :
 					{
 						"type" : "object",
@@ -376,7 +383,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 1
 				},
 				"type" :
 				{
@@ -433,7 +441,8 @@
 						"type" : "boolean",
 						"format": "checkbox",
 						"title" : "Activate",
-						"default" : false
+						"default" : false,
+						"propertyOrder" : 1
 					},
 					"device" :
 					{
@@ -565,12 +574,15 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 1
 				},
 				"type" :
 				{
 					"type" : "string",
-					"title" : "Type"
+					"title" : "Type",
+					"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
+					"default" : "auto"
 				},
 				"width" :
 				{
@@ -667,6 +679,7 @@
 			"type" : "object",
 			"title" : "Blackbar detector",
 			"required": ["mode"],
+			"defaultProperties": ["enable","mode","threshold"],
 			"properties" :
 			{
 				"enable" :
@@ -674,7 +687,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 1
 				},
 				"threshold" :
 				{
@@ -687,26 +701,22 @@
 				"unknownFrameCnt"    :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"borderFrameCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"maxInconsistentCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"blurRemoveCnt" :
 				{
 					"type" : "number",
-					"minimum" : 0,
-					"advanced" : true
+					"minimum" : 0
 				},
 				"mode" :
 				{
@@ -729,7 +739,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 1
 				},
 				"kodiAddress" :
 				{
@@ -801,12 +812,14 @@
 		{
 			"type" : "object",
 			"title" : "Initial Effect",
+			"defaultProperties": ["background-effect","foreground-effect","foreground-duration_ms"],
 			"properties" :
 			{
 				"background-effect" :
 				{
 					"type" : "array",
-					"title" : "Background effect"
+					"title" : "Background effect",
+					"propertyOrder" : 3
 				},
 				"background-effect-args" :
 				{
@@ -816,7 +829,8 @@
 				"foreground-effect" :
 				{
 					"type" : "array",
-					"title" : "Boot effect"
+					"title" : "Boot effect",
+					"propertyOrder" : 1
 				},
 				"foreground-effect-args" :
 				{
@@ -826,7 +840,8 @@
 				"foreground-duration_ms" :
 				{
 					"type" : "integer",
-					"title" : "Boot effect duration"
+					"title" : "Boot effect duration",
+					"propertyOrder" : 2
 				}
 			},
 			"additionalProperties" : false
@@ -843,7 +858,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 1
 				},
 				"json" :
 				{
@@ -907,7 +923,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 1
 				},
 				"port" :
 				{
@@ -938,7 +955,8 @@
 					"type" : "boolean",
 					"format": "checkbox",
 					"title" : "Activate",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 1
 				},
 				"address" :
 				{
@@ -990,7 +1008,8 @@
 					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
@@ -1085,7 +1104,7 @@
 					"colorOrder":
 					{
 						"type": "string",
-						"enum" : ["bgr", "rbg", "brg", "gbr", "grb"]
+						"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"]
 					}
 				},
 				"additionalProperties" : false

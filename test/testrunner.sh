@@ -1,59 +1,61 @@
 #!/bin/bash
 
-if [[ $TRAVIS_EVENT_TYPE == 'cron' || -n $TRAVIS_TAG ]]; then
-	echo "Skipping testrunner.sh, cron or tag build detected"
-else
-
-	STATS_FAILED=0
-	STATS_SUCCESS=0
-	STATS_TOTAL=0
+STATS_FAILED=0
+STATS_SUCCESS=0
+STATS_SKIPED=0
+STATS_TOTAL=0
 
 
-	# exec_test "test name" test_exec --with --args
-	function exec_test()
-	{
-		local test_name="$1"
-		shift
-		(( STATS_TOTAL++ ))
-		echo "execute test: '$test_name'"
-		if $@
-		then
-			echo -e "   ... success"
-			(( STATS_SUCCESS++ ))
-			return 0
-		else
-			echo -e "   ... failed"
-			(( STATS_FAILED++ ))
-			return 1
-		fi
-		echo
-	}
-
-	######################################
-	## EXEC TESTS
-	cd build || exit 1
-
+# exec_test "test name" test_exec --with --args
+function exec_test()
+{
+	local test_name="$1"
+	if [ ! -e "$2" ]
+	then
+		echo "skip test: '$test_name'"
+		(( STATS_SKIPED++ ))
+		return
+	fi
+	shift
+	(( STATS_TOTAL++ ))
+	echo "execute test: '$test_name'"
+	if $@
+	then
+		echo -e "   ... success"
+		(( STATS_SUCCESS++ ))
+		return 0
+	else
+		echo -e "   ... failed"
+		(( STATS_FAILED++ ))
+		return 1
+	fi
 	echo
-	echo "Hyperion test execution"
-	echo
-	exec_test "hyperiond is executable and show version" bin/hyperiond --version
+}
 
-	for cfg in ../config/*json*
-	do
-		exec_test "test $(basename $cfg)" bin/test_configfile $cfg
-	done
+######################################
+## EXEC TESTS
+cd build || exit 1
 
-	echo
-	echo
-	echo "TEST SUMMARY"
-	echo "============"
-	echo "    total: $STATS_TOTAL"
-	echo "  success: $STATS_SUCCESS"
-	echo "   failed: $STATS_FAILED"
+echo
+echo "Hyperion test execution"
+echo
+exec_test "hyperiond is executable and show version" bin/hyperiond --version
 
-	sleep 2
+for cfg in ../config/*json*
+do
+	exec_test "test $(basename $cfg)" bin/test_configfile $cfg
+done
 
-	[ $STATS_FAILED -gt 0 ] && exit 200
-	exit 0
-fi
+echo
+echo
+echo "TEST SUMMARY"
+echo "============"
+echo "    total: $STATS_TOTAL"
+echo "  success: $STATS_SUCCESS"
+echo "   skiped: $STATS_SKIPED"
+echo "   failed: $STATS_FAILED"
 
+sleep 2
+
+[ $STATS_FAILED -gt 0 ] && exit 200
+exit 0
