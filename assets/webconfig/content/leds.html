@@ -1,0 +1,57 @@
+<style>
+	#leds_canvas {width:800px; height:450px; background-color:#AAAAAA; position:absolute; margin:10px; box-shadow: 10px 10px 5px #BBBBBB;
+	background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center; border-radius:2px; }
+	.led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center;
+	vertical-align:middle; padding:4px;  border-radius:2px;}
+	.led_num {display:none; position:relative; color:black; background-color: white; 
+		border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
+	#leds_controls {white-space:nowrap; margin-top:530px;}
+</style>
+
+
+	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">Led Configuration</h1>
+<!--	<div class="introd">
+		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
+	</div>-->
+
+	<ul id="leds_cfg_nav" class="nav nav-tabs">
+		<li class="active"><a data-toggle="tab" href="#menu_display">Display LEDs</a></li>
+		<li><a data-toggle="tab" href="#menu_gencfg">Generate Config</a></li>
+		<li><a data-toggle="tab" href="#menu_customcfg">Custom Config</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="menu_display" class="tab-pane fade in active">
+			<div  class="container-fluid">
+				<div id="leds_canvas"/>
+	
+				<div id="leds_controls">
+					<button lang="en" type="button" class="btn btn-success" id="leds_toggle">toggle leds</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num">toggle led numbers</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_live">toggle live leds</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="menu_gencfg" class="tab-pane fade">
+			<h3>coming soon</h3>
+			<p>led config generator ...</p>
+		</div>
+
+		<div id="menu_customcfg" class="tab-pane fade">
+			<p>
+			<div class="form-group">
+				<div style="margin-bottom:5px">
+					<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
+					<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
+				</div>
+				<textarea  rows="20" id="ledconfig" style="width:90%"></textarea>
+			</div>
+			</p>
+		</div>
+
+	</div> <!-- tab content -->
+
+<script src="/js/content_leds.js"></script>
+

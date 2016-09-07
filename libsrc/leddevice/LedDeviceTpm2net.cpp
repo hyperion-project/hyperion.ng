@@ -1,29 +1,32 @@
+
 // STL includes
 #include <cstring>
 #include <cstdio>
 #include <iostream>
-#include <sstream>
 
-// Local-Hyperion includes
+// Linux includes
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+
+#include <QHostInfo>
+#include <QUuid>
+
+// hyperion local includes
 #include "LedDeviceTpm2net.h"
 
-
 LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
-	: LedDevice()
-	, _socket(this)
+	: ProviderUdp(deviceConfig)
+
 {
 	setConfig(deviceConfig);
 }
 
-LedDeviceTpm2net::~LedDeviceTpm2net()
-{
-}
-
 bool LedDeviceTpm2net::setConfig(const Json::Value &deviceConfig)
 {
-	_host = QHostAddress(QString::fromStdString(deviceConfig.get("output", "127.0.0.1").asString()));
-	_port = deviceConfig.get("port", 65506).asInt();
-
+	ProviderUdp::setConfig(deviceConfig);
+	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
+	_tpm2_max  = deviceConfig.get("max-packet",170).asInt();
 	return true;
 }
 
@@ -32,32 +35,53 @@ LedDevice* LedDeviceTpm2net::construct(const Json::Value &deviceConfig)
 	return new LedDeviceTpm2net(deviceConfig);
 }
 
-int LedDeviceTpm2net::write(const std::vector<ColorRgb> & ledValues)
+
+// populates the headers
+
+int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledBuffer.size() == 0)
+	uint8_t * _tpm2_buffer = (uint8_t*) malloc(_tpm2_max+7);
+
+	int retVal = 0;
+
+	_ledCount = ledValues.size();
+	_tpm2ByteCount = 3 * _ledCount;
+	_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
+
+	int _thisPacketBytes = 0;
+	_tpm2ThisPacket = 1;
+
+	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
+
+	for (int rawIdx = 0; rawIdx < _tpm2ByteCount; rawIdx++)
 	{
-		_ledBuffer.resize(7 + 3*ledValues.size());
-		_ledBuffer[0] = 0x9c; // block-start byte TPM.NET
-		_ledBuffer[1] = 0xDA;
-		_ledBuffer[2] = ((3 * ledValues.size()) >> 8) & 0xFF; // frame size high byte
-		_ledBuffer[3] = (3 * ledValues.size()) & 0xFF; // frame size low byte
-		_ledBuffer[4] = 1; // packets number
-		_ledBuffer[5] = 1; // Number of packets 
-		_ledBuffer[(int)(7 + 3*ledValues.size()-1)] = 0x36; // block-end byte
+		if (rawIdx % _tpm2_max == 0) // start of new packet
+		{
+			_thisPacketBytes = (_tpm2ByteCount - rawIdx < _tpm2_max) ? _tpm2ByteCount % _tpm2_max : _tpm2_max;
+//			                        is this the last packet?         ?    ^^ last packet          : ^^ earlier packets
+
+			_tpm2_buffer[0] = 0x9c;	// Packet start byte
+			_tpm2_buffer[1] = 0xda; // Packet type Data frame
+			_tpm2_buffer[2] = (_thisPacketBytes >> 8) & 0xff; // Frame size high
+			_tpm2_buffer[3] = _thisPacketBytes & 0xff; // Frame size low
+			_tpm2_buffer[4] = _tpm2ThisPacket++; // Packet Number
+			_tpm2_buffer[5] = _tpm2TotalPackets; // Number of packets
+		}
+
+		_tpm2_buffer [6 + rawIdx%_tpm2_max] = rawdata[rawIdx];
+
+//     is this the      last byte of last packet    ||   last byte of other packets
+		if ( (rawIdx == _tpm2ByteCount-1) || (rawIdx %_tpm2_max == _tpm2_max-1) )
+		{
+			_tpm2_buffer [6 + rawIdx%_tpm2_max +1] = 0x36;		// Packet end byte
+			retVal &= writeBytes(_thisPacketBytes+7, _tpm2_buffer);
+		}
 	}
 
-	// write data
-	memcpy(6 + _ledBuffer.data(), ledValues.data() /*Max 1,490 bytes*/, ledValues.size() * 3);
-
-	_socket.connectToHost(_host, _port);
-	_socket.write((const char *)_ledBuffer.data());
-	_socket.close();
-
-	return 0;
+	return retVal;
 }
 
 int LedDeviceTpm2net::switchOff()
 {
-	memset(6 + _ledBuffer.data(), 0, _ledBuffer.size() - 5);
-	return 0;
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

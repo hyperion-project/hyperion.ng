@@ -2,6 +2,21 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output": {
+			"type": "string",
+			"title":"SPI path",
+			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"]
+		},
+		"rate": {
+			"type": "integer",
+			"title":"Baudrate",
+			"default": 2666666
+		},
+		"invert": {
+			"type": "boolean",
+			"title":"Invert signal",
+			"default": false
+		}
 	},
 	"additionalProperties": true
 }

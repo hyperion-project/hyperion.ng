@@ -12,7 +12,7 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 		:  QObject   (parent)
 		, _hyperion(hyperion)
 		, _baseUrl (baseUrl)
-		, _cgi(hyperion, this)
+		, _cgi(hyperion, baseUrl, this)
 		, _log(Logger::getInstance("WEBSERVER"))
 {
 	_mimeDb = new QMimeDatabase;
@@ -71,7 +71,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			catch(...)
 			{
-				printErrorToReply (reply, "cgi script failed (" % path % ")");
+				printErrorToReply (reply, "script failed (" % path % ")");
 			}
 			return;
 		}

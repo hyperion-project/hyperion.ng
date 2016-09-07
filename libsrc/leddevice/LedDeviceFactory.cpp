@@ -93,7 +93,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	#endif
 
 	// network lights
-	LedDevice::addToDeviceMap("tmp2net", LedDeviceTpm2net::construct);
+	LedDevice::addToDeviceMap("tpm2net", LedDeviceTpm2net::construct);
 	LedDevice::addToDeviceMap("udpraw", LedDeviceUdpRaw::construct);
 	LedDevice::addToDeviceMap("e131", LedDeviceUdpE131::construct);
 	#ifdef ENABLE_TINKERFORGE

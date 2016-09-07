@@ -33,6 +33,13 @@ LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
 bool LedDeviceSk6812SPI::setConfig(const Json::Value &deviceConfig)
 {
 	ProviderSpi::setConfig(deviceConfig);
+
+        _baudRate_Hz   = deviceConfig.get("rate",3000000).asInt();
+	if ( (_baudRate_Hz < 2050000) || (_baudRate_Hz > 4000000) )
+	{
+		Warning(_log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+	}
+
 	_whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
 
 	return true;

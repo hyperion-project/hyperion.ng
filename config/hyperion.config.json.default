@@ -97,25 +97,28 @@
 	},
 
 	"grabber-v4l2" :
-	{
-		"enable"   : false,
-		"device"   : "auto",
-		"input"    : 0,
-		"standard" : "PAL",
-		"width"    : -1,
-		"height"   : -1,
-		"frameDecimation" : 2,
-		"sizeDecimation"  : 8,
-		"priority"    : 890,
-		"mode"        : "2D",
-		"cropLeft"    : 0,
-		"cropRight"   : 0,
-		"cropTop"     : 0,
-		"cropBottom"  : 0,
-		"redSignalThreshold"   : 0.0,
-		"greenSignalThreshold" : 0.0,
-		"blueSignalThreshold"  : 0.0
-	},
+	[
+		{
+			"enable"   : false,
+			"device"   : "auto",
+			"input"    : 0,
+			"standard" : "PAL",
+			"width"    : -1,
+			"height"   : -1,
+			"frameDecimation" : 2,
+			"sizeDecimation"  : 8,
+			"priority"    : 890,
+			"mode"        : "2D",
+			"useKodiChecker" : false,
+			"cropLeft"    : 0,
+			"cropRight"   : 0,
+			"cropTop"     : 0,
+			"cropBottom"  : 0,
+			"redSignalThreshold"   : 0.0,
+			"greenSignalThreshold" : 0.0,
+			"blueSignalThreshold"  : 0.0
+		}
+	],
 
 	"framegrabber" :
 	{

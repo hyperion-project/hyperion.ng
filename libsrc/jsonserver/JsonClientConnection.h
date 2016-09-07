@@ -169,6 +169,12 @@ private:
 	///
 	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
 
+	/// Handle an incoming JSON Led Colors message
+	///
+	/// @param message the incoming message
+	///
+	void handleLedColorsCommand(const Json::Value &, const std::string &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -222,7 +228,6 @@ private:
 	///
 	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
 
-private:
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
@@ -243,4 +248,8 @@ private:
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled;
+	
+	/// 
+	QTimer _timer_ledcolors;
+
 };

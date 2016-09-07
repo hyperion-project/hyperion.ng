@@ -1,32 +1,36 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
 
+	<title>Hyperion - WebUI</title>
 
-    <title>Hyperion - WebUI</title>
+	<!-- jQuery -->
+	<script src="js/lib/jquery.min.js"></script>
 
-  <!-- jQuery -->
-    <script src="js/lib/jquery.min.js"></script>
+	<!-- Hyperion -->
+	<script src="js/hyperion.js"></script>
+	<script src="js/ui_utils.js"></script>
 
-    <script src="js/hyperion.js"></script>
+	<!-- textarea --> 
+	<script src="js/lib/jquery-linedtextarea.js"></script>
+	<link href="css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	
+	<!-- Colorpicker -->
+	<script src="js/lib/bootstrap-colorpicker.min.js"></script>
+	<link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
-  <!-- Colorpicker -->
-    <script src="js/lib/bootstrap-colorpicker.min.js"></script>
-    <link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+	<!-- Bootstrap Switch -->
+	<script src="js/lib/bootstrap-switch.min.js"></script>
+	<link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
-  <!-- Bootstrap Switch -->
-    <script src="js/lib/bootstrap-switch.min.js"></script>
-    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
-
-  <!-- JSONForm -->
-    <script src="js/lib/underscore.js"></script>
-    <script src="js/lib/jsonform.js"></script>
+	<!-- JSONForm -->
+	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
 	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
@@ -35,501 +39,231 @@
 	<script type="text/javascript">
 		// Create language switcher instance
 		var lang = new Lang();
-
 		lang.dynamic('de', 'lang/de.json');
-
 		lang.init({
 			defaultLang: 'en',
-
 			cookie: {
 				name: 'langCookie',
 				expiry: 365,
 				path: '/'
 			},
-
-
 			allowCookieOverride: true
 		});
 	</script>
 
 
-    <!-- Bootstrap Core CSS -->
-    <link href="css/bootstrap.css" rel="stylesheet">
+	<!-- Bootstrap Core CSS -->
+	<link href="css/bootstrap.css" rel="stylesheet">
 
 	<!-- Flags -->
 	<link href="css/flag-icon.min.css" rel="stylesheet">
 
-    <!-- MetisMenu CSS -->
-    <link href="css/metisMenu.css" rel="stylesheet">
+	<!-- MetisMenu CSS -->
+	<link href="css/metisMenu.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link href="css/sb-admin-2.css" rel="stylesheet">
+	<!-- Custom CSS -->
+	<link href="css/sb-admin-2.css" rel="stylesheet">
 
 	<link href="css/hyperion.css" rel="stylesheet">
 
-    <!-- Custom Fonts -->
-    <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<!-- Custom Fonts -->
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
 
 </head>
 
 <body>
 
-    <div id="wrapper">
+	<div id="wrapper">
 
-        <!-- Navigation -->
-        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+		<!-- Navigation -->
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
 
-                <a class="navbar-brand" href="index.html"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!"></a>
+				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!"></a>
 
-            </div>
-            <!-- /.navbar-header -->
+			</div>
+			<!-- /.navbar-header -->
 
-            <ul class="nav navbar-top-links navbar-right">
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-globe fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-language">
-                        <li>
-                            <a href="#lang-en" onclick="window.lang.change('en'); return false;"><span lang="en" class="flag-icon flag-icon-gb" data-lang-token="general_speech_en">&emsp; English</span></a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#lang-de" onclick="window.lang.change('de'); return false;"><span lang="en" class="flag-icon flag-icon-de" data-lang-token="general_speech_de">&emsp; German</span></a>
-                        </li>
+			<ul class="nav navbar-top-links navbar-right">
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-globe fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-language">
+						<li>
+							<a href="#lang-en" onclick="window.lang.change('en'); return false;"><span lang="en" class="flag-icon flag-icon-gb" data-lang-token="general_speech_en">&emsp; English</span></a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#lang-de" onclick="window.lang.change('de'); return false;"><span lang="en" class="flag-icon flag-icon-de" data-lang-token="general_speech_de">&emsp; German</span></a>
+						</li>
 					</ul>
-                    <!-- /.dropdown-language -->
-                </li>
-                <!-- /.dropdown -->
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-tasks fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-tasks">
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <p>
-                                        <strong>Task 1</strong>
-                                        <span class="pull-right text-muted">40% Complete</span>
-                                    </p>
-                                    <div class="progress progress-striped active">
-                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
-                                            <span class="sr-only">40% Complete (success)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <p>
-                                        <strong>Task 2</strong>
-                                        <span class="pull-right text-muted">20% Complete</span>
-                                    </p>
-                                    <div class="progress progress-striped active">
-                                        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
-                                            <span class="sr-only">20% Complete</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <p>
-                                        <strong>Task 3</strong>
-                                        <span class="pull-right text-muted">60% Complete</span>
-                                    </p>
-                                    <div class="progress progress-striped active">
-                                        <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
-                                            <span class="sr-only">60% Complete (warning)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <p>
-                                        <strong>Task 4</strong>
-                                        <span class="pull-right text-muted">80% Complete</span>
-                                    </p>
-                                    <div class="progress progress-striped active">
-                                        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
-                                            <span class="sr-only">80% Complete (danger)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a class="text-center" href="#">
-                                <strong>See All Tasks</strong>
-                                <i class="fa fa-angle-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-tasks -->
-                </li>
-                <!-- /.dropdown -->
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-bell fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-alerts">
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <i class="fa fa-comment fa-fw"></i> New Comment
-                                    <span class="pull-right text-muted small">4 minutes ago</span>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <i class="fa fa-twitter fa-fw"></i> 3 New Followers
-                                    <span class="pull-right text-muted small">12 minutes ago</span>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <i class="fa fa-envelope fa-fw"></i> Message Sent
-                                    <span class="pull-right text-muted small">4 minutes ago</span>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <i class="fa fa-tasks fa-fw"></i> New Task
-                                    <span class="pull-right text-muted small">4 minutes ago</span>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a href="#">
-                                <div>
-                                    <i class="fa fa-upload fa-fw"></i> Server Rebooted
-                                    <span class="pull-right text-muted small">4 minutes ago</span>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="divider"></li>
-                        <li>
-                            <a class="text-center" href="#">
-                                <strong>See All Alerts</strong>
-                                <i class="fa fa-angle-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-alerts -->
-                </li>
-                <!-- /.dropdown -->
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-user">
-                        <li><a href="#"><i class="fa fa-user fa-fw"></i>User Profile</a>
-                        </li>
-                        <li><a href="#"><i class="fa fa-gear fa-fw"></i>Settings</a>
-                        </li>
-                        <li class="divider"></li>
-                        <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
-                        </li>
-                    </ul>
-                    <!-- /.dropdown-user -->
-                </li>
-                <!-- /.dropdown -->
-            </ul>
-            <!-- /.navbar-top-links -->
-
-            <div class="navbar-default sidebar" role="navigation">
-                <div class="sidebar-nav navbar-collapse">
-                    <ul class="nav" id="side-menu">
-                        <li class="sidebar-search">
-                            <div class="input-group custom-search-form">
-                                <input type="text" class="form-control" placeholder="Search...">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button">
-                                        <i class="fa fa-search"></i>
-                                    </button>
-                                </span>
-                            </div>
-                            <!-- /input-group -->
-                        </li>
-                        <li>
-                            <a class="active" href="index.html"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></a>
-                        </li>
-							<li>
-								<a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level">
-									<li>
-										<a class="inactive" href="#" id="load_confGeneral"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a>
-									</li>
-									<li>
-										<a class="inactive" href="#" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a>
-									</li>
-									<li>
-										<a class="inactive" href="#" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a>
-									</li>
-								</ul>
-							</li>
-							<li>
-								<a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span><span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level">
-									<li>
-										<a class="inactive" href="#" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_colors_token">Colors</span></a>
-									</li>
-									<li>
-										<a class="inactive" href="#" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="main_menu_effects_token">Effects</span></a>
-									</li>
-									<li>
-										<a class="inactive" href="#" id="load_components"><i class="fa fa-list fa-fw"></i><span lang="en" data-lang-token="main_menu_component_token">Components</span></a>
-									</li>
-								</ul>
-							</li>
-							<li>
-								<a class="inactive" href="#" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a>
-							</li>
-							<li>
-								<a class="inactive" href="#"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
-								<ul class="nav nav-second-level">
-									<li>
-										<a class="inactive" href="#" id="load_update"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></a>
-									</li>
-								</ul>
-							</li>
-
-                    </ul>
-                </div>
-                <!-- /.sidebar-collapse -->
-            </div>
-            <!-- /.navbar-static-side -->
-        </nav>
-
-        <!-- Page Content -->
-        <div id="page-wrapper">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h1 class="page-header">Dashboard</h1>
-						<div class="introd">
-							<h4 lang="en" data-lang-token="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
-						</div>
-						<hr>
-							<div class="col-lg-4">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<i class="fa fa-info-circle fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_label_infobox_title">Information</span>
-									</div>
-									<div class="panel-body">
-										<table class="table borderless">
-											<tbody>
-												<tr>
-													<td lang="en" data-lang-token="dashboard_label_infobox_currenthyp">Your Hyperion version:</td>
-													<td id="currentversion"></td>
-												</tr>
-													<tr>
-													<td lang="en" data-lang-token="dashboard_label_infobox_latesthyp">Latest version:</td>
-													<td id="latestversion"></td>
-												</tr>
-												<tr>
-													<td lang="en" data-lang-token="dashboard_label_infobox_device">Device:</td>
-													<td></td>
-												</tr>
-											</tbody>
-										</table>
-										<hr>
-										<span id="versioninforesult"></span>
-									</div>
+					<!-- /.dropdown-language -->
+				</li>
+				<!-- /.dropdown -->
+				</li>
+				<!-- /.dropdown -->
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-bell fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-alerts">
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-comment fa-fw"></i> New Comment
+									<span class="pull-right text-muted small">4 minutes ago</span>
 								</div>
-							</div>
-							<div class="col-lg-3">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<i class="fa fa-eye fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_label_componentbox_title">Components status</span>
-									</div>
-									<div class="panel-body">
-										  <table class="table">
-											<thead>
-												<tr>
-													<th>Component</th>
-													<th>Status</th>
-												</tr>
-											</thead>
-											<tbody>
-												<tr>
-													<td>Kodi Watch</td>
-													<td><i class="fa fa-circle component-on"></i></td>
-												</tr>
-													<tr>
-													<td>Blackborder</td>
-													<td><i class="fa fa-circle component-off"></i></td>
-												</tr>
-												<tr>
-													<td>Booteffect</td>
-													<td><i class="fa fa-circle component-off"></i></td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-twitter fa-fw"></i> 3 New Followers
+									<span class="pull-right text-muted small">12 minutes ago</span>
 								</div>
-							</div>
-							<div class="col-lg-5">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<i class="fa fa-newspaper-o fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_label_newsbox_title">Latest blog posts</span>
-									</div>
-									<div class="panel-body">
-
-									</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-envelope fa-fw"></i> Message Sent
+									<span class="pull-right text-muted small">4 minutes ago</span>
 								</div>
-							</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-tasks fa-fw"></i> New Task
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-upload fa-fw"></i> Server Rebooted
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a class="text-center" href="#">
+								<strong>See All Alerts</strong>
+								<i class="fa fa-angle-right"></i>
+							</a>
+						</li>
+					</ul>
+					<!-- /.dropdown-alerts -->
+				</li>
+				<!-- /.dropdown -->
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-user">
+						<li><a href="#"><i class="fa fa-user fa-fw"></i>User Profile</a>
+						</li>
+						<li><a href="#"><i class="fa fa-gear fa-fw"></i>Settings</a>
+						</li>
+						<li class="divider"></li>
+						<li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
+						</li>
+					</ul>
+					<!-- /.dropdown-user -->
+				</li>
+				<!-- /.dropdown -->
+			</ul>
+			<!-- /.navbar-top-left -->
 
-                    </div>
-                    <!-- /.col-lg-12 -->
-                </div>
-                <!-- /.row -->
-            </div>
-            <!-- /.container-fluid -->
+			<div class="navbar-default sidebar" role="navigation">
+				<div class="sidebar-nav navbar-collapse">
+					<ul class="nav" id="side-menu">
+						<li> <a class="active" id="load_dashboard"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></a> </li>
+						<li>
+							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
+								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a> </li>
+								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LEDs</span></a> </li>
+								<li> <a class="inactive" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a> </li>
+							</ul>
+						</li>
+						<li>
+							<a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+								<li> <a class="inactive" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_colors_token">Colors</span></a> </li>
+								<li> <a class="inactive" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="main_menu_effects_token">Effects</span></a> </li>
+								<li> <a class="inactive" id="load_components"><i class="fa fa-list fa-fw"></i><span lang="en" data-lang-token="main_menu_component_token">Components</span></a> </li>
+								<li> <a class="inactive" id="load_input_selection"><i class="fa fa-random fa-fw"></i><span lang="en" data-lang-token="main_menu_input_selection_token">Input Selection</span></a> </li>
+							</ul>
+						</li>
+						<li> <a class="inactive" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a> </li>
+						<li>
+							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+								<li> <a class="inactive" id="load_update"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></a> </li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<!-- /.sidebar-collapse -->
+			</div>
+			<!-- /.navbar-static-side -->
+		</nav>
+
+		<!-- Page Content -->
+		<div id="page-wrapper" />
+
+	</div>
+	<!-- /#wrapper -->
+
+	<div id="container_connection_lost" style="display:none" />
+
+	<div id="error_dialog" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" />
+				</div>
+			<div class="modal-body" />
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Okay!</button>
+			</div>
 		</div>
-        <!-- /#page-wrapper -->
+	</div>
 
-    </div>
-    <!-- /#wrapper -->
+	<!-- Bootstrap Core JavaScript -->
+	<script src="/js/lib/bootstrap.min.js"></script>
 
+	<!-- Metis Menu Plugin JavaScript -->
+	<script src="/js/lib/metisMenu.min.js"></script>
 
+	<!-- Custom Theme JavaScript -->
+	<script src="/js/lib/sb-admin-2.js"></script>
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="js/lib/bootstrap.min.js"></script>
-
-    <!-- Metis Menu Plugin JavaScript -->
-    <script src="js/lib/metisMenu.min.js"></script>
-
-    <!-- Custom Theme JavaScript -->
-    <script src="js/lib/sb-admin-2.js"></script>
-	<script>
-
-		$(document).ready( function() {
-			$("#load_lighttest").on("click", function() {
-				$("#page-wrapper").load("lighttest.html");
-			});
-
-			$("#load_effects").on("click", function() {
-				$("#page-wrapper").load("effects.html");
-			});
-			
-			$("#load_components").on("click", function() {
-				$("#page-wrapper").load("remote_components.html");
-			});
-
-			$("#load_huebridge").on("click", function() {
-				$("#page-wrapper").load("huebridge.html");
-      });
-
-			$("#load_support").on("click", function() {
-				$("#page-wrapper").load("support.html");
-			});
-
-			$("#load_confKodi").on("click", function() {
-				$("#page-wrapper").load("kodiconf.html");
-			});
-
-      $("#load_update").on("click", function() {
-				$("#page-wrapper").load("update.html");
-			});
-
-      $("#load_confGeneral").on("click", function() {
-				$("#page-wrapper").load("generalconf.html");
-			});
-
-      //Change all Checkboxes to Switches
-      $("[type='checkbox']").bootstrapSwitch();
-
-	  	  // vesion check
-	  	var currentVersion;
-		var cleanCurrentVersion;
-		var latestVersion;
-		var cleanLatestVersion;
-		
-		webSocket = new WebSocket('ws://'+document.location.hostname+':19444');
-		var serverInfo;
-
-		webSocket.onerror = function(event) {
-			alert(event.data);
-		};
-
-
-		webSocket.onopen = function(event) {
-			webSocket.send('{"command":"serverinfo"}');
-		};
-
-		webSocket.onmessage = function(response){
-			responseJSON = JSON.parse(response.data );
-			currentVersion = responseJSON.info.hyperion[0].version;
-			cleanCurrentVersion = currentVersion.replace(/\./g, '');
-		
-			$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
-				var responseJSON = JSON.parse(data);
-				latestVersion = responseJSON[0].versionnr;
-				cleanLatestVersion = latestVersion.replace(/\./g, '');
-				
-				$('#currentversion').append(' V'+currentVersion);
-				$('#latestversion').append(' V'+latestVersion);
-
-				if ( cleanCurrentVersion < cleanLatestVersion ) {
-					$('#versioninforesult').append('<div lang="en" data-lang-token="dashboard_message_infobox_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
-					}
-				else{
-					$('#versioninforesult').append('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
-					}
-			});
-		
-		};
-	  
-    });
-		$(function(){
-			var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-
-			sidebar.delegate('a.inactive','click',function(){
-				sidebar.find('.active').toggleClass('active inactive');
-				$(this).toggleClass('active inactive');
-			});
-		});
-	</script>
+	<script src="/js/content_index.js"></script>
 </body>
 
 </html>

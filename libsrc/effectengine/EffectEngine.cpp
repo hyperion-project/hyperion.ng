@@ -12,6 +12,7 @@
 
 // hyperion util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
+#include <utils/FileUtils.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
@@ -181,7 +182,7 @@ int EffectEngine::runEffectScript(const std::string &script, const Json::Value &
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority("EFFECT: "+script, priority);
+	_hyperion->registerPriority("EFFECT: "+FileUtils::getBaseName(script), priority);
 	effect->start();
 
 	return 0;
@@ -226,5 +227,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority("EFFECT: " + effect->getScript());
+	_hyperion->unRegisterPriority("EFFECT: " + FileUtils::getBaseName(effect->getScript()));
 }

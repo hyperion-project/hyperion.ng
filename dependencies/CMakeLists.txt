@@ -9,7 +9,7 @@ if(ENABLE_WS281XPWM)
 		external/rpi_ws281x/rpihw.c)
 endif()
 
-set(USE_SYSTEM_PROTO_LIBS OFF CACHE BOOL "use protobuf library from system")
+set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use protobuf library from system")
 
 if (USE_SYSTEM_PROTO_LIBS)
 	find_package(Protobuf REQUIRED)

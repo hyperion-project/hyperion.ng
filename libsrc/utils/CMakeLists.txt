@@ -19,6 +19,8 @@ add_library(hyperion-utils
 	${CURRENT_SOURCE_DIR}/ColorRgbw.cpp
 	${CURRENT_HEADER_DIR}/Image.h
 	${CURRENT_HEADER_DIR}/Sleep.h
+	${CURRENT_HEADER_DIR}/FileUtils.h
+	${CURRENT_SOURCE_DIR}/FileUtils.cpp
 
 	${CURRENT_HEADER_DIR}/Logger.h
 	${CURRENT_SOURCE_DIR}/Logger.cpp
