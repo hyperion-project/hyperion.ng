@@ -227,5 +227,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority("EFFECT: " + effect->getScript());
+	_hyperion->unRegisterPriority("EFFECT: " + FileUtils::getBaseName(effect->getScript()));
 }

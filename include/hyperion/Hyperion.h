@@ -21,6 +21,7 @@
 #include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MessageForwarder.h>
+#include <hyperion/ComponentRegister.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
@@ -158,6 +159,9 @@ public:
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const hyperion::Components component, const bool state);
+
+	ComponentRegister& getComponentRegister() { return _componentRegister; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -359,6 +363,8 @@ private:
 	/// count of hardware leds
 	unsigned _hwLedCount;
 
+	ComponentRegister _componentRegister;
+	
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 

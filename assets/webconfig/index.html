@@ -8,26 +8,28 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="">
 
-
 	<title>Hyperion - WebUI</title>
 
-  <!-- jQuery -->
+	<!-- jQuery -->
 	<script src="js/lib/jquery.min.js"></script>
 
+	<!-- Hyperion -->
 	<script src="js/hyperion.js"></script>
 	<script src="js/ui_utils.js"></script>
 
-  <!-- Colorpicker -->
+	<!-- textarea --> 
+	<script src="js/lib/jquery-linedtextarea.js"></script>
+	<link href="css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	
+	<!-- Colorpicker -->
 	<script src="js/lib/bootstrap-colorpicker.min.js"></script>
 	<link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
-  <!-- Bootstrap Switch -->
+	<!-- Bootstrap Switch -->
 	<script src="js/lib/bootstrap-switch.min.js"></script>
 	<link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
-  <!-- JSONForm -->
-	<!--<script src="js/lib/underscore.js"></script>
-	<script src="js/lib/jsonform.js"></script>-->
+	<!-- JSONForm -->
 	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
@@ -90,7 +92,7 @@
 					<span class="icon-bar"></span>
 				</button>
 
-				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!"></a>
+				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
 
 			</div>
 			<!-- /.navbar-header -->
@@ -200,9 +202,10 @@
 						<li>
 							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
 							<ul class="nav nav-second-level">
-								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
-								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">Kodi Watch</span></a> </li>
-								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LEDs</span></a> </li>
+								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-wrench fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
+								<li> <a class="inactive" id="load_confGrabber"><i class="fa fa-camera fa-fw"></i><span lang="en" data-lang-token="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">KODI Connector</span></a> </li>
 								<li> <a class="inactive" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a> </li>
 							</ul>
 						</li>
@@ -235,6 +238,8 @@
 	</div>
 	<!-- /#wrapper -->
 
+	<div id="container_connection_lost" style="display:none"></div>
+
 	<div id="error_dialog" class="modal fade" role="dialog">
 		<div class="modal-dialog">
 			<!-- Modal content-->
@@ -251,80 +256,15 @@
 	</div>
 
 	<!-- Bootstrap Core JavaScript -->
-	<script src="js/lib/bootstrap.min.js"></script>
+	<script src="/js/lib/bootstrap.min.js"></script>
 
 	<!-- Metis Menu Plugin JavaScript -->
-	<script src="js/lib/metisMenu.min.js"></script>
+	<script src="/js/lib/metisMenu.min.js"></script>
 
 	<!-- Custom Theme JavaScript -->
-	<script src="js/lib/sb-admin-2.js"></script>
-	<script>
-		$(document).ready( function() {
-			initWebSocket();
-			bindNavToContent("#load_dashboard","dashboard",true);
-			bindNavToContent("#load_lighttest","lighttest",false);
-			bindNavToContent("#load_effects","effects",false);
-			bindNavToContent("#load_components","remote_components",false);
-			bindNavToContent("#load_input_selection","input_selection",false);
-			bindNavToContent("#load_huebridge","huebridge",false);
-			bindNavToContent("#load_support","support",false);
-			bindNavToContent("#load_confKodi","kodiconf",false);
-			bindNavToContent("#load_update","update",false);
-			bindNavToContent("#load_confGeneral","generalconf",false);
-			bindNavToContent("#load_confLeds","leds",false);
+	<script src="/js/lib/sb-admin-2.js"></script>
 
-			//Change all Checkboxes to Switches
-			$("[type='checkbox']").bootstrapSwitch();
-
-			$(hyperion).on("open",function(event){
-				requestServerInfo();
-			});
-
-			$(hyperion).on("cmd-serverinfo",function(event){
-				parsedServerInfoJSON = event.response;
-				currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
-				cleanCurrentVersion = currentVersion.replace(/\./g, '');
-				// get active led device
-				var leddevice = parsedServerInfoJSON.info.ledDevices.active;
-				$('#dash_leddevice').html(leddevice);
-				// get host
-				var hostname = parsedServerInfoJSON.info.hostname;
-				$('#dash_systeminfo').html(hostname+':'+hyperionport);
-
-				$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
-					parsedUpdateJSON = JSON.parse(data);
-					latestVersion = parsedUpdateJSON[0].versionnr;
-					cleanLatestVersion = latestVersion.replace(/\./g, '');
-
-					$('#currentversion').html(' V'+currentVersion);
-					$('#latestversion').html(' V'+latestVersion);
-
-					if ( cleanCurrentVersion < cleanLatestVersion )
-					{
-						$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_message_infobox_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
-					}
-					else
-					{
-						$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
-					}
-				});
-			}); // end cmd-serverinfo
-
-			$(hyperion).on("error",function(event){
-				$('#error_dialog .modal-title').html("error");
-				$('#error_dialog .modal-body').html(event.reason);
-				$('#error_dialog').modal('show');
-			});
-	});
-
-	$(function(){
-		var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-		sidebar.delegate('a.inactive','click',function(){
-			sidebar.find('.active').toggleClass('active inactive');
-			$(this).toggleClass('active inactive');
-		});
-	});
-	</script>
+	<script src="/js/content_index.js"></script>
 </body>
 
 </html>

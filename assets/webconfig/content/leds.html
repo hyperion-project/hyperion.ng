@@ -5,121 +5,121 @@
 	vertical-align:middle; padding:4px;  border-radius:2px;}
 	.led_num {display:none; position:relative; color:black; background-color: white; 
 		border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
-	#leds_controls {white-space:nowrap; margin-top:530px;}
+	#leds_controls {white-space:nowrap; margin-top:500px;}
 </style>
 
-<div  class="container-fluid">
-	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">Led Configuration</h1>
+<div class="container-fluid">
+	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</h1>
 <!--	<div class="introd">
 		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
 	</div>-->
 
-		<div id="leds_canvas"/>
-	
-		<div id="leds_controls">
-			<button lang="en" type="button" class="btn btn-success" id="leds_toggle">toggle leds</button>
-			<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num">toggle led numbers</button>
-			<button lang="en" type="button" class="btn btn-success" id="leds_toggle_live">toggle live leds</button>
+	<ul id="leds_cfg_nav" class="nav nav-tabs">
+		<li class="active"><a data-toggle="tab" href="#menu_controller">LED Controller</a></li>
+		<li><a data-toggle="tab" href="#menu_gencfg">Generate LED Config</a></li>
+		<li><a data-toggle="tab" href="#menu_display">LED Testing</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
+			<div class="panel panel-primary">
+					<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
+						<label for="leddevices">Controller Type</label>
+						<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
+					</div>
+					<div class="panel-body">
+					... device specific options ... we need some cpp code extension to get schema for all leds
+					</div>
+			</div>
 		</div>
+	
+		<div id="menu_display" class="tab-pane fade" style="padding-top:10px">
+			<div  class="container-fluid">
+				<div id="leds_canvas"/>
+	
+				<div id="leds_controls">
+					<button lang="en" type="button" class="btn btn-success" id="leds_toggle">toggle leds</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num">toggle led numbers</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_live">toggle live leds</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="menu_gencfg" class="tab-pane fade" style="padding-top:10px">
+
+			<div class="row">
+				<div class="col-sm-6">
+			
+					<div class="panel-group" id="accordion">
+					
+						<div class="panel panel-primary">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1"><i class="fa fa-television fa-fw"></i>Frame Configuration (ambient light)</a>
+								</h4>
+							</div>
+							<div id="collapse1" class="panel-collapse collapse in">
+								<div class="panel-body">
+								just a reminder ... this are the needed form elements:
+<pre>
+led count horizontal:
+led count vertical:
+cabling: zick zack/snake
+order: horizontal/vertical
+led 0 position: top-left / top-right / bottom-left / bottom-right
+</pre>
+								</div>
+							</div>
+						</div> 
+	
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h4 class="panel-title">
+								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><i class="fa fa-th fa-fw"></i>Matrix Configuration (LED wall)</a>
+							</h4>
+						</div>
+						<div id="collapse2" class="panel-collapse collapse">
+							<div class="panel-body">
+							just a reminder ... this are the needed form elements:
+<pre>
+led count links
+led count rechts
+led count oben
+led count unten rechts
+led count unten links
+start
+</pre>
+							</div>
+						</div>
+					</div>
+		
+			</div> <!-- accordion -->
+		</div>
+		
+		<div class="col-sm-6">
+			<div class="panel panel-primary" style="margin-bottom:5px">
+				<div class="panel-heading">
+					<h4 class="panel-title"><i class="fa fa-wrench fa-fw"></i>Generated Configuration</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
+					</div>
+					<textarea rows="25" id="ledconfig" class="form-control"></textarea>
+				</div>
+			</div>
+		</div> <!-- left pane -->
+
+		</div> <!-- row layout -->
+	</div>
+
+	</div>
+
+
+	</div> <!-- tab content -->
 </div>
 
-<script>
+<script src="/js/content_leds.js"></script>
 
-	function updateLedColors()
-	{
-		if($("#leds_canvas").length > 0 && ledStreamActive)
-		{
-			requestLedColorsStart();
-		}
-		else
-		{
-			ledStreamActivate(false);
-		}
-	}
-
-	function ledStreamActivate(enable)
-	{
-		$(hyperion).off("cron", updateLedColors );
-		if ( enable && ! ledStreamActive )
-		{
-			$(hyperion).on("cron", updateLedColors );
-		}
-
-		ledStreamActive=enable;
-	}
-	
-	
-	$(document).ready(function() {
-		$(hyperion).on("cmd-ledcolors",function(event){
-			ledColors = (event.response.result);
-			for(var idx=0; idx<ledColors.length; idx++)
-			{
-				led = ledColors[idx]
-				$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
-			}
-		});
-
-		$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
-			ledColors = (event.response.result);
-			for(var idx=0; idx<ledColors.length; idx++)
-			{
-				led = ledColors[idx]
-				$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
-			}
-		});
-
-		$(hyperion).on("cmd-config-getconfig",function(event){
-			parsedConfJSON = event.response.result;
-			leds = parsedConfJSON.leds;
-			canvas_height = $('#leds_canvas').innerHeight();
-			canvas_width = $('#leds_canvas').innerWidth();
-
-			leds_html = "";
-			for(var idx=0; idx<leds.length; idx++)
-			{
-				led = leds[idx];
-				led_id='led_'+led.index;
-				bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
-				pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
-					"top:"+(led.vscan.minimum * canvas_height)+"px;"+
-					"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
-					"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
-				leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+led.index+'"><span id="'+led_id+'_num" class="led_num">'+led.index+'</span></div>';
-			}
-			$('#leds_canvas').html(leds_html);
-			$('#led_0').css("border","2px dotted red");
-			ledStreamActivate(true)
-		});
-		
-		$('#leds_toggle_num').on("click", function() {
-			$('.led_num').toggle();
-			toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
-		});
-		
-		$('#leds_toggle').on("click", function() {
-			$('.led').toggle();
-			toggleClass('#leds_toggle', "btn-success", "btn-danger");
-		});
-		
-		$('#leds_toggle_live').on("click", function() {
-			setClassByBool('#leds_toggle_live',ledStreamActive,"btn-success","btn-danger");
-			if ( ledStreamActive )
-			{
-				ledStreamActivate(false);
-
-				led_count = $(".led").length;
-				for(var idx=0; idx<led_count; idx++)
-				{
-					$('#led_'+idx).css("background-color","hsl("+(idx*360/led_count)+",100%,50%)");
-				}
-			}
-			else
-			{
-				ledStreamActivate(true);
-			}
-			
-		});
-		
-		requestServerConfig();
-	});
-</script>
