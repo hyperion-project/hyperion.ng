@@ -1,33 +1,10 @@
 
 var ledsCustomCfgInitialized = false;
 
-function updateLedColors()
-{
-	if($("#leds_canvas").length > 0 && ledStreamActive)
-	{
-		requestLedColorsStart();
-	}
-	else
-	{
-		ledStreamActivate(false);
-	}
-}
-
-function ledStreamActivate(enable)
-{
-	$(hyperion).off("cron", updateLedColors );
-	if ( enable && ! ledStreamActive )
-	{
-		$(hyperion).on("cron", updateLedColors );
-	}
-
-	ledStreamActive=enable;
-}
-
 
 $(document).ready(function() {
 	// ------------------------------------------------------------------
-	$(hyperion).on("cmd-ledcolors",function(event){
+	$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
 		ledColors = (event.response.result);
 		for(var idx=0; idx<ledColors.length; idx++)
 		{
@@ -37,12 +14,11 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
-		ledColors = (event.response.result);
-		for(var idx=0; idx<ledColors.length; idx++)
+	$(hyperion).on("cmd-ledcolors-ledstream-stop",function(event){
+		led_count = $(".led").length;
+		for(var idx=0; idx<led_count; idx++)
 		{
-			led = ledColors[idx]
-			$("#led_"+led.index).css("background","rgb("+led.red+","+led.green+","+led.blue+")");
+			$('#led_'+idx).css("background-color","hsl("+(idx*360/led_count)+",100%,50%)");
 		}
 	});
 
@@ -60,7 +36,6 @@ $(document).ready(function() {
 		$("#leddevices").val(server.info.ledDevices.active);
 	});
 
-	
 	// ------------------------------------------------------------------
 	$(hyperion).on("cmd-config-getconfig",function(event){
 		parsedConfJSON = event.response.result;
@@ -83,7 +58,6 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css("border","2px dotted red");
-		ledStreamActivate(false);
 	});
 
 	// ------------------------------------------------------------------
@@ -103,17 +77,11 @@ $(document).ready(function() {
 		setClassByBool('#leds_toggle_live',ledStreamActive,"btn-success","btn-danger");
 		if ( ledStreamActive )
 		{
-			ledStreamActivate(false);
-
-			led_count = $(".led").length;
-			for(var idx=0; idx<led_count; idx++)
-			{
-				$('#led_'+idx).css("background-color","hsl("+(idx*360/led_count)+",100%,50%)");
-			}
+			requestLedColorsStop();
 		}
 		else
 		{
-			ledStreamActivate(true);
+			requestLedColorsStart();
 		}
 	});
 

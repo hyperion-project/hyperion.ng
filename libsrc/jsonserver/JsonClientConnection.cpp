@@ -46,7 +46,10 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	
+	_timer_ledcolors.setSingleShot(false);
+	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 }
 
 
@@ -977,29 +980,30 @@ void JsonClientConnection::handleComponentStateCommand(const Json::Value& messag
 	}
 }
 
-void JsonClientConnection::handleLedColorsCommand(const Json::Value&, const std::string &command, const int tan)
+void JsonClientConnection::handleLedColorsCommand(const Json::Value& message, const std::string &command, const int tan)
 {
 	// create result
-	Json::Value result;
-	result["success"] = true;
-	result["command"] = command;
-	result["tan"] = tan;
-	Json::Value & leds = result["result"] = Json::Value(Json::arrayValue);
+	std::string subcommand = message.get("subcommand","").asString();
+	_streaming_leds_reply["success"] = true;
+	_streaming_leds_reply["command"] = command;
+	_streaming_leds_reply["tan"] = tan;
 	
-	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
-	std::vector<ColorRgb> ledBuffer =  priorityInfo.ledColors;
-
-	for (ColorRgb& color : ledBuffer)
+	if (subcommand == "ledstream-start")
 	{
-		int idx = leds.size();
-		Json::Value & item = leds[idx];
-		item["index"] = idx;
-		item["red"]   = color.red;
-		item["green"] = color.green;
-		item["blue"]  = color.blue;
+		_streaming_leds_reply["command"] = command+"-ledstream-update";
+		_timer_ledcolors.start(250);
 	}
-	// send the result
-	sendMessage(result);
+	else if (subcommand == "ledstream-stop")
+	{
+		_timer_ledcolors.stop();
+	}
+	else
+	{
+		sendErrorReply("unknown subcommand",command,tan);
+		return;
+	}
+	
+	sendSuccessReply(command+"-"+subcommand,tan);
 }
 
 void JsonClientConnection::handleNotImplemented()
@@ -1137,3 +1141,27 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 
 	return true;
 }
+
+
+void JsonClientConnection::streamLedcolorsUpdate()
+{
+	Json::Value & leds = _streaming_leds_reply["result"] = Json::Value(Json::arrayValue);
+
+	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	std::vector<ColorRgb> ledBuffer =  priorityInfo.ledColors;
+
+	for (ColorRgb& color : ledBuffer)
+	{
+		int idx = leds.size();
+		Json::Value & item = leds[idx];
+		item["index"] = idx;
+		item["red"]   = color.red;
+		item["green"] = color.green;
+		item["blue"]  = color.blue;
+	}
+
+	// send the result
+	sendMessage(_streaming_leds_reply);
+
+}
+

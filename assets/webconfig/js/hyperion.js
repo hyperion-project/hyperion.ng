@@ -156,11 +156,13 @@ function requestServerConfig() {
 }
 
 function requestLedColorsStart() {
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream_start"}');
+	ledStreamActive=true;
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
 }
 
 function requestLedColorsStop() {
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream_stop"}');
+	ledStreamActive=false;
+	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-stop"}');
 }
 
 function requestPriorityClear() {
