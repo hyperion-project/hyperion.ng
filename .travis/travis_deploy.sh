@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# sf_upload <binarylist> <sf_dir>
+# sf_upload <deploylist> <sf_dir>
 sf_upload()
 {
 	/usr/bin/expect <<-EOD
@@ -13,16 +13,17 @@ sf_upload()
 	EOD
 }
 
+deploylist = "hyperion-2.0.0-Linux-x86.deb hyperion-2.0.0-Linux-x86.tar.gz"
+
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 	cd $TRAVIS_BUILD_DIR/build
 	if [[ -n $TRAVIS_TAG ]]; then
 		echo "tag upload"
-		sf_upload hyperion-2.0.0-Linux-x86.deb release
+		sf_upload $deploylist release
 	elif [[ $TRAVIS_EVENT_TYPE == 'cron' ]]; then
 		echo "cron upload"
-		sf_upload hyperion-2.0.0-Linux-x86.deb nightly
+		sf_upload $deploylist nightly
 	else
-		echo "PR upload"
-		sf_upload hyperion-2.0.0-Linux-x86-dev.deb pullrequest
+		echo "PR can't be uploaded for security reasons"
 	fi
 fi
