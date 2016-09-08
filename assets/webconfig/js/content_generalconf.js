@@ -52,15 +52,15 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:' ',
 			properties: {
-				blackborderdetector//,
-				/*color,
+				/*blackborderdetector,
+				color,
 				effects,
 				forwarder,
 				initialEffect,
 				kodiVideoChecker,
-				smoothing,
-				logger,
-				jsonServer,
+				smoothing,*/
+				logger//,
+				/*jsonServer,
 				protoServer,
 				boblightServer,
 				udpListener,
@@ -69,24 +69,25 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		}
 	});
 
+	//Called everytime a Input Field is changed = No need for save button
 	general_conf_editor.on('change',function() {
-		/*var name = general_conf_editor.getEditor('root.schema_blackborderdetector');
-	  console.log(name.getValue());
-*/
-	console.log(JSON.stringify(general_conf_editor.getValue()));
-		//console.log('schema_blackborderdetector'.substr(7));
-		websocket.send('{"command":"config","subcommand":"setconfig","config":"'+JSON.stringify(general_conf_editor.getValue())+'","create":false, "overwrite":false}');
+		console.log(JSON.stringify(general_conf_editor.getValue()));
+		requestWriteConfig(general_conf_editor.getValue());
+	});
+
+	//Alternativ Function with submit button to get Values
+	document.getElementById('submit').addEventListener('click',function() {
+		console.log(general_conf_editor.getValue());
+	});
+
+	$(hyperion).on("cmd-config-setconfig",function(event){
+		parsedServerInfoJSON = event.response;
+		console.log(parsedServerInfoJSON);
 	});
 
 });
 
-
 $(document).ready( function() {
 	requestServerConfigSchema();
-
-	document.getElementById('submit').addEventListener('click',function() {
-		// Get the value from the editor
-		//console.log(general_conf_editor.getValue());
-	});
-//  $("[type='checkbox']").bootstrapSwitch();
+	//$("[type='checkbox']").bootstrapSwitch();
 });
