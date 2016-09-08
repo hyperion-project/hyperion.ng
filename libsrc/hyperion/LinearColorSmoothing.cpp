@@ -15,7 +15,7 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	, _outputDelay(updateDelay)
 	, _writeToLedsEnable(true)
 	, _continuousOutput(continuousOutput)
-	, _bypass(false)
+	, _enabled(true)
 {
 	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
@@ -35,28 +35,21 @@ LinearColorSmoothing::~LinearColorSmoothing()
 
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_bypass)
+	// received a new target color
+	if (_previousValues.empty())
 	{
-		_ledDevice->write(ledValues);
+		// not initialized yet
+		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+		_targetValues = ledValues;
+
+		_previousTime = QDateTime::currentMSecsSinceEpoch();
+		_previousValues = ledValues;
+		_timer.start();
 	}
 	else
 	{
-		// received a new target color
-		if (_previousValues.empty())
-		{
-			// not initialized yet
-			_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-			_targetValues = ledValues;
-
-			_previousTime = QDateTime::currentMSecsSinceEpoch();
-			_previousValues = ledValues;
-			_timer.start();
-		}
-		else
-		{
-			_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-			memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
-		}
+		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	}
 
 	return 0;
@@ -139,13 +132,19 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	}
 }
 
-void LinearColorSmoothing::componentStateChanged(const hyperion::Components component, bool enable)
+
+void LinearColorSmoothing::setEnable(bool enable)
 {
-	if (component == COMP_SMOOTHING)
+	_enabled = enable;
+	if (!enable)
 	{
-		InfoIf(_bypass == enable, _log, "change state to %s", (enable ? "enabled" : "disabled") );
-		Hyperion::getInstance()->getComponentRegister().componentStateChanged(component, enable);
-		_bypass = !enable;
+		_timer.stop();
+		_previousValues.clear();
+		
 	}
 }
 
+bool LinearColorSmoothing::enabled()
+{
+	return _enabled;
+}
