@@ -507,7 +507,7 @@ LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, 
 	if ( ! smoothingConfig.get("enable", true).asBool() )
 	{
 		Info(log,"Smoothing disabled");
-		Hyperion::getInstance()->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, false);
+		//Hyperion::getInstance()->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, false);
 		return nullptr;
 	}
 
