@@ -497,34 +497,34 @@ LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const Co
 	return ledString;
 }
 
-LedDevice * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice)
+LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice)
 {
 	Logger * log = Logger::getInstance("Core");
 	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-
+	LinearColorSmoothing * device;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
-	if ( ! smoothingConfig.get("enable", true).asBool() )
-	{
-		Info(log,"Smoothing disabled");
-		//Hyperion::getInstance()->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, false);
-		return nullptr;
-	}
-
+	
 	if (type == "linear")
 	{
-		Info(log, "Creating linear smoothing");
-		return new LinearColorSmoothing(
-		            ledDevice,
+		Info( log, "Creating linear smoothing");
+		device = new LinearColorSmoothing(
+		            leddevice,
 		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
 		            smoothingConfig.get("time_ms", 200).asInt(),
 		            smoothingConfig.get("updateDelay", 0).asUInt(),
 		            smoothingConfig.get("continuousOutput", true).asBool()
 		            );
 	}
+	else
+	{
+		Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
+	}
+	
+	device->setEnable(smoothingConfig.get("enable", true).asBool());
+	InfoIf(!device->enabled(), log,"Smoothing disabled");
 
-	Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
-	return nullptr;
+	return device;
 }
 
 MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
@@ -575,7 +575,6 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 {
-	_device = LedDeviceFactory::construct(jsonConfig["device"]);
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 	
 	if (!_raw2ledAdjustment->verifyAdjustments())
@@ -604,18 +603,12 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 				_ledString,
 				jsonConfig["blackborderdetector"]
 	);
-	//_hyperion->getComponentRegister().componentStateChanged(component, _processor->blackBorderDetectorEnabled());
-
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
-	
-	// initialize the color smoothing filter
-	LedDevice* smoothing = createColorSmoothing(jsonConfig["smoothing"], _device);
-	if ( smoothing != nullptr )
-	{
-		_device = smoothing;
-		getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, ((LinearColorSmoothing*)_device)->componentState());
-		connect(this, SIGNAL(componentStateChanged(hyperion::Components,bool)), (LinearColorSmoothing*)_device, SLOT(componentStateChanged(hyperion::Components,bool)));
-	}
+
+	// initialize leddevices
+	_device       = LedDeviceFactory::construct(jsonConfig["device"]);
+	_deviceSmooth = createColorSmoothing(jsonConfig["smoothing"], _device);
+	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 
 	// setup the timer
 	_timer.setSingleShot(true);
@@ -700,7 +693,15 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 
 void Hyperion::setComponentState(const hyperion::Components component, const bool state)
 {
-	emit componentStateChanged(component, state);
+	if (component == hyperion::COMP_SMOOTHING)
+	{
+		_deviceSmooth->setEnable(state);
+		getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
+	}
+	else
+	{
+		emit componentStateChanged(component, state);
+	}
 }
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, bool clearEffects)
@@ -931,7 +932,10 @@ void Hyperion::update()
 	}
 	
 	// Write the data to the device
-	_device->write(_ledBuffer);
+	if (_deviceSmooth->enabled())
+		_deviceSmooth->write(_ledBuffer);
+	else
+		_device->write(_ledBuffer);
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)
