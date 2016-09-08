@@ -2,7 +2,7 @@
 
 STATS_FAILED=0
 STATS_SUCCESS=0
-STATS_SKIPED=0
+STATS_SKIPPED=0
 STATS_TOTAL=0
 
 
@@ -13,7 +13,7 @@ function exec_test()
 	if [ ! -e "$2" ]
 	then
 		echo "skip test: '$test_name'"
-		(( STATS_SKIPED++ ))
+		(( STATS_SKIPPED++ ))
 		return
 	fi
 	shift
@@ -52,7 +52,7 @@ echo "TEST SUMMARY"
 echo "============"
 echo "    total: $STATS_TOTAL"
 echo "  success: $STATS_SUCCESS"
-echo "   skiped: $STATS_SKIPED"
+echo "   skipped: $STATS_SKIPPED"
 echo "   failed: $STATS_FAILED"
 
 sleep 2

@@ -11,7 +11,7 @@ $(document).ready(function() {
 		}
 		else
 		{
-			ledColors = (event.response.result);
+			ledColors = (event.response.result.leds);
 			for(var idx=0; idx<ledColors.length; idx++)
 			{
 				led = ledColors[idx]

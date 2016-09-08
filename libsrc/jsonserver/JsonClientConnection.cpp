@@ -1157,8 +1157,9 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 
 void JsonClientConnection::streamLedcolorsUpdate()
 {
-	Json::Value & leds = _streaming_leds_reply["result"] = Json::Value(Json::arrayValue);
-
+	Json::Value & leds = _streaming_leds_reply["result"]["leds"] = Json::Value(Json::arrayValue);
+	//QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+	
 	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
 	std::vector<ColorRgb> ledBuffer =  priorityInfo.ledColors;
 
