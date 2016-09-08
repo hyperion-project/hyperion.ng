@@ -32,6 +32,7 @@
 
 // Forward class declaration
 class LedDevice;
+class LinearColorSmoothing;
 class ColorTransform;
 class EffectEngine;
 class HsvTransform;
@@ -287,7 +288,7 @@ public:
 	static RgbChannelAdjustment * createRgbChannelCorrection(const Json::Value& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color);
 
-	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
+	static LinearColorSmoothing * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
 	
 signals:
@@ -338,6 +339,9 @@ private:
 	
 	/// The actual LedDevice
 	LedDevice * _device;
+
+	/// The smoothing LedDevice
+	LinearColorSmoothing * _deviceSmooth;
 
 	/// Effect engine
 	EffectEngine * _effectEngine;
