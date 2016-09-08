@@ -136,6 +136,12 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 void LinearColorSmoothing::setEnable(bool enable)
 {
 	_enabled = enable;
+	if (!enable)
+	{
+		_timer.stop();
+		_previousValues.clear();
+		
+	}
 }
 
 bool LinearColorSmoothing::enabled()
