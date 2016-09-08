@@ -14,15 +14,27 @@ class LedDeviceFile : public LedDevice
 {
 public:
 	///
-	/// Constructs the test-device, which opens an output stream to the file
+	/// Constructs specific LedDevice
 	///
-	LedDeviceFile(const std::string& output);
+	/// @param deviceConfig json device config
+	///
+	LedDeviceFile(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of this test-device
 	///
 	virtual ~LedDeviceFile();
 
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool setConfig(const Json::Value &deviceConfig);
+	
 	///
 	/// Writes the given led-color values to the output stream
 	///

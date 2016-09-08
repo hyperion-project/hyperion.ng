@@ -11,10 +11,8 @@
 // hyperion local includes
 #include "LedDeviceSk6812SPI.h"
 
-LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const unsigned baudrate, const std::string& whiteAlgorithm,
-                                       const int spiMode, const bool spiDataInvert)
-	: LedSpiDevice(outputDevice, baudrate, 0, spiMode, spiDataInvert)
-	, _whiteAlgorithm(whiteAlgorithm)
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)
+	: ProviderSpi(deviceConfig)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
@@ -23,7 +21,28 @@ LedDeviceSk6812SPI::LedDeviceSk6812SPI(const std::string& outputDevice, const un
 	}
 
 {
-	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
+	setConfig(deviceConfig);
+	Debug( _log, "whiteAlgorithm : %s", _whiteAlgorithm.c_str());
+}
+
+LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceSk6812SPI(deviceConfig);
+}
+
+bool LedDeviceSk6812SPI::setConfig(const Json::Value &deviceConfig)
+{
+	ProviderSpi::setConfig(deviceConfig);
+
+        _baudRate_Hz   = deviceConfig.get("rate",3000000).asInt();
+	if ( (_baudRate_Hz < 2050000) || (_baudRate_Hz > 4000000) )
+	{
+		Warning(_log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+	}
+
+	_whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
+
+	return true;
 }
 
 int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)

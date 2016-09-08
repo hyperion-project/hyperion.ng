@@ -4,22 +4,30 @@
 #include <string>
 
 // hyperion incluse
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp.
 ///
-class LedDeviceUdpRaw : public LedUdpDevice
+class LedDeviceUdpRaw : public ProviderUdp
 {
 public:
 	///
-	/// Constructs the LedDevice for sending led colors via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice hostname:port
-	/// @param latchTime 
+	/// @param deviceConfig json device config
 	///
+	LedDeviceUdpRaw(const Json::Value &deviceConfig);
 
-	LedDeviceUdpRaw(const std::string& outputDevice, const unsigned latchTime);
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

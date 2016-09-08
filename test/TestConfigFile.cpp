@@ -94,14 +94,13 @@ int main(int argc, char** argv)
 	{
 		if (loadConfig(configFile))
 			std::cout << "PASSED" << std::endl;
-			exit(0);
+		return 0;
 	}
 	catch (std::runtime_error exception)
 	{
 		std::cout << "FAILED" << std::endl;
 		std::cout << exception.what() << std::endl;
-		exit(1);
 	}
 
-	return 0;
+	return 1;
 }

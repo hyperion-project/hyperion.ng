@@ -19,6 +19,7 @@
 
 #include <utils/jsonschema/JsonFactory.h> // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 #include <utils/jsonschema/QJsonFactory.h>
+#include <utils/Components.h>
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
@@ -41,9 +42,11 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _protoServer(nullptr)
 	, _boblightServer(nullptr)
 	, _udpListener(nullptr)
-	, _v4l2Grabber(nullptr)
+	, _v4l2Grabbers()
 	, _dispmanx(nullptr)
+#ifdef ENABLE_X11
 	, _x11Grabber(nullptr)
+#endif
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
@@ -81,7 +84,10 @@ HyperionDaemon::~HyperionDaemon()
 	delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
-	delete _v4l2Grabber;
+	for(V4L2Wrapper* grabber : _v4l2Grabbers)
+	{
+		delete grabber;
+	}
 	delete _kodiVideoChecker;
 	delete _jsonServer;
 	delete _protoServer;
@@ -184,12 +190,12 @@ void HyperionDaemon::startInitialEffect()
 		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
 
 		// clear the leds
-		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, DURATION_INFINITY, false);
+		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
 
 		// initial foreground effect/color
 		const QJsonValue fgEffectConfig = effectConfig["foreground-effect"];
 		int default_fg_duration_ms = 3000;
-		int fg_duration_ms = effectConfig["foreground-effect-duration_ms"].toInt(default_fg_duration_ms);
+		int fg_duration_ms = effectConfig["foreground-duration_ms"].toInt(default_fg_duration_ms);
 		if (fg_duration_ms == DURATION_INFINITY)
 		{
 			fg_duration_ms = default_fg_duration_ms;
@@ -265,6 +271,7 @@ void HyperionDaemon::createKODIVideoChecker()
 	{
 		_kodiVideoChecker->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_KODICHECKER, _kodiVideoChecker->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(hyperion::Components,bool)));
 }
 
@@ -314,6 +321,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_boblightServer->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BOBLIGHTSERVER, _boblightServer->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _boblightServer, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// Create UDP listener if configuration is present
@@ -332,6 +340,7 @@ void HyperionDaemon::startNetworkServices()
 	{
 		_udpListener->start();
 	}
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_UDPLISTENER, _udpListener->componentState());
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
@@ -424,13 +433,16 @@ void HyperionDaemon::createSystemFrameGrabber()
 				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
-			if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
+			bool grabberCompState = true;
+			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
+			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx();
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else WarningIf( type != "", _log, "unknown framegrabber type '%s'", type.toUtf8().constData());
-			InfoIf( type == "", _log, "screen capture device disabled");
+			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
+			
+			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 		}
 	}
 }
@@ -447,6 +459,7 @@ void HyperionDaemon::createGrabberDispmanx()
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 	_dispmanx->start();
+
 	Info(_log, "DISPMANX frame grabber created and started");
 #else
 	ErrorIf(_qconfig.contains("framegrabber"), _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
@@ -536,39 +549,57 @@ void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
 	bool v4lConfigured = _qconfig.contains("grabber-v4l2");
-	const QJsonObject & grabberConfig = _qconfig["grabber-v4l2"].toObject();
-	bool enableV4l = v4lConfigured && grabberConfig["enable"].toBool(true);
-
-#ifdef ENABLE_V4L2
-	_v4l2Grabber = new V4L2Wrapper(
-		grabberConfig["device"].toString("auto").toStdString(),
-		grabberConfig["input"].toInt(0),
-		parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
-		parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
-		grabberConfig["width"].toInt(-1),
-		grabberConfig["height"].toInt(-1),
-		grabberConfig["frameDecimation"].toInt(2),
-		grabberConfig["sizeDecimation"].toInt(8),
-		grabberConfig["redSignalThreshold"].toDouble(0.0),
-		grabberConfig["greenSignalThreshold"].toDouble(0.0),
-		grabberConfig["blueSignalThreshold"].toDouble(0.0),
-		grabberConfig["priority"].toInt(890));
-	_v4l2Grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
-	_v4l2Grabber->setCropping(
-		grabberConfig["cropLeft"].toInt(0),
-		grabberConfig["cropRight"].toInt(0),
-		grabberConfig["cropTop"].toInt(0),
-		grabberConfig["cropBottom"].toInt(0));
-	Debug(_log, "V4L2 grabber created");
-
-	QObject::connect(_v4l2Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
-	if (grabberConfig["useKodiChecker"].toBool(false))
+	bool v4lStarted = false;
+	unsigned v4lEnableCount = 0;
+	
+	if (_qconfig["grabber-v4l2"].isArray())
 	{
-		QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _v4l2Grabber, SLOT(setGrabbingMode(GrabbingMode)));
+		const QJsonArray & v4lArray = _qconfig["grabber-v4l2"].toArray();
+		for ( signed idx=0; idx<v4lArray.size(); idx++)
+		{
+			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();
+			bool enableV4l = v4lConfigured && grabberConfig["enable"].toBool(true);
+			if (enableV4l)
+			{
+				v4lEnableCount++;
+			}
+			#ifdef ENABLE_V4L2
+			V4L2Wrapper* grabber = new V4L2Wrapper(
+				grabberConfig["device"].toString("auto").toStdString(),
+				grabberConfig["input"].toInt(0),
+				parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
+				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
+				grabberConfig["width"].toInt(-1),
+				grabberConfig["height"].toInt(-1),
+				grabberConfig["frameDecimation"].toInt(2),
+				grabberConfig["sizeDecimation"].toInt(8),
+				grabberConfig["redSignalThreshold"].toDouble(0.0),
+				grabberConfig["greenSignalThreshold"].toDouble(0.0),
+				grabberConfig["blueSignalThreshold"].toDouble(0.0),
+				grabberConfig["priority"].toInt(890));
+			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
+			grabber->setCropping(
+				grabberConfig["cropLeft"].toInt(0),
+				grabberConfig["cropRight"].toInt(0),
+				grabberConfig["cropTop"].toInt(0),
+				grabberConfig["cropBottom"].toInt(0));
+			Debug(_log, "V4L2 grabber created");
+
+			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
+			if (grabberConfig["useKodiChecker"].toBool(false))
+			{
+				QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), grabber, SLOT(setGrabbingMode(GrabbingMode)));
+			}
+			if (enableV4l && grabber->start())
+			{
+				v4lStarted = true;
+				Info(_log, "V4L2 grabber started");
+			}
+			_v4l2Grabbers.push_back(grabber);
+			#endif
+		}
 	}
-	InfoIf( enableV4l && _v4l2Grabber->start(), _log, "V4L2 grabber started");
-#endif
 
-	ErrorIf(enableV4l && _v4l2Grabber==nullptr, _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
-
+	ErrorIf( (v4lEnableCount>0 && _v4l2Grabbers.size()==0), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, (_v4l2Grabbers.size()>0 && v4lEnableCount>0 && v4lStarted) );
 }

@@ -1,0 +1,30 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"Target IP"
+		},
+		"username": {
+			"type": "string",
+			"title":"Username",
+			"default": "newdeveloper"
+		},
+		"lightIds": {
+			"type": "integer",
+			"title":"Light ids"
+		},
+		"transitiontime": {
+			"type": "integer",
+			"title":"Transistion time (x100ms)",
+			"default" : 1,
+		},
+		"switchOffOnBlack": {
+			"type": "boolean",
+			"title":"Switch off on black",
+			"default" : true
+		}
+	},
+	"additionalProperties": true
+}

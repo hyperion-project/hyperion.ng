@@ -11,10 +11,23 @@
 // hyperion local includes
 #include "LedDeviceUdpRaw.h"
 
-LedDeviceUdpRaw::LedDeviceUdpRaw(const std::string& outputDevice, const unsigned latchTime)
-	: LedUdpDevice(outputDevice, latchTime)
+LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
+	: ProviderUdp(deviceConfig)
 {
-	// empty
+	setConfig(deviceConfig);
+}
+
+bool LedDeviceUdpRaw::setConfig(const Json::Value &deviceConfig)
+{
+	ProviderUdp::setConfig(deviceConfig);
+	_LatchTime_ns = deviceConfig.get("latchtime",500000).asInt();
+
+	return true;
+}
+
+LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceUdpRaw(deviceConfig);
 }
 
 int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)

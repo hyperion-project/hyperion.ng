@@ -24,6 +24,7 @@
 #include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
+#include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/JsonFactory.h>
 
@@ -45,7 +46,10 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	
+	_timer_ledcolors.setSingleShot(false);
+	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 }
 
 
@@ -272,6 +276,8 @@ void JsonClientConnection::handleMessage(const std::string &messageString)
 			handleConfigCommand(message, command, tan);
 		else if (command == "componentstate")
 			handleComponentStateCommand(message, command, tan);
+		else if (command == "ledcolors")
+			handleLedColorsCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -561,13 +567,16 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
 	for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
 	{
-		Json::Value activeEffect;
-		activeEffect["script"] = activeEffectDefinition.script;
-		activeEffect["priority"] = activeEffectDefinition.priority;
-		activeEffect["timeout"] = activeEffectDefinition.timeout;
-		activeEffect["args"] = activeEffectDefinition.args;
-
-		activeEffects.append(activeEffect);
+		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
+		{
+			Json::Value activeEffect;
+			activeEffect["script"] = activeEffectDefinition.script;
+			activeEffect["priority"] = activeEffectDefinition.priority;
+			activeEffect["timeout"] = activeEffectDefinition.timeout;
+			activeEffect["args"] = activeEffectDefinition.args;
+	
+			activeEffects.append(activeEffect);
+		}
 	}
 	
 	////////////////////////////////////
@@ -624,21 +633,43 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
 
 			LEDcolor["HEX Value"].append(hex.str());
-		    
+
 			activeLedColors.append(LEDcolor);
 			}
 		}
 	}
 
+	// get available led devices
+	info["ledDevices"]["active"]    = LedDevice::activeDevice();
+	info["ledDevices"]["available"] = Json::Value(Json::arrayValue);
+	for ( auto dev: LedDevice::getDeviceMap())
+	{
+		info["ledDevices"]["available"].append(dev.first);
+	}
+
+	// get components
+	info["components"] = Json::Value(Json::arrayValue);
+	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+	for(auto comp : components)
+	{
+		Json::Value item;
+		item["id"] = comp.first;
+		item["name"] = hyperion::componentToIdString(comp.first);
+		item["title"] = hyperion::componentToString(comp.first);
+		item["enabled"] = comp.second;
+		info["components"].append(item);
+	}
+	
 	// Add Hyperion Version, build time
-	Json::Value & version = info["hyperion"] = Json::Value(Json::arrayValue);
+	//Json::Value & version = 
+	info["hyperion"] = Json::Value(Json::arrayValue);
 	Json::Value ver;
 	ver["jsonrpc_version"] = HYPERION_JSON_VERSION;
 	ver["version"] = HYPERION_VERSION;
-	ver["build"] = HYPERION_BUILD_ID;
-	ver["time"] = __DATE__ " " __TIME__;
+	ver["build"]   = HYPERION_BUILD_ID;
+	ver["time"]    = __DATE__ " " __TIME__;
 
-	version.append(ver);
+	info["hyperion"].append(ver);
 
 	// send the result
 	sendMessage(result);
@@ -838,21 +869,22 @@ void JsonClientConnection::handleSourceSelectCommand(const Json::Value & message
 void JsonClientConnection::handleConfigCommand(const Json::Value & message, const std::string &command, const int tan)
 {
 	std::string subcommand = message.get("subcommand","").asString();
+	std::string full_command = command + "-" + subcommand;
 	if (subcommand == "getschema")
 	{
-		handleSchemaGetCommand(message, command, tan);
+		handleSchemaGetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
-		handleConfigGetCommand(message, command, tan);
+		handleConfigGetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "setconfig")
 	{
-		handleConfigSetCommand(message, command, tan);
+		handleConfigSetCommand(message, full_command, tan);
 	} 
 	else
 	{
-		sendErrorReply("unknown or missing subcommand", command, tan);
+		sendErrorReply("unknown or missing subcommand", full_command, tan);
 	}
 }
 
@@ -941,7 +973,7 @@ void JsonClientConnection::handleConfigSetCommand(const Json::Value &message, co
 			sendSuccessReply(command, tan);
 		}
 	} else
-		sendErrorReply("Error while parsing json: Message size " + message.size(), command, tan);
+		sendErrorReply("Error while parsing json: Message size " + std::to_string(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleComponentStateCommand(const Json::Value& message, const std::string &command, const int tan)
@@ -958,6 +990,32 @@ void JsonClientConnection::handleComponentStateCommand(const Json::Value& messag
 	{
 		sendErrorReply("invalid component name", command, tan);
 	}
+}
+
+void JsonClientConnection::handleLedColorsCommand(const Json::Value& message, const std::string &command, const int tan)
+{
+	// create result
+	std::string subcommand = message.get("subcommand","").asString();
+	_streaming_leds_reply["success"] = true;
+	_streaming_leds_reply["command"] = command;
+	_streaming_leds_reply["tan"] = tan;
+	
+	if (subcommand == "ledstream-start")
+	{
+		_streaming_leds_reply["command"] = command+"-ledstream-update";
+		_timer_ledcolors.start(125);
+	}
+	else if (subcommand == "ledstream-stop")
+	{
+		_timer_ledcolors.stop();
+	}
+	else
+	{
+		sendErrorReply("unknown subcommand",command,tan);
+		return;
+	}
+	
+	sendSuccessReply(command+"-"+subcommand,tan);
 }
 
 void JsonClientConnection::handleNotImplemented()
@@ -1095,3 +1153,28 @@ bool JsonClientConnection::checkJson(const Json::Value & message, const QString 
 
 	return true;
 }
+
+
+void JsonClientConnection::streamLedcolorsUpdate()
+{
+	Json::Value & leds = _streaming_leds_reply["result"]["leds"] = Json::Value(Json::arrayValue);
+	//QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+	
+	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	std::vector<ColorRgb> ledBuffer =  priorityInfo.ledColors;
+
+	for (ColorRgb& color : ledBuffer)
+	{
+		int idx = leds.size();
+		Json::Value & item = leds[idx];
+		item["index"] = idx;
+		item["red"]   = color.red;
+		item["green"] = color.green;
+		item["blue"]  = color.blue;
+	}
+
+	// send the result
+	sendMessage(_streaming_leds_reply);
+
+}
+

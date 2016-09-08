@@ -13,9 +13,6 @@
 #include <json/json.h>
 
 // hyperion-remote includes
-#include "ColorTransformValues.h"
-#include "ColorCorrectionValues.h"
-#include "ColorAdjustmentValues.h"
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -29,7 +26,7 @@ public:
 	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
-	JsonConnection(const std::string & address, bool printJson);
+	JsonConnection(const QString & address, bool printJson);
 
 	///
 	/// Destructor
@@ -52,7 +49,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setImage(QImage image, int priority, int duration);
+	void setImage(QImage &image, int priority, int duration);
 
 	///
 	/// Start the given effect
@@ -62,7 +59,7 @@ public:
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
 	///
-	void setEffect(const std::string & effectName, const std::string &effectArgs, int priority, int duration);
+	void setEffect(const QString & effectName, const QString &effectArgs, int priority, int duration);
 
 	///
 	/// Retrieve a list of all occupied priority channels
@@ -89,7 +86,7 @@ public:
 	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
-	void setComponentState(const std::string & component, const bool state);
+	void setComponentState(const QString & component, const bool state);
 
 	///
 	/// Set current active priority channel and deactivate auto source switching
@@ -114,7 +111,7 @@ public:
 	/// @param jsonString The JSON String(s) to write
 	/// @param create Specifies whether the nonexistent json string to be created
 	///
-	void setConfig(const std::string & jsonString, bool create, bool overwrite);
+	void setConfig(const QString &jsonString, bool create, bool overwrite);
 
 	///
 	/// Set the color transform of the leds
@@ -133,16 +130,16 @@ public:
 	/// @param whitelevel The whitelevel
 	///
 	void setTransform(
-			std::string * transformId,
-			double * saturation,
-			double * value,
-			double * saturationL,
-			double * luminance,
-			double * luminanceMin,
-			ColorTransformValues * threshold,
-			ColorTransformValues * gamma,
-			ColorTransformValues * blacklevel,
-			ColorTransformValues * whitelevel);
+        const QString &transformId,
+        double *saturation,
+        double *value,
+        double *saturationL,
+        double *luminance,
+        double *luminanceMin,
+        QColor threshold,
+        QColor gamma,
+        QColor blacklevel,
+        QColor whitelevel);
 	
 	///
 	/// Set the color correction of the leds
@@ -152,8 +149,8 @@ public:
 	/// @param correctionId The identifier of the correction to set
 	/// @param correction The correction values
 	void setCorrection(
-			std::string * correctionId,
-			ColorCorrectionValues * correction);
+		QString &correctionId,
+		const QColor & correction);
 
 	///
 	/// Set the color temperature of the leds
@@ -163,8 +160,8 @@ public:
 	/// @param temperatureId The identifier of the correction to set
 	/// @param temperature The temperature correction values
 	void setTemperature(
-			std::string * temperatureId,
-			ColorCorrectionValues * temperature);
+		const QString & temperatureId,
+		const QColor & temperature);
 
 	///
 	/// Set the color adjustment of the leds
@@ -176,10 +173,10 @@ public:
 	/// @param greenAdjustment The green channel adjustment values
 	/// @param blueAdjustment The blue channel adjustment values
 	void setAdjustment(
-			std::string * adjustmentId,
-			ColorAdjustmentValues * redAdjustment,
-			ColorAdjustmentValues * greenAdjustment,
-			ColorAdjustmentValues * blueAdjustment);
+		const QString & adjustmentId,
+		const QColor & redAdjustment,
+		const QColor & greenAdjustment,
+		const QColor & blueAdjustment);
 
 private:
 	///

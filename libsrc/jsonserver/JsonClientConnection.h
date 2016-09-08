@@ -42,6 +42,7 @@ public:
 
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
+	void streamLedcolorsUpdate();
 
 signals:
 	///
@@ -60,6 +61,7 @@ private slots:
 	/// Slot called when this connection is being closed
 	///
 	void socketClosed();
+
 
 private:
 	///
@@ -169,6 +171,12 @@ private:
 	///
 	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
 
+	/// Handle an incoming JSON Led Colors message
+	///
+	/// @param message the incoming message
+	///
+	void handleLedColorsCommand(const Json::Value & message, const std::string &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -222,7 +230,6 @@ private:
 	///
 	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
 
-private:
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
@@ -243,4 +250,10 @@ private:
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled;
+	
+	/// 
+	QTimer _timer_ledcolors;
+	
+	Json::Value _streaming_leds_reply;
+
 };

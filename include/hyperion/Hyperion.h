@@ -21,6 +21,7 @@
 #include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MessageForwarder.h>
+#include <hyperion/ComponentRegister.h>
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
@@ -31,6 +32,7 @@
 
 // Forward class declaration
 class LedDevice;
+class LinearColorSmoothing;
 class ColorTransform;
 class EffectEngine;
 class HsvTransform;
@@ -90,6 +92,7 @@ public:
 	/// @return The current priority
 	///
 	int getCurrentPriority() const;
+	
 	///
 	/// Returns a list of active priorities
 	///
@@ -157,6 +160,9 @@ public:
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const hyperion::Components component, const bool state);
+
+	ComponentRegister& getComponentRegister() { return _componentRegister; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -282,7 +288,7 @@ public:
 	static RgbChannelAdjustment * createRgbChannelCorrection(const Json::Value& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color);
 
-	static LedDevice * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice * ledDevice);
+	static LinearColorSmoothing * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
 	
 signals:
@@ -334,6 +340,9 @@ private:
 	/// The actual LedDevice
 	LedDevice * _device;
 
+	/// The smoothing LedDevice
+	LinearColorSmoothing * _deviceSmooth;
+
 	/// Effect engine
 	EffectEngine * _effectEngine;
 	
@@ -358,6 +367,8 @@ private:
 	/// count of hardware leds
 	unsigned _hwLedCount;
 
+	ComponentRegister _componentRegister;
+	
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 

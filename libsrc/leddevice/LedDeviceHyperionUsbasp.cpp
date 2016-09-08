@@ -11,12 +11,12 @@ uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
 std::string LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
 
 
-LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(uint8_t writeLedsCommand)
+LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const Json::Value &deviceConfig)
 	: LedDevice()
-	, _writeLedsCommand(writeLedsCommand)
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
 {
+	setConfig(deviceConfig);
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
@@ -36,6 +36,25 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 		_libusbContext = nullptr;
 	}
 }
+
+bool LedDeviceHyperionUsbasp::setConfig(const Json::Value &deviceConfig)
+{
+	std::string ledType = deviceConfig.get("output", "ws2801").asString();
+	if (ledType != "ws2801" && ledType != "ws2812")
+	{
+		throw std::runtime_error("HyperionUsbasp: invalid output; must be 'ws2801' or 'ws2812'.");
+	}
+
+	_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
+
+	return true;
+}
+
+LedDevice* LedDeviceHyperionUsbasp::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceHyperionUsbasp(deviceConfig);
+}
+
 
 int LedDeviceHyperionUsbasp::open()
 {

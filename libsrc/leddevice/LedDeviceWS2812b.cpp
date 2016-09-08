@@ -258,6 +258,11 @@ LedDeviceWS2812b::LedDeviceWS2812b()
 	printf("WS2812b init finished \n");
 }
 
+LedDevice* LedDeviceWS2812b::construct(const Json::Value &)
+{
+	return new LedDeviceWS2812b();
+}
+
 #ifdef WS2812_ASM_OPTI
 
 // rotate register, used to move the 1 around :-)
