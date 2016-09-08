@@ -13,10 +13,12 @@ ImageToLedsMap::ImageToLedsMap(
 		const unsigned height,
 		const unsigned horizontalBorder,
 		const unsigned verticalBorder,
-		const std::vector<Led>& leds) :
-	_width(width),
-	_height(height),
-	mColorsMap()
+		const std::vector<Led>& leds)
+	: _width(width)
+	, _height(height)
+	, _horizontalBorder(horizontalBorder)
+	, _verticalBorder(verticalBorder)
+	, mColorsMap()
 {
 	// Sanity check of the size of the borders (and width and height)
 	assert(width  > 2*verticalBorder);

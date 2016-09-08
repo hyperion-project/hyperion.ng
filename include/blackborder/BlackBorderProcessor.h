@@ -62,7 +62,11 @@ namespace hyperion
 			BlackBorder imageBorder;
 			if (!enabled())
 			{
-				return false;
+				imageBorder.horizontalSize = 0;
+				imageBorder.verticalSize = 0;
+				imageBorder.unknown=true;
+				_currentBorder = imageBorder;
+				return true;
 			}
 
 			if (_detectionMode == "default") {
