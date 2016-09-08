@@ -13,7 +13,7 @@ sf_upload()
 	EOD
 }
 
-deploylist = "hyperion-2.0.0-Linux-x86.deb hyperion-2.0.0-Linux-x86.tar.gz"
+deploylist="hyperion-2.0.0-Linux-x86.deb hyperion-2.0.0-Linux-x86.tar.gz"
 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 	cd $TRAVIS_BUILD_DIR/build
