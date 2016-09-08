@@ -75,7 +75,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(general_conf_editor.getValue());
 	});
 
-	//Alternativ Function with submit button to get Values
+	//Alternative Function with submit button to get Values
 	document.getElementById('submit').addEventListener('click',function() {
 		console.log(general_conf_editor.getValue());
 	});
