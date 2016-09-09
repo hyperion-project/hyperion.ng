@@ -68,19 +68,19 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$('#leds_toggle_num').on("click", function() {
+	$('#leds_toggle_num').off().on("click", function() {
 		$('.led_num').toggle();
 		toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
 	});
 
 	// ------------------------------------------------------------------
-	$('#leds_toggle').on("click", function() {
+	$('#leds_toggle').off().on("click", function() {
 		$('.led').toggle();
 		toggleClass('#leds_toggle', "btn-success", "btn-danger");
 	});
 
 	// ------------------------------------------------------------------
-	$('#leds_toggle_live').on("click", function() {
+	$('#leds_toggle_live').off().on("click", function() {
 		setClassByBool('#leds_toggle_live',ledStreamActive,"btn-success","btn-danger");
 		if ( ledStreamActive )
 		{
@@ -93,7 +93,7 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$("#leds_custom_check").on("click", function() {
+	$("#leds_custom_check").off().on("click", function() {
 		e = isJsonString($("#ledconfig").val());
 		
 		if (e.length == 0)
@@ -103,11 +103,11 @@ $(document).ready(function() {
 	});
 	
 	// ------------------------------------------------------------------
-	$("#leds_custom_save").on("click", function() {
+	$("#leds_custom_save").off().on("click", function() {
 		
 	});
 
-	$('#leds_cfg_nav a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
@@ -119,6 +119,17 @@ $(document).ready(function() {
 		}
 	});
 
+	$("#leddevices").off().on("change", function(event) {
+		if ($(this).val() == "philipshue")
+		{
+			$("#huebridge").show();
+		}
+		else
+		{
+			$("#huebridge").hide();
+		}
+	});
+	
 	requestServerConfig();
 });
 
