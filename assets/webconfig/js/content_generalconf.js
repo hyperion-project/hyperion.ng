@@ -25,23 +25,23 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	//removeAdvanced(parsedConfSchemaJSON, []); // not working atm
 	//console.log(JSON.stringify(parsedConfSchemaJSON));
 	schema = parsedConfSchemaJSON.properties;
-	schema_blackborderdetector = schema.blackborderdetector;
-	schema_color = schema.color;
-	schema_effects = schema.effects;
-	schema_forwarder = schema.forwarder;
-	schema_initialEffect = schema.initialEffect;
-	schema_kodiVideoChecker = schema.kodiVideoChecker;
-	schema_smoothing = schema.smoothing;
-	schema_logger = schema.logger;
-	schema_jsonServer = schema.jsonServer;
-	schema_protoServer = schema.protoServer;
-	schema_boblightServer = schema.boblightServer;
-	schema_udpListener = schema.udpListener;
-	schema_webConfig = schema.webConfig;
+	blackborderdetector = schema.blackborderdetector;
+	color = schema.color;
+	effects = schema.effects;
+	forwarder = schema.forwarder;
+	initialEffect = schema.initialEffect;
+	kodiVideoChecker = schema.kodiVideoChecker;
+	smoothing = schema.smoothing;
+	logger = schema.logger;
+	jsonServer = schema.jsonServer;
+	protoServer = schema.protoServer;
+	boblightServer = schema.boblightServer;
+	udpListener = schema.udpListener;
+	webConfig = schema.webConfig;
 
 	var element = document.getElementById('editor_holder');
 	//JSONEditor.defaults.options.theme = 'bootstrap3';
-	
+
 	var general_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
 		disable_collapse: 'true',
@@ -52,32 +52,42 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:' ',
 			properties: {
-				schema_blackborderdetector,
-				schema_color,
-				schema_effects,
-				schema_forwarder,
-				schema_initialEffect,
-				schema_kodiVideoChecker,
-				schema_smoothing,
-				schema_logger,
-				schema_jsonServer,
-				schema_protoServer,
-				schema_boblightServer,
-				schema_udpListener,
-				schema_webConfig
+				/*blackborderdetector,
+				color,
+				effects,
+				forwarder,
+				initialEffect,
+				kodiVideoChecker,
+				smoothing,*/
+				logger//,
+				/*jsonServer,
+				protoServer,
+				boblightServer,
+				udpListener,
+				webConfig*/
 			}
 		}
 	});
-});
 
+	//Called everytime a Input Field is changed = No need for save button
+	general_conf_editor.on('change',function() {
+		console.log(JSON.stringify(general_conf_editor.getValue()));
+		requestWriteConfig(general_conf_editor.getValue());
+	});
+
+	//Alternative Function with submit button to get Values
+	document.getElementById('submit').addEventListener('click',function() {
+		console.log(general_conf_editor.getValue());
+	});
+
+	$(hyperion).on("cmd-config-setconfig",function(event){
+		parsedServerInfoJSON = event.response;
+		console.log(parsedServerInfoJSON);
+	});
+
+});
 
 $(document).ready( function() {
 	requestServerConfigSchema();
-
-	document.getElementById('submit').addEventListener('click',function() {
-		// Get the value from the editor
-		//console.log(general_conf_editor.getValue());
-	});
-//  $("[type='checkbox']").bootstrapSwitch();
+	//$("[type='checkbox']").bootstrapSwitch();
 });
-
