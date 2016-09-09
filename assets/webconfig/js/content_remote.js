@@ -35,6 +35,7 @@
 			updateInputSelect();
 			components = event.response.info.components;
 			// create buttons
+			$('#componentsbutton').html("");
 			for ( idx=0; idx<components.length;idx++)
 			{
 				//components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
