@@ -41,7 +41,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 
 	var element = document.getElementById('editor_holder');
 	//JSONEditor.defaults.options.theme = 'bootstrap3';
-	
+
 	var general_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
 		disable_collapse: 'true',
@@ -52,38 +52,42 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:' ',
 			properties: {
-				blackborderdetector,
+				/*blackborderdetector,
 				color,
 				effects,
 				forwarder,
 				initialEffect,
 				kodiVideoChecker,
-				smoothing,
-				logger,
-				jsonServer,
+				smoothing,*/
+				logger//,
+				/*jsonServer,
 				protoServer,
 				boblightServer,
 				udpListener,
-				webConfig
+				webConfig*/
 			}
 		}
 	});
-	
-	$('#submit').on('click',function() {
-		// Get the value from the editor
-		var xx = JSON.stringify(general_conf_editor.getValue());
-		var cc = '{"command":"config","subcommand":"setconfig","config":'+xx+',"create":false, "overwrite":false}'
-		console.log(cc);
-		//websocket.send();
-	});
-		
-});
 
+	//Called everytime a Input Field is changed = No need for save button
+	general_conf_editor.on('change',function() {
+		console.log(JSON.stringify(general_conf_editor.getValue()));
+		requestWriteConfig(general_conf_editor.getValue());
+	});
+
+	//Alternative Function with submit button to get Values
+	document.getElementById('submit').addEventListener('click',function() {
+		console.log(general_conf_editor.getValue());
+	});
+
+	$(hyperion).on("cmd-config-setconfig",function(event){
+		parsedServerInfoJSON = event.response;
+		console.log(parsedServerInfoJSON);
+	});
+
+});
 
 $(document).ready( function() {
 	requestServerConfigSchema();
-
-
-//  $("[type='checkbox']").bootstrapSwitch();
+	//$("[type='checkbox']").bootstrapSwitch();
 });
-

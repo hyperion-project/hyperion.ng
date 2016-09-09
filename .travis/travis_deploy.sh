@@ -4,7 +4,7 @@
 sf_upload()
 {
 	/usr/bin/expect <<-EOD
-	spawn scp $1 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/$2
+	spawn scp $1 $2 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/$3
 	expect "*(yes/no)*"
 	send "yes\r"
 	expect "*password:*"
