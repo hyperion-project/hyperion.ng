@@ -2,10 +2,7 @@ $(document).ready( function() {
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
-	bindNavToContent("#load_lighttest","lighttest",false);
-	bindNavToContent("#load_effects","effects",false);
-	bindNavToContent("#load_components","remote_components",false);
-	bindNavToContent("#load_input_selection","input_selection",false);
+	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
 	bindNavToContent("#load_confKodi","kodiconf",false);

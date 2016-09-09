@@ -25,19 +25,19 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	//removeAdvanced(parsedConfSchemaJSON, []); // not working atm
 	//console.log(JSON.stringify(parsedConfSchemaJSON));
 	schema = parsedConfSchemaJSON.properties;
-	schema_blackborderdetector = schema.blackborderdetector;
-	schema_color = schema.color;
-	schema_effects = schema.effects;
-	schema_forwarder = schema.forwarder;
-	schema_initialEffect = schema.initialEffect;
-	schema_kodiVideoChecker = schema.kodiVideoChecker;
-	schema_smoothing = schema.smoothing;
-	schema_logger = schema.logger;
-	schema_jsonServer = schema.jsonServer;
-	schema_protoServer = schema.protoServer;
-	schema_boblightServer = schema.boblightServer;
-	schema_udpListener = schema.udpListener;
-	schema_webConfig = schema.webConfig;
+	blackborderdetector = schema.blackborderdetector;
+	color = schema.color;
+	effects = schema.effects;
+	forwarder = schema.forwarder;
+	initialEffect = schema.initialEffect;
+	kodiVideoChecker = schema.kodiVideoChecker;
+	smoothing = schema.smoothing;
+	logger = schema.logger;
+	jsonServer = schema.jsonServer;
+	protoServer = schema.protoServer;
+	boblightServer = schema.boblightServer;
+	udpListener = schema.udpListener;
+	webConfig = schema.webConfig;
 
 	var element = document.getElementById('editor_holder');
 	//JSONEditor.defaults.options.theme = 'bootstrap3';
@@ -52,32 +52,38 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:' ',
 			properties: {
-				schema_blackborderdetector,
-				schema_color,
-				schema_effects,
-				schema_forwarder,
-				schema_initialEffect,
-				schema_kodiVideoChecker,
-				schema_smoothing,
-				schema_logger,
-				schema_jsonServer,
-				schema_protoServer,
-				schema_boblightServer,
-				schema_udpListener,
-				schema_webConfig
+				blackborderdetector,
+				color,
+				effects,
+				forwarder,
+				initialEffect,
+				kodiVideoChecker,
+				smoothing,
+				logger,
+				jsonServer,
+				protoServer,
+				boblightServer,
+				udpListener,
+				webConfig
 			}
 		}
 	});
+	
+	$('#submit').on('click',function() {
+		// Get the value from the editor
+		var xx = JSON.stringify(general_conf_editor.getValue());
+		var cc = '{"command":"config","subcommand":"setconfig","config":'+xx+',"create":false, "overwrite":false}'
+		console.log(cc);
+		//websocket.send();
+	});
+		
 });
 
 
 $(document).ready( function() {
 	requestServerConfigSchema();
 
-	document.getElementById('submit').addEventListener('click',function() {
-		// Get the value from the editor
-		//console.log(general_conf_editor.getValue());
-	});
+
 //  $("[type='checkbox']").bootstrapSwitch();
 });
 
