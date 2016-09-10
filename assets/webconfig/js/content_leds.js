@@ -145,7 +145,6 @@ $(document).ready(function() {
 			}
 		});
 
-
 		values_general = {};
 		values_specific = {};
 		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
