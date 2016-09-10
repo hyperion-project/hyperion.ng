@@ -14,7 +14,7 @@
 		},
 		"cid": {
 			"type": "string",
-			"title":"CID",
+			"title":"CID"
 		}
 	},
 	"additionalProperties": true

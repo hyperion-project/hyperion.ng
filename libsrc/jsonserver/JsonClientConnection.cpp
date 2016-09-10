@@ -911,6 +911,8 @@ void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message, c
 	result["tan"] = tan;
 	Json::Value & schemaJson = result["result"];
 	
+	
+	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
@@ -923,6 +925,7 @@ void JsonClientConnection::handleSchemaGetCommand(const Json::Value & message, c
 	{
 		throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
 	}
+	result["result"]["properties"]["alldevices"] = LedDevice::getLedDeviceSchemas();
 
 	// send the result
 	sendMessage(result);

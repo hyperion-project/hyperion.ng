@@ -49,7 +49,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 $(document).ready( function() {
 	requestServerConfigSchema();
 
-	document.getElementById('submit').addEventListener('click',function() {
+	document.getElementById('btn_submit').addEventListener('click',function() {
 		// Get the value from the editor
 		//console.log(general_conf_editor.getValue());
 	});

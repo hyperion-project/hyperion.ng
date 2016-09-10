@@ -15,10 +15,6 @@ $(document).ready( function() {
 	//Change all Checkboxes to Switches
 	$("[type='checkbox']").bootstrapSwitch();
 
-	$(hyperion).on("open",function(event){
-		requestServerInfo();
-	});
-
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
@@ -57,9 +53,20 @@ $(document).ready( function() {
 		});
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-config-getschema", function(event) {
+		parsedConfSchemaJSON = event.response.result;
+	});
+
+	
 	$(hyperion).on("error",function(event){
 		showErrorDialog("error", event.reason);
 	});
+
+	$(hyperion).on("open",function(event){
+		requestServerConfigSchema();
+		requestServerInfo();
+	});
+
 });
 
 $(function(){
