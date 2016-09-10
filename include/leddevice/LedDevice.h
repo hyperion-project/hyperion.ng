@@ -55,6 +55,8 @@ public:
 	static const LedDeviceRegistry& getDeviceMap();
 	static void setActiveDevice(std::string dev);
 	static std::string activeDevice() { return _activeDevice; };
+	static Json::Value getLedDeviceSchemas();
+	
 protected:
 	/// The common Logger instance for all LedDevices
 	Logger * _log;

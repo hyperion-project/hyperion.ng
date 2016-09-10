@@ -5,7 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"Output",
-			"default" : "/dev/null",
+			"default" : "/dev/null"
 		}
 	},
 	"additionalProperties": true

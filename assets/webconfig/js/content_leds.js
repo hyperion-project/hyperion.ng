@@ -41,6 +41,7 @@ $(document).ready(function() {
 		}
 		$("#leddevices").html(ledDevicesHtml);
 		$("#leddevices").val(server.info.ledDevices.active);
+		$("#leddevices").trigger("change");
 	});
 
 	// ------------------------------------------------------------------
@@ -120,6 +121,48 @@ $(document).ready(function() {
 	});
 
 	$("#leddevices").off().on("change", function(event) {
+		generalOptions  = parsedConfSchemaJSON.properties.device;
+		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
+		//$('#ledDeviceOptions').html(JSON.stringify(generalOptions)+"<br>"+JSON.stringify(specificOptions));
+		$('#editor_container').off();
+		$('#editor_container').html("");
+		var element = document.getElementById('editor_container');
+	
+		var grabber_conf_editor = new JSONEditor(element,{
+			theme: 'bootstrap3',
+			disable_collapse: 'true',
+			form_name_root: 'sa',
+			disable_edit_json: 'true',
+			disable_properties: 'true',
+			no_additional_properties: 'true',
+			schema: {
+				title:' ',
+				properties: {
+					generalOptions,
+					specificOptions,
+				}
+			}
+		});
+
+		values_general = {};
+		values_specific = {};
+		isCurrentDevice = (server.info.ledDevices.active == parsedConfJSON.device.type);
+
+		for(var key in parsedConfJSON.device){
+			if (key in generalOptions.properties)
+				values_general[key] = parsedConfJSON.device[key];
+		};
+		grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : specificOptions });
+	
+		if (isCurrentDevice)
+		{
+			for(var key in parsedConfJSON.device){
+				if (key in specificOptions.properties)
+					values_specific[key] = parsedConfJSON.device[key];
+			};
+			grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : values_specific });
+		};
+		
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();
