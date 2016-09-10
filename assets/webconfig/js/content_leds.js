@@ -130,6 +130,7 @@ $(document).ready(function() {
 	
 		var grabber_conf_editor = new JSONEditor(element,{
 			theme: 'bootstrap3',
+			iconlib: "fontawesome4",
 			disable_collapse: 'true',
 			form_name_root: 'sa',
 			disable_edit_json: 'true',
@@ -162,7 +163,13 @@ $(document).ready(function() {
 			};
 			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
-		
+	
+		$('#editor_container .well').css("background-color","white");
+		$('#editor_container .well').css("border","none");
+		$('#editor_container .well').css("box-shadow","none");
+		$('#editor_container .btn').addClass("btn-primary");
+		$('#editor_container h3').first().remove();
+
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();

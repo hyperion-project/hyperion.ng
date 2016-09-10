@@ -37,17 +37,18 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	udpListener = schema.udpListener;
 	webConfig = schema.webConfig;
 
-	var element = document.getElementById('editor_holder');
+	var element = document.getElementById('editor_container');
 
 	var general_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
+		iconlib: "fontawesome4",
 		disable_collapse: 'true',
 		form_name_root: 'sa',
 		disable_edit_json: 'true',
 		disable_properties: 'true',
 		no_additional_properties: 'true',
 		schema: {
-			title:' ',
+			title:'',
 			properties: {
 				/*blackborderdetector,
 				color,
@@ -66,6 +67,12 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		}
 	});
 
+// 	$('#editor_container .well').css("background-color","white");
+// 	$('#editor_container .well').css("border","none");
+// 	$('#editor_container .well').css("box-shadow","none");
+	$('#editor_container .btn').addClass("btn-primary");
+	$('#editor_container h3').first().remove();
+	
 	//Called everytime a Input Field is changed = No need for save button
 	general_conf_editor.off().on('change',function() {
 		console.log(JSON.stringify(general_conf_editor.getValue()));
