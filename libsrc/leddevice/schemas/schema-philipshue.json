@@ -12,8 +12,11 @@
 			"default": "newdeveloper"
 		},
 		"lightIds": {
-			"type": "integer",
-			"title":"Light ids"
+			"type": "array",
+			"title":"Light ids",
+			"items": {
+				"type" : "integer"
+			}
 		},
 		"transitiontime": {
 			"type": "integer",

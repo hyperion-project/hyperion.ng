@@ -130,6 +130,7 @@ $(document).ready(function() {
 	
 		var grabber_conf_editor = new JSONEditor(element,{
 			theme: 'bootstrap3',
+			iconlib: "fontawesome4",
 			disable_collapse: 'true',
 			form_name_root: 'sa',
 			disable_edit_json: 'true',
@@ -144,15 +145,16 @@ $(document).ready(function() {
 			}
 		});
 
+
 		values_general = {};
 		values_specific = {};
-		isCurrentDevice = (server.info.ledDevices.active == parsedConfJSON.device.type);
+		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
 
 		for(var key in parsedConfJSON.device){
 			if (key in generalOptions.properties)
 				values_general[key] = parsedConfJSON.device[key];
 		};
-		grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : specificOptions });
+		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );
 	
 		if (isCurrentDevice)
 		{
@@ -160,9 +162,15 @@ $(document).ready(function() {
 				if (key in specificOptions.properties)
 					values_specific[key] = parsedConfJSON.device[key];
 			};
-			grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : values_specific });
+			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
-		
+	
+		$('#editor_container .well').css("background-color","white");
+		$('#editor_container .well').css("border","none");
+		$('#editor_container .well').css("box-shadow","none");
+		$('#editor_container .btn').addClass("btn-primary");
+		$('#editor_container h3').first().remove();
+
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();
