@@ -124,7 +124,8 @@ $(document).ready(function() {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
 		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
 		//$('#ledDeviceOptions').html(JSON.stringify(generalOptions)+"<br>"+JSON.stringify(specificOptions));
-		
+		$('#editor_container').off();
+		$('#editor_container').html("");
 		var element = document.getElementById('editor_container');
 	
 	var grabber_conf_editor = new JSONEditor(element,{
