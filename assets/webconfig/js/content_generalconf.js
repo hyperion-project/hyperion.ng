@@ -21,9 +21,7 @@ function removeAdvanced(obj,searchStack)
 
 $(hyperion).one("cmd-config-getschema", function(event) {
 	parsedConfSchemaJSON = event.response.result;
-	// remove all "advanced" options from schema
-	//removeAdvanced(parsedConfSchemaJSON, []); // not working atm
-	//console.log(JSON.stringify(parsedConfSchemaJSON));
+
 	schema = parsedConfSchemaJSON.properties;
 	blackborderdetector = schema.blackborderdetector;
 	color = schema.color;
@@ -40,7 +38,6 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	webConfig = schema.webConfig;
 
 	var element = document.getElementById('editor_holder');
-	//JSONEditor.defaults.options.theme = 'bootstrap3';
 
 	var general_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
@@ -70,13 +67,13 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	});
 
 	//Called everytime a Input Field is changed = No need for save button
-	general_conf_editor.on('change',function() {
+	general_conf_editor.off().on('change',function() {
 		console.log(JSON.stringify(general_conf_editor.getValue()));
 		requestWriteConfig(general_conf_editor.getValue());
 	});
 
 	//Alternative Function with submit button to get Values
-	document.getElementById('submit').addEventListener('click',function() {
+	$('btn_submit').off().on('click',function() {
 		console.log(general_conf_editor.getValue());
 	});
 
