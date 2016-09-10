@@ -146,13 +146,13 @@ $(document).ready(function() {
 
 		values_general = {};
 		values_specific = {};
-		isCurrentDevice = (server.info.ledDevices.active == parsedConfJSON.device.type);
+		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
 
 		for(var key in parsedConfJSON.device){
 			if (key in generalOptions.properties)
 				values_general[key] = parsedConfJSON.device[key];
 		};
-		grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : specificOptions });
+		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );
 	
 		if (isCurrentDevice)
 		{
@@ -160,7 +160,7 @@ $(document).ready(function() {
 				if (key in specificOptions.properties)
 					values_specific[key] = parsedConfJSON.device[key];
 			};
-			grabber_conf_editor.setValue( { "generalOptions" : values_general, "specificOptions" : values_specific });
+			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 		
 		if ($(this).val() == "philipshue")
