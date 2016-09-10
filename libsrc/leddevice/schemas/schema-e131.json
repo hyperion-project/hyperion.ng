@@ -2,6 +2,15 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"host" : {
+			"type": "string",
+			"title":"Target IP"
+		},
+		"port" : {
+			"type": "integer",
+			"title":"Port",
+			"default": 5568
+		},
 		"universe": {
 			"type": "integer",
 			"title":"Universe",

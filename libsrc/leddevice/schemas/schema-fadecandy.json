@@ -2,6 +2,64 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output" : {
+			"type": "string",
+			"title":"Target IP",
+			"propertyOrder" : 1
+		},
+		"port" : {
+			"type": "integer",
+			"title":"Port",
+			"default": 7890,
+			"propertyOrder" : 2
+		},
+		"setFcConfig": {
+			"type": "boolean",
+			"title":"Set fadecandy Configuration",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"manualLed": {
+			"type": "boolean",
+			"title":"Manual control of fadecandy LED",
+			"default": false,
+			"propertyOrder" : 4
+		},
+		"ledOn": {
+			"type": "boolean",
+			"title":"Fadecandy LED set to on",
+			"default": false,
+			"propertyOrder" : 5
+		},
+		"interpolation": {
+			"type": "boolean",
+			"title":"Interpolation",
+			"default": false,
+			"propertyOrder" : 6
+		},
+		"dither": {
+			"type": "boolean",
+			"title":"Dithering",
+			"default": false,
+			"propertyOrder" : 7
+		},
+		"gamma" : {
+			"type" : "number",
+			"minimum" : 0.0,
+			"maximum": 100.0,
+			"propertyOrder" : 8
+		},
+		"whitepoint" : {
+			"type" : "array",
+			"propertyOrder" : 9,
+			"items" : {
+				"type" : "number",
+				"minimum" : 0.0,
+				"maximum": 1.0,
+				"default" : 1.0
+			}
+		}
 	},
 	"additionalProperties": true
 }
+
