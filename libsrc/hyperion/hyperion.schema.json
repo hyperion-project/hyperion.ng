@@ -23,9 +23,9 @@
 		"device" :
 		{
 			"type" : "object",
-			"title" : "LED Device",
+			"title" : "LED Device General",
 			"required" : true,
-			"defaultProperties": ["name","output","rate","colorOrder"],
+			"defaultProperties": ["name","ledCount","colorOrder"],
 			"properties" :
 			{
 				"name" :
@@ -39,22 +39,18 @@
 					"type" : "string",
 					"required" : true
 				},
-				"output" :
-				{
-					"type" : "string",
-					"propertyOrder" : 2
-				},
-				"rate" :
+				"ledCount" :
 				{
 					"type" : "integer",
 					"minimum" : 0,
-					"propertyOrder" : 3
+					"title" : "Count of all hardware LEDs",
+					"propertyOrder" : 2
 				},
 				"colorOrder" :
 				{
 					"type" : "string",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
-					"propertyOrder" : 4
+					"propertyOrder" : 3
 				}
 			},
 			"additionalProperties" : true

@@ -61,6 +61,8 @@ Json::Value LedDevice::getLedDeviceSchemas()
 			Error(Logger::getInstance("LedDevice"), "LedDevice JSON schema error in %s (%s)", item.toUtf8().constData(), jsonReader.getFormattedErrorMessages().c_str() );
 			throw std::runtime_error("ERROR: Json schema wrong: " + jsonReader.getFormattedErrorMessages())	;
 		}
+		schemaJson["title"] = "LED Device Specific";
+
 	}
 	
 	return result;
