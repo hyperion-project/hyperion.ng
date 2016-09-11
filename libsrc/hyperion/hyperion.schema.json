@@ -7,7 +7,6 @@
 		{
 			"type" : "object",
 			"title" : "Logging",
-			"required": ["level"],
 			"properties" :
 			{
 				"level" :
@@ -66,7 +65,6 @@
 				"channelAdjustment_enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"propertyOrder" : 1
 				},
 				"channelAdjustment" :
@@ -245,7 +243,6 @@
 				"transform_enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"propertyOrder" : 3
 				},
 				"transform" :
@@ -376,13 +373,11 @@
 		{
 			"type" : "object",
 			"title" : "Smoothing",
-			"required": ["type"],
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
 					"propertyOrder" : 1
@@ -392,7 +387,8 @@
 					"type" : "string",
 					"title" : "Type",
 					"enum" : ["linear"],
-					"default" : "linear"
+					"default" : "linear",
+					"propertyOrder" : 2
 				},
 				"time_ms" :
 				{
@@ -400,7 +396,8 @@
 					"title" : "Time",
 					"minimum" : 25,
 					"maximum": 600,
-					"default" : 200
+					"default" : 200,
+					"propertyOrder" : 3
 				},
 				"updateFrequency" :
 				{
@@ -408,7 +405,8 @@
 					"title" : "Update frequency",
 					"minimum" : 1.000,
 					"maximum" : 100.000,
-					"default" : 25.000
+					"default" : 25.000,
+					"propertyOrder" : 4
 				},
 				"updateDelay" :
 				{
@@ -416,14 +414,15 @@
 					"title" : "Update delay",
 					"minimum" : 0,
 					"maximum": 2048,
-					"default" : 0
+					"default" : 0,
+					"propertyOrder" : 5
 				},
 				"continuousOutput" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Continuous output",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 6
 				}
 			},
 			"additionalProperties" : false
@@ -434,13 +433,11 @@
 			"items":
 			{
 				"type" : "object",
-				"required": ["mode","standard"],
 				"properties" :
 				{
 					"enable" :
 					{
 						"type" : "boolean",
-						"format": "checkbox",
 						"title" : "Activate",
 						"default" : false,
 						"propertyOrder" : 1
@@ -449,92 +446,105 @@
 					{
 						"type" : "string",
 						"title" : "Device",
-						"default" : "auto"
+						"default" : "auto",
+						"propertyOrder" : 2
 					},
 					"input" :
 					{
 						"type" : "integer",
 						"title" : "Input",
-						"default" : 0
+						"default" : 0,
+						"propertyOrder" : 3
 					},
 					"standard" :
 					{
 						"type" : "string",
 						"title" : "Video standard",
 						"enum" : ["PAL","NTSC"],
-						"default" : "PAL"
+						"default" : "PAL",
+						"propertyOrder" : 4
 					},
 					"width" :
 					{
 						"type" : "integer",
 						"title" : "Width",
-						"default" : -1
+						"default" : -1,
+						"propertyOrder" : 5
 					},
 					"height" :
 					{
 						"type" : "integer",
 						"title" : "Height",
-						"default" : -1
+						"default" : -1,
+						"propertyOrder" : 6
 					},
 					"frameDecimation" :
 					{
 						"type" : "integer",
 						"title" : "Frame decimation",
-						"default" : 2
+						"default" : 2,
+						"propertyOrder" : 7
 					},
 					"sizeDecimation" :
 					{
 						"type" : "integer",
 						"title" : "Size decimation",
-						"default" : 6
+						"default" : 6,
+						"propertyOrder" : 8
 					},
 					"priority" :
 					{
 						"type" : "integer",
 						"title" : "Priority channel",
-						"default" : 900
+						"default" : 900,
+						"propertyOrder" : 9
 					},
 					"mode" :
 					{
 						"type" : "string",
 						"title" : "Mode",
 						"enum" : ["2D","3DSBS","3DTAB"],
-						"default" : "2D"
+						"default" : "2D",
+						"propertyOrder" : 10
 					},
 					"useKodiChecker" :
 					{
 						"type" : "boolean",
-						"format": "checkbox",
 						"title" : "Use Kodi Watch",
-						"default" : false
+						"default" : false,
+						"propertyOrder" : 11
 					},
 					"cropLeft" :
 					{
 						"type" : "integer",
 						"title" : "Crop left",
 						"minimum" : 0,
-						"default" : 0
+						"default" : 0,
+						"propertyOrder" : 12
 					},
 					"cropRight" :
 					{
 						"type" : "integer",
 						"title" : "Crop right",
 						"minimum" : 0,
-						"default" : 0
+						"default" : 0,
+						"propertyOrder" : 13
 					},
 					"cropTop" :
 					{
 						"type" : "integer",
 						"title" : "Crop top",
 						"minimum" : 0,
-						"default" : 0
+						"default" : 0,
+						"propertyOrder" : 14
 					},
 					"cropBottom" :
 					{
 						"type" : "integer",
 						"title" : "Crop bottom",
 						"minimum" : 0,
-						"default" : 0
+						"default" : 0,
+						"propertyOrder" : 15
 					},
 					"redSignalThreshold" :
 					{
@@ -542,7 +552,8 @@
 						"title" : "Red signal threshold",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1
+						"default" : 0.1,
+						"propertyOrder" : 16
 					},
 					"greenSignalThreshold" :
 					{
@@ -550,7 +561,8 @@
 						"title" : "Green signal threshold",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1
+						"default" : 0.1,
+						"propertyOrder" : 17
 					},
 					"blueSignalThreshold" :
 					{
@@ -558,7 +570,8 @@
 						"title" : "Blue signal threshold",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1
+						"default" : 0.1,
+						"propertyOrder" : 18
 					}
 				},
 			"additionalProperties" : false
@@ -573,7 +586,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
 					"propertyOrder" : 1
@@ -642,7 +654,6 @@
 				"useXGetImage" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Use XGetImage",
 					"default" : false
 				},
@@ -679,14 +690,12 @@
 		{
 			"type" : "object",
 			"title" : "Blackbar detector",
-			"required": ["mode"],
 			"defaultProperties": ["enable","mode","threshold"],
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
 					"propertyOrder" : 1
@@ -697,34 +706,44 @@
 					"title" : "Threshold",
 					"minimum" : 0.0,
 					"maximum" : 1.0,
-					"default" : 0.05
+					"default" : 0.05,
+					"propertyOrder" : 2
 				},
 				"unknownFrameCnt"    :
 				{
-					"type" : "number",
-					"minimum" : 0
+					"type" : "integer",
+					"minimum" : 0,
+					"default" : 600,
+					"propertyOrder" : 3
 				},
 				"borderFrameCnt" :
 				{
-					"type" : "number",
-					"minimum" : 0
+					"type" : "integer",
+					"minimum" : 0,
+					"default" : 50,
+					"propertyOrder" : 4
 				},
 				"maxInconsistentCnt" :
 				{
-					"type" : "number",
-					"minimum" : 0
+					"type" : "integer",
+					"minimum" : 0,
+					"default" : 10,
+					"propertyOrder" : 5
 				},
 				"blurRemoveCnt" :
 				{
-					"type" : "number",
-					"minimum" : 0
+					"type" : "integer",
+					"minimum" : 0,
+					"default" : 1,
+					"propertyOrder" : 6
 				},
 				"mode" :
 				{
 					"type" : "string",
 					"title": "Mode",
 					"enum" : ["default", "classic", "osd"],
-					"default" : "default"
+					"default" : "default",
+					"propertyOrder" : 7
 				}
 			},
 			"additionalProperties" : false
@@ -738,7 +757,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : false,
 					"propertyOrder" : 1
@@ -747,7 +765,8 @@
 				{
 					"type" : "string",
 					"title" : "Kodi IP address",
-					"default" : "127.0.0.1"
+					"default" : "127.0.0.1",
+					"propertyOrder" : 2
 				},
 				"kodiTcpPort" :
 				{
@@ -755,56 +774,57 @@
 					"title" : "Kodi TCP port",
 					"minimum" : 0,
 					"maximum" : 65535,
-					"default" : 9090
+					"default" : 9090,
+					"propertyOrder" : 3
 				},
 				"grabVideo" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Video",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 4
 				},
 				"grabPictures" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Pictures",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 5
 				},
 				"grabAudio" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Audio",
-					"default" : true
+					"default" : true,
+					"propertyOrder" : 6
 				},
 				"grabMenu" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Menu",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 7
 				},
 				"grabPause" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Pause",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 8
 				},
 				"grabScreensaver" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Screensaver",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 9
 				},
 				"enable3DDetection" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Detect 3D",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 10
 				}
 			},
 			"additionalProperties" : false
@@ -857,7 +877,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"required" : true,
 					"propertyOrder" : 1
@@ -865,12 +884,14 @@
 				"json" :
 				{
 					"type" : "array",
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 2
 				},
 				"proto" :
 				{
 					"type" : "array",
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 3
 				}
 			},
 			"additionalProperties" : false
@@ -922,7 +943,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : false,
 					"propertyOrder" : 1
@@ -933,14 +953,16 @@
 					"required" : true,
 					"title" : "Port",
 					"minimum" : 0,
-					"maximum" : 65535
+					"maximum" : 65535,
+					"propertyOrder" : 2
 				},
 				"priority" :
 				{
 					"type" : "integer",
 					"title" : "Priority",
 					"minimum" : 0,
-					"default" : 800
+					"default" : 800,
+					"propertyOrder" : 3
 				}
 			},
 			"additionalProperties" : false
@@ -954,7 +976,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : false,
 					"propertyOrder" : 1
@@ -964,7 +985,8 @@
 					"type" : "string",
 					"title" : "Address",
 					"default" : "239.255.28.01",
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 2
 				},
 				"port" :
 				{
@@ -972,26 +994,29 @@
 					"title" : "Port",
 					"minimum" : 0,
 					"maximum" : 65535,
-					"default" : 2801
+					"default" : 2801,
+					"propertyOrder" : 3
 				},
 				"priority" :
 				{
 					"type" : "integer",
 					"title" : "Priority",
-					"default" : 800
+					"default" : 800,
+					"propertyOrder" : 4
 				},
 				"timeout" :
 				{
 					"type" : "integer",
 					"title" : "Timeout",
-					"default" : 10000
+					"default" : 10000,
+					"propertyOrder" : 5
 				},
 				"shared" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Shared",
-					"default" : false
+					"default" : false,
+					"propertyOrder" : 6
 				}
 			},
 			"additionalProperties" : false
@@ -1006,7 +1031,6 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
 					"required" : true,
@@ -1016,14 +1040,16 @@
 				{
 					"type" : "string",
 					"title" : "Document Root",
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 2
 				},
 				"port" :
 				{
 					"type" : "integer",
 					"title" : "Port",
 					"default" : 8099,
-					"required" : true
+					"required" : true,
+					"propertyOrder" : 3
 				}
 			},
 			"additionalProperties" : false
