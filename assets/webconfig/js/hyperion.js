@@ -38,7 +38,7 @@ var cronId = 0;
 var ledStreamActive=false;
 var watchdog = 0;
 
-// 
+//
 function cron()
 {
 	if ( watchdog > 3)
@@ -67,7 +67,7 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
-					
+
 					$(hyperion).on("cmd-serverinfo", function(event) {
 						watchdog = 0;
 					});
@@ -183,7 +183,7 @@ function requestSetComponentState(comp, state){
 	console.log(comp+' state: '+state_str);
 }
 
-function requestSetSource( prio )
+function requestSetSource(prio)
 {
 	if ( prio == "auto" )
 		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "auto" : true}');
@@ -191,3 +191,9 @@ function requestSetSource( prio )
 		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
 }
 
+function requestWriteConfig(config, create, overwrite)
+{
+	var create = (typeof create !== 'undefined') ?  create : false;
+	var overwrite = (typeof overwrite !== 'undefined') ?  overwrite : false;
+	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(config)+',"create":'+create+', "overwrite":'+overwrite+'}');
+}

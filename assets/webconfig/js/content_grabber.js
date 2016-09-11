@@ -30,26 +30,34 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	
 	var grabber_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
+		iconlib: "fontawesome4",
 		disable_collapse: 'true',
 		form_name_root: 'sa',
 		disable_edit_json: 'true',
 		disable_properties: 'true',
 		no_additional_properties: 'true',
 		schema: {
-			title:' ',
+			title:'',
 			properties: {
 				schema_framegrabber,
 				schema_grabberv4l2,
 			}
 		}
 	});
+	
+	$('#editor_container .well').css("background-color","white");
+	$('#editor_container .well').css("border","none");
+	$('#editor_container .well').css("box-shadow","none");
+	$('#editor_container .btn').addClass("btn-primary");
+	$('#editor_container h3').first().remove();
+
 });
 
 
 $(document).ready( function() {
 	requestServerConfigSchema();
 
-	document.getElementById('submit').addEventListener('click',function() {
+	document.getElementById('btn_submit').addEventListener('click',function() {
 		// Get the value from the editor
 		//console.log(general_conf_editor.getValue());
 	});

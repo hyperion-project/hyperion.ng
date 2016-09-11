@@ -2,10 +2,7 @@ $(document).ready( function() {
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
-	bindNavToContent("#load_lighttest","lighttest",false);
-	bindNavToContent("#load_effects","effects",false);
-	bindNavToContent("#load_components","remote_components",false);
-	bindNavToContent("#load_input_selection","input_selection",false);
+	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
 	bindNavToContent("#load_confKodi","kodiconf",false);
@@ -17,10 +14,6 @@ $(document).ready( function() {
 
 	//Change all Checkboxes to Switches
 	$("[type='checkbox']").bootstrapSwitch();
-
-	$(hyperion).on("open",function(event){
-		requestServerInfo();
-	});
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
@@ -60,9 +53,20 @@ $(document).ready( function() {
 		});
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-config-getschema", function(event) {
+		parsedConfSchemaJSON = event.response.result;
+	});
+
+	
 	$(hyperion).on("error",function(event){
 		showErrorDialog("error", event.reason);
 	});
+
+	$(hyperion).on("open",function(event){
+		requestServerConfigSchema();
+		requestServerInfo();
+	});
+
 });
 
 $(function(){
