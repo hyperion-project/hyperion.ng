@@ -1,9 +1,5 @@
 $(document).ready( function() {
 
-	if($("#ip").val() != '' && $("#user").val() != '') {
-		get_hue_lights();
-	}
-
 	$("#create_user").on("click", function() {
     var connectionRetries = 15;
 		var data = {"devicetype":"hyperion#"+Date.now()};
@@ -32,6 +28,8 @@ $(document).ready( function() {
 					  if (typeof r[0].success != 'undefined') {
 							$('#pairmodal').modal('hide');
 							$('#user').val(r[0].success.username);
+
+							$( "#hue_lights" ).empty();
 							get_hue_lights();
 							clearInterval(UserInterval);
 					  }
@@ -51,19 +49,4 @@ function abortConnection(UserInterval){
 	$('#pairmodal').modal('hide');
 }
 
-	function get_hue_lights(){
-		$.ajax({
-			type: "GET",
-			url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
-			processData: false,
-			contentType: 'application/json',
-			success: function(r) {
-				for(var lightid in r){
-					//console.log(r[lightid].name);
-					$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
-				}
-			}
-		});
-	}
 });
-

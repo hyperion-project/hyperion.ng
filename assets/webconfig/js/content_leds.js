@@ -96,16 +96,16 @@ $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$("#leds_custom_check").off().on("click", function() {
 		e = isJsonString($("#ledconfig").val());
-		
+
 		if (e.length == 0)
 			showErrorDialog("Validation success", "Your config is valid!");
 		else
 			showErrorDialog("Validation failed!", e);
 	});
-	
+
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
-		
+
 	});
 
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
@@ -127,7 +127,7 @@ $(document).ready(function() {
 		$('#editor_container').off();
 		$('#editor_container').html("");
 		var element = document.getElementById('editor_container');
-	
+
 		var grabber_conf_editor = new JSONEditor(element,{
 			theme: 'bootstrap3',
 			iconlib: "fontawesome4",
@@ -154,7 +154,7 @@ $(document).ready(function() {
 				values_general[key] = parsedConfJSON.device[key];
 		};
 		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );
-	
+
 		if (isCurrentDevice)
 		{
 			for(var key in parsedConfJSON.device){
@@ -163,7 +163,7 @@ $(document).ready(function() {
 			};
 			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
-	
+
 		$('#editor_container .well').css("background-color","white");
 		$('#editor_container .well').css("border","none");
 		$('#editor_container .well').css("box-shadow","none");
@@ -173,13 +173,20 @@ $(document).ready(function() {
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();
+
+			$("#ip").attr('value', values_specific.output);
+			$("#user").attr('value', values_specific.username);
+
+			if($("#ip").val() != '' && $("#user").val() != '') {
+				get_hue_lights();
+			}
+
 		}
 		else
 		{
 			$("#huebridge").hide();
 		}
 	});
-	
+
 	requestServerConfig();
 });
-

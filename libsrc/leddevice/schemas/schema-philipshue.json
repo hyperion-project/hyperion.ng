@@ -26,6 +26,7 @@
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"title":"Switch off on black",
+			"format": "checkbox",
 			"default" : true
 		}
 	},
