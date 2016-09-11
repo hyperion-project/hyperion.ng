@@ -4,7 +4,7 @@
 sf_upload()
 {
 	/usr/bin/expect <<-EOD
-	spawn scp $1 $2 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/$3
+	spawn scp $1 $2 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/dev/$3
 	expect "*(yes/no)*"
 	send "yes\r"
 	expect "*password:*"
@@ -22,7 +22,7 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 		sf_upload $deploylist release
 	elif [[ $TRAVIS_EVENT_TYPE == 'cron' ]]; then
 		echo "cron upload"
-		sf_upload $deploylist nightly
+		sf_upload $deploylist alpha
 	else
 		echo "PR can't be uploaded for security reasons"
 	fi
