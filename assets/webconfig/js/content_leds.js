@@ -157,10 +157,15 @@ $(document).ready(function() {
 
 		if (isCurrentDevice)
 		{
-			for(var key in parsedConfJSON.device){
-				if (key in specificOptions.properties)
-					values_specific[key] = parsedConfJSON.device[key];
+// 			for(var key in parsedConfJSON.device){
+// 				if (key in specificOptions.properties)
+// 					values_specific[key] = parsedConfJSON.device[key];
+// 			};
+			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
+			for(var key in grabber_conf_editor.getEditor("root.specificOptions").getValue()){
+					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
 			};
+			console.log();
 			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 
