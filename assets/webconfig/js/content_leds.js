@@ -108,18 +108,16 @@ $(document).ready(function() {
 
 	});
 
+	// -------------------------------------------------------------
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
 			ledsCustomCfgInitialized = true;
-// 			$("#ledconfig").linedtextarea();
-// 			$(window).resize(function(){
-// 				$("#ledconfig").trigger("resize");
-// 			});
 		}
 	});
 
+	// ------------------------------------------------------------------
 	var grabber_conf_editor = null;
 	$("#leddevices").off().on("change", function(event) {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
@@ -158,10 +156,6 @@ $(document).ready(function() {
 
 		if (isCurrentDevice)
 		{
-// 			for(var key in parsedConfJSON.device){
-// 				if (key in specificOptions.properties)
-// 					values_specific[key] = parsedConfJSON.device[key];
-// 			};
 			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
 			for(var key in grabber_conf_editor.getEditor("root.specificOptions").getValue()){
 					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
@@ -194,6 +188,7 @@ $(document).ready(function() {
 		}
 	});
 
+	// ------------------------------------------------------------------
 	$("#btn_submit").off().on("click", function(event) {
 		if (grabber_conf_editor==null)
 			return;
@@ -214,7 +209,7 @@ $(document).ready(function() {
 		requestWriteConfig(result)
 	});
 
-
+	// ------------------------------------------------------------------
 	
 	requestServerConfig();
 });
