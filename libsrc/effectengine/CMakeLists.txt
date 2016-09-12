@@ -26,7 +26,16 @@ SET(EffectEngineSOURCES
 	${CURRENT_SOURCE_DIR}/Effect.cpp
 )
 
-set(EffectEngine_RESOURCES ${CURRENT_SOURCE_DIR}/EffectEngine.qrc)
+
+FILE ( GLOB effectFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/effects/* )
+SET ( HYPERION_EFFECTS_RES "")
+FOREACH( f ${effectFiles} )
+	GET_FILENAME_COMPONENT(fname ${f} NAME)
+	SET(HYPERION_EFFECTS_RES "${HYPERION_EFFECTS_RES}\n<file alias=\"${fname}\">${f}</file>")
+ENDFOREACH()
+CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/EffectEngine.qrc )
+
+SET(EffectEngine_RESOURCES ${CMAKE_BINARY_DIR}/EffectEngine.qrc)
 
 QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
 qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
