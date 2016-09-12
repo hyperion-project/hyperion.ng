@@ -155,8 +155,16 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 	}
 
 	// setup the definition
+	std::string scriptName = config["script"].asString();
 	effectDefinition.name = config["name"].asString();
-	effectDefinition.script = path.toStdString() + QDir::separator().toLatin1() + config["script"].asString();
+	if (scriptName.empty())
+		return false;
+
+	if (scriptName[0] == ':' )
+		effectDefinition.script = ":/effects/"+scriptName.substr(1);
+	else
+		effectDefinition.script = path.toStdString() + QDir::separator().toLatin1() + scriptName;
+		
 	effectDefinition.args = config["args"];
 
 	return true;
