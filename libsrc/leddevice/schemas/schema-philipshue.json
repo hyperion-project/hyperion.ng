@@ -12,13 +12,16 @@
 			"default": "newdeveloper"
 		},
 		"lightIds": {
-			"type": "integer",
-			"title":"Light ids"
+			"type": "array",
+			"title":"Light ids",
+			"items": {
+				"type" : "integer"
+			}
 		},
 		"transitiontime": {
 			"type": "integer",
 			"title":"Transistion time (x100ms)",
-			"default" : 1,
+			"default" : 1
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",

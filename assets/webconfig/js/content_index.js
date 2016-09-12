@@ -2,23 +2,18 @@ $(document).ready( function() {
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
-	bindNavToContent("#load_lighttest","lighttest",false);
-	bindNavToContent("#load_effects","effects",false);
-	bindNavToContent("#load_components","remote_components",false);
-	bindNavToContent("#load_input_selection","input_selection",false);
+	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
 	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_update","update",false);
 	bindNavToContent("#load_confGeneral","generalconf",false);
 	bindNavToContent("#load_confLeds","leds",false);
+	bindNavToContent("#load_confGrabber","grabber",false);
+
 
 	//Change all Checkboxes to Switches
 	$("[type='checkbox']").bootstrapSwitch();
-
-	$(hyperion).on("open",function(event){
-		requestServerInfo();
-	});
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
@@ -30,6 +25,14 @@ $(document).ready( function() {
 		// get host
 		var hostname = parsedServerInfoJSON.info.hostname;
 		$('#dash_systeminfo').html(hostname+':'+hyperionport);
+
+		var components = parsedServerInfoJSON.info.components;
+		components_html = "";
+		for ( idx=0; idx<components.length;idx++)
+		{
+			components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+		}
+		$("#tab_components").html(components_html);
 
 		$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 			parsedUpdateJSON = JSON.parse(data);
@@ -50,9 +53,20 @@ $(document).ready( function() {
 		});
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-config-getschema", function(event) {
+		parsedConfSchemaJSON = event.response.result;
+	});
+
+	
 	$(hyperion).on("error",function(event){
 		showErrorDialog("error", event.reason);
 	});
+
+	$(hyperion).on("open",function(event){
+		requestServerConfigSchema();
+		requestServerInfo();
+	});
+
 });
 
 $(function(){

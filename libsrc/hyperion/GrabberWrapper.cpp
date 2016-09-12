@@ -17,6 +17,7 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 	_timer.setSingleShot(false);
 
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 
@@ -45,27 +46,36 @@ void GrabberWrapper::stop()
 
 void GrabberWrapper::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == _grabberComponentId && _timer.isActive() != enable)
+	if (component == _grabberComponentId)
 	{
-		if (enable) start();
-		else        stop();
-
-		_forward = _hyperion->getForwarder()->protoForwardingEnabled();
-
-		if ( enable == _timer.isActive() )
+		if (_timer.isActive() != enable)
 		{
-			Info(_log, "grabber change state to %s", (_timer.isActive() ? "enabled" : "disabled") );
+			if (enable) start();
+			else        stop();
+
+			_forward = _hyperion->getForwarder()->protoForwardingEnabled();
+
+
+			if ( enable == _timer.isActive() )
+			{
+				Info(_log, "grabber change state to %s", (_timer.isActive() ? "enabled" : "disabled") );
+			}
+			else
+			{
+				WarningIf( enable, _log, "enable grabber failed");
+			}
 		}
-		else
-		{
-			WarningIf( enable, _log, "enable grabber failed");
-		}
+		_hyperion->getComponentRegister().componentStateChanged(component, _timer.isActive());
 	}
 
-	if (component == hyperion::COMP_BLACKBORDER && _processor->blackBorderDetectorEnabled() != enable)
+	if (component == hyperion::COMP_BLACKBORDER)
 	{
-		_processor->enableBlackBorderDetector(enable);
-		Info(_log, "bb detector change state to %s", (_processor->blackBorderDetectorEnabled() ? "enabled" : "disabled") );
+		if (_processor->blackBorderDetectorEnabled() != enable)
+		{
+			_processor->enableBlackBorderDetector(enable);
+			Info(_log, "bb detector change state to %s", (_processor->blackBorderDetectorEnabled() ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, _processor->blackBorderDetectorEnabled());
 	}
 }
 
