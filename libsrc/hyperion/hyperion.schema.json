@@ -1036,6 +1036,10 @@
 				"paths" :
 				{
 					"type" : "array"
+				},
+				"disable" :
+				{
+					"type" : "array"
 				}
 			},
 			"additionalProperties" : false

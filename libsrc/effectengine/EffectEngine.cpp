@@ -34,12 +34,20 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	const Json::Value & paths = jsonEffectConfig["paths"];
+	const Json::Value & paths       = jsonEffectConfig["paths"];
+	const Json::Value & disabledEfx = jsonEffectConfig["disable"];
+
 	QStringList efxPathList;
 	efxPathList << ":/effects/";
 	for (Json::UInt i = 0; i < paths.size(); ++i)
 	{
 		efxPathList << QString::fromStdString(paths[i].asString());
+	}
+
+	QStringList disableList;
+	for (Json::UInt i = 0; i < disabledEfx.size(); ++i)
+	{
+		disableList << QString::fromStdString(disabledEfx[i].asString());
 	}
 	
 	std::map<std::string, EffectDefinition> availableEffects;
@@ -59,8 +67,16 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 					{
 						Info(_log, "effect overload effect '%s' is now taken from %s'", def.name.c_str(), path.toUtf8().constData() );
 					}
-					availableEffects[def.name] = def;
-					efxCount++;
+
+					if ( disableList.contains(QString::fromStdString(def.name)) )
+					{
+						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", def.name.c_str());
+					}
+					else
+					{
+						availableEffects[def.name] = def;
+						efxCount++;
+					}
 				}
 			}
 			Info(_log, "%d effects loaded from directory %s", efxCount, path.toUtf8().constData());
