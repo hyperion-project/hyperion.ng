@@ -189,7 +189,7 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$("#btn_submit").off().on("click", function(event) {
+	$("#btn_submit_controller").off().on("click", function(event) {
 		if (grabber_conf_editor==null)
 			return;
 

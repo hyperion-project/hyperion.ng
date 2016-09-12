@@ -45,7 +45,7 @@
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
 			<div class="panel panel-primary">
 					<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
-						<button id='btn_submit' class="btn btn-success"	style="float:right">Save Settings</button>
+						<button id='btn_submit_controller' class="btn btn-success"	style="float:right">Save Settings</button>
 						<label for="leddevices">Controller Type</label>
 						<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 					</div>
@@ -55,19 +55,19 @@
 					</div>
 
 
-		<div id="huebridge" class="container-fluid" style="display:none">
-		<hr/>
-		<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content">Hue Bridge Setup Helper</button>
+		<div id="huebridge" class="container-fluid panel panel-default" style="display:none;padding:10px;margin-left:20px;margin-top:0;margin-right:20px">
+		<div class="container-fluid">
+			<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content">Hue Bridge Setup Helper</button>
 
 
-		<div id="huebridge_content"  class="collapse">
-<!-- 			<div class="col-lg-12"> -->
-<!-- 				<h1 class="page-header" lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</h1> -->
-			With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.<br />
-			If you already have a working User you will see it below. But you can always create a new one as well. <br />
-			<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above. <br/ >
-			<div class="col-lg-12" >
-
+		<div id="huebridge_content"  class="collapse" style="padding-top:10px">
+			<div class="introd">
+				With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.
+				If you already have a working User you will see it below. But you can always create a new one as well.
+				<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above.
+			</div>
+			
+			<div class="col-lg-12" style="padding-top:10px">
 					<span id="ip_alert" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_ip_token">Please check your IP Address.</span>
 					<span id="abortConnection" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_connection_token">Connection Timeout. Please press the button in time.</span><br />
 					<div class="form-group">
