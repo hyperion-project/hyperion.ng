@@ -138,13 +138,7 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 		return false;
 	}
 	file.close();
-	
-// 	QFile f(":/effects/sparks.json");
-// 	f.open(QIODevice::ReadOnly);
-// 	std::cout << f.readAll().toStdString();
-// 	QResource ee(":/effects/sparks.json");
-// 	std::cout << ee.data();
-	
+
 	// Read the json schema file
 	QResource schemaData(":effect-schema");
 	JsonSchemaChecker schemaChecker;

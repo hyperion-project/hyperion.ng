@@ -1,8 +1,8 @@
 <RCC>
-    <qresource prefix="/">
-        <file alias="effect-schema">${CURRENT_SOURCE_DIR}/EffectDefinition.schema.json</file>
-    </qresource>
-    <qresource prefix="/effects/">
-    ${HYPERION_EFFECTS_RES}
-    </qresource>
+	<qresource prefix="/">
+		<file alias="effect-schema">${CURRENT_SOURCE_DIR}/EffectDefinition.schema.json</file>
+	</qresource>
+	<qresource prefix="/effects/">
+		${HYPERION_EFFECTS_RES}
+	</qresource>
 </RCC>
