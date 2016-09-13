@@ -571,6 +571,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 		{
 			Json::Value activeEffect;
 			activeEffect["script"] = activeEffectDefinition.script;
+			activeEffect["name"] = activeEffectDefinition.name;
 			activeEffect["priority"] = activeEffectDefinition.priority;
 			activeEffect["timeout"] = activeEffectDefinition.timeout;
 			activeEffect["args"] = activeEffectDefinition.args;

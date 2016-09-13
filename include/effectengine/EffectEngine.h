@@ -51,7 +51,7 @@ private slots:
 
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const std::string &script, const Json::Value & args, int priority, int timeout = -1);
+	int runEffectScript(const std::string &script, const std::string &name, const Json::Value & args, int priority, int timeout = -1);
 
 private:
 	Hyperion * _hyperion;

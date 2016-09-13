@@ -121,7 +121,8 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	for (Effect * effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
-		activeEffectDefinition.script = effect->getScript();
+		activeEffectDefinition.script = effect->getScript().toStdString();
+		activeEffectDefinition.name = effect->getName().toStdString();
 		activeEffectDefinition.priority = effect->getPriority();
 		activeEffectDefinition.timeout = effect->getTimeout();
 		activeEffectDefinition.args = effect->getArgs();
@@ -211,22 +212,22 @@ int EffectEngine::runEffect(const std::string &effectName, const Json::Value &ar
 		return -1;
 	}
 
-	return runEffectScript(effectDefinition->script, args.isNull() ? effectDefinition->args : args, priority, timeout);
+	return runEffectScript(effectDefinition->script, effectName, args.isNull() ? effectDefinition->args : args, priority, timeout);
 }
 
-int EffectEngine::runEffectScript(const std::string &script, const Json::Value &args, int priority, int timeout)
+int EffectEngine::runEffectScript(const std::string &script, const std::string &name, const Json::Value &args, int priority, int timeout)
 {
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, QString::fromStdString(script), args);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, QString::fromStdString(script), QString::fromStdString(name), args);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority("EFFECT: "+FileUtils::getBaseName(script), priority);
+	_hyperion->registerPriority("EFFECT: "+name, priority);
 	effect->start();
 
 	return 0;
@@ -271,5 +272,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority("EFFECT: " + FileUtils::getBaseName(effect->getScript()));
+	_hyperion->unRegisterPriority("EFFECT: " + effect->getName().toStdString());
 }

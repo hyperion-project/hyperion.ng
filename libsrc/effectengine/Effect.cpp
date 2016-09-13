@@ -51,12 +51,13 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const Json::Value & args)
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const Json::Value & args)
 	: QThread()
 	, _mainThreadState(mainThreadState)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _script(script)
+	, _name(name)
 	, _args(args)
 	, _endTime(-1)
 	, _interpreterThreadState(nullptr)
