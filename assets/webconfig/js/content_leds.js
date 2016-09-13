@@ -108,18 +108,17 @@ $(document).ready(function() {
 
 	});
 
+	// -------------------------------------------------------------
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
 			ledsCustomCfgInitialized = true;
-// 			$("#ledconfig").linedtextarea();
-// 			$(window).resize(function(){
-// 				$("#ledconfig").trigger("resize");
-// 			});
 		}
 	});
 
+	// ------------------------------------------------------------------
+	var grabber_conf_editor = null;
 	$("#leddevices").off().on("change", function(event) {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
 		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
@@ -128,7 +127,7 @@ $(document).ready(function() {
 		$('#editor_container').html("");
 		var element = document.getElementById('editor_container');
 
-		var grabber_conf_editor = new JSONEditor(element,{
+		grabber_conf_editor = new JSONEditor(element,{
 			theme: 'bootstrap3',
 			iconlib: "fontawesome4",
 			disable_collapse: 'true',
@@ -157,10 +156,11 @@ $(document).ready(function() {
 
 		if (isCurrentDevice)
 		{
-			for(var key in parsedConfJSON.device){
-				if (key in specificOptions.properties)
-					values_specific[key] = parsedConfJSON.device[key];
+			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
+			for(var key in grabber_conf_editor.getEditor("root.specificOptions").getValue()){
+					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
 			};
+
 			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 
@@ -188,5 +188,30 @@ $(document).ready(function() {
 		}
 	});
 
+	// ------------------------------------------------------------------
+	$("#btn_submit_controller").off().on("click", function(event) {
+		if (grabber_conf_editor==null)
+			return;
+
+		ledDevice = $("#leddevices").val();
+		result = {device:{}};
+		
+		general = grabber_conf_editor.getEditor("root.generalOptions").getValue();
+		specific = grabber_conf_editor.getEditor("root.specificOptions").getValue();
+		for(var key in general){
+			result.device[key] = general[key];
+		}
+
+		for(var key in specific){
+			result.device[key] = specific[key];
+		}
+		result.device.type=ledDevice;
+		requestWriteConfig(result)
+	});
+
+	// ------------------------------------------------------------------
+	
 	requestServerConfig();
 });
+
+

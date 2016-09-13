@@ -5,6 +5,7 @@
 		"output" : {
 			"type": "string",
 			"title":"Target IP",
+			"default" : "127.0.0.1",
 			"propertyOrder" : 1
 		},
 		"port" : {
@@ -52,6 +53,7 @@
 		"whitepoint" : {
 			"type" : "array",
 			"propertyOrder" : 9,
+			"default" : [1.0,1.0,1.0],
 			"items" : {
 				"type" : "number",
 				"minimum" : 0.0,

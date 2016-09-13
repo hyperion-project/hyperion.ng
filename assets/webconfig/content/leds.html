@@ -44,48 +44,39 @@
 
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
 			<div class="panel panel-primary">
-					<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
-						<button id='btn_submit' class="btn btn-success"	style="float:right">Save Settings</button>
-						<label for="leddevices">Controller Type</label>
-						<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
-					</div>
-					<div class="panel-body">
-					<div id="ledDeviceOptions">
-						<div id='editor_container'></div>
-					</div>
+				<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
+					<button id='btn_submit_controller' class="btn btn-success"	style="float:right">Save Settings</button>
+					<label for="leddevices">Controller Type</label>
+					<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
+				</div>
 
+				<div class="panel-body">
+					<div id="ledDeviceOptions"> <div id='editor_container'></div> </div>
 
-		<div id="huebridge" class="container-fluid" style="display:none">
-		<hr/>
-		<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content">Hue Bridge Setup Helper</button>
-
-
-		<div id="huebridge_content"  class="collapse">
-<!-- 			<div class="col-lg-12"> -->
-<!-- 				<h1 class="page-header" lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</h1> -->
-			With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.<br />
-			If you already have a working User you will see it below. But you can always create a new one as well. <br />
-			<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above. <br/ >
-			<div class="col-lg-12" >
-
-					<span id="ip_alert" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_ip_token">Please check your IP Address.</span>
-					<span id="abortConnection" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_connection_token">Connection Timeout. Please press the button in time.</span><br />
-					<div class="form-group">
-						<label for="ip">Hue Bridge IP:</label>
-						<input type="text" class="form-control" id="ip">
-						<label for="user" lang="en" data-lang-token="hue_label_username">Hue Bridge  Username:</label>
-						<input type="text" class="form-control" id="user" disabled>
-						<br />
-						<div id="hue_lights" class="row" />
-						<button type="button" class="btn btn-success" id="create_user"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_create_user_token"> Create User</span></button>
+					<div id="huebridge" class="container-fluid" style="display:none">
+						<hr/>
+						<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content">Hue Bridge Setup Helper</button>
+						<div id="huebridge_content"  class="collapse">
+							<div class="introd" style="margin-top:20px;margin-bottom:20px">
+								With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.
+								If you already have a working User you will see it below. But you can always create a new one as well.
+								<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above.
+							</div>
+							<div class="col-lg-12">
+								<span id="ip_alert" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_ip_token">Please check your IP Address.</span>
+								<span id="abortConnection" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_connection_token">Connection Timeout. Please press the button in time.</span><br />
+								<div class="form-group">
+									<label for="ip">Hue Bridge IP:</label>
+									<input type="text" class="form-control" id="ip">
+									<label for="user" lang="en" data-lang-token="hue_label_username">Hue Bridge  Username:</label>
+									<input type="text" class="form-control" id="user" disabled>
+									<div id="hue_lights" class="row"></div>
+									<button type="button" class="btn btn-success" id="create_user"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_create_user_token"> Create User</span></button>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
-
-		</div>
-
-
-					</div>
 			</div>
 		</div>
 
