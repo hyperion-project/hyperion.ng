@@ -110,16 +110,21 @@ void Effect::run()
 
 	// Run the effect script
 	QFile file (_script);
-
+	QByteArray python_code;
 	if (file.open(QIODevice::ReadOnly))
 	{
-		PyRun_SimpleString(file.readAll().constData());
+		python_code = file.readAll();
 	}
 	else
 	{
 		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s", _script.toUtf8().constData());
 	}
 	file.close();
+
+	if (!python_code.isEmpty())
+	{
+		PyRun_SimpleString(python_code.constData());
+	}
 
 	// Clean up the thread state
 	Py_EndInterpreter(_interpreterThreadState);
