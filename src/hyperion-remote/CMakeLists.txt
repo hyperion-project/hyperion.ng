@@ -26,7 +26,8 @@ add_executable(${PROJECT_NAME}
 	${hyperion-remote_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
-    commandline
+	effectengine
+	commandline
 	jsoncpp
 	${QT_LIBRARIES})
 
