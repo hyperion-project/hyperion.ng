@@ -1,4 +1,5 @@
 $(document).ready( function() {
+	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
@@ -51,6 +52,8 @@ $(document).ready( function() {
 				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
 			}
 		});
+		//$("body").off();
+		$("#loading_overlay").removeClass("overlay");
 	}); // end cmd-serverinfo
 
 	$(hyperion).one("cmd-config-getschema", function(event) {

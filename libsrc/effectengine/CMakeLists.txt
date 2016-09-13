@@ -31,7 +31,7 @@ FILE ( GLOB effectFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/effect
 SET ( HYPERION_EFFECTS_RES "")
 FOREACH( f ${effectFiles} )
 	GET_FILENAME_COMPONENT(fname ${f} NAME)
-	SET(HYPERION_EFFECTS_RES "${HYPERION_EFFECTS_RES}\n<file alias=\"${fname}\">${f}</file>")
+	SET(HYPERION_EFFECTS_RES "${HYPERION_EFFECTS_RES}\n\t\t<file alias=\"/effects/${fname}\">${f}</file>")
 ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/EffectEngine.qrc )
 

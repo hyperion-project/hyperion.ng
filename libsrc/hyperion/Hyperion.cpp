@@ -502,7 +502,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 	Logger * log = Logger::getInstance("Core");
 	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-	LinearColorSmoothing * device;
+	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	
 	if (type == "linear")
@@ -524,6 +524,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 	device->setEnable(smoothingConfig.get("enable", true).asBool());
 	InfoIf(!device->enabled(), log,"Smoothing disabled");
 
+	assert(device == nullptr);
 	return device;
 }
 
