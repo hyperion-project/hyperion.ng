@@ -15,6 +15,7 @@
 		"invert": {
 			"type": "boolean",
 			"title":"Invert signal",
+			"format": "checkbox",
 			"default": false
 		}
 	},

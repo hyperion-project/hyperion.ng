@@ -17,30 +17,35 @@
 		"setFcConfig": {
 			"type": "boolean",
 			"title":"Set fadecandy Configuration",
+			"format": "checkbox",
 			"default": false,
 			"propertyOrder" : 3
 		},
 		"manualLed": {
 			"type": "boolean",
 			"title":"Manual control of fadecandy LED",
+			"format": "checkbox",
 			"default": false,
 			"propertyOrder" : 4
 		},
 		"ledOn": {
 			"type": "boolean",
 			"title":"Fadecandy LED set to on",
+			"format": "checkbox",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"interpolation": {
 			"type": "boolean",
 			"title":"Interpolation",
+			"format": "checkbox",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"dither": {
 			"type": "boolean",
 			"title":"Dithering",
+			"format": "checkbox",
 			"default": false,
 			"propertyOrder" : 7
 		},
@@ -62,6 +67,6 @@
 			}
 		}
 	},
-	"additionalProperties": true
+	"additionalProperties": false
 }
 

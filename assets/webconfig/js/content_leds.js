@@ -169,7 +169,7 @@ $(document).ready(function() {
 		$('#editor_container .well').css("box-shadow","none");
 		$('#editor_container .btn').addClass("btn-primary");
 		$('#editor_container h3').first().remove();
-		
+
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();

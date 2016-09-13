@@ -27,6 +27,7 @@
 		"useOrbSmoothing": {
 			"type": "boolean",
 			"title":"Use orb smoothing",
+			"format": "checkbox",
 			"default": true
 		}
 	},
