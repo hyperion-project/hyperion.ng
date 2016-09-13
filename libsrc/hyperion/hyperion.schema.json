@@ -1000,7 +1000,6 @@
 		{
 			"type" : "object",
 			"title" : "WebUI - DANGER CHANGES CAN MAKE THE WEBUI UNREACHABLE!",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
@@ -1009,21 +1008,18 @@
 					"format": "checkbox",
 					"title" : "Activate",
 					"default" : true,
-					"required" : true,
 					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
 					"type" : "string",
-					"title" : "Document Root",
-					"required" : true
+					"title" : "Document Root"
 				},
 				"port" :
 				{
 					"type" : "integer",
 					"title" : "Port",
-					"default" : 8099,
-					"required" : true
+					"default" : 8099
 				}
 			},
 			"additionalProperties" : false
