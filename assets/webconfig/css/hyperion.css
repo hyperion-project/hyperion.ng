@@ -14,7 +14,7 @@ table.borderless td,table.borderless th{border: none !important;}
 
 /*Header*/
 .navbar-brand{padding: 5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:91px;}
+.sidebar{margin-top:61px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
 

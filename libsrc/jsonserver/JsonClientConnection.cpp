@@ -669,9 +669,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	ver["version"] = HYPERION_VERSION;
 	ver["build"]   = HYPERION_BUILD_ID;
 	ver["time"]    = __DATE__ " " __TIME__;
+	ver["config_modified"] = _hyperion->configModified();
 
 	info["hyperion"].append(ver);
-
 	// send the result
 	sendMessage(result);
 }

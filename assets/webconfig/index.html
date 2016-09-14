@@ -80,7 +80,6 @@
 
 <body>
 	<div id="loading_overlay"></div>
-
 	<div id="wrapper">
 
 		<!-- Navigation -->
@@ -225,7 +224,16 @@
 		</nav>
 
 		<!-- Page Content -->
-		<div id="page-wrapper" />
+		<div id="page-wrapper" style="padding-top:10px">
+			<div id="hyperion_restart_notify" class="alert alert-warning" style="display:none;padding:10px;margin:0">
+			<div class="panel-danger" style="text-align:right">
+				<div style="float:left">Hyperion Configuration is modified. To make it active, restart Hyperion.</div>
+				<button id="btn_hyperion_restart" class="btn btn-danger">Restart Hyperion</button>
+			</div>
+		</div>
+
+		<div id="page-content" />
+		</div>
 
 	</div>
 	<!-- /#wrapper -->
