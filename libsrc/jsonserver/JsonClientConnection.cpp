@@ -882,6 +882,15 @@ void JsonClientConnection::handleConfigCommand(const Json::Value & message, cons
 	else if (subcommand == "setconfig")
 	{
 		handleConfigSetCommand(message, full_command, tan);
+		for( QString &x: QCoreApplication::arguments())
+		{
+			std::cout << x.toUtf8() << std::endl;
+		}
+	} 
+	else if (subcommand == "reload")
+	{
+		//handleConfigSetCommand(message, full_command, tan);
+		QCoreApplication::arguments()
 	} 
 	else
 	{
