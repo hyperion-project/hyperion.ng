@@ -20,6 +20,12 @@ $(document).ready( function() {
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
+
+		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
+			$("#hyperion_restart_notify").fadeIn("fast");
+		else
+			$("#hyperion_restart_notify").fadeOut("fast");
+
 		// get active led device
 		var leddevice = parsedServerInfoJSON.info.ledDevices.active;
 		$('#dash_leddevice').html(leddevice);

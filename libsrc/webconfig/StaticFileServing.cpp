@@ -7,14 +7,17 @@
 #include <QPair>
 #include <QFile>
 #include <QFileInfo>
+#include <QResource>
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
-		:  QObject   (parent)
-		, _hyperion(hyperion)
-		, _baseUrl (baseUrl)
-		, _cgi(hyperion, baseUrl, this)
-		, _log(Logger::getInstance("WEBSERVER"))
+	:  QObject   (parent)
+	, _hyperion(hyperion)
+	, _baseUrl (baseUrl)
+	, _cgi(hyperion, baseUrl, this)
+	, _log(Logger::getInstance("WEBSERVER"))
 {
+	Q_INIT_RESOURCE(WebConfig);
+
 	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
@@ -26,6 +29,7 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 	connect (_server, &QtHttpServer::requestNeedsReply, this, &StaticFileServing::onRequestNeedsReply);
 
 	_server->start (port);
+
 }
 
 StaticFileServing::~StaticFileServing ()
@@ -75,6 +79,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			return;
 		}
+		Q_INIT_RESOURCE(WebConfig);
 
 		QFileInfo info(_baseUrl % "/" % path);
 		if ( path == "/" || path.isEmpty() || ! info.exists() )

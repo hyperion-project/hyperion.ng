@@ -1,13 +1,13 @@
 
 function bindNavToContent(containerId, fileName, loadNow)
 {
-	$("#page-wrapper").off();
+	$("#page-content").off();
 	$(containerId).on("click", function() {
-		$("#page-wrapper").load("/content/"+fileName+".html");
+		$("#page-content").load("/content/"+fileName+".html");
 	});
 	if (loadNow)
 	{
-		$("#page-wrapper").load("/content/"+fileName+".html");
+		$("#page-content").load("/content/"+fileName+".html");
 	}
 }
 

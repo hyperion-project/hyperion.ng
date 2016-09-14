@@ -149,7 +149,7 @@ $(document).ready(function() {
 		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
 
 		for(var key in parsedConfJSON.device){
-			if (key in generalOptions.properties)
+			if (key != "type" && key in generalOptions.properties)
 				values_general[key] = parsedConfJSON.device[key];
 		};
 		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );

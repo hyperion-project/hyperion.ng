@@ -38,7 +38,7 @@ CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/Eff
 SET(EffectEngine_RESOURCES ${CMAKE_BINARY_DIR}/EffectEngine.qrc)
 
 QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
-qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} OPTIONS "-no-compress")
+qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} ) # OPTIONS "-no-compress"
 
 add_library(effectengine
 	${EffectEngineHEADERS}
