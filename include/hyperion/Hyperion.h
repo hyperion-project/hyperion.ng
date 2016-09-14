@@ -163,6 +163,8 @@ public:
 
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
+	bool configModified();
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -386,5 +388,6 @@ private:
 	
 	/// holds the current priority channel that is manualy selected
 	int _currentSourcePriority;
-	
+
+	QByteArray _configHash;
 };

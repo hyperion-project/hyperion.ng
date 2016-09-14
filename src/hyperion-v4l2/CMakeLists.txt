@@ -32,8 +32,9 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+	effectengine
 	v4l2-grabber
-    commandline
+	commandline
 	blackborder
 	hyperion-utils
 	protoserver

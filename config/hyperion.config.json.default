@@ -195,16 +195,12 @@
 	"webConfig" :
 	{
 		"enable"        : true,
-		"document_root" : "/usr/share/hyperion/webconfig",
-		"port"          : 8099
 	},
 
 	"effects" :
 	{
 		"paths" :
 		[
-			"/storage/hyperion/effects",
-			"/usr/share/hyperion/effects"
 		]
 	},
 

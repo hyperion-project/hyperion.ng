@@ -9,6 +9,7 @@
 struct ActiveEffectDefinition
 {
 	std::string script;
+	std::string name;
 	int priority;
 	int timeout;
 	Json::Value args;

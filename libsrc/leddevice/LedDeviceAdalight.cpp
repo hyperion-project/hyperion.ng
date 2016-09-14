@@ -41,6 +41,15 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 		_ledBuffer[3] = ((ledValues.size() - 1) >> 8) & 0xFF; // LED count high byte
 		_ledBuffer[4] = (ledValues.size() - 1) & 0xFF;        // LED count low byte
 		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
+                Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x",
+			ledValues.size(),
+			_ledBuffer[0],
+			_ledBuffer[1],
+			_ledBuffer[2],
+			_ledBuffer[3],
+			_ledBuffer[4],
+			_ledBuffer[5]
+		);
 	}
 
 	// restart the timer

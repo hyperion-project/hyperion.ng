@@ -96,30 +96,29 @@ $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$("#leds_custom_check").off().on("click", function() {
 		e = isJsonString($("#ledconfig").val());
-		
+
 		if (e.length == 0)
 			showErrorDialog("Validation success", "Your config is valid!");
 		else
 			showErrorDialog("Validation failed!", e);
 	});
-	
+
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
-		
+
 	});
 
+	// -------------------------------------------------------------
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
 			ledsCustomCfgInitialized = true;
-// 			$("#ledconfig").linedtextarea();
-// 			$(window).resize(function(){
-// 				$("#ledconfig").trigger("resize");
-// 			});
 		}
 	});
 
+	// ------------------------------------------------------------------
+	var grabber_conf_editor = null;
 	$("#leddevices").off().on("change", function(event) {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
 		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
@@ -127,9 +126,10 @@ $(document).ready(function() {
 		$('#editor_container').off();
 		$('#editor_container').html("");
 		var element = document.getElementById('editor_container');
-	
-		var grabber_conf_editor = new JSONEditor(element,{
+
+		grabber_conf_editor = new JSONEditor(element,{
 			theme: 'bootstrap3',
+			iconlib: "fontawesome4",
 			disable_collapse: 'true',
 			form_name_root: 'sa',
 			disable_edit_json: 'true',
@@ -149,30 +149,69 @@ $(document).ready(function() {
 		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
 
 		for(var key in parsedConfJSON.device){
-			if (key in generalOptions.properties)
+			if (key != "type" && key in generalOptions.properties)
 				values_general[key] = parsedConfJSON.device[key];
 		};
 		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );
-	
+
 		if (isCurrentDevice)
 		{
-			for(var key in parsedConfJSON.device){
-				if (key in specificOptions.properties)
-					values_specific[key] = parsedConfJSON.device[key];
+			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
+			for(var key in grabber_conf_editor.getEditor("root.specificOptions").getValue()){
+					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
 			};
+
 			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
+
+		$('#editor_container .well').css("background-color","white");
+		$('#editor_container .well').css("border","none");
+		$('#editor_container .well').css("box-shadow","none");
+		$('#editor_container .btn').addClass("btn-primary");
+		$('#editor_container h3').first().remove();
 		
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();
+
+			$("#ip").attr('value', values_specific.output);
+			$("#user").attr('value', values_specific.username);
+
+			if($("#ip").val() != '' && $("#user").val() != '') {
+				get_hue_lights();
+			}
+
 		}
 		else
 		{
 			$("#huebridge").hide();
 		}
 	});
+
+	// ------------------------------------------------------------------
+	$("#btn_submit_controller").off().on("click", function(event) {
+		if (grabber_conf_editor==null)
+			return;
+
+		ledDevice = $("#leddevices").val();
+		result = {device:{}};
+		
+		general = grabber_conf_editor.getEditor("root.generalOptions").getValue();
+		specific = grabber_conf_editor.getEditor("root.specificOptions").getValue();
+		for(var key in general){
+			result.device[key] = general[key];
+		}
+
+		for(var key in specific){
+			result.device[key] = specific[key];
+		}
+		result.device.type=ledDevice;
+		requestWriteConfig(result)
+	});
+
+	// ------------------------------------------------------------------
 	
 	requestServerConfig();
 });
+
 

@@ -14,7 +14,7 @@ table.borderless td,table.borderless th{border: none !important;}
 
 /*Header*/
 .navbar-brand{padding: 5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:91px;}
+.sidebar{margin-top:61px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
 
@@ -48,3 +48,16 @@ table.borderless td,table.borderless th{border: none !important;}
 /*Config introduction*/
 .introd{padding-left:14px;border-left:5px solid #0088cc;}
 .introd h4{line-height:25px;}
+
+.overlay {
+	background-image: url('/img/hyperion/hyperionlogo.png');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: rgba(1, 1, 1, 0.7);
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index:99999;
+}

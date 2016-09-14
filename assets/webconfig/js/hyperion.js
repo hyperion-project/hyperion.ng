@@ -41,7 +41,7 @@ var watchdog = 0;
 //
 function cron()
 {
-	if ( watchdog > 3)
+	if ( watchdog > 2)
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -196,4 +196,19 @@ function requestWriteConfig(config, create, overwrite)
 	var create = (typeof create !== 'undefined') ?  create : false;
 	var overwrite = (typeof overwrite !== 'undefined') ?  overwrite : false;
 	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(config)+',"create":'+create+', "overwrite":'+overwrite+'}');
+}
+
+function get_hue_lights(){
+	$.ajax({
+		type: "GET",
+		url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
+		processData: false,
+		contentType: 'application/json',
+		success: function(r) {
+			for(var lightid in r){
+				//console.log(r[lightid].name);
+				$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
+			}
+		}
+	});
 }

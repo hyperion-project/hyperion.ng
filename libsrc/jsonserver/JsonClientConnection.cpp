@@ -571,6 +571,7 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 		{
 			Json::Value activeEffect;
 			activeEffect["script"] = activeEffectDefinition.script;
+			activeEffect["name"] = activeEffectDefinition.name;
 			activeEffect["priority"] = activeEffectDefinition.priority;
 			activeEffect["timeout"] = activeEffectDefinition.timeout;
 			activeEffect["args"] = activeEffectDefinition.args;
@@ -668,9 +669,9 @@ void JsonClientConnection::handleServerInfoCommand(const Json::Value &, const st
 	ver["version"] = HYPERION_VERSION;
 	ver["build"]   = HYPERION_BUILD_ID;
 	ver["time"]    = __DATE__ " " __TIME__;
+	ver["config_modified"] = _hyperion->configModified();
 
 	info["hyperion"].append(ver);
-
 	// send the result
 	sendMessage(result);
 }

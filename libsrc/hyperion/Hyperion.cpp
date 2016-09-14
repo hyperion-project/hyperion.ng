@@ -10,6 +10,8 @@
 #include <QRegExp>
 #include <QString>
 #include <QStringList>
+#include <QCryptographicHash>
+#include <QFile>
 
 // JsonSchema include
 #include <utils/jsonschema/JsonFactory.h>
@@ -502,7 +504,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 	Logger * log = Logger::getInstance("Core");
 	std::string type = smoothingConfig.get("type", "linear").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-	LinearColorSmoothing * device;
+	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	
 	if (type == "linear")
@@ -524,6 +526,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 	device->setEnable(smoothingConfig.get("enable", true).asBool());
 	InfoIf(!device->enabled(), log,"Smoothing disabled");
 
+	assert(device == nullptr);
 	return device;
 }
 
@@ -574,6 +577,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _log(Logger::getInstance("Core"))
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
+	, _configHash()
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 	
@@ -622,6 +626,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
+	// initialize hash of current config
+	configModified();
+
 	// initialize the leds
 	update();
 }
@@ -645,6 +652,29 @@ Hyperion::~Hyperion()
 unsigned Hyperion::getLedCount() const
 {
 	return _ledString.leds().size();
+}
+
+
+bool Hyperion::configModified()
+{
+	QFile f(_configFile.c_str());
+	if (f.open(QFile::ReadOnly))
+	{
+		QCryptographicHash hash(QCryptographicHash::Sha1);
+			if (hash.addData(&f))
+			{
+				if (_configHash.size() == 0)
+				{
+					_configHash = hash.result();
+					qDebug(_configHash.toHex());
+					return false;
+				}
+				return _configHash != hash.result();
+			}
+	}
+	f.close();
+
+	return false;
 }
 
 void Hyperion::registerPriority(const std::string name, const int priority)
