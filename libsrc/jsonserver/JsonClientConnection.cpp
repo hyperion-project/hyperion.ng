@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <iomanip>
+#include <unistd.h>
 
 // stl includes
 #include <iostream>
@@ -15,6 +16,7 @@
 #include <QHostInfo>
 #include <QString>
 #include <QFile>
+#include <QCoreApplication>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -882,15 +884,23 @@ void JsonClientConnection::handleConfigCommand(const Json::Value & message, cons
 	else if (subcommand == "setconfig")
 	{
 		handleConfigSetCommand(message, full_command, tan);
-		for( QString &x: QCoreApplication::arguments())
-		{
-			std::cout << x.toUtf8() << std::endl;
-		}
 	} 
 	else if (subcommand == "reload")
 	{
-		//handleConfigSetCommand(message, full_command, tan);
-		QCoreApplication::arguments()
+		// restart hyperion, this code must be put in some own class ... 
+		QStringList qargs = QCoreApplication::arguments();
+		int size = qargs.size();
+		char *args[size+1];
+		args[size] = '\0';
+		for(int i=0; i<size; i++)
+		{
+			int str_size = qargs[i].toLocal8Bit().size();
+			args[i] = new char[str_size+1];
+			strncpy(args[i], qargs[i].toLocal8Bit().constData(),str_size );
+			args[i][str_size] = '\0';
+		}
+
+		execv(args[0],args);
 	} 
 	else
 	{
