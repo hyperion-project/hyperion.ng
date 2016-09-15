@@ -29,6 +29,7 @@
 #include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/JsonFactory.h>
+#include <utils/Process.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -888,19 +889,8 @@ void JsonClientConnection::handleConfigCommand(const Json::Value & message, cons
 	else if (subcommand == "reload")
 	{
 		// restart hyperion, this code must be put in some own class ... 
-		QStringList qargs = QCoreApplication::arguments();
-		int size = qargs.size();
-		char *args[size+1];
-		args[size] = '\0';
-		for(int i=0; i<size; i++)
-		{
-			int str_size = qargs[i].toLocal8Bit().size();
-			args[i] = new char[str_size+1];
-			strncpy(args[i], qargs[i].toLocal8Bit().constData(),str_size );
-			args[i][str_size] = '\0';
-		}
-
-		execv(args[0],args);
+		Process::restartHyperion();
+		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 
 	else
 	{

@@ -1057,7 +1057,15 @@
 			{
 				"paths" :
 				{
-					"type" : "array"
+					"type" : "array",
+					"title" : "List of folders to additional effects",
+					"propertyOrder" : 1
+				},
+				"disable" :
+				{
+					"type" : "array",
+					"title" : "List of disabled effects",
+					"propertyOrder" : 2
 				}
 			},
 			"additionalProperties" : false

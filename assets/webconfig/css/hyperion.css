@@ -61,3 +61,7 @@ table.borderless td,table.borderless th{border: none !important;}
 	top: 0;
 	z-index:99999;
 }
+
+#page-content {
+	padding-bottom:50px;
+}

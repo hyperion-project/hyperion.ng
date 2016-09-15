@@ -6,6 +6,7 @@
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
 #include <utils/FileUtils.h>
+#include <utils/Process.h>
 
 CgiHandler::CgiHandler (Hyperion * hyperion, QString baseUrl, QObject * parent)
 	: QObject(parent)
@@ -96,7 +97,7 @@ void CgiHandler::cmd_runscript(const QStringList & args, QtHttpReply * reply)
 			
  		if (QFile::exists(scriptFilePath) && !interpreter.isEmpty())
 		{
-			QByteArray data = FileUtils::command_exec(QString(interpreter + " " + scriptFilePath).toUtf8().constData()).c_str();
+			QByteArray data = Process::command_exec(QString(interpreter + " " + scriptFilePath).toUtf8().constData()).c_str();
 			
 			reply->addHeader ("Content-Type", "text/plain");
 			reply->appendRawData (data);
