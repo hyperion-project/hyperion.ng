@@ -1,6 +1,21 @@
 
 var ledsCustomCfgInitialized = false;
 
+function get_hue_lights(){
+	$.ajax({
+		type: "GET",
+		url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
+		processData: false,
+		contentType: 'application/json',
+		success: function(r) {
+			for(var lightid in r){
+				//console.log(r[lightid].name);
+				$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
+			}
+		}
+	});
+}
+
 
 $(document).ready(function() {
 	// ------------------------------------------------------------------
@@ -157,7 +172,7 @@ $(document).ready(function() {
 		if (isCurrentDevice)
 		{
 			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
-			for(var key in grabber_conf_editor.getEditor("root.specificOptions").getValue()){
+			for(var key in specificOptions_val){
 					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
 			};
 

@@ -7,7 +7,7 @@ function bindNavToContent(containerId, fileName, loadNow)
 	});
 	if (loadNow)
 	{
-		$("#page-content").load("/content/"+fileName+".html");
+		$(containerId).trigger("click");
 	}
 }
 
