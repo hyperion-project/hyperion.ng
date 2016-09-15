@@ -1782,7 +1782,7 @@ JSONEditor.AbstractEditor = Class.extend({
     if(typeof this.schema.required === "boolean") return this.schema.required;
     else if(this.parent && this.parent.schema && Array.isArray(this.parent.schema.required)) return this.parent.schema.required.indexOf(this.key) > -1;
     else if(this.jsoneditor.options.required_by_default) return true;
-    else return false;
+    else return true;
   },
   getDisplayText: function(arr) {
     var disp = [];
