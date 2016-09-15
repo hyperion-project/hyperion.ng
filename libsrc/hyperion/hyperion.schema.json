@@ -1025,7 +1025,6 @@
 		{
 			"type" : "object",
 			"title" : "WebUI - DANGER CHANGES CAN MAKE THE WEBUI UNREACHABLE!",
-			"required" : true,
 			"properties" :
 			{
 				"enable" :
@@ -1033,14 +1032,12 @@
 					"type" : "boolean",
 					"title" : "Activate",
 					"default" : true,
-					"required" : true,
 					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
 					"type" : "string",
 					"title" : "Document Root",
-					"required" : true,
 					"propertyOrder" : 2
 				},
 				"port" :
@@ -1048,7 +1045,6 @@
 					"type" : "integer",
 					"title" : "Port",
 					"default" : 8099,
-					"required" : true,
 					"propertyOrder" : 3
 				}
 			},

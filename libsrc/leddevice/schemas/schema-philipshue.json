@@ -14,8 +14,11 @@
 			"propertyOrder" : 2
 		},
 		"lightIds": {
-			"type": "integer",
+			"type": "array",
 			"title":"Light ids",
+			"items" : {
+				"type" : "integer"
+			},
 			"propertyOrder" : 3
 		},
 		"transitiontime": {
