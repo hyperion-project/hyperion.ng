@@ -4,12 +4,14 @@
 	"properties":{
 		"host" : {
 			"type": "string",
-			"title":"Target IP"
+			"title":"Target IP",
+			"propertyOrder" : 1
 		},
 		"port" : {
 			"type": "integer",
 			"title":"Port",
-			"default": 5568
+			"default": 5568,
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": true

@@ -5,17 +5,20 @@
 		"VID": {
 			"type": "string",
 			"title":"VID",
-			"default" : "0x2341"
+			"default" : "0x2341",
+			"propertyOrder" : 1
 		},
 		"PID": {
 			"type": "string",
 			"title":"PID",
-			"default" : "0x8036"
+			"default" : "0x8036",
+			"propertyOrder" : 2
 		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"Delay after connect",
-			"default": 0
+			"default": 0,
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties": true
