@@ -526,7 +526,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 	device->setEnable(smoothingConfig.get("enable", true).asBool());
 	InfoIf(!device->enabled(), log,"Smoothing disabled");
 
-	assert(device == nullptr);
+	assert(device != nullptr);
 	return device;
 }
 
