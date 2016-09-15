@@ -4,29 +4,35 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Target IP"
+			"title":"Target IP",
+			"propertyOrder" : 1
 		},
 		"username": {
 			"type": "string",
 			"title":"Username",
-			"default": "newdeveloper"
+			"default": "newdeveloper",
+			"propertyOrder" : 2
 		},
 		"lightIds": {
 			"type": "array",
 			"title":"Light ids",
-			"items": {
+			"items" : {
 				"type" : "integer"
-			}
+			},
+			"propertyOrder" : 3
 		},
 		"transitiontime": {
 			"type": "integer",
 			"title":"Transistion time (x100ms)",
-			"default" : 1
+			"default" : 1,
+			"propertyOrder" : 4
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"Switch off on black",
-			"default" : true
+			"default" : true,
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true
