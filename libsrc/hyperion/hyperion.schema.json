@@ -435,9 +435,11 @@
 		"grabber-v4l2" :
 		{
 			"type":"array",
+			"title" : "USB Grabber",
 			"items":
 			{
 				"type" : "object",
+				"title" : "First USB Grabber",
 				"properties" :
 				{
 					"enable" :
