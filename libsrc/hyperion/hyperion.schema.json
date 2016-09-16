@@ -601,20 +601,23 @@
 				{
 					"type" : "integer",
 					"title" : "Width",
-					"default" : 96
+					"default" : 96,
+					"append" : "Pixel"
 				},
 				"height" :
 				{
 					"type" : "integer",
 					"title" : "Height",
-					"default" : 96
+					"default" : 96,
+					"append" : "Pixel"
 				},
 				"frequency_Hz" :
 				{
 					"type" : "integer",
 					"title" : "Frequency",
 					"minimum" : 0,
-					"default" : 10
+					"default" : 10,
+					"append" : "Hz"
 				},
 				"priority" :
 				{
@@ -628,28 +631,32 @@
 					"type" : "integer",
 					"title" : "Crop left",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropRight" :
 				{
 					"type" : "integer",
 					"title" : "Crop right",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropTop" :
 				{
 					"type" : "integer",
 					"title" : "Crop top",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropBottom" :
 				{
 					"type" : "integer",
 					"title" : "Crop bottom",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"useXGetImage" :
 				{
