@@ -1,4 +1,6 @@
 $(document).ready( function() {
+	$("#main-nav").hide();
+	$("#page-content").hide();
 	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
@@ -22,9 +24,9 @@ $(document).ready( function() {
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
 
 		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
-			$("#hyperion_restart_notify").fadeIn("fast");
+			$("#hyperion_reload_notify").fadeIn("fast");
 		else
-			$("#hyperion_restart_notify").fadeOut("fast");
+			$("#hyperion_reload_notify").fadeOut("fast");
 
 		// get active led device
 		var leddevice = parsedServerInfoJSON.info.ledDevices.active;
@@ -59,6 +61,9 @@ $(document).ready( function() {
 			}
 		});
 		$("#loading_overlay").removeClass("overlay");
+		$("#main-nav").show('slide', {direction: 'left'}, 1000);
+		$("#page-content").show('slide', {direction: 'down'}, 2000);
+
 	}); // end cmd-serverinfo
 
 	$(hyperion).one("cmd-config-getschema", function(event) {
@@ -75,6 +80,13 @@ $(document).ready( function() {
 		requestServerInfo();
 	});
 
+	$("#btn_hyperion_reload").on("click", function(){
+		$(hyperion).off();
+		requestServerConfigReload();
+		watchdog = 1;
+		$("#wrapper").fadeOut("slow");
+		cron();
+	});
 });
 
 $(function(){

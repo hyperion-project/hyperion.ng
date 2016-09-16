@@ -6,12 +6,12 @@
 WebConfig::WebConfig(QObject * parent)
 	:  QObject(parent)
 	, _hyperion(Hyperion::getInstance())
-	, _port(WEBCONFIG_DEFAULT_PORT)
 	, _server(nullptr)
 {
-	_baseUrl = WEBCONFIG_DEFAULT_PATH;
-	const Json::Value &config = _hyperion->getJsonConfig();
 	Logger* log = Logger::getInstance("WEBSERVER");
+	_port       = WEBCONFIG_DEFAULT_PORT;
+	_baseUrl    = WEBCONFIG_DEFAULT_PATH;
+	const Json::Value &config = _hyperion->getJsonConfig();
 	
 	bool webconfigEnable = true; 
 
@@ -19,7 +19,7 @@ WebConfig::WebConfig(QObject * parent)
 	{
 		const Json::Value & webconfigConfig = config["webConfig"];
 		webconfigEnable = webconfigConfig.get("enable", true).asBool();
-		_port = webconfigConfig.get("port", WEBCONFIG_DEFAULT_PORT).asUInt();
+		_port = webconfigConfig.get("port", _port).asUInt();
 		_baseUrl = QString::fromStdString( webconfigConfig.get("document_root", _baseUrl.toStdString()).asString() );
 	}
 

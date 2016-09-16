@@ -54,6 +54,9 @@
 			"type" : "array",
 			"propertyOrder" : 9,
 			"default" : [1.0,1.0,1.0],
+			"maxItems" : 3,
+			"minItems" : 3,
+			"format" : "table",
 			"items" : {
 				"type" : "number",
 				"minimum" : 0.0,

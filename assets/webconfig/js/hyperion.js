@@ -155,6 +155,10 @@ function requestServerConfig() {
 	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
 }
 
+function requestServerConfigReload() {
+	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"reload"}');
+}
+
 function requestLedColorsStart() {
 	ledStreamActive=true;
 	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
@@ -196,19 +200,4 @@ function requestWriteConfig(config, create, overwrite)
 	var create = (typeof create !== 'undefined') ?  create : false;
 	var overwrite = (typeof overwrite !== 'undefined') ?  overwrite : false;
 	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(config)+',"create":'+create+', "overwrite":'+overwrite+'}');
-}
-
-function get_hue_lights(){
-	$.ajax({
-		type: "GET",
-		url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
-		processData: false,
-		contentType: 'application/json',
-		success: function(r) {
-			for(var lightid in r){
-				//console.log(r[lightid].name);
-				$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
-			}
-		}
-	});
 }

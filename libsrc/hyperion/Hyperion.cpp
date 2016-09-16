@@ -657,24 +657,26 @@ unsigned Hyperion::getLedCount() const
 
 bool Hyperion::configModified()
 {
+	bool isModified = false;
 	QFile f(_configFile.c_str());
 	if (f.open(QFile::ReadOnly))
 	{
 		QCryptographicHash hash(QCryptographicHash::Sha1);
-			if (hash.addData(&f))
+		if (hash.addData(&f))
+		{
+			if (_configHash.size() == 0)
 			{
-				if (_configHash.size() == 0)
-				{
-					_configHash = hash.result();
-					qDebug(_configHash.toHex());
-					return false;
-				}
-				return _configHash != hash.result();
+				_configHash = hash.result();
 			}
+			else
+			{
+				isModified = _configHash != hash.result();
+			}
+		}
 	}
 	f.close();
 
-	return false;
+	return isModified;
 }
 
 void Hyperion::registerPriority(const std::string name, const int priority)
