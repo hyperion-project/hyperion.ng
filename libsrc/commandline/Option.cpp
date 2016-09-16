@@ -24,3 +24,8 @@ std::wstring Option::getStdWString(Parser &parser)
     return value(parser).toStdWString();
 }
 
+const char* Option::getCString(Parser &parser)
+{
+    return value(parser).toLocal8Bit().constData();
+}
+
