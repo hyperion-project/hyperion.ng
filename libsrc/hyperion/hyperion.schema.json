@@ -49,7 +49,7 @@
 				"colorOrder" :
 				{
 					"type" : "string",
-					"title" : "RGB byte order"
+					"title" : "RGB byte order",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
 				}
