@@ -30,6 +30,7 @@
 				"name" :
 				{
 					"type" : "string",
+					"title" : "Configuration name",
 					"required" : true,
 					"propertyOrder" : 1
 				},
@@ -48,6 +49,7 @@
 				"colorOrder" :
 				{
 					"type" : "string",
+					"title" : "RGB byte order"
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
 				}
@@ -397,6 +399,7 @@
 					"minimum" : 25,
 					"maximum": 600,
 					"default" : 200,
+					"append" : "ms",
 					"propertyOrder" : 3
 				},
 				"updateFrequency" :
@@ -406,6 +409,7 @@
 					"minimum" : 1.000,
 					"maximum" : 100.000,
 					"default" : 25.000,
+					"append" : "Hz",
 					"propertyOrder" : 4
 				},
 				"updateDelay" :
@@ -415,6 +419,7 @@
 					"minimum" : 0,
 					"maximum": 2048,
 					"default" : 0,
+					"append" : "ms",
 					"propertyOrder" : 5
 				},
 				"continuousOutput" :
@@ -469,6 +474,7 @@
 						"type" : "integer",
 						"title" : "Width",
 						"default" : -1,
+						"append" : "Pixel",
 						"propertyOrder" : 5
 					},
 					"height" :
@@ -476,6 +482,7 @@
 						"type" : "integer",
 						"title" : "Height",
 						"default" : -1,
+						"append" : "Pixel",
 						"propertyOrder" : 6
 					},
 					"frameDecimation" :
@@ -520,6 +527,7 @@
 						"title" : "Crop left",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 12
 					},
 					"cropRight" :
@@ -528,6 +536,7 @@
 						"title" : "Crop right",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 13
 					},
 					"cropTop" :
@@ -536,6 +545,7 @@
 						"title" : "Crop top",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 14
 					},
 					"cropBottom" :
@@ -544,6 +554,7 @@
 						"title" : "Crop bottom",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 15
 					},
 					"redSignalThreshold" :
@@ -553,6 +564,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 16
 					},
 					"greenSignalThreshold" :
@@ -562,6 +574,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 17
 					},
 					"blueSignalThreshold" :
@@ -571,6 +584,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 18
 					}
 				},
@@ -676,7 +690,8 @@
 					"type" : "integer",
 					"title" : "Vertical pixel decimation",
 					"minimum" : 0,
-					"default" : 8
+					"default" : 8,
+					"append" : "Pixel"
 				},
 				"device" :
 				{
@@ -714,6 +729,7 @@
 					"minimum" : 0.0,
 					"maximum" : 1.0,
 					"default" : 0.05,
+					"append" : "%",
 					"propertyOrder" : 2
 				},
 				"unknownFrameCnt"    :
