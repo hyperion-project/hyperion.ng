@@ -439,7 +439,7 @@
 			"items":
 			{
 				"type" : "object",
-				"title" : "First USB Grabber",
+				"title" : "USB Grabber",
 				"properties" :
 				{
 					"enable" :
