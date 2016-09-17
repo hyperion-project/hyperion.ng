@@ -6711,17 +6711,8 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   getFormControl: function(label, input, description, append) {
     var group = document.createElement('div');
 	var subgroup = document.createElement('div');
-	
-    if(label && input.type === 'checkbox') {
-      group.className += ' checkbox';
-      label.appendChild(input);
-      label.style.fontSize = '14px';
-      group.style.marginTop = '0';
-      group.appendChild(label);
-      input.style.position = 'relative';
-      input.style.cssFloat = 'left';
-    }
-	else if (append){
+
+	if (append){
 		group.className += ' form-group';
 		if(label) {
 			label.className += ' col-form-label col-md-2';
@@ -6739,8 +6730,11 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
         group.appendChild(label);
       }
 		group.appendChild(subgroup);
-	  subgroup.className += ' input-group col-md-10';
-	  subgroup.appendChild(input);  
+	      subgroup.className += ' input-group col-md-10';
+	      subgroup.appendChild(input);
+		if (input.type === 'checkbox'){
+			label.style.fontWeight = 'bold';
+		}
 	  }
     
 
