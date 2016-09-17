@@ -692,8 +692,7 @@
 					"type" : "integer",
 					"title" : "Vertical pixel decimation",
 					"minimum" : 0,
-					"default" : 8,
-					"append" : "Pixel"
+					"default" : 8
 				},
 				"device" :
 				{

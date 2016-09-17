@@ -56,6 +56,11 @@ table.borderless td,table.borderless th{border: none !important;}
     margin-bottom: 0;
 }
 
+.logoimg{
+	background-image: url('/img/hyperion/hyperionlogo.png');
+	background-repeat: no-repeat;
+}
+
 .overlay {
 	background-image: url('/img/hyperion/hyperionwhitelogo.png');
 	background-repeat: no-repeat;
