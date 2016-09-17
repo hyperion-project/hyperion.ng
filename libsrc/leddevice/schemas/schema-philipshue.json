@@ -23,8 +23,9 @@
 		},
 		"transitiontime": {
 			"type": "integer",
-			"title":"Transistion time (x100ms)",
+			"title":"Transistion time",
 			"default" : 1,
+			"append" : "x100ms",
 			"propertyOrder" : 4
 		},
 		"switchOffOnBlack": {

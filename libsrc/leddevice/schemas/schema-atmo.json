@@ -17,6 +17,7 @@
 			"type": "integer",
 			"title":"Delay after connect",
 			"default": 250,
+			"append" : "ms",
 			"propertyOrder" : 3
 		}
 	},
