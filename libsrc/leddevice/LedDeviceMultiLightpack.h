@@ -20,14 +20,19 @@ class LedDeviceMultiLightpack : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDeviceMultiLightpack
+	/// Constructs specific LedDevice
 	///
-	LedDeviceMultiLightpack();
+	/// @param deviceConfig json device config
+	///
+	LedDeviceMultiLightpack(const Json::Value &);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
 	virtual ~LedDeviceMultiLightpack();
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Opens and configures the output device7

@@ -30,7 +30,8 @@ add_executable( ${PROJECT_NAME}
 )
 
 target_link_libraries( ${PROJECT_NAME}
-	getoptPlusPlus
+	effectengine
+	commandline
 	blackborder
 	hyperion-utils
 	protoserver
@@ -40,4 +41,4 @@ target_link_libraries( ${PROJECT_NAME}
 
 qt5_use_modules(${PROJECT_NAME} Core Gui Network)
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT ambilight )
+install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )

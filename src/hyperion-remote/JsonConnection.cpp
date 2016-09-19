@@ -1,5 +1,6 @@
 // stl includes
 #include <stdexcept>
+#include <cassert>
 
 // Qt includes
 #include <QRgb>
@@ -7,11 +8,10 @@
 // hyperion-remote includes
 #include "JsonConnection.h"
 
-JsonConnection::JsonConnection(const std::string & a, bool printJson) :
-	_printJson(printJson),
-	_socket()
+JsonConnection::JsonConnection(const QString & address, bool printJson)
+	: _printJson(printJson)
+	, _socket()
 {
-	QString address(a.c_str());
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
@@ -31,7 +31,7 @@ JsonConnection::JsonConnection(const std::string & a, bool printJson) :
 		throw std::runtime_error("Unable to connect to host");
 	}
 
-	std::cout << "Connected to " << a << std::endl;
+    qDebug() << "Connected to:" << address;
 }
 
 JsonConnection::~JsonConnection()
@@ -66,7 +66,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 	parseReply(reply);
 }
 
-void JsonConnection::setImage(QImage image, int priority, int duration)
+void JsonConnection::setImage(QImage &image, int priority, int duration)
 {
 	std::cout << "Set image has size: " << image.width() << "x" << image.height() << std::endl;
 
@@ -92,7 +92,7 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	command["priority"] = priority;
 	command["imagewidth"] = image.width();
 	command["imageheight"] = image.height();
-	command["imagedata"] = std::string(base64Image.data(), base64Image.size());
+	command["imagedata"] = base64Image.data();
 	if (duration > 0)
 	{
 		command["duration"] = duration;
@@ -105,20 +105,20 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	parseReply(reply);
 }
 
-void JsonConnection::setEffect(const std::string &effectName, const std::string & effectArgs, int priority, int duration)
+void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
-	std::cout << "Start effect " << effectName << std::endl;
+    qDebug() << "Start effect " << effectName;
 
 	// create command
 	Json::Value command;
 	command["command"] = "effect";
 	command["priority"] = priority;
 	Json::Value & effect = command["effect"];
-	effect["name"] = effectName;
+	effect["name"] = effectName.toStdString();
 	if (effectArgs.size() > 0)
 	{
 		Json::Reader reader;
-		if (!reader.parse(effectArgs, effect["args"], false))
+		if (!reader.parse(effectArgs.toStdString(), effect["args"], false))
 		{
 			throw std::runtime_error("Error in effect arguments: " + reader.getFormattedErrorMessages());
 		}
@@ -192,7 +192,116 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setComponentState(const QString & component, const bool state)
+{
+	qDebug() << (state ? "Enable" : "Disable") << "Component" << component;
+
+	// create command
+	Json::Value command;
+	command["command"] = "componentstate";
+	Json::Value & parameter = command["componentstate"];
+	parameter["component"] = component.toStdString();
+	parameter["state"] = state;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setSource(int priority)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	command["priority"] = priority;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setSourceAutoSelect()
+{
+	// create command
+	Json::Value command;
+	command["command"] = "sourceselect";
+	command["auto"] = true;
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+QString JsonConnection::getConfig(std::string type)
+{
+	assert( type == "schema" || type == "config" );
+	std::cout << "Get configuration file from Hyperion Server" << std::endl;
+
+	// create command
+	Json::Value command;
+	command["command"] = "config";
+	command["subcommand"] = (type == "schema")? "getschema" : "getconfig";
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	if (parseReply(reply))
+	{
+		if (!reply.isMember("result") || !reply["result"].isObject())
+		{
+			throw std::runtime_error("No configuration file available in result");
+		}
+
+		const Json::Value & config = reply["result"];
+		return QString(config.toStyledString().c_str());
+	}
+
+	return QString();
+}
+
+void JsonConnection::setConfig(const QString &jsonString, bool create, bool overwrite)
+{
+	// create command
+	Json::Value command;
+	command["command"] = "config";
+	command["subcommand"] = "setconfig";
+	
+	command["create"] = create;
+	command["overwrite"] = overwrite;
+	Json::Value & config = command["config"];
+	if (jsonString.size() > 0)
+	{
+		Json::Reader reader;
+		if (!reader.parse(jsonString.toStdString(), config, false))
+		{
+			throw std::runtime_error("Error in configset arguments: " + reader.getFormattedErrorMessages());
+		}
+	}
+
+	// send command message
+	Json::Value reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::setTransform(const QString &transformId,
+								  double *saturation,
+								  double *value,
+								  double *saturationL,
+								  double *luminance,
+								  double *luminanceMin,
+								  QColor threshold,
+								  QColor gamma,
+								  QColor blacklevel,
+								  QColor whitelevel)
 {
 	std::cout << "Set color transforms" << std::endl;
 
@@ -201,9 +310,9 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 	command["command"] = "transform";
 	Json::Value & transform = command["transform"];
 
-	if (transformId != nullptr)
+	if (!transformId.isNull())
 	{
-		transform["id"] = *transformId;
+		transform["id"] = transformId.toStdString();
 	}
 
 	if (saturation != nullptr)
@@ -231,36 +340,36 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 		transform["luminanceMinimum"] = *luminanceMin;
 	}
 	
-	if (threshold != nullptr)
+	if (threshold.isValid())
 	{
 		Json::Value & v = transform["threshold"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		v.append(threshold.red());
+		v.append(threshold.green());
+		v.append(threshold.blue());
 	}
 
-	if (gamma != nullptr)
+	if (gamma.isValid())
 	{
 		Json::Value & v = transform["gamma"];
-		v.append(gamma->valueRed);
-		v.append(gamma->valueGreen);
-		v.append(gamma->valueBlue);
+		v.append(gamma.red());
+		v.append(gamma.green());
+		v.append(gamma.blue());
 	}
 
-	if (blacklevel != nullptr)
+	if (blacklevel.isValid())
 	{
 		Json::Value & v = transform["blacklevel"];
-		v.append(blacklevel->valueRed);
-		v.append(blacklevel->valueGreen);
-		v.append(blacklevel->valueBlue);
+		v.append(blacklevel.red());
+		v.append(blacklevel.green());
+		v.append(blacklevel.blue());
 	}
 
-	if (whitelevel != nullptr)
+	if (whitelevel.isValid())
 	{
 		Json::Value & v = transform["whitelevel"];
-		v.append(whitelevel->valueRed);
-		v.append(whitelevel->valueGreen);
-		v.append(whitelevel->valueBlue);
+		v.append(whitelevel.red());
+		v.append(whitelevel.green());
+		v.append(whitelevel.blue());
 	}
 
 	// send command message
@@ -270,7 +379,7 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 	parseReply(reply);
 }
 
-void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionValues *correction)
+void JsonConnection::setCorrection(QString &correctionId, const QColor & correction)
 {
 	std::cout << "Set color corrections" << std::endl;
 
@@ -279,17 +388,17 @@ void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionVa
 	command["command"] = "correction";
 	Json::Value & correct = command["correction"];
 	
-	if (correctionId != nullptr)
+	if (!correctionId.isNull())
 	{
-		correct["id"] = *correctionId;
+		correct["id"] = correctionId.toStdString();
 	}
 
-	if (correction != nullptr)
+	if (correction.isValid())
 	{
 		Json::Value & v = correct["correctionValues"];
-		v.append(correction->valueRed);
-		v.append(correction->valueGreen);
-		v.append(correction->valueBlue);
+		v.append(correction.red());
+		v.append(correction.green());
+		v.append(correction.blue());
 	}
 
 	// send command message
@@ -299,7 +408,7 @@ void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionVa
 	parseReply(reply);
 }
 
-void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrectionValues *temperature)
+void JsonConnection::setTemperature(const QString &temperatureId, const QColor & temperature)
 {
 	std::cout << "Set color temperature corrections" << std::endl;
 
@@ -308,17 +417,17 @@ void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrection
 	command["command"] = "temperature";
 	Json::Value & temp = command["temperature"];
 
-	if (temperatureId != nullptr)
+	if (!temperatureId.isNull())
 	{
-		temp["id"] = *temperatureId;
+		temp["id"] = temperatureId.toStdString();
 	}
 
-	if (temperature != nullptr)
+	if (temperature.isValid())
 	{
 		Json::Value & v = temp["correctionValues"];
-		v.append(temperature->valueRed);
-		v.append(temperature->valueGreen);
-		v.append(temperature->valueBlue);
+		v.append(temperature.red());
+		v.append(temperature.green());
+		v.append(temperature.blue());
 	}
 
 	// send command message
@@ -328,7 +437,10 @@ void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrection
 	parseReply(reply);
 }
 
-void JsonConnection::setAdjustment(std::string * adjustmentId, ColorAdjustmentValues * redAdjustment, ColorAdjustmentValues * greenAdjustment, ColorAdjustmentValues * blueAdjustment)
+void JsonConnection::setAdjustment(const QString &adjustmentId,
+								   const QColor & redAdjustment,
+								   const QColor & greenAdjustment,
+								   const QColor & blueAdjustment)
 {
 	std::cout << "Set color adjustments" << std::endl;
 
@@ -337,33 +449,33 @@ void JsonConnection::setAdjustment(std::string * adjustmentId, ColorAdjustmentVa
 	command["command"] = "adjustment";
 	Json::Value & adjust = command["adjustment"];
 
-	if (adjustmentId != nullptr)
+	if (!adjustmentId.isNull())
 	{
-		adjust["id"] = *adjustmentId;
+		adjust["id"] = adjustmentId.toStdString();
 	}
 	
-	if (redAdjustment != nullptr)
+	if (redAdjustment.isValid())
 	{
 		Json::Value & v = adjust["redAdjust"];
-		v.append(redAdjustment->valueRed);
-		v.append(redAdjustment->valueGreen);
-		v.append(redAdjustment->valueBlue);
+		v.append(redAdjustment.red());
+		v.append(redAdjustment.green());
+		v.append(redAdjustment.blue());
 	}
 
-	if (greenAdjustment != nullptr)
+	if (greenAdjustment.isValid())
 	{
 		Json::Value & v = adjust["greenAdjust"];
-		v.append(greenAdjustment->valueRed);
-		v.append(greenAdjustment->valueGreen);
-		v.append(greenAdjustment->valueBlue);
+		v.append(greenAdjustment.red());
+		v.append(greenAdjustment.green());
+		v.append(greenAdjustment.blue());
 	}
 
-	if (blueAdjustment != nullptr)
+	if (blueAdjustment.isValid())
 	{
 		Json::Value & v = adjust["blueAdjust"];
-		v.append(blueAdjustment->valueRed);
-		v.append(blueAdjustment->valueGreen);
-		v.append(blueAdjustment->valueBlue);
+		v.append(blueAdjustment.red());
+		v.append(blueAdjustment.green());
+		v.append(blueAdjustment.blue());
 	}
 
 	// send command message

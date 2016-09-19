@@ -12,18 +12,23 @@
 // hyperion local includes
 #include "LedDeviceAPA102.h"
 
-LedDeviceAPA102::LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate)
-	: LedSpiDevice(outputDevice, baudrate, 500000)
-	, _ledBuffer(0)
+LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)
+	: ProviderSpi(deviceConfig)
 {
+	_latchTime_ns = 500000;
+}
+
+LedDevice* LedDeviceAPA102::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceAPA102(deviceConfig);
 }
 
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 {
-	_mLedCount = ledValues.size();
+	_ledCount = ledValues.size();
 	const unsigned int startFrameSize = 4;
-	const unsigned int endFrameSize = std::max<unsigned int>(((_mLedCount + 15) / 16), 4);
-	const unsigned int APAbufferSize = (_mLedCount * 4) + startFrameSize + endFrameSize;
+	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);
+	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
 	if(_ledBuffer.size() != APAbufferSize){
 		_ledBuffer.resize(APAbufferSize, 0xFF);
@@ -33,7 +38,7 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 		_ledBuffer[3] = 0x00; 
 	}
 	
-	for (unsigned iLed=0; iLed < _mLedCount; ++iLed) {
+	for (signed iLed=0; iLed < _ledCount; ++iLed) {
 		const ColorRgb& rgb = ledValues[iLed];
 		_ledBuffer[4+iLed*4]   = 0xFF;
 		_ledBuffer[4+iLed*4+1] = rgb.red;
@@ -46,5 +51,5 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceAPA102::switchOff()
 {
-	return write(std::vector<ColorRgb>(_mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

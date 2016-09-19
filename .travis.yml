@@ -1,19 +1,27 @@
+env:
+    global:
+        - secure: HaM1JqxjnDP+Z6DpnavF+8OUpfjfWGfB+J+ROhAx1qBNNuCWt3wiaz0ewCU9/GtYUJ9ury5HU9c7fJ3pN8afopoAag2LYv9HJmaX5h3oSTQeD0Q/3a5OugDgVaSwDs25uoCU0jETX8ol8KM1/Ad7iWofc0gOAPsXP4FDYn9HhWSjjKg7VfzaVPKYDfdkCzHLQ5DGDiYlCrJnYVYn9Lhs2c3ghKcKn7g+xA2+bwRgP6U7lgShDDBywT8/pP1z1KkFRmfYuznTVhkPV5R/RQR04LfKTBxVdRlcXjB2BPJBcO4jRD6s+MGxBlrQ5+vi/bWvtBNH4X4dRzsckfrmnwCJ+LUkfaN+4htvYWmz/Vk0yon1Wj9HNMCxpLyCu5/mMsBadg1H8Hs7I2lJ/+pxMsV7cv3xPAXXas68waTtJdrPgiAfYEwdwAwAAkv3e4K1ztNTiU6aCHV7te57pFIftGM8+5xTkXYWNV+WDNGdto6HaQxVD+sPYUZ76l7M5BuLqE24h+j9WnR2p0pRGPEn0zwzS4HGUUcvIyTSzIU8jpCrPuzd23Z+rNINDj61a430M0g23gYJ51b0R2DGtaZBkpdz8X4qJqckYbTCiG8KrK6g2aEv4tCPvn8vhbQQJmbrlr/O2tFonCIv8A+6GbbVakL1BcfmDaLUaxarY7bWtahyjH8=
+cache:
+    - ccache
+    - directories:
+        - $HOME/brew-cache
 notifications:
-  email: false
+    email: false
 language: cpp
 matrix:
   include:
-  - os: linux
-    dist: trusty
-    sudo: required
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+      osx_image: xcode7.3
+      env:
+        - HOMEBREW_CACHE=$HOME/brew-cache
 before_install:
-- chmod +x ./.travis/travis_install.sh
-- "./.travis/travis_install.sh"
+    - chmod +x ./.travis/travis_install.sh ./.travis/travis_build.sh ./test/testrunner.sh ./.travis/travis_deploy.sh
+    - ./.travis/travis_install.sh
 script:
-- chmod +x ./.travis/travis_build.sh
-- "./.travis/travis_build.sh"
-deploy:
-  provider: heroku
-  app: hyperionng
-  api_key:
-    secure: h6hIe8mM2noK3qd7sv4P3Sw1hUPg0FEZK+vqY7gmhYBIxmnVjwQge4VSg/4Lg5ksAYyS9kD7dnsV0EbmgEkZO7fcc8PBqoFzV8LKIXlWPZ90o9kHlukG9NmD7BlJzn8/BP78CCmSrCx92lGn4TadbmQJVxQD08LUsstjYXZvTCElCBEUtm/3h09nFgPC1Ahp01JSOqcZr1AtXM9BInWEdWp7Omapk2zGXJqmGhlnxjL1eRbKcJ8ZsaTQ1nviuXMQpa6ZICJkl330BflnTryHIjDlakqb7NKibIvrhsOmkg7RKf5FvOD/N4+X+vAhECJ1QSX+eWXdgS7VmYHaFfsiN8PA9SwWUYCMBVkE+D+CG/8fFzWdZzdiWVMHDN3KhUplIwPuubgZbHr7rnAS7YtizXpWXVytUfoZ94Sg4ZI8LTfaP/3mwfgqSKOG4zGfn4QwLMmcFI+s+RV0NH9TgJ/+S4P6o2RjwvbOLWRnKtj3fJJ2UU3EyOhH23KLzghgP7OUcmoAVAtw8Nm1tSGYkeKHX8UqWbx3d+0O5Kmmi5iSZpqQ1cejvwnFMbNL29qoLf6V0lDV9xj8TJAKqYSFEPoE4T4tVSczm+Yg0jjqLIJmAxO5VR/Ut4iTu12wGUF7oYFZN4wMN9tgM8yx67dn/FHi6zh3Tq6VFpcruOJfdkla1UI=
+    - ./.travis/travis_build.sh
+after_success:
+    - ./test/testrunner.sh
+    - ./.travis/travis_deploy.sh

@@ -4,22 +4,23 @@
 #include <string>
 
 // hyperion incluse
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to serial device using tpm2 protocol.
 ///
-class LedDeviceAtmo : public LedRs232Device
+class LedDeviceAtmo : public ProviderRs232
 {
 public:
 	///
-	/// Constructs the LedDevice for attached serial device using supporting tpm2 protocol
-	/// All LEDs in the stripe are handled as one frame
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyAMA0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceAtmo(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceAtmo(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -31,8 +32,4 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
-private:
-	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
 };

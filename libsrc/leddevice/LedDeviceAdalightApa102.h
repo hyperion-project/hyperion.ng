@@ -3,16 +3,13 @@
 // STL includes
 #include <string>
 
-// Qt includes
-#include <QTimer>
-
-// hyperion incluse
-#include "LedRs232Device.h"
+// hyperion include
+#include "LedDeviceAdalight.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device for APA102.
 ///
-class LedDeviceAdalightApa102 : public LedRs232Device
+class LedDeviceAdalightApa102 : public LedDeviceAdalight
 {
 	Q_OBJECT
 
@@ -23,7 +20,10 @@ public:
 	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceAdalightApa102(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms);
+	LedDeviceAdalightApa102(const Json::Value &deviceConfig);
+
+	/// create leddevice when type in config is set to this type
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -32,19 +32,8 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
+
+	/// Switch the leds off
 	virtual int switchOff();
-
-
-private slots:
-	/// Write the last data to the leds again
-	void rewriteLeds();
-	
-private:
-	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
-	unsigned int ledCount;
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// The Adalight device will switch off when it does not receive data at least
-	/// every 15 seconds
-	QTimer _timer;
 };
+

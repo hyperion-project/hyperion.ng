@@ -9,8 +9,12 @@
 
 // Local includes
 #include <utils/ColorRgb.h>
+#include <json/json.h>
 
 #include "../libsrc/leddevice/LedDeviceWs2801.h"
+
+Json::Value deviceConfig;
+
 
 void setColor(char* colorStr)
 {
@@ -54,7 +58,8 @@ void setColor(char* colorStr)
 	unsigned ledCnt = 50;
 	std::vector<ColorRgb> buff(ledCnt, color);
 
-	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000, 500000);
+
+	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
 	ledDevice.write(buff);
 }
@@ -68,7 +73,7 @@ void doCircle()
 	unsigned ledCnt = 50;
 	std::vector<ColorRgb> data(ledCnt, ColorRgb::BLACK);
 
-	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000, 500000);
+	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
 
 	timespec loopTime;
@@ -141,6 +146,10 @@ int main(int argc, char** argv)
 		std::cerr << "Missing argument" << std::endl;
 		return -1;
 	}
+
+	deviceConfig["output"] = "/dev/spidev0.0";
+	deviceConfig["rate"] = 40000;
+	deviceConfig["latchtime"] = 500000;
 
 	if (strncmp("fixed", argv[1], 5) == 0)
 	{

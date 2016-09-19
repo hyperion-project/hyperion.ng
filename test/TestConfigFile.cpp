@@ -6,36 +6,76 @@
 #include <QResource>
 
 // JsonSchema includes
-#include <utils/jsonschema/JsonFactory.h>
+#include <utils/jsonschema/QJsonFactory.h>
 
 // hyperion includes
 #include <hyperion/LedString.h>
 
-Json::Value loadConfig(const std::string & configFile)
+bool loadConfig(const QString & configFile)
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
-
-	// read the json schema from the resource
-	QResource schemaData(":/hyperion-schema");
-	if (!schemaData.isValid()) \
+	QJsonParseError error;
+	
+	////////////////////////////////////////////////////////////
+	// read and set the json schema from the resource
+	////////////////////////////////////////////////////////////
+	
+	QFile schemaData(":/hyperion-schema");
+	
+	if (!schemaData.open(QIODevice::ReadOnly))
 	{
-		throw std::runtime_error("Schema not found");
+		std::stringstream error;
+		error << "Schema not found: " << schemaData.errorString().toStdString();
+		throw std::runtime_error(error.str());
 	}
 
-	Json::Reader jsonReader;
-	Json::Value schemaJson;
-	if (!jsonReader.parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schemaJson, false))
+	QByteArray schema = schemaData.readAll();
+	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
+
+	if (error.error != QJsonParseError::NoError)
 	{
-		throw std::runtime_error("Schema error: " + jsonReader.getFormattedErrorMessages())	;
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(schema.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		std::stringstream sstream;
+		sstream << "Schema error: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+
+		throw std::runtime_error(sstream.str());
 	}
-	JsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson);
+	
+	QJsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(schemaJson.object());
+	
+	////////////////////////////////////////////////////////////
+	// read and validate the configuration file from the command line
+	////////////////////////////////////////////////////////////
+	
+	const QJsonObject jsonConfig = QJsonFactory::readJson(configFile);
+	
+	if (!schemaChecker.validate(jsonConfig))
+	{
+		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		{
+			std::cout << *i << std::endl;
+		}
+		
+		std::cout << "FAILED" << std::endl;
+		exit(1);
+		return false;
+	}
 
-	const Json::Value jsonConfig = JsonFactory::readJson(configFile);
-	schemaChecker.validate(jsonConfig);
-
-	return jsonConfig;
+	return true;
 }
 
 int main(int argc, char** argv)
@@ -47,14 +87,14 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	const std::string configFile(argv[1]);
-	std::cout << "Configuration file selected: " << configFile.c_str() << std::endl;
-	std::cout << "Attemp to load...\t";
+	const QString configFile(argv[1]);
+	std::cout << "Configuration file selected: " << configFile.toStdString() << std::endl;
+	std::cout << "Attemp to load..." << std::endl;
 	try
 	{
-		Json::Value value = loadConfig(configFile);
-		(void)value;
-		std::cout << "PASSED" << std::endl;
+		if (loadConfig(configFile))
+			std::cout << "PASSED" << std::endl;
+		return 0;
 	}
 	catch (std::runtime_error exception)
 	{
@@ -62,5 +102,5 @@ int main(int argc, char** argv)
 		std::cout << exception.what() << std::endl;
 	}
 
-	return 0;
+	return 1;
 }

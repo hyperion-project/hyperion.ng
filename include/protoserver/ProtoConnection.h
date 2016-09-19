@@ -15,6 +15,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
+#include <utils/Logger.h>
 
 // jsoncpp includes
 #include <message.pb.h>
@@ -92,7 +93,7 @@ private slots:
 signals:
 
 	///
-	/// XBMC Video Checker Message
+	/// KODI Video Checker Message
 	///
 	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);
@@ -126,4 +127,6 @@ private:
 	
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
+	
+	Logger * _log;
 };

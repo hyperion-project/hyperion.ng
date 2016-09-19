@@ -133,10 +133,24 @@ class LedDeviceWS2812b : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type WS2812
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
 	LedDeviceWS2812b();
 
 	~LedDeviceWS2812b();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value&) {return true;};
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &);
+
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -149,10 +163,6 @@ public:
 	virtual int switchOff();
 
 private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
-
 	page_map_t *page_map;						// This will hold the page map, which we'll allocate
 	uint8_t *virtbase;					// Pointer to some virtual memory that will be allocated
 

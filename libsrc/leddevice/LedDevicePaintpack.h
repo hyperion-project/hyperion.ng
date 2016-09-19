@@ -4,18 +4,23 @@
 #include <vector>
 
 // Hyperion includes
-#include "LedHIDDevice.h"
+#include "ProviderHID.h"
 
 ///
 /// LedDevice implementation for a paintpack device ()
 ///
-class LedDevicePaintpack : public LedHIDDevice
+class LedDevicePaintpack : public ProviderHID
 {
 public:
-	/**
-	 * Constructs the paintpack device
-	 */
-	LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
+	///
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
+	LedDevicePaintpack(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -32,8 +37,4 @@ public:
 	/// @return Zero on success else negative
 	///
 	virtual int switchOff();
-
-private:
-	/// buffer for led data
-	std::vector<uint8_t> _ledBuffer;
 };

@@ -2,6 +2,7 @@
 
 // Qt includes
 #include <QObject>
+#include <QString>
 
 // Json includes
 #include <json/value.h>
@@ -30,7 +31,7 @@ public:
 	
 	const std::list<ActiveEffectDefinition> & getActiveEffects();
 
-	static bool loadEffectDefinition(const std::string & path, const std::string & effectConfigFile, EffectDefinition &effectDefinition);
+	static bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
@@ -50,7 +51,7 @@ private slots:
 
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const std::string &script, const Json::Value & args, int priority, int timeout = -1);
+	int runEffectScript(const std::string &script, const std::string &name, const Json::Value & args, int priority, int timeout = -1);
 
 private:
 	Hyperion * _hyperion;

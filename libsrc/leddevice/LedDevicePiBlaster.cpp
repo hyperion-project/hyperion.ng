@@ -1,6 +1,5 @@
 
 // STL includes
-#include <cerrno>
 #include <cstring>
 #include <csignal>
 
@@ -14,11 +13,9 @@
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
 
-LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping) :
-	_deviceName(deviceName),
-	_fid(nullptr)
+LedDevicePiBlaster::LedDevicePiBlaster(const Json::Value &deviceConfig)
+	: _fid(nullptr)
 {
-
 	signal(SIGPIPE,  SIG_IGN);
 
 // initialise the mapping tables
@@ -33,7 +30,31 @@ LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Jso
 		_gpio_to_color[i] = 'z';
 	}
 
-// walk through the json config and populate the mapping tables
+	setConfig(deviceConfig);
+}
+
+LedDevicePiBlaster::~LedDevicePiBlaster()
+{
+	// Close the device (if it is opened)
+	if (_fid != nullptr)
+	{
+		fclose(_fid);
+		_fid = nullptr;
+	}
+}
+
+
+bool LedDevicePiBlaster::setConfig(const Json::Value &deviceConfig)
+{
+	_deviceName             = deviceConfig.get("output",  "").asString();
+	Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
+
+	if (gpioMapping.isNull())
+	{
+		throw std::runtime_error("Piblaster: no gpiomap defined.");
+	}
+
+	// walk through the json config and populate the mapping tables
 	for (const Json::Value& gpioMap : gpioMapping)
 	{
 		const int gpio = gpioMap.get("gpio",-1).asInt();
@@ -48,46 +69,33 @@ LedDevicePiBlaster::LedDevicePiBlaster(const std::string & deviceName, const Jso
 			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
 		}
 	}
+	return true;
 }
 
-LedDevicePiBlaster::~LedDevicePiBlaster()
+LedDevice* LedDevicePiBlaster::construct(const Json::Value &deviceConfig)
 {
-	// Close the device (if it is opened)
-	if (_fid != nullptr)
-	{
-		fclose(_fid);
-		_fid = nullptr;
-	}
+	return new LedDevicePiBlaster(deviceConfig);
 }
 
-int LedDevicePiBlaster::open(bool report)
+int LedDevicePiBlaster::open()
 {
 	if (_fid != nullptr)
 	{
 		// The file pointer is already open
-		if (report)
-		{
-			Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
-		}
+		Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
 		return -1;
 	}
 
 	if (!QFile::exists(_deviceName.c_str()))
 	{
-		if (report)
-		{
-			Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
-		}
+		Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
 		return -1;
 	}
 
 	_fid = fopen(_deviceName.c_str(), "w");
 	if (_fid == nullptr)
 	{
-		if (report)
-		{
-			Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
-		}
+		Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
 		return -1;
 	}
 
@@ -99,7 +107,7 @@ int LedDevicePiBlaster::open(bool report)
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {
 	// Attempt to open if not yet opened
-	if (_fid == nullptr && open(false) < 0)
+	if (_fid == nullptr && open() < 0)
 	{
 		return -1;
 	}
@@ -152,7 +160,7 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 int LedDevicePiBlaster::switchOff()
 {
 	// Attempt to open if not yet opened
-	if (_fid == nullptr && open(false) < 0)
+	if (_fid == nullptr && open() < 0)
 	{
 		return -1;
 	}

@@ -24,9 +24,21 @@ public:
 	};
 
 	///
-	/// Constructs the LedDeviceLightpack
+	/// Constructs specific LedDevice
 	///
-	LedDeviceHyperionUsbasp(uint8_t writeLedsCommand);
+	/// @param deviceConfig json device config
+	///
+	LedDeviceHyperionUsbasp(const Json::Value &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -70,7 +82,7 @@ private:
 
 private:
 	/// command to write the leds
-	const uint8_t _writeLedsCommand;
+	uint8_t _writeLedsCommand;
 
 	/// libusb context
 	libusb_context * _libusbContext;
@@ -78,11 +90,8 @@ private:
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
 
-	/// Number of leds
-	int _ledCount;
-
 	/// Usb device identifiers
-	static uint16_t _usbVendorId;
-	static uint16_t _usbProductId;
+	static uint16_t     _usbVendorId;
+	static uint16_t     _usbProductId;
 	static std::string _usbProductDescription;
 };

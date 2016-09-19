@@ -11,22 +11,25 @@
 // hyperion local includes
 #include "LedDeviceP9813.h"
 
-LedDeviceP9813::LedDeviceP9813(const std::string& outputDevice, const unsigned baudrate) :
-	LedSpiDevice(outputDevice, baudrate, 0),
-	_ledCount(0)
+LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
+	: ProviderSpi(deviceConfig)
 {
-	// empty
+}
+
+LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceP9813(deviceConfig);
 }
 
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledCount != ledValues.size())
+	if (_ledCount != (signed)ledValues.size())
 	{
-		_ledBuf.resize(ledValues.size() * 4 + 8, 0x00);
+		_ledBuffer.resize(ledValues.size() * 4 + 8, 0x00);
 		_ledCount = ledValues.size();
 	}
 
-	uint8_t * dataPtr = _ledBuf.data();
+	uint8_t * dataPtr = _ledBuffer.data();
 	for (const ColorRgb & color : ledValues)
 	{
 		*dataPtr++ = calculateChecksum(color);
@@ -35,7 +38,7 @@ int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 		*dataPtr++ = color.red;
 	}
 
-	return writeBytes(_ledBuf.size(), _ledBuf.data());
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
 int LedDeviceP9813::switchOff()

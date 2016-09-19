@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <utils/Logger.h>
+
 // Linux includes
 #include <errno.h>
 #include <fcntl.h>
@@ -13,24 +13,30 @@
 #include <sys/types.h>
 
 // Local includes
+#include <utils/Logger.h>
 #include <grabber/AmlogicGrabber.h>
+
 
 // Flags copied from 'include/linux/amlogic/amports/amvideocap.h' at https://github.com/codesnake/linux-amlogic
 #define AMVIDEOCAP_IOC_MAGIC 'V'
 #define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH  _IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
 #define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT _IOW(AMVIDEOCAP_IOC_MAGIC, 0x03, int)
 
-// Flags copied from 'include/linux/amlogic/amports/amvstream.h' at https://github.com/codesnake/linux-amlogic
-#define AMSTREAM_IOC_MAGIC   'S'
-#define AMSTREAM_IOC_GET_VIDEO_DISABLE      _IOR(AMSTREAM_IOC_MAGIC,   0x48, unsigned long)
+#if HAVE_AML_HEADER
+	#include <amcodec/amports/amstream.h>
+#else
+	// Flags copied from 'include/linux/amlogic/amports/amvstream.h' at https://github.com/codesnake/linux-amlogic
+	#define AMSTREAM_IOC_MAGIC   'S'
+	#define AMSTREAM_IOC_GET_VIDEO_DISABLE   _IOR(AMSTREAM_IOC_MAGIC,   0x48, unsigned long)
+#endif
 
-AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
-	// Minimum required width or height is 160
-	_width(std::max(160u, width)),
-	_height(std::max(160u, height)),
-	_amlogicCaptureDev(-1)
+AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
+	: _width(std::max(160u, width))    // Minimum required width or height is 160
+	, _height(std::max(160u, height))
+	, _amlogicCaptureDev(-1)
+	, _log(Logger::getInstance("AMLOGICGRABBER"))
 {
-	Info(_log, "[%s] constructed(%s x %s)",__PRETTY_FUNCTION__,_width,_height);
+	Debug(_log, "constructed(%d x %d)",_width,_height);
 }
 
 AmlogicGrabber::~AmlogicGrabber()
@@ -39,7 +45,7 @@ AmlogicGrabber::~AmlogicGrabber()
 	{
 		if (close(_amlogicCaptureDev) == -1)
 		{
-			Error(_log, "[%s] Failed to close device (%s)",__PRETTY_FUNCTION__,errno);
+			Error(_log, "Failed to close device (%d - %s)", errno, strerror(errno));
 		}
 		_amlogicCaptureDev = -1;
 	}
@@ -69,7 +75,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	int video_fd = open(videoDevice.c_str(), O_RDONLY);
 	if (video_fd < 0)
 	{
-		Error(_log, "Failed to open video device(%s): %s",videoDevice.c_str(),strerror(errno));
+		Error(_log, "Failed to open video device(%s): %d - %s", videoDevice.c_str(), errno, strerror(errno));
 		return false;
 	}
 
@@ -77,7 +83,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	int videoDisabled;
 	if (ioctl(video_fd, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) == -1)
 	{
-		Error(_log, "Failed to retrieve video state from device: %s",strerror(errno));
+		Error(_log, "Failed to retrieve video state from device: %d - %s", errno, strerror(errno));
 		close(video_fd);
 		return false;
 	}
@@ -111,7 +117,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		// If the device is still not open, there is something wrong
 		if (_amlogicCaptureDev == -1)
 		{
-			Error(_log,"[%s] Failed to open the AMLOGIC device ():",__PRETTY_FUNCTION__,errno,strerror(errno));
+			Error(_log,"Failed to open the AMLOGIC device (%d - %s):", errno, strerror(errno));
 			return -1;
 		}
 	}
@@ -121,7 +127,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		ioctl(_amlogicCaptureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height) == -1)
 	{
 		// Failed to configure frame width
-		Error(_log,"[%s] Failed to configure capture size (%s)",__PRETTY_FUNCTION__,errno,strerror(errno));
+		Error(_log,"Failed to configure capture size (%d - %s)", errno, strerror(errno));
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -134,7 +140,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	const ssize_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
 	if (bytesRead == -1)
 	{
-		Error(_log,"[%s] Read of device failed (erno=%s): %s",__PRETTY_FUNCTION__,errno,strerror(errno));
+		Error(_log,"Read of device failed: %d - %s", errno, strerror(errno));
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;
@@ -142,7 +148,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	else if (bytesToRead != bytesRead)
 	{
 		// Read of snapshot failed
-		Error(_log,"[%s] Capture failed to grab entire image [bytesToRead(%s) != bytesRead(%s)]",__PRETTY_FUNCTION__,bytesToRead,bytesRead);
+		Error(_log,"Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", bytesToRead, bytesRead);
 		close(_amlogicCaptureDev);
 		_amlogicCaptureDev = -1;
 		return -1;

@@ -19,6 +19,8 @@ add_library(hyperion-utils
 	${CURRENT_SOURCE_DIR}/ColorRgbw.cpp
 	${CURRENT_HEADER_DIR}/Image.h
 	${CURRENT_HEADER_DIR}/Sleep.h
+	${CURRENT_HEADER_DIR}/FileUtils.h
+	${CURRENT_SOURCE_DIR}/FileUtils.cpp
 
 	${CURRENT_HEADER_DIR}/Logger.h
 	${CURRENT_SOURCE_DIR}/Logger.cpp
@@ -45,6 +47,10 @@ add_library(hyperion-utils
 	${CURRENT_HEADER_DIR}/jsonschema/JsonFactory.h
 	${CURRENT_HEADER_DIR}/jsonschema/JsonSchemaChecker.h
 	${CURRENT_SOURCE_DIR}/jsonschema/JsonSchemaChecker.cpp
+
+	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
+	${CURRENT_HEADER_DIR}/jsonschema/QJsonSchemaChecker.h
+	${CURRENT_SOURCE_DIR}/jsonschema/QJsonSchemaChecker.cpp
 )
 
 qt5_use_modules(hyperion-utils Core)

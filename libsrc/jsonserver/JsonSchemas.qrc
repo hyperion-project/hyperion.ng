@@ -11,5 +11,9 @@
         <file alias="schema-temperature">schema/schema-temperature.json</file>
         <file alias="schema-adjustment">schema/schema-adjustment.json</file>
         <file alias="schema-effect">schema/schema-effect.json</file>
+        <file alias="schema-sourceselect">schema/schema-sourceselect.json</file>
+        <file alias="schema-config">schema/schema-config.json</file>
+        <file alias="schema-componentstate">schema/schema-componentstate.json</file>
+        <file alias="schema-ledcolors">schema/schema-ledcolors.json</file>
     </qresource>
 </RCC>

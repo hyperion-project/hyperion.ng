@@ -11,13 +11,12 @@ uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
 std::string LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
 
 
-LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(uint8_t writeLedsCommand) :
-	LedDevice(),
-	_writeLedsCommand(writeLedsCommand),
-	_libusbContext(nullptr),
-	_deviceHandle(nullptr),
-	_ledCount(256)
+LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const Json::Value &deviceConfig)
+	: LedDevice()
+	, _libusbContext(nullptr)
+	, _deviceHandle(nullptr)
 {
+	setConfig(deviceConfig);
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
@@ -38,6 +37,25 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 	}
 }
 
+bool LedDeviceHyperionUsbasp::setConfig(const Json::Value &deviceConfig)
+{
+	std::string ledType = deviceConfig.get("output", "ws2801").asString();
+	if (ledType != "ws2801" && ledType != "ws2812")
+	{
+		throw std::runtime_error("HyperionUsbasp: invalid output; must be 'ws2801' or 'ws2812'.");
+	}
+
+	_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
+
+	return true;
+}
+
+LedDevice* LedDeviceHyperionUsbasp::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceHyperionUsbasp(deviceConfig);
+}
+
+
 int LedDeviceHyperionUsbasp::open()
 {
 	int error;
@@ -45,7 +63,7 @@ int LedDeviceHyperionUsbasp::open()
 	// initialize the usb context
 	if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
 	{
-		Error(_log, "Error while initializing USB context(%s):%s", error, libusb_error_name(error));
+		Error(_log, "Error while initializing USB context(%d):%s", error, libusb_error_name(error));
 		_libusbContext = nullptr;
 		return -1;
 	}
@@ -86,7 +104,7 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(_log, "Error while retrieving device descriptor(%s): %s", error, libusb_error_name(error));
+		Error(_log, "Error while retrieving device descriptor(%d): %s", error, libusb_error_name(error));
 		return -1;
 	}
 
@@ -99,7 +117,7 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 		int busNumber = libusb_get_bus_number(device);
 		int addressNumber = libusb_get_device_address(device);
 
-		Info(_log, "%s found: bus=%s address=%s", _usbProductDescription.c_str(), busNumber, addressNumber);
+		Info(_log, "%s found: bus=%d address=%d", _usbProductDescription.c_str(), busNumber, addressNumber);
 
 		try
 		{
@@ -110,7 +128,7 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 		catch(int e)
 		{
 			_deviceHandle = nullptr;
-			Error(_log, "Unable to open %s. Searching for other device(%s): %s", _usbProductDescription.c_str(), e, libusb_error_name(e));
+			Error(_log, "Unable to open %s. Searching for other device(%d): %s", _usbProductDescription.c_str(), e, libusb_error_name(e));
 		}
 	}
 
@@ -155,7 +173,7 @@ libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device
 	int error = libusb_open(device, &handle);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to open device(%s): %s",error,libusb_error_name(error));
+		Error(log, "unable to open device(%d): %s",error,libusb_error_name(error));
 		throw error;
 	}
 
@@ -165,7 +183,7 @@ libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device
 		error = libusb_detach_kernel_driver(handle, 0);
 		if (error != LIBUSB_SUCCESS)
 		{
-			Error(log, "unable to detach kernel driver(%s): %s",error,libusb_error_name(error));
+			Error(log, "unable to detach kernel driver(%d): %s",error,libusb_error_name(error));
 			libusb_close(handle);
 			throw error;
 		}
@@ -174,7 +192,7 @@ libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device
 	error = libusb_claim_interface(handle, 0);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to claim interface(%s): %s", error, libusb_error_name(error));
+		Error(log, "unable to claim interface(%d): %s", error, libusb_error_name(error));
 		libusb_attach_kernel_driver(handle, 0);
 		libusb_close(handle);
 		throw error;

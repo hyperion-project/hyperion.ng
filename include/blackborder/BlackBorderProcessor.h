@@ -3,6 +3,7 @@
 
 // Jsoncpp includes
 #include <json/json.h>
+
 // Local Hyperion includes
 #include "BlackBorderDetector.h"
 
@@ -34,6 +35,18 @@ namespace hyperion
 		BlackBorder getCurrentBorder() const;
 
 		///
+		/// Return activation state of black border detector
+		/// @return The current border
+		///
+		bool enabled() const;
+
+		///
+		/// Set activation state of black border detector
+		/// @param enable current state
+		///
+		void setEnabled(bool enable);
+
+		///
 		/// Processes the image. This performs detecion of black-border on the given image and
 		/// updates the current border accordingly. If the current border is updated the method call
 		/// will return true else false
@@ -47,6 +60,15 @@ namespace hyperion
 		{
 			// get the border for the single image
 			BlackBorder imageBorder;
+			if (!enabled())
+			{
+				imageBorder.horizontalSize = 0;
+				imageBorder.verticalSize = 0;
+				imageBorder.unknown=true;
+				_currentBorder = imageBorder;
+				return true;
+			}
+
 			if (_detectionMode == "default") {
 				imageBorder = _detector.process(image);
 			} else if (_detectionMode == "classic") {
@@ -68,7 +90,6 @@ namespace hyperion
 			return borderUpdated;
 		}
 
-
 	private:
 		///
 		/// Updates the current border based on the newly detected border. Returns true if the
@@ -79,6 +100,9 @@ namespace hyperion
 		///
 		bool updateBorder(const BlackBorder & newDetectedBorder);
 
+		/// flag for blackborder detector usage
+		bool _enabled;
+		
 		/// The number of unknown-borders detected before it becomes the current border
 		const unsigned _unknownSwitchCnt;
 
@@ -107,6 +131,5 @@ namespace hyperion
 		unsigned _consistentCnt;
 		/// The number of frame the previous detected border NOT matched the incomming border
 		unsigned _inconsistentCnt;
-
 	};
 } // end namespace hyperion

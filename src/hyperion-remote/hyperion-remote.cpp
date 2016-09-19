@@ -1,22 +1,19 @@
 // stl includes
 #include <clocale>
 #include <initializer_list>
+#include <limits>
 
 // Qt includes
 #include <QCoreApplication>
 #include <QLocale>
 
-// getoptPlusPLus includes
-#include <getoptPlusPlus/getoptpp.h>
-
 // hyperion-remote include
-#include "CustomParameter.h"
 #include "JsonConnection.h"
 
 #include "HyperionConfig.h"
+#include <commandline/Parser.h>
 
-
-using namespace vlofgren;
+using namespace commandline;
 
 /// Count the number of true values in a list of booleans
 int count(std::initializer_list<bool> values)
@@ -27,6 +24,17 @@ int count(std::initializer_list<bool> values)
 			count++;
 	}
 	return count;
+}
+
+void showHelp(Option & option){
+	QString shortOption;
+	QString longOption = QString("-%1").arg(option.names().last());
+
+	if(option.names().size() == 2){
+		shortOption = QString("-%1").arg(option.names().first());
+	}
+
+	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
 }
 
 int main(int argc, char * argv[])
@@ -44,200 +52,201 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		// some default settings
-		QString defaultServerAddress = "localhost:19444";
-		int defaultPriority = 100;
-
 		// create the option parser and initialize all parameters
-		OptionsParser optionParser("Simple application to send a command to hyperion using the Json interface");
-		ParameterSet & parameters = optionParser.getParameters();
-		StringParameter    & argAddress    = parameters.add<StringParameter>   ('a', "address"   , QString("Set the address of the hyperion server [default: %1]").arg(defaultServerAddress).toLatin1().constData());
-		IntParameter       & argPriority   = parameters.add<IntParameter>      ('p', "priority"  , QString("Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]").arg(defaultPriority).toLatin1().constData());
-		IntParameter       & argDuration   = parameters.add<IntParameter>      ('d', "duration"  , "Specify how long the leds should be switched on in millseconds [default: infinity]");
-		ColorParameter     & argColor      = parameters.add<ColorParameter>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex value or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
-		ImageParameter     & argImage      = parameters.add<ImageParameter>    ('i', "image"     , "Set the leds to the colors according to the given image file");
-        	StringParameter    & argEffect     = parameters.add<StringParameter>   ('e', "effect"    , "Enable the effect with the given name");
-		StringParameter    & argEffectArgs = parameters.add<StringParameter>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.");
-		SwitchParameter<>  & argServerInfo = parameters.add<SwitchParameter<> >('l', "list"      , "List server info and active effects with priority and duration");
-		SwitchParameter<>  & argClear      = parameters.add<SwitchParameter<> >('x', "clear"     , "Clear data for the priority channel provided by the -p option");
-		SwitchParameter<>  & argClearAll   = parameters.add<SwitchParameter<> >(0x0, "clearall"  , "Clear data for all active priority channels");
-		StringParameter    & argId         = parameters.add<StringParameter>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
-		DoubleParameter    & argSaturation = parameters.add<DoubleParameter>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
-		DoubleParameter    & argValue      = parameters.add<DoubleParameter>   ('v', "value"     , "!DEPRECATED! Will be removed soon! Set the HSV value gain of the leds");
-		DoubleParameter    & argSaturationL = parameters.add<DoubleParameter>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
-		DoubleParameter    & argLuminance  = parameters.add<DoubleParameter>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
-		DoubleParameter    & argLuminanceMin  = parameters.add<DoubleParameter>   ('n', "luminanceMin" , "Set the HSL luminance minimum of the leds (backlight)");
-		TransformParameter & argGamma      = parameters.add<TransformParameter>('g', "gamma"     , "Set the gamma of the leds (requires 3 space seperated values)");
-		TransformParameter & argThreshold  = parameters.add<TransformParameter>('t', "threshold" , "Set the threshold of the leds (requires 3 space seperated values between 0.0 and 1.0)");
-		TransformParameter & argBlacklevel = parameters.add<TransformParameter>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
-		TransformParameter & argWhitelevel = parameters.add<TransformParameter>('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires 3 space seperated values which are normally between 0.0 and 1.0)");
-		SwitchParameter<>  & argPrint      = parameters.add<SwitchParameter<> >(0x0, "print"     , "Print the json input and output messages on stdout");
-		SwitchParameter<>  & argHelp       = parameters.add<SwitchParameter<> >('h', "help"      , "Show this help message and exit");
-		StringParameter    & argIdC        = parameters.add<StringParameter>   ('y', "qualifier" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
-		CorrectionParameter & argCorrection  = parameters.add<CorrectionParameter>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires 3 space seperated values between 0 and 255)");
-		StringParameter    & argIdT        = parameters.add<StringParameter>   ('z', "qualifier" , "Identifier(qualifier) of the temperature correction to set");
-		CorrectionParameter & argTemperature  = parameters.add<CorrectionParameter>('Z', "temperature" , "Set the temperature correction of the leds (requires 3 space seperated values between 0 and 255)");
-		StringParameter    & argIdA         = parameters.add<StringParameter>   ('j', "qualifier" , "Identifier(qualifier) of the adjustment to set");
-		AdjustmentParameter & argRAdjust = parameters.add<AdjustmentParameter>('R', "redAdjustment" , "Set the adjustment of the red color (requires 3 space seperated values between 0 and 255)");
-		AdjustmentParameter & argGAdjust = parameters.add<AdjustmentParameter>('G', "greenAdjustment", "Set the adjustment of the green color (requires 3 space seperated values between 0 and 255)");
-		AdjustmentParameter & argBAdjust = parameters.add<AdjustmentParameter>('B', "blueAdjustment", "Set the adjustment of the blue color (requires 3 space seperated values between 0 and 255)");
+		Parser parser("Simple application to send a command to hyperion using the Json interface");
 
-		// set the default values
-		argAddress.setDefault(defaultServerAddress.toStdString());
-		argPriority.setDefault(defaultPriority);
-		argDuration.setDefault(-1);
-		argEffectArgs.setDefault("");
+        Option          & argAddress     = parser.add<Option>   ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
+		IntOption       & argPriority    = parser.add<IntOption>      ('p', "priority"  , "Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]", "100");
+		IntOption       & argDuration    = parser.add<IntOption>      ('d', "duration"  , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
+		ColorsOption    & argColor       = parser.add<ColorsOption>    ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
+		ImageOption     & argImage       = parser.add<ImageOption>    ('i', "image"     , "Set the leds to the colors according to the given image file");
+		Option    		& argEffect      = parser.add<Option>   ('e', "effect"    , "Enable the effect with the given name");
+		Option    		& argEffectArgs  = parser.add<Option>   (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
+		BooleanOption  	& argServerInfo  = parser.add<BooleanOption> ('l', "list"      , "List server info and active effects with priority and duration");
+		BooleanOption  	& argClear       = parser.add<BooleanOption> ('x', "clear"     , "Clear data for the priority channel provided by the -p option");
+		BooleanOption  	& argClearAll    = parser.add<BooleanOption> (0x0, "clearall"  , "Clear data for all active priority channels");
+		Option          & argEnableComponent  = parser.add<Option>   ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
+		Option          & argDisableComponent = parser.add<Option>   ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
+		Option          & argId          = parser.add<Option>   ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
+		DoubleOption    & argSaturation  = parser.add<DoubleOption>   ('s', "saturation", "!DEPRECATED! Will be removed soon! Set the HSV saturation gain of the leds");
+		DoubleOption    & argValue       = parser.add<DoubleOption>   ('v', "getColors"     , "!DEPRECATED! Will be removed soon! Set the HSV getColors gain of the leds");
+		DoubleOption    & argSaturationL = parser.add<DoubleOption>  ('u', "saturationL", "Set the HSL saturation gain of the leds");
+		DoubleOption    & argLuminance   = parser.add<DoubleOption>   ('m', "luminance" , "Set the HSL luminance gain of the leds");
+		DoubleOption    & argLuminanceMin= parser.add<DoubleOption>   ('n', "luminanceMin" , "Set the HSL luminance minimum of the leds (backlight)");
+		ColorOption     & argGamma       = parser.add<ColorOption>('g', "gamma"     , "Set the gamma of the leds (requires colors in hex format as RRGGBB)");
+		ColorOption     & argThreshold   = parser.add<ColorOption>('t', "threshold" , "Set the threshold of the leds (requires colors in hex format as RRGGBB)");
+		ColorOption     & argBlacklevel  = parser.add<ColorOption>('b', "blacklevel", "!DEPRECATED! Will be removed soon! Set the blacklevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
+		ColorOption     & argWhitelevel  = parser.add<ColorOption>('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
+		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
+		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
+		Option          & argIdC         = parser.add<Option>   ('y', "qualifier-c" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
+		ColorOption     & argCorrection = parser.add<ColorOption>('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires colors in hex format as RRGGBB)");
+		Option          & argIdT         = parser.add<Option>   ('z', "qualifier-t" , "Identifier(qualifier) of the temperature correction to set");
+		ColorOption     & argTemperature= parser.add<ColorOption>('Z', "temperature" , "Set the temperature correction of the leds (requires colors in hex format as RRGGBB)");
+		Option          & argIdA         = parser.add<Option>    ('j', "qualifier-a" , "Identifier(qualifier) of the adjustment to set");
+		ColorOption     & argRAdjust    = parser.add<ColorOption>('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argGAdjust    = parser.add<ColorOption>('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argBAdjust    = parser.add<ColorOption>('B', "blueAdjustment", "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
+		IntOption       & argSource      = parser.add<IntOption>      (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
+		BooleanOption    & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
+		BooleanOption    & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
+		BooleanOption    & argConfigGet   = parser.add<BooleanOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
+		Option    & argSchemaGet   = parser.add<Option>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
+		Option          & argConfigSet      = parser.add<Option>('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
+		Option    & argCreate       = parser.add<Option>(0x0, "createkeys", "Create non exist Json Entry(s) in the actual loaded configuration file. Argument to use in combination with configSet.");
+		Option    & argOverwriteConfig       = parser.add<Option>(0x0, "overwrite", "Overwrite the actual loaded configuration file with the Json object string from configSet. Argument to use in combination with configSet.");
 
-		// parse all options
-		optionParser.parse(argc, const_cast<const char **>(argv));
+		// parse all _options
+        parser.process(app);
 
 		// check if we need to display the usage. exit if we do.
-		if (argHelp.isSet())
+		if (parser.isSet(argHelp))
 		{
-			optionParser.usage();
-			return 0;
+            parser.showHelp(0);
 		}
 
 		// check if at least one of the available color transforms is set
-		bool colorTransform = argSaturation.isSet() || argValue.isSet() || argSaturationL.isSet() || argLuminance.isSet() || argLuminanceMin.isSet() || argThreshold.isSet() || argGamma.isSet() || argBlacklevel.isSet() || argWhitelevel.isSet();
-		bool colorAdjust = argRAdjust.isSet() || argGAdjust.isSet() || argBAdjust.isSet();
-		bool colorModding = colorTransform || colorAdjust || argCorrection.isSet() || argTemperature.isSet();
+		bool colorTransform = parser.isSet(argSaturation) || parser.isSet(argValue) || parser.isSet(argSaturationL) || parser.isSet(argLuminance) || parser.isSet(argLuminanceMin) || parser.isSet(argThreshold) || parser.isSet(argGamma) || parser.isSet(argBlacklevel) || parser.isSet(argWhitelevel);
+		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust);
+		bool colorModding = colorTransform || colorAdjust || parser.isSet(argCorrection) || parser.isSet(argTemperature);
 		
 		// check that exactly one command was given
-        int commandCount = count({argColor.isSet(), argImage.isSet(), argEffect.isSet(), argServerInfo.isSet(), argClear.isSet(), argClearAll.isSet(), colorModding});
+        int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet)});
 		if (commandCount != 1)
 		{
-			std::cerr << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:" << std::endl;
-			std::cerr << "  " << argColor.usageLine() << std::endl;
-			std::cerr << "  " << argImage.usageLine() << std::endl;
-            		std::cerr << "  " << argEffect.usageLine() << std::endl;
-			std::cerr << "  " << argServerInfo.usageLine() << std::endl;
-			std::cerr << "  " << argClear.usageLine() << std::endl;
-			std::cerr << "  " << argClearAll.usageLine() << std::endl;
-			std::cerr << "or one or more of the available color modding operations:" << std::endl;
-			std::cerr << "  " << argId.usageLine() << std::endl;
-			std::cerr << "  " << argSaturation.usageLine() << std::endl;
-			std::cerr << "  " << argValue.usageLine() << std::endl;
-			std::cerr << "  " << argSaturationL.usageLine() << std::endl;
-			std::cerr << "  " << argLuminance.usageLine() << std::endl;
-			std::cerr << "  " << argLuminanceMin.usageLine() << std::endl;
-			std::cerr << "  " << argThreshold.usageLine() << std::endl;
-			std::cerr << "  " << argGamma.usageLine() << std::endl;
-			std::cerr << "  " << argBlacklevel.usageLine() << std::endl;
-			std::cerr << "  " << argWhitelevel.usageLine() << std::endl;
-			std::cerr << "  " << argIdC.usageLine() << std::endl;
-			std::cerr << "  " << argCorrection.usageLine() << std::endl;
-			std::cerr << "  " << argIdT.usageLine() << std::endl;
-			std::cerr << "  " << argTemperature.usageLine() << std::endl;
-			std::cerr << "  " << argIdA.usageLine() << std::endl;
-			std::cerr << "  " << argRAdjust.usageLine() << std::endl;
-			std::cerr << "  " << argGAdjust.usageLine() << std::endl;
-			std::cerr << "  " << argBAdjust.usageLine() << std::endl;
+			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
+			showHelp(argColor);
+			showHelp(argImage);
+            showHelp(argEffect);
+			showHelp(argServerInfo);
+			showHelp(argClear);
+			showHelp(argClearAll);
+			showHelp(argEnableComponent);
+			showHelp(argDisableComponent);
+			showHelp(argSource);
+			showHelp(argSourceAuto);
+			showHelp(argConfigGet);
+			qWarning() << "or one or more of the available color modding operations:";
+			showHelp(argId);
+			showHelp(argSaturation);
+			showHelp(argValue);
+			showHelp(argSaturationL);
+			showHelp(argLuminance);
+			showHelp(argLuminanceMin);
+			showHelp(argThreshold);
+			showHelp(argGamma);
+			showHelp(argBlacklevel);
+			showHelp(argWhitelevel);
+			showHelp(argIdC);
+			showHelp(argCorrection);
+			showHelp(argIdT);
+			showHelp(argTemperature);
+			showHelp(argIdA);
+			showHelp(argRAdjust);
+			showHelp(argGAdjust);
+			showHelp(argBAdjust);
 			return 1;
 		}
 
 		// create the connection to the hyperion server
-		JsonConnection connection(argAddress.getValue(), argPrint.isSet());
+		JsonConnection connection(argAddress.value(parser), parser.isSet(argPrint));
 
 		// now execute the given command
-		if (argColor.isSet())
+		if (parser.isSet(argColor))
 		{
-			connection.setColor(argColor.getValue(), argPriority.getValue(), argDuration.getValue());
+            // TODO: make sure setColor accepts a QList<QColor>
+			connection.setColor(argColor.getColors(parser).toVector().toStdVector(), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
-		else if (argImage.isSet())
+		else if (parser.isSet(argImage))
 		{
-			connection.setImage(argImage.getValue(), argPriority.getValue(), argDuration.getValue());
+			connection.setImage(argImage.getImage(parser), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
-        	else if (argEffect.isSet())
-        	{
-        	 	connection.setEffect(argEffect.getValue(), argEffectArgs.getValue(), argPriority.getValue(), argDuration.getValue());
-        	}
-        	else if (argServerInfo.isSet())
+		else if (parser.isSet(argEffect))
+		{
+			connection.setEffect(argEffect.value(parser), argEffectArgs.value(parser), argPriority.getInt(parser), argDuration.getInt(parser));
+		}
+		else if (parser.isSet(argServerInfo))
 		{
 			QString info = connection.getServerInfo();
 			std::cout << "Server info:\n" << info.toStdString() << std::endl;
 		}
-		else if (argClear.isSet())
+		else if (parser.isSet(argClear))
 		{
-			connection.clear(argPriority.getValue());
+			connection.clear(argPriority.getInt(parser));
 		}
-		else if (argClearAll.isSet())
+		else if (parser.isSet(argClearAll))
 		{
 			connection.clearAll();
 		}
+		else if (parser.isSet(argEnableComponent))
+		{
+			connection.setComponentState(argEnableComponent.value(parser), true);
+		}
+		else if (parser.isSet(argDisableComponent))
+		{
+			connection.setComponentState(argDisableComponent.value(parser), false);
+		}
+		else if (parser.isSet(argSourceOff))
+		{
+			connection.setSource(std::numeric_limits<int>::max());
+		}
+		else if (parser.isSet(argSource))
+		{
+			connection.setSource(argSource.getInt(parser));
+		}
+		else if (parser.isSet(argSourceAuto))
+		{
+			connection.setSourceAutoSelect();
+		}
+		else if (parser.isSet(argConfigGet))
+		{
+			QString info = connection.getConfig("config");
+			std::cout << "Configuration:\n" << info.toStdString() << std::endl;
+		}
+		else if (parser.isSet(argSchemaGet))
+		{
+			QString info = connection.getConfig("schema");
+			std::cout << "Configuration Schema\n" << info.toStdString() << std::endl;
+		}
+		else if (parser.isSet(argConfigSet))
+		{
+			connection.setConfig(argConfigSet.value(parser), parser.isSet(argCreate), parser.isSet(argOverwriteConfig));
+		}
 		else if (colorModding)
 		{	
-			if (argCorrection.isSet())
+			if (parser.isSet(argCorrection))
 			{
-				std::string corrId;
-				ColorCorrectionValues correction;
-
-				if (argIdC.isSet())	corrId    = argIdC.getValue();
-				if (argCorrection.isSet())  correction = argCorrection.getValue();
-
-				connection.setTemperature(
-						argIdC.isSet()		? &corrId : nullptr,
-						argCorrection.isSet()   ? &correction  : nullptr);
+				connection.setTemperature(argIdC.value(parser), argCorrection.getColor(parser));
 			}
 	
-			if (argTemperature.isSet())
+			if (parser.isSet(argTemperature))
 			{
-				std::string tempId;
-				ColorCorrectionValues temperature;
-
-				if (argIdT.isSet())	tempId    = argIdT.getValue();
-				if (argTemperature.isSet())  temperature = argTemperature.getValue();
-			
-				connection.setTemperature(
-						argIdT.isSet()		? &tempId : nullptr,
-						argTemperature.isSet()  ? &temperature  : nullptr);
+				connection.setTemperature(argIdT.value(parser), argTemperature.getColor(parser));
 			}
 			
 			if (colorAdjust)
 			{
-				std::string adjustId;
-				ColorAdjustmentValues redChannel, greenChannel, blueChannel;
-
-				if (argIdA.isSet())			adjustId    = argIdA.getValue();
-				if (argRAdjust.isSet())  	redChannel  = argRAdjust.getValue();
-				if (argGAdjust.isSet())		greenChannel = argGAdjust.getValue();
-				if (argBAdjust.isSet()) 	blueChannel = argBAdjust.getValue();
-			
 				connection.setAdjustment(
-						argIdA.isSet()		? &adjustId    : nullptr,
-						argRAdjust.isSet()	? &redChannel  : nullptr,
-						argGAdjust.isSet()	? &greenChannel : nullptr,
-						argBAdjust.isSet()	? &blueChannel : nullptr);		
-				
+                    argIdA.value(parser),
+					argRAdjust.getColor(parser),
+					argGAdjust.getColor(parser),
+					argBAdjust.getColor(parser)
+				);
+
 			}
 			if (colorTransform)
 			{
-				std::string transId;
-				double saturation, value, saturationL, luminance, luminanceMin;
-				ColorTransformValues threshold, gamma, blacklevel, whitelevel;
-
-				if (argId.isSet())         transId    = argId.getValue();
-				if (argSaturation.isSet()) saturation = argSaturation.getValue();
-				if (argValue.isSet())      value      = argValue.getValue();
-				if (argSaturationL.isSet()) saturationL = argSaturationL.getValue();
-				if (argLuminance.isSet())  luminance      = argLuminance.getValue();
-				if (argLuminanceMin.isSet())  luminanceMin = argLuminanceMin.getValue();
-				if (argThreshold.isSet())  threshold  = argThreshold.getValue();
-				if (argGamma.isSet())      gamma      = argGamma.getValue();
-				if (argBlacklevel.isSet()) blacklevel = argBlacklevel.getValue();
-				if (argWhitelevel.isSet()) whitelevel = argWhitelevel.getValue();
-			
 				connection.setTransform(
-						argId.isSet()         ? &transId    : nullptr,
-						argSaturation.isSet() ? &saturation : nullptr,
-						argValue.isSet()      ? &value      : nullptr,
-						argSaturationL.isSet() ? &saturationL : nullptr,
-						argLuminance.isSet()  ? &luminance  : nullptr,
-						argLuminanceMin.isSet() ? &luminanceMin  : nullptr,
-						argThreshold.isSet()  ? &threshold  : nullptr,
-						argGamma.isSet()      ? &gamma      : nullptr,
-						argBlacklevel.isSet() ? &blacklevel : nullptr,
-						argWhitelevel.isSet() ? &whitelevel : nullptr);
+                    argId.value(parser),
+					argSaturation.getDoublePtr(parser),
+					argValue.getDoublePtr(parser),
+                    argSaturationL.getDoublePtr(parser),
+					argLuminance.getDoublePtr(parser),
+					argLuminanceMin.getDoublePtr(parser),
+					argThreshold.getColor(parser),
+					argGamma.getColor(parser),
+					argBlacklevel.getColor(parser),
+					argWhitelevel.getColor(parser));
 			}
 		}
 	}

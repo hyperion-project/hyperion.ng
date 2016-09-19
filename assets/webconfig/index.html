@@ -1,69 +1,270 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html lang="en">
+
 <head>
-    <title>Hyperion remote control</title>
-    <meta charset="utf-8"/>
-    <meta name="format-detection" content="telephone=no"/>
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width"/>
-    <link href="css/index.css" rel="stylesheet">
-    <link rel="apple-touch-icon" href="res/icon_128.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+
+	<title>Hyperion - WebUI</title>
+
+	<!-- jQuery -->
+	<script src="js/lib/jquery.min.js"></script>
+
+	<!-- Hyperion -->
+	<script src="js/hyperion.js"></script>
+	<script src="js/ui_utils.js"></script>
+
+	<!-- textarea --> 
+	<script src="js/lib/jquery-linedtextarea.js"></script>
+	<link href="css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	
+	<!-- Colorpicker -->
+	<script src="js/lib/bootstrap-colorpicker.min.js"></script>
+	<link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+
+	<!-- Bootstrap Switch -->
+	<script src="js/lib/bootstrap-switch.min.js"></script>
+	<link href="css/bootstrap-switch.min.css" rel="stylesheet">
+
+	<!-- JSONForm -->
+	<script src="js/lib/jsoneditor.js"></script>
+
+	<!--Language Support -->
+	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
+	<script src="js/lib/js.cookie.js"></script>
+
+	<script type="text/javascript">
+		// Create language switcher instance
+		var lang = new Lang();
+		lang.dynamic('de', 'lang/de.json');
+		lang.init({
+			defaultLang: 'en',
+			cookie: {
+				name: 'langCookie',
+				expiry: 365,
+				path: '/'
+			},
+			allowCookieOverride: true
+		});
+	</script>
+
+
+	<!-- Bootstrap Core CSS -->
+	<link href="css/bootstrap.css" rel="stylesheet">
+
+	<!-- Flags -->
+	<link href="css/flag-icon.min.css" rel="stylesheet">
+
+	<!-- MetisMenu CSS -->
+	<link href="css/metisMenu.css" rel="stylesheet">
+
+	<!-- Custom CSS -->
+	<link href="css/sb-admin-2.css" rel="stylesheet">
+
+	<link href="css/hyperion.css" rel="stylesheet">
+
+	<!-- Custom Fonts -->
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
 </head>
+
 <body>
-<div id="app">
-    <div class="work">
-        <div class="container">
-            <div id="color" class="contentarea">
-                <div id="colorpicker">
-                    <img id="colorwheelbg" src="res/colorwheel.png" width="auto" height="90%"/>
-                    <div id="pointer"></div>
-                    <div class="touchrect"></div>
-                </div>
-                <div class="slider" id="brightness">
-                    <div class="track"></div>
-                    <div class="thumb"></div>
-                </div>
-                <div id="buttonctrl">
-                    <div class="icon" id="clear_button">&#xe807;</div>
-                    <input type="text" class="value" autocomplete="off" autocorrect="off" autocapitalize="off"/>
-                    <div class="icon" id="clearall_button">&#xe617;</div>
-                </div>
-            </div>
-            <div id="effects" class="contentarea">
-                <label class="info">Need server connection to fetch list.</label>
-                <ul></ul>
-            </div>
-            <div id="transform" class="contentarea">
-                <label class="info">Need server connection to fetch list.</label>
-                <div class="values"></div>
-            </div>
-            <div id="settings" class="contentarea">
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        <div class="button selected" id="colorButton" data-area="color">
-            <div class="icon">&#xe800;</div>
-            <div class="title">Color</div>
-            <div class="touchrect"></div>
-        </div>
-        <div class="button" id="effectsButton" data-area="effects">
-            <div class="icon">&#xe602;</div>
-            <div class="title">Effects</div>
-            <div class="touchrect"></div>
-        </div>
-        <div class="button" id="thresholdButton" data-area="transform">
-            <div class="icon">&#xe601;</div>
-            <div class="title">Transform</div>
-            <div class="touchrect"></div>
-        </div>
-        <div class="button" id="settingsButton" data-area="settings">
-            <div class="icon">&#x6e;</div>
-            <div class="title">Settings</div>
-            <div class="touchrect"></div>
-        </div>
-    </div>
-</div>
-<script src="js/vendor/require.js" data-main="js/app/main"></script>
+	<div id="loading_overlay"></div>
+	<div id="wrapper">
+
+		<!-- Navigation -->
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+
+				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
+
+			</div>
+			<!-- /.navbar-header -->
+
+			<ul class="nav navbar-top-links navbar-right">
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-globe fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-language">
+						<li>
+							<a href="#lang-en" onclick="window.lang.change('en'); return false;"><span lang="en" class="flag-icon flag-icon-gb" data-lang-token="general_speech_en">&emsp; English</span></a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#lang-de" onclick="window.lang.change('de'); return false;"><span lang="en" class="flag-icon flag-icon-de" data-lang-token="general_speech_de">&emsp; German</span></a>
+						</li>
+					</ul>
+					<!-- /.dropdown-language -->
+				</li>
+				<!-- /.dropdown -->
+				</li>
+				<!-- /.dropdown -->
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-bell fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-alerts">
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-comment fa-fw"></i> New Comment
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-twitter fa-fw"></i> 3 New Followers
+									<span class="pull-right text-muted small">12 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-envelope fa-fw"></i> Message Sent
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-tasks fa-fw"></i> New Task
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a href="#">
+								<div>
+									<i class="fa fa-upload fa-fw"></i> Server Rebooted
+									<span class="pull-right text-muted small">4 minutes ago</span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li>
+							<a class="text-center" href="#">
+								<strong>See All Alerts</strong>
+								<i class="fa fa-angle-right"></i>
+							</a>
+						</li>
+					</ul>
+					<!-- /.dropdown-alerts -->
+				</li>
+				<!-- /.dropdown -->
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-user">
+						<li><a href="#"><i class="fa fa-user fa-fw"></i>User Profile</a>
+						</li>
+						<li><a href="#"><i class="fa fa-gear fa-fw"></i>Settings</a>
+						</li>
+						<li class="divider"></li>
+						<li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
+						</li>
+					</ul>
+					<!-- /.dropdown-user -->
+				</li>
+				<!-- /.dropdown -->
+			</ul>
+			<!-- /.navbar-top-left -->
+
+			<div class="navbar-default sidebar" role="navigation">
+				<div class="sidebar-nav navbar-collapse">
+					<ul class="nav" id="side-menu">
+						<li> <a class="active" id="load_dashboard"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></a> </li>
+						<li>
+							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-wrench fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
+								<li> <a class="inactive" id="load_confGrabber"><i class="fa fa-camera fa-fw"></i><span lang="en" data-lang-token="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">KODI Connector</span></a> </li>
+							</ul>
+						</li>
+						<li> <a class="inactive" id="load_remote"><i class="fa fa-wifi fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
+						<li> <a class="inactive" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a> </li>
+						<li>
+							<a class="inactive"><i class="fa fa-industry fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+								<li> <a class="inactive" id="load_update"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></a> </li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<!-- /.sidebar-collapse -->
+			</div>
+			<!-- /.navbar-static-side -->
+		</nav>
+
+		<!-- Page Content -->
+		<div id="page-wrapper" style="padding-top:10px">
+			<div id="hyperion_restart_notify" class="alert alert-warning" style="display:none;padding:10px;margin:0">
+			<div class="panel-danger" style="text-align:right">
+				<div style="float:left">Hyperion Configuration is modified. To make it active, restart Hyperion.</div>
+				<button id="btn_hyperion_restart" class="btn btn-danger">Restart Hyperion</button>
+			</div>
+		</div>
+
+		<div id="page-content" />
+		</div>
+
+	</div>
+	<!-- /#wrapper -->
+
+	<div id="container_connection_lost" style="display:none"></div>
+
+	<div id="error_dialog" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" />
+				</div>
+			<div class="modal-body" />
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Okay!</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bootstrap Core JavaScript -->
+	<script src="/js/lib/bootstrap.min.js"></script>
+
+	<!-- Metis Menu Plugin JavaScript -->
+	<script src="/js/lib/metisMenu.min.js"></script>
+
+	<!-- Custom Theme JavaScript -->
+	<script src="/js/lib/sb-admin-2.js"></script>
+
+	<script src="/js/content_index.js"></script>
 </body>
+
 </html>

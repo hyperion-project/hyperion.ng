@@ -9,17 +9,13 @@
 static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 
-LedDeviceTinkerforge::LedDeviceTinkerforge(const std::string & host, uint16_t port, const std::string & uid, const unsigned interval) :
-		LedDevice(),
-		_host(host),
-		_port(port),
-		_uid(uid),
-		_interval(interval),
-		_ipConnection(nullptr),
-		_ledStrip(nullptr),
-		_colorChannelSize(0)
+LedDeviceTinkerforge::LedDeviceTinkerforge(const Json::Value &deviceConfig)
+		: LedDevice()
+		, _ipConnection(nullptr)
+		, _ledStrip(nullptr)
+		, _colorChannelSize(0)
 {
-	// empty
+	setConfig(deviceConfig);
 }
 
 LedDeviceTinkerforge::~LedDeviceTinkerforge()
@@ -33,6 +29,21 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 	// Clean up claimed resources
 	delete _ipConnection;
 	delete _ledStrip;
+}
+
+bool LedDeviceTinkerforge::setConfig(const Json::Value &deviceConfig)
+{
+	_host     = deviceConfig.get("output", "127.0.0.1").asString();
+	_port     = deviceConfig.get("port", 4223).asInt();
+	_uid      = deviceConfig["uid"].asString();
+	_interval = deviceConfig["rate"].asInt();
+
+	return true;
+}
+
+LedDevice* LedDeviceTinkerforge::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceTinkerforge(deviceConfig);
 }
 
 int LedDeviceTinkerforge::open()

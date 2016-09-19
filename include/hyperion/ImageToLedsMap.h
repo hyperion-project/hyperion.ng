@@ -56,6 +56,9 @@ namespace hyperion
 		///
 		unsigned height() const;
 
+		const unsigned horizontalBorder() const { return _horizontalBorder; };
+		const unsigned verticalBorder() const { return _verticalBorder; };
+		
 		///
 		/// Determines the mean-color for each led using the mapping the image given
 		/// at construction.
@@ -99,6 +102,11 @@ namespace hyperion
 		const unsigned _width;
 		/// The height of the indexed image
 		const unsigned _height;
+		
+		const unsigned _horizontalBorder;
+		
+		const unsigned _verticalBorder;
+		
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<unsigned>> mColorsMap;
 

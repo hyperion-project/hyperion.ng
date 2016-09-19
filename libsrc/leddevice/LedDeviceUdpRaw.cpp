@@ -11,18 +11,30 @@
 // hyperion local includes
 #include "LedDeviceUdpRaw.h"
 
-LedDeviceUdpRaw::LedDeviceUdpRaw(const std::string& outputDevice, const unsigned baudrate, const unsigned latchTime) :
-	LedUdpDevice(outputDevice, baudrate, latchTime),
-	mLedCount(0)
+LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
+	: ProviderUdp(deviceConfig)
 {
-	// empty
+	setConfig(deviceConfig);
+}
+
+bool LedDeviceUdpRaw::setConfig(const Json::Value &deviceConfig)
+{
+	ProviderUdp::setConfig(deviceConfig);
+	_LatchTime_ns = deviceConfig.get("latchtime",500000).asInt();
+
+	return true;
+}
+
+LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
+{
+	return new LedDeviceUdpRaw(deviceConfig);
 }
 
 int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 {
-	mLedCount = ledValues.size();
+	_ledCount = ledValues.size();
 
-	const unsigned dataLen = ledValues.size() * sizeof(ColorRgb);
+	const unsigned dataLen = _ledCount * sizeof(ColorRgb);
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(dataLen, dataPtr);
@@ -30,5 +42,5 @@ int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceUdpRaw::switchOff()
 {
-	return write(std::vector<ColorRgb>(mLedCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

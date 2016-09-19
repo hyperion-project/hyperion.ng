@@ -14,23 +14,31 @@ class LedDevicePiBlaster : public LedDevice
 {
 public:
 	///
-	/// Constructs the PiBlaster device which writes to the indicated device and for the assigned
-	/// channels
-	/// @param deviceName The name of the output device
-	/// @param gpioMapping The RGB-Channel assignment json object
+	/// Constructs specific LedDevice
 	///
-	LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping);
+	/// @param deviceConfig json device config
+	///
+	LedDevicePiBlaster(const Json::Value &deviceConfig);
 
 	virtual ~LedDevicePiBlaster();
 
 	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
+	
+	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
 	/// and the device is available.
 	///
-	/// @param report If true errors are writen to the standard error else silent
 	/// @return Zero on succes else negative
 	///
-	int open(bool report = true);
+	int open();
 
 	///
 	/// Writes the colors to the PiBlaster device
@@ -51,7 +59,7 @@ public:
 private:
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
-	const std::string _deviceName;
+	std::string _deviceName;
 
 	int _gpio_to_led[64];
 	char _gpio_to_color[64];

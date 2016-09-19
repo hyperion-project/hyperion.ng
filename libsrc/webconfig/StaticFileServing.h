@@ -11,6 +11,8 @@
 #include "CgiHandler.h"
 
 #include <hyperion/Hyperion.h>
+#include <utils/Logger.h>
+
 
 class StaticFileServing : public QObject {
     Q_OBJECT
@@ -31,6 +33,8 @@ private:
 	QtHttpServer  * _server;
 	QMimeDatabase * _mimeDb;
 	CgiHandler      _cgi;
+	Logger        * _log;
+
 };
 
 #endif // STATICFILESERVING_H

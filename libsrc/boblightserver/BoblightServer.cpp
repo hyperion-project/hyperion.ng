@@ -5,6 +5,8 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
+using namespace hyperion;
+
 BoblightServer::BoblightServer(const int priority, uint16_t port)
 	: QObject()
 	, _hyperion(Hyperion::getInstance())
@@ -37,6 +39,8 @@ void BoblightServer::start()
 
 	_isActive = true;
 	emit statusChanged(_isActive);
+
+	_hyperion->registerPriority("Boblight", _priority);
 }
 
 void BoblightServer::stop()
@@ -47,10 +51,27 @@ void BoblightServer::stop()
 	foreach (BoblightClientConnection * connection, _openConnections) {
 		delete connection;
 	}
+	_server.close();
 	_isActive = false;
 	emit statusChanged(_isActive);
+
+	_hyperion->unRegisterPriority("Boblight");
+
 }
 
+void BoblightServer::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_BOBLIGHTSERVER)
+	{
+		if (_isActive != enable)
+		{
+			if (enable) start();
+			else        stop();
+			Info(_log, "change state to %s", (_isActive ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, _isActive);
+	}
+}
 
 uint16_t BoblightServer::getPort() const
 {
@@ -64,7 +85,7 @@ void BoblightServer::newConnection()
 	if (socket != nullptr)
 	{
 		Info(_log, "new connection");
-		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority, _hyperion);
+		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

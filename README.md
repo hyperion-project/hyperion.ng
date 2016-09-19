@@ -1,7 +1,9 @@
 HYPERION
 ========
 
-This is a (alpha) development branch for the next major version of hyperion
+This is a pre alpha development repository for the next major version of hyperion
+
+Feel free to join us! We are looking always for people who wants to participate.
 
 
 Current new deps (libs)

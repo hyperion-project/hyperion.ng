@@ -32,7 +32,8 @@ public:
  *
  * @author RickDB (github)
  */
-class LedDeviceAtmoOrb : public QObject, public LedDevice {
+class LedDeviceAtmoOrb : public LedDevice
+{
 	Q_OBJECT
 public:
 	// Last send color map
@@ -44,26 +45,21 @@ public:
 	bool joinedMulticastgroup;
 
 	///
-	/// Constructs the device.
+	/// Constructs specific LedDevice
 	///
-	/// @param output is the multicast address of Orbs
+	/// @param deviceConfig json device config
 	///
-	/// @param transitiontime is optional and not used at the moment
-	///
-	/// @param useOrbSmoothing use Orbs own (external) smoothing algorithm (default: false)
-	///
-	/// @param skipSmoothingDiff  minimal color (0-255) difference to override smoothing so that if current and previously received colors are higher than set dif we override smoothing
-	///
-	/// @param port is the multicast port.
-	///
-	/// @param numLeds is the total amount of leds per Orb
-	///
-	/// @param array containing orb ids
-	///
-	LedDeviceAtmoOrb(const std::string &output, bool useOrbSmoothing =
-	false, int transitiontime = 0, int skipSmoothingDiff = 0, int port = 49692, int numLeds = 24,
-					 std::vector<unsigned int> orbIds = std::vector < unsigned int>());
+	LedDeviceAtmoOrb(const Json::Value &deviceConfig);
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 	///
 	/// Destructor of this device
 	///
@@ -73,7 +69,6 @@ public:
 	/// Sends the given led-color values to the Orbs
 	///
 	/// @param ledValues The color-value per led
-	///
 	/// @return Zero on success else negative
 	///
 	virtual int write(const std::vector <ColorRgb> &ledValues);
@@ -82,43 +77,40 @@ public:
 
 private:
 	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager *manager;
+	QNetworkAccessManager *_manager;
 
 	/// String containing multicast group IP address
-	QString multicastGroup;
+	QString _multicastGroup;
 
 	/// use Orbs own (external) smoothing algorithm
-	bool useOrbSmoothing;
+	bool _useOrbSmoothing;
 
 	/// Transition time between colors (not implemented)
-	int transitiontime;
+	int _transitiontime;
 
 	// Maximum allowed color difference, will skip Orb (external) smoothing once reached
-	int skipSmoothingDiff;
+	int _skipSmoothingDiff;
 
 	/// Multicast port to send data to
-	int multiCastGroupPort;
+	int _multiCastGroupPort;
 
 	/// Number of leds in Orb, used to determine buffer size
-	int numLeds;
+	int _numLeds;
 
 	/// QHostAddress object of multicast group IP address
-	QHostAddress groupAddress;
+	QHostAddress _groupAddress;
 
 	/// QUdpSocket object used to send data over
-	QUdpSocket *udpSocket;
+	QUdpSocket * _udpSocket;
 
 	/// Array of the orb ids.
-	std::vector<unsigned int> orbIds;
+	std::vector<unsigned int> _orbIds;
 
 	///
 	/// Set Orbcolor
 	///
 	/// @param orbId the orb id
-	///
 	/// @param color which color to set
-	///
-	///
 	/// @param commandType which type of command to send (off / smoothing / etc..)
 	///
 	void setColor(unsigned int orbId, const ColorRgb &color, int commandType);

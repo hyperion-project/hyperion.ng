@@ -7,20 +7,25 @@
 #include <QTimer>
 
 // hyperion include
-#include "LedHIDDevice.h"
+#include "ProviderHID.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to an RawHID led device.
 ///
-class LedDeviceRawHID : public LedHIDDevice
+class LedDeviceRawHID : public ProviderHID
 {
 	Q_OBJECT
 
 public:
 	///
-	/// Constructs the LedDevice for attached RawHID device
+	/// Constructs specific LedDevice
 	///
-	LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms);
+	/// @param deviceConfig json device config
+	///
+	LedDeviceRawHID(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -38,9 +43,6 @@ private slots:
 	void rewriteLeds();
 
 private:
-	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
-
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// The RawHID device will switch off when it does not receive data at least
 	/// every 15 seconds

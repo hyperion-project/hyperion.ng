@@ -1,4 +1,5 @@
-#include "utils/Logger.h"
+#include <utils/Logger.h>
+#include <utils/FileUtils.h>
 
 #include <iostream>
 #include <algorithm>
@@ -7,11 +8,6 @@
 #include <QFileInfo>
 #include <QString>
 
-std::string getBaseName( std::string sourceFile)
-{
-	QFileInfo fi( sourceFile.c_str() );
-	return fi.fileName().toStdString();
-}
 
 static const char * LogLevelStrings[] = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
 static const int    LogLevelSysLog[]  = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
@@ -93,17 +89,18 @@ Logger::Logger ( std::string name, LogLevel minLevel ):
 	_loggerId(loggerId++)
 {
 #ifdef __GLIBC__
-	_appname = std::string(program_invocation_short_name);
+    const char* _appname_char = program_invocation_short_name;
 #else
-	_appname = std::string(getprogname());
+    const char* _appname_char = getprogname();
 #endif
+	_appname = std::string(_appname_char);
 	std::transform(_appname.begin(), _appname.end(),_appname.begin(), ::toupper);
 
 	loggerCount++;
 
 	if (_syslogEnabled && loggerCount == 1 )
 	{
-		openlog (program_invocation_short_name, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+		openlog (_appname_char, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 	}
 }
 
@@ -122,18 +119,18 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	  || (GLOBAL_MIN_LOG_LEVEL > Logger::UNSET && level < GLOBAL_MIN_LOG_LEVEL) ) // global level set, use global level
 		return;
 
-
-	char msg[512];
+	const size_t max_msg_length = 1024;
+	char msg[max_msg_length];
 	va_list args;
 	va_start (args, fmt);
-	vsprintf (msg,fmt, args);
+	vsnprintf (msg, max_msg_length, fmt, args);
 	va_end (args);
 
 	std::string location;
 	std::string function(func);
 	if ( level == Logger::DEBUG )
 	{
-		location = "<" + getBaseName(sourceFile) + ":" + QString::number(line).toStdString()+":"+ function + "()> ";
+		location = "<" + FileUtils::getBaseName(sourceFile) + ":" + QString::number(line).toStdString()+":"+ function + "()> ";
 	}
 	
 	std::cout

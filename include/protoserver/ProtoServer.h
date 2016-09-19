@@ -17,6 +17,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
+#include <utils/Logger.h>
 
 // forward decl
 class ProtoClientConnection;
@@ -51,10 +52,11 @@ public:
 
 public slots:
 	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	///
-	/// Forwarding XBMC Checker
+	/// Forwarding KODI Checker
 	///
 	void grabbingMode(const GrabbingMode mode);
 	void videoMode(const VideoMode VideoMode);
@@ -87,4 +89,9 @@ private:
 	/// Hyperion proto connection object for forwarding
 	QList<ProtoConnection*> _proxy_connections;
 
+	/// Logger instance
+	Logger * _log;
+	
+	/// flag if forwarder is enabled
+	bool _forwarder_enabled;
 };

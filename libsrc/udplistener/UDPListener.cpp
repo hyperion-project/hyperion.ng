@@ -10,25 +10,27 @@
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
-UDPListener::UDPListener(const int priority, const int timeout, const std::string& address, quint16 listenPort, bool shared) :
+using namespace hyperion;
+
+UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
 	QObject(),
 	_hyperion(Hyperion::getInstance()),
 	_server(),
 	_openConnections(),
 	_priority(priority),
 	_timeout(timeout),
-	_ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK),
 	_log(Logger::getInstance("UDPLISTENER")),
 	_isActive(false),
+	_listenPort(listenPort),
 	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
 {
 	_server = new QUdpSocket(this);
-	QHostAddress listenAddress = address.empty() 
-	                           ? QHostAddress::AnyIPv4 
-	                           : QHostAddress( QString::fromStdString(address) );
+	_listenAddress = address.isEmpty()? QHostAddress::AnyIPv4 : QHostAddress(address);
 
 	// Set trigger for incoming connections
 	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
+
+	_hyperion->registerPriority("UDPLISTENER", _priority);
 }
 
 UDPListener::~UDPListener()
@@ -77,6 +79,19 @@ void UDPListener::stop()
 	emit statusChanged(_isActive);
 }
 
+void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_UDPLISTENER)
+	{
+		if (_isActive != enable)
+		{
+			if (enable) start();
+			else        stop();
+			Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, enable);
+	}
+}
 
 uint16_t UDPListener::getPort() const
 {
@@ -92,8 +107,7 @@ void UDPListener::readPendingDatagrams()
 		QHostAddress sender;
 		quint16 senderPort;
 
-		_server->readDatagram(datagram.data(), datagram.size(),
-					&sender, &senderPort);
+		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
 		processTheDatagram(&datagram);
 
@@ -103,11 +117,13 @@ void UDPListener::readPendingDatagrams()
 
 void UDPListener::processTheDatagram(const QByteArray * datagram)
 {
-	int packlen = datagram->size()/3;
-	int ledlen = _ledColors.size();
-	int maxled = std::min(packlen , ledlen);
+	int packetLedCount = datagram->size()/3;
+	int hyperionLedCount = Hyperion::getInstance()->getLedCount();
+	DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
 
-	for (int ledIndex=0; ledIndex < maxled; ledIndex++) {
+        std::vector<ColorRgb> _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK);
+
+	for (int ledIndex=0; ledIndex < std::min(packetLedCount, hyperionLedCount);  ledIndex++) {
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);

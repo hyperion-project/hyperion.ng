@@ -7,6 +7,7 @@
 
 // Qt includes
 #include <QDateTime>
+#include <QFile>
 
 // effect engin eincludes
 #include "Effect.h"
@@ -50,26 +51,28 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args) :
-	QThread(),
-	_mainThreadState(mainThreadState),
-	_priority(priority),
-	_timeout(timeout),
-	_script(script),
-	_args(args),
-	_endTime(-1),
-	_interpreterThreadState(nullptr),
-	_abortRequested(false),
-	_imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor()),
-	_colors()
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const Json::Value & args)
+	: QThread()
+	, _mainThreadState(mainThreadState)
+	, _priority(priority)
+	, _timeout(timeout)
+	, _script(script)
+	, _name(name)
+	, _args(args)
+	, _endTime(-1)
+	, _interpreterThreadState(nullptr)
+	, _abortRequested(false)
+	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	, _colors()
 {
 	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
 
 	// disable the black border detector for effects
-	_imageProcessor->enableBalckBorderDetector(false);
+	_imageProcessor->enableBlackBorderDetector(false);
 
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
+	Q_INIT_RESOURCE(EffectEngine);
 }
 
 Effect::~Effect()
@@ -106,16 +109,22 @@ void Effect::run()
 	}
 
 	// Run the effect script
-	FILE* file = fopen(_script.c_str(), "r");
-	if (file != nullptr)
+	QFile file (_script);
+	QByteArray python_code;
+	if (file.open(QIODevice::ReadOnly))
 	{
-		PyRun_SimpleFile(file, _script.c_str());
+		python_code = file.readAll();
 	}
 	else
 	{
-		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s", _script.c_str());
+		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s", _script.toUtf8().constData());
 	}
-	fclose(file);
+	file.close();
+
+	if (!python_code.isEmpty())
+	{
+		PyRun_SimpleString(python_code.constData());
+	}
 
 	// Clean up the thread state
 	Py_EndInterpreter(_interpreterThreadState);

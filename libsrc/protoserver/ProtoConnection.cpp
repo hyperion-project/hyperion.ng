@@ -10,8 +10,9 @@
 ProtoConnection::ProtoConnection(const std::string & a) :
 	_socket(),
 	_skipReply(false),
-	_prevSocketState(QAbstractSocket::UnconnectedState)
-{
+	_prevSocketState(QAbstractSocket::UnconnectedState),
+	_log(Logger::getInstance("PROTOCONNECTION"))
+	{
 	QString address(a.c_str());
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
@@ -28,7 +29,7 @@ ProtoConnection::ProtoConnection(const std::string & a) :
 	}
 
 	// try to connect to host
-	std::cout << "PROTOCONNECTION INFO: Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+	Info(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 	connectToHost();
 
 	// start the connection timer
@@ -74,7 +75,7 @@ void ProtoConnection::readData()
 	
 	if (!reply.ParseFromArray(_receiveBuffer.data() + 4, messageSize))
 	{
-		std::cerr << "PROTOCONNECTION ERROR: Unable to parse message" << std::endl;
+		Error(_log, "Unable to parse message");
 		return;
 	}
 	
@@ -155,15 +156,15 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 	  switch (_socket.state() )
 	  {
 		case QAbstractSocket::UnconnectedState:
-		  std::cout << "PROTOCONNECTION INFO: No connection to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+		  Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 
 		case QAbstractSocket::ConnectedState:
-		  std::cout << "PROTOCONNECTION INFO: Connected to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+		  Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 
 		default:
-		  //std::cout << "Connecting to Hyperion: " << _host.toStdString() << ":" << _port << std::endl;
+		  Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 		  break;
 	  }
 	  _prevSocketState = _socket.state();
@@ -193,7 +194,7 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 	count += _socket.write(reinterpret_cast<const char *>(serializedMessage.data()), length);
 	if (!_socket.waitForBytesWritten())
 	{
-		std::cerr << "PROTOCONNECTION ERROR: Error while writing data to host" << std::endl;
+		Error(_log, "Error while writing data to host");
 		return;
 	}
 }
@@ -228,7 +229,7 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 		}
 		case proto::HyperionReply::GRABBING:
 		{
-			int grabbing = reply.has_grabbing() ? reply.grabbing() : 6;
+			int grabbing = reply.has_grabbing() ? reply.grabbing() : 7;
 			GrabbingMode gMode = (GrabbingMode)grabbing;
 			emit setGrabbingMode(gMode);
 			break;

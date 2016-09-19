@@ -4,24 +4,30 @@
 #include <string>
 
 // hyperion incluse
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2801 led device.
+/// Implementation of the LedDevice interface for sending led colors via udp.
 ///
-class LedDeviceUdpRaw : public LedUdpDevice
+class LedDeviceUdpRaw : public ProviderUdp
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type Ws2801
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
+	LedDeviceUdpRaw(const Json::Value &deviceConfig);
 
-	LedDeviceUdpRaw(const std::string& outputDevice,
-					const unsigned baudrate,
-					const unsigned latchTime);
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool setConfig(const Json::Value &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -33,9 +39,4 @@ public:
 
 	/// Switch the leds off
 	virtual int switchOff();
-
-private:
-
-	/// the number of leds (needed when switching off)
-	size_t mLedCount;
 };

@@ -1,0 +1,21 @@
+{
+	"type":"object",
+	"required":false,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["sourceselect"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer"
+		},
+		"auto": {
+			"type": "boolean"
+		}
+	},
+	"additionalProperties": false
+}

@@ -8,6 +8,8 @@ SET(Hyperion_QT_HEADERS
 	${CURRENT_HEADER_DIR}/Hyperion.h
 
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
+	${CURRENT_HEADER_DIR}/GrabberWrapper.h
+	${CURRENT_HEADER_DIR}/ComponentRegister.h
 )
 
 SET(Hyperion_HEADERS
@@ -36,6 +38,8 @@ SET(Hyperion_SOURCES
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
 	${CURRENT_SOURCE_DIR}/MessageForwarder.cpp
+	${CURRENT_SOURCE_DIR}/GrabberWrapper.cpp
+	${CURRENT_SOURCE_DIR}/ComponentRegister.cpp
 )
 
 SET(Hyperion_RESOURCES
@@ -57,6 +61,5 @@ target_link_libraries(hyperion
 	blackborder
 	hyperion-utils
 	leddevice
-	effectengine
 	${QT_LIBRARIES}
 )
