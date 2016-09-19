@@ -4,7 +4,7 @@
 sf_upload()
 {
 	/usr/bin/expect <<-EOD
-	spawn scp $1 $2 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/dev/$3
+	spawn scp $1 hyperionsf37@frs.sourceforge.net:/home/frs/project/hyperion-project/dev/$2
 	expect "*(yes/no)*"
 	send "yes\r"
 	expect "*password:*"
@@ -13,7 +13,7 @@ sf_upload()
 	EOD
 }
 
-deploylist="hyperion-2.0.0-Linux-x86.deb hyperion-2.0.0-Linux-x86.tar.gz"
+deploylist="hyperion-2.0.0-Linux-x86.tar.gz"
 
 if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 	cd $TRAVIS_BUILD_DIR/build

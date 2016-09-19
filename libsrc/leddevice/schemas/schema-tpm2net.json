@@ -2,6 +2,24 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"host" : {
+			"type": "string",
+			"title":"Target IP",
+			"propertyOrder" : 1
+		},
+		"latchtime": {
+			"type": "integer",
+			"title":"Latchtime",
+			"default": 104000,
+			"propertyOrder" : 2
+		},
+		"max-packet": {
+			"type": "integer",
+			"title":"Max-packet",
+			"minimum" : 0,
+			"default" : 170,
+			"propertyOrder" : 3
+		}
 	},
 	"additionalProperties": true
 }

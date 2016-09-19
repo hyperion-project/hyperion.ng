@@ -50,19 +50,19 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:'',
 			properties: {
-				/*blackborderdetector,
+				blackborderdetector,
 				color,
 				effects,
 				forwarder,
 				initialEffect,
 				kodiVideoChecker,
-				smoothing,*/
-				logger//,
-				/*jsonServer,
+				smoothing,
+				logger,
+				jsonServer,
 				protoServer,
 				boblightServer,
 				udpListener,
-				webConfig*/
+				webConfig
 			}
 		}
 	});
@@ -74,10 +74,10 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#editor_container h3').first().remove();
 	
 	//Called everytime a Input Field is changed = No need for save button
-	general_conf_editor.off().on('change',function() {
-		console.log(JSON.stringify(general_conf_editor.getValue()));
-		requestWriteConfig(general_conf_editor.getValue());
-	});
+// 	general_conf_editor.off().on('change',function() {
+// 		console.log(JSON.stringify(general_conf_editor.getValue()));
+// 		requestWriteConfig(general_conf_editor.getValue());
+// 	});
 
 	//Alternative Function with submit button to get Values
 	$('btn_submit').off().on('click',function() {

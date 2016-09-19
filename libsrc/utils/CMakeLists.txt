@@ -21,6 +21,8 @@ add_library(hyperion-utils
 	${CURRENT_HEADER_DIR}/Sleep.h
 	${CURRENT_HEADER_DIR}/FileUtils.h
 	${CURRENT_SOURCE_DIR}/FileUtils.cpp
+	${CURRENT_HEADER_DIR}/Process.h
+	${CURRENT_SOURCE_DIR}/Process.cpp
 
 	${CURRENT_HEADER_DIR}/Logger.h
 	${CURRENT_SOURCE_DIR}/Logger.cpp

@@ -33,23 +33,23 @@ int main(int argc, char ** argv)
 		// create the option parser and initialize all parameters
 		Parser parser("Dispmanx capture application for Hyperion");
 
-		IntOption & argFps        = parser.add<IntOption> ('f', "framerate",   "Capture frame rate [default: %1]", "10");
-		IntOption & argWidth      = parser.add<IntOption> (0x0, "width",       "Width of the captured image [default: %1]", "64", 32, 4096);
-		IntOption & argHeight     = parser.add<IntOption> (0x0, "height",      "Height of the captured image [default: %1]", "64", 32, 4096);
+		IntOption      & argFps        = parser.add<IntOption>    ('f', "framerate",   "Capture frame rate [default: %1]", "10");
+		IntOption      & argWidth      = parser.add<IntOption>    (0x0, "width",       "Width of the captured image [default: %1]", "64", 32, 4096);
+		IntOption      & argHeight     = parser.add<IntOption>    (0x0, "height",      "Height of the captured image [default: %1]", "64", 32, 4096);
 
-		BooleanOption  & argScreenshot  = parser.add<BooleanOption> (0x0, "screenshot",   "Take a single screenshot, save it to file and quit");
-		Option    & argAddress    = parser.add<Option>    ('a', "address",     "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
-		IntOption & argPriority   = parser.add<IntOption> ('p', "priority",    "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
-		BooleanOption    & argSkipReply  = parser.add<BooleanOption>    (0x0, "skip-reply",  "Do not receive and check reply messages from Hyperion");
-		BooleanOption    & argHelp       = parser.add<BooleanOption>    ('h', "help",        "Show this help message and exit");
+		BooleanOption  & argScreenshot = parser.add<BooleanOption>(0x0, "screenshot",   "Take a single screenshot, save it to file and quit");
+		Option         & argAddress    = parser.add<Option>       ('a', "address",     "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
+		IntOption      & argPriority   = parser.add<IntOption>    ('p', "priority",    "Use the provided priority channel (the lower the number, the higher the priority) [default: %1]", "800");
+		BooleanOption  & argSkipReply  = parser.add<BooleanOption>(0x0, "skip-reply",  "Do not receive and check reply messages from Hyperion");
+		BooleanOption  & argHelp       = parser.add<BooleanOption>('h', "help",        "Show this help message and exit");
 
-		IntOption & argCropLeft   = parser.add<IntOption> (0x0, "crop-left",   "pixels to remove on left after grabbing");
-		IntOption & argCropRight  = parser.add<IntOption> (0x0, "crop-right",  "pixels to remove on right after grabbing");
-		IntOption & argCropTop    = parser.add<IntOption> (0x0, "crop-top",    "pixels to remove on top after grabbing");
-		IntOption & argCropBottom = parser.add<IntOption> (0x0, "crop-bottom", "pixels to remove on bottom after grabbing");
+		IntOption      & argCropLeft   = parser.add<IntOption>    (0x0, "crop-left",   "pixels to remove on left after grabbing");
+		IntOption      & argCropRight  = parser.add<IntOption>    (0x0, "crop-right",  "pixels to remove on right after grabbing");
+		IntOption      & argCropTop    = parser.add<IntOption>    (0x0, "crop-top",    "pixels to remove on top after grabbing");
+		IntOption      & argCropBottom = parser.add<IntOption>    (0x0, "crop-bottom", "pixels to remove on bottom after grabbing");
 
-		BooleanOption    & arg3DSBS      = parser.add<BooleanOption>    (0x0, "3DSBS",       "Interpret the incoming video stream as 3D side-by-side");
-		BooleanOption    & arg3DTAB      = parser.add<BooleanOption>    (0x0, "3DTAB",       "Interpret the incoming video stream as 3D top-and-bottom");
+		BooleanOption  & arg3DSBS      = parser.add<BooleanOption>(0x0, "3DSBS",       "Interpret the incoming video stream as 3D side-by-side");
+		BooleanOption  & arg3DTAB      = parser.add<BooleanOption>(0x0, "3DTAB",       "Interpret the incoming video stream as 3D top-and-bottom");
 
 		// parse all options
 		parser.process(app);

@@ -5,29 +5,35 @@
 		"output": {
 			"type": "string",
 			"title":"Multicast group",
-			"default" : "239.15.18.2"
+			"default" : "239.15.18.2",
+			"propertyOrder" : 1
 		},
 		"orbIds": {
 			"type": "string",
 			"title":"Baudrate",
-			"default": "1"
+			"default": "1",
+			"propertyOrder" : 2
 		},
 		"numLeds": {
 			"type": "integer",
 			"title":"Number of LEDs",
-			"default": 24
+			"default": 24,
+			"propertyOrder" : 3
 		},
 		"port": {
 			"type": "integer",
 			"title":"Port",
 			"minimum" : 0,
 			"maximum" : 65535,
-			"default": 24
+			"default": 24,
+			"propertyOrder" : 4
 		},
 		"useOrbSmoothing": {
 			"type": "boolean",
+			"format": "checkbox",
 			"title":"Use orb smoothing",
-			"default": true
+			"default": true,
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true

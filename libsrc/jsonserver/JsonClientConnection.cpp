@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <iomanip>
+#include <unistd.h>
 
 // stl includes
 #include <iostream>
@@ -15,6 +16,7 @@
 #include <QHostInfo>
 #include <QString>
 #include <QFile>
+#include <QCoreApplication>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -27,6 +29,7 @@
 #include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/JsonFactory.h>
+#include <utils/Process.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -882,6 +885,12 @@ void JsonClientConnection::handleConfigCommand(const Json::Value & message, cons
 	else if (subcommand == "setconfig")
 	{
 		handleConfigSetCommand(message, full_command, tan);
+	} 
+	else if (subcommand == "reload")
+	{
+		// restart hyperion, this code must be put in some own class ... 
+		Process::restartHyperion();
+		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 
 	else
 	{
