@@ -57,6 +57,7 @@ private:
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
 	static PyObject* wrapImageShow(PyObject *self, PyObject *args);
 	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
+	static PyObject* wrapImageRadialGradient(PyObject *self, PyObject *args);
 	
 	static Effect * getEffect();
 
