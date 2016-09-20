@@ -96,6 +96,7 @@ $(document).ready(function() {
 
 			$('#cp2').colorpicker().on('changeColor', function(e) {
 				color = e.color.toRGB();
+				$("#effect_select").val("__none__");
 				requestSetColor(color.r, color.g, color.b);
 			});
 		});
@@ -106,7 +107,10 @@ $(document).ready(function() {
 			efx = $(this).val();
 			if(efx != "__none__")
 			{
-				requestPlayEffect(efx);
+				requestPriorityClear();
+				$(hyperion).one("cmd-clear", function(event) {
+					setTimeout(function() {requestPlayEffect(efx)}, 100);
+				});
 			}
 		});
 
