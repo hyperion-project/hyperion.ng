@@ -194,7 +194,7 @@
 
 	"webConfig" :
 	{
-		"enable"        : true,
+		"enable"        : true
 	},
 
 	"effects" :
