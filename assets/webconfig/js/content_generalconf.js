@@ -23,20 +23,6 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	parsedConfSchemaJSON = event.response.result;
 
 	schema = parsedConfSchemaJSON.properties;
-	blackborderdetector = schema.blackborderdetector;
-	color = schema.color;
-	effects = schema.effects;
-	forwarder = schema.forwarder;
-	initialEffect = schema.initialEffect;
-	kodiVideoChecker = schema.kodiVideoChecker;
-	smoothing = schema.smoothing;
-	logger = schema.logger;
-	jsonServer = schema.jsonServer;
-	protoServer = schema.protoServer;
-	boblightServer = schema.boblightServer;
-	udpListener = schema.udpListener;
-	webConfig = schema.webConfig;
-
 	var element = document.getElementById('editor_container');
 
 	var general_conf_editor = new JSONEditor(element,{
@@ -50,19 +36,19 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:'',
 			properties: {
-				blackborderdetector,
-				color,
-				effects,
-				forwarder,
-				initialEffect,
-				kodiVideoChecker,
-				smoothing,
-				logger,
-				jsonServer,
-				protoServer,
-				boblightServer,
-				udpListener,
-				webConfig
+				blackborderdetector: schema.blackborderdetector,
+				color              : schema.color,
+				effects            : schema.effects,
+				forwarder          : schema.forwarder,
+				initialEffect      : schema.initialEffect,
+				kodiVideoChecker   : schema.kodiVideoChecker,
+				smoothing          : schema.smoothing,
+				logger             : schema.logger,
+				jsonServer         : schema.jsonServer,
+				protoServer        : schema.protoServer,
+				boblightServer     : schema.boblightServer,
+				udpListener        : schema.udpListener,
+				webConfig          : schema.webConfig
 			}
 		}
 	});
@@ -80,7 +66,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 // 	});
 
 	//Alternative Function with submit button to get Values
-	$('btn_submit').off().on('click',function() {
+	$('#btn_submit').off().on('click',function() {
 		console.log(general_conf_editor.getValue());
 	});
 

@@ -7,6 +7,7 @@
 // QT includes
 #include <QObject>
 #include <QTimer>
+#include <QSize>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -85,7 +86,9 @@ public:
 	/// Returns the number of attached leds
 	///
 	unsigned getLedCount() const;
-	
+
+	QSize getLedGridSize() const { return _ledGridSize; }
+
 	///
 	/// Returns the current priority
 	///
@@ -292,7 +295,8 @@ public:
 
 	static LinearColorSmoothing * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
-	
+	static QSize getLedLayoutGridSize(const Json::Value& ledsConfig);
+
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
 	/// This signal will not be emitted when a priority channel time out
@@ -390,4 +394,6 @@ private:
 	int _currentSourcePriority;
 
 	QByteArray _configHash;
+
+	QSize _ledGridSize;
 };

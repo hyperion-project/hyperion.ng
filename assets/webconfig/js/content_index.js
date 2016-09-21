@@ -1,6 +1,5 @@
 $(document).ready( function() {
 	$("#main-nav").hide();
-	$("#page-content").hide();
 	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
@@ -62,7 +61,6 @@ $(document).ready( function() {
 		});
 		$("#loading_overlay").removeClass("overlay");
 		$("#main-nav").show('slide', {direction: 'left'}, 1000);
-		$("#page-content").show('slide', {direction: 'down'}, 2000);
 
 	}); // end cmd-serverinfo
 

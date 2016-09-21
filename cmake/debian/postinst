@@ -20,8 +20,12 @@ install_file()
 echo "--- hyperion ambient light postinstall ---"
 echo "- install configuration template"
 mkdir -p /etc/hyperion
-install_file /usr/share/hyperion/config/hyperion.config.json.default /etc/hyperion/hyperion.config.json
 
+if [ ! -e "/etc/hyperion/hyperion.config.json" ]
+then
+	echo "install default config to /etc/hyperion"
+	/usr/bin/hyperiond --export-config /etc/hyperion/hyperion.config.json
+fi
 
 HYPERION_RUNNING=false
 pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true

@@ -49,8 +49,15 @@ table.borderless td,table.borderless th{border: none !important;}
 .introd{padding-left:14px;border-left:5px solid #0088cc;}
 .introd h4{line-height:25px;}
 
+/*backported bootstrap 4 forms-label alignment*/
+.col-form-label {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    margin-bottom: 0;
+}
+
 .overlay {
-	background-image: url('/img/hyperion/hyperionlogo.png');
+	background-image: url('/img/hyperion/hyperionwhitelogo.png');
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-color: rgba(1, 1, 1, 0.7);

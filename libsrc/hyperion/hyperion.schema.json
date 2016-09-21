@@ -30,6 +30,7 @@
 				"name" :
 				{
 					"type" : "string",
+					"title" : "Configuration name",
 					"required" : true,
 					"propertyOrder" : 1
 				},
@@ -48,6 +49,7 @@
 				"colorOrder" :
 				{
 					"type" : "string",
+					"title" : "RGB byte order",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
 				}
@@ -397,6 +399,7 @@
 					"minimum" : 25,
 					"maximum": 600,
 					"default" : 200,
+					"append" : "ms",
 					"propertyOrder" : 3
 				},
 				"updateFrequency" :
@@ -406,6 +409,7 @@
 					"minimum" : 1.000,
 					"maximum" : 100.000,
 					"default" : 25.000,
+					"append" : "Hz",
 					"propertyOrder" : 4
 				},
 				"updateDelay" :
@@ -415,6 +419,7 @@
 					"minimum" : 0,
 					"maximum": 2048,
 					"default" : 0,
+					"append" : "ms",
 					"propertyOrder" : 5
 				},
 				"continuousOutput" :
@@ -427,12 +432,14 @@
 			},
 			"additionalProperties" : false
 		},
-		"grabber-v4l2" :
+		"grabberV4L2" :
 		{
 			"type":"array",
+			"title" : "USB Grabber",
 			"items":
 			{
 				"type" : "object",
+				"title" : "USB Grabber",
 				"properties" :
 				{
 					"enable" :
@@ -469,6 +476,7 @@
 						"type" : "integer",
 						"title" : "Width",
 						"default" : -1,
+						"append" : "Pixel",
 						"propertyOrder" : 5
 					},
 					"height" :
@@ -476,6 +484,7 @@
 						"type" : "integer",
 						"title" : "Height",
 						"default" : -1,
+						"append" : "Pixel",
 						"propertyOrder" : 6
 					},
 					"frameDecimation" :
@@ -520,6 +529,7 @@
 						"title" : "Crop left",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 12
 					},
 					"cropRight" :
@@ -528,6 +538,7 @@
 						"title" : "Crop right",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 13
 					},
 					"cropTop" :
@@ -536,6 +547,7 @@
 						"title" : "Crop top",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 14
 					},
 					"cropBottom" :
@@ -544,6 +556,7 @@
 						"title" : "Crop bottom",
 						"minimum" : 0,
 						"default" : 0,
+						"append" : "Pixel",
 						"propertyOrder" : 15
 					},
 					"redSignalThreshold" :
@@ -553,6 +566,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 16
 					},
 					"greenSignalThreshold" :
@@ -562,6 +576,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 17
 					},
 					"blueSignalThreshold" :
@@ -571,6 +586,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"append" : "%",
 						"propertyOrder" : 18
 					}
 				},
@@ -601,20 +617,23 @@
 				{
 					"type" : "integer",
 					"title" : "Width",
-					"default" : 96
+					"default" : 96,
+					"append" : "Pixel"
 				},
 				"height" :
 				{
 					"type" : "integer",
 					"title" : "Height",
-					"default" : 96
+					"default" : 96,
+					"append" : "Pixel"
 				},
 				"frequency_Hz" :
 				{
 					"type" : "integer",
 					"title" : "Frequency",
 					"minimum" : 0,
-					"default" : 10
+					"default" : 10,
+					"append" : "Hz"
 				},
 				"priority" :
 				{
@@ -628,28 +647,32 @@
 					"type" : "integer",
 					"title" : "Crop left",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropRight" :
 				{
 					"type" : "integer",
 					"title" : "Crop right",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropTop" :
 				{
 					"type" : "integer",
 					"title" : "Crop top",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"cropBottom" :
 				{
 					"type" : "integer",
 					"title" : "Crop bottom",
 					"minimum" : 0,
-					"default" : 0
+					"default" : 0,
+					"append" : "Pixel"
 				},
 				"useXGetImage" :
 				{
@@ -707,6 +730,7 @@
 					"minimum" : 0.0,
 					"maximum" : 1.0,
 					"default" : 0.05,
+					"append" : "%",
 					"propertyOrder" : 2
 				},
 				"unknownFrameCnt"    :

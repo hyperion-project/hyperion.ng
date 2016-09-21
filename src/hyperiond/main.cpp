@@ -13,6 +13,9 @@
 #include <QLocale>
 #include <QFile>
 #include <QString>
+#include <QResource>
+#include <QDir>
+#include <QStringList>
 
 #include "HyperionConfig.h"
 
@@ -66,11 +69,14 @@ int main(int argc, char** argv)
 	Parser parser("Hyperion Daemon");
 	parser.addHelpOption();
 
-	BooleanOption & versionOption = parser.add<BooleanOption>(0x0, "version", "Show version information");
-	IntOption & parentOption = parser.add<IntOption>('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
-	BooleanOption & silentOption = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
-	BooleanOption & verboseOption = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
-	BooleanOption & debugOption = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
+	IntOption     &  parentOption       = parser.add<IntOption>    ('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
+	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
+	BooleanOption &   debugOption       = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	Option        & exportConfigOption  = parser.add<Option>       (0x0, "export-config", "export default config to file");
+	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
+
 	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration files"), "[files...]");
 
     parser.process(app);
@@ -112,6 +118,54 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+	if (parser.isSet(exportConfigOption))
+	{
+		Q_INIT_RESOURCE(resource);
+		if (QFile::copy(":/hyperion_default.config",exportConfigOption.value(parser)))
+		{
+			Info(log, "export complete.");
+			return 0;
+		}
+		Error(log, "can not export to %s",exportConfigOption.getCString(parser));
+		return 1;
+	}
+	
+	if (parser.isSet(exportEfxOption))
+	{
+		Q_INIT_RESOURCE(EffectEngine);
+		QDir directory(":/effects/");
+		QDir destDir(exportEfxOption.value(parser));
+		if (directory.exists() && destDir.exists())
+		{
+			std::cout << "extract to folder: " << std::endl;
+			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & filename, filenames)
+			{
+				if (QFile::exists(destDir.dirName()+"/"+filename))
+				{
+					QFile::remove(destDir.dirName()+"/"+filename);
+				}
+				
+				std::cout << "Extract: " << filename.toStdString() << " ... ";
+				if (QFile::copy(QString(":/effects/")+filename, destDir.dirName()+"/"+filename))
+				{
+					std::cout << "ok" << std::endl;
+				}
+				else
+				{
+					 std::cout << "error, aborting" << std::endl;
+					 return 1;
+				}
+			}
+			return 0;
+		}
+
+		Error(log, "can not export to %s",exportEfxOption.getCString(parser));
+		return 1;
+	}
+	
+	
+	
 	if (configFiles.size() == 0)
 	{
 		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> [config.file ...]");
@@ -139,7 +193,7 @@ int main(int argc, char** argv)
 
 	if ( argvId < 0)
 	{
-		Error(log, "No valid config found");
+		Warning(log, "No valid config found");
 		return 1;
 	}
 

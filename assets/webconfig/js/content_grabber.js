@@ -20,15 +20,14 @@ function removeAdvanced(obj,searchStack)
 }
 */
 
+var grabber_conf_editor = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
 	parsedConfSchemaJSON = event.response.result;
 	schema = parsedConfSchemaJSON.properties;
-	schema_framegrabber = schema.framegrabber;
-	schema_grabberv4l2 = schema["grabber-v4l2"];
 
 	var element = document.getElementById('editor_container');
 	
-	var grabber_conf_editor = new JSONEditor(element,{
+	grabber_conf_editor = new JSONEditor(element,{
 		theme: 'bootstrap3',
 		iconlib: "fontawesome4",
 		disable_collapse: 'true',
@@ -39,8 +38,8 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		schema: {
 			title:'',
 			properties: {
-				schema_framegrabber,
-				schema_grabberv4l2,
+				framegrabber: schema.framegrabber,
+				grabberV4L2 : schema["grabberV4L2"]
 			}
 		}
 	});
@@ -59,7 +58,7 @@ $(document).ready( function() {
 
 	document.getElementById('btn_submit').addEventListener('click',function() {
 		// Get the value from the editor
-		//console.log(general_conf_editor.getValue());
+		console.log(grabber_conf_editor.getValue());
 	});
 //  $("[type='checkbox']").bootstrapSwitch();
 });
