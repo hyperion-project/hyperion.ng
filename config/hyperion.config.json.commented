@@ -364,7 +364,7 @@
 		[
 			"/storage/hyperion/effects",
 			"/usr/share/hyperion/effects"
-		]
+		],
 		"disable" :
 		[
 			"Rainbow swirl",
