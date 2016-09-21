@@ -46,6 +46,7 @@
 #include "LedDeviceAtmo.h"
 #include "LedDeviceAdalightApa102.h"
 #include "LedDeviceAtmoOrb.h"
+#include "LedDeviceUdpH801.h"
 
 #ifdef ENABLE_WS2812BPWM
 	#include "LedDeviceWS2812b.h"
@@ -101,7 +102,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	#endif
 	LedDevice::addToDeviceMap("philipshue", LedDevicePhilipsHue::construct);
 	LedDevice::addToDeviceMap("atmoorb", LedDeviceAtmoOrb::construct);
-	
+	LedDevice::addToDeviceMap("h801", LedDeviceUdpH801::construct);
+
 	// direct usb
 	LedDevice::addToDeviceMap("hyperion-usbasp", LedDeviceHyperionUsbasp::construct);
 	LedDevice::addToDeviceMap("rawhid", LedDeviceRawHID::construct);
