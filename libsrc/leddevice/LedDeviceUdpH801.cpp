@@ -8,7 +8,8 @@
 // hyperion local includes
 #include "LedDeviceUdpH801.h"
 
-LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig) : ProviderUdp(deviceConfig)
+LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig)
+	: ProviderUdp(deviceConfig)
 {
 	setConfig(deviceConfig);
 }
@@ -16,7 +17,7 @@ LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig) : ProviderUd
 bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 {
 	/* The H801 port is fixed */
-	_port = 30977;
+	ProviderUdp::setConfig(deviceConfig, 30977, "255.255.255.255");
 	/* 10ms seems to be a safe default for the wait time */
 	_LatchTime_ns = deviceConfig.get("latchtime", 10000000).asInt();
 
@@ -30,13 +31,13 @@ bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 	_message[0] = 0xFB;
 	_message[1] = 0xEB;
 
-	for(int i=0; i<_ids.length(); i++){
+	for (int i = 0; i < _ids.length(); i++) {
 		_message[_prefix_size + _colors + i * _id_size + 0] = (_ids[i] >> 0x00) & 0xFF;
 		_message[_prefix_size + _colors + i * _id_size + 1] = (_ids[i] >> 0x08) & 0xFF;
 		_message[_prefix_size + _colors + i * _id_size + 2] = (_ids[i] >> 0x10) & 0xFF;
 	}
 
-	Debug( _log, "H801 using %s:%d", _address.toString().toStdString().c_str() , _port );
+	Debug(_log, "H801 using %s:%d", _address.toString().toStdString().c_str(), _port);
 
 	return true;
 }
@@ -58,6 +59,6 @@ int LedDeviceUdpH801::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceUdpH801::switchOff()
 {
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0, 0, 0}));
 }
 

@@ -13,7 +13,7 @@
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp.
 ///
-class LedDeviceUdpH801 : public ProviderUdp
+class LedDeviceUdpH801: public ProviderUdp
 {
 protected:
 	QList<int> _ids;
