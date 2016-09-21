@@ -423,6 +423,7 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 	LedString ledString;
 	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
 	int maxLedId = ledsConfig.size();
+
 	for (const Json::Value& ledConfig : ledsConfig)
 	{
 		Led led;
@@ -498,6 +499,51 @@ LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const Co
 	std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
 	return ledString;
 }
+
+QSize Hyperion::getLedLayoutGridSize(const Json::Value& ledsConfig)
+{
+	std::vector<int> midPointsX;
+	std::vector<int> midPointsY;
+
+	for (const Json::Value& ledConfig : ledsConfig)
+	{
+		if ( ledConfig.get("clone",-1).asInt() < 0 )
+		{
+			const Json::Value& hscanConfig = ledConfig["hscan"];
+			const Json::Value& vscanConfig = ledConfig["vscan"];
+			double minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
+			double maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
+			double minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
+			double maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			// Fix if the user swapped min and max
+			if (minX_frac > maxX_frac)
+			{
+				std::swap(minX_frac, maxX_frac);
+			}
+			if (minY_frac > maxY_frac)
+			{
+				std::swap(minY_frac, maxY_frac);
+			}
+
+			// calculate mid point and make grid calculation
+			midPointsX.push_back( int(1000.0*(minX_frac + maxX_frac) / 2.0) );
+			midPointsY.push_back( int(1000.0*(minY_frac + maxY_frac) / 2.0) );
+		}
+	}
+
+	// remove duplicates
+	std::sort(midPointsX.begin(), midPointsX.end());
+	midPointsX.erase(std::unique(midPointsX.begin(), midPointsX.end()), midPointsX.end());
+	std::sort(midPointsY.begin(), midPointsY.end());
+	midPointsY.erase(std::unique(midPointsY.begin(), midPointsY.end()), midPointsY.end());
+
+	QSize gridSize( midPointsX.size(), midPointsY.size() );
+	Debug(Logger::getInstance("Core"), "led layout grid: %dx%d", gridSize.width(), gridSize.height());
+
+	return gridSize;
+}
+
+
 
 LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice)
 {
@@ -578,6 +624,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
+	, _ledGridSize(getLedLayoutGridSize(jsonConfig["leds"]))
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 	

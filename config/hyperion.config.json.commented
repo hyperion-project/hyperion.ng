@@ -168,7 +168,7 @@
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
-	"grabber-v4l2" :
+	"grabberV4L2" :
 	[
 		{
 			"enable"   : false,
