@@ -61,7 +61,3 @@ int LedDeviceUdpH801::switchOff()
 	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
 
-LedDeviceUdpH801::~LedDeviceUdpH801()
-{
-	ProviderUdp::~ProviderUdp();
-}

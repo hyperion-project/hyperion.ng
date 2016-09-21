@@ -32,11 +32,6 @@ public:
 	LedDeviceUdpH801(const Json::Value &deviceConfig);
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
-	///
-	virtual ~LedDeviceUdpH801();
-
-	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
