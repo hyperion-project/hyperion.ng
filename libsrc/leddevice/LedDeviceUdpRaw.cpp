@@ -39,8 +39,3 @@ int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 
 	return writeBytes(dataLen, dataPtr);
 }
-
-int LedDeviceUdpRaw::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}

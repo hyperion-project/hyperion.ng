@@ -80,8 +80,3 @@ int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)
 
 	return retVal;
 }
-
-int LedDeviceTpm2net::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}

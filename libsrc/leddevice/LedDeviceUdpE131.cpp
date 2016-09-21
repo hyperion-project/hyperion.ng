@@ -129,7 +129,3 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 	return retVal;
 }
 
-int LedDeviceUdpE131::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}

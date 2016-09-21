@@ -127,16 +127,13 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
 private:
 	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
 
 	e131_packet_t e131_packet;
-	uint8_t	_e131_seq = 0;
-	uint8_t	_e131_universe = 1;
-        uint8_t _acn_id[12] = {0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 0x37, 0x00, 0x00, 0x00 };
+	uint8_t _e131_seq = 0;
+	uint8_t _e131_universe = 1;
+	uint8_t _acn_id[12] = {0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 0x37, 0x00, 0x00, 0x00 };
 	std::string _e131_source_name;
 	QUuid _e131_cid;
 };
