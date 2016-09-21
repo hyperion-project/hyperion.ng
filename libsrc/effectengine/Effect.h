@@ -5,6 +5,9 @@
 
 // Qt includes
 #include <QThread>
+#include <QSize>
+#include <QImage>
+#include <QPainter>
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
@@ -48,21 +51,25 @@ private:
 	PyObject * json2python(const Json::Value & json) const;
 
 	// Wrapper methods for Python interpreter extra buildin methods
-    static PyMethodDef effectMethods[];
-    static PyObject* wrapSetColor(PyObject *self, PyObject *args);
+	static PyMethodDef effectMethods[];
+	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
-    static Effect * getEffect();
+	static PyObject* wrapImageShow(PyObject *self, PyObject *args);
+	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
+	static PyObject* wrapImageRadialGradient(PyObject *self, PyObject *args);
+	
+	static Effect * getEffect();
 
 #if PY_MAJOR_VERSION >= 3
-    static struct PyModuleDef moduleDef;
-    static PyObject* PyInit_hyperion();
+	static struct PyModuleDef moduleDef;
+	static PyObject* PyInit_hyperion();
 #else
-    static void PyInit_hyperion();
+	static void PyInit_hyperion();
 #endif
 
 private:
-    PyThreadState * _mainThreadState;
+	PyThreadState * _mainThreadState;
 
 	const int _priority;
 
@@ -84,5 +91,10 @@ private:
 
 	/// Buffer for colorData
 	std::vector<ColorRgb> _colors;
+	
+	QSize _imageSize;
+	
+	QImage * _image;
+	QPainter * _painter;
 };
 	

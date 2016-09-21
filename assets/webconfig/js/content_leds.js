@@ -153,8 +153,8 @@ $(document).ready(function() {
 			schema: {
 				title:' ',
 				properties: {
-					generalOptions,
-					specificOptions,
+					generalOptions : generalOptions,
+					specificOptions : specificOptions,
 				}
 			}
 		});

@@ -22,6 +22,6 @@ before_install:
     - ./.travis/travis_install.sh
 script:
     - ./.travis/travis_build.sh
-after_success:
     - ./test/testrunner.sh
+after_success:
     - ./.travis/travis_deploy.sh
