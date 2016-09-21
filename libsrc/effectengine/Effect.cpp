@@ -25,8 +25,8 @@ PyMethodDef Effect::effectMethods[] = {
 	{"setImage",     Effect::wrapSetImage,    METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"abort",        Effect::wrapAbort,       METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow",    Effect::wrapImageShow,   METH_NOARGS,  "set current effect image to hyperion core."},
-	{"imageCanonicalGradient",    Effect::wrapImageCanonicalGradient,   METH_VARARGS,  "set current effect image to hyperion core."},
-	{"imageRadialGradient",    Effect::wrapImageRadialGradient,   METH_VARARGS,  "set current effect image to hyperion core."},
+	{"imageCanonicalGradient", Effect::wrapImageCanonicalGradient, METH_VARARGS,  ""},
+	{"imageRadialGradient"   , Effect::wrapImageRadialGradient,    METH_VARARGS,  ""},
 // 	{"imageSetPixel",Effect::wrapImageShow,   METH_VARARGS, "set pixel color of image"},
 // 	{"imageGetPixel",Effect::wrapImageShow,   METH_VARARGS, "get pixel color of image"},
 	{NULL, NULL, 0, NULL}
@@ -430,9 +430,27 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 
-	int width, height, startX, startY, centerX, centerY, angle;
+	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
-	if (PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray))
+	int centerX, centerY, angle;
+	int startX = 0;
+	int startY = 0;
+	int width  = effect->_imageSize.width();
+	int height = effect->_imageSize.height();
+
+	bool argsOK = false;
+
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &angle, &bytearray) )
+	{
+		argsOK      = true;
+	}
+	angle = std::max(std::min(angle,360),0);
+
+	if (argsOK)
 	{
 		if (PyByteArray_Check(bytearray))
 		{
@@ -442,7 +460,7 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 
 				QPainter * painter = effect->_painter;
 				QRect myQRect(startX,startY,width,height);
-				QConicalGradient gradient(QPoint(centerX,centerY), std::max(std::min(angle,360),0) );
+				QConicalGradient gradient(QPoint(centerX,centerY), angle );
 				char * data = PyByteArray_AS_STRING(bytearray);
 
 				for (int idx=0; idx<length; idx+=4)
@@ -484,9 +502,40 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 
-	int width, height, startX, startY, centerX, centerY, radius;
+	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
-	if (PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray))
+	int centerX, centerY, radius, focalX, focalY, focalRadius;
+	int startX = 0;
+	int startY = 0;
+	int width  = effect->_imageSize.width();
+	int height = effect->_imageSize.height();
+
+	bool argsOK = false;
+	
+	if ( argCount == 11 && PyArg_ParseTuple(args, "iiiiiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount ==  8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray) )
+	{
+		argsOK      = true;
+		focalX      = centerX;
+		focalY      = centerY;
+		focalRadius = radius;
+	}
+	if ( argCount ==  7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount ==  4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray) )
+	{
+		argsOK      = true;
+		focalX      = centerX;
+		focalY      = centerY;
+		focalRadius = radius;
+	}
+		
+	if (argsOK)
 	{
 		if (PyByteArray_Check(bytearray))
 		{
@@ -523,7 +572,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 		}
 		else
 		{
-			PyErr_SetString(PyExc_RuntimeError, "Argument 8 is not a bytearray");
+			PyErr_SetString(PyExc_RuntimeError, "Last argument is not a bytearray");
 			return nullptr;
 		}
 	}
