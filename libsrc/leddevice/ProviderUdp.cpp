@@ -18,6 +18,7 @@
 ProviderUdp::ProviderUdp(const Json::Value &deviceConfig)
 	: LedDevice()
 	, _LatchTime_ns(-1)
+	, _port(0)
 {
 	setConfig(deviceConfig);
 	_udpSocket = new QUdpSocket();
@@ -28,16 +29,18 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::setConfig(const Json::Value &deviceConfig)
+bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultPort, std::string defaultHost)
 {
-	if (_address.setAddress( QString::fromStdString(deviceConfig["host"].asString()) ) )
+	QString host = QString::fromStdString(deviceConfig.get("host",defaultHost).asString());
+	
+	if (_address.setAddress(host) )
 	{
 		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].asString().c_str());
 	}
 	else
 	{
 		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].asString().c_str());
-		QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["host"].asString()) );
+		QHostInfo info = QHostInfo::fromName(host);
 		if (info.addresses().isEmpty())
 		{
 			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].asString().c_str());
@@ -46,7 +49,13 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig)
 		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
 		_address = info.addresses().first();
 	}
-	_port    = deviceConfig["port"].asUInt();
+	
+	_port = deviceConfig.get("port", defaultPort).asUInt();
+	if ( _port<=0 || _port > 65535)
+	{
+		throw std::runtime_error("invalid target port");
+	}
+	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
 	return true;

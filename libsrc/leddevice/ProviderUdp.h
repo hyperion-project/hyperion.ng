@@ -29,7 +29,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool setConfig(const Json::Value &deviceConfig, int defaultPort=0, std::string defaultHost="127.0.0.1");
 
 	///
 	/// Opens and configures the output device
