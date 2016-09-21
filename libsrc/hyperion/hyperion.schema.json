@@ -432,7 +432,7 @@
 			},
 			"additionalProperties" : false
 		},
-		"grabber-v4l2" :
+		"grabberV4L2" :
 		{
 			"type":"array",
 			"title" : "USB Grabber",

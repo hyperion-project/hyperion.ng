@@ -548,13 +548,13 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
-	bool v4lConfigured = _qconfig.contains("grabber-v4l2");
+	bool v4lConfigured = _qconfig.contains("grabberV4L2");
 	bool v4lStarted = false;
 	unsigned v4lEnableCount = 0;
 	
-	if (_qconfig["grabber-v4l2"].isArray())
+	if (_qconfig["grabberV4L2"].isArray())
 	{
-		const QJsonArray & v4lArray = _qconfig["grabber-v4l2"].toArray();
+		const QJsonArray & v4lArray = _qconfig["grabberV4L2"].toArray();
 		for ( signed idx=0; idx<v4lArray.size(); idx++)
 		{
 			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();
