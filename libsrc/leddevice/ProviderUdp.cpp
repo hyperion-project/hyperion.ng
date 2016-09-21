@@ -15,12 +15,11 @@
 // Local Hyperion includes
 #include "ProviderUdp.h"
 
-ProviderUdp::ProviderUdp(const Json::Value &deviceConfig)
+ProviderUdp::ProviderUdp()
 	: LedDevice()
 	, _LatchTime_ns(-1)
 	, _port(0)
 {
-	setConfig(deviceConfig);
 	_udpSocket = new QUdpSocket();
 }
 
@@ -29,7 +28,7 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultPort, std::string defaultHost)
+bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTime, int defaultPort, std::string defaultHost)
 {
 	QString host = QString::fromStdString(deviceConfig.get("host",defaultHost).asString());
 	
@@ -58,6 +57,8 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultPort, st
 	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
+	_LatchTime_ns = deviceConfig.get("latchtime", defaultLatchTime).asInt();
+
 	return true;
 }
 

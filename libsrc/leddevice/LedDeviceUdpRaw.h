@@ -19,13 +19,6 @@ public:
 	///
 	LedDeviceUdpRaw(const Json::Value &deviceConfig);
 
-	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
-
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
