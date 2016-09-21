@@ -11,6 +11,7 @@
 #include <Qt>
 #include <QLinearGradient>
 #include <QConicalGradient>
+#include <QRadialGradient>
 #include <QRect>
 
 // effect engin eincludes
@@ -25,6 +26,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"abort",        Effect::wrapAbort,       METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow",    Effect::wrapImageShow,   METH_NOARGS,  "set current effect image to hyperion core."},
 	{"imageCanonicalGradient",    Effect::wrapImageCanonicalGradient,   METH_VARARGS,  "set current effect image to hyperion core."},
+	{"imageRadialGradient",    Effect::wrapImageRadialGradient,   METH_VARARGS,  "set current effect image to hyperion core."},
 // 	{"imageSetPixel",Effect::wrapImageShow,   METH_VARARGS, "set pixel color of image"},
 // 	{"imageGetPixel",Effect::wrapImageShow,   METH_VARARGS, "get pixel color of image"},
 	{NULL, NULL, 0, NULL}
@@ -427,9 +429,7 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
- // = effect->_imageSize.width();
-	 // = effect->_imageSize.height();
-	
+
 	int width, height, startX, startY, centerX, centerY, angle;
 	PyObject * bytearray = nullptr;
 	if (PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray))
@@ -457,6 +457,60 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 				}
 
 				gradient.setSpread(QGradient::RepeatSpread);
+				painter->fillRect(myQRect, gradient);
+				
+				return Py_BuildValue("");
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 4");
+				return nullptr;
+			}
+		}
+		else
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Argument 8 is not a bytearray");
+			return nullptr;
+		}
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+
+PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int width, height, startX, startY, centerX, centerY, radius;
+	PyObject * bytearray = nullptr;
+	if (PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray))
+	{
+		if (PyByteArray_Check(bytearray))
+		{
+			int length = PyByteArray_Size(bytearray);
+			if (length % 4 == 0)
+			{
+
+				QPainter * painter = effect->_painter;
+				QRect myQRect(startX,startY,width,height);
+				QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
+				char * data = PyByteArray_AS_STRING(bytearray);
+
+				for (int idx=0; idx<length; idx+=4)
+				{
+					gradient.setColorAt(
+						((uint8_t)data[idx])/255.0,
+						QColor(
+							(uint8_t)(data[idx+1]),
+							(uint8_t)(data[idx+2]),
+							(uint8_t)(data[idx+3])
+					));
+				}
+
+				//gradient.setSpread(QGradient::ReflectSpread);
 				painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
