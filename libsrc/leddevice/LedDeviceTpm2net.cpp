@@ -24,7 +24,7 @@ LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
 
 bool LedDeviceTpm2net::setConfig(const Json::Value &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig);
+	ProviderUdp::setConfig(deviceConfig,50200);
 	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
 	_tpm2_max  = deviceConfig.get("max-packet",170).asInt();
 	return true;

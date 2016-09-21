@@ -19,7 +19,7 @@ LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
 
 bool LedDeviceUdpRaw::setConfig(const Json::Value &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig);
+	ProviderUdp::setConfig(deviceConfig,5568);
 	_LatchTime_ns = deviceConfig.get("latchtime",500000).asInt();
 
 	return true;
