@@ -96,7 +96,7 @@
 		"continuousOutput" : true
 	},
 
-	"grabber-v4l2" :
+	"grabberV4L2" :
 	[
 		{
 			"enable"   : false,
