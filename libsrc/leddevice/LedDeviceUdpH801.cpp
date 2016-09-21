@@ -9,7 +9,7 @@
 #include "LedDeviceUdpH801.h"
 
 LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig)
-	: ProviderUdp(deviceConfig)
+	: ProviderUdp()
 {
 	setConfig(deviceConfig);
 }
@@ -18,6 +18,7 @@ bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 {
 	/* The H801 port is fixed */
 	ProviderUdp::setConfig(deviceConfig, 30977, "255.255.255.255");
+
 	/* 10ms seems to be a safe default for the wait time */
 	_LatchTime_ns = deviceConfig.get("latchtime", 10000000).asInt();
 
@@ -54,7 +55,7 @@ int LedDeviceUdpH801::write(const std::vector<ColorRgb> &ledValues)
 	_message[_prefix_size + 1] = color.green;
 	_message[_prefix_size + 2] = color.blue;
 
-	writeBytes(_message.size(), reinterpret_cast<const uint8_t*>(_message.data()));
+	return writeBytes(_message.size(), reinterpret_cast<const uint8_t*>(_message.data()));
 }
 
 int LedDeviceUdpH801::switchOff()

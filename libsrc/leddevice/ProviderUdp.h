@@ -20,6 +20,11 @@ public:
 	ProviderUdp(const Json::Value &deviceConfig);
 
 	///
+	/// Constructs specific LedDevice
+	///
+	ProviderUdp();
+
+	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
 	virtual ~ProviderUdp();

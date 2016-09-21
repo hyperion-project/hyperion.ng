@@ -16,11 +16,16 @@
 #include "ProviderUdp.h"
 
 ProviderUdp::ProviderUdp(const Json::Value &deviceConfig)
+	: ProviderUdp()
+{
+	setConfig(deviceConfig);
+}
+
+ProviderUdp::ProviderUdp()
 	: LedDevice()
 	, _LatchTime_ns(-1)
 	, _port(0)
 {
-	setConfig(deviceConfig);
 	_udpSocket = new QUdpSocket();
 }
 
@@ -49,7 +54,7 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultPort, st
 		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
 		_address = info.addresses().first();
 	}
-	
+
 	_port = deviceConfig.get("port", defaultPort).asUInt();
 	if ( _port<=0 || _port > 65535)
 	{
