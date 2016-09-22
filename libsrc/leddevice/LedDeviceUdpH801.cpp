@@ -17,10 +17,7 @@ LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig)
 bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 {
 	/* The H801 port is fixed */
-	ProviderUdp::setConfig(deviceConfig, 30977, "255.255.255.255");
-
-	/* 10ms seems to be a safe default for the wait time */
-	_LatchTime_ns = deviceConfig.get("latchtime", 10000000).asInt();
+	ProviderUdp::setConfig(deviceConfig, 10000000, 30977, "255.255.255.255");
 
 	_ids.clear();
 	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++) {
