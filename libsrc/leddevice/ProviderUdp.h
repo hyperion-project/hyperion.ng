@@ -15,13 +15,6 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderUdp();
-
-	///
-	/// Constructs specific LedDevice
-	///
 	ProviderUdp();
 
 	///
@@ -42,9 +35,6 @@ public:
 	/// @return Zero on succes else negative
 	///
 	int open();
-
-	/// Switch the leds off
-	virtual int switchOff();
 
 protected:
 	///

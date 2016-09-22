@@ -65,9 +65,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
 private:
 	QTcpSocket  _client;
 	std::string _host;

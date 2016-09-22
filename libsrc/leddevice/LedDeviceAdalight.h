@@ -35,9 +35,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
 private slots:
 	/// Write the last data to the leds again
 	void rewriteLeds();

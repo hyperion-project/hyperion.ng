@@ -60,16 +60,6 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
-int LedDeviceAdalight::switchOff()
-{
-	// restart the timer
-	_timer.start();
-
-	// write data
-	memset(6 + _ledBuffer.data(), 0, _ledBuffer.size()-6);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
 void LedDeviceAdalight::rewriteLeds()
 {
 	writeBytes(_ledBuffer.size(), _ledBuffer.data());

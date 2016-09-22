@@ -67,3 +67,18 @@ Json::Value LedDevice::getLedDeviceSchemas()
 	
 	return result;
 }
+
+
+int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
+{
+	_ledCount = ledValues.size();
+	return write(ledValues);
+}
+
+int LedDevice::switchOff()
+{
+	return write(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK ));
+}
+
+
+
