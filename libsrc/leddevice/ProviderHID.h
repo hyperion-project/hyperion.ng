@@ -55,7 +55,7 @@ protected:
 	// HID VID and PID
 	unsigned short _VendorId;
 	unsigned short _ProductId;
-	bool _useFeature;
+	bool           _useFeature;
 
 	/// libusb device handle
 	hid_device * _deviceHandle;

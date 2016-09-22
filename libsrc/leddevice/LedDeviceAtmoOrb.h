@@ -65,6 +65,9 @@ public:
 	///
 	virtual ~LedDeviceAtmoOrb();
 
+	virtual int switchOff();
+
+private:
 	///
 	/// Sends the given led-color values to the Orbs
 	///
@@ -73,9 +76,6 @@ public:
 	///
 	virtual int write(const std::vector <ColorRgb> &ledValues);
 
-	virtual int switchOff();
-
-private:
 	/// QNetworkAccessManager object for sending requests.
 	QNetworkAccessManager *_manager;
 

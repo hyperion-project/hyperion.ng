@@ -136,6 +136,14 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 	
+	/// Restores the original state of the leds.
+	virtual int switchOff();
+
+private slots:
+	/// Restores the status of all lights.
+	void restoreStates();
+
+private:
 	///
 	/// Sends the given led-color values via put request to the hue system
 	///
@@ -145,14 +153,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Restores the original state of the leds.
-	virtual int switchOff();
-
-private slots:
-	/// Restores the status of all lights.
-	void restoreStates();
-
-private:
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> lights;
 	/// Ip address of the bridge

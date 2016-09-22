@@ -167,30 +167,11 @@ void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 	_udpSocket->writeDatagram(datagram.data(), datagram.size(), _groupAddress, _multiCastGroupPort);
 }
 
-int LedDeviceAtmoOrb::switchOff() {
-	for (unsigned int i = 0; i < _orbIds.size(); i++)
+int LedDeviceAtmoOrb::switchOff()
+{
+	for (auto orbId : _orbIds)
 	{
-		QByteArray bytes;
-		bytes.resize(5 + _numLeds * 3);
-		bytes.fill('\0');
-
-		// Command identifier: C0FFEE
-		bytes[0] = 0xC0;
-		bytes[1] = 0xFF;
-		bytes[2] = 0xEE;
-
-		// Command type
-		bytes[3] = 1;
-
-		// Orb ID
-		bytes[4] = _orbIds[i];
-
-		// RED / GREEN / BLUE
-		bytes[5] = 0;
-		bytes[6] = 0;
-		bytes[7] = 0;
-
-		sendCommand(bytes);
+		setColor(orbId, ColorRgb::BLACK, 1);
 	}
 	return 0;
 }

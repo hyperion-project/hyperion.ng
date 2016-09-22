@@ -41,8 +41,3 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 
 	return 0;
 }
-
-int LedDeviceFile::switchOff()
-{
-	return 0;
-}

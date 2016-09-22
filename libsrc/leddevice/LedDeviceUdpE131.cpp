@@ -83,17 +83,12 @@ void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this
 
 int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 {
-	int retVal = 0;
-
+	int retVal            = 0;
 	int _thisChannelCount = 0;
-
-	_e131_seq++;
-
+	int _dmxChannelCount  = 3 * _ledCount;
 	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
 
-	_ledCount = ledValues.size();
-
-	int _dmxChannelCount = 3 * _ledCount;
+	_e131_seq++;
 
 	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
 	{
@@ -113,7 +108,7 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 		{
 #undef e131debug
 #if e131debug
-			printf ( "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d\n"
+			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
 				, rawIdx
 				, _dmxChannelCount
 				, _e131_universe + rawIdx / DMX_MAX

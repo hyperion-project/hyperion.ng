@@ -151,6 +151,7 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &);
 
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -159,10 +160,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	page_map_t *page_map;						// This will hold the page map, which we'll allocate
 	uint8_t *virtbase;					// Pointer to some virtual memory that will be allocated
 

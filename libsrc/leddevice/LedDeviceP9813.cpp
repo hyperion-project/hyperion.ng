@@ -23,10 +23,9 @@ LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
 
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledCount != (signed)ledValues.size())
+	if (_ledBuffer.size() == 0)
 	{
 		_ledBuffer.resize(ledValues.size() * 4 + 8, 0x00);
-		_ledCount = ledValues.size();
 	}
 
 	uint8_t * dataPtr = _ledBuffer.data();
@@ -39,11 +38,6 @@ int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-int LedDeviceP9813::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
 
 uint8_t LedDeviceP9813::calculateChecksum(const ColorRgb & color) const

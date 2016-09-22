@@ -43,7 +43,6 @@ int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)
 
 	int retVal = 0;
 
-	_ledCount = ledValues.size();
 	_tpm2ByteCount = 3 * _ledCount;
 	_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
 

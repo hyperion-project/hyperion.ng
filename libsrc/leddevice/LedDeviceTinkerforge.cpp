@@ -82,21 +82,19 @@ int LedDeviceTinkerforge::open()
 
 int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 {
-	unsigned nrLedValues = ledValues.size();
-
-	if (nrLedValues > MAX_NUM_LEDS) 
+	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
 	{
 		Error(_log,"Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
 		return -1;
 	}
 
-	if (_colorChannelSize < nrLedValues)
+	if (_colorChannelSize < (unsigned)_ledCount)
 	{
-		_redChannel.resize(nrLedValues, uint8_t(0));
-		_greenChannel.resize(nrLedValues, uint8_t(0));
-		_blueChannel.resize(nrLedValues, uint8_t(0));
+		_redChannel.resize(_ledCount, uint8_t(0));
+		_greenChannel.resize(_ledCount, uint8_t(0));
+		_blueChannel.resize(_ledCount, uint8_t(0));
 	}
-	_colorChannelSize = nrLedValues;
+	_colorChannelSize = _ledCount;
 
 	auto redIt   = _redChannel.begin();
 	auto greenIt = _greenChannel.begin();
@@ -111,15 +109,6 @@ int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 		*blueIt = ledValue.blue;
 		++blueIt;
 	}
-
-	return transferLedData(_ledStrip, 0, _colorChannelSize, _redChannel.data(), _greenChannel.data(), _blueChannel.data());
-}
-
-int LedDeviceTinkerforge::switchOff()
-{
-	std::fill(_redChannel.begin(),   _redChannel.end(),   0);
-	std::fill(_greenChannel.begin(), _greenChannel.end(), 0);
-	std::fill(_blueChannel.begin(),  _blueChannel.end(),  0);
 
 	return transferLedData(_ledStrip, 0, _colorChannelSize, _redChannel.data(), _greenChannel.data(), _blueChannel.data());
 }

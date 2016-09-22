@@ -85,7 +85,6 @@ bool LedDeviceFadeCandy::tryConnect()
 
 int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 {
-	ssize_t _ledCount = ledValues.size();
 	ssize_t led_data_size = _ledCount * 3;    // 3 color bytes
 	ssize_t opc_data_size = led_data_size + OPC_HEADER_SIZE;
 

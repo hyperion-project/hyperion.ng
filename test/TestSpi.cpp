@@ -61,7 +61,7 @@ void setColor(char* colorStr)
 
 	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
-	ledDevice.write(buff);
+	ledDevice.setLedValues(buff);
 }
 
 bool _running = true;
@@ -110,7 +110,7 @@ void doCircle()
 
 		data[curLed_2] = color_2;
 
-		ledDevice.write(data);
+		ledDevice.setLedValues(data);
 
 		nanosleep(&loopTime, NULL);
 	}
@@ -119,7 +119,7 @@ void doCircle()
 	data[curLed_1] = ColorRgb::BLACK;
 	data[curLed_2] = ColorRgb::BLACK;
 
-	ledDevice.write(data);
+	ledDevice.setLedValues(data);
 }
 
 #include <csignal>

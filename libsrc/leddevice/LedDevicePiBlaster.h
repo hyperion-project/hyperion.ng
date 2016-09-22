@@ -40,6 +40,7 @@ public:
 	///
 	int open();
 
+private:
 	///
 	/// Writes the colors to the PiBlaster device
 	///
@@ -48,15 +49,6 @@ public:
 	/// @return Zero on success else negative
 	///
 	int write(const std::vector<ColorRgb> &ledValues);
-
-	///
-	/// Switches off the leds
-	///
-	/// @return Zero on success else negative
-	///
-	int switchOff();
-
-private:
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
 	std::string _deviceName;

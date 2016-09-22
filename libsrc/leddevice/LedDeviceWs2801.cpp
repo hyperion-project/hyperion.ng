@@ -23,15 +23,9 @@ LedDevice* LedDeviceWs2801::construct(const Json::Value &deviceConfig)
 
 int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
-	const unsigned dataLen = ledValues.size() * sizeof(ColorRgb);
+	const unsigned dataLen = _ledCount * sizeof(ColorRgb);
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(dataLen, dataPtr);
 }
 
-int LedDeviceWs2801::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}

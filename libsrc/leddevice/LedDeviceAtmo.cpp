@@ -21,19 +21,14 @@ int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 {
 	// The protocol is shomehow limited. we always need to send exactly 5 channels + header
 	// (19 bytes) for the hardware to recognize the data
-	if (ledValues.size() != 5)
+	if (_ledCount != 5)
 	{
-		Error( _log, "%d channels configured. This should always be 5!", ledValues.size());
+		Error( _log, "%d channels configured. This should always be 5!", _ledCount);
 		return 0;
 	}
 
 	// write data
-	memcpy(4 + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledCount * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
-int LedDeviceAtmo::switchOff()
-{
-	memset(4 + _ledBuffer.data(), 0, _ledBuffer.size() - 4);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}

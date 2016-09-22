@@ -16,30 +16,24 @@ LedDevice* LedDevicePaintpack::construct(const Json::Value &deviceConfig)
 
 int LedDevicePaintpack::write(const std::vector<ColorRgb> & ledValues)
 {
-	if (_ledBuffer.size() < 2 + ledValues.size()*3)
+	unsigned newSize = 3*_ledCount + 2;
+	if (_ledBuffer.size() < newSize)
 	{
-		_ledBuffer.resize(2 + ledValues.size()*3, uint8_t(0));
+		_ledBuffer.resize(newSize, uint8_t(0));
 		_ledBuffer[0] = 3;
 		_ledBuffer[1] = 0;
 	}
 
 	auto bufIt = _ledBuffer.begin()+2;
-	for (const ColorRgb & ledValue : ledValues)
+	for (const ColorRgb & color : ledValues)
 	{
-		*bufIt = ledValue.red;
+		*bufIt = color.red;
 		++bufIt;
-		*bufIt = ledValue.green;
+		*bufIt = color.green;
 		++bufIt;
-		*bufIt = ledValue.blue;
+		*bufIt = color.blue;
 		++bufIt;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-
-int LedDevicePaintpack::switchOff()
-{
-	std::fill(_ledBuffer.begin() + 2, _ledBuffer.end(), uint8_t(0));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

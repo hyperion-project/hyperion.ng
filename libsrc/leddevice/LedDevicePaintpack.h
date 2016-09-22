@@ -22,6 +22,7 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
+private:
 	///
 	/// Writes the RGB-Color values to the leds.
 	///
@@ -30,11 +31,4 @@ public:
 	/// @return Zero on success else negative
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// Switch the leds off
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
 };
