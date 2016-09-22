@@ -1,9 +1,6 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
 
-// jsoncpp includes
-#include <json/json.h>
-
 // qt includes
 #include <QtCore/qmath.h>
 #include <QEventLoop>

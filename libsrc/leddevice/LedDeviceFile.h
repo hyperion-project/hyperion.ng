@@ -1,6 +1,6 @@
 #pragma once
 
-// STL includes0
+// STL includes
 #include <fstream>
 
 // Leddevice includes

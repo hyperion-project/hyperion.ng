@@ -1,14 +1,3 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceSk6812SPI.h"
 
 LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)

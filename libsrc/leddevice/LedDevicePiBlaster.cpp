@@ -3,10 +3,6 @@
 #include <cstring>
 #include <csignal>
 
-
-// jsoncpp includes
-#include <json/json.h>
-
 // QT includes
 #include <QFile>
 

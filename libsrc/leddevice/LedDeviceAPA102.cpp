@@ -1,15 +1,3 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <algorithm>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceAPA102.h"
 
 LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)

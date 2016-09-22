@@ -1,16 +1,4 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceAdalight.h"
-#include <leddevice/LedDevice.h>
 
 LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
 	: ProviderRs232(deviceConfig)

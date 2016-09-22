@@ -1,11 +1,8 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderSpi.h"
-#include <json/json.h>
+
 
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.

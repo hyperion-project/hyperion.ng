@@ -1,16 +1,5 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
 #include <arpa/inet.h>
-
 #include <QHostInfo>
-#include <QUuid>
 
 // hyperion local includes
 #include "LedDeviceUdpE131.h"

@@ -1,14 +1,3 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceWs2812SPI.h"
 
 LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
@@ -19,7 +8,6 @@ LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
 		0b11001000,
 		0b11001100,
 	}
-
 {
 	setConfig(deviceConfig);
 }
@@ -32,11 +20,8 @@ LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
 bool LedDeviceWs2812SPI::setConfig(const Json::Value &deviceConfig)
 {
 	ProviderSpi::setConfig(deviceConfig,3000000);
+	WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
 
-	if ( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 )
-	{
-		Warning(_log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
-	}
 	return true;
 }
 
@@ -52,7 +37,7 @@ int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	unsigned spi_ptr = 0;
-	for (unsigned i=0; i< (unsigned)_ledCount; ++i)
+	for (unsigned i=0; i<(unsigned)_ledCount; ++i)
 	{
 		uint32_t colorBits = ((unsigned int)ledValues[i].red << 16) 
 			| ((unsigned int)ledValues[i].green << 8) 

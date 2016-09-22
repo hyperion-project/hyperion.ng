@@ -1,13 +1,9 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // Qt includes
-#include <QObject>
-#include <QString>
 #include <QNetworkAccessManager>
 #include <QTimer>
+
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 

@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <vector>
-
 // Hyperion includes
 #include "ProviderHID.h"
 

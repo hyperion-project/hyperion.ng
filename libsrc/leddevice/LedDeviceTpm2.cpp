@@ -1,12 +1,5 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// hyperion local includes
 #include "LedDeviceTpm2.h"
-#include <json/json.h>
+
 
 LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
 	: ProviderRs232(deviceConfig)

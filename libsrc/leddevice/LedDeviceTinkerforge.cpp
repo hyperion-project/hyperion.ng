@@ -10,10 +10,10 @@ static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 
 LedDeviceTinkerforge::LedDeviceTinkerforge(const Json::Value &deviceConfig)
-		: LedDevice()
-		, _ipConnection(nullptr)
-		, _ledStrip(nullptr)
-		, _colorChannelSize(0)
+	: LedDevice()
+	, _ipConnection(nullptr)
+	, _ledStrip(nullptr)
+	, _colorChannelSize(0)
 {
 	setConfig(deviceConfig);
 }

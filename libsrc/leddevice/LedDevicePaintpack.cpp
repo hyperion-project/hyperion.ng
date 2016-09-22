@@ -1,5 +1,3 @@
-
-// Hyperion includes
 #include "LedDevicePaintpack.h"
 
 // Use out report HID device

@@ -1,11 +1,4 @@
-
 #pragma once
-
-// STL includes
-#include <cstdio>
-
-// jsoncpp includes
-#include <json/json.h>
 
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>

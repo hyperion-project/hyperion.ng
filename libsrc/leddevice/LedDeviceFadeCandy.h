@@ -1,8 +1,6 @@
 #pragma once
 
 // STL/Qt includes
-#include <fstream>
-#include <QObject>
 #include <QTcpSocket>
 
 // Leddevice includes

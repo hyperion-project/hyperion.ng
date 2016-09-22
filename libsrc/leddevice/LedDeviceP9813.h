@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion include
 #include "ProviderSpi.h"
 

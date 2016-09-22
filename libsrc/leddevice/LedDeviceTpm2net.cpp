@@ -1,18 +1,3 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <arpa/inet.h>
-
-#include <QHostInfo>
-#include <QUuid>
-
-// hyperion local includes
 #include "LedDeviceTpm2net.h"
 
 LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
@@ -23,8 +8,8 @@ LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
 
 bool LedDeviceTpm2net::setConfig(const Json::Value &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig,50200,104000);
-	_tpm2_max  = deviceConfig.get("max-packet",170).asInt();
+	ProviderUdp::setConfig(deviceConfig, TPM2_DEFAULT_PORT, 104000);
+	_tpm2_max  = deviceConfig.get("max-packet", 170).asInt();
 
 	return true;
 }

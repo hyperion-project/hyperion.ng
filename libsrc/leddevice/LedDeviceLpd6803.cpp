@@ -1,13 +1,3 @@
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceLpd6803.h"
 
 LedDeviceLpd6803::LedDeviceLpd6803(const Json::Value &deviceConfig)

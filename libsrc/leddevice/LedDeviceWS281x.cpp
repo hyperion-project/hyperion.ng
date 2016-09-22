@@ -1,4 +1,3 @@
-#include <iostream>
 #include <exception>
 
 #include "LedDeviceWS281x.h"

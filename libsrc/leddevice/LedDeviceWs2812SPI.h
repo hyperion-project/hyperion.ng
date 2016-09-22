@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderSpi.h"
 
@@ -29,7 +26,7 @@ public:
 	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 
-protected:
+private:
 	///
 	/// Writes the led color values to the led-device
 	///

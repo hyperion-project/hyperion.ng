@@ -1,5 +1,3 @@
-
-// Local-Hyperion includes
 #include "LedDeviceFile.h"
 
 LedDeviceFile::LedDeviceFile(const Json::Value &deviceConfig)

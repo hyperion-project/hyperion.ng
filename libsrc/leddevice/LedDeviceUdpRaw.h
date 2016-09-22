@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderUdp.h"
 

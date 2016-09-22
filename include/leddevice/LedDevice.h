@@ -1,9 +1,13 @@
 #pragma once
 
+#include <QObject>
+#include <QString>
+
 // STL incldues
 #include <vector>
-#include <QObject>
+#include <string>
 #include <map>
+#include <algorithm>
 
 // Utility includes
 #include <utils/ColorRgb.h>
