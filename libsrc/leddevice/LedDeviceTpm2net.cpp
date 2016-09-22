@@ -25,6 +25,7 @@ bool LedDeviceTpm2net::setConfig(const Json::Value &deviceConfig)
 {
 	ProviderUdp::setConfig(deviceConfig,50200,104000);
 	_tpm2_max  = deviceConfig.get("max-packet",170).asInt();
+
 	return true;
 }
 
