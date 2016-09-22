@@ -15,13 +15,6 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderUdp();
-
-	///
-	/// Constructs specific LedDevice
-	///
 	ProviderUdp();
 
 	///
