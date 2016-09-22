@@ -12,17 +12,9 @@
 #include "LedDeviceUdpRaw.h"
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
-	: ProviderUdp(deviceConfig)
+	: ProviderUdp()
 {
-	setConfig(deviceConfig);
-}
-
-bool LedDeviceUdpRaw::setConfig(const Json::Value &deviceConfig)
-{
-	ProviderUdp::setConfig(deviceConfig);
-	_LatchTime_ns = deviceConfig.get("latchtime",500000).asInt();
-
-	return true;
+	ProviderUdp::setConfig(deviceConfig, 500000, 5568);
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
@@ -38,9 +30,4 @@ int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	return writeBytes(dataLen, dataPtr);
-}
-
-int LedDeviceUdpRaw::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

@@ -17,7 +17,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	ProviderUdp(const Json::Value &deviceConfig);
+	ProviderUdp();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -29,7 +29,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool setConfig(const Json::Value &deviceConfig, int defaultLatchTime=-1, int defaultPort=0, std::string defaultHost="127.0.0.1");
 
 	///
 	/// Opens and configures the output device
@@ -37,6 +37,9 @@ public:
 	/// @return Zero on succes else negative
 	///
 	int open();
+
+	/// Switch the leds off
+	virtual int switchOff();
 
 protected:
 	///

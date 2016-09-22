@@ -16,16 +16,14 @@
 #include "LedDeviceTpm2net.h"
 
 LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
-	: ProviderUdp(deviceConfig)
-
+	: ProviderUdp()
 {
 	setConfig(deviceConfig);
 }
 
 bool LedDeviceTpm2net::setConfig(const Json::Value &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig);
-	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
+	ProviderUdp::setConfig(deviceConfig,50200,104000);
 	_tpm2_max  = deviceConfig.get("max-packet",170).asInt();
 	return true;
 }
@@ -79,9 +77,4 @@ int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return retVal;
-}
-
-int LedDeviceTpm2net::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

@@ -16,16 +16,14 @@
 #include "LedDeviceUdpE131.h"
 
 LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
-	: ProviderUdp(deviceConfig)
-
+	: ProviderUdp()
 {
 	setConfig(deviceConfig);
 }
 
 bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig);
-	_LatchTime_ns  = deviceConfig.get("latchtime",104000).asInt();
+	ProviderUdp::setConfig(deviceConfig, 104000, 5568);
 	_e131_universe = deviceConfig.get("universe",1).asInt();
 	_e131_source_name = deviceConfig.get("source-name","hyperion on "+QHostInfo::localHostName().toStdString()).asString();
 	QString _json_cid = QString::fromStdString(deviceConfig.get("cid","").asString());
@@ -129,7 +127,3 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 	return retVal;
 }
 
-int LedDeviceUdpE131::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}
