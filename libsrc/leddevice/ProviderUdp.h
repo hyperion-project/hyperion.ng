@@ -20,6 +20,11 @@ public:
 	ProviderUdp();
 
 	///
+	/// Constructs specific LedDevice
+	///
+	ProviderUdp();
+
+	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
 	virtual ~ProviderUdp();

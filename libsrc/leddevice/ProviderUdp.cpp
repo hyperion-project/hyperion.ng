@@ -28,7 +28,11 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
+<<<<<<< HEAD
 bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTime, int defaultPort, std::string defaultHost)
+=======
+bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultPort, std::string defaultHost)
+>>>>>>> ad785b9eba371bca0829b8dc7df80c30afdc052a
 {
 	QString host = QString::fromStdString(deviceConfig.get("host",defaultHost).asString());
 	
@@ -48,7 +52,11 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTim
 		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
 		_address = info.addresses().first();
 	}
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> ad785b9eba371bca0829b8dc7df80c30afdc052a
 	_port = deviceConfig.get("port", defaultPort).asUInt();
 	if ( _port<=0 || _port > 65535)
 	{
