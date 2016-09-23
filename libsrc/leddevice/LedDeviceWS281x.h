@@ -28,6 +28,7 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -36,10 +37,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	ws2811_t    _led_string;
 	int         _channel;
 	bool        _initialized;

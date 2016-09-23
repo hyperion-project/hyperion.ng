@@ -1,8 +1,6 @@
 #pragma once
 
 // STL/Qt includes
-#include <fstream>
-#include <QObject>
 #include <QTcpSocket>
 
 // Leddevice includes
@@ -64,9 +62,6 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 
 private:
 	QTcpSocket  _client;

@@ -112,7 +112,7 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	{
 		// No output delay => immediate write
 		if ( _writeToLedsEnable )
-			_ledDevice->write(ledColors);
+			_ledDevice->setLedValues(ledColors);
 	}
 	else
 	{
@@ -125,7 +125,7 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 		{
 			if ( _outputQueue.size() > _outputDelay || !_writeToLedsEnable )
 			{
-				_ledDevice->write(_outputQueue.front());
+				_ledDevice->setLedValues(_outputQueue.front());
 				_outputQueue.pop_front();
 			}
 		}

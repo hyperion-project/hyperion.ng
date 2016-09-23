@@ -95,8 +95,3 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 	return retVal;
 }
 
-int ProviderUdp::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
-}
-

@@ -18,7 +18,10 @@ ProviderSpi::ProviderSpi(const Json::Value &deviceConfig)
 	: LedDevice()
 	, _fid(-1)
 {
-	setConfig(deviceConfig);
+	if (deviceConfig != Json::nullValue)
+	{
+		setConfig(deviceConfig);
+	}
 	memset(&_spi, 0, sizeof(_spi));
 }
 
@@ -27,10 +30,10 @@ ProviderSpi::~ProviderSpi()
 //	close(_fid);
 }
 
-bool ProviderSpi::setConfig(const Json::Value &deviceConfig)
+bool ProviderSpi::setConfig(const Json::Value &deviceConfig, int defaultBaudRateHz)
 {
 	_deviceName    = deviceConfig.get("output","/dev/spidev0.0").asString();
-	_baudRate_Hz   = deviceConfig.get("rate",1000000).asInt();
+	_baudRate_Hz   = deviceConfig.get("rate",defaultBaudRateHz).asInt();
 	_latchTime_ns  = deviceConfig.get("latchtime",0).asInt();
 	_spiMode       = deviceConfig.get("spimode",SPI_MODE_0).asInt();
 	_spiDataInvert = deviceConfig.get("invert",false).asBool();

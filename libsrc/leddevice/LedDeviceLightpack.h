@@ -1,9 +1,7 @@
 #pragma once
 
 // stl includes
-#include <vector>
 #include <cstdint>
-#include <string>
 
 // libusb include
 #include <libusb.h>
@@ -55,15 +53,6 @@ public:
 	///
 	/// Writes the RGB-Color values to the leds.
 	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
 	/// @param[in] ledValues  Array of RGB values
 	/// @param[in] size       The number of RGB values
 	///
@@ -86,6 +75,15 @@ public:
 
 private:
 	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues);
+
+	///
 	/// Test if the device is a (or the) lightpack we are looking for
 	///
 	/// @return Zero on succes else negative
@@ -107,7 +105,6 @@ private:
 	static libusb_device_handle * openDevice(libusb_device * device);
 	static std::string getString(libusb_device * device, int stringDescriptorIndex);
 
-private:
 	/// libusb context
 	libusb_context * _libusbContext;
 
@@ -128,4 +125,7 @@ private:
 
 	/// the number of bits per channel
 	int _bitsPerChannel;
+	
+	/// count of real hardware leds
+	int _hwLedCount;
 };

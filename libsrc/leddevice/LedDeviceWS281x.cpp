@@ -1,4 +1,3 @@
-#include <iostream>
 #include <exception>
 
 #include "LedDeviceWS281x.h"
@@ -83,23 +82,6 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 		_led_string.channel[_channel].leds[idx++] = 0;
 	}
 	
-	return ws2811_render(&_led_string) ? -1 : 0;
-}
-
-// Turn off the LEDs by sending 000000's
-// TODO Allow optional power switch out another gpio, if this code handles it can
-// make it more likely we don't accidentally drive data into an off strip
-int LedDeviceWS281x::switchOff()
-{
-	if (!_initialized)
-	{
-		return -1;
-	}
-
-	int idx = 0;
-	while (idx < _led_string.channel[_channel].count)
-		_led_string.channel[_channel].leds[idx++] = 0;
-
 	return ws2811_render(&_led_string) ? -1 : 0;
 }
 

@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderSpi.h"
 
@@ -29,6 +26,7 @@ public:
 	/// @return true if success
 	bool setConfig(const Json::Value &deviceConfig);
 	
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -37,10 +35,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	std::string _whiteAlgorithm;
 	
 	uint8_t bitpair_to_byte[4];

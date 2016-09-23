@@ -36,9 +36,6 @@ public:
 	///
 	int open();
 
-	/// Switch the leds off
-	virtual int switchOff();
-
 protected:
 	///
 	/// Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the

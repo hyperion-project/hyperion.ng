@@ -17,14 +17,14 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	ProviderSpi(const Json::Value &deviceConfig);
+	ProviderSpi(const Json::Value &deviceConfig=Json::nullValue);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool setConfig(const Json::Value &deviceConfig, int defaultBaudRateHz=1000000);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open

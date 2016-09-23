@@ -1,5 +1,3 @@
-
-// Local-Hyperion includes
 #include "LedDeviceFile.h"
 
 LedDeviceFile::LedDeviceFile(const Json::Value &deviceConfig)
@@ -39,10 +37,5 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 	}
 	_ofs << "]" << std::endl;
 
-	return 0;
-}
-
-int LedDeviceFile::switchOff()
-{
 	return 0;
 }

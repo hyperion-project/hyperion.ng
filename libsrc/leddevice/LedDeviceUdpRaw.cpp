@@ -1,20 +1,9 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceUdpRaw.h"
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
 	: ProviderUdp()
 {
-	ProviderUdp::setConfig(deviceConfig, 500000, 5568);
+	setConfig(deviceConfig, 500000, 5568);
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
@@ -24,8 +13,6 @@ LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
 
 int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
 	const unsigned dataLen = _ledCount * sizeof(ColorRgb);
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 

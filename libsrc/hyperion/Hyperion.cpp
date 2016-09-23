@@ -1012,9 +1012,9 @@ void Hyperion::update()
 	
 	// Write the data to the device
 	if (_deviceSmooth->enabled())
-		_deviceSmooth->write(_ledBuffer);
+		_deviceSmooth->setLedValues(_ledBuffer);
 	else
-		_device->write(_ledBuffer);
+		_device->setLedValues(_ledBuffer);
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)

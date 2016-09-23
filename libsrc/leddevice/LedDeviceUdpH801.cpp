@@ -1,11 +1,3 @@
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-#include <QHostInfo>
-
-// hyperion local includes
 #include "LedDeviceUdpH801.h"
 
 LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig)
@@ -20,7 +12,8 @@ bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 	ProviderUdp::setConfig(deviceConfig, 10000000, 30977, "255.255.255.255");
 
 	_ids.clear();
-	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++) {
+	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++)
+	{
 		QString id(deviceConfig["lightIds"][i].asCString());
 		_ids.push_back(id.toInt(nullptr, 16));
 	}
@@ -54,9 +47,3 @@ int LedDeviceUdpH801::write(const std::vector<ColorRgb> &ledValues)
 
 	return writeBytes(_message.size(), reinterpret_cast<const uint8_t*>(_message.data()));
 }
-
-int LedDeviceUdpH801::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0, 0, 0}));
-}
-

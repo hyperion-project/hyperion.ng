@@ -1,16 +1,4 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceAdalight.h"
-#include <leddevice/LedDevice.h>
 
 LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
 	: ProviderRs232(deviceConfig)
@@ -57,16 +45,6 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 
 	// write data
 	memcpy(6 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-int LedDeviceAdalight::switchOff()
-{
-	// restart the timer
-	_timer.start();
-
-	// write data
-	memset(6 + _ledBuffer.data(), 0, _ledBuffer.size()-6);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 

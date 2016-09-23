@@ -1,14 +1,3 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceSedu.h"
 
 struct FrameSpec
@@ -20,7 +9,6 @@ struct FrameSpec
 LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
 	: ProviderRs232(deviceConfig)
 {
-	// empty
 }
 
 LedDevice* LedDeviceSedu::construct(const Json::Value &deviceConfig)
@@ -34,7 +22,7 @@ int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)
 	{
 		std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 
-		const unsigned reqColorChannels = ledValues.size() * sizeof(ColorRgb);
+		const unsigned reqColorChannels = _ledCount * sizeof(ColorRgb);
 
 		for (const FrameSpec& frameSpec : frameSpecs)
 		{
@@ -57,11 +45,5 @@ int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	memcpy(_ledBuffer.data()+2, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-int LedDeviceSedu::switchOff()
-{
-	memset(_ledBuffer.data()+2, 0, _ledBuffer.size()-3);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

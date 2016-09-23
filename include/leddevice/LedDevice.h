@@ -1,9 +1,13 @@
 #pragma once
 
+#include <QObject>
+#include <QString>
+
 // STL incldues
 #include <vector>
-#include <QObject>
+#include <string>
 #include <map>
+#include <algorithm>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -32,17 +36,10 @@ public:
 	///
 	virtual ~LedDevice() {}
 
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
-
 	/// Switch the leds off
-	virtual int switchOff() = 0;
+	virtual int switchOff();
+	
+	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
 	
 	///
 	/// Opens and configures the output device
@@ -58,6 +55,15 @@ public:
 	static Json::Value getLedDeviceSchemas();
 	
 protected:
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
 	

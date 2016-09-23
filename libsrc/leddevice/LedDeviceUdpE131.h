@@ -1,25 +1,22 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion includes
 #include "ProviderUdp.h"
 
 #include <QUuid>
 
-/*
-*
-* https://raw.githubusercontent.com/forkineye/ESPixelStick/master/_E131.h
-* Project: E131 - E.131 (sACN) library for Arduino
-* Copyright (c) 2015 Shelby Merrick
-* http://www.forkineye.com
-*
-*  This program is provided free for you to use in any way that you wish,
-*  subject to the laws and regulations where you are using it.  Due diligence
-*  is strongly suggested before using this code.  Please give credit where due.
-*
-*/
+/**
+ *
+ * https://raw.githubusercontent.com/forkineye/ESPixelStick/master/_E131.h
+ * Project: E131 - E.131 (sACN) library for Arduino
+ * Copyright (c) 2015 Shelby Merrick
+ * http://www.forkineye.com
+ *
+ *  This program is provided free for you to use in any way that you wish,
+ *  subject to the laws and regulations where you are using it.  Due diligence
+ *  is strongly suggested before using this code.  Please give credit where due.
+ *
+ **/
 
 #define E131_DEFAULT_PORT 5568
 
@@ -49,37 +46,39 @@
 #define E131_DMP_DATA 125
 
 /* E1.31 Packet Structure */
-typedef union {
-    struct {
-        /* Root Layer */
-        uint16_t preamble_size;
-        uint16_t postamble_size;
-        uint8_t  acn_id[12];
-        uint16_t root_flength;
-        uint32_t root_vector;
-        char     cid[16];
+typedef union
+{
+	struct
+	{
+		/* Root Layer */
+		uint16_t preamble_size;
+		uint16_t postamble_size;
+		uint8_t  acn_id[12];
+		uint16_t root_flength;
+		uint32_t root_vector;
+		char     cid[16];
 
-        /* Frame Layer */
-        uint16_t frame_flength;
-        uint32_t frame_vector;
-        char     source_name[64];
-        uint8_t  priority;
-        uint16_t reserved;
-        uint8_t  sequence_number;
-        uint8_t  options;
-        uint16_t universe;
+		/* Frame Layer */
+		uint16_t frame_flength;
+		uint32_t frame_vector;
+		char     source_name[64];
+		uint8_t  priority;
+		uint16_t reserved;
+		uint8_t  sequence_number;
+		uint8_t  options;
+		uint16_t universe;
 
-        /* DMP Layer */
-        uint16_t dmp_flength;
-        uint8_t  dmp_vector;
-        uint8_t  type;
-        uint16_t first_address;
-        uint16_t address_increment;
-        uint16_t property_value_count;
-        uint8_t  property_values[513];
-    } __attribute__((packed));
+		/* DMP Layer */
+		uint16_t dmp_flength;
+		uint8_t  dmp_vector;
+		uint8_t  type;
+		uint16_t first_address;
+		uint16_t address_increment;
+		uint16_t property_value_count;
+		uint8_t  property_values[513];
+	} __attribute__((packed));
 
-    uint8_t raw[638];
+	uint8_t raw[638];
 } e131_packet_t;
 
 /* defined parameters from http://tsp.esta.org/tsp/documents/docs/BSR_E1-31-20xx_CP-2014-1009r2.pdf */
@@ -119,6 +118,7 @@ public:
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
 
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -127,7 +127,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-private:
 	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
 
 	e131_packet_t e131_packet;
