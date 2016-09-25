@@ -685,7 +685,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	// create the effect engine
 	_effectEngine = new EffectEngine(this,jsonConfig["effects"]);
 	
-	unsigned int hwLedCount = qjsonConfig["device"].toObject()["ledCount"].toInt(getLedCount());
+	const QJsonObject& device = qjsonConfig["device"].toObject();
+	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
 	_hwLedCount = std::max(hwLedCount, getLedCount());
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
