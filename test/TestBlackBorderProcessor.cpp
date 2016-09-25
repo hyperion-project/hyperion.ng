@@ -47,7 +47,7 @@ int main()
 //	unsigned unknownCnt = 600;
 	unsigned borderCnt  = 50;
 //	unsigned blurCnt    = 0;
-	Json::Value config;
+	QJsonObject config;
 
 //	BlackBorderProcessor processor(unknownCnt, borderCnt, blurCnt, 3, config);
 	BlackBorderProcessor processor(config);
