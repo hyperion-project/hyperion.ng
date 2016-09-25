@@ -430,9 +430,11 @@ LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrd
 	
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
+		const QJsonObject& index = ledConfigArray[i].toObject();
+
 		Led led;
-		led.index = ledConfigArray[i].toObject()["index"].toInt();
-		led.clone = ledConfigArray[i].toObject()["clone"].toInt(-1);
+		led.index = index["index"].toInt();
+		led.clone = index["clone"].toInt(-1);
 		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
 			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
@@ -458,7 +460,8 @@ LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrd
 			}
 
 			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(ledConfigArray.at(i).toObject()["colorOrder"].toString(deviceOrderStr));
+			const QJsonObject& colorOrder = ledConfigArray[i].toObject();
+			led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
 			ledString.leds().push_back(led);
 		}
 	}
@@ -477,9 +480,11 @@ LedString Hyperion::createLedStringClone(const QJsonValue& ledsConfig, const Col
 
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
+		const QJsonObject& index = ledConfigArray[i].toObject();
+
 		Led led;
-		led.index = ledConfigArray[i].toObject()["index"].toInt();
-		led.clone = ledConfigArray[i].toObject()["clone"].toInt(-1);
+		led.index = index["index"].toInt();
+		led.clone = index["clone"].toInt(-1);
 		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
 			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
@@ -494,7 +499,7 @@ LedString Hyperion::createLedStringClone(const QJsonValue& ledsConfig, const Col
 			led.minY_frac = 0;
 			led.maxY_frac = 0;
 			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(ledConfigArray.at(i).toObject()["colorOrder"].toString(deviceOrderStr));
+			led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
 
 			ledString.leds().push_back(led);
 		}
@@ -514,7 +519,9 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
-		if (ledConfigArray[i].toObject()["clone"].toInt(-1) < 0 )
+		const QJsonObject& index = ledConfigArray[i].toObject();
+
+		if (index["clone"].toInt(-1) < 0 )
 		{
 			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
 			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
@@ -650,9 +657,10 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 		throw std::runtime_error("Color transformation incorrectly set");
 	}
 	// set color correction activity state
-	_transformEnabled   = qjsonConfig["color"].toObject()["transform_enable"].toBool(true);
-	_adjustmentEnabled  = qjsonConfig["color"].toObject()["channelAdjustment_enable"].toBool(true);
-	_temperatureEnabled = qjsonConfig["color"].toObject()["temperature_enable"].toBool(true);
+	const QJsonObject& color = qjsonConfig["color"].toObject();
+	_transformEnabled   = color["transform_enable"].toBool(true);
+	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
+	_temperatureEnabled = color["temperature_enable"].toBool(true);
 
 	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
 	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
