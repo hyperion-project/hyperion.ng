@@ -151,7 +151,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 	{
 		if (!_rs232Port.isOpen())
 		{
-			return tryOpen(3000) ? 0 : -1;
+			return tryOpen(5000) ? 0 : -1;
 		}
 
 		if (_frameDropCounter > 0)

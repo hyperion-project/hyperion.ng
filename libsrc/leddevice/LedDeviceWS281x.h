@@ -39,7 +39,6 @@ private:
 
 	ws2811_t    _led_string;
 	int         _channel;
-	bool        _initialized;
-	std::string _whiteAlgorithm;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw   _temp_rgbw;
 };

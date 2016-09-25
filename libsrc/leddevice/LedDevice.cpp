@@ -7,12 +7,15 @@
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
 std::string LedDevice::_activeDevice = "";
+int LedDevice::_ledCount    = 0;
+int LedDevice::_ledRGBCount = 0;
+int LedDevice::_ledRGBWCount= 0;
 
 LedDevice::LedDevice()
 	: QObject()
 	, _log(Logger::getInstance("LedDevice"))
-	, _ledCount(0)
 	, _ledBuffer(0)
+	, _deviceReady(true)
 
 {
 	LedDevice::getLedDeviceSchemas();
@@ -71,14 +74,18 @@ Json::Value LedDevice::getLedDeviceSchemas()
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
-	_ledCount = ledValues.size();
-	return write(ledValues);
+	return _deviceReady ? write(ledValues) : -1;
 }
 
 int LedDevice::switchOff()
 {
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK ));
+	return _deviceReady ? write(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK )) : -1;
 }
 
 
-
+void LedDevice::setLedCount(int ledCount)
+{
+	_ledCount     = ledCount;
+	_ledRGBCount  = _ledCount * 3;
+	_ledRGBWCount = _ledCount * 4;
+}

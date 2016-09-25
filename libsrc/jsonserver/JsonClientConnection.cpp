@@ -888,7 +888,6 @@ void JsonClientConnection::handleConfigCommand(const Json::Value & message, cons
 	} 
 	else if (subcommand == "reload")
 	{
-		// restart hyperion, this code must be put in some own class ... 
 		Process::restartHyperion();
 		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 

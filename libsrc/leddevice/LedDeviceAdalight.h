@@ -26,7 +26,7 @@ public:
 
 private slots:
 	/// Write the last data to the leds again
-	void rewriteLeds();
+	int rewriteLeds();
 
 protected:
 	///

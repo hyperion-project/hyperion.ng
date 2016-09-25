@@ -52,7 +52,8 @@ int main(int argc, char** argv)
 {
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::WARNING);
+	//Logger::setLogLevel(Logger::WARNING);
+	Logger::setLogLevel(Logger::DEBUG, "LedDevice");
 
 	// Initialising QCoreApplication
 	QCoreApplication app(argc, argv);

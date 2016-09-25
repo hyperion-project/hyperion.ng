@@ -6,7 +6,7 @@ LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
 {
 	// setup the timer
 	_timer.setSingleShot(false);
-	_timer.setInterval(5000);
+	_timer.setInterval(1000);
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
 
 	// start the timer
@@ -22,21 +22,15 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 {
 	if (_ledBuffer.size() == 0)
 	{
-		_ledBuffer.resize(6 + 3*ledValues.size());
+		_ledBuffer.resize(6 + _ledRGBCount);
 		_ledBuffer[0] = 'A';
 		_ledBuffer[1] = 'd';
 		_ledBuffer[2] = 'a';
-		_ledBuffer[3] = ((ledValues.size() - 1) >> 8) & 0xFF; // LED count high byte
-		_ledBuffer[4] = (ledValues.size() - 1) & 0xFF;        // LED count low byte
+		_ledBuffer[3] = (((unsigned int)_ledCount - 1) >> 8) & 0xFF; // LED count high byte
+		_ledBuffer[4] = ((unsigned int)_ledCount - 1) & 0xFF;        // LED count low byte
 		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
-                Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x",
-			ledValues.size(),
-			_ledBuffer[0],
-			_ledBuffer[1],
-			_ledBuffer[2],
-			_ledBuffer[3],
-			_ledBuffer[4],
-			_ledBuffer[5]
+		Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
+			_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]
 		);
 	}
 
@@ -48,7 +42,7 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
-void LedDeviceAdalight::rewriteLeds()
+int LedDeviceAdalight::rewriteLeds()
 {
-	writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

@@ -9,7 +9,7 @@ static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
 : LedDevice()
 {
-	setConfig(deviceConfig);
+	_deviceReady = setConfig(deviceConfig);
 }
 
 
@@ -27,6 +27,12 @@ LedDevice* LedDeviceFadeCandy::construct(const Json::Value &deviceConfig)
 bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 {
 	_client.close();
+
+	if (_ledCount > MAX_NUM_LEDS)
+	{
+		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
+		return false;
+	}
 
 	_host        = deviceConfig.get("output", "127.0.0.1").asString();
 	_port        = deviceConfig.get("port", 7890).asInt();
@@ -50,11 +56,11 @@ bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
 		_whitePoint_b = whitePointConfig[2].asDouble();
 	}
 
-	_opc_data.resize( OPC_HEADER_SIZE );
+	_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
 	_opc_data[0] = _channel;
 	_opc_data[1] = OPC_SET_PIXELS;
-	_opc_data[2] = 0;
-	_opc_data[3] = 0;
+	_opc_data[2] = _ledRGBCount >> 8;
+	_opc_data[3] = _ledRGBCount & 0xff;
 
 	return true;
 }
@@ -85,21 +91,6 @@ bool LedDeviceFadeCandy::tryConnect()
 
 int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 {
-	ssize_t led_data_size = _ledCount * 3;    // 3 color bytes
-	ssize_t opc_data_size = led_data_size + OPC_HEADER_SIZE;
-
-	if (_ledCount > MAX_NUM_LEDS)
-	{
-		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
-		return -1;
-	}
-
-	if ( opc_data_size != _opc_data.size() )
-		_opc_data.resize( opc_data_size );
-
-	_opc_data[2] = led_data_size >> 8;
-	_opc_data[3] = led_data_size & 0xff;
-
 	uint idx = OPC_HEADER_SIZE;
 	for (const ColorRgb& color : ledValues)
 	{

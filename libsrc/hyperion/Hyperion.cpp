@@ -657,7 +657,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
-	_device       = LedDeviceFactory::construct(jsonConfig["device"]);
+	_device       = LedDeviceFactory::construct(jsonConfig["device"],_hwLedCount);
 	_deviceSmooth = createColorSmoothing(jsonConfig["smoothing"], _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 

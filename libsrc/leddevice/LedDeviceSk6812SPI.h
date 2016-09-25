@@ -35,7 +35,7 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	std::string _whiteAlgorithm;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	
 	uint8_t bitpair_to_byte[4];
 	
