@@ -1,14 +1,11 @@
 #include "LedDeviceDMX.h"
-
-struct FrameSpec
-{
-	uint8_t id;
-	size_t size;
-};
+#include <QSerialPort>
+#include <time.h>
 
 LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
 	: ProviderRs232(deviceConfig)
 {
+	_rs232Port.setStopBits(QSerialPort::TwoStop);
 }
 
 LedDevice* LedDeviceDMX::construct(const Json::Value &deviceConfig)
@@ -18,32 +15,20 @@ LedDevice* LedDeviceDMX::construct(const Json::Value &deviceConfig)
 
 int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledBuffer.size() == 0)
+	uint8_t _dmxChannelCount  = 1 + std::min(3 * _ledCount, 512);
+ 
+	if (_ledBuffer.size() != _dmxChannelCount)
 	{
-		std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
-
-		const unsigned reqColorChannels = _ledCount * sizeof(ColorRgb);
-
-		for (const FrameSpec& frameSpec : frameSpecs)
-		{
-			if (reqColorChannels <= frameSpec.size)
-			{
-				_ledBuffer.clear();
-				_ledBuffer.resize(frameSpec.size + 3, 0);
-				_ledBuffer[0] = 0x5A;
-				_ledBuffer[1] = frameSpec.id;
-				_ledBuffer.back() = 0xA5;
-				break;
-			}
-		}
-
-		if (_ledBuffer.size() == 0)
-		{
-			Warning(_log, "More rgb-channels required then available");
-			return -1;
-		}
+		_ledBuffer.resize(_dmxChannelCount, 0);
+		_ledBuffer[0] = 0x00;	// NULL START code
 	}
 
-	memcpy(_ledBuffer.data()+2, ledValues.data(), ledValues.size() * sizeof(ColorRgb));
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	memcpy(_ledBuffer.data()+1, ledValues.data(), _dmxChannelCount-1);
+
+	_rs232Port.setBreakEnabled(true);
+	nanosleep((const struct timespec[]){{0, 176000L}}, NULL);	// 176 uSec break time
+	_rs232Port.setBreakEnabled(false);
+	nanosleep((const struct timespec[]){{0, 12000L}}, NULL);	// 176 uSec make after break time
+
+	return writeBytes(_dmxChannelCount, _ledBuffer.data());
 }
