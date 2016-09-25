@@ -1,9 +1,5 @@
 #pragma once
 
-// Qt includes
-#include <QTimer>
-
-// hyperion include
 #include "ProviderRs232.h"
 
 ///
@@ -24,11 +20,9 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
-private slots:
-	/// Write the last data to the leds again
-	int rewriteLeds();
+	virtual bool setConfig(const Json::Value &deviceConfig);
 
-protected:
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -36,10 +30,5 @@ protected:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// The Adalight device will switch off when it does not receive data at least
-	/// every 15 seconds
-	QTimer _timer;
 };
 

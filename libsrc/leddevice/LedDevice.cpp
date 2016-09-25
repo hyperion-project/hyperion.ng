@@ -86,6 +86,6 @@ int LedDevice::switchOff()
 void LedDevice::setLedCount(int ledCount)
 {
 	_ledCount     = ledCount;
-	_ledRGBCount  = _ledCount * 3;
-	_ledRGBWCount = _ledCount * 4;
+	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
+	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
 }

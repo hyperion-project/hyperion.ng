@@ -109,7 +109,7 @@ private:
 	/// @param[in] ledString  The led-string specification
 	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
-	ImageProcessor(const LedString &ledString, const Json::Value &blackborderConfig);
+	ImageProcessor(const LedString &ledString, const QJsonObject &blackborderConfig);
 
 	///
 	/// Performs black-border detection (if enabled) on the given image

@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSerialPort>
+#include <QTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -17,9 +18,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderRs232(const Json::Value &deviceConfig);
+	ProviderRs232();
 
 	///
 	/// Sets configuration
@@ -54,13 +53,16 @@ protected:
 	void closeDevice();
 
 private slots:
+	/// Write the last data to the leds again
+	int rewriteLeds();
+
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
 	void error(QSerialPort::SerialPortError error);
 	void bytesWritten(qint64 bytes);
 	void readyRead();
 
-private:
+protected:
 	// tries to open device if not opened
 	bool tryOpen(const int delayAfterConnect_ms);
 	
@@ -84,4 +86,9 @@ private:
 	qint64 _bytesWritten;
 	qint64 _frameDropCounter;
 	QSerialPort::SerialPortError _lastError;
+	
+	/// Timer object which makes sure that led data is written at a minimum rate
+	/// e.g. Adalight device will switch off when it does not receive data at least
+	/// every 15 seconds
+	QTimer _timer;
 };

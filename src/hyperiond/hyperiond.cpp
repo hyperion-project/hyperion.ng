@@ -54,7 +54,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 {
 	loadConfig(configFile);
 	
-	_hyperion = Hyperion::initInstance(_config, configFile.toStdString());
+	_hyperion = Hyperion::initInstance(_config, _qconfig, configFile.toStdString());
 	
 	/*
 	if (Logger::getLogLevel() == Logger::WARNING)
