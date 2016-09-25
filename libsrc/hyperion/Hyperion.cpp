@@ -37,11 +37,11 @@
 
 Hyperion* Hyperion::_hyperion = nullptr;
 
-Hyperion* Hyperion::initInstance(const Json::Value& jsonConfig, const std::string configFile)
+Hyperion* Hyperion::initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
 {
 	if ( Hyperion::_hyperion != nullptr )
 		throw std::runtime_error("Hyperion::initInstance can be called only one time");
-	Hyperion::_hyperion = new Hyperion(jsonConfig,configFile);
+	Hyperion::_hyperion = new Hyperion(jsonConfig, qjsonConfig, configFile);
 
 	return Hyperion::_hyperion;
 }
@@ -54,21 +54,21 @@ Hyperion* Hyperion::getInstance()
 	return Hyperion::_hyperion;
 }
 
-ColorOrder Hyperion::createColorOrder(const Json::Value &deviceConfig)
+ColorOrder Hyperion::createColorOrder(const QJsonObject &deviceConfig)
 {
-	return stringToColorOrder( deviceConfig.get("colorOrder", "rgb").asString() );
+	return stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
 }
 
-ColorTransform * Hyperion::createColorTransform(const Json::Value & transformConfig)
+ColorTransform * Hyperion::createColorTransform(const QJsonObject & transformConfig)
 {
-	const std::string id = transformConfig.get("id", "default").asString();
+	const std::string id = transformConfig["id"].toString("default").toStdString();
 
-	RgbChannelTransform * redTransform   = createRgbChannelTransform(transformConfig["red"]);
-	RgbChannelTransform * greenTransform = createRgbChannelTransform(transformConfig["green"]);
-	RgbChannelTransform * blueTransform  = createRgbChannelTransform(transformConfig["blue"]);
+	RgbChannelTransform * redTransform   = createRgbChannelTransform(transformConfig["red"].toObject());
+	RgbChannelTransform * greenTransform = createRgbChannelTransform(transformConfig["green"].toObject());
+	RgbChannelTransform * blueTransform  = createRgbChannelTransform(transformConfig["blue"].toObject());
 
-	HsvTransform * hsvTransform = createHsvTransform(transformConfig["hsv"]);
-	HslTransform * hslTransform = createHslTransform(transformConfig["hsl"]);
+	HsvTransform * hsvTransform = createHsvTransform(transformConfig["hsv"].toObject());
+	HslTransform * hslTransform = createHslTransform(transformConfig["hsl"].toObject());
 
 	ColorTransform * transform = new ColorTransform();
 	transform->_id = id;
@@ -90,11 +90,11 @@ ColorTransform * Hyperion::createColorTransform(const Json::Value & transformCon
 }
 
 
-ColorCorrection * Hyperion::createColorCorrection(const Json::Value & correctionConfig)
+ColorCorrection * Hyperion::createColorCorrection(const QJsonObject & correctionConfig)
 {
-	const std::string id = correctionConfig.get("id", "default").asString();
+	const std::string id = correctionConfig["id"].toString("default").toStdString();
 
-	RgbChannelAdjustment * rgbCorrection   = createRgbChannelCorrection(correctionConfig["correctionValues"]);
+	RgbChannelAdjustment * rgbCorrection   = createRgbChannelCorrection(correctionConfig["correctionValues"].toObject());
 
 	ColorCorrection * correction = new ColorCorrection();
 	correction->_id = id;
@@ -107,13 +107,13 @@ ColorCorrection * Hyperion::createColorCorrection(const Json::Value & correction
 }
 
 
-ColorAdjustment * Hyperion::createColorAdjustment(const Json::Value & adjustmentConfig)
+ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
-	const std::string id = adjustmentConfig.get("id", "default").asString();
+	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
 
-	RgbChannelAdjustment * redAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureRed"],RED);
-	RgbChannelAdjustment * greenAdjustment = createRgbChannelAdjustment(adjustmentConfig["pureGreen"],GREEN);
-	RgbChannelAdjustment * blueAdjustment  = createRgbChannelAdjustment(adjustmentConfig["pureBlue"],BLUE);
+	RgbChannelAdjustment * redAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureRed"].toObject(),RED);
+	RgbChannelAdjustment * greenAdjustment = createRgbChannelAdjustment(adjustmentConfig["pureGreen"].toObject(),GREEN);
+	RgbChannelAdjustment * blueAdjustment  = createRgbChannelAdjustment(adjustmentConfig["pureBlue"].toObject(),BLUE);
 
 	ColorAdjustment * adjustment = new ColorAdjustment();
 	adjustment->_id = id;
@@ -130,13 +130,13 @@ ColorAdjustment * Hyperion::createColorAdjustment(const Json::Value & adjustment
 }
 
 
-MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorConfig)
-{
+MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, const QJsonObject & colorConfig)
+{	
 	// Create the result, the transforms are added to this
 	MultiColorTransform * transform = new MultiColorTransform(ledCnt);
 	Logger * log = Logger::getInstance("Core");
-
-	const Json::Value transformConfig = colorConfig.get("transform", Json::nullValue);
+	
+	const QJsonValue transformConfig = colorConfig["transform"];
 	if (transformConfig.isNull())
 	{
 		// Old style color transformation config (just one for all leds)
@@ -144,23 +144,24 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 		transform->addTransform(colorTransform);
 		transform->setTransformForLed(colorTransform->_id, 0, ledCnt-1);
 	}
-	else if (!transformConfig.isArray())
+	else if (transformConfig.isObject())
 	{
-		ColorTransform * colorTransform = createColorTransform(transformConfig);
+		ColorTransform * colorTransform = createColorTransform(transformConfig.toObject());
 		transform->addTransform(colorTransform);
 		transform->setTransformForLed(colorTransform->_id, 0, ledCnt-1);
 	}
-	else
+	else if (transformConfig.isArray())
 	{
 		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
-		for (Json::UInt i = 0; i < transformConfig.size(); ++i)
+		const QJsonArray & transformConfigArray = transformConfig.toArray();
+		for (signed i = 0; i < transformConfigArray.size(); ++i)
 		{
-			const Json::Value & config = transformConfig[i];
+			const QJsonObject & config = transformConfigArray[i].toObject();
 			ColorTransform * colorTransform = createColorTransform(config);
 			transform->addTransform(colorTransform);
 
-			const QString ledIndicesStr = QString(config.get("leds", "").asCString()).trimmed();
+			const QString ledIndicesStr = config["leds"].toString("").trimmed();
 			if (ledIndicesStr.compare("*") == 0)
 			{
 				// Special case for indices '*' => all leds
@@ -204,14 +205,14 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 	return transform;
 }
 
-MultiColorCorrection * Hyperion::createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorConfig)
+MultiColorCorrection * Hyperion::createLedColorsTemperature(const unsigned ledCnt, const QJsonObject & colorConfig)
 {
 	// Create the result, the corrections are added to this
 	MultiColorCorrection * correction = new MultiColorCorrection(ledCnt);
 	Logger * log = Logger::getInstance("Core");
 
-	const std::string jsonKey = colorConfig.isMember("temperature") ? "temperature" : "correction";
-	const Json::Value correctionConfig = colorConfig.get(jsonKey, Json::nullValue);
+	const QString jsonKey = colorConfig.contains("temperature") ? "temperature" : "correction";
+	const QJsonValue correctionConfig = colorConfig[jsonKey];
 	if (correctionConfig.isNull())
 	{
 		// Old style color correction config (just one for all leds)
@@ -219,23 +220,24 @@ MultiColorCorrection * Hyperion::createLedColorsTemperature(const unsigned ledCn
 		correction->addCorrection(colorCorrection);
 		correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
 	}
-	else if (!correctionConfig.isArray())
+	else if (correctionConfig.isObject())
 	{
-		ColorCorrection * colorCorrection = createColorCorrection(correctionConfig);
+		ColorCorrection * colorCorrection = createColorCorrection(correctionConfig.toObject());
 		correction->addCorrection(colorCorrection);
 		correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
 	}
-	else
+	else if (correctionConfig.isArray())
 	{
 		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
-		for (Json::UInt i = 0; i < correctionConfig.size(); ++i)
+		const QJsonArray & correctionConfigArray = correctionConfig.toArray();
+		for (signed i = 0; i < correctionConfigArray.size(); ++i)
 		{
-			const Json::Value & config = correctionConfig[i];
+			const QJsonObject & config = correctionConfigArray.at(i).toObject();
 			ColorCorrection * colorCorrection = createColorCorrection(config);
 			correction->addCorrection(colorCorrection);
 
-			const QString ledIndicesStr = QString(config.get("leds", "").asCString()).trimmed();
+			const QString ledIndicesStr = config["leds"].toString("").trimmed();
 			if (ledIndicesStr.compare("*") == 0)
 			{
 				// Special case for indices '*' => all leds
@@ -280,13 +282,13 @@ MultiColorCorrection * Hyperion::createLedColorsTemperature(const unsigned ledCn
 }
 
 
-MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt, const Json::Value & colorConfig)
+MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorConfig)
 {
 	// Create the result, the transforms are added to this
 	MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
 	Logger * log = Logger::getInstance("Core");
 
-	const Json::Value adjustmentConfig = colorConfig.get("channelAdjustment", Json::nullValue);
+	const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
 	if (adjustmentConfig.isNull())
 	{
 		// Old style color transformation config (just one for all leds)
@@ -294,23 +296,24 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 		adjustment->addAdjustment(colorAdjustment);
 		adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
 	}
-	else if (!adjustmentConfig.isArray())
+	else if (adjustmentConfig.isObject())
 	{
-		ColorAdjustment * colorAdjustment = createColorAdjustment(adjustmentConfig);
+		ColorAdjustment * colorAdjustment = createColorAdjustment(adjustmentConfig.toObject());
 		adjustment->addAdjustment(colorAdjustment);
 		adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
 	}
-	else
+	else if (adjustmentConfig.isArray())
 	{
 		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
-		for (Json::UInt i = 0; i < adjustmentConfig.size(); ++i)
+		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
+		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
 		{
-			const Json::Value & config = adjustmentConfig[i];
+			const QJsonObject & config = adjustmentConfigArray.at(i).toObject();
 			ColorAdjustment * colorAdjustment = createColorAdjustment(config);
 			adjustment->addAdjustment(colorAdjustment);
 
-			const QString ledIndicesStr = QString(config.get("leds", "").asCString()).trimmed();
+			const QString ledIndicesStr = config["leds"].toString("").trimmed();
 			if (ledIndicesStr.compare("*") == 0)
 			{
 				// Special case for indices '*' => all leds
@@ -354,81 +357,82 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 	return adjustment;
 }
 
-HsvTransform * Hyperion::createHsvTransform(const Json::Value & hsvConfig)
+HsvTransform * Hyperion::createHsvTransform(const QJsonObject & hsvConfig)
 {
-	const double saturationGain = hsvConfig.get("saturationGain", 1.0).asDouble();
-	const double valueGain      = hsvConfig.get("valueGain",      1.0).asDouble();
+	const double saturationGain = hsvConfig["saturationGain"].toDouble(1.0);
+	const double valueGain      = hsvConfig["valueGain"].toDouble(1.0);
 
 	return new HsvTransform(saturationGain, valueGain);
 }
 
-HslTransform * Hyperion::createHslTransform(const Json::Value & hslConfig)
+HslTransform * Hyperion::createHslTransform(const QJsonObject & hslConfig)
 {
-	const double saturationGain = hslConfig.get("saturationGain", 1.0).asDouble();
-	const double luminanceGain  = hslConfig.get("luminanceGain",  1.0).asDouble();
-	const double luminanceMinimum = hslConfig.get("luminanceMinimum", 0.0).asDouble();
+	const double saturationGain = hslConfig["saturationGain"].toDouble(1.0);
+	const double luminanceGain  = hslConfig["luminanceGain"].toDouble(1.0);
+	const double luminanceMinimum = hslConfig["luminanceMinimum"].toDouble(0.0);
 
 	return new HslTransform(saturationGain, luminanceGain, luminanceMinimum);
 }
 
-RgbChannelTransform* Hyperion::createRgbChannelTransform(const Json::Value& colorConfig)
+RgbChannelTransform* Hyperion::createRgbChannelTransform(const QJsonObject& colorConfig)
 {
-	const double threshold  = colorConfig.get("threshold", 0.0).asDouble();
-	const double gamma      = colorConfig.get("gamma", 1.0).asDouble();
-	const double blacklevel = colorConfig.get("blacklevel", 0.0).asDouble();
-	const double whitelevel = colorConfig.get("whitelevel", 1.0).asDouble();
+	const double threshold  = colorConfig["threshold"].toDouble(0.0);
+	const double gamma      = colorConfig["gamma"].toDouble(1.0);
+	const double blacklevel = colorConfig["blacklevel"].toDouble(0.0);
+	const double whitelevel = colorConfig["whitelevel"].toDouble(1.0);
 
 	RgbChannelTransform* transform = new RgbChannelTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
 }
 
-RgbChannelAdjustment* Hyperion::createRgbChannelCorrection(const Json::Value& colorConfig)
+RgbChannelAdjustment* Hyperion::createRgbChannelCorrection(const QJsonObject& colorConfig)
 {
-	const int varR = colorConfig.get("red", 255).asInt();
-	const int varG = colorConfig.get("green", 255).asInt();
-	const int varB = colorConfig.get("blue", 255).asInt();
+	const int varR = colorConfig["red"].toInt(255);
+	const int varG = colorConfig["green"].toInt(255);
+	const int varB = colorConfig["blue"].toInt(255);
 
 	RgbChannelAdjustment* correction = new RgbChannelAdjustment(varR, varG, varB);
 	return correction;
 }
 
-RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color)
+RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color)
 {
 	int varR=0, varG=0, varB=0;
 	if (color == RED) 
 	{
-		varR = colorConfig.get("redChannel", 255).asInt();
-		varG = colorConfig.get("greenChannel", 0).asInt();
-		varB = colorConfig.get("blueChannel", 0).asInt();
+		varR = colorConfig["redChannel"].toInt(255);
+		varG = colorConfig["greenChannel"].toInt(0);
+		varB = colorConfig["blueChannel"].toInt(0);
 	}
 	else if (color == GREEN)
 	{
-		varR = colorConfig.get("redChannel", 0).asInt();
-		varG = colorConfig.get("greenChannel", 255).asInt();
-		varB = colorConfig.get("blueChannel", 0).asInt();
+		varR = colorConfig["redChannel"].toInt(0);
+		varG = colorConfig["greenChannel"].toInt(255);
+		varB = colorConfig["blueChannel"].toInt(0);
 	}		
 	else if (color == BLUE)
 	{
-		varR = colorConfig.get("redChannel", 0).asInt();
-		varG = colorConfig.get("greenChannel", 0).asInt();
-		varB = colorConfig.get("blueChannel", 255).asInt();
+		varR = colorConfig["redChannel"].toInt(0);
+		varG = colorConfig["greenChannel"].toInt(0);
+		varB = colorConfig["blueChannel"].toInt(255);
 	}
 
 	RgbChannelAdjustment* adjustment = new RgbChannelAdjustment(varR, varG, varB);
 	return adjustment;
 }
 
-LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
+LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrder deviceOrder)
 {
 	LedString ledString;
-	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
-	int maxLedId = ledsConfig.size();
-
-	for (const Json::Value& ledConfig : ledsConfig)
+	const QString deviceOrderStr = colorOrderToString(deviceOrder);
+	const QJsonArray & ledConfigArray = ledsConfig.toArray();
+	int maxLedId = ledConfigArray.size();
+	
+	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
 		Led led;
-		led.index = ledConfig["index"].asInt();
-		led.clone = ledConfig.get("clone",-1).asInt();
+		led.index = ledConfigArray[i].toObject()["index"].toInt();
+		led.clone = ledConfigArray[i].toObject()["clone"].toInt(-1);
 		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
 			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
@@ -437,12 +441,12 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 
 		if ( led.clone < 0 )
 		{
-			const Json::Value& hscanConfig = ledConfig["hscan"];
-			const Json::Value& vscanConfig = ledConfig["vscan"];
-			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
-			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
-			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
+			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].toDouble()));
+			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].toDouble()));
+			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].toDouble()));
+			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].toDouble()));
 			// Fix if the user swapped min and max
 			if (led.minX_frac > led.maxX_frac)
 			{
@@ -454,7 +458,7 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 			}
 
 			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(ledConfig.get("colorOrder", deviceOrderStr).asString());
+			led.colorOrder = stringToColorOrder(ledConfigArray.at(i).toObject()["colorOrder"].toString(deviceOrderStr));
 			ledString.leds().push_back(led);
 		}
 	}
@@ -464,16 +468,18 @@ LedString Hyperion::createLedString(const Json::Value& ledsConfig, const ColorOr
 	return ledString;
 }
 
-LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const ColorOrder deviceOrder)
+LedString Hyperion::createLedStringClone(const QJsonValue& ledsConfig, const ColorOrder deviceOrder)
 {
 	LedString ledString;
-	const std::string deviceOrderStr = colorOrderToString(deviceOrder);
-	int maxLedId = ledsConfig.size();
-	for (const Json::Value& ledConfig : ledsConfig)
+	const QString deviceOrderStr = colorOrderToString(deviceOrder);
+	const QJsonArray & ledConfigArray = ledsConfig.toArray();
+	int maxLedId = ledConfigArray.size();
+
+	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
 		Led led;
-		led.index = ledConfig["index"].asInt();
-		led.clone = ledConfig.get("clone",-1).asInt();
+		led.index = ledConfigArray[i].toObject()["index"].toInt();
+		led.clone = ledConfigArray[i].toObject()["clone"].toInt(-1);
 		if ( led.clone < -1 || led.clone >= maxLedId )
 		{
 			Warning(Logger::getInstance("Core"), "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
@@ -488,7 +494,7 @@ LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const Co
 			led.minY_frac = 0;
 			led.maxY_frac = 0;
 			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(ledConfig.get("colorOrder", deviceOrderStr).asString());
+			led.colorOrder = stringToColorOrder(ledConfigArray.at(i).toObject()["colorOrder"].toString(deviceOrderStr));
 
 			ledString.leds().push_back(led);
 		}
@@ -500,21 +506,22 @@ LedString Hyperion::createLedStringClone(const Json::Value& ledsConfig, const Co
 	return ledString;
 }
 
-QSize Hyperion::getLedLayoutGridSize(const Json::Value& ledsConfig)
+QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 {
 	std::vector<int> midPointsX;
 	std::vector<int> midPointsY;
+	const QJsonArray & ledConfigArray = ledsConfig.toArray();
 
-	for (const Json::Value& ledConfig : ledsConfig)
+	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
-		if ( ledConfig.get("clone",-1).asInt() < 0 )
+		if (ledConfigArray[i].toObject()["clone"].toInt(-1) < 0 )
 		{
-			const Json::Value& hscanConfig = ledConfig["hscan"];
-			const Json::Value& vscanConfig = ledConfig["vscan"];
-			double minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].asDouble()));
-			double maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].asDouble()));
-			double minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].asDouble()));
-			double maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].asDouble()));
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
+			double minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].toDouble()));
+			double maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].toDouble()));
+			double minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].toDouble()));
+			double maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].toDouble()));
 			// Fix if the user swapped min and max
 			if (minX_frac > maxX_frac)
 			{
@@ -545,10 +552,10 @@ QSize Hyperion::getLedLayoutGridSize(const Json::Value& ledsConfig)
 
 
 
-LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice)
+LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice)
 {
 	Logger * log = Logger::getInstance("Core");
-	std::string type = smoothingConfig.get("type", "linear").asString();
+	std::string type = smoothingConfig["type"].toString("linear").toStdString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
@@ -558,10 +565,10 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 		Info( log, "Creating linear smoothing");
 		device = new LinearColorSmoothing(
 		            leddevice,
-		            smoothingConfig.get("updateFrequency", 25.0).asDouble(),
-		            smoothingConfig.get("time_ms", 200).asInt(),
-		            smoothingConfig.get("updateDelay", 0).asUInt(),
-		            smoothingConfig.get("continuousOutput", true).asBool()
+		            smoothingConfig["updateFrequency"].toDouble(25.0),
+		            smoothingConfig["time_ms"].toInt(200),
+		            smoothingConfig["updateDelay"].toInt(0),
+		            smoothingConfig["continuousOutput"].toBool(true)
 		            );
 	}
 	else
@@ -569,33 +576,35 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const Json::Value & smooth
 		Error(log, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
 	}
 	
-	device->setEnable(smoothingConfig.get("enable", true).asBool());
+	device->setEnable(smoothingConfig["enable"].toBool(true));
 	InfoIf(!device->enabled(), log,"Smoothing disabled");
 
 	assert(device != nullptr);
 	return device;
 }
 
-MessageForwarder * Hyperion::createMessageForwarder(const Json::Value & forwarderConfig)
+MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarderConfig)
 {
 		MessageForwarder * forwarder = new MessageForwarder();
-		if ( ( ! forwarderConfig.isNull() ) && (  forwarderConfig.get("enable", true).asBool() ) )
+		if ( !forwarderConfig.isEmpty() && forwarderConfig["enable"].toBool(true) )
 		{
-			if ( ! forwarderConfig["json"].isNull() && forwarderConfig["json"].isArray() )
+			if ( !forwarderConfig["json"].isNull() && forwarderConfig["json"].isArray() )
 			{
-				for (const Json::Value& addr : forwarderConfig["json"])
+				const QJsonArray & addr = forwarderConfig["json"].toArray();
+				for (signed i = 0; i < addr.size(); ++i)
 				{
-					Info(Logger::getInstance("Core"), "Json forward to %s", addr.asString().c_str());
-					forwarder->addJsonSlave(addr.asString());
+					Info(Logger::getInstance("Core"), "Json forward to %s", addr.at(i).toString().toStdString().c_str());
+					forwarder->addJsonSlave(addr[i].toString().toStdString());
 				}
 			}
 
-			if ( ! forwarderConfig["proto"].isNull() && forwarderConfig["proto"].isArray() )
+			if ( !forwarderConfig["proto"].isNull() && forwarderConfig["proto"].isArray() )
 			{
-				for (const Json::Value& addr : forwarderConfig["proto"])
+				const QJsonArray & addr = forwarderConfig["proto"].toArray();
+				for (signed i = 0; i < addr.size(); ++i)
 				{
-					Info(Logger::getInstance("Core"), "Proto forward to %s", addr.asString().c_str());
-					forwarder->addProtoSlave(addr.asString());
+					Info(Logger::getInstance("Core"), "Proto forward to %s", addr.at(i).toString().toStdString().c_str());
+					forwarder->addProtoSlave(addr[i].toString().toStdString());
 				}
 			}
 		}
@@ -608,15 +617,15 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
-	: _ledString(createLedString(jsonConfig["leds"], createColorOrder(jsonConfig["device"])))
-	, _ledStringClone(createLedStringClone(jsonConfig["leds"], createColorOrder(jsonConfig["device"])))
+Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig, const std::string configFile)
+	: _ledString(createLedString(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
+	, _ledStringClone(createLedStringClone(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _muxer(_ledString.leds().size())
-	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), jsonConfig["color"]))
-	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), jsonConfig["color"]))
-	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), jsonConfig["color"]))
+	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), qjsonConfig["color"].toObject()))
+	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), qjsonConfig["color"].toObject()))
+	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), qjsonConfig["color"].toObject()))
 	, _effectEngine(nullptr)
-	, _messageForwarder(createMessageForwarder(jsonConfig["forwarder"]))
+	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
 	, _jsonConfig(jsonConfig)
 	, _configFile(configFile)
 	, _timer()
@@ -624,7 +633,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
-	, _ledGridSize(getLedLayoutGridSize(jsonConfig["leds"]))
+	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 	
@@ -641,9 +650,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 		throw std::runtime_error("Color transformation incorrectly set");
 	}
 	// set color correction activity state
-	_transformEnabled   = jsonConfig["color"].get("transform_enable",true).asBool();
-	_adjustmentEnabled  = jsonConfig["color"].get("channelAdjustment_enable",true).asBool();
-	_temperatureEnabled = jsonConfig["color"].get("temperature_enable",true).asBool();
+	_transformEnabled   = qjsonConfig["color"].toObject()["transform_enable"].toBool(true);
+	_adjustmentEnabled  = qjsonConfig["color"].toObject()["channelAdjustment_enable"].toBool(true);
+	_temperatureEnabled = qjsonConfig["color"].toObject()["temperature_enable"].toBool(true);
 
 	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
 	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
@@ -652,13 +661,13 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
-				jsonConfig["blackborderdetector"]
+				qjsonConfig["blackborderdetector"].toObject()
 	);
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
 	_device       = LedDeviceFactory::construct(jsonConfig["device"]);
-	_deviceSmooth = createColorSmoothing(jsonConfig["smoothing"], _device);
+	_deviceSmooth = createColorSmoothing(qjsonConfig["smoothing"].toObject(), _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 
 	// setup the timer
@@ -668,7 +677,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const std::string configFile)
 	// create the effect engine
 	_effectEngine = new EffectEngine(this,jsonConfig["effects"]);
 	
-	unsigned int hwLedCount = jsonConfig["device"].get("ledCount",getLedCount()).asUInt();
+	unsigned int hwLedCount = qjsonConfig["device"].toObject()["ledCount"].toInt(getLedCount());
 	_hwLedCount = std::max(hwLedCount, getLedCount());
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
