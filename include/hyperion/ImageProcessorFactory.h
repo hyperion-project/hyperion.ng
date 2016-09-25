@@ -3,6 +3,14 @@
 // STL includes
 #include <memory>
 
+// QT includes
+#include <QJsonObject>
+
+//	if (jsoncpp_converted_to_QtJSON)
+//	{
+//		remove("#include <json/json.h>");
+//	}
+
 // Jsoncpp includes
 #include <json/json.h>
 
@@ -33,7 +41,7 @@ public:
 	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
 	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
 	///
-	void init(const LedString& ledString, const Json::Value &blackborderConfig);
+	void init(const LedString& ledString, const QJsonObject &blackborderConfig);
 
 	///
 	/// Creates a new ImageProcessor. The onwership of the processor is transferred to the caller.
@@ -47,5 +55,5 @@ private:
 	LedString _ledString;
 
 	// Reference to the blackborder json configuration values
-	Json::Value _blackborderConfig;
+	QJsonObject _blackborderConfig;
 };
