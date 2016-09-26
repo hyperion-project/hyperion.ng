@@ -8,6 +8,10 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QResource>
+#include <QHostInfo>
+#include <bonjour/bonjourserviceregister.h>
+#include <bonjour/bonjourrecord.h>
+
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
 	:  QObject   (parent)
@@ -40,6 +44,18 @@ StaticFileServing::~StaticFileServing ()
 void StaticFileServing::onServerStarted (quint16 port)
 {
 	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
+
+        const std::string mDNSDescr = ( _server->getServerName().toStdString()
+                                        + "@" +
+                                        QHostInfo::localHostName().toStdString()
+                                        );
+
+	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
+	bonjourRegister_http->registerService(
+		BonjourRecord(mDNSDescr.c_str(), "_http._tcp", QString()),
+		port
+		);
+	Debug(_log, "Web Config mDNS responder started");
 }
 
 void StaticFileServing::onServerStopped () {
