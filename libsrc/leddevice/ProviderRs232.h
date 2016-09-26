@@ -53,6 +53,9 @@ protected:
 
 	void closeDevice();
 
+	/// The RS232 serial-device
+	QSerialPort _rs232Port;
+
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
@@ -74,7 +77,7 @@ private:
 	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	QSerialPort _rs232Port;
+//	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 	

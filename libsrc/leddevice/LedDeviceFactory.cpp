@@ -35,6 +35,7 @@
 #include "LedDevicePaintpack.h"
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
+#include "LedDeviceDMX.h"
 #include "LedDeviceFile.h"
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceTpm2net.h"
@@ -70,6 +71,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	LedDevice::addToDeviceMap("adalight"      , LedDeviceAdalight::construct);
 	LedDevice::addToDeviceMap("adalightapa102", LedDeviceAdalightApa102::construct);
 	LedDevice::addToDeviceMap("sedu"          , LedDeviceSedu::construct);
+	LedDevice::addToDeviceMap("dmx"           , LedDeviceDMX::construct);
 	LedDevice::addToDeviceMap("tpm2"          , LedDeviceTpm2::construct);
 	LedDevice::addToDeviceMap("atmo"          , LedDeviceAtmo::construct);
 	LedDevice::addToDeviceMap("fadecandy"     , LedDeviceFadeCandy::construct);
