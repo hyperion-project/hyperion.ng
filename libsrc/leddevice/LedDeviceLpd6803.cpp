@@ -3,6 +3,9 @@
 LedDeviceLpd6803::LedDeviceLpd6803(const Json::Value &deviceConfig)
 	: ProviderSpi(deviceConfig)
 {
+	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
+	// Initialise the buffer
+	_ledBuffer.resize(messageLength, 0x00);
 }
 
 LedDevice* LedDeviceLpd6803::construct(const Json::Value &deviceConfig)
@@ -12,14 +15,6 @@ LedDevice* LedDeviceLpd6803::construct(const Json::Value &deviceConfig)
 
 int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 {
-	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
-	// Reconfigure if the current connfiguration does not match the required configuration
-	if (messageLength != _ledBuffer.size())
-	{
-		// Initialise the buffer
-		_ledBuffer.resize(messageLength, 0x00);
-	}
-
 	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector
 	for (unsigned iLed=0; iLed<(unsigned)_ledCount; ++iLed)
 	{

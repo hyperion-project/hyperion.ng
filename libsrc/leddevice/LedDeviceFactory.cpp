@@ -35,6 +35,7 @@
 #include "LedDevicePaintpack.h"
 #include "LedDevicePiBlaster.h"
 #include "LedDeviceSedu.h"
+#include "LedDeviceDMX.h"
 #include "LedDeviceFile.h"
 #include "LedDeviceFadeCandy.h"
 #include "LedDeviceTpm2net.h"
@@ -74,6 +75,7 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	REGISTER("adalight"      , LedDeviceAdalight);
 	REGISTER("adalightapa102", LedDeviceAdalightApa102);
 	REGISTER("sedu"          , LedDeviceSedu);
+	REGISTER("dmx"           , LedDeviceDMX);
 	REGISTER("tpm2"          , LedDeviceTpm2);
 	REGISTER("atmo"          , LedDeviceAtmo);
 

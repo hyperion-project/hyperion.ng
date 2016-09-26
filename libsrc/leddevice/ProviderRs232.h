@@ -52,6 +52,9 @@ protected:
 
 	void closeDevice();
 
+	/// The RS232 serial-device
+	QSerialPort _rs232Port;
+
 private slots:
 	/// Write the last data to the leds again
 	int rewriteLeds();
@@ -76,7 +79,7 @@ protected:
 	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	QSerialPort _rs232Port;
+//	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 	

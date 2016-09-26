@@ -139,6 +139,7 @@ bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 			}
 			return false;
 		}
+		Debug(_log, "Setting baud rate to %d", _baudRate_Hz);
 		_rs232Port.setBaudRate(_baudRate_Hz);
 		_stateChanged = true;
 	}

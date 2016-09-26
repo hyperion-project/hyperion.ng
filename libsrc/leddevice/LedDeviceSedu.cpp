@@ -25,7 +25,7 @@ bool LedDeviceSedu::setConfig(const Json::Value &deviceConfig)
 
 	for (const FrameSpec& frameSpec : frameSpecs)
 	{
-		if (_ledRGBCount <= frameSpec.size)
+		if ((unsigned)_ledRGBCount <= frameSpec.size)
 		{
 			_ledBuffer.clear();
 			_ledBuffer.resize(frameSpec.size + 3, 0);
