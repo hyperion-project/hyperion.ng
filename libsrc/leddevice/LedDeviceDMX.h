@@ -27,4 +27,9 @@ private:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
+	int _dmxDeviceType = 0;
+	int _dmxStart = 1;
+	int _dmxSlotsPerLed = 3;
+	int _dmxLedCount = 0;;
+	unsigned int _dmxChannelCount = 0;
 };
