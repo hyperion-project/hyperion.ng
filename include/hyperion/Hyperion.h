@@ -8,6 +8,9 @@
 #include <QObject>
 #include <QTimer>
 #include <QSize>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -79,7 +82,7 @@ public:
 	~Hyperion();
 
 
-	static Hyperion* initInstance(const Json::Value& jsonConfig, const std::string configFile);
+	static Hyperion* initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
 	static Hyperion* getInstance();
 
 	///
@@ -270,7 +273,7 @@ public slots:
 public:
 	static Hyperion *_hyperion;
 
-	static ColorOrder createColorOrder(const Json::Value & deviceConfig);
+	static ColorOrder createColorOrder(const QJsonObject & deviceConfig);
 	/**
 	 * Construct the 'led-string' with the integration area definition per led and the color
 	 * ordering of the RGB channels
@@ -278,24 +281,24 @@ public:
 	 * @param deviceOrder  The default RGB channel ordering
 	 * @return The constructed ledstring
 	 */
-	static LedString createLedString(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
-	static LedString createLedStringClone(const Json::Value & ledsConfig, const ColorOrder deviceOrder);
+	static LedString createLedString(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
+	static LedString createLedStringClone(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
 
-	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const Json::Value & colorTransformConfig);
-	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const Json::Value & colorTemperatureConfig);
-	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const Json::Value & colorAdjustmentConfig);
-	static ColorTransform * createColorTransform(const Json::Value & transformConfig);
-	static ColorCorrection * createColorCorrection(const Json::Value & correctionConfig);
-	static ColorAdjustment * createColorAdjustment(const Json::Value & adjustmentConfig);
-	static HsvTransform * createHsvTransform(const Json::Value & hsvConfig);
-	static HslTransform * createHslTransform(const Json::Value & hslConfig);
-	static RgbChannelTransform * createRgbChannelTransform(const Json::Value& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelCorrection(const Json::Value& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const Json::Value& colorConfig, const RgbChannel color);
+	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const QJsonObject & colorTransformConfig);
+	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const QJsonObject & colorTemperatureConfig);
+	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
+	static ColorTransform * createColorTransform(const QJsonObject & transformConfig);
+	static ColorCorrection * createColorCorrection(const QJsonObject & correctionConfig);
+	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
+	static HsvTransform * createHsvTransform(const QJsonObject & hsvConfig);
+	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
+	static RgbChannelTransform * createRgbChannelTransform(const QJsonObject& colorConfig);
+	static RgbChannelAdjustment * createRgbChannelCorrection(const QJsonObject& colorConfig);
+	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color);
 
-	static LinearColorSmoothing * createColorSmoothing(const Json::Value & smoothingConfig, LedDevice* leddevice);
-	static MessageForwarder * createMessageForwarder(const Json::Value & forwarderConfig);
-	static QSize getLedLayoutGridSize(const Json::Value& ledsConfig);
+	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
+	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);
+	static QSize getLedLayoutGridSize(const QJsonValue& ledsConfig);
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -322,7 +325,7 @@ private:
 	///
 	/// @param[in] jsonConfig The Json configuration
 	///
-	Hyperion(const Json::Value& jsonConfig, const std::string configFile);
+	Hyperion(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;

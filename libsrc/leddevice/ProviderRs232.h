@@ -49,7 +49,7 @@ protected:
 	 *
 	 * @return Zero on succes else negative
 	 */
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(const qint64 size, const uint8_t *data);
 
 	void closeDevice();
 
@@ -60,10 +60,12 @@ private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
 	void error(QSerialPort::SerialPortError error);
+	void bytesWritten(qint64 bytes);
+	void readyRead();
 
 private:
 	// tries to open device if not opened
-	bool tryOpen();
+	bool tryOpen(const int delayAfterConnect_ms);
 	
 	/// The name of the output device
 	std::string _deviceName;
@@ -80,4 +82,9 @@ private:
 	bool _blockedForDelay;
 	
 	bool _stateChanged;
+
+	qint64 _bytesToWrite;
+	qint64 _bytesWritten;
+	qint64 _frameDropCounter;
+	QSerialPort::SerialPortError _lastError;
 };
