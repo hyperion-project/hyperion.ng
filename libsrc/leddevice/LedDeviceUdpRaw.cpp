@@ -3,7 +3,7 @@
 LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
 	: ProviderUdp()
 {
-	setConfig(deviceConfig, 500000, 5568);
+	init(deviceConfig, 500000, 5568);
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)

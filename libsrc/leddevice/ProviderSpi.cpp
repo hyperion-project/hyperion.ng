@@ -14,14 +14,15 @@
 #include <utils/Logger.h>
 
 
-ProviderSpi::ProviderSpi(const Json::Value &deviceConfig)
+ProviderSpi::ProviderSpi()
 	: LedDevice()
 	, _fid(-1)
+	, _deviceName("/dev/spidev0.0")
+	, _baudRate_Hz(1000000)
+	, _latchTime_ns(0)
+	, _spiMode(SPI_MODE_0)
+	, _spiDataInvert(false)
 {
-	if (deviceConfig != Json::nullValue)
-	{
-		setConfig(deviceConfig);
-	}
 	memset(&_spi, 0, sizeof(_spi));
 }
 
@@ -30,13 +31,13 @@ ProviderSpi::~ProviderSpi()
 //	close(_fid);
 }
 
-bool ProviderSpi::setConfig(const Json::Value &deviceConfig, int defaultBaudRateHz)
+bool ProviderSpi::init(const Json::Value &deviceConfig)
 {
-	_deviceName    = deviceConfig.get("output","/dev/spidev0.0").asString();
-	_baudRate_Hz   = deviceConfig.get("rate",defaultBaudRateHz).asInt();
-	_latchTime_ns  = deviceConfig.get("latchtime",0).asInt();
-	_spiMode       = deviceConfig.get("spimode",SPI_MODE_0).asInt();
-	_spiDataInvert = deviceConfig.get("invert",false).asBool();
+	_deviceName    = deviceConfig.get("output",_deviceName).asString();
+	_baudRate_Hz   = deviceConfig.get("rate",_baudRate_Hz).asInt();
+	_latchTime_ns  = deviceConfig.get("latchtime",_latchTime_ns).asInt();
+	_spiMode       = deviceConfig.get("spimode",_spiMode).asInt();
+	_spiDataInvert = deviceConfig.get("invert",_spiDataInvert).asBool();
 
 	return true;
 }

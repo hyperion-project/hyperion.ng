@@ -4,7 +4,7 @@
 LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
@@ -12,9 +12,9 @@ LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
 	return new LedDeviceTpm2(deviceConfig);
 }
 
-bool LedDeviceTpm2::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceTpm2::init(const Json::Value &deviceConfig)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 
 	_ledBuffer.resize(5 + 3*_ledCount);
 	_ledBuffer[0] = 0xC9; // block-start byte

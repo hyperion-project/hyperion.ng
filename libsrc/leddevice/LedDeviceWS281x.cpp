@@ -5,7 +5,7 @@
 LedDeviceWS281x::LedDeviceWS281x(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDeviceWS281x::~LedDeviceWS281x()
@@ -16,7 +16,7 @@ LedDeviceWS281x::~LedDeviceWS281x()
 	}
 }
 
-bool LedDeviceWS281x::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceWS281x::init(const Json::Value &deviceConfig)
 {
 	std::string whiteAlgorithm = deviceConfig.get("white_algorithm","white_off").asString();
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);

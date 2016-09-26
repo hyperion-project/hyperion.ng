@@ -1,8 +1,9 @@
 #include "LedDeviceWs2801.h"
 
 LedDeviceWs2801::LedDeviceWs2801(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
 {
+	_deviceReady = 	ProviderSpi::init(deviceConfig);
 }
 
 LedDevice* LedDeviceWs2801::construct(const Json::Value &deviceConfig)

@@ -19,7 +19,7 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 	
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 
 private:
 	///

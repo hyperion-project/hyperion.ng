@@ -14,7 +14,7 @@ ProviderHID::ProviderHID(const Json::Value &deviceConfig)
 	, _deviceHandle(nullptr)
 	, _blockedForDelay(false)
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 ProviderHID::~ProviderHID()
@@ -28,7 +28,7 @@ ProviderHID::~ProviderHID()
 	hid_exit();
 }
 
-bool ProviderHID::setConfig(const Json::Value &deviceConfig)
+bool ProviderHID::init(const Json::Value &deviceConfig)
 {
 	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect", 0 ).asInt();
 	auto VendorIdString   = deviceConfig.get("VID", "0x2341").asString();

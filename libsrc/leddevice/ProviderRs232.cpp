@@ -32,7 +32,7 @@ ProviderRs232::ProviderRs232()
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
-bool ProviderRs232::setConfig(const Json::Value &deviceConfig)
+bool ProviderRs232::init(const Json::Value &deviceConfig)
 {
 	closeDevice();
 	_deviceName           = deviceConfig["output"].asString();

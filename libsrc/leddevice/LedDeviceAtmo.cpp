@@ -4,7 +4,7 @@
 LedDeviceAtmo::LedDeviceAtmo(const Json::Value &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceAtmo::construct(const Json::Value &deviceConfig)
@@ -12,9 +12,9 @@ LedDevice* LedDeviceAtmo::construct(const Json::Value &deviceConfig)
 	return new LedDeviceAtmo(deviceConfig);
 }
 
-bool LedDeviceAtmo::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceAtmo::init(const Json::Value &deviceConfig)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 
 	if (_ledCount != 5)
 	{

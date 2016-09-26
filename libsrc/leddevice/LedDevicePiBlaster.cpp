@@ -26,7 +26,7 @@ LedDevicePiBlaster::LedDevicePiBlaster(const Json::Value &deviceConfig)
 		_gpio_to_color[i] = 'z';
 	}
 
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
@@ -40,7 +40,7 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 }
 
 
-bool LedDevicePiBlaster::setConfig(const Json::Value &deviceConfig)
+bool LedDevicePiBlaster::init(const Json::Value &deviceConfig)
 {
 	_deviceName             = deviceConfig.get("output",  "").asString();
 	Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);

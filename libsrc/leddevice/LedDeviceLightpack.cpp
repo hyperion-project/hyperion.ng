@@ -48,7 +48,7 @@ LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
 LedDeviceLightpack::LedDeviceLightpack(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceLightpack::~LedDeviceLightpack()
@@ -69,7 +69,7 @@ LedDeviceLightpack::~LedDeviceLightpack()
 	}
 }
 
-bool LedDeviceLightpack::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceLightpack::init(const Json::Value &deviceConfig)
 {
 	_serialNumber = deviceConfig.get("output", "").asString();
 

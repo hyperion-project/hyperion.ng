@@ -70,56 +70,56 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	// set amount of led to leddevice
 	LedDevice::setLedCount(ledCount);
 
-	#define REGISTER(devName,className) LedDevice::addToDeviceMap(devName, className::construct);
+	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower().toStdString(), LedDevice##className::construct);
 	// rs232 devices
-	REGISTER("adalight"      , LedDeviceAdalight);
-	REGISTER("adalightapa102", LedDeviceAdalightApa102);
-	REGISTER("sedu"          , LedDeviceSedu);
-	REGISTER("dmx"           , LedDeviceDMX);
-	REGISTER("tpm2"          , LedDeviceTpm2);
-	REGISTER("atmo"          , LedDeviceAtmo);
+	REGISTER(Adalight);
+	REGISTER(AdalightApa102);
+	REGISTER(Sedu);
+	REGISTER(DMX);
+	REGISTER(Tpm2);
+	REGISTER(Atmo);
 
 	// spi devices
 	#ifdef ENABLE_SPIDEV
-	REGISTER("apa102"        , LedDeviceAPA102);
-	REGISTER("lpd6803"       , LedDeviceLpd6803);
-	REGISTER("lpd8806"       , LedDeviceLpd8806);
-	REGISTER("p9813"         , LedDeviceP9813);
-	REGISTER("ws2801"        , LedDeviceWs2801);
-	REGISTER("ws2812spi"     , LedDeviceWs2812SPI);
-	REGISTER("sk6812rgbw-spi", LedDeviceSk6812SPI);
+	REGISTER(APA102);
+	REGISTER(Lpd6803);
+	REGISTER(Lpd8806);
+	REGISTER(P9813);
+	REGISTER(Ws2801);
+	REGISTER(Ws2812SPI);
+	REGISTER(Sk6812SPI);
 	#endif
 	
 	// pwm devices
 	#ifdef ENABLE_WS2812BPWM
-	REGISTER("ws2812b", LedDeviceWS2812b);
+	REGISTER(WS2812b);
 	#endif
 	#ifdef ENABLE_WS281XPWM
-	REGISTER("ws281x" , LedDeviceWS281x);
+	REGISTER(WS281x);
 	#endif
 
 	// network lights
-	REGISTER("fadecandy"  , LedDeviceFadeCandy);
-	REGISTER("tpm2net"    , LedDeviceTpm2net);
-	REGISTER("udpraw"     , LedDeviceUdpRaw);
-	REGISTER("e131"       , LedDeviceUdpE131);
-	REGISTER("h801"       , LedDeviceUdpH801);
-	REGISTER("philipshue" , LedDevicePhilipsHue);
-	REGISTER("atmoorb"    , LedDeviceAtmoOrb);
+	REGISTER(FadeCandy);
+	REGISTER(Tpm2net);
+	REGISTER(UdpRaw);
+	REGISTER(UdpE131);
+	REGISTER(UdpH801);
+	REGISTER(PhilipsHue);
+	REGISTER(AtmoOrb);
 	#ifdef ENABLE_TINKERFORGE
-	REGISTER("tinkerforge", LedDeviceTinkerforge);
+	REGISTER(Tinkerforge);
 	#endif
 
 	// direct usb
-	REGISTER("hyperion-usbasp", LedDeviceHyperionUsbasp);
-	REGISTER("rawhid"         , LedDeviceRawHID);
-	REGISTER("paintpack"      , LedDevicePaintpack);
-	REGISTER("lightpack"      , LedDeviceLightpack);
-	REGISTER("multi-lightpack", LedDeviceMultiLightpack);
+	REGISTER(HyperionUsbasp);
+	REGISTER(RawHID);
+	REGISTER(Paintpack);
+	REGISTER(Lightpack);
+	REGISTER(MultiLightpack);
 	
 	// other
-	REGISTER("file"     , LedDeviceFile);
-	REGISTER("piblaster", LedDevicePiBlaster);
+	REGISTER(File);
+	REGISTER(PiBlaster);
 	
 	#undef REGISTER
 

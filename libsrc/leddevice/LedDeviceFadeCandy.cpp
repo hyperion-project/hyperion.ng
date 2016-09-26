@@ -9,7 +9,7 @@ static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
 : LedDevice()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 
@@ -24,7 +24,7 @@ LedDevice* LedDeviceFadeCandy::construct(const Json::Value &deviceConfig)
 }
 
 
-bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceFadeCandy::init(const Json::Value &deviceConfig)
 {
 	_client.close();
 

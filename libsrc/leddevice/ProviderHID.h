@@ -33,7 +33,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 
 	///
 	/// Opens and configures the output device

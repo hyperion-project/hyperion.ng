@@ -1,11 +1,9 @@
 #include "LedDeviceLpd6803.h"
 
 LedDeviceLpd6803::LedDeviceLpd6803(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
 {
-	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
-	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceLpd6803::construct(const Json::Value &deviceConfig)
@@ -13,15 +11,26 @@ LedDevice* LedDeviceLpd6803::construct(const Json::Value &deviceConfig)
 	return new LedDeviceLpd6803(deviceConfig);
 }
 
+bool LedDeviceLpd6803::init(const Json::Value &deviceConfig)
+{
+	ProviderSpi::init(deviceConfig);
+
+	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
+	// Initialise the buffer
+	_ledBuffer.resize(messageLength, 0x00);
+	
+	return true;
+}
+
 int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 {
 	// Copy the colors from the ColorRgb vector to the Ldp6803 data vector
 	for (unsigned iLed=0; iLed<(unsigned)_ledCount; ++iLed)
 	{
-		const ColorRgb& rgb = ledValues[iLed];
+		const ColorRgb& color = ledValues[iLed];
 
-		_ledBuffer[4 + 2 * iLed] = 0x80 | ((rgb.red & 0xf8) >> 1) | (rgb.green >> 6);
-		_ledBuffer[5 + 2 * iLed] = ((rgb.green & 0x38) << 2) | (rgb.blue >> 3);
+		_ledBuffer[4 + 2 * iLed] = 0x80 | ((color.red & 0xf8) >> 1) | (color.green >> 6);
+		_ledBuffer[5 + 2 * iLed] = ((color.green & 0x38) << 2) | (color.blue >> 3);
 	}
 
 	// Write the data

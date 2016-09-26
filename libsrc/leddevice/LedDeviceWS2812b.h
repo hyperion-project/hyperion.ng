@@ -146,7 +146,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value&) {return true;};
+	bool init(const Json::Value&) {return true;};
 
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &);

@@ -15,7 +15,7 @@ LedDeviceTinkerforge::LedDeviceTinkerforge(const Json::Value &deviceConfig)
 	, _ledStrip(nullptr)
 	, _colorChannelSize(0)
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceTinkerforge::~LedDeviceTinkerforge()
@@ -31,7 +31,7 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 	delete _ledStrip;
 }
 
-bool LedDeviceTinkerforge::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceTinkerforge::init(const Json::Value &deviceConfig)
 {
 	_host     = deviceConfig.get("output", "127.0.0.1").asString();
 	_port     = deviceConfig.get("port", 4223).asInt();

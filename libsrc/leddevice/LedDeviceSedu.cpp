@@ -9,7 +9,7 @@ struct FrameSpec
 LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceSedu::construct(const Json::Value &deviceConfig)
@@ -17,9 +17,9 @@ LedDevice* LedDeviceSedu::construct(const Json::Value &deviceConfig)
 	return new LedDeviceSedu(deviceConfig);
 }
 
-bool LedDeviceSedu::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceSedu::init(const Json::Value &deviceConfig)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 	
 	std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 

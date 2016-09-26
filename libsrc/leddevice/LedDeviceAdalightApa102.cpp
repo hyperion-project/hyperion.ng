@@ -3,7 +3,7 @@
 LedDeviceAdalightApa102::LedDeviceAdalightApa102(const Json::Value &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
@@ -11,9 +11,9 @@ LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
 	return new LedDeviceAdalightApa102(deviceConfig);
 }
 
-bool LedDeviceAdalightApa102::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceAdalightApa102::init(const Json::Value &deviceConfig)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);

@@ -22,7 +22,7 @@ public:
 	/// create leddevice when type in config is set to this type
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 
 private:
 	///

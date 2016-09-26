@@ -4,7 +4,7 @@ LedDeviceAdalight::LedDeviceAdalight(const Json::Value &deviceConfig)
 	: ProviderRs232()
 
 {
-	_deviceReady = setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceAdalight::construct(const Json::Value &deviceConfig)
@@ -12,9 +12,9 @@ LedDevice* LedDeviceAdalight::construct(const Json::Value &deviceConfig)
 	return new LedDeviceAdalight(deviceConfig);
 }
 
-bool LedDeviceAdalight::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceAdalight::init(const Json::Value &deviceConfig)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 
 	_ledBuffer.resize(6 + _ledRGBCount);
 	_ledBuffer[0] = 'A';

@@ -10,7 +10,7 @@ LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
 	, _dmxLedCount(0)
 	, _dmxChannelCount(0)
 {
-	ProviderRs232::setConfig(deviceConfig);
+	ProviderRs232::init(deviceConfig);
 	std::string _dmxString = deviceConfig.get("dmxdevice", "invalid").asString();
 	if (_dmxString == "raw")
 	{

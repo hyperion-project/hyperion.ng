@@ -53,7 +53,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
