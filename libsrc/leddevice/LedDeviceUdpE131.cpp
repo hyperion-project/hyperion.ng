@@ -81,7 +81,7 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 
 	_e131_seq++;
 
-	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
+	for (int rawIdx = 0; rawIdx < dmxChannelCount; rawIdx++)
 	{
 		if (rawIdx % DMX_MAX == 0) // start of new packet
 		{
