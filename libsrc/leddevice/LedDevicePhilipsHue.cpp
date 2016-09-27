@@ -164,7 +164,7 @@ CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue)
 LedDevicePhilipsHue::LedDevicePhilipsHue(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	init(deviceConfig);
+	_deviceReady = init(deviceConfig);
 
 	manager = new QNetworkAccessManager();
 	timer.setInterval(3000);

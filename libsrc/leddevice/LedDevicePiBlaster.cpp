@@ -26,7 +26,7 @@ LedDevicePiBlaster::LedDevicePiBlaster(const Json::Value &deviceConfig)
 		_gpio_to_color[i] = 'z';
 	}
 
-	init(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
@@ -65,6 +65,7 @@ bool LedDevicePiBlaster::init(const Json::Value &deviceConfig)
 			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
 		}
 	}
+
 	return true;
 }
 

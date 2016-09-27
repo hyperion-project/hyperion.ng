@@ -16,10 +16,10 @@
 
 ProviderSpi::ProviderSpi()
 	: LedDevice()
-	, _fid(-1)
 	, _deviceName("/dev/spidev0.0")
 	, _baudRate_Hz(1000000)
 	, _latchTime_ns(0)
+	, _fid(-1)
 	, _spiMode(SPI_MODE_0)
 	, _spiDataInvert(false)
 {

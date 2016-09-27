@@ -9,12 +9,11 @@
 // Local Hyperion includes
 #include "ProviderHID.h"
 
-ProviderHID::ProviderHID(const Json::Value &deviceConfig)
+ProviderHID::ProviderHID()
 	: _useFeature(false)
 	, _deviceHandle(nullptr)
 	, _blockedForDelay(false)
 {
-	init(deviceConfig);
 }
 
 ProviderHID::~ProviderHID()

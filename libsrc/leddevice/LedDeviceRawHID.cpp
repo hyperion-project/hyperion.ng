@@ -2,10 +2,12 @@
 
 // Use feature report HID device
 LedDeviceRawHID::LedDeviceRawHID(const Json::Value &deviceConfig)
-	: ProviderHID(deviceConfig)
+	: ProviderHID()
 	, _timer()
 {
+	ProviderHID::init(deviceConfig);
 	_useFeature = true;
+	_ledBuffer.resize(_ledRGBCount);
 
 	// setup the timer
 	_timer.setSingleShot(false);
@@ -23,18 +25,11 @@ LedDevice* LedDeviceRawHID::construct(const Json::Value &deviceConfig)
 
 int LedDeviceRawHID::write(const std::vector<ColorRgb> & ledValues)
 {
-	// Resize buffer if required
-	unsigned bufferSize = _ledCount * 3;
-	if (_ledBuffer.size() < bufferSize)
-	{
-		_ledBuffer.resize(bufferSize);
-	}
-
 	// restart the timer
 	_timer.start();
 
 	// write data
-	memcpy(_ledBuffer.data(), ledValues.data(), bufferSize);
+	memcpy(_ledBuffer.data(), ledValues.data(), _ledRGBCount);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 

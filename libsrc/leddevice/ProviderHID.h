@@ -21,7 +21,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	ProviderHID(const Json::Value &deviceConfig);
+	ProviderHID();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
