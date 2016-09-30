@@ -39,7 +39,7 @@ while not hyperion.abort():
 	angleM = angleM if angleM<360 else angleM-360
 	angleS = angleS if angleS<360 else angleS-360
 
-	hyperion.imageSolidFill(127,127,0);
+	hyperion.imageSolidFill(145,145,64);
 	hyperion.imageCanonicalGradient(centerX, centerY, angleH, colorsHour)
 	hyperion.imageCanonicalGradient(centerX, centerY, angleM, colorsMinute)
 	hyperion.imageCanonicalGradient(centerX, centerY, angleS, colorsSecond)
