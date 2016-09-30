@@ -828,7 +828,7 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 		_muxer.setInput(priority, ledColors);
 	}
 
-	if (priority == _muxer.getCurrentPriority())
+	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())
 	{
 		update();
 	}
