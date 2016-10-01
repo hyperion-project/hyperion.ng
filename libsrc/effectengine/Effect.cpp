@@ -27,6 +27,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageShow",    Effect::wrapImageShow,   METH_NOARGS,  "set current effect image to hyperion core."},
 	{"imageCanonicalGradient", Effect::wrapImageCanonicalGradient, METH_VARARGS,  ""},
 	{"imageRadialGradient"   , Effect::wrapImageRadialGradient,    METH_VARARGS,  ""},
+	{"imageSolidFill"   , Effect::wrapImageSolidFill,    METH_VARARGS,  ""},
 // 	{"imageSetPixel",Effect::wrapImageShow,   METH_VARARGS, "set pixel color of image"},
 // 	{"imageGetPixel",Effect::wrapImageShow,   METH_VARARGS, "get pixel color of image"},
 	{NULL, NULL, 0, NULL}
@@ -454,8 +455,9 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 	{
 		if (PyByteArray_Check(bytearray))
 		{
-			int length = PyByteArray_Size(bytearray);
-			if (length % 4 == 0)
+			const int length = PyByteArray_Size(bytearray);
+			const unsigned arrayItemLength = 5;
+			if (length % arrayItemLength == 0)
 			{
 
 				QPainter * painter = effect->_painter;
@@ -463,25 +465,25 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 				QConicalGradient gradient(QPoint(centerX,centerY), angle );
 				char * data = PyByteArray_AS_STRING(bytearray);
 
-				for (int idx=0; idx<length; idx+=4)
+				for (int idx=0; idx<length; idx+=arrayItemLength)
 				{
 					gradient.setColorAt(
 						((uint8_t)data[idx])/255.0,
 						QColor(
 							(uint8_t)(data[idx+1]),
 							(uint8_t)(data[idx+2]),
-							(uint8_t)(data[idx+3])
+							(uint8_t)(data[idx+3]),
+							(uint8_t)(data[idx+4])
 					));
 				}
 
-				gradient.setSpread(QGradient::RepeatSpread);
 				painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
 			}
 			else
 			{
-				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 4");
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 5");
 				return nullptr;
 			}
 		}
@@ -575,6 +577,49 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			PyErr_SetString(PyExc_RuntimeError, "Last argument is not a bytearray");
 			return nullptr;
 		}
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b;
+	int a = 255;
+	int startX = 0;
+	int startY = 0;
+	int width  = effect->_imageSize.width();
+	int height = effect->_imageSize.height();
+
+	bool argsOK = false;
+
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &r, &g, &b, &a) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &startX, &startY, &width, &height, &r, &g, &b) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount == 4 && PyArg_ParseTuple(args, "iiii",&r, &g, &b, &a) )
+	{
+		argsOK      = true;
+	}
+	if ( argCount == 3 && PyArg_ParseTuple(args, "iii",&r, &g, &b) )
+	{
+		argsOK      = true;
+	}
+
+	if (argsOK)
+	{
+		QRect myQRect(startX,startY,width,height);
+		effect->_painter->fillRect(myQRect, QColor(r,g,b,a));
+		return Py_BuildValue("");
 	}
 	else
 	{
