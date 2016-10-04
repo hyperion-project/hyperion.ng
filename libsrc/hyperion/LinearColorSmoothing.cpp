@@ -91,15 +91,21 @@ void LinearColorSmoothing::updateLeds()
 		_writeToLedsEnable = true;
 		float k = 1.0f - 1.0f * deltaTime / (_targetTime - _previousTime);
 
-		for (size_t i = 0; i < _previousValues.size(); ++i)
-		{
-			ColorRgb & prev = _previousValues[i];
-			ColorRgb & target = _targetValues[i];
+                int reddif = 0, greendif = 0, bluedif = 0;
 
-			prev.red   += k * (target.red   - prev.red);
-			prev.green += k * (target.green - prev.green);
-			prev.blue  += k * (target.blue  - prev.blue);
-		}
+                for (size_t i = 0; i < _previousValues.size(); ++i)
+                {
+                        ColorRgb & prev = _previousValues[i];
+                        ColorRgb & target = _targetValues[i];
+
+                        reddif   = target.red - prev.red;
+                        greendif = target.green - prev.green;
+                        bluedif  = target.blue - prev.blue;
+
+                        prev.red   += (reddif   < 0 ? -1:1) * ceil(k * abs(reddif));
+                        prev.green += (greendif < 0 ? -1:1) * ceil(k * abs(greendif));
+                        prev.blue  += (bluedif  < 0 ? -1:1) * ceil(k * abs(bluedif));
+                }
 		_previousTime = now;
 
 		queueColors(_previousValues);
