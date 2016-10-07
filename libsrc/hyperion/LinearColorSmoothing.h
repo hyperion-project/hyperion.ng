@@ -3,8 +3,7 @@
 // STL includes
 #include <string>
 #include <vector>
-#include <stdlib.h>
-#include <math.h>
+
 
 // Qt includes
 #include <QTimer>
