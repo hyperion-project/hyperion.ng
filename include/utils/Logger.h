@@ -37,7 +37,7 @@ public:
 	LogLevel getMinLevel() { return _minLevel; };
 
 protected:
-	Logger( std::string name="", LogLevel minLevel=INFO);
+	Logger( std::string name="", LogLevel minLevel=WARNING);
 	~Logger();
 
 private:
