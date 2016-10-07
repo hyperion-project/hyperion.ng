@@ -27,7 +27,7 @@ class Logger
 public:
 	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
 
-	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::WARNING);
+	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
 	static void     deleteInstance(std::string name="");
 	static void     setLogLevel(LogLevel level,std::string name="");
 	static LogLevel getLogLevel(std::string name="");
@@ -37,7 +37,7 @@ public:
 	LogLevel getMinLevel() { return _minLevel; };
 
 protected:
-	Logger( std::string name="", LogLevel minLevel=WARNING);
+	Logger( std::string name="", LogLevel minLevel=INFO);
 	~Logger();
 
 private:
