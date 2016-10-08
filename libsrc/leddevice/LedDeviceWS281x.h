@@ -3,6 +3,9 @@
 #include <leddevice/LedDevice.h>
 #include <ws2811.h>
 
+///
+/// Implementation of the LedDevice interface for writing to Ws2812 led device via pwm.
+///
 class LedDeviceWS281x : public LedDevice
 {
 public:

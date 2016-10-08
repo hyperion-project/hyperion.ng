@@ -4,7 +4,7 @@
 #include "ProviderSpi.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to Sk6801 led device.
+/// Implementation of the LedDevice interface for writing to Sk6801 led device via SPI.
 ///
 class LedDeviceSk6812SPI : public ProviderSpi
 {
