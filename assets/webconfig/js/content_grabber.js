@@ -1,11 +1,11 @@
  
 
-var grabber_conf_editor = null;
+var conf_editor = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
 	parsedConfSchemaJSON = event.response.result;
 	schema = parsedConfSchemaJSON.properties;
 
-	grabber_conf_editor = createJsonEditor('editor_container',
+	conf_editor = createJsonEditor('editor_container',
 		{
 			title:'',
 			properties: {
@@ -28,7 +28,7 @@ $(document).ready( function() {
 
 	document.getElementById('btn_submit').addEventListener('click',function() {
 		// Get the value from the editor
-		console.log(grabber_conf_editor.getValue());
+		console.log(conf_editor.getValue());
 	});
 });
 

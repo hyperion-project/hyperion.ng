@@ -16,7 +16,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#editor_container .well').css("border","none");
 	$('#editor_container .well').css("box-shadow","none");
 	$('#editor_container .btn').addClass("btn-primary");
-	$('#editor_container h3').first().remove();
+	$('#editor_container h3').remove();
 
 });
 

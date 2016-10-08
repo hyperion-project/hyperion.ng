@@ -1,23 +1,3 @@
-/*
-function removeAdvanced(obj,searchStack)
-{
-	searchStack = [];
-	$.each(obj, function(key, val) {
-		if ( typeof(val) == 'object' )
-		{
-			searchStack.push(key);
-			if (! removeAdvanced(val,searchStack) )
-				searchStack.pop();
-		}
-		else if ( key == "advanced" && val == true )
-		{
-			console.log(searchStack);
-			return true;
-		}
-	});
-	return false;
-}
-*/
 
 $(hyperion).one("cmd-config-getschema", function(event) {
 	parsedConfSchemaJSON = event.response.result;
@@ -27,22 +7,12 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		{
 			title:'',
 			properties: {
-				blackborderdetector: schema.blackborderdetector,
-				color              : schema.color,
 				effects            : schema.effects,
-				forwarder          : schema.forwarder,
-				initialEffect      : schema.initialEffect,
-				smoothing          : schema.smoothing,
-				logger             : schema.logger,
-				jsonServer         : schema.jsonServer,
-				protoServer        : schema.protoServer,
-				boblightServer     : schema.boblightServer,
-				udpListener        : schema.udpListener,
-				webConfig          : schema.webConfig
+				initialEffect      : schema.initialEffect
 			}
 		});
 
-// 	$('#editor_container .well').css("background-color","white");
+ 	$('#editor_container .well').css("background-color","white");
 // 	$('#editor_container .well').css("border","none");
 // 	$('#editor_container .well').css("box-shadow","none");
 	$('#editor_container .btn').addClass("btn-primary");

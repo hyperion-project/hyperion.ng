@@ -908,12 +908,14 @@
 				"json" :
 				{
 					"type" : "array",
+					"title" : "List of JSON clients",
 					"required" : true,
 					"propertyOrder" : 2
 				},
 				"proto" :
 				{
 					"type" : "array",
+					"title" : "List of PROTO clients",
 					"required" : true,
 					"propertyOrder" : 3
 				}
