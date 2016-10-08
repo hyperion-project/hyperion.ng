@@ -6,7 +6,7 @@
 #define TPM2_DEFAULT_PORT 65506
 
 ///
-/// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
+/// Implementation of the LedDevice interface for sending led colors via udp tpm2.net packets
 ///
 class LedDeviceTpm2net : public ProviderUdp
 {

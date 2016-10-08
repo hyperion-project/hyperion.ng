@@ -4,7 +4,7 @@
 #include "ProviderSpi.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2801 led device.
+/// Implementation of the LedDevice interface for writing to Ws2812 led device via spi.
 ///
 class LedDeviceWs2812SPI : public ProviderSpi
 {

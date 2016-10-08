@@ -3,6 +3,10 @@
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
 
+///
+/// Implementation of the LedDevice interface for writing to pi-blaster based PWM LEDs
+///
+
 class LedDevicePiBlaster : public LedDevice
 {
 public:
