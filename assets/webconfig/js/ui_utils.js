@@ -54,11 +54,34 @@ function showErrorDialog(header,message)
 	$('#error_dialog').modal('show');
 }
 
-function isJsonString(str) {
-	try {
+function isJsonString(str)
+{
+	try
+	{
 		JSON.parse(str);
-	} catch (e) {
+	}
+	catch (e)
+	{
 		return e;
 	}
 	return "";
+}
+
+
+function createJsonEditor(container,schema)
+{
+	$('#'+container).off();
+	$('#'+container).html("");
+
+	return new JSONEditor(document.getElementById(container),
+	{
+		theme: 'bootstrap3',
+		iconlib: "fontawesome4",
+		disable_collapse: 'true',
+		form_name_root: 'sa',
+		disable_edit_json: 'true',
+		disable_properties: 'true',
+		no_additional_properties: 'true',
+		schema: schema
+	});
 }
