@@ -32,7 +32,6 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 				effects            : schema.effects,
 				forwarder          : schema.forwarder,
 				initialEffect      : schema.initialEffect,
-				kodiVideoChecker   : schema.kodiVideoChecker,
 				smoothing          : schema.smoothing,
 				logger             : schema.logger,
 				jsonServer         : schema.jsonServer,
