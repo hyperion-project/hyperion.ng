@@ -12,7 +12,7 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)
+/// LedDevice implementation for a USBasp programmer with modified firmware (https://github.com/poljvd/hyperion-usbasp)
 ///
 class LedDeviceHyperionUsbasp : public LedDevice
 {

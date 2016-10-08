@@ -127,7 +127,7 @@ struct dma_cb_t
 };
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2801 led device.
+/// Implementation of the LedDevice interface for writing to Ws2812 led device using pwm.
 ///
 class LedDeviceWS2812b : public LedDevice
 {

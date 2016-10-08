@@ -7,7 +7,7 @@
 #include <utils/Logger.h>
 
 ///
-/// The ProviderUdp implements an abstract base-class for LedDevices using the SPI-device.
+/// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
 ///
 class ProviderUdp : public LedDevice
 {
