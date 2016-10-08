@@ -51,9 +51,10 @@ public:
 	static int addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();
 	static void setActiveDevice(std::string dev);
-	static std::string activeDevice() { return _activeDevice; };
+	static std::string activeDevice() { return _activeDevice; }
 	static Json::Value getLedDeviceSchemas();
-	
+	static void setLedCount(int ledCount);
+	static int  getLedCount() { return _ledCount; }
 protected:
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -66,12 +67,16 @@ protected:
 
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
-	
-	int _ledCount;
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
 
+	bool _deviceReady;
+
 	static std::string _activeDevice;
 	static LedDeviceRegistry _ledDeviceMap;
+
+	static int _ledCount;
+	static int _ledRGBCount;
+	static int _ledRGBWCount;
 };

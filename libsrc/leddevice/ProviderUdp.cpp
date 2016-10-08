@@ -18,7 +18,7 @@
 ProviderUdp::ProviderUdp()
 	: LedDevice()
 	, _LatchTime_ns(-1)
-	, _port(0)
+	, _port(1)
 {
 	_udpSocket = new QUdpSocket();
 }
@@ -28,7 +28,7 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTime, int defaultPort, std::string defaultHost)
+bool ProviderUdp::init(const Json::Value &deviceConfig, std::string defaultHost)
 {
 	QString host = QString::fromStdString(deviceConfig.get("host",defaultHost).asString());
 	
@@ -49,7 +49,7 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTim
 		_address = info.addresses().first();
 	}
 
-	_port = deviceConfig.get("port", defaultPort).asUInt();
+	_port = deviceConfig.get("port", _port).asUInt();
 	if ( _port<=0 || _port > 65535)
 	{
 		throw std::runtime_error("invalid target port");
@@ -57,7 +57,7 @@ bool ProviderUdp::setConfig(const Json::Value &deviceConfig, int defaultLatchTim
 	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
-	_LatchTime_ns = deviceConfig.get("latchtime", defaultLatchTime).asInt();
+	_LatchTime_ns = deviceConfig.get("latchtime", _LatchTime_ns).asInt();
 
 	return true;
 }

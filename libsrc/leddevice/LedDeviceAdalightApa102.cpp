@@ -1,8 +1,9 @@
 #include "LedDeviceAdalightApa102.h"
 
 LedDeviceAdalightApa102::LedDeviceAdalightApa102(const Json::Value &deviceConfig)
-	: LedDeviceAdalight(deviceConfig)
+	: ProviderRs232()
 {
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
@@ -10,12 +11,10 @@ LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
 	return new LedDeviceAdalightApa102(deviceConfig);
 }
 
-
-//comparing to ws2801 adalight, the following changes were needed:
-// 1- differnt data frame (4 bytes instead of 3)
-// 2 - in order to accomodate point 1 above, number of leds sent to adalight is increased by 1/3rd
-int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
+bool LedDeviceAdalightApa102::init(const Json::Value &deviceConfig)
 {
+	ProviderRs232::init(deviceConfig);
+
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);
 	const unsigned int mLedCount = (_ledCount * 4) + startFrameSize + endFrameSize;
@@ -32,6 +31,14 @@ int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
 			_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5] );
 	}
 
+	return true;
+}
+
+//comparing to ws2801 adalight, the following changes were needed:
+// 1- differnt data frame (4 bytes instead of 3)
+// 2 - in order to accomodate point 1 above, number of leds sent to adalight is increased by 1/3rd
+int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
+{
 	for (signed iLed=1; iLed<=_ledCount; iLed++)
 	{
 		const ColorRgb& rgb = ledValues[iLed-1];
@@ -40,9 +47,6 @@ int LedDeviceAdalightApa102::write(const std::vector<ColorRgb> & ledValues)
 		_ledBuffer[iLed*4+2+6] = rgb.green;
 		_ledBuffer[iLed*4+3+6] = rgb.blue;
 	}
-	
-	// restart the timer
-	_timer.start();
 
 	// write data
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());

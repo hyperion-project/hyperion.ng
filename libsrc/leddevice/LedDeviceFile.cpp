@@ -3,7 +3,7 @@
 LedDeviceFile::LedDeviceFile(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceFile::~LedDeviceFile()
@@ -15,7 +15,7 @@ LedDevice* LedDeviceFile::construct(const Json::Value &deviceConfig)
 	return new LedDeviceFile(deviceConfig);
 }
 
-bool LedDeviceFile::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceFile::init(const Json::Value &deviceConfig)
 {
 	if ( _ofs.is_open() )
 	{

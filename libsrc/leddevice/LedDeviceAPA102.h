@@ -13,13 +13,12 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
 	LedDeviceAPA102(const Json::Value &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
+	virtual bool init(const Json::Value &deviceConfig);
 private:
 	///
 	/// Writes the led color values to the led-device

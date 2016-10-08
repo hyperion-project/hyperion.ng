@@ -24,7 +24,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 	
 private:
 	///
@@ -35,7 +35,7 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	std::string _whiteAlgorithm;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	
 	uint8_t bitpair_to_byte[4];
 	

@@ -21,7 +21,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	ProviderHID(const Json::Value &deviceConfig);
+	ProviderHID();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -33,7 +33,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 
 	///
 	/// Opens and configures the output device

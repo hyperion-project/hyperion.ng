@@ -3,9 +3,15 @@
 #include <time.h>
 
 LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderRs232()
+	, _dmxDeviceType(0)
+	, _dmxStart(1)
+	, _dmxSlotsPerLed(3)
+	, _dmxLedCount(0)
+	, _dmxChannelCount(0)
 {
-        std::string _dmxString = deviceConfig.get("dmxdevice", "invalid").asString();
+	ProviderRs232::init(deviceConfig);
+	std::string _dmxString = deviceConfig.get("dmxdevice", "invalid").asString();
 	if (_dmxString == "raw")
 	{
 		_dmxDeviceType = 0;
@@ -22,8 +28,18 @@ LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
 	{
 		Error(_log, "unknown dmx device type %s", _dmxString.c_str());
 	}
+
 	Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", _dmxString.c_str(), _dmxDeviceType );
 	_rs232Port.setStopBits(QSerialPort::TwoStop);
+	
+	_dmxLedCount  =  std::min(_ledCount, 512/_dmxSlotsPerLed);
+	_dmxChannelCount  = 1 + _dmxSlotsPerLed * _dmxLedCount;
+
+	Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
+	Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
+
+	_ledBuffer.resize(_dmxChannelCount, 0);
+	_ledBuffer[0] = 0x00;	// NULL START code
 }
 
 LedDevice* LedDeviceDMX::construct(const Json::Value &deviceConfig)
@@ -33,18 +49,6 @@ LedDevice* LedDeviceDMX::construct(const Json::Value &deviceConfig)
 
 int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)
 {
-	if ( (_ledBuffer.size() != _dmxChannelCount) || (_ledBuffer.size() == 0) )
-	{
-		_dmxLedCount  =  std::min(_ledCount, 512/_dmxSlotsPerLed);
-		_dmxChannelCount  = 1 + _dmxSlotsPerLed * _dmxLedCount;
-
-		Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
-		Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
-
-		_ledBuffer.resize(_dmxChannelCount, 0);
-		_ledBuffer[0] = 0x00;	// NULL START code
-	}
-
 	switch (_dmxDeviceType) {
 	case 0:
 		memcpy(_ledBuffer.data()+1, ledValues.data(), _dmxChannelCount-1);
@@ -56,7 +60,7 @@ int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)
 			_ledBuffer[l++] = ledValues[d].red;
 			_ledBuffer[l++] = ledValues[d].green;
 			_ledBuffer[l++] = ledValues[d].blue;
-			_ledBuffer[l++] = 0xff;
+			_ledBuffer[l++] = 255;
 		}
 		break;
 	}

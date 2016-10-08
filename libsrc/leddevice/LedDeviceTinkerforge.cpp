@@ -15,7 +15,7 @@ LedDeviceTinkerforge::LedDeviceTinkerforge(const Json::Value &deviceConfig)
 	, _ledStrip(nullptr)
 	, _colorChannelSize(0)
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceTinkerforge::~LedDeviceTinkerforge()
@@ -31,12 +31,26 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 	delete _ledStrip;
 }
 
-bool LedDeviceTinkerforge::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceTinkerforge::init(const Json::Value &deviceConfig)
 {
 	_host     = deviceConfig.get("output", "127.0.0.1").asString();
 	_port     = deviceConfig.get("port", 4223).asInt();
 	_uid      = deviceConfig["uid"].asString();
 	_interval = deviceConfig["rate"].asInt();
+
+	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
+	{
+		Error(_log,"Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
+		return -1;
+	}
+
+	if (_colorChannelSize < (unsigned)_ledCount)
+	{
+		_redChannel.resize(_ledCount, uint8_t(0));
+		_greenChannel.resize(_ledCount, uint8_t(0));
+		_blueChannel.resize(_ledCount, uint8_t(0));
+	}
+	_colorChannelSize = _ledCount;
 
 	return true;
 }
@@ -82,20 +96,6 @@ int LedDeviceTinkerforge::open()
 
 int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 {
-	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
-	{
-		Error(_log,"Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
-		return -1;
-	}
-
-	if (_colorChannelSize < (unsigned)_ledCount)
-	{
-		_redChannel.resize(_ledCount, uint8_t(0));
-		_greenChannel.resize(_ledCount, uint8_t(0));
-		_blueChannel.resize(_ledCount, uint8_t(0));
-	}
-	_colorChannelSize = _ledCount;
-
 	auto redIt   = _redChannel.begin();
 	auto greenIt = _greenChannel.begin();
 	auto blueIt  = _blueChannel.begin();

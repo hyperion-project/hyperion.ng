@@ -460,7 +460,6 @@ LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrd
 			}
 
 			// Get the order of the rgb channels for this led (default is device order)
-			const QJsonObject& colorOrder = ledConfigArray[i].toObject();
 			led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
 			ledString.leds().push_back(led);
 		}
@@ -674,7 +673,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
-	_device       = LedDeviceFactory::construct(jsonConfig["device"]);
+	_device       = LedDeviceFactory::construct(jsonConfig["device"],_hwLedCount);
 	_deviceSmooth = createColorSmoothing(qjsonConfig["smoothing"].toObject(), _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 
@@ -968,7 +967,7 @@ void Hyperion::update()
 	if (_adjustmentEnabled)  _raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	if (_temperatureEnabled) _raw2ledTemperature->applyCorrection(_ledBuffer);
 
-	// init colororder vector, if nempty
+	// init colororder vector, if empty
 	if (_ledStringColorOrder.empty())
 	{
 		for (Led& led : _ledString.leds())

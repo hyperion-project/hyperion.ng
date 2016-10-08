@@ -6,7 +6,7 @@
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight led device for APA102.
 ///
-class LedDeviceAdalightApa102 : public LedDeviceAdalight
+class LedDeviceAdalightApa102 : public ProviderRs232
 {
 	Q_OBJECT
 
@@ -22,7 +22,9 @@ public:
 	/// create leddevice when type in config is set to this type
 	static LedDevice* construct(const Json::Value &deviceConfig);
 
-protected:
+	virtual bool init(const Json::Value &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///

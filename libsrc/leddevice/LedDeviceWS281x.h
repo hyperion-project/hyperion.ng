@@ -23,7 +23,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
@@ -39,7 +39,6 @@ private:
 
 	ws2811_t    _led_string;
 	int         _channel;
-	bool        _initialized;
-	std::string _whiteAlgorithm;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw   _temp_rgbw;
 };

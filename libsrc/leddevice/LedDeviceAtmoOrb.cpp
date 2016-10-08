@@ -19,7 +19,7 @@ AtmoOrbLight::AtmoOrbLight(unsigned int id) {
 LedDeviceAtmoOrb::LedDeviceAtmoOrb(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 	_manager = new QNetworkAccessManager();
 	_groupAddress = QHostAddress(_multicastGroup);
 
@@ -29,7 +29,7 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(const Json::Value &deviceConfig)
 	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
 }
 
-bool LedDeviceAtmoOrb::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceAtmoOrb::init(const Json::Value &deviceConfig)
 {
 	_multicastGroup     = deviceConfig["output"].asString().c_str();
 	_useOrbSmoothing    = deviceConfig.get("useOrbSmoothing", false).asBool();

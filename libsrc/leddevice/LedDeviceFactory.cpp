@@ -57,7 +57,7 @@
 	#include "LedDeviceWS281x.h"
 #endif
 
-LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
+LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const int ledCount)
 {
 	Logger * log = Logger::getInstance("LedDevice");
 	std::stringstream ss;
@@ -67,56 +67,62 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig)
 	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
+	// set amount of led to leddevice
+	LedDevice::setLedCount(ledCount);
+
+	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower().toStdString(), LedDevice##className::construct);
 	// rs232 devices
-	LedDevice::addToDeviceMap("adalight"      , LedDeviceAdalight::construct);
-	LedDevice::addToDeviceMap("adalightapa102", LedDeviceAdalightApa102::construct);
-	LedDevice::addToDeviceMap("sedu"          , LedDeviceSedu::construct);
-	LedDevice::addToDeviceMap("dmx"           , LedDeviceDMX::construct);
-	LedDevice::addToDeviceMap("tpm2"          , LedDeviceTpm2::construct);
-	LedDevice::addToDeviceMap("atmo"          , LedDeviceAtmo::construct);
-	LedDevice::addToDeviceMap("fadecandy"     , LedDeviceFadeCandy::construct);
+	REGISTER(Adalight);
+	REGISTER(AdalightApa102);
+	REGISTER(Sedu);
+	REGISTER(DMX);
+	REGISTER(Tpm2);
+	REGISTER(Atmo);
 
 	// spi devices
 	#ifdef ENABLE_SPIDEV
-	LedDevice::addToDeviceMap("apa102"        , LedDeviceAPA102::construct);
-	LedDevice::addToDeviceMap("lpd6803"       , LedDeviceLpd6803::construct);
-	LedDevice::addToDeviceMap("lpd8806"       , LedDeviceLpd8806::construct);
-	LedDevice::addToDeviceMap("p9813"         , LedDeviceP9813::construct);
-	LedDevice::addToDeviceMap("ws2801"        , LedDeviceWs2801::construct);
-	LedDevice::addToDeviceMap("ws2812spi"     , LedDeviceWs2812SPI::construct);
-	LedDevice::addToDeviceMap("sk6812rgbw-spi", LedDeviceSk6812SPI::construct);
+	REGISTER(APA102);
+	REGISTER(Lpd6803);
+	REGISTER(Lpd8806);
+	REGISTER(P9813);
+	REGISTER(Ws2801);
+	REGISTER(Ws2812SPI);
+	REGISTER(Sk6812SPI);
 	#endif
 	
 	// pwm devices
 	#ifdef ENABLE_WS2812BPWM
-	LedDevice::addToDeviceMap("ws2812b", LedDeviceWS2812b::construct);
+	REGISTER(WS2812b);
 	#endif
 	#ifdef ENABLE_WS281XPWM
-	LedDevice::addToDeviceMap("ws281x", LedDeviceWS281x::construct);
+	REGISTER(WS281x);
 	#endif
 
 	// network lights
-	LedDevice::addToDeviceMap("tpm2net", LedDeviceTpm2net::construct);
-	LedDevice::addToDeviceMap("udpraw", LedDeviceUdpRaw::construct);
-	LedDevice::addToDeviceMap("e131", LedDeviceUdpE131::construct);
+	REGISTER(FadeCandy);
+	REGISTER(Tpm2net);
+	REGISTER(UdpRaw);
+	REGISTER(UdpE131);
+	REGISTER(UdpH801);
+	REGISTER(PhilipsHue);
+	REGISTER(AtmoOrb);
 	#ifdef ENABLE_TINKERFORGE
-	LedDevice::addToDeviceMap("tinkerforge", LedDeviceTinkerforge::construct);
+	REGISTER(Tinkerforge);
 	#endif
-	LedDevice::addToDeviceMap("philipshue", LedDevicePhilipsHue::construct);
-	LedDevice::addToDeviceMap("atmoorb", LedDeviceAtmoOrb::construct);
-	LedDevice::addToDeviceMap("h801", LedDeviceUdpH801::construct);
 
 	// direct usb
-	LedDevice::addToDeviceMap("hyperion-usbasp", LedDeviceHyperionUsbasp::construct);
-	LedDevice::addToDeviceMap("rawhid", LedDeviceRawHID::construct);
-	LedDevice::addToDeviceMap("paintpack", LedDevicePaintpack::construct);
-	LedDevice::addToDeviceMap("lightpack", LedDeviceLightpack::construct);
-	LedDevice::addToDeviceMap("multi-lightpack", LedDeviceMultiLightpack::construct);
+	REGISTER(HyperionUsbasp);
+	REGISTER(RawHID);
+	REGISTER(Paintpack);
+	REGISTER(Lightpack);
+	REGISTER(MultiLightpack);
 	
 	// other
-	LedDevice::addToDeviceMap("file", LedDeviceFile::construct);
-	LedDevice::addToDeviceMap("piblaster", LedDevicePiBlaster::construct);
+	REGISTER(File);
+	REGISTER(PiBlaster);
 	
+	#undef REGISTER
+
 	const LedDeviceRegistry& devList = LedDevice::getDeviceMap();
 	LedDevice* device = nullptr;
 	try
