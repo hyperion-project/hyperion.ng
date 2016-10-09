@@ -1,4 +1,3 @@
- 
 
 var conf_editor = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
@@ -9,8 +8,9 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		{
 			title:'',
 			properties: {
-				framegrabber: schema.framegrabber,
-				grabberV4L2 : schema.grabberV4L2
+				color              : schema.color,
+				smoothing          : schema.smoothing,
+				blackborderdetector: schema.blackborderdetector,
 			}
 		});
 

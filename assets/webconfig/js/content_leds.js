@@ -138,27 +138,15 @@ $(document).ready(function() {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
 		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
 		//$('#ledDeviceOptions').html(JSON.stringify(generalOptions)+"<br>"+JSON.stringify(specificOptions));
-		$('#editor_container').off();
-		$('#editor_container').html("");
-		var element = document.getElementById('editor_container');
-
-		grabber_conf_editor = new JSONEditor(element,{
-			theme: 'bootstrap3',
-			iconlib: "fontawesome4",
-			disable_collapse: 'true',
-			form_name_root: 'sa',
-			disable_edit_json: 'true',
-			disable_properties: 'true',
-			no_additional_properties: 'true',
-			schema: {
+		grabber_conf_editor = createJsonEditor('editor_container',
+			{
 				title:' ',
 				properties: {
 					generalOptions : generalOptions,
 					specificOptions : specificOptions,
-				}
 			}
 		});
-
+		
 		values_general = {};
 		values_specific = {};
 		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
