@@ -633,6 +633,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	, _effectEngine(nullptr)
 	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
 	, _jsonConfig(jsonConfig)
+	, _qjsonConfig(qjsonConfig)
 	, _configFile(configFile)
 	, _timer()
 	, _log(Logger::getInstance("Core"))
@@ -682,7 +683,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
 	// create the effect engine
-	_effectEngine = new EffectEngine(this,jsonConfig["effects"]);
+	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject());
 	
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
@@ -938,12 +939,12 @@ const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects()
 	return _effectEngine->getActiveEffects();
 }
 
-int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
-int Hyperion::setEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout);
 }

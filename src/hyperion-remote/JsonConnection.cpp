@@ -266,15 +266,13 @@ QString JsonConnection::getConfig(std::string type)
 	return QString();
 }
 
-void JsonConnection::setConfig(const QString &jsonString, bool create, bool overwrite)
+void JsonConnection::setConfig(const QString &jsonString)
 {
 	// create command
 	Json::Value command;
 	command["command"] = "config";
 	command["subcommand"] = "setconfig";
 	
-	command["create"] = create;
-	command["overwrite"] = overwrite;
 	Json::Value & config = command["config"];
 	if (jsonString.size() > 0)
 	{

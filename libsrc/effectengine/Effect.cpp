@@ -63,7 +63,7 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const Json::Value & args)
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args)
 	: QThread()
 	, _mainThreadState(mainThreadState)
 	, _priority(priority)
@@ -178,43 +178,50 @@ void Effect::effectFinished()
 	emit effectFinished(this);
 }
 
-PyObject *Effect::json2python(const Json::Value &json) const
-{
-	switch (json.type())
+PyObject *Effect::json2python(const QJsonValue &jsonData) const
+{	
+	switch (jsonData.type())
 	{
-	case Json::nullValue:
-		return Py_BuildValue("");
-	case Json::realValue:
-		return Py_BuildValue("d", json.asDouble());
-	case Json::intValue:
-	case Json::uintValue:
-		return Py_BuildValue("i", json.asInt());
-	case Json::booleanValue:
-		return Py_BuildValue("i", json.asBool() ? 1 : 0);
-	case Json::stringValue:
-		return Py_BuildValue("s", json.asCString());
-	case Json::objectValue:
-	{
-		PyObject * dict= PyDict_New();
-		for (Json::Value::iterator i = json.begin(); i != json.end(); ++i)
+		case QJsonValue::Null:
+			return Py_BuildValue("");
+		case QJsonValue::Undefined:
+			return Py_BuildValue("");
+		case QJsonValue::Double:
 		{
-			PyObject * obj = json2python(*i);
-			PyDict_SetItemString(dict, i.memberName(), obj);
-			Py_XDECREF(obj);
+			if (rint(jsonData.toDouble()) != jsonData.toDouble())
+				Py_BuildValue("d", jsonData.toDouble());
+			else
+				return Py_BuildValue("i", jsonData.toInt());
 		}
-		return dict;
-	}
-	case Json::arrayValue:
-	{
-		PyObject * list = PyList_New(json.size());
-		for (Json::Value::iterator i = json.begin(); i != json.end(); ++i)
+		case QJsonValue::Bool:
+			return Py_BuildValue("i", jsonData.toBool() ? 1 : 0);
+		case QJsonValue::String:
+			return Py_BuildValue("s", jsonData.toString().toUtf8().constData());
+		case QJsonValue::Object:
 		{
-			PyObject * obj = json2python(*i);
-			PyList_SetItem(list, i.index(), obj);
-			Py_XDECREF(obj);
+			PyObject * dict= PyDict_New();
+			QJsonObject objectData = jsonData.toObject();
+			for (QJsonObject::iterator i = objectData.begin(); i != objectData.end(); ++i)
+			{
+				PyObject * obj = json2python(*i);
+				PyDict_SetItemString(dict, i.key().toStdString().c_str(), obj);
+				Py_XDECREF(obj);
+			}
+			return dict;
 		}
-		return list;
-	}
+		case QJsonValue::Array:
+		{
+			QJsonArray arrayData = jsonData.toArray();
+			PyObject * list = PyList_New(arrayData.size());
+			int index = 0;
+			for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
+			{
+				PyObject * obj = json2python(*i);
+				PyList_SetItem(list, index, obj);
+				Py_XDECREF(obj);
+			}
+			return list;
+		}
 	}
 
 	assert(false);

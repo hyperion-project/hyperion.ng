@@ -17,12 +17,6 @@
 		},
 		"config": {
 			"type" : "object"
-		},
-		"create": {
-			"type" : "boolean"
-		},
-		"overwrite": {
-			"type" : "boolean"
 		}
 	},
 	"additionalProperties": false

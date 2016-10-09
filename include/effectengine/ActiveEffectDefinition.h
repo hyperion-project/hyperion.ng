@@ -1,16 +1,14 @@
 #pragma once
 
-// stl include
-#include <string>
-
-// json include
-#include <json/value.h>
+// QT include
+#include <QString>
+#include <QJsonObject>
 
 struct ActiveEffectDefinition
 {
-	std::string script;
-	std::string name;
+	QString script;
+	QString name;
 	int priority;
 	int timeout;
-	Json::Value args;
+	QJsonObject args;
 };

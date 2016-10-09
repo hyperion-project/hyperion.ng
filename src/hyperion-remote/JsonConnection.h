@@ -111,7 +111,7 @@ public:
 	/// @param jsonString The JSON String(s) to write
 	/// @param create Specifies whether the nonexistent json string to be created
 	///
-	void setConfig(const QString &jsonString, bool create, bool overwrite);
+	void setConfig(const QString &jsonString);
 
 	///
 	/// Set the color transform of the leds
