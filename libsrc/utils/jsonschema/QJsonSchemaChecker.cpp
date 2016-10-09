@@ -26,9 +26,10 @@ bool QJsonSchemaChecker::setSchema(const QJsonObject & schema)
 	return true;
 }
 
-bool QJsonSchemaChecker::validate(const QJsonObject & value)
+bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
 {
 	// initialize state
+	_ignoreRequired = ignoreRequired;
 	_error = false;
 	_messages.clear();
 	_currentPath.clear();
@@ -183,7 +184,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (required != propertyValue.toObject().end() && required.value().toBool())
+		else if (required != propertyValue.toObject().end() && required.value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
 			setMessage("missing member");
