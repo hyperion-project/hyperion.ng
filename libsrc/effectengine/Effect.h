@@ -11,6 +11,7 @@
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
+#include <utils/Components.h>
 
 class Effect : public QThread
 {
@@ -42,7 +43,7 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component);
 
 private slots:
 	void effectFinished();

@@ -67,13 +67,20 @@
 				"channelAdjustment_enable" :
 				{
 					"type" : "boolean",
+					"default" : true,
 					"propertyOrder" : 1
+				},
+				"channelAdjustment_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 2
 				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 2,
+					"propertyOrder" : 3,
 					"items" :
 					{
 						"type" : "object",
@@ -187,13 +194,20 @@
 				"transform_enable" :
 				{
 					"type" : "boolean",
-					"propertyOrder" : 3
+					"default" : true,
+					"propertyOrder" : 4
+				},
+				"ransform_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 5
 				},
 				"transform" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 4,
+					"propertyOrder" : 6,
 					"items" :
 					{
 						"type" : "object",

@@ -13,6 +13,7 @@
 // hyperion util includes
 #include <utils/jsonschema/JsonSchemaChecker.h>
 #include <utils/FileUtils.h>
+#include <utils/Components.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
@@ -28,6 +29,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 {
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
 	connect(_hyperion, SIGNAL(channelCleared(int)), this, SLOT(channelCleared(int)));
@@ -221,8 +223,8 @@ int EffectEngine::runEffectScript(const std::string &script, const std::string &
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, QString::fromStdString(script), QString::fromStdString(name), args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
+	Effect * effect = new Effect(_mainThreadState, priority, timeout, QString::fromStdString(script), QString::fromStdString(name), args);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 

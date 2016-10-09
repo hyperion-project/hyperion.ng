@@ -185,7 +185,7 @@ public slots:
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID);
 
 	///
 	/// Returns the list with unique transform identifiers
@@ -211,6 +211,12 @@ public slots:
 	///
 	ColorAdjustment * getAdjustment(const std::string& id);
 	
+	///
+	/// returns true if overall color settings enabled
+	bool colorSettingsEnabled() { return  _colorSettingsEnabled; };
+
+	void setColorSettingsEnable(bool enabled) { _colorSettingsEnabled = enabled; };
+
 	///
 	/// Returns  MessageForwarder Object
 	/// @return instance of message forwarder object
@@ -355,6 +361,9 @@ private:
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 
+	/// flag for v4l color correction
+	bool _colorCorrectionV4Lonly;
+	
 	/// flag for color transform enable
 	bool _transformEnabled;
 
