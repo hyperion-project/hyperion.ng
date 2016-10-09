@@ -552,8 +552,8 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	_transformEnabled   = color["transform_enable"].toBool(true);
 	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
 
-	_colorTransformV4Lonly  = color["transform_v4l_only"].toBool(true);
-	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(true);
+	_colorTransformV4Lonly  = color["transform_v4l_only"].toBool(false);
+	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(false);
 
 	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
 	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );

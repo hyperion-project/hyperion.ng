@@ -377,64 +377,6 @@ void JsonConnection::setTransform(const QString &transformId,
 	parseReply(reply);
 }
 
-void JsonConnection::setCorrection(QString &correctionId, const QColor & correction)
-{
-	std::cout << "Set color corrections" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "correction";
-	Json::Value & correct = command["correction"];
-	
-	if (!correctionId.isNull())
-	{
-		correct["id"] = correctionId.toStdString();
-	}
-
-	if (correction.isValid())
-	{
-		Json::Value & v = correct["correctionValues"];
-		v.append(correction.red());
-		v.append(correction.green());
-		v.append(correction.blue());
-	}
-
-	// send command message
-	Json::Value reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setTemperature(const QString &temperatureId, const QColor & temperature)
-{
-	std::cout << "Set color temperature corrections" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "temperature";
-	Json::Value & temp = command["temperature"];
-
-	if (!temperatureId.isNull())
-	{
-		temp["id"] = temperatureId.toStdString();
-	}
-
-	if (temperature.isValid())
-	{
-		Json::Value & v = temp["correctionValues"];
-		v.append(temperature.red());
-		v.append(temperature.green());
-		v.append(temperature.blue());
-	}
-
-	// send command message
-	Json::Value reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
 void JsonConnection::setAdjustment(const QString &adjustmentId,
 								   const QColor & redAdjustment,
 								   const QColor & greenAdjustment,

@@ -79,10 +79,6 @@ int main(int argc, char * argv[])
 		ColorOption     & argWhitelevel  = parser.add<ColorOption>  ('w', "whitelevel", "!DEPRECATED! Will be removed soon! Set the whitelevel of the leds (requires colors in hex format as RRGGBB which are normally between 0.0 and 1.0)");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
 		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
-		Option          & argIdC         = parser.add<Option>       ('y', "qualifier-c" , "!DEPRECATED! Will be removed soon! Identifier(qualifier) of the correction to set");
-		ColorOption     & argCorrection  = parser.add<ColorOption>  ('Y', "correction" , "!DEPRECATED! Will be removed soon! Set the correction of the leds (requires colors in hex format as RRGGBB)");
-		Option          & argIdT         = parser.add<Option>       ('z', "qualifier-t" , "Identifier(qualifier) of the temperature correction to set");
-		ColorOption     & argTemperature = parser.add<ColorOption>  ('Z', "temperature" , "Set the temperature correction of the leds (requires colors in hex format as RRGGBB)");
 		Option          & argIdA         = parser.add<Option>       ('j', "qualifier-a" , "Identifier(qualifier) of the adjustment to set");
 		ColorOption     & argRAdjust     = parser.add<ColorOption>  ('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argGAdjust     = parser.add<ColorOption>  ('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
@@ -106,7 +102,7 @@ int main(int argc, char * argv[])
 		// check if at least one of the available color transforms is set
 		bool colorTransform = parser.isSet(argSaturation) || parser.isSet(argValue) || parser.isSet(argSaturationL) || parser.isSet(argLuminance) || parser.isSet(argLuminanceMin) || parser.isSet(argThreshold) || parser.isSet(argGamma) || parser.isSet(argBlacklevel) || parser.isSet(argWhitelevel);
 		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust);
-		bool colorModding = colorTransform || colorAdjust || parser.isSet(argCorrection) || parser.isSet(argTemperature);
+		bool colorModding = colorTransform || colorAdjust;
 		
 		// check that exactly one command was given
         int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
@@ -135,10 +131,6 @@ int main(int argc, char * argv[])
 			showHelp(argGamma);
 			showHelp(argBlacklevel);
 			showHelp(argWhitelevel);
-			showHelp(argIdC);
-			showHelp(argCorrection);
-			showHelp(argIdT);
-			showHelp(argTemperature);
 			showHelp(argIdA);
 			showHelp(argRAdjust);
 			showHelp(argGAdjust);
@@ -212,16 +204,6 @@ int main(int argc, char * argv[])
 		}
 		else if (colorModding)
 		{	
-			if (parser.isSet(argCorrection))
-			{
-				connection.setTemperature(argIdC.value(parser), argCorrection.getColor(parser));
-			}
-	
-			if (parser.isSet(argTemperature))
-			{
-				connection.setTemperature(argIdT.value(parser), argTemperature.getColor(parser));
-			}
-			
 			if (colorAdjust)
 			{
 				connection.setAdjustment(
