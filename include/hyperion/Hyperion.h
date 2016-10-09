@@ -125,6 +125,7 @@ public:
 	/// gets the current json config object
 	/// @return json config
 	const Json::Value& getJsonConfig() { return _jsonConfig; };
+	const QJsonObject& getQJsonConfig() { return _qjsonConfig; };
 
 	/// get filename of configfile
 	/// @return the current config filename
@@ -210,12 +211,6 @@ public slots:
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorAdjustment * getAdjustment(const std::string& id);
-	
-	///
-	/// returns true if overall color settings enabled
-	bool colorSettingsEnabled() { return  _colorSettingsEnabled; };
-
-	void setColorSettingsEnable(bool enabled) { _colorSettingsEnabled = enabled; };
 
 	///
 	/// Returns  MessageForwarder Object
@@ -246,14 +241,14 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1);
 
 public:
 	static Hyperion *_hyperion;
@@ -340,6 +335,7 @@ private:
 
 	// json configuration
 	const Json::Value& _jsonConfig;
+	const QJsonObject& _qjsonConfig;
 
 	// the name of config file
 	std::string _configFile;
@@ -362,7 +358,10 @@ private:
 	PriorityRegister _priorityRegister;
 
 	/// flag for v4l color correction
-	bool _colorCorrectionV4Lonly;
+	bool _colorAdjustmentV4Lonly;
+	
+	/// flag for v4l color correction
+	bool _colorTransformV4Lonly;
 	
 	/// flag for color transform enable
 	bool _transformEnabled;

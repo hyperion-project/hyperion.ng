@@ -85,4 +85,16 @@ public:
 		file.close();
 		return doc.object();
 	}
+
+	static void writeJson(const QString& filename, QJsonObject& jsonTree)
+	{
+		QJsonDocument doc;
+		doc.setObject(jsonTree);
+		QByteArray configData = doc.toJson(QJsonDocument::Indented);
+		
+		QFile configFile(filename);
+		configFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+		configFile.write(configData);
+		configFile.close();
+	}
 };

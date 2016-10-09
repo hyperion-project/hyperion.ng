@@ -73,7 +73,7 @@
 				"channelAdjustment_v4l_only" :
 				{
 					"type" : "boolean",
-					"default" : false,
+					"default" : true,
 					"propertyOrder" : 2
 				},
 				"channelAdjustment" :
@@ -197,10 +197,10 @@
 					"default" : true,
 					"propertyOrder" : 4
 				},
-				"ransform_v4l_only" :
+				"transform_v4l_only" :
 				{
 					"type" : "boolean",
-					"default" : false,
+					"default" : true,
 					"propertyOrder" : 5
 				},
 				"transform" :

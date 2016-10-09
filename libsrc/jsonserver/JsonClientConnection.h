@@ -7,14 +7,11 @@
 #include <QByteArray>
 #include <QTcpSocket>
 
-// jsoncpp includes
-#include <json/json.h>
-
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
 // util includes
-#include <utils/jsonschema/JsonSchemaChecker.h>
+#include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
@@ -69,106 +66,106 @@ private:
 	///
 	/// @param message the incoming message as string
 	///
-	void handleMessage(const std::string & message);
+	void handleMessage(const QString & message);
 
 	///
 	/// Handle an incoming JSON Color message
 	///
 	/// @param message the incoming message
 	///
-	void handleColorCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleColorCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Image message
 	///
 	/// @param message the incoming message
 	///
-	void handleImageCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleImageCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Effect message
 	///
 	/// @param message the incoming message
 	///
-	void handleEffectCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleEffectCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message
 	///
-	void handleServerInfoCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleServerInfoCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleClearCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clearall message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearallCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Transform message
 	///
 	/// @param message the incoming message
 	///
-	void handleTransformCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleTransformCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Adjustment message
 	///
 	/// @param message the incoming message
 	///
-	void handleAdjustmentCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleAdjustmentCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON SourceSelect message
 	///
 	/// @param message the incoming message
 	///
-	void handleSourceSelectCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleSourceSelectCommand(const QJsonObject & message, const QString &command, const int tan);
 	
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleConfigCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleSchemaGetCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleSchemaGetCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	/// Handle an incoming JSON GetConfig message
 	///
 	/// @param message the incoming message
 	///
-	void handleConfigGetCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleConfigGetCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON SetConfig message
 	///
-	void handleConfigSetCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleConfigSetCommand(const QJsonObject & message, const QString &command, const int tan);
 	
 	///
 	/// Handle an incoming JSON Component State message
 	///
 	/// @param message the incoming message
 	///
-	void handleComponentStateCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleComponentStateCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	/// Handle an incoming JSON Led Colors message
 	///
 	/// @param message the incoming message
 	///
-	void handleLedColorsCommand(const Json::Value & message, const std::string &command, const int tan);
+	void handleLedColorsCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type
@@ -180,20 +177,20 @@ private:
 	///
 	/// @param message The JSON message to send
 	///
-	void sendMessage(const Json::Value & message);
-	void sendMessage(const Json::Value & message, QTcpSocket * socket);
+	void sendMessage(const QJsonObject & message);
+	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
 
 	///
 	/// Send a standard reply indicating success
 	///
-	void sendSuccessReply(const std::string &command="", const int tan=0);
+	void sendSuccessReply(const QString &command="", const int tan=0);
 
 	///
 	/// Send an error message back to the client
 	///
 	/// @param error String describing the error
 	///
-	void sendErrorReply(const std::string & error, const std::string &command="", const int tan=0);
+	void sendErrorReply(const QString & error, const QString &command="", const int tan=0);
 	
 	///
 	/// Do handshake for a websocket connection
@@ -208,7 +205,7 @@ private:
 	///
 	/// forward json message
 	///
-	void forwardJsonMessage(const Json::Value & message);
+	void forwardJsonMessage(const QJsonObject & message);
 
 private:
 	///
@@ -221,7 +218,7 @@ private:
 	///
 	/// @return true if message conforms the given JSON schema
 	///
-	bool checkJson(const Json::Value & message, const QString &schemaResource, std::string & errors, bool ignoreRequired = false);
+	bool checkJson(const QJsonObject & message, const QString &schemaResource, QString & errors, bool ignoreRequired = false);
 
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
@@ -247,6 +244,6 @@ private:
 	/// 
 	QTimer _timer_ledcolors;
 	
-	Json::Value _streaming_leds_reply;
+	QJsonObject _streaming_leds_reply;
 
 };

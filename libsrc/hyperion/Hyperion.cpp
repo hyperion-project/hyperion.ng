@@ -526,11 +526,13 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	, _effectEngine(nullptr)
 	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
 	, _jsonConfig(jsonConfig)
+	, _qjsonConfig(qjsonConfig)
 	, _configFile(configFile)
 	, _timer()
 	, _log(Logger::getInstance("Core"))
 	, _hwLedCount(_ledString.leds().size())
-	, _colorCorrectionV4Lonly(false)
+	, _colorAdjustmentV4Lonly(false)
+	, _colorTransformV4Lonly(false)
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
@@ -550,8 +552,14 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	_transformEnabled   = color["transform_enable"].toBool(true);
 	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
 
+	_colorTransformV4Lonly  = color["transform_v4l_only"].toBool(true);
+	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(true);
+
 	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
 	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
+	
+	InfoIf(_colorTransformV4Lonly  , _log, "Color transformation for v4l inputs only" );
+	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
@@ -570,7 +578,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
 	// create the effect engine
-	_effectEngine = new EffectEngine(this,jsonConfig["effects"]);
+	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject());
 	
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
@@ -805,12 +813,12 @@ const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects()
 	return _effectEngine->getActiveEffects();
 }
 
-int Hyperion::setEffect(const std::string &effectName, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
-int Hyperion::setEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout);
 }
@@ -828,12 +836,13 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	// Apply the correction and the transform to each led and color-channel
-	// Avoid applying correction, the same task is performed by adjustment
-	if ( !_colorCorrectionV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L )
+	if ( _transformEnabled && (!_colorTransformV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
 	{
-		if (_transformEnabled)  _raw2ledTransform->applyTransform(_ledBuffer);
-		if (_adjustmentEnabled) _raw2ledAdjustment->applyAdjustment(_ledBuffer);
+		_raw2ledTransform->applyTransform(_ledBuffer);
+	}
+	if ( _adjustmentEnabled && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+	{
+		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}
 
 	// init colororder vector, if empty

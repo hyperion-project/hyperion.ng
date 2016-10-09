@@ -3,9 +3,10 @@
 // Qt includes
 #include <QObject>
 #include <QString>
-
-// Json includes
-#include <json/value.h>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -24,7 +25,7 @@ class EffectEngine : public QObject
 	Q_OBJECT
 
 public:
-	EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig);
+	EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig);
 	virtual ~EffectEngine();
 
 	const std::list<EffectDefinition> & getEffects() const;
@@ -35,10 +36,10 @@ public:
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const std::string &effectName, int priority, int timeout = -1);
+	int runEffect(const QString &effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const std::string &effectName, const Json::Value & args, int priority, int timeout = -1);
+	int runEffect(const QString &effectName, const QJsonObject & args, int priority, int timeout = -1);
 
 	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
@@ -51,7 +52,7 @@ private slots:
 
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const std::string &script, const std::string &name, const Json::Value & args, int priority, int timeout = -1);
+	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1);
 
 private:
 	Hyperion * _hyperion;
