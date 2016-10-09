@@ -128,6 +128,7 @@ public:
 	/// gets the current json config object
 	/// @return json config
 	const Json::Value& getJsonConfig() { return _jsonConfig; };
+	const QJsonObject& getQJsonConfig() { return _qjsonConfig; };
 
 	/// get filename of configfile
 	/// @return the current config filename
@@ -261,14 +262,14 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1);
 
 public:
 	static Hyperion *_hyperion;
@@ -360,6 +361,7 @@ private:
 
 	// json configuration
 	const Json::Value& _jsonConfig;
+	const QJsonObject& _qjsonConfig;
 
 	// the name of config file
 	std::string _configFile;
