@@ -22,7 +22,6 @@
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
 #include <hyperion/ColorTransform.h>
-#include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ComponentRegister.h>
@@ -42,10 +41,8 @@ class EffectEngine;
 class HsvTransform;
 class HslTransform;
 class RgbChannelTransform;
-class RgbChannelCorrection;
 class RgbChannelAdjustment;
 class MultiColorTransform;
-class MultiColorCorrection;
 class MultiColorAdjustment;
 class KODIVideoChecker;
 ///
@@ -195,13 +192,7 @@ public slots:
 	/// @return The list with transform identifiers
 	///
 	const std::vector<std::string> & getTransformIds() const;
-	
-	///
-	/// Returns the list with unique correction identifiers
-	/// @return The list with correction identifiers
-	///
-	const std::vector<std::string> & getTemperatureIds() const;
-	
+
 	///
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
@@ -213,13 +204,7 @@ public slots:
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorTransform * getTransform(const std::string& id);
-	
-	///
-	/// Returns the ColorCorrection with the given identifier
-	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorCorrection * getTemperature(const std::string& id);
-	
+
 	///
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
@@ -234,12 +219,6 @@ public slots:
 
 	/// Tell Hyperion that the transforms have changed and the leds need to be updated
 	void transformsUpdated();
-	
-	/// Tell Hyperion that the corrections have changed and the leds need to be updated
-	void correctionsUpdated();
-	
-	/// Tell Hyperion that the corrections have changed and the leds need to be updated
-	void temperaturesUpdated();
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -285,10 +264,8 @@ public:
 	static LedString createLedStringClone(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const QJsonObject & colorTransformConfig);
-	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const QJsonObject & colorTemperatureConfig);
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
 	static ColorTransform * createColorTransform(const QJsonObject & transformConfig);
-	static ColorCorrection * createColorCorrection(const QJsonObject & correctionConfig);
 	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
 	static HsvTransform * createHsvTransform(const QJsonObject & hsvConfig);
 	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
@@ -339,10 +316,7 @@ private:
 
 	/// The transformation from raw colors to led colors
 	MultiColorTransform * _raw2ledTransform;
-	
-	/// The temperature from raw colors to led colors
-	MultiColorCorrection * _raw2ledTemperature;
-	
+
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
 	
@@ -386,9 +360,6 @@ private:
 
 	/// flag for color adjustment enable
 	bool _adjustmentEnabled;
-
-	/// flag for color temperature enable
-	bool _temperatureEnabled;
 
 	/// flag indicates state for autoselection of input source
 	bool _sourceAutoSelectEnabled;

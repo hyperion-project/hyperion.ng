@@ -20,7 +20,6 @@
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ColorTransform.h>
-#include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 
 // Leddevice includes
@@ -28,7 +27,6 @@
 #include <leddevice/LedDeviceFactory.h>
 
 #include "MultiColorTransform.h"
-#include "MultiColorCorrection.h"
 #include "MultiColorAdjustment.h"
 #include "LinearColorSmoothing.h"
 
@@ -87,23 +85,6 @@ ColorTransform * Hyperion::createColorTransform(const QJsonObject & transformCon
 	delete hslTransform;
 
 	return transform;
-}
-
-
-ColorCorrection * Hyperion::createColorCorrection(const QJsonObject & correctionConfig)
-{
-	const std::string id = correctionConfig["id"].toString("default").toStdString();
-
-	RgbChannelAdjustment * rgbCorrection   = createRgbChannelCorrection(correctionConfig["correctionValues"].toObject());
-
-	ColorCorrection * correction = new ColorCorrection();
-	correction->_id = id;
-	correction->_rgbCorrection   = *rgbCorrection;
-
-	// Cleanup the allocated individual transforms
-	delete rgbCorrection;
-
-	return correction;
 }
 
 
@@ -204,83 +185,6 @@ MultiColorTransform * Hyperion::createLedColorsTransform(const unsigned ledCnt, 
 	}
 	return transform;
 }
-
-MultiColorCorrection * Hyperion::createLedColorsTemperature(const unsigned ledCnt, const QJsonObject & colorConfig)
-{
-	// Create the result, the corrections are added to this
-	MultiColorCorrection * correction = new MultiColorCorrection(ledCnt);
-	Logger * log = Logger::getInstance("Core");
-
-	const QString jsonKey = colorConfig.contains("temperature") ? "temperature" : "correction";
-	const QJsonValue correctionConfig = colorConfig[jsonKey];
-	if (correctionConfig.isNull())
-	{
-		// Old style color correction config (just one for all leds)
-		ColorCorrection * colorCorrection = createColorCorrection(colorConfig);
-		correction->addCorrection(colorCorrection);
-		correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
-	}
-	else if (correctionConfig.isObject())
-	{
-		ColorCorrection * colorCorrection = createColorCorrection(correctionConfig.toObject());
-		correction->addCorrection(colorCorrection);
-		correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
-	}
-	else if (correctionConfig.isArray())
-	{
-		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
-
-		const QJsonArray & correctionConfigArray = correctionConfig.toArray();
-		for (signed i = 0; i < correctionConfigArray.size(); ++i)
-		{
-			const QJsonObject & config = correctionConfigArray.at(i).toObject();
-			ColorCorrection * colorCorrection = createColorCorrection(config);
-			correction->addCorrection(colorCorrection);
-
-			const QString ledIndicesStr = config["leds"].toString("").trimmed();
-			if (ledIndicesStr.compare("*") == 0)
-			{
-				// Special case for indices '*' => all leds
-				correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
- 				Info(log, "ColorTemperature '%s' => [0; %d]", colorCorrection->_id.c_str(), ledCnt-1);
-				continue;
-			}
-
-			if (!overallExp.exactMatch(ledIndicesStr))
-			{
-				Error(log, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
-				continue;
-			}
-
-			std::stringstream ss;
-			const QStringList ledIndexList = ledIndicesStr.split(",");
-			for (int i=0; i<ledIndexList.size(); ++i) {
-				if (i > 0)
-				{
-					ss << ", ";
-				}
-				if (ledIndexList[i].contains("-"))
-				{
-					QStringList ledIndices = ledIndexList[i].split("-");
-					int startInd = ledIndices[0].toInt();
-					int endInd   = ledIndices[1].toInt();
-
-					correction->setCorrectionForLed(colorCorrection->_id, startInd, endInd);
-					ss << startInd << "-" << endInd;
-				}
-				else
-				{
-					int index = ledIndexList[i].toInt();
-					correction->setCorrectionForLed(colorCorrection->_id, index, index);
-					ss << index;
-				}
-			}
-			Info(log, "ColorTemperature '%s' => [%s]", colorCorrection->_id.c_str(), ss.str().c_str()); 
-		}
-	}
-	return correction;
-}
-
 
 MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorConfig)
 {
@@ -383,16 +287,6 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const QJsonObject& colo
 
 	RgbChannelTransform* transform = new RgbChannelTransform(threshold, gamma, blacklevel, whitelevel);
 	return transform;
-}
-
-RgbChannelAdjustment* Hyperion::createRgbChannelCorrection(const QJsonObject& colorConfig)
-{
-	const int varR = colorConfig["red"].toInt(255);
-	const int varG = colorConfig["green"].toInt(255);
-	const int varB = colorConfig["blue"].toInt(255);
-
-	RgbChannelAdjustment* correction = new RgbChannelAdjustment(varR, varG, varB);
-	return correction;
 }
 
 RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color)
@@ -628,7 +522,6 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	, _ledStringClone(createLedStringClone(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _muxer(_ledString.leds().size())
 	, _raw2ledTransform(createLedColorsTransform(_ledString.leds().size(), qjsonConfig["color"].toObject()))
-	, _raw2ledTemperature(createLedColorsTemperature(_ledString.leds().size(), qjsonConfig["color"].toObject()))
 	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), qjsonConfig["color"].toObject()))
 	, _effectEngine(nullptr)
 	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
@@ -647,10 +540,6 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	{
 		throw std::runtime_error("Color adjustment incorrectly set");
 	}
-	if (!_raw2ledTemperature->verifyCorrections())
-	{
-		throw std::runtime_error("Color temperature incorrectly set");
-	}
 	if (!_raw2ledTransform->verifyTransforms())
 	{
 		throw std::runtime_error("Color transformation incorrectly set");
@@ -659,11 +548,9 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	const QJsonObject& color = qjsonConfig["color"].toObject();
 	_transformEnabled   = color["transform_enable"].toBool(true);
 	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
-	_temperatureEnabled = color["temperature_enable"].toBool(true);
 
 	InfoIf(!_transformEnabled  , _log, "Color transformation disabled" );
 	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
-	InfoIf(!_temperatureEnabled, _log, "Color temperature disabled" );
 	
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
@@ -708,7 +595,6 @@ Hyperion::~Hyperion()
 	delete _effectEngine;
 	delete _device;
 	delete _raw2ledTransform;
-	delete _raw2ledTemperature;
 	delete _raw2ledAdjustment;
 	delete _messageForwarder;
 }
@@ -838,11 +724,6 @@ const std::vector<std::string> & Hyperion::getTransformIds() const
 	return _raw2ledTransform->getTransformIds();
 }
 
-const std::vector<std::string> & Hyperion::getTemperatureIds() const
-{
-	return _raw2ledTemperature->getCorrectionIds();
-}
-
 const std::vector<std::string> & Hyperion::getAdjustmentIds() const
 {
 	return _raw2ledAdjustment->getAdjustmentIds();
@@ -853,27 +734,12 @@ ColorTransform * Hyperion::getTransform(const std::string& id)
 	return _raw2ledTransform->getTransform(id);
 }
 
-ColorCorrection * Hyperion::getTemperature(const std::string& id)
-{
-	return _raw2ledTemperature->getCorrection(id);
-}
-
 ColorAdjustment * Hyperion::getAdjustment(const std::string& id)
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }
 
 void Hyperion::transformsUpdated()
-{
-	update();
-}
-
-void Hyperion::correctionsUpdated()
-{
-	update();
-}
-
-void Hyperion::temperaturesUpdated()
 {
 	update();
 }
@@ -963,9 +829,9 @@ void Hyperion::update()
 
 	// Apply the correction and the transform to each led and color-channel
 	// Avoid applying correction, the same task is performed by adjustment
+	
 	if (_transformEnabled)   _raw2ledTransform->applyTransform(_ledBuffer);
 	if (_adjustmentEnabled)  _raw2ledAdjustment->applyAdjustment(_ledBuffer);
-	if (_temperatureEnabled) _raw2ledTemperature->applyCorrection(_ledBuffer);
 
 	// init colororder vector, if empty
 	if (_ledStringColorOrder.empty())

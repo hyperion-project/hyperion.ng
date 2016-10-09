@@ -85,20 +85,6 @@
 				}
 			}
 		],
-		"temperature_enable" : true,
-		"temperature" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"correctionValues" :
-				{
-					"red"   : 255,
-					"green" : 255,
-					"blue"  : 255
-				}
-			}
-		],
 		"transform_enable" : true,
 		"transform" :
 		[

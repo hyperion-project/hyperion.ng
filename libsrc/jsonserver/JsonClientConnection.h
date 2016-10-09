@@ -119,14 +119,7 @@ private:
 	/// @param message the incoming message
 	///
 	void handleTransformCommand(const Json::Value & message, const std::string &command, const int tan);
-	
-	///
-	/// Handle an incoming JSON Temperature message
-	///
-	/// @param message the incoming message
-	///
-	void handleTemperatureCommand(const Json::Value & message, const std::string &command, const int tan);
-	
+
 	///
 	/// Handle an incoming JSON Adjustment message
 	///
