@@ -132,7 +132,7 @@ const std::list<std::string> & QJsonSchemaChecker::getMessages() const
 {
 	return _messages;
 }
-#include <iostream>
+
 void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & schema)
 {
 	QString type = schema.toString();
@@ -164,7 +164,7 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 	if (wrongType)
 	{
 		_error = true;
-		setMessage(type.toStdString() + " expected: "+value.toString().toStdString());
+		setMessage(type.toStdString() + " expected");
 	}
 }
 
