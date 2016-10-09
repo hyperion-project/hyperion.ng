@@ -52,7 +52,7 @@ public:
 	static const LedDeviceRegistry& getDeviceMap();
 	static void setActiveDevice(std::string dev);
 	static std::string activeDevice() { return _activeDevice; }
-	static Json::Value getLedDeviceSchemas();
+	static QJsonObject getLedDeviceSchemas();
 	static void setLedCount(int ledCount);
 	static int  getLedCount() { return _ledCount; }
 protected:
