@@ -3,10 +3,6 @@
 #include <cstring>
 #include <csignal>
 
-
-// jsoncpp includes
-#include <json/json.h>
-
 // QT includes
 #include <QFile>
 
@@ -30,7 +26,7 @@ LedDevicePiBlaster::LedDevicePiBlaster(const Json::Value &deviceConfig)
 		_gpio_to_color[i] = 'z';
 	}
 
-	setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
@@ -44,7 +40,7 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 }
 
 
-bool LedDevicePiBlaster::setConfig(const Json::Value &deviceConfig)
+bool LedDevicePiBlaster::init(const Json::Value &deviceConfig)
 {
 	_deviceName             = deviceConfig.get("output",  "").asString();
 	Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
@@ -69,6 +65,7 @@ bool LedDevicePiBlaster::setConfig(const Json::Value &deviceConfig)
 			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
 		}
 	}
+
 	return true;
 }
 
@@ -116,7 +113,7 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 	for (unsigned int i=0; i < TABLE_SZ; i++ )
 	{
 		valueIdx = _gpio_to_led[ i ];
-		if ( (valueIdx >= 0) && (valueIdx < (signed) ledValues.size()) ) 
+		if ( (valueIdx >= 0) && (valueIdx < _ledCount) ) 
 		{
 			double pwmDutyCycle = 0.0;
 			switch (_gpio_to_color[ i ]) 
@@ -157,24 +154,3 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 	return 0;
 }
 
-int LedDevicePiBlaster::switchOff()
-{
-	// Attempt to open if not yet opened
-	if (_fid == nullptr && open() < 0)
-	{
-		return -1;
-	}
-
-	int valueIdx = -1;
-	for (unsigned int i=0; i < TABLE_SZ; i++ )
-	{
-		valueIdx = _gpio_to_led[ i ];
-		if (valueIdx >= 0)
-		{
-			fprintf(_fid, "%i=%f\n", i, 0.0);
-			fflush(_fid);
-		}
-	}
-
-	return 0;
-}

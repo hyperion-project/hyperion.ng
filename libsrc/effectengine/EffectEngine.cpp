@@ -11,15 +11,16 @@
 #include <QDir>
 
 // hyperion util includes
-#include <utils/jsonschema/JsonSchemaChecker.h>
+#include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/FileUtils.h>
+#include <utils/Components.h>
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
 #include "Effect.h"
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectConfig)
+EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig)
 	: _hyperion(hyperion)
 	, _availableEffects()
 	, _activeEffects()
@@ -28,29 +29,30 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 {
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
 	connect(_hyperion, SIGNAL(channelCleared(int)), this, SLOT(channelCleared(int)));
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	const Json::Value & paths       = jsonEffectConfig["paths"];
-	const Json::Value & disabledEfx = jsonEffectConfig["disable"];
-
+	const QJsonArray & paths       = jsonEffectConfig["paths"].toArray();
+	const QJsonArray & disabledEfx = jsonEffectConfig["disable"].toArray();
+	
 	QStringList efxPathList;
 	efxPathList << ":/effects/";
-	for (Json::UInt i = 0; i < paths.size(); ++i)
-	{
-		efxPathList << QString::fromStdString(paths[i].asString());
-	}
-
 	QStringList disableList;
-	for (Json::UInt i = 0; i < disabledEfx.size(); ++i)
-	{
-		disableList << QString::fromStdString(disabledEfx[i].asString());
+
+	QJsonArray::ConstIterator iterPaths = paths.begin();
+	QJsonArray::ConstIterator iterDisabledEfx = disabledEfx.begin();
+	
+    for(; iterPaths != paths.end() and iterDisabledEfx != disabledEfx.end() ; ++iterPaths, ++iterDisabledEfx)
+    {
+		efxPathList << (*iterPaths).toString();
+		disableList << (*iterDisabledEfx).toString();
 	}
 	
-	std::map<std::string, EffectDefinition> availableEffects;
+	std::map<QString, EffectDefinition> availableEffects;
 	foreach (const QString & path, efxPathList )
 	{
 		QDir directory(path);
@@ -65,12 +67,12 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const Json::Value & jsonEffectCo
 				{
 					if (availableEffects.find(def.name) != availableEffects.end())
 					{
-						Info(_log, "effect overload effect '%s' is now taken from %s'", def.name.c_str(), path.toUtf8().constData() );
+						Info(_log, "effect overload effect '%s' is now taken from %s'", def.name.toUtf8().constData(), path.toUtf8().constData() );
 					}
 
-					if ( disableList.contains(QString::fromStdString(def.name)) )
+					if ( disableList.contains(def.name) )
 					{
-						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", def.name.c_str());
+						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", def.name.toUtf8().constData());
 					}
 					else
 					{
@@ -121,8 +123,8 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	for (Effect * effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
-		activeEffectDefinition.script = effect->getScript().toStdString();
-		activeEffectDefinition.name = effect->getName().toStdString();
+		activeEffectDefinition.script = effect->getScript();
+		activeEffectDefinition.name = effect->getName();
 		activeEffectDefinition.priority = effect->getPriority();
 		activeEffectDefinition.timeout = effect->getTimeout();
 		activeEffectDefinition.args = effect->getArgs();
@@ -134,67 +136,117 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 
 bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effectConfigFile, EffectDefinition & effectDefinition)
 {
-	QString fileName = path + QDir::separator() + effectConfigFile;
-	QFile file(fileName);
-
 	Logger * log = Logger::getInstance("EFFECTENGINE");
+	
+	QString fileName = path + QDir::separator() + effectConfigFile;
+	QJsonParseError error;
+	
+	// ---------- Read the effect json config file ----------
+	
+	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		Error( log, "Effect file '%s' could not be loaded", fileName.toUtf8().constData());
 		return false;
 	}
+
 	QByteArray fileContent = file.readAll();
-	// Read the json config file
-	Json::Reader jsonReader;
-	Json::Value config;
-	const char* fileContent_cStr = reinterpret_cast<const char *>(fileContent.constData());
+	QJsonDocument configEffect = QJsonDocument::fromJson(fileContent, &error);
 	
-	if (! Json::Reader().parse(fileContent_cStr, fileContent_cStr+fileContent.size(), config, false) )
+	if (error.error != QJsonParseError::NoError)
 	{
-		Error( log, "Error while reading effect '%s': %s", fileName.toUtf8().constData(), jsonReader.getFormattedErrorMessages().c_str());
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,fileContent.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(fileContent.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		Error( log, "Error while reading effect: '%s' at Line: '%i' , Column: %i", error.errorString().toUtf8().constData(), errorLine, errorColumn);
+	}
+	
+	file.close();	
+
+	// ---------- Read the effect json schema file ----------
+	
+	Q_INIT_RESOURCE(EffectEngine);
+	QFile schema(":effect-schema");
+	
+	if (!schema.open(QIODevice::ReadOnly))
+	{
+		Error( log, "Schema not found:  %s", schema.errorString().toUtf8().constData());
 		return false;
 	}
-	file.close();
-
-	// Read the json schema file
-	QResource schemaData(":effect-schema");
-	JsonSchemaChecker schemaChecker;
-	Json::Value schema;
-	Json::Reader().parse(reinterpret_cast<const char *>(schemaData.data()), reinterpret_cast<const char *>(schemaData.data()) + schemaData.size(), schema, false);
-	schemaChecker.setSchema(schema);
-	if (!schemaChecker.validate(config))
+	
+	QByteArray schemaContent = schema.readAll();
+	QJsonDocument configSchema = QJsonDocument::fromJson(schemaContent, &error);
+	
+	if (error.error != QJsonParseError::NoError)
+	{
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,schemaContent.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(schemaContent.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		Error( log, "ERROR: Json schema wrong: '%s' at Line: '%i' , Column: %i", error.errorString().toUtf8().constData(), errorLine, errorColumn);
+	}
+	
+	schema.close();
+	
+	// ---------- validate effect config with effect schema ----------
+	
+	QJsonSchemaChecker schemaChecker;
+	schemaChecker.setSchema(configSchema.object());
+	if (!schemaChecker.validate(configEffect.object()))
 	{
 		const std::list<std::string> & errors = schemaChecker.getMessages();
-		foreach (const std::string & error, errors) {
+		foreach (const std::string & error, errors)
+		{
 			Error( log, "Error while checking '%s':%s", fileName.toUtf8().constData(), error.c_str());
 		}
 		return false;
 	}
 
-	// setup the definition
-	std::string scriptName = config["script"].asString();
-	effectDefinition.name = config["name"].asString();
-	if (scriptName.empty())
+	// ---------- setup the definition ----------
+	
+	QJsonObject config = configEffect.object();
+	QString scriptName = config["script"].toString();
+	effectDefinition.name = config["name"].toString();
+	if (scriptName.isEmpty())
 		return false;
 
-	if (scriptName[0] == ':' )
-		effectDefinition.script = ":/effects/"+scriptName.substr(1);
+	if (scriptName.mid(0, 1)  == ":" )
+		effectDefinition.script = ":/effects/"+scriptName.mid(1);
 	else
-		effectDefinition.script = path.toStdString() + QDir::separator().toLatin1() + scriptName;
+		effectDefinition.script = path + QDir::separator().toLatin1() + scriptName;
 		
-	effectDefinition.args = config["args"];
+	effectDefinition.args = config["args"].toObject();
 
 	return true;
 }
 
-int EffectEngine::runEffect(const std::string &effectName, int priority, int timeout)
+int EffectEngine::runEffect(const QString &effectName, int priority, int timeout)
 {
-	return runEffect(effectName, Json::Value(Json::nullValue), priority, timeout);
+	return runEffect(effectName, QJsonObject(), priority, timeout);
 }
 
-int EffectEngine::runEffect(const std::string &effectName, const Json::Value &args, int priority, int timeout)
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
 {
-	Info( _log, "run effect %s on channel %d", effectName.c_str(), priority);
+	Info( _log, "run effect %s on channel %d", effectName.toUtf8().constData(), priority);
 
 	const EffectDefinition * effectDefinition = nullptr;
 	for (const EffectDefinition & e : _availableEffects)
@@ -208,26 +260,26 @@ int EffectEngine::runEffect(const std::string &effectName, const Json::Value &ar
 	if (effectDefinition == nullptr)
 	{
 		// no such effect
-		Error(_log, "effect %s not found",  effectName.c_str());
+		Error(_log, "effect %s not found",  effectName.toUtf8().constData());
 		return -1;
 	}
 
-	return runEffectScript(effectDefinition->script, effectName, args.isNull() ? effectDefinition->args : args, priority, timeout);
+	return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
 }
 
-int EffectEngine::runEffectScript(const std::string &script, const std::string &name, const Json::Value &args, int priority, int timeout)
+int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout)
 {
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, QString::fromStdString(script), QString::fromStdString(name), args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool)), Qt::QueuedConnection);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority("EFFECT: "+name, priority);
+	_hyperion->registerPriority("EFFECT: "+name.toStdString(), priority);
 	effect->start();
 
 	return 0;

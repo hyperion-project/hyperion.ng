@@ -1,9 +1,6 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
 
-// jsoncpp includes
-#include <json/json.h>
-
 // qt includes
 #include <QtCore/qmath.h>
 #include <QEventLoop>
@@ -167,7 +164,7 @@ CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue)
 LedDevicePhilipsHue::LedDevicePhilipsHue(const Json::Value &deviceConfig)
 	: LedDevice()
 {
-	setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 
 	manager = new QNetworkAccessManager();
 	timer.setInterval(3000);
@@ -180,7 +177,7 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 	delete manager;
 }
 
-bool LedDevicePhilipsHue::setConfig(const Json::Value &deviceConfig)
+bool LedDevicePhilipsHue::init(const Json::Value &deviceConfig)
 {
 	host = deviceConfig["output"].asString().c_str();
 	username = deviceConfig.get("username", "newdeveloper").asString().c_str();
@@ -205,11 +202,11 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 	// Save light states if not done before.
 	if (!areStatesSaved())
 	{
-		saveStates((unsigned int) ledValues.size());
-		switchOn((unsigned int) ledValues.size());
+		saveStates((unsigned int) _ledCount);
+		switchOn((unsigned int) _ledCount);
 	}
 	// If there are less states saved than colors given, then maybe something went wrong before.
-	if (lights.size() != ledValues.size())
+	if (lights.size() != (unsigned)_ledCount)
 	{
 		restoreStates();
 		return 0;

@@ -9,31 +9,67 @@
 // Local Hyperion includes
 #include "ProviderRs232.h"
 
-ProviderRs232::ProviderRs232(const Json::Value &deviceConfig)
+ProviderRs232::ProviderRs232()
 	: _rs232Port(this)
 	, _blockedForDelay(false)
 	, _stateChanged(true)
+	, _bytesToWrite(0)
+	, _bytesWritten(0)
+	, _frameDropCounter(0)
+	, _lastError(QSerialPort::NoError)
+	, _timer()
 {
-	setConfig(deviceConfig);
+	// setup timer
+	_timer.setSingleShot(false);
+	_timer.setInterval(1000);
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
+
+	// start the timer
+	_timer.start();
+
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
+	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
+	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
-bool ProviderRs232::setConfig(const Json::Value &deviceConfig)
+bool ProviderRs232::init(const Json::Value &deviceConfig)
 {
 	closeDevice();
 	_deviceName           = deviceConfig["output"].asString();
 	_baudRate_Hz          = deviceConfig["rate"].asInt();
 	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect",250).asInt();
+	_timer.setInterval    ( deviceConfig.get("rewriteTime",5000).asInt() );
 
 	return true;
 }
+
+void ProviderRs232::bytesWritten(qint64 bytes)
+{
+	_bytesWritten += bytes;
+	if (_bytesWritten >= _bytesToWrite)
+	{
+		_bytesToWrite = 0;
+		_blockedForDelay = false;
+	}
+}
+
+
+void ProviderRs232::readyRead()
+{
+	QByteArray data = _rs232Port.readAll();
+	Debug(_log, "received %d bytes data", data.size());
+}
+
 
 void ProviderRs232::error(QSerialPort::SerialPortError error)
 {
 	if ( error != QSerialPort::NoError )
 	{
-		switch (error)
+		if (_lastError != error)
 		{
+			_lastError = error;
+			switch (error)
+			{
 			case QSerialPort::DeviceNotFoundError:
 				Error(_log, "An error occurred while attempting to open an non-existing device."); break;
 			case QSerialPort::PermissionError:
@@ -43,11 +79,11 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 			case QSerialPort::NotOpenError:
 				Error(_log, "This error occurs when an operation is executed that can only be successfully performed if the device is open."); break;
 			case QSerialPort::ParityError:
-				Error(_log, "Parity error detected by the hardware while reading data. This value is obsolete. We strongly advise against using it in new code."); break;
+				Error(_log, "Parity error detected by the hardware while reading data."); break;
 			case QSerialPort::FramingError:
-				Error(_log, "Framing error detected by the hardware while reading data. This value is obsolete. We strongly advise against using it in new code."); break;
+				Error(_log, "Framing error detected by the hardware while reading data."); break;
 			case QSerialPort::BreakConditionError:
-				Error(_log, "Break condition detected by the hardware on the input line. This value is obsolete. We strongly advise against using it in new code."); break;
+				Error(_log, "Break condition detected by the hardware on the input line."); break;
 			case QSerialPort::WriteError:
 				Error(_log, "An I/O error occurred while writing the data."); break;
 			case QSerialPort::ReadError:
@@ -59,8 +95,10 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 			case QSerialPort::TimeoutError:
 				Error(_log, "A timeout error occurred."); break;
 			default: Error(_log,"An unidentified error occurred. (%d)", error);
+			}
+			_rs232Port.clearError();
+			closeDevice();
 		}
-		_rs232Port.clearError();
 	}
 }
 
@@ -84,15 +122,15 @@ int ProviderRs232::open()
 	Info(_log, "Opening UART: %s", _deviceName.c_str());
 	_rs232Port.setPortName(_deviceName.c_str());
 
-	return tryOpen() ? 0 : -1;
+	return tryOpen(_delayAfterConnect_ms) ? 0 : -1;
 }
 
 
-bool ProviderRs232::tryOpen()
+bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 {
 	if ( ! _rs232Port.isOpen() )
 	{
-		if ( ! _rs232Port.open(QIODevice::WriteOnly) )
+		if ( ! _rs232Port.open(QIODevice::ReadWrite) )
 		{
 			if ( _stateChanged )
 			{
@@ -101,43 +139,53 @@ bool ProviderRs232::tryOpen()
 			}
 			return false;
 		}
+		Debug(_log, "Setting baud rate to %d", _baudRate_Hz);
 		_rs232Port.setBaudRate(_baudRate_Hz);
 		_stateChanged = true;
 	}
 
-	if (_delayAfterConnect_ms > 0)
+	if (delayAfterConnect_ms > 0)
 	{
 		_blockedForDelay = true;
-		QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
-		Debug(_log, "Device blocked for %d ms", _delayAfterConnect_ms);
+		QTimer::singleShot(delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
+		Debug(_log, "Device blocked for %d ms", delayAfterConnect_ms);
 	}
 
 	return _rs232Port.isOpen();
 }
 
 
-int ProviderRs232::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 {
-	if (_blockedForDelay)
+	// restart the timer
+	_timer.start();
+	if (! _blockedForDelay)
 	{
-		return 0;
-	}
+		if (!_rs232Port.isOpen())
+		{
+			return tryOpen(5000) ? 0 : -1;
+		}
 
-	if (!_rs232Port.isOpen())
-	{
-		_delayAfterConnect_ms = 3000;
-		return tryOpen() ? 0 : -1;
+		if (_frameDropCounter > 0)
+		{
+			Debug(_log, "%d frames dropped", _frameDropCounter);
+		}
+		_frameDropCounter = 0;
+		_blockedForDelay = true;
+		_bytesToWrite = size;
+		qint64 bytesWritten = _rs232Port.write(reinterpret_cast<const char*>(data), size);
+		if (bytesWritten == -1 || bytesWritten != size)
+		{
+			Warning(_log,"failed writing data");
+			QTimer::singleShot(500, this, SLOT(unblockAfterDelay()));
+			return -1;
+		}
+		QTimer::singleShot(5000, this, SLOT(unblockAfterDelay()));
 	}
-
-	_rs232Port.flush();
-	qint64 result = _rs232Port.write(reinterpret_cast<const char*>(data), size);
-	if ( result < 0  || result != size)
+	else
 	{
-		return -1;
+		_frameDropCounter++;
 	}
-	
-	Debug(_log, "write %d ", result);
-	_rs232Port.flush();
 
 	return 0;
 }
@@ -145,6 +193,10 @@ int ProviderRs232::writeBytes(const unsigned size, const uint8_t * data)
 
 void ProviderRs232::unblockAfterDelay()
 {
-	Debug(_log, "Device unblocked");
 	_blockedForDelay = false;
+}
+
+int ProviderRs232::rewriteLeds()
+{
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

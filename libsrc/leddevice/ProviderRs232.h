@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QSerialPort>
+#include <QTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -17,16 +18,14 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderRs232(const Json::Value &deviceConfig);
+	ProviderRs232();
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -49,18 +48,26 @@ protected:
 	 *
 	 * @return Zero on succes else negative
 	 */
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(const qint64 size, const uint8_t *data);
 
 	void closeDevice();
 
+	/// The RS232 serial-device
+	QSerialPort _rs232Port;
+
 private slots:
+	/// Write the last data to the leds again
+	int rewriteLeds();
+
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
 	void error(QSerialPort::SerialPortError error);
+	void bytesWritten(qint64 bytes);
+	void readyRead();
 
-private:
+protected:
 	// tries to open device if not opened
-	bool tryOpen();
+	bool tryOpen(const int delayAfterConnect_ms);
 	
 	/// The name of the output device
 	std::string _deviceName;
@@ -72,9 +79,19 @@ private:
 	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-	QSerialPort _rs232Port;
+//	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 	
 	bool _stateChanged;
+
+	qint64 _bytesToWrite;
+	qint64 _bytesWritten;
+	qint64 _frameDropCounter;
+	QSerialPort::SerialPortError _lastError;
+	
+	/// Timer object which makes sure that led data is written at a minimum rate
+	/// e.g. Adalight device will switch off when it does not receive data at least
+	/// every 15 seconds
+	QTimer _timer;
 };

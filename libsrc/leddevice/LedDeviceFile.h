@@ -1,6 +1,6 @@
 #pragma once
 
-// STL includes0
+// STL includes
 #include <fstream>
 
 // Leddevice includes
@@ -33,8 +33,9 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const Json::Value &deviceConfig);
 	
+protected:
 	///
 	/// Writes the given led-color values to the output stream
 	///
@@ -44,10 +45,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	/// The outputstream
 	std::ofstream _ofs;
 };

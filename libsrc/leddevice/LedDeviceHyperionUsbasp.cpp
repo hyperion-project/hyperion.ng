@@ -16,7 +16,7 @@ LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const Json::Value &deviceConfig
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
@@ -37,7 +37,7 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 	}
 }
 
-bool LedDeviceHyperionUsbasp::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceHyperionUsbasp::init(const Json::Value &deviceConfig)
 {
 	std::string ledType = deviceConfig.get("output", "ws2801").asString();
 	if (ledType != "ws2801" && ledType != "ws2812")
@@ -137,8 +137,6 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 
 int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
 	int nbytes = libusb_control_transfer(
 				_deviceHandle, // device handle
 				LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, // request type
@@ -157,12 +155,6 @@ int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return 0;
-}
-
-int LedDeviceHyperionUsbasp::switchOff()
-{
-	std::vector<ColorRgb> ledValues(_ledCount, ColorRgb::BLACK);
-	return write(ledValues);
 }
 
 libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device)

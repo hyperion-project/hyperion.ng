@@ -1,28 +1,15 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceWs2812SPI.h"
 
 LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
 		0b11001000,
 		0b11001100,
 	}
-
 {
-	setConfig(deviceConfig);
-
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
@@ -30,22 +17,17 @@ LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
 	return new LedDeviceWs2812SPI(deviceConfig);
 }
 
-bool LedDeviceWs2812SPI::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceWs2812SPI::init(const Json::Value &deviceConfig)
 {
-        ProviderSpi::setConfig(deviceConfig);
+	_baudRate_Hz = 3000000;
+	ProviderSpi::init(deviceConfig);
+	WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
 
-        _baudRate_Hz   = deviceConfig.get("rate",3000000).asInt();
-	if ( (_baudRate_Hz < 2050000) || (_baudRate_Hz > 4000000) )
-	{
-		Warning(_log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
-	}
-        return true;
+	return true;
 }
 
 int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
 	// 3 colours, 4 spi bytes per colour + 3 frame end latch bytes
 	const int SPI_BYTES_PER_LED  = 3 * 4;
 	unsigned spi_size = _ledCount * SPI_BYTES_PER_LED + 3;
@@ -56,7 +38,7 @@ int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	unsigned spi_ptr = 0;
-	for (unsigned i=0; i< (unsigned)_ledCount; ++i)
+	for (unsigned i=0; i<(unsigned)_ledCount; ++i)
 	{
 		uint32_t colorBits = ((unsigned int)ledValues[i].red << 16) 
 			| ((unsigned int)ledValues[i].green << 8) 
@@ -74,9 +56,4 @@ int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 	_ledBuffer[spi_ptr++] = 0;
 
 	return writeBytes(spi_size, _ledBuffer.data());
-}
-
-int LedDeviceWs2812SPI::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }

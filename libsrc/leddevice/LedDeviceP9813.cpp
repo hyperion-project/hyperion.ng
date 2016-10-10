@@ -1,19 +1,9 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceP9813.h"
 
 LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
 {
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
@@ -21,14 +11,17 @@ LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
 	return new LedDeviceP9813(deviceConfig);
 }
 
+bool LedDeviceP9813::init(const Json::Value &deviceConfig)
+{
+	ProviderSpi::init(deviceConfig);
+
+	_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+	
+	return true;
+}
+
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledCount != (signed)ledValues.size())
-	{
-		_ledBuffer.resize(ledValues.size() * 4 + 8, 0x00);
-		_ledCount = ledValues.size();
-	}
-
 	uint8_t * dataPtr = _ledBuffer.data();
 	for (const ColorRgb & color : ledValues)
 	{
@@ -39,11 +32,6 @@ int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-int LedDeviceP9813::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
 
 uint8_t LedDeviceP9813::calculateChecksum(const ColorRgb & color) const

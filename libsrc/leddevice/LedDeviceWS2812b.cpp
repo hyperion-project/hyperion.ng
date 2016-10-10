@@ -307,8 +307,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeStart);
 #endif
 
-	_ledCount = ledValues.size();
-
 	// Read data from LEDBuffer[], translate it into wire format, and write to PWMWaveform
 	unsigned int colorBits = 0;			// Holds the GRB color before conversion to wire bit pattern
 	unsigned int wireBit = 1;			// Holds the current bit we will set in PWMWaveform, start with 1 and skip the other two for speed
@@ -452,11 +450,6 @@ int LedDeviceWS2812b::write(const std::vector<ColorRgb> &ledValues)
 	shortestNseconds = result.tv_nsec < shortestNseconds ? result.tv_nsec : shortestNseconds;
 #endif
 	return 0;
-}
-
-int LedDeviceWS2812b::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
 
 LedDeviceWS2812b::~LedDeviceWS2812b()

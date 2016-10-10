@@ -18,9 +18,10 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
+
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
-
 }
 
 GrabberWrapper::~GrabberWrapper()
@@ -114,5 +115,10 @@ void GrabberWrapper::setGrabbingMode(const GrabbingMode mode)
 		kodiOff();
 		break;
 	}
+}
+
+void GrabberWrapper::setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms)
+{
+	_hyperion->setColors(_priority, ledColors, timeout_ms, true, _grabberComponentId);
 }
 

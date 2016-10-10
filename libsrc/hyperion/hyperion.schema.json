@@ -67,13 +67,20 @@
 				"channelAdjustment_enable" :
 				{
 					"type" : "boolean",
+					"default" : true,
 					"propertyOrder" : 1
+				},
+				"channelAdjustment_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 2
 				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 2,
+					"propertyOrder" : 3,
 					"items" :
 					{
 						"type" : "object",
@@ -184,74 +191,23 @@
 						"additionalProperties" : false
 					}
 				},
-				"temperature_enable" :
-				{
-					"type" : "boolean"
-				},
-				"temperature" :
-				{
-					"type" : "array",
-					"required" : true,
-					"items" :
-					{
-						"type" : "object",
-						"required" : true,
-						"properties" :
-						{
-							"id" :
-							{
-								"type" : "string",
-								"required" : true
-							},
-							"leds" :
-							{
-								"type" : "string",
-								"required" : true
-							},
-							"correctionValues" :
-							{
-								"type":"object",
-								"required" : true,
-								"properties":
-								{
-									"red" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"green" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blue" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
-								},
-								"additionalProperties" : false
-							}
-						},
-						"additionalProperties" : false
-					}
-				},
 				"transform_enable" :
 				{
 					"type" : "boolean",
-					"propertyOrder" : 3
+					"default" : true,
+					"propertyOrder" : 4
+				},
+				"transform_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 5
 				},
 				"transform" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 4,
+					"propertyOrder" : 6,
 					"items" :
 					{
 						"type" : "object",
@@ -908,12 +864,14 @@
 				"json" :
 				{
 					"type" : "array",
+					"title" : "List of JSON clients",
 					"required" : true,
 					"propertyOrder" : 2
 				},
 				"proto" :
 				{
 					"type" : "array",
+					"title" : "List of PROTO clients",
 					"required" : true,
 					"propertyOrder" : 3
 				}

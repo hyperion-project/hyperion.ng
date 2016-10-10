@@ -1,14 +1,11 @@
-
 #pragma once
-
-// STL includes
-#include <cstdio>
-
-// jsoncpp includes
-#include <json/json.h>
 
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
+
+///
+/// Implementation of the LedDevice interface for writing to pi-blaster based PWM LEDs
+///
 
 class LedDevicePiBlaster : public LedDevice
 {
@@ -27,7 +24,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
@@ -40,6 +37,7 @@ public:
 	///
 	int open();
 
+private:
 	///
 	/// Writes the colors to the PiBlaster device
 	///
@@ -48,15 +46,6 @@ public:
 	/// @return Zero on success else negative
 	///
 	int write(const std::vector<ColorRgb> &ledValues);
-
-	///
-	/// Switches off the leds
-	///
-	/// @return Zero on success else negative
-	///
-	int switchOff();
-
-private:
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
 	std::string _deviceName;

@@ -1,28 +1,16 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceSk6812SPI.h"
 
 LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
+	, _whiteAlgorithm(RGBW::INVALID)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001100,
 		0b11001000,
 		0b11001100,
 	}
-
 {
-	setConfig(deviceConfig);
-	Debug( _log, "whiteAlgorithm : %s", _whiteAlgorithm.c_str());
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
@@ -30,39 +18,39 @@ LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
 	return new LedDeviceSk6812SPI(deviceConfig);
 }
 
-bool LedDeviceSk6812SPI::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceSk6812SPI::init(const Json::Value &deviceConfig)
 {
-	ProviderSpi::setConfig(deviceConfig);
+	std::string whiteAlgorithm = deviceConfig.get("white_algorithm","white_off").asString();
+	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 
-	_baudRate_Hz   = deviceConfig.get("rate",3000000).asInt();
-	if ( (_baudRate_Hz < 2050000) || (_baudRate_Hz > 4000000) )
+	if (_whiteAlgorithm == RGBW::INVALID)
 	{
-		Warning(_log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+		Error(_log, "unknown whiteAlgorithm %s", whiteAlgorithm.c_str());
+		return false;
 	}
+	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
 
-	_whiteAlgorithm = deviceConfig.get("white_algorithm","").asString();
-
+	_baudRate_Hz = 3000000;
+	if ( !ProviderSpi::init(deviceConfig) )
+	{
+		return false;
+	}
+	
+	const int SPI_BYTES_PER_COLOUR      = 4;
+	const int SPI_FRAME_END_LATCH_BYTES = 3;
+	_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+	
 	return true;
 }
 
 int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
-// 4 colours, 4 spi bytes per colour + 3 frame end latch bytes
-#define COLOURS_PER_LED		4
-#define SPI_BYTES_PER_COLOUR	4
-#define SPI_BYTES_PER_LED 	COLOURS_PER_LED * SPI_BYTES_PER_COLOUR
-
-	unsigned spi_size = _ledCount * SPI_BYTES_PER_LED + 3;
-	if(_ledBuffer.size() != spi_size){
-                _ledBuffer.resize(spi_size, 0x00);
-	}
-
 	unsigned spi_ptr = 0;
+	static const int SPI_BYTES_PER_LED = 4;
 
-        for (const ColorRgb& color : ledValues) {
-		Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
+	for (const ColorRgb& color : ledValues)
+	{
+		RGBW::Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
 		uint32_t colorBits = 
 			((uint32_t)_temp_rgbw.red << 24) +
 			((uint32_t)_temp_rgbw.green << 16) +
@@ -74,15 +62,11 @@ int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)
 			colorBits >>= 2;
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
-        }
+	}
+
 	_ledBuffer[spi_ptr++] = 0;
 	_ledBuffer[spi_ptr++] = 0;
 	_ledBuffer[spi_ptr++] = 0;
 
-	return writeBytes(spi_size, _ledBuffer.data());
-}
-
-int LedDeviceSk6812SPI::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

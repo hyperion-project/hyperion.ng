@@ -28,21 +28,16 @@
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
-	///  * 'channelAdjustment_enable' : true/false enables/disables this channelAdjustment section
+	///  * 'channelAdjustment_enable'   : true/false enables/disables this channelAdjustment section
+	///  * 'channelAdjustment_v4l_only' : if enabled and set to true, then channelAdjustment is only for v4l devices
 	///  * 'channelAdjustment'
 	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
-	///  * 'temperature_enable' : true/false enables/disables this temperature section
-	///  * 'temperature'
-	///  * 'id'     : The unique identifier of the temperature (eg 'device_1')
-	///  * 'leds'   : The indices (or index ranges) of the leds to which this temperature applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'red'/'green'/'blue' : The temperature manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
-	///  * 'transform_enable' : true/false enables/disables this transform section
+	///  * 'transform_enable'   : true/false enables/disables this transform section
+	///  * 'transform_v4l_only' : if enabled and set to true, then transform is only for v4l devices
 	///  * 'transform'
 	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
 	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
@@ -60,6 +55,7 @@
 	"color" :
 	{
 		"channelAdjustment_enable" : true,
+		"channelAdjustment_v4l_only" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -85,21 +81,8 @@
 				}
 			}
 		],
-		"temperature_enable" : true,
-		"temperature" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"correctionValues" :
-				{
-					"red"   : 255,
-					"green" : 255,
-					"blue"  : 255
-				}
-			}
-		],
 		"transform_enable" : true,
+		"transform_v4l_only" : true,
 		"transform" :
 		[
 			{

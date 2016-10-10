@@ -1,8 +1,6 @@
 #pragma once
 
 // STL/Qt includes
-#include <fstream>
-#include <QObject>
 #include <QTcpSocket>
 
 // Leddevice includes
@@ -55,7 +53,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -64,9 +62,6 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 
 private:
 	QTcpSocket  _client;

@@ -11,13 +11,14 @@
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
+#include <utils/Components.h>
 
 class Effect : public QThread
 {
 	Q_OBJECT
 
 public:
-    Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const Json::Value & args = Json::Value());
+    Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject());
 	virtual ~Effect();
 
 	virtual void run();
@@ -29,7 +30,7 @@ public:
 	
 	int getTimeout() const {return _timeout; }
 	
-	Json::Value getArgs() const { return _args; }
+	QJsonObject getArgs() const { return _args; }
 
 	bool isAbortRequested() const;
 
@@ -42,13 +43,13 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component);
 
 private slots:
 	void effectFinished();
 
 private:
-	PyObject * json2python(const Json::Value & json) const;
+	PyObject * json2python(const QJsonValue & jsonData) const;
 
 	// Wrapper methods for Python interpreter extra buildin methods
 	static PyMethodDef effectMethods[];
@@ -58,7 +59,8 @@ private:
 	static PyObject* wrapImageShow(PyObject *self, PyObject *args);
 	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
 	static PyObject* wrapImageRadialGradient(PyObject *self, PyObject *args);
-	
+	static PyObject* wrapImageSolidFill(PyObject *self, PyObject *args);
+
 	static Effect * getEffect();
 
 #if PY_MAJOR_VERSION >= 3
@@ -78,7 +80,7 @@ private:
 	const QString _script;
 	const QString _name;
 
-	const Json::Value _args;
+	const QJsonObject _args;
 
 	int64_t _endTime;
 

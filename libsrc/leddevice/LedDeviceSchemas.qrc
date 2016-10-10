@@ -19,6 +19,7 @@
 		<file alias="schema-piblaster">schemas/schema-piblaster.json</file>
 		<file alias="schema-rawhid">schemas/schema-rawhid.json</file>
 		<file alias="schema-sedu">schemas/schema-sedu.json</file>
+		<file alias="schema-dmx">schemas/schema-dmx.json</file>
 		<file alias="schema-sk6812rgbw-spi">schemas/schema-sk6812rgbw-spi.json</file>
 		<file alias="schema-tinkerforge">schemas/schema-tinkerforge.json</file>
 		<file alias="schema-tpm2net">schemas/schema-tpm2net.json</file>
@@ -27,5 +28,6 @@
 		<file alias="schema-ws2801">schemas/schema-ws2801.json</file>
 		<file alias="schema-ws2812spi">schemas/schema-ws2812spi.json</file>
 		<file alias="schema-ws281x">schemas/schema-ws281x.json</file>
+		<file alias="schema-h801">schemas/schema-h801.json</file>
 	</qresource>
 </RCC>

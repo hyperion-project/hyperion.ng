@@ -1,16 +1,10 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// hyperion local includes
 #include "LedDeviceTpm2.h"
-#include <json/json.h>
+
 
 LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
-	: ProviderRs232(deviceConfig)
+	: ProviderRs232()
 {
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
@@ -18,25 +12,22 @@ LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
 	return new LedDeviceTpm2(deviceConfig);
 }
 
-int LedDeviceTpm2::write(const std::vector<ColorRgb> &ledValues)
+bool LedDeviceTpm2::init(const Json::Value &deviceConfig)
 {
-	if (_ledBuffer.size() == 0)
-	{
-		_ledBuffer.resize(5 + 3*ledValues.size());
-		_ledBuffer[0] = 0xC9; // block-start byte
-		_ledBuffer[1] = 0xDA; // DATA frame
-		_ledBuffer[2] = ((3 * ledValues.size()) >> 8) & 0xFF; // frame size high byte
-		_ledBuffer[3] = (3 * ledValues.size()) & 0xFF; // frame size low byte
-		_ledBuffer.back() = 0x36; // block-end byte
-	}
+	ProviderRs232::init(deviceConfig);
 
-	// write data
-	memcpy(4 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	_ledBuffer.resize(5 + 3*_ledCount);
+	_ledBuffer[0] = 0xC9; // block-start byte
+	_ledBuffer[1] = 0xDA; // DATA frame
+	_ledBuffer[2] = ((3 * _ledCount) >> 8) & 0xFF; // frame size high byte
+	_ledBuffer[3] = (3 * _ledCount) & 0xFF; // frame size low byte
+	_ledBuffer.back() = 0x36; // block-end byte
+
+	return true;
 }
 
-int LedDeviceTpm2::switchOff()
+int LedDeviceTpm2::write(const std::vector<ColorRgb> &ledValues)
 {
-	memset(4 + _ledBuffer.data(), 0, _ledBuffer.size() - 5);
+	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledRGBCount);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

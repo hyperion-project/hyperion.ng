@@ -195,9 +195,11 @@ function requestSetSource(prio)
 		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
 }
 
-function requestWriteConfig(config, create, overwrite)
+function requestWriteConfig(config)
 {
-	var create = (typeof create !== 'undefined') ?  create : false;
-	var overwrite = (typeof overwrite !== 'undefined') ?  overwrite : false;
-	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(config)+',"create":'+create+', "overwrite":'+overwrite+'}');
+	var complete_config = parsedConfJSON;
+	jQuery.each(config, function(i, val) {
+		complete_config[i] = val;
+	});
+	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(complete_config)+'}');
 }

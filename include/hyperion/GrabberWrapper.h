@@ -52,6 +52,7 @@ protected:
 	virtual void kodiOff();
 	virtual void kodiPause();
 
+	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
 	std::string _grabberName;
 	
 	/// Pointer to Hyperion for writing led values

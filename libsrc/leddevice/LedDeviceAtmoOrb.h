@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // Qt includes
 #include <QObject>
 #include <QString>
@@ -56,7 +53,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const Json::Value &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const Json::Value &deviceConfig);
@@ -65,6 +62,9 @@ public:
 	///
 	virtual ~LedDeviceAtmoOrb();
 
+	virtual int switchOff();
+
+private:
 	///
 	/// Sends the given led-color values to the Orbs
 	///
@@ -73,9 +73,6 @@ public:
 	///
 	virtual int write(const std::vector <ColorRgb> &ledValues);
 
-	virtual int switchOff();
-
-private:
 	/// QNetworkAccessManager object for sending requests.
 	QNetworkAccessManager *_manager;
 

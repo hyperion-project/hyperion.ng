@@ -1,21 +1,9 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <algorithm>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceAPA102.h"
 
 LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+	: ProviderSpi()
 {
-	_latchTime_ns = 500000;
+	_deviceReady = init(deviceConfig);
 }
 
 LedDevice* LedDeviceAPA102::construct(const Json::Value &deviceConfig)
@@ -23,21 +11,26 @@ LedDevice* LedDeviceAPA102::construct(const Json::Value &deviceConfig)
 	return new LedDeviceAPA102(deviceConfig);
 }
 
-int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
+bool LedDeviceAPA102::init(const Json::Value &deviceConfig)
 {
-	_ledCount = ledValues.size();
+	ProviderSpi::init(deviceConfig);
+	_latchTime_ns = 500000; // fixed latchtime
+
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
-	if(_ledBuffer.size() != APAbufferSize){
-		_ledBuffer.resize(APAbufferSize, 0xFF);
-		_ledBuffer[0] = 0x00; 
-		_ledBuffer[1] = 0x00; 
-		_ledBuffer[2] = 0x00; 
-		_ledBuffer[3] = 0x00; 
-	}
+	_ledBuffer.resize(APAbufferSize, 0xFF);
+	_ledBuffer[0] = 0x00; 
+	_ledBuffer[1] = 0x00; 
+	_ledBuffer[2] = 0x00; 
+	_ledBuffer[3] = 0x00; 
 	
+	return true;
+}
+
+int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
+{
 	for (signed iLed=0; iLed < _ledCount; ++iLed) {
 		const ColorRgb& rgb = ledValues[iLed];
 		_ledBuffer[4+iLed*4]   = 0xFF;
@@ -47,9 +40,4 @@ int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-int LedDeviceAPA102::switchOff()
-{
-	return write(std::vector<ColorRgb>(_ledCount, ColorRgb{0,0,0}));
 }
