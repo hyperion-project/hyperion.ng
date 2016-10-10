@@ -78,6 +78,10 @@ public:
 	///
 	~Hyperion();
 
+	///
+	/// free all alocated objects, should be called only from constructor or before restarting hyperion
+	///
+	void freeObjects();
 
 	static Hyperion* initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
 	static Hyperion* getInstance();
