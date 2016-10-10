@@ -133,18 +133,14 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	var grabber_conf_editor = null;
+	var conf_editor = null;
 	$("#leddevices").off().on("change", function(event) {
 		generalOptions  = parsedConfSchemaJSON.properties.device;
 		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
 		//$('#ledDeviceOptions').html(JSON.stringify(generalOptions)+"<br>"+JSON.stringify(specificOptions));
-		grabber_conf_editor = createJsonEditor('editor_container',
-			{
-				title:' ',
-				properties: {
-					generalOptions : generalOptions,
-					specificOptions : specificOptions,
-			}
+		conf_editor = createJsonEditor('editor_container', {
+			generalOptions : generalOptions,
+			specificOptions : specificOptions,
 		});
 		
 		values_general = {};
@@ -155,23 +151,21 @@ $(document).ready(function() {
 			if (key != "type" && key in generalOptions.properties)
 				values_general[key] = parsedConfJSON.device[key];
 		};
-		grabber_conf_editor.getEditor("root.generalOptions").setValue( values_general );
+		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
 		if (isCurrentDevice)
 		{
-			specificOptions_val = grabber_conf_editor.getEditor("root.specificOptions").getValue()
+			specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
 			for(var key in specificOptions_val){
 					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
 			};
 
-			grabber_conf_editor.getEditor("root.specificOptions").setValue( values_specific );
+			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 
 		$('#editor_container .well').css("background-color","white");
 		$('#editor_container .well').css("border","none");
 		$('#editor_container .well').css("box-shadow","none");
-		$('#editor_container .btn').addClass("btn-primary");
-		$('#editor_container h3').first().remove();
 		
 		if ($(this).val() == "philipshue")
 		{
@@ -193,14 +187,14 @@ $(document).ready(function() {
 
 	// ------------------------------------------------------------------
 	$("#btn_submit_controller").off().on("click", function(event) {
-		if (grabber_conf_editor==null)
+		if (conf_editor==null)
 			return;
 
 		ledDevice = $("#leddevices").val();
 		result = {device:{}};
 		
-		general = grabber_conf_editor.getEditor("root.generalOptions").getValue();
-		specific = grabber_conf_editor.getEditor("root.specificOptions").getValue();
+		general = conf_editor.getEditor("root.generalOptions").getValue();
+		specific = conf_editor.getEditor("root.specificOptions").getValue();
 		for(var key in general){
 			result.device[key] = general[key];
 		}
