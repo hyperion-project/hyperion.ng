@@ -26,7 +26,6 @@
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorTransform.h>
-#include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
@@ -291,8 +290,6 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleClearallCommand(message, command, tan);
 		else if (command == "transform")
 			handleTransformCommand(message, command, tan);
-		else if (command == "temperature")
-			handleTemperatureCommand(message, command, tan);
 		else if (command == "adjustment")
 			handleAdjustmentCommand(message, command, tan);
 		else if (command == "sourceselect")
@@ -492,34 +489,9 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["owner"] = QString::fromStdString(entry.first);
 		priorities.append(item);
 	}
-	
+
 	info["priorities"] = priorities;
 	
-	// collect temperature correction information
-	QJsonArray temperatureArray;
-	for (const std::string& tempId : _hyperion->getTemperatureIds())
-	{
-		const ColorCorrection * colorTemp = _hyperion->getTemperature(tempId);
-		if (colorTemp == nullptr)
-		{
-			Error(_log, "Incorrect color temperature correction id: %s", tempId.c_str());
-			continue;
-		}
-
-		QJsonObject temperature;
-		temperature["id"] = QString::fromStdString(tempId);
-
-		QJsonArray tempValues;
-		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentR());
-		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentG());
-		tempValues.append(colorTemp->_rgbCorrection.getAdjustmentB());
-		temperature.insert("correctionValues", tempValues);
-		temperatureArray.append(temperature);
-	}
-	
-	info["temperature"] = temperatureArray;
-
-
 	// collect transform information
 	QJsonArray transformArray;
 	for (const std::string& transformId : _hyperion->getTransformIds())
@@ -848,32 +820,6 @@ void JsonClientConnection::handleTransformCommand(const QJsonObject& message, co
 	sendSuccessReply(command, tan);
 }
 
-
-void JsonClientConnection::handleTemperatureCommand(const QJsonObject& message, const QString& command, const int tan)
-{
-	const QJsonObject & temperature = message["temperature"].toObject();
-
-	const QString tempId = temperature["id"].toString(QString::fromStdString(_hyperion->getTemperatureIds().front()));
-	ColorCorrection * colorTemperature = _hyperion->getTemperature(tempId.toStdString());
-	if (colorTemperature == nullptr)
-	{
-		Warning(_log, "Incorrect temperature identifier: %s", tempId.toStdString().c_str());
-		return;
-	}
-
-	if (temperature.contains("correctionValues"))
-	{
-		const QJsonArray & values = temperature["correctionValues"].toArray();
-		colorTemperature->_rgbCorrection.setAdjustmentR(values[0u].toInt());
-		colorTemperature->_rgbCorrection.setAdjustmentG(values[1u].toInt());
-		colorTemperature->_rgbCorrection.setAdjustmentB(values[2u].toInt());
-	}
-	
-	// commit the changes
-	_hyperion->temperaturesUpdated();
-
-	sendSuccessReply(command, tan);
-}
 
 void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, const QString& command, const int tan)
 {

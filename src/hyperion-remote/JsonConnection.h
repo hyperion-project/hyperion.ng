@@ -140,28 +140,6 @@ public:
         QColor gamma,
         QColor blacklevel,
         QColor whitelevel);
-	
-	///
-	/// Set the color correction of the leds
-	///
-	/// @note Note that providing a NULL will leave the settings on the server unchanged
-	///
-	/// @param correctionId The identifier of the correction to set
-	/// @param correction The correction values
-	void setCorrection(
-		QString &correctionId,
-		const QColor & correction);
-
-	///
-	/// Set the color temperature of the leds
-	///
-	/// @note Note that providing a NULL will leave the settings on the server unchanged
-	///
-	/// @param temperatureId The identifier of the correction to set
-	/// @param temperature The temperature correction values
-	void setTemperature(
-		const QString & temperatureId,
-		const QColor & temperature);
 
 	///
 	/// Set the color adjustment of the leds

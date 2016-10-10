@@ -116,14 +116,7 @@ private:
 	/// @param message the incoming message
 	///
 	void handleTransformCommand(const QJsonObject & message, const QString &command, const int tan);
-	
-	///
-	/// Handle an incoming JSON Temperature message
-	///
-	/// @param message the incoming message
-	///
-	void handleTemperatureCommand(const QJsonObject & message, const QString &command, const int tan);
-	
+
 	///
 	/// Handle an incoming JSON Adjustment message
 	///

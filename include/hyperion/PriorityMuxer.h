@@ -11,6 +11,7 @@
 
 // Utils includes
 #include <utils/ColorRgb.h>
+#include <utils/Components.h>
 
 ///
 /// The PriorityMuxer handles the priority channels. Led values input is written to the priority map
@@ -32,6 +33,7 @@ public:
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
 		std::vector<ColorRgb> ledColors;
+		hyperion::Components componentId;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
@@ -89,7 +91,7 @@ public:
 	/// @param[in] ledColors The led colors of the priority channel
 	/// @param[in] timeoutTime_ms The absolute timeout time of the channel
 	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1);
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID);
 
 	///
 	/// Clears the specified priority channel
