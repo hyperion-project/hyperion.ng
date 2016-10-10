@@ -594,7 +594,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 }
 
 
-Hyperion::~Hyperion()
+void Hyperion::freeObjects()
 {
 	// switch off all leds
 	clearall();
@@ -606,6 +606,11 @@ Hyperion::~Hyperion()
 	delete _raw2ledTransform;
 	delete _raw2ledAdjustment;
 	delete _messageForwarder;
+}
+
+Hyperion::~Hyperion()
+{
+	freeObjects();
 }
 
 unsigned Hyperion::getLedCount() const
