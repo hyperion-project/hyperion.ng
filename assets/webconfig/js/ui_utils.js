@@ -68,12 +68,12 @@ function isJsonString(str)
 }
 
 
-function createJsonEditor(container,schema)
+function createJsonEditor(container,schema,setconfig)
 {
 	$('#'+container).off();
 	$('#'+container).html("");
 
-	return new JSONEditor(document.getElementById(container),
+	var editor = new JSONEditor(document.getElementById(container),
 	{
 		theme: 'bootstrap3',
 		iconlib: "fontawesome4",
@@ -82,6 +82,25 @@ function createJsonEditor(container,schema)
 		disable_edit_json: 'true',
 		disable_properties: 'true',
 		no_additional_properties: 'true',
-		schema: schema
+		schema: {
+			title:'',
+			properties: schema
+		}
 	});
+
+	$('#editor_container .well').css("background-color","white");
+	$('#editor_container .well').css("border","none");
+	$('#editor_container .well').css("box-shadow","none");
+	$('#editor_container .btn').addClass("btn-primary");
+	$('#editor_container h3').first().remove();
+
+	if (setconfig)
+	{
+		for(var key in editor.root.editors)
+		{
+			editor.getEditor("root."+key).setValue( parsedConfJSON[key] );
+		}
+	}
+
+	return editor;
 }

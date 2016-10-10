@@ -68,16 +68,20 @@ $(document).ready( function() {
 
 	$(hyperion).one("cmd-config-getschema", function(event) {
 		parsedConfSchemaJSON = event.response.result;
+		requestServerConfig();
 	});
 
-	
+	$(hyperion).one("cmd-config-getconfig", function(event) {
+		parsedConfJSON = event.response.result;
+		requestServerInfo();
+	});
+
 	$(hyperion).on("error",function(event){
 		showErrorDialog("error", event.reason);
 	});
 
 	$(hyperion).on("open",function(event){
 		requestServerConfigSchema();
-		requestServerInfo();
 	});
 
 	$("#btn_hyperion_reload").on("click", function(){
