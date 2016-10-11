@@ -7,12 +7,7 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
-#include <QMap>
-
-// jsoncpp includes
-#include <json/json.h>
-
-// hyperion-remote includes
+#include <QJsonObject>
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -54,7 +49,7 @@ public:
 	///
 	/// Start the given effect
 	///
-	/// @param effect The name of the effect
+	/// @param effectName The name of the effect
 	/// @param effectArgs The arguments to use instead of the default ones
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
@@ -164,7 +159,7 @@ private:
 	///
 	/// @return The returned reply
 	///
-	Json::Value sendMessage(const Json::Value & message);
+	QJsonObject sendMessage(const QJsonObject & message);
 
 	///
 	/// Parse a reply message
@@ -173,7 +168,7 @@ private:
 	///
 	/// @return true if the reply indicates success
 	///
-	bool parseReply(const Json::Value & reply);
+	bool parseReply(const QJsonObject & reply);
 
 private:
 	/// Flag for printing all send and received json-messages to the standard out

@@ -6,14 +6,6 @@
 // QT includes
 #include <QJsonObject>
 
-//	if (jsoncpp_converted_to_QtJSON)
-//	{
-//		remove("#include <json/json.h>");
-//	}
-
-// Jsoncpp includes
-#include <json/json.h>
-
 #include <hyperion/LedString.h>
 
 // Forward class declaration
@@ -38,8 +30,7 @@ public:
 	/// Initialises this factory with the given led-configuration
 	///
 	/// @param[in] ledString  The led configuration
-	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
-	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
+	/// @param[in] blackborderConfig Contains the blackborder configuration
 	///
 	void init(const LedString& ledString, const QJsonObject &blackborderConfig);
 
