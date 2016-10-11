@@ -28,7 +28,6 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	effectengine
 	commandline
-	jsoncpp
 	${QT_LIBRARIES})
 
 qt5_use_modules(${PROJECT_NAME} Gui Core Network)
