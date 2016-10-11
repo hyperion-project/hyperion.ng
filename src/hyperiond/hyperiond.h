@@ -40,6 +40,15 @@
 
 #include <utils/Logger.h>
 
+	// ----------------- DEPRECATED BEGIN -----------------
+	// NOTE: Remove this code block when the conversion have been completed from JsonCpp to QTJson
+
+	#include <json/json.h>
+	#include <istream>
+	#include <fstream>
+
+	// ----------------- DEPRECATED END -----------------
+
 #include <kodivideochecker/KODIVideoChecker.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
