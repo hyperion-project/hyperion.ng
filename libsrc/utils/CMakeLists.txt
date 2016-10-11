@@ -46,10 +46,6 @@ add_library(hyperion-utils
 	${CURRENT_HEADER_DIR}/RgbToRgbw.h
 	${CURRENT_SOURCE_DIR}/RgbToRgbw.cpp
 
-	${CURRENT_HEADER_DIR}/jsonschema/JsonFactory.h
-	${CURRENT_HEADER_DIR}/jsonschema/JsonSchemaChecker.h
-	${CURRENT_SOURCE_DIR}/jsonschema/JsonSchemaChecker.cpp
-
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonSchemaChecker.h
 	${CURRENT_SOURCE_DIR}/jsonschema/QJsonSchemaChecker.cpp
