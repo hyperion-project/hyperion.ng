@@ -20,6 +20,7 @@
 #include "HyperionConfig.h"
 
 #include <utils/Logger.h>
+#include <utils/FileUtils.h>
 #include <webconfig/WebConfig.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
@@ -172,6 +173,7 @@ int main(int argc, char** argv)
 	if (exportDefaultConfig)
 	{
 		Q_INIT_RESOURCE(resource);
+		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
 		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
 		{
 			Info(log, "export complete.");

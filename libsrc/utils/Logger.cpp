@@ -126,16 +126,16 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	vsnprintf (msg, max_msg_length, fmt, args);
 	va_end (args);
 
-	std::string location;
-	std::string function(func);
+	QString location;
+	QString function(func);
 	if ( level == Logger::DEBUG )
 	{
-		location = "<" + FileUtils::getBaseName(sourceFile) + ":" + QString::number(line).toStdString()+":"+ function + "()> ";
+		location = "<" + FileUtils::getBaseName(sourceFile) + ":" + QString::number(line)+":"+ function + "()> ";
 	}
 	
 	std::cout
 		<< "[" << _appname << " " << _name << "] <" 
-		<< LogLevelStrings[level] << "> " << location << msg
+		<< LogLevelStrings[level] << "> " << location.toStdString() << msg
 		<< std::endl;
 
 	if ( _syslogEnabled && level >= Logger::WARNING )
