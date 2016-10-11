@@ -11,7 +11,7 @@ WebConfig::WebConfig(QObject * parent)
 	Logger* log = Logger::getInstance("WEBSERVER");
 	_port       = WEBCONFIG_DEFAULT_PORT;
 	_baseUrl    = WEBCONFIG_DEFAULT_PATH;
-	const QJsonObject config = _hyperion->getJsonConfig();
+	const QJsonObject config = _hyperion->getQJsonConfig();
 	
 	bool webconfigEnable = true; 
 
