@@ -5,7 +5,6 @@
 #include <QString>
 #include <QStringList>
 
-#include <utils/jsonschema/JsonFactory.h>
 #include <hyperion/Hyperion.h>
 
 #include "QtHttpReply.h"
@@ -28,7 +27,7 @@ public:
 private:
 	Hyperion*             _hyperion;
 	QtHttpReply *         _reply;
-	const Json::Value    &_hyperionConfig;
+	const QJsonObject    &_hyperionConfig;
 	const QString     _baseUrl;
 };
 

@@ -13,9 +13,6 @@
 #include <QCryptographicHash>
 #include <QFile>
 
-// JsonSchema include
-#include <utils/jsonschema/JsonFactory.h>
-
 // hyperion include
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
