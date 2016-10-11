@@ -74,7 +74,7 @@ public:
 	};
 
 	///
-	/// Destructor; cleans up resourcess
+	/// Destructor; cleans up resources
 	///
 	~Hyperion();
 
@@ -128,7 +128,6 @@ public:
 	
 	/// gets the current json config object
 	/// @return json config
-	const Json::Value& getJsonConfig() { return _jsonConfig; };
 	const QJsonObject& getQJsonConfig() { return _qjsonConfig; };
 
 	/// get filename of configfile
@@ -149,7 +148,7 @@ public:
 	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
 	
 	/// enable/disable automatic/priorized source selection
-	/// @param enable the state
+	/// @param enabled the state
 	void setSourceAutoSelectEnabled(bool enabled);
 	
 	/// set current input source to visible
@@ -244,14 +243,14 @@ public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
-	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
+	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString & effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
-	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
+	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1);
 
 public:
