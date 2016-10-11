@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QString>
 #include <string>
-#include <utils/jsonschema/JsonFactory.h>
 #include <hyperion/Hyperion.h>
 
 class StaticFileServing;
