@@ -2,6 +2,7 @@
 #include <clocale>
 #include <initializer_list>
 #include <limits>
+#include <iostream>
 
 // Qt includes
 #include <QCoreApplication>
