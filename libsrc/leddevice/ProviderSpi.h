@@ -22,7 +22,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
