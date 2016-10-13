@@ -9,7 +9,7 @@
 static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 
-LedDeviceTinkerforge::LedDeviceTinkerforge(const Json::Value &deviceConfig)
+LedDeviceTinkerforge::LedDeviceTinkerforge(const QJsonObject &deviceConfig)
 	: LedDevice()
 	, _ipConnection(nullptr)
 	, _ledStrip(nullptr)
@@ -31,12 +31,12 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 	delete _ledStrip;
 }
 
-bool LedDeviceTinkerforge::init(const Json::Value &deviceConfig)
+bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 {
-	_host     = deviceConfig.get("output", "127.0.0.1").asString();
-	_port     = deviceConfig.get("port", 4223).asInt();
-	_uid      = deviceConfig["uid"].asString();
-	_interval = deviceConfig["rate"].asInt();
+	_host     = deviceConfig["output"].toString("127.0.0.1").toStdString();
+	_port     = deviceConfig["port"].toInt(4223);
+	_uid      = deviceConfig["uid"].toString().toStdString();
+	_interval = deviceConfig["rate"].toInt();
 
 	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
 	{
@@ -55,7 +55,7 @@ bool LedDeviceTinkerforge::init(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceTinkerforge::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceTinkerforge::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceTinkerforge(deviceConfig);
 }

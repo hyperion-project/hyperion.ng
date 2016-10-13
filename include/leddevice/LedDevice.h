@@ -2,6 +2,9 @@
 
 #include <QObject>
 #include <QString>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 // STL incldues
 #include <vector>
@@ -15,11 +18,10 @@
 #include <utils/RgbToRgbw.h>
 #include <utils/Logger.h>
 #include <functional>
-#include <json/json.h>
 
 class LedDevice;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const Json::Value& );
+typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
 typedef std::map<std::string,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///

@@ -5,8 +5,6 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
-#include <QJsonObject>
-#include <QJsonDocument>
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
 std::string LedDevice::_activeDevice = "";

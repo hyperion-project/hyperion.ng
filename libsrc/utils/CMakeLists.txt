@@ -54,5 +54,4 @@ add_library(hyperion-utils
 qt5_use_modules(hyperion-utils Core)
 
 target_link_libraries(hyperion-utils
-	jsoncpp
 	${QT_LIBRARIES})

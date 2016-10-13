@@ -22,12 +22,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceLpd6803(const Json::Value &deviceConfig);
+	LedDeviceLpd6803(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	virtual bool init(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 private:
 	///

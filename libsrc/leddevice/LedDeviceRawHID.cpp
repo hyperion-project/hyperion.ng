@@ -1,7 +1,7 @@
 #include "LedDeviceRawHID.h"
 
 // Use feature report HID device
-LedDeviceRawHID::LedDeviceRawHID(const Json::Value &deviceConfig)
+LedDeviceRawHID::LedDeviceRawHID(const QJsonObject &deviceConfig)
 	: ProviderHID()
 	, _timer()
 {
@@ -18,7 +18,7 @@ LedDeviceRawHID::LedDeviceRawHID(const Json::Value &deviceConfig)
 	_timer.start();
 }
 
-LedDevice* LedDeviceRawHID::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceRawHID::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceRawHID(deviceConfig);
 }

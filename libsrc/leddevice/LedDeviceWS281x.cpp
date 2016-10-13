@@ -2,7 +2,7 @@
 
 #include "LedDeviceWS281x.h"
 
-LedDeviceWS281x::LedDeviceWS281x(const Json::Value &deviceConfig)
+LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	_deviceReady = init(deviceConfig);
@@ -16,9 +16,9 @@ LedDeviceWS281x::~LedDeviceWS281x()
 	}
 }
 
-bool LedDeviceWS281x::init(const Json::Value &deviceConfig)
+bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
-	std::string whiteAlgorithm = deviceConfig.get("white_algorithm","white_off").asString();
+	std::string whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off").toStdString();
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
 	if (_whiteAlgorithm == RGBW::INVALID)
@@ -27,18 +27,18 @@ bool LedDeviceWS281x::init(const Json::Value &deviceConfig)
 		return false;
 	}
 
-	_channel           = deviceConfig.get("pwmchannel", 0).asInt();
+	_channel           = deviceConfig["pwmchannel"].toInt(0);
 	if (_channel != 0 && _channel != 1)
 	{
 		throw std::runtime_error("WS281x: invalid PWM channel; must be 0 or 1.");
 	}
 
-	_led_string.freq   = deviceConfig.get("freq", (Json::UInt)800000ul).asInt();
-	_led_string.dmanum = deviceConfig.get("dmanum", 5).asInt();
-	_led_string.channel[_channel].gpionum    = deviceConfig.get("gpio", 18).asInt();
-	_led_string.channel[_channel].count      = deviceConfig.get("leds", 256).asInt();
-	_led_string.channel[_channel].invert     = deviceConfig.get("invert", 0).asInt();
-	_led_string.channel[_channel].strip_type = ((deviceConfig.get("rgbw", 0).asInt() == 1) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
+	_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
+	_led_string.dmanum = deviceConfig["dmanum"].toInt(5);
+	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
+	_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
+	_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
+	_led_string.channel[_channel].strip_type = ((deviceConfig["rgbw"].toInt(0) == 1) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
 	_led_string.channel[_channel].brightness = 255;
 
 	_led_string.channel[!_channel].gpionum = 0;
@@ -56,7 +56,7 @@ bool LedDeviceWS281x::init(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceWS281x::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceWS281x(deviceConfig);
 }
@@ -93,4 +93,3 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 	
 	return ws2811_render(&_led_string) ? -1 : 0;
 }
-

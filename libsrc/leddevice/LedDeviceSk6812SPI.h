@@ -14,17 +14,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceSk6812SPI(const Json::Value &deviceConfig);
+	LedDeviceSk6812SPI(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 	
 private:
 	///

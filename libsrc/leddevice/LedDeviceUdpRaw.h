@@ -14,10 +14,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceUdpRaw(const Json::Value &deviceConfig);
+	LedDeviceUdpRaw(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device

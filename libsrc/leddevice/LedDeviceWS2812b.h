@@ -146,10 +146,10 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const Json::Value&) {return true;};
+	bool init(const QJsonObject&) {return true;};
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &);
+	static LedDevice* construct(const QJsonObject &);
 
 private:
 	///

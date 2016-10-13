@@ -17,12 +17,12 @@ public:
 	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
 	/// @param baudrate The used baudrate for writing to the output device
 	///
-	LedDeviceAdalightApa102(const Json::Value &deviceConfig);
+	LedDeviceAdalightApa102(const QJsonObject &deviceConfig);
 
 	/// create leddevice when type in config is set to this type
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	virtual bool init(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 private:
 	///

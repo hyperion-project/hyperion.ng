@@ -348,7 +348,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
-	Json::UInt i = 0;
+	unsigned int i = 0;
 	for (; i < unsigned(jsonColor.size()/3) && i < _hyperion->getLedCount(); ++i)
 	{
 		colorData[i].red = uint8_t(jsonColor.at(3u*i).toInt());

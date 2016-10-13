@@ -57,14 +57,14 @@
 	#include "LedDeviceWS281x.h"
 #endif
 
-LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const int ledCount)
+LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const int ledCount)
 {
 	Logger * log = Logger::getInstance("LedDevice");
-	std::stringstream ss;
-	ss << deviceConfig;
-	Info(log, "configuration: %s ", ss.str().c_str());
+	QJsonDocument config(deviceConfig);
+	QString ss(config.toJson(QJsonDocument::Indented));
+	Info(log, "configuration: %s ", ss.toUtf8().constData());
 
-	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
+	std::string type = deviceConfig["type"].toString("UNSPECIFIED").toStdString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	// set amount of led to leddevice
@@ -148,8 +148,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	{
 		
 		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
-		const Json::Value dummyDeviceConfig;
-		device = LedDeviceFile::construct(Json::nullValue);
+		const QJsonObject dummyDeviceConfig;
+		device = LedDeviceFile::construct(QJsonObject());
 	}
 
 	device->open();
