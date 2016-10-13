@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 		if (directory.exists() && destDir.exists())
 		{
 			std::cout << "extract to folder: " << std::endl;
-			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			foreach (const QString & filename, filenames)
 			{
 				if (QFile::exists(destDir.dirName()+"/"+filename))
