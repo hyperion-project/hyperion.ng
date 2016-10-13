@@ -6,7 +6,7 @@ static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
-LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
+LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
 : LedDevice()
 {
 	_deviceReady = init(deviceConfig);
@@ -18,13 +18,13 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 	_client.close();
 }
 
-LedDevice* LedDeviceFadeCandy::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceFadeCandy(deviceConfig);
 }
 
 
-bool LedDeviceFadeCandy::init(const Json::Value &deviceConfig)
+bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 {
 	_client.close();
 
@@ -34,26 +34,26 @@ bool LedDeviceFadeCandy::init(const Json::Value &deviceConfig)
 		return false;
 	}
 
-	_host        = deviceConfig.get("output", "127.0.0.1").asString();
-	_port        = deviceConfig.get("port", 7890).asInt();
-	_channel     = deviceConfig.get("channel", 0).asInt();
-	_gamma       = deviceConfig.get("gamma", 1.0).asDouble();
-	_noDither    = ! deviceConfig.get("dither", false).asBool();
-	_noInterp    = ! deviceConfig.get("interpolation", false).asBool();
-	_manualLED   = deviceConfig.get("manualLed", false).asBool();
-	_ledOnOff    = deviceConfig.get("ledOn", false).asBool();
-	_setFcConfig = deviceConfig.get("setFcConfig", false).asBool();
+	_host        = deviceConfig["output"].toString("127.0.0.1").toStdString();
+	_port        = deviceConfig["port"].toInt(7890);
+	_channel     = deviceConfig["channel"].toInt(0);
+	_gamma       = deviceConfig["gamma"].toDouble(1.0);
+	_noDither    = ! deviceConfig["dither"].toBool(false);
+	_noInterp    = ! deviceConfig["interpolation"].toBool(false);
+	_manualLED   = deviceConfig["manualLed"].toBool(false);
+	_ledOnOff    = deviceConfig["ledOn"].toBool(false);
+	_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
 
 	_whitePoint_r = 1.0;
 	_whitePoint_g = 1.0;
 	_whitePoint_b = 1.0;
 
-	const Json::Value whitePointConfig = deviceConfig["whitePoint"];
-	if ( whitePointConfig.isArray() && whitePointConfig.size() == 3 )
+	const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
+	if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
 	{
-		_whitePoint_r = whitePointConfig[0].asDouble();
-		_whitePoint_g = whitePointConfig[1].asDouble();
-		_whitePoint_b = whitePointConfig[2].asDouble();
+		_whitePoint_r = whitePointConfig[0].toDouble();
+		_whitePoint_g = whitePointConfig[1].toDouble();
+		_whitePoint_b = whitePointConfig[2].toDouble();
 	}
 
 	_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
