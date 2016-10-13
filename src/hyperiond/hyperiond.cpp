@@ -53,7 +53,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 {
 	loadConfig(configFile);
 	
-	_hyperion = Hyperion::initInstance(_config, _qconfig, configFile.toStdString());
+	_hyperion = Hyperion::initInstance(_qconfig, configFile.toStdString());
 	
 	
 	if (Logger::getLogLevel() == Logger::WARNING)
@@ -162,24 +162,6 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson.object());
 
-	// ----------------- DEPRECATED BEGIN -----------------
-	// NOTE: Remove this code block when the conversion have been completed from JsonCpp to QTJson
-	
-		std::ifstream ifs(configFile.toStdString().c_str());
-		
-		Json::Reader reader;
-		
-		if (! reader.parse(ifs, _config, false))
-		{
-			// report to the user the failure and their locations in the document.
-			std::stringstream sstream;
-			sstream << "Failed to parse configuration: " << reader.getFormattedErrorMessages().c_str();
-
-			throw std::runtime_error(sstream.str());
-		}
-	
-	// ----------------- DEPRECATED END -----------------
-
 	_qconfig = QJsonFactory::readJson(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
@@ -200,7 +182,7 @@ void HyperionDaemon::startInitialEffect()
 	Hyperion *hyperion = Hyperion::getInstance();
 
 	// create boot sequence if the configuration is present
-	if (_config.isMember("initialEffect"))
+	if (_qconfig.contains("initialEffect"))
 	{
 		const QJsonObject & effectConfig = _qconfig["initialEffect"].toObject();
 		const int FG_PRIORITY = 0;
