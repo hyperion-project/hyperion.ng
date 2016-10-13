@@ -1,6 +1,6 @@
 #include "LedDeviceSk6812SPI.h"
 
-LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 	, _whiteAlgorithm(RGBW::INVALID)
 	, bitpair_to_byte {
@@ -13,14 +13,14 @@ LedDeviceSk6812SPI::LedDeviceSk6812SPI(const Json::Value &deviceConfig)
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceSk6812SPI::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceSk6812SPI(deviceConfig);
 }
 
-bool LedDeviceSk6812SPI::init(const Json::Value &deviceConfig)
+bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
-	std::string whiteAlgorithm = deviceConfig.get("white_algorithm","white_off").asString();
+	std::string whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off").toStdString();
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 
 	if (_whiteAlgorithm == RGBW::INVALID)
