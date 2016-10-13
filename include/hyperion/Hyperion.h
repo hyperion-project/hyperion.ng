@@ -83,7 +83,7 @@ public:
 	///
 	void freeObjects();
 
-	static Hyperion* initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const std::string configFile);
 	static Hyperion* getInstance();
 
 	///
@@ -304,9 +304,9 @@ private:
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
-	/// @param[in] jsonConfig The Json configuration
+	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	Hyperion(const QJsonObject& qjsonConfig, const std::string configFile);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -337,7 +337,6 @@ private:
 	MessageForwarder * _messageForwarder;
 
 	// json configuration
-	const Json::Value& _jsonConfig;
 	const QJsonObject& _qjsonConfig;
 
 	// the name of config file
