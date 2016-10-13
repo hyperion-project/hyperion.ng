@@ -258,7 +258,7 @@ LedDeviceWS2812b::LedDeviceWS2812b()
 	printf("WS2812b init finished \n");
 }
 
-LedDevice* LedDeviceWS2812b::construct(const Json::Value &)
+LedDevice* LedDeviceWS2812b::construct(const QJsonObject &)
 {
 	return new LedDeviceWS2812b();
 }
