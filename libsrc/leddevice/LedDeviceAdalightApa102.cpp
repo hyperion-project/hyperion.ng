@@ -1,17 +1,17 @@
 #include "LedDeviceAdalightApa102.h"
 
-LedDeviceAdalightApa102::LedDeviceAdalightApa102(const Json::Value &deviceConfig)
+LedDeviceAdalightApa102::LedDeviceAdalightApa102(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceAdalightApa102::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAdalightApa102::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceAdalightApa102(deviceConfig);
 }
 
-bool LedDeviceAdalightApa102::init(const Json::Value &deviceConfig)
+bool LedDeviceAdalightApa102::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
 
