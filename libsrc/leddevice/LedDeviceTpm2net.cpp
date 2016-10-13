@@ -1,24 +1,24 @@
 #include "LedDeviceTpm2net.h"
 
-LedDeviceTpm2net::LedDeviceTpm2net(const Json::Value &deviceConfig)
+LedDeviceTpm2net::LedDeviceTpm2net(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-bool LedDeviceTpm2net::init(const Json::Value &deviceConfig)
+bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 {
 	_LatchTime_ns = 104000;
 	_port = TPM2_DEFAULT_PORT;
 	ProviderUdp::init(deviceConfig);
-	_tpm2_max  = deviceConfig.get("max-packet", 170).asInt();
+	_tpm2_max  = deviceConfig["max-packet"].toInt(170);
 	_tpm2ByteCount = 3 * _ledCount;
 	_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
 
 	return true;
 }
 
-LedDevice* LedDeviceTpm2net::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceTpm2net(deviceConfig);
 }
