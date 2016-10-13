@@ -1,6 +1,6 @@
 #include "LedDeviceWs2812SPI.h"
 
-LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
+LedDeviceWs2812SPI::LedDeviceWs2812SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 	, bitpair_to_byte {
 		0b10001000,
@@ -12,12 +12,12 @@ LedDeviceWs2812SPI::LedDeviceWs2812SPI(const Json::Value &deviceConfig)
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceWs2812SPI::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceWs2812SPI(deviceConfig);
 }
 
-bool LedDeviceWs2812SPI::init(const Json::Value &deviceConfig)
+bool LedDeviceWs2812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 3000000;
 	ProviderSpi::init(deviceConfig);
