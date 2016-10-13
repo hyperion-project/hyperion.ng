@@ -16,7 +16,7 @@ AtmoOrbLight::AtmoOrbLight(unsigned int id) {
 	// Not implemented
 }
 
-LedDeviceAtmoOrb::LedDeviceAtmoOrb(const Json::Value &deviceConfig)
+LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	init(deviceConfig);
@@ -29,16 +29,16 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(const Json::Value &deviceConfig)
 	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
 }
 
-bool LedDeviceAtmoOrb::init(const Json::Value &deviceConfig)
+bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 {
-	_multicastGroup     = deviceConfig["output"].asString().c_str();
-	_useOrbSmoothing    = deviceConfig.get("useOrbSmoothing", false).asBool();
-	_transitiontime     = deviceConfig.get("transitiontime", 0).asInt();
-	_skipSmoothingDiff  = deviceConfig.get("skipSmoothingDiff", 0).asInt();
-	_multiCastGroupPort = deviceConfig.get("port", 49692).asInt();
-	_numLeds            = deviceConfig.get("numLeds", 24).asInt();
+	_multicastGroup     = deviceConfig["output"].toString().toStdString().c_str();
+	_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
+	_transitiontime     = deviceConfig["transitiontime"].toInt(0);
+	_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
+	_multiCastGroupPort = deviceConfig["port"].toInt(49692);
+	_numLeds            = deviceConfig["numLeds"].toInt(24);
 	
-	const std::string orbId = deviceConfig["orbIds"].asString();
+	const std::string orbId = deviceConfig["orbIds"].toString().toStdString();
 	_orbIds.clear();
 
 	// If we find multiple Orb ids separate them and add to list
@@ -62,7 +62,7 @@ bool LedDeviceAtmoOrb::init(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceAtmoOrb::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceAtmoOrb(deviceConfig);
 }
