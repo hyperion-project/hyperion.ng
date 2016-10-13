@@ -19,10 +19,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceRawHID(const Json::Value &deviceConfig);
+	LedDeviceRawHID(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 private slots:
 	/// Write the last data to the leds again
