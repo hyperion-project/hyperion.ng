@@ -32,13 +32,13 @@ ProviderRs232::ProviderRs232()
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
-bool ProviderRs232::init(const Json::Value &deviceConfig)
+bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
 	closeDevice();
-	_deviceName           = deviceConfig["output"].asString();
-	_baudRate_Hz          = deviceConfig["rate"].asInt();
-	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect",250).asInt();
-	_timer.setInterval    ( deviceConfig.get("rewriteTime",5000).asInt() );
+	_deviceName           = deviceConfig["output"].toString().toStdString();
+	_baudRate_Hz          = deviceConfig["rate"].toInt();
+	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(250);
+	_timer.setInterval    ( deviceConfig["rewriteTime"].toInt(5000) );
 
 	return true;
 }
