@@ -20,6 +20,7 @@
 #include "HyperionConfig.h"
 
 #include <utils/Logger.h>
+#include <utils/FileUtils.h>
 #include <webconfig/WebConfig.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
@@ -118,18 +119,6 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (parser.isSet(exportConfigOption))
-	{
-		Q_INIT_RESOURCE(resource);
-		if (QFile::copy(":/hyperion_default.config",exportConfigOption.value(parser)))
-		{
-			Info(log, "export complete.");
-			return 0;
-		}
-		Error(log, "can not export to %s",exportConfigOption.getCString(parser));
-		return 1;
-	}
-	
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -163,15 +152,46 @@ int main(int argc, char** argv)
 		Error(log, "can not export to %s",exportEfxOption.getCString(parser));
 		return 1;
 	}
+
 	
-	
-	
-	if (configFiles.size() == 0)
+	bool exportDefaultConfig = false;
+	bool exitAfterexportDefaultConfig = false;
+	QString exportConfigFileTarget;
+	if (parser.isSet(exportConfigOption))
 	{
-		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> [config.file ...]");
-		return 1;
+		exportDefaultConfig = true;
+		exitAfterexportDefaultConfig = true;
+		exportConfigFileTarget = exportConfigOption.value(parser);
+	}
+	else if ( configFiles.size() > 0 && ! QFile::exists(configFiles[0]) )
+	{
+		exportDefaultConfig = true;
+		exportConfigFileTarget = configFiles[0];
+		Warning(log, "Your configuration file does not exist. hyperion writes default config");
+	}
+	
+	if (exportDefaultConfig)
+	{
+		Q_INIT_RESOURCE(resource);
+		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
+		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
+		{
+			Info(log, "export complete.");
+			if (exitAfterexportDefaultConfig) return 0;
+		}
+		Error(log, "can not export to %s",exportConfigFileTarget.toLocal8Bit().constData());
+		if (exitAfterexportDefaultConfig) return 1;
 	}
 
+	if (configFiles.size() == 0)
+	{
+		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> config.file");
+		return 1;
+	}
+	if (configFiles.size() > 1)
+	{
+		Warning(log, "You provided more than one config file. Hyperion will use only the first one");
+	}
 
     int parentPid = parser.value(parentOption).toInt();
 	if (parentPid > 0 )
@@ -182,25 +202,10 @@ int main(int argc, char** argv)
 #endif
 	}
 
-	int argvId = -1;
-	for(int idx=0; idx < configFiles.size(); idx++) {
-		if ( QFile::exists(configFiles[idx]))
-		{
-			if (argvId < 0) argvId=idx;
-			else startNewHyperion(getpid(), argv[0], configFiles[idx].toStdString());
-		}
-	}
-
-	if ( argvId < 0)
-	{
-		Warning(log, "No valid config found");
-		return 1;
-	}
-
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[argvId], &app);
+		hyperiond = new HyperionDaemon(configFiles[0], &app);
 		hyperiond->run();
 	}
 	catch (std::exception& e)
