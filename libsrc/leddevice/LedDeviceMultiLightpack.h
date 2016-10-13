@@ -22,9 +22,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	LedDeviceMultiLightpack(const Json::Value &);
+	LedDeviceMultiLightpack(const QJsonObject &);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -32,7 +30,7 @@ public:
 	virtual ~LedDeviceMultiLightpack();
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Opens and configures the output device7
