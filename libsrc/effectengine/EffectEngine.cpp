@@ -43,15 +43,15 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 	efxPathList << ":/effects/";
 	QStringList disableList;
 
-	QJsonArray::ConstIterator iterPaths = paths.begin();
-	QJsonArray::ConstIterator iterDisabledEfx = disabledEfx.begin();
-	
-    for(; iterPaths != paths.end() and iterDisabledEfx != disabledEfx.end() ; ++iterPaths, ++iterDisabledEfx)
-    {
-		efxPathList << (*iterPaths).toString();
-		disableList << (*iterDisabledEfx).toString();
+	for(auto p : paths)
+	{
+		efxPathList << p.toString();
 	}
-	
+	for(auto efx : disabledEfx)
+	{
+		disableList << efx.toString();
+	}
+
 	std::map<QString, EffectDefinition> availableEffects;
 	foreach (const QString & path, efxPathList )
 	{
@@ -82,6 +82,10 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 				}
 			}
 			Info(_log, "%d effects loaded from directory %s", efxCount, path.toUtf8().constData());
+		}
+		else
+		{
+			Warning(_log, "Effect path \"%s\" does not exist",path.toUtf8().constData() );
 		}
 	}
 
