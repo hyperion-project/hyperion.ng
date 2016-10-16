@@ -29,7 +29,7 @@ int count(std::initializer_list<bool> values)
 
 void showHelp(Option & option){
 	QString shortOption;
-	QString longOption = QString("-%1").arg(option.names().last());
+	QString longOption = QString("--%1").arg(option.names().last());
 
 	if(option.names().size() == 2){
 		shortOption = QString("-%1").arg(option.names().first());
