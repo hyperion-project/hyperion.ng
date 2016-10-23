@@ -82,6 +82,22 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 				}
 			}
 			Info(_log, "%d effects loaded from directory %s", efxCount, path.toUtf8().constData());
+			
+			// collect effect schemas
+			efxCount = 0;
+			directory = path + "schema/";
+			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & pyname, pynames)
+			{
+				EffectSchema pyEffect;
+				if (loadEffectSchema(path, pyname, pyEffect))
+				{
+					_effectSchemas.push_back(pyEffect);
+					efxCount++;
+				}
+			}
+			if (efxCount > 0)
+				Info(_log, "%d effect schemas loaded from directory %s", efxCount, (path + "schema/").toUtf8().constData());
 		}
 		else
 		{
@@ -136,6 +152,11 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	}
   
 	return _availableActiveEffects;
+}
+
+const std::list<EffectSchema> &EffectEngine::getEffectSchemas()
+{
+	return _effectSchemas;
 }
 
 bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effectConfigFile, EffectDefinition & effectDefinition)
@@ -232,13 +253,89 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 	effectDefinition.name = config["name"].toString();
 	if (scriptName.isEmpty())
 		return false;
+	
+	QFile fileInfo(scriptName);
 
 	if (scriptName.mid(0, 1)  == ":" )
-		effectDefinition.script = ":/effects/"+scriptName.mid(1);
-	else
-		effectDefinition.script = path + QDir::separator().toLatin1() + scriptName;
+	{
+		(!fileInfo.exists())
+		? effectDefinition.script = ":/effects/"+scriptName.mid(1)
+		: effectDefinition.script = scriptName;
+	} else
+	{
+		(!fileInfo.exists())
+		? effectDefinition.script = path + QDir::separator().toLatin1() + scriptName
+		: effectDefinition.script = scriptName;
+	}
 		
 	effectDefinition.args = config["args"].toObject();
+
+	return true;
+}
+
+bool EffectEngine::loadEffectSchema(const QString &path, const QString &effectSchemaFile, EffectSchema & effectSchema)
+{
+	Logger * log = Logger::getInstance("EFFECTENGINE");
+	
+	QString fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
+	QJsonParseError error;
+	
+	// ---------- Read the effect schema file ----------
+	
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		Error( log, "Effect schema '%s' could not be loaded", fileName.toUtf8().constData());
+		return false;
+	}
+
+	QByteArray fileContent = file.readAll();
+	QJsonDocument schemaEffect = QJsonDocument::fromJson(fileContent, &error);
+	
+	if (error.error != QJsonParseError::NoError)
+	{
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,fileContent.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(fileContent.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		Error( log, "Error while reading effect schema: '%s' at Line: '%i' , Column: %i", error.errorString().toUtf8().constData(), errorLine, errorColumn);
+		return false;
+	}
+	
+	file.close();
+	
+	// ---------- setup the definition ----------
+	
+	QJsonObject tempSchemaEffect = schemaEffect.object();
+	QString scriptName = tempSchemaEffect["script"].toString();
+	effectSchema.schemaFile = fileName;
+	fileName = path + QDir::separator() + scriptName;
+	QFile pyFile(fileName);
+	
+	if (scriptName.isEmpty() || !pyFile.open(QIODevice::ReadOnly))
+	{
+		fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
+		Error( log, "Python script '%s' in effect schema '%s' could not be loaded", scriptName.toUtf8().constData(), fileName.toUtf8().constData());
+		return false;
+	}
+	
+	pyFile.close();
+
+	if (scriptName.mid(0, 1)  == ":" )
+		effectSchema.pyFile = ":/effects/"+scriptName.mid(1);
+	else
+		effectSchema.pyFile = path + QDir::separator().toLatin1() + scriptName;
+		
+	effectSchema.pySchema = tempSchemaEffect;
 
 	return true;
 }
