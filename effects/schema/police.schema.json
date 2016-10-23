@@ -30,18 +30,24 @@
 			"maxItems": 3,
 			"propertyOrder" : 2
 		},
+		"colors_count": {
+			"type": "integer",
+			"title":"Colors count",
+			"default": "10",
+			"propertyOrder" : 3
+		},
 		"rotation-time": {
 			"type": "number",
 			"title":"Rotation time",
 			"default": 2.0,
 			"minimum" : 0.1,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"reverse": {
 			"type": "boolean",
 			"title":"Reverse direction",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": false
