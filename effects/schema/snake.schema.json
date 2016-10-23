@@ -1,0 +1,35 @@
+{
+	"type":"object",
+	"script" : "snake.py",
+	"title":"Snake",
+	"required":true,
+	"properties":{
+		"color": {
+			"type": "array",
+			"title":"Color",
+			"default": "255,0,0",
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"rotation-time": {
+			"type": "number",
+			"title":"Rotation time",
+			"default": 12.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 2
+		},
+		"percentage": {
+			"type": "integer",
+			"title":"Percentage",
+			"default": 10,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": false
+}
