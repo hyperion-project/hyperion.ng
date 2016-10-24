@@ -90,6 +90,13 @@ private:
 	void handleEffectCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON Effect message (Write JSON Effect)
+	///
+	/// @param message the incoming message
+	///
+	void handleCreateEffectCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message
