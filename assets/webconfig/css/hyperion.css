@@ -56,6 +56,29 @@ table.borderless td,table.borderless th{border: none !important;}
     margin-bottom: 0;
 }
 
+/*Modal icons*/
+.modal-icon-check{
+	background-color:#71c341;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+.modal-icon-warning{
+	background-color:#f7c44a;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+.modal-icon-error{
+	background-color:#d1322e;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+
 .overlay {
 	background-image: url('/img/hyperion/hyperionwhitelogo.png');
 	background-repeat: no-repeat;
