@@ -113,9 +113,9 @@ $(document).ready(function() {
 		e = isJsonString($("#ledconfig").val());
 
 		if (e.length == 0)
-			showErrorDialog("Validation success", "Your config is valid!");
+			showInfoDialog("success", "Validation success", "Your config is valid!");
 		else
-			showErrorDialog("Validation failed!", e);
+			showInfoDialog("error", "Validation failed!", e);
 	});
 
 	// ------------------------------------------------------------------

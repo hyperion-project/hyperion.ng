@@ -40,7 +40,8 @@ $(document).ready( function() {
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
-			components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+			console.log()
+			components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
 
@@ -54,11 +55,11 @@ $(document).ready( function() {
 
 			if ( cleanCurrentVersion < cleanLatestVersion )
 			{
-				$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_message_infobox_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+				$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
 			}
 			else
 			{
-				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
 			}
 		});
 		$("#loading_overlay").removeClass("overlay");
@@ -77,7 +78,7 @@ $(document).ready( function() {
 	});
 
 	$(hyperion).on("error",function(event){
-		showErrorDialog("error", event.reason);
+		showInfoDialog("error","Error", event.reason);
 	});
 
 	$(hyperion).on("open",function(event){

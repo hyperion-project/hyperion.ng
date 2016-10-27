@@ -29,15 +29,15 @@
 
 
 <div class="container-fluid">
-	<h1 class="page-header" lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</h1>
-<!--	<div class="introd">
-		<h4 lang="en" data-lang-token="remote_effects_intro"></h4>
-	</div>-->
-
+	<h1 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</span></h1>
+	<div class="introd">
+		<h4 lang="en" data-lang-token="conf_leds_label_intro">The LED controller of youre choice is your way to output the led data via Raspberry PI GPIO, USB or network! Choose one, define your led layout and enjoy the light!</h4>
+	</div>
+	<hr>
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
-		<li class="active"><a data-toggle="tab" href="#menu_controller">LED Controller</a></li>
-		<li><a data-toggle="tab" href="#menu_gencfg">Generate LED Config</a></li>
-		<li><a data-toggle="tab" href="#menu_display">LED Testing</a></li>
+		<li class="active"><a data-toggle="tab" href="#menu_controller" lang="en" data-lang-token="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
+		<li><a data-toggle="tab" href="#menu_gencfg" lang="en" data-lang-token="conf_leds_nav_label_ledlayout">LED Layout</a></li>
+		<li><a data-toggle="tab" href="#menu_display" lang="en" data-lang-token="conf_leds_nav_label_ledtesting">LED Testing</a></li>
 	</ul>
 
 	<div class="tab-content">
@@ -45,8 +45,8 @@
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
 			<div class="panel panel-primary">
 				<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
-					<button id='btn_submit_controller' class="btn btn-success"	style="float:right">Save Settings</button>
-					<label for="leddevices">Controller Type</label>
+					<button id='btn_submit_controller' class="btn btn-success"	style="float:right" lang="en" data-lang-token="general_button_savesettings">Save Settings</button>
+					<label for="leddevices" lang="en" data-lang-token="conf_leds_contr_label_contrtype">Controller type:</label>
 					<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 				</div>
 
@@ -85,9 +85,9 @@
 				<div id="leds_canvas"/>
 
 				<div id="leds_controls">
-					<button lang="en" type="button" class="btn btn-success" id="leds_toggle">toggle leds</button>
-					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num">toggle led numbers</button>
-					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_live">toggle live leds</button>
+					<button lang="en" type="button" class="btn btn-success" id="leds_toggle" lang="en" data-lang-token="conf_leds_test_button_toggleleds">toggle leds</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num" lang="en" data-lang-token="conf_leds_test_button_togglelednumber">toggle led numbers</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_live" lang="en" data-lang-token="conf_leds_test_button_toggleliveleds">toggle live leds</button>
 				</div>
 			</div>
 		</div>
@@ -102,7 +102,7 @@
 						<div class="panel panel-primary">
 							<div class="panel-heading">
 								<h4 class="panel-title">
-									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1"><i class="fa fa-television fa-fw"></i>Frame Configuration (ambient light)</a>
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1"><i class="fa fa-television fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_frame">Frame Configuration (ambient light)</span></a>
 								</h4>
 							</div>
 							<div id="collapse1" class="panel-collapse collapse in">
@@ -122,7 +122,7 @@ led 0 position: top-left / top-right / bottom-left / bottom-right
 					<div class="panel panel-primary">
 						<div class="panel-heading">
 							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><i class="fa fa-th fa-fw"></i>Matrix Configuration (LED wall)</a>
+								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><i class="fa fa-th fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_matrix">Matrix Configuration (LED wall)</span></a>
 							</h4>
 						</div>
 						<div id="collapse2" class="panel-collapse collapse">
@@ -146,12 +146,12 @@ start
 		<div class="col-sm-6">
 			<div class="panel panel-primary" style="margin-bottom:5px">
 				<div class="panel-heading">
-					<h4 class="panel-title"><i class="fa fa-wrench fa-fw"></i>Generated Configuration</h4>
+					<h4 class="panel-title"><i class="fa fa-wrench fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_generatedconf">Generated Configuration</span></h4>
 				</div>
 				<div class="panel-body">
 					<div class="form-group">
-						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check">check config</button>
-						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save">save config</button>
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check" lang="en" data-lang-token="conf_leds_layout_button_validateconf">Validate config</button>
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save" lang="en" data-lang-token="general_button_savesettings">Save config</button>
 					</div>
 					<textarea rows="25" id="ledconfig" class="form-control"></textarea>
 				</div>
