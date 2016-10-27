@@ -12,9 +12,9 @@
 			if (active) btn_type = "warning";
 			if (visible) btn_type = "success";
 			
- 			data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" title="prio '+priority+'" onclick="requestSetSource('+priority+');">'+owner+'</button><br/>';
+ 			data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource('+priority+');">'+owner+'<span style="font-size:70% !important;"> ('+priority+')</span></button><br/>';
 		}
-		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');">auto select</button><br/>';
+		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');" lang="en" data-lang-token="remote_input_label_autoselect">auto selection</button><br/>';
 		$('#hyperion_inputs').html(data);
 		
 		var max_width=200;
@@ -49,7 +49,7 @@
 				{
 					d='<p><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
 						+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+components[idx].title+'</p>';
+						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> <span lang="en" data-lang-token="general_comp_'+components[idx].name+'"> '+components[idx].title+'</span></p>';
 					$('#componentsbutton').append(d);
 				}
 				else // already create, update state

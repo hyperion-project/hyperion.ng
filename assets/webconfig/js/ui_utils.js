@@ -47,11 +47,25 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
-function showErrorDialog(header,message)
+function showInfoDialog(type,header,message)
 {
-	$('#error_dialog .modal-title').html(header);
-	$('#error_dialog .modal-body').html(message);
-	$('#error_dialog').modal('show');
+	$('#modal_dialog .modal-bodytitle').html(header);
+	$('#modal_dialog .modal-bodycontent').html(message);
+	
+	if (type=="success"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-check modal-icon-check">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="warning"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-warning">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="error"){	
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-error">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">OK</button>');
+	}	
+	$('#modal_dialog').modal('show');
+	
 }
 
 function isJsonString(str)
