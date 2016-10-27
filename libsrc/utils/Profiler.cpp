@@ -1,5 +1,6 @@
 #include "HyperionConfig.h"
-#include "utils/Profiler.h"
+#include <utils/Profiler.h>
+#include <utils/FileUtils.h>
 
 #include <QFileInfo>
 #include <QString>
@@ -15,20 +16,10 @@ static unsigned int blockCounter = 0;
 static std::map<std::string,StopWatchItem> GlobalProfilerMap;
 Logger* Profiler::_logger = nullptr;
 
-
-
-std::string profiler_getBaseName( std::string sourceFile)
-{
-	QFileInfo fi( sourceFile.c_str() );
-	return fi.fileName().toStdString();
-}
-
 double getClockDelta(clock_t start)
 {
 	return ((double)(clock() - start) / CLOCKS_PER_SEC)	;
 }
-
-
 
 Profiler::Profiler(const char* sourceFile, const char* func, unsigned int line) :
 	_file(sourceFile),
@@ -71,7 +62,7 @@ void Profiler::TimerStart(const std::string timerName, const char* sourceFile, c
 		else
 		{
 			_logger->Message(Logger::DEBUG, sourceFile, func, line, "ERROR timer '%s' started in multiple locations. First occurence %s:%d:%s()",
-			                 timerName.c_str(), profiler_getBaseName(ret.first->second.sourceFile).c_str(), ret.first->second.line, ret.first->second.func );
+			                 timerName.c_str(), FileUtils::getBaseName(ret.first->second.sourceFile).toLocal8Bit().constData(), ret.first->second.line, ret.first->second.func );
 		}
 	}
 	else
@@ -88,7 +79,7 @@ void Profiler::TimerGetTime(const std::string timerName, const char* sourceFile,
 	if (ret != GlobalProfilerMap.end())
 	{
 		_logger->Message(Logger::DEBUG, sourceFile, func, line, "timer '%s' started at %s:%d:%s() took %f s execution time until here", timerName.c_str(),
-		                 profiler_getBaseName(ret->second.sourceFile).c_str(), ret->second.line, ret->second.func, getClockDelta(ret->second.startTime) );
+		                 FileUtils::getBaseName(ret->second.sourceFile).toLocal8Bit().constData(), ret->second.line, ret->second.func, getClockDelta(ret->second.startTime) );
 	}
 	else
 	{

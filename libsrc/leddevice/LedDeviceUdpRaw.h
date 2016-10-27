@@ -1,25 +1,23 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
-#include "LedUdpDevice.h"
+#include "ProviderUdp.h"
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp.
 ///
-class LedDeviceUdpRaw : public LedUdpDevice
+class LedDeviceUdpRaw : public ProviderUdp
 {
 public:
 	///
-	/// Constructs the LedDevice for sending led colors via udp
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice hostname:port
-	/// @param latchTime 
+	/// @param deviceConfig json device config
 	///
+	LedDeviceUdpRaw(const QJsonObject &deviceConfig);
 
-	LedDeviceUdpRaw(const std::string& outputDevice, const unsigned latchTime);
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -28,7 +26,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

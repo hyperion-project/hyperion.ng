@@ -13,16 +13,21 @@
 #include <QLocale>
 #include <QFile>
 #include <QString>
+#include <QResource>
+#include <QDir>
+#include <QStringList>
 
 #include "HyperionConfig.h"
 
-#include <getoptPlusPlus/getoptpp.h>
 #include <utils/Logger.h>
+#include <utils/FileUtils.h>
 #include <webconfig/WebConfig.h>
+#include <commandline/Parser.h>
+#include <commandline/IntOption.h>
 
 #include "hyperiond.h"
 
-using namespace vlofgren;
+using namespace commandline;
 
 void signal_handler(const int signum)
 {
@@ -62,34 +67,37 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
-	OptionsParser optionParser("Hyperion Daemon");
-	ParameterSet & parameters = optionParser.getParameters();
+	Parser parser("Hyperion Daemon");
+	parser.addHelpOption();
 
-	SwitchParameter<>      & argVersion               = parameters.add<SwitchParameter<>>     (0x0, "version",       "Show version information");
-	IntParameter           & argParentPid             = parameters.add<IntParameter>          (0x0, "parent",        "pid of parent hyperiond");
-	SwitchParameter<>      & argSilent                = parameters.add<SwitchParameter<>>     (0x0, "silent",        "do not print any outputs");
-	SwitchParameter<>      & argVerbose               = parameters.add<SwitchParameter<>>     (0x0, "verbose",       "Increase verbosity");
-	SwitchParameter<>      & argDebug                 = parameters.add<SwitchParameter<>>     (0x0, "debug",         "Show debug messages");
-	SwitchParameter<>      & argHelp                  = parameters.add<SwitchParameter<>>     ('h', "help",          "Show this help message and exit");
+	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
+	IntOption     &  parentOption       = parser.add<IntOption>    ('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
+	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
+	BooleanOption &   debugOption       = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	Option        & exportConfigOption  = parser.add<Option>       (0x0, "export-config", "export default config to file");
+	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
 
-	argParentPid.setDefault(0);
-	optionParser.parse(argc, const_cast<const char **>(argv));
-	const std::vector<std::string> configFiles = optionParser.getFiles();
+	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration files"), "[files...]");
+
+    parser.process(app);
+
+	const QStringList configFiles = parser.positionalArguments();
 
 	int logLevelCheck = 0;
-	if (argSilent.isSet())
+	if (parser.isSet(silentOption))
 	{
 		Logger::setLogLevel(Logger::OFF);
 		logLevelCheck++;
 	}
 
-	if (argVerbose.isSet())
+	if (parser.isSet(verboseOption))
 	{
 		Logger::setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}
 
-	if (argDebug.isSet())
+	if (parser.isSet(debugOption))
 	{
 		Logger::setLogLevel(Logger::DEBUG);
 		logLevelCheck++;
@@ -100,15 +108,8 @@ int main(int argc, char** argv)
 		Error(log, "aborting, because options --silent --verbose --debug can't used together");
 		return 0;
 	}
-	
-	// check if we need to display the usage. exit if we do.
-	if (argHelp.isSet())
-	{
-		optionParser.usage();
-		return 0;
-	}
 
-	if (argVersion.isSet())
+	if (parser.isSet(versionOption))
 	{
 	std::cout
 		<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
@@ -118,40 +119,93 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (configFiles.size() == 0)
+	if (parser.isSet(exportEfxOption))
 	{
-		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> [config.file ...]");
+		Q_INIT_RESOURCE(EffectEngine);
+		QDir directory(":/effects/");
+		QDir destDir(exportEfxOption.value(parser));
+		if (directory.exists() && destDir.exists())
+		{
+			std::cout << "extract to folder: " << std::endl;
+			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & filename, filenames)
+			{
+				if (QFile::exists(destDir.dirName()+"/"+filename))
+				{
+					QFile::remove(destDir.dirName()+"/"+filename);
+				}
+				
+				std::cout << "Extract: " << filename.toStdString() << " ... ";
+				if (QFile::copy(QString(":/effects/")+filename, destDir.dirName()+"/"+filename))
+				{
+					std::cout << "ok" << std::endl;
+				}
+				else
+				{
+					 std::cout << "error, aborting" << std::endl;
+					 return 1;
+				}
+			}
+			return 0;
+		}
+
+		Error(log, "can not export to %s",exportEfxOption.getCString(parser));
 		return 1;
 	}
 
 	
-	if (argParentPid.getValue() > 0 )
+	bool exportDefaultConfig = false;
+	bool exitAfterexportDefaultConfig = false;
+	QString exportConfigFileTarget;
+	if (parser.isSet(exportConfigOption))
 	{
-		Info(log, "hyperiond client, parent is pid %d",argParentPid.getValue());
+		exportDefaultConfig = true;
+		exitAfterexportDefaultConfig = true;
+		exportConfigFileTarget = exportConfigOption.value(parser);
+	}
+	else if ( configFiles.size() > 0 && ! QFile::exists(configFiles[0]) )
+	{
+		exportDefaultConfig = true;
+		exportConfigFileTarget = configFiles[0];
+		Warning(log, "Your configuration file does not exist. hyperion writes default config");
+	}
+	
+	if (exportDefaultConfig)
+	{
+		Q_INIT_RESOURCE(resource);
+		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
+		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
+		{
+			Info(log, "export complete.");
+			if (exitAfterexportDefaultConfig) return 0;
+		}
+		Error(log, "can not export to %s",exportConfigFileTarget.toLocal8Bit().constData());
+		if (exitAfterexportDefaultConfig) return 1;
+	}
+
+	if (configFiles.size() == 0)
+	{
+		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> config.file");
+		return 1;
+	}
+	if (configFiles.size() > 1)
+	{
+		Warning(log, "You provided more than one config file. Hyperion will use only the first one");
+	}
+
+    int parentPid = parser.value(parentOption).toInt();
+	if (parentPid > 0 )
+	{
+		Info(log, "hyperiond client, parent is pid %d", parentPid);
 #ifndef __APPLE__
 		prctl(PR_SET_PDEATHSIG, SIGHUP);
 #endif
-	}
-	
-	int argvId = -1;
-	for(size_t idx=0; idx < configFiles.size(); idx++) {
-		if ( QFile::exists(configFiles[idx].c_str()))
-		{
-			if (argvId < 0) argvId=idx;
-			else startNewHyperion(getpid(), argv[0], configFiles[idx].c_str());
-		}
-	}
-	
-	if ( argvId < 0)
-	{
-		Error(log, "No valid config found");
-		return 1;
 	}
 
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(QString::fromStdString(configFiles[argvId]), &app);
+		hyperiond = new HyperionDaemon(configFiles[0], &app);
 		hyperiond->run();
 	}
 	catch (std::exception& e)

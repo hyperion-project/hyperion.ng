@@ -1,39 +1,44 @@
-import hyperion
-import time
-import colorsys
+import hyperion, time
 
 # Get the parameters
 rotationTime = float(hyperion.args.get('rotation-time', 3.0))
-brightness = float(hyperion.args.get('brightness', 1.0))
-saturation = float(hyperion.args.get('saturation', 1.0))
-reverse = bool(hyperion.args.get('reverse', False))
+reverse      = bool(hyperion.args.get('reverse', False))
+centerX      = float(hyperion.args.get('center_x', 0.5))
+centerY      = float(hyperion.args.get('center_y', 0.5))
 
-# Check parameters
-rotationTime = max(0.1, rotationTime)
-brightness = max(0.0, min(brightness, 1.0))
-saturation = max(0.0, min(saturation, 1.0))
+sleepTime = max(0.1, rotationTime) / 360
+angle     = 0
+centerX   = int(round(hyperion.imageWidth)*centerX)
+centerY   = int(round(float(hyperion.imageHeight)*centerY))
+increment = -1 if reverse else 1
 
-# Initialize the led data
-ledData = bytearray()
-for i in range(hyperion.ledCount):
-	hue = float(i)/hyperion.ledCount
-	rgb = colorsys.hsv_to_rgb(hue, saturation, brightness)
-	ledData += bytearray((int(255*rgb[0]), int(255*rgb[1]), int(255*rgb[2])))
+# table of stop colors for rainbow gradient, first is the position, next rgb, all values 0-255
+rainbowColors = bytearray([
+	0  ,255,0  ,0, 255,
+	25 ,255,230,0, 255,
+	63 ,255,255,0, 255,
+	100,0  ,255,0, 255,
+	127,0  ,255,200, 255,
+	159,0  ,255,255, 255,
+	191,0  ,0  ,255, 255,
+	224,255,0  ,255, 255,
+	255,255,0  ,127, 255,
+	#0, 255, 0, 0, 255,
+	#42, 255, 255, 0, 255,
+	#85, 0, 255, 0, 255,
+	#128, 0, 255, 255, 255,
+	#170, 0, 0, 255, 255,
+	#212, 255, 0, 255, 255,
+	#255, 255, 0, 0, 255,
+])
 
-# Calculate the sleep time and rotation increment
-increment = 3
-sleepTime = rotationTime / hyperion.ledCount
-while sleepTime < 0.05:
-	increment *= 2
-	sleepTime *= 2
-increment %= hyperion.ledCount
-
-# Switch direction if needed
-if reverse:
-	increment = -increment
-	
-# Start the write data loop
+# effect loop
 while not hyperion.abort():
-	hyperion.setColor(ledData)
-	ledData = ledData[-increment:] + ledData[:-increment]
+	angle += increment
+	if angle > 360: angle=0
+	if angle <   0: angle=360
+
+	hyperion.imageCanonicalGradient(centerX, centerY, angle, rainbowColors)
+
+	hyperion.imageShow()
 	time.sleep(sleepTime)

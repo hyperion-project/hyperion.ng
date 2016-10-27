@@ -41,9 +41,21 @@ MyClass::MyClass() : myVarA(0),
 
 good:
 MyClass::MyClass()
-	: myVarA(0),
+	: myVarA(0)
 	, myVarB("eee")
 	, myVarC(true)
 {
 }
 ```
+
+- pointer declaration
+
+```
+bad:
+int *foo;
+int * fooFoo;
+
+good:
+int* foo;
+```
+

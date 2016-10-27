@@ -47,7 +47,7 @@ void AmlogicWrapper::action()
 	}
 
 	_processor->process(_image, _ledColors);
-	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
+	setColors(_ledColors, _timeout_ms);
 }
 
 void AmlogicWrapper::setVideoMode(const VideoMode mode)

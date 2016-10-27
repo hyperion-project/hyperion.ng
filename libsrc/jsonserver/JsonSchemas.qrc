@@ -14,5 +14,6 @@
         <file alias="schema-sourceselect">schema/schema-sourceselect.json</file>
         <file alias="schema-config">schema/schema-config.json</file>
         <file alias="schema-componentstate">schema/schema-componentstate.json</file>
+        <file alias="schema-ledcolors">schema/schema-ledcolors.json</file>
     </qresource>
 </RCC>

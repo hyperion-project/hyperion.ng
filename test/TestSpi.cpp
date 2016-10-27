@@ -10,7 +10,13 @@
 // Local includes
 #include <utils/ColorRgb.h>
 
+//QT includes
+#include <QJsonObject>
+
 #include "../libsrc/leddevice/LedDeviceWs2801.h"
+
+QJsonObject deviceConfig;
+
 
 void setColor(char* colorStr)
 {
@@ -54,9 +60,10 @@ void setColor(char* colorStr)
 	unsigned ledCnt = 50;
 	std::vector<ColorRgb> buff(ledCnt, color);
 
-	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000, 500000, 0, 0);
+
+	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
-	ledDevice.write(buff);
+	ledDevice.setLedValues(buff);
 }
 
 bool _running = true;
@@ -68,7 +75,7 @@ void doCircle()
 	unsigned ledCnt = 50;
 	std::vector<ColorRgb> data(ledCnt, ColorRgb::BLACK);
 
-	LedDeviceWs2801 ledDevice("/dev/spidev0.0", 40000, 500000, 0, 0);
+	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
 
 	timespec loopTime;
@@ -105,7 +112,7 @@ void doCircle()
 
 		data[curLed_2] = color_2;
 
-		ledDevice.write(data);
+		ledDevice.setLedValues(data);
 
 		nanosleep(&loopTime, NULL);
 	}
@@ -114,7 +121,7 @@ void doCircle()
 	data[curLed_1] = ColorRgb::BLACK;
 	data[curLed_2] = ColorRgb::BLACK;
 
-	ledDevice.write(data);
+	ledDevice.setLedValues(data);
 }
 
 #include <csignal>
@@ -142,6 +149,10 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	deviceConfig["output"] = QString("/dev/spidev0.0");
+	deviceConfig["rate"] = 40000;
+	deviceConfig["latchtime"] = 500000;
+
 	if (strncmp("fixed", argv[1], 5) == 0)
 	{
 		setColor(argv[2]);
@@ -158,4 +169,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-

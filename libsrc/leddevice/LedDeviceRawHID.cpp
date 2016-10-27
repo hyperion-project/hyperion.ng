@@ -1,21 +1,14 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceRawHID.h"
 
 // Use feature report HID device
-LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
-	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, true)
+LedDeviceRawHID::LedDeviceRawHID(const QJsonObject &deviceConfig)
+	: ProviderHID()
 	, _timer()
 {
+	ProviderHID::init(deviceConfig);
+	_useFeature = true;
+	_ledBuffer.resize(_ledRGBCount);
+
 	// setup the timer
 	_timer.setSingleShot(false);
 	_timer.setInterval(5000);
@@ -25,28 +18,18 @@ LedDeviceRawHID::LedDeviceRawHID(const unsigned short VendorId, const unsigned s
 	_timer.start();
 }
 
-int LedDeviceRawHID::write(const std::vector<ColorRgb> & ledValues)
+LedDevice* LedDeviceRawHID::construct(const QJsonObject &deviceConfig)
 {
-	// Resize buffer if required
-	if (_ledBuffer.size() < ledValues.size() * 3) {
-		_ledBuffer.resize(3 * ledValues.size());
-	}
-
-	// restart the timer
-	_timer.start();
-
-	// write data
-	memcpy(_ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return new LedDeviceRawHID(deviceConfig);
 }
 
-int LedDeviceRawHID::switchOff()
+int LedDeviceRawHID::write(const std::vector<ColorRgb> & ledValues)
 {
 	// restart the timer
 	_timer.start();
 
 	// write data
-	std::fill(_ledBuffer.begin(), _ledBuffer.end(), uint8_t(0));
+	memcpy(_ledBuffer.data(), ledValues.data(), _ledRGBCount);
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 

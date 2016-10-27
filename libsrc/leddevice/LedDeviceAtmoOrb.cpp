@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 
 #include <stdexcept>
+#include <sstream>
 #include <string>
 #include <set>
 
@@ -15,23 +16,10 @@ AtmoOrbLight::AtmoOrbLight(unsigned int id) {
 	// Not implemented
 }
 
-LedDeviceAtmoOrb::LedDeviceAtmoOrb(
-		const std::string &output,
-		bool useOrbSmoothing,
-		int transitiontime,
-		int skipSmoothingDiff,
-		int port,
-		int numLeds,
-		std::vector<unsigned int> orbIds)
+LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	: LedDevice()
-	, _multicastGroup(output.c_str())
-	, _useOrbSmoothing(useOrbSmoothing)
-	, _transitiontime(transitiontime)
-	, _skipSmoothingDiff(skipSmoothingDiff)
-	, _multiCastGroupPort(port)
-	, _numLeds(numLeds)
-	, _orbIds(orbIds)
 {
+	init(deviceConfig);
 	_manager = new QNetworkAccessManager();
 	_groupAddress = QHostAddress(_multicastGroup);
 
@@ -39,6 +27,44 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(
 	_udpSocket->bind(QHostAddress::Any, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
 	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+}
+
+bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
+{
+	_multicastGroup     = deviceConfig["output"].toString().toStdString().c_str();
+	_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
+	_transitiontime     = deviceConfig["transitiontime"].toInt(0);
+	_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
+	_multiCastGroupPort = deviceConfig["port"].toInt(49692);
+	_numLeds            = deviceConfig["numLeds"].toInt(24);
+	
+	const std::string orbId = deviceConfig["orbIds"].toString().toStdString();
+	_orbIds.clear();
+
+	// If we find multiple Orb ids separate them and add to list
+	const std::string separator (",");
+	if (orbId.find(separator) != std::string::npos)
+	{
+		std::stringstream ss(orbId);
+		std::vector<int> output;
+		unsigned int i;
+		while (ss >> i)
+		{
+			_orbIds.push_back(i);
+			if (ss.peek() == ',' || ss.peek() == ' ') ss.ignore();
+		}
+	}
+	else
+	{
+		_orbIds.push_back(atoi(orbId.c_str()));
+	}
+
+	return true;
+}
+
+LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceAtmoOrb(deviceConfig);
 }
 
 int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
@@ -141,30 +167,11 @@ void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 	_udpSocket->writeDatagram(datagram.data(), datagram.size(), _groupAddress, _multiCastGroupPort);
 }
 
-int LedDeviceAtmoOrb::switchOff() {
-	for (unsigned int i = 0; i < _orbIds.size(); i++)
+int LedDeviceAtmoOrb::switchOff()
+{
+	for (auto orbId : _orbIds)
 	{
-		QByteArray bytes;
-		bytes.resize(5 + _numLeds * 3);
-		bytes.fill('\0');
-
-		// Command identifier: C0FFEE
-		bytes[0] = 0xC0;
-		bytes[1] = 0xFF;
-		bytes[2] = 0xEE;
-
-		// Command type
-		bytes[3] = 1;
-
-		// Orb ID
-		bytes[4] = _orbIds[i];
-
-		// RED / GREEN / BLUE
-		bytes[5] = 0;
-		bytes[6] = 0;
-		bytes[7] = 0;
-
-		sendCommand(bytes);
+		setColor(orbId, ColorRgb::BLACK, 1);
 	}
 	return 0;
 }
