@@ -1053,16 +1053,16 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 		{
 			QJsonObject internal;
 			internal.insert("script", effectSchema.pyFile);
-			internal.insert("schema-location", effectSchema.schemaFile);
-			internal.insert("schema-content", effectSchema.pySchema);
+			internal.insert("schemaLocation", effectSchema.schemaFile);
+			internal.insert("schemaContent", effectSchema.pySchema);
 			in.append(internal);
 		}
 		else
 		{
 			QJsonObject external;
 			external.insert("script", effectSchema.pyFile);
-			external.insert("schema-location", effectSchema.schemaFile);
-			external.insert("schema-content", effectSchema.pySchema);
+			external.insert("schemaLocation", effectSchema.schemaFile);
+			external.insert("schemaContent", effectSchema.pySchema);
 			ex.append(external);
 		}
 	}
