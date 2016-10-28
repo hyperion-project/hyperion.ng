@@ -78,7 +78,7 @@ brew install doxygen
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON  -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.6.1-1 ..
+cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON  -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
 ```
 
 # Run make to build Hyperion

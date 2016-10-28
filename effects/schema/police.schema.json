@@ -1,0 +1,54 @@
+{
+	"type":"object",
+	"script" : "police.py",
+	"title":"Police",
+	"required":true,
+	"properties":{
+		"color_one": {
+			"type": "array",
+			"title":"Color one",
+			"default": "255,0,0",
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"color_two": {
+			"type": "array",
+			"title":"Color two",
+			"default": "0,0,255",
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
+		"colors_count": {
+			"type": "integer",
+			"title":"Colors count",
+			"default": "10",
+			"propertyOrder" : 3
+		},
+		"rotation-time": {
+			"type": "number",
+			"title":"Rotation time",
+			"default": 2.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 4
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"Reverse direction",
+			"default": false,
+			"propertyOrder" : 5
+		}
+	},
+	"additionalProperties": false
+}

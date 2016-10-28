@@ -29,6 +29,7 @@
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
+#include <effectengine/EffectSchema.h>
 
 // KodiVideoChecker includes
 #include <kodivideochecker/KODIVideoChecker.h>
@@ -125,6 +126,10 @@ public:
 	/// Get the list of active effects
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
+	
+	/// Get the list of available effect schema files
+	/// @return The list of available effect schema files
+	const std::list<EffectSchema> &getEffectSchemas();
 	
 	/// gets the current json config object
 	/// @return json config

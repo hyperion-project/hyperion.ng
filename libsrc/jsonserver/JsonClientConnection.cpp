@@ -20,6 +20,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QVariantMap>
+#include <QDir>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -282,6 +283,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleImageCommand(message, command, tan);
 		else if (command == "effect")
 			handleEffectCommand(message, command, tan);
+		else if (command == "create-effect")
+			handleCreateEffectCommand(message, command, tan);
 		else if (command == "serverinfo")
 			handleServerInfoCommand(message, command, tan);
 		else if (command == "clear")
@@ -432,6 +435,65 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 
 	// send reply
 	sendSuccessReply(command, tan);
+}
+
+void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	struct find_schema: std::unary_function<EffectSchema, bool>
+	{
+		QString pyFile;
+		find_schema(QString pyFile):pyFile(pyFile) { }
+		bool operator()(EffectSchema const& schema) const
+		{
+			return schema.pyFile == pyFile;
+		}
+	};
+
+	if(message.size() > 0)
+	{
+		if (!message["args"].toObject().isEmpty())
+		{
+			QString scriptName;
+			(message["script"].toString().mid(0, 1)  == ":" )
+				? scriptName = ":/effects//" + message["script"].toString().mid(1)
+				: scriptName = message["script"].toString();
+			
+			std::list<EffectSchema> effectsSchemas = _hyperion->getEffectSchemas();
+			std::list<EffectSchema>::iterator it = std::find_if(effectsSchemas.begin(), effectsSchemas.end(), find_schema(scriptName));
+			
+			if (it != effectsSchemas.end())
+			{
+				QString errors;
+				
+				if (!checkJson(message["args"].toObject(), it->schemaFile, errors))
+				{
+					sendErrorReply("Error while validating json: " + errors, command, tan);
+					return;
+				}
+				
+				QJsonObject effectJson;
+				QJsonArray effectArray;
+				effectArray = _hyperion->getQJsonConfig()["effects"].toObject()["paths"].toArray();
+				
+				if (effectArray.size() > 0)
+				{
+					effectJson["name"] = message["name"].toString();
+					effectJson["script"] = message["script"].toString();
+					effectJson["args"] = message["args"].toObject();
+					QJsonFactory::writeJson(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"), effectJson);
+				} else
+				{
+					sendErrorReply("Can't save new effect. Effect path empty", command, tan);
+					return;
+				}
+				
+				sendSuccessReply(command, tan);
+			} else
+				sendErrorReply("Missing schema file for Python script " + message["script"].toString(), command, tan);
+		} else
+			sendErrorReply("Missing or empty Object 'args'", command, tan);
+	} else
+		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
@@ -939,7 +1001,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	Q_INIT_RESOURCE(resource);
 	QJsonParseError error;
 
-	// read the json schema from the resource
+	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema");
 	
 	if (!schemaData.open(QIODevice::ReadOnly))
@@ -976,10 +1038,43 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	
 	schemaJson = doc.object();
 	
-	//QJsonObject.insert can not merge. See details: http://doc.qt.io/qt-5/qjsonobject.html#insert
+	// collect all LED Devices
 	properties = schemaJson["properties"].toObject();
 	alldevices = LedDevice::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
+	
+	// collect all available effect schemas
+	QJsonObject pyEffectSchemas, pyEffectSchema;
+	QJsonArray in, ex;
+	const std::list<EffectSchema> & effectsSchemas = _hyperion->getEffectSchemas();
+	for (const EffectSchema & effectSchema : effectsSchemas)
+	{
+		if (effectSchema.pyFile.mid(0, 1)  == ":")
+		{
+			QJsonObject internal;
+			internal.insert("script", effectSchema.pyFile);
+			internal.insert("schema-location", effectSchema.schemaFile);
+			internal.insert("schema-content", effectSchema.pySchema);
+			in.append(internal);
+		}
+		else
+		{
+			QJsonObject external;
+			external.insert("script", effectSchema.pyFile);
+			external.insert("schema-location", effectSchema.schemaFile);
+			external.insert("schema-content", effectSchema.pySchema);
+			ex.append(external);
+		}
+	}
+	
+	if (!in.empty())
+		pyEffectSchema.insert("internal", in);
+	if (!ex.empty())
+		pyEffectSchema.insert("external", ex);
+	
+	pyEffectSchemas = pyEffectSchema;
+	properties.insert("effectSchemas", pyEffectSchemas);
+
 	schemaJson.insert("properties", properties);
 	
 	result["result"] = schemaJson;
