@@ -95,6 +95,7 @@ function createJsonEditor(container,schema,setconfig)
 		form_name_root: 'sa',
 		disable_edit_json: 'true',
 		disable_properties: 'true',
+		disable_array_reorder: 'true',
 		no_additional_properties: 'true',
 		schema: {
 			title:'',
