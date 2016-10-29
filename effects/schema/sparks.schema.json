@@ -26,21 +26,21 @@
 		},
 		"sleep-time": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"Sleep time",
 			"default": 0.05,
 			"minimum" : 0.01,
 			"propertyOrder" : 3
 		},
 		"brightness": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"Brightness",
 			"default": 1.0,
 			"minimum" : 0.01,
 			"propertyOrder" : 4
 		},
 		"saturation": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"Saturation",
 			"default": 1.0,
 			"minimum" : 0.01,
 			"propertyOrder" : 5
