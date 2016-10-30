@@ -83,11 +83,14 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceLpd8806(const Json::Value &deviceConfig);
+	LedDeviceLpd8806(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+	virtual bool init(const QJsonObject &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -95,7 +98,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

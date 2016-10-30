@@ -42,6 +42,7 @@ public:
     QString value(Parser &parser);
     std::string getStdString(Parser &parser);
     std::wstring getStdWString(Parser &parser);
+    const char* getCString(Parser &parser);
 };
 
 }

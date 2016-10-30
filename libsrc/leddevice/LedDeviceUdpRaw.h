@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderUdp.h"
 
@@ -17,17 +14,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceUdpRaw(const Json::Value &deviceConfig);
-
-	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	LedDeviceUdpRaw(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -36,7 +26,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

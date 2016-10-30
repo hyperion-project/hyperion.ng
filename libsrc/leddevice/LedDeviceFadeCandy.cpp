@@ -6,10 +6,10 @@ static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
 
-LedDeviceFadeCandy::LedDeviceFadeCandy(const Json::Value &deviceConfig)
+LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
 : LedDevice()
 {
-	setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 
@@ -18,43 +18,49 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 	_client.close();
 }
 
-LedDevice* LedDeviceFadeCandy::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceFadeCandy(deviceConfig);
 }
 
 
-bool LedDeviceFadeCandy::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 {
 	_client.close();
 
-	_host        = deviceConfig.get("output", "127.0.0.1").asString();
-	_port        = deviceConfig.get("port", 7890).asInt();
-	_channel     = deviceConfig.get("channel", 0).asInt();
-	_gamma       = deviceConfig.get("gamma", 1.0).asDouble();
-	_noDither    = ! deviceConfig.get("dither", false).asBool();
-	_noInterp    = ! deviceConfig.get("interpolation", false).asBool();
-	_manualLED   = deviceConfig.get("manualLed", false).asBool();
-	_ledOnOff    = deviceConfig.get("ledOn", false).asBool();
-	_setFcConfig = deviceConfig.get("setFcConfig", false).asBool();
+	if (_ledCount > MAX_NUM_LEDS)
+	{
+		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
+		return false;
+	}
+
+	_host        = deviceConfig["output"].toString("127.0.0.1").toStdString();
+	_port        = deviceConfig["port"].toInt(7890);
+	_channel     = deviceConfig["channel"].toInt(0);
+	_gamma       = deviceConfig["gamma"].toDouble(1.0);
+	_noDither    = ! deviceConfig["dither"].toBool(false);
+	_noInterp    = ! deviceConfig["interpolation"].toBool(false);
+	_manualLED   = deviceConfig["manualLed"].toBool(false);
+	_ledOnOff    = deviceConfig["ledOn"].toBool(false);
+	_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
 
 	_whitePoint_r = 1.0;
 	_whitePoint_g = 1.0;
 	_whitePoint_b = 1.0;
 
-	const Json::Value whitePointConfig = deviceConfig["whitePoint"];
-	if ( whitePointConfig.isArray() && whitePointConfig.size() == 3 )
+	const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
+	if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
 	{
-		_whitePoint_r = whitePointConfig[0].asDouble();
-		_whitePoint_g = whitePointConfig[1].asDouble();
-		_whitePoint_b = whitePointConfig[2].asDouble();
+		_whitePoint_r = whitePointConfig[0].toDouble();
+		_whitePoint_g = whitePointConfig[1].toDouble();
+		_whitePoint_b = whitePointConfig[2].toDouble();
 	}
 
-	_opc_data.resize( OPC_HEADER_SIZE );
+	_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
 	_opc_data[0] = _channel;
 	_opc_data[1] = OPC_SET_PIXELS;
-	_opc_data[2] = 0;
-	_opc_data[3] = 0;
+	_opc_data[2] = _ledRGBCount >> 8;
+	_opc_data[3] = _ledRGBCount & 0xff;
 
 	return true;
 }
@@ -85,22 +91,6 @@ bool LedDeviceFadeCandy::tryConnect()
 
 int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 {
-	ssize_t nrLedValues = ledValues.size();
-	ssize_t led_data_size = nrLedValues * 3;    // 3 color bytes
-	ssize_t opc_data_size = led_data_size + OPC_HEADER_SIZE;
-
-	if (nrLedValues > MAX_NUM_LEDS)
-	{
-		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
-		return -1;
-	}
-
-	if ( opc_data_size != _opc_data.size() )
-		_opc_data.resize( opc_data_size );
-
-	_opc_data[2] = led_data_size >> 8;
-	_opc_data[3] = led_data_size & 0xff;
-
 	uint idx = OPC_HEADER_SIZE;
 	for (const ColorRgb& color : ledValues)
 	{
@@ -120,15 +110,6 @@ int LedDeviceFadeCandy::transferData()
 		return _client.write( _opc_data, _opc_data.size() );
 
 	return -2;
-}
-
-
-int LedDeviceFadeCandy::switchOff()
-{
-	for ( int idx=OPC_HEADER_SIZE; idx < _opc_data.size(); idx++ )
-		_opc_data[idx] = 0;
-
-	return ( transferData()<0 ? -1 : 0 );
 }
 
 int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg)

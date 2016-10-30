@@ -1,8 +1,10 @@
-#include <string>
+#pragma once
+
+#include <QString>
 
 namespace FileUtils {
 
-std::string getBaseName( std::string sourceFile);
-std::string command_exec(const char* cmd);
+QString getBaseName( QString sourceFile);
+QString getDirName( QString sourceFile);
 
 };

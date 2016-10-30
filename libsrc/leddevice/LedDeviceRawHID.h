@@ -1,8 +1,5 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // Qt includes
 #include <QTimer>
 
@@ -22,11 +19,16 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceRawHID(const Json::Value &deviceConfig);
+	LedDeviceRawHID(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+private slots:
+	/// Write the last data to the leds again
+	void rewriteLeds();
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -35,14 +37,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private slots:
-	/// Write the last data to the leds again
-	void rewriteLeds();
-
-private:
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// The RawHID device will switch off when it does not receive data at least
 	/// every 15 seconds

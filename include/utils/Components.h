@@ -16,7 +16,9 @@ enum Components
 	COMP_UDPLISTENER,
 	COMP_BOBLIGHTSERVER,
 	COMP_GRABBER,
-	COMP_V4L
+	COMP_V4L,
+	COMP_COLOR,
+	COMP_EFFECT
 };
 
 inline const char* componentToString(Components c)
@@ -30,7 +32,9 @@ inline const char* componentToString(Components c)
 		case COMP_UDPLISTENER:   return "UDP listener";
 		case COMP_BOBLIGHTSERVER:return "Boblight server";
 		case COMP_GRABBER:       return "Framegrabber";
-		case COMP_V4L:           return "V4l Capture device";
+		case COMP_V4L:           return "V4L capture device";
+		case COMP_COLOR:         return "solid color";
+		case COMP_EFFECT:        return "effect";
 		default:                 return "";
 	}
 }
@@ -47,6 +51,8 @@ inline const char* componentToIdString(Components c)
 		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
 		case COMP_GRABBER:       return "GRABBER";
 		case COMP_V4L:           return "V4L";
+		case COMP_COLOR:         return "COLOR";
+		case COMP_EFFECT:        return "EFFECT";
 		default:                 return "";
 	}
 }
@@ -62,6 +68,8 @@ inline  Components stringToComponent(QString component)
 	if (component == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
 	if (component == "GRABBER")       return COMP_GRABBER;
 	if (component == "V4L")           return COMP_V4L;
+	if (component == "COLOR")         return COMP_COLOR;
+	if (component == "EFFECT")        return COMP_EFFECT;
 
 	return COMP_INVALID;
 }

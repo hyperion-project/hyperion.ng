@@ -17,7 +17,6 @@
 
 #include "HyperionConfig.h"
 
-#include <utils/jsonschema/JsonFactory.h> // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Components.h>
 
@@ -53,9 +52,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _hyperion(nullptr)
 {
 	loadConfig(configFile);
-	
-	_hyperion = Hyperion::initInstance(_config, configFile.toStdString());
-	
+
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
 		if (_qconfig.contains("logger"))
@@ -75,6 +72,8 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
 	}
 	
+	_hyperion = Hyperion::initInstance(_qconfig, configFile.toStdString());
+
 	Info(_log, "Hyperion initialised");
 }
 
@@ -136,6 +135,7 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
+	schemaData.close();
 	
 	if (error.error != QJsonParseError::NoError)
 	{
@@ -161,7 +161,6 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson.object());
 
-	_config  = JsonFactory::readJson(configFile.toStdString()); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	_qconfig = QJsonFactory::readJson(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
@@ -182,7 +181,7 @@ void HyperionDaemon::startInitialEffect()
 	Hyperion *hyperion = Hyperion::getInstance();
 
 	// create boot sequence if the configuration is present
-	if (_config.isMember("initialEffect"))
+	if (_qconfig.contains("initialEffect"))
 	{
 		const QJsonObject & effectConfig = _qconfig["initialEffect"].toObject();
 		const int FG_PRIORITY = 0;
@@ -213,12 +212,12 @@ void HyperionDaemon::startInitialEffect()
 		}
 		else if (! fgEffectConfig.isNull() && fgEffectConfig.isArray() && FGCONFIG_ARRAY.size() == 1 && FGCONFIG_ARRAY.at(0).isString())
 		{
-			const std::string fgEffectName = FGCONFIG_ARRAY.at(0).toString().toStdString();
+			const QString fgEffectName = FGCONFIG_ARRAY.at(0).toString();
 			int result = effectConfig.contains("foreground-effect-args")
 //			           ? hyperion->setEffect(fgEffectName, effectConfig["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(fgEffectName, _config["initialEffect"]["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
+			           ? hyperion->setEffect(fgEffectName, _qconfig["initialEffect"].toObject()["foreground-effect-args"].toObject(), FG_PRIORITY, fg_duration_ms)
 			           : hyperion->setEffect(fgEffectName, FG_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
 
 		// initial background effect/color
@@ -235,12 +234,12 @@ void HyperionDaemon::startInitialEffect()
 		}
 		else if (! bgEffectConfig.isNull() && bgEffectConfig.isArray() && BGCONFIG_ARRAY.size() == 1 && BGCONFIG_ARRAY.at(0).isString())
 		{
-			const std::string bgEffectName = BGCONFIG_ARRAY.at(0).toString().toStdString();
+			const QString bgEffectName = BGCONFIG_ARRAY.at(0).toString();
 			int result = effectConfig.contains("background-effect-args")
 //			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], BG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(bgEffectName, _config["initialEffect"]["background-effect-args"], BG_PRIORITY, DURATION_INFINITY)
+			           ? hyperion->setEffect(bgEffectName, _qconfig["initialEffect"].toObject()["background-effect-args"].toObject(), BG_PRIORITY, DURATION_INFINITY)
 			           : hyperion->setEffect(bgEffectName, BG_PRIORITY, DURATION_INFINITY);
-			Info(_log,"Inital background effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital background effect '%s' %s", bgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	
@@ -548,13 +547,13 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 void HyperionDaemon::createGrabberV4L2()
 {
 	// construct and start the v4l2 grabber if the configuration is present
-	bool v4lConfigured = _qconfig.contains("grabber-v4l2");
+	bool v4lConfigured = _qconfig.contains("grabberV4L2");
 	bool v4lStarted = false;
 	unsigned v4lEnableCount = 0;
 	
-	if (_qconfig["grabber-v4l2"].isArray())
+	if (_qconfig["grabberV4L2"].isArray())
 	{
-		const QJsonArray & v4lArray = _qconfig["grabber-v4l2"].toArray();
+		const QJsonArray & v4lArray = _qconfig["grabberV4L2"].toArray();
 		for ( signed idx=0; idx<v4lArray.size(); idx++)
 		{
 			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();

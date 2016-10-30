@@ -12,7 +12,7 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)
+/// LedDevice implementation for a USBasp programmer with modified firmware (https://github.com/poljvd/hyperion-usbasp)
 ///
 class LedDeviceHyperionUsbasp : public LedDevice
 {
@@ -28,17 +28,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceHyperionUsbasp(const Json::Value &deviceConfig);
+	LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -52,6 +52,7 @@ public:
 	///
 	int open();
 
+protected:
 	///
 	/// Writes the RGB-Color values to the leds.
 	///
@@ -61,14 +62,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues);
 
-	///
-	/// Switch the leds off
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
-
-private:
 	///
 	/// Test if the device is a Hyperion Usbasp device
 	///
@@ -80,7 +73,6 @@ private:
 
 	static std::string getString(libusb_device * device, int stringDescriptorIndex);
 
-private:
 	/// command to write the leds
 	uint8_t _writeLedsCommand;
 
@@ -93,5 +85,5 @@ private:
 	/// Usb device identifiers
 	static uint16_t     _usbVendorId;
 	static uint16_t     _usbProductId;
-	static std::string _usbProductDescription;
+	static std::string  _usbProductDescription;
 };

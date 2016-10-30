@@ -1,13 +1,9 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // Qt includes
-#include <QObject>
-#include <QString>
 #include <QNetworkAccessManager>
 #include <QTimer>
+
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -119,7 +115,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePhilipsHue(const Json::Value &deviceConfig);
+	LedDevicePhilipsHue(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this device
@@ -131,11 +127,19 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 	
+	/// Restores the original state of the leds.
+	virtual int switchOff();
+
+private slots:
+	/// Restores the status of all lights.
+	void restoreStates();
+
+private:
 	///
 	/// Sends the given led-color values via put request to the hue system
 	///
@@ -145,14 +149,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Restores the original state of the leds.
-	virtual int switchOff();
-
-private slots:
-	/// Restores the status of all lights.
-	void restoreStates();
-
-private:
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> lights;
 	/// Ip address of the bridge

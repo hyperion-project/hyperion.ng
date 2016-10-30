@@ -22,9 +22,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	LedDeviceMultiLightpack(const Json::Value &);
+	LedDeviceMultiLightpack(const QJsonObject &);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -32,7 +30,7 @@ public:
 	virtual ~LedDeviceMultiLightpack();
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Opens and configures the output device7
@@ -42,6 +40,14 @@ public:
 	int open();
 
 	///
+	/// Switch the leds off
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int switchOff();
+
+private:
+	///
 	/// Writes the RGB-Color values to the leds.
 	///
 	/// @param[in] ledValues  The RGB-color per led
@@ -50,18 +56,9 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues);
 
-	///
-	/// Switch the leds off
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
-
-private:
 	static std::list<std::string> getLightpackSerials();
 	static std::string getString(libusb_device * device, int stringDescriptorIndex);
 
-private:
 	/// buffer for led data
 	std::vector<LedDeviceLightpack *> _lightpacks;
 };

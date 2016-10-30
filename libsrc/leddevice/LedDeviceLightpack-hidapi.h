@@ -37,15 +37,6 @@ public:
 	///
 	/// Writes the RGB-Color values to the leds.
 	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
 	/// @param[in] ledValues  Array of RGB values
 	/// @param[in] size       The number of RGB values
 	///
@@ -68,6 +59,15 @@ public:
 
 private:
 	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues);
+
+	///
 	/// Test if the device is a (or the) lightpack we are looking for
 	///
 	/// @return Zero on succes else negative
@@ -86,7 +86,6 @@ private:
 		int minorVersion;
 	};
 
-private:
 	/// libusb device handle
 	hid_device * _deviceHandle;
 
@@ -97,11 +96,8 @@ private:
 	Version _firmwareVersion;
 
 	/// the number of leds of the device
-	int _ledCount;
+	int _hwLedCount;
 
 	/// the number of bits per channel
 	int _bitsPerChannel;
-
-	/// buffer for led data
-	std::vector<uint8_t> _ledBuffer;
 };

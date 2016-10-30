@@ -10,19 +10,13 @@
 		"subcommand": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["getconfig","setconfig","getschema"]
+			"enum" : ["getconfig","setconfig","getschema","reload"]
 		},
 		"tan" : {
 			"type" : "integer"
 		},
 		"config": {
 			"type" : "object"
-		},
-		"create": {
-			"type" : "boolean"
-		},
-		"overwrite": {
-			"type" : "boolean"
 		}
 	},
 	"additionalProperties": false

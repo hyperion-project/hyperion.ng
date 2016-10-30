@@ -26,8 +26,8 @@ add_executable(${PROJECT_NAME}
 	${hyperion-remote_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
-    commandline
-	jsoncpp
+	effectengine
+	commandline
 	${QT_LIBRARIES})
 
 qt5_use_modules(${PROJECT_NAME} Gui Core Network)

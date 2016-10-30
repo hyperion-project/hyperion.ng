@@ -47,3 +47,15 @@ MyClass::MyClass()
 {
 }
 ```
+
+- pointer declaration
+
+```
+bad:
+int *foo;
+int * fooFoo;
+
+good:
+int* foo;
+```
+

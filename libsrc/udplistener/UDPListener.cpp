@@ -130,6 +130,6 @@ void UDPListener::processTheDatagram(const QByteArray * datagram)
 		rgb.blue = datagram->at(ledIndex*3+2);
 	}
 
-	_hyperion->setColors(_priority, _ledColors, _timeout, -1);
+	_hyperion->setColors(_priority, _ledColors, _timeout, -1, hyperion::COMP_UDPLISTENER);
 
 }

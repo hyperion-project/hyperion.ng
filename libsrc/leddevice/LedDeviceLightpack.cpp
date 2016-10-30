@@ -41,14 +41,14 @@ LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
 	, _serialNumber(serialNumber)
 	, _firmwareVersion({-1,-1})
 	, _bitsPerChannel(-1)
+	, _hwLedCount(-1)
 {
-	_ledCount = -1;
 }
 
-LedDeviceLightpack::LedDeviceLightpack(const Json::Value &deviceConfig)
-	: LedDeviceLightpack()
+LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
+	: LedDevice()
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceLightpack::~LedDeviceLightpack()
@@ -69,14 +69,14 @@ LedDeviceLightpack::~LedDeviceLightpack()
 	}
 }
 
-bool LedDeviceLightpack::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 {
-	_serialNumber = deviceConfig.get("output", "").asString();
+	_serialNumber = deviceConfig["output"].toString("").toStdString();
 
 	return true;
 }
 
-LedDevice* LedDeviceLightpack::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceLightpack::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceLightpack(deviceConfig);
 }
@@ -207,11 +207,11 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 				// determine the number of leds
 				if (_firmwareVersion.majorVersion == 4)
 				{
-					_ledCount = 8;
+					_hwLedCount = 8;
 				}
 				else
 				{
-					_ledCount = 10;
+					_hwLedCount = 10;
 				}
 
 				// determine the bits per channel
@@ -226,7 +226,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 				}
 
 				// set the led buffer size (command + 6 bytes per led)
-				_ledBuffer = std::vector<uint8_t>(1 + _ledCount * 6, 0);
+				_ledBuffer = std::vector<uint8_t>(1 + _hwLedCount * 6, 0);
 				_ledBuffer[0] = CMD_UPDATE_LEDS;
 
 				// return success
@@ -251,7 +251,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = std::min(_ledCount, size);
+	int count = std::min(_hwLedCount, _ledCount);
 
 	for (int i = 0; i < count ; ++i)
 	{

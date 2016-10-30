@@ -1,13 +1,13 @@
 
 function bindNavToContent(containerId, fileName, loadNow)
 {
-	$("#page-wrapper").off();
+	$("#page-content").off();
 	$(containerId).on("click", function() {
-		$("#page-wrapper").load("/content/"+fileName+".html");
+		$("#page-content").load("/content/"+fileName+".html");
 	});
 	if (loadNow)
 	{
-		$("#page-wrapper").load("/content/"+fileName+".html");
+		$(containerId).trigger("click");
 	}
 }
 
@@ -47,18 +47,75 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
-function showErrorDialog(header,message)
+function showInfoDialog(type,header,message)
 {
-	$('#error_dialog .modal-title').html(header);
-	$('#error_dialog .modal-body').html(message);
-	$('#error_dialog').modal('show');
+	$('#modal_dialog .modal-bodytitle').html(header);
+	$('#modal_dialog .modal-bodycontent').html(message);
+	
+	if (type=="success"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-check modal-icon-check">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="warning"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-warning">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="error"){	
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-error">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">OK</button>');
+	}	
+	$('#modal_dialog').modal('show');
+	
 }
 
-function isJsonString(str) {
-	try {
+function isJsonString(str)
+{
+	try
+	{
 		JSON.parse(str);
-	} catch (e) {
+	}
+	catch (e)
+	{
 		return e;
 	}
 	return "";
+}
+
+
+function createJsonEditor(container,schema,setconfig)
+{
+	$('#'+container).off();
+	$('#'+container).html("");
+
+	var editor = new JSONEditor(document.getElementById(container),
+	{
+		theme: 'bootstrap3',
+		iconlib: "fontawesome4",
+		disable_collapse: 'true',
+		form_name_root: 'sa',
+		disable_edit_json: 'true',
+		disable_properties: 'true',
+		disable_array_reorder: 'true',
+		no_additional_properties: 'true',
+		schema: {
+			title:'',
+			properties: schema
+		}
+	});
+
+	$('#editor_container .well').css("background-color","white");
+	$('#editor_container .well').css("border","none");
+	$('#editor_container .well').css("box-shadow","none");
+	$('#editor_container .btn').addClass("btn-primary");
+	$('#editor_container h3').first().remove();
+
+	if (setconfig)
+	{
+		for(var key in editor.root.editors)
+		{
+			editor.getEditor("root."+key).setValue( parsedConfJSON[key] );
+		}
+	}
+
+	return editor;
 }

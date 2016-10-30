@@ -38,10 +38,10 @@ var cronId = 0;
 var ledStreamActive=false;
 var watchdog = 0;
 
-// 
+//
 function cron()
 {
-	if ( watchdog > 3)
+	if ( watchdog > 2)
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -67,7 +67,7 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
-					
+
 					$(hyperion).on("cmd-serverinfo", function(event) {
 						watchdog = 0;
 					});
@@ -155,6 +155,10 @@ function requestServerConfig() {
 	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
 }
 
+function requestServerConfigReload() {
+	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"reload"}');
+}
+
 function requestLedColorsStart() {
 	ledStreamActive=true;
 	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
@@ -183,7 +187,7 @@ function requestSetComponentState(comp, state){
 	console.log(comp+' state: '+state_str);
 }
 
-function requestSetSource( prio )
+function requestSetSource(prio)
 {
 	if ( prio == "auto" )
 		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "auto" : true}');
@@ -191,3 +195,21 @@ function requestSetSource( prio )
 		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
 }
 
+function requestWriteConfig(config)
+{
+	var complete_config = parsedConfJSON;
+	jQuery.each(config, function(i, val) {
+		complete_config[i] = val;
+	});
+	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(complete_config)+'}');
+}
+
+function requestWriteEffect(effectName,effectPy,effectArgs)
+{
+	var cutArgs = effectArgs.slice(1, -1);
+	websocket.send('{"command":"create-effect","name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+'}');
+}
+
+function requestTestEffect(effectName,effectPy,effectArgs) {
+	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+}

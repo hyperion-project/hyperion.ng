@@ -1,11 +1,8 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
 #include "ProviderSpi.h"
-#include <json/json.h>
+
 
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.
@@ -16,14 +13,13 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	LedDeviceAPA102(const Json::Value &deviceConfig);
+	LedDeviceAPA102(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-
+	virtual bool init(const QJsonObject &deviceConfig);
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -31,7 +27,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

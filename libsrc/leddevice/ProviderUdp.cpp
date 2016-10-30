@@ -15,11 +15,11 @@
 // Local Hyperion includes
 #include "ProviderUdp.h"
 
-ProviderUdp::ProviderUdp(const Json::Value &deviceConfig)
+ProviderUdp::ProviderUdp()
 	: LedDevice()
 	, _LatchTime_ns(-1)
+	, _port(1)
 {
-	setConfig(deviceConfig);
 	_udpSocket = new QUdpSocket();
 }
 
@@ -28,27 +28,37 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::setConfig(const Json::Value &deviceConfig)
+bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
 {
-	if (_address.setAddress( QString::fromStdString(deviceConfig["host"].asString()) ) )
+	QString host = deviceConfig["host"].toString(QString::fromStdString(defaultHost));
+	
+	if (_address.setAddress(host) )
 	{
-		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].asString().c_str());
+		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
 	}
 	else
 	{
-		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].asString().c_str());
-		QHostInfo info = QHostInfo::fromName( QString::fromStdString(deviceConfig["host"].asString()) );
+		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
+		QHostInfo info = QHostInfo::fromName(host);
 		if (info.addresses().isEmpty())
 		{
-			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].asString().c_str());
+			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
 			throw std::runtime_error("invalid target address");
 		}
-		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
+		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
 		_address = info.addresses().first();
 	}
-	_port    = deviceConfig["port"].asUInt();
+
+	_port = deviceConfig["port"].toInt(_port);
+	if ( _port<=0 || _port > 65535)
+	{
+		throw std::runtime_error("invalid target port");
+	}
+	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
+	_LatchTime_ns = deviceConfig["latchtime"].toInt(_LatchTime_ns);
+
 	return true;
 }
 

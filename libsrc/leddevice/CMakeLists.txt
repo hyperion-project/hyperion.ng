@@ -33,8 +33,10 @@ SET(Leddevice_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
 	${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.h
 	${CURRENT_SOURCE_DIR}/LedDeviceSedu.h
+	${CURRENT_SOURCE_DIR}/LedDeviceDMX.h
 	${CURRENT_SOURCE_DIR}/LedDeviceFile.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.h
+	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.h
 	${CURRENT_SOURCE_DIR}/ProviderUdp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
@@ -59,9 +61,11 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/LedDevicePaintpack.cpp
 	${CURRENT_SOURCE_DIR}/LedDevicePiBlaster.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceSedu.cpp
+	${CURRENT_SOURCE_DIR}/LedDeviceDMX.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceFile.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.cpp
+	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.cpp
 	${CURRENT_SOURCE_DIR}/ProviderUdp.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp

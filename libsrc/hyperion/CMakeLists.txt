@@ -20,7 +20,6 @@ SET(Hyperion_HEADERS
 	${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
 	${CURRENT_SOURCE_DIR}/MultiColorTransform.h
-	${CURRENT_SOURCE_DIR}/MultiColorCorrection.h
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.h
 	${CURRENT_HEADER_DIR}/MessageForwarder.h
 )
@@ -34,7 +33,6 @@ SET(Hyperion_SOURCES
 
 	${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
 	${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
-	${CURRENT_SOURCE_DIR}/MultiColorCorrection.cpp
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
 	${CURRENT_SOURCE_DIR}/MessageForwarder.cpp
@@ -58,10 +56,8 @@ add_library(hyperion
 )
 
 target_link_libraries(hyperion
-	kodivideochecker
 	blackborder
 	hyperion-utils
 	leddevice
-	effectengine
 	${QT_LIBRARIES}
 )

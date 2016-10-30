@@ -11,12 +11,12 @@ uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
 std::string LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
 
 
-LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const Json::Value &deviceConfig)
+LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig)
 	: LedDevice()
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
 {
-	setConfig(deviceConfig);
+	init(deviceConfig);
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
@@ -37,9 +37,9 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 	}
 }
 
-bool LedDeviceHyperionUsbasp::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
 {
-	std::string ledType = deviceConfig.get("output", "ws2801").asString();
+	std::string ledType = deviceConfig["output"].toString("ws2801").toStdString();
 	if (ledType != "ws2801" && ledType != "ws2812")
 	{
 		throw std::runtime_error("HyperionUsbasp: invalid output; must be 'ws2801' or 'ws2812'.");
@@ -50,7 +50,7 @@ bool LedDeviceHyperionUsbasp::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceHyperionUsbasp::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceHyperionUsbasp::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceHyperionUsbasp(deviceConfig);
 }
@@ -137,8 +137,6 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 
 int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 {
-	_ledCount = ledValues.size();
-
 	int nbytes = libusb_control_transfer(
 				_deviceHandle, // device handle
 				LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, // request type
@@ -157,12 +155,6 @@ int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return 0;
-}
-
-int LedDeviceHyperionUsbasp::switchOff()
-{
-	std::vector<ColorRgb> ledValues(_ledCount, ColorRgb::BLACK);
-	return write(ledValues);
 }
 
 libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device)

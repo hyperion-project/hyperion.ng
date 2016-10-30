@@ -43,7 +43,7 @@ public:
 	/// @param value The JSON value to check
 	/// @return true when the arguments is valid according to the schema
 	///
-	bool validate(const QJsonObject & value);
+	bool validate(const QJsonObject & value, bool ignoreRequired = false);
 
 	///
 	/// @return A list of error messages
@@ -180,7 +180,8 @@ private:
 private:
 	/// The schema of the entire json-configuration
 	QJsonObject _qSchema;
-
+	/// ignore the required value in json schema
+	bool _ignoreRequired;
 	/// The current location into a json-configuration structure being checked
 	std::list<std::string> _currentPath;
 	/// The result messages collected during the schema verification

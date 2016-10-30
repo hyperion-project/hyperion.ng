@@ -9,7 +9,7 @@ ImageProcessorFactory& ImageProcessorFactory::getInstance()
 	return instance;
 }
 
-void ImageProcessorFactory::init(const LedString& ledString, const Json::Value & blackborderConfig)
+void ImageProcessorFactory::init(const LedString& ledString, const QJsonObject & blackborderConfig)
 {
 	_ledString = ledString;
 	_blackborderConfig = blackborderConfig;

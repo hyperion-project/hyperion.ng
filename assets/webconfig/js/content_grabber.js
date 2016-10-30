@@ -1,58 +1,21 @@
  
-/*
-function removeAdvanced(obj,searchStack)
-{
-	searchStack = [];
-	$.each(obj, function(key, val) {
-		if ( typeof(val) == 'object' )
-		{
-			searchStack.push(key);
-			if (! removeAdvanced(val,searchStack) )
-				searchStack.pop();
-		}
-		else if ( key == "advanced" && val == true )
-		{
-			console.log(searchStack);
-			return true;
-		}
-	});
-	return false;
-}
-*/
 
+var conf_editor = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
-	parsedConfSchemaJSON = event.response.result;
 	schema = parsedConfSchemaJSON.properties;
-	schema_framegrabber = schema.framegrabber;
-	schema_grabberv4l2 = schema["grabber-v4l2"];
+	conf_editor = createJsonEditor('editor_container', {
+		framegrabber: schema.framegrabber,
+		grabberV4L2 : schema.grabberV4L2
+	}, true);
 
-	var element = document.getElementById('editor_container');
-	
-	var grabber_conf_editor = new JSONEditor(element,{
-		theme: 'bootstrap3',
-		disable_collapse: 'true',
-		form_name_root: 'sa',
-		disable_edit_json: 'true',
-		disable_properties: 'true',
-		no_additional_properties: 'true',
-		schema: {
-			title:' ',
-			properties: {
-				schema_framegrabber,
-				schema_grabberv4l2,
-			}
-		}
+
+	$('#btn_submit').off().on('click',function() {
+		requestWriteConfig(conf_editor.getValue());
 	});
 });
 
 
 $(document).ready( function() {
 	requestServerConfigSchema();
-
-	document.getElementById('submit').addEventListener('click',function() {
-		// Get the value from the editor
-		//console.log(general_conf_editor.getValue());
-	});
-//  $("[type='checkbox']").bootstrapSwitch();
 });
 

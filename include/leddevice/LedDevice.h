@@ -1,9 +1,16 @@
 #pragma once
 
+#include <QObject>
+#include <QString>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+
 // STL incldues
 #include <vector>
-#include <QObject>
+#include <string>
 #include <map>
+#include <algorithm>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -11,11 +18,10 @@
 #include <utils/RgbToRgbw.h>
 #include <utils/Logger.h>
 #include <functional>
-#include <json/json.h>
 
 class LedDevice;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const Json::Value& );
+typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
 typedef std::map<std::string,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
@@ -32,17 +38,10 @@ public:
 	///
 	virtual ~LedDevice() {}
 
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
-
 	/// Switch the leds off
-	virtual int switchOff() = 0;
+	virtual int switchOff();
+	
+	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
 	
 	///
 	/// Opens and configures the output device
@@ -54,16 +53,32 @@ public:
 	static int addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();
 	static void setActiveDevice(std::string dev);
-	static std::string activeDevice() { return _activeDevice; };
+	static std::string activeDevice() { return _activeDevice; }
+	static QJsonObject getLedDeviceSchemas();
+	static void setLedCount(int ledCount);
+	static int  getLedCount() { return _ledCount; }
 protected:
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
-	
-	int _ledCount;
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
 
+	bool _deviceReady;
+
 	static std::string _activeDevice;
 	static LedDeviceRegistry _ledDeviceMap;
+
+	static int _ledCount;
+	static int _ledRGBCount;
+	static int _ledRGBWCount;
 };

@@ -1,0 +1,16 @@
+{
+	"type":"object",
+	"script" : "traces.py",
+	"title":"Color traces",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"Speed",
+			"default": 1.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties": false
+}

@@ -9,12 +9,11 @@
 // Local Hyperion includes
 #include "ProviderHID.h"
 
-ProviderHID::ProviderHID(const Json::Value &deviceConfig)
+ProviderHID::ProviderHID()
 	: _useFeature(false)
 	, _deviceHandle(nullptr)
 	, _blockedForDelay(false)
 {
-	setConfig(deviceConfig);
 }
 
 ProviderHID::~ProviderHID()
@@ -28,11 +27,11 @@ ProviderHID::~ProviderHID()
 	hid_exit();
 }
 
-bool ProviderHID::setConfig(const Json::Value &deviceConfig)
+bool ProviderHID::init(const QJsonObject &deviceConfig)
 {
-	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect", 0 ).asInt();
-	auto VendorIdString   = deviceConfig.get("VID", "0x2341").asString();
-	auto ProductIdString  = deviceConfig.get("PID", "0x8036").asString();
+	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
+	auto VendorIdString   = deviceConfig["VID"].toString("0x2341").toStdString();
+	auto ProductIdString  = deviceConfig["PID"].toString("0x8036").toStdString();
 
 	// Convert HEX values to integer
 	_VendorId = std::stoul(VendorIdString, nullptr, 16);

@@ -1,4 +1,3 @@
-
 #pragma once
 
 // STL includes
@@ -21,7 +20,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTinkerforge(const Json::Value &deviceConfig);
+	LedDeviceTinkerforge(const QJsonObject &deviceConfig);
 
 	virtual ~LedDeviceTinkerforge();
 
@@ -30,10 +29,10 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Attempts to open a connection to the master bricklet and the led strip bricklet.
@@ -42,6 +41,7 @@ public:
 	///
 	int open();
 
+private:
 	///
 	/// Writes the colors to the led strip bricklet
 	///
@@ -51,14 +51,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	///
-	/// Switches off the leds
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
-
-private:
 	///
 	/// Writes the data to the led strip blicklet 
 	int transferLedData(LEDStrip *ledstrip, unsigned int index, unsigned int length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel);

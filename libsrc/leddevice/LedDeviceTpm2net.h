@@ -1,15 +1,12 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion includes
 #include "ProviderUdp.h"
 
 #define TPM2_DEFAULT_PORT 65506
 
 ///
-/// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
+/// Implementation of the LedDevice interface for sending led colors via udp tpm2.net packets
 ///
 class LedDeviceTpm2net : public ProviderUdp
 {
@@ -19,19 +16,19 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTpm2net(const Json::Value &deviceConfig);
+	LedDeviceTpm2net(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -40,12 +37,8 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	int _tpm2_max;
-        int _tpm2ByteCount;
-        int _tpm2TotalPackets;
-        int _tpm2ThisPacket;
+	int _tpm2ByteCount;
+	int _tpm2TotalPackets;
+	int _tpm2ThisPacket;
 };

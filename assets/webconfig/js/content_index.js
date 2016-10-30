@@ -1,31 +1,35 @@
 $(document).ready( function() {
+	$("#main-nav").hide();
+	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
-	bindNavToContent("#load_lighttest","lighttest",false);
-	bindNavToContent("#load_effects","effects",false);
-	bindNavToContent("#load_components","remote_components",false);
-	bindNavToContent("#load_input_selection","input_selection",false);
+	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
 	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_update","update",false);
-	bindNavToContent("#load_confGeneral","generalconf",false);
+	bindNavToContent("#load_confEffects","effects",false);
 	bindNavToContent("#load_confLeds","leds",false);
 	bindNavToContent("#load_confGrabber","grabber",false);
+	bindNavToContent("#load_confColors","colors",false);
+	bindNavToContent("#load_confNetwork","network",false);
+	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 
 
 	//Change all Checkboxes to Switches
 	$("[type='checkbox']").bootstrapSwitch();
 
-	$(hyperion).on("open",function(event){
-		requestServerInfo();
-	});
-
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
+
+		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
+			$("#hyperion_reload_notify").fadeIn("fast");
+		else
+			$("#hyperion_reload_notify").fadeOut("fast");
+
 		// get active led device
 		var leddevice = parsedServerInfoJSON.info.ledDevices.active;
 		$('#dash_leddevice').html(leddevice);
@@ -37,7 +41,8 @@ $(document).ready( function() {
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
-			components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+			console.log()
+			components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
 
@@ -51,17 +56,42 @@ $(document).ready( function() {
 
 			if ( cleanCurrentVersion < cleanLatestVersion )
 			{
-				$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_message_infobox_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+				$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
 			}
 			else
 			{
-				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_message_infobox_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
 			}
 		});
+		$("#loading_overlay").removeClass("overlay");
+		$("#main-nav").show('slide', {direction: 'left'}, 1000);
+
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-config-getschema", function(event) {
+		parsedConfSchemaJSON = event.response.result;
+		requestServerConfig();
+	});
+
+	$(hyperion).one("cmd-config-getconfig", function(event) {
+		parsedConfJSON = event.response.result;
+		requestServerInfo();
+	});
+
 	$(hyperion).on("error",function(event){
-		showErrorDialog("error", event.reason);
+		showInfoDialog("error","Error", event.reason);
+	});
+
+	$(hyperion).on("open",function(event){
+		requestServerConfigSchema();
+	});
+
+	$("#btn_hyperion_reload").on("click", function(){
+		$(hyperion).off();
+		requestServerConfigReload();
+		watchdog = 1;
+		$("#wrapper").fadeOut("slow");
+		cron();
 	});
 });
 

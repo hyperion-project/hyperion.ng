@@ -1,0 +1,48 @@
+{
+	"type":"object",
+	"script" : "shutdown.py",
+	"title":"System Shutdown",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"Speed",
+			"default": 1.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 1
+		},
+		"alarm-color": {
+			"type": "array",
+			"title":"Alarm color",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
+		"post-color": {
+			"type": "array",
+			"title":"Post color",
+			"default": [255,174,11],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 3
+		},
+		"shutdown-enabled": {
+			"type": "boolean",
+			"title":"Shutdown enabled",
+			"default": false,
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties": false
+}

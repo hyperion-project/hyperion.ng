@@ -9,11 +9,13 @@
 
 // Local includes
 #include <utils/ColorRgb.h>
-#include <json/json.h>
+
+//QT includes
+#include <QJsonObject>
 
 #include "../libsrc/leddevice/LedDeviceWs2801.h"
 
-Json::Value deviceConfig;
+QJsonObject deviceConfig;
 
 
 void setColor(char* colorStr)
@@ -61,7 +63,7 @@ void setColor(char* colorStr)
 
 	LedDeviceWs2801 ledDevice(deviceConfig);
 	ledDevice.open();
-	ledDevice.write(buff);
+	ledDevice.setLedValues(buff);
 }
 
 bool _running = true;
@@ -110,7 +112,7 @@ void doCircle()
 
 		data[curLed_2] = color_2;
 
-		ledDevice.write(data);
+		ledDevice.setLedValues(data);
 
 		nanosleep(&loopTime, NULL);
 	}
@@ -119,7 +121,7 @@ void doCircle()
 	data[curLed_1] = ColorRgb::BLACK;
 	data[curLed_2] = ColorRgb::BLACK;
 
-	ledDevice.write(data);
+	ledDevice.setLedValues(data);
 }
 
 #include <csignal>
@@ -147,7 +149,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	deviceConfig["output"] = "/dev/spidev0.0";
+	deviceConfig["output"] = QString("/dev/spidev0.0");
 	deviceConfig["rate"] = 40000;
 	deviceConfig["latchtime"] = 500000;
 
@@ -167,4 +169,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-

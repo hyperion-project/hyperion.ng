@@ -165,7 +165,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
 							{
-								_hyperion->setColors(_priority, _ledColors, -1);
+								_hyperion->setColors(_priority, _ledColors, -1, hyperion::COMP_BOBLIGHTSERVER);
 							}
 
 							return;
@@ -203,7 +203,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			// send current color values to hyperion
 			if (_priority < 255)
 			{
-				_hyperion->setColors(_priority, _ledColors, -1);
+				_hyperion->setColors(_priority, _ledColors, -1, hyperion::COMP_BOBLIGHTSERVER);
 			}
 			return;
 		}

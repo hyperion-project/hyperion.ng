@@ -72,7 +72,6 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 
 	Logger*             _log;
-	Json::Value         _config; // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	QJsonObject         _qconfig;
 	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;

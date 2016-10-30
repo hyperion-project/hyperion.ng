@@ -1,8 +1,6 @@
 #pragma once
 
 // STL/Qt includes
-#include <fstream>
-#include <QObject>
 #include <QTcpSocket>
 
 // Leddevice includes
@@ -40,7 +38,7 @@ public:
 	///
 	/// @param deviceConfig json config for fadecandy
 	///
-	LedDeviceFadeCandy(const Json::Value &deviceConfig);
+	LedDeviceFadeCandy(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
@@ -48,14 +46,14 @@ public:
 	virtual ~LedDeviceFadeCandy();
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -64,9 +62,6 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 
 private:
 	QTcpSocket  _client;
@@ -116,4 +111,3 @@ private:
 	void sendFadeCandyConfiguration();
 
 };
-

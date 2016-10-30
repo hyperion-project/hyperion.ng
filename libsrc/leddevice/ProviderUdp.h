@@ -7,7 +7,7 @@
 #include <utils/Logger.h>
 
 ///
-/// The ProviderUdp implements an abstract base-class for LedDevices using the SPI-device.
+/// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
 ///
 class ProviderUdp : public LedDevice
 {
@@ -15,9 +15,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderUdp(const Json::Value &deviceConfig);
+	ProviderUdp();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -29,7 +27,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig, std::string defaultHost="127.0.0.1");
 
 	///
 	/// Opens and configures the output device
@@ -58,4 +56,3 @@ protected:
 	QHostAddress _address;
 	quint16      _port;
 };
-

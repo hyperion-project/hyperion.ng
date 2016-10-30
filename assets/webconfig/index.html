@@ -36,6 +36,11 @@
 	<script src="js/lib/jquery-lang.js" charset="utf-8" type="text/javascript"></script>
 	<script src="js/lib/js.cookie.js"></script>
 
+	<!-- jquery ui -->
+	<link href="css/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+	<link href="css/jquery-ui/jquery-ui.structure.min.css" rel="stylesheet">
+	<link href="css/jquery-ui/jquery-ui.theme.min.css" rel="stylesheet">
+	
 	<script type="text/javascript">
 		// Create language switcher instance
 		var lang = new Lang();
@@ -79,7 +84,7 @@
 </head>
 
 <body>
-
+	<div id="loading_overlay"></div>
 	<div id="wrapper">
 
 		<!-- Navigation -->
@@ -93,6 +98,7 @@
 				</button>
 
 				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
+				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlostconnection.png" alt="Redefine ambient light!" style="display:none;"></a>
 
 			</div>
 			<!-- /.navbar-header -->
@@ -112,8 +118,6 @@
 						</li>
 					</ul>
 					<!-- /.dropdown-language -->
-				</li>
-				<!-- /.dropdown -->
 				</li>
 				<!-- /.dropdown -->
 				<li class="dropdown">
@@ -195,32 +199,26 @@
 			</ul>
 			<!-- /.navbar-top-left -->
 
-			<div class="navbar-default sidebar" role="navigation">
+			<div id="main-nav" class="navbar-default sidebar" role="navigation">
 				<div class="sidebar-nav navbar-collapse">
 					<ul class="nav" id="side-menu">
 						<li> <a class="active" id="load_dashboard"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></a> </li>
 						<li>
 							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
 							<ul class="nav nav-second-level">
-								<li> <a class="inactive" id="load_confGeneral"><i class="fa fa-wrench fa-fw"></i><span lang="en" data-lang-token="main_menu_general_conf_token">General</span></a> </li>
-								<li> <a class="inactive" id="load_confGrabber"><i class="fa fa-camera fa-fw"></i><span lang="en" data-lang-token="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
 								<li> <a class="inactive" id="load_confLeds"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confGrabber"><i class="fa fa-camera fa-fw"></i><span lang="en" data-lang-token="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
+								<li> <a class="inactive" id="load_confEffects"><i class="fa fa-spinner fa-fw"></i><span lang="en" data-lang-token="main_menu_effect_conf_token">Effects</span></a> </li>
+								<li> <a class="inactive" id="load_confColors"><i class="fa fa-photo fa-fw"></i><span lang="en" data-lang-token="main_menu_colors_conf_token">Image Processing</span></a> </li>
 								<li> <a class="inactive" id="load_confKodi"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="main_menu_kodiwatch_token">KODI Connector</span></a> </li>
-								<li> <a class="inactive" id="load_huebridge"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_huebridge_token">Hue Bridge</span></a> </li>
+								<li> <a class="inactive" id="load_confNetwork"><i class="fa fa-sitemap fa-fw"></i><span lang="en" data-lang-token="main_menu_network_conf_token">Network</span></a> </li>
 							</ul>
 						</li>
-						<li>
-							<a class="inactive" href="#"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span><span class="fa arrow"></span></a>
-							<ul class="nav nav-second-level">
-								<li> <a class="inactive" id="load_lighttest"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_colors_token">Colors</span></a> </li>
-								<li> <a class="inactive" id="load_effects"><i class="fa fa-certificate fa-fw"></i><span lang="en" data-lang-token="main_menu_effects_token">Effects</span></a> </li>
-								<li> <a class="inactive" id="load_components"><i class="fa fa-list fa-fw"></i><span lang="en" data-lang-token="main_menu_component_token">Components</span></a> </li>
-								<li> <a class="inactive" id="load_input_selection"><i class="fa fa-random fa-fw"></i><span lang="en" data-lang-token="main_menu_input_selection_token">Input Selection</span></a> </li>
-							</ul>
-						</li>
+						<li> <a class="inactive" id="load_remote"><i class="fa fa-wifi fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
+						<li> <a class="inactive" id="load_effectsconfig"><i class="fa fa-cogs fa-fw"></i><span lang="en" data-lang-token="main_menu_effectsconfigurator_token">Effects Configurator</span></a>	</li>
 						<li> <a class="inactive" id="load_support"><i class="fa fa-info fa-fw"></i><span lang="en" data-lang-token="main_menu_support_token">Support</span></a> </li>
 						<li>
-							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
+							<a class="inactive"><i class="fa fa-industry fa-fw"></i><span lang="en" data-lang-token="main_menu_system_token">System</span><span class="fa arrow"></span></a>
 							<ul class="nav nav-second-level">
 								<li> <a class="inactive" id="load_update"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></a> </li>
 							</ul>
@@ -233,24 +231,37 @@
 		</nav>
 
 		<!-- Page Content -->
-		<div id="page-wrapper" />
+		<div id="page-wrapper" style="padding-top:10px">
+			<div id="hyperion_reload_notify" class="alert alert-warning" style="display:none;padding:10px;margin:0">
+			<div class="panel-danger" style="text-align:right">
+				<div style="float:left;line-height:33px;" lang="en" data-lang-token="dashboard_alert_message_confedit">Your Hyperion configuration has been modified. To apply it, restart Hyperion.</div>
+				<button id="btn_hyperion_reload" class="btn btn-danger" lang="en" data-lang-token="dashboard_alert_button_restarthyerion">Restart Hyperion</button>
+			</div>
+		</div>
+
+		<div id="page-content" />
+		</div>
 
 	</div>
 	<!-- /#wrapper -->
 
 	<div id="container_connection_lost" style="display:none"></div>
 
-	<div id="error_dialog" class="modal fade" role="dialog">
+	<div id="modal_dialog" class="modal fade" role="dialog">
 		<div class="modal-dialog">
 			<!-- Modal content-->
 			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title" />
-				</div>
-			<div class="modal-body" />
+			<div class="modal-body">
+				<center>
+					<div class="modal-bodyicon"></div>
+					<h4 class="modal-bodytitle" style="font-weight:bold;text-transform:uppercase;"></h4>
+					<div class="modal-bodycontent"></div>
+				</center>
+			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-primary" data-dismiss="modal">Okay!</button>
+				<center>
+					<div class="modal-footer-button"></div>
+				</center>
 			</div>
 		</div>
 	</div>
@@ -264,6 +275,7 @@
 	<!-- Custom Theme JavaScript -->
 	<script src="/js/lib/sb-admin-2.js"></script>
 
+	<script src="/js/lib/jquery-ui.min.js"></script>
 	<script src="/js/content_index.js"></script>
 </body>
 
