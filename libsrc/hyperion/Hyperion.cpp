@@ -824,9 +824,9 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
 }
 
 void Hyperion::update()
