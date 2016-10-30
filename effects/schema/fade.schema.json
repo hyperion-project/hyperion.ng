@@ -14,7 +14,7 @@
 		"color-start": {
 			"type": "array",
 			"title":"Color Start",
-			"default": "255,174,11",
+			"default": [255,174,11],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,
@@ -27,7 +27,7 @@
 		"color-end": {
 			"type": "array",
 			"title":"Color End",
-			"default": "100,100,100",
+			"default": [100,100,100],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,

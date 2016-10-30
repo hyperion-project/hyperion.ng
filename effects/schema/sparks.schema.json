@@ -7,7 +7,7 @@
 		"color_one": {
 			"type": "array",
 			"title":"Color",
-			"default": "255,0,0",
+			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,

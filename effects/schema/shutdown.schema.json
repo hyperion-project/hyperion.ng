@@ -14,7 +14,7 @@
 		"alarm-color": {
 			"type": "array",
 			"title":"Alarm color",
-			"default": "255,0,0",
+			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,
@@ -27,7 +27,7 @@
 		"post-color": {
 			"type": "array",
 			"title":"Post color",
-			"default": "255,174,11",
+			"default": [255,174,11],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,
