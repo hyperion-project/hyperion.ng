@@ -83,7 +83,7 @@
 		"hue_failure_ip_token" : "Bitte überprüfe deine IP Adresse.",
 		"hue_label_username" : "Benutzername:",
 		"effectsconfigurator_label_intro" : "Erstelle auf Grundlage der Basiseffekte neue Effekt die nach deinen Wünschen angepasst sind. Je nach Effekt stehen Optionen wie Farbe, Geschwindigkeit, oder Richtung und vieles mehr zur Auswahl.",
-		"effectsconfigurator_label_chooseeff" : "Basis-Effekt ausählen:",
+		"effectsconfigurator_label_chooseeff" : "Basis-Effekt auswählen:",
 		"effectsconfigurator_button_saveeffect" : "Effekt speichern",
 		"effectsconfigurator_label_effectname" : "Effektname:",
 		"effectsconfigurator_button_testeffect" : "Effekt testen (nicht implementiert)",
