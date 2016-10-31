@@ -8,7 +8,38 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		$("#effectslist").html(EffectsHtml);
 		$("#effectslist").trigger("change");
 	});
-
+	
+	function validateEditor() {
+		if(effects_editor.validate().length)
+		{
+			showInfoDialog('error','INVALID VALUES','Please check for red marked inputs and try again.');
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	};
+	
+	function validateName() {
+		effectName = $('#name-input').val();
+		if (effectName == "")
+		{
+			showInfoDialog('error','INVALID NAME FIELD','Effect name is empty! Please fill in a name and try again.');
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	};
+	
+	function triggerTestEffect() {
+		var args = effects_editor.getEditor('root.args');
+		requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()));
+	};
+	
+	effectName = "";
 	effects_editor = null;	
 	effectPy = "";
 	
@@ -22,54 +53,35 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 			effectPy += effects[idx].schemaContent.script;
 			}
 		}
-
+		effects_editor.on('change',function() {
+			if ($("#btn_cont_test").hasClass("btn-success") && validateName() && validateEditor())
+			{
+				triggerTestEffect();
+			}
+		});
 	});
 	
 	$('#btn_write').off().on('click',function() {
-		
-		effectName = $('#name-input').val();
-		if (effectName == "")
+		if(validateEditor() && validateName())
 		{
-			showInfoDialog('error','INVALID NAME FIELD','Effect name is empty! Please fill in a name and try again.')
+			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
+			showInfoDialog('success','SUCCESS!','Your effect has been created successfully!');
 		}
-		else
-		{
-			var errors = effects_editor.validate();
-			if(errors.length)
-			{
-				showInfoDialog('error','INVALID VALUES','Please check for red marked inputs and try again.')
-			}
-			else
-			{
-				requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-				showInfoDialog('success','SUCCESS!','Your effect has been created successfully!')
-			}
-		}
-
 	});
 
-	$('#btn_test').off().on('click',function() {
-		
-		effectName = $('#name-input').val();
-		if (effectName == "")
+	$('#btn_start_test').off().on('click',function() {
+		if(validateEditor() && validateName())
 		{
-			showInfoDialog('error','INVALID NAME FIELD','Effect name is empty! Please fill in a name and try again.')
+			triggerTestEffect();
 		}
-		else
-		{
-			var errors = effects_editor.validate();
-			if(errors.length)
-			{
-				showInfoDialog('error','INVALID VALUES','Please check for red marked inputs and try again.')
-			}
-			else
-			{
-				var args = effects_editor.getEditor('root.args');
-				requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()));
-				showInfoDialog('success','SUCCESS!','Your effect has been started!')
-			}
-		}
-
+	});
+	
+	$('#btn_stop_test').off().on('click',function() {
+		requestPriorityClear();
+	});
+	
+	$('#btn_cont_test').off().on('click',function() {
+		toggleClass('#btn_cont_test', "btn-success", "btn-danger");
 	});
 
 $(document).ready( function() {
