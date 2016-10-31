@@ -4,7 +4,8 @@
 	"args" :
 	{
 		"rotation-time" : 20.0,
-		"brightness" : 1.0,
+		"center_x" : 0.5,
+		"center_y" : 0.5,
 		"reverse" : false
 	}
 }

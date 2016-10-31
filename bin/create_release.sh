@@ -21,14 +21,12 @@ echo create $outfile
 tar --create --gzip --absolute-names --show-transformed-names --ignore-failed-read\
 	--file "$outfile" \
 	--transform "s:$builddir/bin/:hyperion/bin/:" \
-	--transform "s:$repodir/effects/:hyperion/effects/:" \
 	--transform "s:$repodir/config/:hyperion/config/:" \
 	--transform "s:$repodir/bin/service/hyperion.init.sh:hyperion/services/hyperion.init.sh:" \
 	--transform "s:$repodir/bin/service/hyperion.systemd.sh:hyperion/services/hyperion.systemd.sh:" \
 	--transform "s:$repodir/bin/service/hyperion.initctl.sh:hyperion/services/hyperion.initctl.sh:" \
 	--transform "s://:/:g" \
 	"$builddir/bin/hyperion"* \
-	"$repodir/effects/"* \
 	"$repodir/bin/service/hyperion.init.sh" \
 	"$repodir/bin/service/hyperion.systemd.sh" \
 	"$repodir/bin/service/hyperion.initctl.sh" \

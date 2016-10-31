@@ -1,28 +1,25 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
+
 
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.
 ///
-/// APA102 is
-///
-class LedDeviceAPA102 : public LedSpiDevice
+class LedDeviceAPA102 : public ProviderSpi
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type APA102
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/spidev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
-	///
-	LedDeviceAPA102(const std::string& outputDevice, const unsigned baudrate );
+	LedDeviceAPA102(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+	virtual bool init(const QJsonObject &deviceConfig);
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -30,7 +27,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

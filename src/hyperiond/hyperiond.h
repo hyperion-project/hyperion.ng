@@ -72,16 +72,17 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 
 	Logger*             _log;
-	Json::Value         _config; // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	QJsonObject         _qconfig;
 	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;
 	BoblightServer*     _boblightServer;
 	UDPListener*        _udpListener;
-	V4L2Wrapper*        _v4l2Grabber;
+	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
 	DispmanxWrapper*    _dispmanx;
+#ifdef ENABLE_X11
 	X11Wrapper*         _x11Grabber;
+#endif
 	AmlogicWrapper*     _amlGrabber;
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;

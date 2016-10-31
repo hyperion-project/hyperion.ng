@@ -1,7 +1,7 @@
 #pragma once
 
 // Local hyperion incluse
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to LDP6803 led device.
@@ -14,17 +14,22 @@
 /// (R, G and B in the above illustration) making 16 bits per led. Total bytes = 4 + (2 x number of
 /// leds)
 ///
-class LedDeviceLpd6803 : public LedSpiDevice
+class LedDeviceLpd6803 : public ProviderSpi
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type LDP6803
+	/// Constructs specific LedDevice
 	///
-	/// @param[in] outputDevice The name of the output device (eg '/dev/spidev0.0')
-	/// @param[in] baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceLpd6803(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceLpd6803(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+	virtual bool init(const QJsonObject &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -32,7 +37,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

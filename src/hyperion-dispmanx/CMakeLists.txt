@@ -31,7 +31,8 @@ add_executable( ${PROJECT_NAME}
 )
 
 target_link_libraries( ${PROJECT_NAME}
-	getoptPlusPlus
+	effectengine
+	commandline
 	blackborder
 	hyperion-utils
 	protoserver

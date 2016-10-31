@@ -9,6 +9,7 @@ SET(Hyperion_QT_HEADERS
 
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
 	${CURRENT_HEADER_DIR}/GrabberWrapper.h
+	${CURRENT_HEADER_DIR}/ComponentRegister.h
 )
 
 SET(Hyperion_HEADERS
@@ -19,7 +20,6 @@ SET(Hyperion_HEADERS
 	${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
 	${CURRENT_SOURCE_DIR}/MultiColorTransform.h
-	${CURRENT_SOURCE_DIR}/MultiColorCorrection.h
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.h
 	${CURRENT_HEADER_DIR}/MessageForwarder.h
 )
@@ -33,11 +33,11 @@ SET(Hyperion_SOURCES
 
 	${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
 	${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
-	${CURRENT_SOURCE_DIR}/MultiColorCorrection.cpp
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
 	${CURRENT_SOURCE_DIR}/MessageForwarder.cpp
 	${CURRENT_SOURCE_DIR}/GrabberWrapper.cpp
+	${CURRENT_SOURCE_DIR}/ComponentRegister.cpp
 )
 
 SET(Hyperion_RESOURCES
@@ -56,10 +56,8 @@ add_library(hyperion
 )
 
 target_link_libraries(hyperion
-	kodivideochecker
 	blackborder
 	hyperion-utils
 	leddevice
-	effectengine
 	${QT_LIBRARIES}
 )

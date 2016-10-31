@@ -15,8 +15,6 @@ set(Hyperion_V4L2_QT_HEADERS
 )
 
 set(Hyperion_V4L2_HEADERS
-	VideoStandardParameter.h
-	PixelFormatParameter.h
 )
 
 set(Hyperion_V4L2_SOURCES
@@ -34,8 +32,9 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
+	effectengine
 	v4l2-grabber
-	getoptPlusPlus
+	commandline
 	blackborder
 	hyperion-utils
 	protoserver

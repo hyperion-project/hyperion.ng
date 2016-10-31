@@ -41,7 +41,6 @@ void BoblightServer::start()
 	emit statusChanged(_isActive);
 
 	_hyperion->registerPriority("Boblight", _priority);
-
 }
 
 void BoblightServer::stop()
@@ -62,11 +61,15 @@ void BoblightServer::stop()
 
 void BoblightServer::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == COMP_BOBLIGHTSERVER && _isActive != enable)
+	if (component == COMP_BOBLIGHTSERVER)
 	{
-		if (enable) start();
-		else        stop();
-		Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
+		if (_isActive != enable)
+		{
+			if (enable) start();
+			else        stop();
+			Info(_log, "change state to %s", (_isActive ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, _isActive);
 	}
 }
 

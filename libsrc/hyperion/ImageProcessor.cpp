@@ -9,7 +9,7 @@
 using namespace hyperion;
 
 //ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector, uint8_t blackborderThreshold) :
-ImageProcessor::ImageProcessor(const LedString& ledString, const Json::Value & blackborderConfig) :
+ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig) :
 	_ledString(ledString),
 	_borderProcessor(new BlackBorderProcessor(blackborderConfig) ),
 	_imageToLeds(nullptr)

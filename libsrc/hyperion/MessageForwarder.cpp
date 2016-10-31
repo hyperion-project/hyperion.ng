@@ -49,3 +49,8 @@ bool MessageForwarder::protoForwardingEnabled()
 {
 	return ! _protoSlaves.empty();
 }
+
+bool MessageForwarder::jsonForwardingEnabled()
+{
+	return ! _jsonSlaves.empty();
+}

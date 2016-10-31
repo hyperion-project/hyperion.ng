@@ -31,8 +31,9 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	getoptPlusPlus
+	effectengine
 	blackborder
+	commandline
 	hyperion-utils
 	protoserver
 	x11-grabber

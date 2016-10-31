@@ -1,0 +1,8 @@
+{
+	"name" : "Light clock",
+	"script" : "light-clock.py",
+	"args" :
+	{
+		"show_seconds" : true
+	}
+}
