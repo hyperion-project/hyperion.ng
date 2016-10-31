@@ -1,25 +1,27 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion include
-#include "LedSpiDevice.h"
+#include "ProviderSpi.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to P9813 led device.
 ///
-class LedDeviceP9813 : public LedSpiDevice
+class LedDeviceP9813 : public ProviderSpi
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type P9813
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/etc/SpiDev.0.0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceP9813(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceP9813(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+	virtual bool init(const QJsonObject &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -28,10 +30,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	///
 	/// Calculates the required checksum for one led
 	///

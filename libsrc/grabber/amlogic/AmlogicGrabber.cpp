@@ -16,14 +16,19 @@
 #include <utils/Logger.h>
 #include <grabber/AmlogicGrabber.h>
 
+
 // Flags copied from 'include/linux/amlogic/amports/amvideocap.h' at https://github.com/codesnake/linux-amlogic
 #define AMVIDEOCAP_IOC_MAGIC 'V'
 #define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH  _IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
 #define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT _IOW(AMVIDEOCAP_IOC_MAGIC, 0x03, int)
 
-// Flags copied from 'include/linux/amlogic/amports/amvstream.h' at https://github.com/codesnake/linux-amlogic
-#define AMSTREAM_IOC_MAGIC   'S'
-#define AMSTREAM_IOC_GET_VIDEO_DISABLE      _IOR(AMSTREAM_IOC_MAGIC,   0x48, unsigned long)
+#if HAVE_AML_HEADER
+	#include <amcodec/amports/amstream.h>
+#else
+	// Flags copied from 'include/linux/amlogic/amports/amvstream.h' at https://github.com/codesnake/linux-amlogic
+	#define AMSTREAM_IOC_MAGIC   'S'
+	#define AMSTREAM_IOC_GET_VIDEO_DISABLE   _IOR(AMSTREAM_IOC_MAGIC,   0x48, unsigned long)
+#endif
 
 AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
 	: _width(std::max(160u, width))    // Minimum required width or height is 160

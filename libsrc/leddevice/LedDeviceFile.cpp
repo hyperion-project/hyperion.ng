@@ -1,17 +1,31 @@
-
-// Local-Hyperion includes
 #include "LedDeviceFile.h"
 
-LedDeviceFile::LedDeviceFile(const std::string& output)
+LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	: LedDevice()
-	, _ofs( output.empty() ? "/dev/null" : output.c_str())
 {
-	// empty
+	init(deviceConfig);
 }
 
 LedDeviceFile::~LedDeviceFile()
 {
-	// empty
+}
+
+LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceFile(deviceConfig);
+}
+
+bool LedDeviceFile::init(const QJsonObject &deviceConfig)
+{
+	if ( _ofs.is_open() )
+	{
+		_ofs.close();
+	}
+	
+	std::string fileName = deviceConfig["output"].toString("/dev/null").toStdString();
+	_ofs.open( fileName.c_str() );
+
+	return true;
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
@@ -23,10 +37,5 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 	}
 	_ofs << "]" << std::endl;
 
-	return 0;
-}
-
-int LedDeviceFile::switchOff()
-{
 	return 0;
 }

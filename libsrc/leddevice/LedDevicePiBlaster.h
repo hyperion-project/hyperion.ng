@@ -1,28 +1,34 @@
-
 #pragma once
-
-// STL includes
-#include <cstdio>
-
-// jsoncpp includes
-#include <json/json.h>
 
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
+
+///
+/// Implementation of the LedDevice interface for writing to pi-blaster based PWM LEDs
+///
 
 class LedDevicePiBlaster : public LedDevice
 {
 public:
 	///
-	/// Constructs the PiBlaster device which writes to the indicated device and for the assigned
-	/// channels
-	/// @param deviceName The name of the output device
-	/// @param gpioMapping The RGB-Channel assignment json object
+	/// Constructs specific LedDevice
 	///
-	LedDevicePiBlaster(const std::string & deviceName, const Json::Value & gpioMapping);
+	/// @param deviceConfig json device config
+	///
+	LedDevicePiBlaster(const QJsonObject &deviceConfig);
 
 	virtual ~LedDevicePiBlaster();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool init(const QJsonObject &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+	
 	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
 	/// and the device is available.
@@ -31,6 +37,7 @@ public:
 	///
 	int open();
 
+private:
 	///
 	/// Writes the colors to the PiBlaster device
 	///
@@ -40,17 +47,8 @@ public:
 	///
 	int write(const std::vector<ColorRgb> &ledValues);
 
-	///
-	/// Switches off the leds
-	///
-	/// @return Zero on success else negative
-	///
-	int switchOff();
-
-private:
-
 	/// The name of the output device (very likely '/dev/pi-blaster')
-	const std::string _deviceName;
+	std::string _deviceName;
 
 	int _gpio_to_led[64];
 	char _gpio_to_color[64];

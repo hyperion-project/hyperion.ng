@@ -1,0 +1,171 @@
+<style>
+	#leds_canvas {width:800px; height:450px; background-color:#AAAAAA; position:absolute; margin:10px; box-shadow: 10px 10px 5px #BBBBBB;
+	background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center; border-radius:2px; }
+	.led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center;
+	vertical-align:middle; padding:4px;  border-radius:2px;}
+	.led_num {display:none; position:relative; color:black; background-color: white;
+		border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
+	#leds_controls {white-space:nowrap; margin-top:500px;}
+</style>
+
+<div class="modal fade bs-pair-modal-lg" id="pairmodal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">Hue Bridge</h4>
+		</div>
+		<div class="modal-body">
+			<span lang="en" data-lang-token="hue_press_link_modal">Please press link button on the Hue Bridge.</span> <br /><br />
+			<center>
+				<span id="connectionTime"></span><br />
+				<img src="/img/hyperion/ring-alt.svg" />
+			<center>
+		</div>
+		<div class="modal-footer" />
+		</div>
+	</div>
+</div>
+
+
+
+<div class="container-fluid">
+	<h1 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span lang="en" data-lang-token="main_menu_leds_conf_token">LED Hardware</span></h1>
+	<div class="introd">
+		<h4 lang="en" data-lang-token="conf_leds_label_intro">The LED controller of youre choice is your way to output the led data via Raspberry PI GPIO, USB or network! Choose one, define your led layout and enjoy the light!</h4>
+	</div>
+	<hr>
+	<ul id="leds_cfg_nav" class="nav nav-tabs">
+		<li class="active"><a data-toggle="tab" href="#menu_controller" lang="en" data-lang-token="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
+		<li><a data-toggle="tab" href="#menu_gencfg" lang="en" data-lang-token="conf_leds_nav_label_ledlayout">LED Layout</a></li>
+		<li><a data-toggle="tab" href="#menu_display" lang="en" data-lang-token="conf_leds_nav_label_ledtesting">LED Testing</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
+			<div class="panel panel-primary">
+				<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
+					<button id='btn_submit_controller' class="btn btn-success"	style="float:right" lang="en" data-lang-token="general_button_savesettings">Save Settings</button>
+					<label for="leddevices" lang="en" data-lang-token="conf_leds_contr_label_contrtype">Controller type:</label>
+					<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
+				</div>
+
+				<div class="panel-body">
+					<div id="ledDeviceOptions"> <div id='editor_container'></div> </div>
+
+					<div id="huebridge" class="container-fluid" style="display:none">
+						<hr/>
+						<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content">Hue Bridge Setup Helper</button>
+						<div id="huebridge_content"  class="collapse">
+							<div class="introd" style="margin-top:20px;margin-bottom:20px">
+								With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.
+								If you already have a working User you will see it below. But you can always create a new one as well.
+								<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above.
+							</div>
+							<div class="col-lg-12">
+								<span id="ip_alert" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_ip_token">Please check your IP Address.</span>
+								<span id="abortConnection" style="display:none; color:red; font-weight: bold;" lang="en" data-lang-token="hue_failure_connection_token">Connection Timeout. Please press the button in time.</span><br />
+								<div class="form-group">
+									<label for="ip">Hue Bridge IP:</label>
+									<input type="text" class="form-control" id="ip">
+									<label for="user" lang="en" data-lang-token="hue_label_username">Hue Bridge  Username:</label>
+									<input type="text" class="form-control" id="user" disabled>
+									<div id="hue_lights" class="row"></div>
+									<button type="button" class="btn btn-success" id="create_user"> <i class="fa fa-floppy-o"></i><span lang="en" data-lang-token="hue_button_create_user_token"> Create User</span></button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="menu_display" class="tab-pane fade" style="padding-top:10px">
+			<div  class="container-fluid">
+				<div id="leds_canvas"/>
+
+				<div id="leds_controls">
+					<button lang="en" type="button" class="btn btn-success" id="leds_toggle" lang="en" data-lang-token="conf_leds_test_button_toggleleds">toggle leds</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_num" lang="en" data-lang-token="conf_leds_test_button_togglelednumber">toggle led numbers</button>
+					<button lang="en" type="button" class="btn btn-danger" id="leds_toggle_live" lang="en" data-lang-token="conf_leds_test_button_toggleliveleds">toggle live leds</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="menu_gencfg" class="tab-pane fade" style="padding-top:10px">
+
+			<div class="row">
+				<div class="col-sm-6">
+
+					<div class="panel-group" id="accordion">
+
+						<div class="panel panel-primary">
+							<div class="panel-heading">
+								<h4 class="panel-title">
+									<a data-toggle="collapse" data-parent="#accordion" href="#collapse1"><i class="fa fa-television fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_frame">Frame Configuration (ambient light)</span></a>
+								</h4>
+							</div>
+							<div id="collapse1" class="panel-collapse collapse in">
+								<div class="panel-body">
+								just a reminder ... this are the needed form elements:
+<pre>
+led count horizontal:
+led count vertical:
+cabling: zick zack/snake
+order: horizontal/vertical
+led 0 position: top-left / top-right / bottom-left / bottom-right
+</pre>
+								</div>
+							</div>
+						</div>
+
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h4 class="panel-title">
+								<a data-toggle="collapse" data-parent="#accordion" href="#collapse2"><i class="fa fa-th fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_matrix">Matrix Configuration (LED wall)</span></a>
+							</h4>
+						</div>
+						<div id="collapse2" class="panel-collapse collapse">
+							<div class="panel-body">
+							just a reminder ... this are the needed form elements:
+<pre>
+led count links
+led count rechts
+led count oben
+led count unten rechts
+led count unten links
+start
+</pre>
+							</div>
+						</div>
+					</div>
+
+			</div> <!-- accordion -->
+		</div>
+
+		<div class="col-sm-6">
+			<div class="panel panel-primary" style="margin-bottom:5px">
+				<div class="panel-heading">
+					<h4 class="panel-title"><i class="fa fa-wrench fa-fw"></i><span lang="en" data-lang-token="conf_leds_layout_generatedconf">Generated Configuration</span></h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_check" lang="en" data-lang-token="conf_leds_layout_button_validateconf">Validate config</button>
+						<button lang="en" type="button" class="btn btn-success" id="leds_custom_save" lang="en" data-lang-token="general_button_savesettings">Save config</button>
+					</div>
+					<textarea rows="25" id="ledconfig" class="form-control"></textarea>
+				</div>
+			</div>
+		</div> <!-- left pane -->
+
+		</div> <!-- row layout -->
+	</div>
+
+	</div>
+
+
+	</div> <!-- tab content -->
+</div>
+
+<script src="/js/content_leds.js"></script>
+<script src="/js/content_huebridge.js"></script>

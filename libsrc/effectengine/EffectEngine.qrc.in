@@ -1,0 +1,6 @@
+<RCC>
+	<qresource prefix="/">
+		<file alias="effect-schema">${CURRENT_SOURCE_DIR}/EffectDefinition.schema.json</file>
+		${HYPERION_EFFECTS_RES}
+	</qresource>
+</RCC>

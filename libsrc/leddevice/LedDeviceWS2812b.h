@@ -127,16 +127,31 @@ struct dma_cb_t
 };
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2801 led device.
+/// Implementation of the LedDevice interface for writing to Ws2812 led device using pwm.
 ///
 class LedDeviceWS2812b : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for a string containing leds of the type WS2812
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
 	LedDeviceWS2812b();
 
 	~LedDeviceWS2812b();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool init(const QJsonObject&) {return true;};
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -145,10 +160,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	page_map_t *page_map;						// This will hold the page map, which we'll allocate
 	uint8_t *virtbase;					// Pointer to some virtual memory that will be allocated
 
