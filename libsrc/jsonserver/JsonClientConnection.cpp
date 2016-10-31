@@ -420,13 +420,14 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString pythonScript = message["pythonScript"].toString("");
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 
 	// set output
 	if (effect.contains("args"))
 	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration);
+		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript);
 	}
 	else
 	{
@@ -1053,16 +1054,16 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 		{
 			QJsonObject internal;
 			internal.insert("script", effectSchema.pyFile);
-			internal.insert("schema-location", effectSchema.schemaFile);
-			internal.insert("schema-content", effectSchema.pySchema);
+			internal.insert("schemaLocation", effectSchema.schemaFile);
+			internal.insert("schemaContent", effectSchema.pySchema);
 			in.append(internal);
 		}
 		else
 		{
 			QJsonObject external;
 			external.insert("script", effectSchema.pyFile);
-			external.insert("schema-location", effectSchema.schemaFile);
-			external.insert("schema-content", effectSchema.pySchema);
+			external.insert("schemaLocation", effectSchema.schemaFile);
+			external.insert("schemaContent", effectSchema.pySchema);
 			ex.append(external);
 		}
 	}

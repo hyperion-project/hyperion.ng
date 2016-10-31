@@ -7,7 +7,7 @@
 		"color_one": {
 			"type": "array",
 			"title":"Color one",
-			"default": "255,0,0",
+			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,
@@ -20,7 +20,7 @@
 		"color_two": {
 			"type": "array",
 			"title":"Color two",
-			"default": "0,0,255",
+			"default": [0,0,255],
 			"items" : {
 				"type": "integer",
 				"minimum": 0,

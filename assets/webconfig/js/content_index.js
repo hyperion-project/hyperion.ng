@@ -14,6 +14,7 @@ $(document).ready( function() {
 	bindNavToContent("#load_confGrabber","grabber",false);
 	bindNavToContent("#load_confColors","colors",false);
 	bindNavToContent("#load_confNetwork","network",false);
+	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 
 
 	//Change all Checkboxes to Switches

@@ -345,27 +345,31 @@ int EffectEngine::runEffect(const QString &effectName, int priority, int timeout
 	return runEffect(effectName, QJsonObject(), priority, timeout);
 }
 
-int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
 	Info( _log, "run effect %s on channel %d", effectName.toUtf8().constData(), priority);
 
-	const EffectDefinition * effectDefinition = nullptr;
-	for (const EffectDefinition & e : _availableEffects)
+	if (pythonScript == "")
 	{
-		if (e.name == effectName)
+		const EffectDefinition * effectDefinition = nullptr;
+		for (const EffectDefinition & e : _availableEffects)
 		{
-			effectDefinition = &e;
-			break;
+			if (e.name == effectName)
+			{
+				effectDefinition = &e;
+				break;
+			}
 		}
-	}
-	if (effectDefinition == nullptr)
-	{
-		// no such effect
-		Error(_log, "effect %s not found",  effectName.toUtf8().constData());
-		return -1;
-	}
+		if (effectDefinition == nullptr)
+		{
+			// no such effect
+			Error(_log, "effect %s not found",  effectName.toUtf8().constData());
+			return -1;
+		}
 
-	return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
+		return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
+	} else
+		return runEffectScript(pythonScript, effectName, args, priority, timeout);
 }
 
 int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout)
