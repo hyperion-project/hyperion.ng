@@ -4,7 +4,7 @@
 	"title":"Sparks",
 	"required":true,
 	"properties":{
-		"color_one": {
+		"color": {
 			"type": "array",
 			"title":"Color",
 			"default": [255,0,0],
