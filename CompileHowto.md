@@ -78,7 +78,7 @@ brew install doxygen
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON  -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
+cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON -DENABLE_X11=OFF -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
 ```
 
 # Run make to build Hyperion
@@ -86,6 +86,13 @@ The `-j $(nproc)` specifies the amount of CPU cores to use.
 ```
 make -j $(nproc)
 ```
+
+On a mac you can use ``sysctl -n hw.ncpu`` to get the number of available CPU cores to use.
+
+```bash
+make -j $(sysctl -n hw.ncpu)
+``` 
+
 
 #After compile, to remove any stuff not needed for a release version.
 ```
