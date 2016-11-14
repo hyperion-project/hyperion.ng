@@ -104,6 +104,13 @@ sudo cp ./bin/hyperion-remote /usr/bin/
 sudo cp ./bin/hyperiond /usr/bin/
 ```
 
+On a Mac with Sierra you won't be able to copy these files to the ``/usr/bin/`` folder due to Sierra's file protection. You can copy those files to ``/usr/local/bin`` instead.
+
+```bash
+cp ./bin/hyperion-remote /usr/local/bin
+cp ./bin/hyperiond /usr/local/bin
+``` 
+
 # Copy the effect folder (if you did not use the normal installation methode before)
 ```
 sudo mkdir -p /usr/share/hyperion/effects && sudo cp -R ../effects/ /usr/share/hyperion/
