@@ -16,6 +16,7 @@
 #include <QHostInfo>
 #include <QString>
 #include <QFile>
+#include <QFileInfo>
 #include <QCoreApplication>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -285,6 +286,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleEffectCommand(message, command, tan);
 		else if (command == "create-effect")
 			handleCreateEffectCommand(message, command, tan);
+		else if (command == "delete-effect")
+			handleDeleteEffectCommand(message, command, tan);
 		else if (command == "serverinfo")
 			handleServerInfoCommand(message, command, tan);
 		else if (command == "clear")
@@ -481,7 +484,15 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 					effectJson["name"] = message["name"].toString();
 					effectJson["script"] = message["script"].toString();
 					effectJson["args"] = message["args"].toObject();
-					QJsonFactory::writeJson(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"), effectJson);
+					
+					QFileInfo newFileName(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+					
+					while(newFileName.exists())
+					{
+						newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+					}
+					
+					QJsonFactory::writeJson(newFileName.absoluteFilePath(), effectJson);
 				} else
 				{
 					sendErrorReply("Can't save new effect. Effect path empty", command, tan);
@@ -493,6 +504,43 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				sendErrorReply("Missing schema file for Python script " + message["script"].toString(), command, tan);
 		} else
 			sendErrorReply("Missing or empty Object 'args'", command, tan);
+	} else
+		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
+}
+
+void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, const int tan)
+{
+	struct find_effect: std::unary_function<EffectDefinition, bool>
+	{
+		QString effectName;
+		find_effect(QString effectName) :effectName(effectName) { }
+		bool operator()(EffectDefinition const& effectDefinition) const
+		{
+			return effectDefinition.name == effectName;
+		}
+	};
+	
+	if(message.size() > 0)
+	{
+		QString effectName = message["name"].toString();
+		std::list<EffectDefinition> effectsDefinition = _hyperion->getEffects();
+		std::list<EffectDefinition>::iterator it = std::find_if(effectsDefinition.begin(), effectsDefinition.end(), find_effect(effectName));
+		
+		if (it != effectsDefinition.end())
+		{
+			QFileInfo effectConfigurationFile(it->file);
+			if (effectConfigurationFile.absoluteFilePath().mid(0, 1)  != ":" )
+			{
+				if (effectConfigurationFile.exists())
+				{
+					bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
+					(result) ? sendSuccessReply(command, tan) : sendErrorReply("Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions", command, tan);
+				} else
+					sendErrorReply("Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath(), command, tan);
+			} else
+				sendErrorReply("Can't delete internal effect: " + message["name"].toString(), command, tan);
+		} else
+			sendErrorReply("Effect " + message["name"].toString() + " not found", command, tan);
 	} else
 		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
@@ -649,6 +697,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	{
 		QJsonObject effect;
 		effect["name"] = effectDefinition.name;
+		effect["file"] = effectDefinition.file;
 		effect["script"] = effectDefinition.script;
 		effect["args"] = effectDefinition.args;
 		effects.append(effect);
