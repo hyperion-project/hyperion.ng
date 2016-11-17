@@ -17,9 +17,12 @@ table.borderless td,table.borderless th{border: none !important;}
 .sidebar{margin-top:61px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
+.page-header{margin-top:15px;}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
+.headcollapse{cursor:pointer;}
+.headcollapse a:hover{text-decoration:none;}
 
 /*Dashboard*/
 .component-on{color:green;}
