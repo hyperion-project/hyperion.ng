@@ -255,6 +255,7 @@ function createMatrixLeds(){
 	for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
 		for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
 			addLed(index, x, y)
+			index++
 		}
 		if (!parallel) {
 			forward = !forward
