@@ -248,6 +248,7 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 
 	// ---------- setup the definition ----------
 	
+	effectDefinition.file = fileName;
 	QJsonObject config = configEffect.object();
 	QString scriptName = config["script"].toString();
 	effectDefinition.name = config["name"].toString();
