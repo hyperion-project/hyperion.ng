@@ -100,17 +100,6 @@ if(ENABLE_SPIDEV)
 	)
 endif()
 
-if(ENABLE_WS2812BPWM)
-	SET(Leddevice_HEADERS
-		${Leddevice_HEADERS}
-		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.h
-	)
-	SET(Leddevice_SOURCES
-		${Leddevice_SOURCES}
-		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.cpp
-	)
-endif()
-
 if(ENABLE_WS281XPWM)
 	include_directories(../../dependencies/external/rpi_ws281x)
 	SET(Leddevice_HEADERS
