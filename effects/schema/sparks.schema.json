@@ -4,9 +4,10 @@
 	"title":"Sparks",
 	"required":true,
 	"properties":{
-		"color_one": {
+		"color": {
 			"type": "array",
 			"title":"Color",
+			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
 				"type": "integer",

@@ -21,6 +21,7 @@
 		"color": {
 			"type": "array",
 			"title":"Color",
+			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
