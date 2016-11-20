@@ -155,6 +155,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val();
 		requestDeleteEffect(name);
+		showInfoDialog('success','Effect deleted!', 'The effect "'+name+'" has been deleted successfully!');
 	});
 	
 $(document).ready( function() {
