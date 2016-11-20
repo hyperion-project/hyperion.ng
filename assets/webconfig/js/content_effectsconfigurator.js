@@ -56,7 +56,7 @@
 			var EffectHtml = null;
 			for(var idx=0; idx<newDelList.length; idx++)
 			{
-				if(!/:/.test(newDelList[idx].file))
+				if(!/^\:/.test(newDelList[idx].file))
 				{
 					EffectHtml += '<option value="'+newDelList[idx].name+'">'+newDelList[idx].name+'</option>';
 				}
@@ -133,7 +133,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		if(validateEditor() && validateName())
 		{
 			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-			showInfoDialog('success','SUCCESS!','Your effect has been created successfully!');
+			showInfoDialog('success','SUCCESS!','Your effect "'+effectName+'" has been created successfully!');
 		}
 	});
 
