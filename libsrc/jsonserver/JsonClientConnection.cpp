@@ -493,13 +493,14 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 					}
 					
 					QJsonFactory::writeJson(newFileName.absoluteFilePath(), effectJson);
+					Info(_log, "Reload effect list");
+					_hyperion->reloadEffects();
+					sendSuccessReply(command, tan);
 				} else
 				{
 					sendErrorReply("Can't save new effect. Effect path empty", command, tan);
 					return;
 				}
-				
-				sendSuccessReply(command, tan);
 			} else
 				sendErrorReply("Missing schema file for Python script " + message["script"].toString(), command, tan);
 		} else
@@ -534,7 +535,13 @@ void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message,
 				if (effectConfigurationFile.exists())
 				{
 					bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
-					(result) ? sendSuccessReply(command, tan) : sendErrorReply("Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions", command, tan);
+					if (result)
+					{
+						Info(_log, "Reload effect list");
+						_hyperion->reloadEffects();
+						sendSuccessReply(command, tan);
+					} else
+						sendErrorReply("Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions", command, tan);
 				} else
 					sendErrorReply("Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath(), command, tan);
 			} else
