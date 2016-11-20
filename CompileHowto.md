@@ -78,7 +78,8 @@ brew install doxygen
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
+cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON -DENABLE_X11=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
+
 ```
 
 # Run make to build Hyperion
@@ -109,9 +110,15 @@ On a Mac with Sierra you won't be able to copy these files to the ``/usr/bin/`` 
 ```bash
 cp ./bin/hyperion-remote /usr/local/bin
 cp ./bin/hyperiond /usr/local/bin
-``` 
+```
+
+The better way to do this is to use the make install script, which copies all necessary files to ``/usr/local/share/hyperion``:
+
+```bash
+sudo make install
+```
 
 # Copy the effect folder (if you did not use the normal installation methode before)
 ```
-sudo mkdir -p /usr/share/hyperion/effects && sudo cp -R ../effects/ /usr/share/hyperion/
+sudo mkdir -p /usr/local/share/hyperion/effects && sudo cp -R ../effects/ /usr/local/share/hyperion/
 ```
