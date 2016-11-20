@@ -74,6 +74,7 @@
 		"conf_leds_layout_cl_hleddepth" : "Horizontale LED Tiefe",
 		"conf_leds_layout_cl_vleddepth" : "Vertikale LED Tiefe",
 		"conf_leds_layout_cl_generate" : "Generiere Konfiguartion",
+		"conf_leds_layout_cl_edgegap" : "Rahmenabstand",
 		"conf_leds_layout_ma_horiz" : "Horizontal",
 		"conf_leds_layout_ma_vert" : "Vertical",
 		"conf_leds_layout_ma_cabling" : "Verkabelung",
