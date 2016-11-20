@@ -39,8 +39,8 @@ LedDeviceLightpackHidapi::LedDeviceLightpackHidapi()
 	, _serialNumber("")
 	, _firmwareVersion({-1,-1})
 	, _bitsPerChannel(-1)
+	, _hwLedCount(-1)
 {
-	_ledCount = -1;
 }
 
 LedDeviceLightpackHidapi::~LedDeviceLightpackHidapi()
@@ -165,11 +165,11 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 				// determine the number of leds
 				if (_firmwareVersion.majorVersion == 4)
 				{
-					_ledCount = 8;
+					_hwLedCount = 8;
 				}
 				else
 				{
-					_ledCount = 10;
+					_hwLedCount = 10;
 				}
 
 				// determine the bits per channel
@@ -184,7 +184,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 				}
 
 				// set the led buffer size (repport id + command + 6 bytes per led)
-				_ledBuffer = std::vector<uint8_t>(2 + _ledCount * 6, 0);
+				_ledBuffer = std::vector<uint8_t>(2 + _hwLedCount * 6, 0);
 				_ledBuffer[0] = 0x0; // report id
 				_ledBuffer[1] = CMD_UPDATE_LEDS;
 
@@ -202,16 +202,15 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 	return -1;
 }
 
-int LedDeviceLightpackHidapi::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 {
-	return write(ledValues.data(), ledValues.size());
+	return write(ledValues.data(), _ledCount);
 }
 
-int LedDeviceLightpackHidapi::write(const ColorRgb * ledValues, int size)
+int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = std::min(_ledCount, size);
-
-	for (int i = 0; i < count ; ++i)
+	int count = std::min(_hwLedCount,size);
+	for (int i=0; i<count; i++)
 	{
 		const ColorRgb & color = ledValues[i];
 

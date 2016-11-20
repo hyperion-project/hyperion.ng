@@ -4,7 +4,7 @@ include_directories(../libsrc)
 if(ENABLE_SPIDEV)
 	# Add the simple test executable 'TestSpi'
 	add_executable(test_spi TestSpi.cpp)
-	target_link_libraries(test_spi hyperion)
+	target_link_libraries(test_spi hyperion effectengine)
 
 	add_executable(spidev_test spidev_test.c)
 
@@ -14,7 +14,9 @@ endif(ENABLE_SPIDEV)
 add_executable(test_configfile
 		TestConfigFile.cpp)
 target_link_libraries(test_configfile
-		hyperion)
+		hyperion
+		effectengine
+		)
 
 add_executable(test_ImageRgb
 		TestRgbImage.cpp)
@@ -24,24 +26,32 @@ target_link_libraries(test_ImageRgb
 add_executable(test_colortransform
 	TestColorTransform.cpp)
 target_link_libraries(test_colortransform
-	hyperion)
+	hyperion
+	effectengine
+)
 
 add_executable(test_image2ledsmap
 		TestImage2LedsMap.cpp)
 target_link_libraries(test_image2ledsmap
-		hyperion)
+		hyperion
+		effectengine
+		)
 
 if (ENABLE_DISPMANX)
 	add_subdirectory(dispmanx2png)
 endif (ENABLE_DISPMANX)
 
 add_executable(test_blackborderdetector TestBlackBorderDetector.cpp)
-target_link_libraries(test_blackborderdetector hyperion)
+target_link_libraries(test_blackborderdetector
+		effectengine
+ hyperion)
 
 add_executable(test_blackborderprocessor
 		TestBlackBorderProcessor.cpp)
 target_link_libraries(test_blackborderprocessor
-		hyperion)
+		hyperion
+		effectengine
+)
 
 add_executable(test_qregexp TestQRegExp.cpp)
 target_link_libraries(test_qregexp

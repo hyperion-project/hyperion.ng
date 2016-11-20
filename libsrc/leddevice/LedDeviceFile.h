@@ -1,6 +1,6 @@
 #pragma once
 
-// STL includes0
+// STL includes
 #include <fstream>
 
 // Leddevice includes
@@ -14,15 +14,28 @@ class LedDeviceFile : public LedDevice
 {
 public:
 	///
-	/// Constructs the test-device, which opens an output stream to the file
+	/// Constructs specific LedDevice
 	///
-	LedDeviceFile(const std::string& output);
+	/// @param deviceConfig json device config
+	///
+	LedDeviceFile(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this test-device
 	///
 	virtual ~LedDeviceFile();
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool init(const QJsonObject &deviceConfig);
+	
+protected:
 	///
 	/// Writes the given led-color values to the output stream
 	///
@@ -32,10 +45,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	/// The outputstream
 	std::ofstream _ofs;
 };

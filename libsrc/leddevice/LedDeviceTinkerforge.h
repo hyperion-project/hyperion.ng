@@ -1,4 +1,3 @@
-
 #pragma once
 
 // STL includes
@@ -16,10 +15,24 @@ extern "C" {
 class LedDeviceTinkerforge : public LedDevice
 {
 public:
-	
-	LedDeviceTinkerforge(const std::string &host, uint16_t port, const std::string &uid, const unsigned interval);
+	///
+	/// Constructs specific LedDevice
+	///
+	/// @param deviceConfig json device config
+	///
+	LedDeviceTinkerforge(const QJsonObject &deviceConfig);
 
 	virtual ~LedDeviceTinkerforge();
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool init(const QJsonObject &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Attempts to open a connection to the master bricklet and the led strip bricklet.
@@ -28,6 +41,7 @@ public:
 	///
 	int open();
 
+private:
 	///
 	/// Writes the colors to the led strip bricklet
 	///
@@ -38,28 +52,20 @@ public:
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	///
-	/// Switches off the leds
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
-
-private:
-	///
 	/// Writes the data to the led strip blicklet 
 	int transferLedData(LEDStrip *ledstrip, unsigned int index, unsigned int length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel);
 
 	/// The host of the master brick
-	const std::string _host;
+	std::string _host;
 
 	/// The port of the master brick
-	const uint16_t _port;
+	uint16_t _port;
 
 	/// The uid of the led strip bricklet
-	const std::string _uid;
+	std::string _uid;
 
 	/// The interval/rate
-	const unsigned _interval;
+	unsigned _interval;
 
 	/// ip connection handle 
 	IPConnection *_ipConnection;

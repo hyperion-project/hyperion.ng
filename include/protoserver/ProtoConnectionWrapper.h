@@ -16,7 +16,7 @@ class ProtoConnectionWrapper : public QObject
 	Q_OBJECT
 
 public:
-	ProtoConnectionWrapper(const std::string & address, int priority, int duration_ms, bool skipProtoReply);
+	ProtoConnectionWrapper(const QString &address, int priority, int duration_ms, bool skipProtoReply);
 	virtual ~ProtoConnectionWrapper();
 	
 signals:	

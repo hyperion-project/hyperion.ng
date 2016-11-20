@@ -1,41 +1,34 @@
-
-// Hyperion includes
 #include "LedDevicePaintpack.h"
 
 // Use out report HID device
-LedDevicePaintpack::LedDevicePaintpack(const unsigned short VendorId, const unsigned short ProductId, int delayAfterConnect_ms)
-	: LedHIDDevice(VendorId, ProductId, delayAfterConnect_ms, false)
+LedDevicePaintpack::LedDevicePaintpack(const QJsonObject &deviceConfig)
+	: ProviderHID()
 {
-	// empty
+	ProviderHID::init(deviceConfig);
+	_useFeature = false;
+
+	_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
+	_ledBuffer[0] = 3;
+	_ledBuffer[1] = 0;
 }
 
+LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDevicePaintpack(deviceConfig);
+}
 
 int LedDevicePaintpack::write(const std::vector<ColorRgb> & ledValues)
 {
-	if (_ledBuffer.size() < 2 + ledValues.size()*3)
-	{
-		_ledBuffer.resize(2 + ledValues.size()*3, uint8_t(0));
-		_ledBuffer[0] = 3;
-		_ledBuffer[1] = 0;
-	}
-
 	auto bufIt = _ledBuffer.begin()+2;
-	for (const ColorRgb & ledValue : ledValues)
+	for (const ColorRgb & color : ledValues)
 	{
-		*bufIt = ledValue.red;
+		*bufIt = color.red;
 		++bufIt;
-		*bufIt = ledValue.green;
+		*bufIt = color.green;
 		++bufIt;
-		*bufIt = ledValue.blue;
+		*bufIt = color.blue;
 		++bufIt;
 	}
 
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-
-int LedDevicePaintpack::switchOff()
-{
-	std::fill(_ledBuffer.begin() + 2, _ledBuffer.end(), uint8_t(0));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

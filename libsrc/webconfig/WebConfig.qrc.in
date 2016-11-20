@@ -1,0 +1,5 @@
+<RCC>
+	<qresource prefix="/">
+		${HYPERION_WEBCONFIG_RES}
+	</qresource>
+</RCC>

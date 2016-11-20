@@ -15,7 +15,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(std::string grabberName, const int priority);
+	GrabberWrapper(std::string grabberName, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	
@@ -52,6 +52,7 @@ protected:
 	virtual void kodiOff();
 	virtual void kodiPause();
 
+	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
 	std::string _grabberName;
 	
 	/// Pointer to Hyperion for writing led values
@@ -72,4 +73,5 @@ protected:
 	/// The processor for transforming images to led colors
 	ImageProcessor * _processor;
 
+	hyperion::Components _grabberComponentId;
 };

@@ -38,5 +38,4 @@ qt5_use_modules(jsonserver Network)
 target_link_libraries(jsonserver
 	hyperion
 	hyperion-utils
-	jsoncpp
 	${QT_LIBRARIES})

@@ -16,6 +16,7 @@
 	"color" :
 	{
 		"channelAdjustment_enable" : true,
+		"channelAdjustment_v4l_only" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -41,21 +42,8 @@
 				}
 			}
 		],
-		"temperature_enable" : true,
-		"temperature" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"correctionValues" :
-				{
-					"red"   : 255,
-					"green" : 255,
-					"blue"  : 255
-				}
-			}
-		],
 		"transform_enable" : true,
+		"transform_v4l_only" : true,
 		"transform" :
 		[
 			{
@@ -96,26 +84,29 @@
 		"continuousOutput" : true
 	},
 
-	"grabber-v4l2" :
-	{
-		"enable"   : false,
-		"device"   : "auto",
-		"input"    : 0,
-		"standard" : "PAL",
-		"width"    : -1,
-		"height"   : -1,
-		"frameDecimation" : 2,
-		"sizeDecimation"  : 8,
-		"priority"    : 890,
-		"mode"        : "2D",
-		"cropLeft"    : 0,
-		"cropRight"   : 0,
-		"cropTop"     : 0,
-		"cropBottom"  : 0,
-		"redSignalThreshold"   : 0.0,
-		"greenSignalThreshold" : 0.0,
-		"blueSignalThreshold"  : 0.0
-	},
+	"grabberV4L2" :
+	[
+		{
+			"enable"   : false,
+			"device"   : "auto",
+			"input"    : 0,
+			"standard" : "PAL",
+			"width"    : -1,
+			"height"   : -1,
+			"frameDecimation" : 2,
+			"sizeDecimation"  : 8,
+			"priority"    : 890,
+			"mode"        : "2D",
+			"useKodiChecker" : false,
+			"cropLeft"    : 0,
+			"cropRight"   : 0,
+			"cropTop"     : 0,
+			"cropBottom"  : 0,
+			"redSignalThreshold"   : 0.0,
+			"greenSignalThreshold" : 0.0,
+			"blueSignalThreshold"  : 0.0
+		}
+	],
 
 	"framegrabber" :
 	{
@@ -191,17 +182,13 @@
 
 	"webConfig" :
 	{
-		"enable"        : true,
-		"document_root" : "/usr/share/hyperion/webconfig",
-		"port"          : 8099
+		"enable"        : true
 	},
 
 	"effects" :
 	{
 		"paths" :
 		[
-			"/storage/hyperion/effects",
-			"/usr/share/hyperion/effects"
 		]
 	},
 

@@ -1,0 +1,63 @@
+{
+	"type":"object",
+	"script" : "sparks.py",
+	"title":"Sparks",
+	"required":true,
+	"properties":{
+		"color": {
+			"type": "array",
+			"title":"Color",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"rotation-time": {
+			"type": "number",
+			"title":"Rotation time",
+			"default": 2.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 2
+		},
+		"sleep-time": {
+			"type": "number",
+			"title":"Sleep time",
+			"default": 0.05,
+			"minimum" : 0.01,
+			"propertyOrder" : 3
+		},
+		"brightness": {
+			"type": "number",
+			"title":"Brightness",
+			"default": 1.0,
+			"minimum" : 0.01,
+			"propertyOrder" : 4
+		},
+		"saturation": {
+			"type": "number",
+			"title":"Saturation",
+			"default": 1.0,
+			"minimum" : 0.01,
+			"propertyOrder" : 5
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"Reverse direction",
+			"default": false,
+			"propertyOrder" : 6
+		},
+		"random-color": {
+			"type": "boolean",
+			"title":"Random color",
+			"default": false,
+			"propertyOrder" : 7
+		}
+	},
+	"additionalProperties": false
+}

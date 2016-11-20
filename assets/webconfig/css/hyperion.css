@@ -5,17 +5,24 @@
 		 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
 body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;}
+/*remove padding on all col elements for mobile view*/
+@media (max-width: 767px){div[class*="col-"] {padding:0;}}
 /*icon spacing*/
 .fa-fw{margin-right:5px;}
+/*borderless table*/
+table.borderless td,table.borderless th{border: none !important;}
 
 /*Header*/
-.navbar-brand{padding: 5px;height:90px;}
-.sidebar{margin-top:91px;}
+.navbar-brand{padding: 5px;padding-left:20px;height:60px;}
+.sidebar{margin-top:61px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;}}
+.page-header{margin-top:15px;}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
+.headcollapse{cursor:pointer;}
+.headcollapse a:hover{text-decoration:none;}
 
 /*Dashboard*/
 .component-on{color:green;}
@@ -44,3 +51,50 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 /*Config introduction*/
 .introd{padding-left:14px;border-left:5px solid #0088cc;}
 .introd h4{line-height:25px;}
+
+/*backported bootstrap 4 forms-label alignment*/
+.col-form-label {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    margin-bottom: 0;
+}
+
+/*Modal icons*/
+.modal-icon-check{
+	background-color:#71c341;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+.modal-icon-warning{
+	background-color:#f7c44a;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+.modal-icon-error{
+	background-color:#d1322e;
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+
+.overlay {
+	background-image: url('/img/hyperion/hyperionwhitelogo.png');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: rgba(1, 1, 1, 0.7);
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index:99999;
+}
+
+#page-content {
+	padding-bottom:50px;
+}

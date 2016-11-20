@@ -1,0 +1,36 @@
+{
+	"type":"object",
+	"script" : "rainbow-swirl.py",
+	"title":"Rainbow swirl",
+	"required":true,
+	"properties":{
+		"rotation-time": {
+			"type": "number",
+			"title":"Rotation Time",
+			"default": 20.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 1
+		},
+		"center_x": {
+			"type": "number",
+			"title":"Center X",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"propertyOrder" : 2
+		},
+		"center_y": {
+			"type": "number",
+			"title":"Center Y",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"propertyOrder" : 3
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"Reverse",
+			"default": false,
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties": false
+}
