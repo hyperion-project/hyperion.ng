@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 	Option        & exportConfigOption  = parser.add<Option>       (0x0, "export-config", "export default config to file");
 	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
 
-	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration files"), "[files...]");
+	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration file"), "config.file");
 
     parser.process(app);
 
@@ -186,6 +186,7 @@ int main(int argc, char** argv)
 	if (configFiles.size() == 0)
 	{
 		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> config.file");
+		parser.showHelp(0);
 		return 1;
 	}
 	if (configFiles.size() > 1)

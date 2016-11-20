@@ -1,18 +1,20 @@
 #!/bin/bash
 
 # for executing in non travis environment
+[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 
-[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$(uname -s | tr 'A-Z' 'a-z')"
+PLATFORM=x86
+BUILD_TYPE=Debug
 
 # Detect number of processor cores
-
-if [[ $TRAVIS_OS_NAME == 'osx' || $TRAVIS_OS_NAME == 'darwin' ]]; then
-	procs=$(sysctl -n hw.ncpu | xargs)
-elif [[ $TRAVIS_OS_NAME == 'linux' ]]; then
-    procs=$(nproc)
-else
-    # For most modern systems, including the pi, this is a sane default
-    procs=4
+# default is 4 jobs
+if [[ "$TRAVIS_OS_NAME" == 'osx' || "$TRAVIS_OS_NAME" == 'darwin' ]]
+then
+	JOBS=$(sysctl -n hw.ncpu | cut -d: -f2 | tr -dc '[:digit:]')
+	PLATFORM=osx
+elif [[ "$TRAVIS_OS_NAME" == 'linux' ]]
+then
+	JOBS=$(nproc)
 fi
 
 # compile prepare
@@ -20,24 +22,21 @@ mkdir build || exit 1
 cd build
 
 # Compile hyperion for tags
-if [[ -n $TRAVIS_TAG ]]; then
-	cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Release .. || exit 2
-	make -j$(nproc) || exit 3
+[ -n "${TRAVIS_TAG:-}" ] && BUILD_TYPE=Release
 
-# Compile hyperion for cron
-elif [[ $TRAVIS_EVENT_TYPE == 'cron' ]]; then
-	cmake -DPLATFORM=x86 -DCMAKE_BUILD_TYPE=Debug .. || exit 4
-	make -j$(nproc) || exit 5
+# Compile hyperion for cron - take default settings
 
-# Compile for PR
-else 
-	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Debug .. || exit 6
-	make -j$(nproc) || exit 7
-fi
-	
+# Compile for PR (no tag and no cron)
+[ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
+
+cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr .. || exit 2
+
+echo "compile jobs: ${JOBS:=4}"
+make -j ${JOBS} || exit 3
+
 # Build the package on Linux
-
-if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
-    make -j$(nproc) package || exit 8
+if [[ $TRAVIS_OS_NAME == 'linux' ]]
+then
+    make -j ${JOBS} package || exit 4
 fi
 
