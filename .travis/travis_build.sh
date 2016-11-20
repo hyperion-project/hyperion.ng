@@ -10,7 +10,7 @@ BUILD_TYPE=Debug
 # default is 4 jobs
 if [[ "$TRAVIS_OS_NAME" == 'osx' || "$TRAVIS_OS_NAME" == 'darwin' ]]
 then
-	JOBS=$(sysctl -n hw.ncpu | cut -d: -f2 | tr -dc '[:digit:]')
+	JOBS=$(sysctl -n hw.ncpu)
 	PLATFORM=osx
 elif [[ "$TRAVIS_OS_NAME" == 'linux' ]]
 then
