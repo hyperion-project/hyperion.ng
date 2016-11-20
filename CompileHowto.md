@@ -120,5 +120,5 @@ sudo make install
 
 # Copy the effect folder (if you did not use the normal installation methode before)
 ```
-sudo mkdir -p /usr/local/share/hyperion/effects && sudo cp -R ../effects/ /usr/local/share/hyperion/
+sudo mkdir -p /usr/local/share/hyperion/effects && sudo cp -R ../effects/ /usr/local/share/hyperion/effects/
 ```
