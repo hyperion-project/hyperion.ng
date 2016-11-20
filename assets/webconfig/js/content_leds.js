@@ -77,15 +77,16 @@ function createClassicLeds(){
 	var ledsGPos = parseInt($("#ip_cl_ledsgpos").val());
 	var position = parseInt($("#ip_cl_position").val());
 	var reverse = $("#ip_cl_reverse").is(":checked");
-	var edgeGap = 0.1
 	
 	//advanced values
 	var rawledsVDepth = parseInt($("#ip_cl_ledsvdepth").val());
 	var rawledsHDepth = parseInt($("#ip_cl_ledshdepth").val());
+	var rawedgeGap = parseInt($("#ip_cl_ledsedgegap").val());
 	
 	//helper
 	var ledsVDepth = rawledsVDepth / 100;
 	var ledsHDepth = rawledsHDepth / 100;
+	var edgeGap = rawedgeGap / 100 /2;
 	var min = 0.0 + edgeGap;
 	var max = 1.0 - edgeGap;
 	var ledArray = [];
@@ -102,11 +103,12 @@ function createClassicLeds(){
 
 	if (reverse)
 		ledArray.reverse();
-
+	
 	createLedPreview(ledArray, 'classic');
 	createFinalArray(ledArray);
 	
 	function createFinalArray(array){
+		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
 			hmin = array[i].hscan.minimum;
 			hmax = array[i].hscan.maximum;
@@ -145,52 +147,54 @@ function createClassicLeds(){
 	}
 	
 	function createTopLeds(){
-		vmin=0.0;
+		step=(max-min)/ledsTop;
+		vmin=min
 		vmax=vmin+ledsHDepth;
+		hmin=min
+		hmax=min+step
 		for (var i = 0; i<ledsTop; i++){
-			//step=(max-min)/ledsTop
-			//i/ledsTop*(max-min)
-			step = 1/ledsTop;
-			factor = i/ledsTop;
-			hmin=factor;
-			hmax=factor+step;
 			createLedArray(hmin, hmax, vmin, vmax);
+			hmin += step
+			hmax += step
 		}	
 	}
 	
 	function createLeftLeds(){
-		hmin=0.0;
-		hmax=ledsVDepth;
+		step=(max-min)/ledsLeft;
+		hmin=min;
+		hmax=min+ledsVDepth;
+		vmin=max-step
+		vmax=max
 		for (var i = ledsLeft; i>0; i--){
-			step = 1/ledsLeft;
-			factor = i/ledsLeft;
-			vmin=factor-step;
-			vmax=factor;
 			createLedArray(hmin, hmax, vmin, vmax);
+			vmin -= step
+			vmax -= step
 		}
 	}
 	
 	function createRightLeds(){
-		hmax=1.0;
+		step=(max-min)/ledsRight;
+		hmax=max;
 		hmin=hmax-ledsVDepth;
+		vmin=min
+		vmax=min+step
 		for (var i = 0; i<ledsRight; i++){
-			step = 1/ledsRight;
-			factor = i/ledsRight;
-			vmin=factor;
-			vmax=factor+step;
-			createLedArray(hmin, hmax, vmin, vmax);			
+			createLedArray(hmin, hmax, vmin, vmax);	
+			vmin += step
+			vmax += step			
 		}
 	}
 	
 	function createBottomLeds(){
-		vmax=1.0;
+		step=(max-min)/ledsBottom;
+		vmax=max;
 		vmin=vmax-ledsHDepth;
+		hmin=max-step
+		hmax=max
 		for (var i = ledsBottom; i>0; i--){
-			step = 1/ledsBottom;
-			factor = i/ledsBottom;
-			hmin=factor-step;
-			hmax=factor;
 			createLedArray(hmin, hmax, vmin, vmax);
+			hmin -= step
+			hmax -= step
 		}
 	}
 }
@@ -264,7 +268,7 @@ function createMatrixLeds(){
 			endX = tmp
 		}
 	}
-  
+  finalLedArray =[];
   finalLedArray = leds
   createLedPreview(leds, 'matrix');
 }
@@ -395,7 +399,14 @@ $(document).ready(function() {
 	
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
-
+		function createLedConfig(){
+			var string = '{"leds" :';
+			string += $("#ledconfig").val();
+			string += "}";
+			return string
+		}
+		if (validateText())
+			requestWriteConfig(JSON.parse(createLedConfig()));
 	});
 
 	// -------------------------------------------------------------

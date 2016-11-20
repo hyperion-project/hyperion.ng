@@ -47,6 +47,25 @@
 
     });
 
+	var oldDelList = [];
+	
+	function updateDelEffectlist(event){
+		var newDelList = event.response.info.effects
+		if(newDelList.length != oldDelList.length)
+		{
+			var EffectHtml = null;
+			for(var idx=0; idx<newDelList.length; idx++)
+			{
+				if(!/:/.test(newDelList[idx].file))
+				{
+					EffectHtml += '<option value="'+newDelList[idx].name+'">'+newDelList[idx].name+'</option>';
+				}
+			}
+			$("#effectsdellist").html(EffectHtml);
+			oldDelList = newDelList;
+		}
+	}
+	
 $(hyperion).one("cmd-config-getschema", function(event) {
 	effects = parsedConfSchemaJSON.properties.effectSchemas.internal
 	EffectsHtml = "";
@@ -133,19 +152,6 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		toggleClass('#btn_cont_test', "btn-success", "btn-danger");
 	});
 	
-// Delete effect
-	delList=parsedServerInfoJSON.info.effects
-	var EffectHtml
-	
-	for(var idx=0; idx<delList.length; idx++)
-		{
-			if(!/:/.test(delList[idx].file))
-			{
-				EffectHtml += '<option value="'+delList[idx].name+'">'+delList[idx].name+'</option>';
-			}
-		}
-		$("#effectsdellist").html(EffectHtml);
-	
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val();
 		requestDeleteEffect(name);
@@ -153,4 +159,5 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	
 $(document).ready( function() {
 	requestServerConfigSchema();
+	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
 });
