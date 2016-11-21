@@ -119,6 +119,9 @@ public:
 	///
 	const InputInfo& getPriorityInfo(const int priority) const;
 
+	/// Reload the list of available effects
+	void reloadEffects();
+
 	/// Get the list of available effects
 	/// @return The list of available effects
 	const std::list<EffectDefinition> &getEffects() const;

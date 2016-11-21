@@ -97,6 +97,13 @@ private:
 	void handleCreateEffectCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON Effect message (Delete JSON Effect)
+	///
+	/// @param message the incoming message
+	///
+	void handleDeleteEffectCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON Server info message
 	///
 	/// @param message the incoming message

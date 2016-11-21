@@ -7,6 +7,7 @@
 		"color_one": {
 			"type": "array",
 			"title":"Color one",
+			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
@@ -20,6 +21,7 @@
 		"color_two": {
 			"type": "array",
 			"title":"Color two",
+			"format":"colorpicker",
 			"default": [0,0,255],
 			"items" : {
 				"type": "integer",

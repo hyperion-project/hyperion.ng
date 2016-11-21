@@ -49,10 +49,6 @@
 #include "LedDeviceAtmoOrb.h"
 #include "LedDeviceUdpH801.h"
 
-#ifdef ENABLE_WS2812BPWM
-	#include "LedDeviceWS2812b.h"
-#endif
-
 #ifdef ENABLE_WS281XPWM
 	#include "LedDeviceWS281x.h"
 #endif
@@ -91,9 +87,6 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	#endif
 	
 	// pwm devices
-	#ifdef ENABLE_WS2812BPWM
-	REGISTER(WS2812b);
-	#endif
 	#ifdef ENABLE_WS281XPWM
 	REGISTER(WS281x);
 	#endif

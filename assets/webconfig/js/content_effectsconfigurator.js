@@ -1,3 +1,71 @@
+	JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
+		
+		getValue: function() {
+			color = $(this.input).data('colorpicker').color.toRGB();
+			return [color.r, color.g, color.b];
+        },
+
+        setValue: function(val) {
+			function rgb2hex(rgb){
+				return "#" +
+				("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+				("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+				("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
+			}
+
+			$(this.input).colorpicker('setValue', rgb2hex(val));
+        },
+		
+        build: function() {
+			this._super();
+			var myinput = this
+				$(this.input).colorpicker({
+                format: 'rgb',
+                customClass: 'colorpicker-2x',
+                sliders: {
+                    saturation: {
+                        maxLeft: 200,
+                        maxTop: 200
+                    },
+                    hue: {
+                        maxTop: 200
+                    },
+                },
+               
+            })
+			//$(this.input).colorpicker().on('changeColor', function(e) {
+			//$(this.input).trigger("change");
+			//});
+			
+        }
+    });
+
+    JSONEditor.defaults.resolvers.unshift(function(schema) {
+        if(schema.type === "array" && schema.format === "colorpicker") {
+            return "colorPicker";
+        }
+
+    });
+
+	var oldDelList = [];
+	
+	function updateDelEffectlist(event){
+		var newDelList = event.response.info.effects
+		if(newDelList.length != oldDelList.length)
+		{
+			var EffectHtml = null;
+			for(var idx=0; idx<newDelList.length; idx++)
+			{
+				if(!/^\:/.test(newDelList[idx].file))
+				{
+					EffectHtml += '<option value="'+newDelList[idx].name+'">'+newDelList[idx].name+'</option>';
+				}
+			}
+			$("#effectsdellist").html(EffectHtml);
+			oldDelList = newDelList;
+		}
+	}
+	
 $(hyperion).one("cmd-config-getschema", function(event) {
 	effects = parsedConfSchemaJSON.properties.effectSchemas.internal
 	EffectsHtml = "";
@@ -65,7 +133,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		if(validateEditor() && validateName())
 		{
 			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-			showInfoDialog('success','SUCCESS!','Your effect has been created successfully!');
+			showInfoDialog('success','SUCCESS!','Your effect "'+effectName+'" has been created successfully!');
 		}
 	});
 
@@ -83,7 +151,14 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_cont_test').off().on('click',function() {
 		toggleClass('#btn_cont_test', "btn-success", "btn-danger");
 	});
-
+	
+	$('#btn_delete').off().on('click',function() {
+		var name = $("#effectsdellist").val();
+		requestDeleteEffect(name);
+		showInfoDialog('success','Effect deleted!', 'The effect "'+name+'" has been deleted successfully!');
+	});
+	
 $(document).ready( function() {
 	requestServerConfigSchema();
+	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
 });

@@ -213,3 +213,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 function requestTestEffect(effectName,effectPy,effectArgs) {
 	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
 }
+
+function requestDeleteEffect(effectName) {
+	websocket.send('{"command":"delete-effect","name":"'+effectName+'"}');
+}

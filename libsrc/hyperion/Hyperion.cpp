@@ -804,6 +804,11 @@ const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
+void Hyperion::reloadEffects()
+{
+	_effectEngine->readEffects();
+}
+
 const std::list<EffectDefinition> & Hyperion::getEffects() const
 {
 	return _effectEngine->getEffects();

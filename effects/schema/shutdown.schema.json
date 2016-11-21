@@ -14,6 +14,7 @@
 		"alarm-color": {
 			"type": "array",
 			"title":"Alarm color",
+			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
 				"type": "integer",
