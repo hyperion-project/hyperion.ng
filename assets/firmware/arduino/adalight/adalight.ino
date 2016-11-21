@@ -1,117 +1,186 @@
 #include "FastLED.h"
 
-// How many leds in your strip?
-#define NUM_LEDS 240
+/**************************************
+   S E T U P
 
-// For led chips like Neopixels, which have a data line, ground, and power, you just
-// need to define DATA_PIN.  For led chipsets that are SPI based (four wires - data, clock,
-// ground, and power), like the LPD8806 define both DATA_PIN and CLOCK_PIN
+   set following values to your needs
+ **************************************/
+
+// Number of leds in your strip
+#define NUM_LEDS 100
+
+// For 3 wire led stripes line Neopixel/Ws2812, which have a data line, ground, and power, you just
+// need to define DATA_PIN.
+// For led chipsets that are SPI based (four wires - data, clock, ground, and power),
+// like the APA102, WS2801, LPD8806 both defines DATA_PIN and CLOCK_PIN are needed
 #define DATA_PIN 6
 #define CLOCK_PIN 13
 
-#define COLOR_ORDER RGB
+#define COLOR_ORDER RGB  // colororder of the stripe.
+#define GROUND_PIN 5     // additional ground pin to make wiring a bit easier
 
-// Adalight sends a "Magic Word" (defined in /etc/boblight.conf) before sending the pixel data
-uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
+#define OFF_TIMEOUT 0    // ms to switch off after no data was received, set 0 to deactivate
+
+// overall color adjustments
+#define BRIGHTNESS 255                      // maximum brightness 0-255
+#define DITHER_MODE DISABLE_DITHER          // BINARY_DITHER or DISABLE_DITHER
+#define COLOR_TEMPERATURE CRGB(255,255,255) // RGB value describing the color temperature
+#define COLOR_CORRECTION  CRGB(255,255,255) // RGB value describing the color correction
 
 // Baudrate, higher rate allows faster refresh rate and more LEDs (defined in /etc/boblight.conf)
 #define serialRate 460800
 
+
+/**************************************
+   A D A L I G H T   C O D E
+
+   no user changes needed
+ **************************************/
+
+// Adalight sends a "Magic Word" (defined in /etc/boblight.conf) before sending the pixel data
+uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
+
+unsigned long endTime;
+
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
-void setup() {
-  // Uncomment/edit one of the following lines for your leds arrangement.
-  // FastLED.addLeds<NEOPIXEL    , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<BTM1829     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<TM1812      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<TM1809      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<TM1804      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<TM1803      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<UCS1903     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<UCS1903B    , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<UCS1904     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<UCS2903     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2812      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2852      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  FastLED.addLeds<WS2812B     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<SK6812      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<SK6822      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<APA106      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<PL9823      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2811      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2813      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<APA104      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2811_40   , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<GW6205      , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<GW6205_40   , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<LPD1886     , DATA_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<LPD1886_8BIT, DATA_PIN, RGB>(leds, NUM_LEDS);
+void switchOff() {
+  memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+  FastLED.show();
+}
 
-  // FastLED.addLeds<LPD8806, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2801 , DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<WS2803 , DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<SM16716, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<P9813  , DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<APA102 , DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<SK9822 , DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  // FastLED.addLeds<DOTSTAR, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
+bool checkIncommingData() {
+  boolean dataAvailable = true;
+  while (!Serial.available()) {
+    if ( OFF_TIMEOUT > 0 && endTime < millis()) {
+      switchOff();
+      dataAvailable = false;
+      endTime = millis() + OFF_TIMEOUT;
+    }
+  }
+
+  return dataAvailable;
+}
+
+void setup() {
+
+  // additional ground pin to make wiring a bit easier
+  pinMode(GROUND_PIN, OUTPUT);
+  digitalWrite(GROUND_PIN, LOW);
+
+  // Uncomment/edit one of the following lines for your leds arrangement.
+  // FastLED.addLeds<NEOPIXEL    , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<BTM1829     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<TM1812      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<TM1809      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<TM1804      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<TM1803      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<UCS1903     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<UCS1903B    , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<UCS1904     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<UCS2903     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2812      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2852      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  FastLED.addLeds<WS2812B     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<SK6812      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<SK6822      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<APA106      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<PL9823      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2811      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2813      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<APA104      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2811_40   , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<GW6205      , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<GW6205_40   , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<LPD1886     , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<LPD1886_8BIT, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+
+  // FastLED.addLeds<LPD8806, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2801 , DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<WS2803 , DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<SM16716, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<P9813  , DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<APA102 , DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<SK9822 , DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+  // FastLED.addLeds<DOTSTAR, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+
+  // color adjustments
+  FastLED.setBrightness ( BRIGHTNESS );
+  FastLED.setTemperature( COLOR_TEMPERATURE );
+  FastLED.setCorrection ( COLOR_CORRECTION );
+  FastLED.setDither     ( DITHER_MODE );
 
   // initial RGB flash
   LEDS.showColor(CRGB(255, 0, 0));
-  delay(250);
+  delay(400);
   LEDS.showColor(CRGB(0, 255, 0));
-  delay(250);
+  delay(400);
   LEDS.showColor(CRGB(0, 0, 255));
-  delay(250);
+  delay(400);
   LEDS.showColor(CRGB(0, 0, 0));
 
   Serial.begin(serialRate);
   Serial.print("Ada\n"); // Send "Magic Word" string to host
 
-}
+
+  // loop() is avoided as even that small bit of function overhead
+  // has a measurable impact on this code's overall throughput.
+  boolean transmissionSuccess;
+  while (true) {
+    // wait for first byte of Magic Word
+    for (i = 0; i < sizeof prefix; ++i) {
+      // If next byte is not in Magic Word, the start over
+      if (!checkIncommingData() || prefix[i] != Serial.read()) {
+        i = 0;
+      }
+    }
+
+    // Hi, Lo, Checksum
+    if (!checkIncommingData()) continue;
+    hi = Serial.read();
+    if (!checkIncommingData()) continue;
+    lo = Serial.read();
+    if (!checkIncommingData()) continue;
+    chk = Serial.read();
+
+    // if checksum does not match go back to wait
+    if (chk != (hi ^ lo ^ 0x55)) continue;
+
+    memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+    // read the transmission data and set LED values
+    transmissionSuccess = true;
+    for (uint8_t idx = 0; idx < NUM_LEDS; idx++) {
+      byte r, g, b;
+      if (!checkIncommingData()) {
+        transmissionSuccess = false;
+        break;
+      }
+      r = Serial.read();
+      if (!checkIncommingData()) {
+        transmissionSuccess = false;
+        break;
+      }
+      g = Serial.read();
+      if (!checkIncommingData()) {
+        transmissionSuccess = false;
+        break;
+      }
+      b = Serial.read();
+      leds[idx].r = r;
+      leds[idx].g = g;
+      leds[idx].b = b;
+    }
+
+    // shows new values
+    if (transmissionSuccess) {
+      endTime = millis() + OFF_TIMEOUT;
+      FastLED.show();
+    }
+  }
+} // end of setup
+
 
 void loop() {
-  // wait for first byte of Magic Word
-  for (i = 0; i < sizeof prefix; ++i) {
-waitLoop: while (!Serial.available()) ;;
-    // Check next byte in Magic Word
-    if (prefix[i] == Serial.read()) continue;
-    // otherwise, start over
-    i = 0;
-    goto waitLoop;
-  }
-
-  // Hi, Lo, Checksum
-
-  while (!Serial.available()) ;;
-  hi = Serial.read();
-  while (!Serial.available()) ;;
-  lo = Serial.read();
-  while (!Serial.available()) ;;
-  chk = Serial.read();
-
-  // if checksum does not match go back to wait
-  if (chk != (hi ^ lo ^ 0x55))
-  {
-    i = 0;
-    goto waitLoop;
-  }
-
-  memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
-  // read the transmission data and set LED values
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
-    byte r, g, b;
-    while (!Serial.available());
-    r = Serial.read();
-    while (!Serial.available());
-    g = Serial.read();
-    while (!Serial.available());
-    b = Serial.read();
-    leds[i].r = r;
-    leds[i].g = g;
-    leds[i].b = b;
-  }
-  // shows new values
-  FastLED.show();
+  // Not used. See note in setup() function.
 }
