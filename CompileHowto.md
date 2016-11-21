@@ -78,8 +78,7 @@ brew install doxygen
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DENABLE_V4L2=OFF -DENABLE_OSX=ON -DENABLE_X11=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
-
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0 ..
 ```
 
 # Run make to build Hyperion
@@ -116,6 +115,12 @@ The better way to do this is to use the make install script, which copies all ne
 
 ```bash
 sudo make install
+```
+
+You can combine the install command with the strip command to install and cleanup in one task:
+
+```bash
+sudo make install/strip
 ```
 
 # Copy the effect folder (if you did not use the normal installation methode before)
