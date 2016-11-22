@@ -19,16 +19,24 @@
 #define COLOR_ORDER RGB  // colororder of the stripe.
 #define GROUND_PIN 5     // additional ground pin to make wiring a bit easier
 
-#define OFF_TIMEOUT 0    // ms to switch off after no data was received, set 0 to deactivate
+#define OFF_TIMEOUT 1000    // ms to switch off after no data was received, set 0 to deactivate
+
+// analog rgb uni color led
+#define ANALOG_OUTPUT_ENABLED true
+#define ANALOG_RED_PIN   11
+#define ANALOG_GREEN_PIN 10
+#define ANALOG_BLUE_PIN   9
 
 // overall color adjustments
-#define BRIGHTNESS 255                      // maximum brightness 0-255
-#define DITHER_MODE DISABLE_DITHER          // BINARY_DITHER or DISABLE_DITHER
+#define BRIGHTNESS 96                      // maximum brightness 0-255
+#define DITHER_MODE BINARY_DITHER          // BINARY_DITHER or DISABLE_DITHER
 #define COLOR_TEMPERATURE CRGB(255,255,255) // RGB value describing the color temperature
 #define COLOR_CORRECTION  CRGB(255,255,255) // RGB value describing the color correction
 
 // Baudrate, higher rate allows faster refresh rate and more LEDs (defined in /etc/boblight.conf)
-#define serialRate 460800
+//#define serialRate 460800
+#define serialRate 115200
+
 
 
 /**************************************
@@ -45,9 +53,19 @@ unsigned long endTime;
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
+
+void showAnalogRGB(byte r, byte g, byte b) {
+  if (ANALOG_OUTPUT_ENABLED) {
+    analogWrite(ANALOG_RED_PIN   , r);
+    analogWrite(ANALOG_GREEN_PIN , g);
+    analogWrite(ANALOG_BLUE_PIN  , b);
+  }
+}
+
 void switchOff() {
   memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
   FastLED.show();
+  showAnalogRGB(0, 0, 0);
 }
 
 bool checkIncommingData() {
@@ -68,6 +86,14 @@ void setup() {
   // additional ground pin to make wiring a bit easier
   pinMode(GROUND_PIN, OUTPUT);
   digitalWrite(GROUND_PIN, LOW);
+
+  // analog output
+  if (ANALOG_OUTPUT_ENABLED) {
+    pinMode(ANALOG_RED_PIN  , OUTPUT);
+    pinMode(ANALOG_GREEN_PIN, OUTPUT);
+    pinMode(ANALOG_BLUE_PIN , OUTPUT);
+    showAnalogRGB(0, 0, 0);
+  }
 
   // Uncomment/edit one of the following lines for your leds arrangement.
   // FastLED.addLeds<NEOPIXEL    , DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
@@ -124,9 +150,11 @@ void setup() {
   Serial.print("Ada\n"); // Send "Magic Word" string to host
 
 
+  boolean transmissionSuccess;
+  unsigned long sum_r, sum_g, sum_b;
+
   // loop() is avoided as even that small bit of function overhead
   // has a measurable impact on this code's overall throughput.
-  boolean transmissionSuccess;
   while (true) {
     // wait for first byte of Magic Word
     for (i = 0; i < sizeof prefix; ++i) {
@@ -148,8 +176,12 @@ void setup() {
     if (chk != (hi ^ lo ^ 0x55)) continue;
 
     memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
-    // read the transmission data and set LED values
     transmissionSuccess = true;
+    sum_r = 0;
+    sum_g = 0;
+    sum_b = 0;
+
+    // read the transmission data and set LED values
     for (uint8_t idx = 0; idx < NUM_LEDS; idx++) {
       byte r, g, b;
       if (!checkIncommingData()) {
@@ -170,12 +202,16 @@ void setup() {
       leds[idx].r = r;
       leds[idx].g = g;
       leds[idx].b = b;
+      sum_r += r;
+      sum_g += g;
+      sum_b += b;
     }
 
     // shows new values
     if (transmissionSuccess) {
       endTime = millis() + OFF_TIMEOUT;
       FastLED.show();
+      showAnalogRGB(sum_r / NUM_LEDS, sum_g / NUM_LEDS, sum_b / NUM_LEDS);
     }
   }
 } // end of setup
