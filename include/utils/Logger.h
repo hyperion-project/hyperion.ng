@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <map>
+#include <QString>
 
 // standard log messages
 //#define _FUNCNAME_ __PRETTY_FUNCTION__
@@ -22,16 +23,31 @@
 
 // ================================================================
 
+
 class Logger
 {
 public:
 	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
 
+	typedef struct
+	{
+		QString      appName;
+		QString      loggerName;
+		QString      function;
+		unsigned int line;
+		QString      fileName;
+		time_t       utime;
+		QString      message;
+		LogLevel     level;
+		QString      levelString;
+	} T_LOG_MESSAGE;
+
 	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
 	static void     deleteInstance(std::string name="");
 	static void     setLogLevel(LogLevel level,std::string name="");
 	static LogLevel getLogLevel(std::string name="");
-
+	static std::vector<Logger::T_LOG_MESSAGE>* getGlobalLogMessageBuffer() { return GlobalLogMessageBuffer; };
+	
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = level; };
 	LogLevel getMinLevel() { return _minLevel; };
@@ -43,6 +59,7 @@ protected:
 private:
 	static std::map<std::string,Logger*> *LoggerMap;
 	static LogLevel GLOBAL_MIN_LOG_LEVEL;
+	static std::vector<T_LOG_MESSAGE> *GlobalLogMessageBuffer;
 
 	std::string _name;
 	std::string _appname;
