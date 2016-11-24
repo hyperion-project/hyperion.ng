@@ -3,9 +3,6 @@
 #include <unistd.h>
 #include <iostream>
 
-// Json includes
-#include <json/json.h>
-
 // hyperion includes
 #include <hyperion/LedString.h>
 

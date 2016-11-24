@@ -1,13 +1,9 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // Qt includes
-#include <QObject>
-#include <QString>
 #include <QNetworkAccessManager>
 #include <QTimer>
+
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -115,22 +111,35 @@ class LedDevicePhilipsHue: public LedDevice {
 
 public:
 	///
-	/// Constructs the device.
+	/// Constructs specific LedDevice
 	///
-	/// @param output the ip address of the bridge
-	/// @param username username of the hue bridge (default: newdeveloper)
-	/// @param switchOffOnBlack kill lights for black (default: false)
-	/// @param transitiontime the time duration a light change takes in multiples of 100 ms (default: 400 ms).
-	/// @param lightIds light ids of the lights to control if not starting at one in ascending order.
+	/// @param deviceConfig json device config
 	///
-	LedDevicePhilipsHue(const std::string& output, const std::string& username = "newdeveloper", bool switchOffOnBlack =
-			false, int transitiontime = 1, std::vector<unsigned int> lightIds = std::vector<unsigned int>());
+	LedDevicePhilipsHue(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this device
 	///
 	virtual ~LedDevicePhilipsHue();
 
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool init(const QJsonObject &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+	
+	/// Restores the original state of the leds.
+	virtual int switchOff();
+
+private slots:
+	/// Restores the status of all lights.
+	void restoreStates();
+
+private:
 	///
 	/// Sends the given led-color values via put request to the hue system
 	///
@@ -140,14 +149,6 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 
-	/// Restores the original state of the leds.
-	virtual int switchOff();
-
-private slots:
-	/// Restores the status of all lights.
-	void restoreStates();
-
-private:
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> lights;
 	/// Ip address of the bridge

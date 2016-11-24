@@ -1,0 +1,31 @@
+{
+	"type":"object",
+	"script" : "strobe.py",
+	"title":"Strobe",
+	"required":true,
+	"properties":{
+		"color": {
+			"type": "array",
+			"title":"Color",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"frequency": {
+			"type": "number",
+			"title":"Frequency",
+			"default": 10.0,
+			"minimum" : 0.1,
+			"append" : "Hz",
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties": false
+}

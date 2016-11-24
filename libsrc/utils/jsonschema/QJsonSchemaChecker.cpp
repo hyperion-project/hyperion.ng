@@ -2,7 +2,7 @@
 #include <iterator>
 #include <sstream>
 #include <algorithm>
-#include <math.h> 
+#include <math.h>
 
 // Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -26,9 +26,10 @@ bool QJsonSchemaChecker::setSchema(const QJsonObject & schema)
 	return true;
 }
 
-bool QJsonSchemaChecker::validate(const QJsonObject & value)
+bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
 {
 	// initialize state
+	_ignoreRequired = ignoreRequired;
 	_error = false;
 	_messages.clear();
 	_currentPath.clear();
@@ -45,9 +46,9 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 	// check the current json value
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
-		QString attribute = i.key();		
+		QString attribute = i.key();
 		const QJsonValue & attributeValue = *i;
-		
+
 		if (attribute == "type")
 			checkType(value, attributeValue);
 		else if (attribute == "properties")
@@ -71,7 +72,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 					const QJsonObject & props = schema["properties"].toObject();
 					ignoredProperties = props.keys();
 				}
-				
+
 				checkAdditionalProperties(value.toObject(), attributeValue, ignoredProperties);
 			}
 			else
@@ -108,7 +109,8 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
  			; // nothing to do. value is present so always oke
  		else if (attribute == "id")
  			; // references have already been collected
- 		else if (attribute == "title" || attribute == "description"  || attribute == "default")
+ 		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format"
+			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append")
  			; // nothing to do.
 		else
 		{
@@ -135,7 +137,7 @@ const std::list<std::string> & QJsonSchemaChecker::getMessages() const
 void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & schema)
 {
 	QString type = schema.toString();
-	
+
 	bool wrongType = false;
 	if (type == "string")
 		wrongType = !value.isString();
@@ -168,21 +170,21 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 }
 
 void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonObject & schema)
-{	
+{
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
 		QString property = i.key();
-		
+
 		const QJsonValue  & propertyValue = i.value();
 
 		_currentPath.push_back(std::string(".") + property.toStdString());
 		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
-		
+
 		if (value.contains(property))
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (required != propertyValue.toObject().end() && required.value().toBool())
+		else if (required != propertyValue.toObject().end() && required.value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
 			setMessage("missing member");
@@ -264,7 +266,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 		setMessage("items only valid for arrays");
 		return;
 	}
-	
+
 	QJsonArray jArray = value.toArray();
 	for(int i = 0; i < jArray.size(); ++i)
 	{
@@ -272,7 +274,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 		std::ostringstream oss;
 		oss << "[" << i << "]";
 		_currentPath.push_back(oss.str());
-		validate(jArray[i].toObject(), schema);
+		validate(jArray[i], schema);
 		_currentPath.pop_back();
 	}
 }

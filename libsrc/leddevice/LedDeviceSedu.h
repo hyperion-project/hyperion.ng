@@ -1,25 +1,27 @@
 #pragma once
 
-// STL includes
-#include <string>
-
 // hyperion incluse
-#include "LedRs232Device.h"
+#include "ProviderRs232.h"
 
 ///
 /// Implementation of the LedDevice interface for writing to SEDU led device.
 ///
-class LedDeviceSedu : public LedRs232Device
+class LedDeviceSedu : public ProviderRs232
 {
 public:
 	///
-	/// Constructs the LedDevice for attached via SEDU device
+	/// Constructs specific LedDevice
 	///
-	/// @param outputDevice The name of the output device (eg '/dev/ttyS0')
-	/// @param baudrate The used baudrate for writing to the output device
+	/// @param deviceConfig json device config
 	///
-	LedDeviceSedu(const std::string& outputDevice, const unsigned baudrate);
+	LedDeviceSedu(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+	
+	virtual bool init(const QJsonObject &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -27,7 +29,4 @@ public:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
 };

@@ -1,0 +1,27 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["ledcolors"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["ledstream-stop","ledstream-start","testled","imagestream-start","imagestream-stop"]
+		},
+		"oneshot": {
+			"type" : "bool"
+		},
+		"interval": {
+			"type" : "integer"
+		}
+	},
+
+	"additionalProperties": false
+}

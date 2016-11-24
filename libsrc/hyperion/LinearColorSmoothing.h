@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+
 // Qt includes
 #include <QTimer>
 
@@ -40,14 +41,15 @@ public:
 	/// Switch the leds off
 	virtual int switchOff();
 
-	bool componentState() { return _bypass; }
+	void setEnable(bool enable);
+	bool enabled();
+
+	bool componentState() { return enabled(); };
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
 
-	void componentStateChanged(const hyperion::Components component, bool enable);
-	
 private:
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
@@ -91,5 +93,5 @@ private:
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
 	
-	bool _bypass;
+	bool _enabled;
 };

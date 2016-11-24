@@ -1,18 +1,22 @@
 // stl includes
 #include <stdexcept>
 #include <cassert>
+#include <sstream>
+#include <iostream>
 
 // Qt includes
 #include <QRgb>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 // hyperion-remote includes
 #include "JsonConnection.h"
 
-JsonConnection::JsonConnection(const std::string & a, bool printJson)
+JsonConnection::JsonConnection(const QString & address, bool printJson)
 	: _printJson(printJson)
 	, _socket()
 {
-	QString address(a.c_str());
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
@@ -32,7 +36,7 @@ JsonConnection::JsonConnection(const std::string & a, bool printJson)
 		throw std::runtime_error("Unable to connect to host");
 	}
 
-	std::cout << "Connected to " << a << std::endl;
+    qDebug() << "Connected to:" << address;
 }
 
 JsonConnection::~JsonConnection()
@@ -42,34 +46,36 @@ JsonConnection::~JsonConnection()
 
 void JsonConnection::setColor(std::vector<QColor> colors, int priority, int duration)
 {
-	std::cout << "Set color to " << colors[0].red() << " " << colors[0].green() << " " << colors[0].blue() << (colors.size() > 1 ? " + ..." : "") << std::endl;
+	qDebug() << "Set color to " << colors[0].red() << " " << colors[0].green() << " " << colors[0].blue() << (colors.size() > 1 ? " + ..." : "");
 
 	// create command
-	Json::Value command;
-	command["command"] = "color";
+	QJsonObject command;
+	command["command"] = QString("color");
 	command["priority"] = priority;
-	Json::Value & rgbValue = command["color"];
+	QJsonArray rgbValue;
 	for (const QColor & color : colors)
 	{
 		rgbValue.append(color.red());
 		rgbValue.append(color.green());
 		rgbValue.append(color.blue());
 	}
+	command["color"] = rgbValue;
+	
 	if (duration > 0)
 	{
 		command["duration"] = duration;
 	}
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-void JsonConnection::setImage(QImage image, int priority, int duration)
+void JsonConnection::setImage(QImage &image, int priority, int duration)
 {
-	std::cout << "Set image has size: " << image.width() << "x" << image.height() << std::endl;
+	qDebug() << "Set image has size: " << image.width() << "x" << image.height();
 
 	// ensure the image has RGB888 format
 	image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
@@ -88,49 +94,132 @@ void JsonConnection::setImage(QImage image, int priority, int duration)
 	const QByteArray base64Image = binaryImage.toBase64();
 
 	// create command
-	Json::Value command;
-	command["command"] = "image";
+	QJsonObject command;
+	command["command"] = QString("image");
 	command["priority"] = priority;
 	command["imagewidth"] = image.width();
 	command["imageheight"] = image.height();
-	command["imagedata"] = std::string(base64Image.data(), base64Image.size());
+	command["imagedata"] = QString(base64Image.data());
 	if (duration > 0)
 	{
 		command["duration"] = duration;
 	}
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-void JsonConnection::setEffect(const std::string &effectName, const std::string & effectArgs, int priority, int duration)
+void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
-	std::cout << "Start effect " << effectName << std::endl;
+    qDebug() << "Start effect " << effectName;
 
 	// create command
-	Json::Value command;
-	command["command"] = "effect";
+	QJsonObject command, effect;
+	command["command"] = QString("effect");
 	command["priority"] = priority;
-	Json::Value & effect = command["effect"];
 	effect["name"] = effectName;
+	
 	if (effectArgs.size() > 0)
 	{
-		Json::Reader reader;
-		if (!reader.parse(effectArgs, effect["args"], false))
+		QJsonParseError error;
+		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
+		
+		if (error.error != QJsonParseError::NoError)
 		{
-			throw std::runtime_error("Error in effect arguments: " + reader.getFormattedErrorMessages());
+			// report to the user the failure and their locations in the document.
+			int errorLine(0), errorColumn(0);
+			
+			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
+			{
+				++errorColumn;
+				if(effectArgs.at(i) == '\n' )
+				{
+					errorColumn = 0;
+					++errorLine;
+				}
+			}
+			
+			std::stringstream sstream;
+			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+			throw std::runtime_error(sstream.str());
 		}
+		
+		effect["args"] = doc.object();
 	}
+	
+	command["effect"] = effect;
+	
 	if (duration > 0)
 	{
 		command["duration"] = duration;
 	}
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
+{
+    qDebug() << "Create effect " << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("create-effect");
+	effect["name"] = effectName;
+	effect["script"] = effectScript;
+	
+	if (effectArgs.size() > 0)
+	{
+		QJsonParseError error;
+		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
+		
+		if (error.error != QJsonParseError::NoError)
+		{
+			// report to the user the failure and their locations in the document.
+			int errorLine(0), errorColumn(0);
+			
+			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
+			{
+				++errorColumn;
+				if(effectArgs.at(i) == '\n' )
+				{
+					errorColumn = 0;
+					++errorLine;
+				}
+			}
+			
+			std::stringstream sstream;
+			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+			throw std::runtime_error(sstream.str());
+		}
+		
+		effect["args"] = doc.object();
+	}
+
+	// send command message
+	QJsonObject reply = sendMessage(effect);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::deleteEffect(const QString &effectName)
+{
+    qDebug() << "Delete effect configuration" << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("delete-effect");
+	effect["name"] = effectName;
+	
+	// send command message
+	QJsonObject reply = sendMessage(effect);
 
 	// parse reply message
 	parseReply(reply);
@@ -138,25 +227,26 @@ void JsonConnection::setEffect(const std::string &effectName, const std::string 
 
 QString JsonConnection::getServerInfo()
 {
-	std::cout << "Get server info" << std::endl;
+	qDebug() << "Get server info";
 
 	// create command
-	Json::Value command;
-	command["command"] = "serverinfo";
+	QJsonObject command;
+	command["command"] = QString("serverinfo");
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	if (parseReply(reply))
 	{
-		if (!reply.isMember("info") || !reply["info"].isObject())
+		if (!reply.contains("info") || !reply["info"].isObject())
 		{
 			throw std::runtime_error("No info available in result");
 		}
 
-		const Json::Value & info = reply["info"];
-		return QString(info.toStyledString().c_str());
+		QJsonDocument doc(reply["info"].toObject());
+		QString info(doc.toJson(QJsonDocument::Indented));
+		return info;
 	}
 
 	return QString();
@@ -164,15 +254,15 @@ QString JsonConnection::getServerInfo()
 
 void JsonConnection::clear(int priority)
 {
-	std::cout << "Clear priority channel " << priority << std::endl;
+	qDebug() << "Clear priority channel " << priority;
 
 	// create command
-	Json::Value command;
-	command["command"] = "clear";
+	QJsonObject command;
+	command["command"] = QString("clear");
 	command["priority"] = priority;
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
@@ -180,33 +270,32 @@ void JsonConnection::clear(int priority)
 
 void JsonConnection::clearAll()
 {
-	std::cout << "Clear all priority channels" << std::endl;
+	qDebug() << "Clear all priority channels";
 
 	// create command
-	Json::Value command;
-	command["command"] = "clearall";
+	QJsonObject command;
+	command["command"] = QString("clearall");
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-void JsonConnection::setComponentState(const std::string& component, const bool state)
+void JsonConnection::setComponentState(const QString & component, const bool state)
 {
-	state ? std::cout << "Enable Component " : std::cout << "Disable Component ";
-	std::cout << component << std::endl;
+	qDebug() << (state ? "Enable" : "Disable") << "Component" << component;
 
 	// create command
-	Json::Value command;
-	command["command"] = "componentstate";
-	Json::Value & parameter = command["componentstate"];
+	QJsonObject command, parameter;
+	command["command"] = QString("componentstate");
 	parameter["component"] = component;
 	parameter["state"] = state;
+	command["componentstate"] = parameter;
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
@@ -215,12 +304,12 @@ void JsonConnection::setComponentState(const std::string& component, const bool 
 void JsonConnection::setSource(int priority)
 {
 	// create command
-	Json::Value command;
-	command["command"] = "sourceselect";
+	QJsonObject command;
+	command["command"] = QString("sourceselect");
 	command["priority"] = priority;
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
@@ -229,12 +318,12 @@ void JsonConnection::setSource(int priority)
 void JsonConnection::setSourceAutoSelect()
 {
 	// create command
-	Json::Value command;
-	command["command"] = "sourceselect";
+	QJsonObject command;
+	command["command"] = QString("sourceselect");
 	command["auto"] = true;
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
@@ -243,69 +332,95 @@ void JsonConnection::setSourceAutoSelect()
 QString JsonConnection::getConfig(std::string type)
 {
 	assert( type == "schema" || type == "config" );
-	std::cout << "Get configuration file from Hyperion Server" << std::endl;
+	qDebug() << "Get configuration file from Hyperion Server";
 
 	// create command
-	Json::Value command;
-	command["command"] = "config";
-	command["subcommand"] = (type == "schema")? "getschema" : "getconfig";
+	QJsonObject command;
+	command["command"] = QString("config");
+	command["subcommand"] = (type == "schema") ? QString("getschema") : QString("getconfig");
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	if (parseReply(reply))
 	{
-		if (!reply.isMember("result") || !reply["result"].isObject())
+		if (!reply.contains("result") || !reply["result"].isObject())
 		{
 			throw std::runtime_error("No configuration file available in result");
 		}
-
-		const Json::Value & config = reply["result"];
-		return QString(config.toStyledString().c_str());
+		
+		QJsonDocument doc(reply["result"].toObject());
+		QString result(doc.toJson(QJsonDocument::Indented));
+		return result;
 	}
 
 	return QString();
 }
 
-void JsonConnection::setConfig(const std::string &jsonString, bool create, bool overwrite)
+void JsonConnection::setConfig(const QString &jsonString)
 {
 	// create command
-	Json::Value command;
-	command["command"] = "config";
-	command["subcommand"] = "setconfig";
+	QJsonObject command;
+	command["command"] = QString("config");
+	command["subcommand"] = QString("setconfig");
 	
-	command["create"] = create;
-	command["overwrite"] = overwrite;
-	Json::Value & config = command["config"];
+	
 	if (jsonString.size() > 0)
 	{
-		Json::Reader reader;
-		if (!reader.parse(jsonString, config, false))
+		QJsonParseError error;
+		QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8() ,&error);
+		
+		if (error.error != QJsonParseError::NoError)
 		{
-			throw std::runtime_error("Error in configset arguments: " + reader.getFormattedErrorMessages());
+			// report to the user the failure and their locations in the document.
+			int errorLine(0), errorColumn(0);
+			
+			for( int i=0, count=qMin( error.offset,jsonString.size()); i<count; ++i )
+			{
+				++errorColumn;
+				if(jsonString.at(i) == '\n' )
+				{
+					errorColumn = 0;
+					++errorLine;
+				}
+			}
+			
+			std::stringstream sstream;
+			sstream << "Error in configset arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+			throw std::runtime_error(sstream.str());
 		}
+		
+		command["config"] = doc.object();
 	}
-
+	
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(std::string * transformId, double * saturation, double * value, double * saturationL, double * luminance, double * luminanceMin, ColorTransformValues *threshold, ColorTransformValues *gamma, ColorTransformValues *blacklevel, ColorTransformValues *whitelevel)
+void JsonConnection::setTransform(const QString &transformId,
+								  double *saturation,
+								  double *value,
+								  double *saturationL,
+								  double *luminance,
+								  double *luminanceMin,
+								  QColor threshold,
+								  QColor gamma,
+								  QColor blacklevel,
+								  QColor whitelevel)
 {
-	std::cout << "Set color transforms" << std::endl;
+	qDebug() << "Set color transforms";
 
 	// create command
-	Json::Value command;
-	command["command"] = "transform";
-	Json::Value & transform = command["transform"];
+	QJsonObject command, transform;
+	command["command"] = QString("transform");
 
-	if (transformId != nullptr)
+	if (!transformId.isNull())
 	{
-		transform["id"] = *transformId;
+		transform["id"] = transformId;
 	}
 
 	if (saturation != nullptr)
@@ -333,161 +448,117 @@ void JsonConnection::setTransform(std::string * transformId, double * saturation
 		transform["luminanceMinimum"] = *luminanceMin;
 	}
 	
-	if (threshold != nullptr)
+	if (threshold.isValid())
 	{
-		Json::Value & v = transform["threshold"];
-		v.append(threshold->valueRed);
-		v.append(threshold->valueGreen);
-		v.append(threshold->valueBlue);
+		QJsonArray t;
+		t.append(threshold.red());
+		t.append(threshold.green());
+		t.append(threshold.blue());
+		transform["threshold"] = t;
 	}
 
-	if (gamma != nullptr)
+	if (gamma.isValid())
 	{
-		Json::Value & v = transform["gamma"];
-		v.append(gamma->valueRed);
-		v.append(gamma->valueGreen);
-		v.append(gamma->valueBlue);
+		QJsonArray g;
+		g.append(gamma.red());
+		g.append(gamma.green());
+		g.append(gamma.blue());
+		transform["gamma"] = g;
 	}
 
-	if (blacklevel != nullptr)
+	if (blacklevel.isValid())
 	{
-		Json::Value & v = transform["blacklevel"];
-		v.append(blacklevel->valueRed);
-		v.append(blacklevel->valueGreen);
-		v.append(blacklevel->valueBlue);
+		QJsonArray b;
+		b.append(blacklevel.red());
+		b.append(blacklevel.green());
+		b.append(blacklevel.blue());
+		transform["blacklevel"] = b;
 	}
 
-	if (whitelevel != nullptr)
+	if (whitelevel.isValid())
 	{
-		Json::Value & v = transform["whitelevel"];
-		v.append(whitelevel->valueRed);
-		v.append(whitelevel->valueGreen);
-		v.append(whitelevel->valueBlue);
-	}
-
-	// send command message
-	Json::Value reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setCorrection(std::string * correctionId, ColorCorrectionValues *correction)
-{
-	std::cout << "Set color corrections" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "correction";
-	Json::Value & correct = command["correction"];
-	
-	if (correctionId != nullptr)
-	{
-		correct["id"] = *correctionId;
-	}
-
-	if (correction != nullptr)
-	{
-		Json::Value & v = correct["correctionValues"];
-		v.append(correction->valueRed);
-		v.append(correction->valueGreen);
-		v.append(correction->valueBlue);
-	}
-
-	// send command message
-	Json::Value reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setTemperature(std::string * temperatureId, ColorCorrectionValues *temperature)
-{
-	std::cout << "Set color temperature corrections" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "temperature";
-	Json::Value & temp = command["temperature"];
-
-	if (temperatureId != nullptr)
-	{
-		temp["id"] = *temperatureId;
-	}
-
-	if (temperature != nullptr)
-	{
-		Json::Value & v = temp["correctionValues"];
-		v.append(temperature->valueRed);
-		v.append(temperature->valueGreen);
-		v.append(temperature->valueBlue);
-	}
-
-	// send command message
-	Json::Value reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setAdjustment(std::string * adjustmentId, ColorAdjustmentValues * redAdjustment, ColorAdjustmentValues * greenAdjustment, ColorAdjustmentValues * blueAdjustment)
-{
-	std::cout << "Set color adjustments" << std::endl;
-
-	// create command
-	Json::Value command;
-	command["command"] = "adjustment";
-	Json::Value & adjust = command["adjustment"];
-
-	if (adjustmentId != nullptr)
-	{
-		adjust["id"] = *adjustmentId;
+		QJsonArray w;
+		w.append(whitelevel.red());
+		w.append(whitelevel.green());
+		w.append(whitelevel.blue());
+		transform["whitelevel"] = w;
 	}
 	
-	if (redAdjustment != nullptr)
-	{
-		Json::Value & v = adjust["redAdjust"];
-		v.append(redAdjustment->valueRed);
-		v.append(redAdjustment->valueGreen);
-		v.append(redAdjustment->valueBlue);
-	}
-
-	if (greenAdjustment != nullptr)
-	{
-		Json::Value & v = adjust["greenAdjust"];
-		v.append(greenAdjustment->valueRed);
-		v.append(greenAdjustment->valueGreen);
-		v.append(greenAdjustment->valueBlue);
-	}
-
-	if (blueAdjustment != nullptr)
-	{
-		Json::Value & v = adjust["blueAdjust"];
-		v.append(blueAdjustment->valueRed);
-		v.append(blueAdjustment->valueGreen);
-		v.append(blueAdjustment->valueBlue);
-	}
+	command["transform"] = transform;
 
 	// send command message
-	Json::Value reply = sendMessage(command);
+	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
 	parseReply(reply);
 }
 
-Json::Value JsonConnection::sendMessage(const Json::Value & message)
+void JsonConnection::setAdjustment(const QString &adjustmentId,
+								   const QColor & redAdjustment,
+								   const QColor & greenAdjustment,
+								   const QColor & blueAdjustment)
 {
-	// serialize message (FastWriter already appends a newline)
-	std::string serializedMessage = Json::FastWriter().write(message);
+	qDebug() << "Set color adjustments";
+
+	// create command
+	QJsonObject command, adjust;
+	command["command"] = QString("adjustment");
+
+	if (!adjustmentId.isNull())
+	{
+		adjust["id"] = adjustmentId;
+	}
+	
+	if (redAdjustment.isValid())
+	{
+		QJsonArray red;
+		red.append(redAdjustment.red());
+		red.append(redAdjustment.green());
+		red.append(redAdjustment.blue());
+		adjust["redAdjust"] = red;
+	}
+
+	if (greenAdjustment.isValid())
+	{
+		QJsonArray green;
+		green.append(greenAdjustment.red());
+		green.append(greenAdjustment.green());
+		green.append(greenAdjustment.blue());
+		adjust["greenAdjust"] = green;
+	}
+
+	if (blueAdjustment.isValid())
+	{
+		QJsonArray blue;
+		blue.append(blueAdjustment.red());
+		blue.append(blueAdjustment.green());
+		blue.append(blueAdjustment.blue());
+		adjust["blueAdjust"] = blue;
+	}
+	
+	command["adjustment"] = adjust;
+
+	// send command message
+	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
+{
+	// serialize message
+	QJsonDocument writer(message);
+	QByteArray serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
 
 	// print command if requested
 	if (_printJson)
 	{
-		std::cout << "Command: " << serializedMessage;
+		std::cout << "Command: " << serializedMessage.constData();
 	}
 
 	// write message
-	_socket.write(serializedMessage.c_str());
+	_socket.write(serializedMessage);
 	if (!_socket.waitForBytesWritten())
 	{
 		throw std::runtime_error("Error while writing data to host");
@@ -514,26 +585,26 @@ Json::Value JsonConnection::sendMessage(const Json::Value & message)
 	}
 
 	// parse reply data
-	Json::Reader jsonReader;
-	Json::Value reply;
-	if (!jsonReader.parse(serializedReply.constData(), serializedReply.constData() + bytes, reply))
+	QJsonParseError error;
+	QJsonDocument reply = QJsonDocument::fromJson(serializedReply ,&error);
+	if (error.error != QJsonParseError::NoError)
 	{
 		throw std::runtime_error("Error while parsing reply: invalid json");
 	}
 
-	return reply;
+	return reply.object();
 }
 
-bool JsonConnection::parseReply(const Json::Value &reply)
+bool JsonConnection::parseReply(const QJsonObject &reply)
 {
 	bool success = false;
-	std::string reason = "No error info";
+	QString reason = "No error info";
 
 	try
 	{
-		success = reply.get("success", false).asBool();
+		success = reply["success"].toBool(false);
 		if (!success)
-			reason = reply.get("error", reason).asString();
+			reason = reply["error"].toString(reason);
 	}
 	catch (const std::runtime_error &)
 	{
@@ -542,7 +613,7 @@ bool JsonConnection::parseReply(const Json::Value &reply)
 
 	if (!success)
 	{
-		throw std::runtime_error("Error: " + reason);
+		throw std::runtime_error("Error: " + reason.toStdString());
 	}
 
 	return success;

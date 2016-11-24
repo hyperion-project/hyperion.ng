@@ -17,7 +17,6 @@
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
-// jsoncpp includes
 #include <message.pb.h>
 
 ///

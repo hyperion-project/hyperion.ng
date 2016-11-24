@@ -1,0 +1,37 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"host" : {
+			"type": "string",
+			"title":"Target IP",
+			"propertyOrder" : 1
+		},
+		"port" : {
+			"type": "integer",
+			"title":"Port",
+			"default": 5568,
+			"minimum" : 0,
+			"maximum" : 65535,
+			"propertyOrder" : 2
+		},
+		"universe": {
+			"type": "integer",
+			"title":"Universe",
+			"default": 1,
+			"propertyOrder" : 3
+		},
+		"latchtime": {
+			"type": "integer",
+			"title":"Latchtime",
+			"default": 104000,
+			"propertyOrder" : 4
+		},
+		"cid": {
+			"type": "string",
+			"title":"CID",
+			"propertyOrder" : 5
+		}
+	},
+	"additionalProperties": true
+}

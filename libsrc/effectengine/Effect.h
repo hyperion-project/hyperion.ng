@@ -5,27 +5,32 @@
 
 // Qt includes
 #include <QThread>
+#include <QSize>
+#include <QImage>
+#include <QPainter>
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
+#include <utils/Components.h>
 
 class Effect : public QThread
 {
 	Q_OBJECT
 
 public:
-    Effect(PyThreadState * mainThreadState, int priority, int timeout, const std::string & script, const Json::Value & args = Json::Value());
+    Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject());
 	virtual ~Effect();
 
 	virtual void run();
 
 	int getPriority() const;
 	
-	std::string getScript() const { return _script; }
+	QString getScript() const { return _script; }
+	QString getName() const { return _name; }
 	
 	int getTimeout() const {return _timeout; }
 	
-	Json::Value getArgs() const { return _args; }
+	QJsonObject getArgs() const { return _args; }
 
 	bool isAbortRequested() const;
 
@@ -38,38 +43,44 @@ public slots:
 signals:
 	void effectFinished(Effect * effect);
 
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component);
 
 private slots:
 	void effectFinished();
 
 private:
-	PyObject * json2python(const Json::Value & json) const;
+	PyObject * json2python(const QJsonValue & jsonData) const;
 
 	// Wrapper methods for Python interpreter extra buildin methods
-    static PyMethodDef effectMethods[];
-    static PyObject* wrapSetColor(PyObject *self, PyObject *args);
+	static PyMethodDef effectMethods[];
+	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
 	static PyObject* wrapAbort(PyObject *self, PyObject *args);
-    static Effect * getEffect();
+	static PyObject* wrapImageShow(PyObject *self, PyObject *args);
+	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
+	static PyObject* wrapImageRadialGradient(PyObject *self, PyObject *args);
+	static PyObject* wrapImageSolidFill(PyObject *self, PyObject *args);
+
+	static Effect * getEffect();
 
 #if PY_MAJOR_VERSION >= 3
-    static struct PyModuleDef moduleDef;
-    static PyObject* PyInit_hyperion();
+	static struct PyModuleDef moduleDef;
+	static PyObject* PyInit_hyperion();
 #else
-    static void PyInit_hyperion();
+	static void PyInit_hyperion();
 #endif
 
 private:
-    PyThreadState * _mainThreadState;
+	PyThreadState * _mainThreadState;
 
 	const int _priority;
 
 	const int _timeout;
 
-	const std::string _script;
+	const QString _script;
+	const QString _name;
 
-	const Json::Value _args;
+	const QJsonObject _args;
 
 	int64_t _endTime;
 
@@ -82,5 +93,10 @@ private:
 
 	/// Buffer for colorData
 	std::vector<ColorRgb> _colors;
+	
+	QSize _imageSize;
+	
+	QImage * _image;
+	QPainter * _painter;
 };
 	

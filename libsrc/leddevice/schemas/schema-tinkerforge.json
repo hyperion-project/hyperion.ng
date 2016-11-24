@@ -1,0 +1,32 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"Output",
+			"default" : "127.0.0.1",
+			"propertyOrder" : 1
+		},
+		"port": {
+			"type": "integer",
+			"title":"Port",
+			"minimum" : 0,
+			"maximum" : 65535,
+			"default" : 4223,
+			"propertyOrder" : 2
+		},
+		"uid": {
+			"type": "string",
+			"title":"UID",
+			"propertyOrder" : 3
+		},
+		"rate": {
+			"type": "integer",
+			"title":"Intervall",
+			"minimum" : 0,
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties": true
+}
