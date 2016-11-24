@@ -49,6 +49,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _webSocketHandshakeDone(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
+	, _streaming_logging_activated(false)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -57,6 +58,9 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
+	
+	qRegisterMetaType<Logger::T_LOG_MESSAGE>("Logger::T_LOG_MESSAGE");
+	connect(_log,SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
 }
 
 
@@ -306,6 +310,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleComponentStateCommand(message, command, tan);
 		else if (command == "ledcolors")
 			handleLedColorsCommand(message, command, tan);
+		else if (command == "logging")
+			handleLoggingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -1203,6 +1209,46 @@ void JsonClientConnection::handleLedColorsCommand(const QJsonObject& message, co
 	
 	sendSuccessReply(command+"-"+subcommand,tan);
 }
+
+void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	// create result
+	QString subcommand = message["subcommand"].toString("");
+	_streaming_logging_reply["success"] = true;
+	_streaming_logging_reply["command"] = command;
+	_streaming_logging_reply["tan"] = tan;
+	
+	if (subcommand == "start")
+	{
+		if (!_streaming_logging_activated)
+		{
+			_streaming_logging_reply["command"] = command+"-update";
+			_streaming_logging_activated = true;
+			connect(_log,SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+		}
+	}
+	else if (subcommand == "stop")
+	{
+		if (_streaming_logging_activated)
+		{
+			_streaming_logging_activated = false;
+			disconnect(_log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+		}
+	}
+	else
+	{
+		sendErrorReply("unknown subcommand",command,tan);
+		return;
+	}
+	
+	sendSuccessReply(command+"-"+subcommand,tan);
+}
+
+void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
+{
+	std::cout << "------- " << msg.message.toStdString() << std::endl;
+}
+
 
 void JsonClientConnection::handleNotImplemented()
 {

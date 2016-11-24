@@ -4,20 +4,18 @@
 #include <iostream>
 #include <algorithm>
 #include <syslog.h>
-#include <map>
 #include <QFileInfo>
-#include <QString>
 #include <time.h>
 
 static const char * LogLevelStrings[] = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
 static const int    LogLevelSysLog[]  = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 static unsigned int loggerCount = 0;
 static unsigned int loggerId = 0;
-static const unsigned int loggerMaxMsgBufferSize = 100;
+static const int loggerMaxMsgBufferSize = 50;
 
 std::map<std::string,Logger*> *Logger::LoggerMap = nullptr;
 Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;
-std::vector<Logger::T_LOG_MESSAGE> *Logger::GlobalLogMessageBuffer  = nullptr;
+QVector<Logger::T_LOG_MESSAGE> *Logger::GlobalLogMessageBuffer  = nullptr;
 
 Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
 {
@@ -36,7 +34,7 @@ Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
 
 	if (GlobalLogMessageBuffer == nullptr)
 	{
-		GlobalLogMessageBuffer = new std::vector<Logger::T_LOG_MESSAGE>;
+		GlobalLogMessageBuffer = new QVector<Logger::T_LOG_MESSAGE>;
 	}
 
 	return LoggerMap->at(name);
@@ -144,14 +142,15 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	logMsg.level       = level;
 	logMsg.levelString = QString::fromStdString(LogLevelStrings[level]);
 
+	emit newLogMessage(logMsg);
 	QString location;
 	if ( level == Logger::DEBUG )
 	{
 		location = "<" + logMsg.fileName + ":" + QString::number(line)+":"+ logMsg.function + "()> ";
 	}
 	
-	GlobalLogMessageBuffer->push_back(logMsg);
-	if (GlobalLogMessageBuffer->size() > loggerMaxMsgBufferSize)
+	GlobalLogMessageBuffer->append(logMsg);
+	if (GlobalLogMessageBuffer->length() > loggerMaxMsgBufferSize)
 	{
 		GlobalLogMessageBuffer->erase(GlobalLogMessageBuffer->begin());
 	}
