@@ -47,10 +47,11 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _hyperion(Hyperion::getInstance())
 	, _receiveBuffer()
 	, _webSocketHandshakeDone(false)
-	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	//, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
 {
+	_log = Logger::getInstance("JSONCLIENTCONNECTION");
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
@@ -59,8 +60,8 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 	
-	qRegisterMetaType<Logger::T_LOG_MESSAGE>("Logger::T_LOG_MESSAGE");
-	connect(_log,SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+	//qRegisterMetaType<Logger::T_LOG_MESSAGE>("Logger::T_LOG_MESSAGE");
+	connect(LoggerNotifier::getInstance(),SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
 }
 
 
@@ -1223,7 +1224,6 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 		if (!_streaming_logging_activated)
 		{
 			_streaming_logging_reply["command"] = command+"-update";
-			_streaming_logging_activated = true;
 			connect(_log,SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
 		}
 	}
@@ -1231,8 +1231,8 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 	{
 		if (_streaming_logging_activated)
 		{
-			_streaming_logging_activated = false;
 			disconnect(_log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+			_streaming_logging_activated = false;
 		}
 	}
 	else
@@ -1246,6 +1246,16 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 
 void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
 {
+	if (!_streaming_logging_activated)
+	{
+		_streaming_logging_activated = true;
+		QVector<Logger::T_LOG_MESSAGE>* logBuffer = Logger::getGlobalLogMessageBuffer();
+		for(int i=0; i<logBuffer->length(); i++)
+		{
+			std::cout << "------- " << logBuffer->at(i).message.toStdString() << std::endl;
+		}
+	}
+
 	std::cout << "------- " << msg.message.toStdString() << std::endl;
 }
 
