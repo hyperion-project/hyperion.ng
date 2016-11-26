@@ -1,0 +1,28 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["logging"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["stop","start","update"]
+		},
+		"oneshot": {
+			"type" : "bool"
+		},
+		"interval": {
+			"type" : "integer"
+		}
+	},
+
+	"additionalProperties": false
+}
+ 

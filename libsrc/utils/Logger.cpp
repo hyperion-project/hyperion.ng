@@ -15,9 +15,7 @@ static const int loggerMaxMsgBufferSize = 50;
 
 std::map<std::string,Logger*> *Logger::LoggerMap = nullptr;
 Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;
-QVector<Logger::T_LOG_MESSAGE> *Logger::GlobalLogMessageBuffer  = nullptr;
-
-LoggerNotifier* LoggerNotifier::instance = nullptr;
+LoggerManager* LoggerManager::_instance = nullptr;
 
 
 Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
@@ -33,16 +31,11 @@ Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
 		log = new Logger(name,minLevel);
 		LoggerMap->insert(std::pair<std::string,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
 		//LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
-		connect(log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), LoggerNotifier::getInstance(), SLOT(handleNewLogMessage(Logger::T_LOG_MESSAGE)));
+		connect(log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), LoggerManager::getInstance(), SLOT(handleNewLogMessage(Logger::T_LOG_MESSAGE)));
 	}
 	else
 	{
 		log = LoggerMap->at(name);
-	}
-
-	if (GlobalLogMessageBuffer == nullptr)
-	{
-		GlobalLogMessageBuffer = new QVector<Logger::T_LOG_MESSAGE>;
 	}
 
 	return log;
@@ -158,12 +151,6 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	{
 		location = "<" + logMsg.fileName + ":" + QString::number(line)+":"+ logMsg.function + "()> ";
 	}
-	
-	GlobalLogMessageBuffer->append(logMsg);
-	if (GlobalLogMessageBuffer->length() > loggerMaxMsgBufferSize)
-	{
-		GlobalLogMessageBuffer->erase(GlobalLogMessageBuffer->begin());
-	}
 
 	std::cout
 		<< "[" << _appname << " " << _name << "] <" 
@@ -175,25 +162,26 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 }
 
 
-LoggerNotifier::LoggerNotifier()
+LoggerManager::LoggerManager()
 	: QObject()
+	, _loggerMaxMsgBufferSize(200)
 {
 }
 
-LoggerNotifier::~LoggerNotifier()
+void LoggerManager::handleNewLogMessage(Logger::T_LOG_MESSAGE msg)
 {
-}
+	_logMessageBuffer.append(msg);
+	if (_logMessageBuffer.length() > _loggerMaxMsgBufferSize)
+	{
+		_logMessageBuffer.erase(_logMessageBuffer.begin());
+	}
 
-
-void LoggerNotifier::handleNewLogMessage(Logger::T_LOG_MESSAGE msg)
-{
-	//std::cout << "<" << msg.loggerName.toStdString() << "> " << msg.message.toStdString() << std::endl;
 	emit newLogMessage(msg);
 }
 
-LoggerNotifier* LoggerNotifier::getInstance()
+LoggerManager* LoggerManager::getInstance()
 {
-	if ( instance == nullptr )
-		instance = new LoggerNotifier();
-	return instance;
+	if ( _instance == nullptr )
+		_instance = new LoggerManager();
+	return _instance;
 }
