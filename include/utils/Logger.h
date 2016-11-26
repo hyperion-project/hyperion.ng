@@ -54,7 +54,6 @@ public:
 	static void     deleteInstance(std::string name="");
 	static void     setLogLevel(LogLevel level,std::string name="");
 	static LogLevel getLogLevel(std::string name="");
-	static QVector<Logger::T_LOG_MESSAGE>* getGlobalLogMessageBuffer() { return GlobalLogMessageBuffer; };
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = level; };
@@ -70,8 +69,6 @@ protected:
 private:
 	static std::map<std::string,Logger*> *LoggerMap;
 	static LogLevel GLOBAL_MIN_LOG_LEVEL;
-	static QVector<T_LOG_MESSAGE> *GlobalLogMessageBuffer;
-	static QVector<T_LOG_MESSAGE> *LogCallacks;
 
 	std::string _name;
 	std::string _appname;
@@ -80,21 +77,25 @@ private:
 	unsigned int _loggerId;
 };
 
-class LoggerNotifier : public QObject
+
+class LoggerManager : public QObject
 {
 	Q_OBJECT
 
 public:
-	static LoggerNotifier* getInstance();
+	static LoggerManager* getInstance();
+	QVector<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() { return &_logMessageBuffer; };
 
-protected:
-	LoggerNotifier();
-	~LoggerNotifier();
-
-	static LoggerNotifier* instance;
 public slots:
 	void handleNewLogMessage(Logger::T_LOG_MESSAGE);
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
+
+protected:
+	LoggerManager();
+
+	static LoggerManager*          _instance;
+	QVector<Logger::T_LOG_MESSAGE> _logMessageBuffer;
+	const int                      _loggerMaxMsgBufferSize;
 };

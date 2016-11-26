@@ -36,6 +36,8 @@ var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
 var ledStreamActive=false;
+var loggingStreamActive=false;
+var loggingHandlerInstalled = false;
 var watchdog = 0;
 
 //
@@ -215,5 +217,16 @@ function requestTestEffect(effectName,effectPy,effectArgs) {
 }
 
 function requestDeleteEffect(effectName) {
-	websocket.send('{"command":"delete-effect","name":"'+effectName+'"}');
+	websocket.send('{"command":"delete-effect", "tan":'+wsTan+',"name":"'+effectName+'"}');
 }
+
+function requestLoggingStart() {
+	loggingStreamActive=true;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"start"}');
+}
+
+function requestLoggingStop() {
+	loggingStreamActive=false;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"stop"}');
+}
+
