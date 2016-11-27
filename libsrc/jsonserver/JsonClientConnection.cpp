@@ -49,12 +49,13 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _webSocketHandshakeDone(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
+	, _streaming_logging_activated(false)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
-	
+
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 }
@@ -306,6 +307,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleComponentStateCommand(message, command, tan);
 		else if (command == "ledcolors")
 			handleLedColorsCommand(message, command, tan);
+		else if (command == "logging")
+			handleLoggingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -1203,6 +1206,71 @@ void JsonClientConnection::handleLedColorsCommand(const QJsonObject& message, co
 	
 	sendSuccessReply(command+"-"+subcommand,tan);
 }
+
+void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	// create result
+	QString subcommand = message["subcommand"].toString("");
+	_streaming_logging_reply["success"] = true;
+	_streaming_logging_reply["command"] = command;
+	_streaming_logging_reply["tan"] = tan;
+	
+	if (subcommand == "start")
+	{
+		if (!_streaming_logging_activated)
+		{
+			_streaming_logging_reply["command"] = command+"-update";
+			connect(LoggerManager::getInstance(),SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+			Debug(_log, "log streaming activated"); // needed to trigger log sending
+		}
+	}
+	else if (subcommand == "stop")
+	{
+		if (_streaming_logging_activated)
+		{
+			disconnect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+			_streaming_logging_activated = false;
+			Debug(_log, "log streaming deactivated");
+
+		}
+	}
+	else
+	{
+		sendErrorReply("unknown subcommand",command,tan);
+		return;
+	}
+	
+	sendSuccessReply(command+"-"+subcommand,tan);
+}
+
+void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
+{
+	QJsonObject result;
+	QJsonArray messages;
+
+	if (!_streaming_logging_activated)
+	{
+		_streaming_logging_activated = true;
+		QVector<Logger::T_LOG_MESSAGE>* logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
+		for(int i=0; i<logBuffer->length(); i++)
+		{
+			//std::cout << "------- " << logBuffer->at(i).message.toStdString() << std::endl;
+			messages.append(logBuffer->at(i).message);
+		}
+	}
+	else
+	{
+		//std::cout << "------- " << msg.message.toStdString() << std::endl;
+		messages.append(msg.message);
+	}
+
+	result["messages"] = messages;
+	_streaming_logging_reply["result"] = result;
+
+	// send the result
+	sendMessage(_streaming_logging_reply);
+}
+
 
 void JsonClientConnection::handleNotImplemented()
 {

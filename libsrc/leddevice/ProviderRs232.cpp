@@ -166,7 +166,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 			return tryOpen(5000) ? 0 : -1;
 		}
 
-		if (_frameDropCounter > 0)
+		if (_frameDropCounter > 5)
 		{
 			Debug(_log, "%d frames dropped", _frameDropCounter);
 		}

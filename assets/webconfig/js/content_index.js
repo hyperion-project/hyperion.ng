@@ -15,6 +15,7 @@ $(document).ready( function() {
 	bindNavToContent("#load_confColors","colors",false);
 	bindNavToContent("#load_confNetwork","network",false);
 	bindNavToContent("#load_effectsconfig","effects_configurator",false);
+	bindNavToContent("#load_logging","logging",false);
 
 
 	//Change all Checkboxes to Switches
@@ -32,37 +33,54 @@ $(document).ready( function() {
 
 		// get active led device
 		var leddevice = parsedServerInfoJSON.info.ledDevices.active;
-		$('#dash_leddevice').html(leddevice);
+		if ($("#content_dashboard").length > 0)
+		{
+			$('#dash_leddevice').html(leddevice);
+		}
+
 		// get host
 		var hostname = parsedServerInfoJSON.info.hostname;
-		$('#dash_systeminfo').html(hostname+':'+hyperionport);
-
-		var components = parsedServerInfoJSON.info.components;
-		components_html = "";
-		for ( idx=0; idx<components.length;idx++)
+		if ($("#content_dashboard").length > 0)
 		{
-			console.log()
-			components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+			$('#dash_systeminfo').html(hostname+':'+hyperionport);
 		}
-		$("#tab_components").html(components_html);
 
-		$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
-			parsedUpdateJSON = JSON.parse(data);
-			latestVersion = parsedUpdateJSON[0].versionnr;
-			cleanLatestVersion = latestVersion.replace(/\./g, '');
 
-			$('#currentversion').html(' V'+currentVersion);
-			$('#latestversion').html(' V'+latestVersion);
-
-			if ( cleanCurrentVersion < cleanLatestVersion )
+		if ($("#content_dashboard").length > 0)
+		{
+			var components = parsedServerInfoJSON.info.components;
+			components_html = "";
+			for ( idx=0; idx<components.length;idx++)
 			{
-				$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+				components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 			}
-			else
-			{
-				$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
-			}
-		});
+			$("#tab_components").html(components_html);
+
+			$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
+				parsedUpdateJSON = JSON.parse(data);
+				latestVersion = parsedUpdateJSON[0].versionnr;
+				cleanLatestVersion = latestVersion.replace(/\./g, '');
+
+				$('#currentversion').html(' V'+currentVersion);
+				$('#latestversion').html(' V'+latestVersion);
+
+				if ( cleanCurrentVersion < cleanLatestVersion )
+				{
+					$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+				}
+				else
+				{
+					$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+				}
+			});
+		}
+		
+		if ($("#logmessages").length == 0)
+		{
+			requestLoggingStop();
+		}
+
+		
 		$("#loading_overlay").removeClass("overlay");
 		$("#main-nav").show('slide', {direction: 'left'}, 1000);
 
