@@ -28,6 +28,7 @@
 		"post-color": {
 			"type": "array",
 			"title":"Post color",
+			"format" : "colorpicker",
 			"default": [255,174,11],
 			"items" : {
 				"type": "integer",

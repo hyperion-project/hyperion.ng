@@ -27,6 +27,13 @@ function validateText(){
 	return true
 }
 
+function round(number) {
+	var factor = Math.pow(10, 4);
+	var tempNumber = number * factor;
+	var roundedTempNumber = Math.round(tempNumber);
+	return roundedTempNumber / factor;
+};
+
 function createLedPreview(leds, origin){
 	
 	if (origin == "classic"){
@@ -59,12 +66,15 @@ function createLedPreview(leds, origin){
 			"top:"+(led.vscan.minimum * canvas_height)+"px;"+
 			"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
 			"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
-		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_num">'+idx+'</span></div>';
+		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
-	$('#ledc_0').css({"background-color":"black","z-index":"10"});
-	$('#ledc_1').css({"background-color":"grey","z-index":"10"});
+	$('#ledc_0').css({"background-color":"black","z-index":"12"});
+	$('#ledc_1').css({"background-color":"grey","z-index":"11"});
 	$('#ledc_2').css({"background-color":"#A9A9A9","z-index":"10"});
+	
+	if($('#leds_prev_toggle_num').hasClass('btn-success'))
+		$('.led_prev_num').css("display", "inline");
 }
 
 function createClassicLeds(){
@@ -82,13 +92,19 @@ function createClassicLeds(){
 	var rawledsVDepth = parseInt($("#ip_cl_ledsvdepth").val());
 	var rawledsHDepth = parseInt($("#ip_cl_ledshdepth").val());
 	var rawedgeGap = parseInt($("#ip_cl_ledsedgegap").val());
+	var rawcornerGap = parseInt($("#ip_cl_ledscornergap").val());
 	
 	//helper
-	var ledsVDepth = rawledsVDepth / 100;
-	var ledsHDepth = rawledsHDepth / 100;
-	var edgeGap = rawedgeGap / 100 /2;
-	var min = 0.0 + edgeGap;
-	var max = 1.0 - edgeGap;
+	var ledsVDepth = rawledsVDepth /100;
+	var ledsHDepth = rawledsHDepth /100;
+	var edgeVGap = rawedgeGap /100/2;
+	var edgeHGap = edgeVGap/(16/9);
+	var cornerVGap = rawcornerGap /100/2;
+	var cornerHGap = cornerVGap/(16/9);
+	var Vmin = 0.0 + edgeVGap;
+	var Vmax = 1.0 - edgeVGap;
+	var Hmin = 0.0 + edgeHGap;
+	var Hmax = 1.0 - edgeHGap;
 	var ledArray = [];
 	
 	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
@@ -143,15 +159,23 @@ function createClassicLeds(){
 	}
 	
 	function createLedArray(hmin, hmax, vmin, vmax){
+		hmin = round(hmin);
+		hmax = round(hmax);
+		vmin = round(vmin);
+		vmax = round(vmax);
 		ledArray.push( { "hscan" : { "minimum" : hmin, "maximum" : hmax }, "vscan": { "minimum": vmin, "maximum": vmax }} );
 	}
 	
 	function createTopLeds(){
-		step=(max-min)/ledsTop;
-		vmin=min
+		step=(Hmax-Hmin)/ledsTop;
+		hmin=Hmin
+		if(cornerVGap != '0'){
+			step=(Hmax-Hmin-(cornerHGap*2))/ledsTop;
+			hmin=Hmin+(cornerHGap);
+		}
+		vmin=Vmin
 		vmax=vmin+ledsHDepth;
-		hmin=min
-		hmax=min+step
+		hmax=hmin+step
 		for (var i = 0; i<ledsTop; i++){
 			createLedArray(hmin, hmax, vmin, vmax);
 			hmin += step
@@ -160,11 +184,15 @@ function createClassicLeds(){
 	}
 	
 	function createLeftLeds(){
-		step=(max-min)/ledsLeft;
-		hmin=min;
-		hmax=min+ledsVDepth;
-		vmin=max-step
-		vmax=max
+		step=(Vmax-Vmin)/ledsLeft;
+		vmax=Vmax
+		if(cornerVGap != '0'){
+			step=(Vmax-Vmin-(cornerVGap*2))/ledsLeft;
+			vmax=Vmax-(cornerVGap);
+		}
+		hmin=Hmin;
+		hmax=hmin+ledsVDepth;
+		vmin=vmax-step
 		for (var i = ledsLeft; i>0; i--){
 			createLedArray(hmin, hmax, vmin, vmax);
 			vmin -= step
@@ -173,11 +201,15 @@ function createClassicLeds(){
 	}
 	
 	function createRightLeds(){
-		step=(max-min)/ledsRight;
-		hmax=max;
+		step=(Vmax-Vmin)/ledsRight;
+		vmin=Vmin
+		if(cornerVGap != '0'){
+			step=(Vmax-Vmin-(cornerVGap*2))/ledsRight;
+			vmin=Vmin+(cornerVGap);
+		}
+		hmax=Hmax;
 		hmin=hmax-ledsVDepth;
-		vmin=min
-		vmax=min+step
+		vmax=vmin+step
 		for (var i = 0; i<ledsRight; i++){
 			createLedArray(hmin, hmax, vmin, vmax);	
 			vmin += step
@@ -186,15 +218,19 @@ function createClassicLeds(){
 	}
 	
 	function createBottomLeds(){
-		step=(max-min)/ledsBottom;
-		vmax=max;
+		step=(Hmax-Hmin)/ledsBottom;
+		hmax=Hmax
+		if(cornerVGap != '0'){
+			step=(Hmax-Hmin-(cornerHGap*2))/ledsBottom;
+			hmax=Hmax-(cornerHGap);
+		}
+		vmax=Vmax;
 		vmin=vmax-ledsHDepth;
-		hmin=max-step
-		hmax=max
+		hmin=hmax-step
 		for (var i = ledsBottom; i>0; i--){
 			createLedArray(hmin, hmax, vmin, vmax);
-			hmin -= step
-			hmax -= step
+			hmin -= step;
+			hmax -= step;
 		}
 	}
 }
@@ -232,6 +268,11 @@ function createMatrixLeds(){
 		var vscanMin = y * vblock
 		var vscanMax = (y + 1) * vblock
 
+		hscanMin = round(hscanMin);
+		hscanMax = round(hscanMax);
+		vscanMin = round(vscanMin);
+		vscanMax = round(vscanMax);
+		
 		leds.push({
 			index: index,
 			hscan: {
@@ -239,8 +280,8 @@ function createMatrixLeds(){
 				maximum: hscanMax
 			},
 			vscan: {
-			minimum: vscanMin,
-			maximum: vscanMax
+				minimum: vscanMin,
+				maximum: vscanMax
 			}
 		})
 	}
@@ -329,11 +370,27 @@ $(document).ready(function() {
 	$(hyperion).one("cmd-serverinfo",function(event){
 		server = event.response;
 		ledDevices = server.info.ledDevices.available
-
+		devRPiSPI = ['apa102', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'ws2812spi'];
+		devRPiPWM = ['ws281x'];
+		devRPiGPIO = ['piblaster'];
+		devNET = ['atmoorb', 'dmx', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
+		devUSB = ['adalight', 'adalightapa102', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
+		
 		ledDevicesHtml = "";
 		for (idx=0; idx<ledDevices.length; idx++)
 		{
-			ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+'</option>';
+			if($.inArray(ledDevices[idx], devRPiSPI) != -1)
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi SPI)</option>';
+			else if($.inArray(ledDevices[idx], devRPiPWM) != -1)
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi PWM)</option>';
+			else if($.inArray(ledDevices[idx], devRPiGPIO) != -1)
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi GPIO)</option>';
+			else if($.inArray(ledDevices[idx], devNET) != -1)
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (NET)</option>';
+			else if($.inArray(ledDevices[idx], devUSB) != -1)
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (USB)</option>';
+			else
+				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (debug)</option>';
 		}
 		$("#leddevices").html(ledDevicesHtml);
 		$("#leddevices").val(server.info.ledDevices.active);
@@ -409,6 +466,11 @@ $(document).ready(function() {
 			requestWriteConfig(JSON.parse(createLedConfig()));
 	});
 
+	// ------------------------------------------------------------------
+	$('#leds_prev_toggle_num').off().on("click", function() {
+		$('.led_prev_num').toggle();
+		toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
+	});
 	// -------------------------------------------------------------
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
