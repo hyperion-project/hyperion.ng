@@ -376,23 +376,36 @@ $(document).ready(function() {
 		devNET = ['atmoorb', 'dmx', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
 		devUSB = ['adalight', 'adalightapa102', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
 		
-		ledDevicesHtml = "";
+		var optArr = [[]];
+		optArr[1]=[];
+		optArr[2]=[];
+		optArr[3]=[];
+		optArr[4]=[];
+		optArr[5]=[];
+		
 		for (idx=0; idx<ledDevices.length; idx++)
 		{
 			if($.inArray(ledDevices[idx], devRPiSPI) != -1)
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi SPI)</option>';
+				optArr[0].push(ledDevices[idx]);		
 			else if($.inArray(ledDevices[idx], devRPiPWM) != -1)
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi PWM)</option>';
+				optArr[1].push(ledDevices[idx]);
 			else if($.inArray(ledDevices[idx], devRPiGPIO) != -1)
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (RPi GPIO)</option>';
+				optArr[2].push(ledDevices[idx]);
 			else if($.inArray(ledDevices[idx], devNET) != -1)
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (NET)</option>';
+				optArr[3].push(ledDevices[idx]);
 			else if($.inArray(ledDevices[idx], devUSB) != -1)
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (USB)</option>';
+				optArr[4].push(ledDevices[idx]);
 			else
-				ledDevicesHtml += '<option value="'+ledDevices[idx]+'">'+ledDevices[idx]+' (debug)</option>';
+				optArr[5].push(ledDevices[idx]);
 		}
-		$("#leddevices").html(ledDevicesHtml);
+		
+		$("#leddevices").append(createSel(optArr[0], "RPi SPI"));
+		$("#leddevices").append(createSel(optArr[1], "RPi PWM"));
+		$("#leddevices").append(createSel(optArr[2], "RPi GPIO"));
+		$("#leddevices").append(createSel(optArr[3], "Network"));
+		$("#leddevices").append(createSel(optArr[4], "USB"));
+		$("#leddevices").append(createSel(optArr[5], "Debug"));
+
 		$("#leddevices").val(server.info.ledDevices.active);
 		$("#leddevices").trigger("change");
 	});
@@ -554,8 +567,6 @@ $(document).ready(function() {
 		requestWriteConfig(result)
 	});
 
-	// ------------------------------------------------------------------
-	
 	requestServerConfig();
 });
 
