@@ -386,7 +386,7 @@ $(document).ready(function() {
 		for (idx=0; idx<ledDevices.length; idx++)
 		{
 			if($.inArray(ledDevices[idx], devRPiSPI) != -1)
-				optArr[0].push(ledDevices[idx]);		
+				optArr[0].push(ledDevices[idx]);
 			else if($.inArray(ledDevices[idx], devRPiPWM) != -1)
 				optArr[1].push(ledDevices[idx]);
 			else if($.inArray(ledDevices[idx], devRPiGPIO) != -1)
