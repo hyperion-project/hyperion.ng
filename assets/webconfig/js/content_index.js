@@ -17,10 +17,6 @@ $(document).ready( function() {
 	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 	bindNavToContent("#load_logging","logging",false);
 
-
-	//Change all Checkboxes to Switches
-	$("[type='checkbox']").bootstrapSwitch();
-
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
