@@ -9,6 +9,7 @@
             "title":"Fade Time",
             "default": 5.0,
             "minimum" : 0.1,
+			"append" : "s",
             "propertyOrder" : 1
         },
         "color-start": {

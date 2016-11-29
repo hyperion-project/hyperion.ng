@@ -34,8 +34,9 @@
 		},
 		"colors_count": {
 			"type": "integer",
-			"title":"Colors count",
-			"default": "10",
+			"title":"Color length",
+			"default": 10,
+			"minimum" : 0,
 			"propertyOrder" : 3
 		},
 		"rotation-time": {
@@ -43,6 +44,7 @@
 			"title":"Rotation time",
 			"default": 2.0,
 			"minimum" : 0.1,
+			"append" : "s",
 			"propertyOrder" : 4
 		},
 		"reverse": {

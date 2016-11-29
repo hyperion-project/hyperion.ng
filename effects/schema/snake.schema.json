@@ -23,12 +23,14 @@
 			"title":"Rotation time",
 			"default": 12.0,
 			"minimum" : 0.1,
+			"append" : "s",
 			"propertyOrder" : 2
 		},
 		"percentage": {
 			"type": "integer",
-			"title":"Percentage",
+			"title":"Length",
 			"default": 10,
+			"append" : "%",
 			"propertyOrder" : 3
 		}
 	},

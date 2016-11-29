@@ -69,12 +69,21 @@
 		var newEffects = event.response.info.effects;
 		if (newEffects.length != oldEffects.length)
 		{
-			effects_html = '<option value="__none__"></option>';
+			$('#effect_select').html('<option value="__none__"></option>');
+			var usrEffArr = [];
+			var sysEffArr = [];
+			
 			for(i = 0; i < newEffects.length; i++) {
-				effectName = newEffects[i].name;
-				effects_html += '<option value="'+effectName+'">'+effectName+'</option>';
+				var effectName = newEffects[i].name;
+				if(!/^\:/.test(newEffects[i].file)){
+					usrEffArr.push(effectName);
+				}
+				else{
+					sysEffArr.push(effectName);
+				}
 			}
-			$('#effect_select').html(effects_html);
+			$('#effect_select').append(createSel(usrEffArr, "User Effects"));
+			$('#effect_select').append(createSel(sysEffArr, "Provided Effects"));
 			oldEffects = newEffects;
 		}
 	}
