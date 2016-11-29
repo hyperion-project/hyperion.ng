@@ -2,7 +2,6 @@
 
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
 	: ProviderRs232()
-
 {
 	_deviceReady = init(deviceConfig);
 }

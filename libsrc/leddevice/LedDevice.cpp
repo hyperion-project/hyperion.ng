@@ -17,9 +17,14 @@ LedDevice::LedDevice()
 	, _log(Logger::getInstance("LedDevice"))
 	, _ledBuffer(0)
 	, _deviceReady(true)
-
+	, _refresh_timer()
 {
 	LedDevice::getLedDeviceSchemas();
+
+	// setup timer
+	_refresh_timer.setSingleShot(false);
+	_refresh_timer.setInterval(0);
+	connect(&_refresh_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
 }
 
 // dummy implemention
@@ -103,7 +108,17 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
-	return _deviceReady ? write(ledValues) : -1;
+	if (!_deviceReady)
+		return -1;
+	
+	_ledValues = ledValues;
+
+	// restart the timer
+	if (_refresh_timer.interval() > 0)
+	{
+		_refresh_timer.start();
+	}
+	return write(ledValues);
 }
 
 int LedDevice::switchOff()
@@ -117,4 +132,9 @@ void LedDevice::setLedCount(int ledCount)
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
+}
+
+int LedDevice::rewriteLeds()
+{
+	return write(_ledValues);
 }
