@@ -9,8 +9,9 @@
    set following values to your needs
  **************************************/
 
-// Number of leds in your strip
+// Number of leds in your strip. set to 1 and ANALOG_OUTPUT_ENABLED to true to activate analog only
 #define NUM_LEDS 100
+
 
 #define SPI_LEDS false    // connection type. Set "true" for 4 wire and "false" for 3 Wire stripes.
 #define LED_TYPE WS2812B  // type of your led controller, possible values, see below
@@ -21,35 +22,36 @@
 
 // For 3 wire led stripes line Neopixel/Ws2812, which have a data line, ground, and power, you just need to define DATA_PIN.
 // For led chipsets that are SPI based (four wires - data, clock, ground, and power), both defines DATA_PIN and CLOCK_PIN are needed
-#define DATA_PIN  11
+#define DATA_PIN  6
 #define CLOCK_PIN 13
 
-#define COLOR_ORDER RGB  // colororder of the stripe, set RGB in hyperion
-#define GROUND_PIN 4     // additional ground pin to make wiring a bit easier
+#define COLOR_ORDER GRB  // colororder of the stripe, set RGB in hyperion
 
-#define OFF_TIMEOUT 10000    // ms to switch off after no data was received, set 0 to deactivate
+#define OFF_TIMEOUT 15000    // ms to switch off after no data was received, set 0 to deactivate
 
-// analog rgb uni color led
+// analog rgb uni color led stripe - using of hyperion smoothing is recommended
+// ATTENTION  this pin config is default for atmega328 based arduinos, others might work to
+//            if you have flickering analog leds this might be caused by unsynced pwm signals
+//            try other pins is more or less the only thing that helps
 #define ANALOG_OUTPUT_ENABLED true
-#define ANALOG_MODE           ANALOG_MODE_AVERAGE  // use ANALOG_MODE_AVERAGE or ANALOG_MODE_LAST_LED
-#define ANALOG_RED_PIN        6
-#define ANALOG_GREEN_PIN      5
-#define ANALOG_BLUE_PIN       3
+#define ANALOG_MODE           ANALOG_MODE_LAST_LED  // use ANALOG_MODE_AVERAGE or ANALOG_MODE_LAST_LED
+#define ANALOG_GROUND_PIN     8                     // additional ground pin to make wiring a bit easier
+#define ANALOG_RED_PIN        9
+#define ANALOG_GREEN_PIN      10
+#define ANALOG_BLUE_PIN       11
 
 // overall color adjustments
 #define ANALOG_BRIGHTNESS_RED   255              // maximum brightness for analog 0-255
 #define ANALOG_BRIGHTNESS_GREEN 255              // maximum brightness for analog 0-255
-#define ANALOG_BRIGHTNESS_BLUE  255               // maximum brightness for analog 0-255
+#define ANALOG_BRIGHTNESS_BLUE  255              // maximum brightness for analog 0-255
 
 #define BRIGHTNESS 255                      // maximum brightness 0-255
-#define DITHER_MODE BINARY_DITHER          // BINARY_DITHER or DISABLE_DITHER
+#define DITHER_MODE BINARY_DITHER           // BINARY_DITHER or DISABLE_DITHER
 #define COLOR_TEMPERATURE CRGB(255,255,255) // RGB value describing the color temperature
 #define COLOR_CORRECTION  CRGB(255,255,255) // RGB value describing the color correction
 
 // Baudrate, higher rate allows faster refresh rate and more LEDs (defined in /etc/boblight.conf)
-#define serialRate 460800
-//#define serialRate 115200    // for older ftdi based boards
-
+#define serialRate 460800      // use 115200 for ftdi based boards
 
 
 /**************************************
@@ -67,19 +69,32 @@ unsigned long endTime;
 CRGB leds[NUM_LEDS];
 
 // set rgb to analog led stripe
-void showAnalogRGB(byte r, byte g, byte b) {
+void showAnalogRGB(const CRGB& led) {
   if (ANALOG_OUTPUT_ENABLED) {
-    analogWrite(ANALOG_RED_PIN   , map(r, 0,255,0,ANALOG_BRIGHTNESS_RED));
-    analogWrite(ANALOG_GREEN_PIN , map(g, 0,255,0,ANALOG_BRIGHTNESS_GREEN));
-    analogWrite(ANALOG_BLUE_PIN  , map(b, 0,255,0,ANALOG_BRIGHTNESS_BLUE));
+    byte r = map(led.r, 0,255,0,ANALOG_BRIGHTNESS_RED);
+    byte g = map(led.g, 0,255,0,ANALOG_BRIGHTNESS_GREEN);
+    byte b = map(led.b, 0,255,0,ANALOG_BRIGHTNESS_BLUE);
+    analogWrite(ANALOG_RED_PIN  , r);
+    analogWrite(ANALOG_GREEN_PIN, g);
+    analogWrite(ANALOG_BLUE_PIN , b);
   }
+}
+
+// set color to all leds
+void showColor(const CRGB& led) {
+  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+  LEDS.showColor(led);
+  #endif
+  showAnalogRGB(led);
 }
 
 // switch of digital and analog leds
 void switchOff() {
+  #if ANALOG_ONLY == false
   memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
   FastLED.show();
-  showAnalogRGB(0, 0, 0);
+  #endif
+  showAnalogRGB(leds[0]);
 }
 
 // function to check if serial data is available
@@ -101,15 +116,14 @@ bool checkIncommingData() {
 void setup() {
 
   // additional ground pin to make wiring a bit easier
-  pinMode(GROUND_PIN, OUTPUT);
-  digitalWrite(GROUND_PIN, LOW);
+  pinMode(ANALOG_GROUND_PIN, OUTPUT);
+  digitalWrite(ANALOG_GROUND_PIN, LOW);
 
   // analog output
   if (ANALOG_OUTPUT_ENABLED) {
+    pinMode(ANALOG_BLUE_PIN , OUTPUT);
     pinMode(ANALOG_RED_PIN  , OUTPUT);
     pinMode(ANALOG_GREEN_PIN, OUTPUT);
-    pinMode(ANALOG_BLUE_PIN , OUTPUT);
-    showAnalogRGB(0, 0, 0);
   }
 
   // Uncomment/edit one of the following lines for your leds arrangement.
@@ -117,11 +131,13 @@ void setup() {
   if (ANALOG_MODE == ANALOG_MODE_LAST_LED) {
     ledCount--;
   }
-  
-  #if SPI_LEDS == true
-  FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, ledCount);
-  #else
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, ledCount);
+
+  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+    #if SPI_LEDS == true
+    FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, ledCount);
+    #else
+    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, ledCount);
+    #endif
   #endif
  
   // color adjustments
@@ -131,17 +147,10 @@ void setup() {
   FastLED.setDither     ( DITHER_MODE );
 
   // initial RGB flash
-  LEDS.showColor(CRGB(255, 0, 0));
-  showAnalogRGB(255, 0, 0);
-  delay(400);
-  LEDS.showColor(CRGB(0, 255, 0));
-  showAnalogRGB(0, 255, 0);
-  delay(400);
-  LEDS.showColor(CRGB(0, 0, 255));
-  showAnalogRGB(0, 0, 255);
-  delay(400);
-  LEDS.showColor(CRGB(0, 0, 0));
-  showAnalogRGB(0, 0, 0);
+  showColor(CRGB(255, 0, 0));  delay(400);
+  showColor(CRGB(0, 255, 0));  delay(400);
+  showColor(CRGB(0, 0, 255));  delay(400);
+  showColor(CRGB(0, 0, 0));
   
   Serial.begin(serialRate);
   Serial.print("Ada\n"); // Send "Magic Word" string to host
@@ -199,32 +208,27 @@ void setup() {
       leds[idx].r = r;
       leds[idx].g = g;
       leds[idx].b = b;
-      if ( ANALOG_OUTPUT_ENABLED && ANALOG_MODE == ANALOG_MODE_AVERAGE )
-      {
-        sum_r += r;
-        sum_g += g;
-        sum_b += b;
-      }
+      #if ANALOG_OUTPUT_ENABLED == true && ANALOG_MODE == ANALOG_MODE_AVERAGE
+          sum_r += r;
+          sum_g += g;
+          sum_b += b;
+      #endif
     }
 
     // shows new values
     if (transmissionSuccess) {
       endTime = millis() + OFF_TIMEOUT;
+      #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
       FastLED.show();
+      #endif
 
-      if ( ANALOG_OUTPUT_ENABLED)
-      {
-        switch (ANALOG_MODE)
-        {
-          case ANALOG_MODE_LAST_LED:
-            showAnalogRGB(leds[NUM_LEDS-1].r, leds[NUM_LEDS-1].g, leds[NUM_LEDS-1].b);
-            break;
-
-          default:
-            showAnalogRGB(sum_r / NUM_LEDS, sum_g / NUM_LEDS, sum_b / NUM_LEDS);
-            break;
-        }
-      }
+      #if ANALOG_OUTPUT_ENABLED == true
+        #if ANALOG_MODE == ANALOG_MODE_LAST_LED
+          showAnalogRGB(leds[NUM_LEDS-1]);
+        #else
+          showAnalogRGB(CRGB(sum_r/NUM_LEDS, sum_g/NUM_LEDS, sum_b/NUM_LEDS));
+         #endif
+      #endif
     }
   }
 } // end of setup
