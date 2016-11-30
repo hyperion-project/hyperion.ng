@@ -134,7 +134,8 @@ fi
 if [ -f "/opt/hyperion/bin/hyperiond" ]; then
 	echo '---> Old installation found, move configs to /etc/hyperion/ and move hyperion to /usr/share/hyperion/'
 	mv /opt/hyperion/config/*.json /etc/hyperion 2>/dev/null 
-	sed -i "s|/opt/hyperion/effects|/usr/share/hyperion/effects|g" /etc/hyperion/*.json
+	
+	sed -i "s|/opt/hyperion/effects||g; s|/usr/share/hyperion/effects||g" /etc/hyperion/*.json
 		CPO1=/etc/hyperion.config.json
 		CPO2=/opt/hyperion/config/hyperion.config.json
 		CPN=/etc/hyperion/hyperion.config.json
@@ -213,7 +214,7 @@ else
 	exit 1
 fi
 
-# Get and extract the Hyperion binaries and effects
+# Get and extract the Hyperion binaries
 echo '---> Downloading the appropriate Hyperion release'
 if [ $OS_OPENELEC -eq 1 ]; then
 	# OpenELEC has a readonly file system. Use alternative location

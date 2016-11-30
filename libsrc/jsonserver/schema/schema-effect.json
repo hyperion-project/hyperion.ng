@@ -32,6 +32,10 @@
 				}
 			},
 			"additionalProperties": false
+		},
+		"pythonScript" : {
+			"type" : "string",
+			"required" : false
 		}
 	},
 	"additionalProperties": false

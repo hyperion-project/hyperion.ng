@@ -1,32 +1,42 @@
 #!/bin/bash
 
 # for executing in non travis environment
-[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$( uname -s | tr '[:upper:]' '[:lower:]' )"
+[ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 
+PLATFORM=x86
+BUILD_TYPE=Debug
 
-######################################
-## COMPILE HYPERION
-
-# compile hyperion on osx
-if [[ $TRAVIS_OS_NAME == 'osx' ]]
+# Detect number of processor cores
+# default is 4 jobs
+if [[ "$TRAVIS_OS_NAME" == 'osx' || "$TRAVIS_OS_NAME" == 'darwin' ]]
 then
-	procs=$(sysctl -n hw.ncpu | xargs)
-	echo "Processes: $procs"
-
-	mkdir build || exit 1
-    cd build
-	cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -Wno-dev .. || exit 2
-	make -j$procs || exit 3
-	# make -j$(nproc) package || exit 4 # currently osx(dmg) package creation not implemented
+	JOBS=$(sysctl -n hw.ncpu)
+	PLATFORM=osx
+elif [[ "$TRAVIS_OS_NAME" == 'linux' ]]
+then
+	JOBS=$(nproc)
 fi
 
-# compile hyperion on linux
+# compile prepare
+mkdir build || exit 1
+cd build
+
+# Compile hyperion for tags
+[ -n "${TRAVIS_TAG:-}" ] && BUILD_TYPE=Release
+
+# Compile hyperion for cron - take default settings
+
+# Compile for PR (no tag and no cron)
+[ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
+
+cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr .. || exit 2
+
+echo "compile jobs: ${JOBS:=4}"
+make -j ${JOBS} || exit 3
+
+# Build the package on Linux
 if [[ $TRAVIS_OS_NAME == 'linux' ]]
 then
-	mkdir build || exit 1
-	cd build
-	cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Release .. || exit 2
-	make -j$(nproc) || exit 3
-	make -j$(nproc) package || exit 4
+    make -j ${JOBS} package || exit 4
 fi
 

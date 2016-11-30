@@ -3,29 +3,35 @@
 #include <leddevice/LedDevice.h>
 #include <ws2811.h>
 
+///
+/// Implementation of the LedDevice interface for writing to Ws2812 led device via pwm.
+///
 class LedDeviceWS281x : public LedDevice
 {
 public:
 	///
-	/// Constructs the LedDevice for WS281x (one wire 800kHz)
+	/// Constructs specific LedDevice
 	///
-	/// @param gpio   The gpio pin to use (BCM chip counting, default is 18)
-	/// @param leds   The number of leds attached to the gpio pin
-	/// @param freq   The target frequency for the data line, default is 800000
-	/// @param dmanum The DMA channel to use, default is 5
-	/// @param pwmchannel The pwm channel to use
-	/// @param invert Invert the output line to support an inverting level shifter
-	/// @param rgbw   Send 32 bit rgbw colour data for sk6812
-
+	/// @param deviceConfig json device config
 	///
-	LedDeviceWS281x(const int gpio, const int leds, const uint32_t freq, int dmanum, int pwmchannel, int invert, 
-		int rgbw, const std::string& whiteAlgorithm);
+	LedDeviceWS281x(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
 	///
 	~LedDeviceWS281x();
+	
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	bool init(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
@@ -34,13 +40,8 @@ public:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	/// Switch the leds off
-	virtual int switchOff();
-
-private:
 	ws2811_t    _led_string;
 	int         _channel;
-	bool        _initialized;
-	std::string _whiteAlgorithm;
+	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw   _temp_rgbw;
 };

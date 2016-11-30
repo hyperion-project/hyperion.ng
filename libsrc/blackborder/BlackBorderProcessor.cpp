@@ -8,14 +8,14 @@
 
 using namespace hyperion;
 
-BlackBorderProcessor::BlackBorderProcessor(const Json::Value &blackborderConfig)
-	: _enabled(blackborderConfig.get("enable", true).asBool())
-	, _unknownSwitchCnt(blackborderConfig.get("unknownFrameCnt", 600).asUInt())
-	, _borderSwitchCnt(blackborderConfig.get("borderFrameCnt", 50).asUInt())
-	, _maxInconsistentCnt(blackborderConfig.get("maxInconsistentCnt", 10).asUInt())
-	, _blurRemoveCnt(blackborderConfig.get("blurRemoveCnt", 1).asUInt())
-	, _detectionMode(blackborderConfig.get("mode", "default").asString())
-	, _detector(blackborderConfig.get("threshold", 0.01).asDouble())
+BlackBorderProcessor::BlackBorderProcessor(const QJsonObject &blackborderConfig)
+	: _enabled(blackborderConfig["enable"].toBool(true))
+	, _unknownSwitchCnt(blackborderConfig["unknownFrameCnt"].toInt(600))
+	, _borderSwitchCnt(blackborderConfig["borderFrameCnt"].toInt(50))
+	, _maxInconsistentCnt(blackborderConfig["maxInconsistentCnt"].toInt(10))
+	, _blurRemoveCnt(blackborderConfig["blurRemoveCnt"].toInt(1))
+	, _detectionMode(blackborderConfig["mode"].toString("default").toStdString())
+	, _detector(blackborderConfig["threshold"].toDouble(0.01))
 	, _currentBorder({true, -1, -1})
 	, _previousDetectedBorder({true, -1, -1})
 	, _consistentCnt(0)

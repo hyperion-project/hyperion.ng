@@ -1,0 +1,27 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"host" : {
+			"type": "string",
+			"title":"Target IP",
+		    "default": "255.255.255.255",
+			"propertyOrder" : 1
+		},
+		"port" : {
+			"type": "integer",
+			"title":"Port",
+			"default": 30977,
+			"propertyOrder" : 2
+		},
+		"lightIds": {
+			"type": "array",
+			"title":"Light ids",
+			"items" : {
+				"type" : "string"
+			},
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": true
+}

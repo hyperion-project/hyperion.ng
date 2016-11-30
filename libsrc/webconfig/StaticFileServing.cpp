@@ -7,14 +7,21 @@
 #include <QPair>
 #include <QFile>
 #include <QFileInfo>
+#include <QResource>
+#include <QHostInfo>
+#include <bonjour/bonjourserviceregister.h>
+#include <bonjour/bonjourrecord.h>
+
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
-		:  QObject   (parent)
-		, _hyperion(hyperion)
-		, _baseUrl (baseUrl)
-		, _cgi(hyperion, this)
-		, _log(Logger::getInstance("WEBSERVER"))
+	:  QObject   (parent)
+	, _hyperion(hyperion)
+	, _baseUrl (baseUrl)
+	, _cgi(hyperion, baseUrl, this)
+	, _log(Logger::getInstance("WEBSERVER"))
 {
+	Q_INIT_RESOURCE(WebConfig);
+
 	_mimeDb = new QMimeDatabase;
 
 	_server = new QtHttpServer (this);
@@ -26,6 +33,7 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 	connect (_server, &QtHttpServer::requestNeedsReply, this, &StaticFileServing::onRequestNeedsReply);
 
 	_server->start (port);
+
 }
 
 StaticFileServing::~StaticFileServing ()
@@ -36,6 +44,18 @@ StaticFileServing::~StaticFileServing ()
 void StaticFileServing::onServerStarted (quint16 port)
 {
 	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
+
+        const std::string mDNSDescr = ( _server->getServerName().toStdString()
+                                        + "@" +
+                                        QHostInfo::localHostName().toStdString()
+                                        );
+
+	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
+	bonjourRegister_http->registerService(
+		BonjourRecord(mDNSDescr.c_str(), "_http._tcp", QString()),
+		port
+		);
+	Debug(_log, "Web Config mDNS responder started");
 }
 
 void StaticFileServing::onServerStopped () {
@@ -71,10 +91,11 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			catch(...)
 			{
-				printErrorToReply (reply, "cgi script failed (" % path % ")");
+				printErrorToReply (reply, "script failed (" % path % ")");
 			}
 			return;
 		}
+		Q_INIT_RESOURCE(WebConfig);
 
 		QFileInfo info(_baseUrl % "/" % path);
 		if ( path == "/" || path.isEmpty() || ! info.exists() )

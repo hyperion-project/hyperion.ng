@@ -1,9 +1,17 @@
 #pragma once
 
+// QT includes
+#include <QObject>
+#include <QString>
+
+// stl includes
 #include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #include <map>
+#include <QVector>
+
+
 
 // standard log messages
 //#define _FUNCNAME_ __PRETTY_FUNCTION__
@@ -22,10 +30,25 @@
 
 // ================================================================
 
-class Logger
+class Logger : public QObject
 {
+	Q_OBJECT
+
 public:
 	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
+
+	typedef struct
+	{
+		QString      appName;
+		QString      loggerName;
+		QString      function;
+		unsigned int line;
+		QString      fileName;
+		time_t       utime;
+		QString      message;
+		LogLevel     level;
+		QString      levelString;
+	} T_LOG_MESSAGE;
 
 	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
 	static void     deleteInstance(std::string name="");
@@ -35,6 +58,9 @@ public:
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = level; };
 	LogLevel getMinLevel() { return _minLevel; };
+
+signals:
+	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
 	Logger( std::string name="", LogLevel minLevel=INFO);
@@ -51,3 +77,25 @@ private:
 	unsigned int _loggerId;
 };
 
+
+class LoggerManager : public QObject
+{
+	Q_OBJECT
+
+public:
+	static LoggerManager* getInstance();
+	QVector<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() { return &_logMessageBuffer; };
+
+public slots:
+	void handleNewLogMessage(Logger::T_LOG_MESSAGE);
+
+signals:
+	void newLogMessage(Logger::T_LOG_MESSAGE);
+
+protected:
+	LoggerManager();
+
+	static LoggerManager*          _instance;
+	QVector<Logger::T_LOG_MESSAGE> _logMessageBuffer;
+	const int                      _loggerMaxMsgBufferSize;
+};

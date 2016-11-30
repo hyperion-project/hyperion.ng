@@ -1,0 +1,46 @@
+{
+    "type":"object",
+    "script" : "fade.py",
+    "title":"Fade",
+    "required":true,
+    "properties":{
+        "fade-time": {
+            "type": "number",
+            "title":"Fade Time",
+            "default": 5.0,
+            "minimum" : 0.1,
+			"append" : "s",
+            "propertyOrder" : 1
+        },
+        "color-start": {
+            "type": "array",
+            "title":"Color Start",
+            "format":"colorpicker",
+            "default": [255,174,11],
+            "items" : {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+
+            },
+            "minItems": 3,
+            "maxItems": 3,
+            "propertyOrder" : 2
+        },
+        "color-end": {
+            "type": "array",
+            "title":"Color End",
+            "format":"colorpicker",
+            "default": [100,100,100],
+            "items" : {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+            },
+            "minItems": 3,
+            "maxItems": 3,
+            "propertyOrder" : 3
+        }
+    },
+    "additionalProperties": false
+}
