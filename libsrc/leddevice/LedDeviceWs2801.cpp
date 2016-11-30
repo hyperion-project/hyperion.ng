@@ -4,6 +4,10 @@ LedDeviceWs2801::LedDeviceWs2801(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_deviceReady = 	ProviderSpi::init(deviceConfig);
+	if (deviceConfig["latchtime"] == QJsonValue::Undefined )
+	{
+		_latchTime_ns = 500000;
+	}
 }
 
 LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)
