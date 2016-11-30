@@ -1,25 +1,28 @@
-	JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
-		
-		getValue: function() {
-			color = $(this.input).data('colorpicker').color.toRGB();
-			return [color.r, color.g, color.b];
+    JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
+
+         getValue: function() {
+            var color = $(this.input).data('colorpicker').color.toRGB();
+            return [color.r, color.g, color.b];
         },
 
         setValue: function(val) {
-			function rgb2hex(rgb){
-				return "#" +
-				("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
-				("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-				("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
-			}
+             function rgb2hex(rgb)
+             {
+                 return "#" +
+                 ("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+                 ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+                 ("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
+             }
 
-			$(this.input).colorpicker('setValue', rgb2hex(val));
-        },
-		
+            $(this.input).colorpicker('updateInput', 'rgb('+val+')');
+            $(this.input).colorpicker('updateData', val);
+            $(this.input).colorpicker('updatePicker', rgb2hex(val));
+         },
+      
         build: function() {
-			this._super();
-			var myinput = this
-				$(this.input).colorpicker({
+            this._super();
+            var myinput = this;
+            $(myinput.input).colorpicker({
                 format: 'rgb',
                 customClass: 'colorpicker-2x',
                 sliders: {
@@ -31,12 +34,12 @@
                         maxTop: 200
                     },
                 },
-               
+              
             })
-			//$(this.input).colorpicker().on('changeColor', function(e) {
-			//$(this.input).trigger("change");
-			//});
-			
+
+            $(this.input).colorpicker().on('changeColor', function(e) {
+                $(myinput).val(e.color.toRGB()).change();
+            });      
         }
     });
 

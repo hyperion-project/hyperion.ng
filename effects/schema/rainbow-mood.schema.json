@@ -8,19 +8,22 @@
 			"type": "number",
 			"title":"Rotation time",
 			"default": 60.0,
-			"minimum" : 0.1,
+			"minimum" : 1.0,
+			"append" : "s",
 			"propertyOrder" : 1
 		},
 		"brightness": {
 			"type": "number",
 			"title":"Brightness",
 			"default": 1.0,
-			"minimum" : 0.0,
+			"minimum" : 0.1,
+			"maximum" : 1.0,
+			"step" : 0.1,
 			"propertyOrder" : 2
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"Reverse",
+			"title":"Reverse direction",
 			"default": false,
 			"propertyOrder" : 3
 		}

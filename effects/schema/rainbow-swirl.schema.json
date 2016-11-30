@@ -7,8 +7,9 @@
 		"rotation-time": {
 			"type": "number",
 			"title":"Rotation Time",
-			"default": 20.0,
+			"default": 10.0,
 			"minimum" : 0.1,
+			"append" : "s",
 			"propertyOrder" : 1
 		},
 		"center_x": {
@@ -16,6 +17,8 @@
 			"title":"Center X",
 			"default": 0.5,
 			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
 			"propertyOrder" : 2
 		},
 		"center_y": {
@@ -23,11 +26,13 @@
 			"title":"Center Y",
 			"default": 0.5,
 			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
 			"propertyOrder" : 3
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"Reverse",
+			"title":"Reverse direction",
 			"default": false,
 			"propertyOrder" : 4
 		}
