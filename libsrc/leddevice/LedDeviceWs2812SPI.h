@@ -35,5 +35,7 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
+        const int SPI_BYTES_PER_COLOUR;
+
 	uint8_t bitpair_to_byte[4];
 };

@@ -37,6 +37,8 @@ private:
 
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	
+        const int SPI_BYTES_PER_COLOUR;
+
 	uint8_t bitpair_to_byte[4];
 	
 	ColorRgbw _temp_rgbw;
