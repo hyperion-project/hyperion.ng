@@ -30,6 +30,8 @@ ProviderUdp::~ProviderUdp()
 
 bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
 {
+	LedDevice::init(deviceConfig);
+
 	QString host = deviceConfig["host"].toString(QString::fromStdString(defaultHost));
 	
 	if (_address.setAddress(host) )
@@ -58,7 +60,6 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
 	_LatchTime_ns = deviceConfig["latchtime"].toInt(_LatchTime_ns);
- 	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
 
 	return true;
 }

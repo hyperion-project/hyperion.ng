@@ -24,7 +24,7 @@
 			"type" : "object",
 			"title" : "LED Device General",
 			"required" : true,
-			"defaultProperties": ["name","ledCount","colorOrder"],
+			"defaultProperties": ["name","ledCount","colorOrder","rewriteTime"],
 			"properties" :
 			{
 				"name" :
@@ -55,7 +55,7 @@
 				},
 				"rewriteTime": {
 					"type": "integer",
-					"title":"refresh time",
+					"title":"Refresh time",
 					"default": 5000,
 					"append" : "ms",
 					"propertOrder" : 4

@@ -18,7 +18,8 @@ LedDeviceWS281x::~LedDeviceWS281x()
 
 bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
-	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
+	LedDevice::init(deviceConfig);
+
 	std::string whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off").toStdString();
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());

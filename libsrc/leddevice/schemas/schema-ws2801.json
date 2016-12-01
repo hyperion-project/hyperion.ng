@@ -16,7 +16,7 @@
 		},
                 "latchtime": {
                         "type": "integer",
-                        "title":"Latchtime",
+                        "title":"Latch time",
                         "default": 500000,
                         "append" : "ns",
                         "propertyOrder" : 3

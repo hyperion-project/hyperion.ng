@@ -43,7 +43,6 @@ bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 	_manualLED   = deviceConfig["manualLed"].toBool(false);
 	_ledOnOff    = deviceConfig["ledOn"].toBool(false);
 	_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
-	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
 
 	_whitePoint_r = 1.0;
 	_whitePoint_g = 1.0;

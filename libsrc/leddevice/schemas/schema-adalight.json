@@ -5,6 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"Output path",
+			"default":"/dev/ttyACM0",
 			"propertyOrder" : 1
 		},
 		"rate": {
