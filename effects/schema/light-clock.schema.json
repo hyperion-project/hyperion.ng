@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "light-clock.py",
-	"title":"Light clock",
+	"title":"edt_eff_lightclock_header_title",
 	"required":true,
 	"properties":{
 		"show_seconds": {
 			"type": "boolean",
-			"title":"Show seconds",
+			"title":"edt_eff_showseconds_title",
 			"default": true,
 			"propertyOrder" : 1
 		}

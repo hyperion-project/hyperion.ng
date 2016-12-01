@@ -97,7 +97,7 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 		}
 		
 		schemaJson = doc.object();
-		schemaJson["title"] = QString("LED Device Specific");
+		schemaJson["title"] = QString("edt_dev_spec_header_title");
 		
 		result[devName] = schemaJson;
 	}

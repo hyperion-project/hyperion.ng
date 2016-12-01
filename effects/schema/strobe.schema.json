@@ -6,7 +6,7 @@
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"Color",
+			"title":"edt_eff_color_title",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,7 +20,7 @@
 		},
 		"frequency": {
 			"type": "number",
-			"title":"Frequency",
+			"title":"edt_eff_frequency_title",
 			"default": 10.0,
 			"minimum" : 0.1,
 			"append" : "Hz",

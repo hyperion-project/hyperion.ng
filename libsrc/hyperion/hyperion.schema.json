@@ -6,14 +6,14 @@
 		"logger" :
 		{
 			"type" : "object",
-			"title" : "Logging",
+			"title" : "edt_conf_log_heading_title",
 			"properties" :
 			{
 				"level" :
 				{
 					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
-					"title" : "Log-Level",
+					"title" : "edt_conf_log_level_title",
 					"default" : "warn"
 				}
 			},
@@ -22,7 +22,7 @@
 		"device" :
 		{
 			"type" : "object",
-			"title" : "LED Device General",
+			"title" : "edt_dev_general_heading_title",
 			"required" : true,
 			"defaultProperties": ["name","ledCount","colorOrder"],
 			"properties" :
@@ -30,7 +30,7 @@
 				"name" :
 				{
 					"type" : "string",
-					"title" : "Configuration name",
+					"title" : "edt_dev_general_name_title",
 					"required" : true,
 					"propertyOrder" : 1
 				},
@@ -43,13 +43,13 @@
 				{
 					"type" : "integer",
 					"minimum" : 0,
-					"title" : "Count of all hardware LEDs",
+					"title" : "edt_dev_general_ledCount_title",
 					"propertyOrder" : 2
 				},
 				"colorOrder" :
 				{
 					"type" : "string",
-					"title" : "RGB byte order",
+					"title" : "edt_dev_general_colorOrder_title",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
 				}
@@ -59,7 +59,7 @@
 		"color" :
 		{
 			"type":"object",
-			"title" : "Color Calibration",
+			"title" : "edt_conf_color_heading_title",
 			"required" : true,
 			"defaultProperties": ["channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
 			"properties":
@@ -330,20 +330,20 @@
 		"smoothing":
 		{
 			"type" : "object",
-			"title" : "Smoothing",
+			"title" : "edt_conf_smooth_heading_title",
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : true,
 					"propertyOrder" : 1
 				},
 				"type" :
 				{
 					"type" : "string",
-					"title" : "Type",
+					"title" : "edt_conf_smooth_type_title",
 					"enum" : ["linear"],
 					"default" : "linear",
 					"propertyOrder" : 2
@@ -351,7 +351,7 @@
 				"time_ms" :
 				{
 					"type" : "integer",
-					"title" : "Time",
+					"title" : "edt_conf_smooth_time_ms_title",
 					"minimum" : 25,
 					"maximum": 600,
 					"default" : 200,
@@ -361,7 +361,7 @@
 				"updateFrequency" :
 				{
 					"type" : "number",
-					"title" : "Update frequency",
+					"title" : "edt_conf_smooth_updateFrequency_title",
 					"minimum" : 1.0,
 					"maximum" : 100.0,
 					"default" : 25.0,
@@ -371,7 +371,7 @@
 				"updateDelay" :
 				{
 					"type" : "integer",
-					"title" : "Update delay",
+					"title" : "edt_conf_smooth_updateDelay_title",
 					"minimum" : 0,
 					"maximum": 2048,
 					"default" : 0,
@@ -381,7 +381,7 @@
 				"continuousOutput" :
 				{
 					"type" : "boolean",
-					"title" : "Continuous output",
+					"title" : "edt_conf_smooth_continuousOutput_title",
 					"default" : true,
 					"propertyOrder" : 6
 				}
@@ -403,21 +403,21 @@
 					"enable" :
 					{
 						"type" : "boolean",
-						"title" : "Activate",
+						"title" : "edt_conf_general_enable_title",
 						"default" : false,
 						"propertyOrder" : 1
 					},
 					"device" :
 					{
 						"type" : "string",
-						"title" : "Device",
+						"title" : "edt_conf_v4l2_device_title",
 						"default" : "auto",
 						"propertyOrder" : 2
 					},
 					"input" :
 					{
 						"type" : "integer",
-						"title" : "Input",
+						"title" : "edt_conf_v4l2_input_title",
 						"minimum" : 0,
 						"default" : 0,
 						"propertyOrder" : 3
@@ -425,7 +425,7 @@
 					"standard" :
 					{
 						"type" : "string",
-						"title" : "Video standard",
+						"title" : "edt_conf_v4l2_standard_title",
 						"enum" : ["PAL","NTSC"],
 						"default" : "PAL",
 						"propertyOrder" : 4
@@ -433,7 +433,7 @@
 					"width" :
 					{
 						"type" : "integer",
-						"title" : "Width",
+						"title" : "edt_conf_v4l2_width_title",
 						"minimum" : -1,
 						"default" : -1,
 						"append" : "Pixel",
@@ -442,7 +442,7 @@
 					"height" :
 					{
 						"type" : "integer",
-						"title" : "Height",
+						"title" : "edt_conf_v4l2_height_title",
 						"minimum" : -1,
 						"default" : -1,
 						"append" : "Pixel",
@@ -451,7 +451,7 @@
 					"frameDecimation" :
 					{
 						"type" : "integer",
-						"title" : "Frame decimation",
+						"title" : "edt_conf_v4l2_frameDecimation_title",
 						"minimum" : 0,
 						"default" : 2,
 						"propertyOrder" : 7
@@ -468,14 +468,14 @@
 					{
 						"type" : "integer",
 						"minimum" : 0,
-						"title" : "Priority channel",
+						"title" : "edt_conf_general_priority_title",
 						"default" : 900,
 						"propertyOrder" : 9
 					},
 					"mode" :
 					{
 						"type" : "string",
-						"title" : "Mode",
+						"title" : "edt_conf_v4l2_mode_title",
 						"enum" : ["2D","3DSBS","3DTAB"],
 						"default" : "2D",
 						"propertyOrder" : 10
@@ -483,14 +483,14 @@
 					"useKodiChecker" :
 					{
 						"type" : "boolean",
-						"title" : "Use Kodi Watch",
+						"title" : "edt_conf_v4l2_useKodiChecker_title",
 						"default" : false,
 						"propertyOrder" : 11
 					},
 					"cropLeft" :
 					{
 						"type" : "integer",
-						"title" : "Crop left",
+						"title" : "edt_conf_v4l2_cropLeft_title",
 						"minimum" : 0,
 						"default" : 0,
 						"append" : "Pixel",
@@ -499,7 +499,7 @@
 					"cropRight" :
 					{
 						"type" : "integer",
-						"title" : "Crop right",
+						"title" : "edt_conf_v4l2_cropRight_title",
 						"minimum" : 0,
 						"default" : 0,
 						"append" : "Pixel",
@@ -508,7 +508,7 @@
 					"cropTop" :
 					{
 						"type" : "integer",
-						"title" : "Crop top",
+						"title" : "edt_conf_v4l2_cropTop_title",
 						"minimum" : 0,
 						"default" : 0,
 						"append" : "Pixel",
@@ -517,7 +517,7 @@
 					"cropBottom" :
 					{
 						"type" : "integer",
-						"title" : "Crop bottom",
+						"title" : "edt_conf_v4l2_cropBottom_title",
 						"minimum" : 0,
 						"default" : 0,
 						"append" : "Pixel",
@@ -526,7 +526,7 @@
 					"redSignalThreshold" :
 					{
 						"type" : "number",
-						"title" : "Red signal threshold",
+						"title" : "edt_conf_v4l2_redSignalThreshold_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
@@ -537,7 +537,7 @@
 					"greenSignalThreshold" :
 					{
 						"type" : "number",
-						"title" : "Green signal threshold",
+						"title" : "edt_conf_v4l2_greenSignalThreshold_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
@@ -548,7 +548,7 @@
 					"blueSignalThreshold" :
 					{
 						"type" : "number",
-						"title" : "Blue signal threshold",
+						"title" : "edt_conf_v4l2_blueSignalThreshold_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
@@ -569,21 +569,21 @@
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : true,
 					"propertyOrder" : 1
 				},
 				"type" :
 				{
 					"type" : "string",
-					"title" : "Type",
+					"title" : "edt_conf_fg_type_title",
 					"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
 					"default" : "auto"
 				},
 				"width" :
 				{
 					"type" : "integer",
-					"title" : "Width",
+					"title" : "edt_conf_fg_width_title",
 					"minimum" : 10,
 					"default" : 80,
 					"append" : "Pixel"
@@ -591,7 +591,7 @@
 				"height" :
 				{
 					"type" : "integer",
-					"title" : "Height",
+					"title" : "edt_conf_fg_height_title",
 					"minimum" : 10,
 					"default" : 45,
 					"append" : "Pixel"
@@ -599,7 +599,7 @@
 				"frequency_Hz" :
 				{
 					"type" : "integer",
-					"title" : "Frequency",
+					"title" : "edt_conf_fg_frequency_Hz_title",
 					"minimum" : 1,
 					"default" : 10,
 					"append" : "Hz"
@@ -607,14 +607,14 @@
 				"priority" :
 				{
 					"type" : "integer",
-					"title" : "Priority channel",
+					"title" : "edt_conf_general_priority_title",
 					"minimum" : 0,
 					"default" : 890
 				},
 				"cropLeft" :
 				{
 					"type" : "integer",
-					"title" : "Crop left",
+					"title" : "edt_conf_v4l2_cropLeft_title",
 					"minimum" : 0,
 					"default" : 0,
 					"append" : "Pixel"
@@ -622,7 +622,7 @@
 				"cropRight" :
 				{
 					"type" : "integer",
-					"title" : "Crop right",
+					"title" : "edt_conf_v4l2_cropRight_title",
 					"minimum" : 0,
 					"default" : 0,
 					"append" : "Pixel"
@@ -630,7 +630,7 @@
 				"cropTop" :
 				{
 					"type" : "integer",
-					"title" : "Crop top",
+					"title" : "edt_conf_v4l2_cropTop_title",
 					"minimum" : 0,
 					"default" : 0,
 					"append" : "Pixel"
@@ -638,7 +638,7 @@
 				"cropBottom" :
 				{
 					"type" : "integer",
-					"title" : "Crop bottom",
+					"title" : "edt_conf_v4l2_cropBottom_title",
 					"minimum" : 0,
 					"default" : 0,
 					"append" : "Pixel"
@@ -646,33 +646,33 @@
 				"useXGetImage" :
 				{
 					"type" : "boolean",
-					"title" : "Use XGetImage",
+					"title" : "edt_conf_fg_useXGetImage_title",
 					"default" : false
 				},
 				"horizontalPixelDecimation" :
 				{
 					"type" : "integer",
-					"title" : "Horizontal pixel decimation",
+					"title" : "edt_conf_fg_horizontalPixelDecimation_title",
 					"minimum" : 0,
 					"default" : 8
 				},
 				"verticalPixelDecimation" :
 				{
 					"type" : "integer",
-					"title" : "Vertical pixel decimation",
+					"title" : "edt_conf_fg_verticalPixelDecimation_title",
 					"minimum" : 0,
 					"default" : 8
 				},
 				"device" :
 				{
 					"type" : "string",
-					"title" : "Device",
+					"title" : "edt_conf_fg_device_title",
 					"default" : "/dev/fb0"
 				},
 				"display" :
 				{
 					"type" : "integer",
-					"title" : "Display",
+					"title" : "edt_conf_fg_display_title",
 					"minimum" : 0
 				}
 			},
@@ -681,21 +681,21 @@
 		"blackborderdetector" :
 		{
 			"type" : "object",
-			"title" : "Blackbar detector",
+			"title" : "edt_conf_bb_heading_title",
 			"defaultProperties": ["enable","mode","threshold"],
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : true,
 					"propertyOrder" : 1
 				},
 				"threshold" :
 				{
 					"type" : "number",
-					"title" : "Threshold",
+					"title" : "edt_conf_bb_threshold_title",
 					"minimum" : 0.0,
 					"maximum" : 1.0,
 					"default" : 0.05,
@@ -706,6 +706,7 @@
 				"unknownFrameCnt"    :
 				{
 					"type" : "integer",
+					"title" : "edt_conf_bb_unknownFrameCnt_title",
 					"minimum" : 0,
 					"default" : 600,
 					"propertyOrder" : 3
@@ -713,6 +714,7 @@
 				"borderFrameCnt" :
 				{
 					"type" : "integer",
+					"title" : "edt_conf_bb_borderFrameCnt_title",
 					"minimum" : 0,
 					"default" : 50,
 					"propertyOrder" : 4
@@ -720,6 +722,7 @@
 				"maxInconsistentCnt" :
 				{
 					"type" : "integer",
+					"title" : "edt_conf_bb_maxInconsistentCnt_title",
 					"minimum" : 0,
 					"default" : 10,
 					"propertyOrder" : 5
@@ -727,6 +730,7 @@
 				"blurRemoveCnt" :
 				{
 					"type" : "integer",
+					"title" : "edt_conf_bb_blurRemoveCnt_title",
 					"minimum" : 0,
 					"default" : 1,
 					"propertyOrder" : 6
@@ -734,7 +738,7 @@
 				"mode" :
 				{
 					"type" : "string",
-					"title": "Mode",
+					"title": "edt_conf_bb_mode_title",
 					"enum" : ["default", "classic", "osd"],
 					"default" : "default",
 					"propertyOrder" : 7
@@ -745,27 +749,27 @@
 		"kodiVideoChecker" :
 		{
 			"type" : "object",
-			"title" : "Kodi Watch",
+			"title" : "edt_conf_kodic_heading_title",
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : false,
 					"propertyOrder" : 1
 				},
 				"kodiAddress" :
 				{
 					"type" : "string",
-					"title" : "Kodi IP address",
+					"title" : "edt_conf_kodic_kodiAddress_title",
 					"default" : "127.0.0.1",
 					"propertyOrder" : 2
 				},
 				"kodiTcpPort" :
 				{
 					"type" : "integer",
-					"title" : "Kodi TCP port",
+					"title" : "edt_conf_kodic_kodiTcpPort_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 9090,
@@ -774,49 +778,49 @@
 				"grabVideo" :
 				{
 					"type" : "boolean",
-					"title" : "Video",
+					"title" : "edt_conf_kodic_grabVideo_title",
 					"default" : true,
 					"propertyOrder" : 4
 				},
 				"grabPictures" :
 				{
 					"type" : "boolean",
-					"title" : "Pictures",
+					"title" : "edt_conf_kodic_grabPictures_title",
 					"default" : true,
 					"propertyOrder" : 5
 				},
 				"grabAudio" :
 				{
 					"type" : "boolean",
-					"title" : "Audio",
+					"title" : "edt_conf_kodic_grabAudio_title",
 					"default" : true,
 					"propertyOrder" : 6
 				},
 				"grabMenu" :
 				{
 					"type" : "boolean",
-					"title" : "Menu",
+					"title" : "edt_conf_kodic_grabMenu_title",
 					"default" : false,
 					"propertyOrder" : 7
 				},
 				"grabPause" :
 				{
 					"type" : "boolean",
-					"title" : "Pause",
+					"title" : "edt_conf_kodic_grabPause_title",
 					"default" : false,
 					"propertyOrder" : 8
 				},
 				"grabScreensaver" :
 				{
 					"type" : "boolean",
-					"title" : "Screensaver",
+					"title" : "edt_conf_kodic_grabScreensaver_title",
 					"default" : false,
 					"propertyOrder" : 9
 				},
 				"enable3DDetection" :
 				{
 					"type" : "boolean",
-					"title" : "Detect 3D",
+					"title" : "edt_conf_kodic_enable3DDetection_title",
 					"default" : false,
 					"propertyOrder" : 10
 				}
@@ -864,29 +868,34 @@
 		"forwarder" :
 		{
 			"type" : "object",
-			"title" : "Forwarder",
+			"title" : "edt_conf_fw_heading_title",
 			"required" : true,
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
-					"required" : true,
+					"title" : "edt_conf_general_enable_title",
 					"propertyOrder" : 1
 				},
 				"json" :
 				{
 					"type" : "array",
-					"title" : "List of JSON clients",
-					"required" : true,
+					"title" : "edt_conf_fw_json_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_fw_json_itemtitle"
+					},
 					"propertyOrder" : 2
 				},
 				"proto" :
 				{
 					"type" : "array",
-					"title" : "List of PROTO clients",
-					"required" : true,
+					"title" : "edt_conf_fw_proto_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_fw_proto_itemtitle"
+					},
 					"propertyOrder" : 3
 				}
 			},
@@ -896,14 +905,14 @@
 		{
 			"type" : "object",
 			"required" : true,
-			"title" : "JSON Server",
+			"title" : "edt_conf_js_heading_title",
 			"properties" :
 			{
 				"port" :
 				{
 					"type" : "integer",
 					"required" : true,
-					"title" : "Port",
+					"title" : "edt_conf_general_port_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 19444
@@ -915,14 +924,14 @@
 		{
 			"type" : "object",
 			"required" : true,
-			"title" : "Proto Server",
+			"title" : "edt_conf_ps_heading_title",
 			"properties" :
 			{
 				"port" :
 				{
 					"type" : "integer",
 					"required" : true,
-					"title" : "Port",
+					"title" : "edt_conf_general_port_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 19445
@@ -933,13 +942,13 @@
 		"boblightServer" :
 		{
 			"type" : "object",
-			"title" : "Boblight Server",
+			"title" : "edt_conf_bobls_heading_title",
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : false,
 					"propertyOrder" : 1
 				},
@@ -947,7 +956,7 @@
 				{
 					"type" : "integer",
 					"required" : true,
-					"title" : "Port",
+					"title" : "edt_conf_general_port_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"propertyOrder" : 2
@@ -955,7 +964,7 @@
 				"priority" :
 				{
 					"type" : "integer",
-					"title" : "Priority",
+					"title" : "edt_conf_general_priority_title",
 					"minimum" : 0,
 					"default" : 800,
 					"propertyOrder" : 3
@@ -966,28 +975,27 @@
 		"udpListener" :
 		{
 			"type" : "object",
-			"title" : "UDP Listener",
+			"title" : "edt_conf_udpl_heading_title",
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : false,
 					"propertyOrder" : 1
 				},
 				"address" :
 				{
 					"type" : "string",
-					"title" : "Address",
+					"title" : "edt_conf_udpl_address_title",
 					"default" : "239.255.28.01",
-					"required" : true,
 					"propertyOrder" : 2
 				},
 				"port" :
 				{
 					"type" : "integer",
-					"title" : "Port",
+					"title" : "edt_conf_general_port_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 2801,
@@ -996,7 +1004,7 @@
 				"priority" :
 				{
 					"type" : "integer",
-					"title" : "Priority",
+					"title" : "edt_conf_general_priority_title",
 					"minimum" : 0,
 					"default" : 800,
 					"propertyOrder" : 4
@@ -1004,7 +1012,7 @@
 				"timeout" :
 				{
 					"type" : "integer",
-					"title" : "Timeout",
+					"title" : "edt_conf_udpl_timeout_title",
 					"minimum" : 1000,
 					"default" : 10000,
 					"append" : "ms",
@@ -1013,7 +1021,7 @@
 				"shared" :
 				{
 					"type" : "boolean",
-					"title" : "Shared",
+					"title" : "edt_conf_udpl_shared_title",
 					"default" : false,
 					"propertyOrder" : 6
 				}
@@ -1023,26 +1031,26 @@
 		"webConfig" :
 		{
 			"type" : "object",
-			"title" : "WebUI - DANGER CHANGES CAN MAKE THE WEBUI UNREACHABLE!",
+			"title" : "edt_conf_webc_heading_title",
 			"properties" :
 			{
 				"enable" :
 				{
 					"type" : "boolean",
-					"title" : "Activate",
+					"title" : "edt_conf_general_enable_title",
 					"default" : true,
 					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
 					"type" : "string",
-					"title" : "Document Root",
+					"title" : "edt_conf_webc_docroot_title",
 					"propertyOrder" : 2
 				},
 				"port" :
 				{
 					"type" : "integer",
-					"title" : "Port",
+					"title" : "edt_conf_general_port_title",
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 8099,
@@ -1059,13 +1067,22 @@
 				"paths" :
 				{
 					"type" : "array",
-					"title" : "List of folders to additional effects",
+					"title" : "edt_conf_effp_paths_title",
+					"default" : ["../custom-effects"],
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_effp_paths_itemtitle"
+					},
 					"propertyOrder" : 1
 				},
 				"disable" :
 				{
 					"type" : "array",
-					"title" : "List of disabled effects",
+					"title" : "edt_conf_effp_disable_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_effp_disable_itemtitle"
+					},
 					"propertyOrder" : 2
 				}
 			},

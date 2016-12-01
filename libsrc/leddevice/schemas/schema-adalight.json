@@ -9,13 +9,13 @@
 		},
 		"rate": {
 			"type": "integer",
-			"title":"Baudrate",
+			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
 		"delayAfterConnect": {
 			"type": "integer",
-			"title":"Delay after connect",
+			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
 			"append" : "ms",
 			"propertyOrder" : 3
@@ -29,8 +29,7 @@
 		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
-			"format": "checkbox",
-			"title":"LightBerry APA102 Mode",
+			"title":"edt_dev_spec_LBap102Mode_title",
 			"default": false,
 			"propertyOrder" : 5
 		}
