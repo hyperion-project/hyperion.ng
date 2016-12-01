@@ -18,6 +18,7 @@
                         "type": "integer",
                         "title":"Latchtime",
                         "default": 500000,
+                        "append" : "ms",
                         "propertyOrder" : 3
                 },
 		"invert": {
