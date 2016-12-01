@@ -45,7 +45,6 @@
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
 #include "LedDeviceAtmo.h"
-#include "LedDeviceAdalightApa102.h"
 #include "LedDeviceAtmoOrb.h"
 #include "LedDeviceUdpH801.h"
 
@@ -69,7 +68,6 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower().toStdString(), LedDevice##className::construct);
 	// rs232 devices
 	REGISTER(Adalight);
-	REGISTER(AdalightApa102);
 	REGISTER(Sedu);
 	REGISTER(DMX);
 	REGISTER(Tpm2);
