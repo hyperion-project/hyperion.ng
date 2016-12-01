@@ -52,6 +52,13 @@
 					"title" : "RGB byte order",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
+				},
+				"rewriteTime": {
+					"type": "integer",
+					"title":"refresh time",
+					"default": 5000,
+					"append" : "ms",
+					"propertOrder" : 4
 				}
 			},
 			"additionalProperties" : true

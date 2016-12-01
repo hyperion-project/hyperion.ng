@@ -30,6 +30,7 @@ ProviderHID::~ProviderHID()
 bool ProviderHID::init(const QJsonObject &deviceConfig)
 {
 	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
 	auto VendorIdString   = deviceConfig["VID"].toString("0x2341").toStdString();
 	auto ProductIdString  = deviceConfig["PID"].toString("0x8036").toStdString();
 

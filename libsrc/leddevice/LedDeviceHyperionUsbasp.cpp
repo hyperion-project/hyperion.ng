@@ -39,6 +39,7 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 
 bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
 {
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
 	std::string ledType = deviceConfig["output"].toString("ws2801").toStdString();
 	if (ledType != "ws2801" && ledType != "ws2812")
 	{
