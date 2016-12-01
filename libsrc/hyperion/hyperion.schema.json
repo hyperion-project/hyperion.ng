@@ -58,6 +58,7 @@
 					"title":"Refresh time",
 					"default": 5000,
 					"append" : "ms",
+					"minimum": 0,
 					"propertOrder" : 4
 				}
 			},
