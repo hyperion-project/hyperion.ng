@@ -1,6 +1,5 @@
 <RCC>
 	<qresource prefix="/leddevices/">
-		<file alias="schema-adalightapa102">schemas/schema-adalightapa102.json</file>
 		<file alias="schema-adalight">schemas/schema-adalight.json</file>
 		<file alias="schema-apa102">schemas/schema-apa102.json</file>
 		<file alias="schema-atmo">schemas/schema-atmo.json</file>

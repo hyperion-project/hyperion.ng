@@ -26,6 +26,13 @@
 			"default": 5000,
 			"append" : "ms",
 			"propertyOrder" : 4
+		},
+		"lightberry_apa102_mode": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"LightBerry APA102 Mode",
+			"default": false,
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true
