@@ -18,13 +18,6 @@
 			"title":"Delay after connect",
 			"default": 250,
 			"propertyOrder" : 3
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"refresh time",
-			"default": 5000,
-			"append" : "ms",
-			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

@@ -36,9 +36,4 @@ private:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// The RawHID device will switch off when it does not receive data at least
-	/// every 15 seconds
-	QTimer _timer;
 };
