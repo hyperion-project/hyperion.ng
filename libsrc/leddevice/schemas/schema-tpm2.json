@@ -18,13 +18,6 @@
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
 			"propertyOrder" : 3
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"edt_dev_spec_rewriteTime_title",
-			"default": 5000,
-			"append" : "ms",
-			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true
