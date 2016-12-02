@@ -7,7 +7,9 @@ This is a pre alpha development repository for the next major version of hyperio
 ## **Important notice!**
 
 Hyperion.NG is under heavy development. This version is currently _only for development_ purpose.
-Please do not use it for your'productiv' setup!
+Please do not use it for your 'productiv' setup!
+
+If you want to use hyperion as 'normal user', please use [current stable version](https://github.com/hyperion-project/hyperion)
 
 Besides of that ....  Feel free to join us! We are looking always for people who wants to participate.
 
