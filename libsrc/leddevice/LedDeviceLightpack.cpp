@@ -71,6 +71,7 @@ LedDeviceLightpack::~LedDeviceLightpack()
 
 bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 {
+	LedDevice::init(deviceConfig);
 	_serialNumber = deviceConfig["output"].toString("").toStdString();
 
 	return true;

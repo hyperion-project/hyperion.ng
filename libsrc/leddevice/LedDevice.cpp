@@ -18,6 +18,7 @@ LedDevice::LedDevice()
 	, _ledBuffer(0)
 	, _deviceReady(true)
 	, _refresh_timer()
+	, _refresh_timer_interval(0)
 {
 	LedDevice::getLedDeviceSchemas();
 
@@ -47,6 +48,12 @@ const LedDeviceRegistry& LedDevice::getDeviceMap()
 void LedDevice::setActiveDevice(std::string dev)
 {
 	_activeDevice = dev;
+}
+
+bool LedDevice::init(const QJsonObject &deviceConfig)
+{
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(_refresh_timer_interval) );
+	return true;
 }
 
 QJsonObject LedDevice::getLedDeviceSchemas()

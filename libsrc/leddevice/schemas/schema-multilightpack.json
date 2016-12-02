@@ -2,10 +2,6 @@
 	"type":"object",
 	"required":true,
 	"properties":{
-		"output": {
-			"type": "string",
-			"title":"Serial number"
-		}
 	},
 	"additionalProperties": true
 }

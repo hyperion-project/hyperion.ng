@@ -179,6 +179,8 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
+	LedDevice::init(deviceConfig);
+
 	host = deviceConfig["output"].toString().toStdString().c_str();
 	username = deviceConfig["username"].toString("newdeveloper").toStdString().c_str();
 	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);

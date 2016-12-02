@@ -24,7 +24,7 @@
 			"type" : "object",
 			"title" : "LED Device General",
 			"required" : true,
-			"defaultProperties": ["name","ledCount","colorOrder"],
+			"defaultProperties": ["name","ledCount","colorOrder","rewriteTime"],
 			"properties" :
 			{
 				"name" :
@@ -52,6 +52,14 @@
 					"title" : "RGB byte order",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
+				},
+				"rewriteTime": {
+					"type": "integer",
+					"title":"Refresh time",
+					"default": 5000,
+					"append" : "ms",
+					"minimum": 0,
+					"propertOrder" : 4
 				}
 			},
 			"additionalProperties" : true
