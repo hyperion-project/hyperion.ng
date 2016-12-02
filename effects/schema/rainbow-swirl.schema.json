@@ -9,7 +9,7 @@
 			"title":"edt_eff_rotationtime_title",
 			"default": 10.0,
 			"minimum" : 0.1,
-			"append" : "s",
+			"append" : "edt_append_s",
 			"propertyOrder" : 1
 		},
 		"center_x": {

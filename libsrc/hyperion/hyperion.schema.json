@@ -57,7 +57,7 @@
 					"type": "integer",
 					"title":"edt_dev_general_rewriteTime_title",
 					"default": 5000,
-					"append" : "ms",
+					"append" : "edt_append_ms",
 					"minimum": 0,
 					"propertOrder" : 4
 				}
@@ -363,7 +363,7 @@
 					"minimum" : 25,
 					"maximum": 600,
 					"default" : 200,
-					"append" : "ms",
+					"append" : "edt_append_ms",
 					"propertyOrder" : 3
 				},
 				"updateFrequency" :
@@ -373,7 +373,7 @@
 					"minimum" : 1.0,
 					"maximum" : 100.0,
 					"default" : 25.0,
-					"append" : "Hz",
+					"append" : "edt_append_hz",
 					"propertyOrder" : 4
 				},
 				"updateDelay" :
@@ -383,7 +383,7 @@
 					"minimum" : 0,
 					"maximum": 2048,
 					"default" : 0,
-					"append" : "ms",
+					"append" : "edt_append_ms",
 					"propertyOrder" : 5
 				},
 				"continuousOutput" :
@@ -444,7 +444,7 @@
 						"title" : "edt_conf_v4l2_width_title",
 						"minimum" : -1,
 						"default" : -1,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 5
 					},
 					"height" :
@@ -453,7 +453,7 @@
 						"title" : "edt_conf_v4l2_height_title",
 						"minimum" : -1,
 						"default" : -1,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 6
 					},
 					"frameDecimation" :
@@ -501,7 +501,7 @@
 						"title" : "edt_conf_v4l2_cropLeft_title",
 						"minimum" : 0,
 						"default" : 0,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 12
 					},
 					"cropRight" :
@@ -510,7 +510,7 @@
 						"title" : "edt_conf_v4l2_cropRight_title",
 						"minimum" : 0,
 						"default" : 0,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 13
 					},
 					"cropTop" :
@@ -519,7 +519,7 @@
 						"title" : "edt_conf_v4l2_cropTop_title",
 						"minimum" : 0,
 						"default" : 0,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 14
 					},
 					"cropBottom" :
@@ -528,7 +528,7 @@
 						"title" : "edt_conf_v4l2_cropBottom_title",
 						"minimum" : 0,
 						"default" : 0,
-						"append" : "Pixel",
+						"append" : "edt_append_pixel",
 						"propertyOrder" : 15
 					},
 					"redSignalThreshold" :
@@ -539,7 +539,7 @@
 						"maximum" : 1.0,
 						"default" : 0.1,
 						"step" : 0.01,
-						"append" : "%",
+						"append" : "edt_append_percent",
 						"propertyOrder" : 16
 					},
 					"greenSignalThreshold" :
@@ -550,7 +550,7 @@
 						"maximum" : 1.0,
 						"default" : 0.1,
 						"step" : 0.01,
-						"append" : "%",
+						"append" : "edt_append_percent",
 						"propertyOrder" : 17
 					},
 					"blueSignalThreshold" :
@@ -561,7 +561,7 @@
 						"maximum" : 1.0,
 						"default" : 0.1,
 						"step" : 0.01,
-						"append" : "%",
+						"append" : "edt_append_percent",
 						"propertyOrder" : 18
 					}
 				},
@@ -594,7 +594,7 @@
 					"title" : "edt_conf_fg_width_title",
 					"minimum" : 10,
 					"default" : 80,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"height" :
 				{
@@ -602,7 +602,7 @@
 					"title" : "edt_conf_fg_height_title",
 					"minimum" : 10,
 					"default" : 45,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"frequency_Hz" :
 				{
@@ -610,7 +610,7 @@
 					"title" : "edt_conf_fg_frequency_Hz_title",
 					"minimum" : 1,
 					"default" : 10,
-					"append" : "Hz"
+					"append" : "edt_append_hz"
 				},
 				"priority" :
 				{
@@ -625,7 +625,7 @@
 					"title" : "edt_conf_v4l2_cropLeft_title",
 					"minimum" : 0,
 					"default" : 0,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"cropRight" :
 				{
@@ -633,7 +633,7 @@
 					"title" : "edt_conf_v4l2_cropRight_title",
 					"minimum" : 0,
 					"default" : 0,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"cropTop" :
 				{
@@ -641,7 +641,7 @@
 					"title" : "edt_conf_v4l2_cropTop_title",
 					"minimum" : 0,
 					"default" : 0,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"cropBottom" :
 				{
@@ -649,7 +649,7 @@
 					"title" : "edt_conf_v4l2_cropBottom_title",
 					"minimum" : 0,
 					"default" : 0,
-					"append" : "Pixel"
+					"append" : "edt_append_pixel"
 				},
 				"useXGetImage" :
 				{
@@ -708,7 +708,7 @@
 					"maximum" : 1.0,
 					"default" : 0.05,
 					"step" : 0.01,
-					"append" : "%",
+					"append" : "edt_append_percent",
 					"propertyOrder" : 2
 				},
 				"unknownFrameCnt"    :
@@ -1023,7 +1023,7 @@
 					"title" : "edt_conf_udpl_timeout_title",
 					"minimum" : 1000,
 					"default" : 10000,
-					"append" : "ms",
+					"append" : "edt_append_ms",
 					"propertyOrder" : 5
 				},
 				"shared" :

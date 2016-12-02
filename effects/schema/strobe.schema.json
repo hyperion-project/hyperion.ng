@@ -1,7 +1,7 @@
 {
 	"type":"object",
 	"script" : "strobe.py",
-	"title":"Strobe",
+	"title":"edt_eff_storbe_header_title",
 	"required":true,
 	"properties":{
 		"color": {
@@ -23,7 +23,7 @@
 			"title":"edt_eff_frequency_title",
 			"default": 10.0,
 			"minimum" : 0.1,
-			"append" : "Hz",
+			"append" : "edt_append_hz",
 			"propertyOrder" : 2
 		}
 	},

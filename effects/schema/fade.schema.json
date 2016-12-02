@@ -9,7 +9,7 @@
             "title":"edt_eff_fadetime_title",
             "default": 5.0,
             "minimum" : 0.1,
-			"append" : "s",
+			"append" : "edt_append_s",
             "propertyOrder" : 1
         },
         "color-start": {

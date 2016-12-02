@@ -63,7 +63,7 @@
 			"default": 0.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
-			"append" : "° (Degree)",
+			"append" : "edt_append_degree",
 			"propertyOrder" : 9
 		},
 		"baseColorRangeRight": {
@@ -72,7 +72,7 @@
 			"default": 360.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
-			"append" : "° (Degree)",
+			"append" : "edt_append_degree",
 			"propertyOrder" : 10
 		},
 		"baseColorChangeRate": {
@@ -80,7 +80,7 @@
 			"title":"edt_eff_basecolorchangerate_title",
 			"default": 2.0,
 			"minimum" : 0.0,
-			"append" : "Seconds for one degree",
+			"append" : "edt_append_sdegree",
 			"propertyOrder" : 8
 		}
 	},
