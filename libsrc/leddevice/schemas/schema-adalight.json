@@ -5,6 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"Output path",
+			"default":"/dev/ttyACM0",
 			"propertyOrder" : 1
 		},
 		"rate": {
@@ -20,18 +21,11 @@
 			"append" : "ms",
 			"propertyOrder" : 3
 		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"refresh time",
-			"default": 5000,
-			"append" : "ms",
-			"propertyOrder" : 4
-		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
 			"title":"edt_dev_spec_LBap102Mode_title",
 			"default": false,
-			"propertyOrder" : 5
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

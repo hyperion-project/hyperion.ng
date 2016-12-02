@@ -24,7 +24,7 @@
 			"type" : "object",
 			"title" : "edt_dev_general_heading_title",
 			"required" : true,
-			"defaultProperties": ["name","ledCount","colorOrder"],
+			"defaultProperties": ["name","ledCount","colorOrder","rewriteTime"],
 			"properties" :
 			{
 				"name" :
@@ -52,6 +52,14 @@
 					"title" : "edt_dev_general_colorOrder_title",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
+				},
+				"rewriteTime": {
+					"type": "integer",
+					"title":"edt_dev_general_rewriteTime_title",
+					"default": 5000,
+					"append" : "ms",
+					"minimum": 0,
+					"propertOrder" : 4
 				}
 			},
 			"additionalProperties" : true
