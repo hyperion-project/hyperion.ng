@@ -1,61 +1,72 @@
-
-// STL includes
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-
-// Linux includes
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-// hyperion local includes
 #include "LedDeviceAdalight.h"
 
-LedDeviceAdalight::LedDeviceAdalight(const std::string& outputDevice, const unsigned baudrate, int delayAfterConnect_ms)
-	: LedRs232Device(outputDevice, baudrate, delayAfterConnect_ms)
-	, _timer()
+LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
+	: ProviderRs232()
+	, _ligthBerryAPA102Mode(false)
 {
-	// setup the timer
-	_timer.setSingleShot(false);
-	_timer.setInterval(5000);
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
+	_deviceReady = init(deviceConfig);
+	_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
+}
 
-	// start the timer
-	_timer.start();
+LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceAdalight(deviceConfig);
+}
+
+bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
+{
+	ProviderRs232::init(deviceConfig);
+
+	// create ledBuffer
+	unsigned int bufferSize    = 6;          // 6 bytes header
+	unsigned int totalLedCount = _ledCount;
+
+	if (_ligthBerryAPA102Mode)
+	{
+		const unsigned int startFrameSize = 4;
+		const unsigned int bytesPerRGBLed = 4;
+		const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), bytesPerRGBLed);
+		bufferSize += (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize ;
+	}
+	else
+	{
+		totalLedCount -= 1;
+		bufferSize += _ledRGBCount;
+	}
+
+	_ledBuffer.resize(bufferSize, 0x00);
+	_ledBuffer[0] = 'A';
+	_ledBuffer[1] = 'd';
+	_ledBuffer[2] = 'a';
+	_ledBuffer[3] = (((unsigned int)(totalLedCount)) >> 8) & 0xFF; // LED count high byte
+	_ledBuffer[4] = ((unsigned int)(totalLedCount)) & 0xFF;        // LED count low byte
+	_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
+
+	Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
+			_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5]
+		);
+
+	return true;
 }
 
 int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 {
-	if (_ledBuffer.size() == 0)
+	if(_ligthBerryAPA102Mode)
 	{
-		_ledBuffer.resize(6 + 3*ledValues.size());
-		_ledBuffer[0] = 'A';
-		_ledBuffer[1] = 'd';
-		_ledBuffer[2] = 'a';
-		_ledBuffer[3] = ((ledValues.size() - 1) >> 8) & 0xFF; // LED count high byte
-		_ledBuffer[4] = (ledValues.size() - 1) & 0xFF;        // LED count low byte
-		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
+		for (signed iLed=1; iLed<=_ledCount; iLed++)
+		{
+			const ColorRgb& rgb = ledValues[iLed-1];
+			_ledBuffer[iLed*4+6]   = 0xFF;
+			_ledBuffer[iLed*4+1+6] = rgb.red;
+			_ledBuffer[iLed*4+2+6] = rgb.green;
+			_ledBuffer[iLed*4+3+6] = rgb.blue;
+		}
 	}
-
-	// restart the timer
-	_timer.start();
-
-	// write data
-	memcpy(6 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
+	else
+	{
+		memcpy(6 + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
+	}
+	
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
-int LedDeviceAdalight::switchOff()
-{
-	// restart the timer
-	_timer.start();
-
-	// write data
-	memset(6 + _ledBuffer.data(), 0, _ledBuffer.size()-6);
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}
-
-void LedDeviceAdalight::rewriteLeds()
-{
-	writeBytes(_ledBuffer.size(), _ledBuffer.data());
-}

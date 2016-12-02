@@ -8,7 +8,7 @@ frequency = float(hyperion.args.get('frequency', 10.0))
 frequency = min(100.0, frequency)
 
 # Compute the strobe interval
-sleepTime = 1.0 / frequency
+sleepTime = 0.5 / frequency
 
 # Start the write data loop
 while not hyperion.abort():

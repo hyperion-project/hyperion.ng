@@ -9,6 +9,9 @@
 // Local includes
 #include <utils/ColorRgb.h>
 
+// QT includes
+#include <QString>
+
 // Forward class declarations
 namespace Json { class Value; }
 
@@ -18,7 +21,7 @@ enum ColorOrder
 	ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
 };
 
-inline std::string colorOrderToString(const ColorOrder colorOrder)
+inline QString colorOrderToString(const ColorOrder colorOrder)
 {
 	switch (colorOrder)
 	{
@@ -38,7 +41,7 @@ inline std::string colorOrderToString(const ColorOrder colorOrder)
 		return "not-a-colororder";
 	}
 }
-inline ColorOrder stringToColorOrder(const std::string & order)
+inline ColorOrder stringToColorOrder(const QString & order)
 {
 	if (order == "rgb")
 	{
@@ -65,7 +68,7 @@ inline ColorOrder stringToColorOrder(const std::string & order)
 		return ORDER_GRB;
 	}
 
-	std::cout << "Unknown color order defined (" << order << "). Using RGB." << std::endl;
+	std::cout << "Unknown color order defined (" << order.toStdString() << "). Using RGB." << std::endl;
 	return ORDER_RGB;
 }
 

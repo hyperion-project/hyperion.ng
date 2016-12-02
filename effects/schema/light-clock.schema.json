@@ -1,0 +1,15 @@
+{
+	"type":"object",
+	"script" : "light-clock.py",
+	"title":"Light clock",
+	"required":true,
+	"properties":{
+		"show_seconds": {
+			"type": "boolean",
+			"title":"Show seconds",
+			"default": true,
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties": false
+}

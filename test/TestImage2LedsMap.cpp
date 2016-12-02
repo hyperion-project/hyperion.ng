@@ -1,7 +1,7 @@
 
 // Utils includes
 #include <utils/Image.h>
-#include <utils/jsonschema/JsonFactory.h>
+#include <utils/jsonschema/QJsonFactory.h>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -11,19 +11,19 @@ using namespace hyperion;
 
 int main()
 {
-	std::string homeDir = getenv("RASPILIGHT_HOME");
+	QString homeDir = getenv("RASPILIGHT_HOME");
 
-	const std::string schemaFile = homeDir + "/hyperion.schema.json";
-	const std::string configFile = homeDir + "/hyperion.config.json";
+	const QString schemaFile = homeDir + "/hyperion.schema.json";
+	const QString configFile = homeDir + "/hyperion.config.json";
 
-	Json::Value config;
-	if (JsonFactory::load(schemaFile, configFile, config) < 0)
+	QJsonObject config;
+	if (QJsonFactory::load(schemaFile, configFile, config) < 0)
 	{
 		std::cerr << "UNABLE TO LOAD CONFIGURATION" << std::endl;
 		return -1;
 	}
 
-	const LedString ledString = Hyperion::createLedString(config["leds"], Hyperion::createColorOrder(config["device"]));
+	const LedString ledString = Hyperion::createLedString(config["leds"], Hyperion::createColorOrder(config["device"].toObject()));
 
 	const ColorRgb testColor = {64, 123, 12};
 

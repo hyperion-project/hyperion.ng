@@ -93,10 +93,14 @@ void ProtoServer::sendImageToProtoSlaves(int priority, const Image<ColorRgb> & i
 
 void ProtoServer::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
+	if (component == hyperion::COMP_FORWARDER)
 	{
-		_forwarder_enabled = enable;
-		Info(_log, "forwarder change state to %s", (enable ? "enabled" : "disabled") );
+		if (_forwarder_enabled != enable)
+		{
+			_forwarder_enabled = enable;
+			Info(_log, "forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled") );
+		}
+		_hyperion->getComponentRegister().componentStateChanged(component, _forwarder_enabled);
 	}
 }
 

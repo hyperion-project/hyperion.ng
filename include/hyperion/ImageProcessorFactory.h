@@ -3,8 +3,8 @@
 // STL includes
 #include <memory>
 
-// Jsoncpp includes
-#include <json/json.h>
+// QT includes
+#include <QJsonObject>
 
 #include <hyperion/LedString.h>
 
@@ -30,10 +30,9 @@ public:
 	/// Initialises this factory with the given led-configuration
 	///
 	/// @param[in] ledString  The led configuration
-	/// @param[in] enableBlackBorderDetector Flag indicating if the blacborder detector should be enabled
-	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
+	/// @param[in] blackborderConfig Contains the blackborder configuration
 	///
-	void init(const LedString& ledString, const Json::Value &blackborderConfig);
+	void init(const LedString& ledString, const QJsonObject &blackborderConfig);
 
 	///
 	/// Creates a new ImageProcessor. The onwership of the processor is transferred to the caller.
@@ -47,5 +46,5 @@ private:
 	LedString _ledString;
 
 	// Reference to the blackborder json configuration values
-	Json::Value _blackborderConfig;
+	QJsonObject _blackborderConfig;
 };

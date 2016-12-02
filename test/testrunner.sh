@@ -2,6 +2,7 @@
 
 STATS_FAILED=0
 STATS_SUCCESS=0
+STATS_SKIPPED=0
 STATS_TOTAL=0
 
 
@@ -9,6 +10,12 @@ STATS_TOTAL=0
 function exec_test()
 {
 	local test_name="$1"
+	if [ ! -e "$2" ]
+	then
+		echo "skip test: '$test_name'"
+		(( STATS_SKIPPED++ ))
+		return
+	fi
 	shift
 	(( STATS_TOTAL++ ))
 	echo "execute test: '$test_name'"
@@ -16,9 +23,11 @@ function exec_test()
 	then
 		echo -e "   ... success"
 		(( STATS_SUCCESS++ ))
+		return 0
 	else
 		echo -e "   ... failed"
 		(( STATS_FAILED++ ))
+		return 1
 	fi
 	echo
 }
@@ -31,6 +40,7 @@ echo
 echo "Hyperion test execution"
 echo
 exec_test "hyperiond is executable and show version" bin/hyperiond --version
+
 for cfg in ../config/*json*
 do
 	exec_test "test $(basename $cfg)" bin/test_configfile $cfg
@@ -42,6 +52,7 @@ echo "TEST SUMMARY"
 echo "============"
 echo "    total: $STATS_TOTAL"
 echo "  success: $STATS_SUCCESS"
+echo "   skipped: $STATS_SKIPPED"
 echo "   failed: $STATS_FAILED"
 
 sleep 2

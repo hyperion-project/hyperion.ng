@@ -1,10 +1,12 @@
+env:
+    global:
+        - secure: HaM1JqxjnDP+Z6DpnavF+8OUpfjfWGfB+J+ROhAx1qBNNuCWt3wiaz0ewCU9/GtYUJ9ury5HU9c7fJ3pN8afopoAag2LYv9HJmaX5h3oSTQeD0Q/3a5OugDgVaSwDs25uoCU0jETX8ol8KM1/Ad7iWofc0gOAPsXP4FDYn9HhWSjjKg7VfzaVPKYDfdkCzHLQ5DGDiYlCrJnYVYn9Lhs2c3ghKcKn7g+xA2+bwRgP6U7lgShDDBywT8/pP1z1KkFRmfYuznTVhkPV5R/RQR04LfKTBxVdRlcXjB2BPJBcO4jRD6s+MGxBlrQ5+vi/bWvtBNH4X4dRzsckfrmnwCJ+LUkfaN+4htvYWmz/Vk0yon1Wj9HNMCxpLyCu5/mMsBadg1H8Hs7I2lJ/+pxMsV7cv3xPAXXas68waTtJdrPgiAfYEwdwAwAAkv3e4K1ztNTiU6aCHV7te57pFIftGM8+5xTkXYWNV+WDNGdto6HaQxVD+sPYUZ76l7M5BuLqE24h+j9WnR2p0pRGPEn0zwzS4HGUUcvIyTSzIU8jpCrPuzd23Z+rNINDj61a430M0g23gYJ51b0R2DGtaZBkpdz8X4qJqckYbTCiG8KrK6g2aEv4tCPvn8vhbQQJmbrlr/O2tFonCIv8A+6GbbVakL1BcfmDaLUaxarY7bWtahyjH8=
 cache:
     - ccache
     - directories:
         - $HOME/brew-cache
 notifications:
     email: false
-    slack: hyperiondevteam:JHOhorlTVgcYKwT6Tj1nnGou
 language: cpp
 matrix:
   include:
@@ -16,9 +18,10 @@ matrix:
       env:
         - HOMEBREW_CACHE=$HOME/brew-cache
 before_install:
-    - chmod +x ./.travis/travis_install.sh
+    - chmod +x ./.travis/travis_install.sh ./.travis/travis_build.sh ./test/testrunner.sh ./.travis/travis_deploy.sh
     - ./.travis/travis_install.sh
 script:
-    - chmod +x ./.travis/travis_build.sh ./test/testrunner.sh
     - ./.travis/travis_build.sh
     - ./test/testrunner.sh
+after_success:
+    - ./.travis/travis_deploy.sh
