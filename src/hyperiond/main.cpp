@@ -1,7 +1,6 @@
 #include <cassert>
 #include <csignal>
 #include <unistd.h>
-#include <sys/stat.h>
 
 #ifndef __APPLE__
 /* prctl is Linux only */
@@ -29,6 +28,8 @@
 #include "hyperiond.h"
 
 using namespace commandline;
+
+#define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
 
 void signal_handler(const int signum)
 {
@@ -141,7 +142,7 @@ int main(int argc, char** argv)
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
 				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
-					chmod(destFileName.toLocal8Bit().constData(), strtol("0664", 0, 8));
+					QFile::setPermissions(destFileName, PERM0664 );
 					std::cout << "ok" << std::endl;
 				}
 				else
@@ -180,7 +181,7 @@ int main(int argc, char** argv)
 		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
 		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
 		{
-			chmod(exportConfigFileTarget.toLocal8Bit().constData(), strtol("0664", 0, 8));
+			QFile::setPermissions(exportConfigFileTarget, PERM0664 );
 			Info(log, "export complete.");
 			if (exitAfterexportDefaultConfig) return 0;
 		}
