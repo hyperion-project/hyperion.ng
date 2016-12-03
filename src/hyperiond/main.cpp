@@ -175,17 +175,17 @@ int main(int argc, char** argv)
 	{
 		Q_INIT_RESOURCE(resource);
 		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
-		bool copyOk = QFile::copy(":/hyperion_default.config",exportConfigFileTarget);
-
-		InfoIf(copyOk, log, "export complete.");
-		ErrorIf(!copyOk, log, "error while export to %s",exportConfigFileTarget.toLocal8Bit().constData());
-
-		if (QFile::exists(exportConfigFileTarget))
+		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
 		{
 			chmod(exportConfigFileTarget.toLocal8Bit().constData(), strtol("0664", 0, 8));
+			Info(log, "export complete.");
+			if (exitAfterexportDefaultConfig) return 0;
 		}
-		
-		if (exitAfterexportDefaultConfig) return (copyOk?0:1) ;
+		else
+		{
+			Error(log, "error while export to %s",exportConfigFileTarget.toLocal8Bit().constData());
+			if (exitAfterexportDefaultConfig) return 1;
+		}
 	}
 
 	if (configFiles.size() == 0)
