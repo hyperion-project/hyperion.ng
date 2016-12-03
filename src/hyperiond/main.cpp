@@ -129,16 +129,19 @@ int main(int argc, char** argv)
 		{
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			QString destFileName;
 			foreach (const QString & filename, filenames)
 			{
-				if (QFile::exists(destDir.dirName()+"/"+filename))
+				destFileName = destDir.dirName()+"/"+filename;
+				if (QFile::exists(destFileName))
 				{
-					QFile::remove(destDir.dirName()+"/"+filename);
+					QFile::remove(destFileName);
 				}
 				
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(QString(":/effects/")+filename, destDir.dirName()+"/"+filename))
+				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
+					chmod(destFileName.toLocal8Bit().constData(), strtol("0664", 0, 8));
 					std::cout << "ok" << std::endl;
 				}
 				else
