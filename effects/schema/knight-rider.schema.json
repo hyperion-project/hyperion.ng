@@ -1,0 +1,40 @@
+{
+	"type":"object",
+	"script" : "knight-rider.py",
+	"title":"Knight Rider",
+	"required":true,
+	"properties":{
+		"color": {
+			"type": "array",
+			"title":"Color",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"speed": {
+			"type": "number",
+			"title":"Speed",
+			"default": 1.0,
+			"minimum": 0.1,
+			"step" : 0.1,
+			"propertyOrder" : 2
+		},
+		"fadeFactor": {
+			"type": "number",
+			"title":"Fade Factor",
+			"default": 0.7,
+			"minimum" : 0.0,
+			"maximum" : 0.9,
+			"step" : 0.1,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": false
+}

@@ -2,7 +2,7 @@
 #include <QSerialPort>
 #include <time.h>
 
-LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
+LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 	, _dmxDeviceType(0)
 	, _dmxStart(1)
@@ -11,7 +11,7 @@ LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
 	, _dmxChannelCount(0)
 {
 	ProviderRs232::init(deviceConfig);
-	std::string _dmxString = deviceConfig.get("dmxdevice", "invalid").asString();
+	std::string _dmxString = deviceConfig["dmxdevice"].toString("invalid").toStdString();
 	if (_dmxString == "raw")
 	{
 		_dmxDeviceType = 0;
@@ -42,7 +42,7 @@ LedDeviceDMX::LedDeviceDMX(const Json::Value &deviceConfig)
 	_ledBuffer[0] = 0x00;	// NULL START code
 }
 
-LedDevice* LedDeviceDMX::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceDMX(deviceConfig);
 }
@@ -85,4 +85,3 @@ int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)
 
 	return writeBytes(_dmxChannelCount, _ledBuffer.data());
 }
-

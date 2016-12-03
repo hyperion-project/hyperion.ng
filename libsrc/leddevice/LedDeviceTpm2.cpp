@@ -1,18 +1,18 @@
 #include "LedDeviceTpm2.h"
 
 
-LedDeviceTpm2::LedDeviceTpm2(const Json::Value &deviceConfig)
+LedDeviceTpm2::LedDeviceTpm2(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceTpm2::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceTpm2::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceTpm2(deviceConfig);
 }
 
-bool LedDeviceTpm2::init(const Json::Value &deviceConfig)
+bool LedDeviceTpm2::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
 

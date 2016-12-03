@@ -274,7 +274,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 		std::ostringstream oss;
 		oss << "[" << i << "]";
 		_currentPath.push_back(oss.str());
-		validate(jArray[i].toObject(), schema);
+		validate(jArray[i], schema);
 		_currentPath.pop_back();
 	}
 }

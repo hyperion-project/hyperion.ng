@@ -161,7 +161,7 @@ CiColor PhilipsHueLight::rgbToCiColor(float red, float green, float blue)
 	return xy;
 }
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const Json::Value &deviceConfig)
+LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	_deviceReady = init(deviceConfig);
@@ -177,22 +177,25 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 	delete manager;
 }
 
-bool LedDevicePhilipsHue::init(const Json::Value &deviceConfig)
+bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
-	host = deviceConfig["output"].asString().c_str();
-	username = deviceConfig.get("username", "newdeveloper").asString().c_str();
-	switchOffOnBlack = deviceConfig.get("switchOffOnBlack", true).asBool();
-	transitiontime = deviceConfig.get("transitiontime", 1).asInt();
+	LedDevice::init(deviceConfig);
+
+	host = deviceConfig["output"].toString().toStdString().c_str();
+	username = deviceConfig["username"].toString("newdeveloper").toStdString().c_str();
+	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);
+	transitiontime = deviceConfig["transitiontime"].toInt(1);
 	lightIds.clear();
-	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++)
+	QJsonArray lArray = deviceConfig["lightIds"].toArray();
+	for(int i = 0; i < lArray.size(); i++)
 	{
-		lightIds.push_back(deviceConfig["lightIds"][i].asInt());
+		lightIds.push_back(lArray[i].toInt());
 	}
 
 	return true;
 }
 
-LedDevice* LedDevicePhilipsHue::construct(const Json::Value &deviceConfig)
+LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDevicePhilipsHue(deviceConfig);
 }
@@ -319,26 +322,34 @@ QString LedDevicePhilipsHue::getUrl(QString route)
 
 void LedDevicePhilipsHue::saveStates(unsigned int nLights)
 {
+	QJsonParseError error;
+	QJsonDocument reader;
+	QJsonObject json;
+	QByteArray response;
+	
 	// Clear saved lamps.
 	lights.clear();
-	// Use json parser to parse reponse.
-	Json::Reader reader;
-	Json::FastWriter writer;
+	
 	// Read light ids if none have been supplied by the user.
 	if (lightIds.size() != nLights)
 	{
 		lightIds.clear();
 		//
-		QByteArray response = get("lights");
-		Json::Value json;
-		if (!reader.parse(QString(response).toStdString(), json))
+		response = get("lights");
+		// Use QJsonDocument to parse reponse.
+		reader = QJsonDocument::fromJson(response, &error);
+		
+		if (error.error != QJsonParseError::NoError)
 		{
 			throw std::runtime_error(("No lights found at " + getUrl("lights")).toStdString());
 		}
+		
+		json = reader.object();
+		
 		// Loop over all children.
-		for (Json::ValueIterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++)
+		for (QJsonObject::iterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++)
 		{
-			int lightId = atoi(it.key().asCString());
+			int lightId = atoi(it.key().toStdString().c_str());
 			lightIds.push_back(lightId);
 			Debug(_log, "nLights=%d: found light with id %d.",  nLights, lightId);
 		}
@@ -352,36 +363,40 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights)
 	for (unsigned int i = 0; i < nLights; i++)
 	{
 		// Read the response.
-		QByteArray response = get(getRoute(lightIds.at(i)));
+		response = get(getRoute(lightIds.at(i)));
 		// Parse JSON.
-		Json::Value json;
-		if (!reader.parse(QString(response).toStdString(), json))
+		reader = QJsonDocument::fromJson(response, &error);
+		
+		if (error.error != QJsonParseError::NoError)
 		{
 			// Error occured, break loop.
 			Error(_log, "saveStates(nLights=%d): got invalid response from light %s.", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
+		
 		// Get state object values which are subject to change.
-		Json::Value state(Json::objectValue);
-		if (!json.isMember("state"))
+		QJsonObject state;
+		if (!json.contains("state"))
 		{
 			Error(_log, "saveStates(nLights=%d): got no state for light from %s", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
-		if (!json["state"].isMember("on"))
+		if (!json["state"].toObject().contains("on"))
 		{
 			Error(_log, "saveStates(nLights=%d,): got no valid state from light %s", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
-		state["on"] = json["state"]["on"];
-		if (json["state"]["on"] == true)
+		state["on"] = json["state"].toObject()["on"];
+		if (json["state"].toObject()["on"].toBool() == true)
 		{
-			state["xy"] = json["state"]["xy"];
-			state["bri"] = json["state"]["bri"];
+			state["xy"] = json["state"].toObject()["xy"];
+			state["bri"] = json["state"].toObject()["bri"];
 		}
 		// Determine the model id.
-		QString modelId = QString(writer.write(json["modelid"]).c_str()).trimmed().replace("\"", "");
-		QString originalState = QString(writer.write(state).c_str()).trimmed();
+		QJsonDocument mId(json["modelid"].toObject());
+		QString modelId = mId.toJson().trimmed().replace("\"", "");
+		QJsonDocument st(state);
+		QString originalState = mId.toJson().trimmed();
 		// Save state object.
 		lights.push_back(PhilipsHueLight(lightIds.at(i), originalState, modelId));
 	}

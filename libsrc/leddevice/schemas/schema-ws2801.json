@@ -14,12 +14,19 @@
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
+                "latchtime": {
+                        "type": "integer",
+                        "title":"Latch time",
+                        "default": 500000,
+                        "append" : "ns",
+                        "propertyOrder" : 3
+                },
 		"invert": {
 			"type": "boolean",
 			"format": "checkbox",
 			"title":"Invert signal",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

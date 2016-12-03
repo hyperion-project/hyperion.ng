@@ -148,8 +148,9 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 		}
 		
 		effect["args"] = doc.object();
-		command["effect"] = effect;
 	}
+	
+	command["effect"] = effect;
 	
 	if (duration > 0)
 	{
@@ -158,6 +159,67 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 
 	// send command message
 	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
+{
+    qDebug() << "Create effect " << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("create-effect");
+	effect["name"] = effectName;
+	effect["script"] = effectScript;
+	
+	if (effectArgs.size() > 0)
+	{
+		QJsonParseError error;
+		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
+		
+		if (error.error != QJsonParseError::NoError)
+		{
+			// report to the user the failure and their locations in the document.
+			int errorLine(0), errorColumn(0);
+			
+			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
+			{
+				++errorColumn;
+				if(effectArgs.at(i) == '\n' )
+				{
+					errorColumn = 0;
+					++errorLine;
+				}
+			}
+			
+			std::stringstream sstream;
+			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+			throw std::runtime_error(sstream.str());
+		}
+		
+		effect["args"] = doc.object();
+	}
+
+	// send command message
+	QJsonObject reply = sendMessage(effect);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::deleteEffect(const QString &effectName)
+{
+    qDebug() << "Delete effect configuration" << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("delete-effect");
+	effect["name"] = effectName;
+	
+	// send command message
+	QJsonObject reply = sendMessage(effect);
 
 	// parse reply message
 	parseReply(reply);

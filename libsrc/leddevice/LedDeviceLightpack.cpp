@@ -45,7 +45,7 @@ LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
 {
 }
 
-LedDeviceLightpack::LedDeviceLightpack(const Json::Value &deviceConfig)
+LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	init(deviceConfig);
@@ -69,14 +69,15 @@ LedDeviceLightpack::~LedDeviceLightpack()
 	}
 }
 
-bool LedDeviceLightpack::init(const Json::Value &deviceConfig)
+bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 {
-	_serialNumber = deviceConfig.get("output", "").asString();
+	LedDevice::init(deviceConfig);
+	_serialNumber = deviceConfig["output"].toString("").toStdString();
 
 	return true;
 }
 
-LedDevice* LedDeviceLightpack::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceLightpack::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceLightpack(deviceConfig);
 }

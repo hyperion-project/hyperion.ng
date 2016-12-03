@@ -5,8 +5,6 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
-#include <QJsonObject>
-#include <QJsonDocument>
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
 std::string LedDevice::_activeDevice = "";
@@ -19,9 +17,15 @@ LedDevice::LedDevice()
 	, _log(Logger::getInstance("LedDevice"))
 	, _ledBuffer(0)
 	, _deviceReady(true)
-
+	, _refresh_timer()
+	, _refresh_timer_interval(0)
 {
 	LedDevice::getLedDeviceSchemas();
+
+	// setup timer
+	_refresh_timer.setSingleShot(false);
+	_refresh_timer.setInterval(0);
+	connect(&_refresh_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
 }
 
 // dummy implemention
@@ -44,6 +48,12 @@ const LedDeviceRegistry& LedDevice::getDeviceMap()
 void LedDevice::setActiveDevice(std::string dev)
 {
 	_activeDevice = dev;
+}
+
+bool LedDevice::init(const QJsonObject &deviceConfig)
+{
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(_refresh_timer_interval) );
+	return true;
 }
 
 QJsonObject LedDevice::getLedDeviceSchemas()
@@ -105,7 +115,17 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
-	return _deviceReady ? write(ledValues) : -1;
+	if (!_deviceReady)
+		return -1;
+	
+	_ledValues = ledValues;
+
+	// restart the timer
+	if (_refresh_timer.interval() > 0)
+	{
+		_refresh_timer.start();
+	}
+	return write(ledValues);
 }
 
 int LedDevice::switchOff()
@@ -119,4 +139,9 @@ void LedDevice::setLedCount(int ledCount)
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
+}
+
+int LedDevice::rewriteLeds()
+{
+	return write(_ledValues);
 }

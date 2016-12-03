@@ -24,7 +24,7 @@
 			"type" : "object",
 			"title" : "LED Device General",
 			"required" : true,
-			"defaultProperties": ["name","ledCount","colorOrder"],
+			"defaultProperties": ["name","ledCount","colorOrder","rewriteTime"],
 			"properties" :
 			{
 				"name" :
@@ -52,6 +52,14 @@
 					"title" : "RGB byte order",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 					"propertyOrder" : 3
+				},
+				"rewriteTime": {
+					"type": "integer",
+					"title":"Refresh time",
+					"default": 5000,
+					"append" : "ms",
+					"minimum": 0,
+					"propertOrder" : 4
 				}
 			},
 			"additionalProperties" : true
@@ -362,9 +370,9 @@
 				{
 					"type" : "number",
 					"title" : "Update frequency",
-					"minimum" : 1.000,
-					"maximum" : 100.000,
-					"default" : 25.000,
+					"minimum" : 1.0,
+					"maximum" : 100.0,
+					"default" : 25.0,
 					"append" : "Hz",
 					"propertyOrder" : 4
 				},
@@ -392,6 +400,8 @@
 		{
 			"type":"array",
 			"title" : "USB Grabber",
+			"minItems": 1,
+			"maxItems": 2,
 			"items":
 			{
 				"type" : "object",
@@ -416,6 +426,7 @@
 					{
 						"type" : "integer",
 						"title" : "Input",
+						"minimum" : 0,
 						"default" : 0,
 						"propertyOrder" : 3
 					},
@@ -431,6 +442,7 @@
 					{
 						"type" : "integer",
 						"title" : "Width",
+						"minimum" : -1,
 						"default" : -1,
 						"append" : "Pixel",
 						"propertyOrder" : 5
@@ -439,6 +451,7 @@
 					{
 						"type" : "integer",
 						"title" : "Height",
+						"minimum" : -1,
 						"default" : -1,
 						"append" : "Pixel",
 						"propertyOrder" : 6
@@ -447,6 +460,7 @@
 					{
 						"type" : "integer",
 						"title" : "Frame decimation",
+						"minimum" : 0,
 						"default" : 2,
 						"propertyOrder" : 7
 					},
@@ -454,12 +468,14 @@
 					{
 						"type" : "integer",
 						"title" : "Size decimation",
+						"minimum" : 0,
 						"default" : 6,
 						"propertyOrder" : 8
 					},
 					"priority" :
 					{
 						"type" : "integer",
+						"minimum" : 0,
 						"title" : "Priority channel",
 						"default" : 900,
 						"propertyOrder" : 9
@@ -522,6 +538,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"step" : 0.01,
 						"append" : "%",
 						"propertyOrder" : 16
 					},
@@ -532,6 +549,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"step" : 0.01,
 						"append" : "%",
 						"propertyOrder" : 17
 					},
@@ -542,6 +560,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
+						"step" : 0.01,
 						"append" : "%",
 						"propertyOrder" : 18
 					}
@@ -573,21 +592,23 @@
 				{
 					"type" : "integer",
 					"title" : "Width",
-					"default" : 96,
+					"minimum" : 10,
+					"default" : 80,
 					"append" : "Pixel"
 				},
 				"height" :
 				{
 					"type" : "integer",
 					"title" : "Height",
-					"default" : 96,
+					"minimum" : 10,
+					"default" : 45,
 					"append" : "Pixel"
 				},
 				"frequency_Hz" :
 				{
 					"type" : "integer",
 					"title" : "Frequency",
-					"minimum" : 0,
+					"minimum" : 1,
 					"default" : 10,
 					"append" : "Hz"
 				},
@@ -686,6 +707,7 @@
 					"minimum" : 0.0,
 					"maximum" : 1.0,
 					"default" : 0.05,
+					"step" : 0.01,
 					"append" : "%",
 					"propertyOrder" : 2
 				},
@@ -983,6 +1005,7 @@
 				{
 					"type" : "integer",
 					"title" : "Priority",
+					"minimum" : 0,
 					"default" : 800,
 					"propertyOrder" : 4
 				},
@@ -990,7 +1013,9 @@
 				{
 					"type" : "integer",
 					"title" : "Timeout",
+					"minimum" : 1000,
 					"default" : 10000,
+					"append" : "ms",
 					"propertyOrder" : 5
 				},
 				"shared" :
@@ -1026,6 +1051,8 @@
 				{
 					"type" : "integer",
 					"title" : "Port",
+					"minimum" : 0,
+					"maximum" : 65535,
 					"default" : 8099,
 					"propertyOrder" : 3
 				}

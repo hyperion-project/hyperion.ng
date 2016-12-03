@@ -1,0 +1,23 @@
+{
+	"type":"object",
+	"script" : "random.py",
+	"title":"Random",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"Speed",
+			"default": 1.0,
+			"minimum" : 0.0,
+			"propertyOrder" : 1
+		},
+		"saturation": {
+			"type": "number",
+			"title":"Saturation",
+			"default": 1.0,
+			"minimum" : 0.0,
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties": false
+}

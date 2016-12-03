@@ -31,14 +31,16 @@ ProviderSpi::~ProviderSpi()
 //	close(_fid);
 }
 
-bool ProviderSpi::init(const Json::Value &deviceConfig)
+bool ProviderSpi::init(const QJsonObject &deviceConfig)
 {
-	_deviceName    = deviceConfig.get("output",_deviceName).asString();
-	_baudRate_Hz   = deviceConfig.get("rate",_baudRate_Hz).asInt();
-	_latchTime_ns  = deviceConfig.get("latchtime",_latchTime_ns).asInt();
-	_spiMode       = deviceConfig.get("spimode",_spiMode).asInt();
-	_spiDataInvert = deviceConfig.get("invert",_spiDataInvert).asBool();
+	LedDevice::init(deviceConfig);
 
+	_deviceName    = deviceConfig["output"].toString(QString::fromStdString(_deviceName)).toStdString();
+	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
+	_latchTime_ns  = deviceConfig["latchtime"].toInt(_latchTime_ns);
+	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
+	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
+	
 	return true;
 }
 

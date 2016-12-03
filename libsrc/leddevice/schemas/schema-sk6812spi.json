@@ -11,7 +11,7 @@
 		"rate": {
 			"type": "integer",
 			"title":"Baudrate",
-			"default": 2666666,
+			"default": 3000000,
 			"propertyOrder" : 2
 		},
 		"invert": {
@@ -20,6 +20,13 @@
 			"title":"Invert signal",
 			"default": false,
 			"propertyOrder" : 3
+		},
+		"whiteAlgorithm": {
+			"type": "string",
+			"title":"White LED algorithm",
+			"enum" : ["subtract_minimum","sub_min_warm_adjust","white_off"],
+			"default": "subtract_minimum",
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

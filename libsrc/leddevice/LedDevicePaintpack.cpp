@@ -1,7 +1,7 @@
 #include "LedDevicePaintpack.h"
 
 // Use out report HID device
-LedDevicePaintpack::LedDevicePaintpack(const Json::Value &deviceConfig)
+LedDevicePaintpack::LedDevicePaintpack(const QJsonObject &deviceConfig)
 	: ProviderHID()
 {
 	ProviderHID::init(deviceConfig);
@@ -12,7 +12,7 @@ LedDevicePaintpack::LedDevicePaintpack(const Json::Value &deviceConfig)
 	_ledBuffer[1] = 0;
 }
 
-LedDevice* LedDevicePaintpack::construct(const Json::Value &deviceConfig)
+LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDevicePaintpack(deviceConfig);
 }

@@ -13,12 +13,12 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	LedDeviceAPA102(const Json::Value &deviceConfig);
+	LedDeviceAPA102(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	virtual bool init(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 private:
 	///
 	/// Writes the led color values to the led-device

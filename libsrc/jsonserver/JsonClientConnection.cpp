@@ -16,10 +16,12 @@
 #include <QHostInfo>
 #include <QString>
 #include <QFile>
+#include <QFileInfo>
 #include <QCoreApplication>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QVariantMap>
+#include <QDir>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -47,12 +49,13 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _webSocketHandshakeDone(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
+	, _streaming_logging_activated(false)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
-	
+
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 }
@@ -282,6 +285,10 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleImageCommand(message, command, tan);
 		else if (command == "effect")
 			handleEffectCommand(message, command, tan);
+		else if (command == "create-effect")
+			handleCreateEffectCommand(message, command, tan);
+		else if (command == "delete-effect")
+			handleDeleteEffectCommand(message, command, tan);
 		else if (command == "serverinfo")
 			handleServerInfoCommand(message, command, tan);
 		else if (command == "clear")
@@ -300,6 +307,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleComponentStateCommand(message, command, tan);
 		else if (command == "ledcolors")
 			handleLedColorsCommand(message, command, tan);
+		else if (command == "logging")
+			handleLoggingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -348,7 +357,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
-	Json::UInt i = 0;
+	unsigned int i = 0;
 	for (; i < unsigned(jsonColor.size()/3) && i < _hyperion->getLedCount(); ++i)
 	{
 		colorData[i].red = uint8_t(jsonColor.at(3u*i).toInt());
@@ -417,13 +426,14 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString pythonScript = message["pythonScript"].toString("");
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 
 	// set output
 	if (effect.contains("args"))
 	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration);
+		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript);
 	}
 	else
 	{
@@ -432,6 +442,117 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 
 	// send reply
 	sendSuccessReply(command, tan);
+}
+
+void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	struct find_schema: std::unary_function<EffectSchema, bool>
+	{
+		QString pyFile;
+		find_schema(QString pyFile):pyFile(pyFile) { }
+		bool operator()(EffectSchema const& schema) const
+		{
+			return schema.pyFile == pyFile;
+		}
+	};
+
+	if(message.size() > 0)
+	{
+		if (!message["args"].toObject().isEmpty())
+		{
+			QString scriptName;
+			(message["script"].toString().mid(0, 1)  == ":" )
+				? scriptName = ":/effects//" + message["script"].toString().mid(1)
+				: scriptName = message["script"].toString();
+			
+			std::list<EffectSchema> effectsSchemas = _hyperion->getEffectSchemas();
+			std::list<EffectSchema>::iterator it = std::find_if(effectsSchemas.begin(), effectsSchemas.end(), find_schema(scriptName));
+			
+			if (it != effectsSchemas.end())
+			{
+				QString errors;
+				
+				if (!checkJson(message["args"].toObject(), it->schemaFile, errors))
+				{
+					sendErrorReply("Error while validating json: " + errors, command, tan);
+					return;
+				}
+				
+				QJsonObject effectJson;
+				QJsonArray effectArray;
+				effectArray = _hyperion->getQJsonConfig()["effects"].toObject()["paths"].toArray();
+				
+				if (effectArray.size() > 0)
+				{
+					effectJson["name"] = message["name"].toString();
+					effectJson["script"] = message["script"].toString();
+					effectJson["args"] = message["args"].toObject();
+					
+					QFileInfo newFileName(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+					
+					while(newFileName.exists())
+					{
+						newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+					}
+					
+					QJsonFactory::writeJson(newFileName.absoluteFilePath(), effectJson);
+					Info(_log, "Reload effect list");
+					_hyperion->reloadEffects();
+					sendSuccessReply(command, tan);
+				} else
+				{
+					sendErrorReply("Can't save new effect. Effect path empty", command, tan);
+					return;
+				}
+			} else
+				sendErrorReply("Missing schema file for Python script " + message["script"].toString(), command, tan);
+		} else
+			sendErrorReply("Missing or empty Object 'args'", command, tan);
+	} else
+		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
+}
+
+void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, const int tan)
+{
+	struct find_effect: std::unary_function<EffectDefinition, bool>
+	{
+		QString effectName;
+		find_effect(QString effectName) :effectName(effectName) { }
+		bool operator()(EffectDefinition const& effectDefinition) const
+		{
+			return effectDefinition.name == effectName;
+		}
+	};
+	
+	if(message.size() > 0)
+	{
+		QString effectName = message["name"].toString();
+		std::list<EffectDefinition> effectsDefinition = _hyperion->getEffects();
+		std::list<EffectDefinition>::iterator it = std::find_if(effectsDefinition.begin(), effectsDefinition.end(), find_effect(effectName));
+		
+		if (it != effectsDefinition.end())
+		{
+			QFileInfo effectConfigurationFile(it->file);
+			if (effectConfigurationFile.absoluteFilePath().mid(0, 1)  != ":" )
+			{
+				if (effectConfigurationFile.exists())
+				{
+					bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
+					if (result)
+					{
+						Info(_log, "Reload effect list");
+						_hyperion->reloadEffects();
+						sendSuccessReply(command, tan);
+					} else
+						sendErrorReply("Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions", command, tan);
+				} else
+					sendErrorReply("Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath(), command, tan);
+			} else
+				sendErrorReply("Can't delete internal effect: " + message["name"].toString(), command, tan);
+		} else
+			sendErrorReply("Effect " + message["name"].toString() + " not found", command, tan);
+	} else
+		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
@@ -586,6 +707,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	{
 		QJsonObject effect;
 		effect["name"] = effectDefinition.name;
+		effect["file"] = effectDefinition.file;
 		effect["script"] = effectDefinition.script;
 		effect["args"] = effectDefinition.args;
 		effects.append(effect);
@@ -939,7 +1061,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	Q_INIT_RESOURCE(resource);
 	QJsonParseError error;
 
-	// read the json schema from the resource
+	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema");
 	
 	if (!schemaData.open(QIODevice::ReadOnly))
@@ -976,10 +1098,43 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	
 	schemaJson = doc.object();
 	
-	//QJsonObject.insert can not merge. See details: http://doc.qt.io/qt-5/qjsonobject.html#insert
+	// collect all LED Devices
 	properties = schemaJson["properties"].toObject();
 	alldevices = LedDevice::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
+	
+	// collect all available effect schemas
+	QJsonObject pyEffectSchemas, pyEffectSchema;
+	QJsonArray in, ex;
+	const std::list<EffectSchema> & effectsSchemas = _hyperion->getEffectSchemas();
+	for (const EffectSchema & effectSchema : effectsSchemas)
+	{
+		if (effectSchema.pyFile.mid(0, 1)  == ":")
+		{
+			QJsonObject internal;
+			internal.insert("script", effectSchema.pyFile);
+			internal.insert("schemaLocation", effectSchema.schemaFile);
+			internal.insert("schemaContent", effectSchema.pySchema);
+			in.append(internal);
+		}
+		else
+		{
+			QJsonObject external;
+			external.insert("script", effectSchema.pyFile);
+			external.insert("schemaLocation", effectSchema.schemaFile);
+			external.insert("schemaContent", effectSchema.pySchema);
+			ex.append(external);
+		}
+	}
+	
+	if (!in.empty())
+		pyEffectSchema.insert("internal", in);
+	if (!ex.empty())
+		pyEffectSchema.insert("external", ex);
+	
+	pyEffectSchemas = pyEffectSchema;
+	properties.insert("effectSchemas", pyEffectSchemas);
+
 	schemaJson.insert("properties", properties);
 	
 	result["result"] = schemaJson;
@@ -1051,6 +1206,71 @@ void JsonClientConnection::handleLedColorsCommand(const QJsonObject& message, co
 	
 	sendSuccessReply(command+"-"+subcommand,tan);
 }
+
+void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	// create result
+	QString subcommand = message["subcommand"].toString("");
+	_streaming_logging_reply["success"] = true;
+	_streaming_logging_reply["command"] = command;
+	_streaming_logging_reply["tan"] = tan;
+	
+	if (subcommand == "start")
+	{
+		if (!_streaming_logging_activated)
+		{
+			_streaming_logging_reply["command"] = command+"-update";
+			connect(LoggerManager::getInstance(),SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+			Debug(_log, "log streaming activated"); // needed to trigger log sending
+		}
+	}
+	else if (subcommand == "stop")
+	{
+		if (_streaming_logging_activated)
+		{
+			disconnect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+			_streaming_logging_activated = false;
+			Debug(_log, "log streaming deactivated");
+
+		}
+	}
+	else
+	{
+		sendErrorReply("unknown subcommand",command,tan);
+		return;
+	}
+	
+	sendSuccessReply(command+"-"+subcommand,tan);
+}
+
+void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
+{
+	QJsonObject result;
+	QJsonArray messages;
+
+	if (!_streaming_logging_activated)
+	{
+		_streaming_logging_activated = true;
+		QVector<Logger::T_LOG_MESSAGE>* logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
+		for(int i=0; i<logBuffer->length(); i++)
+		{
+			//std::cout << "------- " << logBuffer->at(i).message.toStdString() << std::endl;
+			messages.append(logBuffer->at(i).message);
+		}
+	}
+	else
+	{
+		//std::cout << "------- " << msg.message.toStdString() << std::endl;
+		messages.append(msg.message);
+	}
+
+	result["messages"] = messages;
+	_streaming_logging_reply["result"] = result;
+
+	// send the result
+	sendMessage(_streaming_logging_reply);
+}
+
 
 void JsonClientConnection::handleNotImplemented()
 {

@@ -6,18 +6,18 @@ struct FrameSpec
 	size_t size;
 };
 
-LedDeviceSedu::LedDeviceSedu(const Json::Value &deviceConfig)
+LedDeviceSedu::LedDeviceSedu(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceSedu::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceSedu(deviceConfig);
 }
 
-bool LedDeviceSedu::init(const Json::Value &deviceConfig)
+bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
 	

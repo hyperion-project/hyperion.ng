@@ -1,18 +1,18 @@
 // hyperion local includes
 #include "LedDeviceAtmo.h"
 
-LedDeviceAtmo::LedDeviceAtmo(const Json::Value &deviceConfig)
+LedDeviceAtmo::LedDeviceAtmo(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceAtmo::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAtmo::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceAtmo(deviceConfig);
 }
 
-bool LedDeviceAtmo::init(const Json::Value &deviceConfig)
+bool LedDeviceAtmo::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
 
@@ -36,4 +36,3 @@ int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledCount * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
-

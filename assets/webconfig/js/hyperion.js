@@ -36,6 +36,8 @@ var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
 var ledStreamActive=false;
+var loggingStreamActive=false;
+var loggingHandlerInstalled = false;
 var watchdog = 0;
 
 //
@@ -203,3 +205,28 @@ function requestWriteConfig(config)
 	});
 	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(complete_config)+'}');
 }
+
+function requestWriteEffect(effectName,effectPy,effectArgs)
+{
+	var cutArgs = effectArgs.slice(1, -1);
+	websocket.send('{"command":"create-effect","name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+'}');
+}
+
+function requestTestEffect(effectName,effectPy,effectArgs) {
+	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+}
+
+function requestDeleteEffect(effectName) {
+	websocket.send('{"command":"delete-effect", "tan":'+wsTan+',"name":"'+effectName+'"}');
+}
+
+function requestLoggingStart() {
+	loggingStreamActive=true;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"start"}');
+}
+
+function requestLoggingStop() {
+	loggingStreamActive=false;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"stop"}');
+}
+

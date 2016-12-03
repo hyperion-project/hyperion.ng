@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string>
+#include <QString>
 
 namespace FileUtils {
 
-std::string getBaseName( std::string sourceFile);
+QString getBaseName( QString sourceFile);
+QString getDirName( QString sourceFile);
 
 };

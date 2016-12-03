@@ -47,11 +47,25 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
-function showErrorDialog(header,message)
+function showInfoDialog(type,header,message)
 {
-	$('#error_dialog .modal-title').html(header);
-	$('#error_dialog .modal-body').html(message);
-	$('#error_dialog').modal('show');
+	$('#modal_dialog .modal-bodytitle').html(header);
+	$('#modal_dialog .modal-bodycontent').html(message);
+	
+	if (type=="success"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-check modal-icon-check">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="warning"){
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-warning">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">OK</button>');
+	}
+	else if (type=="error"){	
+		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-error">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">OK</button>');
+	}	
+	$('#modal_dialog').modal('show');
+	
 }
 
 function isJsonString(str)
@@ -81,6 +95,7 @@ function createJsonEditor(container,schema,setconfig)
 		form_name_root: 'sa',
 		disable_edit_json: 'true',
 		disable_properties: 'true',
+		disable_array_reorder: 'true',
 		no_additional_properties: 'true',
 		schema: {
 			title:'',
@@ -103,4 +118,28 @@ function createJsonEditor(container,schema,setconfig)
 	}
 
 	return editor;
+}
+
+function createSelGroup(group){
+	var el = document.createElement('optgroup');
+	el.setAttribute('label', group);
+	return el
+}
+		
+function createSelOpt(opt){
+	var el = document.createElement('option');
+	el.setAttribute('value', opt);
+	el.innerHTML = opt;
+	return el
+}
+
+function createSel(array, group){
+	if (array.length != "0"){
+	var el = createSelGroup(group);
+		for(var i=0; i<array.length; i++){
+			var opt = createSelOpt(array[i])
+			el.appendChild(opt);
+		}
+	return el;
+	}
 }

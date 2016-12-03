@@ -29,7 +29,7 @@ int count(std::initializer_list<bool> values)
 
 void showHelp(Option & option){
 	QString shortOption;
-	QString longOption = QString("-%1").arg(option.names().last());
+	QString longOption = QString("--%1").arg(option.names().last());
 
 	if(option.names().size() == 2){
 		shortOption = QString("-%1").arg(option.names().first());
@@ -56,13 +56,16 @@ int main(int argc, char * argv[])
 		// create the option parser and initialize all parameters
 		Parser parser("Simple application to send a command to hyperion using the Json interface");
 
-        Option          & argAddress     = parser.add<Option>       ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
+		Option          & argAddress     = parser.add<Option>       ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
 		IntOption       & argPriority    = parser.add<IntOption>    ('p', "priority"  , "Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]", "100");
 		IntOption       & argDuration    = parser.add<IntOption>    ('d', "duration"  , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
 		ColorsOption    & argColor       = parser.add<ColorsOption> ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption     & argImage       = parser.add<ImageOption>  ('i', "image"     , "Set the leds to the colors according to the given image file");
 		Option          & argEffect      = parser.add<Option>       ('e', "effect"    , "Enable the effect with the given name");
+		Option          & argEffectFile  = parser.add<Option>       (0x0, "effectFile", "Arguments to use in combination with --createEffect");
 		Option          & argEffectArgs  = parser.add<Option>       (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
+		Option          & argCreateEffect= parser.add<Option>       (0x0, "createEffect","Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
+		Option          & argDeleteEffect= parser.add<Option>       (0x0, "deleteEffect","Delete a custom created Json Effect configuration file.");
 		BooleanOption   & argServerInfo  = parser.add<BooleanOption>('l', "list"      , "List server info and active effects with priority and duration");
 		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
@@ -92,12 +95,12 @@ int main(int argc, char * argv[])
 		Option          & argConfigSet   = parser.add<Option>       ('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
 
 		// parse all _options
-        parser.process(app);
+		parser.process(app);
 
 		// check if we need to display the usage. exit if we do.
 		if (parser.isSet(argHelp))
 		{
-            parser.showHelp(0);
+			parser.showHelp(0);
 		}
 
 		// check if at least one of the available color transforms is set
@@ -106,13 +109,15 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust;
 		
 		// check that exactly one command was given
-        int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
+		int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
 			showHelp(argColor);
 			showHelp(argImage);
-            showHelp(argEffect);
+			showHelp(argEffect);
+			showHelp(argCreateEffect);
+			showHelp(argDeleteEffect);
 			showHelp(argServerInfo);
 			showHelp(argClear);
 			showHelp(argClearAll);
@@ -155,6 +160,14 @@ int main(int argc, char * argv[])
 		else if (parser.isSet(argEffect))
 		{
 			connection.setEffect(argEffect.value(parser), argEffectArgs.value(parser), argPriority.getInt(parser), argDuration.getInt(parser));
+		}
+		else if (parser.isSet(argCreateEffect))
+		{
+			connection.createEffect(argCreateEffect.value(parser), argEffectFile.value(parser), argEffectArgs.value(parser));
+		}
+		else if (parser.isSet(argDeleteEffect))
+		{
+			connection.deleteEffect(argDeleteEffect.value(parser));
 		}
 		else if (parser.isSet(argServerInfo))
 		{

@@ -29,6 +29,7 @@
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
+#include <effectengine/EffectSchema.h>
 
 // KodiVideoChecker includes
 #include <kodivideochecker/KODIVideoChecker.h>
@@ -83,7 +84,7 @@ public:
 	///
 	void freeObjects();
 
-	static Hyperion* initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const std::string configFile);
 	static Hyperion* getInstance();
 
 	///
@@ -118,6 +119,9 @@ public:
 	///
 	const InputInfo& getPriorityInfo(const int priority) const;
 
+	/// Reload the list of available effects
+	void reloadEffects();
+
 	/// Get the list of available effects
 	/// @return The list of available effects
 	const std::list<EffectDefinition> &getEffects() const;
@@ -125,6 +129,10 @@ public:
 	/// Get the list of active effects
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
+	
+	/// Get the list of available effect schema files
+	/// @return The list of available effect schema files
+	const std::list<EffectSchema> &getEffectSchemas();
 	
 	/// gets the current json config object
 	/// @return json config
@@ -251,7 +259,7 @@ public slots:
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
 
 public:
 	static Hyperion *_hyperion;
@@ -304,9 +312,9 @@ private:
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
-	/// @param[in] jsonConfig The Json configuration
+	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	Hyperion(const QJsonObject& qjsonConfig, const std::string configFile);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -337,7 +345,6 @@ private:
 	MessageForwarder * _messageForwarder;
 
 	// json configuration
-	const Json::Value& _jsonConfig;
 	const QJsonObject& _qjsonConfig;
 
 	// the name of config file

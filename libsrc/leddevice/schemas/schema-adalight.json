@@ -5,6 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"Output path",
+			"default":"/dev/ttyACM0",
 			"propertyOrder" : 1
 		},
 		"rate": {
@@ -19,6 +20,13 @@
 			"default": 250,
 			"append" : "ms",
 			"propertyOrder" : 3
+		},
+		"lightberry_apa102_mode": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"LightBerry APA102 Mode",
+			"default": false,
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

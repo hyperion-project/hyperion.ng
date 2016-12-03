@@ -22,6 +22,7 @@
 
 EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig)
 	: _hyperion(hyperion)
+	, _effectConfig(jsonEffectConfig)
 	, _availableEffects()
 	, _activeEffects()
 	, _mainThreadState(nullptr)
@@ -36,64 +37,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
 	// read all effects
-	const QJsonArray & paths       = jsonEffectConfig["paths"].toArray();
-	const QJsonArray & disabledEfx = jsonEffectConfig["disable"].toArray();
-	
-	QStringList efxPathList;
-	efxPathList << ":/effects/";
-	QStringList disableList;
-
-	QJsonArray::ConstIterator iterPaths = paths.begin();
-	QJsonArray::ConstIterator iterDisabledEfx = disabledEfx.begin();
-	
-    for(; iterPaths != paths.end() and iterDisabledEfx != disabledEfx.end() ; ++iterPaths, ++iterDisabledEfx)
-    {
-		efxPathList << (*iterPaths).toString();
-		disableList << (*iterDisabledEfx).toString();
-	}
-	
-	std::map<QString, EffectDefinition> availableEffects;
-	foreach (const QString & path, efxPathList )
-	{
-		QDir directory(path);
-		if (directory.exists())
-		{
-			int efxCount = 0;
-			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			foreach (const QString & filename, filenames)
-			{
-				EffectDefinition def;
-				if (loadEffectDefinition(path, filename, def))
-				{
-					if (availableEffects.find(def.name) != availableEffects.end())
-					{
-						Info(_log, "effect overload effect '%s' is now taken from %s'", def.name.toUtf8().constData(), path.toUtf8().constData() );
-					}
-
-					if ( disableList.contains(def.name) )
-					{
-						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", def.name.toUtf8().constData());
-					}
-					else
-					{
-						availableEffects[def.name] = def;
-						efxCount++;
-					}
-				}
-			}
-			Info(_log, "%d effects loaded from directory %s", efxCount, path.toUtf8().constData());
-		}
-	}
-
-	foreach(auto item,  availableEffects)
-	{
-		_availableEffects.push_back(item.second);
-	}
-	
-	if (_availableEffects.size() == 0)
-	{
-		Error(_log, "no effects found, check your effect directories");
-	}
+	readEffects();
 
 	// initialize the python interpreter
 	Debug(_log,"Initializing Python interpreter");
@@ -109,11 +53,6 @@ EffectEngine::~EffectEngine()
 	Debug(_log, "Cleaning up Python interpreter");
 	PyEval_RestoreThread(_mainThreadState);
 	Py_Finalize();
-}
-
-const std::list<EffectDefinition> &EffectEngine::getEffects() const
-{
-	return _availableEffects;
 }
 
 const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
@@ -223,48 +162,211 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 
 	// ---------- setup the definition ----------
 	
+	effectDefinition.file = fileName;
 	QJsonObject config = configEffect.object();
 	QString scriptName = config["script"].toString();
 	effectDefinition.name = config["name"].toString();
 	if (scriptName.isEmpty())
 		return false;
+	
+	QFile fileInfo(scriptName);
 
 	if (scriptName.mid(0, 1)  == ":" )
-		effectDefinition.script = ":/effects/"+scriptName.mid(1);
-	else
-		effectDefinition.script = path + QDir::separator().toLatin1() + scriptName;
+	{
+		(!fileInfo.exists())
+		? effectDefinition.script = ":/effects/"+scriptName.mid(1)
+		: effectDefinition.script = scriptName;
+	} else
+	{
+		(!fileInfo.exists())
+		? effectDefinition.script = path + QDir::separator().toLatin1() + scriptName
+		: effectDefinition.script = scriptName;
+	}
 		
 	effectDefinition.args = config["args"].toObject();
 
 	return true;
 }
 
-int EffectEngine::runEffect(const QString &effectName, int priority, int timeout)
+bool EffectEngine::loadEffectSchema(const QString &path, const QString &effectSchemaFile, EffectSchema & effectSchema)
 {
-	return runEffect(effectName, QJsonObject(), priority, timeout);
+	Logger * log = Logger::getInstance("EFFECTENGINE");
+	
+	QString fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
+	QJsonParseError error;
+	
+	// ---------- Read the effect schema file ----------
+	
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		Error( log, "Effect schema '%s' could not be loaded", fileName.toUtf8().constData());
+		return false;
+	}
+
+	QByteArray fileContent = file.readAll();
+	QJsonDocument schemaEffect = QJsonDocument::fromJson(fileContent, &error);
+	
+	if (error.error != QJsonParseError::NoError)
+	{
+		// report to the user the failure and their locations in the document.
+		int errorLine(0), errorColumn(0);
+		
+		for( int i=0, count=qMin( error.offset,fileContent.size()); i<count; ++i )
+		{
+			++errorColumn;
+			if(fileContent.at(i) == '\n' )
+			{
+				errorColumn = 0;
+				++errorLine;
+			}
+		}
+		
+		Error( log, "Error while reading effect schema: '%s' at Line: '%i' , Column: %i", error.errorString().toUtf8().constData(), errorLine, errorColumn);
+		return false;
+	}
+	
+	file.close();
+	
+	// ---------- setup the definition ----------
+	
+	QJsonObject tempSchemaEffect = schemaEffect.object();
+	QString scriptName = tempSchemaEffect["script"].toString();
+	effectSchema.schemaFile = fileName;
+	fileName = path + QDir::separator() + scriptName;
+	QFile pyFile(fileName);
+	
+	if (scriptName.isEmpty() || !pyFile.open(QIODevice::ReadOnly))
+	{
+		fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
+		Error( log, "Python script '%s' in effect schema '%s' could not be loaded", scriptName.toUtf8().constData(), fileName.toUtf8().constData());
+		return false;
+	}
+	
+	pyFile.close();
+
+	if (scriptName.mid(0, 1)  == ":" )
+		effectSchema.pyFile = ":/effects/"+scriptName.mid(1);
+	else
+		effectSchema.pyFile = path + QDir::separator().toLatin1() + scriptName;
+		
+	effectSchema.pySchema = tempSchemaEffect;
+
+	return true;
 }
 
-int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
+void EffectEngine::readEffects()
+{
+	// clear all lists
+	_availableEffects.clear();
+	_effectSchemas.clear();
+	
+	// read all effects
+	const QJsonArray & paths       = _effectConfig["paths"].toArray();
+	const QJsonArray & disabledEfx = _effectConfig["disable"].toArray();
+	
+	QStringList efxPathList;
+	efxPathList << ":/effects/";
+	QStringList disableList;
+
+	for(auto p : paths)
+	{
+		efxPathList << p.toString();
+	}
+	for(auto efx : disabledEfx)
+	{
+		disableList << efx.toString();
+	}
+
+	std::map<QString, EffectDefinition> availableEffects;
+	foreach (const QString & path, efxPathList )
+	{
+		QDir directory(path);
+		if (directory.exists())
+		{
+			int efxCount = 0;
+			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & filename, filenames)
+			{
+				EffectDefinition def;
+				if (loadEffectDefinition(path, filename, def))
+				{
+					if (availableEffects.find(def.name) != availableEffects.end())
+					{
+						Info(_log, "effect overload effect '%s' is now taken from %s'", def.name.toUtf8().constData(), path.toUtf8().constData() );
+					}
+
+					if ( disableList.contains(def.name) )
+					{
+						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", def.name.toUtf8().constData());
+					}
+					else
+					{
+						availableEffects[def.name] = def;
+						efxCount++;
+					}
+				}
+			}
+			Info(_log, "%d effects loaded from directory %s", efxCount, path.toUtf8().constData());
+			
+			// collect effect schemas
+			efxCount = 0;
+			directory = path + "schema/";
+			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			foreach (const QString & pyname, pynames)
+			{
+				EffectSchema pyEffect;
+				if (loadEffectSchema(path, pyname, pyEffect))
+				{
+					_effectSchemas.push_back(pyEffect);
+					efxCount++;
+				}
+			}
+			if (efxCount > 0)
+				Info(_log, "%d effect schemas loaded from directory %s", efxCount, (path + "schema/").toUtf8().constData());
+		}
+		else
+		{
+			Warning(_log, "Effect path \"%s\" does not exist",path.toUtf8().constData() );
+		}
+	}
+
+	foreach(auto item,  availableEffects)
+	{
+		_availableEffects.push_back(item.second);
+	}
+	
+	if (_availableEffects.size() == 0)
+	{
+		Error(_log, "no effects found, check your effect directories");
+	}
+}
+
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
 	Info( _log, "run effect %s on channel %d", effectName.toUtf8().constData(), priority);
 
-	const EffectDefinition * effectDefinition = nullptr;
-	for (const EffectDefinition & e : _availableEffects)
+	if (pythonScript == "")
 	{
-		if (e.name == effectName)
+		const EffectDefinition * effectDefinition = nullptr;
+		for (const EffectDefinition & e : _availableEffects)
 		{
-			effectDefinition = &e;
-			break;
+			if (e.name == effectName)
+			{
+				effectDefinition = &e;
+				break;
+			}
 		}
-	}
-	if (effectDefinition == nullptr)
-	{
-		// no such effect
-		Error(_log, "effect %s not found",  effectName.toUtf8().constData());
-		return -1;
-	}
+		if (effectDefinition == nullptr)
+		{
+			// no such effect
+			Error(_log, "effect %s not found",  effectName.toUtf8().constData());
+			return -1;
+		}
 
-	return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
+		return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
+	} else
+		return runEffectScript(pythonScript, effectName, args, priority, timeout);
 }
 
 int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout)

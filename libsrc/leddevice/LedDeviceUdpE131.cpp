@@ -4,20 +4,20 @@
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
 
-LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
+LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-bool LedDeviceUdpE131::init(const Json::Value &deviceConfig)
+bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
 	_LatchTime_ns = 104000;
 	_port = 5568;
 	ProviderUdp::init(deviceConfig);
-	_e131_universe = deviceConfig.get("universe",1).asInt();
-	_e131_source_name = deviceConfig.get("source-name","hyperion on "+QHostInfo::localHostName().toStdString()).asString();
-	QString _json_cid = QString::fromStdString(deviceConfig.get("cid","").asString());
+	_e131_universe = deviceConfig["universe"].toInt(1);
+	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName()).toStdString();
+	QString _json_cid = deviceConfig["cid"].toString("");
 
 	if (_json_cid.isEmpty()) 
 	{
@@ -31,7 +31,7 @@ bool LedDeviceUdpE131::init(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceUdpE131::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpE131(deviceConfig);
 }

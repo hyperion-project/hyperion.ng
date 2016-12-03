@@ -32,11 +32,11 @@
 
 Hyperion* Hyperion::_hyperion = nullptr;
 
-Hyperion* Hyperion::initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
+Hyperion* Hyperion::initInstance(const QJsonObject& qjsonConfig, const std::string configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
 {
 	if ( Hyperion::_hyperion != nullptr )
 		throw std::runtime_error("Hyperion::initInstance can be called only one time");
-	Hyperion::_hyperion = new Hyperion(jsonConfig, qjsonConfig, configFile);
+	Hyperion::_hyperion = new Hyperion(qjsonConfig, configFile);
 
 	return Hyperion::_hyperion;
 }
@@ -514,7 +514,7 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig, const std::string configFile)
+Hyperion::Hyperion(const QJsonObject &qjsonConfig, const std::string configFile)
 	: _ledString(createLedString(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _ledStringClone(createLedStringClone(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _muxer(_ledString.leds().size())
@@ -522,7 +522,6 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	, _raw2ledAdjustment(createLedColorsAdjustment(_ledString.leds().size(), qjsonConfig["color"].toObject()))
 	, _effectEngine(nullptr)
 	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
-	, _jsonConfig(jsonConfig)
 	, _qjsonConfig(qjsonConfig)
 	, _configFile(configFile)
 	, _timer()
@@ -566,7 +565,7 @@ Hyperion::Hyperion(const Json::Value &jsonConfig, const QJsonObject &qjsonConfig
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
-	_device       = LedDeviceFactory::construct(jsonConfig["device"],_hwLedCount);
+	_device       = LedDeviceFactory::construct(qjsonConfig["device"].toObject(),_hwLedCount);
 	_deviceSmooth = createColorSmoothing(qjsonConfig["smoothing"].toObject(), _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 
@@ -805,6 +804,11 @@ const Hyperion::InputInfo &Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
+void Hyperion::reloadEffects()
+{
+	_effectEngine->readEffects();
+}
+
 const std::list<EffectDefinition> & Hyperion::getEffects() const
 {
 	return _effectEngine->getEffects();
@@ -815,14 +819,19 @@ const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects()
 	return _effectEngine->getActiveEffects();
 }
 
+const std::list<EffectSchema> & Hyperion::getEffectSchemas()
+{
+	return _effectEngine->getEffectSchemas();
+}
+
 int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
 }
 
 void Hyperion::update()
