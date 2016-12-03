@@ -1,7 +1,4 @@
-import hyperion
-import time
-import colorsys
-import math
+import hyperion, time, colorsys, math
 from random import random
 
 # Get the parameters

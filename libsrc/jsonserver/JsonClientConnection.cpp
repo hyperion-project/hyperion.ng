@@ -1042,8 +1042,15 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	result["success"] = true;
 	result["command"] = command;
 	result["tan"] = tan;
-	const QJsonObject & config = _hyperion->getQJsonConfig();
-	result["result"] = config;
+	
+	try
+	{
+		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+	}
+	catch(...)
+	{
+		result["result"] = _hyperion->getQJsonConfig();
+	}
 
 	// send the result
 	sendMessage(result);
