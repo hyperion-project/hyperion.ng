@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "shutdown.py",
-	"title":"System Shutdown",
+	"title":"edt_eff_systemshutdown_header_title",
 	"required":true,
 	"properties":{
 		"speed": {
 			"type": "number",
-			"title":"Speed",
+			"title":"edt_eff_speed_title",
 			"default": 1.0,
 			"minimum" : 0.3,
 			"step" : 0.1,
@@ -14,7 +14,7 @@
 		},
 		"alarm-color": {
 			"type": "array",
-			"title":"Alarm color",
+			"title":"edt_eff_alarmcolor_title",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -28,7 +28,7 @@
 		},
 		"post-color": {
 			"type": "array",
-			"title":"Post color",
+			"title":"edt_eff_postcolor_title",
 			"format" : "colorpicker",
 			"default": [255,174,11],
 			"items" : {
@@ -42,7 +42,7 @@
 		},
 		"shutdown-enabled": {
 			"type": "boolean",
-			"title":"Real shutdown",
+			"title":"edt_eff_enableshutdown_title",
 			"default": false,
 			"propertyOrder" : 4
 		}

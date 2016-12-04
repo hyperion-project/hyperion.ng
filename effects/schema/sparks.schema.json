@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "sparks.py",
-	"title":"Sparks",
+	"title":"edt_eff_sparks_header_title",
 	"required":true,
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"Color",
+			"title":"edt_eff_color_title",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,41 +20,42 @@
 		},
 		"rotation-time": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"edt_eff_rotationtime_title",
 			"default": 2.0,
 			"minimum" : 0.1,
+			"append" : "edt_append_s",
 			"propertyOrder" : 2
 		},
 		"sleep-time": {
 			"type": "number",
-			"title":"Sleep time",
+			"title":"edt_eff_sleeptime_title",
 			"default": 0.05,
 			"minimum" : 0.01,
 			"propertyOrder" : 3
 		},
 		"brightness": {
 			"type": "number",
-			"title":"Brightness",
+			"title":"edt_eff_brightness_title",
 			"default": 1.0,
 			"minimum" : 0.01,
 			"propertyOrder" : 4
 		},
 		"saturation": {
 			"type": "number",
-			"title":"Saturation",
+			"title":"edt_eff_saturation_title",
 			"default": 1.0,
 			"minimum" : 0.01,
 			"propertyOrder" : 5
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"Reverse direction",
+			"title":"edt_eff_reversedirection_title",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"random-color": {
 			"type": "boolean",
-			"title":"Random color",
+			"title":"edt_eff_colorrandom_title",
 			"default": false,
 			"propertyOrder" : 7
 		}

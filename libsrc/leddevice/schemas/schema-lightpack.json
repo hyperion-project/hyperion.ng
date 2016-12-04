@@ -4,7 +4,7 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Serial number"
+			"title":"edt_dev_spec_serial_title"
 		}
 	},
 	"additionalProperties": true

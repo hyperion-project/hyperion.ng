@@ -1,28 +1,28 @@
-<div id="wrapper">
+
 	<div class="container" style="margin:20px auto;max-width:600px;">
 		<center>
 		<img src="img/hyperion/hyperionlostconnection.png" alt="Redefine ambient light!">
 			<div>
-				<h2 lang="en" data-lang-token="info_conlost_label_title">Lost connection to Hyperion service!</h2>
+				<h2  data-i18n="info_conlost_label_title">Lost connection to Hyperion service!</h2>
 				<hr>
-				<h4 lang="en" data-lang-token="info_conlost_label_reason">Possible reasons:</h4>
-				<p lang="en" data-lang-token="info_conlost_label_reason1">- Hyperion restarts</p>
-				<p lang="en" data-lang-token="info_conlost_label_reason2">- You perform an update</p>
-				<p lang="en" data-lang-token="info_conlost_label_reason3">- Hyperion isn't running</p>
+				<h4  data-i18n="info_conlost_label_reason">Possible reasons:</h4>
+				<p  data-i18n="info_conlost_label_reason1">- Hyperion restarts</p>
+				<p  data-i18n="info_conlost_label_reason2">- You perform an update</p>
+				<p  data-i18n="info_conlost_label_reason3">- Hyperion isn't running</p>
 				<hr>
 				<i class="fa fa-refresh fa-spin" style="font-size:50px"></i>
-				<h4 lang="en" data-lang-token="info_conlost_label_autorefresh">This page will be automatically refreshed.</h4>
-				<h4 lang="en" data-lang-token="info_conlost_label_autorecon">We reconnect again after Hyperion is available.</h4>
-				<a href="/" lang="en" data-lang-token="info_conlost_label_reload">If not, click me or reload the page</a>
+				<h4  data-i18n="info_conlost_label_autorefresh">This page will be automatically refreshed.</h4>
+				<h4  data-i18n="info_conlost_label_autorecon">We reconnect again after Hyperion is available.</h4>
+				<a href="/"  data-i18n="info_conlost_label_reload">If not, click me or reload the page</a>
 			</div>
 		</center>
 	</div>
-</div>
 
 
 <!-- ************************************ -->
 
 <script>
+performTranslation();
 var connectionLost = false;
 var connectionTimer;
 
