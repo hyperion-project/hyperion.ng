@@ -23,8 +23,6 @@ $(document).ready( function() {
 				performTranslation();
 			});
 
-
-
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
