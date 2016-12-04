@@ -16,12 +16,20 @@ $(document).ready( function() {
 	bindNavToContent("#load_confNetwork","network",false);
 	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 	bindNavToContent("#load_logging","logging",false);
+	
+		//$.i18n.debug = true;
+		$.i18n().load({ de: 'i18n/de.json', en:'i18n/en.json'}).done(
+			function() {
+				performTranslation();
+			});
+
+
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
-
+		
 		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
 		else
@@ -48,7 +56,7 @@ $(document).ready( function() {
 			components_html = "";
 			for ( idx=0; idx<components.length;idx++)
 			{
-				components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 			}
 			$("#tab_components").html(components_html);
 
@@ -62,11 +70,11 @@ $(document).ready( function() {
 
 				if ( cleanCurrentVersion < cleanLatestVersion )
 				{
-					$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+					$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-warning">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
 				}
 				else
 				{
-					$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+					$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-success">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 				}
 			});
 		}
