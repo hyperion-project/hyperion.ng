@@ -147,3 +147,7 @@ function createSel(array, group){
 function performTranslation(){
 	$('#wrapper').i18n();
 }
+
+function encode_utf8(s) {
+	return unescape(encodeURIComponent(s));
+}

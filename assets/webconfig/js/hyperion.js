@@ -181,7 +181,9 @@ function requestWriteConfig(config)
 	jQuery.each(config, function(i, val) {
 		complete_config[i] = val;
 	});
-	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(complete_config)+'}');
+
+	var config_str = encode_utf8(JSON.stringify(complete_config));
+	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+config_str+'}');
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
