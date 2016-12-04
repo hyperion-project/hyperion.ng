@@ -143,3 +143,7 @@ function createSel(array, group){
 	return el;
 	}
 }
+
+function performTranslation(){
+	$('#wrapper').i18n();
+}

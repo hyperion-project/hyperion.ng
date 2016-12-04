@@ -4,54 +4,56 @@
 	"properties":{
 		"output" : {
 			"type": "string",
-			"title":"Target IP",
+			"title":"edt_dev_spec_targetIp_title",
 			"default" : "127.0.0.1",
 			"propertyOrder" : 1
 		},
 		"port" : {
 			"type": "integer",
-			"title":"Port",
+			"title":"edt_dev_spec_port_title",
 			"default": 7890,
 			"propertyOrder" : 2
 		},
 		"setFcConfig": {
 			"type": "boolean",
-			"title":"Set fadecandy Configuration",
+			"title":"edt_dev_spec_FCsetConfig_title",
 			"default": false,
 			"propertyOrder" : 3
 		},
 		"manualLed": {
 			"type": "boolean",
-			"title":"Manual control of fadecandy LED",
+			"title":"edt_dev_spec_FCmanualControl_title",
 			"default": false,
 			"propertyOrder" : 4
 		},
 		"ledOn": {
 			"type": "boolean",
-			"title":"Fadecandy LED set to on",
+			"title":"edt_dev_spec_FCledToOn_title",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"interpolation": {
 			"type": "boolean",
-			"title":"Interpolation",
+			"title":"edt_dev_spec_interpolation_title",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"dither": {
 			"type": "boolean",
-			"title":"Dithering",
+			"title":"edt_dev_spec_dithering_title",
 			"default": false,
 			"propertyOrder" : 7
 		},
 		"gamma" : {
 			"type" : "number",
+			"title" : "edt_dev_spec_gamma_title",
 			"minimum" : 0.0,
 			"maximum": 100.0,
 			"propertyOrder" : 8
 		},
 		"whitepoint" : {
 			"type" : "array",
+			"title" : "edt_dev_spec_whitepoint_title",
 			"propertyOrder" : 9,
 			"default" : [1.0,1.0,1.0],
 			"maxItems" : 3,

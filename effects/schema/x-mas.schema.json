@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "x-mas.py",
-	"title":"X-Mas",
+	"title":"edt_eff_x-mas_header_title",
 	"required":true,
 	"properties":{
 		"sleepTime": {
 			"type": "number",
-			"title":"Sleep Time",
+			"title":"edt_eff_sleeptime_title",
 			"default": 1.0,
 			"minimum" : 0.1,
 			"propertyOrder" : 1

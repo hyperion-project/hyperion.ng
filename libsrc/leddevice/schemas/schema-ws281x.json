@@ -4,33 +4,31 @@
 	"properties":{
 		"leds": {
 			"type": "integer",
-			"title":"maximum led count",
+			"title":"edt_dev_spec_maximumLedCount_title",
 			"default": 256,
 			"propertyOrder" : 1
 		},
 		"gpio": {
 			"type": "integer",
-			"title":"gpio number",
+			"title":"edt_dev_spec_gpioNumber_title",
 			"default": 18,
 			"propertyOrder" : 2
 		},
 		"invert": {
 			"type": "boolean",
-			"format": "checkbox",
-			"title":"Invert signal",
+			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 3
 		},
 		"rgbw": {
 			"type": "boolean",
-			"format": "checkbox",
-			"title":"use rgbw protocol",
+			"title":"edt_dev_spec_useRgbwProtocol_title",
 			"default": false,
 			"propertyOrder" : 3
 		},
 		"whiteAlgorithm": {
 			"type": "string",
-			"title":"White LED algorithm",
+			"title":"edt_dev_spec_whiteLedAlgor_title",
 			"enum" : ["subtract_minimum","sub_min_warm_adjust","white_off"],
 			"default": "subtract_minimum",
 			"propertyOrder" : 4
