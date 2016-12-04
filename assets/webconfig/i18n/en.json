@@ -363,7 +363,7 @@
 		"edt_append_hz" : "Hz",
 		"edt_append_pixel" : "Pixel",
 		"edt_append_percent" : "%",
-		"edt_append_degree" : "�",
+		"edt_append_degree" : "°",
 		"edt_append_sdegree" : "s/degree",
 		"edt_append_leds" : "LEDs",
 		"edt_msg_error_notset" : "Property must be set",
