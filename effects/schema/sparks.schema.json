@@ -23,6 +23,7 @@
 			"title":"edt_eff_rotationtime_title",
 			"default": 2.0,
 			"minimum" : 0.1,
+			"append" : "edt_append_s",
 			"propertyOrder" : 2
 		},
 		"sleep-time": {

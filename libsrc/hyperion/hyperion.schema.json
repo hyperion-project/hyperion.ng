@@ -399,13 +399,13 @@
 		"grabberV4L2" :
 		{
 			"type":"array",
-			"title" : "USB Grabber",
+			"title" : "edt_conf_v4l2_heading_title",
 			"minItems": 1,
 			"maxItems": 2,
 			"items":
 			{
 				"type" : "object",
-				"title" : "USB Grabber",
+				"title" : "edt_conf_v4l2_heading_title",
 				"properties" :
 				{
 					"enable" :
@@ -571,7 +571,7 @@
 		"framegrabber" :
 		{
 			"type" : "object",
-			"title" : "Framegrabber",
+			"title" : "edt_conf_fg_heading_title",
 			"properties" :
 			{
 				"enable" :
@@ -591,7 +591,7 @@
 				"width" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_fg_width_title",
+					"title" : "edt_conf_v4l2_width_title",
 					"minimum" : 10,
 					"default" : 80,
 					"append" : "edt_append_pixel"
@@ -599,7 +599,7 @@
 				"height" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_fg_height_title",
+					"title" : "edt_conf_v4l2_height_title",
 					"minimum" : 10,
 					"default" : 45,
 					"append" : "edt_append_pixel"

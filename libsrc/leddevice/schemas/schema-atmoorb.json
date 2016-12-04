@@ -25,7 +25,7 @@
 			"title":"edt_dev_spec_port_title",
 			"minimum" : 0,
 			"maximum" : 65535,
-			"default": 24,
+			"default": 49.692,
 			"propertyOrder" : 4
 		},
 		"useOrbSmoothing": {

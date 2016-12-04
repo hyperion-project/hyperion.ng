@@ -19,6 +19,7 @@
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
 			"default": 104000,
+			"append" : "edt_append_s",
 			"propertyOrder" : 3
 		},
 		"max-packet": {
