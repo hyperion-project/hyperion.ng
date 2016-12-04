@@ -29,19 +29,26 @@ public:
 	EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig);
 	virtual ~EffectEngine();
 
-	const std::list<EffectDefinition> & getEffects() const;
-	
-	const std::list<ActiveEffectDefinition> & getActiveEffects();
-	
-	const std::list<EffectSchema> & getEffectSchemas();
+	void readEffects();
 
-	static bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
-	
-	static bool loadEffectSchema(const QString & path, const QString & effectSchemaFile, EffectSchema &effectSchema);
+	const std::list<EffectDefinition> & getEffects() const
+	{
+		return _availableEffects;
+	};
+
+	const std::list<ActiveEffectDefinition> & getActiveEffects();
+
+	const std::list<EffectSchema> & getEffectSchemas()
+	{
+		return _effectSchemas;
+	};
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, int priority, int timeout = -1);
+	int runEffect(const QString &effectName, int priority, int timeout = -1)
+	{
+		return runEffect(effectName, QJsonObject(), priority, timeout);
+	};
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const QString &effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
@@ -56,11 +63,17 @@ private slots:
 	void effectFinished(Effect * effect);
 
 private:
+	bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
+
+	bool loadEffectSchema(const QString & path, const QString & effectSchemaFile, EffectSchema &effectSchema);
+
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1);
 
 private:
 	Hyperion * _hyperion;
+
+	QJsonObject _effectConfig;
 
 	std::list<EffectDefinition> _availableEffects;
 

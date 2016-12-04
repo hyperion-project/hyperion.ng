@@ -209,6 +209,22 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	parseReply(reply);
 }
 
+void JsonConnection::deleteEffect(const QString &effectName)
+{
+    qDebug() << "Delete effect configuration" << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("delete-effect");
+	effect["name"] = effectName;
+	
+	// send command message
+	QJsonObject reply = sendMessage(effect);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 QString JsonConnection::getServerInfo()
 {
 	qDebug() << "Get server info";

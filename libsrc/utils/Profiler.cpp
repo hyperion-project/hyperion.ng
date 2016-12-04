@@ -21,12 +21,12 @@ double getClockDelta(clock_t start)
 	return ((double)(clock() - start) / CLOCKS_PER_SEC)	;
 }
 
-Profiler::Profiler(const char* sourceFile, const char* func, unsigned int line) :
-	_file(sourceFile),
-	_func(func),
-	_line(line),
-	_blockId(blockCounter++),
-	_startTime(clock())
+Profiler::Profiler(const char* sourceFile, const char* func, unsigned int line)
+	: _file(sourceFile)
+	, _func(func)
+	, _line(line)
+	, _blockId(blockCounter++)
+	, _startTime(clock())
 {
 	Profiler::initLogger();
 	_logger->Message(Logger::DEBUG,_file,_func,_line,">>> enter block %d", _blockId);

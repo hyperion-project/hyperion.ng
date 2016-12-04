@@ -1,26 +1,4 @@
 
-/**
-* Enables translation for the form
-* with the ID given in "formID"
-* Generates token with the given token prefix
-* and an underscore followed by the input id
-* Example: input id = input_one
-* token prefix = tokenprefix
-* The translation token would be: "tokenprefix_input_one"
-* Default language in "lang" attribute will always be "en"
-* @param {String} tokenPrefix
-* @param {String} formID
-
-function enableFormTranslation(tokenPrefix, formID) {
-var $inputs = $("#" + formID + " label");
-
-$inputs.each(function() {
-  console.log("InputID: " + $(this).attr('id'));
-  var oldtext = $("label[for='" + $(this).attr('id') + "']").text();
-  $("label[for='" + $(this).attr('id') + "']").html('<span lang="en" data-lang-token="' + tokenPrefix + "_" + $(this).attr('id') + '">' + oldtext + '</span>');
-});
-}
-*/
 // global vars
 var currentVersion;
 var cleanCurrentVersion;
@@ -36,6 +14,8 @@ var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
 var ledStreamActive=false;
+var loggingStreamActive=false;
+var loggingHandlerInstalled = false;
 var watchdog = 0;
 
 //
@@ -213,3 +193,18 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 function requestTestEffect(effectName,effectPy,effectArgs) {
 	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
 }
+
+function requestDeleteEffect(effectName) {
+	websocket.send('{"command":"delete-effect", "tan":'+wsTan+',"name":"'+effectName+'"}');
+}
+
+function requestLoggingStart() {
+	loggingStreamActive=true;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"start"}');
+}
+
+function requestLoggingStop() {
+	loggingStreamActive=false;
+	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"stop"}');
+}
+

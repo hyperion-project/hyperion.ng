@@ -27,7 +27,7 @@ CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake"
 
 make_release x86x64  x86
 #make_release x32     x86 ${CMAKE_PROTOC_FLAG}
-make_release rpi     rpi-pwm  -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake" ${CMAKE_PROTOC_FLAG}
+make_release rpi     rpi  -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake" ${CMAKE_PROTOC_FLAG}
 make_release wetek   wetek  -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake" ${CMAKE_PROTOC_FLAG}
 #make_release imx6   imx6 -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-imx6.cmake" ${CMAKE_PROTOC_FLAG}
 

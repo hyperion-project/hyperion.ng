@@ -119,3 +119,31 @@ function createJsonEditor(container,schema,setconfig)
 
 	return editor;
 }
+
+function createSelGroup(group){
+	var el = document.createElement('optgroup');
+	el.setAttribute('label', group);
+	return el
+}
+		
+function createSelOpt(opt){
+	var el = document.createElement('option');
+	el.setAttribute('value', opt);
+	el.innerHTML = opt;
+	return el
+}
+
+function createSel(array, group){
+	if (array.length != "0"){
+	var el = createSelGroup(group);
+		for(var i=0; i<array.length; i++){
+			var opt = createSelOpt(array[i])
+			el.appendChild(opt);
+		}
+	return el;
+	}
+}
+
+function performTranslation(){
+	$('#wrapper').i18n();
+}

@@ -17,10 +17,11 @@ bool compareLightpacks(LedDeviceLightpack * lhs, LedDeviceLightpack * rhs)
 	return lhs->getSerialNumber() < rhs->getSerialNumber();
 }
 
-LedDeviceMultiLightpack::LedDeviceMultiLightpack(const QJsonObject &)
+LedDeviceMultiLightpack::LedDeviceMultiLightpack(const QJsonObject &deviceConfig)
 	: LedDevice()
 	, _lightpacks()
 {
+	LedDevice::init(deviceConfig);
 }
 
 LedDeviceMultiLightpack::~LedDeviceMultiLightpack()

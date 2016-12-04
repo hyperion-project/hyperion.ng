@@ -14,7 +14,7 @@
 			
  			data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource('+priority+');">'+owner+'<span style="font-size:70% !important;"> ('+priority+')</span></button><br/>';
 		}
-		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');" lang="en" data-lang-token="remote_input_label_autoselect">auto selection</button><br/>';
+		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+'</button><br/>';
 		$('#hyperion_inputs').html(data);
 		
 		var max_width=200;
@@ -49,7 +49,7 @@
 				{
 					d='<p><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
 						+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> <span lang="en" data-lang-token="general_comp_'+components[idx].name+'"> '+components[idx].title+'</span></p>';
+						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</p>';
 					$('#componentsbutton').append(d);
 				}
 				else // already create, update state
@@ -61,11 +61,35 @@
 				
 			}
 		}
-}
-
-
+	}
+	
+	var oldEffects = [];
+	
+	function updateEffectlist(event){
+		var newEffects = event.response.info.effects;
+		if (newEffects.length != oldEffects.length)
+		{
+			$('#effect_select').html('<option value="__none__"></option>');
+			var usrEffArr = [];
+			var sysEffArr = [];
+			
+			for(i = 0; i < newEffects.length; i++) {
+				var effectName = newEffects[i].name;
+				if(!/^\:/.test(newEffects[i].file)){
+					usrEffArr.push(effectName);
+				}
+				else{
+					sysEffArr.push(effectName);
+				}
+			}
+			$('#effect_select').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')));
+			$('#effect_select').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
+			oldEffects = newEffects;
+		}
+	}
 
 $(document).ready(function() {
+	performTranslation();
 	// color
 		$(function() {
 			$('#cp2').colorpicker({
@@ -93,7 +117,6 @@ $(document).ready(function() {
 					},
 				}
 			});
-
 			$('#cp2').colorpicker().on('changeColor', function(e) {
 				color = e.color.toRGB();
 				$("#effect_select").val("__none__");
@@ -113,18 +136,10 @@ $(document).ready(function() {
 				});
 			}
 		});
-
-		// effects
-		effects_html = '<option value="__none__"></option>';
-		for(i = 0; i < parsedServerInfoJSON.info.effects.length; i++) {
-			//console.log(parsedServerInfoJSON.info.effects[i].name);
-			effectName = parsedServerInfoJSON.info.effects[i].name;
-			effects_html += '<option value="'+effectName+'">'+effectName+'</option>';
-		}
-		$('#effect_select').html(effects_html);
 		
-		
-		// components
+	// components
 	$(hyperion).on("cmd-serverinfo",updateComponents);
+	// effects
+	$(hyperion).on("cmd-serverinfo",updateEffectlist);
 		
 });

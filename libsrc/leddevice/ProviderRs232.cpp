@@ -17,16 +17,7 @@ ProviderRs232::ProviderRs232()
 	, _bytesWritten(0)
 	, _frameDropCounter(0)
 	, _lastError(QSerialPort::NoError)
-	, _timer()
 {
-	// setup timer
-	_timer.setSingleShot(false);
-	_timer.setInterval(1000);
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
-
-	// start the timer
-	_timer.start();
-
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -35,10 +26,12 @@ ProviderRs232::ProviderRs232()
 bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
 	closeDevice();
+
+	LedDevice::init(deviceConfig);
+
 	_deviceName           = deviceConfig["output"].toString().toStdString();
 	_baudRate_Hz          = deviceConfig["rate"].toInt();
 	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(250);
-	_timer.setInterval    ( deviceConfig["rewriteTime"].toInt(5000) );
 
 	return true;
 }
@@ -157,8 +150,6 @@ bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 
 int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 {
-	// restart the timer
-	_timer.start();
 	if (! _blockedForDelay)
 	{
 		if (!_rs232Port.isOpen())
@@ -166,7 +157,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 			return tryOpen(5000) ? 0 : -1;
 		}
 
-		if (_frameDropCounter > 0)
+		if (_frameDropCounter > 5)
 		{
 			Debug(_log, "%d frames dropped", _frameDropCounter);
 		}

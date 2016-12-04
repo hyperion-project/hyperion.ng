@@ -65,6 +65,7 @@ int main(int argc, char * argv[])
 		Option          & argEffectFile  = parser.add<Option>       (0x0, "effectFile", "Arguments to use in combination with --createEffect");
 		Option          & argEffectArgs  = parser.add<Option>       (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
 		Option          & argCreateEffect= parser.add<Option>       (0x0, "createEffect","Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
+		Option          & argDeleteEffect= parser.add<Option>       (0x0, "deleteEffect","Delete a custom created Json Effect configuration file.");
 		BooleanOption   & argServerInfo  = parser.add<BooleanOption>('l', "list"      , "List server info and active effects with priority and duration");
 		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
@@ -108,7 +109,7 @@ int main(int argc, char * argv[])
 		bool colorModding = colorTransform || colorAdjust;
 		
 		// check that exactly one command was given
-		int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
+		int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
@@ -116,6 +117,7 @@ int main(int argc, char * argv[])
 			showHelp(argImage);
 			showHelp(argEffect);
 			showHelp(argCreateEffect);
+			showHelp(argDeleteEffect);
 			showHelp(argServerInfo);
 			showHelp(argClear);
 			showHelp(argClearAll);
@@ -162,6 +164,10 @@ int main(int argc, char * argv[])
 		else if (parser.isSet(argCreateEffect))
 		{
 			connection.createEffect(argCreateEffect.value(parser), argEffectFile.value(parser), argEffectArgs.value(parser));
+		}
+		else if (parser.isSet(argDeleteEffect))
+		{
+			connection.deleteEffect(argDeleteEffect.value(parser));
 		}
 		else if (parser.isSet(argServerInfo))
 		{

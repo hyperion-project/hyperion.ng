@@ -64,6 +64,13 @@ public:
 	/// @param effectArgs The arguments of the effect
 	///
 	void createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs);
+	
+	///
+	/// Delete a effect configuration file (.json)
+	///
+	/// @param effectName The name of the effect
+	///
+	void deleteEffect(const QString &effectName);
 
 	///
 	/// Retrieve a list of all occupied priority channels
@@ -134,16 +141,16 @@ public:
 	/// @param whitelevel The whitelevel
 	///
 	void setTransform(
-        const QString &transformId,
-        double *saturation,
-        double *value,
-        double *saturationL,
-        double *luminance,
-        double *luminanceMin,
-        QColor threshold,
-        QColor gamma,
-        QColor blacklevel,
-        QColor whitelevel);
+		const QString &transformId,
+		double *saturation,
+		double *value,
+		double *saturationL,
+		double *luminance,
+		double *luminanceMin,
+		QColor threshold,
+		QColor gamma,
+		QColor blacklevel,
+		QColor whitelevel);
 
 	///
 	/// Set the color adjustment of the leds

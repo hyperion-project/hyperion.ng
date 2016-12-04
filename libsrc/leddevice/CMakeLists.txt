@@ -17,7 +17,6 @@ SET(Leddevice_QT_HEADERS
 	${CURRENT_HEADER_DIR}/LedDevice.h
 	${CURRENT_SOURCE_DIR}/ProviderRs232.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
-	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
 	${CURRENT_SOURCE_DIR}/ProviderHID.h
@@ -53,7 +52,6 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/ProviderHID.cpp
 
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
-	${CURRENT_SOURCE_DIR}/LedDeviceAdalightApa102.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceLightpack.cpp
@@ -97,17 +95,6 @@ if(ENABLE_SPIDEV)
 		${CURRENT_SOURCE_DIR}/LedDeviceWs2812SPI.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceSk6812SPI.cpp
 		${CURRENT_SOURCE_DIR}/LedDeviceAPA102.cpp
-	)
-endif()
-
-if(ENABLE_WS2812BPWM)
-	SET(Leddevice_HEADERS
-		${Leddevice_HEADERS}
-		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.h
-	)
-	SET(Leddevice_SOURCES
-		${Leddevice_SOURCES}
-		${CURRENT_SOURCE_DIR}/LedDeviceWS2812b.cpp
 	)
 endif()
 

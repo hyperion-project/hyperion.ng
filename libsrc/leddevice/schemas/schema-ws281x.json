@@ -2,6 +2,37 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"leds": {
+			"type": "integer",
+			"title":"edt_dev_spec_maximumLedCount_title",
+			"default": 256,
+			"propertyOrder" : 1
+		},
+		"gpio": {
+			"type": "integer",
+			"title":"edt_dev_spec_gpioNumber_title",
+			"default": 18,
+			"propertyOrder" : 2
+		},
+		"invert": {
+			"type": "boolean",
+			"title":"edt_dev_spec_invert_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"rgbw": {
+			"type": "boolean",
+			"title":"edt_dev_spec_useRgbwProtocol_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"whiteAlgorithm": {
+			"type": "string",
+			"title":"edt_dev_spec_whiteLedAlgor_title",
+			"enum" : ["subtract_minimum","sub_min_warm_adjust","white_off"],
+			"default": "subtract_minimum",
+			"propertyOrder" : 4
+		}
 	},
 	"additionalProperties": true
 }

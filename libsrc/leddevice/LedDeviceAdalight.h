@@ -30,5 +30,7 @@ private:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
+	
+	bool _ligthBerryAPA102Mode;
 };
 

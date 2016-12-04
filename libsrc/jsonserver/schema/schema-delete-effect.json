@@ -1,0 +1,21 @@
+
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["delete-effect"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"name" :
+		{
+			"type" : "string",
+			"required" : true
+		}
+	},
+	"additionalProperties": false
+}

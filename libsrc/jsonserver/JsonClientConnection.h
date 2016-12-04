@@ -40,6 +40,7 @@ public:
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	void streamLedcolorsUpdate();
+	void incommingLogMessage(Logger::T_LOG_MESSAGE);
 
 signals:
 	///
@@ -95,6 +96,13 @@ private:
 	/// @param message the incoming message
 	///
 	void handleCreateEffectCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
+	/// Handle an incoming JSON Effect message (Delete JSON Effect)
+	///
+	/// @param message the incoming message
+	///
+	void handleDeleteEffectCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Server info message
@@ -174,6 +182,12 @@ private:
 	///
 	void handleLedColorsCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON Logging message
+	///
+	/// @param message the incoming message
+	///
+	void handleLoggingCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -248,9 +262,12 @@ private:
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled;
 	
-	/// 
+	/// timer for ledcolors streaming
 	QTimer _timer_ledcolors;
 	
+	// streaming buffers
 	QJsonObject _streaming_leds_reply;
+	QJsonObject _streaming_logging_reply;
+	bool _streaming_logging_activated;
 
 };

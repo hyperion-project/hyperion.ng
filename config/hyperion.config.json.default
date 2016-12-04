@@ -10,7 +10,8 @@
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
-		"colorOrder" : "rgb"
+		"colorOrder" : "rgb",
+		"rewriteTime": 0
 	},
 
 	"color" :

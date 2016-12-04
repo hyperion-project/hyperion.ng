@@ -245,8 +245,6 @@ JSONEditor.prototype = {
     this.root_container = this.theme.getContainer();
     this.element.appendChild(this.root_container);
 
-    this.translate = this.options.translate || JSONEditor.defaults.translate;
-
     // Fetch all external refs via ajax
     this._loadExternalRefs(this.schema, function() {
       self._getDefinitions(self.schema);
@@ -839,7 +837,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'required',
-          message: this.translate("error_notset")
+          message: this.translate("edt_msg_error_notset")
         });
 
         // Can't do any more validation at this point
@@ -853,7 +851,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'required',
-          message: this.translate("error_notset")
+          message: this.translate("edt_msg_error_notset")
         });
       }
       // Not required, no further validation needed
@@ -872,7 +870,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'enum',
-          message: this.translate("error_enum")
+          message: this.translate("edt_msg_error_enum")
         });
       }
     }
@@ -904,7 +902,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'anyOf',
-          message: this.translate('error_anyOf')
+          message: this.translate('edt_msg_error_anyOf')
         });
       }
     }
@@ -930,7 +928,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'oneOf',
-          message: this.translate('error_oneOf', [valid])
+          message: this.translate('edt_msg_error_oneOf', [valid])
         });
         errors = errors.concat(oneof_errors);
       }
@@ -942,7 +940,7 @@ JSONEditor.Validator = Class.extend({
         errors.push({
           path: path,
           property: 'not',
-          message: this.translate('error_not')
+          message: this.translate('edt_msg_error_not')
         });
       }
     }
@@ -962,7 +960,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'type',
-            message: this.translate('error_type_union')
+            message: this.translate('edt_msg_error_type_union')
           });
         }
       }
@@ -972,7 +970,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'type',
-            message: this.translate('error_type', [schema.type])
+            message: this.translate('edt_msg_error_type', [schema.type])
           });
         }
       }
@@ -994,7 +992,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'disallow',
-            message: this.translate('error_disallow_union')
+            message: this.translate('edt_msg_error_disallow_union')
           });
         }
       }
@@ -1004,7 +1002,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'disallow',
-            message: this.translate('error_disallow', [schema.disallow])
+            message: this.translate('edt_msg_error_disallow', [schema.disallow])
           });
         }
       }
@@ -1035,7 +1033,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: schema.multipleOf? 'multipleOf' : 'divisibleBy',
-            message: this.translate('error_multipleOf', [divisor])
+            message: this.translate('edt_msg_error_multipleOf', [divisor])
           });
         }
       }
@@ -1062,7 +1060,7 @@ JSONEditor.Validator = Class.extend({
             path: path,
             property: 'maximum',
             message: this.translate(
-              (schema.exclusiveMaximum?'error_maximum_excl':'error_maximum_incl'),
+              (schema.exclusiveMaximum?'edt_msg_error_maximum_excl':'edt_msg_error_maximum_incl'),
               [schema.maximum]
             )
           });
@@ -1091,7 +1089,7 @@ JSONEditor.Validator = Class.extend({
             path: path,
             property: 'minimum',
             message: this.translate(
-              (schema.exclusiveMinimum?'error_minimum_excl':'error_minimum_incl'),
+              (schema.exclusiveMinimum?'edt_msg_error_minimum_excl':'edt_msg_error_minimum_incl'),
               [schema.minimum]
             )
           });
@@ -1106,7 +1104,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'maxLength',
-            message: this.translate('error_maxLength', [schema.maxLength])
+            message: this.translate('edt_msg_error_maxLength', [schema.maxLength])
           });
         }
       }
@@ -1117,7 +1115,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'minLength',
-            message: this.translate((schema.minLength===1?'error_notempty':'error_minLength'), [schema.minLength])
+            message: this.translate((schema.minLength===1?'edt_msg_error_notempty':'edt_msg_error_minLength'), [schema.minLength])
           });
         }
       }
@@ -1128,7 +1126,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'pattern',
-            message: this.translate('error_pattern', [schema.pattern])
+            message: this.translate('edt_msg_error_pattern', [schema.pattern])
           });
         }
       }
@@ -1159,7 +1157,7 @@ JSONEditor.Validator = Class.extend({
               errors.push({
                 path: path,
                 property: 'additionalItems',
-                message: this.translate('error_additionalItems')
+                message: this.translate('edt_msg_error_additionalItems')
               });
               break;
             }
@@ -1184,7 +1182,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'maxItems',
-            message: this.translate('error_maxItems', [schema.maxItems])
+            message: this.translate('edt_msg_error_maxItems', [schema.maxItems])
           });
         }
       }
@@ -1195,7 +1193,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'minItems',
-            message: this.translate('error_minItems', [schema.minItems])
+            message: this.translate('edt_msg_error_minItems', [schema.minItems])
           });
         }
       }
@@ -1209,7 +1207,7 @@ JSONEditor.Validator = Class.extend({
             errors.push({
               path: path,
               property: 'uniqueItems',
-              message: this.translate('error_uniqueItems')
+              message: this.translate('edt_msg_error_uniqueItems')
             });
             break;
           }
@@ -1230,7 +1228,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'maxProperties',
-            message: this.translate('error_maxProperties', [schema.maxProperties])
+            message: this.translate('edt_msg_error_maxProperties', [schema.maxProperties])
           });
         }
       }
@@ -1246,7 +1244,7 @@ JSONEditor.Validator = Class.extend({
           errors.push({
             path: path,
             property: 'minProperties',
-            message: this.translate('error_minProperties', [schema.minProperties])
+            message: this.translate('edt_msg_error_minProperties', [schema.minProperties])
           });
         }
       }
@@ -1258,7 +1256,7 @@ JSONEditor.Validator = Class.extend({
             errors.push({
               path: path,
               property: 'required',
-              message: this.translate('error_required', [schema.required[i]])
+              message: this.translate('edt_msg_error_required', [schema.required[i]])
             });
           }
         }
@@ -1307,7 +1305,7 @@ JSONEditor.Validator = Class.extend({
               errors.push({
                 path: path,
                 property: 'additionalProperties',
-                message: this.translate('error_additional_properties', [i])
+                message: this.translate('edt_msg_error_additional_properties', [i])
               });
               break;
             }
@@ -1339,7 +1337,7 @@ JSONEditor.Validator = Class.extend({
                 errors.push({
                   path: path,
                   property: 'dependencies',
-                  message: this.translate('error_dependency', [schema.dependencies[i][j]])
+                  message: this.translate('edt_msg_error_dependency', [schema.dependencies[i][j]])
                 });
               }
             }
@@ -1767,7 +1765,13 @@ JSONEditor.AbstractEditor = Class.extend({
     return null;
   },
   getTitle: function() {
-    return this.schema.title || this.key;
+    if (this.schema.title == null)
+		return this.key;
+	else
+		return $.i18n(this.schema.title);
+  },
+  getAppend: function() {
+	return $.i18n(this.schema.append);
   },
   enable: function() {
     this.disabled = false;
@@ -1938,7 +1942,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     var self = this, i;
     if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
-	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.schema.append);
+	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 
     this.format = this.schema.format;
     if(!this.format && this.schema.media && this.schema.media.type) {
@@ -1950,7 +1954,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     if(this.options.format) {
       this.format = this.options.format;
     }
-
+	
     // Specific format
     if(this.format) {
       // Text Area
@@ -1960,7 +1964,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
       }
       // Range Input
       else if(this.format === 'range') {
-        this.input_type = 'range';
+		this.input_type = 'range';
         var min = this.schema.minimum || 0;
         var max = this.schema.maximum || Math.max(100,min+1);
         var step = 1;
@@ -2033,10 +2037,19 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
       }
       // HTML5 Input type
       else {
-        this.input_type = this.format;
+		this.input_type = this.format;
         this.input = this.theme.getFormInputField(this.input_type);
       }
     }
+	// Number or integer adds html5 tag 'number'
+	else if (this.schema.type == "number" || this.schema.type == "integer"){
+		
+		var min = this.schema.minimum
+		var max = this.schema.maximum
+		var step = this.schema.step
+
+        this.input = this.theme.getRangeInput(min,max,step);
+	}
     // Normal text input
     else {
       this.input_type = 'text';
@@ -2755,7 +2768,7 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
 
       // Show/Hide button
       this.collapsed = false;
-      this.toggle_button = this.getButton('','collapse',this.translate('button_collapse'));
+      this.toggle_button = this.getButton('','collapse',this.translate('edt_msg_button_collapse'));
       this.title_controls.appendChild(this.toggle_button);
       this.toggle_button.addEventListener('click',function(e) {
         e.preventDefault();
@@ -2763,12 +2776,12 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
         if(self.collapsed) {
           self.editor_holder.style.display = '';
           self.collapsed = false;
-          self.setButtonText(self.toggle_button,'','collapse',self.translate('button_collapse'));
+          self.setButtonText(self.toggle_button,'','collapse',self.translate('edt_msg_button_collapse'));
         }
         else {
           self.editor_holder.style.display = 'none';
           self.collapsed = true;
-          self.setButtonText(self.toggle_button,'','expand',self.translate('button_expand'));
+          self.setButtonText(self.toggle_button,'','expand',self.translate('edt_msg_button_expand'));
         }
       });
 
@@ -3367,7 +3380,10 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     if(!this.item_title) {
       if(this.schema.items && !Array.isArray(this.schema.items)) {
         var tmp = this.jsoneditor.expandRefs(this.schema.items);
-        this.item_title = tmp.title || 'item';
+		if (typeof tmp.title == 'undefined')
+			this.item_title = 'item';
+		else
+			this.item_title = $.i18n(tmp.title);
       }
       else {
         this.item_title = 'item';
@@ -3420,7 +3436,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     var item_info = this.getItemInfo(i);
     var schema = this.getItemSchema(i);
     schema = this.jsoneditor.expandRefs(schema);
-    schema.title = item_info.title+' '+(i+1);
+    schema.title = $.i18n(item_info.title)+' '+(i+1);
 
     var editor = this.jsoneditor.getEditorClass(schema);
 
@@ -3703,7 +3719,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
 
     // Buttons to delete row, move row up, and move row down
     if(!self.hide_delete_buttons) {
-      self.rows[i].delete_button = this.getButton(self.getItemTitle(),'delete',this.translate('button_delete_row_title',[self.getItemTitle()]));
+      self.rows[i].delete_button = this.getButton(self.getItemTitle(),'delete',this.translate('edt_msg_button_delete_row_title',[self.getItemTitle()]));
       self.rows[i].delete_button.className += ' delete';
       self.rows[i].delete_button.setAttribute('data-i',i);
       self.rows[i].delete_button.addEventListener('click',function(e) {
@@ -3745,7 +3761,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     }
 
     if(i && !self.hide_move_buttons) {
-      self.rows[i].moveup_button = this.getButton('','moveup',this.translate('button_move_up_title'));
+      self.rows[i].moveup_button = this.getButton('','moveup',this.translate('edt_msg_button_move_up_title'));
       self.rows[i].moveup_button.className += ' moveup';
       self.rows[i].moveup_button.setAttribute('data-i',i);
       self.rows[i].moveup_button.addEventListener('click',function(e) {
@@ -3772,7 +3788,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     }
 
     if(!self.hide_move_buttons) {
-      self.rows[i].movedown_button = this.getButton('','movedown',this.translate('button_move_down_title'));
+      self.rows[i].movedown_button = this.getButton('','movedown',this.translate('edt_msg_button_move_down_title'));
       self.rows[i].movedown_button.className += ' movedown';
       self.rows[i].movedown_button.setAttribute('data-i',i);
       self.rows[i].movedown_button.addEventListener('click',function(e) {
@@ -3804,7 +3820,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     var self = this;
 
     this.collapsed = false;
-    this.toggle_button = this.getButton('','collapse',this.translate('button_collapse'));
+    this.toggle_button = this.getButton('','collapse',this.translate('edt_msg_button_collapse'));
     this.title_controls.appendChild(this.toggle_button);
     var row_holder_display = self.row_holder.style.display;
     var controls_display = self.controls.style.display;
@@ -3817,7 +3833,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
         self.row_holder.style.display = row_holder_display;
         if(self.tabs_holder) self.tabs_holder.style.display = '';
         self.controls.style.display = controls_display;
-        self.setButtonText(this,'','collapse',self.translate('button_collapse'));
+        self.setButtonText(this,'','collapse',self.translate('edt_msg_button_collapse'));
       }
       else {
         self.collapsed = true;
@@ -3825,7 +3841,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
         if(self.tabs_holder) self.tabs_holder.style.display = 'none';
         self.controls.style.display = 'none';
         if(self.panel) self.panel.style.display = 'none';
-        self.setButtonText(this,'','expand',self.translate('button_expand'));
+        self.setButtonText(this,'','expand',self.translate('edt_msg_button_expand'));
       }
     });
 
@@ -3843,7 +3859,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     }
 
     // Add "new row" and "delete last" buttons below editor
-    this.add_row_button = this.getButton(this.getItemTitle(),'add',this.translate('button_add_row_title',[this.getItemTitle()]));
+    this.add_row_button = this.getButton(this.getItemTitle(),'add',this.translate('edt_msg_button_add_row_title',[this.getItemTitle()]));
 
     this.add_row_button.addEventListener('click',function(e) {
       e.preventDefault();
@@ -3866,7 +3882,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     });
     self.controls.appendChild(this.add_row_button);
 
-    this.delete_last_row_button = this.getButton(this.translate('button_delete_last',[this.getItemTitle()]),'delete',this.translate('button_delete_last_title',[this.getItemTitle()]));
+    this.delete_last_row_button = this.getButton(this.translate('edt_msg_button_delete_last',[this.getItemTitle()]),'delete',this.translate('edt_msg_button_delete_last_title',[this.getItemTitle()]));
     this.delete_last_row_button.addEventListener('click',function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -3885,7 +3901,7 @@ JSONEditor.defaults.editors.array = JSONEditor.AbstractEditor.extend({
     });
     self.controls.appendChild(this.delete_last_row_button);
 
-    this.remove_all_rows_button = this.getButton(this.translate('button_delete_all'),'delete',this.translate('button_delete_all_title'));
+    this.remove_all_rows_button = this.getButton(this.translate('edt_msg_button_delete_all'),'delete',this.translate('edt_msg_button_delete_all_title'));
     this.remove_all_rows_button.addEventListener('click',function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -4001,7 +4017,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
         this.container.appendChild(this.description);
       }
 	 if(this.schema.append) {
-        this.append = this.theme.getAppend(this.schema.append);
+        this.append = this.theme.getAppend(this.getAppend());
         this.container.appendChild(this.append);
       }
       this.panel = this.theme.getIndentedPanel();
@@ -4275,7 +4291,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
 
     // Buttons to delete row, move row up, and move row down
     if(!this.hide_delete_buttons) {
-      self.rows[i].delete_button = this.getButton('','delete',this.translate('button_delete_row_title_short'));
+      self.rows[i].delete_button = this.getButton('','delete',this.translate('edt_msg_button_delete_row_title_short'));
       self.rows[i].delete_button.className += ' delete';
       self.rows[i].delete_button.setAttribute('data-i',i);
       self.rows[i].delete_button.addEventListener('click',function(e) {
@@ -4298,7 +4314,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
 
 
     if(i && !this.hide_move_buttons) {
-      self.rows[i].moveup_button = this.getButton('','moveup',this.translate('button_move_up_title'));
+      self.rows[i].moveup_button = this.getButton('','moveup',this.translate('edt_msg_button_move_up_title'));
       self.rows[i].moveup_button.className += ' moveup';
       self.rows[i].moveup_button.setAttribute('data-i',i);
       self.rows[i].moveup_button.addEventListener('click',function(e) {
@@ -4319,7 +4335,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
     }
 
     if(!this.hide_move_buttons) {
-      self.rows[i].movedown_button = this.getButton('','movedown',this.translate('button_move_down_title'));
+      self.rows[i].movedown_button = this.getButton('','movedown',this.translate('edt_msg_button_move_down_title'));
       self.rows[i].movedown_button.className += ' movedown';
       self.rows[i].movedown_button.setAttribute('data-i',i);
       self.rows[i].movedown_button.addEventListener('click',function(e) {
@@ -4344,7 +4360,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
     var self = this;
 
     this.collapsed = false;
-    this.toggle_button = this.getButton('','collapse',this.translate('button_collapse'));
+    this.toggle_button = this.getButton('','collapse',this.translate('edt_msg_button_collapse'));
     if(this.title_controls) {
       this.title_controls.appendChild(this.toggle_button);
       this.toggle_button.addEventListener('click',function(e) {
@@ -4354,12 +4370,12 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
         if(self.collapsed) {
           self.collapsed = false;
           self.panel.style.display = '';
-          self.setButtonText(this,'','collapse',self.translate('button_collapse'));
+          self.setButtonText(this,'','collapse',self.translate('edt_msg_button_collapse'));
         }
         else {
           self.collapsed = true;
           self.panel.style.display = 'none';
-          self.setButtonText(this,'','expand',self.translate('button_expand'));
+          self.setButtonText(this,'','expand',self.translate('edt_msg_button_expand'));
         }
       });
 
@@ -4378,7 +4394,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
     }
 
     // Add "new row" and "delete last" buttons below editor
-    this.add_row_button = this.getButton(this.getItemTitle(),'add',this.translate('button_add_row_title',[this.getItemTitle()]));
+    this.add_row_button = this.getButton(this.getItemTitle(),'add',this.translate('edt_msg_button_add_row_title',[this.getItemTitle()]));
     this.add_row_button.addEventListener('click',function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -4390,7 +4406,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
     });
     self.controls.appendChild(this.add_row_button);
 
-    this.delete_last_row_button = this.getButton(this.translate('button_delete_last',[this.getItemTitle()]),'delete',this.translate('button_delete_last_title',[this.getItemTitle()]));
+    this.delete_last_row_button = this.getButton(this.translate('edt_msg_button_delete_last',[this.getItemTitle()]),'delete',this.translate('edt_msg_button_delete_last_title',[this.getItemTitle()]));
     this.delete_last_row_button.addEventListener('click',function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -4402,7 +4418,7 @@ JSONEditor.defaults.editors.table = JSONEditor.defaults.editors.array.extend({
     });
     self.controls.appendChild(this.delete_last_row_button);
 
-    this.remove_all_rows_button = this.getButton(this.translate('button_delete_all'),'delete',this.translate('button_delete_all_title'));
+    this.remove_all_rows_button = this.getButton(this.translate('edt_msg_button_delete_all'),'delete',this.translate('edt_msg_button_delete_all_title'));
     this.remove_all_rows_button.addEventListener('click',function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -4989,7 +5005,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     var self = this;
     if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
-	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.schema.append);
+	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 	
     if(this.options.compact) this.container.className += ' compact';
 
@@ -5336,7 +5352,7 @@ JSONEditor.defaults.editors.selectize = JSONEditor.AbstractEditor.extend({
     var self = this;
     if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
-	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.schema.append);
+	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 
     if(this.options.compact) this.container.className += ' compact';
 
@@ -5564,7 +5580,7 @@ JSONEditor.defaults.editors.multiselect = JSONEditor.AbstractEditor.extend({
     var self = this, i;
     if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
-	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.schema.append);
+	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 
     if((!this.schema.format && this.option_keys.length < 8) || this.schema.format === "checkbox") {
       this.input_type = 'checkboxes';
@@ -6044,7 +6060,7 @@ JSONEditor.defaults.editors.arraySelectize = JSONEditor.AbstractEditor.extend({
       this.description = this.theme.getDescription(this.schema.description);
     }
 	if(this.schema.append) {
-      this.append = this.theme.getAppend(this.schema.append);
+      this.append = this.theme.getAppend(this.getAppend());
     }
 
     this.input = document.createElement('select');
@@ -6284,16 +6300,18 @@ JSONEditor.AbstractTheme = Class.extend({
     return el;
   },
   getRangeInput: function(min,max,step) {
-    var el = this.getFormInputField('range');
-    el.setAttribute('min',min);
-    el.setAttribute('max',max);
+    if (typeof step == "undefined") step = 1;
+	
+	var el = this.getFormInputField('number');
+    if (typeof min != "undefined") el.setAttribute('min',min);
+    if (typeof max != "undefined") el.setAttribute('max',max);
     el.setAttribute('step',step);
     return el;
   },
   getFormInputField: function(type) {
     var el = document.createElement('input');
     el.setAttribute('type',type);
-    return el;
+	return el;
   },
   afterInputReady: function(input) {
 
@@ -6485,194 +6503,6 @@ JSONEditor.AbstractTheme = Class.extend({
   }
 });
 
-JSONEditor.defaults.themes.bootstrap2 = JSONEditor.AbstractTheme.extend({
-  getRangeInput: function(min, max, step) {
-    // TODO: use bootstrap slider
-    return this._super(min, max, step);
-  },
-  getGridContainer: function() {
-    var el = document.createElement('div');
-    el.className = 'container-fluid';
-    return el;
-  },
-  getGridRow: function() {
-    var el = document.createElement('div');
-    el.className = 'row-fluid';
-    return el;
-  },
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.display = 'inline-block';
-    el.style.fontWeight = 'bold';
-    return el;
-  },
-  setGridColumnSize: function(el,size) {
-    el.className = 'span'+size;
-  },
-  getSelectInput: function(options) {
-    var input = this._super(options);
-    input.style.width = 'auto';
-    input.style.maxWidth = '98%';
-    return input;
-  },
-  getFormInputField: function(type) {
-    var el = this._super(type);
-    el.style.width = '98%';
-    return el;
-  },
-  afterInputReady: function(input) {
-    if(input.controlgroup) return;
-    input.controlgroup = this.closest(input,'.control-group');
-    input.controls = this.closest(input,'.controls');
-    if(this.closest(input,'.compact')) {
-      input.controlgroup.className = input.controlgroup.className.replace(/control-group/g,'').replace(/[ ]{2,}/g,' ');
-      input.controls.className = input.controlgroup.className.replace(/controls/g,'').replace(/[ ]{2,}/g,' ');
-      input.style.marginBottom = 0;
-    }
-
-    // TODO: use bootstrap slider
-  },
-  getIndentedPanel: function() {
-    var el = document.createElement('div');
-    el.className = 'well well-small';
-    el.style.paddingBottom = 0;
-    return el;
-  },
-  getFormInputDescription: function(text) {
-    var el = document.createElement('p');
-    el.className = 'help-inline';
-    el.textContent = text;
-    return el;
-  },
-  getFormInputAppend: function(text) {
-    var el = document.createElement('div');
-    el.className = 'input-group-addon';
-    el.textContent = text;
-    return el;
-  },
-  getFormControl: function(label, input, description, append) {
-    var ret = document.createElement('div');
-    ret.className = 'control-group';
-
-    var controls = document.createElement('div');
-    controls.className = 'controls';
-
-    if(label && input.getAttribute('type') === 'checkbox') {
-      ret.appendChild(controls);
-      label.className += ' checkbox';
-      label.appendChild(input);
-      controls.appendChild(label);
-      controls.style.height = '30px';
-    }
-    else {
-      if(label) {
-        label.className += ' control-label';
-        ret.appendChild(label);
-      }
-      controls.appendChild(input);
-      ret.appendChild(controls);
-    }
-
-    if(description) controls.appendChild(description);
-
-    return ret;
-  },
-  getHeaderButtonHolder: function() {
-    var el = this.getButtonHolder();
-    el.style.marginLeft = '10px';
-    return el;
-  },
-  getButtonHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'btn-group';
-    return el;
-  },
-  getButton: function(text, icon, title) {
-    var el =  this._super(text, icon, title);
-    el.className += ' btn btn-default';
-    return el;
-  },
-  getTable: function() {
-    var el = document.createElement('table');
-    el.className = 'table table-bordered';
-    el.style.width = 'auto';
-    el.style.maxWidth = 'none';
-    return el;
-  },
-  addInputError: function(input,text) {
-    if(!input.controlgroup || !input.controls) return;
-    input.controlgroup.className += ' error';
-    if(!input.errmsg) {
-      input.errmsg = document.createElement('p');
-      input.errmsg.className = 'help-block errormsg';
-      input.controls.appendChild(input.errmsg);
-    }
-    else {
-      input.errmsg.style.display = '';
-    }
-
-    input.errmsg.textContent = text;
-  },
-  removeInputError: function(input) {
-    if(!input.errmsg) return;
-    input.errmsg.style.display = 'none';
-    input.controlgroup.className = input.controlgroup.className.replace(/\s?error/g,'');
-  },
-  getTabHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'tabbable tabs-left';
-    el.innerHTML = "<ul class='nav nav-tabs span2' style='margin-right: 0;'></ul><div class='tab-content span10' style='overflow:visible;'></div>";
-    return el;
-  },
-  getTab: function(text) {
-    var el = document.createElement('li');
-    var a = document.createElement('a');
-    a.setAttribute('href','#');
-    a.appendChild(text);
-    el.appendChild(a);
-    return el;
-  },
-  getTabContentHolder: function(tab_holder) {
-    return tab_holder.children[1];
-  },
-  getTabContent: function() {
-    var el = document.createElement('div');
-    el.className = 'tab-pane active';
-    return el;
-  },
-  markTabActive: function(tab) {
-    tab.className += ' active';
-  },
-  markTabInactive: function(tab) {
-    tab.className = tab.className.replace(/\s?active/g,'');
-  },
-  addTab: function(holder, tab) {
-    holder.children[0].appendChild(tab);
-  },
-  getProgressBar: function() {
-    var container = document.createElement('div');
-    container.className = 'progress';
-
-    var bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.width = '0%';
-    container.appendChild(bar);
-
-    return container;
-  },
-  updateProgressBar: function(progressBar, progress) {
-    if (!progressBar) return;
-
-    progressBar.firstChild.style.width = progress + "%";
-  },
-  updateProgressBarUnknown: function(progressBar) {
-    if (!progressBar) return;
-
-    progressBar.className = 'progress progress-striped active';
-    progressBar.firstChild.style.width = '100%';
-  }
-});
-
 JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   getSelectInput: function(options) {
     var el = this._super(options);
@@ -6703,7 +6533,7 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   },
   getFormInputField: function(type) {
     var el = this._super(type);
-    if(type !== 'checkbox') {
+	if(type !== 'checkbox') {
       el.className += 'form-control';
     }
     return el;
@@ -6712,29 +6542,43 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
     var group = document.createElement('div');
 	var subgroup = document.createElement('div');
 
-	if (append){
+	if (input.type === 'checkbox'){
+		var helplabel = document.createElement("label")
+		
+		group.className += ' form-group';
+		group.style.minHeight = "30px";
+		label.className += ' col-form-label col-sm-2';
+		label.style.fontWeight = "bold";
+		group.appendChild(label);
+		group.appendChild(subgroup);
+		subgroup.className += 'checkbox col-sm-10';
+		subgroup.style.marginTop = "0px";
+		subgroup.appendChild(input);
+		subgroup.appendChild(helplabel);
+
+		//if (input.name.includes('enable'))
+		//	subgroup.className += ' checkbox-success';
+	}
+	else if (append){
 		group.className += ' form-group';
 		if(label) {
-			label.className += ' col-form-label col-md-2';
+			label.className += ' col-form-label col-sm-2';
 			group.appendChild(label);
 		}
 		group.appendChild(subgroup);
-		subgroup.className += 'col-md-10 input-group';
+		subgroup.className += 'col-sm-10 input-group';
 		subgroup.appendChild(input);
 		subgroup.appendChild(append);
 	}
     else {
       group.className += ' form-group';
       if(label) {
-        label.className += ' col-form-label col-md-2';
+        label.className += ' col-form-label col-sm-2';
         group.appendChild(label);
       }
 		group.appendChild(subgroup);
-	      subgroup.className += ' input-group col-md-10';
+	      subgroup.className += ' input-group col-sm-10';
 	      subgroup.appendChild(input);
-		if (input.type === 'checkbox'){
-			label.style.fontWeight = 'bold';
-		}
 	  }
     
 
@@ -6858,594 +6702,6 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   }
 });
 
-// Base Foundation theme
-JSONEditor.defaults.themes.foundation = JSONEditor.AbstractTheme.extend({
-  getChildEditorHolder: function() {
-    var el = document.createElement('div');
-    el.style.marginBottom = '15px';
-    return el;
-  },
-  getSelectInput: function(options) {
-    var el = this._super(options);
-    el.style.minWidth = 'none';
-    el.style.padding = '5px';
-    el.style.marginTop = '3px';
-    return el;
-  },
-  getSwitcher: function(options) {
-    var el = this._super(options);
-    el.style.paddingRight = '8px';
-    return el;
-  },
-  afterInputReady: function(input) {
-    if(this.closest(input,'.compact')) {
-      input.style.marginBottom = 0;
-    }
-    input.group = this.closest(input,'.form-control');
-  },
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.display = 'inline-block';
-    return el;
-  },
-  getFormInputField: function(type) {
-    var el = this._super(type);
-    el.style.width = '100%';
-    el.style.marginBottom = type==='checkbox'? '0' : '12px';
-    return el;
-  },
-  getFormInputDescription: function(text) {
-    var el = document.createElement('p');
-    el.textContent = text;
-    el.style.marginTop = '-10px';
-    el.style.fontStyle = 'italic';
-    return el;
-  },
-  getIndentedPanel: function() {
-    var el = document.createElement('div');
-    el.className = 'panel';
-    el.style.paddingBottom = 0;
-    return el;
-  },
-  getHeaderButtonHolder: function() {
-    var el = this.getButtonHolder();
-    el.style.display = 'inline-block';
-    el.style.marginLeft = '10px';
-    el.style.verticalAlign = 'middle';
-    return el;
-  },
-  getButtonHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'button-group';
-    return el;
-  },
-  getButton: function(text, icon, title) {
-    var el = this._super(text, icon, title);
-    el.className += ' small button';
-    return el;
-  },
-  addInputError: function(input,text) {
-    if(!input.group) return;
-    input.group.className += ' error';
-
-    if(!input.errmsg) {
-      input.insertAdjacentHTML('afterend','<small class="error"></small>');
-      input.errmsg = input.parentNode.getElementsByClassName('error')[0];
-    }
-    else {
-      input.errmsg.style.display = '';
-    }
-
-    input.errmsg.textContent = text;
-  },
-  removeInputError: function(input) {
-    if(!input.errmsg) return;
-    input.group.className = input.group.className.replace(/ error/g,'');
-    input.errmsg.style.display = 'none';
-  },
-  getProgressBar: function() {
-    var progressBar = document.createElement('div');
-    progressBar.className = 'progress';
-
-    var meter = document.createElement('span');
-    meter.className = 'meter';
-    meter.style.width = '0%';
-    progressBar.appendChild(meter);
-    return progressBar;
-  },
-  updateProgressBar: function(progressBar, progress) {
-    if (!progressBar) return;
-    progressBar.firstChild.style.width = progress + '%';
-  },
-  updateProgressBarUnknown: function(progressBar) {
-    if (!progressBar) return;
-    progressBar.firstChild.style.width = '100%';
-  }
-});
-
-// Foundation 3 Specific Theme
-JSONEditor.defaults.themes.foundation3 = JSONEditor.defaults.themes.foundation.extend({
-  getHeaderButtonHolder: function() {
-    var el = this._super();
-    el.style.fontSize = '.6em';
-    return el;
-  },
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.fontWeight = 'bold';
-    return el;
-  },
-  getTabHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'row';
-    el.innerHTML = "<dl class='tabs vertical two columns'></dl><div class='tabs-content ten columns'></div>";
-    return el;
-  },
-  setGridColumnSize: function(el,size) {
-    var sizes = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
-    el.className = 'columns '+sizes[size];
-  },
-  getTab: function(text) {
-    var el = document.createElement('dd');
-    var a = document.createElement('a');
-    a.setAttribute('href','#');
-    a.appendChild(text);
-    el.appendChild(a);
-    return el;
-  },
-  getTabContentHolder: function(tab_holder) {
-    return tab_holder.children[1];
-  },
-  getTabContent: function() {
-    var el = document.createElement('div');
-    el.className = 'content active';
-    el.style.paddingLeft = '5px';
-    return el;
-  },
-  markTabActive: function(tab) {
-    tab.className += ' active';
-  },
-  markTabInactive: function(tab) {
-    tab.className = tab.className.replace(/\s*active/g,'');
-  },
-  addTab: function(holder, tab) {
-    holder.children[0].appendChild(tab);
-  }
-});
-
-// Foundation 4 Specific Theme
-JSONEditor.defaults.themes.foundation4 = JSONEditor.defaults.themes.foundation.extend({
-  getHeaderButtonHolder: function() {
-    var el = this._super();
-    el.style.fontSize = '.6em';
-    return el;
-  },
-  setGridColumnSize: function(el,size) {
-    el.className = 'columns large-'+size;
-  },
-  getFormInputDescription: function(text) {
-    var el = this._super(text);
-    el.style.fontSize = '.8rem';
-    return el;
-  },
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.fontWeight = 'bold';
-    return el;
-  }
-});
-
-// Foundation 5 Specific Theme
-JSONEditor.defaults.themes.foundation5 = JSONEditor.defaults.themes.foundation.extend({
-  getFormInputDescription: function(text) {
-    var el = this._super(text);
-    el.style.fontSize = '.8rem';
-    return el;
-  },
-  setGridColumnSize: function(el,size) {
-    el.className = 'columns medium-'+size;
-  },
-  getButton: function(text, icon, title) {
-    var el = this._super(text,icon,title);
-    el.className = el.className.replace(/\s*small/g,'') + ' tiny';
-    return el;
-  },
-  getTabHolder: function() {
-    var el = document.createElement('div');
-    el.innerHTML = "<dl class='tabs vertical'></dl><div class='tabs-content vertical'></div>";
-    return el;
-  },
-  getTab: function(text) {
-    var el = document.createElement('dd');
-    var a = document.createElement('a');
-    a.setAttribute('href','#');
-    a.appendChild(text);
-    el.appendChild(a);
-    return el;
-  },
-  getTabContentHolder: function(tab_holder) {
-    return tab_holder.children[1];
-  },
-  getTabContent: function() {
-    var el = document.createElement('div');
-    el.className = 'content active';
-    el.style.paddingLeft = '5px';
-    return el;
-  },
-  markTabActive: function(tab) {
-    tab.className += ' active';
-  },
-  markTabInactive: function(tab) {
-    tab.className = tab.className.replace(/\s*active/g,'');
-  },
-  addTab: function(holder, tab) {
-    holder.children[0].appendChild(tab);
-  }
-});
-
-JSONEditor.defaults.themes.foundation6 = JSONEditor.defaults.themes.foundation5.extend({
-  getIndentedPanel: function() {
-    var el = document.createElement('div');
-    el.className = 'callout secondary';
-    return el;
-  },
-  getButtonHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'button-group tiny';
-    el.style.marginBottom = 0;
-    return el;
-  },
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.display = 'block';
-    return el;
-  },
-  getFormControl: function(label, input, description) {
-    var el = document.createElement('div');
-    el.className = 'form-control';
-    if(label) el.appendChild(label);
-    if(input.type === 'checkbox') {
-      label.insertBefore(input,label.firstChild);
-    }
-    else if (label) {
-      label.appendChild(input);
-    } else {
-      el.appendChild(input);
-    }
-
-    if(description) label.appendChild(description);
-    return el;
-  },
-  addInputError: function(input,text) {
-    if(!input.group) return;
-    input.group.className += ' error';
-
-    if(!input.errmsg) {
-      var errorEl = document.createElement('span');
-      errorEl.className = 'form-error is-visible';
-      input.group.getElementsByTagName('label')[0].appendChild(errorEl);
-
-      input.className = input.className + ' is-invalid-input';
-
-      input.errmsg = errorEl;
-    }
-    else {
-      input.errmsg.style.display = '';
-      input.className = '';
-    }
-
-    input.errmsg.textContent = text;
-  },
-  removeInputError: function(input) {
-    if(!input.errmsg) return;
-    input.className = input.className.replace(/ is-invalid-input/g,'');
-    if(input.errmsg.parentNode) {
-      input.errmsg.parentNode.removeChild(input.errmsg);
-    }
-  },
-});
-
-JSONEditor.defaults.themes.html = JSONEditor.AbstractTheme.extend({
-  getFormInputLabel: function(text) {
-    var el = this._super(text);
-    el.style.display = 'block';
-    el.style.marginBottom = '3px';
-    el.style.fontWeight = 'bold';
-    return el;
-  },
-  getFormInputDescription: function(text) {
-    var el = this._super(text);
-    el.style.fontSize = '.8em';
-    el.style.margin = 0;
-    el.style.display = 'inline-block';
-    el.style.fontStyle = 'italic';
-    return el;
-  },
-  getIndentedPanel: function() {
-    var el = this._super();
-    el.style.border = '1px solid #ddd';
-    el.style.padding = '5px';
-    el.style.margin = '5px';
-    el.style.borderRadius = '3px';
-    return el;
-  },
-  getChildEditorHolder: function() {
-    var el = this._super();
-    el.style.marginBottom = '8px';
-    return el;
-  },
-  getHeaderButtonHolder: function() {
-    var el = this.getButtonHolder();
-    el.style.display = 'inline-block';
-    el.style.marginLeft = '10px';
-    el.style.fontSize = '.8em';
-    el.style.verticalAlign = 'middle';
-    return el;
-  },
-  getTable: function() {
-    var el = this._super();
-    el.style.borderBottom = '1px solid #ccc';
-    el.style.marginBottom = '5px';
-    return el;
-  },
-  addInputError: function(input, text) {
-    input.style.borderColor = 'red';
-
-    if(!input.errmsg) {
-      var group = this.closest(input,'.form-control');
-      input.errmsg = document.createElement('div');
-      input.errmsg.setAttribute('class','errmsg');
-      input.errmsg.style = input.errmsg.style || {};
-      input.errmsg.style.color = 'red';
-      group.appendChild(input.errmsg);
-    }
-    else {
-      input.errmsg.style.display = 'block';
-    }
-
-    input.errmsg.innerHTML = '';
-    input.errmsg.appendChild(document.createTextNode(text));
-  },
-  removeInputError: function(input) {
-    input.style.borderColor = '';
-    if(input.errmsg) input.errmsg.style.display = 'none';
-  },
-  getProgressBar: function() {
-    var max = 100, start = 0;
-
-    var progressBar = document.createElement('progress');
-    progressBar.setAttribute('max', max);
-    progressBar.setAttribute('value', start);
-    return progressBar;
-  },
-  updateProgressBar: function(progressBar, progress) {
-    if (!progressBar) return;
-    progressBar.setAttribute('value', progress);
-  },
-  updateProgressBarUnknown: function(progressBar) {
-    if (!progressBar) return;
-    progressBar.removeAttribute('value');
-  }
-});
-
-JSONEditor.defaults.themes.jqueryui = JSONEditor.AbstractTheme.extend({
-  getTable: function() {
-    var el = this._super();
-    el.setAttribute('cellpadding',5);
-    el.setAttribute('cellspacing',0);
-    return el;
-  },
-  getTableHeaderCell: function(text) {
-    var el = this._super(text);
-    el.className = 'ui-state-active';
-    el.style.fontWeight = 'bold';
-    return el;
-  },
-  getTableCell: function() {
-    var el = this._super();
-    el.className = 'ui-widget-content';
-    return el;
-  },
-  getHeaderButtonHolder: function() {
-    var el = this.getButtonHolder();
-    el.style.marginLeft = '10px';
-    el.style.fontSize = '.6em';
-    el.style.display = 'inline-block';
-    return el;
-  },
-  getFormInputDescription: function(text) {
-    var el = this.getDescription(text);
-    el.style.marginLeft = '10px';
-    el.style.display = 'inline-block';
-    return el;
-  },
-  getFormControl: function(label, input, description) {
-    var el = this._super(label,input,description);
-    if(input.type === 'checkbox') {
-      el.style.lineHeight = '25px';
-
-      el.style.padding = '3px 0';
-    }
-    else {
-      el.style.padding = '4px 0 8px 0';
-    }
-    return el;
-  },
-  getDescription: function(text) {
-    var el = document.createElement('span');
-    el.style.fontSize = '.8em';
-    el.style.fontStyle = 'italic';
-    el.textContent = text;
-    return el;
-  },
-  getButtonHolder: function() {
-    var el = document.createElement('div');
-    el.className = 'ui-buttonset';
-    el.style.fontSize = '.7em';
-    return el;
-  },
-  getFormInputLabel: function(text) {
-    var el = document.createElement('label');
-    el.style.fontWeight = 'bold';
-    el.style.display = 'block';
-    el.textContent = text;
-    return el;
-  },
-  getButton: function(text, icon, title) {
-    var button = document.createElement("button");
-    button.className = 'ui-button ui-widget ui-state-default ui-corner-all';
-
-    // Icon only
-    if(icon && !text) {
-      button.className += ' ui-button-icon-only';
-      icon.className += ' ui-button-icon-primary ui-icon-primary';
-      button.appendChild(icon);
-    }
-    // Icon and Text
-    else if(icon) {
-      button.className += ' ui-button-text-icon-primary';
-      icon.className += ' ui-button-icon-primary ui-icon-primary';
-      button.appendChild(icon);
-    }
-    // Text only
-    else {
-      button.className += ' ui-button-text-only';
-    }
-
-    var el = document.createElement('span');
-    el.className = 'ui-button-text';
-    el.textContent = text||title||".";
-    button.appendChild(el);
-
-    button.setAttribute('title',title);
-
-    return button;
-  },
-  setButtonText: function(button,text, icon, title) {
-    button.innerHTML = '';
-    button.className = 'ui-button ui-widget ui-state-default ui-corner-all';
-
-    // Icon only
-    if(icon && !text) {
-      button.className += ' ui-button-icon-only';
-      icon.className += ' ui-button-icon-primary ui-icon-primary';
-      button.appendChild(icon);
-    }
-    // Icon and Text
-    else if(icon) {
-      button.className += ' ui-button-text-icon-primary';
-      icon.className += ' ui-button-icon-primary ui-icon-primary';
-      button.appendChild(icon);
-    }
-    // Text only
-    else {
-      button.className += ' ui-button-text-only';
-    }
-
-    var el = document.createElement('span');
-    el.className = 'ui-button-text';
-    el.textContent = text||title||".";
-    button.appendChild(el);
-
-    button.setAttribute('title',title);
-  },
-  getIndentedPanel: function() {
-    var el = document.createElement('div');
-    el.className = 'ui-widget-content ui-corner-all';
-    el.style.padding = '1em 1.4em';
-    el.style.marginBottom = '20px';
-    return el;
-  },
-  afterInputReady: function(input) {
-    if(input.controls) return;
-    input.controls = this.closest(input,'.form-control');
-  },
-  addInputError: function(input,text) {
-    if(!input.controls) return;
-    if(!input.errmsg) {
-      input.errmsg = document.createElement('div');
-      input.errmsg.className = 'ui-state-error';
-      input.controls.appendChild(input.errmsg);
-    }
-    else {
-      input.errmsg.style.display = '';
-    }
-
-    input.errmsg.textContent = text;
-  },
-  removeInputError: function(input) {
-    if(!input.errmsg) return;
-    input.errmsg.style.display = 'none';
-  },
-  markTabActive: function(tab) {
-    tab.className = tab.className.replace(/\s*ui-widget-header/g,'')+' ui-state-active';
-  },
-  markTabInactive: function(tab) {
-    tab.className = tab.className.replace(/\s*ui-state-active/g,'')+' ui-widget-header';
-  }
-});
-
-JSONEditor.defaults.themes.barebones = JSONEditor.AbstractTheme.extend({
-    getFormInputLabel: function (text) {
-        var el = this._super(text);
-        return el;
-    },
-    getFormInputDescription: function (text) {
-        var el = this._super(text);
-        return el;
-    },
-    getIndentedPanel: function () {
-        var el = this._super();
-        return el;
-    },
-    getChildEditorHolder: function () {
-        var el = this._super();
-        return el;
-    },
-    getHeaderButtonHolder: function () {
-        var el = this.getButtonHolder();
-        return el;
-    },
-    getTable: function () {
-        var el = this._super();
-        return el;
-    },
-    addInputError: function (input, text) {
-        if (!input.errmsg) {
-            var group = this.closest(input, '.form-control');
-            input.errmsg = document.createElement('div');
-            input.errmsg.setAttribute('class', 'errmsg');
-            group.appendChild(input.errmsg);
-        }
-        else {
-            input.errmsg.style.display = 'block';
-        }
-
-        input.errmsg.innerHTML = '';
-        input.errmsg.appendChild(document.createTextNode(text));
-    },
-    removeInputError: function (input) {
-        input.style.borderColor = '';
-        if (input.errmsg) input.errmsg.style.display = 'none';
-    },
-    getProgressBar: function () {
-        var max = 100, start = 0;
-
-        var progressBar = document.createElement('progress');
-        progressBar.setAttribute('max', max);
-        progressBar.setAttribute('value', start);
-        return progressBar;
-    },
-    updateProgressBar: function (progressBar, progress) {
-        if (!progressBar) return;
-        progressBar.setAttribute('value', progress);
-    },
-    updateProgressBarUnknown: function (progressBar) {
-        if (!progressBar) return;
-        progressBar.removeAttribute('value');
-    }
-});
-
 JSONEditor.AbstractIconLib = Class.extend({
   mapping: {
     collapse: '',
@@ -7474,51 +6730,6 @@ JSONEditor.AbstractIconLib = Class.extend({
   }
 });
 
-JSONEditor.defaults.iconlibs.bootstrap2 = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'chevron-down',
-    expand: 'chevron-up',
-    "delete": 'trash',
-    edit: 'pencil',
-    add: 'plus',
-    cancel: 'ban-circle',
-    save: 'ok',
-    moveup: 'arrow-up',
-    movedown: 'arrow-down'
-  },
-  icon_prefix: 'icon-'
-});
-
-JSONEditor.defaults.iconlibs.bootstrap3 = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'chevron-down',
-    expand: 'chevron-right',
-    "delete": 'remove',
-    edit: 'pencil',
-    add: 'plus',
-    cancel: 'floppy-remove',
-    save: 'floppy-saved',
-    moveup: 'arrow-up',
-    movedown: 'arrow-down'
-  },
-  icon_prefix: 'glyphicon glyphicon-'
-});
-
-JSONEditor.defaults.iconlibs.fontawesome3 = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'chevron-down',
-    expand: 'chevron-right',
-    "delete": 'remove',
-    edit: 'pencil',
-    add: 'plus',
-    cancel: 'ban-circle',
-    save: 'save',
-    moveup: 'arrow-up',
-    movedown: 'arrow-down'
-  },
-  icon_prefix: 'icon-'
-});
-
 JSONEditor.defaults.iconlibs.fontawesome4 = JSONEditor.AbstractIconLib.extend({
   mapping: {
     collapse: 'caret-square-o-down',
@@ -7532,51 +6743,6 @@ JSONEditor.defaults.iconlibs.fontawesome4 = JSONEditor.AbstractIconLib.extend({
     movedown: 'arrow-down'
   },
   icon_prefix: 'fa fa-'
-});
-
-JSONEditor.defaults.iconlibs.foundation2 = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'minus',
-    expand: 'plus',
-    "delete": 'remove',
-    edit: 'edit',
-    add: 'add-doc',
-    cancel: 'error',
-    save: 'checkmark',
-    moveup: 'up-arrow',
-    movedown: 'down-arrow'
-  },
-  icon_prefix: 'foundicon-'
-});
-
-JSONEditor.defaults.iconlibs.foundation3 = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'minus',
-    expand: 'plus',
-    "delete": 'x',
-    edit: 'pencil',
-    add: 'page-add',
-    cancel: 'x-circle',
-    save: 'save',
-    moveup: 'arrow-up',
-    movedown: 'arrow-down'
-  },
-  icon_prefix: 'fi-'
-});
-
-JSONEditor.defaults.iconlibs.jqueryui = JSONEditor.AbstractIconLib.extend({
-  mapping: {
-    collapse: 'triangle-1-s',
-    expand: 'triangle-1-e',
-    "delete": 'trash',
-    edit: 'pencil',
-    add: 'plusthick',
-    cancel: 'closethick',
-    save: 'disk',
-    moveup: 'arrowthick-1-n',
-    movedown: 'arrowthick-1-s'
-  },
-  icon_prefix: 'ui-icon ui-icon-'
 });
 
 JSONEditor.defaults.templates["default"] = function() {
@@ -7720,200 +6886,10 @@ JSONEditor.defaults.template = 'default';
 JSONEditor.defaults.options = {};
 
 // String translate function
-JSONEditor.defaults.translate = function(key, variables) {
-  var lang = JSONEditor.defaults.languages[JSONEditor.defaults.language];
-  if(!lang) throw "Unknown language "+JSONEditor.defaults.language;
-
-  var string = lang[key] || JSONEditor.defaults.languages[JSONEditor.defaults.default_language][key];
-
-  if(typeof string === "undefined") throw "Unknown translate string "+key;
-
-  if(variables) {
-    for(var i=0; i<variables.length; i++) {
-      string = string.replace(new RegExp('\\{\\{'+i+'}}','g'),variables[i]);
-    }
-  }
-
-  return string;
-};
-
-// Translation strings and default languages
-JSONEditor.defaults.default_language = 'en';
-JSONEditor.defaults.language = JSONEditor.defaults.default_language;
-JSONEditor.defaults.languages.en = {
-  /**
-   * When a property is not set
-   */
-  error_notset: "Property must be set",
-  /**
-   * When a string must not be empty
-   */
-  error_notempty: "Value required",
-  /**
-   * When a value is not one of the enumerated values
-   */
-  error_enum: "Value must be one of the enumerated values",
-  /**
-   * When a value doesn't validate any schema of a 'anyOf' combination
-   */
-  error_anyOf: "Value must validate against at least one of the provided schemas",
-  /**
-   * When a value doesn't validate
-   * @variables This key takes one variable: The number of schemas the value does not validate
-   */
-  error_oneOf: 'Value must validate against exactly one of the provided schemas. It currently validates against {{0}} of the schemas.',
-  /**
-   * When a value does not validate a 'not' schema
-   */
-  error_not: "Value must not validate against the provided schema",
-  /**
-   * When a value does not match any of the provided types
-   */
-  error_type_union: "Value must be one of the provided types",
-  /**
-   * When a value does not match the given type
-   * @variables This key takes one variable: The type the value should be of
-   */
-  error_type: "Value must be of type {{0}}",
-  /**
-   *  When the value validates one of the disallowed types
-   */
-  error_disallow_union: "Value must not be one of the provided disallowed types",
-  /**
-   *  When the value validates a disallowed type
-   * @variables This key takes one variable: The type the value should not be of
-   */
-  error_disallow: "Value must not be of type {{0}}",
-  /**
-   * When a value is not a multiple of or divisible by a given number
-   * @variables This key takes one variable: The number mentioned above
-   */
-  error_multipleOf: "Value must be a multiple of {{0}}",
-  /**
-   * When a value is greater than it's supposed to be (exclusive)
-   * @variables This key takes one variable: The maximum
-   */
-  error_maximum_excl: "Value must be less than {{0}}",
-  /**
-   * When a value is greater than it's supposed to be (inclusive
-   * @variables This key takes one variable: The maximum
-   */
-  error_maximum_incl: "Value must be at most {{0}}",
-  /**
-   * When a value is lesser than it's supposed to be (exclusive)
-   * @variables This key takes one variable: The minimum
-   */
-  error_minimum_excl: "Value must be greater than {{0}}",
-  /**
-   * When a value is lesser than it's supposed to be (inclusive)
-   * @variables This key takes one variable: The minimum
-   */
-  error_minimum_incl: "Value must be at least {{0}}",
-  /**
-   * When a value have too many characters
-   * @variables This key takes one variable: The maximum character count
-   */
-  error_maxLength: "Value must be at most {{0}} characters long",
-  /**
-   * When a value does not have enough characters
-   * @variables This key takes one variable: The minimum character count
-   */
-  error_minLength: "Value must be at least {{0}} characters long",
-  /**
-   * When a value does not match a given pattern
-   */
-  error_pattern: "Value must match the pattern {{0}}",
-  /**
-   * When an array has additional items whereas it is not supposed to
-   */
-  error_additionalItems: "No additional items allowed in this array",
-  /**
-   * When there are to many items in an array
-   * @variables This key takes one variable: The maximum item count
-   */
-  error_maxItems: "Value must have at most {{0}} items",
-  /**
-   * When there are not enough items in an array
-   * @variables This key takes one variable: The minimum item count
-   */
-  error_minItems: "Value must have at least {{0}} items",
-  /**
-   * When an array is supposed to have unique items but has duplicates
-   */
-  error_uniqueItems: "Array must have unique items",
-  /**
-   * When there are too many properties in an object
-   * @variables This key takes one variable: The maximum property count
-   */
-  error_maxProperties: "Object must have at most {{0}} properties",
-  /**
-   * When there are not enough properties in an object
-   * @variables This key takes one variable: The minimum property count
-   */
-  error_minProperties: "Object must have at least {{0}} properties",
-  /**
-   * When a required property is not defined
-   * @variables This key takes one variable: The name of the missing property
-   */
-  error_required: "Object is missing the required property '{{0}}'",
-  /**
-   * When there is an additional property is set whereas there should be none
-   * @variables This key takes one variable: The name of the additional property
-   */
-  error_additional_properties: "No additional properties allowed, but property {{0}} is set",
-  /**
-   * When a dependency is not resolved
-   * @variables This key takes one variable: The name of the missing property for the dependency
-   */
-  error_dependency: "Must have property {{0}}",
-  /**
-   * Text on Delete All buttons
-   */
-  button_delete_all: "All",
-  /**
-   * Title on Delete All buttons
-   */
-  button_delete_all_title: "Delete All",
-  /**
-    * Text on Delete Last buttons
-    * @variable This key takes one variable: The title of object to delete
-    */
-  button_delete_last: "Last {{0}}",
-  /**
-    * Title on Delete Last buttons
-    * @variable This key takes one variable: The title of object to delete
-    */
-  button_delete_last_title: "Delete Last {{0}}",
-  /**
-    * Title on Add Row buttons
-    * @variable This key takes one variable: The title of object to add
-    */
-  button_add_row_title: "Add {{0}}",
-  /**
-    * Title on Move Down buttons
-    */
-  button_move_down_title: "Move down",
-  /**
-    * Title on Move Up buttons
-    */
-  button_move_up_title: "Move up",
-  /**
-    * Title on Delete Row buttons
-    * @variable This key takes one variable: The title of object to delete
-    */
-  button_delete_row_title: "Delete {{0}}",
-  /**
-    * Title on Delete Row buttons, short version (no parameter with the object title)
-    */
-  button_delete_row_title_short: "Delete",
-  /**
-    * Title on Collapse buttons
-    */
-  button_collapse: "Collapse",
-  /**
-    * Title on Expand buttons
-    */
-  button_expand: "Expand"
+JSONEditor.defaults.translate = function(key, variables) {  
+  
+  return $.i18n(key, variables);
+  
 };
 
 // Miscellaneous Plugin Settings
