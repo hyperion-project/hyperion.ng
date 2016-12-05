@@ -56,7 +56,7 @@
 		"main_menu_input_selection_token" : "Eingabeauswahl",
 		"main_menu_logging_token" : "Protokoll",
 		"conf_effects_label_intro" : "Stelle einen Effekt oder Farbe ein, der beim Starten sichtbar sein soll. Stelle einen Hintergrundeffekt/Farbe ein der erst sichtbar wird, wenn alle Bildquellen abgeschaltet sind (Das gilt ebenfalls für temporäres abschalten mithilfe der Kodi Überwachung).",
-		"conf_leds_label_intro" : "Der LED Hardware bereich ermöglicht eine Vielzahl von Ausgabemöglichkeiten über Raspberry Pi GPIO, USB oder Netzwerk. Erstelle ein LED Layout das zu deinem Aufbau passt und schon kann es losgehen!",
+		"conf_leds_label_intro" : "Der LED Hardware Bereich ermöglicht eine Vielzahl von Ausgabemöglichkeiten über Raspberry Pi GPIO, USB oder Netzwerk. Erstelle ein LED Layout das zu deinem Aufbau passt und schon kann es losgehen!",
 		"conf_leds_nav_label_ledcontroller" : "LED Steuerung",
 		"conf_leds_nav_label_ledlayout" : "LED Layout",
 		"conf_leds_nav_label_ledtesting" : "LED Test",
@@ -128,10 +128,7 @@
 		"remote_components_label_components" : "Komponentensteuerung",
 		"remote_optgroup_usreffets" : "Benutzer Effekte",
 		"remote_optgroup_syseffets" : "Mitgelieferte Effekte",
-		
-		"remote_effects_intro" : "Die Effekt-Fernbedienung ermöglicht es dir Effekte zu starten für Demonstrations- oder Testzwecke. Vergessse nicht den Effekt wieder zu stoppen, wenn du fertig bist.",
-		"remote_components_intro" : "Die Komponenten-Fenbedienung ermöglicht es dir Komponenten von Hyperion zu starten und stoppen. Beachte: Dies ist nur temporär und geht nach einem Neustart verloren. Möchtest du dauerhaft Komponenten aktivieren/deaktivieren benutze die Konfigurationsseiten.",
-		
+    "remote_help_text" : "Hyperion nutzt ein Prioritätensystem um die Quelle zu wählen. Alles was du setzte hat eine Prioität (Effekte/Farben/Plattform Capture/USB Capture und Netzwerkquellen). Standartmäßig nutzt Hyperion die Quelle mit der niedrigsten Prioität. Hier hast du die Möglichkeit die Quelle manuell auszuwählen.",
 		"hue_button_create_user_token" : "Benutzer anlegen",
 		"hue_press_link_modal" : "Bitte Link Taste auf der Hue Bridge drücken.",
 		"hue_failure_connection_token" : "Connection Timeout. Bitte drücke die Taste rechtzeitig.",
@@ -140,6 +137,7 @@
 		"hue_failure_ip_token" : "Bitte überprüfe deine IP Adresse.",
 		"hue_label_username" : "Benutzername:",
 		"hue_label_ip" : "Hue Bridge IP:",
+    "hue_help_text" : "Mit diesem Setupassistenten kannst du einen neuen User auf der Hue Bridge anlegen und deine LightIDs für die Hyperion Konfiguration herausfinden. Wenn du bereits einen eingetragenen User hast, siehst du diesen bereits untenstehend eingetragen. Du kannst allerdings jederzeit einen neuen Anlegen. Beachte: Dies ist nur ein Assistent. Du musst die Daten in die Konfiguration kopieren.",
 		"effectsconfigurator_label_intro" : "Erstelle auf Grundlage der Basiseffekte neue Effekt die nach deinen Wünschen angepasst sind. Je nach Effekt stehen Optionen wie Farbe, Geschwindigkeit, oder Richtung und vieles mehr zur Auswahl.",
 		"effectsconfigurator_label_chooseeff" : "Basis-Effekt auswählen:",
 		"effectsconfigurator_button_saveeffect" : "Effekt speichern",
