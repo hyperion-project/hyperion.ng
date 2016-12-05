@@ -116,7 +116,20 @@ function initWebSocket()
 	}
 }
 
+function sendToHyperion(command, subcommand, msg)
+{
+	if (typeof subcommand != 'undefined' && subcommand.length > 0)
+		subcommand = ',"subcommand":"'+subcommand+'"';
+	else
+		subcommand = "";
 
+	if (typeof msg != 'undefined' && msg.length > 0)
+		msg = ","+msg;
+	else
+		msg = "";
+
+	websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+wsTan+subcommand+msg+'}'));
+}
 
 // -----------------------------------------------------------
 // wrapped server commands
@@ -124,55 +137,55 @@ function initWebSocket()
 // also used for watchdog
 function requestServerInfo() {
 	watchdog++;
-	websocket.send('{"command":"serverinfo", "tan":'+wsTan+'}');
+	sendToHyperion("serverinfo");
 }
 
 function requestServerConfigSchema() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getschema"}');
+	sendToHyperion("config","getschema");
 }
 
 function requestServerConfig() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
+	sendToHyperion("config", "getconfig");
 }
 
 function requestServerConfigReload() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"reload"}');
+	sendToHyperion("config", "reload");
 }
 
 function requestLedColorsStart() {
 	ledStreamActive=true;
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
+	sendToHyperion("ledcolors", "ledstream-start");
 }
 
 function requestLedColorsStop() {
 	ledStreamActive=false;
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-stop"}');
+	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
 function requestPriorityClear() {
-	websocket.send('{"command":"clear", "tan":'+wsTan+', "priority":1}');
+	sendToHyperion("clear", "", '"priority":1');
 }
 
 function requestPlayEffect(effectName) {
-	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'"},"priority":1}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":1');
 }
 
 function requestSetColor(r,g,b) {
-	websocket.send('{"command":"color", "tan":'+wsTan+', "color":['+r+','+g+','+b+'], "priority":1}');
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":1');
 }
 
 function requestSetComponentState(comp, state){
-	state_str = state?"true":"false";
-	websocket.send('{"command":"componentstate", "tan":'+wsTan+',"componentstate":{"component":"'+comp+'","state":'+state_str+'}}');
+	state_str = state ? "true" : "false";
+	sendToHyperion("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
 	console.log(comp+' state: '+state_str);
 }
 
 function requestSetSource(prio)
 {
 	if ( prio == "auto" )
-		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "auto" : true}');
+		sendToHyperion("sourceselect", "", '"auto":true');
 	else
-		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
+		sendToHyperion("sourceselect", "", '"priority":'+prio);
 }
 
 function requestWriteConfig(config)
@@ -182,31 +195,35 @@ function requestWriteConfig(config)
 		complete_config[i] = val;
 	});
 
-	var config_str = encode_utf8(JSON.stringify(complete_config));
-	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+config_str+'}');
+	var config_str = JSON.stringify(complete_config);
+	console.log(config_str.length);
+	sendToHyperion("config","setconfig", '"config":'+config_str);
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
 {
 	var cutArgs = effectArgs.slice(1, -1);
-	websocket.send('{"command":"create-effect","name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+'}');
+	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs);
 }
 
 function requestTestEffect(effectName,effectPy,effectArgs) {
-	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
 }
 
-function requestDeleteEffect(effectName) {
-	websocket.send('{"command":"delete-effect", "tan":'+wsTan+',"name":"'+effectName+'"}');
+function requestDeleteEffect(effectName)
+{
+	sendToHyperion("delete-effect", "", '"name":"'+effectName+'"');
 }
 
-function requestLoggingStart() {
+function requestLoggingStart()
+{
 	loggingStreamActive=true;
-	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"start"}');
+	sendToHyperion("logging", "start");
 }
 
-function requestLoggingStop() {
+function requestLoggingStop()
+{
 	loggingStreamActive=false;
-	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"stop"}');
+	sendToHyperion("logging", "stop");
 }
 
