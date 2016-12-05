@@ -1080,6 +1080,7 @@
 					"type" : "string",
 					"title" : "edt_conf_webc_level_title",
 					"enum" : ["default", "expert"],
+					"enumtr" : ["edt_conf_webc_level_enum_default_title", "edt_conf_webc_level_enum_expert_title"],
 					"default" : "default",
 					"propertyOrder" : 5
 				}
