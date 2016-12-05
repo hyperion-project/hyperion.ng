@@ -1079,8 +1079,8 @@
 				{
 					"type" : "string",
 					"title" : "edt_conf_webc_level_title",
-					"enum" : ["user", "expert"],
-					"default" : "user",
+					"enum" : ["default", "expert"],
+					"default" : "default",
 					"propertyOrder" : 5
 				}
 			},
