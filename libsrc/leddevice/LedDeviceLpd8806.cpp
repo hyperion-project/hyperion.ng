@@ -21,7 +21,7 @@ bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 	_ledBuffer.resize(messageLength, 0x00);
 
 	// Perform an initial reset to start accepting data on the first led
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+	return writeBytes(clearSize, _ledBuffer.data());
 }
 
 int LedDeviceLpd8806::write(const std::vector<ColorRgb> &ledValues)
