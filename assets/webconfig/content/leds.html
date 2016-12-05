@@ -57,7 +57,7 @@
 						<hr/>
 						<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content" data-i18n="hue_btn_setup_helper">Hue Bridge Setup Helper</button>
 						<div id="huebridge_content"  class="collapse">
-							<div class="introd" style="margin-top:20px;margin-bottom:20px">
+							<div class="introd" style="margin-top:20px;margin-bottom:20px" data-i18n="hue_help_text">
 								With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.
 								If you already have a working User you will see it below. But you can always create a new one as well.
 								<b>Remember:</b> This is only a helper. You have to copy and paste them in your config above.
@@ -69,7 +69,7 @@
 									<label for="ip" data-i18n="hue_label_ip">Hue Bridge IP:</label>
 									<input type="text" class="form-control" id="ip">
 									<label for="user"  data-i18n="hue_label_username">Hue Bridge Username:</label>
-									<input type="text" class="form-control" id="user" disabled>
+									<input type="text" class="form-control" id="user" readonly="readonly">
 									<div id="hue_lights" class="row"></div>
 									<button type="button" class="btn btn-success" id="create_user"> <i class="fa fa-floppy-o"></i><span  data-i18n="hue_button_create_user_token"> Create User</span></button>
 								</div>
