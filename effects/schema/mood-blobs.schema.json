@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "mood-blobs.py",
-	"title":"Mood Blobs",
+	"title":"edt_eff_moodblobs_header_title",
 	"required":true,
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"Color",
+			"title":"edt_eff_color_title",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,68 +20,69 @@
 		},
 		"blobs": {
 			"type": "integer",
-			"title":"Blob count",
+			"title":"edt_eff_blobcount_title",
 			"default": 5,
 			"minimum" : 1,
 			"propertyOrder" : 2
 		},
 		"rotationTime": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"edt_eff_rotationtime_title",
 			"default": 20.0,
 			"minimum" : 1.0,
+			"append" : "edt_append_s",
 			"propertyOrder" : 3
 		},
 		"hueChange": {
 			"type": "number",
-			"title":"Hue change",
+			"title":"edt_eff_huechange_title",
 			"default": 60.0,
 			"minimum" : 1.0,
 			"propertyOrder" : 4
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"Reverse direction",
+			"title":"edt_eff_reversedirection_title",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"colorRandom": {
 			"type": "boolean",
-			"title":"Random color",
+			"title":"edt_eff_colorrandom_title",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"baseChange": {
 			"type": "boolean",
-			"title":"Base color change",
+			"title":"edt_eff_basecolorchange_title",
 			"default": false,
 			"propertyOrder" : 7
 		},
 		"baseColorRangeLeft": {
 			"type": "number",
-			"title":"baseColorRangeLeft",
+			"title":"edt_eff_basecolorrangeleft_title",
 			"default": 0.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
-			"append" : "° (Degree)",
-			"propertyOrder" : 8
+			"append" : "edt_append_degree",
+			"propertyOrder" : 9
 		},
 		"baseColorRangeRight": {
 			"type": "number",
-			"title":"baseColorRangeRight",
+			"title":"edt_eff_basecolorrangeright_title",
 			"default": 360.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
-			"append" : "° (Degree)",
-			"propertyOrder" : 9
+			"append" : "edt_append_degree",
+			"propertyOrder" : 10
 		},
 		"baseColorChangeRate": {
 			"type": "number",
-			"title":"baseColorChangeRate",
+			"title":"edt_eff_basecolorchangerate_title",
 			"default": 2.0,
 			"minimum" : 0.0,
-			"append" : "Seconds for one degree",
-			"propertyOrder" : 10
+			"append" : "edt_append_sdegree",
+			"propertyOrder" : 8
 		}
 	},
 	"additionalProperties": false

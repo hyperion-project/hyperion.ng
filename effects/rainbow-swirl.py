@@ -8,7 +8,7 @@ centerY      = float(hyperion.args.get('center_y', 0.5))
 
 sleepTime = max(0.1, rotationTime) / 360
 angle     = 0
-centerX   = int(round(hyperion.imageWidth)*centerX)
+centerX   = int(round(float(hyperion.imageWidth)*centerX))
 centerY   = int(round(float(hyperion.imageHeight)*centerY))
 increment = -1 if reverse else 1
 

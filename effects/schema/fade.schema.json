@@ -1,20 +1,20 @@
 {
     "type":"object",
     "script" : "fade.py",
-    "title":"Fade",
+    "title":"edt_eff_fade_header_title",
     "required":true,
     "properties":{
         "fade-time": {
             "type": "number",
-            "title":"Fade Time",
+            "title":"edt_eff_fadetime_title",
             "default": 5.0,
             "minimum" : 0.1,
-			"append" : "s",
+			"append" : "edt_append_s",
             "propertyOrder" : 1
         },
         "color-start": {
             "type": "array",
-            "title":"Color Start",
+            "title":"edt_eff_colorstart_title",
             "format":"colorpicker",
             "default": [255,174,11],
             "items" : {
@@ -29,7 +29,7 @@
         },
         "color-end": {
             "type": "array",
-            "title":"Color End",
+            "title":"edt_eff_colorend_title",
             "format":"colorpicker",
             "default": [100,100,100],
             "items" : {

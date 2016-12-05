@@ -33,6 +33,8 @@ LedDeviceTinkerforge::~LedDeviceTinkerforge()
 
 bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 {
+	LedDevice::init(deviceConfig);
+
 	_host     = deviceConfig["output"].toString("127.0.0.1").toStdString();
 	_port     = deviceConfig["port"].toInt(4223);
 	_uid      = deviceConfig["uid"].toString().toStdString();

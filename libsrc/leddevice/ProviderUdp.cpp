@@ -30,6 +30,8 @@ ProviderUdp::~ProviderUdp()
 
 bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
 {
+	LedDevice::init(deviceConfig);
+
 	QString host = deviceConfig["host"].toString(QString::fromStdString(defaultHost));
 	
 	if (_address.setAddress(host) )
