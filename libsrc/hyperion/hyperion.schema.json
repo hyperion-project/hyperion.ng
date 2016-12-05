@@ -1047,12 +1047,14 @@
 					"type" : "boolean",
 					"title" : "edt_conf_general_enable_title",
 					"default" : true,
+					"access" : "expert",
 					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
 					"type" : "string",
 					"title" : "edt_conf_webc_docroot_title",
+					"access" : "expert",
 					"propertyOrder" : 2
 				},
 				"port" :
@@ -1062,7 +1064,24 @@
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 8099,
+					"access" : "expert",
 					"propertyOrder" : 3
+				},
+				"language" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_webc_language_title",
+					"enum" : ["auto", "en", "de"],
+					"default" : "auto",
+					"propertyOrder" : 4
+				},
+				"level" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_webc_level_title",
+					"enum" : ["user", "expert"],
+					"default" : "user",
+					"propertyOrder" : 5
 				}
 			},
 			"additionalProperties" : false
