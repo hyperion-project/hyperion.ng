@@ -39,7 +39,7 @@ brew install doxygen
 ### The general quick way (without big comments)
 assume your home is /home/pi
 ```bash
-cd git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
+git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
 cd hyperion
 mkdir build
 cd build

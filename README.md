@@ -34,7 +34,7 @@ If you need further support please open a topic at the our new forum!
 
 ## Building
 
-See [Compilehowto](CompileHowto.txt) and [CrossCompileHowto](CrossCompileHowto.txt).
+See [Compilehowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).

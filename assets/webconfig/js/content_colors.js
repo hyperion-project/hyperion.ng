@@ -15,6 +15,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 
 
 $(document).ready( function() {
+	performTranslation();
 	requestServerConfigSchema();
 });
 
