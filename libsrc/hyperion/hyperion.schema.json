@@ -1066,23 +1066,6 @@
 					"default" : 8099,
 					"access" : "expert",
 					"propertyOrder" : 3
-				},
-				"language" :
-				{
-					"type" : "string",
-					"title" : "edt_conf_webc_language_title",
-					"enum" : ["auto", "en", "de"],
-					"default" : "auto",
-					"propertyOrder" : 4
-				},
-				"level" :
-				{
-					"type" : "string",
-					"title" : "edt_conf_webc_level_title",
-					"enum" : ["default", "expert"],
-					"enumtr" : ["edt_conf_webc_level_enum_default_title", "edt_conf_webc_level_enum_expert_title"],
-					"default" : "default",
-					"propertyOrder" : 5
 				}
 			},
 			"additionalProperties" : false
