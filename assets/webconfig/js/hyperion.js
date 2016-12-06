@@ -135,49 +135,58 @@ function sendToHyperion(command, subcommand, msg)
 // wrapped server commands
 
 // also used for watchdog
-function requestServerInfo() {
+function requestServerInfo()
+{
 	watchdog++;
 	sendToHyperion("serverinfo");
 }
 
-function requestServerConfigSchema() {
+function requestServerConfigSchema()
+{
 	sendToHyperion("config","getschema");
 }
 
-function requestServerConfig() {
+function requestServerConfig()
+{
 	sendToHyperion("config", "getconfig");
 }
 
-function requestServerConfigReload() {
+function requestServerConfigReload()
+{
 	sendToHyperion("config", "reload");
 }
 
-function requestLedColorsStart() {
+function requestLedColorsStart()
+{
 	ledStreamActive=true;
 	sendToHyperion("ledcolors", "ledstream-start");
 }
 
-function requestLedColorsStop() {
+function requestLedColorsStop()
+{
 	ledStreamActive=false;
 	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
-function requestPriorityClear() {
+function requestPriorityClear()
+{
 	sendToHyperion("clear", "", '"priority":1');
 }
 
-function requestPlayEffect(effectName) {
+function requestPlayEffect(effectName)
+{
 	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":1');
 }
 
-function requestSetColor(r,g,b) {
+function requestSetColor(r,g,b)
+{
 	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":1');
 }
 
-function requestSetComponentState(comp, state){
+function requestSetComponentState(comp, state)
+{
 	state_str = state ? "true" : "false";
 	sendToHyperion("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
-	console.log(comp+' state: '+state_str);
 }
 
 function requestSetSource(prio)
@@ -196,7 +205,6 @@ function requestWriteConfig(config)
 	});
 
 	var config_str = JSON.stringify(complete_config);
-	console.log(config_str.length);
 	sendToHyperion("config","setconfig", '"config":'+config_str);
 }
 
@@ -206,7 +214,8 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs);
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs) {
+function requestTestEffect(effectName,effectPy,effectArgs)
+{
 	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
 }
 
