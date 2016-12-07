@@ -98,14 +98,31 @@
 				<div class="col-lg-6 col-md-12">
 
 					<div class="panel-group" id="accordion">
-
+						<div class="panel panel-primary">
+							<div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
+								<h4 class="panel-title">
+									<a><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_leds_layout_generatedconf">Generated/Actual LED Configuration</span></a>
+								</h4>
+							</div>
+							<div id="collapse4" class="panel-collapse collapse in">
+								<div class="panel-body">
+									<p  data-i18n="conf_leds_layout_textf1">This textfield shows by default your current loaded layout and will be overwritten if you generate a new one above. Optional you could perform further edits.</p>
+									<b><p  data-i18n="conf_leds_layout_textf2">Don't forget to save!</p></b>
+									<textarea rows="25" id="ledconfig" class="form-control"></textarea>
+								</div>
+								<div class="panel-footer">
+									<button  type="button" class="btn btn-warning" id="leds_custom_updsim"  data-i18n="conf_leds_layout_button_updsim">Update preview</button>
+									<button  type="button" class="btn btn-success pull-right" id="leds_custom_save"  data-i18n="conf_leds_layout_button_savelay">Save layout</button>
+								</div>
+							</div>
+						</div>
 						<div class="panel panel-primary">
 							<div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse1">
 								<h4 class="panel-title">
 									<a><i class="fa fa-television fa-fw"></i><span  data-i18n="conf_leds_layout_frame">Classic Layout (LED Frame)</span></a>
 								</h4>
 							</div>
-							<div id="collapse1" class="panel-collapse collapse in">
+							<div id="collapse1" class="panel-collapse collapse">
 								<div class="panel-body ">
 									<div class="form-group">
 										<label class="col-form-label col-md-6" for="ip_cl_ledstop" style="width:170px"  data-i18n="conf_leds_layout_cl_top">Top</label>
@@ -218,21 +235,21 @@
 						<div id="collapse2" class="panel-collapse collapse">
 							<div class="panel-body">
 									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_ledshoriz" style="width:170px;max-width:200px"  data-i18n="conf_leds_layout_ma_horiz">Horizontal</label>
+										<label class="col-form-label col-md-6" for="ip_ma_ledshoriz" style="width:170px;"  data-i18n="conf_leds_layout_ma_horiz">Horizontal</label>
 										<div class=" input-group">
 											<input class="form-control ledMAconstr" id="ip_ma_ledshoriz" type="number" value="10" min="1" step="1"></input>
 											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
 										</div>
 									</div>
 									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_ledsvert" style="width:170px;max-width:200px"  data-i18n="conf_leds_layout_ma_vert">Vertical</label>
+										<label class="col-form-label col-md-6" for="ip_ma_ledsvert" style="width:170px;"  data-i18n="conf_leds_layout_ma_vert">Vertical</label>
 										<div class=" input-group">
 											<input class="form-control ledMAconstr" id="ip_ma_ledsvert" type="number" value="10" min="1" step="1"></input>
 											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
 										</div>
 									</div>
 									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_cabling" style="width:170px;max-width:200px"  data-i18n="conf_leds_layout_ma_cabling">Cabling</label>
+										<label class="col-form-label col-md-6" for="ip_ma_cabling" style="width:170px;"  data-i18n="conf_leds_layout_ma_cabling">Cabling</label>
 										<div class=" input-group">
 											<select class="form-control ledMAconstr" id="ip_ma_cabling">
 												<option value="snake"  data-i18n="conf_leds_layout_ma_optsnake">Snake</option>
@@ -241,7 +258,7 @@
 										</div>
 									</div>
 						<!---			<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_order" style="width:170px;max-width:200px"  data-i18n="conf_leds_layout_ma_order">Order</label>
+										<label class="col-form-label col-md-6" for="ip_ma_order" style="width:170px;"  data-i18n="conf_leds_layout_ma_order">Order</label>
 										<div class=" input-group">
 											<select class="form-control ledMAconstr" id="ip_ma_order">
 												<option value="horizontal"  data-i18n="conf_leds_layout_ma_opthoriz">Horizontal</option>
@@ -251,7 +268,7 @@
 									</div>
 						--->
 									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_start" style="width:170px;max-width:200px"  data-i18n="conf_leds_layout_ma_position">Input</label>
+										<label class="col-form-label col-md-6" for="ip_ma_start" style="width:170px;"  data-i18n="conf_leds_layout_ma_position">Input</label>
 										<div class=" input-group">
 											<select class="form-control ledMAconstr" id="ip_ma_start">
 												<option value="top-left"  data-i18n="conf_leds_layout_ma_opttopleft">Top left</option>
@@ -267,24 +284,6 @@
 							</div>
 						</div>
 					</div>
-					<div class="panel panel-primary" style="margin-bottom:5px">
-						<div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
-							<h4 class="panel-title">
-								<a><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_leds_layout_generatedconf">Generated/Actual LED Configuration</span></a>
-							</h4>
-						</div>
-						<div id="collapse4" class="panel-collapse collapse">
-							<div class="panel-body">
-								<p  data-i18n="conf_leds_layout_textf1">This textfield shows by default your current loaded layout and will be overwritten if you generate a new one above. Optional you could perform further edits.</p>
-								<b><p  data-i18n="conf_leds_layout_textf2">Don't forget to save!</p></b>
-								<textarea rows="25" id="ledconfig" class="form-control"></textarea>
-							</div>
-							<div class="panel-footer">
-								<button  type="button" class="btn btn-warning" id="leds_custom_updsim"  data-i18n="conf_leds_layout_button_updsim">Update preview</button>
-								<button  type="button" class="btn btn-success pull-right" id="leds_custom_save"  data-i18n="conf_leds_layout_button_savelay">Save layout</button>
-							</div>
-						</div>
-					</div>
 			</div> <!-- accordion -->
 		</div>
 		<div class="col-lg-6 col-md-12">
@@ -293,7 +292,7 @@
 					<h4 class="panel-title"><i class="fa fa-search fa-fw"></i><span  data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
 				</div>
 				<div class="panel-body">
-					<div id="previewcreator"><span  data-i18n="conf_leds_layout_preview_empty">No preview requested</span></div>
+					<div id="previewcreator"></div>
 					<div id="previewledcount"></div>
 					<div class="col-lg-12 st_helper" style="padding-left:0px; padding-right:0px">
 						<div id="leds_preview"></div>
