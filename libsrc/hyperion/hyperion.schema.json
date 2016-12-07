@@ -59,6 +59,7 @@
 					"default": 5000,
 					"append" : "edt_append_ms",
 					"minimum": 0,
+					"access" : "expert",
 					"propertOrder" : 4
 				}
 			},
