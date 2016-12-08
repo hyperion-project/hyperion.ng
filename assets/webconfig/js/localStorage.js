@@ -79,9 +79,9 @@
 	//access
 	function updateVisibility(){
 		if(storedAccess == 'expert')
-			$('#load_webconfig').css('display', 'block');
+			$('#load_webconfig').toggle(true);
 		else
-			$('#load_webconfig').css('display', 'none');	
+			$('#load_webconfig').toggle(false);	
 	}
 	
 	if (storageComp())

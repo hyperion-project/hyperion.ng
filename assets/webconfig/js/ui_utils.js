@@ -50,9 +50,9 @@ function setClassByBool(obj,enable,class1,class2)
 function showInfoDialog(type,header,message,btnid)
 {
 	if (type != 'select')
-		$('#modal_select').css('display', 'none');
+		$('#modal_select').toggle(false);
 	else
-		$('#modal_select').css('display', 'block');
+		$('#modal_select').toggle(true);
 	
 	$('#modal_dialog .modal-bodytitle').html(header);
 	$('#modal_dialog .modal-bodycontent').html(message);
