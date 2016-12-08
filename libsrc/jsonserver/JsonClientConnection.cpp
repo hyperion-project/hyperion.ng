@@ -487,6 +487,12 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				
 				if (effectArray.size() > 0)
 				{
+					if (message["name"].toString().trimmed().isEmpty())
+					{
+						sendErrorReply("Can't save new effect. Effect name is empty", command, tan);
+						return;
+					}
+					
 					effectJson["name"] = message["name"].toString();
 					effectJson["script"] = message["script"].toString();
 					effectJson["args"] = message["args"].toObject();
