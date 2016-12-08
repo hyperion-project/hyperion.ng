@@ -31,7 +31,7 @@
 	}
 	
 	//i18n
-	if (storageComp)
+	if (storageComp())
 	{
 		storedLang = localStorage.getItem("langcode");
 		if (storedLang == null)
@@ -49,6 +49,8 @@
 	{
 		showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). You could still use the webinterface without further issues");
 		initTrans('auto');
+		$('#btn_setlang').toggle();
+		$('#btn_setaccess').toggle();
 	}
 	
 	$('#btn_setlang').off().on('click',function() {
@@ -82,7 +84,7 @@
 			$('#load_webconfig').css('display', 'none');	
 	}
 	
-	if (storageComp)
+	if (storageComp())
 	{
 		storedAccess = localStorage.getItem("accesslevel");
 		if (storedAccess == null)
@@ -91,7 +93,10 @@
 			storedAccess = "default";
 			updateVisibility();
 		}
-		updateVisibility();
+		else
+		{
+			updateVisibility();
+		}
 	}
 
 	$('#btn_setaccess').off().on('click',function() {
