@@ -21,7 +21,7 @@ function validateText(){
 	e = isJsonString($("#ledconfig").val());
 
 	if (e.length != 0){
-		showInfoDialog("error", "Validation failed!", e);
+		showInfoDialog("error", $.i18n('InfoDialog_leds_validfail_title'), e);
 		return false
 	}
 	return true
@@ -35,21 +35,21 @@ function round(number) {
 };
 
 function createLedPreview(leds, origin){
-	
+
 	if (origin == "classic"){
-		$('#previewcreator').html('<h5 lang="en" data-lang-token="conf_leds_layout_preview_originCL">Created from: Classic Layout (LED Frame)</h5>');
+		$('#previewcreator').html('<h5>'+$.i18n('conf_leds_layout_preview_originCL')+'</h5>');
 		$('#leds_preview').css("padding-top", "56.25%");
 	}
 	else if(origin == "text"){
-		$('#previewcreator').html('<h5 lang="en" data-lang-token="conf_leds_layout_preview_originTEXT">Created from: Textfield</h5>');
+		$('#previewcreator').html('<h5>'+$.i18n('conf_leds_layout_preview_originTEXT')+'</h5>');
 		$('#leds_preview').css("padding-top", "56.25%");
 	}
 	else if(origin == "matrix"){
-		$('#previewcreator').html('<h5 lang="en" data-lang-token="conf_leds_layout_preview_originMA">Created from: Matrix Layout(LED wall)</h5>');
+		$('#previewcreator').html('<h5>'+$.i18n('conf_leds_layout_preview_originMA')+'</h5>');
 		$('#leds_preview').css("padding-top", "100%");
 	}
 	
-	$('#previewledcount').html('<h5>Total LED count: '+leds.length+'</h5>');
+	$('#previewledcount').html('<h5>'+$.i18n('conf_leds_layout_preview_totalleds', leds.length)+'</h5>');
 	
 	$('.st_helper').css("border", "8px solid grey");
 	
@@ -66,7 +66,7 @@ function createLedPreview(leds, origin){
 			"top:"+(led.vscan.minimum * canvas_height)+"px;"+
 			"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
 			"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
-		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
+		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+led.index+'"><span id="'+led_id+'_num" class="led_prev_num">'+led.index+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
 	$('#ledc_0').css({"background-color":"black","z-index":"12"});
@@ -75,6 +75,7 @@ function createLedPreview(leds, origin){
 	
 	if($('#leds_prev_toggle_num').hasClass('btn-success'))
 		$('.led_prev_num').css("display", "inline");
+
 }
 
 function createClassicLeds(){
@@ -107,22 +108,6 @@ function createClassicLeds(){
 	var Hmax = 1.0 - edgeHGap;
 	var ledArray = [];
 	
-	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
-
-	if(ledsGlength != "0" && validateGap()){
-		ledArray.splice(ledsGPos, ledsGlength);
-	}
-	
-	if (position != "0"){
-		rotateArray(ledArray, position);
-	}
-
-	if (reverse)
-		ledArray.reverse();
-	
-	createLedPreview(ledArray, 'classic');
-	createFinalArray(ledArray);
-	
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
@@ -132,11 +117,12 @@ function createClassicLeds(){
 			vmax = array[i].vscan.maximum;
 			finalLedArray[i] = { "index" : i, "hscan": { "maximum" : hmax, "minimum" : hmin }, "vscan": { "maximum": vmax, "minimum": vmin}}
 		}
+		createLedPreview(finalLedArray, 'classic');
 	}
 	
 	function validateGap(){
 		if (ledsGPos+ledsGlength > ledArray.length){
-			showInfoDialog('error','GAP LOST IN SPACE!','You moved the gap out of your TV frame, lower the gap length or position and try again!');
+			showInfoDialog('error', $.i18n('infoDialog_leds_gap_title'), $.i18n('infoDialog_leds_gap_text'));
 			return false
 		}
 		return true
@@ -233,12 +219,27 @@ function createClassicLeds(){
 			hmax -= step;
 		}
 	}
+	
+	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
+
+	if(ledsGlength != "0" && validateGap()){
+		ledArray.splice(ledsGPos, ledsGlength);
+	}
+	
+	if (position != "0"){
+		rotateArray(ledArray, position);
+	}
+
+	if (reverse)
+		ledArray.reverse();
+	
+	createFinalArray(ledArray);
 }
 
 function createMatrixLeds(){
 // Big thank you to RanzQ (Juha Rantanen) from Github for this script
 // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
-	
+
 	//get values
 	var width = parseInt($("#ip_ma_ledshoriz").val());
 	var height = parseInt($("#ip_ma_ledsvert").val());
@@ -315,6 +316,7 @@ function createMatrixLeds(){
 }
 
 $(document).ready(function() {
+	performTranslation();
 	//-------------------------------------------------------------------
 	$('.ledCLconstr').bind("change", function() {
 		createClassicLeds();
@@ -339,7 +341,7 @@ $(document).ready(function() {
 			$('#collapse4').collapse('show');
 		}
 	});
-	
+
 	// ------------------------------------------------------------------
 	$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
 		if ($("#leddevices").length == 0)
@@ -373,8 +375,8 @@ $(document).ready(function() {
 		devRPiSPI = ['apa102', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'ws2812spi'];
 		devRPiPWM = ['ws281x'];
 		devRPiGPIO = ['piblaster'];
-		devNET = ['atmoorb', 'dmx', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
-		devUSB = ['adalight', 'adalightapa102', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
+		devNET = ['atmoorb', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
+		devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
 		
 		var optArr = [[]];
 		optArr[1]=[];
@@ -399,12 +401,12 @@ $(document).ready(function() {
 				optArr[5].push(ledDevices[idx]);
 		}
 		
-		$("#leddevices").append(createSel(optArr[0], "RPi SPI"));
-		$("#leddevices").append(createSel(optArr[1], "RPi PWM"));
-		$("#leddevices").append(createSel(optArr[2], "RPi GPIO"));
-		$("#leddevices").append(createSel(optArr[3], "Network"));
-		$("#leddevices").append(createSel(optArr[4], "USB"));
-		$("#leddevices").append(createSel(optArr[5], "Debug"));
+		$("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
+		$("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
+		$("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
+		$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
+		$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
+		$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
 
 		$("#leddevices").val(server.info.ledDevices.active);
 		$("#leddevices").trigger("change");
@@ -432,6 +434,8 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
+
+		$('#leds_custom_updsim').trigger('click');
 	});
 
 	// ------------------------------------------------------------------
@@ -462,18 +466,14 @@ $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$("#leds_custom_updsim").off().on("click", function() {
 		if (validateText()){
-			string = $("#ledconfig").val();
-			createLedPreview(JSON.parse(string), 'text');
+			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
 		}
 	});
 	
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
 		function createLedConfig(){
-			var string = '{"leds" :';
-			string += $("#ledconfig").val();
-			string += "}";
-			return string
+			var string = '{"leds" :'+$("#ledconfig").val()+'}';
 		}
 		if (validateText())
 			requestWriteConfig(JSON.parse(createLedConfig()));

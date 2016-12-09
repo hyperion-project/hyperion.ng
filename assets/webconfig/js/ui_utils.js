@@ -47,25 +47,39 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
-function showInfoDialog(type,header,message)
+function showInfoDialog(type,header,message,btnid)
 {
+	if (type != 'select')
+		$('#modal_select').toggle(false);
+	else
+		$('#modal_select').toggle(true);
+	
 	$('#modal_dialog .modal-bodytitle').html(header);
 	$('#modal_dialog .modal-bodycontent').html(message);
 	
 	if (type=="success"){
 		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-check modal-icon-check">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">OK</button>');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="warning"){
 		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-warning">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">OK</button>');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="error"){	
 		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-error">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">OK</button>');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}	
-	$('#modal_dialog').modal('show');
+	else if (type == "select"){
+		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#modal_dialog .modal-footer-button').html('<button type="button" id="'+btnid+'" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_save')+'</button>');
+		$('#modal_dialog .modal-footer-button').append('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_abort')+'</button>');
+	}
 	
+	$("#modal_dialog").modal({
+		backdrop : "static",
+		keyboard: false,
+		show: true
+	});
 }
 
 function isJsonString(str)
@@ -120,26 +134,44 @@ function createJsonEditor(container,schema,setconfig)
 	return editor;
 }
 
-function createSelGroup(group){
+function createSelGroup(group)
+{
 	var el = document.createElement('optgroup');
 	el.setAttribute('label', group);
-	return el
+	return el;
 }
 		
-function createSelOpt(opt){
+function createSelOpt(opt, title)
+{
 	var el = document.createElement('option');
 	el.setAttribute('value', opt);
-	el.innerHTML = opt;
-	return el
+	if (typeof title == 'undefined')	
+		el.innerHTML = opt;
+	else
+		el.innerHTML = title;
+	return el;
 }
 
-function createSel(array, group){
-	if (array.length != "0"){
-	var el = createSelGroup(group);
-		for(var i=0; i<array.length; i++){
+function createSel(array, group)
+{
+	if (array.length != "0")
+	{
+		var el = createSelGroup(group);
+		for(var i=0; i<array.length; i++)
+		{
 			var opt = createSelOpt(array[i])
 			el.appendChild(opt);
 		}
-	return el;
+		return el;
 	}
+}
+
+function performTranslation()
+{
+	$('#wrapper').i18n();
+}
+
+function encode_utf8(s)
+{
+	return unescape(encodeURIComponent(s));
 }

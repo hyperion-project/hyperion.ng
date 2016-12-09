@@ -4,27 +4,20 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Output path",
+			"title":"edt_dev_spec_outputPath_title",
 			"propertyOrder" : 1
 		},
 		"rate": {
 			"type": "integer",
-			"title":"Baudrate",
+			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
 		"delayAfterConnect": {
 			"type": "integer",
-			"title":"Delay after connect",
+			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
 			"propertyOrder" : 3
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"refresh time",
-			"default": 5000,
-			"append" : "ms",
-			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

@@ -1,6 +1,4 @@
-import hyperion
-import time
-import colorsys
+import hyperion, time, colorsys
 
 # Get the parameters
 sleepTime = float(hyperion.args.get('sleepTime', 1.0))

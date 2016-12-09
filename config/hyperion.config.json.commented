@@ -16,13 +16,15 @@
 	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
+	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
 	"device" :
 	{
 		"name"       : "MyHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
-		"colorOrder" : "rgb"
+		"colorOrder" : "rgb",
+		"rewriteTime": 0
 	},
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 

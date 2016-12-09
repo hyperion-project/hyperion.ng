@@ -74,7 +74,8 @@ void JsonClientConnection::readData()
 	{
 		// websocket mode, data frame
 		handleWebSocketFrame();
-	} else
+	}
+	else
 	{
 		// might be a handshake request or raw socket data
 		if(_receiveBuffer.contains("Upgrade: websocket"))
@@ -104,24 +105,25 @@ void JsonClientConnection::readData()
 
 void JsonClientConnection::handleWebSocketFrame()
 {
-	if ((_receiveBuffer.at(0) & 0x80) == 0x80)
+	if ((_receiveBuffer.at(0) & BHB0_FIN) == BHB0_FIN)
 	{
 		// final bit found, frame complete
 		quint8 * maskKey = NULL;
-		quint8 opCode = _receiveBuffer.at(0) & 0x0F;
-		bool isMasked = (_receiveBuffer.at(1) & 0x80) == 0x80;
-		quint64 payloadLength = _receiveBuffer.at(1) & 0x7F;
+		quint8 opCode = _receiveBuffer.at(0) & BHB0_OPCODE;
+		bool isMasked = (_receiveBuffer.at(1) & BHB0_FIN) == BHB0_FIN;
+		quint64 payloadLength = _receiveBuffer.at(1) & BHB1_PAYLOAD;
 		quint32 index = 2;
 		
 		switch (payloadLength)
 		{
-			case 126:
+			case payload_size_code_16bit:
 				payloadLength = ((_receiveBuffer.at(2) << 8) & 0xFF00) | (_receiveBuffer.at(3) & 0xFF);
 				index += 2;
 				break;
-			case 127:
+			case payload_size_code_64bit:
 				payloadLength = 0;
-				for (uint i=0; i < 8; i++)						{
+				for (uint i=0; i < 8; i++)
+				{
 					payloadLength |= ((quint64)(_receiveBuffer.at(index+i) & 0xFF)) << (8*(7-i));
 				}
 				index += 8;
@@ -144,7 +146,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		// check the type of data frame
 		switch (opCode)
 		{
-		case 0x01:
+			case OPCODE::TEXT:
 			{
 				// frame contains text, extract it
 				QByteArray result = _receiveBuffer.mid(index, payloadLength);
@@ -167,25 +169,26 @@ void JsonClientConnection::handleWebSocketFrame()
 				handleMessage(QString(result));
 			}
 			break;
-		case 0x08:
+		case OPCODE::CLOSE:
 			{
 				// close request, confirm
-				quint8 close[] = {0x88, 0};				
+				quint8 close[] = {0x88, 0};
 				_socket->write((const char*)close, 2);
 				_socket->flush();
 				_socket->close();
 			}
 			break;
-		case 0x09:
+		case OPCODE::PING:
 			{
 				// ping received, send pong
-				quint8 pong[] = {0x0A, 0};				
+				quint8 pong[] = {OPCODE::PONG, 0};
 				_socket->write((const char*)pong, 2);
 				_socket->flush();
 			}
 			break;
 		}
-	} else
+	}
+	else
 	{
 		Error(_log, "Someone is sending very big messages over several frames... it's not supported yet");
 		quint8 close[] = {0x88, 0};				
@@ -484,6 +487,12 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				
 				if (effectArray.size() > 0)
 				{
+					if (message["name"].toString().trimmed().isEmpty())
+					{
+						sendErrorReply("Can't save new effect. Effect name is empty", command, tan);
+						return;
+					}
+					
 					effectJson["name"] = message["name"].toString();
 					effectJson["script"] = message["script"].toString();
 					effectJson["args"] = message["args"].toObject();
@@ -1042,8 +1051,15 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	result["success"] = true;
 	result["command"] = command;
 	result["tan"] = tan;
-	const QJsonObject & config = _hyperion->getQJsonConfig();
-	result["result"] = config;
+	
+	try
+	{
+		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+	}
+	catch(...)
+	{
+		result["result"] = _hyperion->getQJsonConfig();
+	}
 
 	// send the result
 	sendMessage(result);
@@ -1158,7 +1174,7 @@ void JsonClientConnection::handleConfigSetCommand(const QJsonObject& message, co
 			
 			QJsonObject hyperionConfig = message["config"].toObject();
 			QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfig);
-			
+
 			sendSuccessReply(command, tan);
 		}
 	} else
