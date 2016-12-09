@@ -14,52 +14,67 @@ import colorsys
 import random
 
 # Get parameters
-color = hyperion.args.get('color', (255,200,0))
-sleepTime = float(hyperion.args.get('sleepTime', 0.14))
+color = hyperion.args.get('color', (255,138,0))
+colorShift = hyperion.args.get('colorShift', 0.01)
 brightness = float(hyperion.args.get('brightness', 0.5))
+
+sleepTime = float(hyperion.args.get('sleepTime', 0.14))
+
 candles = hyperion.args.get('candles', "all")
+ledlist = hyperion.args.get('ledlist', "1")
 
 candlelist = ()
-if ((candles == "all") or (candles == "all-together")):
-	candlelist = range(hyperion.ledCount)
-elif (type(candles) is int):
-	if (candles < hyperion.ledCount):
-		candlelist = (candles,)
-else:
-	for i in (candles):
+if (candles == "list") and (type(ledlist) is str):
+	for s in ledlist.split(','):
+		i = int(s)
 		if (i<hyperion.ledCount):
 			candlelist += (i,)
+elif (candles == "list") and (type(ledlist) is list):
+        for s in (ledlist):
+		i = int(s)
+		if (i<hyperion.ledCount):
+			candlelist += (i,)
+else:
+	candlelist = range(hyperion.ledCount)
 
 
-# Convert color to hsv
+# Convert rgb color to hsv
 hsv = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color [2]/255.0)
 
-def CandleVal():
+
+def CandleRgb():
+	hue = random.uniform(hsv[0]-colorShift, hsv[0]+colorShift) % 1.0
+
 	RAND=random.randint(0,15)
 	while ((RAND & 0x0c)==0):
 		RAND=random.randint(0,15)
-	return ( min(RAND, 15)/15.0001 );
+	val = ( min(RAND, 15)/15.0001 ) * brightness
+
+	frgb = colorsys.hsv_to_rgb(hue, hsv[1], val);
+
+	return (int(255*frgb[0]), int(255*frgb[1]), int(255*frgb[2]))
+
 
 ledData = bytearray(hyperion.ledCount * (0,0,0) )
 while not hyperion.abort():
 	if (candles == "all-together"):
-		rgb = colorsys.hsv_to_rgb(random.uniform(0.08,0.10), hsv[1], CandleVal() * brightness )
+		rgb = CandleRgb()
 		for lednum in candlelist:
-			ledData[3*lednum+0] = int(255*rgb[0])
-			ledData[3*lednum+1] = int(255*rgb[1])
-			ledData[3*lednum+2] = int(255*rgb[2])
+			ledData[3*lednum+0] = rgb[0] 
+			ledData[3*lednum+1] = rgb[1] 
+			ledData[3*lednum+2] = rgb[2] 
 	elif (candles == "all"):
 		for lednum in candlelist:
-			rgb = colorsys.hsv_to_rgb(random.uniform(0.08,0.10), hsv[1], CandleVal() * brightness )
-			ledData[3*lednum+0] = int(255*rgb[0])
-			ledData[3*lednum+1] = int(255*rgb[1])
-			ledData[3*lednum+2] = int(255*rgb[2])
+			rgb = CandleRgb()
+			ledData[3*lednum+0] = rgb[0] 
+			ledData[3*lednum+1] = rgb[1] 
+			ledData[3*lednum+2] = rgb[2] 
 	else:
 		for lednum in candlelist:
-			rgb = colorsys.hsv_to_rgb(random.uniform(0.08,0.10), hsv[1], CandleVal() * brightness )
-			ledData[3*lednum+0] = int(255*rgb[0])
-			ledData[3*lednum+1] = int(255*rgb[1])
-			ledData[3*lednum+2] = int(255*rgb[2])
+			rgb = CandleRgb()
+			ledData[3*lednum+0] = rgb[0] 
+			ledData[3*lednum+1] = rgb[1] 
+			ledData[3*lednum+2] = rgb[2] 
 
 	hyperion.setColor (ledData)
 	time.sleep(sleepTime)
