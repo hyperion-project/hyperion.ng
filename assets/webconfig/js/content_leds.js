@@ -66,7 +66,7 @@ function createLedPreview(leds, origin){
 			"top:"+(led.vscan.minimum * canvas_height)+"px;"+
 			"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
 			"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
-		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
+		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+led.index+'"><span id="'+led_id+'_num" class="led_prev_num">'+led.index+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
 	$('#ledc_0').css({"background-color":"black","z-index":"12"});
@@ -108,22 +108,6 @@ function createClassicLeds(){
 	var Hmax = 1.0 - edgeHGap;
 	var ledArray = [];
 	
-	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
-
-	if(ledsGlength != "0" && validateGap()){
-		ledArray.splice(ledsGPos, ledsGlength);
-	}
-	
-	if (position != "0"){
-		rotateArray(ledArray, position);
-	}
-
-	if (reverse)
-		ledArray.reverse();
-	
-	createLedPreview(ledArray, 'classic');
-	createFinalArray(ledArray);
-	
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
@@ -133,6 +117,7 @@ function createClassicLeds(){
 			vmax = array[i].vscan.maximum;
 			finalLedArray[i] = { "index" : i, "hscan": { "maximum" : hmax, "minimum" : hmin }, "vscan": { "maximum": vmax, "minimum": vmin}}
 		}
+		createLedPreview(finalLedArray, 'classic');
 	}
 	
 	function validateGap(){
@@ -234,6 +219,21 @@ function createClassicLeds(){
 			hmax -= step;
 		}
 	}
+	
+	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
+
+	if(ledsGlength != "0" && validateGap()){
+		ledArray.splice(ledsGPos, ledsGlength);
+	}
+	
+	if (position != "0"){
+		rotateArray(ledArray, position);
+	}
+
+	if (reverse)
+		ledArray.reverse();
+	
+	createFinalArray(ledArray);
 }
 
 function createMatrixLeds(){
@@ -434,6 +434,8 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
+
+		$('#leds_custom_updsim').trigger('click');
 	});
 
 	// ------------------------------------------------------------------
@@ -464,18 +466,14 @@ $(document).ready(function() {
 	// ------------------------------------------------------------------
 	$("#leds_custom_updsim").off().on("click", function() {
 		if (validateText()){
-			string = $("#ledconfig").val();
-			createLedPreview(JSON.parse(string), 'text');
+			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
 		}
 	});
 	
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
 		function createLedConfig(){
-			var string = '{"leds" :';
-			string += $("#ledconfig").val();
-			string += "}";
-			return string
+			var string = '{"leds" :'+$("#ledconfig").val()+'}';
 		}
 		if (validateText())
 			requestWriteConfig(JSON.parse(createLedConfig()));

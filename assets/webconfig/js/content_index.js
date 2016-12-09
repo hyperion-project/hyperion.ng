@@ -16,12 +16,7 @@ $(document).ready( function() {
 	bindNavToContent("#load_confNetwork","network",false);
 	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 	bindNavToContent("#load_logging","logging",false);
-	
-		//$.i18n.debug = true;
-		$.i18n().load({ de: 'i18n/de.json', en:'i18n/en.json'}).done(
-			function() {
-				performTranslation();
-			});
+	bindNavToContent("#load_webconfig","webconfig",false);
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
