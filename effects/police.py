@@ -9,7 +9,7 @@ reverse      = bool(hyperion.args.get('reverse', False))
 
 # Check parameters
 rotationTime = max(0.1, rotationTime)
-colorsCoun t = min(hyperion.ledCount/2, colorsCount)
+colorsCount = min(hyperion.ledCount/2, colorsCount)
 
 # Initialize the led data
 hsv1       = colorsys.rgb_to_hsv(colorOne[0]/255.0, colorOne[1]/255.0, colorOne[2]/255.0)
