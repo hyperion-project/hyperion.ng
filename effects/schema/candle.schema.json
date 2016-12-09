@@ -6,7 +6,7 @@
     "properties":{
 	"candles": {
 		"type": "string",
-		"title":"edt_eff_candles_title",
+		"title":"edt_eff_whichleds_title",
 		"enum" : ["all","all-together","list"],
 		"default" : "all",
 		"propertyOrder" : 1
