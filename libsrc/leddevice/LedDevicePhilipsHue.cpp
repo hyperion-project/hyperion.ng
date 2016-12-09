@@ -338,7 +338,6 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights)
 		response = get("lights");
 		// Use QJsonDocument to parse reponse.
 		reader = QJsonDocument::fromJson(response, &error);
-		
 		if (error.error != QJsonParseError::NoError)
 		{
 			throw std::runtime_error(("No lights found at " + getUrl("lights")).toStdString());
@@ -373,6 +372,8 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights)
 			Error(_log, "saveStates(nLights=%d): got invalid response from light %s.", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
 			break;
 		}
+		
+		json = reader.object();
 		
 		// Get state object values which are subject to change.
 		QJsonObject state;
