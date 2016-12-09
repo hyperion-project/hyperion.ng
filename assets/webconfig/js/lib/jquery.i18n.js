@@ -139,7 +139,7 @@
 		load: function ( source, locale ) {
 			var fallbackLocales, locIndex, fallbackLocale, sourceMap = {};
 			if ( !source && !locale ) {
-				source = 'i18n/' + $.i18n().locale + '.json';
+				source = 'i18n';
 				locale = $.i18n().locale;
 			}
 			if ( typeof source === 'string'	&&
