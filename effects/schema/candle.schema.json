@@ -36,23 +36,27 @@
 		"title":"edt_eff_colorshift_title",
 		"default": 0.01,
 		"minimum" : 0.00,
-                "maximum": 1,
+        "maximum": 0.3,
+		"step": 0.01,
 		"propertyOrder" : 4
 	},
 	"brightness": {
 		"type": "number",
 		"title":"edt_eff_brightness_title",
-		"default": 0.5,
+		"default": 1,
 		"minimum" : 0.01,
-                "maximum": 1,
+		"maximum": 1,
+		"step": 0.1,
 		"propertyOrder" : 5
 	},
-        "sleepTime": {
+	"sleepTime": {
 		"type": "number",
 		"title":"edt_eff_sleeptime_title",
 		"default": 0.15,
 		"minimum" : 0.01,
-                "maximum": 1,
+		"maximum": 1,
+		"step": 0.01,
+		"append" : "edt_append_s",
 		"propertyOrder" : 6
 	}
     },
