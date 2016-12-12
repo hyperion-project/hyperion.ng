@@ -5,7 +5,6 @@ LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
 	, _ligthBerryAPA102Mode(false)
 {
 	_deviceReady = init(deviceConfig);
-	_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 }
 
 LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)
@@ -16,6 +15,7 @@ LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)
 bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
+	_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 
 	// create ledBuffer
 	unsigned int bufferSize    = 6;          // 6 bytes header
