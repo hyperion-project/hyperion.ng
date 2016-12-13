@@ -22,6 +22,12 @@ $(document).ready( function() {
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
+
+		// ToDo lock config menu and display appropriate message
+		if (! parsedServerInfoJSON.info.hyperion[0].config_writeable)
+		{
+			console.log("ATTENTION config is not writable");
+		}
 		
 		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");

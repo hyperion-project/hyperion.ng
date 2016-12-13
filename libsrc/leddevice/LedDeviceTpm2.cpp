@@ -16,11 +16,11 @@ bool LedDeviceTpm2::init(const QJsonObject &deviceConfig)
 {
 	ProviderRs232::init(deviceConfig);
 
-	_ledBuffer.resize(5 + 3*_ledCount);
+	_ledBuffer.resize(5 + _ledRGBCount);
 	_ledBuffer[0] = 0xC9; // block-start byte
 	_ledBuffer[1] = 0xDA; // DATA frame
-	_ledBuffer[2] = ((3 * _ledCount) >> 8) & 0xFF; // frame size high byte
-	_ledBuffer[3] = (3 * _ledCount) & 0xFF; // frame size low byte
+	_ledBuffer[2] = (_ledRGBCount >> 8) & 0xFF; // frame size high byte
+	_ledBuffer[3] = _ledRGBCount & 0xFF; // frame size low byte
 	_ledBuffer.back() = 0x36; // block-end byte
 
 	return true;

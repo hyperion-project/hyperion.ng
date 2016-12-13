@@ -369,7 +369,9 @@ void LedDevicePhilipsHue::saveStates(unsigned int nLights)
 		if (error.error != QJsonParseError::NoError)
 		{
 			// Error occured, break loop.
-			Error(_log, "saveStates(nLights=%d): got invalid response from light %s.", nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str());
+			Error(_log, "saveStates(nLights=%d): got invalid response from light %s. (error:%s, offset:%d)",
+			      nLights, getUrl(getRoute(lightIds.at(i))).toStdString().c_str(), error.errorString().toLocal8Bit().constData(), error.offset );
+
 			break;
 		}
 		

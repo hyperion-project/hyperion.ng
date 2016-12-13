@@ -841,6 +841,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	ver["build"]   = QString(HYPERION_BUILD_ID);
 	ver["time"]    = QString(__DATE__ " " __TIME__);
 	ver["config_modified"] = _hyperion->configModified();
+	ver["config_writeable"] = _hyperion->configWriteable();
 
 	hyperion.append(ver);
 	info["hyperion"] = hyperion;
