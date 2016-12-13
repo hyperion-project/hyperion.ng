@@ -1,6 +1,6 @@
 # Install the required tools and dependencies
 
-## Debian/Ubuntu
+## Debian/Ubuntu/Win10LinuxSubsystem
 
 ```
 sudo apt-get update
