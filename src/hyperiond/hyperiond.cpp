@@ -69,7 +69,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	}
 	else
 	{
-		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
+		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
 	}
 	
 	_hyperion = Hyperion::initInstance(_qconfig, configFile);
