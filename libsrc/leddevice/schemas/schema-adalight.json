@@ -17,7 +17,7 @@
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
-			"default": 250,
+			"default": 1500,
 			"append" : "ms",
 			"propertyOrder" : 3
 		},

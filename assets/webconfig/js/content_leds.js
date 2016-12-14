@@ -472,11 +472,8 @@ $(document).ready(function() {
 	
 	// ------------------------------------------------------------------
 	$("#leds_custom_save").off().on("click", function() {
-		function createLedConfig(){
-			var string = '{"leds" :'+$("#ledconfig").val()+'}';
-		}
 		if (validateText())
-			requestWriteConfig(JSON.parse(createLedConfig()));
+			requestWriteConfig(JSON.parse('{"leds" :'+$("#ledconfig").val()+'}'));
 	});
 
 	// ------------------------------------------------------------------
