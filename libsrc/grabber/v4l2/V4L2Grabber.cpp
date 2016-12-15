@@ -786,17 +786,32 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 
 	// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
-	bool noSignal = true;
-	for (unsigned x = 0; noSignal && x < (image.width()>>1); ++x)
+	bool     noSignal = true;
+
+	float x_frac_min = 0.47;
+	float y_frac_min = 0.2;
+	float x_frac_max = 0.49;
+	float y_frac_max = 0.8;
+
+// 	float x_frac_min = 0.25;
+// 	float y_frac_min = 0.25;
+// 	float x_frac_max = 0.75;
+// 	float y_frac_max = 0.75;
+
+	// top left
+	unsigned xOffset  = image.width()  * x_frac_min;
+	unsigned yOffset  = image.height() * y_frac_min;
+
+	// bottom right
+	unsigned xMax     = image.width()  * x_frac_max;
+	unsigned yMax     = image.height() * y_frac_max;
+
+	
+	for (unsigned x = xOffset; noSignal && x < xMax; ++x)
 	{
-		int xImage = (image.width()>>2) + x;
-
-		for (unsigned y = 0; noSignal && y < (image.height()>>1); ++y)
+		for (unsigned y = yOffset; noSignal && y < yMax; ++y)
 		{
-			int yImage = (image.height()>>2) + y;
-
-			ColorRgb & rgb = image(xImage, yImage);
-			noSignal &= rgb <= _noSignalThresholdColor;
+			noSignal &= (ColorRgb&)image(x, y) <= _noSignalThresholdColor;
 		}
 	}
 
