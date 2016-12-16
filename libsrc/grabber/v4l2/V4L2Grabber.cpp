@@ -23,15 +23,16 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-V4L2Grabber::V4L2Grabber(const std::string & device,
-		int input,
-		VideoStandard videoStandard,
-		PixelFormat pixelFormat,
-		int width,
-		int height,
-		int frameDecimation,
-		int horizontalPixelDecimation,
-		int verticalPixelDecimation)
+V4L2Grabber::V4L2Grabber(const std::string & device
+		, int input
+		, VideoStandard videoStandard
+		, PixelFormat pixelFormat
+		, int width
+		, int height
+		, int frameDecimation
+		, int horizontalPixelDecimation
+		, int verticalPixelDecimation
+		)
 	: _deviceName(device)
 	, _input(input)
 	, _videoStandard(videoStandard)
@@ -53,6 +54,12 @@ V4L2Grabber::V4L2Grabber(const std::string & device,
 	, _log(Logger::getInstance("V4L2:"+device))
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
+	, _noSignalDetected(false)
+	, _x_frac_min(0.25)
+	, _y_frac_min(0.25)
+	, _x_frac_max(0.75)
+	, _y_frac_max(0.75)
+
 {
 	_imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
 	_imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
@@ -194,6 +201,24 @@ void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSign
 	std::stringstream ss;
 	ss << _noSignalThresholdColor;
 	Info(_log, "Signal threshold set to: %s", ss.str().c_str() );
+}
+
+void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
+{
+	// rainbow 16 stripes 0.47 0.2 0.49 0.8
+	// unicolor: 0.25 0.25 0.75 0.75
+
+	_x_frac_min = horizontalMin;
+	_y_frac_min = verticalMin;
+	_x_frac_max = horizontalMax;
+	_y_frac_max = verticalMax;
+
+	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
+}
+
+QRectF V4L2Grabber::getSignalDetectionOffset()
+{
+	return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 }
 
 bool V4L2Grabber::start()
@@ -787,16 +812,21 @@ void V4L2Grabber::process_image(const uint8_t * data)
 
 	// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
 	bool noSignal = true;
-	for (unsigned x = 0; noSignal && x < (image.width()>>1); ++x)
+
+	// top left
+	unsigned xOffset  = image.width()  * _x_frac_min;
+	unsigned yOffset  = image.height() * _y_frac_min;
+
+	// bottom right
+	unsigned xMax     = image.width()  * _x_frac_max;
+	unsigned yMax     = image.height() * _y_frac_max;
+
+	
+	for (unsigned x = xOffset; noSignal && x < xMax; ++x)
 	{
-		int xImage = (image.width()>>2) + x;
-
-		for (unsigned y = 0; noSignal && y < (image.height()>>1); ++y)
+		for (unsigned y = yOffset; noSignal && y < yMax; ++y)
 		{
-			int yImage = (image.height()>>2) + y;
-
-			ColorRgb & rgb = image(xImage, yImage);
-			noSignal &= rgb <= _noSignalThresholdColor;
+			noSignal &= (ColorRgb&)image(x, y) <= _noSignalThresholdColor;
 		}
 	}
 
@@ -808,6 +838,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	{
 		if (_noSignalCounter >= _noSignalCounterThreshold)
 		{
+			_noSignalDetected = true;
 			Info(_log, "Signal detected");
 		}
 
@@ -820,6 +851,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 	}
 	else if (_noSignalCounter == _noSignalCounterThreshold)
 	{
+		_noSignalDetected = false;
 		Info(_log, "Signal lost");
 	}
 }

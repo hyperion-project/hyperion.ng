@@ -1,5 +1,6 @@
 // Qt includes
 #include <QObject>
+#include <QRectF>
 
 // hyperionincludes
 #include <utils/Image.h>
@@ -11,7 +12,7 @@ class ScreenshotHandler : public QObject
 	Q_OBJECT
 
 public:
-	ScreenshotHandler(const QString & filename);
+	ScreenshotHandler(const QString & filename, const QRectF & signalDetectionOffset);
 	virtual ~ScreenshotHandler();
 
 public slots:
@@ -21,4 +22,5 @@ public slots:
 
 private:
 	const QString _filename;
+	const QRectF  _signalDetectionOffset;
 };
