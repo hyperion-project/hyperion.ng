@@ -105,7 +105,11 @@
 			"cropBottom"  : 0,
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
-			"blueSignalThreshold"  : 0.0
+			"blueSignalThreshold"  : 0.0,
+			"signalDetectionVerticalOffsetMin"   : 0.25,
+			"signalDetectionHorizontalOffsetMin" : 0.25,
+			"signalDetectionVerticalOffsetMax"   : 0.75,
+			"signalDetectionHorizontalOffsetMax" : 0.75
 		}
 	],
 

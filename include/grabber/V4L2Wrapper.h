@@ -29,11 +29,10 @@ public:
 
 public slots:
 	bool start();
-
 	void stop();
 
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
-
+	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void set3D(VideoMode mode);
 
 // signals:
