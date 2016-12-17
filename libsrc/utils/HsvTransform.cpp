@@ -1,9 +1,9 @@
 #include <iostream>
 #include <utils/HsvTransform.h>
 
-HsvTransform::HsvTransform() :
-	_saturationGain(1.0),
-	_valueGain(1.0)
+HsvTransform::HsvTransform()
+	: _saturationGain(1.0)
+	, _valueGain(1.0)
 {
 }
 
