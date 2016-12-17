@@ -189,7 +189,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	          << std::endl << "dimension after decimation: " << image.width() << " x " << image.height()
 	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl  << std::endl;
 
-	std::cout << "sugested vaules for no signal detection:" << std::endl;
+	std::cout << "suggested vaules for no signal detection:" << std::endl;
 	std::cout << "\t\"redSignalThreshold\"   : " << thresholdRed << ",\n";
 	std::cout << "\t\"greenSignalThreshold\" : " << thresholdGreen << ",\n";
 	std::cout << "\t\"blueSignalThreshold\"  : " << thresholdBlue << ",\n";
