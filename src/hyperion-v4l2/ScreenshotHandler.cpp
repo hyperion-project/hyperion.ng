@@ -184,19 +184,61 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	thresholdGreen = (thresholdGreen<0.1f)?0.1f : thresholdGreen;
 	thresholdBlue  = (thresholdBlue<0.1f) ?0.1f : thresholdBlue;
 	
-	std::cout << std::endl << "No Signal detection Informations"
-	          << std::endl << "================================"
+	std::cout << std::endl << "Signal detection Informations"
+	          << std::endl << "============================="
 	          << std::endl << "dimension after decimation: " << image.width() << " x " << image.height()
 	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl  << std::endl;
 
-	std::cout << "suggested vaules for no signal detection:" << std::endl;
-	std::cout << "\t\"redSignalThreshold\"   : " << thresholdRed << ",\n";
-	std::cout << "\t\"greenSignalThreshold\" : " << thresholdGreen << ",\n";
-	std::cout << "\t\"blueSignalThreshold\"  : " << thresholdBlue << ",\n";
-	std::cout << "\t\"signalDetectionVerticalOffsetMin\"   : " << xOffsetSuggested << ",\n";
-	std::cout << "\t\"signalDetectionHorizontalOffsetMin\" : " << yOffsetSuggested << ",\n";
-	std::cout << "\t\"signalDetectionVerticalOffsetMax\"   : " << xMaxSuggested << ",\n";
-	std::cout << "\t\"signalDetectionHorizontalOffsetMax\" : " << yMaxSuggested << "\n";
+	// check if values make sense
+	if (thresholdRed < 0.5 && thresholdGreen < 0.5 && thresholdBlue < 0.5 && thresholdRed > 0.15 && thresholdGreen > 0.15 && thresholdBlue > 0.15)
+	{
+		std::cout << "WARNING \"no signal image\" is to dark, signal detection is not relaiable." << std::endl;
+	}
+	
+	if (thresholdRed > 0.5 && thresholdGreen > 0.5 && thresholdBlue > 0.5)
+	{
+		std::cout << "WARNING \"no signal image\" is to bright, signal detection is not relaiable." << std::endl;
+	}
+	
+	if (thresholdRed > thresholdGreen && thresholdRed > thresholdBlue && ((thresholdRed-thresholdGreen) <= 0.5 || (thresholdRed-thresholdBlue) <= 0.5))
+	{
+		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
+	}
+	
+	if (thresholdGreen > thresholdRed && thresholdGreen > thresholdBlue && ((thresholdGreen-thresholdRed) <= 0.5 || (thresholdGreen-thresholdBlue) <= 0.5))
+	{
+		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
+	}
+	
+	if (thresholdBlue > thresholdGreen && thresholdBlue > thresholdRed && ((thresholdBlue-thresholdGreen) <= 0.5 || (thresholdBlue-thresholdRed) <= 0.5))
+	{
+		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
+	}
+	
+	if (noSignalBlack)
+	{
+		std::cout << "WARNING no red, green or blue \"no signal area\" detected, signal detection might have problems." << std::endl;
+	}
+
+	if (xOffsetSuggested >= xMaxSuggested || (xMaxSuggested - xOffsetSuggested) < 0.029 )
+	{
+		std::cout << "WARNING horizontal values of signal detection are invalid or detection area is to small, signal detection is not relaiable." << std::endl;
+	}
+
+	if (yOffsetSuggested >= yMaxSuggested || (yMaxSuggested - yOffsetSuggested) < 0.029 )
+	{
+		std::cout << "WARNING horizontal values of signal detection are invalid or detection area is to small, signal detection is not relaiable." << std::endl;
+	}
+
+	std::cout << std::endl
+	          << "suggested vaules for no signal detection:"   << std::endl
+	          << "\t\"redSignalThreshold\"   : "               << thresholdRed     << "," << std::endl
+	          << "\t\"greenSignalThreshold\" : "               << thresholdGreen   << "," << std::endl
+	          << "\t\"blueSignalThreshold\"  : "               << thresholdBlue    << "," << std::endl
+	          << "\t\"signalDetectionHorizontalOffsetMin\" : " << xOffsetSuggested << "," << std::endl
+	          << "\t\"signalDetectionVerticalOffsetMin\"   : " << yOffsetSuggested << "," << std::endl
+	          << "\t\"signalDetectionHorizontalOffsetMax\" : " << xMaxSuggested    << "," << std::endl
+	          << "\t\"signalDetectionVerticalOffsetMax\"   : " << yMaxSuggested    << std::endl;
 
 	return true;
 }
