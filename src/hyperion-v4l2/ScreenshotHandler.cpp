@@ -96,35 +96,33 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 			}
 			currentColor = 2;
 		}
-
 	}
-	
-	
-	
+
 	auto itR = std::max_element(std::begin(redCounts), std::end(redCounts));
 	auto itG = std::max_element(std::begin(greenCounts), std::end(greenCounts));
 	auto itB = std::max_element(std::begin(blueCounts), std::end(blueCounts));
+
+	//std::cout << *itR << " " << *itG << " " << *itB << std::endl;
 	double xOffsetSuggested = xOffset;
 	double yOffsetSuggested = yOffset;
 	double xMaxSuggested = xMax;
 	double yMaxSuggested = yMax;
-	
-	std::cout << *itR << " "<< *itG <<" "<< *itB << std::endl; 
+	bool   noSignalBlack = false;
 
 	noSignalThresholdColor = {0,0,0};
-	if (*itR >= *itG && *itR >=  *itB && *itR > 0)
+	if (*itR >= *itG && *itR >=  *itB && *itR > 1)
 	{
 		xOffsetSuggested       = redOffsets[redCounts.indexOf(*itR)];
 		xMaxSuggested          = xOffsetSuggested + *itR;
 		noSignalThresholdColor = redThresoldColor;
 	}
-	else if (*itG >= *itR && *itG >=  *itB && *itG > 0 )
+	else if (*itG >= *itR && *itG >=  *itB && *itG > 1 )
 	{
 		xOffsetSuggested       = greenOffsets[greenCounts.indexOf(*itG)];
 		xMaxSuggested          = xOffsetSuggested + *itG;
 		noSignalThresholdColor = greenThresoldColor;
 	}
-	else if ( *itB > 0 )
+	else if ( *itB > 1 )
 	{
 		xOffsetSuggested       = blueOffsets[blueCounts.indexOf(*itB)];
 		xMaxSuggested          = xOffsetSuggested + *itB;
@@ -132,29 +130,34 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	}
 	else
 	{
-		std::cout << "black" << std::endl;
+		noSignalThresholdColor = {75,75,75};
+		noSignalBlack = true;
+		//std::cout << "black!" << std::endl;
 	}
 
 	// serach vertical max
-	unsigned xMid = (xMaxSuggested + xOffsetSuggested)/2;
-	for (unsigned y = yMid; y >= yOffset && yOffsetSuggested != y; --y)
+	if (!noSignalBlack)
 	{
-		ColorRgb rgb = image(xMid, y);
-		if (rgb <= noSignalThresholdColor)
+		unsigned xMid = (xMaxSuggested + xOffsetSuggested)/2;
+		for (unsigned y = yMid; y >= yOffset && yOffsetSuggested != y; --y)
 		{
-			yOffsetSuggested = y;
+			ColorRgb rgb = image(xMid, y);
+			if (rgb <= noSignalThresholdColor)
+			{
+				yOffsetSuggested = y;
+			}
+		}
+
+		for (unsigned y = yMid; y <= yMax && yMaxSuggested != y; ++y)
+		{
+			ColorRgb rgb = image(xMid, y);
+			if (rgb <= noSignalThresholdColor)
+			{
+				yMaxSuggested = y;
+			}
 		}
 	}
 
-	for (unsigned y = yMid; y <= yMax && yMaxSuggested != y; ++y)
-	{
-		ColorRgb rgb = image(xMid, y);
-		if (rgb <= noSignalThresholdColor)
-		{
-			yMaxSuggested = y;
-		}
-	}
-	
 	// optimize thresold color
 	noSignalThresholdColor = {0,0,0};
 	for (unsigned x = xOffsetSuggested; x < xMaxSuggested; ++x)
@@ -177,16 +180,23 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	double thresholdRed   = (int)(((float)noSignalThresholdColor.red/255.0f)*100+0.5)/100.0;
 	double thresholdGreen = (int)(((float)noSignalThresholdColor.green/255.0f)*100+0.5)/100.0;
 	double thresholdBlue  = (int)(((float)noSignalThresholdColor.blue/255.0f)*100+0.5)/100.0;
+	thresholdRed   = (thresholdRed<0.1f)  ?0.1f : thresholdRed;
+	thresholdGreen = (thresholdGreen<0.1f)?0.1f : thresholdGreen;
+	thresholdBlue  = (thresholdBlue<0.1f) ?0.1f : thresholdBlue;
 	
-	std::cout << std::endl << "Screenshot details"
-	          << std::endl << "=================="
+	std::cout << std::endl << "No Signal detection Informations"
+	          << std::endl << "================================"
 	          << std::endl << "dimension after decimation: " << image.width() << " x " << image.height()
 	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl  << std::endl;
 
 	std::cout << "sugested vaules for no signal detection:" << std::endl;
-	std::cout << "signal threshold color : " << noSignalThresholdColor << std::endl;
-	std::cout << "signal threshold values: " << thresholdRed << ", "<< thresholdGreen << ", " << thresholdBlue << std::endl;
-	std::cout << "signal detection area  " <<  xOffsetSuggested << " " << yOffsetSuggested << " " << xMaxSuggested << " " << yMaxSuggested << std::endl;
+	std::cout << "\t\"redSignalThreshold\"   : " << thresholdRed << ",\n";
+	std::cout << "\t\"greenSignalThreshold\" : " << thresholdGreen << ",\n";
+	std::cout << "\t\"blueSignalThreshold\"  : " << thresholdBlue << ",\n";
+	std::cout << "\t\"signalDetectionVerticalOffsetMin\"   : " << xOffsetSuggested << ",\n";
+	std::cout << "\t\"signalDetectionHorizontalOffsetMin\" : " << yOffsetSuggested << ",\n";
+	std::cout << "\t\"signalDetectionVerticalOffsetMax\"   : " << xMaxSuggested << ",\n";
+	std::cout << "\t\"signalDetectionHorizontalOffsetMax\" : " << yMaxSuggested << "\n";
 
 	return true;
 }
