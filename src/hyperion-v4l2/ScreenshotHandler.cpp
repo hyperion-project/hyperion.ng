@@ -35,14 +35,14 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	double x_frac_max = _signalDetectionOffset.width();
 	double y_frac_max = _signalDetectionOffset.height();
 
-	unsigned xOffset   = image.width()  * x_frac_min;
-	unsigned yOffset   = image.height() * y_frac_min;
-	unsigned xMax      = image.width()  * x_frac_max;
-	unsigned yMax      = image.height() * y_frac_max;
+	unsigned xOffset  = image.width()  * x_frac_min;
+	unsigned yOffset  = image.height() * y_frac_min;
+	unsigned xMax     = image.width()  * x_frac_max;
+	unsigned yMax     = image.height() * y_frac_max;
 
 	ColorRgb noSignalThresholdColor = {0,0,0};
 
-	unsigned yMid = (yMax+yOffset)/2;
+	unsigned yMid = (yMax+yOffset) / 2;
 	ColorRgb redThresoldColor   = {255,75,75};
 	ColorRgb greenThresoldColor = {75,255,75};
 	ColorRgb blueThresoldColor  = {75,75,255};
@@ -105,9 +105,9 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	//std::cout << *itR << " " << *itG << " " << *itB << std::endl;
 	double xOffsetSuggested = xOffset;
 	double yOffsetSuggested = yOffset;
-	double xMaxSuggested = xMax;
-	double yMaxSuggested = yMax;
-	bool   noSignalBlack = false;
+	double xMaxSuggested    = xMax;
+	double yMaxSuggested    = yMax;
+	bool   noSignalBlack    = false;
 
 	noSignalThresholdColor = {0,0,0};
 	if (*itR >= *itG && *itR >=  *itB && *itR > 1)
@@ -132,13 +132,12 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	{
 		noSignalThresholdColor = {75,75,75};
 		noSignalBlack = true;
-		//std::cout << "black!" << std::endl;
 	}
 
 	// serach vertical max
 	if (!noSignalBlack)
 	{
-		unsigned xMid = (xMaxSuggested + xOffsetSuggested)/2;
+		unsigned xMid = (xMaxSuggested + xOffsetSuggested) / 2;
 		for (unsigned y = yMid; y >= yOffset && yOffsetSuggested != y; --y)
 		{
 			ColorRgb rgb = image(xMid, y);
@@ -174,9 +173,9 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 
 	// calculate fractional values
 	xOffsetSuggested = (int)(((float)xOffsetSuggested/image.width())*100+0.5)/100.0;
-	xMaxSuggested = (int)(((float)xMaxSuggested/image.width())*100)/100.0;
+	xMaxSuggested    = (int)(((float)xMaxSuggested/image.width())*100)/100.0;
 	yOffsetSuggested = (int)(((float)yOffsetSuggested/image.height())*100+0.5)/100.0;
-	yMaxSuggested = (int)(((float)yMaxSuggested/image.height())*100)/100.0;
+	yMaxSuggested    = (int)(((float)yMaxSuggested/image.height())*100)/100.0;
 	double thresholdRed   = (int)(((float)noSignalThresholdColor.red/255.0f)*100+0.5)/100.0;
 	double thresholdGreen = (int)(((float)noSignalThresholdColor.green/255.0f)*100+0.5)/100.0;
 	double thresholdBlue  = (int)(((float)noSignalThresholdColor.blue/255.0f)*100+0.5)/100.0;
@@ -184,7 +183,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	thresholdGreen = (thresholdGreen<0.1f)?0.1f : thresholdGreen;
 	thresholdBlue  = (thresholdBlue<0.1f) ?0.1f : thresholdBlue;
 	
-	std::cout << std::endl << "Signal detection Informations"
+	std::cout << std::endl << "Signal detection informations"
 	          << std::endl << "============================="
 	          << std::endl << "dimension after decimation: " << image.width() << " x " << image.height()
 	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl  << std::endl;
@@ -231,7 +230,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	}
 
 	std::cout << std::endl
-	          << "suggested vaules for no signal detection:"   << std::endl
+	          << "suggested config values for signal detection:" << std::endl
 	          << "\t\"redSignalThreshold\"   : "               << thresholdRed     << "," << std::endl
 	          << "\t\"greenSignalThreshold\" : "               << thresholdGreen   << "," << std::endl
 	          << "\t\"blueSignalThreshold\"  : "               << thresholdBlue    << "," << std::endl
