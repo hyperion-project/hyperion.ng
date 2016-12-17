@@ -1257,8 +1257,8 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 
 void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
 {
-	QJsonObject result;
-	QJsonArray messages;
+	QJsonObject result, message;
+	QJsonArray messageArray;
 
 	if (!_streaming_logging_activated)
 	{
@@ -1266,23 +1266,36 @@ void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
 		QVector<Logger::T_LOG_MESSAGE>* logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for(int i=0; i<logBuffer->length(); i++)
 		{
-			//std::cout << "------- " << logBuffer->at(i).message.toStdString() << std::endl;
-			messages.append(logBuffer->at(i).message);
+			message["appName"] = logBuffer->at(i).appName;
+			message["loggerName"] = logBuffer->at(i).loggerName;
+			message["function"] = logBuffer->at(i).function;
+			message["line"] = QString::number(logBuffer->at(i).line);
+			message["fileName"] = logBuffer->at(i).fileName;
+			message["message"] = logBuffer->at(i).message;
+			message["levelString"] = logBuffer->at(i).levelString;
+			
+			messageArray.append(message);
 		}
 	}
 	else
 	{
-		//std::cout << "------- " << msg.message.toStdString() << std::endl;
-		messages.append(msg.message);
+		message["appName"] = msg.appName;
+		message["loggerName"] = msg.loggerName;
+		message["function"] = msg.function;
+		message["line"] = QString::number(msg.line);
+		message["fileName"] = msg.fileName;
+		message["message"] = msg.message;
+		message["levelString"] = msg.levelString;
+		
+		messageArray.append(message);
 	}
 
-	result["messages"] = messages;
+	result.insert("messages", messageArray);
 	_streaming_logging_reply["result"] = result;
 
 	// send the result
 	sendMessage(_streaming_logging_reply);
 }
-
 
 void JsonClientConnection::handleNotImplemented()
 {
