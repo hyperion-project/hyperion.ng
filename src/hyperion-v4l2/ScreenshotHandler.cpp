@@ -182,23 +182,23 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	thresholdRed   = (thresholdRed<0.1f)  ?0.1f : thresholdRed;
 	thresholdGreen = (thresholdGreen<0.1f)?0.1f : thresholdGreen;
 	thresholdBlue  = (thresholdBlue<0.1f) ?0.1f : thresholdBlue;
-	
+
 	std::cout << std::endl << "Signal detection informations"
 	          << std::endl << "============================="
 	          << std::endl << "dimension after decimation: " << image.width() << " x " << image.height()
-	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl  << std::endl;
+	          << std::endl << "signal detection area  : " << xOffset << "," << yOffset << " x "  << xMax << "," << yMax  << std::endl << std::endl;
 
 	// check if values make sense
 	if (thresholdRed < 0.5 && thresholdGreen < 0.5 && thresholdBlue < 0.5 && thresholdRed > 0.15 && thresholdGreen > 0.15 && thresholdBlue > 0.15)
 	{
 		std::cout << "WARNING \"no signal image\" is to dark, signal detection is not relaiable." << std::endl;
 	}
-	
+
 	if (thresholdRed > 0.5 && thresholdGreen > 0.5 && thresholdBlue > 0.5)
 	{
 		std::cout << "WARNING \"no signal image\" is to bright, signal detection is not relaiable." << std::endl;
 	}
-	
+
 	if (thresholdRed > thresholdGreen && thresholdRed > thresholdBlue && ((thresholdRed-thresholdGreen) <= 0.5 || (thresholdRed-thresholdBlue) <= 0.5))
 	{
 		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
@@ -208,12 +208,12 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	{
 		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
 	}
-	
+
 	if (thresholdBlue > thresholdGreen && thresholdBlue > thresholdRed && ((thresholdBlue-thresholdGreen) <= 0.5 || (thresholdBlue-thresholdRed) <= 0.5))
 	{
 		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
 	}
-	
+
 	if (noSignalBlack)
 	{
 		std::cout << "WARNING no red, green or blue \"no signal area\" detected, signal detection might have problems." << std::endl;
