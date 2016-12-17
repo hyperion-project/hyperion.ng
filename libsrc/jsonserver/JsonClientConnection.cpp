@@ -449,16 +449,6 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 
 void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message, const QString &command, const int tan)
 {
-	struct find_schema: std::unary_function<EffectSchema, bool>
-	{
-		QString pyFile;
-		find_schema(QString pyFile):pyFile(pyFile) { }
-		bool operator()(EffectSchema const& schema) const
-		{
-			return schema.pyFile == pyFile;
-		}
-	};
-
 	if(message.size() > 0)
 	{
 		if (!message["args"].toObject().isEmpty())
@@ -497,11 +487,26 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 					effectJson["script"] = message["script"].toString();
 					effectJson["args"] = message["args"].toObject();
 					
-					QFileInfo newFileName(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+					std::list<EffectDefinition> availableEffects = _hyperion->getEffects();
+					std::list<EffectDefinition>::iterator iter = std::find_if(availableEffects.begin(), availableEffects.end(), find_effect(message["name"].toString()));
 					
-					while(newFileName.exists())
+					QFileInfo newFileName;
+					if (iter != availableEffects.end())
 					{
-						newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+						newFileName.setFile(iter->file);
+						if (newFileName.absoluteFilePath().mid(0, 1)  == ":")
+						{
+							sendErrorReply("The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effekt.", command, tan);
+							return;
+						}
+					} else
+					{
+						newFileName.setFile(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+						
+						while(newFileName.exists())
+						{
+							newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+						}
 					}
 					
 					QJsonFactory::writeJson(newFileName.absoluteFilePath(), effectJson);
@@ -523,16 +528,6 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 
 void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, const int tan)
 {
-	struct find_effect: std::unary_function<EffectDefinition, bool>
-	{
-		QString effectName;
-		find_effect(QString effectName) :effectName(effectName) { }
-		bool operator()(EffectDefinition const& effectDefinition) const
-		{
-			return effectDefinition.name == effectName;
-		}
-	};
-	
 	if(message.size() > 0)
 	{
 		QString effectName = message["name"].toString();

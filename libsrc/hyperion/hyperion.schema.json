@@ -233,6 +233,23 @@
 								"type" : "string",
 								"required" : true
 							},
+							"hsv" : {
+								"type" : "object",
+								"required" : false,
+								"properties" : {
+									"saturationGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									},
+									"valueGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
+							},
 							"hsl" :
 							{
 								"type":"object",
