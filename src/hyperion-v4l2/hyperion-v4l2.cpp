@@ -35,6 +35,8 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 int main(int argc, char** argv)
 {
 	Logger *log = Logger::getInstance("V4L2GRABBER");
+	Logger::setLogLevel(Logger::WARNING);
+
 	std::cout
 		<< "hyperion-v4l2:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl

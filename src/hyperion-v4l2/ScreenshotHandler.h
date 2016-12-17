@@ -21,6 +21,8 @@ public slots:
 	void receiveImage(const Image<ColorRgb> & image);
 
 private:
+	bool findNoSignalSettings(const Image<ColorRgb> & image);
+
 	const QString _filename;
 	const QRectF  _signalDetectionOffset;
 };
