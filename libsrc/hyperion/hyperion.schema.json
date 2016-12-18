@@ -233,6 +233,23 @@
 								"type" : "string",
 								"required" : true
 							},
+							"hsv" : {
+								"type" : "object",
+								"required" : false,
+								"properties" : {
+									"saturationGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									},
+									"valueGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
+							},
 							"hsl" :
 							{
 								"type":"object",
@@ -539,7 +556,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.005,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 16
 					},
@@ -550,7 +567,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.025,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 17
 					},
@@ -561,9 +578,53 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.005,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 18
+					},
+					"signalDetectionVerticalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 19
+					},
+					"signalDetectionVerticalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 20
+					},
+					"signalDetectionHorizontalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 21
+					},
+					"signalDetectionHorizontalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 22
 					}
 				},
 			"additionalProperties" : false

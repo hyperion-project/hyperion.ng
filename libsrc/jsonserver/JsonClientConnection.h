@@ -72,7 +72,25 @@ namespace OPCODE {
 	}
 }
 
+struct find_schema: std::unary_function<EffectSchema, bool>
+{
+	QString pyFile;
+	find_schema(QString pyFile):pyFile(pyFile) { }
+	bool operator()(EffectSchema const& schema) const
+	{
+		return schema.pyFile == pyFile;
+	}
+};
 
+struct find_effect: std::unary_function<EffectDefinition, bool>
+{
+	QString effectName;
+	find_effect(QString effectName) :effectName(effectName) { }
+	bool operator()(EffectDefinition const& effectDefinition) const
+	{
+		return effectDefinition.name == effectName;
+	}
+};
 
 ///
 /// The Connection object created by \a JsonServer when a new connection is establshed
