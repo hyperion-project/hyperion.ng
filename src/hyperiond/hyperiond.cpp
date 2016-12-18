@@ -69,12 +69,12 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	}
 	else
 	{
-		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
+		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
 	}
 	
-	_hyperion = Hyperion::initInstance(_qconfig, configFile.toStdString());
+	_hyperion = Hyperion::initInstance(_qconfig, configFile);
 
-	Info(_log, "Hyperion initialised");
+	Info(_log, "Hyperion initialized");
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -582,6 +582,11 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+			grabber->setSignalDetectionOffset(
+				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
+				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
+				grabberConfig["signalDetectionHorizontalOffsetMax"].toDouble(0.75),
+				grabberConfig["signalDetectionVerticalOffsetMax"].toDouble(0.75));
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));

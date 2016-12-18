@@ -2,10 +2,10 @@
 #include <cmath>
 #include <utils/HslTransform.h>
 
-HslTransform::HslTransform() :
-	_saturationGain(1.0),
-	_luminanceGain(1.0),
-	_luminanceMinimum(0.0)
+HslTransform::HslTransform()
+	: _saturationGain(1.0)
+	, _luminanceGain(1.0)
+	, _luminanceMinimum(0.0)
 {
 }
 
@@ -57,12 +57,9 @@ void HslTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 		uint16_t hue;
 		float saturation, luminance;
 		rgb2hsl(red, green, blue, hue, saturation, luminance);
-		
+
 		float s = saturation * _saturationGain;
-		if (s > 1.0f)
-			saturation = 1.0f;
-		else
-			saturation = s;
+		saturation = std::min(s, 1.0f);
 
 		float l = luminance * _luminanceGain;
 		if (l < _luminanceMinimum)
@@ -70,39 +67,36 @@ void HslTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) con
 			saturation = 0;
 			l = _luminanceMinimum;
 		}
-		if (l > 1.0f)
-			luminance = 1.0f;
-		else 
-			luminance = l;
-				
+		luminance = std::min(l, 1.0f);
+
 		hsl2rgb(hue, saturation, luminance, red, green, blue);
 	}
 }
 
 void HslTransform::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance)
 {
-	float r = red / 255.0f;
-	float g = green / 255.0f;
-	float b = blue / 255.0f;	
+	float r = (float)red   / 255.0f;
+	float g = (float)green / 255.0f;
+	float b = (float)blue  / 255.0f;	
 	
-	float rgbMin = r < g ? (r < b ? r : b) : (g < b ? g : b);
-	float rgbMax = r > g ? (r > b ? r : b) : (g > b ? g : b);
+	float rgbMin = std::min(r,std::min(g,b));
+	float rgbMax = std::max(r,std::max(g,b));
 	float diff = rgbMax - rgbMin;
 		
 	//luminance
 	luminance = (rgbMin + rgbMax) / 2.0f;
 	
-	if (diff ==  0.0f) {
+	if (diff == 0.0f)
+	{
 		saturation = 0.0f;
-		hue        = 0;		
+		hue        = 0;
 		return;
-	}	
+	}
 	
 	//saturation
-	if (luminance < 0.5f)
-		saturation = diff / (rgbMin + rgbMax);
-	else 
-		saturation = diff / (2.0f - rgbMin - rgbMax);
+	saturation = (luminance < 0.5f)
+	           ? (diff / (rgbMin + rgbMax))
+	           : (diff / (2.0f - rgbMin - rgbMax));
 	
 	if (rgbMax == r)
 	{
@@ -125,30 +119,29 @@ void HslTransform::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & 
 
 void HslTransform::hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
-	if (saturation == 0.0f){
-		red = (uint8_t)(luminance * 255.0f);
+	if (saturation == 0.0f)
+	{
+		red   = (uint8_t)(luminance * 255.0f);
 		green = (uint8_t)(luminance * 255.0f);
-		blue = (uint8_t)(luminance * 255.0f);
+		blue  = (uint8_t)(luminance * 255.0f);
 		return;
 	}
-	
-	float q;
-	
-	if (luminance < 0.5f)
-		q = luminance * (1.0f + saturation);
-	else
-		q = (luminance + saturation) - (luminance * saturation);
-	
+
+	float q = (luminance < 0.5f)
+	        ? luminance * (1.0f + saturation)
+	        : (luminance + saturation) - (luminance * saturation);
+
 	float p = (2.0f * luminance) - q;	
 	float h = hue / 360.0f;
-	
+
 	float t[3];
 	
 	t[0] = h + (1.0f / 3.0f);
 	t[1] = h;
 	t[2] = h - (1.0f / 3.0f);
 	
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		if (t[i] < 0.0f)
 			t[i] += 1.0f;
 		if (t[i] > 1.0f)
@@ -157,7 +150,8 @@ void HslTransform::hsl2rgb(uint16_t hue, float saturation, float luminance, uint
 	
 	float out[3];
 	
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		if (t[i] * 6.0f < 1.0f)
 			out[i] = p + (q - p) * 6.0f * t[i];
 		else if (t[i] * 2.0f < 1.0f)
@@ -168,8 +162,8 @@ void HslTransform::hsl2rgb(uint16_t hue, float saturation, float luminance, uint
 	}
 	
 	//convert back to 0...255 range
-	red = (uint8_t)(out[0] * 255.0f);
+	red   = (uint8_t)(out[0] * 255.0f);
 	green = (uint8_t)(out[1] * 255.0f);
-	blue = (uint8_t)(out[2] * 255.0f);
+	blue  = (uint8_t)(out[2] * 255.0f);
 
 }

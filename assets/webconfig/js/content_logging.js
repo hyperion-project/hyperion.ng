@@ -34,9 +34,21 @@ $(document).ready(function() {
 				messages = (event.response.result.messages);
 				for(var idx=0; idx<messages.length; idx++)
 				{
-					msg = messages[idx];
-					$("#logmessages").html($("#logmessages").html()+"\n <code>"+msg+"</code>");
+					app_name = messages[idx].appName;
+					logger_name = messages[idx].loggerName;
+					function_ = messages[idx].function;
+					line = messages[idx].line;
+					file_name = messages[idx].fileName;
+					msg = messages[idx].message;
+					level_string = messages[idx].levelString;
 					
+					var debug = "";
+					
+					if(level_string == "DEBUG") {
+						debug = "&lt;"+file_name+":"+line+":"+function_+"()&gt; ";
+					}
+					
+					$("#logmessages").html($("#logmessages").html()+"\n <code>"+"["+app_name+" "+logger_name+"] &lt;"+level_string+"&gt; "+debug+msg+"</code>");
 				}
 				if($("#btn_autoscroll").hasClass('btn-success')){
 					$('#logmessages').stop().animate({

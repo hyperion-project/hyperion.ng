@@ -59,6 +59,7 @@
 					"default": 5000,
 					"append" : "edt_append_ms",
 					"minimum": 0,
+					"access" : "expert",
 					"propertOrder" : 4
 				}
 			},
@@ -231,6 +232,23 @@
 							{
 								"type" : "string",
 								"required" : true
+							},
+							"hsv" : {
+								"type" : "object",
+								"required" : false,
+								"properties" : {
+									"saturationGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									},
+									"valueGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
 							},
 							"hsl" :
 							{
@@ -475,7 +493,8 @@
 					"priority" :
 					{
 						"type" : "integer",
-						"minimum" : 0,
+						"minimum" : 2,
+						"maximum" : 2000000000,
 						"title" : "edt_conf_general_priority_title",
 						"default" : 900,
 						"propertyOrder" : 9
@@ -538,7 +557,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.005,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 16
 					},
@@ -549,7 +568,7 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.025,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 17
 					},
@@ -560,9 +579,53 @@
 						"minimum" : 0.0,
 						"maximum" : 1.0,
 						"default" : 0.1,
-						"step" : 0.01,
+						"step" : 0.005,
 						"append" : "edt_append_percent",
 						"propertyOrder" : 18
+					},
+					"signalDetectionVerticalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 19
+					},
+					"signalDetectionVerticalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 20
+					},
+					"signalDetectionHorizontalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 21
+					},
+					"signalDetectionHorizontalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 22
 					}
 				},
 			"additionalProperties" : false
@@ -616,7 +679,8 @@
 				{
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
-					"minimum" : 0,
+					"minimum" : 2,
+					"maximum" : 2000000000,
 					"default" : 890
 				},
 				"cropLeft" :
@@ -973,7 +1037,8 @@
 				{
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
-					"minimum" : 0,
+					"minimum" : 2,
+					"maximum" : 2000000000,
 					"default" : 800,
 					"propertyOrder" : 3
 				}
@@ -1013,7 +1078,8 @@
 				{
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
-					"minimum" : 0,
+					"minimum" : 2,
+					"maximum" : 2000000000,
 					"default" : 800,
 					"propertyOrder" : 4
 				},
@@ -1047,12 +1113,14 @@
 					"type" : "boolean",
 					"title" : "edt_conf_general_enable_title",
 					"default" : true,
+					"access" : "expert",
 					"propertyOrder" : 1
 				},
 				"document_root" :
 				{
 					"type" : "string",
 					"title" : "edt_conf_webc_docroot_title",
+					"access" : "expert",
 					"propertyOrder" : 2
 				},
 				"port" :
@@ -1062,6 +1130,7 @@
 					"minimum" : 0,
 					"maximum" : 65535,
 					"default" : 8099,
+					"access" : "expert",
 					"propertyOrder" : 3
 				}
 			},
