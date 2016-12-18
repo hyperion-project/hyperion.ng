@@ -1,4 +1,12 @@
 
+function debugMessage(msg)
+{
+	if (debugMessagesActive)
+	{
+		console.log(msg);
+	}
+}
+
 function bindNavToContent(containerId, fileName, loadNow)
 {
 	$("#page-content").off();

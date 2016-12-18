@@ -203,6 +203,15 @@ public slots:
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID);
 
 	///
+	/// Writes the given colors to all leds for the given time and priority
+	///
+	/// @param[in] priority The priority of the written colors
+	/// @param[in] ledColors The colors to write to the leds
+	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
+	///
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
+
+	///
 	/// Returns the list with unique transform identifiers
 	/// @return The list with transform identifiers
 	///
@@ -307,6 +316,8 @@ signals:
 	void componentStateChanged(const hyperion::Components component, bool enabled);
 
 	void imageToLedsMappingChanged(int mappingType);
+	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied

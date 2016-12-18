@@ -741,6 +741,14 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	}
 }
 
+void Hyperion::setImage(int priority, const Image<ColorRgb> & image, int duration_ms)
+{
+	if (priority == getCurrentPriority())
+	{
+		emit emitImage(priority, image, duration_ms);
+	}
+}
+
 const std::vector<std::string> & Hyperion::getTransformIds() const
 {
 	return _raw2ledTransform->getTransformIds();

@@ -57,7 +57,6 @@ void GrabberWrapper::componentStateChanged(const hyperion::Components component,
 
 			_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 
-
 			if ( enable == _timer.isActive() )
 			{
 				Info(_log, "grabber change state to %s", (_timer.isActive() ? "enabled" : "disabled") );
