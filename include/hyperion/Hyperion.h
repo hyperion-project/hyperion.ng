@@ -6,6 +6,7 @@
 
 // QT includes
 #include <QObject>
+#include <QString>
 #include <QTimer>
 #include <QSize>
 #include <QJsonObject>
@@ -84,7 +85,7 @@ public:
 	///
 	void freeObjects();
 
-	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const std::string configFile);
+	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile);
 	static Hyperion* getInstance();
 
 	///
@@ -140,7 +141,7 @@ public:
 
 	/// get filename of configfile
 	/// @return the current config filename
-	std::string getConfigFileName() { return _configFile; };
+	std::string getConfigFileName() { return _configFile.toStdString(); };
 
 	/// register a input source to a priority channel
 	/// @param name uniq name of input source
@@ -179,6 +180,8 @@ public:
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
 	bool configModified();
+
+	bool configWriteable();
 
 public slots:
 	///
@@ -314,7 +317,7 @@ private:
 	///
 	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const QJsonObject& qjsonConfig, const std::string configFile);
+	Hyperion(const QJsonObject& qjsonConfig, const QString configFile);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -348,7 +351,7 @@ private:
 	const QJsonObject& _qjsonConfig;
 
 	// the name of config file
-	std::string _configFile;
+	QString _configFile;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;

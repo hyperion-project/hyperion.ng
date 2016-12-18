@@ -30,7 +30,7 @@ if (candles == "list") and (type(ledlist) is str):
 		if (i<hyperion.ledCount):
 			candlelist += (i,)
 elif (candles == "list") and (type(ledlist) is list):
-        for s in (ledlist):
+	for s in (ledlist):
 		i = int(s)
 		if (i<hyperion.ledCount):
 			candlelist += (i,)

@@ -9,6 +9,8 @@
    set following values to your needs
  **************************************/
 
+#define INITAL_LED_TEST_ENABLED true
+
 // Number of leds in your strip. set to "1" and ANALOG_OUTPUT_ENABLED to "true" to activate analog only
 #define NUM_LEDS 100
 
@@ -92,7 +94,7 @@ void showColor(const CRGB& led) {
 
 // switch of digital and analog leds
 void switchOff() {
-  #if ANALOG_ONLY == false
+  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
   memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
   FastLED.show();
   #endif
@@ -145,11 +147,13 @@ void setup() {
   FastLED.setDither     ( DITHER_MODE );
 
   // initial RGB flash
+  #if INITAL_LED_TEST_ENABLED == true
   showColor(CRGB(255, 0, 0));  delay(400);
   showColor(CRGB(0, 255, 0));  delay(400);
   showColor(CRGB(0, 0, 255));  delay(400);
+  #endif
   showColor(CRGB(0, 0, 0));
-  
+
   Serial.begin(serialRate);
   Serial.print("Ada\n"); // Send "Magic Word" string to host
 
@@ -159,7 +163,7 @@ void setup() {
 
   // loop() is avoided as even that small bit of function overhead
   // has a measurable impact on this code's overall throughput.
-  while (true) {
+  for(;;) {
     // wait for first byte of Magic Word
     for (i = 0; i < sizeof prefix; ++i) {
       // If next byte is not in Magic Word, the start over
