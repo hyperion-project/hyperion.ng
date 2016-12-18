@@ -263,6 +263,12 @@ private:
 	///
 	void handleLoggingCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON Proccessing message
+	///
+	/// @param message the incoming message
+	///
+	void handleProcessingCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

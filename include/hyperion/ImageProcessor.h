@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <QString>
 
 // Utils includes
 #include <utils/Image.h>
@@ -47,6 +48,8 @@ public:
 	
 	/// Returns starte of black border detector
 	int ledMappingType();
+
+	static int mappingTypeToInt(QString mappingType);
 
 public slots:
 	/// Enable or disable the black border detector
@@ -175,6 +178,7 @@ private:
 	}
 
 private:
+	Logger * _log;
 	/// The Led-string specification
 	const LedString _ledString;
 

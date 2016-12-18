@@ -20,5 +20,6 @@ ImageProcessor* ImageProcessorFactory::newImageProcessor() const
 {
 	ImageProcessor* ip = new ImageProcessor(_ledString, _blackborderConfig);
 	ip->setLedMappingType(_mappingType);
+
 	return ip;
 }
