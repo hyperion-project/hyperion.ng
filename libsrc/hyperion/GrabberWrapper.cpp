@@ -20,6 +20,7 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
+	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int mappingType)), _processor, SLOT(setLedMappingType(int mappingType))); 
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }

@@ -8,11 +8,12 @@
 
 using namespace hyperion;
 
-//ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector, uint8_t blackborderThreshold) :
-ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig) :
-	_ledString(ledString),
-	_borderProcessor(new BlackBorderProcessor(blackborderConfig) ),
-	_imageToLeds(nullptr)
+ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig)
+	: QObject()
+	, _ledString(ledString)
+	, _borderProcessor(new BlackBorderProcessor(blackborderConfig) )
+	, _imageToLeds(nullptr)
+	, _mappingType(0)
 {
 	// empty
 }
@@ -51,6 +52,16 @@ void ImageProcessor::enableBlackBorderDetector(bool enable)
 bool ImageProcessor::blackBorderDetectorEnabled()
 {
 	return _borderProcessor->enabled();
+}
+
+void ImageProcessor::setLedMappingType(int mapType)
+{
+	_mappingType = mapType;
+}
+
+int ImageProcessor::ledMappingType()
+{
+	return _mappingType;
 }
 
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const

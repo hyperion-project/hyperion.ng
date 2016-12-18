@@ -558,10 +558,15 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	InfoIf(_colorTransformV4Lonly  , _log, "Color transformation for v4l inputs only" );
 	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
+	int mappingType = 0;
+	if (color["imageToLedMappingType"].toString() == "unicolor_mean" )
+		mappingType = 1;
+
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
-				qjsonConfig["blackborderdetector"].toObject()
+				qjsonConfig["blackborderdetector"].toObject(),
+				mappingType
 	);
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
@@ -842,6 +847,11 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
+}
+
+void Hyperion::setLedMappingType(int mappingType)
+{
+	emit imageToLedsMappingChanged(mappingType);
 }
 
 void Hyperion::update()
