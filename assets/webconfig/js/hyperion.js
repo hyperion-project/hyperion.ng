@@ -18,7 +18,14 @@ var loggingStreamActive=false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
 
-//
+function initRestart(){
+	$(hyperion).off();
+	requestServerConfigReload();
+	watchdog = 1;
+	$("#wrapper").fadeOut("slow");
+	cron();
+}
+
 function cron()
 {
 	if ( watchdog > 2)

@@ -1463,7 +1463,8 @@ JSONEditor.AbstractEditor = Class.extend({
 
 	if(this.schema.access){
 		if(this.schema.access == 'expert' && storedAccess != 'expert'){
-			this.disable();
+			this.container.style.display = "none";
+			//this.disable();
 		}	
 	}
   },
@@ -2668,8 +2669,8 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
     else {
       this.header = document.createElement('span');
       this.header.textContent = this.getTitle();
-      this.title = this.theme.getHeader(this.header);
-      this.container.appendChild(this.title);
+	  this.title = this.theme.getHeader(this.header);
+	  this.container.appendChild(this.title);
       this.container.style.position = 'relative';
 
       // Edit JSON modal
@@ -6232,13 +6233,16 @@ JSONEditor.AbstractTheme = Class.extend({
   },
   getHeader: function(text) {
     var el = document.createElement('h3');
-    if(typeof text === "string") {
-      el.textContent = text;
+	if(text.innerHTML == ''){
+		text.style.display = 'none';
+		return text;
+	}
+	else if(typeof text === "string") {
+	  el.textContent = text;
     }
-    else {
-      el.appendChild(text);
+	else {
+	  el.appendChild(text);
     }
-
     return el;
   },
   getCheckbox: function() {
@@ -6556,11 +6560,11 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
 		
 		group.className += ' form-group';
 		group.style.minHeight = "30px";
-		label.className += ' col-form-label col-sm-2';
+		label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
 		label.style.fontWeight = "bold";
 		group.appendChild(label);
 		group.appendChild(subgroup);
-		subgroup.className += 'checkbox col-sm-10';
+		subgroup.className += 'checkbox col-sm-7 col-md-9 col-lg-7 col-xxl-8';
 		subgroup.style.marginTop = "0px";
 		subgroup.appendChild(input);
 		subgroup.appendChild(helplabel);
@@ -6571,22 +6575,22 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
 	else if (append){
 		group.className += ' form-group';
 		if(label) {
-			label.className += ' col-form-label col-sm-2';
+			label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
 			group.appendChild(label);
 		}
 		group.appendChild(subgroup);
-		subgroup.className += 'col-sm-10 input-group';
+		subgroup.className += ' col-sm-7 col-md-9 col-lg-7 input-group col-xxl-8';
 		subgroup.appendChild(input);
 		subgroup.appendChild(append);
 	}
     else {
       group.className += ' form-group';
       if(label) {
-        label.className += ' col-form-label col-sm-2';
+        label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
         group.appendChild(label);
       }
 		group.appendChild(subgroup);
-	      subgroup.className += ' input-group col-sm-10';
+	      subgroup.className += ' input-group col-sm-7 col-md-9 col-lg-7 col-xxl-8';
 	      subgroup.appendChild(input);
 	  }
     
@@ -6625,7 +6629,7 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   },
   getButton: function(text, icon, title) {
     var el = this._super(text, icon, title);
-    el.className += 'btn btn-default';
+    el.className += 'btn btn-sm btn-primary';
     return el;
   },
   getTable: function() {

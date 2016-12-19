@@ -74,6 +74,10 @@ function showInfoDialog(type,header,message,btnid)
 		$('#modal_dialog .modal-footer-button').html('<button type="button" id="'+btnid+'" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_save')+'</button>');
 		$('#modal_dialog .modal-footer-button').append('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_abort')+'</button>');
 	}
+	else if (type == "uilock"){
+		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#modal_dialog .modal-footer-button').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
+	}
 	
 	$("#modal_dialog").modal({
 		backdrop : "static",
@@ -96,11 +100,11 @@ function isJsonString(str)
 }
 
 
-function createJsonEditor(container,schema,setconfig)
+function createJsonEditor(container,schema,setconfig,usePanel)
 {
 	$('#'+container).off();
 	$('#'+container).html("");
-
+	
 	var editor = new JSONEditor(document.getElementById(container),
 	{
 		theme: 'bootstrap3',
@@ -116,12 +120,13 @@ function createJsonEditor(container,schema,setconfig)
 			properties: schema
 		}
 	});
-
-	$('#editor_container .well').css("background-color","white");
-	$('#editor_container .well').css("border","none");
-	$('#editor_container .well').css("box-shadow","none");
-	$('#editor_container .btn').addClass("btn-primary");
-	$('#editor_container h3').first().remove();
+	
+	if(usePanel)
+	{
+		$('#'+container+' .well').first().removeClass('well well-sm');
+		$('#'+container+' h3').remove();
+		$('#'+container+' .well').first().removeClass('well well-sm');
+	}
 
 	if (setconfig)
 	{
@@ -132,6 +137,80 @@ function createJsonEditor(container,schema,setconfig)
 	}
 
 	return editor;
+}
+
+function createTableTh(th1, th2){
+	var elth1 = document.createElement('th');
+	var elth2 = document.createElement('th');
+	var tr = document.createElement('tr');
+
+	elth1.innerHTML = th1;
+	elth2.innerHTML = th2;
+	tr.appendChild(elth1);
+	tr.appendChild(elth2);
+
+	return tr;
+}
+	
+function createTableTd(td1, td2){
+	var eltd1 = document.createElement('td');
+	var eltd2 = document.createElement('td');
+	var tr = document.createElement('tr');
+
+	eltd1.innerHTML = td1;
+	eltd2.innerHTML = td2;
+	tr.appendChild(eltd1);
+	tr.appendChild(eltd2);
+
+	return tr;
+}
+	
+function createHelpTable(list, phead){
+	var table = document.createElement('table');
+	var thead = document.createElement('thead');
+	var tbody = document.createElement('tbody');
+	
+	table.className = 'table table-hover borderless';
+	
+	thead.appendChild(createTableTh($.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')));
+		for (key in list){
+			text = list[key].title.replace('title', 'expl');
+			tbody.appendChild(createTableTd($.i18n(list[key].title), $.i18n(text)));
+		}
+	table.appendChild(thead);
+	table.appendChild(tbody);
+
+	return createPanel(phead, table);
+}
+
+function createPanel(head, body, footer, type){
+	var p = document.createElement('div');
+	var phead = document.createElement('div');
+	var pbody = document.createElement('div');
+	var pfooter = document.createElement('div');
+	
+	if(typeof type == 'undefined')
+		type = 'panel-default';
+	
+	p.className = 'panel '+type;
+	phead.className = 'panel-heading';
+	pbody.className = 'panel-body';
+	pfooter.className = 'panel-footer';
+	
+	phead.innerHTML = head;
+	
+	if(typeof body != 'undefined')
+		pbody.appendChild(body);
+	
+	pfooter.innerHTML = footer;
+	
+	p.appendChild(phead);
+	p.appendChild(pbody);
+	
+	if(typeof footer != 'undefined')
+		p.appendChild(pfooter);
+	
+	return p;
 }
 
 function createSelGroup(group)
@@ -168,7 +247,7 @@ function createSel(array, group)
 
 function performTranslation()
 {
-	$('#wrapper').i18n();
+	$('[data-i18n]').i18n();
 }
 
 function encode_utf8(s)

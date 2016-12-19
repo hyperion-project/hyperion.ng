@@ -434,8 +434,6 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
-
-		$('#leds_custom_updsim').trigger('click');
 	});
 
 	// ------------------------------------------------------------------
@@ -486,6 +484,7 @@ $(document).ready(function() {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
+			$('#leds_custom_updsim').trigger('click');
 			ledsCustomCfgInitialized = true;
 		}
 	});
