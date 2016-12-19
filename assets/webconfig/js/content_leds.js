@@ -322,10 +322,12 @@ $(document).ready(function() {
 		createClassicLeds();
 	});
 	
+	// ------------------------------------------------------------------
 	$('.ledMAconstr').bind("change", function() {
 		createMatrixLeds();
 	});
 	
+	// ------------------------------------------------------------------
 	$('#btn_cl_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
@@ -334,11 +336,25 @@ $(document).ready(function() {
 		}
 	});
 	
+	// ------------------------------------------------------------------
 	$('#btn_ma_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
 			$('#collapse2').collapse('hide')
 			$('#collapse4').collapse('show');
+		}
+	});
+
+	// ------------------------------------------------------------------
+	$(hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+		if ($("#leddevices").length == 0)
+		{
+			requestLedImageStop();
+		}
+		else
+		{
+			imageData = (event.response.result.image);
+			$("#image_preview").attr("src", imageData);
 		}
 	});
 
@@ -420,7 +436,7 @@ $(document).ready(function() {
 		canvas_height = $('#leds_canvas').innerHeight();
 		canvas_width = $('#leds_canvas').innerWidth();
 
-		leds_html = "";
+		leds_html = '<img src="" id="image_preview" style="position:relative" />"';
 		for(var idx=0; idx<leds.length; idx++)
 		{
 			led = leds[idx];
@@ -458,6 +474,21 @@ $(document).ready(function() {
 		else
 		{
 			requestLedColorsStart();
+		}
+	});
+
+	// ------------------------------------------------------------------
+	$('#leds_toggle_live_video').off().on("click", function() {
+		setClassByBool('#leds_toggle_live_video',imageStreamActive,"btn-success","btn-danger");
+		if ( imageStreamActive )
+		{
+			requestLedImageStop();
+			$('#image_preview').hide();
+		}
+		else
+		{
+			$('#image_preview').show();
+			requestLedImageStart();
 		}
 	});
 

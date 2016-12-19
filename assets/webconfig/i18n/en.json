@@ -117,6 +117,7 @@
 		"conf_leds_test_button_toggleleds" : "toggle leds",
 		"conf_leds_test_button_togglelednumber" : "toggle led numbers",
 		"conf_leds_test_button_toggleliveleds" : "toggle live leds",
+		"conf_leds_test_button_togglelivevideo" : "toggle live video",
 		"conf_grabber_label_intro" : "Hyperion supports two ways on how to get captured pictures for processing and output. The platform capture: internal at the device you are running Hyperion on (best qualitiy) and the USB Capture which gathers from a connected device the necessary pictures (more calibration work and configuration).",
 		"conf_colors_label_intro" : "Color calibration, smoothing (color transistions) and detection of blackbars.",
 		"conf_network_label_intro" : "All network based settings are listed here.",
