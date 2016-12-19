@@ -319,6 +319,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleLedColorsCommand(message, command, tan);
 		else if (command == "logging")
 			handleLoggingCommand(message, command, tan);
+		else if (command == "processing")
+			handleProcessingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -1270,6 +1272,13 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 	}
 	
 	sendSuccessReply(command+"-"+subcommand,tan);
+}
+
+void JsonClientConnection::handleProcessingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	_hyperion->setLedMappingType(ImageProcessor::mappingTypeToInt( message["mappingType"].toString("multicolor_mean")) );
+
+	sendSuccessReply(command, tan);
 }
 
 void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)

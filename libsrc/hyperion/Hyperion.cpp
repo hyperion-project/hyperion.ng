@@ -17,6 +17,7 @@
 // hyperion include
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
+#include <hyperion/ImageProcessor.h>
 #include <hyperion/ColorTransform.h>
 #include <hyperion/ColorAdjustment.h>
 
@@ -561,7 +562,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	// initialize the image processor factory
 	ImageProcessorFactory::getInstance().init(
 				_ledString,
-				qjsonConfig["blackborderdetector"].toObject()
+				qjsonConfig["blackborderdetector"].toObject(),
+				ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString())
 	);
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
@@ -850,6 +852,11 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
+}
+
+void Hyperion::setLedMappingType(int mappingType)
+{
+	emit imageToLedsMappingChanged(mappingType);
 }
 
 void Hyperion::update()

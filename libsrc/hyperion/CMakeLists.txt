@@ -6,6 +6,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 # Group the headers that go through the MOC compiler
 SET(Hyperion_QT_HEADERS
 	${CURRENT_HEADER_DIR}/Hyperion.h
+	${CURRENT_HEADER_DIR}/ImageProcessor.h
 
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
 	${CURRENT_HEADER_DIR}/GrabberWrapper.h
@@ -13,7 +14,6 @@ SET(Hyperion_QT_HEADERS
 )
 
 SET(Hyperion_HEADERS
-	${CURRENT_HEADER_DIR}/ImageProcessor.h
 	${CURRENT_HEADER_DIR}/ImageProcessorFactory.h
 	${CURRENT_HEADER_DIR}/ImageToLedsMap.h
 	${CURRENT_HEADER_DIR}/LedString.h

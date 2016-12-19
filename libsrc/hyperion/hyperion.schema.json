@@ -51,6 +51,7 @@
 					"type" : "string",
 					"title" : "edt_dev_general_colorOrder_title",
 					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
+					"default" : "rgb",
 					"propertyOrder" : 3
 				},
 				"rewriteTime": {
@@ -70,26 +71,33 @@
 			"type":"object",
 			"title" : "edt_conf_color_heading_title",
 			"required" : true,
-			"defaultProperties": ["channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
+			"defaultProperties": ["imageToLedMappingType","channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
 			"properties":
 			{
+				"imageToLedMappingType" :
+				{
+					"type" : "string",
+					"enum" : ["multicolor_mean", "unicolor_mean"],
+					"default" : "multicolor_mean",
+					"propertyOrder" : 1
+				},
 				"channelAdjustment_enable" :
 				{
 					"type" : "boolean",
 					"default" : true,
-					"propertyOrder" : 1
+					"propertyOrder" : 2
 				},
 				"channelAdjustment_v4l_only" :
 				{
 					"type" : "boolean",
 					"default" : false,
-					"propertyOrder" : 2
+					"propertyOrder" : 3
 				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 3,
+					"propertyOrder" : 4,
 					"items" :
 					{
 						"type" : "object",
@@ -204,19 +212,19 @@
 				{
 					"type" : "boolean",
 					"default" : true,
-					"propertyOrder" : 4
+					"propertyOrder" : 5
 				},
 				"transform_v4l_only" :
 				{
 					"type" : "boolean",
 					"default" : false,
-					"propertyOrder" : 5
+					"propertyOrder" : 6
 				},
 				"transform" :
 				{
 					"type" : "array",
 					"required" : true,
-					"propertyOrder" : 6,
+					"propertyOrder" : 7,
 					"items" :
 					{
 						"type" : "object",
