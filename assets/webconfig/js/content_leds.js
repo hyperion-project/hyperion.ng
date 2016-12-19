@@ -450,6 +450,10 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
+		
+		$('#image_preview').hide();		
+		$('#image_preview').attr("width" , $('#leds_canvas').innerWidth()-2);		
+		$('#image_preview').attr("height", $('#leds_canvas').innerHeight()-2);
 	});
 
 	// ------------------------------------------------------------------
