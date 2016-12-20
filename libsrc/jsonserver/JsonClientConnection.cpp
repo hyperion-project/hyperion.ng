@@ -836,6 +836,8 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["components"] = component;
+	info["components_autoselect"] = _hyperion->sourceAutoSelectEnabled();
+	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
 	// Add Hyperion Version, build time
 	QJsonArray hyperion;

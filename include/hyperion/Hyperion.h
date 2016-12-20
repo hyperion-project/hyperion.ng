@@ -183,6 +183,9 @@ public:
 
 	bool configWriteable();
 
+	/// gets the methode how image is maped to leds
+	int getLedMappingType() { return _ledMAppingType; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -406,4 +409,6 @@ private:
 	QByteArray _configHash;
 
 	QSize _ledGridSize;
+	
+	int _ledMAppingType;
 };
