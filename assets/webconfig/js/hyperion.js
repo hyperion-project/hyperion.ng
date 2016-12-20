@@ -43,6 +43,8 @@ function cron()
 	$(hyperion).trigger({type:"cron"});
 }
 
+setInterval(function(){ watchdog = 0 }, 8000);
+
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
 {
