@@ -50,6 +50,7 @@ public:
 	int ledMappingType();
 
 	static int mappingTypeToInt(QString mappingType);
+	static QString mappingTypeToStr(int mappingType);
 
 public slots:
 	/// Enable or disable the black border detector

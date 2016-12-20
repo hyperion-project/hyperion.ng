@@ -76,6 +76,14 @@ int ImageProcessor::mappingTypeToInt(QString mappingType)
 	return 0;
 }
 
+QString ImageProcessor::mappingTypeToStr(int mappingType)
+{
+	if (mappingType == 1 )
+		return "unicolor_mean";
+
+	return "mulicolor_mean";
+}
+
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
 {
 	if (led < _ledString.leds().size())
