@@ -1,4 +1,6 @@
 $(document).ready( function() {
+	var uiLock = false;
+
 	$("#main-nav").hide();
 	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
@@ -23,12 +25,6 @@ $(document).ready( function() {
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
-
-		// ToDo lock config menu and display appropriate message
-		if (! parsedServerInfoJSON.info.hyperion[0].config_writeable)
-		{
-			console.log("ATTENTION config is not writable");
-		}
 		
 		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
@@ -79,7 +75,7 @@ $(document).ready( function() {
 			});
 		}
 		
-		if ($("#logmessages").length == 0)
+		if ($("#logmessages").length == 0 && loggingStreamActive)
 		{
 			requestLoggingStop();
 		}
@@ -87,6 +83,19 @@ $(document).ready( function() {
 		
 		$("#loading_overlay").removeClass("overlay");
 		$("#main-nav").show('slide', {direction: 'left'}, 1000);
+
+		if (!parsedServerInfoJSON.info.hyperion[0].config_writeable)
+		{
+			showInfoDialog('uilock',$.i18n('InfoDialog_nowrite_title'),$.i18n('InfoDialog_nowrite_text'));
+			$('#wrapper').toggle(false);
+			uiLock = true;
+		}
+		else if (uiLock)
+		{
+			$("#modal_dialog").modal('hide');
+			$('#wrapper').toggle(true);
+			uiLock = false;
+		}
 
 	}); // end cmd-serverinfo
 
@@ -109,11 +118,7 @@ $(document).ready( function() {
 	});
 
 	$("#btn_hyperion_reload").on("click", function(){
-		$(hyperion).off();
-		requestServerConfigReload();
-		watchdog = 1;
-		$("#wrapper").fadeOut("slow");
-		cron();
+		initRestart();
 	});
 });
 

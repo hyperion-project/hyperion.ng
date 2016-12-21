@@ -486,9 +486,9 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				
 				if (effectArray.size() > 0)
 				{
-					if (message["name"].toString().trimmed().isEmpty())
+					if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
 					{
-						sendErrorReply("Can't save new effect. Effect name is empty", command, tan);
+						sendErrorReply("Can't save new effect. Effect name is empty or begins with a dot.", command, tan);
 						return;
 					}
 					
@@ -625,6 +625,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 
 	info["priorities"] = priorities;
+	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	
 	// collect transform information
 	QJsonArray transformArray;
@@ -836,7 +837,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["components"] = component;
-	info["components_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
 	// Add Hyperion Version, build time

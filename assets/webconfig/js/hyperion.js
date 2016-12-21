@@ -19,7 +19,16 @@ var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
-//
+
+function initRestart()
+{
+	$(hyperion).off();
+	requestServerConfigReload();
+	watchdog = 1;
+	$("#wrapper").fadeOut("slow");
+	cron();
+}
+
 function cron()
 {
 	if ( watchdog > 2)
@@ -34,6 +43,8 @@ function cron()
 	requestServerInfo();
 	$(hyperion).trigger({type:"cron"});
 }
+
+setInterval(function(){ watchdog = 0 }, 8000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -249,5 +260,10 @@ function requestLoggingStop()
 {
 	loggingStreamActive=false;
 	sendToHyperion("logging", "stop");
+}
+
+function requestMappingType(type)
+{
+	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 

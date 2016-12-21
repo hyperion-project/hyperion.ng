@@ -30,7 +30,7 @@ JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.ext
     build: function() {
         this._super();
         var myinput = this;
-        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element");
+        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element input-group");
         $(myinput.input).append("<span class='input-group-addon' id='event_catcher'><i></i></span>");
         $(myinput.input).colorpicker({
             format: 'rgb',
@@ -116,7 +116,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 			if (effects[idx].schemaContent.script == this.value){
 				effects_editor = createJsonEditor('editor_container', {
 				args : effects[idx].schemaContent,
-				},false);
+				},false, true);
 			effectPy = ':';
 			effectPy += effects[idx].schemaContent.script;
 			}
@@ -130,7 +130,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		});
 	});
 	
-	$("#name-input").on('change keydown click', function(event) {
+	$("#name-input").on('change keydown click focusout', function(event) {
 		effectName = $(this).val();
 		if ($(this).val() == '') {
             effects_editor.disable();

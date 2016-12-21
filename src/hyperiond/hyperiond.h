@@ -1,6 +1,6 @@
 #pragma once
 
-const int CURRENT_CONFIG_VERSION = 1;
+const int CURRENT_CONFIG_VERSION = 2;
 
 #include <QObject>
 
@@ -55,7 +55,8 @@ public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const QString & configFile, const int neededConfigVersion, const int schemaVersion=0);
+	int tryLoadConfig(const QString & configFile, const int schemaVersion);
+	void loadConfig(const QString & configFile, const int neededConfigVersion);
 	void run();
 
 	void startInitialEffect();

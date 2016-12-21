@@ -116,21 +116,8 @@ void HyperionDaemon::run()
 
 }
 
-void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion, const int schemaVersion)
+int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
 {
-/*
- * This function needs a rework!
- * We need auto migration from one config version to the next
- * 
- * how this could work:
- * 1. load generic schema :/hyperion-schema
- * 2. get version of current config
- * 3. load schema of current config version
- * 4. if current version of config matches "neededConfigVersion" then go on, otherwise do migration
- * 5. migration .. TBD
- */
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 	QJsonParseError error;
@@ -187,26 +174,36 @@ void HyperionDaemon::loadConfig(const QString & configFile, const int neededConf
 	}
 	
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	int configVersionId = generalConfig["configVersion"].toInt(-1);
-	Debug(_log, "config version: %d", configVersionId);
-	if (schemaVersion == 0)
-	{
-		if (configVersionId>0)
-		{
-			loadConfig(configFile,neededConfigVersion, configVersionId);
-		}
-	}
-	else 
-	{
-		if (neededConfigVersion != configVersionId)
-		{
-			// migrate configVersionId
-			throw std::runtime_error("ERROR: config migration not implemented");
-		}
-	}
-		
-
+	return generalConfig["configVersion"].toInt(-1);
 }
+
+
+void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
+{
+/*
+ * This function needs a rework!
+ * We need auto migration from one config version to the next
+ * 
+ * how this could work:
+ * 1. load generic schema :/hyperion-schema
+ * 2. get version of current config
+ * 3. load schema of current config version
+ * 4. if current version of config matches "neededConfigVersion" then go on, otherwise do migration
+ * 5. migration .. TBD
+ */
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+
+	int configVersionId = tryLoadConfig(configFile,0);
+	Debug(_log, "config version: %d", configVersionId);
+	if (configVersionId>0 && neededConfigVersion == configVersionId)
+	{
+		return;
+	}
+	
+	// migrate configVersionId
+	throw std::runtime_error("ERROR: config migration not implemented");
+}
+
 
 void HyperionDaemon::startInitialEffect()
 {

@@ -7,16 +7,7 @@
 		{
 			"type" : "object",
 			"required" : true,
-			"properties" :
-			{
-				"configVersion" :
-				{
-					"type" : "integer",
-					"minimum" : 1,
-					"required" : true
-				}
-			},
-			"additionalProperties" : true
+			"required" : true
 		}
 	},
 	"additionalProperties" : true
