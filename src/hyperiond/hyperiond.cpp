@@ -51,7 +51,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
 {
-	loadConfig(configFile);
+	loadConfig(configFile, CURRENT_CONFIG_VERSION );
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -116,8 +116,19 @@ void HyperionDaemon::run()
 
 }
 
-void HyperionDaemon::loadConfig(const QString & configFile)
+void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion, const int schemaVersion)
 {
+/*
+ * This function needs a rework!
+ * We need auto migration from one config version to the next
+ * 
+ * how this could work:
+ * 1. load generic schema :/hyperion-schema
+ * 2. get version of current config
+ * 3. load schema of current config version
+ * 4. if current version of config matches "neededConfigVersion" then go on, otherwise do migration
+ * 5. migration .. TBD
+ */
 	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
 
 	// make sure the resources are loaded (they may be left out after static linking)
@@ -125,7 +136,10 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonParseError error;
 
 	// read the json schema from the resource
-	QFile schemaData(":/hyperion-schema");
+	QString schemaFile = ":/hyperion-schema";
+	if (schemaVersion > 0)
+		schemaFile += "-" + QString::number(schemaVersion); 
+	QFile schemaData(schemaFile);
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
@@ -171,6 +185,27 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 		
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
+	
+	const QJsonObject & generalConfig = _qconfig["general"].toObject();
+	int configVersionId = generalConfig["configVersion"].toInt(-1);
+	Debug(_log, "config version: %d", configVersionId);
+	if (schemaVersion == 0)
+	{
+		if (configVersionId>0)
+		{
+			loadConfig(configFile,neededConfigVersion, configVersionId);
+		}
+	}
+	else 
+	{
+		if (neededConfigVersion != configVersionId)
+		{
+			// migrate configVersionId
+			throw std::runtime_error("ERROR: config migration not implemented");
+		}
+	}
+		
+
 }
 
 void HyperionDaemon::startInitialEffect()

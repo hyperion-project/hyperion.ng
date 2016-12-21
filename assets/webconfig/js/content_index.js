@@ -97,8 +97,6 @@ $(document).ready( function() {
 
 	$(hyperion).one("cmd-config-getconfig", function(event) {
 		parsedConfJSON = event.response.result;
-		delete parsedConfJSON["general"].configVersion;
-
 		requestServerInfo();
 	});
 

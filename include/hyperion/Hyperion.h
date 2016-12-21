@@ -185,6 +185,8 @@ public:
 
 	/// gets the methode how image is maped to leds
 	int getLedMappingType() { return _ledMAppingType; };
+	
+	int getConfigVersionId() { return _configVersionId; };
 
 public slots:
 	///
@@ -411,4 +413,6 @@ private:
 	QSize _ledGridSize;
 	
 	int _ledMAppingType;
+	
+	int _configVersionId;
 };
