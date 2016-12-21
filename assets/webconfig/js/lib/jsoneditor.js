@@ -2151,7 +2151,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
 	if(this.formname)this.label.setAttribute('for',this.formname);
 	
     this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append, this.placeholder);
-    this.container.appendChild(this.control);
+	this.container.appendChild(this.control);
 
     // Any special formatting that needs to happen after the input is added to the dom
     window.requestAnimationFrame(function() {
@@ -6041,6 +6041,8 @@ JSONEditor.defaults.editors.checkbox = JSONEditor.AbstractEditor.extend({
     });
 
     this.container.appendChild(this.control);
+	if (this.input.id.endsWith('_enable'))
+		this.container.appendChild(document.createElement('hr'));
   },
   enable: function() {
     if(!this.always_disabled) {
@@ -6574,8 +6576,8 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
 		subgroup.appendChild(input);
 		subgroup.appendChild(helplabel);
 
-		//if (input.name.includes('enable'))
-		//	subgroup.className += ' checkbox-success';
+		if (input.id.endsWith('_enable'))
+			subgroup.className += ' checkbox-success';
 	}
 	else if (append){
 		group.className += ' form-group';
