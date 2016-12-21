@@ -3,6 +3,28 @@
 	"required" : true,
 	"properties" :
 	{
+		"general" :
+		{
+			"type" : "object",
+			"title" : "edt_general_heading_title",
+			"required" : true,
+			"defaultProperties": ["name"],
+			"properties" :
+			{
+				"name" :
+				{
+					"type" : "string",
+					"title" : "edt_general_name_title",
+					"required" : true,
+					"propertyOrder" : 1
+				},
+				"configVersion" :
+				{
+					"type" : "integer",
+					"required" : true
+				}
+			}
+		},
 		"logger" :
 		{
 			"type" : "object",
@@ -24,16 +46,9 @@
 			"type" : "object",
 			"title" : "edt_dev_general_heading_title",
 			"required" : true,
-			"defaultProperties": ["name","ledCount","colorOrder","rewriteTime"],
+			"defaultProperties": ["ledCount","colorOrder","rewriteTime"],
 			"properties" :
 			{
-				"name" :
-				{
-					"type" : "string",
-					"title" : "edt_dev_general_name_title",
-					"required" : true,
-					"propertyOrder" : 1
-				},
 				"type" :
 				{
 					"type" : "string",

@@ -343,8 +343,8 @@ void HyperionDaemon::startNetworkServices()
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
-	const QJsonObject & deviceConfig = _qconfig["device"].toObject();
-	const std::string mDNSDescr = ( deviceConfig["name"].toString("").toStdString()
+	const QJsonObject & generalConfig = _qconfig["general"].toObject();
+	const std::string mDNSDescr = ( generalConfig["name"].toString("").toStdString()
 					+ "@" +
 					QHostInfo::localHostName().toStdString()
 					);

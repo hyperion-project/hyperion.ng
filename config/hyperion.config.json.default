@@ -1,4 +1,9 @@
 {
+	"general" :
+	{
+		"name"       : "MyHyperionConfig",
+		"configVersion" : 1,
+	},
 	"logger" :
 	{
 		"level" : "warn"
