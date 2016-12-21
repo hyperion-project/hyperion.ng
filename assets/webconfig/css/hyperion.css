@@ -13,9 +13,11 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 /*editor changes*/
 [id^=editor_container] h3{margin-top:10px;}
 [id^=editor_container] .well{margin-bottom:9px;border:none;background-color:white;box-shadow:none;}
+[id^=editor_container] label{padding-left:0px !important; padding-right:0px !important;}
 .ltd{width:auto;text-align:left;white-space:nowrap;vertical-align:middle !important;padding:6px !important;}
 .itd{width:100%;padding:6px !important;}
-.input-group{width:100%}
+table.input-group{width:100%}
+.borderless {margin-bottom:0px}
 @media (max-width: 767px) {.ltd{white-space:normal;}}
 
 /*icon spacing*/

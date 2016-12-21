@@ -20,7 +20,8 @@ var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
 
-function initRestart(){
+function initRestart()
+{
 	$(hyperion).off();
 	requestServerConfigReload();
 	watchdog = 1;
@@ -259,5 +260,10 @@ function requestLoggingStop()
 {
 	loggingStreamActive=false;
 	sendToHyperion("logging", "stop");
+}
+
+function requestMappingType(type)
+{
+	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 

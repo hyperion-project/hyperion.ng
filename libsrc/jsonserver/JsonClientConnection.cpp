@@ -488,7 +488,7 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				{
 					if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
 					{
-						sendErrorReply("Can't save new effect. Effect name is empty or starts with a dot", command, tan);
+						sendErrorReply("Can't save new effect. Effect name is empty or begins with a dot.", command, tan);
 						return;
 					}
 					

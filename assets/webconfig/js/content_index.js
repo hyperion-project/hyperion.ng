@@ -74,7 +74,7 @@ $(document).ready( function() {
 			});
 		}
 		
-		if ($("#logmessages").length == 0)
+		if ($("#logmessages").length == 0 && loggingStreamActive)
 		{
 			requestLoggingStop();
 		}
