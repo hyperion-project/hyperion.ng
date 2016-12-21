@@ -32,8 +32,9 @@
 	<h2 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></h2>
 	<div class="introd">
 		<h4  data-i18n="conf_leds_label_intro">The LED controller of youre choice is your way to output the led data via Raspberry PI GPIO, USB or network! Choose one, define your led layout and enjoy the light!</h4>
+	<hr />
 	</div>
-	<hr>
+
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
 		<li class="active"><a data-toggle="tab" href="#menu_controller"  data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
 		<li><a data-toggle="tab" href="#menu_gencfg"  data-i18n="conf_leds_nav_label_ledlayout">LED Layout</a></li>
@@ -43,9 +44,10 @@
 	<div class="tab-content">
 
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
+			<div class="row">
+			<div class="col-lg-8">
 			<div class="panel panel-primary">
 				<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
-					<button id='btn_submit_controller' class="btn btn-success"	style="float:right"  data-i18n="general_button_savesettings">Save Settings</button>
 					<label for="leddevices"  data-i18n="conf_leds_contr_label_contrtype">Controller type:</label>
 					<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 				</div>
@@ -77,7 +79,12 @@
 						</div>
 					</div>
 				</div>
+				<div class="panel-footer">
+					<button id='btn_submit_controller' class="btn btn-success"  data-i18n="general_button_savesettings">Save Settings</button>
+				</div>
 			</div>
+		</div>
+		</div>
 		</div>
 
 		<div id="menu_display" class="tab-pane fade" style="padding-top:10px">
@@ -97,12 +104,11 @@
 
 			<div class="row">
 				<div class="col-lg-6 col-md-12">
-
 					<div class="panel-group" id="accordion">
 						<div class="panel panel-primary">
 							<div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
 								<h4 class="panel-title">
-									<a><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_leds_layout_generatedconf">Generated/Current LED Configuration</span></a>
+									<a><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_leds_layout_generatedconf">Generated/Actual LED Configuration</span></a>
 								</h4>
 							</div>
 							<div id="collapse4" class="panel-collapse collapse in">
@@ -125,98 +131,130 @@
 							</div>
 							<div id="collapse1" class="panel-collapse collapse">
 								<div class="panel-body ">
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledstop" style="width:170px"  data-i18n="conf_leds_layout_cl_top">Top</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledstop" type="number" value="10" min="0" step="1"></input>
-											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledsbottom" style="width:170px"  data-i18n="conf_leds_layout_cl_bottom">Bottom</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledsbottom" type="number" value="10" min="0" step="1"></input>
-											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledsleft" style="width:170px"  data-i18n="conf_leds_layout_cl_left">Left</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledsleft" type="number" value="6" min="0" step="1"></input>
-											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledsright" style="width:170px"  data-i18n="conf_leds_layout_cl_right">Right</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledsright" type="number" value="6" min="0" step="1"></input>
-											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledsglength" style="width:170px"  data-i18n="conf_leds_layout_cl_gaglength">Gap length</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledsglength" type="number" value="0" min="0" step="1"></input>
-											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_ledsgpos" style="width:170px"  data-i18n="conf_leds_layout_cl_gappos">Gap position</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_ledsgpos" type="number" value="0" min="0" step="1">
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_position" style="width:170px"  data-i18n="conf_leds_layout_cl_inppos">Input position</label>
-										<div class=" input-group">
-											<input class="form-control ledCLconstr" id="ip_cl_position" type="number" value="0" step="1">
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_cl_reverse" style="width:190px"  data-i18n="conf_leds_layout_cl_reversdir">Reverse direction</label>
-										<div class="checkbox">
-											<input class="ledCLconstr" id="ip_cl_reverse" type="checkbox" value="false"></input>
-											<label></label>
-										</div>
-									</div>
-									<div class="">
-										<div class="panel panel-default">
-											<div class="panel-heading headcollapse" data-toggle="collapse" data-target="#collapse3">
-												<h4 class="panel-title">
-													<a><span  data-i18n="conf_leds_layout_advanced">Advanced settings</span></a>
-												</h4>
-											</div>
-											<div id="collapse3" class="panel-collapse collapse">
-												<div class="panel-body ">
-													<div class="form-group">
-														<label class="col-form-label col-md-6" for="ip_cl_ledshdepth" style="width:190px;max-width:200px"  data-i18n="conf_leds_layout_cl_hleddepth">Horizontal LED depth</label>
-														<div class=" input-group">
-															<input class="form-control ledCLconstr" id="ip_cl_ledshdepth" type="number" value="8" min="1" max="100" step="1"></input>
-															<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
-														</div>
+									<table class="table borderless">
+										<tbody>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledstop" data-i18n="conf_leds_layout_cl_top">Top</label>
+												</td>
+												<td class="itd input-group">
+													<input class="form-control ledCLconstr" id="ip_cl_ledstop" type="number" value="10" min="0" step="1"></input>
+													<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledsbottom" data-i18n="conf_leds_layout_cl_bottom">Bottom</label>
+												</td>
+												<td class="itd input-group">
+													<input class="form-control ledCLconstr" id="ip_cl_ledsbottom" type="number" value="10" min="0" step="1"></input>
+													<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledsleft" data-i18n="conf_leds_layout_cl_left">Left</label>
+												</td>
+												<td class="itd input-group">
+													<input class="form-control ledCLconstr" id="ip_cl_ledsleft" type="number" value="6" min="0" step="1"></input>
+													<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledsright" data-i18n="conf_leds_layout_cl_right">Right</label>
+												</td>
+												<td class="itd input-group">
+													<input class="form-control ledCLconstr" id="ip_cl_ledsright" type="number" value="6" min="0" step="1"></input>
+													<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledsglength" data-i18n="conf_leds_layout_cl_gaglength">Gap length</label>
+												</td>
+												<td class="itd input-group">
+													<input class="form-control ledCLconstr" id="ip_cl_ledsglength" type="number" value="0" min="0" step="1"></input>
+													<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_ledsgpos" data-i18n="conf_leds_layout_cl_gappos">Gap position</label>
+												</td>
+												<td class="itd">
+													<input class="form-control ledCLconstr" id="ip_cl_ledsgpos" type="number" value="0" min="0" step="1">
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_position" data-i18n="conf_leds_layout_cl_inppos">Input position</label>
+												</td>
+												<td class="itd">
+													<input class="form-control ledCLconstr" id="ip_cl_position" type="number" value="0" step="1">
+												</td>
+											</tr>
+											<tr>
+												<td class="ltd">
+													<label class="ltdlabel" for="ip_cl_reverse" data-i18n="conf_leds_layout_cl_reversdir">Reverse direction</label>
+												</td>
+												<td class="itd">
+													<div class="checkbox">
+														<input class="ledCLconstr" id="ip_cl_reverse" type="checkbox" value="false"></input>
+														<label></label>
 													</div>
-													<div class="form-group">
-														<label class="col-form-label col-md-6" for="ip_cl_ledsvdepth" style="width:190px;max-width:200px"  data-i18n="conf_leds_layout_cl_vleddepth">Vertical LED depth</label>
-														<div class=" input-group">
-															<input class="form-control ledCLconstr" id="ip_cl_ledsvdepth" type="number" value="5" min="1" max="100" step="1"></input>
-															<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
-														</div>
-													</div>
-													<div class="form-group">
-														<label class="col-form-label col-md-6" for="ip_cl_ledsedgegap" style="width:190px;max-width:200px"  data-i18n="conf_leds_layout_cl_edgegap">Edge Gap</label>
-														<div class=" input-group">
-															<input class="form-control ledCLconstr" id="ip_cl_ledsedgegap" type="number" value="0" min="0" max="50" step="1"></input>
-															<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
-														</div>
-													</div>
-													<div class="form-group">
-														<label class="col-form-label col-md-6" for="ip_cl_ledscornergap" style="width:190px;max-width:200px"  data-i18n="conf_leds_layout_cl_cornergap">Corner Gap</label>
-														<div class=" input-group">
-															<input class="form-control ledCLconstr" id="ip_cl_ledscornergap" type="number" value="0" min="0" max="50" step="1"></input>
-															<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
-														</div>
-													</div>
-												</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+									<div class="panel panel-default">
+										<div class="panel-heading headcollapse" data-toggle="collapse" data-target="#collapse3">
+											<h4 class="panel-title">
+												<a><span  data-i18n="conf_leds_layout_advanced">Advanced settings</span></a>
+											</h4>
+										</div>
+										<div id="collapse3" class="panel-collapse collapse">
+											<div class="panel-body ">
+												<table class="tableform borderless">
+													<tbody>
+														<tr>
+															<td class="ltd">
+																<label class="ltdlabel" for="ip_cl_ledshdepth" data-i18n="conf_leds_layout_cl_hleddepth">Horizontal LED depth</label>
+															</td>
+															<td class="itd input-group">
+																<input class="form-control ledCLconstr" id="ip_cl_ledshdepth" type="number" value="8" min="1" max="100" step="1"></input>
+																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
+															</td>
+														</tr>
+														<tr>
+															<td class="ltd">
+																<label class="ltdlabel" for="ip_cl_ledsvdepth" data-i18n="conf_leds_layout_cl_vleddepth">Vertical LED depth</label>
+															</td>
+															<td class="itd input-group">
+																<input class="form-control ledCLconstr" id="ip_cl_ledsvdepth" type="number" value="5" min="1" max="100" step="1"></input>
+																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
+															</td>
+														</tr>
+														<tr>
+															<td class="ltd">
+																<label class="ltdlabel" for="ip_cl_ledsedgegap" data-i18n="conf_leds_layout_cl_edgegap">Edge Gap</label>
+															</td>
+															<td class="itd input-group">
+																<input class="form-control ledCLconstr" id="ip_cl_ledsedgegap" type="number" value="0" min="0" max="50" step="1"></input>
+																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
+															</td>
+														</tr>
+														<tr>
+															<td class="ltd">
+																<label class="ltdlabel" for="ip_cl_ledscornergap" data-i18n="conf_leds_layout_cl_cornergap">Corner Gap</label>
+															</td>
+															<td class="itd input-group">
+																<input class="form-control ledCLconstr" id="ip_cl_ledscornergap" type="number" value="0" min="0" max="50" step="1"></input>
+																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
+															</td>
+														</tr>
+													</tbody>
+												</table>
 											</div>
 										</div>
 									</div>
@@ -226,8 +264,7 @@
 								</div>
 							</div>
 						</div>
-
-					<div class="panel panel-primary">
+						<div class="panel panel-primary">
 						<div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse2">
 							<h4 class="panel-title">
 								<a><i class="fa fa-th fa-fw"></i><span  data-i18n="conf_leds_layout_matrix">Matrix Configuration (LED wall)</span></a>
@@ -235,80 +272,93 @@
 						</div>
 						<div id="collapse2" class="panel-collapse collapse">
 							<div class="panel-body">
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_ledshoriz" style="width:170px;"  data-i18n="conf_leds_layout_ma_horiz">Horizontal</label>
-										<div class=" input-group">
+								<table>
+									<tbody>
+									<tr>
+										<td class="ltd">
+											<label class="ltdlabel" for="ip_ma_ledshoriz" data-i18n="conf_leds_layout_ma_horiz">Horizontal</label>
+										</td>
+										<td class="itd input-group">
 											<input class="form-control ledMAconstr" id="ip_ma_ledshoriz" type="number" value="10" min="1" step="1"></input>
 											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_ledsvert" style="width:170px;"  data-i18n="conf_leds_layout_ma_vert">Vertical</label>
-										<div class=" input-group">
+										</td>
+									</tr>
+									<tr>
+										<td class="ltd">
+											<label class="ltdlabel" for="ip_ma_ledsvert" data-i18n="conf_leds_layout_ma_vert">Vertical</label>
+										</td>
+										<td class="itd input-group">
 											<input class="form-control ledMAconstr" id="ip_ma_ledsvert" type="number" value="10" min="1" step="1"></input>
 											<div class="input-group-addon" data-i18n="edt_append_leds">LEDs</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_cabling" style="width:170px;"  data-i18n="conf_leds_layout_ma_cabling">Cabling</label>
-										<div class=" input-group">
+										</td>
+									</tr>
+									<tr>
+										<td class="ltd">
+											<label class="ltdlabel" for="ip_ma_cabling"  data-i18n="conf_leds_layout_ma_cabling">Cabling</label>
+										</td>
+										<td class="itd">
 											<select class="form-control ledMAconstr" id="ip_ma_cabling">
 												<option value="snake"  data-i18n="conf_leds_layout_ma_optsnake">Snake</option>
 												<option value="parallel"  data-i18n="conf_leds_layout_ma_optparallel">Parallel</option>
 											</select>
-										</div>
-									</div>
-						<!---			<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_order" style="width:170px;"  data-i18n="conf_leds_layout_ma_order">Order</label>
-										<div class=" input-group">
+										</td>
+									</tr>
+						<!---		<tr>
+										<td class="ltd">
+											<label class="ltdlabel" for="ip_ma_order" data-i18n="conf_leds_layout_ma_order">Order</label>
+										</td>
+										<td class="itd">
 											<select class="form-control ledMAconstr" id="ip_ma_order">
 												<option value="horizontal"  data-i18n="conf_leds_layout_ma_opthoriz">Horizontal</option>
 												<option value="vertical"  data-i18n="conf_leds_layout_ma_optvert">Vertical</option>
 											</select>
-										</div>
-									</div>
+										</td>
+									</tr>
 						--->
-									<div class="form-group">
-										<label class="col-form-label col-md-6" for="ip_ma_start" style="width:170px;"  data-i18n="conf_leds_layout_ma_position">Input</label>
-										<div class=" input-group">
+									<tr>
+										<td class="ltd">
+											<label class="ltdlabel" for="ip_ma_start" data-i18n="conf_leds_layout_ma_position">Input</label>
+										</td>
+										<td class="itd">
 											<select class="form-control ledMAconstr" id="ip_ma_start">
 												<option value="top-left"  data-i18n="conf_leds_layout_ma_opttopleft">Top left</option>
 												<option value="top-right"  data-i18n="conf_leds_layout_ma_opttopright">Top right</option>
 												<option value="bottom-left"  data-i18n="conf_leds_layout_ma_optbottomleft">Bottom left</option>
 												<option value="bottom-right"  data-i18n="conf_leds_layout_ma_optbottomright">Bottom right</option>
 											</select>
-										</div>
-									</div>
+										</td>
+									</tr>
+									</tbody>
+								</table>
 							</div>
 							<div class="panel-footer">
 									<button id="btn_ma_generate" class="btn btn-warning"  data-i18n="conf_leds_layout_cl_generate">Generate LED configuration</button>
 							</div>
 						</div>
+						</div>
 					</div>
-			</div> <!-- accordion -->
-		</div>
-		<div class="col-lg-6 col-md-12">
-			<div class="panel panel-primary">
-				<div class="panel-heading">
-					<h4 class="panel-title"><i class="fa fa-search fa-fw"></i><span  data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
-				</div>
-				<div class="panel-body">
-					<div id="previewcreator"></div>
-					<div id="previewledcount"></div>
-					<div class="col-lg-12 st_helper" style="padding-left:0px; padding-right:0px">
-						<div id="leds_preview"></div>
-						<div>
+				</div> <!-- accordion -->
+			<div class="col-lg-6 col-md-12">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h4 class="panel-title"><i class="fa fa-search fa-fw"></i><span  data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
 					</div>
-				</div>
-				<div class="panel-footer">
-					<button  type="button" class="btn btn-danger" id="leds_prev_toggle_num"  data-i18n="conf_leds_test_button_togglelednumber">toggle led numbers</button>
+					<div class="panel-body">
+						<div id="previewcreator"></div>
+						<div id="previewledcount"></div>
+						<div class="col-lg-12 st_helper" style="padding-left:0px; padding-right:0px">
+							<div id="leds_preview"></div>
+						</div>
+					</div>
+					<div class="panel-footer">
+						<button  type="button" class="btn btn-danger" id="leds_prev_toggle_num"  data-i18n="conf_leds_test_button_togglelednumber">toggle led numbers</button>
+					</div>
 				</div>
 			</div>
-		</div>
+			</div>
 		</div> <!-- row layout -->
 	</div>
-
-	</div>
+</div>
 
 
 	</div> <!-- tab content -->

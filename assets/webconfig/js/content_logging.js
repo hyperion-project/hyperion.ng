@@ -25,7 +25,7 @@ $(document).ready(function() {
 	{
 		loggingHandlerInstalled = true;
 		$(hyperion).on("cmd-logging-update",function(event){
-			if ($("#logmessages").length == 0)
+			if ($("#logmessages").length == 0 && loggingStreamActive)
 			{
 				requestLoggingStop();
 			}

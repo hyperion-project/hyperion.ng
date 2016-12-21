@@ -450,10 +450,9 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
-
-		$('#leds_custom_updsim').trigger('click');
-		$('#image_preview').hide();
-		$('#image_preview').attr("width" , $('#leds_canvas').innerWidth()-2);
+		
+		$('#image_preview').hide();		
+		$('#image_preview').attr("width" , $('#leds_canvas').innerWidth()-2);		
 		$('#image_preview').attr("height", $('#leds_canvas').innerHeight()-2);
 	});
 
@@ -520,6 +519,7 @@ $(document).ready(function() {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
+			$('#leds_custom_updsim').trigger('click');
 			ledsCustomCfgInitialized = true;
 		}
 	});
