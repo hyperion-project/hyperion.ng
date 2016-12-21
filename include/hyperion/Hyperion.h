@@ -93,7 +93,7 @@ public:
 	///
 	unsigned getLedCount() const;
 
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _ledGridSize; };
 
 	///
 	/// Returns the current priority
@@ -182,6 +182,9 @@ public:
 	bool configModified();
 
 	bool configWriteable();
+
+	/// gets the methode how image is maped to leds
+	int getLedMappingType() { return _ledMAppingType; };
 
 public slots:
 	///
@@ -273,6 +276,9 @@ public slots:
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
 
+	/// sets the methode how image is maped to leds
+	void setLedMappingType(int mappingType);
+
 public:
 	static Hyperion *_hyperion;
 
@@ -312,6 +318,7 @@ signals:
 
 	void componentStateChanged(const hyperion::Components component, bool enabled);
 
+	void imageToLedsMappingChanged(int mappingType);
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
 
 private slots:
@@ -402,4 +409,6 @@ private:
 	QByteArray _configHash;
 
 	QSize _ledGridSize;
+	
+	int _ledMAppingType;
 };

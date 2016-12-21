@@ -87,6 +87,7 @@ int main(int argc, char * argv[])
 		ColorOption     & argRAdjust     = parser.add<ColorOption>  ('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argGAdjust     = parser.add<ColorOption>  ('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBAdjust     = parser.add<ColorOption>  ('B', "blueAdjustment", "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
+		Option          & argMapping     = parser.add<Option>       ('M', "ledMapping"   , "Set the methode for image to led mapping valif values: multicolor:mean, unicolor_mean");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 		BooleanOption   & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
@@ -104,12 +105,16 @@ int main(int argc, char * argv[])
 		}
 
 		// check if at least one of the available color transforms is set
-		bool colorTransform = parser.isSet(argSaturation) || parser.isSet(argValue) || parser.isSet(argSaturationL) || parser.isSet(argLuminance) || parser.isSet(argLuminanceMin) || parser.isSet(argThreshold) || parser.isSet(argGamma) || parser.isSet(argBlacklevel) || parser.isSet(argWhitelevel);
+		bool colorTransform = parser.isSet(argSaturation) || parser.isSet(argValue) || parser.isSet(argSaturationL) || parser.isSet(argLuminance)
+		                   || parser.isSet(argLuminanceMin) || parser.isSet(argThreshold) || parser.isSet(argGamma) || parser.isSet(argBlacklevel) || parser.isSet(argWhitelevel);
 		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust);
 		bool colorModding = colorTransform || colorAdjust;
 		
 		// check that exactly one command was given
-		int commandCount = count({parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding, parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet)});
+		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
+		    parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorModding,
+		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
+			parser.isSet(argMapping) });
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
@@ -215,6 +220,10 @@ int main(int argc, char * argv[])
 		else if (parser.isSet(argConfigSet))
 		{
 			connection.setConfig(argConfigSet.value(parser));
+		}
+		else if (parser.isSet(argMapping))
+		{
+			connection.setLedMapping(argMapping.value(parser));
 		}
 		else if (colorModding)
 		{	

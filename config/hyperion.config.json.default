@@ -16,6 +16,7 @@
 
 	"color" :
 	{
+		"imageToLedMappingType" : "multicolor_mean",
 		"channelAdjustment_enable" : true,
 		"channelAdjustment_v4l_only" : true,
 		"channelAdjustment" :

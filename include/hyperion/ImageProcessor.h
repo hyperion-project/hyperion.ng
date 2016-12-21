@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <QString>
 
 // Utils includes
 #include <utils/Image.h>
@@ -18,9 +19,12 @@
 /// performed in two steps. First the average color per led-region is computed. Second a
 /// color-tranform is applied based on a gamma-correction.
 ///
-class ImageProcessor
+class ImageProcessor : public QObject 
 {
+	Q_OBJECT
+
 public:
+
 	~ImageProcessor();
 
 	///
@@ -38,12 +42,24 @@ public:
 	///
 	void setSize(const unsigned width, const unsigned height);
 
-	/// Enable or disable the black border detector
-	void enableBlackBorderDetector(bool enable);
 
 	/// Returns starte of black border detector
 	bool blackBorderDetectorEnabled();
 	
+	/// Returns starte of black border detector
+	int ledMappingType();
+
+	static int mappingTypeToInt(QString mappingType);
+	static QString mappingTypeToStr(int mappingType);
+
+public slots:
+	/// Enable or disable the black border detector
+	void enableBlackBorderDetector(bool enable);
+
+	/// Enable or disable the black border detector
+	void setLedMappingType(int mapType);
+
+public:	
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -62,7 +78,12 @@ public:
 		verifyBorder(image);
 
 		// Create a result vector and call the 'in place' functionl
-		std::vector<ColorRgb> colors = _imageToLeds->getMeanLedColor(image);
+		std::vector<ColorRgb> colors;
+		switch (_mappingType)
+		{
+			case 1: colors = _imageToLeds->getUniLedColor(image); break;
+			default: colors = _imageToLeds->getMeanLedColor(image);
+		}
 
 		// return the computed colors
 		return colors;
@@ -84,7 +105,12 @@ public:
 		verifyBorder(image);
 
 		// Determine the mean-colors of each led (using the existing mapping)
-		_imageToLeds->getMeanLedColor(image, ledColors);
+		switch (_mappingType)
+		{
+			case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
+			default: _imageToLeds->getMeanLedColor(image, ledColors);
+		}
+
 	}
 
 	///
@@ -153,6 +179,7 @@ private:
 	}
 
 private:
+	Logger * _log;
 	/// The Led-string specification
 	const LedString _ledString;
 
@@ -161,4 +188,7 @@ private:
 
 	/// The mapping of image-pixels to leds
 	hyperion::ImageToLedsMap* _imageToLeds;
+
+	/// Type of image 2 led mapping
+	int _mappingType;
 };
