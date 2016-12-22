@@ -130,7 +130,7 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
-		error << "Schema not found: " << schemaData.errorString().toStdString();
+		error << "Schema not found or not supported: " << schemaData.errorString().toStdString();
 		throw std::runtime_error(error.str());
 	}
 	
@@ -169,7 +169,7 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 		{
 			std::cout << *i << std::endl;
 		}
-		
+
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
 	
@@ -180,26 +180,24 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 
 void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
 {
-/*
- * This function needs a rework!
- * We need auto migration from one config version to the next
- * 
- * how this could work:
- * 1. load generic schema :/hyperion-schema
- * 2. get version of current config
- * 3. load schema of current config version
- * 4. if current version of config matches "neededConfigVersion" then go on, otherwise do migration
- * 5. migration .. TBD
- */
 	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
 
 	int configVersionId = tryLoadConfig(configFile,0);
+
+	// no config id found, assume legacy hyperion
+	if (configVersionId < 0)
+	{
+		Debug(_log, "config file has no version, assume old hyperion.");
+		configVersionId = tryLoadConfig(configFile,1);
+	}
 	Debug(_log, "config version: %d", configVersionId);
+	configVersionId = tryLoadConfig(configFile, configVersionId);
+
 	if (configVersionId>0 && neededConfigVersion == configVersionId)
 	{
 		return;
 	}
-	
+
 	// migrate configVersionId
 	throw std::runtime_error("ERROR: config migration not implemented");
 }

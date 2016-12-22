@@ -27,7 +27,7 @@
                     "type" : "string",
                     "required" : false
                 },
-                "bgr-output" : { // deprecated
+                "bgr-output" : {
                     "type" : "boolean",
                     "required" : false
                 }
