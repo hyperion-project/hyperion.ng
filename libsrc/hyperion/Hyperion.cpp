@@ -589,7 +589,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 
 	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
 	_configVersionId = generalConfig["configVersion"].toInt(-1);
-	
+
 	// initialize the leds
 	update();
 }
