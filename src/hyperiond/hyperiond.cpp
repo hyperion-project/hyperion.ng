@@ -31,7 +31,7 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-
+#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -193,13 +193,15 @@ void HyperionDaemon::loadConfig(const QString & configFile, const int neededConf
 	Debug(_log, "config version: %d", configVersionId);
 	configVersionId = tryLoadConfig(configFile, configVersionId);
 
-	if (configVersionId>0 && neededConfigVersion == configVersionId)
+	if (neededConfigVersion == configVersionId)
 	{
 		return;
 	}
 
 	// migrate configVersionId
-	throw std::runtime_error("ERROR: config migration not implemented");
+	ConfigMigrator migrator;
+	migrator.migrate(configFile, configVersionId, neededConfigVersion);
+	
 }
 
 
