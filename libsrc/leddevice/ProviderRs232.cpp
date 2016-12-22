@@ -9,7 +9,7 @@
 // Local Hyperion includes
 #include "ProviderRs232.h"
 
-ProviderRs232::ProviderRs232(const Json::Value &deviceConfig)
+ProviderRs232::ProviderRs232()
 	: _rs232Port(this)
 	, _blockedForDelay(false)
 	, _stateChanged(true)
@@ -18,18 +18,20 @@ ProviderRs232::ProviderRs232(const Json::Value &deviceConfig)
 	, _frameDropCounter(0)
 	, _lastError(QSerialPort::NoError)
 {
-	setConfig(deviceConfig);
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
-bool ProviderRs232::setConfig(const Json::Value &deviceConfig)
+bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
 	closeDevice();
-	_deviceName           = deviceConfig["output"].asString();
-	_baudRate_Hz          = deviceConfig["rate"].asInt();
-	_delayAfterConnect_ms = deviceConfig.get("delayAfterConnect",250).asInt();
+
+	LedDevice::init(deviceConfig);
+
+	_deviceName           = deviceConfig["output"].toString().toStdString();
+	_baudRate_Hz          = deviceConfig["rate"].toInt();
+	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(250);
 
 	return true;
 }
@@ -152,10 +154,10 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 	{
 		if (!_rs232Port.isOpen())
 		{
-			return tryOpen(3000) ? 0 : -1;
+			return tryOpen(5000) ? 0 : -1;
 		}
 
-		if (_frameDropCounter > 0)
+		if (_frameDropCounter > 5)
 		{
 			Debug(_log, "%d frames dropped", _frameDropCounter);
 		}
@@ -183,4 +185,9 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 void ProviderRs232::unblockAfterDelay()
 {
 	_blockedForDelay = false;
+}
+
+int ProviderRs232::rewriteLeds()
+{
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

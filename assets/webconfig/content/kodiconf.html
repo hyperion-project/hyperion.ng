@@ -1,136 +1,33 @@
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-12">
-			<h1 class="page-header"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="conf_kodi_label_title">Kodi Watch</span></h1>
-			<div class="col-lg-12">
-				<div class="introd">
-					<h4 lang="en" data-lang-token="conf_kodi_label_intro">The Kodi Watcher enables you to enable and disable the screencapture depending on Kodi state. This is not limited to the same machine, you could observe also a Kodi on any other device at your network.</h4>
-				</div>
-				<hr>
-				<div class="alert alert-info" role="alert">
-					<strong>HINT 1:</strong> In any case you need to enable the remote control for Kodi. Please checkout Wiki for instructions. LINK<br>
-					<strong>HINT 2:</strong> If you just use a USB-Grabber you could enable the Kodi Watch for this separately at the USB-Grabber page.
-				</div>
+	<div class="row">
+		<div class="col-lg-12">
+			<h2 class="page-header"><i class="fa fa-play-circle-o fa-fw"></i><span  data-i18n="conf_kodi_label_title">Kodi Watch</span></h2>
+			<div class="introd">
+				<h4  data-i18n="conf_kodi_label_intro">The Kodi Watcher enables you to enable and disable the screencapture depending on Kodi state. This is not limited to the same machine, you could observe also a Kodi on any other device at your network.</h4>
+				<hr />
 			</div>
-
-			<div class="col-lg-7">
-			<div class="panel panel-default">
-				<div class="panel-body">
-		<!--Form example start-->
-				    <form class="form-horizontal">
-        <div class="form-group">
-            <label class="control-label col-xs-10" for="SetEnableKodiCheck">Aktiviere die Überwachung für Kodi:</label>
-         	<div class="col-xs-2">
-  				<div class="checkbox checkbox-success">
-   					<input type="checkbox" id="SetEnableKodiCheck">
-    				<label for="SetEnableKodiCheck"></label>
-  				</div>
-            </div>
-        </div>
-        <hr>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiIP">Kodi IP-Adresse:</label>
-            <div class="col-xs-6">
-                <input type="text" class="form-control" id="SetKodiIP" placeholder="127.0.0.1">
-				<p>Set your Kodi IP, this could be also a running Kodi on your desktop computer</p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiPort">Kodi TCP Port:</label>
-            <div class="col-xs-6">
-                <input type="text" class="form-control" id="SetKodiPort" placeholder="9090">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiMenu">LEDs an im Menü:</label>
-            <div class="col-xs-6">
-             	<div class="checkbox checkbox-primary">
-   					<label>
-					<input type="checkbox" id="SetKodiMenu" data-toggle="toggle">
-					</label>
-				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiVideo">LEDs an bei Video:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary pull-left">
-   					<input type="checkbox" id="SetKodiVideo">
-    				<label for="SetKodiVideo"></label>
-  				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiMusic">LEDs an bei Musik:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary">
-   					<input type="checkbox" id="SetKodiMusic">
-    				<label for="SetKodiMusic"></label>
-  				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiPicture">LEDs an bei Bilder:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary">
-   					<input type="checkbox" id="SetKodiPicture">
-    				<label for="SetKodiPicture"></label>
-  				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiPause">LEDs an bei Pause:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary">
-   					<input type="checkbox" id="SetKodiPause">
-    				<label for="SetKodiPause"></label>
-  				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodi3D">LEDs an bei 3D:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary">
-   					<input type="checkbox" id="SetKodi3D">
-    				<label for="SetKodi3D"></label>
-  				</div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-xs-6" for="SetKodiScreensaver">LEDs an bei Bildschirmschoner:</label>
-            <div class="col-xs-6">
-              	<div class="checkbox checkbox-primary">
-   					<input type="checkbox" id="SetKodiScreensaver">
-    				<label for="SetKodiScreensaver"></label>
-  				</div>
-            </div>
-        </div>
-		<!--form example end -->
-
-				</div>
+			<div class="alert alert-info" role="alert">
+				<strong>HINT 1:</strong> In any case you need to enable the remote control for Kodi. Please checkout Wiki for instructions. LINK<br>
+				<strong>HINT 2:</strong> If you just use a USB-Grabber you could enable the Kodi Watch for this separately at the USB-Grabber page.
 			</div>
-			</div>
-			<div class="col-lg-12">
-				<div class="panel panel-info">
-					<div class="panel-heading" data-toggle="collapse" data-target="#dkodiWatchInfo">
-						Kodi options explained
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-play-circle-o fa-fw"></i><span data-i18n="conf_kodi_label_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
 					</div>
-					<div id="kodiWatchInfo" class="collapse panel-body">
-						<ul>
-							<li><strong>Enabled:</strong> If checked, the Kodi Checker is enabled</li>
-							<li><strong>Kodi IP-Address:</strong> The ip address of your kodi "127.0.01" means your kodi on the same machine (see hint below)</li>
-							<li><strong>TCP Port:</strong> The TCP port of your Kodi. If you changed nothing, the default "9090" is correct.</li>
-							<li><strong>Menu:</strong> If checked, the ambilight will be "ON" if you are at the kodi menu. "OFF" if unchecked</li>
-							<li><strong>Video:</strong> If checked, the ambilight will be "ON" if you are playing a video (Movie/TV-Show/Youtube etc). "OFF" if unchecked</li>
-							<li><strong>Picture:</strong> If checked, the ambilight will be "ON" if you are watching pictures. "OFF" if unchecked</li>
-							<li><strong>Audio:</strong> If checked, the ambilight will be "ON" if you are listening to audio (music/web radio etc). "OFF" if unchecked</li>
-							<li><strong>Screensaver:</strong> If checked, the ambilight will be "ON" if the screensaver is active. "OFF" if unchecked</li>
-							<li><strong>3D Check:</strong> If checked, Hyperion will be switching to the detected 3D mode. (SBS/TAB) no MVC yet!</li>
-							<li><strong>Pause:</strong> If checked, the ambilight will be "ON" if the Kodi player is at pause state. "OFF" if unchecked</li>
-						</ul>
-					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl"></div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<script src="/js/content_kodi.js"></script>

@@ -38,7 +38,7 @@ public:
 	///
 	/// @param deviceConfig json config for fadecandy
 	///
-	LedDeviceFadeCandy(const Json::Value &deviceConfig);
+	LedDeviceFadeCandy(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
@@ -46,14 +46,14 @@ public:
 	virtual ~LedDeviceFadeCandy();
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Writes the led color values to the led-device
@@ -111,4 +111,3 @@ private:
 	void sendFadeCandyConfiguration();
 
 };
-

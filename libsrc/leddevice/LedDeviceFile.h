@@ -18,7 +18,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceFile(const Json::Value &deviceConfig);
+	LedDeviceFile(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this test-device
@@ -26,14 +26,14 @@ public:
 	virtual ~LedDeviceFile();
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 	
 protected:
 	///

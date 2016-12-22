@@ -20,7 +20,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTinkerforge(const Json::Value &deviceConfig);
+	LedDeviceTinkerforge(const QJsonObject &deviceConfig);
 
 	virtual ~LedDeviceTinkerforge();
 
@@ -29,10 +29,10 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Attempts to open a connection to the master bricklet and the led strip bricklet.

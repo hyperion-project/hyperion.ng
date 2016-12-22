@@ -6,6 +6,7 @@
 
 // QT includes
 #include <QObject>
+#include <QString>
 #include <QTimer>
 #include <QSize>
 #include <QJsonObject>
@@ -22,7 +23,6 @@
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
 #include <hyperion/ColorTransform.h>
-#include <hyperion/ColorCorrection.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ComponentRegister.h>
@@ -30,6 +30,7 @@
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/ActiveEffectDefinition.h>
+#include <effectengine/EffectSchema.h>
 
 // KodiVideoChecker includes
 #include <kodivideochecker/KODIVideoChecker.h>
@@ -42,10 +43,8 @@ class EffectEngine;
 class HsvTransform;
 class HslTransform;
 class RgbChannelTransform;
-class RgbChannelCorrection;
 class RgbChannelAdjustment;
 class MultiColorTransform;
-class MultiColorCorrection;
 class MultiColorAdjustment;
 class KODIVideoChecker;
 ///
@@ -77,12 +76,16 @@ public:
 	};
 
 	///
-	/// Destructor; cleans up resourcess
+	/// Destructor; cleans up resources
 	///
 	~Hyperion();
 
+	///
+	/// free all alocated objects, should be called only from constructor or before restarting hyperion
+	///
+	void freeObjects();
 
-	static Hyperion* initInstance(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile);
 	static Hyperion* getInstance();
 
 	///
@@ -90,7 +93,7 @@ public:
 	///
 	unsigned getLedCount() const;
 
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _ledGridSize; };
 
 	///
 	/// Returns the current priority
@@ -117,6 +120,9 @@ public:
 	///
 	const InputInfo& getPriorityInfo(const int priority) const;
 
+	/// Reload the list of available effects
+	void reloadEffects();
+
 	/// Get the list of available effects
 	/// @return The list of available effects
 	const std::list<EffectDefinition> &getEffects() const;
@@ -125,13 +131,17 @@ public:
 	/// @return The list of active effects
 	const std::list<ActiveEffectDefinition> &getActiveEffects();
 	
+	/// Get the list of available effect schema files
+	/// @return The list of available effect schema files
+	const std::list<EffectSchema> &getEffectSchemas();
+	
 	/// gets the current json config object
 	/// @return json config
-	const Json::Value& getJsonConfig() { return _jsonConfig; };
+	const QJsonObject& getQJsonConfig() { return _qjsonConfig; };
 
 	/// get filename of configfile
 	/// @return the current config filename
-	std::string getConfigFileName() { return _configFile; };
+	std::string getConfigFileName() { return _configFile.toStdString(); };
 
 	/// register a input source to a priority channel
 	/// @param name uniq name of input source
@@ -147,7 +157,7 @@ public:
 	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
 	
 	/// enable/disable automatic/priorized source selection
-	/// @param enable the state
+	/// @param enabled the state
 	void setSourceAutoSelectEnabled(bool enabled);
 	
 	/// set current input source to visible
@@ -171,6 +181,11 @@ public:
 
 	bool configModified();
 
+	bool configWriteable();
+
+	/// gets the methode how image is maped to leds
+	int getLedMappingType() { return _ledMAppingType; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -188,20 +203,23 @@ public slots:
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID);
+
+	///
+	/// Writes the given colors to all leds for the given time and priority
+	///
+	/// @param[in] priority The priority of the written colors
+	/// @param[in] ledColors The colors to write to the leds
+	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
+	///
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 	///
 	/// Returns the list with unique transform identifiers
 	/// @return The list with transform identifiers
 	///
 	const std::vector<std::string> & getTransformIds() const;
-	
-	///
-	/// Returns the list with unique correction identifiers
-	/// @return The list with correction identifiers
-	///
-	const std::vector<std::string> & getTemperatureIds() const;
-	
+
 	///
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
@@ -213,19 +231,13 @@ public slots:
 	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorTransform * getTransform(const std::string& id);
-	
-	///
-	/// Returns the ColorCorrection with the given identifier
-	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorCorrection * getTemperature(const std::string& id);
-	
+
 	///
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorAdjustment * getAdjustment(const std::string& id);
-	
+
 	///
 	/// Returns  MessageForwarder Object
 	/// @return instance of message forwarder object
@@ -234,12 +246,6 @@ public slots:
 
 	/// Tell Hyperion that the transforms have changed and the leds need to be updated
 	void transformsUpdated();
-	
-	/// Tell Hyperion that the corrections have changed and the leds need to be updated
-	void correctionsUpdated();
-	
-	/// Tell Hyperion that the corrections have changed and the leds need to be updated
-	void temperaturesUpdated();
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -260,15 +266,18 @@ public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
-	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, int priority, int timeout = -1);
+	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
+	int setEffect(const QString & effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
-	/// @param timout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const std::string & effectName, const Json::Value & args, int priority, int timeout = -1);
+	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
+
+	/// sets the methode how image is maped to leds
+	void setLedMappingType(int mappingType);
 
 public:
 	static Hyperion *_hyperion;
@@ -285,10 +294,8 @@ public:
 	static LedString createLedStringClone(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
 
 	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const QJsonObject & colorTransformConfig);
-	static MultiColorCorrection * createLedColorsTemperature(const unsigned ledCnt, const QJsonObject & colorTemperatureConfig);
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
 	static ColorTransform * createColorTransform(const QJsonObject & transformConfig);
-	static ColorCorrection * createColorCorrection(const QJsonObject & correctionConfig);
 	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
 	static HsvTransform * createHsvTransform(const QJsonObject & hsvConfig);
 	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
@@ -311,6 +318,9 @@ signals:
 
 	void componentStateChanged(const hyperion::Components component, bool enabled);
 
+	void imageToLedsMappingChanged(int mappingType);
+	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -323,9 +333,9 @@ private:
 	///
 	/// Constructs the Hyperion instance based on the given Json configuration
 	///
-	/// @param[in] jsonConfig The Json configuration
+	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const Json::Value& jsonConfig, const QJsonObject& qjsonConfig, const std::string configFile);
+	Hyperion(const QJsonObject& qjsonConfig, const QString configFile);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -339,10 +349,7 @@ private:
 
 	/// The transformation from raw colors to led colors
 	MultiColorTransform * _raw2ledTransform;
-	
-	/// The temperature from raw colors to led colors
-	MultiColorCorrection * _raw2ledTemperature;
-	
+
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
 	
@@ -359,10 +366,10 @@ private:
 	MessageForwarder * _messageForwarder;
 
 	// json configuration
-	const Json::Value& _jsonConfig;
+	const QJsonObject& _qjsonConfig;
 
 	// the name of config file
-	std::string _configFile;
+	QString _configFile;
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
@@ -381,14 +388,17 @@ private:
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 
+	/// flag for v4l color correction
+	bool _colorAdjustmentV4Lonly;
+	
+	/// flag for v4l color correction
+	bool _colorTransformV4Lonly;
+	
 	/// flag for color transform enable
 	bool _transformEnabled;
 
 	/// flag for color adjustment enable
 	bool _adjustmentEnabled;
-
-	/// flag for color temperature enable
-	bool _temperatureEnabled;
 
 	/// flag indicates state for autoselection of input source
 	bool _sourceAutoSelectEnabled;
@@ -399,4 +409,6 @@ private:
 	QByteArray _configHash;
 
 	QSize _ledGridSize;
+	
+	int _ledMAppingType;
 };

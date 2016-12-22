@@ -1,11 +1,13 @@
 #include "LedDeviceWs2801.h"
 
-LedDeviceWs2801::LedDeviceWs2801(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+LedDeviceWs2801::LedDeviceWs2801(const QJsonObject &deviceConfig)
+	: ProviderSpi()
 {
+	_latchTime_ns = 500000;
+	_deviceReady = 	ProviderSpi::init(deviceConfig);
 }
 
-LedDevice* LedDeviceWs2801::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceWs2801(deviceConfig);
 }
@@ -17,4 +19,3 @@ int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)
 
 	return writeBytes(dataLen, dataPtr);
 }
-

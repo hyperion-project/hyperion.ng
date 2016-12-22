@@ -6,7 +6,7 @@
 #define TPM2_DEFAULT_PORT 65506
 
 ///
-/// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
+/// Implementation of the LedDevice interface for sending led colors via udp tpm2.net packets
 ///
 class LedDeviceTpm2net : public ProviderUdp
 {
@@ -16,17 +16,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTpm2net(const Json::Value &deviceConfig);
+	LedDeviceTpm2net(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 private:
 	///

@@ -1,22 +1,27 @@
 #include "LedDeviceP9813.h"
 
-LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
-	: ProviderSpi(deviceConfig)
+LedDeviceP9813::LedDeviceP9813(const QJsonObject &deviceConfig)
+	: ProviderSpi()
 {
+	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceP9813(deviceConfig);
 }
 
+bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
+{
+	ProviderSpi::init(deviceConfig);
+
+	_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+	
+	return true;
+}
+
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledBuffer.size() == 0)
-	{
-		_ledBuffer.resize(ledValues.size() * 4 + 8, 0x00);
-	}
-
 	uint8_t * dataPtr = _ledBuffer.data();
 	for (const ColorRgb & color : ledValues)
 	{

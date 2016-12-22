@@ -12,7 +12,7 @@
 #include <leddevice/LedDevice.h>
 
 ///
-/// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)
+/// LedDevice implementation for a USBasp programmer with modified firmware (https://github.com/poljvd/hyperion-usbasp)
 ///
 class LedDeviceHyperionUsbasp : public LedDevice
 {
@@ -28,17 +28,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceHyperionUsbasp(const Json::Value &deviceConfig);
+	LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool setConfig(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open

@@ -35,6 +35,7 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// Handle the image in the captured thread using a direct connection
 	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
@@ -73,6 +74,12 @@ void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
+void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
+{
+	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
+}
+
+
 void V4L2Wrapper::set3D(VideoMode mode)
 {
 	_grabber.set3D(mode);
@@ -81,14 +88,14 @@ void V4L2Wrapper::set3D(VideoMode mode)
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
 	// forward to other hyperions
-	if ( _forward )
-	{
+	//if ( _forward )
+	//{
 		emit emitImage(_priority, image, _timeout_ms);
-	}
+	//}
 
 	// process the new image
 	_processor->process(image, _ledColors);
-	_hyperion->setColors(_priority, _ledColors, _timeout_ms);
+	setColors(_ledColors, _timeout_ms);
 }
 
 void V4L2Wrapper::readError(const char* err)

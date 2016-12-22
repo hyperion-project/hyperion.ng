@@ -10,12 +10,15 @@
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
-		"colorOrder" : "rgb"
+		"colorOrder" : "rgb",
+		"rewriteTime": 0
 	},
 
 	"color" :
 	{
+		"imageToLedMappingType" : "multicolor_mean",
 		"channelAdjustment_enable" : true,
+		"channelAdjustment_v4l_only" : true,
 		"channelAdjustment" :
 		[
 			{
@@ -41,21 +44,8 @@
 				}
 			}
 		],
-		"temperature_enable" : true,
-		"temperature" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"correctionValues" :
-				{
-					"red"   : 255,
-					"green" : 255,
-					"blue"  : 255
-				}
-			}
-		],
 		"transform_enable" : true,
+		"transform_v4l_only" : true,
 		"transform" :
 		[
 			{
@@ -116,7 +106,11 @@
 			"cropBottom"  : 0,
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
-			"blueSignalThreshold"  : 0.0
+			"blueSignalThreshold"  : 0.0,
+			"signalDetectionVerticalOffsetMin"   : 0.25,
+			"signalDetectionHorizontalOffsetMin" : 0.25,
+			"signalDetectionVerticalOffsetMax"   : 0.75,
+			"signalDetectionHorizontalOffsetMax" : 0.75
 		}
 	],
 

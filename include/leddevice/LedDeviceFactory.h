@@ -1,9 +1,6 @@
 
 #pragma once
 
-// Json includes
-#include <json/json.h>
-
 // Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -23,5 +20,5 @@ public:
 	/// @return The constructed LedDevice or nullptr if configuration is invalid. The ownership of
 	/// the constructed LedDevice is tranferred to the caller
 	///
-	static LedDevice * construct(const Json::Value & deviceConfig);
+	static LedDevice * construct(const QJsonObject & deviceConfig, const int ledCount);
 };

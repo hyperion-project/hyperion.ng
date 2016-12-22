@@ -26,9 +26,10 @@ bool QJsonSchemaChecker::setSchema(const QJsonObject & schema)
 	return true;
 }
 
-bool QJsonSchemaChecker::validate(const QJsonObject & value)
+bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
 {
 	// initialize state
+	_ignoreRequired = ignoreRequired;
 	_error = false;
 	_messages.clear();
 	_currentPath.clear();
@@ -109,7 +110,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
  		else if (attribute == "id")
  			; // references have already been collected
  		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format"
-			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append")
+			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append" || attribute == "step" || attribute == "access")
  			; // nothing to do.
 		else
 		{
@@ -183,7 +184,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (required != propertyValue.toObject().end() && required.value().toBool())
+		else if (required != propertyValue.toObject().end() && required.value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
 			setMessage("missing member");
@@ -273,7 +274,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 		std::ostringstream oss;
 		oss << "[" << i << "]";
 		_currentPath.push_back(oss.str());
-		validate(jArray[i].toObject(), schema);
+		validate(jArray[i], schema);
 		_currentPath.pop_back();
 	}
 }

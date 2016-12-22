@@ -11,16 +11,16 @@ WebConfig::WebConfig(QObject * parent)
 	Logger* log = Logger::getInstance("WEBSERVER");
 	_port       = WEBCONFIG_DEFAULT_PORT;
 	_baseUrl    = WEBCONFIG_DEFAULT_PATH;
-	const Json::Value &config = _hyperion->getJsonConfig();
+	const QJsonObject config = _hyperion->getQJsonConfig();
 	
 	bool webconfigEnable = true; 
 
-	if (config.isMember("webConfig"))
+	if (config.contains("webConfig"))
 	{
-		const Json::Value & webconfigConfig = config["webConfig"];
-		webconfigEnable = webconfigConfig.get("enable", true).asBool();
-		_port = webconfigConfig.get("port", _port).asUInt();
-		_baseUrl = QString::fromStdString( webconfigConfig.get("document_root", _baseUrl.toStdString()).asString() );
+		const QJsonObject webconfigConfig = config["webConfig"].toObject();
+		webconfigEnable = webconfigConfig["enable"].toBool(true);
+		_port = webconfigConfig["port"].toInt(_port);
+		_baseUrl = webconfigConfig["document_root"].toString(_baseUrl);
 	}
 
 	if (_baseUrl != ":/webconfig")

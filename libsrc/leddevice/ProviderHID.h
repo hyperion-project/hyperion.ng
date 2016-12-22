@@ -19,9 +19,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	/// @param deviceConfig json device config
-	///
-	ProviderHID(const Json::Value &deviceConfig);
+	ProviderHID();
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -33,7 +31,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool setConfig(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Opens and configures the output device
@@ -45,7 +43,7 @@ protected:
 	/**
 	 * Writes the given bytes to the HID-device and
 	 *
-	 * @param[in[ size The length of the data
+	 * @param[in] size The length of the data
 	 * @param[in] data The data
 	 *
 	 * @return Zero on succes else negative

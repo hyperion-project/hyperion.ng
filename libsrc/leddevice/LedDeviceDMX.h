@@ -14,10 +14,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceDMX(const Json::Value &deviceConfig);
+	LedDeviceDMX(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 private:
 	///
@@ -30,6 +30,6 @@ private:
 	int _dmxDeviceType = 0;
 	int _dmxStart = 1;
 	int _dmxSlotsPerLed = 3;
-	int _dmxLedCount = 0;;
+	int _dmxLedCount = 0;
 	unsigned int _dmxChannelCount = 0;
 };

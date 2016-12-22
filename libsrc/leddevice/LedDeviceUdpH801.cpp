@@ -1,20 +1,23 @@
 #include "LedDeviceUdpH801.h"
 
-LedDeviceUdpH801::LedDeviceUdpH801(const Json::Value &deviceConfig)
+LedDeviceUdpH801::LedDeviceUdpH801(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
-bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 {
 	/* The H801 port is fixed */
-	ProviderUdp::setConfig(deviceConfig, 10000000, 30977, "255.255.255.255");
+	_LatchTime_ns = 10000000;
+	_port = 30977;
+	ProviderUdp::init(deviceConfig, "255.255.255.255");
 
 	_ids.clear();
-	for (Json::Value::ArrayIndex i = 0; i < deviceConfig["lightIds"].size(); i++)
+	QJsonArray lArray = deviceConfig["lightIds"].toArray();
+	for (int i = 0; i < lArray.size(); i++)
 	{
-		QString id(deviceConfig["lightIds"][i].asCString());
+		QString id = lArray[i].toString();
 		_ids.push_back(id.toInt(nullptr, 16));
 	}
 
@@ -33,7 +36,7 @@ bool LedDeviceUdpH801::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceUdpH801::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceUdpH801::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpH801(deviceConfig);
 }

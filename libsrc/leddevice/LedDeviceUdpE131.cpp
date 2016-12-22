@@ -4,18 +4,20 @@
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
 
-LedDeviceUdpE131::LedDeviceUdpE131(const Json::Value &deviceConfig)
+LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	setConfig(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
-bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
+bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	ProviderUdp::setConfig(deviceConfig, 104000, 5568);
-	_e131_universe = deviceConfig.get("universe",1).asInt();
-	_e131_source_name = deviceConfig.get("source-name","hyperion on "+QHostInfo::localHostName().toStdString()).asString();
-	QString _json_cid = QString::fromStdString(deviceConfig.get("cid","").asString());
+	_LatchTime_ns = 104000;
+	_port = 5568;
+	ProviderUdp::init(deviceConfig);
+	_e131_universe = deviceConfig["universe"].toInt(1);
+	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName()).toStdString();
+	QString _json_cid = deviceConfig["cid"].toString("");
 
 	if (_json_cid.isEmpty()) 
 	{
@@ -29,7 +31,7 @@ bool LedDeviceUdpE131::setConfig(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDeviceUdpE131::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpE131(deviceConfig);
 }
@@ -73,38 +75,38 @@ void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this
 int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 {
 	int retVal            = 0;
-	int _thisChannelCount = 0;
-	int _dmxChannelCount  = 3 * _ledCount;
+	int thisChannelCount = 0;
+	int dmxChannelCount  = _ledRGBCount;
 	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 	_e131_seq++;
 
-	for (int rawIdx = 0; rawIdx < _dmxChannelCount; rawIdx++)
+	for (int rawIdx = 0; rawIdx < dmxChannelCount; rawIdx++)
 	{
 		if (rawIdx % DMX_MAX == 0) // start of new packet
 		{
-			_thisChannelCount = (_dmxChannelCount - rawIdx < DMX_MAX) ? _dmxChannelCount % DMX_MAX : DMX_MAX;
-//			                     is this the last packet?         ?    ^^ last packet      : ^^ earlier packets
+			thisChannelCount = (dmxChannelCount - rawIdx < DMX_MAX) ? dmxChannelCount % DMX_MAX : DMX_MAX;
+//			                       is this the last packet?         ?       ^^ last packet      : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / DMX_MAX, _thisChannelCount);
+			prepare(_e131_universe + rawIdx / DMX_MAX, thisChannelCount);
 			e131_packet.sequence_number = _e131_seq;
 		}
 
 		e131_packet.property_values[1 + rawIdx%DMX_MAX] = rawdata[rawIdx];
 
 //     is this the      last byte of last packet    ||   last byte of other packets
-		if ( (rawIdx == _dmxChannelCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
+		if ( (rawIdx == dmxChannelCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
 		{
 #undef e131debug
 #if e131debug
 			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
 				, rawIdx
-				, _dmxChannelCount
+				, dmxChannelCount
 				, _e131_universe + rawIdx / DMX_MAX
-				, E131_DMP_DATA + 1 + _thisChannelCount
+				, E131_DMP_DATA + 1 + thisChannelCount
 				);
 #endif
-			retVal &= writeBytes(E131_DMP_DATA + 1 + _thisChannelCount, e131_packet.raw);
+			retVal &= writeBytes(E131_DMP_DATA + 1 + thisChannelCount, e131_packet.raw);
 		}
 	}
 

@@ -1,65 +1,31 @@
  
-/*
-function removeAdvanced(obj,searchStack)
-{
-	searchStack = [];
-	$.each(obj, function(key, val) {
-		if ( typeof(val) == 'object' )
-		{
-			searchStack.push(key);
-			if (! removeAdvanced(val,searchStack) )
-				searchStack.pop();
-		}
-		else if ( key == "advanced" && val == true )
-		{
-			console.log(searchStack);
-			return true;
-		}
-	});
-	return false;
-}
-*/
-
-var grabber_conf_editor = null;
+var conf_editor_v4l2 = null;
+var conf_editor_fg = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
-	parsedConfSchemaJSON = event.response.result;
 	schema = parsedConfSchemaJSON.properties;
+	conf_editor_fg = createJsonEditor('editor_container_fg', {
+		framegrabber: schema.framegrabber
+	}, true, true);
 
-	var element = document.getElementById('editor_container');
-	
-	grabber_conf_editor = new JSONEditor(element,{
-		theme: 'bootstrap3',
-		iconlib: "fontawesome4",
-		disable_collapse: 'true',
-		form_name_root: 'sa',
-		disable_edit_json: 'true',
-		disable_properties: 'true',
-		no_additional_properties: 'true',
-		schema: {
-			title:'',
-			properties: {
-				framegrabber: schema.framegrabber,
-				grabberV4L2 : schema["grabberV4L2"]
-			}
-		}
+	$('#btn_submit_fg').off().on('click',function() {
+		requestWriteConfig(conf_editor_fg.getValue());
 	});
 	
-	$('#editor_container .well').css("background-color","white");
-	$('#editor_container .well').css("border","none");
-	$('#editor_container .well').css("box-shadow","none");
-	$('#editor_container .btn').addClass("btn-primary");
-	$('#editor_container h3').first().remove();
+	conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
+		grabberV4L2 : schema.grabberV4L2
+	}, true, true);
 
+	$('#btn_submit_v4l2').off().on('click',function() {
+		requestWriteConfig(conf_editor_v4l2.getValue());
+	});
+
+	$('#opt_expl_fg').html(createHelpTable(schema.framegrabber.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_fg_heading_title")));
+	$('#opt_expl_v4l2').html(createHelpTable(schema.grabberV4L2.items.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_v4l2_heading_title")));
 });
 
 
 $(document).ready( function() {
+	performTranslation();
 	requestServerConfigSchema();
-
-	document.getElementById('btn_submit').addEventListener('click',function() {
-		// Get the value from the editor
-		console.log(grabber_conf_editor.getValue());
-	});
-//  $("[type='checkbox']").bootstrapSwitch();
 });
 

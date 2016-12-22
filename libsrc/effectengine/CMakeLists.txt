@@ -52,6 +52,5 @@ qt5_use_modules(effectengine Core Gui)
 
 target_link_libraries(effectengine
 	hyperion
-	jsoncpp
 	${QT_LIBRARIES}
 	${PYTHON_LIBRARIES})

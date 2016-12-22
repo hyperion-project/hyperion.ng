@@ -1,5 +1,4 @@
 add_subdirectory(build/hidapi)
-add_subdirectory(build/jsoncpp)
 add_subdirectory(build/tinkerforge)
 
 if(ENABLE_WS281XPWM)

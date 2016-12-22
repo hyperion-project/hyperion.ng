@@ -34,6 +34,9 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 
 int main(int argc, char** argv)
 {
+	Logger *log = Logger::getInstance("V4L2GRABBER");
+	Logger::setLogLevel(Logger::WARNING);
+
 	std::cout
 		<< "hyperion-v4l2:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
@@ -68,10 +71,17 @@ int main(int argc, char** argv)
 		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "1");
 		IntOption          & argFrameDecimation     = parser.add<IntOption>    ('f', "frame-decimator", "Decimation factor for the video frames [default=%1]", "1");
 		BooleanOption      & argScreenshot          = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
+
 		DoubleOption       & argSignalThreshold     = parser.add<DoubleOption> ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
 		DoubleOption       & argRedSignalThreshold  = parser.add<DoubleOption> (0x0, "red-threshold", "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption       & argGreenSignalThreshold= parser.add<DoubleOption> (0x0, "green-threshold", "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption       & argBlueSignalThreshold = parser.add<DoubleOption> (0x0, "blue-threshold", "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
+
+		DoubleOption       & argSignalHorizontalMin = parser.add<DoubleOption> (0x0, "signal-horizontal-min", "area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0");
+		DoubleOption       & argSignalVerticalMin   = parser.add<DoubleOption> (0x0, "signal-vertical-min"  , "area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0");
+		DoubleOption       & argSignalHorizontalMax = parser.add<DoubleOption> (0x0, "signal-horizontal-max", "area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0");
+		DoubleOption       & argSignalVerticalMax   = parser.add<DoubleOption> (0x0, "signal-vertical-max"  , "area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0");
+
 		BooleanOption      & arg3DSBS               = parser.add<BooleanOption>(0x0, "3DSBS", "Interpret the incoming video stream as 3D side-by-side");
 		BooleanOption      & arg3DTAB               = parser.add<BooleanOption>(0x0, "3DTAB", "Interpret the incoming video stream as 3D top-and-bottom");
 		Option             & argAddress             = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
@@ -111,17 +121,55 @@ int main(int argc, char** argv)
 
 		// set signal detection
 		grabber.setSignalThreshold(
-					std::min(1.0, std::max(0.0, parser.isSet(argRedSignalThreshold) ? argRedSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
+					std::min(1.0, std::max(0.0, parser.isSet(argRedSignalThreshold)   ? argRedSignalThreshold.getDouble(parser)   : argSignalThreshold.getDouble(parser))),
 					std::min(1.0, std::max(0.0, parser.isSet(argGreenSignalThreshold) ? argGreenSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
-					std::min(1.0, std::max(0.0, parser.isSet(argBlueSignalThreshold) ? argBlueSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),
+					std::min(1.0, std::max(0.0, parser.isSet(argBlueSignalThreshold)  ? argBlueSignalThreshold.getDouble(parser)  : argSignalThreshold.getDouble(parser))),
 					50);
 
 		// set cropping values
 		grabber.setCropping(
-			parser.isSet(argCropLeft) ? argCropLeft.getInt(parser) : argCropWidth.getInt(parser),
-			parser.isSet(argCropRight) ? argCropRight.getInt(parser) : argCropWidth.getInt(parser),
-			parser.isSet(argCropTop) ? argCropTop.getInt(parser) : argCropHeight.getInt(parser),
+			parser.isSet(argCropLeft)   ? argCropLeft.getInt(parser)   : argCropWidth.getInt(parser),
+			parser.isSet(argCropRight)  ? argCropRight.getInt(parser)  : argCropWidth.getInt(parser),
+			parser.isSet(argCropTop)    ? argCropTop.getInt(parser)    : argCropHeight.getInt(parser),
 			parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser));
+
+		bool signalAreaOptsOk = true;
+		if (parser.isSet(argSignalHorizontalMin) != parser.isSet(argSignalVerticalMin))
+		{
+			signalAreaOptsOk = false;
+		}
+
+		if (parser.isSet(argSignalHorizontalMin) != parser.isSet(argSignalHorizontalMax))
+		{
+			signalAreaOptsOk = false;
+		}
+
+		if (parser.isSet(argSignalHorizontalMin) != parser.isSet(argSignalVerticalMax))
+		{
+			signalAreaOptsOk = false;
+		}
+
+		if (!signalAreaOptsOk)
+		{
+			Error(log, "aborting, because --signal-[vertical|horizontal]-[min|max] options must be used together");
+			return 1;
+		}
+
+		double x_frac_min = argSignalHorizontalMin.getDouble(parser);
+		double y_frac_min = argSignalVerticalMin.getDouble(parser);
+		double x_frac_max = argSignalHorizontalMax.getDouble(parser);
+		double y_frac_max = argSignalVerticalMax.getDouble(parser);
+
+		if (x_frac_min<0.0 || y_frac_min<0.0 || x_frac_max<0.0 || y_frac_max<0.0 || x_frac_min>1.0 || y_frac_min>1.0 ||  x_frac_max>1.0 ||  y_frac_max>1.0)
+		{
+			Error(log, "aborting, because --signal-[vertical|horizontal]-[min|max] values have to be between 0.0 and 1.0");
+			return 1;
+		}
+
+		if (parser.isSet(argSignalHorizontalMin))
+		{
+			grabber.setSignalDetectionOffset( x_frac_min, y_frac_min, x_frac_max, y_frac_max);
+		}
 
 		// set 3D mode if applicable
 		if (parser.isSet(arg3DSBS))
@@ -136,7 +184,9 @@ int main(int argc, char** argv)
 		// run the grabber
 		if (parser.isSet(argScreenshot))
 		{
-			ScreenshotHandler handler("screenshot.png");
+			const QRectF signalDetectionOffset = grabber.getSignalDetectionOffset();
+
+			ScreenshotHandler handler("screenshot.png", signalDetectionOffset);
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
 			grabber.start();
 			QCoreApplication::exec();
@@ -154,7 +204,7 @@ int main(int argc, char** argv)
 	catch (const std::runtime_error & e)
 	{
 		// An error occured. Display error and quit
-                Error(Logger::getInstance("V4L2GRABBER"), "%s", e.what());
+		Error(log, "%s", e.what());
 		return 1;
 	}
 

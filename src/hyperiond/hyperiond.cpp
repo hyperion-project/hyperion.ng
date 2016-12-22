@@ -17,7 +17,6 @@
 
 #include "HyperionConfig.h"
 
-#include <utils/jsonschema/JsonFactory.h> // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Components.h>
 
@@ -53,9 +52,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _hyperion(nullptr)
 {
 	loadConfig(configFile);
-	
-	_hyperion = Hyperion::initInstance(_config, _qconfig, configFile.toStdString());
-	
+
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
 		if (_qconfig.contains("logger"))
@@ -72,10 +69,12 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	}
 	else
 	{
-		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overriden by command line argument");
+		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
 	}
 	
-	Info(_log, "Hyperion initialised");
+	_hyperion = Hyperion::initInstance(_qconfig, configFile);
+
+	Info(_log, "Hyperion initialized");
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -136,6 +135,7 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
+	schemaData.close();
 	
 	if (error.error != QJsonParseError::NoError)
 	{
@@ -161,7 +161,6 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson.object());
 
-	_config  = JsonFactory::readJson(configFile.toStdString()); // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	_qconfig = QJsonFactory::readJson(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
@@ -182,7 +181,7 @@ void HyperionDaemon::startInitialEffect()
 	Hyperion *hyperion = Hyperion::getInstance();
 
 	// create boot sequence if the configuration is present
-	if (_config.isMember("initialEffect"))
+	if (_qconfig.contains("initialEffect"))
 	{
 		const QJsonObject & effectConfig = _qconfig["initialEffect"].toObject();
 		const int FG_PRIORITY = 0;
@@ -213,12 +212,12 @@ void HyperionDaemon::startInitialEffect()
 		}
 		else if (! fgEffectConfig.isNull() && fgEffectConfig.isArray() && FGCONFIG_ARRAY.size() == 1 && FGCONFIG_ARRAY.at(0).isString())
 		{
-			const std::string fgEffectName = FGCONFIG_ARRAY.at(0).toString().toStdString();
+			const QString fgEffectName = FGCONFIG_ARRAY.at(0).toString();
 			int result = effectConfig.contains("foreground-effect-args")
 //			           ? hyperion->setEffect(fgEffectName, effectConfig["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(fgEffectName, _config["initialEffect"]["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
+			           ? hyperion->setEffect(fgEffectName, _qconfig["initialEffect"].toObject()["foreground-effect-args"].toObject(), FG_PRIORITY, fg_duration_ms)
 			           : hyperion->setEffect(fgEffectName, FG_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
 
 		// initial background effect/color
@@ -235,12 +234,12 @@ void HyperionDaemon::startInitialEffect()
 		}
 		else if (! bgEffectConfig.isNull() && bgEffectConfig.isArray() && BGCONFIG_ARRAY.size() == 1 && BGCONFIG_ARRAY.at(0).isString())
 		{
-			const std::string bgEffectName = BGCONFIG_ARRAY.at(0).toString().toStdString();
+			const QString bgEffectName = BGCONFIG_ARRAY.at(0).toString();
 			int result = effectConfig.contains("background-effect-args")
 //			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], BG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(bgEffectName, _config["initialEffect"]["background-effect-args"], BG_PRIORITY, DURATION_INFINITY)
+			           ? hyperion->setEffect(bgEffectName, _qconfig["initialEffect"].toObject()["background-effect-args"].toObject(), BG_PRIORITY, DURATION_INFINITY)
 			           : hyperion->setEffect(bgEffectName, BG_PRIORITY, DURATION_INFINITY);
-			Info(_log,"Inital background effect '%s' %s", bgEffectName.c_str(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital background effect '%s' %s", bgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	
@@ -457,6 +456,7 @@ void HyperionDaemon::createGrabberDispmanx()
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_dispmanx->start();
 
@@ -475,6 +475,7 @@ void HyperionDaemon::createGrabberAmlogic()
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_amlGrabber->start();
 	Info(_log, "AMLOGIC grabber created and started");
@@ -496,6 +497,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_x11Grabber->start();
 	Info(_log, "X11 grabber created and started");
@@ -516,6 +518,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_fbGrabber->start();
 	Info(_log, "Framebuffer grabber created and started");
@@ -536,6 +539,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_osxGrabber->start();
 	Info(_log, "OSX grabber created and started");
@@ -583,9 +587,15 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+			grabber->setSignalDetectionOffset(
+				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
+				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
+				grabberConfig["signalDetectionHorizontalOffsetMax"].toDouble(0.75),
+				grabberConfig["signalDetectionVerticalOffsetMax"].toDouble(0.75));
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
+			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)));
 			if (grabberConfig["useKodiChecker"].toBool(false))
 			{
 				QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), grabber, SLOT(setGrabbingMode(GrabbingMode)));

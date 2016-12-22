@@ -9,11 +9,13 @@
 
 // Local includes
 #include <utils/ColorRgb.h>
-#include <json/json.h>
+
+//QT includes
+#include <QJsonObject>
 
 #include "../libsrc/leddevice/LedDeviceWs2801.h"
 
-Json::Value deviceConfig;
+QJsonObject deviceConfig;
 
 
 void setColor(char* colorStr)
@@ -147,7 +149,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	deviceConfig["output"] = "/dev/spidev0.0";
+	deviceConfig["output"] = QString("/dev/spidev0.0");
 	deviceConfig["rate"] = 40000;
 	deviceConfig["latchtime"] = 500000;
 
@@ -167,4 +169,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
