@@ -2,7 +2,7 @@
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
-		"configVersion" : 2,
+		"configVersion" : 2
 	},
 	"logger" :
 	{

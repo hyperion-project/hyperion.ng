@@ -10,7 +10,7 @@
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
-		"configVersion" : 2,
+		"configVersion" : 2
 	},
 	/// set log level: silent warn verbose debug
 	"logger" :
