@@ -1458,10 +1458,12 @@ JSONEditor.AbstractEditor = Class.extend({
     this.register();
     this.onWatchedFieldChange();
 	
-	//disable input field, if it didn't match the current access level
+	//hide input field, if it didn't match the current access level
 	var storedAccess = localStorage.getItem("accesslevel");
 
 	if(this.schema.access){
+		if(this.schema.access == 'system')
+			this.container.style.display = "none";
 		if(this.schema.access == 'expert' && storedAccess != 'expert'){
 			this.container.style.display = "none";
 			//this.disable();
