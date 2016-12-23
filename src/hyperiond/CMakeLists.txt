@@ -1,6 +1,11 @@
 
-add_executable(hyperiond
-		hyperiond.cpp hyperiond.h main.cpp)
+add_executable(hyperiond 
+	configMigrator.cpp
+	configMigrator.h
+	hyperiond.cpp
+	hyperiond.h
+	main.cpp
+)
 
 target_link_libraries(hyperiond
 		commandline

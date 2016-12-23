@@ -1,5 +1,7 @@
 #pragma once
 
+const int CURRENT_CONFIG_VERSION = 2;
+
 #include <QObject>
 
 #ifdef ENABLE_DISPMANX
@@ -53,7 +55,8 @@ public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const QString & configFile);
+	int tryLoadConfig(const QString & configFile, const int schemaVersion);
+	void loadConfig(const QString & configFile, const int neededConfigVersion);
 	void run();
 
 	void startInitialEffect();
