@@ -1,5 +1,7 @@
 
 add_executable(hyperiond 
+	configMigratorBase.cpp
+	configMigratorBase.h
 	configMigrator.cpp
 	configMigrator.h
 	hyperiond.cpp

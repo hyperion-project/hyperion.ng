@@ -1,10 +1,13 @@
 #pragma once
 
-#include <utils/Logger.h>
+#include "configMigratorBase.h"
 
 #include <QString>
 
-class ConfigMigrator
+///
+/// class that contains migration code
+/// helper code goeas to base class
+class ConfigMigrator : public ConfigMigratorBase
 {
 
 public:
@@ -12,6 +15,7 @@ public:
 	~ConfigMigrator();
 
 	bool migrate(QString configFile, int fromVersion,int toVersion);
+
 private:
-	Logger * _log;
+	void migrateFrom1();
 };
