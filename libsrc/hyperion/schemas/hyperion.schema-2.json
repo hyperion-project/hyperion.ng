@@ -1,0 +1,1266 @@
+{
+	"type" : "object",
+	"required" : true,
+	"properties" :
+	{
+		"general" :
+		{
+			"type" : "object",
+			"title" : "edt_general_heading_title",
+			"required" : true,
+			"defaultProperties": ["name"],
+			"properties" :
+			{
+				"name" :
+				{
+					"type" : "string",
+					"title" : "edt_general_name_title",
+					"required" : true,
+					"propertyOrder" : 1
+				},
+				"configVersion" :
+				{
+					"type" : "integer",
+					"minimum" : 1,
+					"access" : "system",
+					"required" : true
+				}
+			}
+		},
+		"logger" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_log_heading_title",
+			"properties" :
+			{
+				"level" :
+				{
+					"type" : "string",
+					"enum" : ["silent", "warn", "verbose", "debug"],
+					"title" : "edt_conf_log_level_title",
+					"default" : "warn"
+				}
+			},
+			"additionalProperties" : false
+		},
+		"device" :
+		{
+			"type" : "object",
+			"title" : "edt_dev_general_heading_title",
+			"required" : true,
+			"defaultProperties": ["ledCount","colorOrder","rewriteTime"],
+			"properties" :
+			{
+				"type" :
+				{
+					"type" : "string",
+					"required" : true
+				},
+				"ledCount" :
+				{
+					"type" : "integer",
+					"minimum" : 0,
+					"title" : "edt_dev_general_ledCount_title",
+					"propertyOrder" : 2
+				},
+				"colorOrder" :
+				{
+					"type" : "string",
+					"title" : "edt_dev_general_colorOrder_title",
+					"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
+					"default" : "rgb",
+					"propertyOrder" : 3
+				},
+				"rewriteTime": {
+					"type": "integer",
+					"title":"edt_dev_general_rewriteTime_title",
+					"default": 5000,
+					"append" : "edt_append_ms",
+					"minimum": 0,
+					"access" : "expert",
+					"propertOrder" : 4
+				}
+			},
+			"additionalProperties" : true
+		},
+		"color" :
+		{
+			"type":"object",
+			"title" : "edt_conf_color_heading_title",
+			"required" : true,
+			"defaultProperties": ["imageToLedMappingType","channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
+			"properties":
+			{
+				"imageToLedMappingType" :
+				{
+					"type" : "string",
+					"enum" : ["multicolor_mean", "unicolor_mean"],
+					"default" : "multicolor_mean",
+					"propertyOrder" : 1
+				},
+				"channelAdjustment_enable" :
+				{
+					"type" : "boolean",
+					"default" : true,
+					"propertyOrder" : 2
+				},
+				"channelAdjustment_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 3
+				},
+				"channelAdjustment" :
+				{
+					"type" : "array",
+					"required" : true,
+					"propertyOrder" : 4,
+					"items" :
+					{
+						"type" : "object",
+						"required" : true,
+						"properties" :
+						{
+							"id" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"leds" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"pureRed" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"pureGreen" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"pureBlue" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							}
+						},
+						"additionalProperties" : false
+					}
+				},
+				"transform_enable" :
+				{
+					"type" : "boolean",
+					"default" : true,
+					"propertyOrder" : 5
+				},
+				"transform_v4l_only" :
+				{
+					"type" : "boolean",
+					"default" : false,
+					"propertyOrder" : 6
+				},
+				"transform" :
+				{
+					"type" : "array",
+					"required" : true,
+					"propertyOrder" : 7,
+					"items" :
+					{
+						"type" : "object",
+						"required" : true,
+						"properties" :
+						{
+							"id" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"leds" :
+							{
+								"type" : "string",
+								"required" : true
+							},
+							"hsv" : {
+								"type" : "object",
+								"required" : false,
+								"properties" : {
+									"saturationGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									},
+									"valueGain" : {
+										"type" : "number",
+										"required" : false,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"hsl" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"saturationGain" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									},
+									"luminanceGain" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									},
+									"luminanceMinimum" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"red" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"green" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							},
+							"blue" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"threshold" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 1.0
+									},
+									"gamma" :
+									{
+										"type" : "number",
+										"required" : true,
+										"minimum" : 0.0,
+										"maximum": 100.0
+									}
+								},
+								"additionalProperties" : false
+							}
+						},
+						"additionalProperties" : false
+					}
+				}
+			},
+			"additionalProperties" : false
+		},
+		"smoothing":
+		{
+			"type" : "object",
+			"title" : "edt_conf_smooth_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : true,
+					"propertyOrder" : 1
+				},
+				"type" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_smooth_type_title",
+					"enum" : ["linear"],
+					"default" : "linear",
+					"propertyOrder" : 2
+				},
+				"time_ms" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_smooth_time_ms_title",
+					"minimum" : 25,
+					"maximum": 600,
+					"default" : 200,
+					"append" : "edt_append_ms",
+					"propertyOrder" : 3
+				},
+				"updateFrequency" :
+				{
+					"type" : "number",
+					"title" : "edt_conf_smooth_updateFrequency_title",
+					"minimum" : 1.0,
+					"maximum" : 100.0,
+					"default" : 25.0,
+					"append" : "edt_append_hz",
+					"propertyOrder" : 4
+				},
+				"updateDelay" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_smooth_updateDelay_title",
+					"minimum" : 0,
+					"maximum": 2048,
+					"default" : 0,
+					"append" : "edt_append_ms",
+					"propertyOrder" : 5
+				},
+				"continuousOutput" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_smooth_continuousOutput_title",
+					"default" : true,
+					"propertyOrder" : 6
+				}
+			},
+			"additionalProperties" : false
+		},
+		"grabberV4L2" :
+		{
+			"type":"array",
+			"title" : "edt_conf_v4l2_heading_title",
+			"minItems": 1,
+			"maxItems": 2,
+			"items":
+			{
+				"type" : "object",
+				"title" : "edt_conf_v4l2_heading_title",
+				"properties" :
+				{
+					"enable" :
+					{
+						"type" : "boolean",
+						"title" : "edt_conf_general_enable_title",
+						"default" : false,
+						"propertyOrder" : 1
+					},
+					"device" :
+					{
+						"type" : "string",
+						"title" : "edt_conf_v4l2_device_title",
+						"default" : "auto",
+						"propertyOrder" : 2
+					},
+					"input" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_input_title",
+						"minimum" : 0,
+						"default" : 0,
+						"propertyOrder" : 3
+					},
+					"standard" :
+					{
+						"type" : "string",
+						"title" : "edt_conf_v4l2_standard_title",
+						"enum" : ["PAL","NTSC"],
+						"default" : "PAL",
+						"propertyOrder" : 4
+					},
+					"width" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_width_title",
+						"minimum" : -1,
+						"default" : -1,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 5
+					},
+					"height" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_height_title",
+						"minimum" : -1,
+						"default" : -1,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 6
+					},
+					"frameDecimation" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_frameDecimation_title",
+						"minimum" : 0,
+						"default" : 2,
+						"propertyOrder" : 7
+					},
+					"sizeDecimation" :
+					{
+						"type" : "integer",
+						"title" : "Size decimation",
+						"minimum" : 0,
+						"default" : 6,
+						"propertyOrder" : 8
+					},
+					"priority" :
+					{
+						"type" : "integer",
+						"minimum" : 100,
+						"maximum" : 2000000000,
+						"title" : "edt_conf_general_priority_title",
+						"default" : 900,
+						"propertyOrder" : 9
+					},
+					"mode" :
+					{
+						"type" : "string",
+						"title" : "edt_conf_v4l2_mode_title",
+						"enum" : ["2D","3DSBS","3DTAB"],
+						"default" : "2D",
+						"propertyOrder" : 10
+					},
+					"useKodiChecker" :
+					{
+						"type" : "boolean",
+						"title" : "edt_conf_v4l2_useKodiChecker_title",
+						"default" : false,
+						"propertyOrder" : 11
+					},
+					"cropLeft" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_cropLeft_title",
+						"minimum" : 0,
+						"default" : 0,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 12
+					},
+					"cropRight" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_cropRight_title",
+						"minimum" : 0,
+						"default" : 0,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 13
+					},
+					"cropTop" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_cropTop_title",
+						"minimum" : 0,
+						"default" : 0,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 14
+					},
+					"cropBottom" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_v4l2_cropBottom_title",
+						"minimum" : 0,
+						"default" : 0,
+						"append" : "edt_append_pixel",
+						"propertyOrder" : 15
+					},
+					"redSignalThreshold" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_redSignalThreshold_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 16
+					},
+					"greenSignalThreshold" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_greenSignalThreshold_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.025,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 17
+					},
+					"blueSignalThreshold" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_blueSignalThreshold_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 18
+					},
+					"signalDetectionVerticalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 19
+					},
+					"signalDetectionVerticalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 20
+					},
+					"signalDetectionHorizontalOffsetMin" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 21
+					},
+					"signalDetectionHorizontalOffsetMax" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+						"minimum" : 0.0,
+						"maximum" : 1.0,
+						"default" : 0.1,
+						"step" : 0.005,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 22
+					}
+				},
+			"additionalProperties" : false
+			}
+		},
+		"framegrabber" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_fg_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : true,
+					"propertyOrder" : 1
+				},
+				"type" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_fg_type_title",
+					"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
+					"default" : "auto"
+				},
+				"width" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_width_title",
+					"minimum" : 10,
+					"default" : 80,
+					"append" : "edt_append_pixel"
+				},
+				"height" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_height_title",
+					"minimum" : 10,
+					"default" : 45,
+					"append" : "edt_append_pixel"
+				},
+				"frequency_Hz" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_fg_frequency_Hz_title",
+					"minimum" : 1,
+					"default" : 10,
+					"append" : "edt_append_hz"
+				},
+				"priority" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_general_priority_title",
+					"minimum" : 100,
+					"maximum" : 2000000000,
+					"default" : 890
+				},
+				"cropLeft" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_cropLeft_title",
+					"minimum" : 0,
+					"default" : 0,
+					"append" : "edt_append_pixel"
+				},
+				"cropRight" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_cropRight_title",
+					"minimum" : 0,
+					"default" : 0,
+					"append" : "edt_append_pixel"
+				},
+				"cropTop" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_cropTop_title",
+					"minimum" : 0,
+					"default" : 0,
+					"append" : "edt_append_pixel"
+				},
+				"cropBottom" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_v4l2_cropBottom_title",
+					"minimum" : 0,
+					"default" : 0,
+					"append" : "edt_append_pixel"
+				},
+				"useXGetImage" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_fg_useXGetImage_title",
+					"default" : false
+				},
+				"horizontalPixelDecimation" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_fg_horizontalPixelDecimation_title",
+					"minimum" : 0,
+					"default" : 8
+				},
+				"verticalPixelDecimation" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_fg_verticalPixelDecimation_title",
+					"minimum" : 0,
+					"default" : 8
+				},
+				"device" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_fg_device_title",
+					"default" : "/dev/fb0"
+				},
+				"display" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_fg_display_title",
+					"minimum" : 0
+				}
+			},
+			"additionalProperties" : false
+		},
+		"blackborderdetector" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_bb_heading_title",
+			"defaultProperties": ["enable","mode","threshold"],
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : true,
+					"propertyOrder" : 1
+				},
+				"threshold" :
+				{
+					"type" : "number",
+					"title" : "edt_conf_bb_threshold_title",
+					"minimum" : 0.0,
+					"maximum" : 1.0,
+					"default" : 0.05,
+					"step" : 0.01,
+					"append" : "edt_append_percent",
+					"propertyOrder" : 2
+				},
+				"unknownFrameCnt"    :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_bb_unknownFrameCnt_title",
+					"minimum" : 0,
+					"default" : 600,
+					"propertyOrder" : 3
+				},
+				"borderFrameCnt" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_bb_borderFrameCnt_title",
+					"minimum" : 0,
+					"default" : 50,
+					"propertyOrder" : 4
+				},
+				"maxInconsistentCnt" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_bb_maxInconsistentCnt_title",
+					"minimum" : 0,
+					"default" : 10,
+					"propertyOrder" : 5
+				},
+				"blurRemoveCnt" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_bb_blurRemoveCnt_title",
+					"minimum" : 0,
+					"default" : 1,
+					"propertyOrder" : 6
+				},
+				"mode" :
+				{
+					"type" : "string",
+					"title": "edt_conf_bb_mode_title",
+					"enum" : ["default", "classic", "osd"],
+					"default" : "default",
+					"propertyOrder" : 7
+				}
+			},
+			"additionalProperties" : false
+		},
+		"kodiVideoChecker" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_kodic_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : false,
+					"propertyOrder" : 1
+				},
+				"kodiAddress" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_kodic_kodiAddress_title",
+					"default" : "127.0.0.1",
+					"propertyOrder" : 2
+				},
+				"kodiTcpPort" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_kodic_kodiTcpPort_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 9090,
+					"propertyOrder" : 3
+				},
+				"grabVideo" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabVideo_title",
+					"default" : true,
+					"propertyOrder" : 4
+				},
+				"grabPictures" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabPictures_title",
+					"default" : true,
+					"propertyOrder" : 5
+				},
+				"grabAudio" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabAudio_title",
+					"default" : true,
+					"propertyOrder" : 6
+				},
+				"grabMenu" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabMenu_title",
+					"default" : false,
+					"propertyOrder" : 7
+				},
+				"grabPause" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabPause_title",
+					"default" : false,
+					"propertyOrder" : 8
+				},
+				"grabScreensaver" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_grabScreensaver_title",
+					"default" : false,
+					"propertyOrder" : 9
+				},
+				"enable3DDetection" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_kodic_enable3DDetection_title",
+					"default" : false,
+					"propertyOrder" : 10
+				}
+			},
+			"additionalProperties" : false
+		},
+		"initialEffect" :
+		{
+			"type" : "object",
+			"title" : "Initial Effect",
+			"defaultProperties": ["background-effect","foreground-effect","foreground-duration_ms"],
+			"properties" :
+			{
+				"background-effect" :
+				{
+					"type" : "array",
+					"title" : "Background effect",
+					"propertyOrder" : 3
+				},
+				"background-effect-args" :
+				{
+					"type" : "object",
+					"title" : "Background effect arguments"
+				},
+				"foreground-effect" :
+				{
+					"type" : "array",
+					"title" : "Boot effect",
+					"propertyOrder" : 1
+				},
+				"foreground-effect-args" :
+				{
+					"type" : "object",
+					"title" : "Boot effect arguments"
+				},
+				"foreground-duration_ms" :
+				{
+					"type" : "integer",
+					"title" : "Boot effect duration",
+					"propertyOrder" : 2
+				}
+			},
+			"additionalProperties" : false
+		},
+		"forwarder" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_fw_heading_title",
+			"required" : true,
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"propertyOrder" : 1
+				},
+				"json" :
+				{
+					"type" : "array",
+					"title" : "edt_conf_fw_json_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_fw_json_itemtitle"
+					},
+					"propertyOrder" : 2
+				},
+				"proto" :
+				{
+					"type" : "array",
+					"title" : "edt_conf_fw_proto_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_fw_proto_itemtitle"
+					},
+					"propertyOrder" : 3
+				}
+			},
+			"additionalProperties" : false
+		},
+		"jsonServer" :
+		{
+			"type" : "object",
+			"required" : true,
+			"title" : "edt_conf_js_heading_title",
+			"properties" :
+			{
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"title" : "edt_conf_general_port_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 19444
+				}
+			},
+			"additionalProperties" : false
+		},
+		"protoServer" :
+		{
+			"type" : "object",
+			"required" : true,
+			"title" : "edt_conf_ps_heading_title",
+			"properties" :
+			{
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"title" : "edt_conf_general_port_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 19445
+				}
+			},
+			"additionalProperties" : false
+		},
+		"boblightServer" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_bobls_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : false,
+					"propertyOrder" : 1
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"required" : true,
+					"title" : "edt_conf_general_port_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"propertyOrder" : 2
+				},
+				"priority" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_general_priority_title",
+					"minimum" : 100,
+					"maximum" : 2000000000,
+					"default" : 800,
+					"propertyOrder" : 3
+				}
+			},
+			"additionalProperties" : false
+		},
+		"udpListener" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_udpl_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : false,
+					"propertyOrder" : 1
+				},
+				"address" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_udpl_address_title",
+					"default" : "239.255.28.01",
+					"propertyOrder" : 2
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_general_port_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 2801,
+					"propertyOrder" : 3
+				},
+				"priority" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_general_priority_title",
+					"minimum" : 100,
+					"maximum" : 2000000000,
+					"default" : 800,
+					"propertyOrder" : 4
+				},
+				"timeout" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_udpl_timeout_title",
+					"minimum" : 1000,
+					"default" : 10000,
+					"append" : "edt_append_ms",
+					"propertyOrder" : 5
+				},
+				"shared" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_udpl_shared_title",
+					"default" : false,
+					"propertyOrder" : 6
+				}
+			},
+			"additionalProperties" : false
+		},
+		"webConfig" :
+		{
+			"type" : "object",
+			"title" : "edt_conf_webc_heading_title",
+			"properties" :
+			{
+				"enable" :
+				{
+					"type" : "boolean",
+					"title" : "edt_conf_general_enable_title",
+					"default" : true,
+					"access" : "expert",
+					"propertyOrder" : 1
+				},
+				"document_root" :
+				{
+					"type" : "string",
+					"title" : "edt_conf_webc_docroot_title",
+					"access" : "expert",
+					"propertyOrder" : 2
+				},
+				"port" :
+				{
+					"type" : "integer",
+					"title" : "edt_conf_general_port_title",
+					"minimum" : 0,
+					"maximum" : 65535,
+					"default" : 8099,
+					"access" : "expert",
+					"propertyOrder" : 3
+				}
+			},
+			"additionalProperties" : false
+		},
+		"effects" :
+		{
+			"type" : "object",
+			"properties" :
+			{
+				"paths" :
+				{
+					"type" : "array",
+					"title" : "edt_conf_effp_paths_title",
+					"default" : ["../custom-effects"],
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_effp_paths_itemtitle"
+					},
+					"propertyOrder" : 1
+				},
+				"disable" :
+				{
+					"type" : "array",
+					"title" : "edt_conf_effp_disable_title",
+					"items" : {
+						"type": "string",
+						"title" : "edt_conf_effp_disable_itemtitle"
+					},
+					"propertyOrder" : 2
+				}
+			},
+			"additionalProperties" : false
+		},
+		"leds":
+		{
+			"type":"array",
+			"required":true,
+			"items":
+			{
+				"type":"object",
+				"properties":
+				{
+					"index":
+					{
+						"type":"integer",
+						"required":true
+					},
+					"clone":
+					{
+						"type":"integer"
+					},
+					"hscan":
+					{
+						"type":"object",
+						"properties":
+						{
+							"minimum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							},
+							"maximum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							}
+						},
+						"additionalProperties" : false
+					},
+					"vscan":
+					{
+						"type":"object",
+						"properties":
+						{
+							"minimum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							},
+							"maximum":
+							{
+								"type":"number",
+								"minimum" : 0,
+								"maximum" : 1,
+								"required":true
+							}
+						},
+						"additionalProperties" : false
+					},
+					"colorOrder":
+					{
+						"type": "string",
+						"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"]
+					}
+				},
+				"additionalProperties" : false
+			}
+		}
+	},
+	"additionalProperties" : false
+}

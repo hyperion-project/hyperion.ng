@@ -4,6 +4,14 @@
 
 
 {
+	/// geenral Settings 
+	/// * 'name'          : The user friendly name of the hyperion instance (used for network things)
+	/// * 'configVersion' : don't touch it's an internal value regarding which validation schema for this config is used
+	"general" :
+	{
+		"name"       : "MyHyperionConfig",
+		"configVersion" : 2
+	},
 	/// set log level: silent warn verbose debug
 	"logger" :
 	{
@@ -19,7 +27,6 @@
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
 	"device" :
 	{
-		"name"       : "MyHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"     : 1000000,

@@ -9,9 +9,10 @@ $(document).ready( function() {
 	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
-	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_update","update",false);
+	bindNavToContent("#load_confGeneral","general",false);
 	bindNavToContent("#load_confEffects","effects",false);
+	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_confLeds","leds",false);
 	bindNavToContent("#load_confGrabber","grabber",false);
 	bindNavToContent("#load_confColors","colors",false);

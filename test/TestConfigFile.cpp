@@ -16,13 +16,13 @@ bool loadConfig(const QString & configFile)
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 	QJsonParseError error;
-	
+
 	////////////////////////////////////////////////////////////
 	// read and set the json schema from the resource
 	////////////////////////////////////////////////////////////
-	
+
 	QFile schemaData(":/hyperion-schema");
-	
+
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
