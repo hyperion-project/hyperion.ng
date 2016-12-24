@@ -31,3 +31,4 @@ void ConfigMigrator::migrateFrom1()
 {
 	throw std::runtime_error("ERROR: config migration not implemented");
 }
+

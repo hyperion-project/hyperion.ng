@@ -414,7 +414,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 	if (_qconfig.contains("framegrabber"))
 	{
 		const QJsonObject & grabberConfig = _qconfig["framegrabber"].toObject();
-		if (grabberConfig["enable"].toBool(true))
+// 		if (grabberConfig["enable"].toBool(true))
 		{
 			_grabber_width     = grabberConfig["width"].toInt(96);
 			_grabber_height    = grabberConfig["height"].toInt(96);
@@ -464,7 +464,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
-			bool grabberCompState = true;
+			bool grabberCompState = grabberConfig["enable"].toBool(true);
 			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
 			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx();
@@ -474,6 +474,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
 			
 			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
+			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );
 		}
 	}
 }
