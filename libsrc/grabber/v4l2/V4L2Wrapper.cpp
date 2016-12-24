@@ -87,11 +87,7 @@ void V4L2Wrapper::set3D(VideoMode mode)
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
-	// forward to other hyperions
-	//if ( _forward )
-	//{
-		emit emitImage(_priority, image, _timeout_ms);
-	//}
+	emit emitImage(_priority, image, _timeout_ms);
 
 	// process the new image
 	_processor->process(image, _ledColors);

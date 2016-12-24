@@ -1,4 +1,9 @@
 {
+	"general" :
+	{
+		"name"       : "MyHyperionConfig",
+		"configVersion" : 2
+	},
 	"logger" :
 	{
 		"level" : "warn"
@@ -6,12 +11,11 @@
 
 	"device" :
 	{
-		"name"       : "DefaultHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"rewriteTime": 0
+		"rewriteTime": 5000
 	},
 
 	"color" :
@@ -97,7 +101,7 @@
 			"height"   : -1,
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
-			"priority"    : 890,
+			"priority"    : 850,
 			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
@@ -118,10 +122,10 @@
 	{
 		"enable" : true,
 		"type"   : "auto",
-		"width" : 96,
-		"height" : 96,
+		"width" : 80,
+		"height" : 45,
 		"frequency_Hz" : 10.0,
-		"priority" : 890
+		"priority" : 900
 	},
 
 	"blackborderdetector" :
@@ -141,13 +145,13 @@
 		"grabAudio"         : true,
 		"grabMenu"          : false,
 		"grabPause"         : false,
-		"grabScreensaver"   : true,
-		"enable3DDetection" : true
+		"grabScreensaver"   : false,
+		"enable3DDetection" : false
 	},
 
 	"initialEffect" :
 	{
-		"background-effect"      : ["Full color mood blobs"],
+		"background-effect"      : ["Warm mood blobs"],
 		"foreground-effect"      : ["Rainbow swirl fast"],
 		"foreground-duration_ms" : 3000
 	},
@@ -193,9 +197,7 @@
 
 	"effects" :
 	{
-		"paths" :
-		[
-		]
+		"paths" : ["../custom-effects"]
 	},
 
 	"leds" :
