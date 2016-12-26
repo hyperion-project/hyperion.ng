@@ -131,6 +131,66 @@
 								"type" : "string",
 								"required" : true
 							},
+							"black" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"white" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
 							"pureRed" :
 							{
 								"type":"object",
@@ -192,6 +252,96 @@
 								"additionalProperties" : false
 							},
 							"pureBlue" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"cyan" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"magenta" :
+							{
+								"type":"object",
+								"required" : true,
+								"properties":
+								{
+									"redChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"greenChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									},
+									"blueChannel" :
+									{
+										"type": "integer",
+										"required" : true,
+										"minimum": 0,
+										"maximum": 255
+									}
+								},
+								"additionalProperties" : false
+							},
+							"yellow" :
 							{
 								"type":"object",
 								"required" : true,
