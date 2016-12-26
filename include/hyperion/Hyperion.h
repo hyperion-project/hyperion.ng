@@ -64,7 +64,7 @@ public:
 	///
 	enum RgbChannel
 	{
-		RED, GREEN, BLUE, INVALID
+		BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, INVALID
 	};
 
 	///
