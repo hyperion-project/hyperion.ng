@@ -155,7 +155,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		// uint8_t YB = adjustment->_rgbYellowAdjustment.getAdjustmentB(yellow);
 		
 		uint8_t WR = adjustment->_rgbRedAdjustment.getAdjustmentR(white);
-		uint8_t WG = adjustment->_rgbGreenAdjustment.getadjustmentG(white);
+		uint8_t WG = adjustment->_rgbGreenAdjustment.getAdjustmentG(white);
 		uint8_t WB = adjustment->_rgbBlueAdjustment.getAdjustmentB(white);
 		// uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
 		// uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
