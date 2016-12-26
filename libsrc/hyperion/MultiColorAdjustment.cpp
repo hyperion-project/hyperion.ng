@@ -99,9 +99,9 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t yellow  = rg  *(255-color.blue)/65025;
 		uint8_t white   = rg  *(color.blue)    /65025;
 		
-		uint8_t OR = adjustment->_rgbCyanAdjustment.getAdjustmentR(black);
-		uint8_t OG = adjustment->_rgbCyanAdjustment.getAdjustmentG(black);
-		uint8_t OB = adjustment->_rgbCyanAdjustment.getAdjustmentB(black);
+		uint8_t OR = adjustment->_rgbBlackAdjustment.getAdjustmentR(black);
+		uint8_t OG = adjustment->_rgbBlackAdjustment.getAdjustmentG(black);
+		uint8_t OB = adjustment->_rgbBlackAdjustment.getAdjustmentB(black);
 		
 		uint8_t RR = adjustment->_rgbRedAdjustment.getAdjustmentR(red);
 		uint8_t	RG = adjustment->_rgbRedAdjustment.getAdjustmentG(red);
