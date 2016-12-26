@@ -85,15 +85,6 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		}
 		ColorRgb& color = ledColors[i];
 		
-		// uint8_t black   = (uint32_t)(255-color.red)*(255-color.green)*(255-color.blue)/65025;
-		// uint8_t red     = (uint32_t)(color.red)    *(255-color.green)*(255-color.blue)/65025;
-		// uint8_t green   = (uint32_t)(255-color.red)*(color.green)    *(255-color.blue)/65025;
-		// uint8_t blue    = (uint32_t)(255-color.red)*(255-color.green)*(color.blue)    /65025;
-		// uint8_t cyan    = (uint32_t)(255-color.red)*(color.green)    *(color.blue)    /65025;
-		// uint8_t magenta = (uint32_t)(color.red)    *(255-color.green)*(color.blue)    /65025;
-		// uint8_t yellow  = (uint32_t)(color.red)    *(color.green)    *(255-color.blue)/65025;
-		// uint8_t white   = (uint32_t)(color.red)    *(color.green)    *(color.blue)    /65025;
-
 		uint32_t nrng = (uint32_t) (255-color.red)*(255-color.green);
 		uint32_t rng  = (uint32_t) (color.red)    *(255-color.green);
 		uint32_t nrg  = (uint32_t) (255-color.red)*(color.green);
@@ -108,58 +99,37 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t yellow  = rg  *(255-color.blue)/65025;
 		uint8_t white   = rg  *(color.blue)    /65025;
 		
-		uint8_t OR = 0;
-		uint8_t OG = 0;
-		uint8_t OB = 0;
-		// uint8_t OR = adjustment->_rgbCyanAdjustment.getAdjustmentR(black);
-		// uint8_t OG = adjustment->_rgbCyanAdjustment.getAdjustmentG(black);
-		// uint8_t OB = adjustment->_rgbCyanAdjustment.getAdjustmentB(black);
+		uint8_t OR = adjustment->_rgbCyanAdjustment.getAdjustmentR(black);
+		uint8_t OG = adjustment->_rgbCyanAdjustment.getAdjustmentG(black);
+		uint8_t OB = adjustment->_rgbCyanAdjustment.getAdjustmentB(black);
 		
-		uint8_t RR = red;
-		// uint8_t RR = adjustment->_rgbRedAdjustment.getAdjustmentR(red);
+		uint8_t RR = adjustment->_rgbRedAdjustment.getAdjustmentR(red);
 		uint8_t	RG = adjustment->_rgbRedAdjustment.getAdjustmentG(red);
 		uint8_t	RB = adjustment->_rgbRedAdjustment.getAdjustmentB(red);
 		
 		uint8_t GR = adjustment->_rgbGreenAdjustment.getAdjustmentR(green);
-		uint8_t	GG = green;
-		// uint8_t	GG = adjustment->_rgbGreenAdjustment.getAdjustmentG(green);
+		uint8_t	GG = adjustment->_rgbGreenAdjustment.getAdjustmentG(green);
 		uint8_t	GB = adjustment->_rgbGreenAdjustment.getAdjustmentB(green);
 		
 		uint8_t BR = adjustment->_rgbBlueAdjustment.getAdjustmentR(blue);
 		uint8_t	BG = adjustment->_rgbBlueAdjustment.getAdjustmentG(blue);
-		uint8_t	BB = blue;
-		// uint8_t	BB = adjustment->_rgbBlueAdjustment.getAdjustmentB(blue);
+		uint8_t	BB = adjustment->_rgbBlueAdjustment.getAdjustmentB(blue);
 		
-		uint8_t CR = (uint16_t) adjustment->_rgbGreenAdjustment.getAdjustmentR(cyan)+adjustment->_rgbBlueAdjustment.getAdjustmentR(cyan) < 255 ? 
-			adjustment->_rgbGreenAdjustment.getAdjustmentR(cyan)+adjustment->_rgbBlueAdjustment.getAdjustmentR(cyan) : 255;
-		uint8_t	CG = adjustment->_rgbGreenAdjustment.getAdjustmentG(cyan);
-		uint8_t	CB = adjustment->_rgbBlueAdjustment.getAdjustmentB(cyan);
-		// uint8_t CR = adjustment->_rgbCyanAdjustment.getAdjustmentR(cyan);
-		// uint8_t CG = adjustment->_rgbCyanAdjustment.getAdjustmentG(cyan);
-		// uint8_t CB = adjustment->_rgbCyanAdjustment.getAdjustmentB(cyan);
+		uint8_t CR = adjustment->_rgbCyanAdjustment.getAdjustmentR(cyan);
+		uint8_t CG = adjustment->_rgbCyanAdjustment.getAdjustmentG(cyan);
+		uint8_t CB = adjustment->_rgbCyanAdjustment.getAdjustmentB(cyan);
 		
-		uint8_t MR = adjustment->_rgbRedAdjustment.getAdjustmentR(magenta);
-		uint8_t	MG = (uint16_t) adjustment->_rgbRedAdjustment.getAdjustmentG(magenta)+adjustment->_rgbBlueAdjustment.getAdjustmentG(magenta) < 255 ? 
-			adjustment->_rgbRedAdjustment.getAdjustmentG(magenta)+adjustment->_rgbBlueAdjustment.getAdjustmentG(magenta) : 255;
-		uint8_t	MB = adjustment->_rgbBlueAdjustment.getAdjustmentB(magenta);
-		// uint8_t MR = adjustment->_rgbMagentaAdjustment.getAdjustmentR(magenta);
-		// uint8_t MG = adjustment->_rgbMagentaAdjustment.getAdjustmentG(magenta);
-		// uint8_t MB = adjustment->_rgbMagentaAdjustment.getAdjustmentB(magenta);
+		uint8_t MR = adjustment->_rgbMagentaAdjustment.getAdjustmentR(magenta);
+		uint8_t MG = adjustment->_rgbMagentaAdjustment.getAdjustmentG(magenta);
+		uint8_t MB = adjustment->_rgbMagentaAdjustment.getAdjustmentB(magenta);
 		
-		uint8_t YR = adjustment->_rgbRedAdjustment.getAdjustmentR(yellow);
-		uint8_t	YG = adjustment->_rgbGreenAdjustment.getAdjustmentG(yellow);
-		uint8_t	YB = (uint16_t) adjustment->_rgbRedAdjustment.getAdjustmentB(yellow)+adjustment->_rgbGreenAdjustment.getAdjustmentB(yellow) < 255 ? 
-			adjustment->_rgbRedAdjustment.getAdjustmentB(yellow)+adjustment->_rgbGreenAdjustment.getAdjustmentB(yellow) : 255;
-		// uint8_t YR = adjustment->_rgbYellowAdjustment.getAdjustmentR(yellow);
-		// uint8_t YG = adjustment->_rgbYellowAdjustment.getAdjustmentG(yellow);
-		// uint8_t YB = adjustment->_rgbYellowAdjustment.getAdjustmentB(yellow);
+		uint8_t YR = adjustment->_rgbYellowAdjustment.getAdjustmentR(yellow);
+		uint8_t YG = adjustment->_rgbYellowAdjustment.getAdjustmentG(yellow);
+		uint8_t YB = adjustment->_rgbYellowAdjustment.getAdjustmentB(yellow);
 		
-		uint8_t WR = adjustment->_rgbRedAdjustment.getAdjustmentR(white);
-		uint8_t WG = adjustment->_rgbGreenAdjustment.getAdjustmentG(white);
-		uint8_t WB = adjustment->_rgbBlueAdjustment.getAdjustmentB(white);
-		// uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
-		// uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
-		// uint8_t WB = adjustment->_rgbWhiteAdjustment.getAdjustmentB(white);
+		uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
+		uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
+		uint8_t WB = adjustment->_rgbWhiteAdjustment.getAdjustmentB(white);
 		
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;
