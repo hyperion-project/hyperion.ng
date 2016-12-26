@@ -28,6 +28,18 @@
 			{
 				"id"   : "default",
 				"leds" : "*",
+				"black" :
+				{
+					"redChannel"   : 0,
+					"greenChannel" : 0,
+					"blueChannel"  : 0
+				},
+				"white" :
+				{
+					"redChannel"   : 255,
+					"greenChannel" : 255,
+					"blueChannel"  : 255
+				},
 				"pureRed" :
 				{
 					"redChannel"   : 255,
@@ -45,6 +57,24 @@
 					"redChannel"   : 0,
 					"greenChannel" : 0,
 					"blueChannel"  : 255
+				},
+				"cyan" :
+				{
+					"redChannel"   : 0,
+					"greenChannel" : 255,
+					"blueChannel"  : 255
+				},
+				"magenta" :
+				{
+					"redChannel"   : 255,
+					"greenChannel" : 0,
+					"blueChannel"  : 255
+				},
+				"yellow" :
+				{
+					"redChannel"   : 255,
+					"greenChannel" : 255,
+					"blueChannel"  : 0
 				}
 			}
 		],
