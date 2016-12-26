@@ -90,22 +90,37 @@ ColorTransform * Hyperion::createColorTransform(const QJsonObject & transformCon
 ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
 	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
-
-	RgbChannelAdjustment * redAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureRed"].toObject(),RED);
-	RgbChannelAdjustment * greenAdjustment = createRgbChannelAdjustment(adjustmentConfig["pureGreen"].toObject(),GREEN);
-	RgbChannelAdjustment * blueAdjustment  = createRgbChannelAdjustment(adjustmentConfig["pureBlue"].toObject(),BLUE);
-
+	
+	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig["black"].toObject(),BLACK);
+	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig["white"].toObject(),WHITE);
+	RgbChannelAdjustment * redAdjustment     = createRgbChannelAdjustment(adjustmentConfig["pureRed"].toObject(),RED);
+	RgbChannelAdjustment * greenAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureGreen"].toObject(),GREEN);
+	RgbChannelAdjustment * blueAdjustment    = createRgbChannelAdjustment(adjustmentConfig["pureBlue"].toObject(),BLUE);
+	RgbChannelAdjustment * cyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig["cyan"].toObject(),CYAN);
+	RgbChannelAdjustment * magentaAdjustment = createRgbChannelAdjustment(adjustmentConfig["magenta"].toObject(),MAGENTA);
+	RgbChannelAdjustment * yellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig["yellow"].toObject(),YELLOW);
+	
 	ColorAdjustment * adjustment = new ColorAdjustment();
 	adjustment->_id = id;
-	adjustment->_rgbRedAdjustment   = *redAdjustment;
-	adjustment->_rgbGreenAdjustment = *greenAdjustment;
-	adjustment->_rgbBlueAdjustment  = *blueAdjustment;
+	adjustment->_rgbBlackAdjustment   = *blackAdjustment;
+	adjustment->_rgbWhiteAdjustment   = *whiteAdjustment;
+	adjustment->_rgbRedAdjustment     = *redAdjustment;
+	adjustment->_rgbGreenAdjustment   = *greenAdjustment;
+	adjustment->_rgbBlueAdjustment    = *blueAdjustment;
+	adjustment->_rgbCyanAdjustment    = *cyanAdjustment;
+	adjustment->_rgbMagentaAdjustment = *magentaAdjustment;
+	adjustment->_rgbYellowAdjustment  = *yellowAdjustment;
 
 	// Cleanup the allocated individual adjustments
+	delete blackAdjustment;
+	delete whiteAdjustment;
 	delete redAdjustment;
 	delete greenAdjustment;
 	delete blueAdjustment;
-
+	delete cyanAdjustment;
+	delete magentaAdjustment;
+	delete yellowAdjustment;
+	
 	return adjustment;
 }
 
@@ -291,7 +306,19 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const QJsonObject& colo
 RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color)
 {
 	int varR=0, varG=0, varB=0;
-	if (color == RED) 
+	if (color == BLACK) 
+	{
+		varR = colorConfig["redChannel"].toInt(0);
+		varG = colorConfig["greenChannel"].toInt(0);
+		varB = colorConfig["blueChannel"].toInt(0);
+	}
+	else if (color == WHITE)
+	{
+		varR = colorConfig["redChannel"].toInt(255);
+		varG = colorConfig["greenChannel"].toInt(255);
+		varB = colorConfig["blueChannel"].toInt(255);
+	}		
+	else if (color == RED) 
 	{
 		varR = colorConfig["redChannel"].toInt(255);
 		varG = colorConfig["greenChannel"].toInt(0);
@@ -309,7 +336,25 @@ RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonObject& co
 		varG = colorConfig["greenChannel"].toInt(0);
 		varB = colorConfig["blueChannel"].toInt(255);
 	}
-
+	else if (color == CYAN) 
+	{
+		varR = colorConfig["redChannel"].toInt(0);
+		varG = colorConfig["greenChannel"].toInt(255);
+		varB = colorConfig["blueChannel"].toInt(255);
+	}
+	else if (color == MAGENTA)
+	{
+		varR = colorConfig["redChannel"].toInt(255);
+		varG = colorConfig["greenChannel"].toInt(0);
+		varB = colorConfig["blueChannel"].toInt(255);
+	}		
+	else if (color == YELLOW)
+	{
+		varR = colorConfig["redChannel"].toInt(255);
+		varG = colorConfig["greenChannel"].toInt(255);
+		varB = colorConfig["blueChannel"].toInt(0);
+	}
+	
 	RgbChannelAdjustment* adjustment = new RgbChannelAdjustment(varR, varG, varB);
 	return adjustment;
 }
