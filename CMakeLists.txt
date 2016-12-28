@@ -140,6 +140,22 @@ message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
+# check all  json files
+FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
+SET( JSON_FILES
+	config/hyperion.config.json.default
+	${HYPERION_SCHEMAS}
+)
+EXECUTE_PROCESS (
+	COMMAND python cmake/checkjson.py ${JSON_FILES}
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE CHECK_JSON_FAILED
+)
+
+IF ( ${CHECK_JSON_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json files failed" )
+ENDIF ()
+
 # Createt the configuration file
 
 # Add project specific cmake modules (find, etc)
