@@ -133,243 +133,107 @@
 							},
 							"black" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [0,0,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
 							"white" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,255,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
-							"pureRed" :
+							"red" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,0,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
-							"pureGreen" :
+							"green" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [0,255,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
-							"pureBlue" :
+							"blue" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [0,0,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
 							"cyan" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [0,255,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
 							"magenta" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,0,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
 							"yellow" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,255,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							}
 						},
 						"additionalProperties" : false
