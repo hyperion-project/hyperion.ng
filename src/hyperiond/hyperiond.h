@@ -1,7 +1,5 @@
 #pragma once
 
-const int CURRENT_CONFIG_VERSION = 2;
-
 #include <QObject>
 
 #ifdef ENABLE_DISPMANX

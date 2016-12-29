@@ -10,6 +10,7 @@
 
 // hyperion includes
 #include <hyperion/LedString.h>
+#include "HyperionConfig.h"
 
 bool loadConfig(const QString & configFile)
 {
@@ -21,7 +22,7 @@ bool loadConfig(const QString & configFile)
 	// read and set the json schema from the resource
 	////////////////////////////////////////////////////////////
 
-	QFile schemaData(":/hyperion-schema");
+	QFile schemaData(":/hyperion-schema-"+QString::number(CURRENT_CONFIG_VERSION));
 
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
