@@ -1,88 +1,102 @@
 {
 	"type":"object",
-	"script" : "mood-blobs.py",
 	"title":"edt_eff_moodblobs_header_title",
+	"script":"mood-blobs.py",
 	"required":true,
-	"properties":{
-		"color": {
-			"type": "array",
-			"title":"edt_eff_color_title",
-			"format":"colorpicker",
-			"default": [255,0,0],
-			"items" : {
-				"type": "integer",
-				"minimum": 0,
-				"maximum": 255
-			},
-			"minItems": 3,
-			"maxItems": 3,
-			"propertyOrder" : 1
+	"properties": {
+		"script" : {
+			"type" : "string",
+			"enum" : ["mood-blobs.py"],
+			"required":true
 		},
-		"blobs": {
-			"type": "integer",
-			"title":"edt_eff_blobcount_title",
-			"default": 5,
-			"minimum" : 1,
-			"propertyOrder" : 2
+		"name" : {
+			"type" : "string",
+			"required":true
 		},
-		"rotationTime": {
-			"type": "number",
-			"title":"edt_eff_rotationtime_title",
-			"default": 20.0,
-			"minimum" : 1.0,
-			"append" : "edt_append_s",
-			"propertyOrder" : 3
-		},
-		"hueChange": {
-			"type": "number",
-			"title":"edt_eff_huechange_title",
-			"default": 60.0,
-			"minimum" : 1.0,
-			"propertyOrder" : 4
-		},
-		"reverse": {
-			"type": "boolean",
-			"title":"edt_eff_reversedirection_title",
-			"default": false,
-			"propertyOrder" : 5
-		},
-		"colorRandom": {
-			"type": "boolean",
-			"title":"edt_eff_colorrandom_title",
-			"default": false,
-			"propertyOrder" : 6
-		},
-		"baseChange": {
-			"type": "boolean",
-			"title":"edt_eff_basecolorchange_title",
-			"default": false,
-			"propertyOrder" : 7
-		},
-		"baseColorRangeLeft": {
-			"type": "number",
-			"title":"edt_eff_basecolorrangeleft_title",
-			"default": 0.0,
-			"minimum" : 0.0,
-			"maximum" : 360.0,
-			"append" : "edt_append_degree",
-			"propertyOrder" : 9
-		},
-		"baseColorRangeRight": {
-			"type": "number",
-			"title":"edt_eff_basecolorrangeright_title",
-			"default": 360.0,
-			"minimum" : 0.0,
-			"maximum" : 360.0,
-			"append" : "edt_append_degree",
-			"propertyOrder" : 10
-		},
-		"baseColorChangeRate": {
-			"type": "number",
-			"title":"edt_eff_basecolorchangerate_title",
-			"default": 2.0,
-			"minimum" : 0.0,
-			"append" : "edt_append_sdegree",
-			"propertyOrder" : 8
+		"args" : {
+			"type" : "object",
+			"properties": {
+				"color": {
+					"type": "array",
+					"title":"edt_eff_color_title",
+					"format":"colorpicker",
+					"default": [255,0,0],
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3,
+					"propertyOrder" : 1
+				},
+				"blobs": {
+					"type": "integer",
+					"title":"edt_eff_blobcount_title",
+					"default": 5,
+					"minimum" : 1,
+					"propertyOrder" : 2
+				},
+				"rotationTime": {
+					"type": "number",
+					"title":"edt_eff_rotationtime_title",
+					"default": 20.0,
+					"minimum" : 1.0,
+					"append" : "edt_append_s",
+					"propertyOrder" : 3
+				},
+				"hueChange": {
+					"type": "number",
+					"title":"edt_eff_huechange_title",
+					"default": 60.0,
+					"minimum" : 1.0,
+					"propertyOrder" : 4
+				},
+				"reverse": {
+					"type": "boolean",
+					"title":"edt_eff_reversedirection_title",
+					"default": false,
+					"propertyOrder" : 5
+				},
+				"colorRandom": {
+					"type": "boolean",
+					"title":"edt_eff_colorrandom_title",
+					"default": false,
+					"propertyOrder" : 6
+				},
+				"baseChange": {
+					"type": "boolean",
+					"title":"edt_eff_basecolorchange_title",
+					"default": false,
+					"propertyOrder" : 7
+				},
+				"baseColorRangeLeft": {
+					"type": "number",
+					"title":"edt_eff_basecolorrangeleft_title",
+					"default": 0.0,
+					"minimum" : 0.0,
+					"maximum" : 360.0,
+					"append" : "edt_append_degree",
+					"propertyOrder" : 9
+				},
+				"baseColorRangeRight": {
+					"type": "number",
+					"title":"edt_eff_basecolorrangeright_title",
+					"default": 360.0,
+					"minimum" : 0.0,
+					"maximum" : 360.0,
+					"append" : "edt_append_degree",
+					"propertyOrder" : 10
+				},
+				"baseColorChangeRate": {
+					"type": "number",
+					"title":"edt_eff_basecolorchangerate_title",
+					"default": 2.0,
+					"minimum" : 0.0,
+					"append" : "edt_append_sdegree",
+					"propertyOrder" : 8
+				}
+			}
 		}
 	},
 	"additionalProperties": false
