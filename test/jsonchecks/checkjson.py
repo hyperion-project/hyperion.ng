@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import json, sys
 
-print("-- validate json files:")
+print("-- validate json files")
 
 retval  = 0 
 total   = 0

@@ -3,7 +3,7 @@ import json, sys, glob
 from os import path
 from jsonschema import Draft3Validator
 
-print("-- validate json files:")
+print("-- validate json effect files")
 
 jsonFiles = sys.argv[1]
 schemaFiles = sys.argv[2]

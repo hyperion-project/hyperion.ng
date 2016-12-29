@@ -16,6 +16,7 @@ SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
 SET ( HYPERION_VERSION_PATCH 0 )
+SET ( CURRENT_CONFIG_VERSION 2 )
 
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
@@ -162,6 +163,15 @@ EXECUTE_PROCESS (
 )
 IF ( ${CHECK_EFFECTS_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+ENDIF ()
+
+EXECUTE_PROCESS (
+	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE CHECK_CONFIG_FAILED
+)
+IF ( ${CHECK_CONFIG_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
 
 
