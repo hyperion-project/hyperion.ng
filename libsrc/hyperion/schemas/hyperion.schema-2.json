@@ -144,7 +144,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 8
+								"propertyOrder" : 8
 							},
 							"white" :
 							{
@@ -159,7 +159,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 1
+								"propertyOrder" : 1
 							},
 							"red" :
 							{
@@ -174,7 +174,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 2
+								"propertyOrder" : 2
 							},
 							"green" :
 							{
@@ -189,7 +189,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 3
+								"propertyOrder" : 3
 							},
 							"blue" :
 							{
@@ -204,7 +204,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 4
+								"propertyOrder" : 4
 							},
 							"cyan" :
 							{
@@ -219,7 +219,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 5
+								"propertyOrder" : 5
 							},
 							"magenta" :
 							{
@@ -234,7 +234,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 6
+								"propertyOrder" : 6
 							},
 							"yellow" :
 							{
@@ -249,7 +249,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertOrder" : 7
+								"propertyOrder" : 7
 							}
 						},
 						"additionalProperties" : false
