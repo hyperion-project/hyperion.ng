@@ -131,95 +131,109 @@
 								"type" : "string",
 								"required" : true
 							},
-							"pureRed" :
+							"black" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [0,0,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
-							"pureGreen" :
+							"white" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,255,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
 							},
-							"pureBlue" :
+							"red" :
 							{
-								"type":"object",
+								"type" : "array",
 								"required" : true,
-								"properties":
-								{
-									"redChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"greenChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									},
-									"blueChannel" :
-									{
-										"type": "integer",
-										"required" : true,
-										"minimum": 0,
-										"maximum": 255
-									}
+								"default": [255,0,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
 								},
-								"additionalProperties" : false
+								"minItems" : 3,
+								"maxItems" : 3
+							},
+							"green" :
+							{
+								"type" : "array",
+								"required" : true,
+								"default": [0,255,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
+								},
+								"minItems" : 3,
+								"maxItems" : 3
+							},
+							"blue" :
+							{
+								"type" : "array",
+								"required" : true,
+								"default": [0,0,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
+								},
+								"minItems" : 3,
+								"maxItems" : 3
+							},
+							"cyan" :
+							{
+								"type" : "array",
+								"required" : true,
+								"default": [0,255,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
+								},
+								"minItems" : 3,
+								"maxItems" : 3
+							},
+							"magenta" :
+							{
+								"type" : "array",
+								"required" : true,
+								"default": [255,0,255],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
+								},
+								"minItems" : 3,
+								"maxItems" : 3
+							},
+							"yellow" :
+							{
+								"type" : "array",
+								"required" : true,
+								"default": [255,255,0],
+								"items" : {
+									"type" : "integer",
+									"minimum" : 0,
+									"maximum" : 255
+								},
+								"minItems" : 3,
+								"maxItems" : 3
 							}
 						},
 						"additionalProperties" : false
