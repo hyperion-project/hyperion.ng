@@ -30,6 +30,9 @@
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
 
+// Define version id of current config
+#define CURRENT_CONFIG_VERSION ${CURRENT_CONFIG_VERSION}
+
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
 
@@ -40,4 +43,4 @@
 
 #define HYPERION_JSON_VERSION "1.0.0"
 
-#define CURRENT_CONFIG_VERSION 2
+
