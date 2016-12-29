@@ -160,9 +160,9 @@ EXECUTE_PROCESS (
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_EFFECTS_FAILED
 )
-# IF ( ${CHECK_EFFECTS_FAILED} )
-# 	MESSAGE (FATAL_ERROR "check of json effect files failed" )
-# ENDIF ()
+IF ( ${CHECK_EFFECTS_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+ENDIF ()
 
 
 # Createt the configuration file
