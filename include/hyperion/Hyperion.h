@@ -64,7 +64,7 @@ public:
 	///
 	enum RgbChannel
 	{
-		RED, GREEN, BLUE, INVALID
+		BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, INVALID
 	};
 
 	///
@@ -303,7 +303,7 @@ public:
 	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
 	static RgbChannelTransform * createRgbChannelTransform(const QJsonObject& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelCorrection(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color);
+	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color);
 
 	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);

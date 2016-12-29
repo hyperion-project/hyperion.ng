@@ -6162,6 +6162,63 @@ JSONEditor.defaults.editors.arraySelectize = JSONEditor.AbstractEditor.extend({
   }
 });
 
+// colorpicker creation and handling, build on top of strings editor
+JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
+    getValue: function() {
+        if ($(this.input).data("colorpicker") !== undefined) {
+            var color = $(this.input).data('colorpicker').color.toRGB();
+            return [color.r,color.g, color.b];
+        }
+        else {
+            return [0,0,0];
+        }
+    },
+
+    setValue: function(val) {
+            function rgb2hex(rgb)
+            {
+                return "#" +
+                ("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
+            }
+
+        $(this.input).colorpicker('updateInput', 'rgb('+val+')');
+        $(this.input).colorpicker('updateData', val);
+        $(this.input).colorpicker('updatePicker', rgb2hex(val));
+        $(this.input).colorpicker('updateComponent', 'rgb('+val+')');
+     },
+   
+   
+   
+    build: function() {
+        this._super();
+        var myinput = this;
+        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element input-group");
+        $(myinput.input).append("<span class='input-group-addon' id='event_catcher'><i></i></span>");
+        $(myinput.input).colorpicker({
+            format: 'rgb',
+            customClass: 'colorpicker-2x',
+            sliders: {
+                saturation: {
+                    maxLeft: 200,
+                    maxTop: 200
+                },
+                hue: {
+                    maxTop: 200
+                },
+            },
+        })
+
+        $("#event_catcher").detach().insertAfter(myinput.input);
+        $("#event_catcher").attr("id", "selector");
+       
+        $(this.input).colorpicker().on('changeColor', function(e) {
+            $(myinput).val(e.color.toRGB()).change();
+        });     
+    }
+});
+
 var matchKey = (function () {
   var elem = document.documentElement;
 
@@ -7016,6 +7073,12 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 JSONEditor.defaults.resolvers.unshift(function(schema) {
   // If this schema uses `oneOf` or `anyOf`
   if(schema.oneOf || schema.anyOf) return "multiple";
+});
+// colorpicker extend for strings
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+    if(schema.type === "array" && schema.format === "colorpicker") {
+        return "colorPicker";
+    }
 });
 
 /**

@@ -58,17 +58,17 @@ void RgbChannelAdjustment::setAdjustmentB(uint8_t adjustB)
 	setAdjustment(_adjust[RED], _adjust[GREEN], adjustB);
 }
 
-uint8_t RgbChannelAdjustment::adjustmentR(uint8_t inputR) const
+uint8_t RgbChannelAdjustment::getAdjustmentR(uint8_t inputR) const
 {
 	return _mapping[RED][inputR];
 }
 
-uint8_t RgbChannelAdjustment::adjustmentG(uint8_t inputG) const
+uint8_t RgbChannelAdjustment::getAdjustmentG(uint8_t inputG) const
 {
 	return _mapping[GREEN][inputG];
 }
 
-uint8_t RgbChannelAdjustment::adjustmentB(uint8_t inputB) const
+uint8_t RgbChannelAdjustment::getAdjustmentB(uint8_t inputB) const
 {
 	return _mapping[BLUE][inputB];
 }

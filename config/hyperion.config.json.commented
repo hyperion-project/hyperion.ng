@@ -42,23 +42,26 @@
 	///  * 'channelAdjustment_enable'   : true/false enables/disables this channelAdjustment section
 	///  * 'channelAdjustment_v4l_only' : if enabled and set to true, then channelAdjustment is only for v4l devices
 	///  * 'channelAdjustment'
-	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
-	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
+	///            (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///      * 'black'/'white'/'pureRed'/'pureGreen'/'pureBlue'/'cyan'/'magenta'/'yellow' : 
+	///            The manipulation in the Red-Green-Blue color domain with the following parameters for each color:
+	///            - 'redChannel'     
+	///            - 'greenChannel'
+	///            - 'blueChannel'
 	///  * 'transform_enable'   : true/false enables/disables this transform section
 	///  * 'transform_v4l_only' : if enabled and set to true, then transform is only for v4l devices
 	///  * 'transform'
-	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
-	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
+	///      * 'id'   : The unique identifier of the color transformation (eg 'device_1')
+	///      * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
+	///      * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
 	///            tuning parameters:
-	///            - 'saturationGain'  The gain adjustement of the saturation
+	///            - 'saturationGain'      The gain adjustement of the saturation
 	///            - 'luminanceGain'       The gain adjustement of the luminance
 	///            - 'luminanceMinimum'    The minimum luminance (backlight)
-	///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
+	///      * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
 	///            - 'threshold'       The minimum required input value for the channel to be on 
 	///                                (else zero)
@@ -73,24 +76,14 @@
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"pureRed" :
-				{
-					"redChannel"   : 255,
-					"greenChannel" : 0,
-					"blueChannel"  : 0
-				},
-				"pureGreen" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 255,
-					"blueChannel"  : 0
-				},
-				"pureBlue" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 0,
-					"blueChannel"  : 255
-				}
+				"black"   : [0,0,0],
+				"white"   : [255,255,255],
+				"red"     : [255,0,0],
+				"green"   : [0,255,0],
+				"blue"    : [0,0,255],
+				"cyan"    : [0,255,255],
+				"magenta" : [255,0,255],
+				"yellow"  : [255,255,0]
 			}
 		],
 		"transform_enable" : true,
