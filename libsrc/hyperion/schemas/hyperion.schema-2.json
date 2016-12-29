@@ -134,6 +134,7 @@
 							"black" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,0,0],
 								"items" : {
@@ -142,11 +143,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 8
 							},
 							"white" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,255,255],
 								"items" : {
@@ -155,11 +158,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 1
 							},
 							"red" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,0,0],
 								"items" : {
@@ -168,11 +173,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 2
 							},
 							"green" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,255,0],
 								"items" : {
@@ -181,11 +188,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 3
 							},
 							"blue" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,0,255],
 								"items" : {
@@ -194,11 +203,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 4
 							},
 							"cyan" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,255,255],
 								"items" : {
@@ -207,11 +218,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 5
 							},
 							"magenta" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,0,255],
 								"items" : {
@@ -220,11 +233,13 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 6
 							},
 							"yellow" :
 							{
 								"type" : "array",
+								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,255,0],
 								"items" : {
@@ -233,7 +248,8 @@
 									"maximum" : 255
 								},
 								"minItems" : 3,
-								"maxItems" : 3
+								"maxItems" : 3,
+								"propertOrder" : 7
 							}
 						},
 						"additionalProperties" : false
