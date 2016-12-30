@@ -5,11 +5,107 @@
 		 url("../fonts/Roboto-Regular.ttf") format('ttf');
 }
 body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;}
+.form-group{margin-bottom:11px;}
+#page-content {
+	padding-bottom:50px;
+}
+
+/*editor changes*/
+[id^=editor_container] h3{margin-top:10px;}
+[id^=editor_container] .well{margin-bottom:9px;border:none;background-color:white;box-shadow:none;}
+[id^=editor_container] label{padding-left:0px !important; padding-right:0px !important;}
+.ltd{width:auto;text-align:left;white-space:nowrap;vertical-align:middle !important;padding:6px !important;}
+.itd{width:100%;padding:6px !important;}
+table.input-group{width:100%}
+.borderless {margin-bottom:0px}
+@media (max-width: 767px) {.ltd{white-space:normal;}}
+
+/*icon spacing*/
+.fa-fw{margin-right:5px;}
+/*borderless table*/
+table.borderless td,table.borderless th{border: none !important;}
+
+/*Header*/
+.navbar-brand{padding: 5px;padding-left:20px;height:60px;}
+.sidebar{margin-top:61px;padding-top:20px;}
+.dropdown{font-size:18px;}
+@media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;} .introd{display:none}}
+.page-header{margin-top:15px;}
+
+/*Panels*/
+.panel-heading{font-size:18px;}
+.headcollapse{cursor:pointer;}
+.headcollapse a:hover{text-decoration:none;}
+
+/*Dashboard*/
+.component-on{color:green;}
+.component-off{color:grey;}
+
+/*Colorpicker 2x*/
+.colorpicker-2x .colorpicker-saturation {width: 200px;height: 200px;}
+.colorpicker-2x .colorpicker-hue,.colorpicker-2x .colorpicker-alpha {width: 30px;height: 200px;}
+.colorpicker-2x .colorpicker-color,.colorpicker-2x .colorpicker-color div {height: 30px;}
+.colorpicker-2x .colorpicker-selectors i{height:20px;width:20px;}
+	 
+/*Support page*/
+.unlink,.unlink:hover{color:#333;text-decoration:none;}
+.support-container ul{padding-left:0px;list-style-type: none;}
+.support-container{text-align: center;margin-top:15px;color:#333;}
+.support-container .fa{line-height:58px;font-size:40px;width:100px;height:100px;padding:20px;border-radius: 120px;border: 1px solid;transition: background-color 0.5s linear, color 0.5s linear;}
+.support-container h4{margin-top:13px;}
+.support-container:hover .bg-color-fb{background-color:#3b5998;color:white;}
+.support-container:hover .bg-color-tw{background-color:#1da1f2; color:white;}
+.support-container:hover .bg-color-g{background-color:#cc181e; color:white;}
+.support-container:hover .bg-color-wf{background-color:#0088cc; color:white;}
+.support-container:hover .bg-color-btc{background-color:#f7931a; color:white;}
+.support-container:hover .bg-color-pp{background-color:#0070ba; color:white;}
+.support-container:hover .bg-color-am{background-color:#ef9c00; color:white;}
+
+/*Config introduction*/
+.introd h4{line-height:25px;padding-left:14px;border-left:5px solid #0088cc;}
+
+/*backported bootstrap 4 forms-label alignment*/
+.col-form-label {
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    margin-bottom: 0;
+}
+
+/*Modal icons*/
+[class*="modal-icon"]{
+	padding:30px;
+	border-radius: 60px;
+	color:white;
+	font-size:50px !important;
+}
+.modal-icon-check{
+	background-color:#71c341;
+}
+.modal-icon-warning{
+	background-color:#f7c44a;
+}
+.modal-icon-error{
+	background-color:#d1322e;
+}
+
+.overlay {
+	background-image: url('/img/hyperion/hyperionwhitelogo.png');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: rgba(1, 1, 1, 0.7);
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index:99999;
+}
 
 /**add a dditional width defintion for bootstrap**/
 @media (min-width: 1500px) {
   .col-xxl-1, .col-xxl-2, .col-xxl-3, .col-xxl-4, .col-xxl-5, .col-xxl-6, .col-xxl-7, .col-xxl-8, .col-xxl-9, .col-xxl-10, .col-xxl-11, .col-xxl-12 {
     float: left;
+	padding:0 15px;
   }
   .col-xxl-12 {
     width: 100%;
@@ -166,102 +262,13 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
   }
 }
 
-/*icon spacing*/
-.fa-fw{margin-right:5px;}
-/*borderless table*/
-table.borderless td,table.borderless th{border: none !important;}
-
-/*Header*/
-.navbar-brand{padding: 5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:61px;padding-top:20px;}
-.dropdown{font-size:18px;}
-@media (max-width: 767px) {.sidebar{margin-top:0px;}}
-.page-header{margin-top:15px;}
-
-/*Panels*/
-.panel-heading{font-size:18px;}
-.headcollapse{cursor:pointer;}
-.headcollapse a:hover{text-decoration:none;}
-
-/*Dashboard*/
-.component-on{color:green;}
-.component-off{color:grey;}
-
-/*Colorpicker 2x*/
-.colorpicker-2x .colorpicker-saturation {width: 200px;height: 200px;}
-.colorpicker-2x .colorpicker-hue,.colorpicker-2x .colorpicker-alpha {width: 30px;height: 200px;}
-.colorpicker-2x .colorpicker-color,.colorpicker-2x .colorpicker-color div {height: 30px;}
-.colorpicker-2x .colorpicker-selectors i{height:20px;width:20px;}
-	 
-/*Support page*/
-.unlink,.unlink:hover{color:#333;text-decoration:none;}
-.support-container ul{padding-left:0px;list-style-type: none;}
-.support-container{text-align: center;margin-top:15px;color:#333;}
-.support-container .fa{line-height:58px;font-size:40px;width:100px;height:100px;padding:20px;border-radius: 120px;border: 1px solid;transition: background-color 0.5s linear, color 0.5s linear;}
-.support-container h4{margin-top:13px;}
-.support-container:hover .bg-color-fb{background-color:#3b5998;color:white;}
-.support-container:hover .bg-color-tw{background-color:#1da1f2; color:white;}
-.support-container:hover .bg-color-g{background-color:#cc181e; color:white;}
-.support-container:hover .bg-color-wf{background-color:#0088cc; color:white;}
-.support-container:hover .bg-color-btc{background-color:#f7931a; color:white;}
-.support-container:hover .bg-color-pp{background-color:#0070ba; color:white;}
-.support-container:hover .bg-color-am{background-color:#ef9c00; color:white;}
-
-/*Config introduction*/
-.introd{padding-left:14px;border-left:5px solid #0088cc;}
-.introd h4{line-height:25px;}
-
-/*backported bootstrap 4 forms-label alignment*/
-.col-form-label {
-    padding-top: .5rem;
-    padding-bottom: .5rem;
-    margin-bottom: 0;
-}
-
-/*Modal icons*/
-.modal-icon-check{
-	background-color:#71c341;
-	padding:30px;
-	border-radius: 60px;
-	color:white;
-	font-size:50px !important;
-}
-.modal-icon-warning{
-	background-color:#f7c44a;
-	padding:30px;
-	border-radius: 60px;
-	color:white;
-	font-size:50px !important;
-}
-.modal-icon-error{
-	background-color:#d1322e;
-	padding:30px;
-	border-radius: 60px;
-	color:white;
-	font-size:50px !important;
-}
-
-.overlay {
-	background-image: url('/img/hyperion/hyperionwhitelogo.png');
-	background-repeat: no-repeat;
-	background-position: center center;
-	background-color: rgba(1, 1, 1, 0.7);
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	top: 0;
-	z-index:99999;
-}
-
-#page-content {
-	padding-bottom:50px;
-}
-
-
+/*https://github.com/flatlogic/awesome-bootstrap-checkbox slighty edited for our purposes*/
 .checkbox {
+  height:34px;
   padding-left: 20px;
   padding-top:2px !important;
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
 }
 .checkbox label {
   display: inline-block;

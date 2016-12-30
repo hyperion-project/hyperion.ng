@@ -16,5 +16,6 @@
         <file alias="schema-componentstate">schema/schema-componentstate.json</file>
         <file alias="schema-ledcolors">schema/schema-ledcolors.json</file>
         <file alias="schema-logging">schema/schema-logging.json</file>
+        <file alias="schema-processing">schema/schema-processing.json</file>
     </qresource>
 </RCC>

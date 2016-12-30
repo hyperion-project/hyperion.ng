@@ -64,7 +64,7 @@ public:
 	///
 	enum RgbChannel
 	{
-		RED, GREEN, BLUE, INVALID
+		BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, INVALID
 	};
 
 	///
@@ -93,7 +93,7 @@ public:
 	///
 	unsigned getLedCount() const;
 
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _ledGridSize; };
 
 	///
 	/// Returns the current priority
@@ -183,6 +183,11 @@ public:
 
 	bool configWriteable();
 
+	/// gets the methode how image is maped to leds
+	int getLedMappingType() { return _ledMAppingType; };
+	
+	int getConfigVersionId() { return _configVersionId; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -201,6 +206,15 @@ public slots:
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	///
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID);
+
+	///
+	/// Writes the given colors to all leds for the given time and priority
+	///
+	/// @param[in] priority The priority of the written colors
+	/// @param[in] ledColors The colors to write to the leds
+	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
+	///
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 	///
 	/// Returns the list with unique transform identifiers
@@ -264,6 +278,9 @@ public slots:
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
 
+	/// sets the methode how image is maped to leds
+	void setLedMappingType(int mappingType);
+
 public:
 	static Hyperion *_hyperion;
 
@@ -286,7 +303,7 @@ public:
 	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
 	static RgbChannelTransform * createRgbChannelTransform(const QJsonObject& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelCorrection(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color);
+	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color);
 
 	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);
@@ -302,6 +319,9 @@ signals:
 	void allChannelsCleared();
 
 	void componentStateChanged(const hyperion::Components component, bool enabled);
+
+	void imageToLedsMappingChanged(int mappingType);
+	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
 
 private slots:
 	///
@@ -391,4 +411,8 @@ private:
 	QByteArray _configHash;
 
 	QSize _ledGridSize;
+	
+	int _ledMAppingType;
+	
+	int _configVersionId;
 };

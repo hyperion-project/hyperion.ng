@@ -22,6 +22,11 @@
 #include <QJsonDocument>
 #include <QVariantMap>
 #include <QDir>
+#include <QImage>
+#include <QBuffer>
+#include <QByteArray>
+#include <QIODevice>
+#include <QDateTime>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -50,6 +55,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
+	, _image_stream_timeout(0)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -58,6 +64,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
+	_image_stream_mutex.unlock();
 }
 
 
@@ -312,6 +319,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleLedColorsCommand(message, command, tan);
 		else if (command == "logging")
 			handleLoggingCommand(message, command, tan);
+		else if (command == "processing")
+			handleProcessingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -477,9 +486,9 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				
 				if (effectArray.size() > 0)
 				{
-					if (message["name"].toString().trimmed().isEmpty())
+					if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
 					{
-						sendErrorReply("Can't save new effect. Effect name is empty", command, tan);
+						sendErrorReply("Can't save new effect. Effect name is empty or begins with a dot.", command, tan);
 						return;
 					}
 					
@@ -616,6 +625,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 
 	info["priorities"] = priorities;
+	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	
 	// collect transform information
 	QJsonArray transformArray;
@@ -827,6 +837,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["components"] = component;
+	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
 	// Add Hyperion Version, build time
 	QJsonArray hyperion;
@@ -1074,7 +1085,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QJsonParseError error;
 
 	// read the hyperion json schema from the resource
-	QFile schemaData(":/hyperion-schema");
+	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
 	
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
@@ -1197,22 +1208,32 @@ void JsonClientConnection::handleLedColorsCommand(const QJsonObject& message, co
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
-	_streaming_leds_reply["success"] = true;
-	_streaming_leds_reply["command"] = command;
-	_streaming_leds_reply["tan"] = tan;
-	
+
 	if (subcommand == "ledstream-start")
 	{
+		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
+		_streaming_leds_reply["tan"]     = tan;
 		_timer_ledcolors.start(125);
 	}
 	else if (subcommand == "ledstream-stop")
 	{
 		_timer_ledcolors.stop();
 	}
+	else if (subcommand == "imagestream-start")
+	{
+		_streaming_image_reply["success"] = true;
+		_streaming_image_reply["command"] = command+"-imagestream-update";
+		_streaming_image_reply["tan"]     = tan;
+		connect(_hyperion, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), this, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
+	}
+	else if (subcommand == "imagestream-stop")
+	{
+		disconnect(_hyperion, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), this, 0 );
+	}
 	else
 	{
-		sendErrorReply("unknown subcommand",command,tan);
+		sendErrorReply("unknown subcommand \""+subcommand+"\"",command,tan);
 		return;
 	}
 	
@@ -1253,6 +1274,13 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 	}
 	
 	sendSuccessReply(command+"-"+subcommand,tan);
+}
+
+void JsonClientConnection::handleProcessingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	_hyperion->setLedMappingType(ImageProcessor::mappingTypeToInt( message["mappingType"].toString("multicolor_mean")) );
+
+	sendSuccessReply(command, tan);
 }
 
 void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
@@ -1482,5 +1510,28 @@ void JsonClientConnection::streamLedcolorsUpdate()
 
 	// send the result
 	sendMessage(_streaming_leds_reply);
-
 }
+
+void JsonClientConnection::setImage(int priority, const Image<ColorRgb> & image, int duration_ms)
+{
+	if ( (_image_stream_timeout+250) < QDateTime::currentMSecsSinceEpoch() && _image_stream_mutex.tryLock(0) )
+	{
+		_image_stream_timeout = QDateTime::currentMSecsSinceEpoch();
+
+		QImage jpgImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+		QByteArray ba;
+		QBuffer buffer(&ba);
+		buffer.open(QIODevice::WriteOnly);
+		jpgImage.save(&buffer, "jpg");
+		
+		QJsonObject result;
+		result["image"] = "data:image/jpg;base64,"+QString(ba.toBase64());
+		_streaming_image_reply["result"] = result;
+		sendMessage(_streaming_image_reply);
+
+		_image_stream_mutex.unlock();
+	}
+}
+
+
+

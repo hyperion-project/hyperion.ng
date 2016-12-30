@@ -545,6 +545,17 @@ void JsonConnection::setAdjustment(const QString &adjustmentId,
 	parseReply(reply);
 }
 
+
+void JsonConnection::setLedMapping(QString mappingType)
+{
+	QJsonObject command;
+	command["command"] = QString("processing");
+	command["mappingType"] = mappingType;
+
+	QJsonObject reply = sendMessage(command);
+	parseReply(reply);
+}
+
 QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 {
 	// serialize message

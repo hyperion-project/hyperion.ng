@@ -31,7 +31,7 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-
+#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -51,7 +51,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
 {
-	loadConfig(configFile);
+	loadConfig(configFile, CURRENT_CONFIG_VERSION );
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -116,20 +116,21 @@ void HyperionDaemon::run()
 
 }
 
-void HyperionDaemon::loadConfig(const QString & configFile)
+int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
 {
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 	QJsonParseError error;
 
 	// read the json schema from the resource
-	QFile schemaData(":/hyperion-schema");
+	QString schemaFile = ":/hyperion-schema";
+	if (schemaVersion > 0)
+		schemaFile += "-" + QString::number(schemaVersion); 
+	QFile schemaData(schemaFile);
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
-		error << "Schema not found: " << schemaData.errorString().toStdString();
+		error << "Schema not found or not supported: " << schemaData.errorString().toStdString();
 		throw std::runtime_error(error.str());
 	}
 	
@@ -168,10 +169,41 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 		{
 			std::cout << *i << std::endl;
 		}
-		
+
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
+	
+	const QJsonObject & generalConfig = _qconfig["general"].toObject();
+	return generalConfig["configVersion"].toInt(-1);
 }
+
+
+void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
+{
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+
+	int configVersionId = tryLoadConfig(configFile,0);
+
+	// no config id found, assume legacy hyperion
+	if (configVersionId < 0)
+	{
+		Debug(_log, "config file has no version, assume old hyperion.");
+		configVersionId = tryLoadConfig(configFile,1);
+	}
+	Debug(_log, "config version: %d", configVersionId);
+	configVersionId = tryLoadConfig(configFile, configVersionId);
+
+	if (neededConfigVersion == configVersionId)
+	{
+		return;
+	}
+
+	// migrate configVersionId
+	ConfigMigrator migrator;
+	migrator.migrate(configFile, configVersionId, neededConfigVersion);
+	
+}
+
 
 void HyperionDaemon::startInitialEffect()
 {
@@ -343,8 +375,8 @@ void HyperionDaemon::startNetworkServices()
 	connect( Hyperion::getInstance(), SIGNAL(componentStateChanged(hyperion::Components,bool)), _udpListener, SLOT(componentStateChanged(hyperion::Components,bool)));
 
 	// zeroconf description - $leddevicename@$hostname
-	const QJsonObject & deviceConfig = _qconfig["device"].toObject();
-	const std::string mDNSDescr = ( deviceConfig["name"].toString("").toStdString()
+	const QJsonObject & generalConfig = _qconfig["general"].toObject();
+	const std::string mDNSDescr = ( generalConfig["name"].toString("").toStdString()
 					+ "@" +
 					QHostInfo::localHostName().toStdString()
 					);
@@ -382,7 +414,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 	if (_qconfig.contains("framegrabber"))
 	{
 		const QJsonObject & grabberConfig = _qconfig["framegrabber"].toObject();
-		if (grabberConfig["enable"].toBool(true))
+// 		if (grabberConfig["enable"].toBool(true))
 		{
 			_grabber_width     = grabberConfig["width"].toInt(96);
 			_grabber_height    = grabberConfig["height"].toInt(96);
@@ -432,7 +464,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
 			}
 			
-			bool grabberCompState = true;
+			bool grabberCompState = grabberConfig["enable"].toBool(true);
 			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
 			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx();
@@ -442,6 +474,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
 			
 			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
+			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );
 		}
 	}
 }
@@ -456,6 +489,7 @@ void HyperionDaemon::createGrabberDispmanx()
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_dispmanx->start();
 
@@ -474,6 +508,7 @@ void HyperionDaemon::createGrabberAmlogic()
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_amlGrabber->start();
 	Info(_log, "AMLOGIC grabber created and started");
@@ -495,6 +530,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_x11Grabber->start();
 	Info(_log, "X11 grabber created and started");
@@ -515,6 +551,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_fbGrabber->start();
 	Info(_log, "Framebuffer grabber created and started");
@@ -535,6 +572,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
+	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
 	_osxGrabber->start();
 	Info(_log, "OSX grabber created and started");
@@ -590,6 +628,7 @@ void HyperionDaemon::createGrabberV4L2()
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
+			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)));
 			if (grabberConfig["useKodiChecker"].toBool(false))
 			{
 				QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), grabber, SLOT(setGrabbingMode(GrabbingMode)));

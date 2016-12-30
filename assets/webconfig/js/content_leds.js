@@ -322,10 +322,12 @@ $(document).ready(function() {
 		createClassicLeds();
 	});
 	
+	// ------------------------------------------------------------------
 	$('.ledMAconstr').bind("change", function() {
 		createMatrixLeds();
 	});
 	
+	// ------------------------------------------------------------------
 	$('#btn_cl_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
@@ -334,11 +336,25 @@ $(document).ready(function() {
 		}
 	});
 	
+	// ------------------------------------------------------------------
 	$('#btn_ma_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
 			$('#collapse2').collapse('hide')
 			$('#collapse4').collapse('show');
+		}
+	});
+
+	// ------------------------------------------------------------------
+	$(hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+		if ($("#leddevices").length == 0)
+		{
+			requestLedImageStop();
+		}
+		else
+		{
+			imageData = (event.response.result.image);
+			$("#image_preview").attr("src", imageData);
 		}
 	});
 
@@ -420,7 +436,7 @@ $(document).ready(function() {
 		canvas_height = $('#leds_canvas').innerHeight();
 		canvas_width = $('#leds_canvas').innerWidth();
 
-		leds_html = "";
+		leds_html = '<img src="" id="image_preview" style="position:relative" />"';
 		for(var idx=0; idx<leds.length; idx++)
 		{
 			led = leds[idx];
@@ -434,8 +450,10 @@ $(document).ready(function() {
 		}
 		$('#leds_canvas').html(leds_html);
 		$('#led_0').css({"z-index":"10"});
-
-		$('#leds_custom_updsim').trigger('click');
+		
+		$('#image_preview').hide();		
+		$('#image_preview').attr("width" , $('#leds_canvas').innerWidth()-2);		
+		$('#image_preview').attr("height", $('#leds_canvas').innerHeight()-2);
 	});
 
 	// ------------------------------------------------------------------
@@ -464,6 +482,21 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
+	$('#leds_toggle_live_video').off().on("click", function() {
+		setClassByBool('#leds_toggle_live_video',imageStreamActive,"btn-success","btn-danger");
+		if ( imageStreamActive )
+		{
+			requestLedImageStop();
+			$('#image_preview').hide();
+		}
+		else
+		{
+			$('#image_preview').show();
+			requestLedImageStart();
+		}
+	});
+
+	// ------------------------------------------------------------------
 	$("#leds_custom_updsim").off().on("click", function() {
 		if (validateText()){
 			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
@@ -486,6 +519,7 @@ $(document).ready(function() {
 		var target = $(e.target).attr("href") // activated tab
 		if (target == "#menu_gencfg" && !ledsCustomCfgInitialized)
 		{
+			$('#leds_custom_updsim').trigger('click');
 			ledsCustomCfgInitialized = true;
 		}
 	});

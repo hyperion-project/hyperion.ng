@@ -6,6 +6,7 @@
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
+#include <QMutex>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -116,6 +117,7 @@ public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	void streamLedcolorsUpdate();
 	void incommingLogMessage(Logger::T_LOG_MESSAGE);
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 signals:
 	///
@@ -263,6 +265,12 @@ private:
 	///
 	void handleLoggingCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON Proccessing message
+	///
+	/// @param message the incoming message
+	///
+	void handleProcessingCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -338,12 +346,21 @@ private:
 	
 	/// timer for ledcolors streaming
 	QTimer _timer_ledcolors;
-	
+
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
+	QJsonObject _streaming_image_reply;
 	QJsonObject _streaming_logging_reply;
+
+	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
 
+	/// mutex to determine state of image streaming
+	QMutex _image_stream_mutex;
+
+	/// timeout for live video refresh
+	volatile qint64 _image_stream_timeout;
+	
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3 = 0x10;

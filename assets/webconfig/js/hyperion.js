@@ -13,12 +13,22 @@ var websocket = null;
 var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
-var ledStreamActive=false;
-var loggingStreamActive=false;
+var ledStreamActive  = false;
+var imageStreamActive = false;
+var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
+var debugMessagesActive = true;
 
-//
+function initRestart()
+{
+	$(hyperion).off();
+	requestServerConfigReload();
+	watchdog = 1;
+	$("#wrapper").fadeOut("slow");
+	cron();
+}
+
 function cron()
 {
 	if ( watchdog > 2)
@@ -33,6 +43,8 @@ function cron()
 	requestServerInfo();
 	$(hyperion).trigger({type:"cron"});
 }
+
+setInterval(function(){ watchdog = 0 }, 8000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -168,6 +180,18 @@ function requestLedColorsStop()
 	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
+function requestLedImageStart()
+{
+	imageStreamActive=true;
+	sendToHyperion("ledcolors", "imagestream-start");
+}
+
+function requestLedImageStop()
+{
+	imageStreamActive=false;
+	sendToHyperion("ledcolors", "imagestream-stop");
+}
+
 function requestPriorityClear()
 {
 	sendToHyperion("clear", "", '"priority":1');
@@ -205,6 +229,8 @@ function requestWriteConfig(config)
 	});
 
 	var config_str = JSON.stringify(complete_config);
+	console.log("save");
+	console.log(config_str);
 	sendToHyperion("config","setconfig", '"config":'+config_str);
 }
 
@@ -234,5 +260,10 @@ function requestLoggingStop()
 {
 	loggingStreamActive=false;
 	sendToHyperion("logging", "stop");
+}
+
+function requestMappingType(type)
+{
+	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 

@@ -90,7 +90,7 @@ public:
 	/// Clear all priority channels
 	///
 	void clearAll();
-	
+
 	///
 	/// Enable/Disable components during runtime
 	///
@@ -105,12 +105,12 @@ public:
 	/// @param priority The priority
 	///
 	void setSource(int priority);
-	
+
 	///
 	/// Enables auto source, if disabled prio by manual selecting input source
 	///
 	void setSourceAutoSelect();
-	
+
 	///
 	/// Print the current loaded Hyperion configuration file 
 	///
@@ -166,6 +166,12 @@ public:
 		const QColor & redAdjustment,
 		const QColor & greenAdjustment,
 		const QColor & blueAdjustment);
+
+	///
+	/// sets the image to leds mapping type
+	///
+	/// @param mappingType led mapping type
+	void setLedMapping(QString mappingType);
 
 private:
 	///
