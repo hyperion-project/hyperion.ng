@@ -199,6 +199,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	// process the image
 	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
 	_hyperion->setColors(_priority, ledColors, duration);
+	_hyperion->setImage(_priority, image, duration);
 
 	// send reply
 	sendSuccessReply();
