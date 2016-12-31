@@ -103,9 +103,9 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	
 	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig["black"].toArray(),BLACK);
 	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig["white"].toArray(),WHITE);
-	RgbChannelAdjustment * redAdjustment     = createRgbChannelAdjustment(adjustmentConfig["pureRed"].toArray(),RED);
-	RgbChannelAdjustment * greenAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureGreen"].toArray(),GREEN);
-	RgbChannelAdjustment * blueAdjustment    = createRgbChannelAdjustment(adjustmentConfig["pureBlue"].toArray(),BLUE);
+	RgbChannelAdjustment * redAdjustment     = createRgbChannelAdjustment(adjustmentConfig["red"].toArray(),RED);
+	RgbChannelAdjustment * greenAdjustment   = createRgbChannelAdjustment(adjustmentConfig["green"].toArray(),GREEN);
+	RgbChannelAdjustment * blueAdjustment    = createRgbChannelAdjustment(adjustmentConfig["blue"].toArray(),BLUE);
 	RgbChannelAdjustment * cyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig["cyan"].toArray(),CYAN);
 	RgbChannelAdjustment * magentaAdjustment = createRgbChannelAdjustment(adjustmentConfig["magenta"].toArray(),MAGENTA);
 	RgbChannelAdjustment * yellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig["yellow"].toArray(),YELLOW);
