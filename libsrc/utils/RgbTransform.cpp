@@ -77,9 +77,6 @@ void RgbTransform::setThresholdHigh(double threshold)
 	_thresholdHigh = std::min(std::max((int)(threshold * 255), 0),255);
 }
 
-
-
-
 void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 {
 	// apply gamma
