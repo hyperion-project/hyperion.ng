@@ -17,10 +17,13 @@ public:
 	///
 	/// Constructor
 	///
-	/// @param saturationGain The used saturation gain
-	/// @param valueGain The used value gain
+	/// @param gammaR The used red gamma
+	/// @param gammaG The used green gamma
+	/// @param gammab The used blue gamma
+	/// @param thresholdLow The used lower threshold
+	/// @param thresholdHigh The used higher threshold
 	///
-// 	HsvTransform(double saturationGain, double valueGain);
+	RgbTransform(double gammaR, double gammaG, double gammaB, double thresholdLow, double thresholdHigh);
 
 	///
 	/// Destructor

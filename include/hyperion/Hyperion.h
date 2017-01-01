@@ -301,6 +301,7 @@ public:
 	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
 	static HsvTransform * createHsvTransform(const QJsonObject & hsvConfig);
 	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
+	static RgbTransform * createRgbTransform(const QJsonObject& colorConfig);
 	static RgbChannelTransform * createRgbChannelTransform(const QJsonObject& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelCorrection(const QJsonObject& colorConfig);
 	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color);

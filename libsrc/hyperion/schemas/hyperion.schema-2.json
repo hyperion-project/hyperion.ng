@@ -131,6 +131,42 @@
 								"type" : "string",
 								"required" : true
 							},
+							"thresholdLow" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 1.0
+							},
+							"thresholdHigh" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 1.0
+							},
+							"gammaRed" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0
+							},
+							"gammaGreen" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0
+							},
+							"gammaBlue" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0
+							},
+
 							"black" :
 							{
 								"type" : "array",

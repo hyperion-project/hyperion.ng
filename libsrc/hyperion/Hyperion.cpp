@@ -109,7 +109,8 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	RgbChannelAdjustment * cyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig["cyan"].toArray(),CYAN);
 	RgbChannelAdjustment * magentaAdjustment = createRgbChannelAdjustment(adjustmentConfig["magenta"].toArray(),MAGENTA);
 	RgbChannelAdjustment * yellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig["yellow"].toArray(),YELLOW);
-	
+	RgbTransform         * rgbTransform      = createRgbTransform(adjustmentConfig);
+
 	ColorAdjustment * adjustment = new ColorAdjustment();
 	adjustment->_id = id;
 	adjustment->_rgbBlackAdjustment   = *blackAdjustment;
@@ -120,6 +121,7 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	adjustment->_rgbCyanAdjustment    = *cyanAdjustment;
 	adjustment->_rgbMagentaAdjustment = *magentaAdjustment;
 	adjustment->_rgbYellowAdjustment  = *yellowAdjustment;
+	adjustment->_rgbTransform  = *rgbTransform;
 
 	// Cleanup the allocated individual adjustments
 	delete blackAdjustment;
@@ -130,7 +132,8 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	delete cyanAdjustment;
 	delete magentaAdjustment;
 	delete yellowAdjustment;
-	
+	delete rgbTransform;
+
 	return adjustment;
 }
 
@@ -310,6 +313,18 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const QJsonObject& colo
 	const double whitelevel = colorConfig["whitelevel"].toDouble(1.0);
 
 	RgbChannelTransform* transform = new RgbChannelTransform(threshold, gamma, blacklevel, whitelevel);
+	return transform;
+}
+
+RgbTransform* Hyperion::createRgbTransform(const QJsonObject& colorConfig)
+{
+	const double thresholdL = colorConfig["thresholdLow"].toDouble(0.0);
+	const double thresholdH = colorConfig["thresholdHigh"].toDouble(0.0);
+	const double gammaR     = colorConfig["gammaRed"].toDouble(1.0);
+	const double gammaG     = colorConfig["gammaGreen"].toDouble(1.0);
+	const double gammaB     = colorConfig["gammaBlue"].toDouble(1.0);
+
+	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, thresholdL, thresholdH);
 	return transform;
 }
 
@@ -929,10 +944,10 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( _transformEnabled && (!_colorTransformV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
-	{
-		_raw2ledTransform->applyTransform(_ledBuffer);
-	}
+// 	if ( _transformEnabled && (!_colorTransformV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+// 	{
+// 		_raw2ledTransform->applyTransform(_ledBuffer);
+// 	}
 	if ( _adjustmentEnabled && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
 	{
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);

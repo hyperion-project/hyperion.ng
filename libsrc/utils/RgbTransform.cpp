@@ -13,11 +13,15 @@ RgbTransform::RgbTransform()
 	initializeMapping();
 }
 
-// RgbTransform::RgbTransform(double saturationGain, double valueGain) :
-// 	_saturationGain(saturationGain),
-// 	_valueGain(valueGain)
-// {
-// }
+RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double thresholdLow, double thresholdHigh)
+	: _thresholdLow(std::min(std::max((int)(thresholdLow * 255), 0),255))
+	, _thresholdHigh(std::min(std::max((int)(thresholdHigh * 255), 0),255))
+	, _gammaR(gammaR)
+	, _gammaG(gammaG)
+	, _gammaB(gammaB)
+{
+	initializeMapping();
+}
 
 RgbTransform::~RgbTransform()
 {
@@ -92,12 +96,11 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		green += delta;
 		blue  += delta;
 	}
-
-	if ( _thresholdHigh<255 && red>_thresholdHigh && green>_thresholdHigh && blue>_thresholdHigh)
+	else if ( _thresholdHigh<255 && (red>_thresholdHigh || green>_thresholdHigh || blue>_thresholdHigh))
 	{
 		uint8_t delta = _thresholdHigh  - std::max(red,std::max(green,blue));
-		red   -= delta;
-		green -= delta;
-		blue  -= delta;
+		red   -= (red>=delta)  ?delta:0;
+		green -= (green>=delta) ?delta:0;
+		blue  -= (blue>=delta)  ?delta:0;
 	}
 }
