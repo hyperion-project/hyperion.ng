@@ -71,6 +71,10 @@ private:
 
 	uint8_t _thresholdLow;
 	uint8_t _thresholdHigh;
+	double  _thresholdLowF;
+	double  _thresholdHighF;
+	double  _sumThresholdLowF;
+	double  _sumThresholdHighF;
 
 	double _gammaR;
 	double _gammaG;

@@ -14,12 +14,12 @@ RgbTransform::RgbTransform()
 }
 
 RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double thresholdLow, double thresholdHigh)
-	: _thresholdLow(std::min(std::max((int)(thresholdLow * 255), 0),255))
-	, _thresholdHigh(std::min(std::max((int)(thresholdHigh * 255), 0),255))
-	, _gammaR(gammaR)
+	: _gammaR(gammaR)
 	, _gammaG(gammaG)
 	, _gammaB(gammaB)
 {
+	setThresholdLow(thresholdLow);
+	setThresholdHigh(thresholdHigh);
 	initializeMapping();
 }
 
@@ -63,12 +63,14 @@ void RgbTransform::initializeMapping()
 
 double RgbTransform::getThresholdLow() const
 {
-	return _thresholdLow;
+	return _thresholdLowF;
 }
 
 void RgbTransform::setThresholdLow(double threshold)
 {
-	_thresholdLow = std::min(std::max((int)(threshold * 255), 0),255);
+	_thresholdLowF    = threshold;
+	_sumThresholdLowF = 765.0 * threshold;
+	_thresholdLow     = std::min(std::max((int)(threshold * 255), 0),255);
 }
 
 double RgbTransform::getThresholdHigh() const
@@ -78,7 +80,9 @@ double RgbTransform::getThresholdHigh() const
 
 void RgbTransform::setThresholdHigh(double threshold)
 {
-	_thresholdHigh = std::min(std::max((int)(threshold * 255), 0),255);
+	_thresholdHighF    = threshold;
+	_sumThresholdHighF = 765.0 * threshold;
+	_thresholdHigh     = std::min(std::max((int)(threshold * 255), 0),255);
 }
 
 void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
@@ -88,19 +92,27 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	green = _mappingR[green];
 	blue  = _mappingR[blue];
 
+	//std::cout << (int)red << " " << (int)green << " " << (int)blue << " => ";
 	// apply _thresholds
-	if ( _thresholdLow > 0 && red<_thresholdLow && green<_thresholdLow && blue<_thresholdLow)
+	if (red  ==0) red   = 1;
+	if (green==0) green = 1;
+	if (blue ==0) blue  = 1;
+
+	int rgbSum = red+green+blue;
+
+	if (rgbSum > _sumThresholdHighF)
 	{
-		uint8_t delta = _thresholdLow  - std::max(red,std::max(green,blue));
-		red   += delta;
-		green += delta;
-		blue  += delta;
+		double cH = _sumThresholdHighF / rgbSum;
+		red   *= cH;
+		green *= cH;
+		blue  *= cH;
 	}
-	else if ( _thresholdHigh<255 && (red>_thresholdHigh || green>_thresholdHigh || blue>_thresholdHigh))
+	else if (rgbSum < _sumThresholdLowF)
 	{
-		uint8_t delta = std::max(red,std::max(green,blue)) - _thresholdHigh;
-		red   -= (red>=delta)  ?delta:0;
-		green -= (green>=delta) ?delta:0;
-		blue  -= (blue>=delta)  ?delta:0;
+		double cL = _sumThresholdLowF / rgbSum;
+		red   *= cL;
+		green *= cL;
+		blue  *= cL;
 	}
+	//std::cout << (int)red << " " << (int)green << " " << (int)blue << std::endl;
 }
