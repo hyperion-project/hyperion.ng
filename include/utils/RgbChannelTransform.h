@@ -71,7 +71,6 @@ private:
 	/// (re)-initilize the color mapping
 	void initializeMapping();
 
-private:
 	/// The threshold value
 	double _threshold;
 	/// The gamma value

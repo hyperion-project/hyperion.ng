@@ -84,20 +84,45 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 			continue;
 		}
 		ColorRgb& color = ledColors[i];
+
+		// lower threshold
+		uint8_t _threshold_low = 40;
+		uint8_t ored   = color.red;
+		uint8_t ogreen = color.green;
+		uint8_t oblue  = color.blue;
 		
-		uint32_t nrng = (uint32_t) (255-color.red)*(255-color.green);
-		uint32_t rng  = (uint32_t) (color.red)    *(255-color.green);
-		uint32_t nrg  = (uint32_t) (255-color.red)*(color.green);
-		uint32_t rg   = (uint32_t) (color.red)    *(color.green);
+		if ( ored<_threshold_low && ogreen<_threshold_low && oblue<_threshold_low)
+		{
+			uint8_t max = std::max(ored,std::max(ogreen,oblue));
+			uint8_t delta = (_threshold_low  - max);
+			ored   += delta;
+			ogreen += delta;
+			oblue  += delta;
+		}
+
+// 		uint8_t _threshold_high = 225;
+// 		if ( ored>_threshold_high && ogreen>_threshold_high && oblue>_threshold_high)
+// 		{
+// 			uint8_t max = std::max(ored,std::max(ogreen,oblue));
+// 			uint8_t delta = (_threshold_high  - max);
+// 			ored   -= delta;
+// 			ogreen -= delta;
+// 			oblue  -= delta;
+// 		}
+
+		uint32_t nrng = (uint32_t) (255-ored)*(255-ogreen);
+		uint32_t rng  = (uint32_t) (ored)    *(255-ogreen);
+		uint32_t nrg  = (uint32_t) (255-ored)*(ogreen);
+		uint32_t rg   = (uint32_t) (ored)    *(ogreen);
 		
-		uint8_t black   = nrng*(255-color.blue)/65025;
-		uint8_t red     = rng *(255-color.blue)/65025;
-		uint8_t green   = nrg *(255-color.blue)/65025;
-		uint8_t blue    = nrng*(color.blue)    /65025;
-		uint8_t cyan    = nrg *(color.blue)    /65025;
-		uint8_t magenta = rng *(color.blue)    /65025;
-		uint8_t yellow  = rg  *(255-color.blue)/65025;
-		uint8_t white   = rg  *(color.blue)    /65025;
+		uint8_t black   = nrng*(255-oblue)/65025;
+		uint8_t red     = rng *(255-oblue)/65025;
+		uint8_t green   = nrg *(255-oblue)/65025;
+		uint8_t blue    = nrng*(oblue)    /65025;
+		uint8_t cyan    = nrg *(oblue)    /65025;
+		uint8_t magenta = rng *(oblue)    /65025;
+		uint8_t yellow  = rg  *(255-oblue)/65025;
+		uint8_t white   = rg  *(oblue)    /65025;
 		
 		uint8_t OR = adjustment->_rgbBlackAdjustment.getAdjustmentR(black);
 		uint8_t OG = adjustment->_rgbBlackAdjustment.getAdjustmentG(black);
