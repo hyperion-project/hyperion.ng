@@ -78,7 +78,7 @@
 					"append" : "edt_append_ms",
 					"minimum": 0,
 					"access" : "expert",
-					"propertOrder" : 4
+					"propertyOrder" : 4
 				}
 			},
 			"additionalProperties" : true
@@ -88,7 +88,7 @@
 			"type":"object",
 			"title" : "edt_conf_color_heading_title",
 			"required" : true,
-			"defaultProperties": ["imageToLedMappingType","channelAdjustment_enable","channelAdjustment","transform_enable","transform"],
+			"defaultProperties": ["imageToLedMappingType","channelAdjustment_enable","channelAdjustment"],
 			"properties":
 			{
 				"imageToLedMappingType" :
@@ -286,153 +286,6 @@
 								"minItems" : 3,
 								"maxItems" : 3,
 								"propertyOrder" : 7
-							}
-						},
-						"additionalProperties" : false
-					}
-				},
-				"transform_enable" :
-				{
-					"type" : "boolean",
-					"default" : true,
-					"propertyOrder" : 5
-				},
-				"transform_v4l_only" :
-				{
-					"type" : "boolean",
-					"default" : false,
-					"propertyOrder" : 6
-				},
-				"transform" :
-				{
-					"type" : "array",
-					"required" : true,
-					"propertyOrder" : 7,
-					"items" :
-					{
-						"type" : "object",
-						"required" : true,
-						"properties" :
-						{
-							"id" :
-							{
-								"type" : "string",
-								"required" : true
-							},
-							"leds" :
-							{
-								"type" : "string",
-								"required" : true
-							},
-							"hsv" : {
-								"type" : "object",
-								"properties" : {
-									"saturationGain" : {
-										"type" : "number",
-										"minimum" : 0.0
-									},
-									"valueGain" : {
-										"type" : "number",
-										"minimum" : 0.0
-									}
-								},
-								"additionalProperties" : false
-							},
-							"hsl" :
-							{
-								"type":"object",
-								"required" : true,
-								"properties":
-								{
-									"saturationGain" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0
-									},
-									"luminanceGain" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0
-									},
-									"luminanceMinimum" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0
-									}
-								},
-								"additionalProperties" : false
-							},
-							"red" :
-							{
-								"type":"object",
-								"required" : true,
-								"properties":
-								{
-									"threshold" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 1.0
-									},
-									"gamma" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 100.0
-									}
-								},
-								"additionalProperties" : false
-							},
-							"green" :
-							{
-								"type":"object",
-								"required" : true,
-								"properties":
-								{
-									"threshold" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 1.0
-									},
-									"gamma" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 100.0
-									}
-								},
-								"additionalProperties" : false
-							},
-							"blue" :
-							{
-								"type":"object",
-								"required" : true,
-								"properties":
-								{
-									"threshold" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 1.0
-									},
-									"gamma" :
-									{
-										"type" : "number",
-										"required" : true,
-										"minimum" : 0.0,
-										"maximum": 100.0
-									}
-								},
-								"additionalProperties" : false
 							}
 						},
 						"additionalProperties" : false

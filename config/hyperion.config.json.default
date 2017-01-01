@@ -42,36 +42,6 @@
 				"thresholdLow"  : 0.0,
 				"thresholdHigh" : 1.0
 			}
-		],
-		"transform_enable" : true,
-		"transform_v4l_only" : false,
-		"transform" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"hsl" :
-				{
-					"saturationGain"   : 1.0000,
-					"luminanceGain"    : 1.0000,
-					"luminanceMinimum" : 0.0000
-				},
-				"red" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				},
-				"green" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				},
-				"blue" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				}
-			}
 		]
 	},
 
