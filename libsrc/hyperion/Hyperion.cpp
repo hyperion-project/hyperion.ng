@@ -948,7 +948,7 @@ void Hyperion::update()
 // 	{
 // 		_raw2ledTransform->applyTransform(_ledBuffer);
 // 	}
-	if ( _adjustmentEnabled && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+	if ( _adjustmentEnabled && priority < PriorityMuxer::LOWEST_PRIORITY && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
 	{
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}

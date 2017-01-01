@@ -98,7 +98,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	}
 	else if ( _thresholdHigh<255 && (red>_thresholdHigh || green>_thresholdHigh || blue>_thresholdHigh))
 	{
-		uint8_t delta = _thresholdHigh  - std::max(red,std::max(green,blue));
+		uint8_t delta = std::max(red,std::max(green,blue)) - _thresholdHigh;
 		red   -= (red>=delta)  ?delta:0;
 		green -= (green>=delta) ?delta:0;
 		blue  -= (blue>=delta)  ?delta:0;
