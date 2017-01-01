@@ -32,8 +32,8 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
-#include <hyperion/ColorTransform.h>
 #include <hyperion/ColorAdjustment.h>
+#include <utils/HslTransform.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
@@ -305,8 +305,6 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleClearCommand(message, command, tan);
 		else if (command == "clearall")
 			handleClearallCommand(message, command, tan);
-		else if (command == "transform")
-			handleTransformCommand(message, command, tan);
 		else if (command == "adjustment")
 			handleAdjustmentCommand(message, command, tan);
 		else if (command == "sourceselect")
@@ -627,56 +625,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	info["priorities"] = priorities;
 	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	
-	// collect transform information
-	QJsonArray transformArray;
-	for (const std::string& transformId : _hyperion->getTransformIds())
-	{
-		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
-		if (colorTransform == nullptr)
-		{
-			Error(_log, "Incorrect color transform id: %s", transformId.c_str());
-			continue;
-		}
 
-		QJsonObject transform;
-		transform["id"] = QString::fromStdString(transformId);
-
-		transform["saturationGain"] = colorTransform->_hsvTransform.getSaturationGain();
-		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
-		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
-		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
-		transform["luminanceMinimum"]   = colorTransform->_hslTransform.getLuminanceMinimum();
-		
-
-		QJsonArray threshold;
-		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
-		threshold.append(colorTransform->_rgbGreenTransform.getThreshold());
-		threshold.append(colorTransform->_rgbBlueTransform.getThreshold());
-		transform.insert("threshold", threshold);
-
-		QJsonArray gamma;
-		gamma.append(colorTransform->_rgbRedTransform.getGamma());
-		gamma.append(colorTransform->_rgbGreenTransform.getGamma());
-		gamma.append(colorTransform->_rgbBlueTransform.getGamma());
-		transform.insert("gamma", gamma);
-
-		QJsonArray blacklevel;
-		blacklevel.append(colorTransform->_rgbRedTransform.getBlacklevel());
-		blacklevel.append(colorTransform->_rgbGreenTransform.getBlacklevel());
-		blacklevel.append(colorTransform->_rgbBlueTransform.getBlacklevel());
-		transform.insert("blacklevel", blacklevel);
-
-		QJsonArray whitelevel;
-		whitelevel.append(colorTransform->_rgbRedTransform.getWhitelevel());
-		whitelevel.append(colorTransform->_rgbGreenTransform.getWhitelevel());
-		whitelevel.append(colorTransform->_rgbBlueTransform.getWhitelevel());
-		transform.insert("whitelevel", whitelevel);
-		
-		transformArray.append(transform);
-	}
-	
-	info["transform"] = transformArray;
-	
 	// collect adjustment information
 	QJsonArray adjustmentArray;
 	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
@@ -881,83 +830,6 @@ void JsonClientConnection::handleClearallCommand(const QJsonObject& message, con
 	// send reply
 	sendSuccessReply(command, tan);
 }
-
-void JsonClientConnection::handleTransformCommand(const QJsonObject& message, const QString& command, const int tan)
-{
-	
-	const QJsonObject & transform = message["transform"].toObject();
-
-	const QString transformId = transform["id"].toString(QString::fromStdString(_hyperion->getTransformIds().front()));
-	ColorTransform * colorTransform = _hyperion->getTransform(transformId.toStdString());
-	if (colorTransform == nullptr)
-	{
-		Warning(_log, "Incorrect transform identifier: %s", transformId.toStdString().c_str());
-		return;
-	}
-		
-	if (transform.contains("saturationGain"))
-	{
-		colorTransform->_hsvTransform.setSaturationGain(transform["saturationGain"].toDouble());
-	}
-
-	if (transform.contains("valueGain"))
-	{
-		colorTransform->_hsvTransform.setValueGain(transform["valueGain"].toDouble());
-	}
-	
-	if (transform.contains("saturationLGain"))
-	{
-		colorTransform->_hslTransform.setSaturationGain(transform["saturationLGain"].toDouble());
-	}
-
-	if (transform.contains("luminanceGain"))
-	{
-		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].toDouble());
-	}
-
-	if (transform.contains("luminanceMinimum"))
-	{
-		colorTransform->_hslTransform.setLuminanceMinimum(transform["luminanceMinimum"].toDouble());
-	}
-
-	if (transform.contains("threshold"))
-	{
-		const QJsonArray & values = transform["threshold"].toArray();
-		colorTransform->_rgbRedTransform  .setThreshold(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setThreshold(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setThreshold(values[2u].toDouble());
-	}
-
-	if (transform.contains("gamma"))
-	{
-		const QJsonArray & values = transform["gamma"].toArray();
-		colorTransform->_rgbRedTransform  .setGamma(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setGamma(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setGamma(values[2u].toDouble());
-	}
-
-	if (transform.contains("blacklevel"))
-	{
-		const QJsonArray & values = transform["blacklevel"].toArray();
-		colorTransform->_rgbRedTransform  .setBlacklevel(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setBlacklevel(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setBlacklevel(values[2u].toDouble());
-	}
-
-	if (transform.contains("whitelevel"))
-	{
-		const QJsonArray & values = transform["whitelevel"].toArray();
-		colorTransform->_rgbRedTransform  .setWhitelevel(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setWhitelevel(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].toDouble());
-	}
-	
-	// commit the changes
-	_hyperion->transformsUpdated();
-
-	sendSuccessReply(command, tan);
-}
-
 
 void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, const QString& command, const int tan)
 {

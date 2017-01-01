@@ -19,7 +19,6 @@ SET(Hyperion_HEADERS
 	${CURRENT_HEADER_DIR}/LedString.h
 	${CURRENT_HEADER_DIR}/PriorityMuxer.h
 
-	${CURRENT_SOURCE_DIR}/MultiColorTransform.h
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.h
 	${CURRENT_HEADER_DIR}/MessageForwarder.h
 )
@@ -32,7 +31,6 @@ SET(Hyperion_SOURCES
 	${CURRENT_SOURCE_DIR}/PriorityMuxer.cpp
 
 	${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
-	${CURRENT_SOURCE_DIR}/MultiColorTransform.cpp
 	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
 	${CURRENT_SOURCE_DIR}/MessageForwarder.cpp

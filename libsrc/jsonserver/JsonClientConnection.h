@@ -203,13 +203,6 @@ private:
 	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
-	/// Handle an incoming JSON Transform message
-	///
-	/// @param message the incoming message
-	///
-	void handleTransformCommand(const QJsonObject & message, const QString &command, const int tan);
-
-	///
 	/// Handle an incoming JSON Adjustment message
 	///
 	/// @param message the incoming message

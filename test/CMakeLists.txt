@@ -23,13 +23,6 @@ add_executable(test_ImageRgb
 target_link_libraries(test_ImageRgb
 		hyperion-utils)
 
-add_executable(test_colortransform
-	TestColorTransform.cpp)
-target_link_libraries(test_colortransform
-	hyperion
-	effectengine
-)
-
 add_executable(test_image2ledsmap
 		TestImage2LedsMap.cpp)
 target_link_libraries(test_image2ledsmap

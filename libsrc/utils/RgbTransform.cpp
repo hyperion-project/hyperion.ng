@@ -93,7 +93,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	blue  = _mappingR[blue];
 
 	//std::cout << (int)red << " " << (int)green << " " << (int)blue << " => ";
-	// apply _thresholds
+	// apply thresholds
 	if (red  ==0) red   = 1;
 	if (green==0) green = 1;
 	if (blue ==0) blue  = 1;
