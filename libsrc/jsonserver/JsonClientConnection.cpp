@@ -866,6 +866,42 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
+	if (adjustment.contains("cyanAdjust"))
+	{
+		const QJsonArray & values = adjustment["cyanAdjust"].toArray();
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("magentaAdjust"))
+	{
+		const QJsonArray & values = adjustment["magentaAdjust"].toArray();
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("yellowAdjust"))
+	{
+		const QJsonArray & values = adjustment["yellowAdjust"].toArray();
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+
+	if (adjustment.contains("gamma"))
+	{
+		const QJsonArray & values = adjustment["gamma"].toArray();
+		colorAdjustment->_rgbTransform.setGamma(values[0u].toDouble(), values[1u].toDouble(), values[2u].toDouble());
+	}	
+	if (adjustment.contains("thresholdLow"))
+	{
+		colorAdjustment->_rgbTransform.setThresholdLow(adjustment["thresholdLow"].toDouble());
+	}	
+	if (adjustment.contains("thresholdHigh"))
+	{
+		colorAdjustment->_rgbTransform.setThresholdHigh(adjustment["thresholdHigh"].toDouble());
+	}	
+
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
 
