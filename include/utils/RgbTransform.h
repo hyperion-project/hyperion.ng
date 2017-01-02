@@ -43,16 +43,16 @@ public:
 	void setGamma(double gammaR,double gammaG=-1, double gammaB=-1);
 
 	/// @return The current lower threshold
-	double getThresholdLow() const;
+	double getLuminanceMin() const;
 
 	/// @param gamma New lower threshold
-	void setThresholdLow(double threshold);
+	void setLuminanceMin(double threshold);
 
 	/// @return The current lower threshold
-	double getThresholdHigh() const;
+	double getLuminance() const;
 
 	/// @param gamma New lower threshold
-	void setThresholdHigh(double threshold);
+	void setLuminance(double threshold);
 
 	///
 	/// Apply the transform the the given RGB values.

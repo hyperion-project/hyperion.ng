@@ -94,13 +94,13 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"thresholdLow" : {
+				"luminanceMin" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum" : 1.0
 				},
-				"thresholdHigh" : {
+				"luminance" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,

@@ -131,14 +131,14 @@
 								"type" : "string",
 								"required" : true
 							},
-							"thresholdLow" :
+							"luminanceMin" :
 							{
 								"type" : "number",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 1.0
 							},
-							"thresholdHigh" :
+							"luminance" :
 							{
 								"type" : "number",
 								"required" : true,

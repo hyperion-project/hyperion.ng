@@ -893,13 +893,13 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		const QJsonArray & values = adjustment["gamma"].toArray();
 		colorAdjustment->_rgbTransform.setGamma(values[0u].toDouble(), values[1u].toDouble(), values[2u].toDouble());
 	}	
-	if (adjustment.contains("thresholdLow"))
+	if (adjustment.contains("luminanceMin"))
 	{
-		colorAdjustment->_rgbTransform.setThresholdLow(adjustment["thresholdLow"].toDouble());
+		colorAdjustment->_rgbTransform.setLuminanceMin(adjustment["luminanceMin"].toDouble());
 	}	
-	if (adjustment.contains("thresholdHigh"))
+	if (adjustment.contains("luminance"))
 	{
-		colorAdjustment->_rgbTransform.setThresholdHigh(adjustment["thresholdHigh"].toDouble());
+		colorAdjustment->_rgbTransform.setLuminance(adjustment["luminance"].toDouble());
 	}	
 
 	// commit the changes

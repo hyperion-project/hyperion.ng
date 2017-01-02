@@ -401,102 +401,17 @@ void JsonConnection::setConfig(const QString &jsonString)
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(const QString &transformId,
-								  double *saturation,
-								  double *value,
-								  double *saturationL,
-								  double *luminance,
-								  double *luminanceMin,
-								  QColor threshold,
-								  QColor gamma,
-								  QColor blacklevel,
-								  QColor whitelevel)
-{
-	qDebug() << "Set color transforms";
-
-	// create command
-	QJsonObject command, transform;
-	command["command"] = QString("transform");
-
-	if (!transformId.isNull())
-	{
-		transform["id"] = transformId;
-	}
-
-	if (saturation != nullptr)
-	{
-		transform["saturationGain"] = *saturation;
-	}
-
-	if (value != nullptr)
-	{
-		transform["valueGain"] = *value;
-	}
-	
-	if (saturationL != nullptr)
-	{
-		transform["saturationLGain"] = *saturationL;
-	}
-
-	if (luminance != nullptr)
-	{
-		transform["luminanceGain"] = *luminance;
-	}
-	
-	if (luminanceMin != nullptr)
-	{
-		transform["luminanceMinimum"] = *luminanceMin;
-	}
-	
-	if (threshold.isValid())
-	{
-		QJsonArray t;
-		t.append(threshold.red());
-		t.append(threshold.green());
-		t.append(threshold.blue());
-		transform["threshold"] = t;
-	}
-
-	if (gamma.isValid())
-	{
-		QJsonArray g;
-		g.append(gamma.red());
-		g.append(gamma.green());
-		g.append(gamma.blue());
-		transform["gamma"] = g;
-	}
-
-	if (blacklevel.isValid())
-	{
-		QJsonArray b;
-		b.append(blacklevel.red());
-		b.append(blacklevel.green());
-		b.append(blacklevel.blue());
-		transform["blacklevel"] = b;
-	}
-
-	if (whitelevel.isValid())
-	{
-		QJsonArray w;
-		w.append(whitelevel.red());
-		w.append(whitelevel.green());
-		w.append(whitelevel.blue());
-		transform["whitelevel"] = w;
-	}
-	
-	command["transform"] = transform;
-
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setAdjustment(const QString &adjustmentId,
-								   const QColor & redAdjustment,
-								   const QColor & greenAdjustment,
-								   const QColor & blueAdjustment)
+void JsonConnection::setAdjustment(
+		const QString & adjustmentId,
+		const QColor & redAdjustment,
+		const QColor & greenAdjustment,
+		const QColor & blueAdjustment,
+		const QColor & cyanAdjustment,
+		const QColor & magentaAdjustment,
+		const QColor & yellowAdjustment,
+		const QColor & gamma,
+		double *luminanceMin,
+		double *luminance)
 {
 	qDebug() << "Set color adjustments";
 
@@ -535,7 +450,47 @@ void JsonConnection::setAdjustment(const QString &adjustmentId,
 		blue.append(blueAdjustment.blue());
 		adjust["blueAdjust"] = blue;
 	}
-	
+	if (cyanAdjustment.isValid())
+	{
+		QJsonArray cyan;
+		cyan.append(cyanAdjustment.red());
+		cyan.append(cyanAdjustment.green());
+		cyan.append(cyanAdjustment.blue());
+		adjust["cyanAdjust"] = cyan;
+	}
+	if (magentaAdjustment.isValid())
+	{
+		QJsonArray magenta;
+		magenta.append(magentaAdjustment.red());
+		magenta.append(magentaAdjustment.green());
+		magenta.append(magentaAdjustment.blue());
+		adjust["magentaAdjust"] = magenta;
+	}
+	if (yellowAdjustment.isValid())
+	{
+		QJsonArray yellow;
+		yellow.append(yellowAdjustment.red());
+		yellow.append(yellowAdjustment.green());
+		yellow.append(yellowAdjustment.blue());
+		adjust["yellowAdjust"] = yellow;
+	}
+	if (luminanceMin != nullptr)
+	{
+		adjust["luminanceMin"] = *luminanceMin;
+	}
+	if (luminance != nullptr)
+	{
+		adjust["luminance"] = *luminance;
+	}
+	if (gamma.isValid())
+	{
+		QJsonArray g;
+		g.append(gamma.red());
+		g.append(gamma.green());
+		g.append(gamma.blue());
+		adjust["gamma"] = g;
+	}
+
 	command["adjustment"] = adjust;
 
 	// send command message

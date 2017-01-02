@@ -39,8 +39,8 @@
 				"gammaRed"   : 1.0,
 				"gammaGreen" : 1.0,
 				"gammaBlue"  : 1.0,
-				"thresholdLow"  : 0.0,
-				"thresholdHigh" : 1.0
+				"luminanceMin"  : 0.0,
+				"luminance" : 1.0
 			}
 		]
 	},

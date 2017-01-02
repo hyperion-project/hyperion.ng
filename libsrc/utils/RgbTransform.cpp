@@ -18,8 +18,8 @@ RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double t
 	, _gammaG(gammaG)
 	, _gammaB(gammaB)
 {
-	setThresholdLow(thresholdLow);
-	setThresholdHigh(thresholdHigh);
+	setLuminanceMin(thresholdLow);
+	setLuminance(thresholdHigh);
 	initializeMapping();
 }
 
@@ -61,24 +61,24 @@ void RgbTransform::initializeMapping()
 }
 
 
-double RgbTransform::getThresholdLow() const
+double RgbTransform::getLuminanceMin() const
 {
 	return _thresholdLowF;
 }
 
-void RgbTransform::setThresholdLow(double threshold)
+void RgbTransform::setLuminanceMin(double threshold)
 {
 	_thresholdLowF    = threshold;
 	_sumThresholdLowF = 765.0 * threshold;
 	_thresholdLow     = std::min(std::max((int)(threshold * 255), 0),255);
 }
 
-double RgbTransform::getThresholdHigh() const
+double RgbTransform::getLuminance() const
 {
 	return _thresholdHigh;
 }
 
-void RgbTransform::setThresholdHigh(double threshold)
+void RgbTransform::setLuminance(double threshold)
 {
 	_thresholdHighF    = threshold;
 	_sumThresholdHighF = 765.0 * threshold;
