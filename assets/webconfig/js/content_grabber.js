@@ -1,21 +1,31 @@
  
-
-var conf_editor = null;
+var conf_editor_v4l2 = null;
+var conf_editor_fg = null;
 $(hyperion).one("cmd-config-getschema", function(event) {
 	schema = parsedConfSchemaJSON.properties;
-	conf_editor = createJsonEditor('editor_container', {
-		framegrabber: schema.framegrabber,
-		grabberV4L2 : schema.grabberV4L2
-	}, true);
+	conf_editor_fg = createJsonEditor('editor_container_fg', {
+		framegrabber: schema.framegrabber
+	}, true, true);
 
-
-	$('#btn_submit').off().on('click',function() {
-		requestWriteConfig(conf_editor.getValue());
+	$('#btn_submit_fg').off().on('click',function() {
+		requestWriteConfig(conf_editor_fg.getValue());
 	});
+	
+	conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
+		grabberV4L2 : schema.grabberV4L2
+	}, true, true);
+
+	$('#btn_submit_v4l2').off().on('click',function() {
+		requestWriteConfig(conf_editor_v4l2.getValue());
+	});
+
+	$('#opt_expl_fg').html(createHelpTable(schema.framegrabber.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_fg_heading_title")));
+	$('#opt_expl_v4l2').html(createHelpTable(schema.grabberV4L2.items.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_v4l2_heading_title")));
 });
 
 
 $(document).ready( function() {
+	performTranslation();
 	requestServerConfigSchema();
 });
 

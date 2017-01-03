@@ -1,54 +1,3 @@
-    JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
-
-         getValue: function() {
-            var color = $(this.input).data('colorpicker').color.toRGB();
-            return [color.r, color.g, color.b];
-        },
-
-        setValue: function(val) {
-             function rgb2hex(rgb)
-             {
-                 return "#" +
-                 ("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
-                 ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-                 ("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
-             }
-
-            $(this.input).colorpicker('updateInput', 'rgb('+val+')');
-            $(this.input).colorpicker('updateData', val);
-            $(this.input).colorpicker('updatePicker', rgb2hex(val));
-         },
-      
-        build: function() {
-            this._super();
-            var myinput = this;
-            $(myinput.input).colorpicker({
-                format: 'rgb',
-                customClass: 'colorpicker-2x',
-                sliders: {
-                    saturation: {
-                        maxLeft: 200,
-                        maxTop: 200
-                    },
-                    hue: {
-                        maxTop: 200
-                    },
-                },
-              
-            })
-
-            $(this.input).colorpicker().on('changeColor', function(e) {
-                $(myinput).val(e.color.toRGB()).change();
-            });      
-        }
-    });
-
-    JSONEditor.defaults.resolvers.unshift(function(schema) {
-        if(schema.type === "array" && schema.format === "colorpicker") {
-            return "colorPicker";
-        }
-
-    });
 
 	var oldDelList = [];
 	
@@ -66,15 +15,16 @@
 			}
 			$("#effectsdellist").html(EffectHtml);
 			oldDelList = newDelList;
+			$('#effectsdellist').trigger('change');
 		}
 	}
-	
+
 $(hyperion).one("cmd-config-getschema", function(event) {
 	effects = parsedConfSchemaJSON.properties.effectSchemas.internal
 	EffectsHtml = "";
 	for(var idx=0; idx<effects.length; idx++)
 		{
-			EffectsHtml += '<option value="'+effects[idx].schemaContent.script+'">'+effects[idx].schemaContent.title+'</option>';
+			EffectsHtml += '<option value="'+effects[idx].schemaContent.script+'">'+$.i18n(effects[idx].schemaContent.title)+'</option>';
 		}
 		$("#effectslist").html(EffectsHtml);
 		$("#effectslist").trigger("change");
@@ -83,26 +33,10 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	function validateEditor() {
 		if(effects_editor.validate().length)
 		{
-			showInfoDialog('error','INVALID VALUES','Please check for red marked inputs and try again.');
+			showInfoDialog('error', $.i18n('infoDialog_effconf_invalidvalue_title'), $.i18n('infoDialog_effconf_invalidvalue_text'));
 			return false;
 		}
-		else
-		{
-			return true;
-		}
-	};
-	
-	function validateName() {
-		effectName = $('#name-input').val();
-		if (effectName == "")
-		{
-			showInfoDialog('error','INVALID NAME FIELD','Effect name is empty! Please fill in a name and try again.');
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return true;
 	};
 	
 	function triggerTestEffect() {
@@ -119,29 +53,41 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 			if (effects[idx].schemaContent.script == this.value){
 				effects_editor = createJsonEditor('editor_container', {
 				args : effects[idx].schemaContent,
-				},false);
+				},false, true);
 			effectPy = ':';
 			effectPy += effects[idx].schemaContent.script;
 			}
+			$("#name-input").trigger("change");
 		}
 		effects_editor.on('change',function() {
-			if ($("#btn_cont_test").hasClass("btn-success") && validateName() && validateEditor())
+			if ($("#btn_cont_test").hasClass("btn-success") && validateEditor())
 			{
 				triggerTestEffect();
 			}
 		});
 	});
 	
+	$("#name-input").on('change keydown click focusout', function(event) {
+		effectName = $(this).val();
+		if ($(this).val() == '') {
+            effects_editor.disable();
+            $("#eff_footer").children().attr('disabled',true);
+        } else {
+            effects_editor.enable();
+            $("#eff_footer").children().attr('disabled',false);
+        }
+    });
+	
 	$('#btn_write').off().on('click',function() {
-		if(validateEditor() && validateName())
+		if(validateEditor())
 		{
 			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-			showInfoDialog('success','SUCCESS!','Your effect "'+effectName+'" has been created successfully!');
+			showInfoDialog('success', $.i18n('infoDialog_effconf_created_title'), $.i18n('infoDialog_effconf_created_text', effectName));
 		}
 	});
 
 	$('#btn_start_test').off().on('click',function() {
-		if(validateEditor() && validateName())
+		if(validateEditor())
 		{
 			triggerTestEffect();
 		}
@@ -158,10 +104,19 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val();
 		requestDeleteEffect(name);
-		showInfoDialog('success','Effect deleted!', 'The effect "'+name+'" has been deleted successfully!');
+		showInfoDialog('success', $.i18n('infoDialog_effconf_deleted_title'), $.i18n('infoDialog_effconf_deleted_text', name));
+	});
+	
+	$('#effectsdellist').off().on('change', function(){
+		if ($(this).val() == null) {
+            $('#btn_delete').prop('disabled',true);
+        } else {
+            $('#btn_delete').prop('disabled',false);
+        }
 	});
 	
 $(document).ready( function() {
+	performTranslation();
 	requestServerConfigSchema();
 	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
 });

@@ -1,0 +1,64 @@
+{
+    "type":"object",
+    "script" : "candle.py",
+    "title":"edt_eff_candle_header_title",
+    "required":true,
+    "properties":{
+	"candles": {
+		"type": "string",
+		"title":"edt_eff_whichleds_title",
+		"enum" : ["all","all-together","list"],
+		"default" : "all",
+		"propertyOrder" : 1
+	},
+	"ledlist": {
+		"type": "string",
+		"title":"edt_eff_ledlist_title",
+		"default" : "1,11,21",
+		"propertyOrder" : 2
+	},
+        "color": {
+            "type": "array",
+            "title":"edt_eff_color_title",
+            "format":"colorpicker",
+            "default": [255,138,0],
+            "items" : {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+            },
+            "minItems": 3,
+            "maxItems": 3,
+            "propertyOrder" : 3
+        },
+	"colorShift": {
+		"type": "number",
+		"title":"edt_eff_colorshift_title",
+		"default": 0.01,
+		"minimum" : 0.00,
+        "maximum": 0.3,
+		"step": 0.01,
+		"propertyOrder" : 4
+	},
+	"brightness": {
+		"type": "number",
+		"title":"edt_eff_brightness_title",
+		"default": 1,
+		"minimum" : 0.01,
+		"maximum": 1,
+		"step": 0.1,
+		"propertyOrder" : 5
+	},
+	"sleepTime": {
+		"type": "number",
+		"title":"edt_eff_sleeptime_title",
+		"default": 0.15,
+		"minimum" : 0.01,
+		"maximum": 1,
+		"step": 0.01,
+		"append" : "edt_append_s",
+		"propertyOrder" : 6
+	}
+    },
+    "additionalProperties": false
+}

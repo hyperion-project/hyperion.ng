@@ -6,6 +6,7 @@
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
+#include <QMutex>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -16,6 +17,81 @@
 #include <utils/Components.h>
 
 class ImageProcessor;
+
+
+/// Constants and utility functions related to WebSocket opcodes
+/**
+ * WebSocket Opcodes are 4 bits. See RFC6455 section 5.2.
+ */
+namespace OPCODE {
+	enum value {
+		CONTINUATION = 0x0,
+		TEXT = 0x1,
+		BINARY = 0x2,
+		RSV3 = 0x3,
+		RSV4 = 0x4,
+		RSV5 = 0x5,
+		RSV6 = 0x6,
+		RSV7 = 0x7,
+		CLOSE = 0x8,
+		PING = 0x9,
+		PONG = 0xA,
+		CONTROL_RSVB = 0xB,
+		CONTROL_RSVC = 0xC,
+		CONTROL_RSVD = 0xD,
+		CONTROL_RSVE = 0xE,
+		CONTROL_RSVF = 0xF
+	};
+
+	/// Check if an opcode is reserved
+	/**
+	 * @param v The opcode to test.
+	 * @return Whether or not the opcode is reserved.
+	 */
+	inline bool reserved(value v) {
+		return (v >= RSV3 && v <= RSV7) || (v >= CONTROL_RSVB && v <= CONTROL_RSVF);
+	}
+
+	/// Check if an opcode is invalid
+	/**
+	 * Invalid opcodes are negative or require greater than 4 bits to store.
+	 *
+	 * @param v The opcode to test.
+	 * @return Whether or not the opcode is invalid.
+	 */
+	inline bool invalid(value v) {
+		return (v > 0xF || v < 0);
+	}
+
+	/// Check if an opcode is for a control frame
+	/**
+	 * @param v The opcode to test.
+	 * @return Whether or not the opcode is a control opcode.
+	*/
+	inline bool is_control(value v) {
+		return v >= 0x8;
+	}
+}
+
+struct find_schema: std::unary_function<EffectSchema, bool>
+{
+	QString pyFile;
+	find_schema(QString pyFile):pyFile(pyFile) { }
+	bool operator()(EffectSchema const& schema) const
+	{
+		return schema.pyFile == pyFile;
+	}
+};
+
+struct find_effect: std::unary_function<EffectDefinition, bool>
+{
+	QString effectName;
+	find_effect(QString effectName) :effectName(effectName) { }
+	bool operator()(EffectDefinition const& effectDefinition) const
+	{
+		return effectDefinition.name == effectName;
+	}
+};
 
 ///
 /// The Connection object created by \a JsonServer when a new connection is establshed
@@ -41,6 +117,7 @@ public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	void streamLedcolorsUpdate();
 	void incommingLogMessage(Logger::T_LOG_MESSAGE);
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 signals:
 	///
@@ -188,6 +265,12 @@ private:
 	///
 	void handleLoggingCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON Proccessing message
+	///
+	/// @param message the incoming message
+	///
+	void handleProcessingCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -228,7 +311,6 @@ private:
 	///
 	void forwardJsonMessage(const QJsonObject & message);
 
-private:
 	///
 	/// Check if a JSON messag is valid according to a given JSON schema
 	///
@@ -264,10 +346,31 @@ private:
 	
 	/// timer for ledcolors streaming
 	QTimer _timer_ledcolors;
-	
+
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
+	QJsonObject _streaming_image_reply;
 	QJsonObject _streaming_logging_reply;
+
+	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
 
+	/// mutex to determine state of image streaming
+	QMutex _image_stream_mutex;
+
+	/// timeout for live video refresh
+	volatile qint64 _image_stream_timeout;
+	
+	// masks for fields in the basic header
+	static uint8_t const BHB0_OPCODE = 0x0F;
+	static uint8_t const BHB0_RSV3 = 0x10;
+	static uint8_t const BHB0_RSV2 = 0x20;
+	static uint8_t const BHB0_RSV1 = 0x40;
+	static uint8_t const BHB0_FIN = 0x80;
+
+	static uint8_t const BHB1_PAYLOAD = 0x7F;
+	static uint8_t const BHB1_MASK = 0x80;
+
+	static uint8_t const payload_size_code_16bit = 0x7E; // 126
+	static uint8_t const payload_size_code_64bit = 0x7F; // 127
 };

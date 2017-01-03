@@ -12,10 +12,12 @@
 #include <QStringList>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QFileInfo>
 
 // hyperion include
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>
+#include <hyperion/ImageProcessor.h>
 #include <hyperion/ColorTransform.h>
 #include <hyperion/ColorAdjustment.h>
 
@@ -32,7 +34,7 @@
 
 Hyperion* Hyperion::_hyperion = nullptr;
 
-Hyperion* Hyperion::initInstance(const QJsonObject& qjsonConfig, const std::string configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
+Hyperion* Hyperion::initInstance(const QJsonObject& qjsonConfig, const QString configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
 {
 	if ( Hyperion::_hyperion != nullptr )
 		throw std::runtime_error("Hyperion::initInstance can be called only one time");
@@ -88,22 +90,47 @@ ColorTransform * Hyperion::createColorTransform(const QJsonObject & transformCon
 ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
 	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
-
-	RgbChannelAdjustment * redAdjustment   = createRgbChannelAdjustment(adjustmentConfig["pureRed"].toObject(),RED);
-	RgbChannelAdjustment * greenAdjustment = createRgbChannelAdjustment(adjustmentConfig["pureGreen"].toObject(),GREEN);
-	RgbChannelAdjustment * blueAdjustment  = createRgbChannelAdjustment(adjustmentConfig["pureBlue"].toObject(),BLUE);
-
+	
+	// QT5.4 needed
+	//~ RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig["black"].  toArray(QJsonArray({"0","0","0"      })));
+	//~ RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig["white"].  toArray(QJsonArray({"255","255","255"})));
+	//~ RgbChannelAdjustment * redAdjustment     = createRgbChannelAdjustment(adjustmentConfig["red"].    toArray(QJsonArray({"255","0","0"    })));
+	//~ RgbChannelAdjustment * greenAdjustment   = createRgbChannelAdjustment(adjustmentConfig["green"].  toArray(QJsonArray({"0","255","0"    })));
+	//~ RgbChannelAdjustment * blueAdjustment    = createRgbChannelAdjustment(adjustmentConfig["blue"].   toArray(QJsonArray({"0","0","255"    })));
+	//~ RgbChannelAdjustment * cyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig["cyan"].   toArray(QJsonArray({"0","255","255"  })));
+	//~ RgbChannelAdjustment * magentaAdjustment = createRgbChannelAdjustment(adjustmentConfig["magenta"].toArray(QJsonArray({"255","0","255"  })));
+	//~ RgbChannelAdjustment * yellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig["yellow"]. toArray(QJsonArray({"255","255","0"  })));
+	
+	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig["black"].toArray(),BLACK);
+	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig["white"].toArray(),WHITE);
+	RgbChannelAdjustment * redAdjustment     = createRgbChannelAdjustment(adjustmentConfig["red"].toArray(),RED);
+	RgbChannelAdjustment * greenAdjustment   = createRgbChannelAdjustment(adjustmentConfig["green"].toArray(),GREEN);
+	RgbChannelAdjustment * blueAdjustment    = createRgbChannelAdjustment(adjustmentConfig["blue"].toArray(),BLUE);
+	RgbChannelAdjustment * cyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig["cyan"].toArray(),CYAN);
+	RgbChannelAdjustment * magentaAdjustment = createRgbChannelAdjustment(adjustmentConfig["magenta"].toArray(),MAGENTA);
+	RgbChannelAdjustment * yellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig["yellow"].toArray(),YELLOW);
+	
 	ColorAdjustment * adjustment = new ColorAdjustment();
 	adjustment->_id = id;
-	adjustment->_rgbRedAdjustment   = *redAdjustment;
-	adjustment->_rgbGreenAdjustment = *greenAdjustment;
-	adjustment->_rgbBlueAdjustment  = *blueAdjustment;
+	adjustment->_rgbBlackAdjustment   = *blackAdjustment;
+	adjustment->_rgbWhiteAdjustment   = *whiteAdjustment;
+	adjustment->_rgbRedAdjustment     = *redAdjustment;
+	adjustment->_rgbGreenAdjustment   = *greenAdjustment;
+	adjustment->_rgbBlueAdjustment    = *blueAdjustment;
+	adjustment->_rgbCyanAdjustment    = *cyanAdjustment;
+	adjustment->_rgbMagentaAdjustment = *magentaAdjustment;
+	adjustment->_rgbYellowAdjustment  = *yellowAdjustment;
 
 	// Cleanup the allocated individual adjustments
+	delete blackAdjustment;
+	delete whiteAdjustment;
 	delete redAdjustment;
 	delete greenAdjustment;
 	delete blueAdjustment;
-
+	delete cyanAdjustment;
+	delete magentaAdjustment;
+	delete yellowAdjustment;
+	
 	return adjustment;
 }
 
@@ -286,28 +313,58 @@ RgbChannelTransform* Hyperion::createRgbChannelTransform(const QJsonObject& colo
 	return transform;
 }
 
-RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonObject& colorConfig, const RgbChannel color)
+RgbChannelAdjustment* Hyperion::createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color)
 {
 	int varR=0, varG=0, varB=0;
-	if (color == RED) 
+	if (color == BLACK) 
 	{
-		varR = colorConfig["redChannel"].toInt(255);
-		varG = colorConfig["greenChannel"].toInt(0);
-		varB = colorConfig["blueChannel"].toInt(0);
+		varR = colorConfig[0].toInt(0);
+		varG = colorConfig[1].toInt(0);
+		varB = colorConfig[2].toInt(0);
+	}
+	else if (color == WHITE)
+	{
+		varR = colorConfig[0].toInt(255);
+		varG = colorConfig[1].toInt(255);
+		varB = colorConfig[2].toInt(255);
+	}		
+	else if (color == RED) 
+	{
+		varR = colorConfig[0].toInt(255);
+		varG = colorConfig[1].toInt(0);
+		varB = colorConfig[2].toInt(0);
 	}
 	else if (color == GREEN)
 	{
-		varR = colorConfig["redChannel"].toInt(0);
-		varG = colorConfig["greenChannel"].toInt(255);
-		varB = colorConfig["blueChannel"].toInt(0);
+		varR = colorConfig[0].toInt(0);
+		varG = colorConfig[1].toInt(255);
+		varB = colorConfig[2].toInt(0);
 	}		
 	else if (color == BLUE)
 	{
-		varR = colorConfig["redChannel"].toInt(0);
-		varG = colorConfig["greenChannel"].toInt(0);
-		varB = colorConfig["blueChannel"].toInt(255);
+		varR = colorConfig[0].toInt(0);
+		varG = colorConfig[1].toInt(0);
+		varB = colorConfig[2].toInt(255);
 	}
-
+	else if (color == CYAN) 
+	{
+		varR = colorConfig[0].toInt(0);
+		varG = colorConfig[1].toInt(255);
+		varB = colorConfig[2].toInt(255);
+	}
+	else if (color == MAGENTA)
+	{
+		varR = colorConfig[0].toInt(255);
+		varG = colorConfig[1].toInt(0);
+		varB = colorConfig[2].toInt(255);
+	}		
+	else if (color == YELLOW)
+	{
+		varR = colorConfig[0].toInt(255);
+		varG = colorConfig[1].toInt(255);
+		varB = colorConfig[2].toInt(0);
+	}
+	
 	RgbChannelAdjustment* adjustment = new RgbChannelAdjustment(varR, varG, varB);
 	return adjustment;
 }
@@ -514,7 +571,7 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const QJsonObject &qjsonConfig, const std::string configFile)
+Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	: _ledString(createLedString(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _ledStringClone(createLedStringClone(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _muxer(_ledString.leds().size())
@@ -558,10 +615,9 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const std::string configFile)
 	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
 	// initialize the image processor factory
-	ImageProcessorFactory::getInstance().init(
-				_ledString,
-				qjsonConfig["blackborderdetector"].toObject()
-	);
+	_ledMAppingType = ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString());
+	ImageProcessorFactory::getInstance().init(_ledString, qjsonConfig["blackborderdetector"].toObject(),_ledMAppingType );
+	
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
@@ -582,8 +638,12 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const std::string configFile)
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
+	WarningIf(!configWriteable(), _log, "Your config is not writeable - you won't be able to use the web ui for configuration.");
 	// initialize hash of current config
 	configModified();
+
+	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
+	_configVersionId = generalConfig["configVersion"].toInt(-1);
 
 	// initialize the leds
 	update();
@@ -618,7 +678,7 @@ unsigned Hyperion::getLedCount() const
 bool Hyperion::configModified()
 {
 	bool isModified = false;
-	QFile f(_configFile.c_str());
+	QFile f(_configFile);
 	if (f.open(QFile::ReadOnly))
 	{
 		QCryptographicHash hash(QCryptographicHash::Sha1);
@@ -638,6 +698,14 @@ bool Hyperion::configModified()
 
 	return isModified;
 }
+
+bool Hyperion::configWriteable()
+{
+	QFile file(_configFile);
+	QFileInfo fileInfo(file);
+	return fileInfo.isWritable() && fileInfo.isReadable();
+}
+
 
 void Hyperion::registerPriority(const std::string name, const int priority)
 {
@@ -726,6 +794,14 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())
 	{
 		update();
+	}
+}
+
+void Hyperion::setImage(int priority, const Image<ColorRgb> & image, int duration_ms)
+{
+	if (priority == getCurrentPriority())
+	{
+		emit emitImage(priority, image, duration_ms);
 	}
 }
 
@@ -832,6 +908,12 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
+}
+
+void Hyperion::setLedMappingType(int mappingType)
+{
+	_ledMAppingType = mappingType;
+	emit imageToLedsMappingChanged(mappingType);
 }
 
 void Hyperion::update()

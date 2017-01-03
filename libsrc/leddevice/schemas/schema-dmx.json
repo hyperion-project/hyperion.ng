@@ -4,29 +4,24 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Output path",
-			"propertyOrder" : 1
-		},
-		"output": {
-			"type": "string",
-			"title":"DMX Device Type",
+			"title":"edt_dev_spec_outputPath_title",
 			"propertyOrder" : 1
 		},
 		"rate": {
 			"type": "integer",
-			"title":"Baudrate",
+			"title":"edt_dev_spec_baudrate_title",
 			"default": 250000,
 			"propertyOrder" : 2
 		},
 		"delayAfterConnect": {
 			"type": "integer",
-			"title":"Delay after connect",
+			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
 			"propertyOrder" : 3
 		},
 		"rewriteTime": {
 			"type": "integer",
-			"title":"refresh time",
+			"title":"edt_dev_spec_rewriteTime_title",
 			"default": 5000,
 			"append" : "ms",
 			"propertyOrder" : 4

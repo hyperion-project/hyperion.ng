@@ -4,6 +4,14 @@
 
 
 {
+	/// geenral Settings 
+	/// * 'name'          : The user friendly name of the hyperion instance (used for network things)
+	/// * 'configVersion' : don't touch it's an internal value regarding which validation schema for this config is used
+	"general" :
+	{
+		"name"       : "MyHyperionConfig",
+		"configVersion" : 2
+	},
 	/// set log level: silent warn verbose debug
 	"logger" :
 	{
@@ -16,73 +24,66 @@
 	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
+	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
 	"device" :
 	{
-		"name"       : "MyHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
-		"colorOrder" : "rgb"
+		"colorOrder" : "rgb",
+		"rewriteTime": 0
 	},
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
+	///  * 'imageToLedMappingType'      : multicolor_mean - every led has it's own calculatedmean color
+	///                                   unicolor_mean   - every led has same color, color is the mean of whole image
 	///  * 'channelAdjustment_enable'   : true/false enables/disables this channelAdjustment section
 	///  * 'channelAdjustment_v4l_only' : if enabled and set to true, then channelAdjustment is only for v4l devices
 	///  * 'channelAdjustment'
-	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
-	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
+	///            (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///      * 'black'/'white'/'red'/'green'/'blue'/'cyan'/'magenta'/'yellow' : Array of RGB to adjust the output color
 	///  * 'transform_enable'   : true/false enables/disables this transform section
 	///  * 'transform_v4l_only' : if enabled and set to true, then transform is only for v4l devices
 	///  * 'transform'
-	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
-	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
+	///      * 'id'   : The unique identifier of the color transformation (eg 'device_1')
+	///      * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
 	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
+	///      * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
 	///            tuning parameters:
-	///            - 'saturationGain'  The gain adjustement of the saturation
+	///            - 'saturationGain'      The gain adjustement of the saturation
 	///            - 'luminanceGain'       The gain adjustement of the luminance
 	///            - 'luminanceMinimum'    The minimum luminance (backlight)
-	///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
+	///      * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
 	///                           following tuning parameters for each channel:
 	///            - 'threshold'       The minimum required input value for the channel to be on 
 	///                                (else zero)
 	///            - 'gamma'           The gamma-curve correction factor
 	"color" :
 	{
+		"imageToLedMappingType" : "multicolor_mean",
 		"channelAdjustment_enable" : true,
-		"channelAdjustment_v4l_only" : true,
+		"channelAdjustment_v4l_only" : false,
 		"channelAdjustment" :
 		[
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"pureRed" :
-				{
-					"redChannel"   : 255,
-					"greenChannel" : 0,
-					"blueChannel"  : 0
-				},
-				"pureGreen" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 255,
-					"blueChannel"  : 0
-				},
-				"pureBlue" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 0,
-					"blueChannel"  : 255
-				}
+				"black"   : [0,0,0],
+				"white"   : [255,255,255],
+				"red"     : [255,0,0],
+				"green"   : [0,255,0],
+				"blue"    : [0,0,255],
+				"cyan"    : [0,255,255],
+				"magenta" : [255,0,255],
+				"yellow"  : [255,255,0]
 			}
 		],
 		"transform_enable" : true,
-		"transform_v4l_only" : true,
+		"transform_v4l_only" : false,
 		"transform" :
 		[
 			{
@@ -151,6 +152,10 @@
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
+	///  * signalDetectionVerticalOffsetMin   : area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionHorizontalOffsetMin : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionVerticalOffsetMax   : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionHorizontalOffsetMax : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
 	[
 		{
@@ -171,7 +176,11 @@
 			"cropBottom"  : 0,
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
-			"blueSignalThreshold"  : 0.0
+			"blueSignalThreshold"  : 0.0,
+			"signalDetectionVerticalOffsetMin"   : 0.25,
+			"signalDetectionHorizontalOffsetMin" : 0.25,
+			"signalDetectionVerticalOffsetMax"   : 0.75,
+			"signalDetectionHorizontalOffsetMax" : 0.75
 		}
 	],
 
@@ -368,234 +377,94 @@
 	"leds" :
 	[
 		{
-			"index" : 0,
-			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 0,
+			"hscan": { "maximum": 0.1667, "minimum": 0 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 1,
-			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 1,
+			"hscan": { "maximum": 0.3332, "minimum": 0.1667 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 2,
-			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 2,
+			"hscan": { "maximum": 0.5, "minimum": 0.3333 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 3,
-			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 3,
+			"hscan": { "maximum": 0.6667, "minimum": 0.5 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 4,
-			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 4,
+			"hscan": { "maximum": 0.8333, "minimum": 0.6667 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 5,
-			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 5,
+			"hscan": { "maximum": 1, "minimum": 0.8333 },
+			"vscan": { "maximum": 0.0800, "minimum": 0 }
 		},
 		{
-			"index" : 6,
-			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 6,
+			"hscan": { "maximum": 1, "minimum": 0.95 },
+			"vscan": { "maximum": 0.3333, "minimum": 0 }
 		},
 		{
-			"index" : 7,
-			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 7,
+			"hscan": { "maximum": 1, "minimum": 0.95 },
+			"vscan": { "maximum": 0.6667, "minimum": 0.3333 }
 		},
 		{
-			"index" : 8,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 8,
+			"hscan": { "maximum": 1, "minimum": 0.95 },
+			"vscan": { "maximum": 1, "minimum": 0.6667 }
 		},
 		{
-			"index" : 9,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+			"index": 9,
+			"hscan": { "maximum": 1, "minimum": 0.8333 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 10,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+			"index": 10,
+			"hscan": { "maximum": 0.8333, "minimum": 0.6667 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 11,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+			"index": 11,
+			"hscan": { "maximum": 0.6667, "minimum": 0.5 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 12,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+			"index": 12,
+			"hscan": { "maximum": 0.5, "minimum": 0.3333 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 13,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+			"index": 13,
+			"hscan": { "maximum": 0.3333, "minimum": 0.1667 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 14,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+			"index": 14,
+			"hscan": { "maximum": 0.1667, "minimum": 0 },
+			"vscan": { "maximum": 1, "minimum": 0.92 }
 		},
 		{
-			"index" : 15,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+			"index": 15,
+			"hscan": { "maximum": 0.05, "minimum": 0 },
+			"vscan": { "maximum": 1, "minimum": 0.6667 }
 		},
 		{
-			"index" : 16,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"index": 16,
+			"hscan": { "maximum": 0.05, "minimum": 0 },
+			"vscan": { "maximum": 0.6667, "minimum": 0.3333 }
 		},
 		{
-			"index" : 17,
-			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 18,
-			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 19,
-			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 20,
-			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 21,
-			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 22,
-			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 23,
-			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 24,
-			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 25,
-			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 26,
-			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 27,
-			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 28,
-			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 29,
-			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 30,
-			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 31,
-			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 32,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
-		},
-		{
-			"index" : 33,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
-		},
-		{
-			"index" : 34,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
-		},
-		{
-			"index" : 35,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
-		},
-		{
-			"index" : 36,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
-		},
-		{
-			"index" : 37,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
-		},
-		{
-			"index" : 38,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 39,
-			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 40,
-			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 41,
-			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 42,
-			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 43,
-			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 44,
-			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 45,
-			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"index": 17,
+			"hscan": { "maximum": 0.05, "minimum": 0 },
+			"vscan": { "maximum": 0.3333, "minimum": 0 }
 		}
 	]
 }

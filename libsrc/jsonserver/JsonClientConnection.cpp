@@ -22,6 +22,11 @@
 #include <QJsonDocument>
 #include <QVariantMap>
 #include <QDir>
+#include <QImage>
+#include <QBuffer>
+#include <QByteArray>
+#include <QIODevice>
+#include <QDateTime>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -50,6 +55,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
+	, _image_stream_timeout(0)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -58,6 +64,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
+	_image_stream_mutex.unlock();
 }
 
 
@@ -74,7 +81,8 @@ void JsonClientConnection::readData()
 	{
 		// websocket mode, data frame
 		handleWebSocketFrame();
-	} else
+	}
+	else
 	{
 		// might be a handshake request or raw socket data
 		if(_receiveBuffer.contains("Upgrade: websocket"))
@@ -104,24 +112,25 @@ void JsonClientConnection::readData()
 
 void JsonClientConnection::handleWebSocketFrame()
 {
-	if ((_receiveBuffer.at(0) & 0x80) == 0x80)
+	if ((_receiveBuffer.at(0) & BHB0_FIN) == BHB0_FIN)
 	{
 		// final bit found, frame complete
 		quint8 * maskKey = NULL;
-		quint8 opCode = _receiveBuffer.at(0) & 0x0F;
-		bool isMasked = (_receiveBuffer.at(1) & 0x80) == 0x80;
-		quint64 payloadLength = _receiveBuffer.at(1) & 0x7F;
+		quint8 opCode = _receiveBuffer.at(0) & BHB0_OPCODE;
+		bool isMasked = (_receiveBuffer.at(1) & BHB0_FIN) == BHB0_FIN;
+		quint64 payloadLength = _receiveBuffer.at(1) & BHB1_PAYLOAD;
 		quint32 index = 2;
 		
 		switch (payloadLength)
 		{
-			case 126:
+			case payload_size_code_16bit:
 				payloadLength = ((_receiveBuffer.at(2) << 8) & 0xFF00) | (_receiveBuffer.at(3) & 0xFF);
 				index += 2;
 				break;
-			case 127:
+			case payload_size_code_64bit:
 				payloadLength = 0;
-				for (uint i=0; i < 8; i++)						{
+				for (uint i=0; i < 8; i++)
+				{
 					payloadLength |= ((quint64)(_receiveBuffer.at(index+i) & 0xFF)) << (8*(7-i));
 				}
 				index += 8;
@@ -144,7 +153,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		// check the type of data frame
 		switch (opCode)
 		{
-		case 0x01:
+			case OPCODE::TEXT:
 			{
 				// frame contains text, extract it
 				QByteArray result = _receiveBuffer.mid(index, payloadLength);
@@ -167,25 +176,26 @@ void JsonClientConnection::handleWebSocketFrame()
 				handleMessage(QString(result));
 			}
 			break;
-		case 0x08:
+		case OPCODE::CLOSE:
 			{
 				// close request, confirm
-				quint8 close[] = {0x88, 0};				
+				quint8 close[] = {0x88, 0};
 				_socket->write((const char*)close, 2);
 				_socket->flush();
 				_socket->close();
 			}
 			break;
-		case 0x09:
+		case OPCODE::PING:
 			{
 				// ping received, send pong
-				quint8 pong[] = {0x0A, 0};				
+				quint8 pong[] = {OPCODE::PONG, 0};
 				_socket->write((const char*)pong, 2);
 				_socket->flush();
 			}
 			break;
 		}
-	} else
+	}
+	else
 	{
 		Error(_log, "Someone is sending very big messages over several frames... it's not supported yet");
 		quint8 close[] = {0x88, 0};				
@@ -309,6 +319,8 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleLedColorsCommand(message, command, tan);
 		else if (command == "logging")
 			handleLoggingCommand(message, command, tan);
+		else if (command == "processing")
+			handleProcessingCommand(message, command, tan);
 		else
 			handleNotImplemented();
  	}
@@ -446,16 +458,6 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 
 void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message, const QString &command, const int tan)
 {
-	struct find_schema: std::unary_function<EffectSchema, bool>
-	{
-		QString pyFile;
-		find_schema(QString pyFile):pyFile(pyFile) { }
-		bool operator()(EffectSchema const& schema) const
-		{
-			return schema.pyFile == pyFile;
-		}
-	};
-
 	if(message.size() > 0)
 	{
 		if (!message["args"].toObject().isEmpty())
@@ -484,15 +486,36 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 				
 				if (effectArray.size() > 0)
 				{
+					if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
+					{
+						sendErrorReply("Can't save new effect. Effect name is empty or begins with a dot.", command, tan);
+						return;
+					}
+					
 					effectJson["name"] = message["name"].toString();
 					effectJson["script"] = message["script"].toString();
 					effectJson["args"] = message["args"].toObject();
 					
-					QFileInfo newFileName(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+					std::list<EffectDefinition> availableEffects = _hyperion->getEffects();
+					std::list<EffectDefinition>::iterator iter = std::find_if(availableEffects.begin(), availableEffects.end(), find_effect(message["name"].toString()));
 					
-					while(newFileName.exists())
+					QFileInfo newFileName;
+					if (iter != availableEffects.end())
 					{
-						newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+						newFileName.setFile(iter->file);
+						if (newFileName.absoluteFilePath().mid(0, 1)  == ":")
+						{
+							sendErrorReply("The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effekt.", command, tan);
+							return;
+						}
+					} else
+					{
+						newFileName.setFile(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+						
+						while(newFileName.exists())
+						{
+							newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
+						}
 					}
 					
 					QJsonFactory::writeJson(newFileName.absoluteFilePath(), effectJson);
@@ -514,16 +537,6 @@ void JsonClientConnection::handleCreateEffectCommand(const QJsonObject& message,
 
 void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, const int tan)
 {
-	struct find_effect: std::unary_function<EffectDefinition, bool>
-	{
-		QString effectName;
-		find_effect(QString effectName) :effectName(effectName) { }
-		bool operator()(EffectDefinition const& effectDefinition) const
-		{
-			return effectDefinition.name == effectName;
-		}
-	};
-	
 	if(message.size() > 0)
 	{
 		QString effectName = message["name"].toString();
@@ -612,6 +625,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 
 	info["priorities"] = priorities;
+	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	
 	// collect transform information
 	QJsonArray transformArray;
@@ -823,6 +837,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["components"] = component;
+	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
 	// Add Hyperion Version, build time
 	QJsonArray hyperion;
@@ -832,6 +847,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	ver["build"]   = QString(HYPERION_BUILD_ID);
 	ver["time"]    = QString(__DATE__ " " __TIME__);
 	ver["config_modified"] = _hyperion->configModified();
+	ver["config_writeable"] = _hyperion->configWriteable();
 
 	hyperion.append(ver);
 	info["hyperion"] = hyperion;
@@ -1042,8 +1058,15 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	result["success"] = true;
 	result["command"] = command;
 	result["tan"] = tan;
-	const QJsonObject & config = _hyperion->getQJsonConfig();
-	result["result"] = config;
+	
+	try
+	{
+		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+	}
+	catch(...)
+	{
+		result["result"] = _hyperion->getQJsonConfig();
+	}
 
 	// send the result
 	sendMessage(result);
@@ -1062,7 +1085,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QJsonParseError error;
 
 	// read the hyperion json schema from the resource
-	QFile schemaData(":/hyperion-schema");
+	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
 	
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
@@ -1158,7 +1181,7 @@ void JsonClientConnection::handleConfigSetCommand(const QJsonObject& message, co
 			
 			QJsonObject hyperionConfig = message["config"].toObject();
 			QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfig);
-			
+
 			sendSuccessReply(command, tan);
 		}
 	} else
@@ -1185,22 +1208,32 @@ void JsonClientConnection::handleLedColorsCommand(const QJsonObject& message, co
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
-	_streaming_leds_reply["success"] = true;
-	_streaming_leds_reply["command"] = command;
-	_streaming_leds_reply["tan"] = tan;
-	
+
 	if (subcommand == "ledstream-start")
 	{
+		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
+		_streaming_leds_reply["tan"]     = tan;
 		_timer_ledcolors.start(125);
 	}
 	else if (subcommand == "ledstream-stop")
 	{
 		_timer_ledcolors.stop();
 	}
+	else if (subcommand == "imagestream-start")
+	{
+		_streaming_image_reply["success"] = true;
+		_streaming_image_reply["command"] = command+"-imagestream-update";
+		_streaming_image_reply["tan"]     = tan;
+		connect(_hyperion, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), this, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
+	}
+	else if (subcommand == "imagestream-stop")
+	{
+		disconnect(_hyperion, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), this, 0 );
+	}
 	else
 	{
-		sendErrorReply("unknown subcommand",command,tan);
+		sendErrorReply("unknown subcommand \""+subcommand+"\"",command,tan);
 		return;
 	}
 	
@@ -1243,10 +1276,17 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 	sendSuccessReply(command+"-"+subcommand,tan);
 }
 
+void JsonClientConnection::handleProcessingCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	_hyperion->setLedMappingType(ImageProcessor::mappingTypeToInt( message["mappingType"].toString("multicolor_mean")) );
+
+	sendSuccessReply(command, tan);
+}
+
 void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
 {
-	QJsonObject result;
-	QJsonArray messages;
+	QJsonObject result, message;
+	QJsonArray messageArray;
 
 	if (!_streaming_logging_activated)
 	{
@@ -1254,23 +1294,36 @@ void JsonClientConnection::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
 		QVector<Logger::T_LOG_MESSAGE>* logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for(int i=0; i<logBuffer->length(); i++)
 		{
-			//std::cout << "------- " << logBuffer->at(i).message.toStdString() << std::endl;
-			messages.append(logBuffer->at(i).message);
+			message["appName"] = logBuffer->at(i).appName;
+			message["loggerName"] = logBuffer->at(i).loggerName;
+			message["function"] = logBuffer->at(i).function;
+			message["line"] = QString::number(logBuffer->at(i).line);
+			message["fileName"] = logBuffer->at(i).fileName;
+			message["message"] = logBuffer->at(i).message;
+			message["levelString"] = logBuffer->at(i).levelString;
+			
+			messageArray.append(message);
 		}
 	}
 	else
 	{
-		//std::cout << "------- " << msg.message.toStdString() << std::endl;
-		messages.append(msg.message);
+		message["appName"] = msg.appName;
+		message["loggerName"] = msg.loggerName;
+		message["function"] = msg.function;
+		message["line"] = QString::number(msg.line);
+		message["fileName"] = msg.fileName;
+		message["message"] = msg.message;
+		message["levelString"] = msg.levelString;
+		
+		messageArray.append(message);
 	}
 
-	result["messages"] = messages;
+	result.insert("messages", messageArray);
 	_streaming_logging_reply["result"] = result;
 
 	// send the result
 	sendMessage(_streaming_logging_reply);
 }
-
 
 void JsonClientConnection::handleNotImplemented()
 {
@@ -1457,5 +1510,28 @@ void JsonClientConnection::streamLedcolorsUpdate()
 
 	// send the result
 	sendMessage(_streaming_leds_reply);
-
 }
+
+void JsonClientConnection::setImage(int priority, const Image<ColorRgb> & image, int duration_ms)
+{
+	if ( (_image_stream_timeout+250) < QDateTime::currentMSecsSinceEpoch() && _image_stream_mutex.tryLock(0) )
+	{
+		_image_stream_timeout = QDateTime::currentMSecsSinceEpoch();
+
+		QImage jpgImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+		QByteArray ba;
+		QBuffer buffer(&ba);
+		buffer.open(QIODevice::WriteOnly);
+		jpgImage.save(&buffer, "jpg");
+		
+		QJsonObject result;
+		result["image"] = "data:image/jpg;base64,"+QString(ba.toBase64());
+		_streaming_image_reply["result"] = result;
+		sendMessage(_streaming_image_reply);
+
+		_image_stream_mutex.unlock();
+	}
+}
+
+
+

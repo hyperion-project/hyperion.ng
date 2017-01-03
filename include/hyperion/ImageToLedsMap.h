@@ -70,7 +70,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		std::vector<ColorRgb> getMeanLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(mColorsMap.size(), ColorRgb{0,0,0});
+			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getMeanLedColor(image, colors);
 			return colors;
 		}
@@ -86,15 +86,49 @@ namespace hyperion
 		void getMeanLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of leds
-			assert(mColorsMap.size() == ledColors.size());
+			assert(_colorsMap.size() == ledColors.size());
 
 			// Iterate each led and compute the mean
 			auto led = ledColors.begin();
-			for (auto ledColors = mColorsMap.begin(); ledColors != mColorsMap.end(); ++ledColors, ++led)
+			for (auto ledColors = _colorsMap.begin(); ledColors != _colorsMap.end(); ++ledColors, ++led)
 			{
 				const ColorRgb color = calcMeanColor(image, *ledColors);
 				*led = color;
 			}
+		}
+		
+		///
+		/// Determines the mean-color for each led using the mapping the image given
+		/// at construction.
+		///
+		/// @param[in] image  The image from which to extract the led colors
+		///
+		/// @return ledColors  The vector containing the output
+		///
+		template <typename Pixel_T>
+		std::vector<ColorRgb> getUniLedColor(const Image<Pixel_T> & image) const
+		{
+			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			getUniLedColor(image, colors);
+			return colors;
+		}
+
+		///
+		/// Determines the mean color for each led using the mapping the image given
+		/// at construction.
+		///
+		/// @param[in] image  The image from which to extract the led colors
+		/// @param[out] ledColors  The vector containing the output
+		///
+		template <typename Pixel_T>
+		void getUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		{
+			// Sanity check for the number of leds
+			assert(_colorsMap.size() == ledColors.size());
+
+			// calculate uni color
+			const ColorRgb color = calcMeanColor(image);
+			std::fill(ledColors.begin(),ledColors.end(), color);
 		}
 
 	private:
@@ -108,7 +142,7 @@ namespace hyperion
 		const unsigned _verticalBorder;
 		
 		/// The absolute indices into the image for each led
-		std::vector<std::vector<unsigned>> mColorsMap;
+		std::vector<std::vector<unsigned>> _colorsMap;
 
 		///
 		/// Calculates the 'mean color' of the given list. This is the mean over each color-channel
@@ -143,6 +177,40 @@ namespace hyperion
 			const uint8_t avgRed   = uint8_t(cummRed/colors.size());
 			const uint8_t avgGreen = uint8_t(cummGreen/colors.size());
 			const uint8_t avgBlue  = uint8_t(cummBlue/colors.size());
+
+			// Return the computed color
+			return {avgRed, avgGreen, avgBlue};
+		}
+
+		///
+		/// Calculates the 'mean color' over the given image. This is the mean over each color-channel
+		/// (red, green, blue)
+		///
+		/// @param[in] image The image a section from which an average color must be computed
+		///
+		/// @return The mean of the given list of colors (or black when empty)
+		///
+		template <typename Pixel_T>
+		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
+		{
+			// Accumulate the sum of each seperate color channel
+			uint_fast16_t cummRed   = 0;
+			uint_fast16_t cummGreen = 0;
+			uint_fast16_t cummBlue  = 0;
+			const unsigned imageSize = image.width() * image.height();
+
+			for (unsigned idx=0; idx<imageSize; idx++)
+			{
+				const Pixel_T& pixel = image.memptr()[idx];
+				cummRed   += pixel.red;
+				cummGreen += pixel.green;
+				cummBlue  += pixel.blue;
+			}
+
+			// Compute the average of each color channel
+			const uint8_t avgRed   = uint8_t(cummRed/imageSize);
+			const uint8_t avgGreen = uint8_t(cummGreen/imageSize);
+			const uint8_t avgBlue  = uint8_t(cummBlue/imageSize);
 
 			// Return the computed color
 			return {avgRed, avgGreen, avgBlue};

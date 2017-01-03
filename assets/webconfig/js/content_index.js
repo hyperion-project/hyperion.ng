@@ -1,4 +1,6 @@
 $(document).ready( function() {
+	var uiLock = false;
+
 	$("#main-nav").hide();
 	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
@@ -7,21 +9,23 @@ $(document).ready( function() {
 	bindNavToContent("#load_remote","remote",false);
 	bindNavToContent("#load_huebridge","huebridge",false);
 	bindNavToContent("#load_support","support",false);
-	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_update","update",false);
+	bindNavToContent("#load_confGeneral","general",false);
 	bindNavToContent("#load_confEffects","effects",false);
+	bindNavToContent("#load_confKodi","kodiconf",false);
 	bindNavToContent("#load_confLeds","leds",false);
 	bindNavToContent("#load_confGrabber","grabber",false);
 	bindNavToContent("#load_confColors","colors",false);
 	bindNavToContent("#load_confNetwork","network",false);
 	bindNavToContent("#load_effectsconfig","effects_configurator",false);
 	bindNavToContent("#load_logging","logging",false);
+	bindNavToContent("#load_webconfig","webconfig",false);
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');
-
+		
 		if (parsedServerInfoJSON.info.hyperion[0].config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
 		else
@@ -48,7 +52,7 @@ $(document).ready( function() {
 			components_html = "";
 			for ( idx=0; idx<components.length;idx++)
 			{
-				components_html += '<tr><td lang="en" data-lang-token="general_comp_'+components[idx].name+'">'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 			}
 			$("#tab_components").html(components_html);
 
@@ -62,16 +66,16 @@ $(document).ready( function() {
 
 				if ( cleanCurrentVersion < cleanLatestVersion )
 				{
-					$('#versioninforesult').html('<div lang="en" data-lang-token="dashboard_infobox_message_updatewarning" style="margin:0px;" class="alert alert-warning">A newer version of Hyperion is available!</div>');
+					$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-warning">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
 				}
 				else
 				{
-					$('#versioninforesult').html('<div  lang="en" data-lang-token="dashboard_infobox_message_updatesuccess" style="margin:0px;" class="alert alert-success">You run the latest version of Hyperion.</div>');
+					$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-success">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 				}
 			});
 		}
 		
-		if ($("#logmessages").length == 0)
+		if ($("#logmessages").length == 0 && loggingStreamActive)
 		{
 			requestLoggingStop();
 		}
@@ -79,6 +83,19 @@ $(document).ready( function() {
 		
 		$("#loading_overlay").removeClass("overlay");
 		$("#main-nav").show('slide', {direction: 'left'}, 1000);
+
+		if (!parsedServerInfoJSON.info.hyperion[0].config_writeable)
+		{
+			showInfoDialog('uilock',$.i18n('InfoDialog_nowrite_title'),$.i18n('InfoDialog_nowrite_text'));
+			$('#wrapper').toggle(false);
+			uiLock = true;
+		}
+		else if (uiLock)
+		{
+			$("#modal_dialog").modal('hide');
+			$('#wrapper').toggle(true);
+			uiLock = false;
+		}
 
 	}); // end cmd-serverinfo
 
@@ -101,11 +118,7 @@ $(document).ready( function() {
 	});
 
 	$("#btn_hyperion_reload").on("click", function(){
-		$(hyperion).off();
-		requestServerConfigReload();
-		watchdog = 1;
-		$("#wrapper").fadeOut("slow");
-		cron();
+		initRestart();
 	});
 });
 

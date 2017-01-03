@@ -1,21 +1,31 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2 class="page-header"><i class="fa fa-play-circle-o fa-fw"></i><span lang="en" data-lang-token="conf_kodi_label_title">Kodi Watch</span></h2>
+			<h2 class="page-header"><i class="fa fa-play-circle-o fa-fw"></i><span  data-i18n="conf_kodi_label_title">Kodi Watch</span></h2>
 			<div class="introd">
-				<h4 lang="en" data-lang-token="conf_kodi_label_intro">The Kodi Watcher enables you to enable and disable the screencapture depending on Kodi state. This is not limited to the same machine, you could observe also a Kodi on any other device at your network.</h4>
+				<h4  data-i18n="conf_kodi_label_intro">The Kodi Watcher enables you to enable and disable the screencapture depending on Kodi state. This is not limited to the same machine, you could observe also a Kodi on any other device at your network.</h4>
+				<hr />
 			</div>
-			<hr />
 			<div class="alert alert-info" role="alert">
 				<strong>HINT 1:</strong> In any case you need to enable the remote control for Kodi. Please checkout Wiki for instructions. LINK<br>
 				<strong>HINT 2:</strong> If you just use a USB-Grabber you could enable the Kodi Watch for this separately at the USB-Grabber page.
 			</div>
-
-			<div class="col-lg-12">
-				<div id='editor_container'/>
-				<button  class="btn btn-success" id='btn_submit'>Save Settings</button>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-play-circle-o fa-fw"></i><span data-i18n="conf_kodi_label_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl"></div>
+				</div>
 			</div>
-
 		</div>
 	</div>
 </div>

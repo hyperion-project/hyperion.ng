@@ -2,16 +2,43 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2 class="page-header"><i class="fa fa-camera fa-fw"></i><span lang="en" data-lang-token="main_menu_grabber_conf_token">Capturing Hardware</span></h2> 
+			<h2 class="page-header"><i class="fa fa-camera fa-fw"></i><span  data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></h2> 
 			<div class="introd">
-				<h4 lang="en" data-lang-token="conf_grabber_label_intro">Hyperion supports two ways on how to get captured pictures for processing and output. The platform grabber which captures internal at the device you are running Hyperion on (best qualitiy) and the USB Grabber which gathers from a connected device the necessary pictures (more calibration work and configuration).</h4>
+				<h4  data-i18n="conf_grabber_label_intro">Hyperion supports two ways on how to get captured pictures for processing and output. The platform grabber which captures internal at the device you are running Hyperion on (best qualitiy) and the USB Grabber which gathers from a connected device the necessary pictures (more calibration work and configuration).</h4>
+				<hr />
 			</div>
-			<hr />
-			<div class="col-lg-12">
-				<div id='editor_container'/>
-				<button  class="btn btn-success" id='btn_submit' lang="en" data-lang-token="general_button_savesettings">Save Settings</button>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-camera fa-fw"></i><span data-i18n="edt_conf_fg_heading_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container_fg'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit_fg' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl_fg"></div>
+				</div>
 			</div>
-
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-camera fa-fw"></i><span data-i18n="edt_conf_v4l2_heading_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container_v4l2'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit_v4l2' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl_v4l2"></div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
