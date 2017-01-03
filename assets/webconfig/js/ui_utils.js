@@ -80,7 +80,7 @@ function showInfoDialog(type,header,message,btnid)
 	else if (type == "select"){
 		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#modal_dialog .modal-footer-button').html('<button type="button" id="'+btnid+'" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_save')+'</button>');
-		$('#modal_dialog .modal-footer-button').append('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_abort')+'</button>');
+		$('#modal_dialog .modal-footer-button').append('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "uilock"){
 		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
@@ -182,8 +182,10 @@ function createHelpTable(list, phead){
 	
 	thead.appendChild(createTableTh($.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')));
 		for (key in list){
-			text = list[key].title.replace('title', 'expl');
-			tbody.appendChild(createTableTd($.i18n(list[key].title), $.i18n(text)));
+			if(list[key].access != 'system'){
+				text = list[key].title.replace('title', 'expl');
+				tbody.appendChild(createTableTd($.i18n(list[key].title), $.i18n(text)));
+			}
 		}
 	table.appendChild(thead);
 	table.appendChild(tbody);

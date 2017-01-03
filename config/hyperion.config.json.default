@@ -2,6 +2,7 @@
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
+		"showOptHelp" : true,
 		"configVersion" : 2
 	},
 	"logger" :
@@ -122,6 +123,10 @@
 	{
 		"enable" : true,
 		"threshold" : 0.0,
+		"unknownFrameCnt"    : 600,
+		"borderFrameCnt"     : 50,
+		"maxInconsistentCnt" : 10,
+		"blurRemoveCnt"      : 1,
 		"mode" : "default"
 	},
 
@@ -139,11 +144,21 @@
 		"enable3DDetection" : false
 	},
 
-	"initialEffect" :
+	"foregroundEffect" :
 	{
-		"background-effect"      : ["Warm mood blobs"],
-		"foreground-effect"      : ["Rainbow swirl fast"],
-		"foreground-duration_ms" : 3000
+		"enable"      : true,
+		"type"        : "effect",
+		"color"       : [0,0,255],
+		"effect"      : "Rainbow swirl fast",
+		"duration_ms" : 3000
+	},
+	
+	"backgroundEffect" :
+	{
+		"enable"      : true,
+		"type"        : "effect",
+		"color"       : [255,138,0],
+		"effect"      : "Warm mood blobs"
 	},
 
 	"forwarder" :
