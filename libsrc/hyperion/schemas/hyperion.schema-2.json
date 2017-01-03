@@ -124,49 +124,15 @@
 							"id" :
 							{
 								"type" : "string",
-								"required" : true
+								"required" : true,
+								"propertyOrder" : 1
 							},
 							"leds" :
 							{
 								"type" : "string",
-								"required" : true
-							},
-							"luminanceMin" :
-							{
-								"type" : "number",
 								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 1.0
+								"propertyOrder" : 2
 							},
-							"luminance" :
-							{
-								"type" : "number",
-								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 1.0
-							},
-							"gammaRed" :
-							{
-								"type" : "number",
-								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 100.0
-							},
-							"gammaGreen" :
-							{
-								"type" : "number",
-								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 100.0
-							},
-							"gammaBlue" :
-							{
-								"type" : "number",
-								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 100.0
-							},
-
 							"black" :
 							{
 								"type" : "array",
@@ -180,7 +146,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 8
+								"propertyOrder" : 3
 							},
 							"white" :
 							{
@@ -195,7 +161,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 1
+								"propertyOrder" : 4
 							},
 							"red" :
 							{
@@ -210,7 +176,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 2
+								"propertyOrder" : 5
 							},
 							"green" :
 							{
@@ -225,7 +191,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 3
+								"propertyOrder" : 6
 							},
 							"blue" :
 							{
@@ -240,7 +206,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 4
+								"propertyOrder" : 7
 							},
 							"cyan" :
 							{
@@ -255,7 +221,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 5
+								"propertyOrder" : 8
 							},
 							"magenta" :
 							{
@@ -270,7 +236,7 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 6
+								"propertyOrder" : 9
 							},
 							"yellow" :
 							{
@@ -285,7 +251,57 @@
 								},
 								"minItems" : 3,
 								"maxItems" : 3,
-								"propertyOrder" : 7
+								"propertyOrder" : 10
+							},
+							"brightnessMin" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 1.0,
+								"default" : 0.0,
+								"step" : 0.05,
+								"propertyOrder" : 11
+							},
+							"brightness" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 1.0,
+								"default" : 1.0,
+								"step" : 0.05,
+								"propertyOrder" : 12
+							},
+							"gammaRed" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0,
+								"default" : 1.0,
+								"step" : 0.1,
+								"propertyOrder" : 13
+							},
+							"gammaGreen" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0,
+								"default" : 1.0,
+								"step" : 0.1,
+								"propertyOrder" : 14
+							},
+							"gammaBlue" :
+							{
+								"type" : "number",
+								"required" : true,
+								"minimum" : 0.0,
+								"maximum": 100.0,
+								"default" : 1.0,
+								"step" : 0.1,
+								"propertyOrder" : 15
 							}
 						},
 						"additionalProperties" : false

@@ -20,10 +20,10 @@ public:
 	/// @param gammaR The used red gamma
 	/// @param gammaG The used green gamma
 	/// @param gammab The used blue gamma
-	/// @param thresholdLow The used lower threshold
-	/// @param thresholdHigh The used higher threshold
+	/// @param brightnessLow The used lower brightness
+	/// @param brightnessHigh The used higher brightness
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double thresholdLow, double thresholdHigh);
+	RgbTransform(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh);
 
 	///
 	/// Destructor
@@ -42,17 +42,17 @@ public:
 	/// @param gamma New gamma value
 	void setGamma(double gammaR,double gammaG=-1, double gammaB=-1);
 
-	/// @return The current lower threshold
-	double getLuminanceMin() const;
+	/// @return The current lower brightness
+	double getBrightnessMin() const;
 
-	/// @param gamma New lower threshold
-	void setLuminanceMin(double threshold);
+	/// @param gamma New lower brightness
+	void setBrightnessMin(double brightness);
 
-	/// @return The current lower threshold
-	double getLuminance() const;
+	/// @return The current lower brightness
+	double getBrightness() const;
 
-	/// @param gamma New lower threshold
-	void setLuminance(double threshold);
+	/// @param gamma New lower brightness
+	void setBrightness(double brightness);
 
 	///
 	/// Apply the transform the the given RGB values.
@@ -69,12 +69,12 @@ private:
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
-	uint8_t _thresholdLow;
-	uint8_t _thresholdHigh;
-	double  _thresholdLowF;
-	double  _thresholdHighF;
-	double  _sumThresholdLowF;
-	double  _sumThresholdHighF;
+	uint8_t _brightnessLow;
+	uint8_t _brightnessHigh;
+	double  _brightnessLowF;
+	double  _brightnessHighF;
+	double  _sumBrightnessLowF;
+	double  _sumBrightnessHighF;
 
 	double _gammaR;
 	double _gammaG;

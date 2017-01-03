@@ -71,9 +71,9 @@ int main(int argc, char * argv[])
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
 		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
 		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
-		Option          & argId          = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the transform to set");
-		DoubleOption    & argLuminance   = parser.add<DoubleOption> ('L', "luminance" , "Set the luminance gain of the leds");
-		DoubleOption    & argLuminanceMin= parser.add<DoubleOption> ('n', "luminanceMin" , "Set the luminance minimum of the leds (backlight)");
+		Option          & argId           = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
+		DoubleOption    & argBrightness   = parser.add<DoubleOption> ('L', "brightness" , "Set the brightness gain of the leds");
+		DoubleOption    & argBrightnessMin= parser.add<DoubleOption> ('n', "brightnessMin" , "Set the brightness minimum of the leds (backlight)");
 		ColorOption     & argGamma       = parser.add<ColorOption>  ('g', "gamma"     , "Set the gamma of the leds (requires colors in hex format as RRGGBB)");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
 		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
@@ -83,13 +83,15 @@ int main(int argc, char * argv[])
 		ColorOption     & argCAdjust     = parser.add<ColorOption>  ('C', "cyanAdjustment" , "Set the adjustment of the cyan color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argMAdjust     = parser.add<ColorOption>  ('M', "magentaAdjustment", "Set the adjustment of the magenta color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argYAdjust     = parser.add<ColorOption>  ('Y', "yellowAdjustment", "Set the adjustment of the yellow color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argWAdjust     = parser.add<ColorOption>  ('W', "whiteAdjustment", "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argbAdjust     = parser.add<ColorOption>  ('b', "blackAdjustment", "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
 		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valif values: multicolor:mean, unicolor_mean");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 		BooleanOption   & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
 		BooleanOption   & argConfigGet   = parser.add<BooleanOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
 		BooleanOption   & argSchemaGet   = parser.add<BooleanOption>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
-		Option          & argConfigSet   = parser.add<Option>       ('W', "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
+		Option          & argConfigSet   = parser.add<Option>       (0x0, "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
 
 		// parse all _options
 		parser.process(app);
@@ -101,8 +103,8 @@ int main(int argc, char * argv[])
 		}
 
 		// check if at least one of the available color transforms is set
-		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust)
-			|| parser.isSet(argGamma)|| parser.isSet(argLuminance)|| parser.isSet(argLuminanceMin);
+		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust) || parser.isSet(argCAdjust) || parser.isSet(argMAdjust)
+			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)|| parser.isSet(argBrightnessMin);
 		
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
@@ -127,8 +129,8 @@ int main(int argc, char * argv[])
 			showHelp(argConfigGet);
 			qWarning() << "or one or more of the available color modding operations:";
 			showHelp(argId);
-			showHelp(argLuminance);
-			showHelp(argLuminanceMin);
+			showHelp(argBrightness);
+			showHelp(argBrightnessMin);
 			showHelp(argGamma);
 			showHelp(argRAdjust);
 			showHelp(argGAdjust);
@@ -225,9 +227,11 @@ int main(int argc, char * argv[])
 				argCAdjust.getColor(parser),
 				argMAdjust.getColor(parser),
 				argYAdjust.getColor(parser),
+				argWAdjust.getColor(parser),
+				argbAdjust.getColor(parser),
 				argGamma.getColor(parser),
-				argLuminanceMin.getDoublePtr(parser),
-				argLuminance.getDoublePtr(parser)
+				argBrightnessMin.getDoublePtr(parser),
+				argBrightness.getDoublePtr(parser)
 			);
 		}
 	}

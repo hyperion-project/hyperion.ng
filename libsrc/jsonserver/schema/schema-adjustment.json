@@ -84,6 +84,28 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
+				"blackAdjust": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"whiteAdjust": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
 				"gamma": {
 					"type": "array",
 					"required": false,
@@ -94,13 +116,13 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"luminanceMin" : {
+				"brightnessMin" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum" : 1.0
 				},
-				"luminance" : {
+				"brightness" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,

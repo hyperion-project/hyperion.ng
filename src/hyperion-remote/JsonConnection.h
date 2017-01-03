@@ -134,8 +134,8 @@ public:
 	/// @param greenAdjustment The green channel adjustment values
 	/// @param blueAdjustment The blue channel adjustment values
 	/// @param gamma The gamma value
-	/// @param thresholdLow The threshold aka backlight
-	/// @param thresholdHigh The threshold aka upper brightness limit
+	/// @param brightnessMin The threshold aka backlight
+	/// @param brightness The threshold aka upper brightness limit
 
 	void setAdjustment(
 		const QString & adjustmentId,
@@ -145,9 +145,11 @@ public:
 		const QColor & cyanAdjustment,
 		const QColor & magentaAdjustment,
 		const QColor & yellowAdjustment,
+		const QColor & blackAdjustment,
+		const QColor & whiteAdjustment,
 		const QColor & gamma,
-		double *thresholdLow,
-		double *thresholdHigh);
+		double *brightnessMin,
+		double *brightness);
 
 	///
 	/// sets the image to leds mapping type

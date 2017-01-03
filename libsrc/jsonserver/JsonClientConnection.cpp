@@ -887,19 +887,33 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		colorAdjustment->_rgbYellowAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbYellowAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
+	if (adjustment.contains("blackAdjust"))
+	{
+		const QJsonArray & values = adjustment["blackAdjust"].toArray();
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("whiteAdjust"))
+	{
+		const QJsonArray & values = adjustment["whiteAdjust"].toArray();
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
 
 	if (adjustment.contains("gamma"))
 	{
 		const QJsonArray & values = adjustment["gamma"].toArray();
 		colorAdjustment->_rgbTransform.setGamma(values[0u].toDouble(), values[1u].toDouble(), values[2u].toDouble());
 	}	
-	if (adjustment.contains("luminanceMin"))
+	if (adjustment.contains("brightnessMin"))
 	{
-		colorAdjustment->_rgbTransform.setLuminanceMin(adjustment["luminanceMin"].toDouble());
+		colorAdjustment->_rgbTransform.setBrightnessMin(adjustment["brightnessMin"].toDouble());
 	}	
-	if (adjustment.contains("luminance"))
+	if (adjustment.contains("brightness"))
 	{
-		colorAdjustment->_rgbTransform.setLuminance(adjustment["luminance"].toDouble());
+		colorAdjustment->_rgbTransform.setBrightness(adjustment["brightness"].toDouble());
 	}	
 
 	// commit the changes

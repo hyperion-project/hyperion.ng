@@ -4,8 +4,8 @@
 #include <utils/RgbTransform.h>
 
 RgbTransform::RgbTransform()
-	: _thresholdLow(0)
-	, _thresholdHigh(255)
+	: _brightnessLow(0)
+	, _brightnessHigh(255)
 	, _gammaR(1.0)
 	, _gammaG(1.0)
 	, _gammaB(1.0)
@@ -13,13 +13,13 @@ RgbTransform::RgbTransform()
 	initializeMapping();
 }
 
-RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double thresholdLow, double thresholdHigh)
+RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh)
 	: _gammaR(gammaR)
 	, _gammaG(gammaG)
 	, _gammaB(gammaB)
 {
-	setLuminanceMin(thresholdLow);
-	setLuminance(thresholdHigh);
+	setBrightnessMin(brightnessLow);
+	setBrightness(brightnessHigh);
 	initializeMapping();
 }
 
@@ -61,28 +61,28 @@ void RgbTransform::initializeMapping()
 }
 
 
-double RgbTransform::getLuminanceMin() const
+double RgbTransform::getBrightnessMin() const
 {
-	return _thresholdLowF;
+	return _brightnessLowF;
 }
 
-void RgbTransform::setLuminanceMin(double threshold)
+void RgbTransform::setBrightnessMin(double brightness)
 {
-	_thresholdLowF    = threshold;
-	_sumThresholdLowF = 765.0 * threshold;
-	_thresholdLow     = std::min(std::max((int)(threshold * 255), 0),255);
+	_brightnessLowF    = brightness;
+	_sumBrightnessLowF = 765.0 * brightness;
+	_brightnessLow     = std::min(std::max((int)(brightness * 255), 0),255);
 }
 
-double RgbTransform::getLuminance() const
+double RgbTransform::getBrightness() const
 {
-	return _thresholdHigh;
+	return _brightnessHigh;
 }
 
-void RgbTransform::setLuminance(double threshold)
+void RgbTransform::setBrightness(double brightness)
 {
-	_thresholdHighF    = threshold;
-	_sumThresholdHighF = 765.0 * threshold;
-	_thresholdHigh     = std::min(std::max((int)(threshold * 255), 0),255);
+	_brightnessHighF    = brightness;
+	_sumBrightnessHighF = 765.0 * brightness;
+	_brightnessHigh     = std::min(std::max((int)(brightness * 255), 0),255);
 }
 
 void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
@@ -93,23 +93,23 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	blue  = _mappingR[blue];
 
 	//std::cout << (int)red << " " << (int)green << " " << (int)blue << " => ";
-	// apply thresholds
+	// apply brightnesss
 	if (red  ==0) red   = 1;
 	if (green==0) green = 1;
 	if (blue ==0) blue  = 1;
 
 	int rgbSum = red+green+blue;
 
-	if (rgbSum > _sumThresholdHighF)
+	if (rgbSum > _sumBrightnessHighF)
 	{
-		double cH = _sumThresholdHighF / rgbSum;
+		double cH = _sumBrightnessHighF / rgbSum;
 		red   *= cH;
 		green *= cH;
 		blue  *= cH;
 	}
-	else if (rgbSum < _sumThresholdLowF)
+	else if (rgbSum < _sumBrightnessLowF)
 	{
-		double cL = _sumThresholdLowF / rgbSum;
+		double cL = _sumBrightnessLowF / rgbSum;
 		red   *= cL;
 		green *= cL;
 		blue  *= cL;
