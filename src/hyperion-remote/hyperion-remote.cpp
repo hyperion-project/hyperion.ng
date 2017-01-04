@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
 		Option          & argId           = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
 		DoubleOption    & argBrightness   = parser.add<DoubleOption> ('L', "brightness" , "Set the brightness gain of the leds");
 		DoubleOption    & argBrightnessMin= parser.add<DoubleOption> ('n', "brightnessMin" , "Set the brightness minimum of the leds (backlight)");
-		ColorOption     & argGamma       = parser.add<ColorOption>  ('g', "gamma"     , "Set the gamma of the leds (requires colors in hex format as RRGGBB)");
+		DoubleOption    & argGamma       = parser.add<DoubleOption>  ('g', "gamma"     , "Set the overall gamma of the leds");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
 		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
 		ColorOption     & argRAdjust     = parser.add<ColorOption>  ('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
@@ -147,7 +147,7 @@ int main(int argc, char * argv[])
 		// now execute the given command
 		if (parser.isSet(argColor))
 		{
-            // TODO: make sure setColor accepts a QList<QColor>
+			// TODO: make sure setColor accepts a QList<QColor>
 			connection.setColor(argColor.getColors(parser).toVector().toStdVector(), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
 		else if (parser.isSet(argImage))
@@ -229,7 +229,9 @@ int main(int argc, char * argv[])
 				argYAdjust.getColor(parser),
 				argWAdjust.getColor(parser),
 				argbAdjust.getColor(parser),
-				argGamma.getColor(parser),
+				argGamma.getDoublePtr(parser),
+				argGamma.getDoublePtr(parser),
+				argGamma.getDoublePtr(parser),
 				argBrightnessMin.getDoublePtr(parser),
 				argBrightness.getDoublePtr(parser)
 			);

@@ -27,12 +27,12 @@ RgbTransform::~RgbTransform()
 
 double RgbTransform::getGammaR() const
 {
-	return _gammaB;
+	return _gammaR;
 }
 
 double RgbTransform::getGammaG() const
 {
-	return _gammaB;
+	return _gammaG;
 }
 
 double RgbTransform::getGammaB() const

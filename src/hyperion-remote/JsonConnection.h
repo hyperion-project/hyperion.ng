@@ -147,7 +147,9 @@ public:
 		const QColor & yellowAdjustment,
 		const QColor & blackAdjustment,
 		const QColor & whiteAdjustment,
-		const QColor & gamma,
+		double *gammaR,
+		double *gammaG,
+		double *gammaB,
 		double *brightnessMin,
 		double *brightness);
 

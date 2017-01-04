@@ -902,11 +902,19 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
 
-	if (adjustment.contains("gamma"))
+	if (adjustment.contains("gammaR"))
 	{
-		const QJsonArray & values = adjustment["gamma"].toArray();
-		colorAdjustment->_rgbTransform.setGamma(values[0u].toDouble(), values[1u].toDouble(), values[2u].toDouble());
-	}	
+		colorAdjustment->_rgbTransform.setGamma(adjustment["gammaR"].toDouble(), colorAdjustment->_rgbTransform.getGammaG(), colorAdjustment->_rgbTransform.getGammaB());
+	}
+	if (adjustment.contains("gammaG"))
+	{
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), adjustment["gammaG"].toDouble(), colorAdjustment->_rgbTransform.getGammaB());
+	}
+	if (adjustment.contains("gammaB"))
+	{
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), colorAdjustment->_rgbTransform.getGammaG(), adjustment["gammaB"].toDouble());
+	}
+
 	if (adjustment.contains("brightnessMin"))
 	{
 		colorAdjustment->_rgbTransform.setBrightnessMin(adjustment["brightnessMin"].toDouble());

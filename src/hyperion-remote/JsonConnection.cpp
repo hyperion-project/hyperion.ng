@@ -411,7 +411,9 @@ void JsonConnection::setAdjustment(
 		const QColor & yellowAdjustment,
 		const QColor & whiteAdjustment,
 		const QColor & blackAdjustment,
-		const QColor & gamma,
+		double *gammaR,
+		double *gammaG,
+		double *gammaB,
 		double *brightnessMin,
 		double *brightness)
 {
@@ -484,13 +486,17 @@ void JsonConnection::setAdjustment(
 	{
 		adjust["brightness"] = *brightness;
 	}
-	if (gamma.isValid())
+	if (gammaR != nullptr)
 	{
-		QJsonArray g;
-		g.append(gamma.red());
-		g.append(gamma.green());
-		g.append(gamma.blue());
-		adjust["gamma"] = g;
+		adjust["gammaR"] = *gammaR;
+	}
+	if (gammaG != nullptr)
+	{
+		adjust["gammaG"] = *gammaG;
+	}
+	if (gammaB != nullptr)
+	{
+		adjust["gammaB"] = *gammaB;
 	}
 
 	command["adjustment"] = adjust;

@@ -106,15 +106,23 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"gamma": {
-					"type": "array",
-					"required": false,
-					"items" : {
-						"type": "number",
-						"minimum": 0.0
-					},
-					"minItems": 3,
-					"maxItems": 3
+				"gammaR": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
+				},
+				"gammaG": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
+				},
+				"gammaB": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
 				},
 				"brightnessMin" : {
 					"type" : "number",
