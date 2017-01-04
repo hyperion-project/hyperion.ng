@@ -36,15 +36,19 @@
 		"brightness": {
 			"type": "number",
 			"title":"edt_eff_brightness_title",
-			"default": 1.0,
-			"minimum" : 0.01,
+			"default": 100,
+			"minimum" : 1,
+			"step" : 10,
+			"append" : "edt_append_percent",
 			"propertyOrder" : 4
 		},
 		"saturation": {
 			"type": "number",
 			"title":"edt_eff_saturation_title",
-			"default": 1.0,
-			"minimum" : 0.01,
+			"default": 100,
+			"minimum" : 1,
+			"step" : 10,
+			"append" : "edt_append_percent",
 			"propertyOrder" : 5
 		},
 		"reverse": {

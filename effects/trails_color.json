@@ -1,5 +1,5 @@
 {
-	"name" : "trails_color",
+	"name" : "Trails color",
 	"script" : "trails.py",
 	"args" :
 	{

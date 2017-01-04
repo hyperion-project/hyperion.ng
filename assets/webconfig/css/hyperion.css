@@ -29,7 +29,8 @@ table.borderless td,table.borderless th{border: none !important;}
 .navbar-brand{padding: 5px;padding-left:20px;height:60px;}
 .sidebar{margin-top:61px;padding-top:20px;}
 .dropdown{font-size:18px;}
-@media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;} .introd{display:none}}
+@media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
+@media (max-width: 1000px) {.introd{display:none}}
 .page-header{margin-top:15px;}
 
 /*Panels*/
@@ -105,7 +106,8 @@ table.borderless td,table.borderless th{border: none !important;}
 @media (min-width: 1500px) {
   .col-xxl-1, .col-xxl-2, .col-xxl-3, .col-xxl-4, .col-xxl-5, .col-xxl-6, .col-xxl-7, .col-xxl-8, .col-xxl-9, .col-xxl-10, .col-xxl-11, .col-xxl-12 {
     float: left;
-	padding:0 15px;
+	padding-left:15px;
+	padding-right:15px;
   }
   .col-xxl-12 {
     width: 100%;

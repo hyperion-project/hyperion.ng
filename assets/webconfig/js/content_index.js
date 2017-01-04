@@ -2,7 +2,6 @@ $(document).ready( function() {
 	var uiLock = false;
 
 	$("#main-nav").hide();
-	$("#loading_overlay").addClass("overlay");
 	loadContentTo("#container_connection_lost","connection_lost");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
@@ -22,6 +21,7 @@ $(document).ready( function() {
 	bindNavToContent("#load_webconfig","webconfig",false);
 
 	$(hyperion).on("cmd-serverinfo",function(event){
+		showOptHelp = parsedConfJSON.general.showOptHelp;
 		parsedServerInfoJSON = event.response;
 		currentVersion = parsedServerInfoJSON.info.hyperion[0].version;
 		cleanCurrentVersion = currentVersion.replace(/\./g, '');

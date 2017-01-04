@@ -19,8 +19,11 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(conf_editor_v4l2.getValue());
 	});
 
-	$('#opt_expl_fg').html(createHelpTable(schema.framegrabber.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_fg_heading_title")));
-	$('#opt_expl_v4l2').html(createHelpTable(schema.grabberV4L2.items.properties, '<i class="fa fa-camera fa-fw"></i>'+$.i18n("edt_conf_v4l2_heading_title")));
+	if(showOptHelp)
+	{
+		$('#opt_expl_fg').html(createHelpTable(schema.framegrabber.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_fg_heading_title")+' '+$.i18n("conf_helptable_expl")));
+		$('#opt_expl_v4l2').html(createHelpTable(schema.grabberV4L2.items.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_v4l2_heading_title")+' '+$.i18n("conf_helptable_expl")));
+	}
 });
 
 

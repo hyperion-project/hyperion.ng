@@ -1,13 +1,27 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2 class="page-header"><i class="fa fa-play-wrench-o fa-fw"></i><span  data-i18n="conf_general_label_title">General</span></h2>
+			<h2 class="page-header"><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_general_label_title">General</span></h2>
 			<div class="introd">
 				<h4 data-i18n="conf_general_label_intro"></h4>
 			</div>
 			<hr />
-			<div id='editor_container'/>
-			<button  class="btn btn-success" id='btn_submit' data-i18n="general_button_savesettings">Save Settings</button>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-wrench fa-fw"></i><span data-i18n="edt_conf_gen_heading_title">General</span></div>
+						<div class="panel-body">
+							<div id='editor_container'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl"></div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

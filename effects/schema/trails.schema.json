@@ -27,7 +27,7 @@
 		},
 		"trails": {
 			"type": "integer",
-			"title":"edt_eff_trails_title",
+			"title":"edt_eff_count_title",
 			"default": 3,
 			"minimum" : 1,
 			"propertyOrder" : 4
@@ -41,7 +41,7 @@
 		},
 		"random": {
 			"type": "boolean",
-			"title":"edt_eff_random_header_title",
+			"title":"edt_eff_colorrandom_title",
 			"default": false,
 			"propertyOrder" : 6
 		},
