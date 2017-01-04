@@ -182,13 +182,13 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 
 RgbTransform* Hyperion::createRgbTransform(const QJsonObject& colorConfig)
 {
-	const double thresholdL = colorConfig["luminanceMin"].toDouble(0.0);
-	const double thresholdH = colorConfig["luminance"].toDouble(1.0);
-	const double gammaR     = colorConfig["gammaRed"].toDouble(1.0);
-	const double gammaG     = colorConfig["gammaGreen"].toDouble(1.0);
-	const double gammaB     = colorConfig["gammaBlue"].toDouble(1.0);
+	const double brightnessMin = colorConfig["brightnessMin"].toDouble(0.0);
+	const double brightness    = colorConfig["brightness"].toDouble(1.0);
+	const double gammaR        = colorConfig["gammaRed"].toDouble(1.0);
+	const double gammaG        = colorConfig["gammaGreen"].toDouble(1.0);
+	const double gammaB        = colorConfig["gammaBlue"].toDouble(1.0);
 
-	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, thresholdL, thresholdH);
+	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, brightnessMin, brightness);
 	return transform;
 }
 
@@ -468,7 +468,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
-	
+
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
 		throw std::runtime_error("Color adjustment incorrectly set");

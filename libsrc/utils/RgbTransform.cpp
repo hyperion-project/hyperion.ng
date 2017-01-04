@@ -4,20 +4,18 @@
 #include <utils/RgbTransform.h>
 
 RgbTransform::RgbTransform()
-	: _brightnessLow(0)
-	, _brightnessHigh(255)
-	, _gammaR(1.0)
-	, _gammaG(1.0)
-	, _gammaB(1.0)
 {
-	initializeMapping();
+	init(1.0, 1.0, 1.0, 0.0, 1.0);
 }
 
 RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh)
-	: _gammaR(gammaR)
-	, _gammaG(gammaG)
-	, _gammaB(gammaB)
 {
+	init(gammaR, gammaG, gammaB, brightnessLow, brightnessHigh);
+}
+
+void RgbTransform::init(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh)
+{
+	setGamma(gammaR,gammaG,gammaB);
 	setBrightnessMin(brightnessLow);
 	setBrightness(brightnessHigh);
 	initializeMapping();
@@ -75,7 +73,7 @@ void RgbTransform::setBrightnessMin(double brightness)
 
 double RgbTransform::getBrightness() const
 {
-	return _brightnessHigh;
+	return _brightnessHighF;
 }
 
 void RgbTransform::setBrightness(double brightness)

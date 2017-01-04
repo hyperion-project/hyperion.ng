@@ -43,9 +43,16 @@ bool MultiColorAdjustment::verifyAdjustments() const
 {
 	for (unsigned iLed=0; iLed<_ledAdjustments.size(); ++iLed)
 	{
-		if (_ledAdjustments[iLed] == nullptr)
+		ColorAdjustment * adjustment = _ledAdjustments[iLed];
+
+		if (adjustment == nullptr)
 		{
 			Warning(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
+			return false;
+		}
+		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBrightnessMin() )
+		{
+			Error(Logger::getInstance("ColorAdjust"), "Adjustment for %d has invalid Brightness values. (brightnessMin is bigger then brightness)", iLed);
 			return false;
 		}
 	}

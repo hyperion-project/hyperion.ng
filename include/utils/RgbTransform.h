@@ -66,6 +66,17 @@ public:
 	void transform(uint8_t & red, uint8_t & green, uint8_t & blue);
 
 private:
+	///
+	/// init
+	///
+	/// @param gammaR The used red gamma
+	/// @param gammaG The used green gamma
+	/// @param gammab The used blue gamma
+	/// @param brightnessLow The used lower brightness
+	/// @param brightnessHigh The used higher brightness
+	///
+	void init(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh);
+
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
