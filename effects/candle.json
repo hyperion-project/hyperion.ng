@@ -4,7 +4,7 @@
 	"args" :
 	{
 		"sleepTime" : 0.15,
-		"brightness" : 1.0,
+		"brightness" : 100,
 		"color" : [ 255, 138, 0 ],
 		"candles" : "all"
 	}

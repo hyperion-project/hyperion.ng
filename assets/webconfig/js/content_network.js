@@ -49,11 +49,14 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(conf_editor_forw.getValue());
 	});
 	
-	$('#opt_expl_jsonserver').html(createHelpTable(schema.jsonServer.properties, '<i class="fa fa-sitemap fa-fw"></i>'+$.i18n("edt_conf_js_heading_title")));
-	$('#opt_expl_protoserver').html(createHelpTable(schema.protoServer.properties, '<i class="fa fa-sitemap fa-fw"></i>'+$.i18n("edt_conf_ps_heading_title")));
-	$('#opt_expl_boblightserver').html(createHelpTable(schema.boblightServer.properties, '<i class="fa fa-sitemap fa-fw"></i>'+$.i18n("edt_conf_bobls_heading_title")));
-	$('#opt_expl_udplistener').html(createHelpTable(schema.udpListener.properties, '<i class="fa fa-sitemap fa-fw"></i>'+$.i18n("edt_conf_udpl_heading_title")));
-	$('#opt_expl_forwarder').html(createHelpTable(schema.forwarder.properties, '<i class="fa fa-sitemap fa-fw"></i>'+$.i18n("edt_conf_fw_heading_title")));
+	if(showOptHelp)
+	{
+		$('#opt_expl_jsonserver').html(createHelpTable(schema.jsonServer.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_js_heading_title")+' '+$.i18n("conf_helptable_expl")));
+		$('#opt_expl_protoserver').html(createHelpTable(schema.protoServer.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_ps_heading_title")));
+		$('#opt_expl_boblightserver').html(createHelpTable(schema.boblightServer.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_bobls_heading_title")+' '+$.i18n("conf_helptable_expl")));
+		$('#opt_expl_udplistener').html(createHelpTable(schema.udpListener.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_udpl_heading_title")+' '+$.i18n("conf_helptable_expl")));
+		$('#opt_expl_forwarder').html(createHelpTable(schema.forwarder.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_fw_heading_title")+' '+$.i18n("conf_helptable_expl")));
+	}
 });
 
 

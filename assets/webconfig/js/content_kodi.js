@@ -10,7 +10,8 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(conf_editor.getValue());
 	});
 	
-	$('#opt_expl').html(createHelpTable(schema.kodiVideoChecker.properties, '<i class="fa fa-play-circle-o fa-fw"></i>'+$.i18n("conf_kodi_label_title")));
+	if(showOptHelp)
+		$('#opt_expl').html(createHelpTable(schema.kodiVideoChecker.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("conf_kodi_label_title")+' '+$.i18n("conf_helptable_expl")));
 });
 
 

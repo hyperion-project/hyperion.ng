@@ -15,8 +15,8 @@ import random
 
 # Get parameters
 color = hyperion.args.get('color', (255,138,0))
-colorShift = hyperion.args.get('colorShift', 0.01)
-brightness = float(hyperion.args.get('brightness', 0.5))
+colorShift = float(hyperion.args.get('colorShift', 1))/100.0
+brightness = float(hyperion.args.get('brightness', 100))/100.0
 
 sleepTime = float(hyperion.args.get('sleepTime', 0.14))
 
