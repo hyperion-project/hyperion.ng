@@ -80,12 +80,10 @@ private:
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
-	uint8_t _brightnessLow;
-	uint8_t _brightnessHigh;
-	double  _brightnessLowF;
-	double  _brightnessHighF;
-	double  _sumBrightnessLowF;
-	double  _sumBrightnessHighF;
+	double  _brightnessLow;
+	double  _brightnessHigh;
+	double  _sumBrightnessLow;
+	double  _sumBrightnessHigh;
 
 	double _gammaR;
 	double _gammaG;

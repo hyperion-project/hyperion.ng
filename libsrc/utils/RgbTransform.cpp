@@ -61,26 +61,24 @@ void RgbTransform::initializeMapping()
 
 double RgbTransform::getBrightnessMin() const
 {
-	return _brightnessLowF;
+	return _brightnessLow;
 }
 
 void RgbTransform::setBrightnessMin(double brightness)
 {
-	_brightnessLowF    = brightness;
-	_sumBrightnessLowF = 765.0 * brightness;
-	_brightnessLow     = std::min(std::max((int)(brightness * 255), 0),255);
+	_brightnessLow    = brightness;
+	_sumBrightnessLow = 765.0 * ((std::pow(2.0,brightness*2)-1) / 3.0);
 }
 
 double RgbTransform::getBrightness() const
 {
-	return _brightnessHighF;
+	return _brightnessHigh;
 }
 
 void RgbTransform::setBrightness(double brightness)
 {
-	_brightnessHighF    = brightness;
-	_sumBrightnessHighF = 765.0 * brightness;
-	_brightnessHigh     = std::min(std::max((int)(brightness * 255), 0),255);
+	_brightnessHigh    = brightness;
+	_sumBrightnessHigh = 765.0 * ((std::pow(2.0,brightness*2)-1) / 3.0);
 }
 
 void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
@@ -98,16 +96,16 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 
 	int rgbSum = red+green+blue;
 
-	if (rgbSum > _sumBrightnessHighF)
+	if (rgbSum > _sumBrightnessHigh)
 	{
-		double cH = _sumBrightnessHighF / rgbSum;
+		double cH = _sumBrightnessHigh / rgbSum;
 		red   *= cH;
 		green *= cH;
 		blue  *= cH;
 	}
-	else if (rgbSum < _sumBrightnessLowF)
+	else if (rgbSum < _sumBrightnessLow)
 	{
-		double cL = _sumBrightnessLowF / rgbSum;
+		double cL = _sumBrightnessLow / rgbSum;
 		red   *= cL;
 		green *= cL;
 		blue  *= cL;

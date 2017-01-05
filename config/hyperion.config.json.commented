@@ -86,7 +86,7 @@
 				"gammaGreen" : 1.0,
 				"gammaBlue"  : 1.0,
 				"brightnessMin"  : 0.0,
-				"brightness" : 1.0
+				"brightness" : 0.5
 			}
 		]
 	},

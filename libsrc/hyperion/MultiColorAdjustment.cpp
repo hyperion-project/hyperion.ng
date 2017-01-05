@@ -47,13 +47,14 @@ bool MultiColorAdjustment::verifyAdjustments() const
 
 		if (adjustment == nullptr)
 		{
-			Warning(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
+			Error(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
 			return false;
 		}
 		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBrightnessMin() )
 		{
-			Error(Logger::getInstance("ColorAdjust"), "Adjustment for %d has invalid Brightness values. (brightnessMin is bigger then brightness)", iLed);
-			return false;
+			adjustment->_rgbTransform.setBrightnessMin(0);
+			adjustment->_rgbTransform.setBrightness(0.5);
+			Warning(Logger::getInstance("ColorAdjust"), "Adjustment for %d has invalid Brightness values, values set to default. (brightnessMin is bigger then brightness)", iLed);
 		}
 	}
 	return true;
