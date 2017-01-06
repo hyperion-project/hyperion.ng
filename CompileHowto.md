@@ -40,6 +40,8 @@ brew install doxygen
 # Compiling and installing Hyperion
 
 ### The general quick way (without big comments)
+be sure you fullfill the prerequisites above.
+
 assume your home is /home/pi
 ```bash
 git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
