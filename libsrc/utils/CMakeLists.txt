@@ -20,8 +20,7 @@ SET(Utils_HEADERS
 	${CURRENT_HEADER_DIR}/VideoMode.h
 	${CURRENT_HEADER_DIR}/ImageResampler.h
 	${CURRENT_HEADER_DIR}/RgbTransform.h
-	${CURRENT_HEADER_DIR}/HsvTransform.h
-	${CURRENT_HEADER_DIR}/HslTransform.h
+	${CURRENT_HEADER_DIR}/ColorSys.h
 	${CURRENT_HEADER_DIR}/RgbChannelAdjustment.h
 	${CURRENT_HEADER_DIR}/RgbToRgbw.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
@@ -38,8 +37,7 @@ SET(Utils_SOURCES
 	${CURRENT_SOURCE_DIR}/Process.cpp
 	${CURRENT_SOURCE_DIR}/Logger.cpp
 	${CURRENT_SOURCE_DIR}/ImageResampler.cpp
-	${CURRENT_SOURCE_DIR}/HsvTransform.cpp
-	${CURRENT_SOURCE_DIR}/HslTransform.cpp
+	${CURRENT_SOURCE_DIR}/ColorSys.cpp
 	${CURRENT_SOURCE_DIR}/RgbChannelAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/RgbTransform.cpp
 	${CURRENT_SOURCE_DIR}/RgbToRgbw.cpp
@@ -61,7 +59,7 @@ add_library(hyperion-utils
 	${PROFILER_SOURCE}
 )
 
-qt5_use_modules(hyperion-utils Core)
+qt5_use_modules(hyperion-utils Core Gui)
 
 target_link_libraries(hyperion-utils
 	${QT_LIBRARIES})

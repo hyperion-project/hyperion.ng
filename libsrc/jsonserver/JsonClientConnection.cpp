@@ -33,7 +33,7 @@
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ColorAdjustment.h>
-#include <utils/HslTransform.h>
+#include <utils/ColorSys.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
@@ -728,7 +728,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		    
 			// add HSL Value to Array
 			QJsonArray HSLValue;
-			HslTransform::rgb2hsl(priorityInfo.ledColors.begin()->red,
+			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
 					priorityInfo.ledColors.begin()->green,
 					priorityInfo.ledColors.begin()->blue,
 					Hue, Saturation, Luminace);
