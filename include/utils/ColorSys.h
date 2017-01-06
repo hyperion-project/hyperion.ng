@@ -4,68 +4,36 @@
 #include <cstdint>
 
 ///
-/// Color transformation to adjust the saturation and value of a RGB color value
+/// Color transformation to adjust the saturation and luminance of a RGB color value
 ///
-class HsvTransform
+class ColorSys
 {
 public:
 	///
-	/// Default constructor
+	///	Translates an RGB (red, green, blue) color to an HSL (hue, saturation, luminance) color
 	///
-	HsvTransform();
+	/// @param[in] red The red RGB-component
+	/// @param[in] green The green RGB-component
+	/// @param[in] blue The blue RGB-component
+	/// @param[out] hue The hue HSL-component
+	/// @param[out] saturation The saturation HSL-component
+	/// @param[out] luminance The luminance HSL-component
+	///
+
+	static void rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance);
 
 	///
-	/// Constructor
+	///	Translates an HSL (hue, saturation, luminance) color to an RGB (red, green, blue) color
 	///
-	/// @param saturationGain The used saturation gain
-	/// @param valueGain The used value gain
+	/// @param[in] hue The hue HSL-component
+	/// @param[in] saturation The saturation HSL-component
+	/// @param[in] luminance The luminance HSL-component
+	/// @param[out] red The red RGB-component
+	/// @param[out] green The green RGB-component
+	/// @param[out] blue The blue RGB-component
 	///
-	HsvTransform(double saturationGain, double valueGain);
 
-	///
-	/// Destructor
-	///
-	~HsvTransform();
-
-	///
-	/// Updates the saturation gain
-	///
-	/// @param saturationGain New saturationGain
-	///
-	void setSaturationGain(double saturationGain);
-
-	///
-	/// Returns the saturation gain
-	///
-	/// @return The current Saturation gain
-	///
-	double getSaturationGain() const;
-
-	///
-	/// Updates the value gain
-	///
-	/// @param valueGain New value gain
-	///
-	void setValueGain(double valueGain);
-
-	///
-	/// Returns the value gain
-	///
-	/// @return The current value gain
-	///
-	double getValueGain() const;
-
-	///
-	/// Apply the transform the the given RGB values.
-	///
-	/// @param red The red color component
-	/// @param green The green color component
-	/// @param blue The blue color component
-	///
-	/// @note The values are updated in place.
-	///
-	void transform(uint8_t & red, uint8_t & green, uint8_t & blue) const;
-
+	static void hsl2rgb(uint16_t hue, float saturation, float luminance, uint8_t & red, uint8_t & green, uint8_t & blue);
 	///
 	///	Translates an RGB (red, green, blue) color to an HSV (hue, saturation, value) color
 	///
@@ -97,10 +65,4 @@ public:
 	/// number and scaled between 0 and 360
 	///
 	static void hsv2rgb(uint16_t hue, uint8_t saturation, uint8_t value, uint8_t & red, uint8_t & green, uint8_t & blue);
-
-private:
-	/// The saturation gain
-	double _saturationGain;
-	/// The value gain
-	double _valueGain;
 };
