@@ -691,6 +691,10 @@ void Hyperion::clear(int priority)
 	if (_muxer.hasPriority(priority))
 	{
 		_muxer.clearInput(priority);
+		if (!_sourceAutoSelectEnabled && _currentSourcePriority == priority )
+		{
+			setSourceAutoSelectEnabled(true);
+		}
 
 		// update leds if necessary
 		if (priority < _muxer.getCurrentPriority())
@@ -707,6 +711,7 @@ void Hyperion::clear(int priority)
 void Hyperion::clearall()
 {
 	_muxer.clearAll();
+	setSourceAutoSelectEnabled(true);
 
 	// update leds
 	update();
