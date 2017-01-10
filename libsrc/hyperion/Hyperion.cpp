@@ -544,6 +544,7 @@ void Hyperion::setSourceAutoSelectEnabled(bool enabled)
 	{
 		setCurrentSourcePriority(_muxer.getCurrentPriority());
 	}
+	update();
 	DebugIf( !_sourceAutoSelectEnabled, _log, "source auto select is disabled");
 	InfoIf(_sourceAutoSelectEnabled, _log, "set current input source to auto select");
 }
