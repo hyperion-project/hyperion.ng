@@ -48,22 +48,12 @@
 	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///            (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///      * 'black'/'white'/'red'/'green'/'blue'/'cyan'/'magenta'/'yellow' : Array of RGB to adjust the output color
-	///  * 'transform_enable'   : true/false enables/disables this transform section
-	///  * 'transform_v4l_only' : if enabled and set to true, then transform is only for v4l devices
-	///  * 'transform'
-	///      * 'id'   : The unique identifier of the color transformation (eg 'device_1')
-	///      * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///      * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
-	///            tuning parameters:
-	///            - 'saturationGain'      The gain adjustement of the saturation
-	///            - 'luminanceGain'       The gain adjustement of the luminance
-	///            - 'luminanceMinimum'    The minimum luminance (backlight)
-	///      * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
-	///            - 'threshold'       The minimum required input value for the channel to be on 
-	///                                (else zero)
-	///            - 'gamma'           The gamma-curve correction factor
+	///      * 'gammaRed'/'gammaGreen'/'gammaBlue'  : Gamma value for each channel 
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///  	 * 'brightnessMin'   : Minimum brightness (backlight)
+	///  	 * 'brightness' : Between 0.0-0.5 the brightness is linearized (white is as bright as red, is as bright as yellow).
+	///						  Between 0.5-1.0 the linearization reduces slowly until it's gone with 1.0 (white is 3x brighter than red, yellow is 2x brighter than red)
 	"color" :
 	{
 		"imageToLedMappingType" : "multicolor_mean",
@@ -86,7 +76,7 @@
 				"gammaGreen" : 1.0,
 				"gammaBlue"  : 1.0,
 				"brightnessMin"  : 0.0,
-				"brightness" : 0.75
+				"brightness" : 0.5
 			}
 		]
 	},
@@ -144,7 +134,7 @@
 			"height"   : -1,
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
-			"priority"    : 890,
+			"priority"    : 240,
 			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
@@ -167,7 +157,7 @@
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
-	///   * priority     : The priority of the frame-gabber (Default=890) HINT: lower value result in HIGHER priority! 
+	///   * priority     : The priority of the frame-gabber (Default=250) HINT: lower value result in HIGHER priority! 
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
@@ -175,7 +165,7 @@
 		"enable"       : true,
 		"type"         : "framebuffer",
 		"frequency_Hz" : 10,
-		"priority"     : 890,
+		"priority"     : 250,
 
 		// valid for grabber: osx|dispmanx|amlogic|framebuffer
 		"width"        : 96,
@@ -300,19 +290,19 @@
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=800) HINT: lower value result in HIGHER priority! 
+	///  * priority : Priority of the boblight server (Default=200) HINT: lower value result in HIGHER priority! 
  	"boblightServer" :
  	{
  		"enable"   : false,
  		"port"     : 19333,
- 		"priority" : 800
+ 		"priority" : 200
  	},
 
 	/// The configuration of the udp listener
 	///  * enable   : Enable or disable the udp listener (true/false)
 	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
 	///  * port     : Port at which the udp listener starts
-	///  * priority : Priority of the udp lstener server (Default=800)
+	///  * priority : Priority of the udp lstener server (Default=200)
 	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
 	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
 	"udpListener" :
@@ -320,19 +310,19 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 800,
+		"priority" : 200,
 		"timeout"  : 10000,
 		"shared"   : false
 	},
 
 	/// Configuration of the Hyperion webserver
 	///  * enable        : enable ir disable the webserver (true/false)
-	///  * document_root : path to hyperion webapp files
+	///  * document_root : path to hyperion webapp files (webconfig developer only)
 	///  * port          : the port where hyperion webapp is accasible
 	"webConfig" :
 	{
 		"enable"        : true,
-		"document_root" : "/usr/share/hyperion/webconfig",
+		"document_root" : "/path/to/files",
 		"port"          : 8099
 	},
 

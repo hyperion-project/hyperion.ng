@@ -381,7 +381,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority("EFFECT: "+name.toStdString(), priority);
+	_hyperion->registerPriority(name.toStdString(), priority);
 	effect->start();
 
 	return 0;
@@ -426,5 +426,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority("EFFECT: " + effect->getName().toStdString());
+	_hyperion->unRegisterPriority(effect->getName().toStdString());
 }

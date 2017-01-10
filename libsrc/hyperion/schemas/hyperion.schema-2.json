@@ -493,9 +493,9 @@
 					{
 						"type" : "integer",
 						"minimum" : 100,
-						"maximum" : 2000000000,
+						"maximum" : 253,
 						"title" : "edt_conf_general_priority_title",
-						"default" : 900,
+						"default" : 240,
 						"propertyOrder" : 9
 					},
 					"mode" :
@@ -679,8 +679,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 2000000000,
-					"default" : 890
+					"maximum" : 253,
+					"default" : 250
 				},
 				"cropLeft" :
 				{
@@ -1109,8 +1109,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 2000000000,
-					"default" : 800,
+					"maximum" : 253,
+					"default" : 200,
 					"propertyOrder" : 3
 				}
 			},
@@ -1150,8 +1150,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 2000000000,
-					"default" : 800,
+					"maximum" : 253,
+					"default" : 200,
 					"propertyOrder" : 4
 				},
 				"timeout" :

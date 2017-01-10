@@ -67,7 +67,7 @@
 			"height"   : -1,
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
-			"priority"    : 850,
+			"priority"    : 240,
 			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
@@ -91,7 +91,7 @@
 		"width" : 80,
 		"height" : 45,
 		"frequency_Hz" : 10,
-		"priority" : 900
+		"priority" : 250
 	},
 
 	"blackborderdetector" :
@@ -157,7 +157,7 @@
 	{
 		"enable"   : false,
 		"port"     : 19333,
-		"priority" : 800
+		"priority" : 200
 	},
 	
 	"udpListener" :
@@ -165,14 +165,16 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 800,
+		"priority" : 200,
 		"timeout"  : 10000,
 		"shared"   : false
 	},
 
 	"webConfig" :
 	{
-		"enable"        : true
+		"enable"        : true,
+		"document_root" : "",
+		"port"          : 8099
 	},
 
 	"effects" :
