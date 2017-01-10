@@ -50,12 +50,12 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 
 void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms, hyperion::Components component)
 {
-	InputInfo& input = _activeInputs[priority];
+	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
 	input.timeoutTime_ms = timeoutTime_ms;
 	input.ledColors      = ledColors;
 	input.componentId    = component;
-	_currentPriority = std::min(_currentPriority, priority);
+	_currentPriority     = std::min(_currentPriority, priority);
 }
 
 void PriorityMuxer::clearInput(const int priority)
