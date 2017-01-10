@@ -50,7 +50,7 @@ public:
 		QString      levelString;
 	} T_LOG_MESSAGE;
 
-	static Logger*  getInstance(std::string name="", LogLevel minLevel=Logger::INFO);
+	static Logger*  getInstance(QString name="", LogLevel minLevel=Logger::INFO);
 	static void     deleteInstance(std::string name="");
 	static void     setLogLevel(LogLevel level,std::string name="");
 	static LogLevel getLogLevel(std::string name="");

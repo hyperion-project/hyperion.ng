@@ -390,7 +390,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -595,7 +595,9 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}
 		
-		item["owner"] = QString("unknown");
+		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
+		item["componentId"] = priorityInfo.componentId;
+		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
 		foreach(auto const &entry, priorityRegister)

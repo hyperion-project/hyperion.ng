@@ -2,6 +2,8 @@
 
 // STL includes
 #include <cstdint>
+#include <QString>
+#include <utils/Logger.h>
 
 /// Correction for a single color byte value
 /// All configuration values are unsigned int and assume the color value to be between 0 and 255
@@ -9,13 +11,13 @@ class RgbChannelAdjustment
 {
 public:
 	/// Default constructor
-	RgbChannelAdjustment();
+	RgbChannelAdjustment(QString channelName="");
 	
 	/// Constructor
 	/// @param adjustR  
 	/// @param adjustG 
 	/// @param adjustB 
-	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB);
+	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName="");
 
 	/// Destructor
 	~RgbChannelAdjustment();
@@ -64,4 +66,10 @@ private:
 	
 	/// The mapping from input color to output color
 	uint8_t _mapping[3][256];
+
+	/// Name of this channel, usefull for debug messages
+	QString _channelName;
+
+	/// Logger instance
+	Logger * _log;
 };

@@ -270,7 +270,7 @@ public:
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
 	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
 	static RgbTransform * createRgbTransform(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color);
+	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject & colorConfig, const QString channelName, const int defaultR, const int defaultG, const int defaultB);
 
 	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);

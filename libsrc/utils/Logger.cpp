@@ -17,25 +17,25 @@ std::map<std::string,Logger*> *Logger::LoggerMap = nullptr;
 Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;
 LoggerManager* LoggerManager::_instance = nullptr;
 
-
-Logger* Logger::getInstance(std::string name, Logger::LogLevel minLevel)
+Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 {
+	std::string loggerName = name.toStdString();
 	Logger* log = nullptr;
 	if (LoggerMap == nullptr)
 	{
 		LoggerMap = new std::map<std::string,Logger*>;
 	}
 	
-	if ( LoggerMap->find(name) == LoggerMap->end() )
+	if ( LoggerMap->find(loggerName) == LoggerMap->end() )
 	{
-		log = new Logger(name,minLevel);
-		LoggerMap->insert(std::pair<std::string,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
-		//LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
+		log = new Logger(loggerName,minLevel);
+		LoggerMap->insert(std::pair<std::string,Logger*>(loggerName,log)); // compat version, replace it with following line if we have 100% c++11
+		//LoggerMap->emplace(loggerName,log);  // not compat with older linux distro's e.g. wheezy
 		connect(log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), LoggerManager::getInstance(), SLOT(handleNewLogMessage(Logger::T_LOG_MESSAGE)));
 	}
 	else
 	{
-		log = LoggerMap->at(name);
+		log = LoggerMap->at(loggerName);
 	}
 
 	return log;
@@ -71,7 +71,7 @@ void Logger::setLogLevel(LogLevel level,std::string name)
 	}
 	else
 	{
-		Logger* log = Logger::getInstance(name,level);
+		Logger* log = Logger::getInstance(QString::fromStdString(name),level);
 		log->setMinLevel(level);
 	}
 }
@@ -83,7 +83,7 @@ Logger::LogLevel Logger::getLogLevel(std::string name)
 		return GLOBAL_MIN_LOG_LEVEL;
 	}
 
-	Logger* log = Logger::getInstance(name);
+	Logger* log = Logger::getInstance(QString::fromStdString(name));
 	return log->getMinLevel();
 }
 
