@@ -8,6 +8,7 @@
 
 MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
+	, _log(Logger::getInstance("ColorAdjust"))
 {
 }
 
@@ -47,14 +48,14 @@ bool MultiColorAdjustment::verifyAdjustments() const
 
 		if (adjustment == nullptr)
 		{
-			Error(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
+			Error(_log, "No adjustment set for %d", iLed);
 			return false;
 		}
 		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBrightnessMin() )
 		{
 			adjustment->_rgbTransform.setBrightnessMin(0);
 			adjustment->_rgbTransform.setBrightness(0.5);
-			Warning(Logger::getInstance("ColorAdjust"), "Adjustment for %d has invalid Brightness values, values set to default. (brightnessMin is bigger then brightness)", iLed);
+			Warning(_log, "Adjustment for %d has invalid Brightness values, values set to default. (brightnessMin is bigger then brightness)", iLed);
 		}
 	}
 	return true;
@@ -144,7 +145,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
 		uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
 		uint8_t WB = adjustment->_rgbWhiteAdjustment.getAdjustmentB(white);
-		
+
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;
 		color.blue  = OB + RB + GB + BB + CB + MB + YB + WB;

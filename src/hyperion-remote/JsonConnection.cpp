@@ -478,6 +478,22 @@ void JsonConnection::setAdjustment(
 		yellow.append(yellowAdjustment.blue());
 		adjust["yellowAdjust"] = yellow;
 	}
+	if (whiteAdjustment.isValid())
+	{
+		QJsonArray white;
+		white.append(whiteAdjustment.red());
+		white.append(whiteAdjustment.green());
+		white.append(whiteAdjustment.blue());
+		adjust["whiteAdjust"] = white;
+	}
+	if (blackAdjustment.isValid())
+	{
+		QJsonArray black;
+		black.append(blackAdjustment.red());
+		black.append(blackAdjustment.green());
+		black.append(blackAdjustment.blue());
+		adjust["blackAdjust"] = black;
+	}
 	if (brightnessMin != nullptr)
 	{
 		adjust["brightnessMin"] = *brightnessMin;
