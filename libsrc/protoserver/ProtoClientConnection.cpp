@@ -31,7 +31,8 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket)
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-	
+	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _imageProcessor, SLOT(setLedMappingType(int))); 
+
 	_priorityChannelName = "proto@"+ _socket->peerAddress().toString().toStdString();
 }
 
@@ -198,6 +199,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	// process the image
 	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
 	_hyperion->setColors(_priority, ledColors, duration);
+	_hyperion->setImage(_priority, image, duration);
 
 	// send reply
 	sendSuccessReply();

@@ -1,11 +1,11 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2 class="page-header"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="main_menu_update_token">Update</span></h2>
+			<h2 class="page-header"><i class="fa fa-download fa-fw"></i><span  data-i18n="main_menu_update_token">Update</span></h2>
 			<div class="introd">
-				<h4 lang="en" data-lang-token="update_label_intro">This page gives you an overview of all Hyperion versions available. On top you could update or downgrade your version of Hyperion whenever you want. Sorted from newest to oldest</h4>
+				<h4  data-i18n="update_label_intro">Overview about all available Hyperion versions. On top you could update or downgrade your version of Hyperion whenever you want. Sorted from newest to oldest</h4>
+			<hr />
 			</div>
-			<hr>
 			<h4 id="update_currver"></h4>
 			<hr>
 			<div class="col-lg-12" id="versionlist">
@@ -15,9 +15,11 @@
 </div>
 
 <script>
+performTranslation('trans_update');
+
 	for (key in parsedUpdateJSON)
 	{
-		$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-default"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+parsedUpdateJSON[key].versionnr+'</div><div class="panel-body"><p><span style="font-weight:bold;" lang="en" data-lang-token="update_label_type">Type:</span> '+ parsedUpdateJSON[key].channel +'</p><p><span style="font-weight:bold;" lang="en" data-lang-token="update_label_description">Description:</span> '+parsedUpdateJSON[key].versiondesc+'</p><hr><a class="btn btn-primary" href="'+ parsedUpdateJSON[key].versionchangelog +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;" lang="en" data-lang-token="update_button_changelog">Full changelog</span></a><button type="button" class="btn btn-warning pull-right"><i class="fa fa-download fa-fw"></i><span lang="en" data-lang-token="update_button_install">Install</span></button></div></div></div>');
+		$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-default"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+parsedUpdateJSON[key].versionnr+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type')+'</span> '+ parsedUpdateJSON[key].channel +'</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+parsedUpdateJSON[key].versiondesc+'</p><hr><a class="btn btn-primary" href="'+ parsedUpdateJSON[key].versionchangelog +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right"><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
 	}
-	$('#update_currver').append(currentVersion);
+	$('#update_currver').append($.i18n('update_versreminder', currentVersion));
 </script>

@@ -8,6 +8,7 @@
 // Qt includes
 #include <QObject>
 #include <QSocketNotifier>
+#include <QRectF>
 
 // util includes
 #include <utils/Image.h>
@@ -35,8 +36,11 @@ public:
 			int height,
 			int frameDecimation,
 			int horizontalPixelDecimation,
-			int verticalPixelDecimation);
+			int verticalPixelDecimation
+	);
 	virtual ~V4L2Grabber();
+
+	QRectF getSignalDetectionOffset();
 
 public slots:
 	void setCropping(int cropLeft,
@@ -46,10 +50,17 @@ public slots:
 
 	void set3D(VideoMode mode);
 
-	void setSignalThreshold(double redSignalThreshold,
+	void setSignalThreshold(
+					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
 					int noSignalCounterThreshold);
+
+	void setSignalDetectionOffset(
+					double verticalMin,
+					double horizontalMin,
+					double verticalMax,
+					double horizontalMax);
 
 	bool start();
 
@@ -137,4 +148,11 @@ private:
 	Logger * _log;
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
+	
+	bool  _noSignalDetected;
+	double _x_frac_min;
+	double _y_frac_min;
+	double _x_frac_max;
+	double _y_frac_max;
+
 };

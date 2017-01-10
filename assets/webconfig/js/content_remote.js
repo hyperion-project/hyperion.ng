@@ -12,9 +12,11 @@
 			if (active) btn_type = "warning";
 			if (visible) btn_type = "success";
 			
- 			data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource('+priority+');">'+owner+'<span style="font-size:70% !important;"> ('+priority+')</span></button><br/>';
+			if(btn_type != 'default')
+				data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource('+priority+');">'+owner+'<span style="font-size:70% !important;"> ('+priority+')</span></button><br/>';
 		}
-		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-info btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');" lang="en" data-lang-token="remote_input_label_autoselect">auto selection</button><br/>';
+		var autostate = (parsedServerInfoJSON.info.priorities_autoselect? "btn-success" : "btn-danger");
+		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg '+autostate+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+'</button><br/>';
 		$('#hyperion_inputs').html(data);
 		
 		var max_width=200;
@@ -23,6 +25,23 @@
 				max_width = $(this).innerWidth();
 		});
 		$('.btn_input_selection').css("min-width",max_width+"px"); 
+	}
+	
+	function updateLedMapping()
+	{
+		mappingList = ["multicolor_mean", "unicolor_mean"];
+		mapping = parsedServerInfoJSON.info.ledMAppingType;
+
+		$('#mappingsbutton').html("");
+		for(var ix = 0; ix < mappingList.length; ix++)
+		{
+			if(mapping == mappingList[ix])
+				btn_style = 'btn-success';
+			else
+				btn_style = 'btn-warning';
+
+			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn btn-lg '+btn_style+'" style="margin:10px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
+		}
 	}
 
 	function updateComponents(event) {
@@ -33,12 +52,12 @@
 		else
 		{
 			updateInputSelect();
+			updateLedMapping();
 			components = event.response.info.components;
 			// create buttons
 			$('#componentsbutton').html("");
 			for ( idx=0; idx<components.length;idx++)
 			{
-				//components_html += '<tr><td>'+(components[idx].title)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 				enable_style = (components[idx].enabled? "btn-success" : "btn-danger");
 				enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 				comp_name    = components[idx].name;
@@ -49,7 +68,7 @@
 				{
 					d='<p><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
 						+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> <span lang="en" data-lang-token="general_comp_'+components[idx].name+'"> '+components[idx].title+'</span></p>';
+						+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</p>';
 					$('#componentsbutton').append(d);
 				}
 				else // already create, update state
@@ -82,26 +101,18 @@
 					sysEffArr.push(effectName);
 				}
 			}
-			$('#effect_select').append(createSel(usrEffArr, "User Effects"));
-			$('#effect_select').append(createSel(sysEffArr, "Provided Effects"));
+			$('#effect_select').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')));
+			$('#effect_select').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
 			oldEffects = newEffects;
 		}
 	}
 
 $(document).ready(function() {
+	performTranslation();
 	// color
 		$(function() {
 			$('#cp2').colorpicker({
 				format: 'rgb',
-
-				colorSelectors: {
-					'default': '#777777',
-					'primary': '#337ab7',
-					'success': '#5cb85c',
-					'info'   : '#5bc0de',
-					'warning': '#f0ad4e',
-					'danger' : '#d9534f'
-					},
 				customClass: 'colorpicker-2x',
 				sliders: {
 					saturation: {

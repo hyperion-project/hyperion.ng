@@ -26,10 +26,12 @@ ProviderRs232::ProviderRs232()
 bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
 	closeDevice();
+
+	LedDevice::init(deviceConfig);
+
 	_deviceName           = deviceConfig["output"].toString().toStdString();
 	_baudRate_Hz          = deviceConfig["rate"].toInt();
 	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(250);
- 	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(5000) );
 
 	return true;
 }

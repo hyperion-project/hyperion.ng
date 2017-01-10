@@ -31,6 +31,7 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 	
+	const short _headerSize;
 	bool _ligthBerryAPA102Mode;
 };
 

@@ -1,6 +1,4 @@
-import hyperion 
-import time 
-import colorsys
+import hyperion, time, colorsys
 
 # Get the parameters
 speed = float(hyperion.args.get('speed', 1.0))

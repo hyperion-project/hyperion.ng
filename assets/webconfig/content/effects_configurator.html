@@ -1,40 +1,46 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-lg-12">
-			<h2 class="page-header"><i class="fa fa-cogs fa-fw"></i><span lang="en" data-lang-token="main_menu_effectsconfigurator_token">Effects Configurator</span></h2> 
+			<h2 class="page-header"><i class="fa fa-cogs fa-fw"></i><span  data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></h2> 
 			<div class="introd">
-				<h4 lang="en" data-lang-token="effectsconfigurator_label_intro">Create out of the base effects new effects that are tuned to your liking. Depending on Effect there are options like color, speed, direction and more available.</h4>
-			</div>
+				<h4  data-i18n="effectsconfigurator_label_intro">Create out of the base effects new effects that are tuned to your liking. Depending on Effect there are options like color, speed, direction and more available.</h4>
 			<hr />
-			<div class="col-lg-12">
+			</div>
+			<div class="row">
+			<div class="col-xxl-6">
 				<div class="panel panel-default" >
 					<div class="panel-heading">
-						<label for="effectslist" lang="en" data-lang-token="effectsconfigurator_label_chooseeff">Choose Base-Effect:</label>
+						<label for="effectslist"  data-i18n="effectsconfigurator_label_chooseeff">Choose Base-Effect:</label>
 						<select id="effectslist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 					</div>
 					<div class="panel-body">
-						<div class="form-group row">
-							<label for="name-input" class="col-xs-2 col-form-label" lang="en" data-lang-token="effectsconfigurator_label_effectname">Effect name:</label>
-							<div class="col-xs-10">
-								<input class="form-control" type="text" id="name-input">
-							</div>
-						</div>
+						<table>
+							<tbody>
+								<tr>
+									<td class="ltd"><label for="name-input" data-i18n="effectsconfigurator_label_effectname">Effect name:</label></td>
+									<td class="itd"><input class="form-control" type="text" id="name-input" /></td>
+								</tr>
+							</tbody>
+						</table>						
 						<div id="editor_container" />
 					</div>
-					 <div class="panel-footer">
-						<button  class="btn btn-warning" id='btn_start_test' lang="en" data-lang-token="effectsconfigurator_button_starttest">Start Effecttest</button>
-						<button  class="btn btn-warning" id='btn_stop_test' lang="en" data-lang-token="effectsconfigurator_button_stoptest">Stop Effecttest</button>
-						<button  class="btn btn-danger" id='btn_cont_test' lang="en" data-lang-token="effectsconfigurator_button_conttest">Toggle continuous testing</button>
-						<button  class="btn btn-primary pull-right" id='btn_write' lang="en" data-lang-token="effectsconfigurator_button_saveeffect">Save Effect</button>
+					 <div class="panel-footer" id="eff_footer">
+						<button  class="btn btn-warning" id='btn_start_test' data-i18n="effectsconfigurator_button_starttest">Start Effecttest</button>
+						<button  class="btn btn-warning" id='btn_stop_test' data-i18n="effectsconfigurator_button_stoptest">Stop Effecttest</button>
+						<button  class="btn btn-danger" id='btn_cont_test' data-i18n="effectsconfigurator_button_conttest">Toggle continuous testing</button>
+						<button  class="btn btn-primary pull-right" id='btn_write' data-i18n="effectsconfigurator_button_saveeffect">Save Effect</button>
 					</div>
 				</div>
+			</div>
+			<div class="col-xxl-6">
 				<div class="panel panel-default" >
 					<div class="panel-heading">
-						<label for="effectsdellist" lang="en" data-lang-token="effectsconfigurator_label_deleffect">Effekt Delete:</label>
+						<label for="effectsdellist"  data-i18n="effectsconfigurator_label_deleffect">Delete Effect:</label>
 						<select id="effectsdellist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
-						<button  class="btn btn-primary pull-right" id='btn_delete' lang="en" data-lang-token="effectsconfigurator_button_deleffect">Delete Effect</button>
+						<button  class="btn btn-primary pull-right" id='btn_delete' data-i18n="effectsconfigurator_button_deleffect">Delete Effect</button>
 					</div>
 				</div>
+			</div>
 			</div>
 		</div>
 	</div>

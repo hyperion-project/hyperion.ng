@@ -31,10 +31,7 @@ void FramebufferWrapper::action()
 	// Grab frame into the allocated image
 	_grabber->grabFrame(_image);
 
-	if ( _forward )
-	{
-		emit emitImage(_priority, _image, _timeout_ms);
-	}
+	emit emitImage(_priority, _image, _timeout_ms);
 	
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);

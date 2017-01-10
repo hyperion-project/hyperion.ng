@@ -9,12 +9,13 @@
    set following values to your needs
  **************************************/
 
-// Number of leds in your strip. set to 1 and ANALOG_OUTPUT_ENABLED to true to activate analog only
+#define INITAL_LED_TEST_ENABLED true
+
+// Number of leds in your strip. set to "1" and ANALOG_OUTPUT_ENABLED to "true" to activate analog only
 #define NUM_LEDS 100
 
-
-#define SPI_LEDS false    // connection type. Set "true" for 4 wire and "false" for 3 Wire stripes.
-#define LED_TYPE WS2812B  // type of your led controller, possible values, see below
+// type of your led controller, possible values, see below
+#define LED_TYPE WS2812B 
 
 // 3 wire (pwm): NEOPIXEL BTM1829 TM1812 TM1809 TM1804 TM1803 UCS1903 UCS1903B UCS1904 UCS2903 WS2812 WS2852
 //               S2812B SK6812 SK6822 APA106 PL9823 WS2811 WS2813 APA104 WS2811_40 GW6205 GW6205_40 LPD1886 LPD1886_8BIT 
@@ -22,8 +23,10 @@
 
 // For 3 wire led stripes line Neopixel/Ws2812, which have a data line, ground, and power, you just need to define DATA_PIN.
 // For led chipsets that are SPI based (four wires - data, clock, ground, and power), both defines DATA_PIN and CLOCK_PIN are needed
-#define DATA_PIN  6
-#define CLOCK_PIN 13
+
+// DATA_PIN, or DATA_PIN, CLOCK_PIN
+#define LED_PINS 6        // 3 wire leds
+//#define LED_PINS 6, 13  // 4 wire leds
 
 #define COLOR_ORDER GRB  // colororder of the stripe, set RGB in hyperion
 
@@ -33,7 +36,7 @@
 // ATTENTION  this pin config is default for atmega328 based arduinos, others might work to
 //            if you have flickering analog leds this might be caused by unsynced pwm signals
 //            try other pins is more or less the only thing that helps
-#define ANALOG_OUTPUT_ENABLED true
+#define ANALOG_OUTPUT_ENABLED false
 #define ANALOG_MODE           ANALOG_MODE_LAST_LED  // use ANALOG_MODE_AVERAGE or ANALOG_MODE_LAST_LED
 #define ANALOG_GROUND_PIN     8                     // additional ground pin to make wiring a bit easier
 #define ANALOG_RED_PIN        9
@@ -48,7 +51,8 @@
 #define BRIGHTNESS 255                      // maximum brightness 0-255
 #define DITHER_MODE BINARY_DITHER           // BINARY_DITHER or DISABLE_DITHER
 #define COLOR_TEMPERATURE CRGB(255,255,255) // RGB value describing the color temperature
-#define COLOR_CORRECTION  CRGB(255,255,255) // RGB value describing the color correction
+#define COLOR_CORRECTION  TypicalLEDStrip   // predefined fastled color correction
+//#define COLOR_CORRECTION  CRGB(255,255,255) // or RGB value describing the color correction
 
 // Baudrate, higher rate allows faster refresh rate and more LEDs (defined in /etc/boblight.conf)
 #define serialRate 460800      // use 115200 for ftdi based boards
@@ -90,7 +94,7 @@ void showColor(const CRGB& led) {
 
 // switch of digital and analog leds
 void switchOff() {
-  #if ANALOG_ONLY == false
+  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
   memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
   FastLED.show();
   #endif
@@ -133,13 +137,9 @@ void setup() {
   }
 
   #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
-    #if SPI_LEDS == true
-    FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, COLOR_ORDER>(leds, ledCount);
-    #else
-    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, ledCount);
-    #endif
+    FastLED.addLeds<LED_TYPE, LED_PINS, COLOR_ORDER>(leds, ledCount);
   #endif
- 
+  
   // color adjustments
   FastLED.setBrightness ( BRIGHTNESS );
   FastLED.setTemperature( COLOR_TEMPERATURE );
@@ -147,11 +147,13 @@ void setup() {
   FastLED.setDither     ( DITHER_MODE );
 
   // initial RGB flash
+  #if INITAL_LED_TEST_ENABLED == true
   showColor(CRGB(255, 0, 0));  delay(400);
   showColor(CRGB(0, 255, 0));  delay(400);
   showColor(CRGB(0, 0, 255));  delay(400);
+  #endif
   showColor(CRGB(0, 0, 0));
-  
+
   Serial.begin(serialRate);
   Serial.print("Ada\n"); // Send "Magic Word" string to host
 
@@ -161,7 +163,7 @@ void setup() {
 
   // loop() is avoided as even that small bit of function overhead
   // has a measurable impact on this code's overall throughput.
-  while (true) {
+  for(;;) {
     // wait for first byte of Magic Word
     for (i = 0; i < sizeof prefix; ++i) {
       // If next byte is not in Magic Word, the start over

@@ -4,7 +4,7 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Output",
+			"title":"edt_dev_spec_outputPath_title",
 			"default" : "/dev/null"
 		}
 	},
