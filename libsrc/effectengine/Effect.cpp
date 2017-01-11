@@ -4,6 +4,7 @@
 // stl includes
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 // Qt includes
 #include <QDateTime>
@@ -188,10 +189,11 @@ PyObject *Effect::json2python(const QJsonValue &jsonData) const
 			return Py_BuildValue("");
 		case QJsonValue::Double:
 		{
-			if (rint(jsonData.toDouble()) != jsonData.toDouble())
-				Py_BuildValue("d", jsonData.toDouble());
-			else
-				return Py_BuildValue("i", jsonData.toInt());
+			if (std::rint(jsonData.toDouble()) != jsonData.toDouble())
+			{
+				return Py_BuildValue("d", jsonData.toDouble());
+			}
+			return Py_BuildValue("i", jsonData.toInt());
 		}
 		case QJsonValue::Bool:
 			return Py_BuildValue("i", jsonData.toBool() ? 1 : 0);

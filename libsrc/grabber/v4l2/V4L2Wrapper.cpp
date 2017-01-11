@@ -74,6 +74,12 @@ void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
+void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
+{
+	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
+}
+
+
 void V4L2Wrapper::set3D(VideoMode mode)
 {
 	_grabber.set3D(mode);
@@ -81,11 +87,7 @@ void V4L2Wrapper::set3D(VideoMode mode)
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
-	// forward to other hyperions
-	if ( _forward )
-	{
-		emit emitImage(_priority, image, _timeout_ms);
-	}
+	emit emitImage(_priority, image, _timeout_ms);
 
 	// process the new image
 	_processor->process(image, _ledColors);

@@ -40,15 +40,6 @@
 
 #include <utils/Logger.h>
 
-	// ----------------- DEPRECATED BEGIN -----------------
-	// NOTE: Remove this code block when the conversion have been completed from JsonCpp to QTJson
-
-	#include <json/json.h>
-	#include <istream>
-	#include <fstream>
-
-	// ----------------- DEPRECATED END -----------------
-
 #include <kodivideochecker/KODIVideoChecker.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
@@ -62,7 +53,8 @@ public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const QString & configFile);
+	int tryLoadConfig(const QString & configFile, const int schemaVersion);
+	void loadConfig(const QString & configFile, const int neededConfigVersion);
 	void run();
 
 	void startInitialEffect();
@@ -81,7 +73,6 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 
 	Logger*             _log;
-	Json::Value         _config; // DEPRECATED | Remove this only when the conversion have been completed from JsonCpp to QTJson
 	QJsonObject         _qconfig;
 	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;

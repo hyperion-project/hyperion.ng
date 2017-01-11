@@ -4,10 +4,16 @@
 
 namespace FileUtils {
 	
-std::string getBaseName( std::string sourceFile)
+QString getBaseName( QString sourceFile)
 {
-	QFileInfo fi( sourceFile.c_str() );
-	return fi.fileName().toStdString();
+	QFileInfo fi( sourceFile );
+	return fi.fileName();
+}
+ 
+QString getDirName( QString sourceFile)
+{
+	QFileInfo fi( sourceFile );
+	return fi.path();
 }
  
 

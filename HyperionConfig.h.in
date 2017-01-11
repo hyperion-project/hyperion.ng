@@ -9,9 +9,6 @@
 // Define to enable the spi-device
 #cmakedefine ENABLE_SPIDEV
 
-// Define to enable the ws2812b-pwm-device
-#cmakedefine ENABLE_WS2812BPWM
-
 // Define to enable the ws281x-pwm-via-dma-device using jgarff's library
 #cmakedefine ENABLE_WS281XPWM
 
@@ -33,6 +30,9 @@
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
 
+// Define version id of current config
+#define CURRENT_CONFIG_VERSION ${CURRENT_CONFIG_VERSION}
+
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
 
@@ -42,3 +42,5 @@
 #define HYPERION_VERSION       "${HYPERION_VERSION_MAJOR}.${HYPERION_VERSION_MINOR}.${HYPERION_VERSION_PATCH}"
 
 #define HYPERION_JSON_VERSION "1.0.0"
+
+

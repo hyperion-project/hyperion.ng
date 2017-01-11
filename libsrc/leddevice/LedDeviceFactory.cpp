@@ -45,26 +45,21 @@
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
 #include "LedDeviceAtmo.h"
-#include "LedDeviceAdalightApa102.h"
 #include "LedDeviceAtmoOrb.h"
 #include "LedDeviceUdpH801.h"
-
-#ifdef ENABLE_WS2812BPWM
-	#include "LedDeviceWS2812b.h"
-#endif
 
 #ifdef ENABLE_WS281XPWM
 	#include "LedDeviceWS281x.h"
 #endif
 
-LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const int ledCount)
+LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const int ledCount)
 {
 	Logger * log = Logger::getInstance("LedDevice");
-	std::stringstream ss;
-	ss << deviceConfig;
-	Info(log, "configuration: %s ", ss.str().c_str());
+	QJsonDocument config(deviceConfig);
+	QString ss(config.toJson(QJsonDocument::Indented));
+	Info(log, "configuration: %s ", ss.toUtf8().constData());
 
-	std::string type = deviceConfig.get("type", "UNSPECIFIED").asString();
+	std::string type = deviceConfig["type"].toString("UNSPECIFIED").toStdString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
 	// set amount of led to leddevice
@@ -73,7 +68,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower().toStdString(), LedDevice##className::construct);
 	// rs232 devices
 	REGISTER(Adalight);
-	REGISTER(AdalightApa102);
 	REGISTER(Sedu);
 	REGISTER(DMX);
 	REGISTER(Tpm2);
@@ -91,9 +85,6 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	#endif
 	
 	// pwm devices
-	#ifdef ENABLE_WS2812BPWM
-	REGISTER(WS2812b);
-	#endif
 	#ifdef ENABLE_WS281XPWM
 	REGISTER(WS281x);
 	#endif
@@ -148,8 +139,8 @@ LedDevice * LedDeviceFactory::construct(const Json::Value & deviceConfig, const 
 	{
 		
 		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
-		const Json::Value dummyDeviceConfig;
-		device = LedDeviceFile::construct(Json::nullValue);
+		const QJsonObject dummyDeviceConfig;
+		device = LedDeviceFile::construct(QJsonObject());
 	}
 
 	device->open();

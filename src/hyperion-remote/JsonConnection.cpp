@@ -148,8 +148,9 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 		}
 		
 		effect["args"] = doc.object();
-		command["effect"] = effect;
 	}
+	
+	command["effect"] = effect;
 	
 	if (duration > 0)
 	{
@@ -158,6 +159,67 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 
 	// send command message
 	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
+{
+    qDebug() << "Create effect " << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("create-effect");
+	effect["name"] = effectName;
+	effect["script"] = effectScript;
+	
+	if (effectArgs.size() > 0)
+	{
+		QJsonParseError error;
+		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
+		
+		if (error.error != QJsonParseError::NoError)
+		{
+			// report to the user the failure and their locations in the document.
+			int errorLine(0), errorColumn(0);
+			
+			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
+			{
+				++errorColumn;
+				if(effectArgs.at(i) == '\n' )
+				{
+					errorColumn = 0;
+					++errorLine;
+				}
+			}
+			
+			std::stringstream sstream;
+			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+			throw std::runtime_error(sstream.str());
+		}
+		
+		effect["args"] = doc.object();
+	}
+
+	// send command message
+	QJsonObject reply = sendMessage(effect);
+
+	// parse reply message
+	parseReply(reply);
+}
+
+void JsonConnection::deleteEffect(const QString &effectName)
+{
+    qDebug() << "Delete effect configuration" << effectName;
+
+	// create command
+	QJsonObject effect;
+	effect["command"] = QString("delete-effect");
+	effect["name"] = effectName;
+	
+	// send command message
+	QJsonObject reply = sendMessage(effect);
 
 	// parse reply message
 	parseReply(reply);
@@ -339,102 +401,21 @@ void JsonConnection::setConfig(const QString &jsonString)
 	parseReply(reply);
 }
 
-void JsonConnection::setTransform(const QString &transformId,
-								  double *saturation,
-								  double *value,
-								  double *saturationL,
-								  double *luminance,
-								  double *luminanceMin,
-								  QColor threshold,
-								  QColor gamma,
-								  QColor blacklevel,
-								  QColor whitelevel)
-{
-	qDebug() << "Set color transforms";
-
-	// create command
-	QJsonObject command, transform;
-	command["command"] = QString("transform");
-
-	if (!transformId.isNull())
-	{
-		transform["id"] = transformId;
-	}
-
-	if (saturation != nullptr)
-	{
-		transform["saturationGain"] = *saturation;
-	}
-
-	if (value != nullptr)
-	{
-		transform["valueGain"] = *value;
-	}
-	
-	if (saturationL != nullptr)
-	{
-		transform["saturationLGain"] = *saturationL;
-	}
-
-	if (luminance != nullptr)
-	{
-		transform["luminanceGain"] = *luminance;
-	}
-	
-	if (luminanceMin != nullptr)
-	{
-		transform["luminanceMinimum"] = *luminanceMin;
-	}
-	
-	if (threshold.isValid())
-	{
-		QJsonArray t;
-		t.append(threshold.red());
-		t.append(threshold.green());
-		t.append(threshold.blue());
-		transform["threshold"] = t;
-	}
-
-	if (gamma.isValid())
-	{
-		QJsonArray g;
-		g.append(gamma.red());
-		g.append(gamma.green());
-		g.append(gamma.blue());
-		transform["gamma"] = g;
-	}
-
-	if (blacklevel.isValid())
-	{
-		QJsonArray b;
-		b.append(blacklevel.red());
-		b.append(blacklevel.green());
-		b.append(blacklevel.blue());
-		transform["blacklevel"] = b;
-	}
-
-	if (whitelevel.isValid())
-	{
-		QJsonArray w;
-		w.append(whitelevel.red());
-		w.append(whitelevel.green());
-		w.append(whitelevel.blue());
-		transform["whitelevel"] = w;
-	}
-	
-	command["transform"] = transform;
-
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
-}
-
-void JsonConnection::setAdjustment(const QString &adjustmentId,
-								   const QColor & redAdjustment,
-								   const QColor & greenAdjustment,
-								   const QColor & blueAdjustment)
+void JsonConnection::setAdjustment(
+		const QString & adjustmentId,
+		const QColor & redAdjustment,
+		const QColor & greenAdjustment,
+		const QColor & blueAdjustment,
+		const QColor & cyanAdjustment,
+		const QColor & magentaAdjustment,
+		const QColor & yellowAdjustment,
+		const QColor & whiteAdjustment,
+		const QColor & blackAdjustment,
+		double *gammaR,
+		double *gammaG,
+		double *gammaB,
+		double *brightnessMin,
+		double *brightness)
 {
 	qDebug() << "Set color adjustments";
 
@@ -473,13 +454,84 @@ void JsonConnection::setAdjustment(const QString &adjustmentId,
 		blue.append(blueAdjustment.blue());
 		adjust["blueAdjust"] = blue;
 	}
-	
+	if (cyanAdjustment.isValid())
+	{
+		QJsonArray cyan;
+		cyan.append(cyanAdjustment.red());
+		cyan.append(cyanAdjustment.green());
+		cyan.append(cyanAdjustment.blue());
+		adjust["cyanAdjust"] = cyan;
+	}
+	if (magentaAdjustment.isValid())
+	{
+		QJsonArray magenta;
+		magenta.append(magentaAdjustment.red());
+		magenta.append(magentaAdjustment.green());
+		magenta.append(magentaAdjustment.blue());
+		adjust["magentaAdjust"] = magenta;
+	}
+	if (yellowAdjustment.isValid())
+	{
+		QJsonArray yellow;
+		yellow.append(yellowAdjustment.red());
+		yellow.append(yellowAdjustment.green());
+		yellow.append(yellowAdjustment.blue());
+		adjust["yellowAdjust"] = yellow;
+	}
+	if (whiteAdjustment.isValid())
+	{
+		QJsonArray white;
+		white.append(whiteAdjustment.red());
+		white.append(whiteAdjustment.green());
+		white.append(whiteAdjustment.blue());
+		adjust["whiteAdjust"] = white;
+	}
+	if (blackAdjustment.isValid())
+	{
+		QJsonArray black;
+		black.append(blackAdjustment.red());
+		black.append(blackAdjustment.green());
+		black.append(blackAdjustment.blue());
+		adjust["blackAdjust"] = black;
+	}
+	if (brightnessMin != nullptr)
+	{
+		adjust["brightnessMin"] = *brightnessMin;
+	}
+	if (brightness != nullptr)
+	{
+		adjust["brightness"] = *brightness;
+	}
+	if (gammaR != nullptr)
+	{
+		adjust["gammaR"] = *gammaR;
+	}
+	if (gammaG != nullptr)
+	{
+		adjust["gammaG"] = *gammaG;
+	}
+	if (gammaB != nullptr)
+	{
+		adjust["gammaB"] = *gammaB;
+	}
+
 	command["adjustment"] = adjust;
 
 	// send command message
 	QJsonObject reply = sendMessage(command);
 
 	// parse reply message
+	parseReply(reply);
+}
+
+
+void JsonConnection::setLedMapping(QString mappingType)
+{
+	QJsonObject command;
+	command["command"] = QString("processing");
+	command["mappingType"] = mappingType;
+
+	QJsonObject reply = sendMessage(command);
 	parseReply(reply);
 }
 

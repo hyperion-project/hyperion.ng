@@ -1,0 +1,16 @@
+{
+	"type":"object",
+	"script" : "traces.py",
+	"title":"edt_eff_traces_header_title",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"edt_eff_speed_title",
+			"default": 1.0,
+			"minimum" : 0.1,
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties": false
+}

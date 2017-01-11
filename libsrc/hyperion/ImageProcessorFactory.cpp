@@ -9,13 +9,17 @@ ImageProcessorFactory& ImageProcessorFactory::getInstance()
 	return instance;
 }
 
-void ImageProcessorFactory::init(const LedString& ledString, const QJsonObject & blackborderConfig)
+void ImageProcessorFactory::init(const LedString& ledString, const QJsonObject & blackborderConfig, int mappingType)
 {
 	_ledString = ledString;
 	_blackborderConfig = blackborderConfig;
+	_mappingType = mappingType;
 }
 
 ImageProcessor* ImageProcessorFactory::newImageProcessor() const
 {
-	return new ImageProcessor(_ledString, _blackborderConfig);
+	ImageProcessor* ip = new ImageProcessor(_ledString, _blackborderConfig);
+	ip->setLedMappingType(_mappingType);
+
+	return ip;
 }

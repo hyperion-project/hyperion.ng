@@ -21,12 +21,6 @@ echo "--- hyperion ambient light postinstall ---"
 echo "- install configuration template"
 mkdir -p /etc/hyperion
 
-if [ ! -e "/etc/hyperion/hyperion.config.json" ]
-then
-	echo "install default config to /etc/hyperion"
-	/usr/bin/hyperiond --export-config /etc/hyperion/hyperion.config.json
-fi
-
 HYPERION_RUNNING=false
 pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true
 
@@ -39,30 +33,30 @@ then
 	echo "- init deamon: systemd"
 	# systemd
 	$HYPERION_RUNNING && systemctl stop hyperion 2> /dev/null
-	install_file /usr/share/hyperion/service/hyperion.systemd.sh /etc/systemd/system/hyperion.service || SERVICE_POSTFIX=".new"
-	systemctl -q enable hyperion.service
+	install_file /usr/share/hyperion/service/hyperion.systemd.sh /etc/systemd/system/hyperiond.service || SERVICE_POSTFIX=".new"
+	systemctl -q enable hyperiond.service
 	start_msg="systemctl start hyperion"
-	$HYPERION_RUNNING && systemctl start hyperion
+	$HYPERION_RUNNING && systemctl start hyperiond
 
 elif [ -e /sbin/initctl ]
 then
 	echo "- init deamon: upstart"
 	# upstart
-	$HYPERION_RUNNING && initctl stop hyperion
-	install_file /usr/share/hyperion/service/hyperion.initctl.sh /etc/init/hyperion.conf || SERVICE_POSTFIX=".new"
+	$HYPERION_RUNNING && initctl stop hyperiond
+	install_file /usr/share/hyperion/service/hyperiond.initctl.sh /etc/init/hyperion.conf || SERVICE_POSTFIX=".new"
 	initctl reload-configuration
 	start_msg="initctl start hyperion"
-	$HYPERION_RUNNING && initctl start hyperion
+	$HYPERION_RUNNING && initctl start hyperiond
 
 else
 	echo "- init deamon: sysV"
 	# sysV
-	$HYPERION_RUNNING && service hyperion stop 2>/dev/null
-	install_file /usr/share/hyperion/service/hyperion.init.sh /etc/init.d/hyperion || SERVICE_POSTFIX=".new"
-	chmod +x /etc/init.d/hyperion
-	update-rc.d hyperion defaults 98 02
+	$HYPERION_RUNNING && service hyperiond stop 2>/dev/null
+	install_file /usr/share/hyperion/service/hyperion.init.sh /etc/init.d/hyperiond || SERVICE_POSTFIX=".new"
+	chmod +x /etc/init.d/hyperiond
+	update-rc.d hyperiond defaults 98 02
 	start_msg="service hyperion start"
-	$HYPERION_RUNNING && service hyperion start
+	$HYPERION_RUNNING && service hyperiond start
 fi
 
 echo "-----------------------------------------------------------------------------"

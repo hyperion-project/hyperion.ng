@@ -28,28 +28,30 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::init(const Json::Value &deviceConfig, std::string defaultHost)
+bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
 {
-	QString host = QString::fromStdString(deviceConfig.get("host",defaultHost).asString());
+	LedDevice::init(deviceConfig);
+
+	QString host = deviceConfig["host"].toString(QString::fromStdString(defaultHost));
 	
 	if (_address.setAddress(host) )
 	{
-		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].asString().c_str());
+		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
 	}
 	else
 	{
-		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].asString().c_str());
+		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
 		QHostInfo info = QHostInfo::fromName(host);
 		if (info.addresses().isEmpty())
 		{
-			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].asString().c_str());
+			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
 			throw std::runtime_error("invalid target address");
 		}
-		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].asString().c_str());
+		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
 		_address = info.addresses().first();
 	}
 
-	_port = deviceConfig.get("port", _port).asUInt();
+	_port = deviceConfig["port"].toInt(_port);
 	if ( _port<=0 || _port > 65535)
 	{
 		throw std::runtime_error("invalid target port");
@@ -57,7 +59,7 @@ bool ProviderUdp::init(const Json::Value &deviceConfig, std::string defaultHost)
 	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
-	_LatchTime_ns = deviceConfig.get("latchtime", _LatchTime_ns).asInt();
+	_LatchTime_ns = deviceConfig["latchtime"].toInt(_LatchTime_ns);
 
 	return true;
 }
@@ -94,4 +96,3 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 
 	return retVal;
 }
-

@@ -19,10 +19,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceRawHID(const Json::Value &deviceConfig);
+	LedDeviceRawHID(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 private slots:
 	/// Write the last data to the leds again
@@ -36,9 +36,4 @@ private:
 	/// @return Zero on succes else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues);
-
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// The RawHID device will switch off when it does not receive data at least
-	/// every 15 seconds
-	QTimer _timer;
 };

@@ -1,0 +1,58 @@
+{
+	"type":"object",
+	"script" : "police.py",
+	"title":"edt_eff_police_header_title",
+	"required":true,
+	"properties":{
+		"color_one": {
+			"type": "array",
+			"title":"edt_eff_colorone_title",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 1
+		},
+		"color_two": {
+			"type": "array",
+			"title":"edt_eff_colortwo_title",
+			"format":"colorpicker",
+			"default": [0,0,255],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
+		"colors_count": {
+			"type": "integer",
+			"title":"edt_eff_colorcount_title",
+			"default": 10,
+			"minimum" : 0,
+			"propertyOrder" : 3
+		},
+		"rotation-time": {
+			"type": "number",
+			"title":"edt_eff_rotationtime_title",
+			"default": 2.0,
+			"minimum" : 0.1,
+			"append" : "edt_append_s",
+			"propertyOrder" : 4
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"edt_eff_reversedirection_title",
+			"default": false,
+			"propertyOrder" : 5
+		}
+	},
+	"additionalProperties": false
+}

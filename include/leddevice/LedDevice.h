@@ -2,6 +2,9 @@
 
 #include <QObject>
 #include <QString>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 // STL incldues
 #include <vector>
@@ -9,17 +12,18 @@
 #include <map>
 #include <algorithm>
 
+#include <QTimer>
+
 // Utility includes
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgbw.h>
 #include <utils/RgbToRgbw.h>
 #include <utils/Logger.h>
 #include <functional>
-#include <json/json.h>
 
 class LedDevice;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const Json::Value& );
+typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
 typedef std::map<std::string,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
@@ -64,6 +68,7 @@ protected:
 	/// @return Zero on success else negative
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
@@ -79,4 +84,16 @@ protected:
 	static int _ledCount;
 	static int _ledRGBCount;
 	static int _ledRGBWCount;
+
+	/// Timer object which makes sure that led data is written at a minimum rate
+	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
+	QTimer        _refresh_timer;
+	unsigned int _refresh_timer_interval;
+	
+protected slots:
+	/// Write the last data to the leds again
+	int rewriteLeds();
+
+private:
+	std::vector<ColorRgb> _ledValues;
 };

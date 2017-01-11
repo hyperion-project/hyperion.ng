@@ -1,17 +1,17 @@
 #include "LedDeviceLpd8806.h"
 
-LedDeviceLpd8806::LedDeviceLpd8806(const Json::Value &deviceConfig)
+LedDeviceLpd8806::LedDeviceLpd8806(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceLpd8806::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceLpd8806(deviceConfig);
 }
 
-bool LedDeviceLpd8806::init(const Json::Value &deviceConfig)
+bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 {
 	ProviderSpi::init(deviceConfig);
 
@@ -21,7 +21,7 @@ bool LedDeviceLpd8806::init(const Json::Value &deviceConfig)
 	_ledBuffer.resize(messageLength, 0x00);
 
 	// Perform an initial reset to start accepting data on the first led
-	return writeBytes(clearSize, _ledBuffer.data()) >= 0;
+	return writeBytes(clearSize, _ledBuffer.data());
 }
 
 int LedDeviceLpd8806::write(const std::vector<ColorRgb> &ledValues)
@@ -37,5 +37,5 @@ int LedDeviceLpd8806::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	// Write the data
-	return (writeBytes(_ledBuffer.size(), _ledBuffer.data()) < 0) ? -1 : 0;
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

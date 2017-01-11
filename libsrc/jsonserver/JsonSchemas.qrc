@@ -6,14 +6,15 @@
         <file alias="schema-serverinfo">schema/schema-serverinfo.json</file>
         <file alias="schema-clear">schema/schema-clear.json</file>
         <file alias="schema-clearall">schema/schema-clearall.json</file>
-        <file alias="schema-transform">schema/schema-transform.json</file>
-        <file alias="schema-correction">schema/schema-correction.json</file>
-        <file alias="schema-temperature">schema/schema-temperature.json</file>
         <file alias="schema-adjustment">schema/schema-adjustment.json</file>
         <file alias="schema-effect">schema/schema-effect.json</file>
+        <file alias="schema-create-effect">schema/schema-create-effect.json</file>
+        <file alias="schema-delete-effect">schema/schema-delete-effect.json</file>
         <file alias="schema-sourceselect">schema/schema-sourceselect.json</file>
         <file alias="schema-config">schema/schema-config.json</file>
         <file alias="schema-componentstate">schema/schema-componentstate.json</file>
         <file alias="schema-ledcolors">schema/schema-ledcolors.json</file>
+        <file alias="schema-logging">schema/schema-logging.json</file>
+        <file alias="schema-processing">schema/schema-processing.json</file>
     </qresource>
 </RCC>

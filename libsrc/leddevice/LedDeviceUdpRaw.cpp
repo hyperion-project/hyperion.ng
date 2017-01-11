@@ -1,6 +1,6 @@
 #include "LedDeviceUdpRaw.h"
 
-LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
+LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
 	_LatchTime_ns = 500000;
@@ -8,7 +8,7 @@ LedDeviceUdpRaw::LedDeviceUdpRaw(const Json::Value &deviceConfig)
 	init(deviceConfig);
 }
 
-LedDevice* LedDeviceUdpRaw::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpRaw(deviceConfig);
 }

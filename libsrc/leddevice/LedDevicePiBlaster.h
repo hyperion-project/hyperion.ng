@@ -15,7 +15,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePiBlaster(const Json::Value &deviceConfig);
+	LedDevicePiBlaster(const QJsonObject &deviceConfig);
 
 	virtual ~LedDevicePiBlaster();
 
@@ -24,10 +24,10 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const Json::Value &deviceConfig);
+	bool init(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 	
 	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open

@@ -9,7 +9,7 @@
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
 
-LedDevicePiBlaster::LedDevicePiBlaster(const Json::Value &deviceConfig)
+LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 	: _fid(nullptr)
 {
 	signal(SIGPIPE,  SIG_IGN);
@@ -40,22 +40,25 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 }
 
 
-bool LedDevicePiBlaster::init(const Json::Value &deviceConfig)
+bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
-	_deviceName             = deviceConfig.get("output",  "").asString();
-	Json::Value gpioMapping = deviceConfig.get("gpiomap", Json::nullValue);
+	LedDevice::init(deviceConfig);
 
-	if (gpioMapping.isNull())
+	_deviceName            = deviceConfig["output"].toString("/dev/pi-blaster").toStdString();
+	QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
+
+	if (gpioMapping.isEmpty())
 	{
 		throw std::runtime_error("Piblaster: no gpiomap defined.");
 	}
 
 	// walk through the json config and populate the mapping tables
-	for (const Json::Value& gpioMap : gpioMapping)
+	for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
 	{
-		const int gpio = gpioMap.get("gpio",-1).asInt();
-		const int ledindex = gpioMap.get("ledindex",-1).asInt();
-		const std::string ledcolor = gpioMap.get("ledcolor","z").asString();
+		const QJsonObject value = (*gpioArray).toObject();
+		const int gpio = value["gpio"].toInt(-1);
+		const int ledindex = value["ledindex"].toInt(-1);
+		const std::string ledcolor = value["ledcolor"].toString("z").toStdString();
 
 		// ignore missing/invalid settings
 		if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
@@ -69,7 +72,7 @@ bool LedDevicePiBlaster::init(const Json::Value &deviceConfig)
 	return true;
 }
 
-LedDevice* LedDevicePiBlaster::construct(const Json::Value &deviceConfig)
+LedDevice* LedDevicePiBlaster::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDevicePiBlaster(deviceConfig);
 }
@@ -153,4 +156,3 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 
 	return 0;
 }
-

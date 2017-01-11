@@ -32,7 +32,7 @@ public:
 	/// @param[in] ledString  The led configuration
 	/// @param[in] blackborderConfig Contains the blackborder configuration
 	///
-	void init(const LedString& ledString, const QJsonObject &blackborderConfig);
+	void init(const LedString& ledString, const QJsonObject &blackborderConfig, int mappingType);
 
 	///
 	/// Creates a new ImageProcessor. The onwership of the processor is transferred to the caller.
@@ -45,6 +45,9 @@ private:
 	/// The Led-string specification
 	LedString _ledString;
 
-	// Reference to the blackborder json configuration values
+	/// Reference to the blackborder json configuration values
 	QJsonObject _blackborderConfig;
+
+	// image 2 led mapping type
+	int _mappingType;
 };

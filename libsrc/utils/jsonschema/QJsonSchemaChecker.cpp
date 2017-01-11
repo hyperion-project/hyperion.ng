@@ -110,7 +110,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
  		else if (attribute == "id")
  			; // references have already been collected
  		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format"
-			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append")
+			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append" || attribute == "step" || attribute == "access")
  			; // nothing to do.
 		else
 		{
@@ -274,7 +274,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 		std::ostringstream oss;
 		oss << "[" << i << "]";
 		_currentPath.push_back(oss.str());
-		validate(jArray[i].toObject(), schema);
+		validate(jArray[i], schema);
 		_currentPath.pop_back();
 	}
 }

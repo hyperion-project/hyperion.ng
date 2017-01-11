@@ -25,7 +25,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const Json::Value &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -46,14 +46,11 @@ protected:
 	 * @param[in[ size The length of the data
 	 * @param[in] data The data
 	 *
-	 * @return Zero on succes else negative
+	 * @return Zero on success else negative
 	 */
 	int writeBytes(const qint64 size, const uint8_t *data);
 
 	void closeDevice();
-
-	/// The RS232 serial-device
-	QSerialPort _rs232Port;
 
 private slots:
 	/// Write the last data to the leds again
@@ -79,7 +76,7 @@ protected:
 	int _delayAfterConnect_ms;
 
 	/// The RS232 serial-device
-//	QSerialPort _rs232Port;
+	QSerialPort _rs232Port;
 
 	bool _blockedForDelay;
 	
@@ -89,9 +86,4 @@ protected:
 	qint64 _bytesWritten;
 	qint64 _frameDropCounter;
 	QSerialPort::SerialPortError _lastError;
-	
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// e.g. Adalight device will switch off when it does not receive data at least
-	/// every 15 seconds
-	QTimer _timer;
 };

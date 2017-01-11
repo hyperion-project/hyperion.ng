@@ -1,17 +1,17 @@
 #include "LedDeviceAPA102.h"
 
-LedDeviceAPA102::LedDeviceAPA102(const Json::Value &deviceConfig)
+LedDeviceAPA102::LedDeviceAPA102(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceAPA102::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceAPA102(deviceConfig);
 }
 
-bool LedDeviceAPA102::init(const Json::Value &deviceConfig)
+bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 {
 	ProviderSpi::init(deviceConfig);
 	_latchTime_ns = 500000; // fixed latchtime

@@ -1,17 +1,17 @@
 #include "LedDeviceP9813.h"
 
-LedDeviceP9813::LedDeviceP9813(const Json::Value &deviceConfig)
+LedDeviceP9813::LedDeviceP9813(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_deviceReady = init(deviceConfig);
 }
 
-LedDevice* LedDeviceP9813::construct(const Json::Value &deviceConfig)
+LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceP9813(deviceConfig);
 }
 
-bool LedDeviceP9813::init(const Json::Value &deviceConfig)
+bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 {
 	ProviderSpi::init(deviceConfig);
 

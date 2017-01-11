@@ -5,8 +5,8 @@
 	{
 		"rotation-time" : 3.0,
 		"sleep-time"    : 0.05,
-		"brightness"    : 1.0,
-		"saturation"    : 1.0,
+		"brightness"    : 100,
+		"saturation"    : 100,
 		"reverse"       : false,
 		"color"         : [255,255,255],
 		"random-color"  : false

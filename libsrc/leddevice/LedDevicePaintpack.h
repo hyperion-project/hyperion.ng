@@ -14,10 +14,10 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePaintpack(const Json::Value &deviceConfig);
+	LedDevicePaintpack(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
-	static LedDevice* construct(const Json::Value &deviceConfig);
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 private:
 	///
