@@ -9,6 +9,9 @@
 		"title":"edt_eff_whichleds_title",
 		"enum" : ["all","all-together","list"],
 		"default" : "all",
+		"options" : {
+			"enum_titles" : ["edt_eff_enum_all", "edt_eff_enum_all-together", "edt_eff_enum_list"]
+		},
 		"propertyOrder" : 1
 	},
 	"ledlist": {
@@ -34,19 +37,20 @@
 	"colorShift": {
 		"type": "number",
 		"title":"edt_eff_colorshift_title",
-		"default": 0.01,
-		"minimum" : 0.00,
-        "maximum": 0.3,
-		"step": 0.01,
+		"default": 1,
+		"minimum" : 0,
+        "maximum": 30,
+		"append" : "edt_append_percent",
 		"propertyOrder" : 4
 	},
 	"brightness": {
 		"type": "number",
 		"title":"edt_eff_brightness_title",
-		"default": 1,
-		"minimum" : 0.01,
-		"maximum": 1,
-		"step": 0.1,
+		"default": 100,
+		"minimum" : 1,
+		"maximum": 100,
+		"step" : 10,
+		"append" : "edt_append_percent",
 		"propertyOrder" : 5
 	},
 	"sleepTime": {

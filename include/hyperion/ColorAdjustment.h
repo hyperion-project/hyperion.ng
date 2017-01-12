@@ -5,6 +5,7 @@
 
 // Utils includes
 #include <utils/RgbChannelAdjustment.h>
+#include <utils/RgbTransform.h>
 
 class ColorAdjustment
 {
@@ -29,4 +30,6 @@ public:
 	RgbChannelAdjustment _rgbMagentaAdjustment;
 	/// The YELLOW (RGB-Channel) adjustment
 	RgbChannelAdjustment _rgbYellowAdjustment;
+
+	RgbTransform _rgbTransform;
 };

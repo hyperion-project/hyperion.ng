@@ -8,6 +8,7 @@
 
 MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
+	, _log(Logger::getInstance("ColorAdjust"))
 {
 }
 
@@ -43,10 +44,18 @@ bool MultiColorAdjustment::verifyAdjustments() const
 {
 	for (unsigned iLed=0; iLed<_ledAdjustments.size(); ++iLed)
 	{
-		if (_ledAdjustments[iLed] == nullptr)
+		ColorAdjustment * adjustment = _ledAdjustments[iLed];
+
+		if (adjustment == nullptr)
 		{
-			Warning(Logger::getInstance("ColorAdjust"), "No adjustment set for %d", iLed);
+			Error(_log, "No adjustment set for %d", iLed);
 			return false;
+		}
+		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBrightnessMin() )
+		{
+			adjustment->_rgbTransform.setBrightnessMin(0);
+			adjustment->_rgbTransform.setBrightness(0.5);
+			Warning(_log, "Adjustment for %d has invalid Brightness values, values set to default. (brightnessMin is bigger then brightness)", iLed);
 		}
 	}
 	return true;
@@ -84,20 +93,26 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 			continue;
 		}
 		ColorRgb& color = ledColors[i];
+
+		uint8_t ored   = color.red;
+		uint8_t ogreen = color.green;
+		uint8_t oblue  = color.blue;
 		
-		uint32_t nrng = (uint32_t) (255-color.red)*(255-color.green);
-		uint32_t rng  = (uint32_t) (color.red)    *(255-color.green);
-		uint32_t nrg  = (uint32_t) (255-color.red)*(color.green);
-		uint32_t rg   = (uint32_t) (color.red)    *(color.green);
+		adjustment->_rgbTransform.transform(ored,ogreen,oblue);
+
+		uint32_t nrng = (uint32_t) (255-ored)*(255-ogreen);
+		uint32_t rng  = (uint32_t) (ored)    *(255-ogreen);
+		uint32_t nrg  = (uint32_t) (255-ored)*(ogreen);
+		uint32_t rg   = (uint32_t) (ored)    *(ogreen);
 		
-		uint8_t black   = nrng*(255-color.blue)/65025;
-		uint8_t red     = rng *(255-color.blue)/65025;
-		uint8_t green   = nrg *(255-color.blue)/65025;
-		uint8_t blue    = nrng*(color.blue)    /65025;
-		uint8_t cyan    = nrg *(color.blue)    /65025;
-		uint8_t magenta = rng *(color.blue)    /65025;
-		uint8_t yellow  = rg  *(255-color.blue)/65025;
-		uint8_t white   = rg  *(color.blue)    /65025;
+		uint8_t black   = nrng*(255-oblue)/65025;
+		uint8_t red     = rng *(255-oblue)/65025;
+		uint8_t green   = nrg *(255-oblue)/65025;
+		uint8_t blue    = nrng*(oblue)    /65025;
+		uint8_t cyan    = nrg *(oblue)    /65025;
+		uint8_t magenta = rng *(oblue)    /65025;
+		uint8_t yellow  = rg  *(255-oblue)/65025;
+		uint8_t white   = rg  *(oblue)    /65025;
 		
 		uint8_t OR = adjustment->_rgbBlackAdjustment.getAdjustmentR(black);
 		uint8_t OG = adjustment->_rgbBlackAdjustment.getAdjustmentG(black);
@@ -130,7 +145,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
 		uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
 		uint8_t WB = adjustment->_rgbWhiteAdjustment.getAdjustmentB(white);
-		
+
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;
 		color.blue  = OB + RB + GB + BB + CB + MB + YB + WB;

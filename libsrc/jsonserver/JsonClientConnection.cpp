@@ -32,8 +32,8 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/MessageForwarder.h>
-#include <hyperion/ColorTransform.h>
 #include <hyperion/ColorAdjustment.h>
+#include <utils/ColorSys.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
 #include <HyperionConfig.h>
@@ -305,8 +305,6 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 			handleClearCommand(message, command, tan);
 		else if (command == "clearall")
 			handleClearallCommand(message, command, tan);
-		else if (command == "transform")
-			handleTransformCommand(message, command, tan);
 		else if (command == "adjustment")
 			handleAdjustmentCommand(message, command, tan);
 		else if (command == "sourceselect")
@@ -392,7 +390,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -597,7 +595,9 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}
 		
-		item["owner"] = QString("unknown");
+		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
+		item["componentId"] = priorityInfo.componentId;
+		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
 		foreach(auto const &entry, priorityRegister)
@@ -627,56 +627,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	info["priorities"] = priorities;
 	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 	
-	// collect transform information
-	QJsonArray transformArray;
-	for (const std::string& transformId : _hyperion->getTransformIds())
-	{
-		const ColorTransform * colorTransform = _hyperion->getTransform(transformId);
-		if (colorTransform == nullptr)
-		{
-			Error(_log, "Incorrect color transform id: %s", transformId.c_str());
-			continue;
-		}
 
-		QJsonObject transform;
-		transform["id"] = QString::fromStdString(transformId);
-
-		transform["saturationGain"] = colorTransform->_hsvTransform.getSaturationGain();
-		transform["valueGain"]      = colorTransform->_hsvTransform.getValueGain();
-		transform["saturationLGain"] = colorTransform->_hslTransform.getSaturationGain();
-		transform["luminanceGain"]   = colorTransform->_hslTransform.getLuminanceGain();
-		transform["luminanceMinimum"]   = colorTransform->_hslTransform.getLuminanceMinimum();
-		
-
-		QJsonArray threshold;
-		threshold.append(colorTransform->_rgbRedTransform.getThreshold());
-		threshold.append(colorTransform->_rgbGreenTransform.getThreshold());
-		threshold.append(colorTransform->_rgbBlueTransform.getThreshold());
-		transform.insert("threshold", threshold);
-
-		QJsonArray gamma;
-		gamma.append(colorTransform->_rgbRedTransform.getGamma());
-		gamma.append(colorTransform->_rgbGreenTransform.getGamma());
-		gamma.append(colorTransform->_rgbBlueTransform.getGamma());
-		transform.insert("gamma", gamma);
-
-		QJsonArray blacklevel;
-		blacklevel.append(colorTransform->_rgbRedTransform.getBlacklevel());
-		blacklevel.append(colorTransform->_rgbGreenTransform.getBlacklevel());
-		blacklevel.append(colorTransform->_rgbBlueTransform.getBlacklevel());
-		transform.insert("blacklevel", blacklevel);
-
-		QJsonArray whitelevel;
-		whitelevel.append(colorTransform->_rgbRedTransform.getWhitelevel());
-		whitelevel.append(colorTransform->_rgbGreenTransform.getWhitelevel());
-		whitelevel.append(colorTransform->_rgbBlueTransform.getWhitelevel());
-		transform.insert("whitelevel", whitelevel);
-		
-		transformArray.append(transform);
-	}
-	
-	info["transform"] = transformArray;
-	
 	// collect adjustment information
 	QJsonArray adjustmentArray;
 	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
@@ -779,7 +730,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		    
 			// add HSL Value to Array
 			QJsonArray HSLValue;
-			HslTransform::rgb2hsl(priorityInfo.ledColors.begin()->red,
+			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
 					priorityInfo.ledColors.begin()->green,
 					priorityInfo.ledColors.begin()->blue,
 					Hue, Saturation, Luminace);
@@ -882,83 +833,6 @@ void JsonClientConnection::handleClearallCommand(const QJsonObject& message, con
 	sendSuccessReply(command, tan);
 }
 
-void JsonClientConnection::handleTransformCommand(const QJsonObject& message, const QString& command, const int tan)
-{
-	
-	const QJsonObject & transform = message["transform"].toObject();
-
-	const QString transformId = transform["id"].toString(QString::fromStdString(_hyperion->getTransformIds().front()));
-	ColorTransform * colorTransform = _hyperion->getTransform(transformId.toStdString());
-	if (colorTransform == nullptr)
-	{
-		Warning(_log, "Incorrect transform identifier: %s", transformId.toStdString().c_str());
-		return;
-	}
-		
-	if (transform.contains("saturationGain"))
-	{
-		colorTransform->_hsvTransform.setSaturationGain(transform["saturationGain"].toDouble());
-	}
-
-	if (transform.contains("valueGain"))
-	{
-		colorTransform->_hsvTransform.setValueGain(transform["valueGain"].toDouble());
-	}
-	
-	if (transform.contains("saturationLGain"))
-	{
-		colorTransform->_hslTransform.setSaturationGain(transform["saturationLGain"].toDouble());
-	}
-
-	if (transform.contains("luminanceGain"))
-	{
-		colorTransform->_hslTransform.setLuminanceGain(transform["luminanceGain"].toDouble());
-	}
-
-	if (transform.contains("luminanceMinimum"))
-	{
-		colorTransform->_hslTransform.setLuminanceMinimum(transform["luminanceMinimum"].toDouble());
-	}
-
-	if (transform.contains("threshold"))
-	{
-		const QJsonArray & values = transform["threshold"].toArray();
-		colorTransform->_rgbRedTransform  .setThreshold(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setThreshold(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setThreshold(values[2u].toDouble());
-	}
-
-	if (transform.contains("gamma"))
-	{
-		const QJsonArray & values = transform["gamma"].toArray();
-		colorTransform->_rgbRedTransform  .setGamma(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setGamma(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setGamma(values[2u].toDouble());
-	}
-
-	if (transform.contains("blacklevel"))
-	{
-		const QJsonArray & values = transform["blacklevel"].toArray();
-		colorTransform->_rgbRedTransform  .setBlacklevel(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setBlacklevel(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setBlacklevel(values[2u].toDouble());
-	}
-
-	if (transform.contains("whitelevel"))
-	{
-		const QJsonArray & values = transform["whitelevel"].toArray();
-		colorTransform->_rgbRedTransform  .setWhitelevel(values[0u].toDouble());
-		colorTransform->_rgbGreenTransform.setWhitelevel(values[1u].toDouble());
-		colorTransform->_rgbBlueTransform .setWhitelevel(values[2u].toDouble());
-	}
-	
-	// commit the changes
-	_hyperion->transformsUpdated();
-
-	sendSuccessReply(command, tan);
-}
-
-
 void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, const QString& command, const int tan)
 {
 	const QJsonObject & adjustment = message["adjustment"].toObject();
@@ -994,6 +868,64 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
+	if (adjustment.contains("cyanAdjust"))
+	{
+		const QJsonArray & values = adjustment["cyanAdjust"].toArray();
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbCyanAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("magentaAdjust"))
+	{
+		const QJsonArray & values = adjustment["magentaAdjust"].toArray();
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("yellowAdjust"))
+	{
+		const QJsonArray & values = adjustment["yellowAdjust"].toArray();
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbYellowAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("blackAdjust"))
+	{
+		const QJsonArray & values = adjustment["blackAdjust"].toArray();
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbBlackAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+	if (adjustment.contains("whiteAdjust"))
+	{
+		const QJsonArray & values = adjustment["whiteAdjust"].toArray();
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentR(values[0u].toInt());
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentG(values[1u].toInt());
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentB(values[2u].toInt());
+	}	
+
+	if (adjustment.contains("gammaR"))
+	{
+		colorAdjustment->_rgbTransform.setGamma(adjustment["gammaR"].toDouble(), colorAdjustment->_rgbTransform.getGammaG(), colorAdjustment->_rgbTransform.getGammaB());
+	}
+	if (adjustment.contains("gammaG"))
+	{
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), adjustment["gammaG"].toDouble(), colorAdjustment->_rgbTransform.getGammaB());
+	}
+	if (adjustment.contains("gammaB"))
+	{
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), colorAdjustment->_rgbTransform.getGammaG(), adjustment["gammaB"].toDouble());
+	}
+
+	if (adjustment.contains("brightnessMin"))
+	{
+		colorAdjustment->_rgbTransform.setBrightnessMin(adjustment["brightnessMin"].toDouble());
+	}	
+	if (adjustment.contains("brightness"))
+	{
+		colorAdjustment->_rgbTransform.setBrightness(adjustment["brightness"].toDouble());
+	}	
+
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
 

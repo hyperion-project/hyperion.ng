@@ -207,32 +207,35 @@ void HyperionDaemon::loadConfig(const QString & configFile, const int neededConf
 
 void HyperionDaemon::startInitialEffect()
 {
-	#define FGCONFIG_ARRAY fgEffectConfig.toArray()
-	#define BGCONFIG_ARRAY bgEffectConfig.toArray()
+	#define FGCONFIG_ARRAY fgColorConfig.toArray()
+	#define BGCONFIG_ARRAY bgColorConfig.toArray()
 
 	Hyperion *hyperion = Hyperion::getInstance();
 
-	// create boot sequence if the configuration is present
-	if (_qconfig.contains("initialEffect"))
-	{
-		const QJsonObject & effectConfig = _qconfig["initialEffect"].toObject();
+	// create boot sequence
+		const QJsonObject & FGEffectConfig = _qconfig["foregroundEffect"].toObject();
+		const QJsonObject & BGEffectConfig = _qconfig["backgroundEffect"].toObject();
 		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
 		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
 
-		// clear the leds
-		hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
+	// clear the leds
+	hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
 
-		// initial foreground effect/color
-		const QJsonValue fgEffectConfig = effectConfig["foreground-effect"];
+	// initial foreground effect/color
+	if (FGEffectConfig["enable"].toBool(true))
+	{
+		const QString fgTypeConfig = FGEffectConfig["type"].toString("effect");
+		const QString fgEffectConfig = FGEffectConfig["effect"].toString("Rainbow swirl fast");
+		const QJsonValue fgColorConfig = FGEffectConfig["color"];
 		int default_fg_duration_ms = 3000;
-		int fg_duration_ms = effectConfig["foreground-duration_ms"].toInt(default_fg_duration_ms);
+		int fg_duration_ms = FGEffectConfig["duration_ms"].toInt(default_fg_duration_ms);
 		if (fg_duration_ms == DURATION_INFINITY)
 		{
 			fg_duration_ms = default_fg_duration_ms;
 			Warning(_log, "foreground effect duration 'infinity' is forbidden, set to default value %d ms",default_fg_duration_ms);
 		}
-		if ( ! fgEffectConfig.isNull() && fgEffectConfig.isArray() && FGCONFIG_ARRAY.size() == 3 )
+		if ( fgTypeConfig.contains("color") )
 		{
 			ColorRgb fg_color = {
 				(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
@@ -242,19 +245,19 @@ void HyperionDaemon::startInitialEffect()
 			hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms, false);
 			Info(_log,"Inital foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
 		}
-		else if (! fgEffectConfig.isNull() && fgEffectConfig.isArray() && FGCONFIG_ARRAY.size() == 1 && FGCONFIG_ARRAY.at(0).isString())
+		else
 		{
-			const QString fgEffectName = FGCONFIG_ARRAY.at(0).toString();
-			int result = effectConfig.contains("foreground-effect-args")
-//			           ? hyperion->setEffect(fgEffectName, effectConfig["foreground-effect-args"], FG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(fgEffectName, _qconfig["initialEffect"].toObject()["foreground-effect-args"].toObject(), FG_PRIORITY, fg_duration_ms)
-			           : hyperion->setEffect(fgEffectName, FG_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", fgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
+			Info(_log,"Inital foreground effect '%s' %s", fgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
-
-		// initial background effect/color
-		const QJsonValue bgEffectConfig = effectConfig["background-effect"];
-		if ( ! bgEffectConfig.isNull() && bgEffectConfig.isArray() && BGCONFIG_ARRAY.size() == 3 )
+	}
+	// initial background effect/color
+	if (BGEffectConfig["enable"].toBool(true))
+	{
+		const QString bgTypeConfig = BGEffectConfig["type"].toString("effect");
+		const QString bgEffectConfig = BGEffectConfig["effect"].toString("Warm mood blobs");
+		const QJsonValue bgColorConfig = BGEffectConfig["color"];
+		if (bgTypeConfig.contains("color"))
 		{
 			ColorRgb bg_color = {
 				(uint8_t)BGCONFIG_ARRAY.at(0).toInt(0),
@@ -264,14 +267,10 @@ void HyperionDaemon::startInitialEffect()
 			hyperion->setColor(BG_PRIORITY, bg_color, DURATION_INFINITY, false);
 			Info(_log,"Inital background color set (%d %d %d)",bg_color.red,bg_color.green,bg_color.blue);
 		}
-		else if (! bgEffectConfig.isNull() && bgEffectConfig.isArray() && BGCONFIG_ARRAY.size() == 1 && BGCONFIG_ARRAY.at(0).isString())
+		else
 		{
-			const QString bgEffectName = BGCONFIG_ARRAY.at(0).toString();
-			int result = effectConfig.contains("background-effect-args")
-//			           ? hyperion->setEffect(bgEffectName, effectConfig["background-effect-args"], BG_PRIORITY, fg_duration_ms)
-			           ? hyperion->setEffect(bgEffectName, _qconfig["initialEffect"].toObject()["background-effect-args"].toObject(), BG_PRIORITY, DURATION_INFINITY)
-			           : hyperion->setEffect(bgEffectName, BG_PRIORITY, DURATION_INFINITY);
-			Info(_log,"Inital background effect '%s' %s", bgEffectName.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			int result = hyperion->setEffect(bgEffectConfig, BG_PRIORITY, DURATION_INFINITY);
+			Info(_log,"Inital background effect '%s' %s", bgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	

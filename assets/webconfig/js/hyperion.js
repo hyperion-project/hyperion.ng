@@ -1,5 +1,6 @@
 
 // global vars
+var showOptHelp = true;
 var currentVersion;
 var cleanCurrentVersion;
 var latestVersion;
@@ -24,7 +25,7 @@ function initRestart()
 {
 	$(hyperion).off();
 	requestServerConfigReload();
-	watchdog = 1;
+	watchdog = 2;
 	$("#wrapper").fadeOut("slow");
 	cron();
 }
@@ -229,8 +230,6 @@ function requestWriteConfig(config)
 	});
 
 	var config_str = JSON.stringify(complete_config);
-	console.log("save");
-	console.log(config_str);
 	sendToHyperion("config","setconfig", '"config":'+config_str);
 }
 

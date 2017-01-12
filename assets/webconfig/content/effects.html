@@ -6,8 +6,54 @@
 				<h4  data-i18n="conf_effects_label_intro">Setting up a booteffect/color that is visible after Hyperion startup. Configure a background effect/color which is active, when all capture sources are disabled (also temporarily via Kodi Watch)</h4>
 			<hr />
 			</div>
-			<div id='editor_container'></div>
-			<button  class="btn btn-success" id='btn_submit' data-i18n="general_button_savesettings">Save Settings</button>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-spinner fa-fw"></i><span data-i18n="edt_conf_effp_heading_title">Effect Paths</span></div>
+						<div class="panel-body">
+							<div id='editor_container_effects'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit_effects' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl_effects"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-spinner fa-fw"></i><span data-i18n="edt_conf_fge_heading_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container_foregroundEffect'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit_foregroundEffect' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl_foregroundEffect"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-spinner fa-fw"></i><span data-i18n="edt_conf_bge_heading_title">Kodi Watch</span></div>
+						<div class="panel-body">
+							<div id='editor_container_backgroundEffect'/>
+						</div>
+						<div class="panel-footer">
+							<button  class="btn btn-success" id='btn_submit_backgroundEffect' data-i18n="general_button_savesettings">Save Settings</button>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div id="opt_expl_backgroundEffect"></div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

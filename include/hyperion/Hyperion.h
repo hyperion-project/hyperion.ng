@@ -22,7 +22,6 @@
 // Hyperion includes
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
-#include <hyperion/ColorTransform.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MessageForwarder.h>
 #include <hyperion/ComponentRegister.h>
@@ -38,13 +37,9 @@
 // Forward class declaration
 class LedDevice;
 class LinearColorSmoothing;
-class ColorTransform;
+class RgbTransform;
 class EffectEngine;
-class HsvTransform;
-class HslTransform;
-class RgbChannelTransform;
 class RgbChannelAdjustment;
-class MultiColorTransform;
 class MultiColorAdjustment;
 class KODIVideoChecker;
 ///
@@ -65,14 +60,6 @@ public:
 	enum RgbChannel
 	{
 		BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, INVALID
-	};
-
-	///
-	/// Enumeration of the possible color (color-channel) transforms
-	///
-	enum Transform
-	{
-		SATURATION_GAIN, VALUE_GAIN, THRESHOLD, GAMMA, BLACKLEVEL, WHITELEVEL
 	};
 
 	///
@@ -217,22 +204,10 @@ public slots:
 	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 	///
-	/// Returns the list with unique transform identifiers
-	/// @return The list with transform identifiers
-	///
-	const std::vector<std::string> & getTransformIds() const;
-
-	///
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
 	///
 	const std::vector<std::string> & getAdjustmentIds() const;
-	
-	///
-	/// Returns the ColorTransform with the given identifier
-	/// @return The transform with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorTransform * getTransform(const std::string& id);
 
 	///
 	/// Returns the ColorAdjustment with the given identifier
@@ -245,9 +220,6 @@ public slots:
 	/// @return instance of message forwarder object
 	///
 	MessageForwarder * getForwarder();
-
-	/// Tell Hyperion that the transforms have changed and the leds need to be updated
-	void transformsUpdated();
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -295,15 +267,10 @@ public:
 	static LedString createLedString(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
 	static LedString createLedStringClone(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
 
-	static MultiColorTransform * createLedColorsTransform(const unsigned ledCnt, const QJsonObject & colorTransformConfig);
 	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
-	static ColorTransform * createColorTransform(const QJsonObject & transformConfig);
 	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
-	static HsvTransform * createHsvTransform(const QJsonObject & hsvConfig);
-	static HslTransform * createHslTransform(const QJsonObject & hslConfig);
-	static RgbChannelTransform * createRgbChannelTransform(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelCorrection(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonArray& colorConfig, const RgbChannel color);
+	static RgbTransform * createRgbTransform(const QJsonObject& colorConfig);
+	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject & colorConfig, const QString channelName, const int defaultR, const int defaultG, const int defaultB);
 
 	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
 	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);
@@ -349,9 +316,6 @@ private:
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
-	/// The transformation from raw colors to led colors
-	MultiColorTransform * _raw2ledTransform;
-
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
 	
@@ -393,12 +357,6 @@ private:
 	/// flag for v4l color correction
 	bool _colorAdjustmentV4Lonly;
 	
-	/// flag for v4l color correction
-	bool _colorTransformV4Lonly;
-	
-	/// flag for color transform enable
-	bool _transformEnabled;
-
 	/// flag for color adjustment enable
 	bool _adjustmentEnabled;
 

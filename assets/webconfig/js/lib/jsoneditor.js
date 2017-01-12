@@ -4859,7 +4859,7 @@ JSONEditor.defaults.editors["enum"] = JSONEditor.AbstractEditor.extend({
 
 JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   setValue: function(value,initial) {
-    value = this.typecast(value||'');
+	value = this.typecast(value||'');
 
     // Sanitize value before setting it
     var sanitized = value;
@@ -5008,7 +5008,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     }
     // Other, not supported
     else {
-      throw "'select' editor requires the enum property to be set.";
+      //throw "'select' editor requires the enum property to be set.";
     }
   },
   build: function() {
@@ -5041,23 +5041,11 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     this.value = this.enum_values[0];
   },
   onInputChange: function() {
-    var val = this.input.value;
-
-    var new_val;
-    // Invalid option, use first option instead
-    if(this.enum_options.indexOf(val) === -1) {
-      new_val = this.enum_values[0];
-    }
-    else {
-      new_val = this.enum_values[this.enum_options.indexOf(val)];
-    }
-
-    // If valid hasn't changed
-    if(new_val === this.value) return;
+	var val = this.input.value;
 
     // Store new value and propogate change event
-    this.value = new_val;
-    this.onChange(true);
+    this.value = val;
+	this.onChange(true);
   },
   setupSelect2: function() {
     // If the Select2 library is loaded use it when we have lots of items
@@ -6358,14 +6346,20 @@ JSONEditor.AbstractTheme = Class.extend({
     this.setSelectOptions(switcher, options, titles);
   },
   setSelectOptions: function(select, options, titles) {
-    titles = titles || [];
-    select.innerHTML = '';
-    for(var i=0; i<options.length; i++) {
-      var option = document.createElement('option');
-      option.setAttribute('value',options[i]);
-      option.textContent = titles[i] || options[i];
-      select.appendChild(option);
-    }
+    if (typeof options != "undefined")
+	{
+		titles = titles || [];
+		select.innerHTML = '';
+		for(var i=0; i<options.length; i++) {
+			var option = document.createElement('option');
+			option.setAttribute('value',options[i]);
+			if (typeof titles[i] != 'undefined' && titles[i].startsWith('edt_'))
+				option.textContent = $.i18n(titles[i]);
+			else
+				option.textContent = titles[i] || options[i];
+			select.appendChild(option);
+		}
+	}
   },
   getTextareaInput: function() {
     var el = document.createElement('textarea');
@@ -7055,6 +7049,11 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
       return (JSONEditor.plugins.selectize.enable) ? 'selectize' : 'select';
     }
   }
+});
+// Use the `select` editor if a string has format "select"
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+  if(schema.type === "string" && schema.format === "select")
+	  return "select";
 });
 // Specialized editors for arrays of strings
 JSONEditor.defaults.resolvers.unshift(function(schema) {

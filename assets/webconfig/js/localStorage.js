@@ -47,10 +47,11 @@
 	}
 	else
 	{
-		showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). You could still use the webinterface without further issues");
+		showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). Some wizards may be hidden. You could still use the webinterface without further issues");
 		initTrans('auto');
 		$('#btn_setlang').toggle();
 		$('#btn_setaccess').toggle();
+		$('#btn_wizard_byteorder').toggle();
 	}
 	
 	$('#btn_setlang').off().on('click',function() {
