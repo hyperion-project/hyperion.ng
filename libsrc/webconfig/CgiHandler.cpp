@@ -98,13 +98,12 @@ void CgiHandler::cmd_cfg_set()
 
 			if (error.error == QJsonParseError::NoError)
 			{
-				QJsonObject jobj = hyperionConfig.object();
-				QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), jobj);
-				_reply->appendRawData (QByteArrayLiteral("o"));
+				QJsonObject hyperionConfigJsonObj = hyperionConfig.object();
+				QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfigJsonObj);
 			}
 			else
 			{
-				_reply->appendRawData (QString("error: "+error.errorString()).toUtf8());
+				_reply->appendRawData (QString("Error while validating json: "+error.errorString()).toUtf8());
 			}
 		}
 

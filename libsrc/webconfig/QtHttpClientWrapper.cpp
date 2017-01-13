@@ -109,6 +109,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
             }
             switch (m_parsingStatus) { // handle parsing status end/error
                 case RequestParsed: { // a valid request has ben fully parsed
+                    // add  post data to request
                     if ( m_currentRequest->getCommand() == "POST")
                     {
                         QtHttpPostData  postData;
