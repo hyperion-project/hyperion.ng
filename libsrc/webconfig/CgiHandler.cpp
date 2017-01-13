@@ -2,15 +2,20 @@
 #include <QUrlQuery>
 #include <QFile>
 #include <QByteArray>
+#include <QStringList>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
 #include <utils/FileUtils.h>
 #include <utils/Process.h>
+#include <utils/jsonschema/QJsonFactory.h>
 
 CgiHandler::CgiHandler (Hyperion * hyperion, QString baseUrl, QObject * parent)
 	: QObject(parent)
 	, _hyperion(hyperion)
+	, _args(QStringList())
 	, _hyperionConfig(_hyperion->getQJsonConfig())
 	, _baseUrl(baseUrl)
 {
@@ -26,10 +31,13 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 	{
 // 		QByteArray header = reply->getHeader(QtHttpHeader::Host);
 // 		QtHttpRequest::ClientInfo info = request->getClientInfo();
-		
-		cmd_cfg_jsonserver(args,reply);
-		cmd_cfg_hyperion(args,reply);
-		cmd_runscript(args,reply);
+		_args = args;
+		_request = request;
+		_reply   = reply;
+		cmd_cfg_jsonserver();
+		cmd_cfg_get();
+		cmd_cfg_set();
+		cmd_runscript();
 		throw 1;
 	}
 	catch(int e)
@@ -39,9 +47,9 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 	}
 }
 
-void CgiHandler::cmd_cfg_jsonserver(const QStringList & args, QtHttpReply * reply)
+void CgiHandler::cmd_cfg_jsonserver()
 {
-	if ( args.at(0) == "cfg_jsonserver" )
+	if ( _args.at(0) == "cfg_jsonserver" )
 	{
 		quint16 jsonPort = 19444;
 		if (_hyperionConfig.contains("jsonServer"))
@@ -51,24 +59,25 @@ void CgiHandler::cmd_cfg_jsonserver(const QStringList & args, QtHttpReply * repl
 		}
 
 		// send result as reply
-		reply->addHeader ("Content-Type", "text/plain" );
-		reply->appendRawData (QByteArrayLiteral(":") % QString::number(jsonPort).toUtf8() );
+		_reply->addHeader ("Content-Type", "text/plain" );
+		_reply->appendRawData (QByteArrayLiteral(":") % QString::number(jsonPort).toUtf8() );
+
 		throw 0;
 	}
 }
 
 
-void CgiHandler::cmd_cfg_hyperion(const QStringList & args, QtHttpReply * reply)
+void CgiHandler::cmd_cfg_get()
 {
-	if ( args.at(0) == "cfg_hyperion" )
+	if ( _args.at(0) == "cfg_get" )
 	{
 		QFile file ( _hyperion->getConfigFileName().c_str() );
 		if (file.exists ())
 		{
 			if (file.open (QFile::ReadOnly)) {
 				QByteArray data = file.readAll ();
-				reply->addHeader ("Content-Type", "text/plain");
-				reply->appendRawData (data);
+				_reply->addHeader ("Content-Type", "text/plain");
+				_reply->appendRawData (data);
 				file.close ();
 			}
 		}
@@ -76,11 +85,38 @@ void CgiHandler::cmd_cfg_hyperion(const QStringList & args, QtHttpReply * reply)
 	}
 }
 
-void CgiHandler::cmd_runscript(const QStringList & args, QtHttpReply * reply)
+void CgiHandler::cmd_cfg_set()
 {
-	if ( args.at(0) == "run" )
+	_reply->addHeader ("Content-Type", "text/plain");
+	if ( _args.at(0) == "cfg_set" )
 	{
-		QStringList scriptFilePathList(args);
+		QtHttpPostData data = _request->getPostData();
+		QJsonParseError error;
+		if (data.contains("cfg"))
+		{
+			QJsonDocument hyperionConfig = QJsonDocument::fromJson(data["cfg"], &error);
+
+			if (error.error == QJsonParseError::NoError)
+			{
+				QJsonObject jobj = hyperionConfig.object();
+				QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), jobj);
+				_reply->appendRawData (QByteArrayLiteral("o"));
+			}
+			else
+			{
+				_reply->appendRawData (QString("error: "+error.errorString()).toUtf8());
+			}
+		}
+
+		throw 0;
+	}
+}
+
+void CgiHandler::cmd_runscript()
+{
+	if ( _args.at(0) == "run" )
+	{
+		QStringList scriptFilePathList(_args);
 		scriptFilePathList.removeAt(0);
 		
 		QString scriptFilePath = scriptFilePathList.join('/');
@@ -99,8 +135,8 @@ void CgiHandler::cmd_runscript(const QStringList & args, QtHttpReply * reply)
 		{
 			QByteArray data = Process::command_exec(QString(interpreter + " " + scriptFilePath).toUtf8().constData()).c_str();
 			
-			reply->addHeader ("Content-Type", "text/plain");
-			reply->appendRawData (data);
+			_reply->addHeader ("Content-Type", "text/plain");
+			_reply->appendRawData (data);
 			throw 0;
 		}
 		throw 1;

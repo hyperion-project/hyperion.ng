@@ -103,71 +103,56 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 	MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
 
 	const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
-	if (adjustmentConfig.isNull())
-	{
-		// Old style color transformation config (just one for all leds)
-		ColorAdjustment * colorAdjustment = createColorAdjustment(colorConfig);
-		adjustment->addAdjustment(colorAdjustment);
-		adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-	}
-	else if (adjustmentConfig.isObject())
-	{
-		ColorAdjustment * colorAdjustment = createColorAdjustment(adjustmentConfig.toObject());
-		adjustment->addAdjustment(colorAdjustment);
-		adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-	}
-	else if (adjustmentConfig.isArray())
-	{
-		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
+	const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
-		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
-		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
+	const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
+	for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
+	{
+		const QJsonObject & config = adjustmentConfigArray.at(i).toObject();
+		ColorAdjustment * colorAdjustment = createColorAdjustment(config);
+		adjustment->addAdjustment(colorAdjustment);
+
+		const QString ledIndicesStr = config["leds"].toString("").trimmed();
+		if (ledIndicesStr.compare("*") == 0)
 		{
-			const QJsonObject & config = adjustmentConfigArray.at(i).toObject();
-			ColorAdjustment * colorAdjustment = createColorAdjustment(config);
-			adjustment->addAdjustment(colorAdjustment);
-
-			const QString ledIndicesStr = config["leds"].toString("").trimmed();
-			if (ledIndicesStr.compare("*") == 0)
-			{
-				// Special case for indices '*' => all leds
-				adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
- 				Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", colorAdjustment->_id.c_str(), ledCnt-1);
-				continue;
-			}
-
-			if (!overallExp.exactMatch(ledIndicesStr))
-			{
-				Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
-				continue;
-			}
-
-			std::stringstream ss;
-			const QStringList ledIndexList = ledIndicesStr.split(",");
-			for (int i=0; i<ledIndexList.size(); ++i) {
-				if (i > 0)
-				{
-					ss << ", ";
-				}
-				if (ledIndexList[i].contains("-"))
-				{
-					QStringList ledIndices = ledIndexList[i].split("-");
-					int startInd = ledIndices[0].toInt();
-					int endInd   = ledIndices[1].toInt();
-
-					adjustment->setAdjustmentForLed(colorAdjustment->_id, startInd, endInd);
-					ss << startInd << "-" << endInd;
-				}
-				else
-				{
-					int index = ledIndexList[i].toInt();
-					adjustment->setAdjustmentForLed(colorAdjustment->_id, index, index);
-					ss << index;
-				}
-			}
-			Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", colorAdjustment->_id.c_str(), ss.str().c_str()); 
+			// Special case for indices '*' => all leds
+			adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
+			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", colorAdjustment->_id.c_str(), ledCnt-1);
+			continue;
 		}
+
+		if (!overallExp.exactMatch(ledIndicesStr))
+		{
+			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
+			continue;
+		}
+
+		std::stringstream ss;
+		const QStringList ledIndexList = ledIndicesStr.split(",");
+		for (int i=0; i<ledIndexList.size(); ++i) {
+			if (i > 0)
+			{
+				ss << ", ";
+			}
+			if (ledIndexList[i].contains("-"))
+			{
+				QStringList ledIndices = ledIndexList[i].split("-");
+				int startInd = ledIndices[0].toInt();
+				int endInd   = ledIndices[1].toInt();
+
+				adjustment->setAdjustmentForLed(colorAdjustment->_id, startInd, endInd);
+				ss << startInd << "-" << endInd;
+			}
+			else
+			{
+				int index = ledIndexList[i].toInt();
+				adjustment->setAdjustmentForLed(colorAdjustment->_id, index, index);
+				ss << index;
+			}
+		}
+		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", colorAdjustment->_id.c_str(), ss.str().c_str()); 
 	}
+
 	return adjustment;
 }
 

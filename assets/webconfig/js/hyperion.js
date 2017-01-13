@@ -230,7 +230,16 @@ function requestWriteConfig(config)
 	});
 
 	var config_str = JSON.stringify(complete_config);
-	sendToHyperion("config","setconfig", '"config":'+config_str);
+
+ 	$.post( "/cgi/cfg_set", { cfg: encode_utf8(config_str), blub: "bla" })
+ 	.done(function( data ) {
+ 		//alert( "Data Loaded: " + data );
+ 	})
+ 	.fail(function() {
+ 		alert( "error" );
+ 	});
+	
+	//sendToHyperion("config","setconfig", '"config":'+encode_utf8(config_str));
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
