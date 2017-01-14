@@ -948,8 +948,8 @@
 				"effect" :
 				{
 					"type" : "string",
-					"format" : "select",
 					"title" : "edt_conf_fge_effect_title",
+					"enum" : [""],
 					"propertyOrder" : 4
 				},
 				"duration_ms" :
@@ -1006,8 +1006,8 @@
 				"effect" :
 				{
 					"type" : "string",
-					"format" : "select",
 					"title" : "edt_conf_fge_effect_title",
+					"enum" : [""],
 					"propertyOrder" : 4
 				}
 			},
