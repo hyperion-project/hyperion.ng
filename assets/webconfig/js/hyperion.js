@@ -229,17 +229,15 @@ function requestWriteConfig(config)
 		complete_config[i] = val;
 	});
 
-	var config_str = JSON.stringify(complete_config);
+	var config_str = encode_utf8(JSON.stringify(complete_config));
 
- 	$.post( "/cgi/cfg_set", { cfg: encode_utf8(config_str), blub: "bla" })
- 	.done(function( data ) {
- 		//alert( "Data Loaded: " + data );
- 	})
- 	.fail(function() {
- 		alert( "error" );
- 	});
-	
-	//sendToHyperion("config","setconfig", '"config":'+encode_utf8(config_str));
+	$.post( "/cgi/cfg_set", { cfg: config_str })
+	.done(function( data ) {
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+	})
+	.fail(function() {
+		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
+	});
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
