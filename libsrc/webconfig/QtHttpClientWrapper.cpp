@@ -50,7 +50,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                         QString url     = parts.at (1);
                         QString version = parts.at (2);
                         if (version == QtHttpServer::HTTP_VERSION) {
-                            m_currentRequest = new QtHttpRequest (m_serverHandle);
+                            m_currentRequest = new QtHttpRequest (this, m_serverHandle);
                             m_currentRequest->setClientInfo(m_sockClient->localAddress(), m_sockClient->peerAddress());
                             m_currentRequest->setUrl     (QUrl (url));
                             m_currentRequest->setCommand (command);
@@ -76,9 +76,8 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                             QByteArray value  = raw.mid  (pos +1).trimmed ();
                             m_currentRequest->addHeader (header, value);
                             if (header == QtHttpHeader::ContentLength) {
-                                int  len = -1;
                                 bool ok  = false;
-                                len = value.toInt (&ok, 10);
+                                const int len = value.toInt (&ok, 10);
                                 if (ok) {
                                     m_currentRequest->addHeader (QtHttpHeader::ContentLength, QByteArray::number (len));
                                 }
@@ -110,6 +109,24 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
             }
             switch (m_parsingStatus) { // handle parsing status end/error
                 case RequestParsed: { // a valid request has ben fully parsed
+                    // add  post data to request
+                    if ( m_currentRequest->getCommand() == "POST")
+                    {
+                        QtHttpPostData  postData;
+                        QByteArray data = m_currentRequest->getRawData();
+                        QList<QByteArray> parts = data.split('&');
+                        for (int i = 0; i < parts.size(); ++i)
+                        {
+                            QList<QByteArray> keyValue = parts.at(i).split('=');
+                            QByteArray value;
+                            if (keyValue.size()>1)
+                            {
+                                value = QByteArray::fromPercentEncoding(keyValue.at(1));
+                            }
+                            postData.insert(QString::fromUtf8(keyValue.at(0)),value);
+                        }
+                        m_currentRequest->setPostData(postData);
+                    }
                     QtHttpReply reply (m_serverHandle);
                     connect (&reply, &QtHttpReply::requestSendHeaders,
                              this, &QtHttpClientWrapper::onReplySendHeadersRequested);

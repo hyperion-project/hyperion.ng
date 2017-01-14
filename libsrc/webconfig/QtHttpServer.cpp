@@ -18,8 +18,16 @@ QtHttpServer::QtHttpServer (QObject * parent)
     connect (m_sockServer, &QTcpServer::newConnection, this, &QtHttpServer::onClientConnected);
 }
 
-const QString QtHttpServer::getServerName (void) const {
+const QString & QtHttpServer::getServerName (void) const {
     return m_serverName;
+}
+
+quint16 QtHttpServer::getServerPort (void) const {
+    return m_sockServer->serverPort ();
+}
+
+QString QtHttpServer::getErrorString (void) const {
+    return m_sockServer->errorString ();
 }
 
 void QtHttpServer::start (quint16 port) {

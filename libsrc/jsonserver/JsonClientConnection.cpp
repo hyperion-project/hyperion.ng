@@ -967,10 +967,6 @@ void JsonClientConnection::handleConfigCommand(const QJsonObject& message, const
 	{
 		handleConfigGetCommand(message, full_command, tan);
 	}
-	else if (subcommand == "setconfig")
-	{
-		handleConfigSetCommand(message, full_command, tan);
-	} 
 	else if (subcommand == "reload")
 	{
 		_hyperion->freeObjects();
@@ -1096,28 +1092,6 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 
 	// send the result
 	sendMessage(result);
-}
-
-void JsonClientConnection::handleConfigSetCommand(const QJsonObject& message, const QString &command, const int tan)
-{
-	if(message.size() > 0)
-	{
-		if (message.contains("config"))
-		{	
-			QString errors;
-			if (!checkJson(message["config"].toObject(), ":/hyperion-schema", errors, true))
-			{
-				sendErrorReply("Error while validating json: " + errors, command, tan);
-				return;
-			}
-			
-			QJsonObject hyperionConfig = message["config"].toObject();
-			QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfig);
-
-			sendSuccessReply(command, tan);
-		}
-	} else
-		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
 
 void JsonClientConnection::handleComponentStateCommand(const QJsonObject& message, const QString &command, const int tan)
