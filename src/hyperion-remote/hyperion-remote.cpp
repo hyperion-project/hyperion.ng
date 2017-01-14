@@ -57,7 +57,7 @@ int main(int argc, char * argv[])
 		Parser parser("Application to send a command to hyperion using the Json interface");
 
 		Option          & argAddress     = parser.add<Option>       ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
-		IntOption       & argPriority    = parser.add<IntOption>    ('p', "priority"  , "Use to the provided priority channel (the lower the number, the higher the priority) [default: %1]", "100");
+		IntOption       & argPriority    = parser.add<IntOption>    ('p', "priority"  , "Use to the provided priority channel (suggested 2-99) [default: %1]", "50");
 		IntOption       & argDuration    = parser.add<IntOption>    ('d', "duration"  , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
 		ColorsOption    & argColor       = parser.add<ColorsOption> ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption     & argImage       = parser.add<ImageOption>  ('i', "image"     , "Set the leds to the colors according to the given image file");

@@ -97,7 +97,7 @@
 	"blackborderdetector" :
 	{
 		"enable" : true,
-		"threshold" : 0.0,
+		"threshold" : 0.5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,

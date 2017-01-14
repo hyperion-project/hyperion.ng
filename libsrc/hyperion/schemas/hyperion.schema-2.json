@@ -47,6 +47,9 @@
 					"type" : "string",
 					"enum" : ["silent", "warn", "verbose", "debug"],
 					"title" : "edt_conf_log_level_title",
+					"options" : {
+						"enum_titles" : ["edt_conf_enum_logsilent", "edt_conf_enum_logwarn", "edt_conf_enum_logverbose", "edt_conf_enum_logdebug"]
+					},
 					"default" : "warn"
 				}
 			},
@@ -106,7 +109,7 @@
 				"imageToLedMappingType" :
 				{
 					"type" : "string",
-					"title" : "edt_conf_color_imageToLedMappingType",
+					"title" : "edt_conf_color_imageToLedMappingType_title",
 					"enum" : ["multicolor_mean", "unicolor_mean"],
 					"default" : "multicolor_mean",
 					"options" : {
@@ -117,14 +120,14 @@
 				"channelAdjustment_enable" :
 				{
 					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_enable",
+					"title" : "edt_conf_color_channelAdjustment_enable_title",
 					"default" : true,
 					"propertyOrder" : 2
 				},
 				"channelAdjustment_v4l_only" :
 				{
 					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_v4l_only",
+					"title" : "edt_conf_color_channelAdjustment_v4l_only_title",
 					"default" : false,
 					"propertyOrder" : 3
 				},
@@ -143,7 +146,7 @@
 							"id" :
 							{
 								"type" : "string",
-								"title" : "edt_conf_color_id",
+								"title" : "edt_conf_color_id_title",
 								"required" : true,
 								"default" : "A userdefined name",
 								"propertyOrder" : 1
@@ -151,7 +154,7 @@
 							"leds" :
 							{
 								"type" : "string",
-								"title" : "edt_conf_color_leds",
+								"title" : "edt_conf_color_leds_title",
 								"required" : true,
 								"default" : "*",
 								"propertyOrder" : 2
@@ -159,7 +162,7 @@
 							"black" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_black",
+								"title" : "edt_conf_color_black_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,0,0],
@@ -175,7 +178,7 @@
 							"white" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_white",
+								"title" : "edt_conf_color_white_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,255,255],
@@ -191,7 +194,7 @@
 							"red" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_red",
+								"title" : "edt_conf_color_red_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,0,0],
@@ -207,7 +210,7 @@
 							"green" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_green",
+								"title" : "edt_conf_color_green_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,255,0],
@@ -223,7 +226,7 @@
 							"blue" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_blue",
+								"title" : "edt_conf_color_blue_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,0,255],
@@ -239,7 +242,7 @@
 							"cyan" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_cyan",
+								"title" : "edt_conf_color_cyan_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [0,255,255],
@@ -255,7 +258,7 @@
 							"magenta" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_magenta",
+								"title" : "edt_conf_color_magenta_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,0,255],
@@ -271,7 +274,7 @@
 							"yellow" :
 							{
 								"type" : "array",
-								"title" : "edt_conf_color_yellow",
+								"title" : "edt_conf_color_yellow_title",
 								"format" : "colorpicker",
 								"required" : true,
 								"default": [255,255,0],
@@ -287,7 +290,7 @@
 							"brightnessMin" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_brightness_min",
+								"title" : "edt_conf_color_brightness_min_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 1.0,
@@ -298,7 +301,7 @@
 							"brightness" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_brightness",
+								"title" : "edt_conf_color_brightness_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 1.0,
@@ -309,7 +312,7 @@
 							"gammaRed" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_red",
+								"title" : "edt_conf_color_gamma_red_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
@@ -320,7 +323,7 @@
 							"gammaGreen" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_green",
+								"title" : "edt_conf_color_gamma_green_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
@@ -331,7 +334,7 @@
 							"gammaBlue" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_blue",
+								"title" : "edt_conf_color_gamma_blue_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
@@ -815,6 +818,9 @@
 					"title": "edt_conf_bb_mode_title",
 					"enum" : ["default", "classic", "osd"],
 					"default" : "default",
+					"options" : {
+						"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd"]
+					},
 					"propertyOrder" : 7
 				}
 			},
