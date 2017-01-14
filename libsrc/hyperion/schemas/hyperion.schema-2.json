@@ -134,6 +134,7 @@
 				"channelAdjustment" :
 				{
 					"type" : "array",
+					"format" : "tabs",
 					"title" : "edt_conf_color_channelAdjustment_header_title",
 					"required" : true,
 					"propertyOrder" : 4,
