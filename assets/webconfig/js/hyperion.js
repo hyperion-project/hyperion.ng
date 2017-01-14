@@ -32,7 +32,7 @@ function initRestart()
 
 function cron()
 {
-	if ( watchdog > 2)
+	if ( watchdog > 2 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -229,8 +229,15 @@ function requestWriteConfig(config)
 		complete_config[i] = val;
 	});
 
-	var config_str = JSON.stringify(complete_config);
-	sendToHyperion("config","setconfig", '"config":'+config_str);
+	var config_str = encode_utf8(JSON.stringify(complete_config));
+
+	$.post( "/cgi/cfg_set", { cfg: config_str })
+	.done(function( data ) {
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+	})
+	.fail(function() {
+		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
+	});
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
