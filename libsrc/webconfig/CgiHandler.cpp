@@ -94,7 +94,7 @@ void CgiHandler::cmd_cfg_set()
 		QJsonParseError error;
 		if (data.contains("cfg"))
 		{
-			QJsonDocument hyperionConfig = QJsonDocument::fromJson(data["cfg"], &error);
+			QJsonDocument hyperionConfig = QJsonDocument::fromJson(QByteArray::fromPercentEncoding(data["cfg"]), &error);
 
 			if (error.error == QJsonParseError::NoError)
 			{
@@ -103,6 +103,7 @@ void CgiHandler::cmd_cfg_set()
 			}
 			else
 			{
+				//Debug(_log, "error while saving: %s", error.errorString()).toLocal8bit.constData());
 				_reply->appendRawData (QString("Error while validating json: "+error.errorString()).toUtf8());
 			}
 		}

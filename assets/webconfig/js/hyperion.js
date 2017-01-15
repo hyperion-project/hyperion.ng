@@ -229,7 +229,7 @@ function requestWriteConfig(config)
 		complete_config[i] = val;
 	});
 
-	var config_str = encode_utf8(JSON.stringify(complete_config));
+	var config_str = escape(encode_utf8(JSON.stringify(complete_config)));
 
 	$.post( "/cgi/cfg_set", { cfg: config_str })
 	.done(function( data ) {
