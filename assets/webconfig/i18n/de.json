@@ -219,6 +219,8 @@
 		"InfoDialog_nowrite_foottext" : "Die Webkonfiguration wird automatisch wieder freigegeben, sobald das Problem behoben wurde!",
 		"infoDialog_wizrgb_title" : "Erfolg!",
 		"infoDialog_wizrgb_text" : "Deine RGB Byte Reihenfolge ist bereits richtig eingestellt.",
+		"infoDialog_writeconf_error_title" : "Fehler",
+		"infoDialog_writeconf_error_text" : "Das speichern der Konfiguration ist fehlgeschlagen.",
 		"wiz_rgb_title" : "RGB Byte Reihenfolge Assistent",
 		"wiz_rgb_intro1" : "Dieser Assisent wird dir dabei helfen die richtige Byte Reihenfolge für deine leds zu finden. Klicke auf Fortfahren um zu beginnen.",
 		"wiz_rgb_intro2" : "Wann benötigt man diesen Assistenten? Zur Erstkonfiguration oder wenn deine LEDs zb rot leuchten sollten, sie aber blau oder grün sind.",

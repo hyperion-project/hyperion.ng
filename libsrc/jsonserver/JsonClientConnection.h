@@ -235,11 +235,6 @@ private:
 	void handleConfigGetCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
-	/// Handle an incoming JSON SetConfig message
-	///
-	void handleConfigSetCommand(const QJsonObject & message, const QString &command, const int tan);
-	
-	///
 	/// Handle an incoming JSON Component State message
 	///
 	/// @param message the incoming message
