@@ -25,14 +25,21 @@ function initRestart()
 {
 	$(hyperion).off();
 	requestServerConfigReload();
-	watchdog = 2;
+	watchdog = 10;
 	$("#wrapper").fadeOut("slow");
-	cron();
+	connectionLostDetection();
 }
 
 function cron()
 {
-	if ( watchdog > 2 )
+	requestServerInfo();
+	$(hyperion).trigger({type:"cron"});
+}
+
+
+function connectionLostDetection()
+{
+	if ( watchdog > 1 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -40,12 +47,13 @@ function cron()
 		$("body").html($("#container_connection_lost").html());
 		connectionLostAction();
 	}
-
-	requestServerInfo();
-	$(hyperion).trigger({type:"cron"});
+	else
+	{
+		$.get( "/cgi/cfg_jsonserver", function() {watchdog=0}).fail(function() {watchdog++;});
+	}
 }
 
-setInterval(function(){ watchdog = 0 }, 8000);
+setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -150,7 +158,6 @@ function sendToHyperion(command, subcommand, msg)
 // also used for watchdog
 function requestServerInfo()
 {
-	watchdog++;
 	sendToHyperion("serverinfo");
 }
 
