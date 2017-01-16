@@ -18,6 +18,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	}
 	else
 	{
+		$('#conf_cont').addClass('row');
 		$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
 		$('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));	
 	}

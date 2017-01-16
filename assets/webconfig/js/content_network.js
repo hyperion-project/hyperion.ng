@@ -41,6 +41,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	}
 	else
 	{
+		$('#conf_cont').addClass('row');
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_ps_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
