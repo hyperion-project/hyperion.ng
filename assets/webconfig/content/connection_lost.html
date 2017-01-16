@@ -37,7 +37,7 @@ function tryReconnect()
 function connectionLostAction()
 {
 	connectionLost = true;
-	connectionTimer = window.setInterval(tryReconnect, 5000);
+	connectionTimer = window.setInterval(tryReconnect, 4000);
 }
 
 </script>

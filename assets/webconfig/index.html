@@ -8,7 +8,7 @@
 	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
 	<meta name="description" content="">
 
-	<title>Hyperion - WebUI</title>
+	<title data-i18n="general_webui_title">Hyperion - WebUI</title>
 
 	<!-- jQuery -->
 	<script src="js/lib/jquery.min.js"></script>
@@ -36,11 +36,6 @@
 	<script src="js/lib/jquery.i18n.emitter.js"></script>
 	<script src="js/lib/jquery.i18n.language.js"></script>
 	
-	<!-- jquery ui -->
-	<link href="css/jquery-ui/jquery-ui.min.css" rel="stylesheet">
-	<link href="css/jquery-ui/jquery-ui.structure.min.css" rel="stylesheet">
-	<link href="css/jquery-ui/jquery-ui.theme.min.css" rel="stylesheet">
-
 	<!-- Bootstrap Core CSS -->
 	<link href="css/bootstrap.css" rel="stylesheet">
 
@@ -52,7 +47,6 @@
 
 	<!-- Custom CSS -->
 	<link href="css/sb-admin-2.css" rel="stylesheet">
-
 	<link href="css/hyperion.css" rel="stylesheet">
 
 	<!-- Custom Fonts -->
@@ -64,10 +58,19 @@
 		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
 		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 	<![endif]-->
+	
 
 </head>
 
 <body>
+	<noscript>
+		<div style="color:red;margin: 40px 0;text-align:center">
+			<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">
+			<h3>Hyperion Web Configuration requires Javascript. Please enable Javascript in your browser for this page in order to use it!</h3>
+		</div>
+		<style type="text/css"> #loading_overlay, #wrapper{ display: none } </style>
+	</noscript>
+	
 	<div id="loading_overlay" class="overlay"></div>
 	<div id="wrapper">
 
@@ -81,7 +84,7 @@
 					<span class="icon-bar"></span>
 				</button>
 
-				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
+				<a class="navbar-brand" href="https://www.hyperion-project.org?pk_campaign=WebUI&pk_kwd=mainlogo" target="_blank"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
 				<a class="navbar-brand" href="/"><img src="img/hyperion/hyperionlostconnection.png" alt="Redefine ambient light!" style="display:none;"></a>
 
 			</div>
@@ -96,6 +99,11 @@
 				<li class="dropdown" id="btn_setaccess">
 					<a href="#">		
 						<i class="fa fa-key fa-fw"></i>
+					</a>
+				</li>
+				<li class="dropdown" id="btn_open_ledsim">
+					<a href="#">		
+						<i class="fa fa-television fa-fw"></i>
 					</a>
 				</li>
 				<!-- /.dropdown -->
@@ -129,7 +137,7 @@
 						<i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
 					</a>
 					<ul class="dropdown-menu dropdown-user">
-						<li><a href="#"><i class="fa fa-user fa-fw"></i>User Profile</a>
+						<li id="btn_open_ledsim" ><a href="#"><i class="fa fa-user fa-fw"></i>led sim</a>
 						</li>
 						<li><a href="#"><i class="fa fa-gear fa-fw"></i>Settings</a>
 						</li>
@@ -193,97 +201,49 @@
 	<!-- /#wrapper -->
 
 	<div id="container_connection_lost" style="display:none"></div>
-
-	<div id="modal_dialog" class="modal fade" role="dialog">
+	<div id="container_restart" style="display:none"></div>
+	
+	<!-- infoDialog -->
+	<div id="modal_dialog" class="modal fade" role="dialog" style="z-index:9999">
 		<div class="modal-dialog">
-			<!-- Modal content-->
-			<div class="modal-content">
-				<div class="modal-body">
-					<center>
-						<div class="modal-bodyicon" style="margin-bottom:20px;"></div>
-						<h4 class="modal-bodytitle" style="font-weight:bold;text-transform:uppercase;"></h4>
-						<div class="modal-bodycontent"></div>
-						<select id="modal_select" class="form-control" style="margin-top:10px;width:auto;"></select>
-					</center>
+			<center>
+				<div class="modal-content">
+					<div id="id_body" class="modal-body"></div>
+					<div id="id_footer" class="modal-footer" style="text-align:center"></div>
 				</div>
-				<div class="modal-footer">
+			</center>
+		</div>
+	</div>
+	
+	<!-- wizardDialog -->
+	<div id="wizard_modal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div id="wiz_header" class="modal-header"></div>
+				<div id="wizp1">
+					<div id="wizp1_body" class="modal-body" style="text-align:center"></div>
+					<div id="wizp1_footer" class="modal-footer" style="text-align:center"></div>
+				</div>
+				<div id="wizp2" style="display:none">
 					<center>
-						<div class="modal-footer-button"></div>
+						<div id="wizp2_body" class="modal-body"></div>
 					</center>
+					<div id="wizp2_footer" class="modal-footer" style="text-align:center"></div>
 				</div>
 			</div>
 		</div>
 	</div>
 	
-	<div id="wizard_modal" class="modal fade" role="dialog">
-		<div class="modal-dialog">
-			<div id="wizp1" class="modal-content">
-				<div class="modal-header">
-					<div class="modal-headertext"><i class="fa fa-magic fa-fw"></i><span data-i18n="wiz_rgb_title">RGB Byte Order Wizard</span></div>
-				</div>
-				<center>
-					<div class="modal-body">
-						<div class="modal-bodyicon" style="margin-bottom:20px;"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!"></div>
-						<h4 class="modal-bodytitle" style="font-weight:bold;text-transform:uppercase;" data-i18n="wiz_rgb_title">RGB Byte Order Wizard</h4>
-						<p data-i18n="wiz_rgb_intro1"></p>
-						<p data-i18n="wiz_rgb_intro2" style="font-weight:bold;"></p>
-					</div>
-				</center>
-				<div class="modal-footer">
-					<center>
-						<div class="modal-footer-button"></div>
-						<button type="button" class="btn btn-primary" id="btn_wiz_cont" data-i18n="general_btn_continue">Continue</button>
-						<button type="button" class="btn btn-danger" id="btn_wiz_cancel" data-i18n="general_btn_cancel">Cancel</button>
-					</center>
-				</div>
-			</div>
-			<div id="wizp2" class="modal-content" style="display:none">
-				<div class="modal-header">
-					<div class="modal-headertext"><i class="fa fa-magic fa-fw"></i><span data-i18n="wiz_rgb_title">RGB Byte Order Wizard</span></div>
-				</div>
-				<center>
-					<div class="modal-body">
-						<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" style="margin-bottom:20px">
-						<p data-i18n="wiz_rgb_expl" style="font-weight:bold">The color dot switches every x seconds the color (red, green), at the same time your leds switch too. Answer the questions at the bottom to check/correct your byte order.</p>
-						<div class="form-group">
-							<label data-i18n="wiz_rgb_switchevery">Switch every</label>
-							<div class="input-group" style="width:100px">
-								<select id="wiz_switchtime_select" class="form-control"></select>
-								<div class="input-group-addon" data-i18n="edt_append_s">s</div>
-							</div>
-						</div>
-						<canvas id="wiz_canv_color" width="100" height="100" style="border-radius:60px;background-color:red; display:block; margin: 10px 0;border:4px solid grey;"></canvas>
-						<label data-i18n="wiz_rgb_q">Which color show your leds, when the color dot above shows...</label>
-						<table class="table borderless" style="width:200px">
-							<tbody>
-								<tr>
-									<td class="ltd">
-										<label data-i18n="wiz_rgb_qrend">...red?</label>
-									</td>
-									<td class="itd">
-										<select id="wiz_r_select" class="form-control wselect"></select>
-									</td>
-								</tr>
-								<tr>
-									<td class="ltd">
-										<label data-i18n="wiz_rgb_qgend">...green?</label>
-									</td>
-									<td class="itd">
-										<select id="wiz_g_select" class="form-control wselect"></select>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</center>
-				<div class="modal-footer">
-					<center>
-						<button type="button" class="btn btn-success" id="btn_wiz_save" data-i18n="general_btn_saverestart">Save and restart</button>
-						<button type="button" class="btn btn-primary" id="btn_wiz_checkok" data-i18n="general_btn_ok" style="display:none" data-dismiss="modal">Ok</button>
-						<button type="button" class="btn btn-danger" id="btn_wiz_abort" data-i18n="general_btn_cancel">Cancel</button>
-					</center>
-				</div>
-			</div>
+	<!-- ledsimDialog -->
+	<div id="ledsim_dialog" style="display:none; z-index:9998">
+		<div data-role="body" style="padding:0px;">
+			<p id="ledsim_text" data-i18n="main_ledsim_text" style="font-weight:bold; margin: 10px 15px 0px 15px">Live visualization of led colors and if available the current picture of your capture device</p>
+			<div id="leds_canvas"></div>
+		</div>
+		<div data-role="footer" style="text-align:center">
+			<button  type="button" class="btn btn-success" id="leds_toggle"><i class="fa fa-fw fa-lightbulb-o"></i><span data-i18n="main_ledsim_btn_toggleleds">leds</span></button>
+			<button  type="button" class="btn btn-danger" id="leds_toggle_num"> <i class="fa fa-fw fa-info"></i><span data-i18n="main_ledsim_btn_togglelednumber">led numbers</span></button>
+			<button  type="button" class="btn btn-danger" id="leds_toggle_live_video"><i class="fa fa-fw fa-television"></i><span data-i18n="main_ledsim_btn_togglelivevideo">live video</span></button>
 		</div>
 	</div>
 
@@ -296,11 +256,17 @@
 	<!-- Custom Theme JavaScript -->
 	<script src="/js/lib/sb-admin-2.js"></script>
 
-	<script src="/js/lib/jquery-ui.min.js"></script>
 	<script src="/js/content_index.js"></script>
-	<script src="/js/localStorage.js"></script>
+	<script src="/js/settings.js"></script>
 	<script src="/js/wizard.js"></script>
-
+	
+	<!--gijgo dialog-->
+	<script src="/js/lib/draggable.min.js"></script>
+	<script src="/js/lib/dialog.min.js"></script>
+	<script src="/js/ledsim.js"></script>
+	
+	<!--Client-side download-->
+	<script src='/js/lib/download.min.js'></script>
+	
 </body>
-
 </html>

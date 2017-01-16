@@ -82,7 +82,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		if(validateEditor())
 		{
 			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-			showInfoDialog('success', $.i18n('infoDialog_effconf_created_title'), $.i18n('infoDialog_effconf_created_text', effectName));
+			showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
 		}
 	});
 
@@ -104,7 +104,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val();
 		requestDeleteEffect(name);
-		showInfoDialog('success', $.i18n('infoDialog_effconf_deleted_title'), $.i18n('infoDialog_effconf_deleted_text', name));
+		showInfoDialog('success', "", $.i18n('infoDialog_effconf_deleted_text', name));
 	});
 	
 	$('#effectsdellist').off().on('change', function(){

@@ -1,5 +1,6 @@
 
 // global vars
+var webPrio = 1;
 var showOptHelp = true;
 var currentVersion;
 var cleanCurrentVersion;
@@ -26,8 +27,7 @@ function initRestart()
 	$(hyperion).off();
 	requestServerConfigReload();
 	watchdog = 10;
-	$("#wrapper").fadeOut("slow");
-	connectionLostDetection();
+	connectionLostDetection('restart');
 }
 
 function cron()
@@ -37,15 +37,23 @@ function cron()
 }
 
 
-function connectionLostDetection()
+function connectionLostDetection(type)
 {
 	if ( watchdog > 1 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
-		$("body").html($("#container_connection_lost").html());
-		connectionLostAction();
+		if(type == 'restart')
+		{
+			$("body").html($("#container_restart").html());	
+			restartAction();
+		}
+		else
+		{
+			$("body").html($("#container_connection_lost").html());
+			connectionLostAction();
+		}
 	}
 	else
 	{
@@ -200,19 +208,22 @@ function requestLedImageStop()
 	sendToHyperion("ledcolors", "imagestream-stop");
 }
 
-function requestPriorityClear()
+function requestPriorityClear(prio)
 {
-	sendToHyperion("clear", "", '"priority":1');
+	if(typeof prio !== 'number')
+		prio = webPrio;
+
+	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
 function requestPlayEffect(effectName)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":1');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+'');
 }
 
 function requestSetColor(r,g,b)
 {
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":1');
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+'');
 }
 
 function requestSetComponentState(comp, state)
@@ -229,14 +240,18 @@ function requestSetSource(prio)
 		sendToHyperion("sourceselect", "", '"priority":'+prio);
 }
 
-function requestWriteConfig(config)
+function requestWriteConfig(config, full)
 {
-	var complete_config = parsedConfJSON;
-	jQuery.each(config, function(i, val) {
-		complete_config[i] = val;
-	});
+	if(full === true)
+		parsedConfJSON = config;
+	else
+	{
+		jQuery.each(config, function(i, val) {
+			parsedConfJSON[i] = val;
+		});
+	}
 
-	var config_str = escape(encode_utf8(JSON.stringify(complete_config)));
+	var config_str = escape(encode_utf8(JSON.stringify(parsedConfJSON)));
 
 	$.post( "/cgi/cfg_set", { cfg: config_str })
 	.done(function( data ) {
@@ -255,7 +270,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":'+webPrio+', "pythonScript":"'+effectPy+'"}');
 }
 
 function requestDeleteEffect(effectName)

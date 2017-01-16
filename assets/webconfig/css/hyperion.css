@@ -72,6 +72,11 @@ table.borderless td,table.borderless th{border: none !important;}
     margin-bottom: 0;
 }
 
+/*led preview & led visualisation*/
+#leds_canvas {background-color:#AAAAAA; position:absolute; margin:15px; background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center;}
+.led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}
+.led_num, .led_prev_num {display:none; position:relative; color:black; background-color: white; border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
+
 /*Modal icons*/
 [class*="modal-icon"]{
 	padding:30px;
@@ -262,6 +267,136 @@ table.borderless td,table.borderless th{border: none !important;}
   .col-xxl-offset-0 {
     margin-left: 0;
   }
+}
+
+/* drag and resizable modal http://gijgo.com/ */
+.gj-draggable {
+    cursor: move;
+}
+.gj-unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.gj-resizable-handle {
+    position: absolute;
+    font-size: 0.1px;
+    display: block;
+    -ms-touch-action: none;
+    touch-action: none;
+    z-index: 90;
+}
+
+.gj-resizable-n {
+    cursor: n-resize;
+    height: 7px;
+    width: 100%;
+    top: -5px;
+    left: 0;
+}
+.gj-resizable-e {
+    cursor: e-resize;
+    width: 7px;
+    right: -5px;
+    top: 0;
+    height: 100%;
+}
+.gj-resizable-s {
+    cursor: s-resize;
+    height: 7px;
+    width: 100%;
+    bottom: -5px;
+    left: 0;
+}
+.gj-resizable-w {
+	cursor: w-resize;
+	width: 7px;
+	left: -5px;
+	top: 0;
+	height: 100%;
+}
+.gj-resizable-se {
+	cursor: se-resize;
+	width: 12px;
+	height: 12px;
+	right: 1px;
+	bottom: 1px;
+}
+.gj-resizable-sw {
+	cursor: sw-resize;
+	width: 9px;
+	height: 9px;
+	left: -5px;
+	bottom: -5px;
+}
+.gj-resizable-nw {
+	cursor: nw-resize;
+	width: 9px;
+	height: 9px;
+	left: -5px;
+	top: -5px;
+}
+.gj-resizable-ne {
+	cursor: ne-resize;
+	width: 9px;
+	height: 9px;
+	right: -5px;
+	top: -5px;
+}
+
+.gj-dialog-footer {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.gj-modal {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    display: none;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    outline: 0;
+}
+
+.gj-content {
+    border: 1px solid #999;
+    background-color: #fff;
+    border-radius: 6px;
+    outline: 0;
+}
+
+.gj-header {
+    min-height: 16.43px;
+    padding: 15px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.gj-title {
+    margin: 2px;
+}
+
+.gj-close {
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    background: 0 0;
+    border: 0;
+    float: right;
+    font-size: 21px;
+    color: #000;
+}
+
+.gj-body {
+    position: relative;
+    padding: 15px;
 }
 
 /*https://github.com/flatlogic/awesome-bootstrap-checkbox slighty edited for our purposes*/
