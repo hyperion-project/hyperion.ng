@@ -211,7 +211,7 @@ function createTableRow(list, head, align)
 	
 	for(var i = 0; i < list.length; i++)
 	{
-		if(typeof head === true)
+		if(head === true)
 			var el = document.createElement('th');
 		else
 			var el = document.createElement('td');

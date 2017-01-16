@@ -2152,7 +2152,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
 
     if(this.format) this.input.setAttribute('data-schemaformat',this.format);
 	if(this.defaultValue) this.input.setAttribute('data-schemaformat',this.format);
-	if(this.formname)this.label.setAttribute('for',this.formname);
+	if(this.formname && this.label)this.label.setAttribute('for',this.formname);
 	
     this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append, this.placeholder);
 	this.container.appendChild(this.control);
