@@ -610,6 +610,48 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 			}
 		}
 		
+		if(priorityInfo.componentId == 9)
+		{
+			QJsonObject LEDcolor;
+			
+			// add RGB Value to Array
+			QJsonArray RGBValue;
+			RGBValue.append(priorityInfo.ledColors.begin()->red);
+			RGBValue.append(priorityInfo.ledColors.begin()->green);
+			RGBValue.append(priorityInfo.ledColors.begin()->blue);
+			LEDcolor.insert("RGB", RGBValue);
+
+			uint16_t Hue;
+			float Saturation, Luminace;
+
+			// add HSL Value to Array
+			QJsonArray HSLValue;
+			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+					priorityInfo.ledColors.begin()->green,
+					priorityInfo.ledColors.begin()->blue,
+					Hue, Saturation, Luminace);
+
+			HSLValue.append(Hue);
+			HSLValue.append(Saturation);
+			HSLValue.append(Luminace);
+			LEDcolor.insert("HSL", HSLValue);
+
+			// add HEX Value to Array ["HEX Value"]
+			QJsonArray HEXValue;
+			std::stringstream hex;
+				hex << "0x"
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
+
+			HEXValue.append(QString::fromStdString(hex.str()));
+			LEDcolor.insert("HEX", HEXValue);
+			
+			item["value"] = LEDcolor;
+		}
 		// priorities[priorities.size()] = item;
 		priorities.append(item);
 	}
@@ -679,87 +721,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["effects"] = effects;
-	
-	// collect active effect info
-	QJsonArray activeEffects;
-	const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
-	for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
-	{
-		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
-		{
-			QJsonObject activeEffect;
-			activeEffect["script"] = activeEffectDefinition.script;
-			activeEffect["name"] = activeEffectDefinition.name;
-			activeEffect["priority"] = activeEffectDefinition.priority;
-			activeEffect["timeout"] = activeEffectDefinition.timeout;
-			activeEffect["args"] = activeEffectDefinition.args;
-			activeEffects.append(activeEffect);
-		}
-	}
-	
-	info["activeEffects"] = activeEffects;
-
-	// collect active static led color
-	QJsonArray activeLedColors;
-	const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
-	if (priorityInfo.priority != std::numeric_limits<int>::max())
-	{
-		QJsonObject LEDcolor;
-		// check if all LEDs has the same Color
-		if (std::all_of(priorityInfo.ledColors.begin(), priorityInfo.ledColors.end(), [&](ColorRgb color)
-		{
-			return ((color.red == priorityInfo.ledColors.begin()->red) &&
-				(color.green == priorityInfo.ledColors.begin()->green) &&
-				(color.blue == priorityInfo.ledColors.begin()->blue));
-		} ))
-	    {
-		// check if LED Color not Black (0,0,0)
-		if ((priorityInfo.ledColors.begin()->red +
-		priorityInfo.ledColors.begin()->green +
-		priorityInfo.ledColors.begin()->blue != 0))
-		{
-			// add RGB Value to Array
-			QJsonArray RGBValue;
-			RGBValue.append(priorityInfo.ledColors.begin()->red);
-			RGBValue.append(priorityInfo.ledColors.begin()->green);
-			RGBValue.append(priorityInfo.ledColors.begin()->blue);
-			LEDcolor.insert("RGB Value", RGBValue);
-
-			uint16_t Hue;
-			float Saturation, Luminace;
-		    
-			// add HSL Value to Array
-			QJsonArray HSLValue;
-			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-					priorityInfo.ledColors.begin()->green,
-					priorityInfo.ledColors.begin()->blue,
-					Hue, Saturation, Luminace);
-
-			HSLValue.append(Hue);
-			HSLValue.append(Saturation);
-			HSLValue.append(Luminace);
-			LEDcolor.insert("HSL Value", HSLValue);
-
-			// add HEX Value to Array ["HEX Value"]
-			QJsonArray HEXValue;
-			std::stringstream hex;
-				hex << "0x"
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
-
-			HEXValue.append(QString::fromStdString(hex.str()));
-			LEDcolor.insert("HEX Value", HEXValue);
-
-			activeLedColors.append(LEDcolor);
-			}
-		}
-	}
-	
-	info["activeLedColor"] = activeLedColors;
 
 	// get available led devices
 	QJsonObject ledDevices;

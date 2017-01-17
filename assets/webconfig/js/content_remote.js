@@ -1,25 +1,61 @@
 
 	function updateInputSelect()
-	{
+	{	
+		$('#sstbody').html("");
 		var data = "";
+		var prios = parsedServerInfoJSON.info.priorities
 		var i;
- 		for(i = 0; i < parsedServerInfoJSON.info.priorities.length; i++) {
-			var owner    = parsedServerInfoJSON.info.priorities[i].owner;
-			var active   = parsedServerInfoJSON.info.priorities[i].active;
-			var visible  = parsedServerInfoJSON.info.priorities[i].visible;
-			var priority = parsedServerInfoJSON.info.priorities[i].priority;
+		for(i = 0; i < prios.length; i++)
+		{
+			var origin   = "not impl";
+			var ip       = "xxx.xxx.xxx.xxx";
+			var owner    = prios[i].owner;
+			var active   = prios[i].active;
+			var visible  = prios[i].visible;
+			var priority = prios[i].priority;
+			var compId   = prios[i].componentId;
+			var duration = prios[i].duration_ms/1000;
 			var btn_type = "default";
+			var btn_text = $.i18n('remote_input_setsource_btn');
+			var btn_state = "enabled";
 			if (active) btn_type = "warning";
-			if (visible) btn_type = "success";
+			if (visible)
+			{
+				 btn_state = "disabled";
+				 btn_type = "success";
+				 btn_text = $.i18n('remote_input_sourceactiv_btn');
+			}
+			if(ip)
+				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
+			if(compId == "10")
+				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
+			if(compId == "9")
+				owner = $.i18n('remote_colors_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
+			if(compId == "7")
+				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
+			if(compId == "8")
+				owner = $.i18n('general_comp_V4L')+': ('+owner+')';
+			if(compId == "6")
+				owner = $.i18n('general_comp_BOBLIGHTSERVER');
+			if(compId == "5")
+				owner = $.i18n('general_comp_UDPLISTENER');
+			if(duration)
+				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
+			
+			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
+			
+			if((compId == "10" || compId == "9") && priority != 254)
+				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')
-				data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg btn-'+btn_type+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource('+priority+');">'+owner+'<span style="font-size:70% !important;"> ('+priority+')</span></button><br/>';
+				$('#sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
 		}
-		var autostate = (parsedServerInfoJSON.info.priorities_autoselect? "btn-success" : "btn-danger");
-		data += '<button id="srcBtn'+i+'" type="button" class="btn btn-lg '+autostate+' btn_input_selection" style="margin:10px;min-width:200px" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+'</button><br/>';
-		$('#hyperion_inputs').html(data);
+		var btn_auto_color = (parsedServerInfoJSON.info.priorities_autoselect? "btn-success" : "btn-danger");
+		var btn_auto_state = (parsedServerInfoJSON.info.priorities_autoselect? "disabled" : "enabled");
+		var btn_auto_text = (parsedServerInfoJSON.info.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
+		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin:10px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
 		
-		var max_width=200;
+		var max_width=100;
 		$('.btn_input_selection').each(function() {
 			if ($(this).innerWidth() > max_width)
 				max_width = $(this).innerWidth();
@@ -109,11 +145,15 @@
 
 $(document).ready(function() {
 	performTranslation();
+	createTable('ssthead', 'sstbody', 'sstcont');
+	$('#ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
+	
 	// color
 		$(function() {
 			$('#cp2').colorpicker({
 				format: 'rgb',
 				customClass: 'colorpicker-2x',
+				color: '#B500FF',
 				sliders: {
 					saturation: {
 						maxLeft: 200,

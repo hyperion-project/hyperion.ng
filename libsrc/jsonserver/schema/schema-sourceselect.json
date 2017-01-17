@@ -11,7 +11,9 @@
 			"type" : "integer"
 		},
 		"priority": {
-			"type": "integer"
+			"type": "integer",
+			"minimum" : 0,
+			"maximum" : 255
 		},
 		"auto": {
 			"type": "boolean"

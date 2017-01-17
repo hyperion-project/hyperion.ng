@@ -1,8 +1,8 @@
 $(document).ready( function() {
 	var uiLock = false;
 
-	$("#main-nav").hide();
 	loadContentTo("#container_connection_lost","connection_lost");
+	loadContentTo("#container_restart","restart");
 	initWebSocket();
 	bindNavToContent("#load_dashboard","dashboard",true);
 	bindNavToContent("#load_remote","remote",false);
@@ -82,7 +82,6 @@ $(document).ready( function() {
 
 		
 		$("#loading_overlay").removeClass("overlay");
-		$("#main-nav").show('slide', {direction: 'left'}, 1000);
 
 		if (!parsedServerInfoJSON.info.hyperion[0].config_writeable)
 		{

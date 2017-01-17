@@ -8,9 +8,51 @@ var backgroundEffect_editor = null;
 
 $(hyperion).one("cmd-config-getschema", function(event) {
 	schema = parsedConfSchemaJSON.properties;
-	effects_editor = createJsonEditor('editor_container_effects', {
-		effects            : schema.effects
-	}, true, true);
+	
+	if(showOptHelp)
+	{
+		//effect path
+		if(storedAccess != 'default')
+		{
+			$('#conf_cont').append(createRow('conf_cont_ef'))
+			$('#conf_cont_ef').append(createOptPanel('fa-spinner', $.i18n("edt_conf_effp_heading_title"), 'editor_container_effects', 'btn_submit_effects'));
+			$('#conf_cont_ef').append(createHelpTable(schema.effects.properties, $.i18n("edt_conf_effp_heading_title")));
+		}
+		
+		//foreground effect
+		$('#conf_cont').append(createRow('conf_cont_fge'))
+		$('#conf_cont_fge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_fge_heading_title"), 'editor_container_foregroundEffect', 'btn_submit_foregroundEffect'));
+		$('#conf_cont_fge').append(createHelpTable(schema.foregroundEffect.properties, $.i18n("edt_conf_fge_heading_title")));
+		
+		//background effect
+		$('#conf_cont').append(createRow('conf_cont_bge'))
+		$('#conf_cont_bge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_bge_heading_title"), 'editor_container_backgroundEffect', 'btn_submit_backgroundEffect'));
+		$('#conf_cont_bge').append(createHelpTable(schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));
+	}
+	else
+	{
+		if(storedAccess != 'default')	
+			$('#conf_cont').append(createOptPanel('fa-spinner', $.i18n("edt_conf_effp_heading_title"), 'editor_container_effects', 'btn_submit_effects'));
+		
+		$('#conf_cont').addClass('row');
+		$('#conf_cont').append(createOptPanel('fa-spinner', $.i18n("edt_conf_fge_heading_title"), 'editor_container_foregroundEffect', 'btn_submit_foregroundEffect'));
+		$('#conf_cont').append(createOptPanel('fa-spinner', $.i18n("edt_conf_bge_heading_title"), 'editor_container_backgroundEffect', 'btn_submit_backgroundEffect'));
+	}
+	
+	if(storedAccess != 'default')
+	{
+		effects_editor = createJsonEditor('editor_container_effects', {
+			effects            : schema.effects
+		}, true, true);
+		
+		effects_editor.on('change',function() {
+			effects_editor.validate().length ? $('#btn_submit_effects').attr('disabled', true) : $('#btn_submit_effects').attr('disabled', false);
+		});
+		
+		$('#btn_submit_effects').off().on('click',function() {
+			requestWriteConfig(effects_editor.getValue());
+		});
+	}
 
 	foregroundEffect_editor = createJsonEditor('editor_container_foregroundEffect', {
 		foregroundEffect   : schema.foregroundEffect
@@ -21,11 +63,13 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	}, true, true);
 	
 	
-	effects_editor.on('ready',function() {
+	foregroundEffect_editor.on('ready',function() {
 		editorReady = true;
 	});
 	
 	foregroundEffect_editor.on('change',function() {
+		foregroundEffect_editor.validate().length ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
+		
 		var type = foregroundEffect_editor.getEditor('root.foregroundEffect.type');
 		if(type.value == "color")
 		{
@@ -40,6 +84,8 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	});
 	
 	backgroundEffect_editor.on('change',function() {
+		backgroundEffect_editor.validate().length ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
+		
 		var type = backgroundEffect_editor.getEditor('root.backgroundEffect.type');
 		if(type.value == "color")
 		{
@@ -53,10 +99,6 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		}
 	});
 	
-	$('#btn_submit_effects').off().on('click',function() {
-		requestWriteConfig(effects_editor.getValue());
-	});
-	
 	$('#btn_submit_foregroundEffect').off().on('click',function() {
 		//requestWriteConfig(foregroundEffect_editor.getValue());
 		console.log(foregroundEffect_editor.getValue());
@@ -66,13 +108,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		//requestWriteConfig(backgroundEffect_editor.getValue());
 		console.log(backgroundEffect_editor.getValue());
 	});
-	
-	if(showOptHelp)
-	{
-		$('#opt_expl_effects').html(createHelpTable(schema.effects.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_effp_heading_title")+' '+$.i18n("conf_helptable_expl")));
-		$('#opt_expl_foregroundEffect').html(createHelpTable(schema.foregroundEffect.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_fge_heading_title")+' '+$.i18n("conf_helptable_expl")));
-		$('#opt_expl_backgroundEffect').html(createHelpTable(schema.backgroundEffect.properties, '<i class="fa fa-info-circle fa-fw"></i>'+$.i18n("edt_conf_bge_heading_title")+' '+$.i18n("conf_helptable_expl")));
-	}
+
 });
 
 function updateEffectlist(event){
@@ -98,11 +134,12 @@ function updateEffectlist(event){
 			$('#root_backgroundEffect_effect').html($('#root_foregroundEffect_effect').html());
 			olddEffects = newEffects;
 			
-			$('#root_foregroundEffect_effect').val(confFgEff);
-			$('#root_foregroundEffect_effect').trigger('change');
-
-			$('#root_backgroundEffect_effect').val(confBgEff);
-			$('#root_backgroundEffect_effect').trigger('change');
+			$('#root_foregroundEffect_effect').val(confFgEff).change();
+			//$('select').trigger('change');
+			//var fgeff = foregroundEffect_editor.getEditor('root.foregroundEffect.effect').setValue(confFgEff);
+			//console.log(fgeff);
+			
+			$('#root_backgroundEffect_effect').val(confBgEff).change();
 		}
 	}
 }
