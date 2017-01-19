@@ -34,10 +34,6 @@ function loadStoredValues()
 {
 	if (storageComp() && getStorage('ip_cl_ledstop') != null)
 	{	
-		IntListIds = $('.led_val_int').map(function() { return this.id; }).get();
-		StrListIds = $('.led_val_string').map(function() { return this.id; }).get();
-		BoolListIds = $('.led_val_bool').map(function() { return this.id; }).get();
-		
 		for(var i = 0; i < IntListIds.length; i++)
 		{
 			$('#'+IntListIds[i]).val(parseInt(getStorage(IntListIds[i])));
@@ -372,6 +368,11 @@ $(document).ready(function() {
 	// translate
 	performTranslation();
 	
+	//gather ids
+	IntListIds = $('.led_val_int').map(function() { return this.id; }).get();
+	StrListIds = $('.led_val_string').map(function() { return this.id; }).get();
+	BoolListIds = $('.led_val_bool').map(function() { return this.id; }).get();
+
 	// restore values from storage
 	loadStoredValues();
 	
@@ -477,7 +478,7 @@ $(document).ready(function() {
 	
 	// save led config and saveValues - passing textfield
 	$("#btn_ma_save, #btn_cl_save").off().on("click", function() {
-		requestWriteConfig(JSON.parse('{"leds" :'+finalLedArray+'}'));
+		requestWriteConfig({"leds" :finalLedArray});
 		saveValues();
 	});
 	
