@@ -4,7 +4,7 @@
 	"args" :
 	{
 		"rotation-time" : 60.0,
-		"brightness" : 1.0,
+		"brightness" : 100,
 		"reverse" : false
 	}
 }

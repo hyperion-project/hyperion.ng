@@ -1,34 +1,35 @@
 			<div class="container-fluid" id="content_dashboard">
 				<div class="row">
 					<div class="col-lg-12">
-						<h2 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span lang="en" data-lang-token="main_menu_dashboard_token">Dashboard</span></h2>
+						<h2 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h2>
 						<div class="introd">
-							<h4 lang="en" data-lang-token="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
+							<h4  data-i18n="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
+						<hr />
 						</div>
-						<hr>
+						<div class="row">
 							<div class="col-md-6 col-xxl-4">
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-info-circle fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_infobox_label_title">Information</span>
+										<span  data-i18n="dashboard_infobox_label_title">Information</span>
 									</div>
 									<div class="panel-body">
 										<table class="table borderless">
 											<tbody>
 												<tr>
-													<td lang="en" data-lang-token="dashboard_infobox_label_currenthyp">Your Hyperion version:</td>
+													<td  data-i18n="dashboard_infobox_label_currenthyp">Your Hyperion version:</td>
 													<td id="currentversion">unknown</td>
 												</tr>
 												<tr>
-													<td lang="en" data-lang-token="dashboard_infobox_label_latesthyp">Latest version:</td>
+													<td  data-i18n="dashboard_infobox_label_latesthyp">Latest version:</td>
 													<td id="latestversion">unknown</td>
 												</tr>
 												<tr>
-													<td lang="en" data-lang-token="dashboard_infobox_label_leddevice">LED type:</td>
+													<td  data-i18n="dashboard_infobox_label_leddevice">LED type:</td>
 													<td id="dash_leddevice">unknown</td>
 												</tr>
 												<tr>
-													<td lang="en" data-lang-token="dashboard_infobox_label_device">Device:</td>
+													<td  data-i18n="dashboard_infobox_label_device">Device:</td>
 													<td id="dash_systeminfo"></td>
 												</tr>
 											</tbody>
@@ -42,14 +43,14 @@
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-eye fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_componentbox_label_title">Components status</span>
+										<span  data-i18n="dashboard_componentbox_label_title">Components status</span>
 									</div>
 									<div class="panel-body">
 										  <table class="table">
 											<thead>
 												<tr>
-													<th lang="en" data-lang-token="dashboard_componentbox_label_comp">Component</th>
-													<th lang="en" data-lang-token="dashboard_componentbox_label_status">Status</th>
+													<th  data-i18n="dashboard_componentbox_label_comp">Component</th>
+													<th  data-i18n="dashboard_componentbox_label_status">Status</th>
 												</tr>
 											</thead>
 											<tbody id="tab_components">
@@ -62,14 +63,14 @@
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-newspaper-o fa-fw"></i>
-										<span lang="en" data-lang-token="dashboard_newsbox_label_title">Latest blog posts</span>
+										<span  data-i18n="dashboard_newsbox_label_title">Latest blog posts</span>
 									</div>
 									<div class="panel-body">
 
 									</div>
 								</div>
 							</div>
-
+						</div>
 					</div>
 					<!-- /.col-lg-12 -->
 				</div>
@@ -77,3 +78,6 @@
 			</div>
 			<!-- /.container-fluid -->
  
+<script type="text/javascript">
+performTranslation('content_dashboard');
+</script>

@@ -20,15 +20,18 @@ public:
 	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
 	
 	// cgi commands
-	void cmd_cfg_jsonserver(const QStringList & args, QtHttpReply * reply);
-	void cmd_cfg_hyperion (const QStringList & args, QtHttpReply * reply);
-	void cmd_runscript (const QStringList & args, QtHttpReply * reply);
+	void cmd_cfg_jsonserver();
+	void cmd_cfg_get ();
+	void cmd_cfg_set ();
+	void cmd_runscript ();
 	
 private:
 	Hyperion*             _hyperion;
 	QtHttpReply *         _reply;
+	QtHttpRequest *       _request;
+	QStringList          _args;
 	const QJsonObject    &_hyperionConfig;
-	const QString     _baseUrl;
+	const QString         _baseUrl;
 };
 
 #endif // CGIHANDLER_H

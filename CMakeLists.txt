@@ -16,22 +16,34 @@ SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
 SET ( HYPERION_VERSION_PATCH 0 )
+SET ( CURRENT_CONFIG_VERSION 2 )
 
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
-SET ( DEFAULT_FB         ON )
 SET ( DEFAULT_OSX        OFF )
 SET ( DEFAULT_X11        OFF )
-SET ( DEFAULT_SPIDEV     ON )
 SET ( DEFAULT_WS281XPWM  OFF )
-SET ( DEFAULT_V4L2       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  OFF )
 SET ( DEFAULT_USE_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
 SET ( DEFAULT_TESTS      OFF )
 
+IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+	SET ( DEFAULT_V4L2   ON  )
+	SET ( DEFAULT_SPIDEV ON )
+	SET ( DEFAULT_FB     ON )
+ELSE()
+	SET ( DEFAULT_V4L2   OFF )
+	SET ( DEFAULT_SPIDEV OFF )
+	SET ( DEFAULT_FB     OFF )
+ENDIF()
+
 if (APPLE)
 	SET( PLATFORM "osx")
+endif()
+
+if (WIN32)
+	SET( PLATFORM "windows")
 endif()
 
 if ( NOT DEFINED PLATFORM )
@@ -56,16 +68,12 @@ endif()
 
 message( STATUS "PLATFORM: ${PLATFORM}")
 
+
 if ( "${PLATFORM}" MATCHES "osx" )
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5" CACHE STRING "path to your QT5 files" )
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON  )
-	SET ( DEFAULT_V4L2       OFF )
-	SET ( DEFAULT_SPIDEV     OFF )
-	SET ( DEFAULT_FB         OFF )
-	SET ( DEFAULT_WS281XPWM  OFF )
-	SET ( DEFAULT_USE_AVAHI_LIBS         OFF )
-	SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  OFF )
+	SET ( DEFAULT_USE_AVAHI_LIBS OFF )
 elseif ( "${PLATFORM}" STREQUAL "rpi" )
 	SET ( DEFAULT_DISPMANX   ON )
 	SET ( DEFAULT_WS281XPWM  ON )
@@ -83,6 +91,8 @@ elseif ( "${PLATFORM}" MATCHES "x86" )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
+elseif ( "${PLATFORM}" STREQUAL "windows" )
+	MESSAGE( WARNING "Hyperion is not developed nor tested on MS Windows.")
 endif()
 
 # enable tests for -dev builds
@@ -130,6 +140,40 @@ message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
+
+# check all  json files
+FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
+SET( JSON_FILES
+	config/hyperion.config.json.default
+	${HYPERION_SCHEMAS}
+)
+EXECUTE_PROCESS (
+	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE CHECK_JSON_FAILED
+)
+IF ( ${CHECK_JSON_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json files failed" )
+ENDIF ()
+
+EXECUTE_PROCESS (
+	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE CHECK_EFFECTS_FAILED
+)
+IF ( ${CHECK_EFFECTS_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+ENDIF ()
+
+EXECUTE_PROCESS (
+	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE CHECK_CONFIG_FAILED
+)
+IF ( ${CHECK_CONFIG_FAILED} )
+	MESSAGE (FATAL_ERROR "check of json default config failed" )
+ENDIF ()
+
 
 # Createt the configuration file
 
@@ -206,6 +250,14 @@ endif ()
 
 # Add the doxygen generation directory
 add_subdirectory(doc)
+
+# remove generated files on make cleaan too
+LIST( APPEND GENERATED_QRC 
+	${CMAKE_BINARY_DIR}/EffectEngine.qrc
+	${CMAKE_BINARY_DIR}/WebConfig.qrc
+	${CMAKE_BINARY_DIR}/HyperionConfig.h
+)
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
