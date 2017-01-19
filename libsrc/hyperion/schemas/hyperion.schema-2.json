@@ -1154,7 +1154,7 @@
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
 					"maximum" : 253,
-					"default" : 200,
+					"default" : 190,
 					"propertyOrder" : 4
 				},
 				"timeout" :

@@ -165,7 +165,7 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 200,
+		"priority" : 190,
 		"timeout"  : 10000,
 		"shared"   : false
 	},
