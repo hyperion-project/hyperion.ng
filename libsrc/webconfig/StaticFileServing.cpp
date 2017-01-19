@@ -76,7 +76,7 @@ static inline void printErrorToReply (QtHttpReply * reply, QString errorMessage)
 void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpReply * reply)
 {
 	QString command = request->getCommand ();
-	if (command == QStringLiteral ("GET"))
+	if (command == QStringLiteral ("GET") || command == QStringLiteral ("POST"))
 	{
 		QString path = request->getUrl ().path ();
 		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
@@ -87,6 +87,11 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			uri_parts.removeAt(0);
 			try
 			{
+				if (command == QStringLiteral ("POST"))
+				{
+					QString postData = request->getRawData();
+					uri_parts.append(postData.split('&', QString::SkipEmptyParts));
+				}
 				_cgi.exec(uri_parts, request, reply);
 			}
 			catch(...)
@@ -134,7 +139,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 	}
 	else
 	{
-		printErrorToReply (reply, "Unhandled HTTP/1.1 method " % command % " on static file server !");
+		printErrorToReply (reply, "Unhandled HTTP/1.1 method " % command % " on web server !");
 	}
 }
 

@@ -29,6 +29,8 @@
 
 using namespace commandline;
 
+#define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
+
 void signal_handler(const int signum)
 {
 	QCoreApplication::quit();
@@ -128,16 +130,19 @@ int main(int argc, char** argv)
 		{
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			QString destFileName;
 			foreach (const QString & filename, filenames)
 			{
-				if (QFile::exists(destDir.dirName()+"/"+filename))
+				destFileName = destDir.dirName()+"/"+filename;
+				if (QFile::exists(destFileName))
 				{
-					QFile::remove(destDir.dirName()+"/"+filename);
+					QFile::remove(destFileName);
 				}
 				
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(QString(":/effects/")+filename, destDir.dirName()+"/"+filename))
+				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
+					QFile::setPermissions(destFileName, PERM0664 );
 					std::cout << "ok" << std::endl;
 				}
 				else
@@ -176,11 +181,15 @@ int main(int argc, char** argv)
 		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
 		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
 		{
+			QFile::setPermissions(exportConfigFileTarget, PERM0664 );
 			Info(log, "export complete.");
 			if (exitAfterexportDefaultConfig) return 0;
 		}
-		Error(log, "can not export to %s",exportConfigFileTarget.toLocal8Bit().constData());
-		if (exitAfterexportDefaultConfig) return 1;
+		else
+		{
+			Error(log, "error while export to %s",exportConfigFileTarget.toLocal8Bit().constData());
+			if (exitAfterexportDefaultConfig) return 1;
+		}
 	}
 
 	if (configFiles.size() == 0)

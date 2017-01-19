@@ -61,4 +61,7 @@ private:
 
 	/// List with a pointer to the ColorAdjustment for each individual led
 	std::vector<ColorAdjustment*> _ledAdjustments;
+
+	// logger instance
+	Logger * _log;
 };

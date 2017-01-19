@@ -1,20 +1,20 @@
 {
 	"type":"object",
 	"script" : "rainbow-swirl.py",
-	"title":"Rainbow swirl",
+	"title":"edt_eff_rainbowswirl_header_title",
 	"required":true,
 	"properties":{
 		"rotation-time": {
 			"type": "number",
-			"title":"Rotation Time",
+			"title":"edt_eff_rotationtime_title",
 			"default": 10.0,
 			"minimum" : 0.1,
-			"append" : "s",
+			"append" : "edt_append_s",
 			"propertyOrder" : 1
 		},
 		"center_x": {
 			"type": "number",
-			"title":"Center X",
+			"title":"edt_eff_centerx_title",
 			"default": 0.5,
 			"minimum" : 0.0,
 			"maximum" : 2.0,
@@ -23,7 +23,7 @@
 		},
 		"center_y": {
 			"type": "number",
-			"title":"Center Y",
+			"title":"edt_eff_centery_title",
 			"default": 0.5,
 			"minimum" : 0.0,
 			"maximum" : 2.0,
@@ -32,7 +32,7 @@
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"Reverse direction",
+			"title":"edt_eff_reversedirection_title",
 			"default": false,
 			"propertyOrder" : 4
 		}

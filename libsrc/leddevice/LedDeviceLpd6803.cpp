@@ -34,5 +34,5 @@ int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	// Write the data
-	return (writeBytes(_ledBuffer.size(), _ledBuffer.data()) < 0) ? -1 : 0;
+	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
