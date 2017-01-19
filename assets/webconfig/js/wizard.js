@@ -136,9 +136,8 @@ $(document).ready( function() {
 
 		$('#btn_wiz_save').off().on('click',function() {
 			resetWizard();
-			var devConf = parsedConfJSON.device;
-			devConf.colorOrder = new_rgb_order;
-			requestWriteConfig(devConf);
+			parsedConfJSON.device.colorOrder = new_rgb_order;
+			requestWriteConfig({"device" : parsedConfJSON.device});
 			setTimeout(initRestart, 100);
 		});
 	}
