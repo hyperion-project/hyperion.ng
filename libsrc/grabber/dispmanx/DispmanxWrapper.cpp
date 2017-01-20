@@ -45,7 +45,7 @@ void DispmanxWrapper::action()
 
 void DispmanxWrapper::kodiPlay()
 {
-	_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
+	_grabber->setFlags(0);
 	GrabberWrapper::kodiPlay();
 	
 }
