@@ -27,7 +27,7 @@ table.borderless td,table.borderless th{border: none !important;}
 
 /*Header*/
 .navbar-brand{padding: 5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:61px;padding-top:20px;}
+.sidebar{margin-top:62px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
 @media (max-width: 1000px) {.introd{display:none}}
@@ -37,6 +37,9 @@ table.borderless td,table.borderless th{border: none !important;}
 .panel-heading{font-size:18px;}
 .headcollapse{cursor:pointer;}
 .headcollapse a:hover{text-decoration:none;}
+
+/*remote page*/
+@media (max-width: 500px) {#ssthead th:nth-child(1), #sstbody td:nth-child(1){display:none}}
 
 /*Dashboard*/
 .component-on{color:green;}
