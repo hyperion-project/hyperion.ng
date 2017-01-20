@@ -48,10 +48,6 @@ signals:
 
 protected:
 
-	virtual void kodiPlay();
-	virtual void kodiOff();
-	virtual void kodiPause();
-
 	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
 	std::string _grabberName;
 	

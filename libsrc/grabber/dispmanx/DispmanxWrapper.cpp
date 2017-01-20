@@ -43,18 +43,6 @@ void DispmanxWrapper::action()
 	setColors(_ledColors, _timeout_ms);
 }
 
-void DispmanxWrapper::kodiPlay()
-{
-	_grabber->setFlags(0);
-	GrabberWrapper::kodiPlay();
-	
-}
-
-void DispmanxWrapper::kodiPause()
-{
-	_grabber->setFlags(0);
-	GrabberWrapper::kodiPause();
-}
 
 void DispmanxWrapper::setVideoMode(const VideoMode mode)
 {
