@@ -49,6 +49,7 @@
 
 class HyperionDaemon : public QObject
 {
+	Q_OBJECT
 public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
@@ -64,6 +65,9 @@ public:
 	// grabber creators
 	void createGrabberV4L2();
 	void createSystemFrameGrabber();
+
+public slots:
+	void freeObjects();
 
 private:
 	void createGrabberDispmanx();

@@ -79,6 +79,13 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 
 HyperionDaemon::~HyperionDaemon()
 {
+	freeObjects();
+	delete _hyperion;
+}
+
+void HyperionDaemon::freeObjects()
+{
+	Debug(_log, "destroy grabbers and network stuff");
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
@@ -92,8 +99,17 @@ HyperionDaemon::~HyperionDaemon()
 	delete _protoServer;
 	delete _boblightServer;
 	delete _udpListener;
-	delete _hyperion;
 
+	_v4l2Grabbers.clear();
+	_amlGrabber     = nullptr;
+	_dispmanx       = nullptr;
+	_fbGrabber      = nullptr;
+	_osxGrabber     = nullptr;
+	_kodiVideoChecker = nullptr;
+	_jsonServer     = nullptr;
+	_protoServer    = nullptr;
+	_boblightServer = nullptr;
+	_udpListener    = nullptr;
 }
 
 void HyperionDaemon::run()
@@ -113,7 +129,7 @@ void HyperionDaemon::run()
 	#endif
 	Info(_log, "Hyperion started");
 
-
+	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
 int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)

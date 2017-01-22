@@ -289,6 +289,7 @@ signals:
 
 	void imageToLedsMappingChanged(int mappingType);
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+	void closing();
 
 private slots:
 	///
