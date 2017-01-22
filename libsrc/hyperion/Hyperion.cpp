@@ -447,9 +447,12 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 }
 
 
-void Hyperion::freeObjects()
+void Hyperion::freeObjects(bool emitCloseSignal)
 {
-	emit closing();
+	if (emitCloseSignal)
+	{
+		emit closing();
+	}
 
 	// switch off all leds
 	clearall();
@@ -464,7 +467,7 @@ void Hyperion::freeObjects()
 
 Hyperion::~Hyperion()
 {
-	freeObjects();
+	freeObjects(false);
 }
 
 unsigned Hyperion::getLedCount() const

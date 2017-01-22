@@ -930,7 +930,7 @@ void JsonClientConnection::handleConfigCommand(const QJsonObject& message, const
 	}
 	else if (subcommand == "reload")
 	{
-		_hyperion->freeObjects();
+		_hyperion->freeObjects(true);
 		Process::restartHyperion();
 		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 
