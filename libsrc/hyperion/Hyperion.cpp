@@ -449,6 +449,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 
 void Hyperion::freeObjects()
 {
+	emit closing();
+
 	// switch off all leds
 	clearall();
 	_device->switchOff();
