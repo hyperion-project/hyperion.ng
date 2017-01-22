@@ -950,7 +950,7 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	
 	try
 	{
-		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+		result["result"] = QJsonFactory::readConfig(QString::fromStdString(_hyperion->getConfigFileName()));
 	}
 	catch(...)
 	{
