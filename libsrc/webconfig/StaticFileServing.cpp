@@ -73,6 +73,13 @@ static inline void printErrorToReply (QtHttpReply * reply, QString errorMessage)
 	reply->appendRawData (errorMessage.toLocal8Bit ());
 }
 
+static inline void printError404ToReply (QtHttpReply * reply, QString errorMessage)
+{
+	reply->setStatusCode(QtHttpReply::NotFound);
+	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/plain"));
+	reply->appendRawData (errorMessage.toLocal8Bit ());
+}
+
 void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpReply * reply)
 {
 	QString command = request->getCommand ();
@@ -103,7 +110,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		Q_INIT_RESOURCE(WebConfig);
 
 		QFileInfo info(_baseUrl % "/" % path);
-		if ( path == "/" || path.isEmpty() || ! info.exists() )
+		if ( path == "/" || path.isEmpty()  )
 		{
 			path = "index.html";
 		}
@@ -134,7 +141,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		}
 		else
 		{
-			printErrorToReply (reply, "Requested file " % path % " couldn't be found !");
+			printError404ToReply (reply, "404 Not Found\n" % path % " couldn't be found !");
 		}
 	}
 	else
