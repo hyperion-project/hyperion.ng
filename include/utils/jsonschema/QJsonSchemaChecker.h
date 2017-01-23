@@ -67,14 +67,6 @@ private:
 	///
 	void setMessage(const std::string & message);
 
-	///
-	/// Retrieves all references from the json-value as specified by the schema
-	///
-	/// @param[in] value The json-value
-	/// @param[in] schema The schema
-	///
-	void collectDependencies(const QJsonValue & value, const QJsonObject &schema);
-
 private:
 	// attribute check functions
 	///
@@ -105,15 +97,6 @@ private:
 	/// @param ignoredProperties The properties that were ignored
 	///
 	void checkAdditionalProperties(const QJsonObject & value, const QJsonValue & schema, const QStringList & ignoredProperties);
-
-	///
-	/// Checks if references are configued and used correctly. If this is not the case _error is set
-	/// to true and an error-message is added to the message-queue.
-	///
-	/// @param value The given json-object
-	/// @param schemaLink The schema of the json-object
-	///
-	void checkDependencies(const QJsonValue & value, const QJsonValue & schemaLink);
 
 	///
 	/// Checks if the given value is larger or equal to the specified value. If this is not the case
