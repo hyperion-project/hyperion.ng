@@ -27,6 +27,8 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 
 GrabberWrapper::~GrabberWrapper()
 {
+	stop();
+	Debug(_log,"Close grabber: %s", _grabberName.c_str());
 	delete _processor;
 }
 

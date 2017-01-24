@@ -892,7 +892,7 @@ void JsonClientConnection::handleConfigCommand(const QJsonObject& message, const
 	}
 	else if (subcommand == "reload")
 	{
-		_hyperion->freeObjects();
+		_hyperion->freeObjects(true);
 		Process::restartHyperion();
 		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 
@@ -912,7 +912,7 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	
 	try
 	{
-		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+		result["result"] = QJsonFactory::readConfig(QString::fromStdString(_hyperion->getConfigFileName()));
 	}
 	catch(...)
 	{

@@ -70,7 +70,7 @@ public:
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
-	void freeObjects();
+	void freeObjects(bool emitCloseSignal=false);
 
 	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile);
 	static Hyperion* getInstance();
@@ -289,6 +289,7 @@ signals:
 
 	void imageToLedsMappingChanged(int mappingType);
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+	void closing();
 
 private slots:
 	///

@@ -74,6 +74,7 @@ V4L2Grabber::~V4L2Grabber()
 
 void V4L2Grabber::uninit()
 {
+	Debug(_log,"uninit grabber: %s", _deviceName.c_str());
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
