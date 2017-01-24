@@ -384,7 +384,7 @@ void HyperionDaemon::startNetworkServices()
 	if (_udpListener != nullptr) {
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
+					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-udp._udp", QString()),
 					_udpListener->getPort()
 					);
 		Debug(_log, "UDP LIstener mDNS responder started");

@@ -52,7 +52,7 @@ void StaticFileServing::onServerStarted (quint16 port)
 
 	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
 	bonjourRegister_http->registerService(
-		BonjourRecord(mDNSDescr.c_str(), "_http._tcp", QString()),
+		BonjourRecord(mDNSDescr.c_str(), "_hyperiond-http._tcp", QString()),
 		port
 		);
 	Debug(_log, "Web Config mDNS responder started");
