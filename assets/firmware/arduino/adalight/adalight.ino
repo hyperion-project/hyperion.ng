@@ -13,7 +13,11 @@
 #define INITIAL_LED_TEST_BRIGHTNESS 32  // 0..255
 
 // Number of leds in your strip. set to "1" and ANALOG_OUTPUT_ENABLED to "true" to activate analog only
-#define MAX_LEDS 100
+// As of 26/1/2017:
+// 582 leaves ZERO bytes free and this
+// 410 is ok
+// tested with 500 leds and is fine (despite the warning)
+#define MAX_LEDS 500
 
 // type of your led controller, possible values, see below
 #define LED_TYPE WS2812B 
@@ -55,9 +59,10 @@
 #define COLOR_CORRECTION  TypicalLEDStrip   // predefined fastled color correction
 //#define COLOR_CORRECTION  CRGB(255,255,255) // or RGB value describing the color correction
 
-// Baudrate, higher rate allows faster refresh rate and more LEDs 
-#define serialRate 460800      // use 115200 for ftdi based boards
-//#define serialRate 115200      // use 115200 for ftdi based boards
+// Baudrate, higher rate allows faster refresh rate and more LEDs
+//#define serialRate 460800      // use 115200 for ftdi based boards
+#define serialRate 115200      // use 115200 for ftdi based boards
+//#define serialRate 500000         // use 115200 for ftdi based boards
 
 
 /**************************************
@@ -191,10 +196,10 @@ void setup() {
     sum_g = 0;
     sum_b = 0;
 
-    int num_leds = (hi<<8) + lo + 1;
+    int num_leds = min ( MAX_LEDS, (hi<<8) + lo + 1 );
 
     // read the transmission data and set LED values
-    for (uint8_t idx = 0; idx < min(num_leds,MAX_LEDS); idx++) {
+    for (int idx = 0; idx < num_leds; idx++) {
       byte r, g, b;
       if (!checkIncommingData()) {
         transmissionSuccess = false;
