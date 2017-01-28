@@ -133,7 +133,7 @@ void CgiHandler::cmd_runscript()
 
  		if (QFile::exists(scriptFilePath) && scriptFilePath.endsWith(".py") )
 		{
-			QtHttpPostData data = _request->getPostData();
+			QtHttpPostData postData = _request->getPostData();
 			QByteArray inputData; // should  be filled with post data
 			QByteArray data = Process::command_exec("python " + scriptFilePath, inputData);
 			_reply->addHeader ("Content-Type", "text/plain");
