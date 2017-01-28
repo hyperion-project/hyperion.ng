@@ -35,6 +35,8 @@ private:
 	CgiHandler      _cgi;
 	Logger        * _log;
 
+	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage);
+
 };
 
 #endif // STATICFILESERVING_H

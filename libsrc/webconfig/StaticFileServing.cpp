@@ -45,10 +45,7 @@ void StaticFileServing::onServerStarted (quint16 port)
 {
 	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
 
-        const std::string mDNSDescr = ( _server->getServerName().toStdString()
-                                        + "@" +
-                                        QHostInfo::localHostName().toStdString()
-                                        );
+	const std::string mDNSDescr = (_server->getServerName().toStdString() + "@" + QHostInfo::localHostName().toStdString());
 
 	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
 	bonjourRegister_http->registerService(
@@ -67,17 +64,35 @@ void StaticFileServing::onServerError (QString msg)
 	Error(_log, "%s", msg.toStdString().c_str());
 }
 
-static inline void printErrorToReply (QtHttpReply * reply, QString errorMessage)
+void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage)
 {
-	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/plain"));
-	reply->appendRawData (errorMessage.toLocal8Bit ());
-}
+	reply->setStatusCode(code);
+	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/html"));
+	QFile errorPageHeader(_baseUrl %  "/errorpages/header.html" );
+	QFile errorPageFooter(_baseUrl %  "/errorpages/footer.html" );
+	QFile errorPage      (_baseUrl %  "/errorpages/" % QString::number((int)code) % ".html" );
 
-static inline void printError404ToReply (QtHttpReply * reply, QString errorMessage)
-{
-	reply->setStatusCode(QtHttpReply::NotFound);
-	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/plain"));
-	reply->appendRawData (errorMessage.toLocal8Bit ());
+	if (errorPageHeader.open (QFile::ReadOnly))
+	{
+		QByteArray data = errorPageHeader.readAll();
+		reply->appendRawData (data);
+		errorPageHeader.close ();
+	}
+
+	if (errorPage.open (QFile::ReadOnly))
+	{
+		QByteArray data = errorPage.readAll();
+		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit() );
+		reply->appendRawData (data);
+		errorPage.close ();
+	}
+
+	if (errorPageFooter.open (QFile::ReadOnly))
+	{
+		QByteArray data = errorPageFooter.readAll ();
+		reply->appendRawData (data);
+		errorPageFooter.close ();
+	}
 }
 
 void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpReply * reply)
@@ -103,7 +118,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			catch(...)
 			{
-				printErrorToReply (reply, "script failed (" % path % ")");
+				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
 			}
 			return;
 		}
@@ -136,17 +151,17 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			}
 			else
 			{
-				printErrorToReply (reply, "Requested file " % path % " couldn't be open for reading !");
+				printErrorToReply (reply, QtHttpReply::Forbidden ,"Requested file: " % path);
 			}
 		}
 		else
 		{
-			printError404ToReply (reply, "404 Not Found\n" % path % " couldn't be found !");
+			printErrorToReply (reply, QtHttpReply::NotFound, "Requested file: " % path);
 		}
 	}
 	else
 	{
-		printErrorToReply (reply, "Unhandled HTTP/1.1 method " % command % " on web server !");
+		printErrorToReply (reply, QtHttpReply::MethodNotAllowed,"Unhandled HTTP/1.1 method " % command);
 	}
 }
 
