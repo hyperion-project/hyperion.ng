@@ -6,7 +6,7 @@
 #include <QStringList>
 
 #include <hyperion/Hyperion.h>
-#include <utils/logger.h>
+#include <utils/Logger.h>
 
 #include "QtHttpReply.h"
 #include "QtHttpRequest.h"
