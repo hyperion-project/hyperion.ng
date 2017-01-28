@@ -11,7 +11,7 @@
 #include <QHostInfo>
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
-
+#include <exception>
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
 	:  QObject   (parent)
@@ -86,6 +86,10 @@ void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::Sta
 		reply->appendRawData (data);
 		errorPage.close ();
 	}
+	else
+	{
+		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage).toLocal8Bit());
+	}
 
 	if (errorPageFooter.open (QFile::ReadOnly))
 	{
@@ -109,15 +113,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			uri_parts.removeAt(0);
 			try
 			{
-				if (command == QStringLiteral ("POST"))
-				{
-					QString postData = request->getRawData();
-					uri_parts.append(postData.split('&', QString::SkipEmptyParts));
-				}
 				_cgi.exec(uri_parts, request, reply);
 			}
-			catch(...)
+			catch(int err)
 			{
+				Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
+				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+			}
+			catch(std::exception &e)
+			{
+				Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
 				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
 			}
 			return;
