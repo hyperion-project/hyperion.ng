@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QProcess>
 
 #include "CgiHandler.h"
 #include "QtHttpHeader.h"
@@ -18,6 +19,7 @@ CgiHandler::CgiHandler (Hyperion * hyperion, QString baseUrl, QObject * parent)
 	, _args(QStringList())
 	, _hyperionConfig(_hyperion->getQJsonConfig())
 	, _baseUrl(baseUrl)
+	, _log(Logger::getInstance("WEBSERVER"))
 {
 }
 
@@ -123,22 +125,26 @@ void CgiHandler::cmd_runscript()
 		// relative path not allowed
 		if (scriptFilePath.indexOf("..") >=0)
 		{
+			Error( _log, "relative path not allowed (%s)", scriptFilePath.toStdString().c_str());
 			throw 1;
 		}
 
 		scriptFilePath = _baseUrl+"/server_scripts/"+scriptFilePath;
-		QString interpreter = "";
-		if (scriptFilePath.endsWith(".sh")) interpreter = "sh";
-		if (scriptFilePath.endsWith(".py")) interpreter = "python";
-			
- 		if (QFile::exists(scriptFilePath) && !interpreter.isEmpty())
+
+ 		if (QFile::exists(scriptFilePath) && scriptFilePath.endsWith(".py") )
 		{
-			QByteArray data = Process::command_exec(QString(interpreter + " " + scriptFilePath).toUtf8().constData()).c_str();
-			
+			QtHttpPostData postData = _request->getPostData();
+			QByteArray inputData; // should  be filled with post data
+			QByteArray data = Process::command_exec("python " + scriptFilePath, inputData);
 			_reply->addHeader ("Content-Type", "text/plain");
 			_reply->appendRawData (data);
 			throw 0;
 		}
+		else
+		{
+			Error( _log, "script %s doesn't exists or is no python file", scriptFilePath.toStdString().c_str());
+		}
+
 		throw 1;
 	}
 }
