@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QTimer>
+#include <QString>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -67,7 +68,7 @@ protected:
 	bool tryOpen(const int delayAfterConnect_ms);
 	
 	/// The name of the output device
-	std::string _deviceName;
+	QString _deviceName;
 
 	/// The used baudrate of the output device
 	qint32 _baudRate_Hz;
@@ -86,4 +87,6 @@ protected:
 	qint64 _bytesWritten;
 	qint64 _frameDropCounter;
 	QSerialPort::SerialPortError _lastError;
+	qint64 _preOpenDelayTimeOut;
+	int _preOpenDelay;
 };
