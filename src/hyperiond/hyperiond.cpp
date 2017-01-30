@@ -385,7 +385,7 @@ void HyperionDaemon::startNetworkServices()
 	// zeroconf json
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
 	bonjourRegister_json->registerService( 
-				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString("some text: here")),
+				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
 				_jsonServer->getPort()
 				);
 	Debug(_log, "Json mDNS responder started");
