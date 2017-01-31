@@ -669,6 +669,43 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	info["priorities"] = priorities;
 	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 
+	// collect adjustment information
+	QJsonArray adjustmentArray;
+	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
+	{
+		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+		if (colorAdjustment == nullptr)
+		{
+			Error(_log, "Incorrect color adjustment id: %s", adjustmentId.c_str());
+			continue;
+		}
+
+		QJsonObject adjustment;
+		adjustment["id"] = QString::fromStdString(adjustmentId);
+
+		QJsonArray redAdjust;
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
+		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
+		adjustment.insert("red", redAdjust);
+
+		QJsonArray greenAdjust;
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
+		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
+		adjustment.insert("green", greenAdjust);
+
+		QJsonArray blueAdjust;
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
+		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
+		adjustment.insert("blue", blueAdjust);
+		
+		adjustmentArray.append(adjustment);
+	}
+	
+	info["adjustment"] = adjustmentArray;
+	
 	// collect effect info
 	QJsonArray effects;
 	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
