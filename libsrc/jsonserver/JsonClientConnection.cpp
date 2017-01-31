@@ -683,6 +683,18 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		QJsonObject adjustment;
 		adjustment["id"] = QString::fromStdString(adjustmentId);
 
+		QJsonArray blackAdjust;
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentR());
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentG());
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentB());
+		adjustment.insert("black", blackAdjust);
+		
+		QJsonArray whiteAdjust;
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentR());
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentG());
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentB());
+		adjustment.insert("white", whiteAdjust);
+		
 		QJsonArray redAdjust;
 		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
 		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
@@ -701,6 +713,30 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
 		adjustment.insert("blue", blueAdjust);
 		
+		QJsonArray cyanAdjust;
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentR());
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentG());
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentB());
+		adjustment.insert("cyan", cyanAdjust);
+		
+		QJsonArray magentaAdjust;
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentR());
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentG());
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentB());
+		adjustment.insert("magenta", magentaAdjust);
+
+		QJsonArray yellowAdjust;
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentR());
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentG());
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
+		adjustment.insert("yellow", yellowAdjust);
+		
+		adjustment["brightnessMin"] = colorAdjustment->_rgbTransform.getBrightnessMin();
+		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
+		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
+		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
+		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
+
 		adjustmentArray.append(adjustment);
 	}
 	
