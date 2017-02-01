@@ -219,6 +219,8 @@
 		"InfoDialog_nowrite_foottext" : "The WebUI will be unlocked automatically after you solved the problem!",
 		"infoDialog_wizrgb_title" : "Success",
 		"infoDialog_wizrgb_text" : "Your RGB Byte Order is already well adjusted.",
+		"infoDialog_writeconf_error_title" : "Error",
+		"infoDialog_writeconf_error_text" : "Saving your configuration failed.",
 		"wiz_rgb_title" : "RGB Byte Order Wizard",
 		"wiz_rgb_intro1" : "This wizard will guide you through the finding process of the correct color order for your leds. Click on continue to begin.",
 		"wiz_rgb_intro2" : "When do you need this wizard? Example: You set the color red, but you get green or blue. You could also use it for first configuration.",
