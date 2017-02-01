@@ -405,10 +405,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	}
 	// set color correction activity state
 	const QJsonObject& color = qjsonConfig["color"].toObject();
-	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
 	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(false);
 
-	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
 	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
 	// initialize the image processor factory
@@ -721,7 +719,7 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( _adjustmentEnabled && priority < PriorityMuxer::LOWEST_PRIORITY && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+	if ( priority < PriorityMuxer::LOWEST_PRIORITY && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
 	{
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}

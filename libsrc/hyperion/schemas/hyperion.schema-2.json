@@ -114,26 +114,19 @@
 					},
 					"propertyOrder" : 1
 				},
-				"channelAdjustment_enable" :
-				{
-					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_enable_title",
-					"default" : true,
-					"propertyOrder" : 2
-				},
 				"channelAdjustment_v4l_only" :
 				{
 					"type" : "boolean",
 					"title" : "edt_conf_color_channelAdjustment_v4l_only_title",
 					"default" : false,
-					"propertyOrder" : 3
+					"propertyOrder" : 2
 				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"title" : "edt_conf_color_channelAdjustment_header_title",
 					"required" : true,
-					"propertyOrder" : 4,
+					"propertyOrder" : 3,
 					"items" :
 					{
 						"type" : "object",
