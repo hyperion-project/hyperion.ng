@@ -114,13 +114,6 @@
 					},
 					"propertyOrder" : 1
 				},
-				"channelAdjustment_v4l_only" :
-				{
-					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_v4l_only_title",
-					"default" : false,
-					"propertyOrder" : 2
-				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
@@ -131,6 +124,7 @@
 					{
 						"type" : "object",
 						"required" : true,
+						"title" : "edt_conf_color_channelAdjustment_header_itemtitle",
 						"properties" :
 						{
 							"id" :

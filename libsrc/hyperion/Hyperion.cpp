@@ -392,7 +392,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _timer()
 	, _log(CORE_LOGGER)
 	, _hwLedCount(_ledString.leds().size())
-	, _colorAdjustmentV4Lonly(false)
+
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
@@ -405,9 +405,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	}
 	// set color correction activity state
 	const QJsonObject& color = qjsonConfig["color"].toObject();
-	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(false);
-
-	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
 	// initialize the image processor factory
 	_ledMAppingType = ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString());
@@ -719,7 +716,7 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( priority < PriorityMuxer::LOWEST_PRIORITY && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+	if ( priority < PriorityMuxer::LOWEST_PRIORITY)
 	{
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}
