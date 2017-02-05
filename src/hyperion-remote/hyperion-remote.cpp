@@ -85,7 +85,7 @@ int main(int argc, char * argv[])
 		ColorOption     & argYAdjust     = parser.add<ColorOption>  ('Y', "yellowAdjustment", "Set the adjustment of the yellow color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argWAdjust     = parser.add<ColorOption>  ('W', "whiteAdjustment", "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argbAdjust     = parser.add<ColorOption>  ('b', "blackAdjustment", "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
-		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valif values: multicolor:mean, unicolor_mean");
+		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 		BooleanOption   & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
