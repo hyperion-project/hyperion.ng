@@ -1,16 +1,15 @@
 
 // global vars
 var webPrio = 1;
-var showOptHelp = true;
+var showOptHelp;
 var currentVersion;
-var cleanCurrentVersion;
 var latestVersion;
-var cleanLatestVersion;
 var parsedServerInfoJSON = {};
 var parsedUpdateJSON = {};
 var parsedConfSchemaJSON = {};
 var parsedConfJSON = {};
-var hyperionport = 19444;
+var schema;
+var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
@@ -71,7 +70,7 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
-				hyperionport = data.substr(1);
+				jsonPort = data.substr(1);
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
@@ -104,6 +103,8 @@ function initWebSocket()
 						default: reason = "Unknown reason";
 					}
 					$(hyperion).trigger({type:"close", reason:reason});
+					watchdog = 10;
+					connectionLostDetection();
 				};
 
 				websocket.onmessage = function (event) {
@@ -295,3 +296,10 @@ function requestMappingType(type)
 	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 
+function requestAdjustment(type, value, complete)
+{
+	if(complete === true)
+		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
+	else	
+		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+}

@@ -18,12 +18,7 @@
 </div>
 
 <div class="container-fluid">
-	<h2 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></h2>
-	<div class="introd">
-		<h4  data-i18n="conf_leds_label_intro">The LED controller of youre choice is your way to output the led data via Raspberry PI GPIO, USB or network! Choose one, define your led layout and enjoy the light!</h4>
-	<hr />
-	</div>
-
+	<h3 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></h3>
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
 		<li class="active"><a data-toggle="tab" href="#menu_controller"  data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
 		<li><a data-toggle="tab" href="#menu_gencfg"  data-i18n="conf_leds_nav_label_ledlayout">LED Layout</a></li>
@@ -33,10 +28,11 @@
 
 		<div id="menu_controller" class="tab-pane fade in active" style="padding-top:10px">
 			<div class="row">
-			<div class="col-lg-8">
-			<div class="panel panel-primary">
-				<div class="panel-heading form-group" style="font-size:90%;white-space:nowrap;">
-					<label for="leddevices"  data-i18n="conf_leds_contr_label_contrtype">Controller type:</label>
+			<div class="col-lg-12" id="leddevice_intro"></div>
+			<div class="col-lg-6">
+			<div class="panel panel-default">
+				<div class="panel-heading form-group">
+					<label for="leddevices"  class="panel-title" data-i18n="conf_leds_contr_label_contrtype">Controller type:</label>
 					<select id="leddevices" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 				</div>
 
@@ -45,7 +41,7 @@
 
 					<div id="huebridge" class="container-fluid" style="display:none">
 						<hr/>
-						<button data-toggle="collapse" class="btn btn-success" data-target="#huebridge_content" data-i18n="hue_btn_setup_helper">Hue Bridge Setup Helper</button>
+						<button data-toggle="collapse" class="btn btn-primary" data-target="#huebridge_content" data-i18n="hue_btn_setup_helper">Hue Bridge Setup Helper</button>
 						<div id="huebridge_content"  class="collapse">
 							<div class="introd" style="margin-top:20px;margin-bottom:20px" data-i18n="hue_help_text">
 								With this Setup Helper you can get a new User for your Hue Bridge and you can see your Lights with the IDs for Hyperion Configuration.
@@ -61,14 +57,14 @@
 									<label for="user"  data-i18n="hue_label_username">Hue Bridge Username:</label>
 									<input type="text" class="form-control" id="user" readonly="readonly">
 									<div id="hue_lights" class="row"></div>
-									<button type="button" class="btn btn-success" id="create_user"> <i class="fa fa-floppy-o"></i><span  data-i18n="hue_button_create_user_token"> Create User</span></button>
+									<button type="button" class="btn btn-primary" id="create_user"> <i class="fa fa-floppy-o"></i><span  data-i18n="hue_button_create_user_token"> Create User</span></button>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="panel-footer" style="text-align:right">
-					<button id='btn_submit_controller' class="btn btn-success"><i class="fa fa-fw fa-save" /><span data-i18n="general_button_savesettings">Save Settings</span></button>
+					<button id='btn_submit_controller' class="btn btn-primary"><i class="fa fa-fw fa-save" /><span data-i18n="general_button_savesettings">Save Settings</span></button>
 				</div>
 			</div>
 		</div>
@@ -78,6 +74,7 @@
 		<div id="menu_gencfg" class="tab-pane fade" style="padding-top:10px">
 
 			<div class="row">
+			<div class="col-lg-12" id="layout_intro"></div>
 				<div class="col-lg-6 col-md-12">
 					<div class="panel-group" id="accordion">
 						<div class="panel panel-primary">
@@ -176,40 +173,50 @@
 													<tbody>
 														<tr>
 															<td class="ltd">
-																<label class="ltdlabel" for="ip_cl_rawledshdepth" data-i18n="conf_leds_layout_cl_hleddepth">Horizontal LED depth</label>
+																<label class="ltdlabel" for="ip_cl_ledshdepth" data-i18n="conf_leds_layout_cl_hleddepth">Horizontal LED depth</label>
 															</td>
 															<td class="itd input-group">
-																<input class="form-control ledCLconstr led_val_int" id="ip_cl_rawledshdepth" type="number" value="8" min="1" max="100" step="1"></input>
+																<input class="form-control ledCLconstr led_val_int" id="ip_cl_ledshdepth" type="number" value="8" min="1" max="100" step="1"></input>
 																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
 															</td>
 														</tr>
 														<tr>
 															<td class="ltd">
-																<label class="ltdlabel" for="ip_cl_rawledsvdepth" data-i18n="conf_leds_layout_cl_vleddepth">Vertical LED depth</label>
+																<label class="ltdlabel" for="ip_cl_ledsvdepth" data-i18n="conf_leds_layout_cl_vleddepth">Vertical LED depth</label>
 															</td>
 															<td class="itd input-group">
-																<input class="form-control ledCLconstr led_val_int" id="ip_cl_rawledsvdepth" type="number" value="5" min="1" max="100" step="1"></input>
+																<input class="form-control ledCLconstr led_val_int" id="ip_cl_ledsvdepth" type="number" value="5" min="1" max="100" step="1"></input>
 																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
 															</td>
 														</tr>
 														<tr>
 															<td class="ltd">
-																<label class="ltdlabel" for="ip_cl_rawledsedgegap" data-i18n="conf_leds_layout_cl_edgegap">Edge Gap</label>
+																<label class="ltdlabel" for="ip_cl_overlap" data-i18n="conf_leds_layout_cl_overlap">Edge Gap</label>
 															</td>
 															<td class="itd input-group">
-																<input class="form-control ledCLconstr led_val_int" id="ip_cl_rawledsedgegap" type="number" value="0" min="0" max="50" step="1"></input>
+																<input class="form-control ledCLconstr led_val_int" id="ip_cl_overlap" type="number" value="0" min="0" max="100" step="1"></input>
 																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
 															</td>
 														</tr>
 														<tr>
 															<td class="ltd">
-																<label class="ltdlabel" for="ip_cl_rawledscornergap" data-i18n="conf_leds_layout_cl_cornergap">Corner Gap</label>
+																<label class="ltdlabel" for="ip_cl_ledsedgegap" data-i18n="conf_leds_layout_cl_edgegap">Edge Gap</label>
 															</td>
 															<td class="itd input-group">
-																<input class="form-control ledCLconstr led_val_int" id="ip_cl_rawledscornergap" type="number" value="0" min="0" max="50" step="1"></input>
+																<input class="form-control ledCLconstr led_val_int" id="ip_cl_ledsedgegap" type="number" value="0" min="0" max="50" step="1"></input>
 																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
 															</td>
 														</tr>
+											<!--			<tr>
+															<td class="ltd">
+																<label class="ltdlabel" for="ip_cl_ledscornergap" data-i18n="conf_leds_layout_cl_cornergap">Corner Gap</label>
+															</td>
+															<td class="itd input-group">
+																<input class="form-control ledCLconstr led_val_int" id="ip_cl_ledscornergap" type="number" value="0" min="0" max="50" step="1"></input>
+																<div class="input-group-addon" data-i18n="edt_append_percent">%</div>
+															</td>
+														</tr>
+											-->
 													</tbody>
 												</table>
 											</div>
@@ -218,7 +225,7 @@
 								</div>
 								<div class="panel-footer" style="text-align:right;">
 									<button id="btn_cl_generate" class="btn btn-warning"><i class="fa fa-fw fa-television"></i><span data-i18n="conf_leds_layout_cl_generate">Generate LED configuration</span></button>
-									<button id="btn_cl_save" class="btn btn-success"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
+									<button id="btn_cl_save" class="btn btn-primary"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
 								</div>
 							</div>
 						</div>
@@ -291,7 +298,7 @@
 							</div>
 							<div class="panel-footer" style="text-align:right;">
 									<button id="btn_ma_generate" class="btn btn-warning"><i class="fa fa-fw fa-th"></i><span data-i18n="conf_leds_layout_cl_generate">Generate LED configuration</span></button>
-									<button id="btn_ma_save" class="btn btn-success"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
+									<button id="btn_ma_save" class="btn btn-primary"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
 							</div>
 						</div>
 						</div>
@@ -304,31 +311,32 @@
 							<div id="collapse4" class="panel-collapse collapse">
 								<div class="panel-body">
 									<p  data-i18n="conf_leds_layout_textf1">This textfield shows by default your current loaded layout and will be overwritten if you generate a new one above. Optional you could perform further edits.</p>
-									<b><p  data-i18n="conf_leds_layout_textf2">Don't forget to save!</p></b>
 									<textarea rows="25" id="ledconfig" class="form-control"></textarea>
 								</div>
 								<div class="panel-footer">
 									<button  type="button" class="btn btn-warning" id="leds_custom_updsim"><i class="fa fa-search fa-fw"></i><span data-i18n="conf_leds_layout_button_updsim">Update preview</span></button>
-									<button  type="button" class="btn btn-success pull-right" id="leds_custom_save"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
+									<button  type="button" class="btn btn-primary pull-right" id="leds_custom_save"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div> <!-- accordion -->
 			<div class="col-lg-6 col-md-12">
-				<div class="panel panel-primary">
+				<div class="panel panel-default">
 					<div class="panel-heading">
 						<h4 class="panel-title"><i class="fa fa-search fa-fw"></i><span  data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
 					</div>
 					<div class="panel-body">
 						<p id="previewcreator" style="font-weight:bold"></p>
 						<p id="previewledcount" style="font-weight:bold"></p>
+						<div id="led_vis_help"></div>
 						<div class="col-lg-12 st_helper" style="padding-left:0px; padding-right:0px">
 							<div id="leds_preview"></div>
 						</div>
 					</div>
 					<div class="panel-footer">
 						<button  type="button" class="btn btn-danger" id="leds_prev_toggle_num"><i class="fa fa-info fa-fw"></i><span data-i18n="main_ledsim_btn_togglelednumber">toggle led numbers</span></button>
+						<button  type="button" class="btn btn-primary" id="leds_prev_checklist"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="conf_leds_layout_btn_checklist">toggle led numbers</span></button>
 					</div>
 				</div>
 			</div>

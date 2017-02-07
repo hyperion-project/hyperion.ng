@@ -1,0 +1,34 @@
+<div class="container-fluid">
+	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span  data-i18n="main_menu_about_token">About Hyperion</span></h3>
+	<div class="row">
+		<div class="col-lg-6">
+			<div id="about_cont"></div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	performTranslation();
+	
+	var si = parsedServerInfoJSON.info.hyperion[0];
+	var libs = {"Bootstrap 3" : "http://getbootstrap.com/", "JQuery" : "https://jquery.com/", "Bootstrap Colorpicker" : "https://itsjavi.com/bootstrap-colorpicker/", "JSON-Editor" : "http://jeremydorn.com/json-editor/", "jQuery.i18n" : "https://github.com/wikimedia/jquery.i18n", "metisMenu" : "http://mm.onokumus.com/index.html", "download.js" : "http://danml.com/download.html", "gijgo" : "http://gijgo.com/"};
+	var libh = "";
+	var lang = [];
+	
+	for(var i = 0; i<availLang.length; i++)
+		lang.push($.i18n('general_speech_'+availLang[i]));
+	for(key in libs)
+		libh += '<a href="'+libs[key]+'" target="_blank">'+key+'</a>, ';
+	libh += "<br/>"+$.i18n("about_credits");
+	
+	lang = lang.toString().replace(",",", ");
+	
+	var fc = [$.i18n("about_version"),$.i18n("about_build"),$.i18n("about_builddate"),$.i18n("about_translations"),$.i18n("about_resources", $.i18n("general_webui_title"))];
+	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="#" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
+
+
+	createTable("","atb","about_cont");
+	for(var i = 0; i<fc.length; i++)
+		$('.atb').append(createTableRow([fc[i],sc[i]], "atb", false, true));
+		
+</script>

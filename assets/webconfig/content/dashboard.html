@@ -1,11 +1,8 @@
-			<div class="container-fluid" id="content_dashboard">
+			<div class="container-fluid">
 				<div class="row">
 					<div class="col-lg-12">
-						<h2 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h2>
-						<div class="introd">
-							<h4  data-i18n="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
-						<hr />
-						</div>
+						<h3 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
+						<div id="dash_intro">
 						<div class="row">
 							<div class="col-md-6 col-xxl-4">
 								<div class="panel panel-default">
@@ -17,7 +14,7 @@
 										<table class="table borderless">
 											<tbody>
 												<tr>
-													<td  data-i18n="dashboard_infobox_label_currenthyp">Your Hyperion version:</td>
+													<td  data-i18n="dashboard_infobox_label_currenthyp">Hyperion version:</td>
 													<td id="currentversion">unknown</td>
 												</tr>
 												<tr>
@@ -77,7 +74,5 @@
 				<!-- /.row -->
 			</div>
 			<!-- /.container-fluid -->
- 
-<script type="text/javascript">
-performTranslation('content_dashboard');
-</script>
+			
+<script src="/js/content_dashboard.js"></script>
