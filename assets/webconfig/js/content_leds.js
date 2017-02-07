@@ -5,21 +5,6 @@ var IntListIds;
 var StrListIds;
 var BoolListIds;
 
-function get_hue_lights(){
-	$.ajax({
-		type: "GET",
-		url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
-		processData: false,
-		contentType: 'application/json',
-		success: function(r) {
-			for(var lightid in r){
-				//console.log(r[lightid].name);
-				$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
-			}
-		}
-	});
-}
-
 function validateText(){
 	e = isJsonString($("#ledconfig").val());
 
@@ -33,18 +18,18 @@ function validateText(){
 function loadStoredValues()
 {
 	if (storageComp() && getStorage('ip_cl_ledstop') != null)
-	{	
+	{
 		for(var i = 0; i < IntListIds.length; i++)
 		{
 			$('#'+IntListIds[i]).val(parseInt(getStorage(IntListIds[i])));
 		}
-		
+
 		for(var i = 0; i < BoolListIds.length; i++)
 		{
 			var vb = getStorage(BoolListIds[i]);
 			$('#'+BoolListIds[i]).prop('checked', vb == "true" ? true : false);
 		}
-		
+
 		for(var i = 0; i < StrListIds.length; i++)
 		{
 			$('#'+StrListIds[i]).val(getStorage(StrListIds[i]));
@@ -57,17 +42,17 @@ function loadStoredValues()
 function saveValues()
 {
 	if(storageComp())
-	{		
+	{
 		for(var i = 0; i < IntListIds.length; i++)
 		{
 			setStorage(IntListIds[i], $('#'+IntListIds[i]).val());
 		}
-		
+
 		for(var i = 0; i < BoolListIds.length; i++)
 		{
 			setStorage(BoolListIds[i], $('#'+BoolListIds[i]).is(":checked"));
 		}
-		
+
 		for(var i = 0; i < StrListIds.length; i++)
 		{
 			setStorage(StrListIds[i], $('#'+StrListIds[i]).val());
@@ -97,11 +82,11 @@ function createLedPreview(leds, origin){
 		$('#previewcreator').html($.i18n('conf_leds_layout_preview_originMA'));
 		$('#leds_preview').css("padding-top", "100%");
 	}
-	
+
 	$('#previewledcount').html($.i18n('conf_leds_layout_preview_totalleds', leds.length));
-	
+
 	$('.st_helper').css("border", "8px solid grey");
-	
+
 	canvas_height = $('#leds_preview').innerHeight();
 	canvas_width = $('#leds_preview').innerWidth();
 
@@ -121,7 +106,7 @@ function createLedPreview(leds, origin){
 	$('#ledc_0').css({"background-color":"black","z-index":"12"});
 	$('#ledc_1').css({"background-color":"grey","z-index":"11"});
 	$('#ledc_2').css({"background-color":"#A9A9A9","z-index":"10"});
-	
+
 	if($('#leds_prev_toggle_num').hasClass('btn-success'))
 		$('.led_prev_num').css("display", "inline");
 
@@ -137,13 +122,13 @@ function createClassicLeds(){
 	var ledsgpos = parseInt($("#ip_cl_ledsgpos").val());
 	var position = parseInt($("#ip_cl_position").val());
 	var reverse = $("#ip_cl_reverse").is(":checked");
-	
+
 	//advanced values
 	var rawledsvdepth = parseInt($("#ip_cl_rawledsvdepth").val());
 	var rawledshdepth = parseInt($("#ip_cl_rawledshdepth").val());
 	var rawledsedgegap = parseInt($("#ip_cl_rawledsedgegap").val());
 	var rawledscornergap = parseInt($("#ip_cl_rawledscornergap").val());
-	
+
 	//helper
 	var ledsVDepth = rawledsvdepth /100;
 	var ledsHDepth = rawledshdepth /100;
@@ -156,7 +141,7 @@ function createClassicLeds(){
 	var Hmin = 0.0 + edgeHGap;
 	var Hmax = 1.0 - edgeHGap;
 	var ledArray = [];
-	
+
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
@@ -168,7 +153,7 @@ function createClassicLeds(){
 		}
 		createLedPreview(finalLedArray, 'classic');
 	}
-	
+
 	function validateGap(){
 		if (ledsgpos+ledsglength > ledArray.length){
 			showInfoDialog('error', $.i18n('infoDialog_leds_gap_title'), $.i18n('infoDialog_leds_gap_text'));
@@ -176,7 +161,7 @@ function createClassicLeds(){
 		}
 		return true
 	}
-	
+
 	function rotateArray(array, times){
 		if (times > "0"){
 			while( times-- ){
@@ -192,7 +177,7 @@ function createClassicLeds(){
 			return array;
 		}
 	}
-	
+
 	function createLedArray(hmin, hmax, vmin, vmax){
 		hmin = round(hmin);
 		hmax = round(hmax);
@@ -200,7 +185,7 @@ function createClassicLeds(){
 		vmax = round(vmax);
 		ledArray.push( { "hscan" : { "minimum" : hmin, "maximum" : hmax }, "vscan": { "minimum": vmin, "maximum": vmax }} );
 	}
-	
+
 	function createTopLeds(){
 		step=(Hmax-Hmin)/ledstop;
 		hmin=Hmin
@@ -215,9 +200,9 @@ function createClassicLeds(){
 			createLedArray(hmin, hmax, vmin, vmax);
 			hmin += step
 			hmax += step
-		}	
+		}
 	}
-	
+
 	function createLeftLeds(){
 		step=(Vmax-Vmin)/ledsleft;
 		vmax=Vmax
@@ -234,7 +219,7 @@ function createClassicLeds(){
 			vmax -= step
 		}
 	}
-	
+
 	function createRightLeds(){
 		step=(Vmax-Vmin)/ledsright;
 		vmin=Vmin
@@ -246,12 +231,12 @@ function createClassicLeds(){
 		hmin=hmax-ledsVDepth;
 		vmax=vmin+step
 		for (var i = 0; i<ledsright; i++){
-			createLedArray(hmin, hmax, vmin, vmax);	
+			createLedArray(hmin, hmax, vmin, vmax);
 			vmin += step
-			vmax += step			
+			vmax += step
 		}
 	}
-	
+
 	function createBottomLeds(){
 		step=(Hmax-Hmin)/ledsbottom;
 		hmax=Hmax
@@ -268,20 +253,20 @@ function createClassicLeds(){
 			hmax -= step;
 		}
 	}
-	
+
 	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
 
 	if(ledsglength != "0" && validateGap()){
 		ledArray.splice(ledsgpos, ledsglength);
 	}
-	
+
 	if (position != "0"){
 		rotateArray(ledArray, position);
 	}
 
 	if (reverse)
 		ledArray.reverse();
-	
+
 	createFinalArray(ledArray);
 }
 
@@ -322,7 +307,7 @@ function createMatrixLeds(){
 		hscanMax = round(hscanMax);
 		vscanMin = round(vscanMin);
 		vscanMax = round(vscanMax);
-		
+
 		leds.push({
 			index: index,
 			hscan: {
@@ -367,7 +352,7 @@ function createMatrixLeds(){
 $(document).ready(function() {
 	// translate
 	performTranslation();
-	
+
 	//gather ids
 	IntListIds = $('.led_val_int').map(function() { return this.id; }).get();
 	StrListIds = $('.led_val_string').map(function() { return this.id; }).get();
@@ -375,7 +360,7 @@ $(document).ready(function() {
 
 	// restore values from storage
 	loadStoredValues();
-	
+
 	// check access level and adjust ui
 	if(storedAccess == "default")
 	{
@@ -389,7 +374,7 @@ $(document).ready(function() {
 		$('#btn_ma_save').toggle(false);
 		$('#btn_cl_save').toggle(false);
 	}
-	
+
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function() {
 		createClassicLeds();
@@ -398,8 +383,8 @@ $(document).ready(function() {
 	$('.ledMAconstr').bind("change", function() {
 		createMatrixLeds();
 	});
-	
-	// cl leds push to textfield and save values 
+
+	// cl leds push to textfield and save values
 	$('#btn_cl_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
@@ -408,8 +393,8 @@ $(document).ready(function() {
 			saveValues();
 		}
 	});
-	
-	// ma leds push to textfield and save values 
+
+	// ma leds push to textfield and save values
 	$('#btn_ma_generate').off().on("click", function() {
 		if (finalLedArray != ""){
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
@@ -424,7 +409,7 @@ $(document).ready(function() {
 		$("#ledconfig").text(JSON.stringify(event.response.result.leds, null, "\t"));
 		finalLedArray = event.response.result.leds;
 	});
-	
+
 	// create led device selection
 	$(hyperion).one("cmd-serverinfo",function(event){
 		server = event.response;
@@ -434,14 +419,14 @@ $(document).ready(function() {
 		devRPiGPIO = ['piblaster'];
 		devNET = ['atmoorb', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
 		devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
-		
+
 		var optArr = [[]];
 		optArr[1]=[];
 		optArr[2]=[];
 		optArr[3]=[];
 		optArr[4]=[];
 		optArr[5]=[];
-		
+
 		for (idx=0; idx<ledDevices.length; idx++)
 		{
 			if($.inArray(ledDevices[idx], devRPiSPI) != -1)
@@ -457,7 +442,7 @@ $(document).ready(function() {
 			else
 				optArr[5].push(ledDevices[idx]);
 		}
-		
+
 		$("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
 		$("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
 		$("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
@@ -475,13 +460,13 @@ $(document).ready(function() {
 			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
 		}
 	});
-	
+
 	// save led config and saveValues - passing textfield
 	$("#btn_ma_save, #btn_cl_save").off().on("click", function() {
 		requestWriteConfig({"leds" :finalLedArray});
 		saveValues();
 	});
-	
+
 	// validate and save led config from textfield
 	$("#leds_custom_save").off().on("click", function() {
 		if (validateText())
@@ -493,7 +478,7 @@ $(document).ready(function() {
 		$('.led_prev_num').toggle();
 		toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
 	});
-	
+
 	// nav
 	$('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
 		var target = $(e.target).attr("href") // activated tab
@@ -513,7 +498,7 @@ $(document).ready(function() {
 			generalOptions : generalOptions,
 			specificOptions : specificOptions,
 		});
-		
+
 		values_general = {};
 		values_specific = {};
 		isCurrentDevice = (server.info.ledDevices.active == $(this).val());
@@ -533,7 +518,7 @@ $(document).ready(function() {
 
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
-		
+
 		if ($(this).val() == "philipshue")
 		{
 			$("#huebridge").show();
@@ -541,26 +526,22 @@ $(document).ready(function() {
 			$("#ip").attr('value', values_specific.output);
 			$("#user").attr('value', values_specific.username);
 
-			if($("#ip").val() != '' && $("#user").val() != '') {
-				get_hue_lights();
-			}
-
 		}
 		else
 		{
 			$("#huebridge").hide();
 		}
-		
+
 		// change save button state based on validation result
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 	});
-	
+
 	// save led device config
 	$("#btn_submit_controller").off().on("click", function(event) {
 
 		ledDevice = $("#leddevices").val();
 		result = {device:{}};
-		
+
 		general = conf_editor.getEditor("root.generalOptions").getValue();
 		specific = conf_editor.getEditor("root.specificOptions").getValue();
 		for(var key in general){
@@ -576,6 +557,3 @@ $(document).ready(function() {
 
 	requestServerConfig();
 });
-
-
-

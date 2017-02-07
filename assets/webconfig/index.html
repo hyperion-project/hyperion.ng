@@ -16,10 +16,10 @@
 	<script src="/js/hyperion.js"></script>
 	<script src="/js/ui_utils.js"></script>
 
-	<!-- textarea --> 
+	<!-- textarea -->
 	<script src="/js/lib/jquery-linedtextarea.js"></script>
 	<link href="/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
-	
+
 	<!-- Colorpicker -->
 	<script src="/js/lib/bootstrap-colorpicker.min.js"></script>
 	<link href="/css/bootstrap-colorpicker.min.css" rel="stylesheet">
@@ -34,7 +34,7 @@
 	<script src="/js/lib/jquery.i18n.parser.js"></script>
 	<script src="/js/lib/jquery.i18n.emitter.js"></script>
 	<script src="/js/lib/jquery.i18n.language.js"></script>
-	
+
 	<!-- Bootstrap Core CSS -->
 	<link href="/css/bootstrap.css" rel="stylesheet">
 
@@ -67,7 +67,7 @@
 		</div>
 		<style type="text/css"> #loading_overlay, #wrapper{ display: none } </style>
 	</noscript>
-	
+
 	<div id="loading_overlay" class="overlay"></div>
 	<div id="wrapper">
 
@@ -89,17 +89,17 @@
 
 			<ul class="nav navbar-top-links navbar-right">
 				<li class="dropdown" id="btn_setlang">
-					<a href="#">		
+					<a href="#">
 						<i class="fa fa-globe fa-fw"></i>
 					</a>
 				</li>
 				<li class="dropdown" id="btn_setaccess">
-					<a href="#">		
+					<a href="#">
 						<i class="fa fa-key fa-fw"></i>
 					</a>
 				</li>
 				<li class="dropdown" id="btn_open_ledsim">
-					<a href="#">		
+					<a href="#">
 						<i class="fa fa-television fa-fw"></i>
 					</a>
 				</li>
@@ -122,6 +122,14 @@
 							<a href="#">
 								<div>
 									<i class="fa fa-magic fa-fw"></i> Color Calibration Wizard
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li id="btn_wizard_philipshue">
+							<a href="#">
+								<div>
+									<i class="fa fa-magic fa-fw"></i> Philips Hue Wizard
 								</div>
 							</a>
 						</li>
@@ -183,7 +191,7 @@
 
 	<div id="container_connection_lost" style="display:none"></div>
 	<div id="container_restart" style="display:none"></div>
-	
+
 	<!-- infoDialog -->
 	<div id="modal_dialog" class="modal fade" role="dialog" style="z-index:9999">
 		<div class="modal-dialog">
@@ -195,7 +203,7 @@
 			</center>
 		</div>
 	</div>
-	
+
 	<!-- wizardDialog -->
 	<div id="wizard_modal" class="modal fade" role="dialog">
 		<div class="modal-dialog">
@@ -211,10 +219,16 @@
 					</center>
 					<div id="wizp2_footer" class="modal-footer" style="text-align:center"></div>
 				</div>
+				<div id="wizp3" style="display:none">
+					<center>
+						<div id="wizp3_body" class="modal-body"></div>
+					</center>
+					<div id="wizp3_footer" class="modal-footer" style="text-align:center"></div>
+				</div>
 			</div>
 		</div>
 	</div>
-	
+
 	<!-- ledsimDialog -->
 	<div id="ledsim_dialog" style="display:none; z-index:9998">
 		<div data-role="body" style="padding:0px;">
@@ -240,14 +254,14 @@
 	<script src="/js/content_index.js"></script>
 	<script src="/js/settings.js"></script>
 	<script src="/js/wizard.js"></script>
-	
+
 	<!--gijgo dialog-->
 	<script src="/js/lib/draggable.min.js"></script>
 	<script src="/js/lib/dialog.min.js"></script>
 	<script src="/js/ledsim.js"></script>
-	
+
 	<!--Client-side download-->
 	<script src='/js/lib/download.min.js'></script>
-	
+
 </body>
 </html>
