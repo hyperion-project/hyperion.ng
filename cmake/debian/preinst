@@ -49,5 +49,3 @@ if [ -d /usr/share/hyperion/bin ];then
 		fi
 	fi
 fi
-		file=`grep -m1 -c '"general"' /home/pi/config.json`
-		echo "${file]"
