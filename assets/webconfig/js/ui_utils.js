@@ -1,3 +1,10 @@
+var prevTag;
+
+function removeOverlay()
+{
+	$("#loading_overlay").removeClass("overlay");
+}
+
 function reload()
 {
 	location.reload();	
@@ -10,15 +17,27 @@ function storageComp()
 	return false;
 }
 
-function getStorage(item)
+function getStorage(item, session)
 {
-	return localStorage.getItem(item);
+	if(storageComp())
+	{
+		if(session === true)
+			return sessionStorage.getItem(item);
+		else
+			return localStorage.getItem(item);
+	}
+	return null;
 }
 
-function setStorage(item, value)
+function setStorage(item, value, session)
 {
-	localStorage.setItem(item, value);
-	return true;
+	if(storageComp())
+	{
+		if(session === true)
+			sessionStorage.setItem(item, value);
+		else
+			localStorage.setItem(item, value);
+	}
 }
 
 function debugMessage(msg)
@@ -29,15 +48,42 @@ function debugMessage(msg)
 	}
 }
 
-function bindNavToContent(containerId, fileName, loadNow)
+function getHashtag()
 {
-	$("#page-content").off();
-	$(containerId).on("click", function() {
-		$("#page-content").load("/content/"+fileName+".html");
-	});
-	if (loadNow)
+	if(getStorage('lasthashtag', true) != null)
+		return getStorage('lasthashtag', true);
+	else
 	{
-		$(containerId).trigger("click");
+		var tag = document.URL;
+		tag = tag.substr(tag.indexOf("#") + 1);
+		if(tag == "" || typeof tag === "undefined" || tag.startsWith("http"))
+			tag = "dashboard"
+		return tag;
+	}
+}
+
+function loadContent(event)
+{
+	var tag;
+	
+	if(typeof event != "undefined")
+	{	
+		tag = event.currentTarget.hash;
+		tag = tag.substr(tag.indexOf("#") + 1);
+		setStorage('lasthashtag', tag, true);
+	}
+	else
+		tag = getHashtag();
+
+	if(prevTag != tag)
+	{
+		prevTag = tag;
+		$("#page-content").off();
+		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
+			if(status == "error")
+				$("#page-content").html('<h3>The page you requested is no longer available, click on another menu item!</h3>');
+				removeOverlay();
+		});
 	}
 }
 
@@ -97,7 +143,7 @@ function showInfoDialog(type,header,message)
 	}	
 	else if (type == "select"){
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-success" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
+		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "uilock"){
@@ -108,6 +154,13 @@ function showInfoDialog(type,header,message)
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "checklist")
+	{
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_checklist_title')+'</h4>');
+		$('#id_body').append(message);
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	
 	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
@@ -121,6 +174,48 @@ function showInfoDialog(type,header,message)
 		keyboard: false,
 		show: true
 	});
+}
+
+function createHintH(type, text, container)
+{
+	if(type = "intro")
+		tclass = "introd";
+		
+	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
+}
+
+function createHint(type, text, container)
+{
+	var fe, tclass;
+	
+	if(type == "intro")
+	{
+		fe = '';
+		tclass = "intro-hint";
+	}
+	else if(type == "info")
+	{
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "info-hint";
+	}
+	else if(type == "wizard")
+	{	
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-magic"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "wizard-hint";
+	}
+	else if(type == "warning")
+	{	
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "warning-hint";
+	}
+	
+	if(fe == "")
+		$('#'+container).prepend('<div class="'+tclass+'">'+text+'</div>');
+	else
+	{
+		createTable('','htb',container, true, tclass);
+		$('#'+container+' .htb').append(createTableRow([fe ,text],false,true));
+	}
 }
 
 function isJsonString(str)
@@ -163,7 +258,7 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	if(usePanel)
 	{
 		$('#'+container+' .well').first().removeClass('well well-sm');
-		$('#'+container+' h3').remove();
+		$('#'+container+' h4').remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
 	}
 
@@ -171,32 +266,84 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( parsedConfJSON[key] );
+			editor.getEditor("root."+key).setValue( serverConfig[key] );
 		}
 	}
 
 	return editor;
 }
 
+function rgbToHex(rgb)
+{
+	if(rgb.length == 3)
+	{
+		return "#" +
+		("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+		("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+		("0" + parseInt(rgb[2],10).toString(16)).slice(-2);    
+	}
+	else
+		debugMessage('rgbToHex: Given rgb is no array or has wrong length');
+}
+
+function createCP(id, color, cb)
+{
+	if(Array.isArray(color))
+		color = rgbToHex(color);
+	else if(color == "undefined")
+		color = "#AA3399";
+	
+	if(color.startsWith("#"))
+	{
+		$('#'+id).colorpicker({
+			format: 'rgb',
+			customClass: 'colorpicker-2x',
+			color: color,
+			sliders: {
+				saturation: {
+					maxLeft: 200,
+					maxTop: 200
+				},
+				hue: {
+					maxTop: 200
+				},
+			}
+		});
+		$('#'+id).colorpicker().on('changeColor', function(e) {
+			rgb = e.color.toRGB();
+			hex = e.color.toHex();
+			cb(rgb,hex,e);
+		});
+	}
+	else
+		debugMessage('createCP: Given color is not legit');
+}
+
 // Creates a table with thead and tbody ids
-// @param string hid  : a id for thead
-// @param string bid  : a id for tbody
+// @param string hid  : a class for thead
+// @param string bid  : a class for tbody
 // @param string cont : a container id to html() the table
-function createTable(hid, bid, cont)
+// @param string bless: if true the table is borderless
+function createTable(hid, bid, cont, bless, tclass)
 {
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
 	
 	table.className = "table";
+	if(bless === true)
+		table.className += " borderless";
+	if(typeof tclass !== "undefined")
+		table.className += " "+tclass;
 	table.style.marginBottom = "0px";
-	thead.setAttribute("id", hid);
-	tbody.setAttribute("id", bid);
-	
-	table.appendChild(thead);
+	if(hid != "")
+		thead.className = hid;
+	tbody.className = bid;
+	if(hid != "")
+		table.appendChild(thead);
 	table.appendChild(tbody);
 	
-	$('#'+cont).html(table);
+	$('#'+cont).append(table);
 }
 
 // Creates a table row <tr>
@@ -237,43 +384,58 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 {
 	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
 	pfooter = document.createElement('button');
-	pfooter.className = "btn btn-success";
+	pfooter.className = "btn btn-primary";
 	pfooter.setAttribute("id", footerid);
 	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
 	
 	return createPanel(phead, "", pfooter, "panel-default", bodyid);
 }
 
+function sortProperties(list)
+{
+	for(key in list)
+	{
+		list[key].key = key;
+	}
+	list = $.map(list, function(value, index) {
+				return [value];
+		});
+	return list.sort(function(a,b) {
+				return a.propertyOrder - b.propertyOrder;
+		});
+}
+
 function createHelpTable(list, phead){
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
-	//console.log(sortProperties(list));
+	list = sortProperties(list);
 	
 	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
 	
 	table.className = 'table table-hover borderless';
 	
 	thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
-		for (key in list)
+	
+	for (key in list)
+	{
+		if(list[key].access != 'system')
 		{
-			if(list[key].access != 'system')
+			var text = list[key].title.replace('title', 'expl');
+			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
+			
+			if(list[key].items && list[key].items.properties)
 			{
-				var text = list[key].title.replace('title', 'expl');
-				tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
-				
-				if(list[key].items && list[key].items.properties)
+				var ilist = sortProperties(list[key].items.properties);
+				for (ikey in ilist)
 				{
-					var ilist = list[key].items.properties;
-					for (ikey in ilist)
-					{
-						
-						var itext = ilist[ikey].title.replace('title', 'expl');
-						tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
-					}
-				}	
-			}
+					
+					var itext = ilist[ikey].title.replace('title', 'expl');
+					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
+				}
+			}	
 		}
+	}
 	table.appendChild(thead);
 	table.appendChild(tbody);
 

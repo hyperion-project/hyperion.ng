@@ -45,8 +45,8 @@ $(document).ready( function() {
 		initTrans('auto');
 		storedLang = 'auto';
 		storedAccess = "default";
-		$('#btn_setlang').toggle();
-		$('#btn_setaccess').toggle();
+		$('#btn_setlang').attr("disabled", true);
+		$('#btn_setaccess').attr("disabled", true);
 	}
 	
 	$('#btn_setlang').off().on('click',function() {
@@ -78,14 +78,11 @@ $(document).ready( function() {
 	});
 
 	//access
-	if (storageComp())
+	storedAccess = getStorage("accesslevel");
+	if (storedAccess == null)
 	{
-		storedAccess = getStorage("accesslevel");
-		if (storedAccess == null)
-		{
-			setStorage("accesslevel", "default");
-			storedAccess = "default";
-		}
+		setStorage("accesslevel", "default");
+		storedAccess = "default";
 	}
 
 	$('#btn_setaccess').off().on('click',function() {

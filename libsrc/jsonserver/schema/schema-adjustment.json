@@ -18,7 +18,7 @@
 					"type" : "string",
 					"required" : false
 				},
-				"redAdjust": {
+				"red": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -29,7 +29,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"greenAdjust": {
+				"green": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -40,7 +40,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"blueAdjust": {
+				"blue": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -51,7 +51,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"yellowAdjust": {
+				"yellow": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -62,7 +62,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"magentaAdjust": {
+				"magenta": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -73,7 +73,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"cyanAdjust": {
+				"cyan": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -84,7 +84,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"blackAdjust": {
+				"black": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -95,7 +95,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"whiteAdjust": {
+				"white": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -106,19 +106,19 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"gammaR": {
+				"gammaRed": {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum" : 100.0
 				},
-				"gammaG": {
+				"gammaGreen": {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum" : 100.0
 				},
-				"gammaB": {
+				"gammaBlue": {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,

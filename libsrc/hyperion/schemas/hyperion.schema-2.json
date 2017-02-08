@@ -114,30 +114,17 @@
 					},
 					"propertyOrder" : 1
 				},
-				"channelAdjustment_enable" :
-				{
-					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_enable_title",
-					"default" : true,
-					"propertyOrder" : 2
-				},
-				"channelAdjustment_v4l_only" :
-				{
-					"type" : "boolean",
-					"title" : "edt_conf_color_channelAdjustment_v4l_only_title",
-					"default" : false,
-					"propertyOrder" : 3
-				},
 				"channelAdjustment" :
 				{
 					"type" : "array",
 					"title" : "edt_conf_color_channelAdjustment_header_title",
 					"required" : true,
-					"propertyOrder" : 4,
+					"propertyOrder" : 3,
 					"items" :
 					{
 						"type" : "object",
 						"required" : true,
+						"title" : "edt_conf_color_channelAdjustment_header_itemtitle",
 						"properties" :
 						{
 							"id" :
@@ -287,7 +274,7 @@
 							"brightnessMin" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_brightness_min_title",
+								"title" : "edt_conf_color_brightnessMin_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 1.0,
@@ -309,7 +296,7 @@
 							"gammaRed" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_red_title",
+								"title" : "edt_conf_color_gammaRed_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
@@ -320,7 +307,7 @@
 							"gammaGreen" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_green_title",
+								"title" : "edt_conf_color_gammaGreen_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
@@ -331,7 +318,7 @@
 							"gammaBlue" :
 							{
 								"type" : "number",
-								"title" : "edt_conf_color_gamma_blue_title",
+								"title" : "edt_conf_color_gammaBlue_title",
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,

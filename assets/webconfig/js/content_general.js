@@ -1,7 +1,9 @@
-
-var conf_editor = null;
-$(hyperion).one("cmd-config-getschema", function(event) {
-	schema = parsedConfSchemaJSON.properties;
+$(document).ready( function() {
+	performTranslation();
+	
+	var importedConf;
+	var confName;
+	var conf_editor = null;
 	
 	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 	if(showOptHelp)
@@ -23,16 +25,7 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(conf_editor.getValue());
 	});
 	
-});
-
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
-	
-	var importedConf;
-	var confName;
-	
+	//import
 	function dis_imp_btn(state)
 	{
 		state ? $('#btn_import_conf').attr('disabled', true) : $('#btn_import_conf').attr('disabled', false);
@@ -68,9 +61,9 @@ $(document).ready( function() {
 					else
 					{
 						//check config revision
-						if(content.general.configVersion !== parsedConfJSON.general.configVersion)
+						if(content.general.configVersion !== serverConfig.general.configVersion)
 						{
-							showInfoDialog('error', "", $.i18n('infoDialog_import_reverror_text', f.name, content.general.configVersion, parsedConfJSON.general.configVersion));
+							showInfoDialog('error', "", $.i18n('infoDialog_import_reverror_text', f.name, content.general.configVersion, serverConfig.general.configVersion));
 							dis_imp_btn(true);
 						}
 						else
@@ -85,21 +78,6 @@ $(document).ready( function() {
 			r.readAsText(f);
 		}
 	}
-	
-	$('#btn_export_conf').off().on('click', function(){
-		var crev = parsedConfJSON.general.configVersion;
-		var name = parsedConfJSON.general.name;
-	
-		var d = new Date();
-		var month = d.getMonth()+1;
-		var day = d.getDate();
-
-		var timestamp = d.getFullYear() + '.' +
-			(month<10 ? '0' : '') + month + '.' +
-			(day<10 ? '0' : '') + day;
-	
-		download(JSON.stringify(parsedConfJSON, null, "\t"), 'Hyperion-Config ('+name+') '+timestamp+'.json', "application/json");
-	});
 	
 	$('#btn_import_conf').off().on('click', function(){
 		showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
@@ -117,5 +95,25 @@ $(document).ready( function() {
 			showInfoDialog('error', "", $.i18n('infoDialog_import_comperror_text'));
 	});
 	
+	//export
+	$('#btn_export_conf').off().on('click', function(){
+		var name = serverConfig.general.name;
+	
+		var d = new Date();
+		var month = d.getMonth()+1;
+		var day = d.getDate();
+
+		var timestamp = d.getFullYear() + '.' +
+			(month<10 ? '0' : '') + month + '.' +
+			(day<10 ? '0' : '') + day;
+	
+		download(JSON.stringify(serverConfig, null, "\t"), 'Hyperion-'+currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
+	});
+	
+	//create introduction
+	if(showOptHelp)
+		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
+	
+	removeOverlay();
 });
 

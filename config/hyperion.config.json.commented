@@ -41,8 +41,6 @@
 	/// following fields:
 	///  * 'imageToLedMappingType'      : multicolor_mean - every led has it's own calculatedmean color
 	///                                   unicolor_mean   - every led has same color, color is the mean of whole image
-	///  * 'channelAdjustment_enable'   : true/false enables/disables this channelAdjustment section
-	///  * 'channelAdjustment_v4l_only' : if enabled and set to true, then channelAdjustment is only for v4l devices
 	///  * 'channelAdjustment'
 	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
@@ -57,8 +55,6 @@
 	"color" :
 	{
 		"imageToLedMappingType" : "multicolor_mean",
-		"channelAdjustment_enable" : true,
-		"channelAdjustment_v4l_only" : false,
 		"channelAdjustment" :
 		[
 			{

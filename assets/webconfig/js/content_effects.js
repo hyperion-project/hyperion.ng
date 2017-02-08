@@ -1,13 +1,12 @@
-var olddEffects = [];
-var editorReady = false;
-var effects_editor = null;
-var confFgEff = parsedConfJSON.foregroundEffect.effect;
-var confBgEff = parsedConfJSON.backgroundEffect.effect;
-var foregroundEffect_editor = null;
-var backgroundEffect_editor = null;
-
-$(hyperion).one("cmd-config-getschema", function(event) {
-	schema = parsedConfSchemaJSON.properties;
+$(document).ready( function() {
+	performTranslation();
+	var oldEffects = [];
+	var editorReady = false;
+	var effects_editor = null;
+	var confFgEff = serverConfig.foregroundEffect.effect;
+	var confBgEff = serverConfig.backgroundEffect.effect;
+	var foregroundEffect_editor = null;
+	var backgroundEffect_editor = null;
 	
 	if(showOptHelp)
 	{
@@ -108,44 +107,50 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		//requestWriteConfig(backgroundEffect_editor.getValue());
 		console.log(backgroundEffect_editor.getValue());
 	});
-
-});
-
-function updateEffectlist(event){
-	if(editorReady)
+	
+	//create introduction
+	if(showOptHelp)
 	{
-		var newEffects = event.response.info.effects;
-		if (newEffects.length != olddEffects.length)
+		createHint("intro", $.i18n('conf_effect_path_intro'), "editor_container_effects");
+		createHint("intro", $.i18n('conf_effect_fgeff_intro'), "editor_container_foregroundEffect");
+		createHint("intro", $.i18n('conf_effect_bgeff_intro'), "editor_container_backgroundEffect");
+	}
+
+	function updateEffectlist(){
+		if(editorReady)
 		{
-			$('#root_foregroundEffect_effect').html('');
-			var usrEffArr = [];
-			var sysEffArr = [];
-		
-			for(i = 0; i < newEffects.length; i++)
+			var newEffects = serverInfo.info.effects;
+			if (newEffects.length != oldEffects.length)
 			{
-				var effectName = newEffects[i].name;
-				if(!/^\:/.test(newEffects[i].file))
-					usrEffArr.push(effectName);
-				else
-					sysEffArr.push(effectName);
+				$('#root_foregroundEffect_effect').html('');
+				var usrEffArr = [];
+				var sysEffArr = [];
+		
+				for(i = 0; i < newEffects.length; i++)
+				{
+					var effectName = newEffects[i].name;
+					if(!/^\:/.test(newEffects[i].file))
+						usrEffArr.push(effectName);
+					else
+						sysEffArr.push(effectName);
+				}
+				$('#root_foregroundEffect_effect').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')));
+				$('#root_foregroundEffect_effect').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
+				$('#root_backgroundEffect_effect').html($('#root_foregroundEffect_effect').html());
+				oldEffects = newEffects;
+			
+				$('#root_foregroundEffect_effect').val(confFgEff).change();
+				//$('select').trigger('change');
+				//var fgeff = foregroundEffect_editor.getEditor('root.foregroundEffect.effect').setValue(confFgEff);
+				//console.log(fgeff);
+			
+				$('#root_backgroundEffect_effect').val(confBgEff).change();
 			}
-			$('#root_foregroundEffect_effect').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')));
-			$('#root_foregroundEffect_effect').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
-			$('#root_backgroundEffect_effect').html($('#root_foregroundEffect_effect').html());
-			olddEffects = newEffects;
-			
-			$('#root_foregroundEffect_effect').val(confFgEff).change();
-			//$('select').trigger('change');
-			//var fgeff = foregroundEffect_editor.getEditor('root.foregroundEffect.effect').setValue(confFgEff);
-			//console.log(fgeff);
-			
-			$('#root_backgroundEffect_effect').val(confBgEff).change();
 		}
 	}
-}
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	
+	//interval update
 	$(hyperion).on("cmd-serverinfo",updateEffectlist);
+	
+	removeOverlay();
 });
