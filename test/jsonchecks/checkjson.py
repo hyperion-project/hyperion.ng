@@ -14,7 +14,7 @@ for filename in sys.argv[1:]:
 			json.load(f)
 			#print(msg + "ok")
 		except ValueError as e:
-			print(msg + 'invalid')
+			print(msg + 'invalid ('+str(e)+')')
 			retval = 1
 			errors += 1
 
