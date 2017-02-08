@@ -9,7 +9,7 @@ $(document).ready( function() {
 		createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
 	
 	function updateDelEffectlist(){
-		var newDelList = parsedServerInfoJSON.info.effects;
+		var newDelList = serverInfo.info.effects;
 		if(newDelList.length != oldDelList.length)
 		{
 			var EffectHtml = null;
@@ -73,7 +73,6 @@ $(document).ready( function() {
     });
 	
 	$('#btn_write').off().on('click',function() {
-		//console.log(effects_editor.getValue());
 		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
 		$(hyperion).one("cmd-create-effect", function(event) {
 			if (event.response.success)
@@ -112,7 +111,7 @@ $(document).ready( function() {
 	});
 	
 	//create basic effect list
-	var effects = parsedConfSchemaJSON.properties.effectSchemas.internal
+	var effects = serverSchema.properties.effectSchemas.internal
 	for(var idx=0; idx<effects.length; idx++)
 		{
 			$("#effectslist").append(createSelOpt(effects[idx].schemaContent.script, $.i18n(effects[idx].schemaContent.title)));

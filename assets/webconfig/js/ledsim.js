@@ -7,7 +7,7 @@ $(document).ready(function() {
 	var lC = false;
 	
 	$(hyperion).one("ready",function(){
-		leds = parsedConfJSON.leds;
+		leds = serverConfig.leds;
 		
 		if(showOptHelp)
 		{

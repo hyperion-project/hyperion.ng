@@ -3,7 +3,7 @@ $(document).ready(function() {
 	
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
-	var mappingList = parsedConfSchemaJSON.properties.color.properties.imageToLedMappingType.enum;
+	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
 
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
@@ -22,8 +22,8 @@ $(document).ready(function() {
 	}
 	
 	//color adjustment
-	var sColor = sortProperties(parsedConfSchemaJSON.properties.color.properties.channelAdjustment.items.properties)
-	var values = parsedServerInfoJSON.info.adjustment[0]
+	var sColor = sortProperties(serverSchema.properties.color.properties.channelAdjustment.items.properties)
+	var values = serverInfo.info.adjustment[0]
 	
 	for(key in sColor)
 	{
@@ -75,7 +75,7 @@ $(document).ready(function() {
 	{	
 		$('.sstbody').html("");
 		var data = "";
-		var prios = parsedServerInfoJSON.info.priorities
+		var prios = serverInfo.info.priorities
 		var i;
 		for(i = 0; i < prios.length; i++)
 		{
@@ -124,9 +124,9 @@ $(document).ready(function() {
 			if(btn_type != 'default')
 				$('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
 		}
-		var btn_auto_color = (parsedServerInfoJSON.info.priorities_autoselect? "btn-success" : "btn-danger");
-		var btn_auto_state = (parsedServerInfoJSON.info.priorities_autoselect? "disabled" : "enabled");
-		var btn_auto_text = (parsedServerInfoJSON.info.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
+		var btn_auto_color = (serverInfo.info.priorities_autoselect? "btn-success" : "btn-danger");
+		var btn_auto_state = (serverInfo.info.priorities_autoselect? "disabled" : "enabled");
+		var btn_auto_text = (serverInfo.info.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
 		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin:10px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
 		
 		var max_width=100;
@@ -139,7 +139,7 @@ $(document).ready(function() {
 	
 	function updateLedMapping()
 	{
-		mapping = parsedServerInfoJSON.info.ledMAppingType;
+		mapping = serverInfo.info.ledMAppingType;
 
 		$('#mappingsbutton').html("");
 		for(var ix = 0; ix < mappingList.length; ix++)
@@ -155,7 +155,7 @@ $(document).ready(function() {
 
 	function updateComponents()
 	{
-		components = parsedServerInfoJSON.info.components;
+		components = serverInfo.info.components;
 		// create buttons
 		$('#componentsbutton').html("");
 		for ( idx=0; idx<components.length;idx++)
@@ -184,7 +184,7 @@ $(document).ready(function() {
 	
 	function updateEffectlist()
 	{
-		var newEffects = parsedServerInfoJSON.info.effects;
+		var newEffects = serverInfo.info.effects;
 		if (newEffects.length != oldEffects.length)
 		{
 			$('#effect_select').html('<option value="__none__"></option>');

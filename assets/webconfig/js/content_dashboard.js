@@ -3,7 +3,7 @@ $(document).ready( function() {
 	
 	function updateComponents()
 	{
-		var components = parsedServerInfoJSON.info.components;
+		var components = serverInfo.info.components;
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
@@ -13,11 +13,11 @@ $(document).ready( function() {
 	}
 	
 	// get active led device
-	var leddevice = parsedServerInfoJSON.info.ledDevices.active;
+	var leddevice = serverInfo.info.ledDevices.active;
 	$('#dash_leddevice').html(leddevice);
 
 	// get host
-	var hostname = parsedServerInfoJSON.info.hostname;
+	var hostname = serverInfo.info.hostname;
 	$('#dash_systeminfo').html(hostname+':'+jsonPort);
 	
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {

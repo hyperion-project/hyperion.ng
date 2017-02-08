@@ -5,21 +5,6 @@ var IntListIds;
 var StrListIds;
 var BoolListIds;
 
-function get_hue_lights(){
-	$.ajax({
-		type: "GET",
-		url: 'http://'+$("#ip").val()+'/api/'+$("#user").val()+'/lights',
-		processData: false,
-		contentType: 'application/json',
-		success: function(r) {
-			for(var lightid in r){
-				//console.log(r[lightid].name);
-				$('#hue_lights').append('ID: '+lightid+' Name: '+r[lightid].name+'<br />');
-			}
-		}
-	});
-}
-
 function validateText(){
 	e = isJsonString($("#ledconfig").val());
 
@@ -440,14 +425,14 @@ $(document).ready(function() {
 	});
 
 	// fill textfield with current led conf and copy to finalLedArray
-	$("#ledconfig").text(JSON.stringify(parsedConfJSON.leds, null, "\t"));
-	finalLedArray = parsedConfJSON.leds;
+	$("#ledconfig").text(JSON.stringify(serverConfig.leds, null, "\t"));
+	finalLedArray = serverConfig.leds;
 	
 	// create and update editor
 	var conf_editor = null;
 	$("#leddevices").off().on("change", function() {
-		generalOptions  = parsedConfSchemaJSON.properties.device;
-		specificOptions = parsedConfSchemaJSON.properties.alldevices[$(this).val()];
+		generalOptions  = serverSchema.properties.device;
+		specificOptions = serverSchema.properties.alldevices[$(this).val()];
 		conf_editor = createJsonEditor('editor_container', {
 			generalOptions : generalOptions,
 			specificOptions : specificOptions,
@@ -455,11 +440,11 @@ $(document).ready(function() {
 		
 		values_general = {};
 		values_specific = {};
-		isCurrentDevice = (parsedServerInfoJSON.info.ledDevices.active == $(this).val());
+		isCurrentDevice = (serverInfo.info.ledDevices.active == $(this).val());
 
-		for(var key in parsedConfJSON.device){
+		for(var key in serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
-				values_general[key] = parsedConfJSON.device[key];
+				values_general[key] = serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
@@ -467,35 +452,18 @@ $(document).ready(function() {
 		{
 			specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
 			for(var key in specificOptions_val){
-					values_specific[key] = (key in parsedConfJSON.device) ? parsedConfJSON.device[key] : specificOptions_val[key];
+					values_specific[key] = (key in serverConfig.device) ? serverConfig.device[key] : specificOptions_val[key];
 			};
 
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
-		
-		if ($(this).val() == "philipshue")
-		{
-			$("#huebridge").show();
-
-			$("#ip").attr('value', values_specific.output);
-			$("#user").attr('value', values_specific.username);
-
-			if($("#ip").val() != '' && $("#user").val() != '') {
-				get_hue_lights();
-			}
-
-		}
-		else
-		{
-			$("#huebridge").hide();
-		}
 		
 		// change save button state based on validation result
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 	});
 	
 	// create led device selection
-	ledDevices = parsedServerInfoJSON.info.ledDevices.available
+	ledDevices = serverInfo.info.ledDevices.available
 	devRPiSPI = ['apa102', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'ws2812spi'];
 	devRPiPWM = ['ws281x'];
 	devRPiGPIO = ['piblaster'];
@@ -531,7 +499,7 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(parsedServerInfoJSON.info.ledDevices.active);
+	$("#leddevices").val(serverInfo.info.ledDevices.active);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview

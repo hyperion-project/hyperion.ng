@@ -3,8 +3,8 @@ $(document).ready( function() {
 	var oldEffects = [];
 	var editorReady = false;
 	var effects_editor = null;
-	var confFgEff = parsedConfJSON.foregroundEffect.effect;
-	var confBgEff = parsedConfJSON.backgroundEffect.effect;
+	var confFgEff = serverConfig.foregroundEffect.effect;
+	var confBgEff = serverConfig.backgroundEffect.effect;
 	var foregroundEffect_editor = null;
 	var backgroundEffect_editor = null;
 	
@@ -119,7 +119,7 @@ $(document).ready( function() {
 	function updateEffectlist(){
 		if(editorReady)
 		{
-			var newEffects = parsedServerInfoJSON.info.effects;
+			var newEffects = serverInfo.info.effects;
 			if (newEffects.length != oldEffects.length)
 			{
 				$('#root_foregroundEffect_effect').html('');

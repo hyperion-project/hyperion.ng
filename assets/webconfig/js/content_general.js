@@ -61,9 +61,9 @@ $(document).ready( function() {
 					else
 					{
 						//check config revision
-						if(content.general.configVersion !== parsedConfJSON.general.configVersion)
+						if(content.general.configVersion !== serverConfig.general.configVersion)
 						{
-							showInfoDialog('error', "", $.i18n('infoDialog_import_reverror_text', f.name, content.general.configVersion, parsedConfJSON.general.configVersion));
+							showInfoDialog('error', "", $.i18n('infoDialog_import_reverror_text', f.name, content.general.configVersion, serverConfig.general.configVersion));
 							dis_imp_btn(true);
 						}
 						else
@@ -97,7 +97,7 @@ $(document).ready( function() {
 	
 	//export
 	$('#btn_export_conf').off().on('click', function(){
-		var name = parsedConfJSON.general.name;
+		var name = serverConfig.general.name;
 	
 		var d = new Date();
 		var month = d.getMonth()+1;
@@ -107,7 +107,7 @@ $(document).ready( function() {
 			(month<10 ? '0' : '') + month + '.' +
 			(day<10 ? '0' : '') + day;
 	
-		download(JSON.stringify(parsedConfJSON, null, "\t"), 'Hyperion-'+currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
+		download(JSON.stringify(serverConfig, null, "\t"), 'Hyperion-'+currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
 	});
 	
 	//create introduction

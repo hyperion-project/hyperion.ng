@@ -4,10 +4,10 @@ var webPrio = 1;
 var showOptHelp;
 var currentVersion;
 var latestVersion;
-var parsedServerInfoJSON = {};
+var serverInfo = {};
 var parsedUpdateJSON = {};
-var parsedConfSchemaJSON = {};
-var parsedConfJSON = {};
+var serverSchema = {};
+var serverConfig = {};
 var schema;
 var jsonPort = 19444;
 var websocket = null;
@@ -244,15 +244,15 @@ function requestSetSource(prio)
 function requestWriteConfig(config, full)
 {
 	if(full === true)
-		parsedConfJSON = config;
+		serverConfig = config;
 	else
 	{
 		jQuery.each(config, function(i, val) {
-			parsedConfJSON[i] = val;
+			serverConfig[i] = val;
 		});
 	}
 
-	var config_str = escape(encode_utf8(JSON.stringify(parsedConfJSON)));
+	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
 
 	$.post( "/cgi/cfg_set", { cfg: config_str })
 	.done(function( data ) {

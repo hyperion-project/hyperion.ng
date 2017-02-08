@@ -70,8 +70,7 @@ function loadContent(event)
 	{	
 		tag = event.currentTarget.hash;
 		tag = tag.substr(tag.indexOf("#") + 1);
-		if(storageComp())
-			setStorage('lasthashtag', tag, true);
+		setStorage('lasthashtag', tag, true);
 	}
 	else
 		tag = getHashtag();
@@ -267,7 +266,7 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( parsedConfJSON[key] );
+			editor.getEditor("root."+key).setValue( serverConfig[key] );
 		}
 	}
 
