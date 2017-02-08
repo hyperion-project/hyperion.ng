@@ -3,6 +3,9 @@ import time
 import colorsys
 from random import randint
 
+#get args
+sleepTime = float(hyperion.args.get('sleep-time', 0.3))
+
 # define pacman
 pacman = bytearray((255, 255, 1))
 
