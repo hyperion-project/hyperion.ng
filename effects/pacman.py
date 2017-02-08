@@ -45,7 +45,6 @@ for i in range(hyperion.ledCount):
 
 # increment = 3, because LED-Color is defined by 3 Bytes
 increment = 3
-sleepTime = 0.3
 
 def shiftLED(ledData, increment, limit, lightPos=None):
 	state = 0
