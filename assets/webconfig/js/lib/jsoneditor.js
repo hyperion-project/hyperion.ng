@@ -494,7 +494,7 @@ JSONEditor.prototype = {
     return this.editors[path];
   },
   watch: function(path,callback) {
-    this.watchlist = this.watchlist || {};
+	this.watchlist = this.watchlist || {};
     this.watchlist[path] = this.watchlist[path] || [];
     this.watchlist[path].push(callback);
 
@@ -517,7 +517,7 @@ JSONEditor.prototype = {
     return this;
   },
   notifyWatchers: function(path) {
-    if(!this.watchlist || !this.watchlist[path]) return this;
+	if(!this.watchlist || !this.watchlist[path]) return this;
     for(var i=0; i<this.watchlist[path].length; i++) {
       this.watchlist[path][i]();
     }
@@ -6284,7 +6284,7 @@ JSONEditor.AbstractTheme = Class.extend({
     return el;
   },
   getHeader: function(text) {
-    var el = document.createElement('h3');
+    var el = document.createElement('h4');
 	if(text.innerHTML == ''){
 		text.style.display = 'none';
 		return text;

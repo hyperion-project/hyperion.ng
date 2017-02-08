@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import json, sys, glob
+import simplejson, sys, glob
 from os import path
 from jsonschema import Draft3Validator
 
@@ -12,14 +12,14 @@ retval  = 0
 total   = 0
 errors  = 0
 with open("libsrc/effectengine/EffectDefinition.schema.json") as baseSchemaFile:
-	baseSchema = json.load(baseSchemaFile)
+	baseSchema = simplejson.load(baseSchemaFile)
 	baseValidator = Draft3Validator(baseSchema)
 	for filename in glob.glob(jsonFiles+'/*.json'):
 		with open(filename) as f:
 			total += 1
 			msg = "   check effect %s ... " % filename
 			try:
-				effect = json.load(f)
+				effect = simplejson.load(f)
 				script = path.basename(effect['script'])
 				if not path.exists(jsonFiles+'/'+script):
 					raise ValueError('script file: '+script+' not found.')
@@ -31,7 +31,7 @@ with open("libsrc/effectengine/EffectDefinition.schema.json") as baseSchemaFile:
 				
 				# validate against schema
 				with open(schema) as s:
-					effectSchema = json.load(s)
+					effectSchema = simplejson.load(s)
 					Draft3Validator.check_schema(effectSchema)
 					validator = Draft3Validator(effectSchema)
 					baseValidator.validate(effect)

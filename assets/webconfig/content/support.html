@@ -1,12 +1,9 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-xs-12">
-            <h2 class="page-header"><i class="fa fa-info fa-fw"></i><span  data-i18n="support_label_title">Support Hyperion</span></h2>
-			<div class="introd">
-				<h4  data-i18n="support_label_intro">Hyperion is a free non-profit software. A small team is working on it and this is why we need your steady support.</h4>
-			<hr />
-			</div>
-			<h3 style="font-weight: bold"  data-i18n="support_label_spreadtheword">Spread the word</h3>
+            <h3 class="page-header"><i class="fa fa-info fa-fw"></i><span  data-i18n="support_label_title">Support Hyperion</span></h3>
+			<div id="supp_intro"></div>
+			<h4 style="font-weight: bold"  data-i18n="support_label_spreadtheword">Spread the word</h4>
 			<a href="#" target="_blank" class="unlink">
 				<div class="col-xs-12 col-sm-6 col-lg-3 support-container">
 					<i class="fa fa-facebook bg-color-fb"></i>
@@ -38,7 +35,7 @@
 		</div>
 		<div class="col-xs-12">
 			<hr>	
-			<h3 style="font-weight: bold"  data-i18n="support_label_donate">Donate or use our affiliate links</h3>
+			<h4 style="font-weight: bold"  data-i18n="support_label_donate">Donate or use our affiliate links</h4>
 			<ol>
 				<li  data-i18n="support_label_affinstr1">Click on the appropriate link of your country</li>
 				<li  data-i18n="support_label_affinstr2">Everything you buy (doesn’t matter what) we get a small fee based on your turnover</li>
@@ -86,7 +83,7 @@
 		</div>
 		<div class="col-xs-12">
 			<hr>
-			<h3 style="font-weight: bold"  data-i18n="support_label_webrestitle">Information and help ressources</h3>
+			<h4 style="font-weight: bold"  data-i18n="support_label_webrestitle">Information and help ressources</h4>
 			<a href="https://www.hyperion-project.org?pk_campaign=WebUI&pk_kwd=support_webpage" target="_blank" class="unlink">
 				<div class="col-xs-12 col-sm-6 col-lg-3 support-container">
 					<i class="fa fa-globe bg-color-wf"></i>
@@ -108,10 +105,20 @@
 					<p  data-i18n="support_label_forumtext">Showcases, discussions, help and more</p>
 				</div>
 			</a>
+			<a href="https://github.com/hyperion-project" target="_blank" class="unlink">
+				<div class="col-xs-12 col-sm-6 col-lg-3 support-container">
+					<i class="fa fa-github bg-color-wf"></i>
+					<h4>Github</h4>
+					<p  data-i18n="support_label_ghtext">Visit our Github repository</p>
+				</div>
+			</a>
 		</div>
 	</div>
 </div>
 
 <script type="text/javascript">
-	performTranslation('trans_support');
+	performTranslation();
+	
+	if(showOptHelp)
+		createHintH("intro", $.i18n('support_label_intro'), "supp_intro");
 </script>

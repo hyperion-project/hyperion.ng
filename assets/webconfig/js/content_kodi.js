@@ -1,7 +1,6 @@
-
-var conf_editor = null;
-$(hyperion).one("cmd-config-getschema", function(event) {
-	schema = parsedConfSchemaJSON.properties;
+$(document).ready( function() {
+	var conf_editor = null;
+	performTranslation();
 	
 	$('#conf_cont').append(createOptPanel('fa-play-circle-o', $.i18n("conf_kodi_label_title"), 'editor_container', 'btn_submit'));
 	if(showOptHelp)
@@ -21,11 +20,10 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		requestWriteConfig(conf_editor.getValue());
 	});
 	
-});
-
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	//create introduction
+	if(showOptHelp)
+		createHint("intro", $.i18n('conf_kodi_intro'), "editor_container");
+	
+	removeOverlay();
 });
 

@@ -355,12 +355,6 @@ private:
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 
-	/// flag for v4l color correction
-	bool _colorAdjustmentV4Lonly;
-	
-	/// flag for color adjustment enable
-	bool _adjustmentEnabled;
-
 	/// flag indicates state for autoselection of input source
 	bool _sourceAutoSelectEnabled;
 	

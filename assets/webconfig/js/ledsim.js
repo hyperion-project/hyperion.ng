@@ -4,11 +4,19 @@ $(document).ready(function() {
 	var ledsim_height = 489;
 	var dialog;
 	var leds;
+	var lC = false;
 	
-	$(hyperion).one("cmd-config-getconfig",function(event){
-		leds = event.response.result.leds;
+	$(hyperion).one("ready",function(){
+		leds = serverConfig.leds;
 		
-		if(storageComp() && getStorage('ledsim_width') != null)
+		if(showOptHelp)
+		{
+			createHint('intro', $.i18n('main_ledsim_text'), 'ledsim_text');
+			$('#ledsim_text').css({'margin':'10px 15px 0px 15px'});
+			$('#ledsim_text .intro-hint').css("margin","0px")
+		}
+		
+		if(getStorage('ledsim_width') != null)
 		{
 			ledsim_width = getStorage('ledsim_width');
 			ledsim_height = getStorage('ledsim_height');
@@ -29,7 +37,11 @@ $(document).ready(function() {
 				updateLedLayout();
 			},
 			opened: function (e) {
-				updateLedLayout();
+				if(!lC)
+				{
+					updateLedLayout();
+					lC = true;
+				}
 				modalOpened = true;
 				requestLedColorsStart();
 			
@@ -40,13 +52,10 @@ $(document).ready(function() {
 				modalOpened = false;
 			},
 			resizeStop: function (e) {
-				if(storageComp())
-				{
-					setStorage("ledsim_width", $("#ledsim_dialog").outerWidth());
-					setStorage("ledsim_height", $("#ledsim_dialog").outerHeight());	
-				}
+				setStorage("ledsim_width", $("#ledsim_dialog").outerWidth());
+				setStorage("ledsim_height", $("#ledsim_dialog").outerHeight());	
 			}
-		});	
+		});
 	});
 	
 	function updateLedLayout()

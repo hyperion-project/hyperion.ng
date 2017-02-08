@@ -1,9 +1,8 @@
-
-var editor_color = null;
-var editor_smoothing = null;
-var editor_blackborder = null;
-$(hyperion).one("cmd-config-getschema", function(event) {
-	schema = parsedConfSchemaJSON.properties;
+$(document).ready( function() {
+	performTranslation();
+	var editor_color = null;
+	var editor_smoothing = null;
+	var editor_blackborder = null;
 	
 	if(showOptHelp)
 	{
@@ -68,11 +67,15 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_submit_blackborder').off().on('click',function() {
 		requestWriteConfig(editor_blackborder.getValue());
 	});
-});
-
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	
+	//create introduction
+	if(showOptHelp)
+	{
+		createHint("intro", $.i18n('conf_colors_color_intro'), "editor_container_color");
+		createHint("intro", $.i18n('conf_colors_smoothing_intro'), "editor_container_smoothing");
+		createHint("intro", $.i18n('conf_colors_blackborder_intro'), "editor_container_blackborder");
+	}
+	
+	removeOverlay();
 });
 

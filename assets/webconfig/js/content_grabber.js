@@ -1,8 +1,7 @@
- 
-var conf_editor_v4l2 = null;
-var conf_editor_fg = null;
-$(hyperion).one("cmd-config-getschema", function(event) {
-	schema = parsedConfSchemaJSON.properties;
+$(document).ready( function() {
+	performTranslation();
+	var conf_editor_v4l2 = null;
+	var conf_editor_fg = null;
 	
 	if(showOptHelp)
 	{
@@ -48,12 +47,14 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_submit_v4l2').off().on('click',function() {
 		requestWriteConfig(conf_editor_v4l2.getValue());
 	});
-
-});
-
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	
+	//create introduction
+	if(showOptHelp)
+	{
+		createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
+		createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
+	}
+	
+	removeOverlay();
 });
 

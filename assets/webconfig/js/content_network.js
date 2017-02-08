@@ -1,13 +1,11 @@
-
-var conf_editor_json = null;
-var conf_editor_proto = null;
-var conf_editor_bobl = null;
-var conf_editor_udpl = null;
-var conf_editor_forw = null;
-
-$(hyperion).one("cmd-config-getschema", function(event) {
+$(document).ready( function() {
+	performTranslation();
 	
-	schema = parsedConfSchemaJSON.properties;
+	var conf_editor_json = null;
+	var conf_editor_proto = null;
+	var conf_editor_bobl = null;
+	var conf_editor_udpl = null;
+	var conf_editor_forw = null;
 	
 	if(showOptHelp)
 	{
@@ -118,11 +116,16 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 		});
 	}
 	
-});
-
-
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	//create introduction
+	if(showOptHelp)
+	{
+		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
+		createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
+		createHint("intro", $.i18n('conf_network_bobl_intro'), "editor_container_boblightserver");
+		createHint("intro", $.i18n('conf_network_udpl_intro'), "editor_container_udplistener");
+		createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");
+	}
+	
+	removeOverlay();
 });
 
