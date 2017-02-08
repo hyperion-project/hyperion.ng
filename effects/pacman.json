@@ -1,4 +1,8 @@
 {
 	"name" : "Pac-Man",
-	"script" : "pacman.py"
+	"script" : "pacman.py",
+	"args" :
+	{
+		"sleep-time" : 0.3
+	}
 }
