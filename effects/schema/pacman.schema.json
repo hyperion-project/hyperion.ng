@@ -1,4 +1,4 @@
-﻿{
+{
 	"type":"object",
 	"script" : "pacman.py",
 	"title":"edt_eff_pacman_header_title",
