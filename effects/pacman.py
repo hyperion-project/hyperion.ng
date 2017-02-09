@@ -29,9 +29,6 @@ posBlueGuy = posPinkGuy + diffGuys
 posSlowGuy = posBlueGuy + diffGuys
 posRedGuy = posSlowGuy + diffGuys
 
-
-posPinkGuy =
-
 # initialize the led data
 ledDataEscape = bytearray()
 for i in range(hyperion.ledCount):
