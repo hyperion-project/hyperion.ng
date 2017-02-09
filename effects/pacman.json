@@ -3,7 +3,7 @@
 	"script" : "pacman.py",
 	"args" :
 	{
-		"margin-pos" : 2.0
+		"margin-pos" : 2.0,
 		"sleep-time" : 0.3
 	}
 }
