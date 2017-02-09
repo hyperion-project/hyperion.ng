@@ -6,12 +6,16 @@
 // Utils includes
 #include <utils/RgbChannelAdjustment.h>
 
-RgbChannelAdjustment::RgbChannelAdjustment()
+RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
+	: _channelName(channelName)
+	, _log(Logger::getInstance(channelName))
 {
-	setAdjustment(UINT8_MAX, UINT8_MAX, UINT8_MAX);
+	//setAdjustment(UINT8_MAX, UINT8_MAX, UINT8_MAX);
 }
 
-RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
+RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
+	: _channelName(channelName)
+	, _log(Logger::getInstance(channelName))
 {
 	setAdjustment(adjustR, adjustG, adjustB);
 }
@@ -58,23 +62,24 @@ void RgbChannelAdjustment::setAdjustmentB(uint8_t adjustB)
 	setAdjustment(_adjust[RED], _adjust[GREEN], adjustB);
 }
 
-uint8_t RgbChannelAdjustment::adjustmentR(uint8_t inputR) const
+uint8_t RgbChannelAdjustment::getAdjustmentR(uint8_t inputR) const
 {
 	return _mapping[RED][inputR];
 }
 
-uint8_t RgbChannelAdjustment::adjustmentG(uint8_t inputG) const
+uint8_t RgbChannelAdjustment::getAdjustmentG(uint8_t inputG) const
 {
 	return _mapping[GREEN][inputG];
 }
 
-uint8_t RgbChannelAdjustment::adjustmentB(uint8_t inputB) const
+uint8_t RgbChannelAdjustment::getAdjustmentB(uint8_t inputB) const
 {
 	return _mapping[BLUE][inputB];
 }
 
 void RgbChannelAdjustment::initializeMapping()
 {
+	Debug(_log, "initialize mapping with %d,%d,%d", _adjust[RED], _adjust[GREEN], _adjust[BLUE]);
 	// initialize linear mapping
 	for (unsigned channel=0; channel<3; channel++)
 		for (unsigned idx=0; idx<=UINT8_MAX; idx++)

@@ -1,50 +1,73 @@
 <div class="container-fluid">
-<h2 class="page-header"><i class="fa fa-wifi fa-fw"></i><span lang="en" data-lang-token="main_menu_remotecontrol_token">Remote Control</span></h2>
-	<div class="introd">
-		<h4 lang="en" data-lang-token="remote_label_intro">Set an effect/color. You could also select a source manually. The Components control give the opportunity to enable/disable components of Hyprion during runtime. All changes you made here are lost after a restart.</h4>
-	</div>
-	<hr>
+<h3 class="page-header"><i class="fa fa-wifi fa-fw"></i><span data-i18n="main_menu_remotecontrol_token">Remote Control</span></h3>
 </div>
 
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-lg-12">
-		<div class="panel panel-primary" >
-				<div class="panel-heading" lang="en" data-lang-token="remote_colors_label_coloreffect">Colors/Effects</div>
-				<div class="panel-body">
-				<span lang="en" data-lang-token="remote_colors_label_color" style="display:inline-block">Color:</span>
-				<div id="cp2" class="colorpicker-component"  style="width:auto;display:inline-block;white-space:nowrap;">
-					<input type="text" value="#00AABB" class="form-control"  style="display:inline" /><span class="input-group-addon form-control" style="display:inline-block;width:auto;"><i></i></span>
-				</div>
-				<div lang="en" data-lang-token="remote_effects_label_effects" style="display:inline-block;margin-left:50px;">Effect:</div>
-				<select id="effect_select" class="form-control" style="width:auto;display:inline-block"></select>
-				<button lang="en" data-lang-token="remote_colors_button_reset" type="button" class="btn btn-warning" id="reset_color" style="margin-left:20px;width:auto;display:inline-block">Reset Color/Effect</button>
 
-				</div>
-			</div>
-		</div>
-
-		</div>
+	</div>
 </div>
 
 <div  class="container-fluid">
 	<div class="row">
-		<div class="col-lg-6">
-			<div class="panel panel-primary" >
-				<div class="panel-heading" lang="en" data-lang-token="remote_input_label_sourceselection">Source selection</div>
+		<div class="col-lg-8 col-xxl-7">
+			<div class="panel panel-default" >
+				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_input_label">Source selection</span></div>
 				<div class="panel-body">
-					<p>Hyperion uses a priority system to select a source. Everything you set has a priority (Effect/Color/Platform capture/USB capture and network sources). By default, Hyperion select sources depending on priority (lowest number reflects the current active source). Now you have the opportunity to select sources on your own.</p>
-					<p style="font-weight:bold">Schema: NameOfSource(priority)</p>
-					<div id="hyperion_inputs"><i style="font-size:120px;padding:20px;text-align:center;display: inline-block;width: 100%;line-height: normal;" class="fa fa-cog fa-spin"></i></div>
+					<div id="sstcont"></div>
+					<div id="auto_btn"></div>
 				</div>
 			</div>
 		</div>
 
-		<div class="col-lg-6">
-			<div class="panel panel-primary" >
-				<div class="panel-heading" lang="en" data-lang-token="remote_components_label_components">Components control</div>
-				<div class="panel-body">
-					<div id="componentsbutton"><i style="font-size:120px;padding:20px;text-align:center;display: inline-block;width: 100%;line-height: normal;" class="fa fa-cog fa-spin"></i></div>
+		<div class="col-lg-4 col-xxl-5">
+			<div class="panel panel-default" >
+				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_components_label">Components control</span></div>
+				<div class="panel-body" id="comp_intro">
+					<div id="componentsbutton"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div  class="container-fluid">
+	<div class="row">
+		<div class="col-lg-6 col-xxl-4">
+			<div class="panel panel-default" >
+				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_color_label">Colors/Effects</span></div>
+				<div class="panel-body" id="color_intro">
+					<table class="table borderless">
+						<tbody>
+							<tr>
+								<td style="vertical-align:middle"><label data-i18n="remote_color_label_color"></label></td>
+								<td><div id="cp2" class="colorpicker-component input-group">
+										<input type="text" class="form-control"/><span class="input-group-addon"><i></i></span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td style="vertical-align:middle"><label data-i18n="remote_effects_label_effects">Effect:</label></td>
+								<td><select id="effect_select" class="form-control"></select></td>
+							</tr>
+						</tbody>
+					</table>
+					<button data-i18n="remote_color_button_reset" type="button" class="btn btn-warning" id="reset_color" style="margin-top:10px;">Reset Color/Effect</button>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-6 col-xxl-3">
+			<div class="panel panel-default" >
+				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_maptype_label">Mapping types</span></div>
+				<div class="panel-body" id="maptype_intro">
+					<div id="mappingsbutton"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-6 col-xxl-5">
+			<div class="panel panel-default" >
+				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_adjustment_label"></span></div>
+				<div class="panel-body" id="adjust_content">
 				</div>
 			</div>
 		</div>

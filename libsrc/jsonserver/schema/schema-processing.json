@@ -1,0 +1,19 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["processing"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"mappingType": {
+			"type" : "string",
+			"enum" : ["multicolor_mean", "unicolor_mean"]
+		}
+	},
+	"additionalProperties": false
+}

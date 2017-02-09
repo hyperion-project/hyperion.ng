@@ -4,27 +4,26 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"SPI path",
+			"title":"edt_dev_spec_spipath_title",
 			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"],
 			"propertyOrder" : 1
 		},
 		"rate": {
 			"type": "integer",
-			"title":"Baudrate",
+			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
-                "latchtime": {
-                        "type": "integer",
-                        "title":"Latchtime",
-                        "default": 500000,
-                        "append" : "ns",
-                        "propertyOrder" : 3
-                },
+		"latchtime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 500000,
+			"append" : "ns",
+			"propertyOrder" : 3
+		},
 		"invert": {
 			"type": "boolean",
-			"format": "checkbox",
-			"title":"Invert signal",
+			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 4
 		}

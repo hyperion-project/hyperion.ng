@@ -18,7 +18,7 @@
 					"type" : "string",
 					"required" : false
 				},
-				"redAdjust": {
+				"red": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -29,7 +29,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"greenAdjust": {
+				"green": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -40,7 +40,7 @@
 					"minItems": 3,
 					"maxItems": 3
 				},
-				"blueAdjust": {
+				"blue": {
 					"type": "array",
 					"required": false,
 					"items" : {
@@ -50,6 +50,91 @@
 					},
 					"minItems": 3,
 					"maxItems": 3
+				},
+				"yellow": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"magenta": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"cyan": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"black": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"white": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"gammaRed": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
+				},
+				"gammaGreen": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
+				},
+				"gammaBlue": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 100.0
+				},
+				"brightnessMin" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 1.0
+				},
+				"brightness" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum" : 1.0
 				}
 			},
 			"additionalProperties": false

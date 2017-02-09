@@ -1,0 +1,14 @@
+{
+	"name" : "Clock",
+	"script" : "clock.py",
+	"args" :
+	{
+		"offset" : 0,
+		"hour-margin" : 2,
+		"minute-margin" : 1,
+		"second-margin" : 0,
+		"hour-color" : [255, 0, 0],
+		"minute-color" : [0, 255, 0],
+		"second-color" : [0, 0, 255]
+	}
+}

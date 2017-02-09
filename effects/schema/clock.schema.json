@@ -1,0 +1,79 @@
+﻿{
+	"type":"object",
+	"script" : "clock.py",
+	"title":"edt_eff_clock_header_title",
+	"required":true,
+	"properties":{
+		"offset": {
+			"type": "number",
+			"title":"edt_eff_offset_title",
+			"default": 0,
+			"append" : "edt_append_leds",
+			"propertyOrder" : 1
+		},
+		"hour-color": {
+			"type": "array",
+			"title":"edt_eff_colorHour_title",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
+		"minute-color": {
+			"type": "array",
+			"title":"edt_eff_colorMinute_title",
+			"format":"colorpicker",
+			"default": [0,255,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 3
+		},
+		"second-color": {
+			"type": "array",
+			"title":"edt_eff_colorSecond_title",
+			"format":"colorpicker",
+			"default": [0,0,255],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 4
+		},
+		"hour-margin": {
+			"type": "number",
+			"title":"edt_eff_hourMargin_title",
+			"default": 2,
+			"append" : "edt_append_leds",
+			"propertyOrder" : 5
+		},
+		"minute-margin": {
+			"type": "number",
+			"title":"edt_eff_minuteMargin_title",
+			"default": 1,
+			"append" : "edt_append_leds",
+			"propertyOrder" : 6
+		},
+		"second-margin": {
+			"type": "number",
+			"title":"edt_eff_secondMargin_title",
+			"default": 0,
+			"append" : "edt_append_leds",
+			"propertyOrder" : 7
+		}
+	},
+	"additionalProperties": false
+}

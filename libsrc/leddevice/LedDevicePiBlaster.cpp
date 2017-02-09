@@ -42,7 +42,9 @@ LedDevicePiBlaster::~LedDevicePiBlaster()
 
 bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
-	_deviceName             = deviceConfig["output"].toString("").toStdString();
+	LedDevice::init(deviceConfig);
+
+	_deviceName            = deviceConfig["output"].toString("/dev/pi-blaster").toStdString();
 	QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
 
 	if (gpioMapping.isEmpty())

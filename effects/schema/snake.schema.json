@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "snake.py",
-	"title":"Snake",
+	"title":"edt_eff_snake_header_title",
 	"required":true,
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"Color",
+			"title":"edt_eff_color_title",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,17 +20,17 @@
 		},
 		"rotation-time": {
 			"type": "number",
-			"title":"Rotation time",
+			"title":"edt_eff_rotationtime_title",
 			"default": 12.0,
 			"minimum" : 0.1,
-			"append" : "s",
+			"append" : "edt_append_s",
 			"propertyOrder" : 2
 		},
 		"percentage": {
 			"type": "integer",
-			"title":"Length",
+			"title":"edt_eff_length_title",
 			"default": 10,
-			"append" : "%",
+			"append" : "edt_append_percent",
 			"propertyOrder" : 3
 		}
 	},

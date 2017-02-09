@@ -35,29 +35,14 @@ void DispmanxWrapper::action()
 	// Grab frame into the allocated image
 	_grabber->grabFrame(_image);
 
-	if ( _forward )
-	{
-		Image<ColorRgb> image_rgb;
-		_image.toRgb(image_rgb);
-		emit emitImage(_priority, image_rgb, _timeout_ms);
-	}
+	Image<ColorRgb> image_rgb;
+	_image.toRgb(image_rgb);
+	emit emitImage(_priority, image_rgb, _timeout_ms);
 
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
 }
 
-void DispmanxWrapper::kodiPlay()
-{
-	_grabber->setFlags(DISPMANX_SNAPSHOT_NO_RGB|DISPMANX_SNAPSHOT_FILL);
-	GrabberWrapper::kodiPlay();
-	
-}
-
-void DispmanxWrapper::kodiPause()
-{
-	_grabber->setFlags(0);
-	GrabberWrapper::kodiPause();
-}
 
 void DispmanxWrapper::setVideoMode(const VideoMode mode)
 {
