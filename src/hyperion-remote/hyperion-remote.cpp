@@ -189,7 +189,7 @@ int main(int argc, char * argv[])
 		}
 		else if (parser.isSet(argSourceOff))
 		{
-			connection.setSource(std::numeric_limits<int>::max());
+			connection.setSource(std::numeric_limits<uint8_t>::max());
 		}
 		else if (parser.isSet(argSource))
 		{
