@@ -57,22 +57,47 @@
 			"type": "number",
 			"title":"edt_eff_hourMargin_title",
 			"default": 2,
-			"append" : "edt_append_leds",
 			"propertyOrder" : 5
 		},
 		"minute-margin": {
 			"type": "number",
 			"title":"edt_eff_minuteMargin_title",
 			"default": 1,
-			"append" : "edt_append_leds",
 			"propertyOrder" : 6
 		},
 		"second-margin": {
 			"type": "number",
 			"title":"edt_eff_secondMargin_title",
 			"default": 0,
-			"append" : "edt_append_leds",
 			"propertyOrder" : 7
+		},
+		"marker-color": {
+			"type": "array",
+			"title":"edt_eff_colorMarker_title",
+			"format":"colorpicker",
+			"default": [255,255,255],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 8
+		},
+		"markers": {
+			"type": "array",
+			"title":"edt_eff_markers_title",
+			"default": [-1,-1,-1,-1],
+			"items" : {
+				"type": "integer",
+				"title" : "edt_eff_markers_title",
+				"minimum": -1,
+				"append":"edt_append_lednr"
+			},
+			"minItems": 4,
+			"maxItems": 4,
+			"propertyOrder" : 9
 		}
 	},
 	"additionalProperties": false

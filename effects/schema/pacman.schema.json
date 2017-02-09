@@ -12,6 +12,14 @@
 			"minimum": 0.01,
 			"append" : "edt_append_s",
 			"propertyOrder" : 1
+		},
+		"margin-pos": {
+			"type": "number",
+			"title":"edt_eff_margin_title",
+			"default": 1.0,
+			"step" : 0.1,
+			"minimum": 1.0,
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": false

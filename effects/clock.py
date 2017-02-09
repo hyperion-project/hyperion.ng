@@ -21,6 +21,9 @@ hourColor = hyperion.args.get('hour-color', (255,0,0))
 minuteColor = hyperion.args.get('minute-color', (0,255,0))
 secondColor = hyperion.args.get('second-color', (0,0,255))
 
+markerColor = hyperion.args.get('marker-color', (255,255,255))
+markers = hyperion.args.get('markers', (-1,-1,-1,-1))
+
 """ The effect loop """
 while not hyperion.abort():
 
@@ -53,7 +56,7 @@ while not hyperion.abort():
 		blend = [0, 0, 0]
 
 		if i in markers:
-			blend = [255, 255, 255]
+			blend = markerColor
 
 		if i in hourRange:
 			blend = hourColor

@@ -5,9 +5,10 @@ from random import randint
 
 #get args
 sleepTime = float(hyperion.args.get('sleep-time', 0.3))
+marginPos = float(hyperion.args.get('margin-pos', 1.5))
 
 # define pacman
-pacman = bytearray((255, 255, 1))
+pacman = bytearray((255, 255, 0))
 
 # define ghosts
 redGuy = bytearray((255, 0, 0))
@@ -18,18 +19,31 @@ slowGuy = bytearray((255, 184, 81))
 light = bytearray((255, 184, 174))
 background = bytearray((0, 0, 0))
 
+#helper
+posPac = 1
+diffPac = 6*marginPos
+diffGuys = 3*marginPos
+
+posPinkGuy = posPac + diffPac
+posBlueGuy = posPinkGuy + diffGuys
+posSlowGuy = posBlueGuy + diffGuys
+posRedGuy = posSlowGuy + diffGuys
+
+
+posPinkGuy =
+
 # initialize the led data
 ledDataEscape = bytearray()
 for i in range(hyperion.ledCount):
 	if i == 1:
 		ledDataEscape += pacman
-	elif i == 7:
+	elif i == posPinkGuy:
 		ledDataEscape += pinkGuy
-	elif i == 10:
+	elif i == posBlueGuy:
 		ledDataEscape += blueGuy
-	elif i == 13:
+	elif i == posSlowGuy:
 		ledDataEscape += slowGuy
-	elif i == 16:
+	elif i == posRedGuy:
 		ledDataEscape += redGuy
 	else:
 		ledDataEscape += background
@@ -38,7 +52,7 @@ ledDataChase = bytearray()
 for i in range(hyperion.ledCount):
 	if i == 1:
 		ledDataChase += pacman
-	elif i in [7, 10, 13, 16]:
+	elif i in [posPinkGuy, posBlueGuy, posSlowGuy, posRedGuy]:
 		ledDataChase += bytearray((33, 33, 255))
 	else:
 		ledDataChase += background
