@@ -35,17 +35,13 @@ while not hyperion.abort():
 	m = now.minute
 	s = now.second
 
-	led_hour = ((h*4 + h//3%2 + h//6) + offset) % ledCount
-	led_minute = ((m*ledCount)/60 + offset) % ledCount
+	hour = h/24. * ledCount
+	led_hour = int(hour + offset) % ledCount
 
 	minute = m/60. * ledCount
-	minute_low = int(minute)
-	g1 = round((1-(minute-minute_low))*255)
 	led_minute = int(minute + offset) % ledCount
 
 	second = s/60. * ledCount
-	second_low = int(second)
-	b1 = round((1-(second-second_low))*255)
 	led_second = int(second + offset) % ledCount
 
 	hourRange =  myRange(led_hour, hourMargin)
