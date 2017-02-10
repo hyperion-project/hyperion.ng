@@ -35,7 +35,11 @@ while not hyperion.abort():
 	m = now.minute
 	s = now.second
 
-	hour = h/24. * ledCount
+	if h > 12:
+		h -= 12
+		return
+	
+	hour = h/12. * ledCount
 	led_hour = int(hour + offset) % ledCount
 
 	minute = m/60. * ledCount
