@@ -7,7 +7,6 @@ def myRange(index, margin):
 
 """ Define some variables """
 sleepTime = 1
-markers = [0, 13, 25, 38]
 
 ledCount = hyperion.ledCount
 
@@ -37,7 +36,6 @@ while not hyperion.abort():
 
 	if h > 12:
 		h -= 12
-		return
 	
 	hour = h/12. * ledCount
 	led_hour = int(hour + offset) % ledCount
