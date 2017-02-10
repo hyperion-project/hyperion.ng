@@ -26,12 +26,22 @@ With a bit of excel testing, we can work out the maximum and minimum speeds:
 2230000 AVG
 2460000 MAX
 
+Wait time:
+using the min of  2000000, the bit time is 0.500
+Wait time is 12uS = 24 bits = 3 bytes
+
+Reset time:
+using the min of  2000000, the bit time is 0.500
+Reset time is 50uS = 100 bits = 13 bytes
+
 */
 
 
 LedDeviceSk6822SPI::LedDeviceSk6822SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 	, SPI_BYTES_PER_COLOUR(4)
+	, SPI_BYTES_WAIT_TIME(3)
+	, SPI_FRAME_END_LATCH_BYTES(13)
 	, bitpair_to_byte {
 		0b10001000,
 		0b10001110,
@@ -54,10 +64,11 @@ bool LedDeviceSk6822SPI::init(const QJsonObject &deviceConfig)
 	{
 		return false;
 	}
-	WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2460000)", _baudRate_Hz);
+	WarningIf(( _baudRate_Hz < 2000000 || _baudRate_Hz > 2460000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2460000)", _baudRate_Hz);
 
-	const int SPI_FRAME_END_LATCH_BYTES = 3;
-	_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+	_ledBuffer.resize( (_ledRGBCount *  SPI_BYTES_PER_COLOUR) + (_ledCount * SPI_BYTES_WAIT_TIME ) + SPI_FRAME_END_LATCH_BYTES, 0x00);
+	Debug(_log, "_ledBuffer.resize(_ledRGBCount:%d * SPI_BYTES_PER_COLOUR:%d) + ( _ledCount:%d * SPI_BYTES_WAIT_TIME:%d ) + SPI_FRAME_END_LATCH_BYTES:%d, 0x00)",
+		_ledRGBCount, SPI_BYTES_PER_COLOUR, _ledCount, SPI_BYTES_WAIT_TIME,  SPI_FRAME_END_LATCH_BYTES);
 
 	return true;
 }
@@ -79,11 +90,18 @@ int LedDeviceSk6822SPI::write(const std::vector<ColorRgb> &ledValues)
 			colorBits >>= 2;
 		}
 		spi_ptr += SPI_BYTES_PER_LED;
+		spi_ptr += SPI_BYTES_WAIT_TIME;	// the wait between led time is all zeros
 	}
 
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-	_ledBuffer[spi_ptr++] = 0;
-
+/*
+	for (unsigned int i=0; i < _ledBuffer.size(); i++)
+	{
+		if (i%16 == 0)
+		{
+			printf ("\n%03x", i);
+		}
+		printf ("%02x ", _ledBuffer.data()[i]);	
+	}
+*/
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

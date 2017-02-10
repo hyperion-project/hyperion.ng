@@ -11,7 +11,7 @@
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 3000000,
+			"default": 2230000,
 			"propertyOrder" : 2
 		},
 		"invert": {
