@@ -73,7 +73,8 @@ int main(int argc, char * argv[])
 		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
 		Option          & argId           = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
 		DoubleOption    & argBrightness   = parser.add<DoubleOption> ('L', "brightness" , "Set the brightness gain of the leds");
-		DoubleOption    & argBrightnessMin= parser.add<DoubleOption> ('n', "brightnessMin" , "Set the brightness minimum of the leds (backlight)");
+		DoubleOption    & argBacklightThreshold= parser.add<DoubleOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
+		IntOption       & argBacklightColored  = parser.add<IntOption>    (0x0, "backlightColored" , "0 = white backlight; 1 =  colored backlight");
 		DoubleOption    & argGamma       = parser.add<DoubleOption>  ('g', "gamma"     , "Set the overall gamma of the leds");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
 		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
@@ -104,7 +105,8 @@ int main(int argc, char * argv[])
 
 		// check if at least one of the available color transforms is set
 		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust) || parser.isSet(argCAdjust) || parser.isSet(argMAdjust)
-			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)|| parser.isSet(argBrightnessMin);
+			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)
+			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored);
 		
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
@@ -130,7 +132,8 @@ int main(int argc, char * argv[])
 			qWarning() << "or one or more of the available color modding operations:";
 			showHelp(argId);
 			showHelp(argBrightness);
-			showHelp(argBrightnessMin);
+			showHelp(argBacklightThreshold);
+			showHelp(argBacklightColored);
 			showHelp(argGamma);
 			showHelp(argRAdjust);
 			showHelp(argGAdjust);
@@ -232,7 +235,8 @@ int main(int argc, char * argv[])
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
-				argBrightnessMin.getDoublePtr(parser),
+				argBacklightThreshold.getDoublePtr(parser),
+				argBacklightColored.getIntPtr(parser),
 				argBrightness.getDoublePtr(parser)
 			);
 		}

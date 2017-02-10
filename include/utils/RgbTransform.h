@@ -20,10 +20,11 @@ public:
 	/// @param gammaR The used red gamma
 	/// @param gammaG The used green gamma
 	/// @param gammab The used blue gamma
-	/// @param brightnessLow The used lower brightness
+	/// @param backlightThreshold The used lower brightness
+	/// @param backlightColored use color in backlight
 	/// @param brightnessHigh The used higher brightness
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh);
+	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh);
 
 	///
 	/// Destructor
@@ -39,19 +40,27 @@ public:
 	/// @return The current blue gamma value
 	double getGammaB() const;
 
-	/// @param gamma New gamma value
+	/// @param gammaR New red gamma value
+	/// @param gammaG New green gamma value
+	/// @param gammaB New blue gamma value
 	void setGamma(double gammaR,double gammaG=-1, double gammaB=-1);
 
 	/// @return The current lower brightness
-	double getBrightnessMin() const;
+	double getBacklightThreshold() const;
 
-	/// @param gamma New lower brightness
-	void setBrightnessMin(double brightness);
+	/// @param backlightThreshold New lower brightness
+	void setBacklightThreshold(double backlightThreshold);
 
-	/// @return The current lower brightness
+	/// @return The current state
+	bool getBacklightColored() const;
+
+	/// @param backlightColored en/disable colored backlight
+	void setBacklightColored(bool backlightColored);
+
+	/// @return The current brightness
 	double getBrightness() const;
 
-	/// @param gamma New lower brightness
+	/// @param brightness New brightness
 	void setBrightness(double brightness);
 
 	///
@@ -72,15 +81,17 @@ private:
 	/// @param gammaR The used red gamma
 	/// @param gammaG The used green gamma
 	/// @param gammab The used blue gamma
-	/// @param brightnessLow The used lower brightness
+	/// @param backlightThreshold The used lower brightness
+	/// @param backlightColored en/disable color in backlight
 	/// @param brightnessHigh The used higher brightness
 	///
-	void init(double gammaR, double gammaG, double gammaB, double brightnessLow, double brightnessHigh);
+	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
-	double  _brightnessLow;
+	double  _backlightThreshold;
+	bool    _backlightColored;
 	double  _brightnessHigh;
 	double  _sumBrightnessLow;
 	double  _sumBrightnessHigh;

@@ -158,13 +158,14 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 
 RgbTransform* Hyperion::createRgbTransform(const QJsonObject& colorConfig)
 {
-	const double brightnessMin = colorConfig["brightnessMin"].toDouble(0.0);
+	const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
+	const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
 	const double brightness    = colorConfig["brightness"].toDouble(0.5);
 	const double gammaR        = colorConfig["gammaRed"].toDouble(1.0);
 	const double gammaG        = colorConfig["gammaGreen"].toDouble(1.0);
 	const double gammaB        = colorConfig["gammaBlue"].toDouble(1.0);
 
-	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, brightnessMin, brightness);
+	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness);
 	return transform;
 }
 

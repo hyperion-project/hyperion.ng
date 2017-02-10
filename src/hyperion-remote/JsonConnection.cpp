@@ -414,7 +414,8 @@ void JsonConnection::setAdjustment(
 		double *gammaR,
 		double *gammaG,
 		double *gammaB,
-		double *brightnessMin,
+		double *backlightThreshold,
+		int    *backlightColored,
 		double *brightness)
 {
 	qDebug() << "Set color adjustments";
@@ -494,9 +495,13 @@ void JsonConnection::setAdjustment(
 		black.append(blackAdjustment.blue());
 		adjust["black"] = black;
 	}
-	if (brightnessMin != nullptr)
+	if (backlightThreshold != nullptr)
 	{
-		adjust["brightnessMin"] = *brightnessMin;
+		adjust["backlightThreshold"] = *backlightThreshold;
+	}
+	if (backlightColored != nullptr)
+	{
+		adjust["backlightColored"] = (*backlightColored == 0)? false : true;
 	}
 	if (brightness != nullptr)
 	{
