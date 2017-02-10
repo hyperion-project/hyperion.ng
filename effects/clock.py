@@ -7,7 +7,6 @@ def myRange(index, margin):
 
 """ Define some variables """
 sleepTime = 1
-markers = [0, 13, 25, 38]
 
 ledCount = hyperion.ledCount
 
@@ -22,7 +21,9 @@ minuteColor = hyperion.args.get('minute-color', (0,255,0))
 secondColor = hyperion.args.get('second-color', (0,0,255))
 
 markerColor = hyperion.args.get('marker-color', (255,255,255))
-markers = hyperion.args.get('markers', (-1,-1,-1,-1))
+
+marker = ledCount/4
+markers = (0+offset, int(marker + offset) % ledCount, int(2*marker + offset) % ledCount, int(3*marker + offset) % ledCount)
 
 """ The effect loop """
 while not hyperion.abort():
@@ -35,7 +36,12 @@ while not hyperion.abort():
 	m = now.minute
 	s = now.second
 
-	hour = h/24. * ledCount
+	hmin = float(h+(1/60*m))
+	
+	if hmin > 12:
+		hmin -= 12
+	
+	hour = float(hmin/12 * ledCount)
 	led_hour = int(hour + offset) % ledCount
 
 	minute = m/60. * ledCount

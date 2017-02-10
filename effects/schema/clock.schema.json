@@ -84,20 +84,6 @@
 			"minItems": 3,
 			"maxItems": 3,
 			"propertyOrder" : 8
-		},
-		"markers": {
-			"type": "array",
-			"title":"edt_eff_markers_title",
-			"default": [-1,-1,-1,-1],
-			"items" : {
-				"type": "integer",
-				"title" : "edt_eff_markers_title",
-				"minimum": -1,
-				"append":"edt_append_lednr"
-			},
-			"minItems": 4,
-			"maxItems": 4,
-			"propertyOrder" : 9
 		}
 	},
 	"additionalProperties": false
