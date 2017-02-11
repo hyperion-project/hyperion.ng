@@ -134,7 +134,7 @@ public:
 	/// @param greenAdjustment The green channel adjustment values
 	/// @param blueAdjustment The blue channel adjustment values
 	/// @param gamma The gamma value
-	/// @param brightnessMin The threshold aka backlight
+	/// @param backlightThreshold The threshold aka backlight
 	/// @param brightness The threshold aka upper brightness limit
 
 	void setAdjustment(
@@ -150,7 +150,8 @@ public:
 		double *gammaR,
 		double *gammaG,
 		double *gammaB,
-		double *brightnessMin,
+		double *backlightThreshold,
+		int    *backlightColored,
 		double *brightness);
 
 	///

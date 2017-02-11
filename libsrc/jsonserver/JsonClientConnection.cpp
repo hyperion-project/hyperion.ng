@@ -731,11 +731,12 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
 		adjustment.insert("yellow", yellowAdjust);
 		
-		adjustment["brightnessMin"] = colorAdjustment->_rgbTransform.getBrightnessMin();
+		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
+		adjustment["backlightColored"]   = colorAdjustment->_rgbTransform.getBacklightColored();
 		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
-		adjustment["gammaRed"] = colorAdjustment->_rgbTransform.getGammaR();
+		adjustment["gammaRed"]   = colorAdjustment->_rgbTransform.getGammaR();
 		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
-		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
+		adjustment["gammaBlue"]  = colorAdjustment->_rgbTransform.getGammaB();
 
 		adjustmentArray.append(adjustment);
 	}
@@ -913,9 +914,13 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), colorAdjustment->_rgbTransform.getGammaG(), adjustment["gammaBlue"].toDouble());
 	}
 
-	if (adjustment.contains("brightnessMin"))
+	if (adjustment.contains("backlightThreshold"))
 	{
-		colorAdjustment->_rgbTransform.setBrightnessMin(adjustment["brightnessMin"].toDouble());
+		colorAdjustment->_rgbTransform.setBacklightThreshold(adjustment["backlightThreshold"].toDouble());
+	}	
+	if (adjustment.contains("backlightColored"))
+	{
+		colorAdjustment->_rgbTransform.setBacklightColored(adjustment["backlightColored"].toBool());
 	}	
 	if (adjustment.contains("brightness"))
 	{

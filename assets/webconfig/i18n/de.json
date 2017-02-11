@@ -1,13 +1,13 @@
 {
-    "@metadata": {
-        "authors": [
-            "brindosch"
-        ],
-        "project" : "Hyperion WebUI",
-        "locale": "de",
+	"@metadata": {
+		"authors": [
+			"brindosch"
+		],
+		"project" : "Hyperion WebUI",
+		"locale": "de",
 		"last-updated": "2016-11-30",
-        "message-documentation": "qqq"
-    },
+		"message-documentation": "qqq"
+	},
 		"general_webui_title" : "Hyperion - Web Konfiguration",
 		"general_country_de" : "Deutschland",
 		"general_country_us" : "Amerika",
@@ -422,7 +422,8 @@
 		"edt_conf_color_gammaGreen_expl" : "Gamma von grün.",
 		"edt_conf_color_gammaBlue_title" : "Gamma blau",
 		"edt_conf_color_gammaBlue_expl" : "Gamma von blau",
-		"edt_conf_color_brightnessMin_title" : "Minimale Helligkeit",
+		"edt_conf_color_backlightThreshold_title" : "Minimale Helligkeit",
+		"edt_conf_color_backlightColored_title" : "Farbige Hintergrundbeleuchtung",
 		"edt_conf_color_brightnessMin_expl" : "Auch als Hintergrundhelligkeit genutzt.",
 		"edt_conf_color_brightness_title" : "Maximale Helligkeit",
 		"edt_conf_color_brightness_expl" : "Zwischen 0.0 und 0.5 ist die Helligkeit linearisiert. Von 0.5 bis 1.0 wird cyan, magenta und gelb bis zu 2x heller und weiß bis zu 3x.",

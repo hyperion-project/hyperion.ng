@@ -368,4 +368,6 @@ private:
 	int _ledMAppingType;
 	
 	int _configVersionId;
+	
+	hyperion::Components _prevCompId;
 };

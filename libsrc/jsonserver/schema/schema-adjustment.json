@@ -124,11 +124,15 @@
 					"minimum" : 0.0,
 					"maximum" : 100.0
 				},
-				"brightnessMin" : {
+				"backlightThreshold" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum" : 1.0
+				},
+				"backlightColored" : {
+					"type" : "boolean",
+					"required" : false
 				},
 				"brightness" : {
 					"type" : "number",

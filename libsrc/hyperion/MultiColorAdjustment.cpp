@@ -51,11 +51,11 @@ bool MultiColorAdjustment::verifyAdjustments() const
 			Error(_log, "No adjustment set for %d", iLed);
 			return false;
 		}
-		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBrightnessMin() )
+		if (adjustment->_rgbTransform.getBrightness() <= adjustment->_rgbTransform.getBacklightThreshold() )
 		{
-			adjustment->_rgbTransform.setBrightnessMin(0);
+			adjustment->_rgbTransform.setBacklightThreshold(0.0);
 			adjustment->_rgbTransform.setBrightness(0.5);
-			Warning(_log, "Adjustment for %d has invalid Brightness values, values set to default. (brightnessMin is bigger then brightness)", iLed);
+			Warning(_log, "Adjustment for %d has invalid Brightness values, values set to default. (setBacklightThreshold is bigger then brightness)", iLed);
 		}
 	}
 	return true;
@@ -80,6 +80,15 @@ ColorAdjustment* MultiColorAdjustment::getAdjustment(const std::string& id)
 	// The ColorAdjustment was not found
 	return nullptr;
 }
+
+void MultiColorAdjustment::setBacklightEnabled(bool enable)
+{
+	for (ColorAdjustment* adjustment : _adjustment)
+	{
+		adjustment->_rgbTransform.setBackLightEnabled(enable);
+	}
+}
+
 
 void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 {

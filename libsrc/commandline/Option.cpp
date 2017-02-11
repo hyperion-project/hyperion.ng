@@ -6,26 +6,26 @@ using namespace commandline;
 bool Option::validate(Parser & parser, QString &value)
 {
 	/* By default everything is accepted */
-    return true;
+	return true;
 }
 
 QString Option::value(Parser &parser)
 {
-    return parser.value(*this);
+	return parser.value(*this);
 }
 
 std::string Option::getStdString(Parser &parser)
 {
-    return value(parser).toStdString();
+	return value(parser).toStdString();
 }
 
 std::wstring Option::getStdWString(Parser &parser)
 {
-    return value(parser).toStdWString();
+	return value(parser).toStdWString();
 }
 
 const char* Option::getCString(Parser &parser)
 {
-    return value(parser).toLocal8Bit().constData();
+	return value(parser).toLocal8Bit().constData();
 }
 

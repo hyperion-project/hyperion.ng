@@ -30,6 +30,8 @@ public:
 
 	bool verifyAdjustments() const;
 
+	void setBacklightEnabled(bool enable);
+
 	///
 	/// Returns the identifier of all the unique ColorAdjustment
 	///
