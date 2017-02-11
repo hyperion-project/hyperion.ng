@@ -81,6 +81,15 @@ ColorAdjustment* MultiColorAdjustment::getAdjustment(const std::string& id)
 	return nullptr;
 }
 
+void MultiColorAdjustment::setBacklightEnabled(bool enable)
+{
+	for (ColorAdjustment* adjustment : _adjustment)
+	{
+		adjustment->_rgbTransform.setBackLightEnabled(enable);
+	}
+}
+
+
 void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 {
 	const size_t itCnt = std::min(_ledAdjustments.size(), ledColors.size());

@@ -15,6 +15,7 @@ RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double b
 
 void RgbTransform::init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh)
 {
+	_backLightEnabled = true;
 	setGamma(gammaR,gammaG,gammaB);
 	setBacklightThreshold(backlightThreshold);
 	setBacklightColored(backlightColored);
@@ -81,6 +82,16 @@ void RgbTransform::setBacklightColored(bool backlightColored)
 	_backlightColored = backlightColored;
 }
 
+bool RgbTransform::getBackLightEnabled() const
+{
+	return _backLightEnabled;
+}
+
+void RgbTransform::setBackLightEnabled(bool enable)
+{
+	_backLightEnabled = enable;
+}
+
 double RgbTransform::getBrightness() const
 {
 	return _brightnessHigh;
@@ -110,7 +121,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		green *= cH;
 		blue  *= cH;
 	}
-	else if ( _sumBrightnessLow>0 && rgbSum < _sumBrightnessLow)
+	else if ( _backLightEnabled && _sumBrightnessLow>0 && rgbSum < _sumBrightnessLow)
 	{
 		if (_backlightColored)
 		{

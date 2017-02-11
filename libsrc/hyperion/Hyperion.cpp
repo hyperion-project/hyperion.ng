@@ -393,10 +393,10 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _timer()
 	, _log(CORE_LOGGER)
 	, _hwLedCount(_ledString.leds().size())
-
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
+	, _prevCompId(hyperion::COMP_INVALID)
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 
@@ -719,6 +719,12 @@ void Hyperion::update()
 
 	if ( priority < PriorityMuxer::LOWEST_PRIORITY)
 	{
+		if (priorityInfo.componentId != _prevCompId)
+		{
+			bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
+			_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
+			_prevCompId = priorityInfo.componentId;
+		}
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}
 

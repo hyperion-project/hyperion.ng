@@ -57,6 +57,13 @@ public:
 	/// @param backlightColored en/disable colored backlight
 	void setBacklightColored(bool backlightColored);
 
+	/// @return return state of backlight
+	bool getBackLightEnabled() const;
+
+	/// @param enable en/disable backlight
+	void setBackLightEnabled(bool enable);
+
+
 	/// @return The current brightness
 	double getBrightness() const;
 
@@ -104,4 +111,6 @@ private:
 	uint8_t _mappingR[256];
 	uint8_t _mappingG[256];
 	uint8_t _mappingB[256];
+
+	bool _backLightEnabled;
 };
