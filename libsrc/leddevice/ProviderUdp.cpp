@@ -19,6 +19,7 @@ ProviderUdp::ProviderUdp()
 	: LedDevice()
 	, _LatchTime_ns(-1)
 	, _port(1)
+	, _defaultHost("127.0.0.1")
 {
 	_udpSocket = new QUdpSocket();
 }
@@ -28,11 +29,11 @@ ProviderUdp::~ProviderUdp()
 	_udpSocket->close();
 }
 
-bool ProviderUdp::init(const QJsonObject &deviceConfig, std::string defaultHost)
+bool ProviderUdp::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	QString host = deviceConfig["host"].toString(QString::fromStdString(defaultHost));
+	QString host = deviceConfig["host"].toString(_defaultHost);
 	
 	if (_address.setAddress(host) )
 	{

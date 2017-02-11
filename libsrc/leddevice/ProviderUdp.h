@@ -27,7 +27,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig, std::string defaultHost="127.0.0.1");
+	virtual bool init(const QJsonObject &deviceConfig);
 
 	///
 	/// Opens and configures the output device
@@ -55,4 +55,5 @@ protected:
 	QUdpSocket * _udpSocket;
 	QHostAddress _address;
 	quint16      _port;
+	QString      _defaultHost;
 };
