@@ -10,7 +10,6 @@
 		"hour-color" : [255, 0, 0],
 		"minute-color" : [0, 255, 0],
 		"second-color" : [0, 0, 255],
-		"marker-color" : [255,255,255],
-		"markers" : [-1,-1,-1,-1]
+		"marker-color" : [255,255,255]
 	}
 }
