@@ -11,6 +11,7 @@
 
 #define INITIAL_LED_TEST_ENABLED true
 #define INITIAL_LED_TEST_BRIGHTNESS 32  // 0..255
+#define INITIAL_LED_TEST_TIME_MS 500  // 10..
 
 // Number of leds in your strip. set to "1" and ANALOG_OUTPUT_ENABLED to "true" to activate analog only
 // As of 26/1/2017:
@@ -137,7 +138,6 @@ void setup() {
     pinMode(ANALOG_GREEN_PIN, OUTPUT);
   }
 
-  // Uncomment/edit one of the following lines for your leds arrangement.
   int ledCount = MAX_LEDS;
   if (ANALOG_MODE == ANALOG_MODE_LAST_LED) {
     ledCount--;
@@ -155,10 +155,17 @@ void setup() {
 
   // initial RGB flash
   #if INITIAL_LED_TEST_ENABLED == true
-  Serial.println("initial test");
-  showColor(CRGB(INITIAL_LED_TEST_BRIGHTNESS, 0, 0));  delay(400);
-  showColor(CRGB(0, INITIAL_LED_TEST_BRIGHTNESS, 0));  delay(400);
-  showColor(CRGB(0, 0, INITIAL_LED_TEST_BRIGHTNESS ));  delay(400);
+  for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
+  {
+    showColor(CRGB(v,v,v);  
+    delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
+  }
+ 
+  for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
+  {
+    showColor(CRGB(v,v,v);  
+    delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
+  }
   #endif
   showColor(CRGB(0, 0, 0));
 

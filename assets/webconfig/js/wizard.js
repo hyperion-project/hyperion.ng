@@ -347,7 +347,7 @@ $(document).ready( function() {
 		}
 		if(step == 10)
 		{
-			updateWEditor(["brightnessMin"]);
+			updateWEditor(["backlightThreshold"]);
 			h = $.i18n('wiz_cc_minBright');
 			if(withKodi)
 			{

@@ -11,6 +11,7 @@ sleepTime = 1
 ledCount = hyperion.ledCount
 
 offset = hyperion.args.get('offset', 0)
+direction = bool(hyperion.args.get('direction', False))
 
 hourMargin = hyperion.args.get('hour-margin', 2)
 minuteMargin = hyperion.args.get('minute-margin', 1)

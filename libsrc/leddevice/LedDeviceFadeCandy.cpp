@@ -51,9 +51,9 @@ bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 	const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
 	if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
 	{
-		_whitePoint_r = whitePointConfig[0].toDouble();
-		_whitePoint_g = whitePointConfig[1].toDouble();
-		_whitePoint_b = whitePointConfig[2].toDouble();
+		_whitePoint_r = whitePointConfig[0].toDouble() / 255.0;
+		_whitePoint_g = whitePointConfig[1].toDouble() / 255.0;
+		_whitePoint_b = whitePointConfig[2].toDouble() / 255.0;
 	}
 
 	_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );

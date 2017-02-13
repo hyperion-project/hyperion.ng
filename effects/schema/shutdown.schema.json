@@ -40,11 +40,23 @@
 			"maxItems": 3,
 			"propertyOrder" : 3
 		},
+		"initial-blink": {
+			"type": "boolean",
+			"title":"edt_eff_initial_blink_title",
+			"default": true,
+			"propertyOrder" : 4
+		},
+		"set-post-color": {
+			"type": "boolean",
+			"title":"edt_eff_set_post_color_title",
+			"default": true,
+			"propertyOrder" : 5
+		},
 		"shutdown-enabled": {
 			"type": "boolean",
 			"title":"edt_eff_enableshutdown_title",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder" : 6
 		}
 	},
 	"additionalProperties": false

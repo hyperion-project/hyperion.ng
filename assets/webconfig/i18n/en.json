@@ -1,13 +1,13 @@
 {
-    "@metadata": {
-        "authors": [
-            "brindosch"
-        ],
-        "project" : "Hyperion WebUI",
-        "locale": "en",
+	"@metadata": {
+		"authors": [
+			"brindosch"
+		],
+		"project" : "Hyperion WebUI",
+		"locale": "en",
 		"last-updated": "2016-11-30",
-        "message-documentation": "qqq.json"
-    },
+		"message-documentation": "qqq.json"
+	},
 		"general_webui_title" : "Hyperion - Web Configuration",
 		"general_country_de" : "Germany",
 		"general_country_us" : "United States",
@@ -422,7 +422,8 @@
 		"edt_conf_color_gammaGreen_expl" : "The gamma of green.",
 		"edt_conf_color_gammaBlue_title" : "gamma blue",
 		"edt_conf_color_gammaBlue_expl" : "The gamma of blue.",
-		"edt_conf_color_brightnessMin_title" : "minimal brightness",
+		"edt_conf_color_backlightThreshold_title" : "backlight threshold",
+		"edt_conf_color_backlightColored_title" : "Colored backlight",
 		"edt_conf_color_brightnessMin_expl" : "The minimum amount of brightness (backlight).",
 		"edt_conf_color_brightness_title" : "maximal brightness",
 		"edt_conf_color_brightness_expl" : "From 0.0 to 0.5 the brightness is linearised, from 0.5 to 1.0 cyan, magenta, yellow is up to 2x brighter and white 3x.",
