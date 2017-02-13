@@ -96,7 +96,7 @@
 	"blackborderdetector" :
 	{
 		"enable" : true,
-		"threshold" : 0.5,
+		"threshold" : 0.05,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -181,6 +181,22 @@
 		"paths" : ["../custom-effects"]
 	},
 
+	"ledConfig" :
+	{
+		top 	: 8,
+		bottom	: 8,
+		left	: 5,
+		right	: 5,
+		glength	: 0,
+		gpos	: 0,
+		position: 0,
+		reverse	: false,
+		hdepth	: 8,
+		vdepth	: 5,
+		overlap	: 0,
+		edgegap	: 0
+	},
+	
 	"leds":
 	[
 		{

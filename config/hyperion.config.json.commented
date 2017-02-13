@@ -195,7 +195,7 @@
 	"blackborderdetector" :
 	{
 		"enable"             : true,
-		"threshold"          : 0.0,
+		"threshold"          : 0.05,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -339,6 +339,23 @@
 			"Rainbow swirl",
 			"X-Mas"
 		]
+	},
+	
+	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
+	"ledConfig" :
+	{
+		top 	: 8,
+		bottom	: 8,
+		left	: 5,
+		right	: 5,
+		glength	: 0,
+		gpos	: 0,
+		position: 0,
+		reverse	: false,
+		hdepth	: 8,
+		vdepth	: 5,
+		overlap	: 0,
+		edgegap	: 0
 	},
 	
 	///  The configuration for each individual led. This contains the specification of the area 
