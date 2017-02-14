@@ -4,7 +4,7 @@ import colorsys
 from random import randint
 
 #get args
-rotationTime = int(hyperion.args.get('rotationTime', 5))
+rotationTime = int(hyperion.args.get('rotationTime', 8))
 marginPos = float(hyperion.args.get('margin-pos', 1.5))
 
 # define pacman

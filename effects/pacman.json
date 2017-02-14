@@ -4,6 +4,6 @@
 	"args" :
 	{
 		"margin-pos" : 2.0,
-		"sleep-time" : 0.3
+		"rotationTime" : 8
 	}
 }
