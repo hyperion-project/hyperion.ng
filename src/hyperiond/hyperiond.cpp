@@ -79,6 +79,13 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 
 HyperionDaemon::~HyperionDaemon()
 {
+	freeObjects();
+	delete _hyperion;
+}
+
+void HyperionDaemon::freeObjects()
+{
+	Debug(_log, "destroy grabbers and network stuff");
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
@@ -92,8 +99,17 @@ HyperionDaemon::~HyperionDaemon()
 	delete _protoServer;
 	delete _boblightServer;
 	delete _udpListener;
-	delete _hyperion;
 
+	_v4l2Grabbers.clear();
+	_amlGrabber     = nullptr;
+	_dispmanx       = nullptr;
+	_fbGrabber      = nullptr;
+	_osxGrabber     = nullptr;
+	_kodiVideoChecker = nullptr;
+	_jsonServer     = nullptr;
+	_protoServer    = nullptr;
+	_boblightServer = nullptr;
+	_udpListener    = nullptr;
 }
 
 void HyperionDaemon::run()
@@ -113,56 +129,33 @@ void HyperionDaemon::run()
 	#endif
 	Info(_log, "Hyperion started");
 
-
+	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
 int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
-	QJsonParseError error;
 
 	// read the json schema from the resource
 	QString schemaFile = ":/hyperion-schema";
 	if (schemaVersion > 0)
-		schemaFile += "-" + QString::number(schemaVersion); 
-	QFile schemaData(schemaFile);
-	if (!schemaData.open(QIODevice::ReadOnly))
-	{
-		std::stringstream error;
-		error << "Schema not found or not supported: " << schemaData.errorString().toStdString();
-		throw std::runtime_error(error.str());
-	}
-	
-	QByteArray schema = schemaData.readAll();
-	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
-	schemaData.close();
-	
-	if (error.error != QJsonParseError::NoError)
-	{
-		// report to the user the failure and their locations in the document.
-		int errorLine(0), errorColumn(0);
-		
-		for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
-		{
-			++errorColumn;
-			if(schema.at(i) == '\n' )
-			{
-				errorColumn = 0;
-				++errorLine;
-			}
-		}
-		
-		std::stringstream sstream;
-		sstream << "ERROR: Json schema wrong: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
+		schemaFile += "-" + QString::number(schemaVersion);
 
-		throw std::runtime_error(sstream.str());
+	QJsonObject schemaJson;
+	try
+	{
+		schemaJson = QJsonFactory::readSchema(schemaFile);
+	}
+	catch(const std::runtime_error& error)
+	{
+		throw std::runtime_error(error.what());
 	}
 
 	QJsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson.object());
+	schemaChecker.setSchema(schemaJson);
 
-	_qconfig = QJsonFactory::readJson(configFile);
+	_qconfig = QJsonFactory::readConfig(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
 		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
@@ -176,7 +169,6 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
 	return generalConfig["configVersion"].toInt(-1);
 }
-
 
 void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
 {
@@ -384,7 +376,7 @@ void HyperionDaemon::startNetworkServices()
 	if (_udpListener != nullptr) {
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-rgbled._udp", QString()),
+					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-udp._udp", QString()),
 					_udpListener->getPort()
 					);
 		Debug(_log, "UDP LIstener mDNS responder started");
@@ -472,7 +464,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "x11")      createGrabberX11(grabberConfig);
 			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
 			
-			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
+//			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );
 		}
 	}

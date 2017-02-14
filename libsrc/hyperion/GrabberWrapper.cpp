@@ -27,6 +27,8 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 
 GrabberWrapper::~GrabberWrapper()
 {
+	stop();
+	Debug(_log,"Close grabber: %s", _grabberName.c_str());
 	delete _processor;
 }
 
@@ -80,39 +82,21 @@ void GrabberWrapper::componentStateChanged(const hyperion::Components component,
 	}
 }
 
-void GrabberWrapper::kodiPlay()
-{
-	start();
-}
-
-void GrabberWrapper::kodiPause()
-{
-	start();
-}
-
-void GrabberWrapper::kodiOff()
-{
-	stop();
-}
-
-
 void GrabberWrapper::setGrabbingMode(const GrabbingMode mode)
 {
 	switch (mode)
 	{
 	case GRABBINGMODE_VIDEO:
 	case GRABBINGMODE_PAUSE:
-		kodiPause();
-		break;
 	case GRABBINGMODE_AUDIO:
 	case GRABBINGMODE_PHOTO:
 	case GRABBINGMODE_MENU:
 	case GRABBINGMODE_SCREENSAVER:
 	case GRABBINGMODE_INVALID:
-		kodiPlay();
+		start();
 		break;
 	case GRABBINGMODE_OFF:
-		kodiOff();
+		stop();
 		break;
 	}
 }

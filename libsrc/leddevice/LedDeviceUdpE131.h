@@ -82,17 +82,17 @@ typedef union
 } e131_packet_t;
 
 /* defined parameters from http://tsp.esta.org/tsp/documents/docs/BSR_E1-31-20xx_CP-2014-1009r2.pdf */
-#define VECTOR_ROOT_E131_DATA			0x00000004
-#define VECTOR_ROOT_E131_EXTENDED		0x00000008
-#define VECTOR_DMP_SET_PROPERTY			0x02
-#define VECTOR_E131_DATA_PACKET			0x00000002
-#define VECTOR_E131_EXTENDED_SYNCHRONIZATION	0x00000001
-#define VECTOR_E131_EXTENDED_DISCOVERY		0x00000002
+#define VECTOR_ROOT_E131_DATA                   0x00000004
+#define VECTOR_ROOT_E131_EXTENDED               0x00000008
+#define VECTOR_DMP_SET_PROPERTY                 0x02
+#define VECTOR_E131_DATA_PACKET                 0x00000002
+#define VECTOR_E131_EXTENDED_SYNCHRONIZATION    0x00000001
+#define VECTOR_E131_EXTENDED_DISCOVERY          0x00000002
 #define VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST 0x00000001
-#define E131_E131_UNIVERSE_DISCOVERY_INTERVAL	10		// seconds
-#define E131_NETWORK_DATA_LOSS_TIMEOUT		2500		// milli econds
-#define E131_DISCOVERY_UNIVERSE			64214
-#define DMX_MAX					512		// 512 usable slots
+#define E131_E131_UNIVERSE_DISCOVERY_INTERVAL   10         // seconds
+#define E131_NETWORK_DATA_LOSS_TIMEOUT          2500       // milli econds
+#define E131_DISCOVERY_UNIVERSE                 64214
+#define DMX_MAX                                 512        // 512 usable slots
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets

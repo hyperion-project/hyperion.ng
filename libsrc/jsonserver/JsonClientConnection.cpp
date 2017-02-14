@@ -610,6 +610,48 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 			}
 		}
 		
+		if(priorityInfo.componentId == 9)
+		{
+			QJsonObject LEDcolor;
+			
+			// add RGB Value to Array
+			QJsonArray RGBValue;
+			RGBValue.append(priorityInfo.ledColors.begin()->red);
+			RGBValue.append(priorityInfo.ledColors.begin()->green);
+			RGBValue.append(priorityInfo.ledColors.begin()->blue);
+			LEDcolor.insert("RGB", RGBValue);
+
+			uint16_t Hue;
+			float Saturation, Luminace;
+
+			// add HSL Value to Array
+			QJsonArray HSLValue;
+			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+					priorityInfo.ledColors.begin()->green,
+					priorityInfo.ledColors.begin()->blue,
+					Hue, Saturation, Luminace);
+
+			HSLValue.append(Hue);
+			HSLValue.append(Saturation);
+			HSLValue.append(Luminace);
+			LEDcolor.insert("HSL", HSLValue);
+
+			// add HEX Value to Array ["HEX Value"]
+			QJsonArray HEXValue;
+			std::stringstream hex;
+				hex << "0x"
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
+				<< std::uppercase << std::setw(2) << std::setfill('0')
+				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
+
+			HEXValue.append(QString::fromStdString(hex.str()));
+			LEDcolor.insert("HEX", HEXValue);
+			
+			item["value"] = LEDcolor;
+		}
 		// priorities[priorities.size()] = item;
 		priorities.append(item);
 	}
@@ -626,7 +668,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	info["priorities"] = priorities;
 	info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
-	
 
 	// collect adjustment information
 	QJsonArray adjustmentArray;
@@ -642,29 +683,66 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		QJsonObject adjustment;
 		adjustment["id"] = QString::fromStdString(adjustmentId);
 
+		QJsonArray blackAdjust;
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentR());
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentG());
+		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentB());
+		adjustment.insert("black", blackAdjust);
+		
+		QJsonArray whiteAdjust;
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentR());
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentG());
+		whiteAdjust.append(colorAdjustment->_rgbWhiteAdjustment.getAdjustmentB());
+		adjustment.insert("white", whiteAdjust);
+		
 		QJsonArray redAdjust;
 		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentR());
 		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentG());
 		redAdjust.append(colorAdjustment->_rgbRedAdjustment.getAdjustmentB());
-		adjustment.insert("redAdjust", redAdjust);
+		adjustment.insert("red", redAdjust);
 
 		QJsonArray greenAdjust;
 		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentR());
 		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentG());
 		greenAdjust.append(colorAdjustment->_rgbGreenAdjustment.getAdjustmentB());
-		adjustment.insert("greenAdjust", greenAdjust);
+		adjustment.insert("green", greenAdjust);
 
 		QJsonArray blueAdjust;
 		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentR());
 		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentG());
 		blueAdjust.append(colorAdjustment->_rgbBlueAdjustment.getAdjustmentB());
-		adjustment.insert("blueAdjust", blueAdjust);
+		adjustment.insert("blue", blueAdjust);
 		
+		QJsonArray cyanAdjust;
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentR());
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentG());
+		cyanAdjust.append(colorAdjustment->_rgbCyanAdjustment.getAdjustmentB());
+		adjustment.insert("cyan", cyanAdjust);
+		
+		QJsonArray magentaAdjust;
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentR());
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentG());
+		magentaAdjust.append(colorAdjustment->_rgbMagentaAdjustment.getAdjustmentB());
+		adjustment.insert("magenta", magentaAdjust);
+
+		QJsonArray yellowAdjust;
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentR());
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentG());
+		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
+		adjustment.insert("yellow", yellowAdjust);
+		
+		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
+		adjustment["backlightColored"]   = colorAdjustment->_rgbTransform.getBacklightColored();
+		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
+		adjustment["gammaRed"]   = colorAdjustment->_rgbTransform.getGammaR();
+		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
+		adjustment["gammaBlue"]  = colorAdjustment->_rgbTransform.getGammaB();
+
 		adjustmentArray.append(adjustment);
 	}
 	
 	info["adjustment"] = adjustmentArray;
-
+	
 	// collect effect info
 	QJsonArray effects;
 	const std::list<EffectDefinition> & effectsDefinitions = _hyperion->getEffects();
@@ -679,87 +757,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	}
 	
 	info["effects"] = effects;
-	
-	// collect active effect info
-	QJsonArray activeEffects;
-	const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
-	for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
-	{
-		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
-		{
-			QJsonObject activeEffect;
-			activeEffect["script"] = activeEffectDefinition.script;
-			activeEffect["name"] = activeEffectDefinition.name;
-			activeEffect["priority"] = activeEffectDefinition.priority;
-			activeEffect["timeout"] = activeEffectDefinition.timeout;
-			activeEffect["args"] = activeEffectDefinition.args;
-			activeEffects.append(activeEffect);
-		}
-	}
-	
-	info["activeEffects"] = activeEffects;
-
-	// collect active static led color
-	QJsonArray activeLedColors;
-	const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
-	if (priorityInfo.priority != std::numeric_limits<int>::max())
-	{
-		QJsonObject LEDcolor;
-		// check if all LEDs has the same Color
-		if (std::all_of(priorityInfo.ledColors.begin(), priorityInfo.ledColors.end(), [&](ColorRgb color)
-		{
-			return ((color.red == priorityInfo.ledColors.begin()->red) &&
-				(color.green == priorityInfo.ledColors.begin()->green) &&
-				(color.blue == priorityInfo.ledColors.begin()->blue));
-		} ))
-	    {
-		// check if LED Color not Black (0,0,0)
-		if ((priorityInfo.ledColors.begin()->red +
-		priorityInfo.ledColors.begin()->green +
-		priorityInfo.ledColors.begin()->blue != 0))
-		{
-			// add RGB Value to Array
-			QJsonArray RGBValue;
-			RGBValue.append(priorityInfo.ledColors.begin()->red);
-			RGBValue.append(priorityInfo.ledColors.begin()->green);
-			RGBValue.append(priorityInfo.ledColors.begin()->blue);
-			LEDcolor.insert("RGB Value", RGBValue);
-
-			uint16_t Hue;
-			float Saturation, Luminace;
-		    
-			// add HSL Value to Array
-			QJsonArray HSLValue;
-			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-					priorityInfo.ledColors.begin()->green,
-					priorityInfo.ledColors.begin()->blue,
-					Hue, Saturation, Luminace);
-
-			HSLValue.append(Hue);
-			HSLValue.append(Saturation);
-			HSLValue.append(Luminace);
-			LEDcolor.insert("HSL Value", HSLValue);
-
-			// add HEX Value to Array ["HEX Value"]
-			QJsonArray HEXValue;
-			std::stringstream hex;
-				hex << "0x"
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->red)
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->green)
-				<< std::uppercase << std::setw(2) << std::setfill('0')
-				<< std::hex << unsigned(priorityInfo.ledColors.begin()->blue);
-
-			HEXValue.append(QString::fromStdString(hex.str()));
-			LEDcolor.insert("HEX Value", HEXValue);
-
-			activeLedColors.append(LEDcolor);
-			}
-		}
-	}
-	
-	info["activeLedColor"] = activeLedColors;
 
 	// get available led devices
 	QJsonObject ledDevices;
@@ -845,81 +842,85 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 		return;
 	}
 		
-	if (adjustment.contains("redAdjust"))
+	if (adjustment.contains("red"))
 	{
-		const QJsonArray & values = adjustment["redAdjust"].toArray();
+		const QJsonArray & values = adjustment["red"].toArray();
 		colorAdjustment->_rgbRedAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbRedAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbRedAdjustment.setAdjustmentB(values[2u].toInt());
 	}
 
-	if (adjustment.contains("greenAdjust"))
+	if (adjustment.contains("green"))
 	{
-		const QJsonArray & values = adjustment["greenAdjust"].toArray();
+		const QJsonArray & values = adjustment["green"].toArray();
 		colorAdjustment->_rgbGreenAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbGreenAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbGreenAdjustment.setAdjustmentB(values[2u].toInt());
 	}
 
-	if (adjustment.contains("blueAdjust"))
+	if (adjustment.contains("blue"))
 	{
-		const QJsonArray & values = adjustment["blueAdjust"].toArray();
+		const QJsonArray & values = adjustment["blue"].toArray();
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
-	if (adjustment.contains("cyanAdjust"))
+	if (adjustment.contains("cyan"))
 	{
-		const QJsonArray & values = adjustment["cyanAdjust"].toArray();
+		const QJsonArray & values = adjustment["cyan"].toArray();
 		colorAdjustment->_rgbCyanAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbCyanAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbCyanAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
-	if (adjustment.contains("magentaAdjust"))
+	if (adjustment.contains("magenta"))
 	{
-		const QJsonArray & values = adjustment["magentaAdjust"].toArray();
+		const QJsonArray & values = adjustment["magenta"].toArray();
 		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
-	if (adjustment.contains("yellowAdjust"))
+	if (adjustment.contains("yellow"))
 	{
-		const QJsonArray & values = adjustment["yellowAdjust"].toArray();
+		const QJsonArray & values = adjustment["yellow"].toArray();
 		colorAdjustment->_rgbYellowAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbYellowAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbYellowAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
-	if (adjustment.contains("blackAdjust"))
+	if (adjustment.contains("black"))
 	{
-		const QJsonArray & values = adjustment["blackAdjust"].toArray();
+		const QJsonArray & values = adjustment["black"].toArray();
 		colorAdjustment->_rgbBlackAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbBlackAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbBlackAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
-	if (adjustment.contains("whiteAdjust"))
+	if (adjustment.contains("white"))
 	{
-		const QJsonArray & values = adjustment["whiteAdjust"].toArray();
+		const QJsonArray & values = adjustment["white"].toArray();
 		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentR(values[0u].toInt());
 		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentG(values[1u].toInt());
 		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentB(values[2u].toInt());
 	}	
 
-	if (adjustment.contains("gammaR"))
+	if (adjustment.contains("gammaRed"))
 	{
-		colorAdjustment->_rgbTransform.setGamma(adjustment["gammaR"].toDouble(), colorAdjustment->_rgbTransform.getGammaG(), colorAdjustment->_rgbTransform.getGammaB());
+		colorAdjustment->_rgbTransform.setGamma(adjustment["gammaRed"].toDouble(), colorAdjustment->_rgbTransform.getGammaG(), colorAdjustment->_rgbTransform.getGammaB());
 	}
-	if (adjustment.contains("gammaG"))
+	if (adjustment.contains("gammaGreen"))
 	{
-		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), adjustment["gammaG"].toDouble(), colorAdjustment->_rgbTransform.getGammaB());
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), adjustment["gammaGreen"].toDouble(), colorAdjustment->_rgbTransform.getGammaB());
 	}
-	if (adjustment.contains("gammaB"))
+	if (adjustment.contains("gammaBlue"))
 	{
-		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), colorAdjustment->_rgbTransform.getGammaG(), adjustment["gammaB"].toDouble());
+		colorAdjustment->_rgbTransform.setGamma(colorAdjustment->_rgbTransform.getGammaR(), colorAdjustment->_rgbTransform.getGammaG(), adjustment["gammaBlue"].toDouble());
 	}
 
-	if (adjustment.contains("brightnessMin"))
+	if (adjustment.contains("backlightThreshold"))
 	{
-		colorAdjustment->_rgbTransform.setBrightnessMin(adjustment["brightnessMin"].toDouble());
+		colorAdjustment->_rgbTransform.setBacklightThreshold(adjustment["backlightThreshold"].toDouble());
+	}	
+	if (adjustment.contains("backlightColored"))
+	{
+		colorAdjustment->_rgbTransform.setBacklightColored(adjustment["backlightColored"].toBool());
 	}	
 	if (adjustment.contains("brightness"))
 	{
@@ -969,7 +970,7 @@ void JsonClientConnection::handleConfigCommand(const QJsonObject& message, const
 	}
 	else if (subcommand == "reload")
 	{
-		_hyperion->freeObjects();
+		_hyperion->freeObjects(true);
 		Process::restartHyperion();
 		sendErrorReply("failed to restart hyperion", full_command, tan);
 	} 
@@ -989,7 +990,7 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	
 	try
 	{
-		result["result"] = QJsonFactory::readJson(QString::fromStdString(_hyperion->getConfigFileName()));
+		result["result"] = QJsonFactory::readConfig(QString::fromStdString(_hyperion->getConfigFileName()));
 	}
 	catch(...)
 	{

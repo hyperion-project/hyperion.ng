@@ -11,10 +11,10 @@ schemaFileName = sys.argv[2]
 try:
 	with open(schemaFileName) as schemaFile:
 		with open(jsonFileName) as jsonFile:
-			j = json.load(jsonFile)
-			validator = Draft3Validator(json.load(schemaFile))
+			j = json.loads(jsonFile.read().decode('utf-8-sig'))
+			validator = Draft3Validator(json.loads(schemaFile.read().decode('utf-8-sig')))
 			validator.validate(j)
-except Exception as  e:
+except Exception as e:
 	print('validation error: '+jsonFileName + ' '+schemaFileName+' ('+str(e)+')')
 	sys.exit(1)
 

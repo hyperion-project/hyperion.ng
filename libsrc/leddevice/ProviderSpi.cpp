@@ -99,7 +99,7 @@ int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
 
-	if (retVal == 0 && _latchTime_ns > 0)
+	if (retVal >= 0 && _latchTime_ns > 0)
 	{
 		// The 'latch' time for latching the shifted-value into the leds
 		timespec latchTime;

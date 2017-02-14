@@ -6,6 +6,7 @@ LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
 	, _ligthBerryAPA102Mode(false)
 {
 	_deviceReady = init(deviceConfig);
+	connect(this,SIGNAL(receivedData(QByteArray)),this,SLOT(receivedData(QByteArray)));
 }
 
 LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)
@@ -74,3 +75,7 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
 
+void LedDeviceAdalight::receivedData(QByteArray data)
+{
+	Debug(_log, ">>received %d bytes data", data.size());
+}

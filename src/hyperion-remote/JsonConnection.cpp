@@ -414,7 +414,8 @@ void JsonConnection::setAdjustment(
 		double *gammaR,
 		double *gammaG,
 		double *gammaB,
-		double *brightnessMin,
+		double *backlightThreshold,
+		int    *backlightColored,
 		double *brightness)
 {
 	qDebug() << "Set color adjustments";
@@ -434,7 +435,7 @@ void JsonConnection::setAdjustment(
 		red.append(redAdjustment.red());
 		red.append(redAdjustment.green());
 		red.append(redAdjustment.blue());
-		adjust["redAdjust"] = red;
+		adjust["red"] = red;
 	}
 
 	if (greenAdjustment.isValid())
@@ -443,7 +444,7 @@ void JsonConnection::setAdjustment(
 		green.append(greenAdjustment.red());
 		green.append(greenAdjustment.green());
 		green.append(greenAdjustment.blue());
-		adjust["greenAdjust"] = green;
+		adjust["green"] = green;
 	}
 
 	if (blueAdjustment.isValid())
@@ -452,7 +453,7 @@ void JsonConnection::setAdjustment(
 		blue.append(blueAdjustment.red());
 		blue.append(blueAdjustment.green());
 		blue.append(blueAdjustment.blue());
-		adjust["blueAdjust"] = blue;
+		adjust["blue"] = blue;
 	}
 	if (cyanAdjustment.isValid())
 	{
@@ -460,7 +461,7 @@ void JsonConnection::setAdjustment(
 		cyan.append(cyanAdjustment.red());
 		cyan.append(cyanAdjustment.green());
 		cyan.append(cyanAdjustment.blue());
-		adjust["cyanAdjust"] = cyan;
+		adjust["cyan"] = cyan;
 	}
 	if (magentaAdjustment.isValid())
 	{
@@ -468,7 +469,7 @@ void JsonConnection::setAdjustment(
 		magenta.append(magentaAdjustment.red());
 		magenta.append(magentaAdjustment.green());
 		magenta.append(magentaAdjustment.blue());
-		adjust["magentaAdjust"] = magenta;
+		adjust["magenta"] = magenta;
 	}
 	if (yellowAdjustment.isValid())
 	{
@@ -476,7 +477,7 @@ void JsonConnection::setAdjustment(
 		yellow.append(yellowAdjustment.red());
 		yellow.append(yellowAdjustment.green());
 		yellow.append(yellowAdjustment.blue());
-		adjust["yellowAdjust"] = yellow;
+		adjust["yellow"] = yellow;
 	}
 	if (whiteAdjustment.isValid())
 	{
@@ -484,7 +485,7 @@ void JsonConnection::setAdjustment(
 		white.append(whiteAdjustment.red());
 		white.append(whiteAdjustment.green());
 		white.append(whiteAdjustment.blue());
-		adjust["whiteAdjust"] = white;
+		adjust["white"] = white;
 	}
 	if (blackAdjustment.isValid())
 	{
@@ -492,11 +493,15 @@ void JsonConnection::setAdjustment(
 		black.append(blackAdjustment.red());
 		black.append(blackAdjustment.green());
 		black.append(blackAdjustment.blue());
-		adjust["blackAdjust"] = black;
+		adjust["black"] = black;
 	}
-	if (brightnessMin != nullptr)
+	if (backlightThreshold != nullptr)
 	{
-		adjust["brightnessMin"] = *brightnessMin;
+		adjust["backlightThreshold"] = *backlightThreshold;
+	}
+	if (backlightColored != nullptr)
+	{
+		adjust["backlightColored"] = (*backlightColored == 0)? false : true;
 	}
 	if (brightness != nullptr)
 	{
@@ -504,15 +509,15 @@ void JsonConnection::setAdjustment(
 	}
 	if (gammaR != nullptr)
 	{
-		adjust["gammaR"] = *gammaR;
+		adjust["gammaRed"] = *gammaR;
 	}
 	if (gammaG != nullptr)
 	{
-		adjust["gammaG"] = *gammaG;
+		adjust["gammaGreen"] = *gammaG;
 	}
 	if (gammaB != nullptr)
 	{
-		adjust["gammaB"] = *gammaB;
+		adjust["gammaBlue"] = *gammaB;
 	}
 
 	command["adjustment"] = adjust;

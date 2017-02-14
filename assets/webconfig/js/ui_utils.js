@@ -1,3 +1,44 @@
+var prevTag;
+
+function removeOverlay()
+{
+	$("#loading_overlay").removeClass("overlay");
+}
+
+function reload()
+{
+	location.reload();	
+}
+
+function storageComp()
+{
+	if (typeof(Storage) !== "undefined")
+		return true;
+	return false;
+}
+
+function getStorage(item, session)
+{
+	if(storageComp())
+	{
+		if(session === true)
+			return sessionStorage.getItem(item);
+		else
+			return localStorage.getItem(item);
+	}
+	return null;
+}
+
+function setStorage(item, value, session)
+{
+	if(storageComp())
+	{
+		if(session === true)
+			sessionStorage.setItem(item, value);
+		else
+			localStorage.setItem(item, value);
+	}
+}
 
 function debugMessage(msg)
 {
@@ -7,15 +48,42 @@ function debugMessage(msg)
 	}
 }
 
-function bindNavToContent(containerId, fileName, loadNow)
+function getHashtag()
 {
-	$("#page-content").off();
-	$(containerId).on("click", function() {
-		$("#page-content").load("/content/"+fileName+".html");
-	});
-	if (loadNow)
+	if(getStorage('lasthashtag', true) != null)
+		return getStorage('lasthashtag', true);
+	else
 	{
-		$(containerId).trigger("click");
+		var tag = document.URL;
+		tag = tag.substr(tag.indexOf("#") + 1);
+		if(tag == "" || typeof tag === "undefined" || tag.startsWith("http"))
+			tag = "dashboard"
+		return tag;
+	}
+}
+
+function loadContent(event)
+{
+	var tag;
+	
+	if(typeof event != "undefined")
+	{	
+		tag = event.currentTarget.hash;
+		tag = tag.substr(tag.indexOf("#") + 1);
+		setStorage('lasthashtag', tag, true);
+	}
+	else
+		tag = getHashtag();
+
+	if(prevTag != tag)
+	{
+		prevTag = tag;
+		$("#page-content").off();
+		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
+			if(status == "error")
+				$("#page-content").html('<h3>The page you requested is no longer available, click on another menu item!</h3>');
+				removeOverlay();
+		});
 	}
 }
 
@@ -23,8 +91,6 @@ function loadContentTo(containerId, fileName)
 {
 	$(containerId).load("/content/"+fileName+".html");
 }
-
-
 
 function toggleClass(obj,class1,class2)
 {
@@ -55,43 +121,101 @@ function setClassByBool(obj,enable,class1,class2)
 	}
 }
 
-function showInfoDialog(type,header,message,btnid)
-{
-	if (type != 'select')
-		$('#modal_select').toggle(false);
-	else
-		$('#modal_select').toggle(true);
-	
-	$('#modal_dialog .modal-bodytitle').html(header);
-	$('#modal_dialog .modal-bodycontent').html(message);
-	
+function showInfoDialog(type,header,message)
+{	
 	if (type=="success"){
-		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-check modal-icon-check">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
+		if(header == "")
+			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
+		$('#id_footer').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="warning"){
-		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-warning">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+		if(header == "")
+			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
+		$('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type=="error"){	
-		$('#modal_dialog .modal-bodyicon').html('<i class="fa fa-warning modal-icon-error">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
+		if(header == "")
+			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
+		$('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}	
 	else if (type == "select"){
-		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#modal_dialog .modal-footer-button').html('<button type="button" id="'+btnid+'" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_save')+'</button>');
-		$('#modal_dialog .modal-footer-button').append('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "uilock"){
-		$('#modal_dialog .modal-bodyicon').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
-		$('#modal_dialog .modal-footer-button').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
+		$('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
 	}
+	else if (type == "import"){
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "checklist")
+	{
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_checklist_title')+'</h4>');
+		$('#id_body').append(message);
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+	}
+	
+	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
+	$('#id_body').append(message);
+	
+	if(type == "select")
+		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 	
 	$("#modal_dialog").modal({
 		backdrop : "static",
 		keyboard: false,
 		show: true
 	});
+}
+
+function createHintH(type, text, container)
+{
+	if(type = "intro")
+		tclass = "introd";
+		
+	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
+}
+
+function createHint(type, text, container)
+{
+	var fe, tclass;
+	
+	if(type == "intro")
+	{
+		fe = '';
+		tclass = "intro-hint";
+	}
+	else if(type == "info")
+	{
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "info-hint";
+	}
+	else if(type == "wizard")
+	{	
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-magic"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "wizard-hint";
+	}
+	else if(type == "warning")
+	{	
+		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
+		tclass = "warning-hint";
+	}
+	
+	if(fe == "")
+		$('#'+container).prepend('<div class="'+tclass+'">'+text+'</div>');
+	else
+	{
+		createTable('','htb',container, true, tclass);
+		$('#'+container+' .htb').append(createTableRow([fe ,text],false,true));
+	}
 }
 
 function isJsonString(str)
@@ -106,7 +230,6 @@ function isJsonString(str)
 	}
 	return "";
 }
-
 
 function createJsonEditor(container,schema,setconfig,usePanel)
 {
@@ -123,6 +246,9 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 		disable_properties: 'true',
 		disable_array_reorder: 'true',
 		no_additional_properties: 'true',
+		disable_array_delete_all_rows: 'true',
+		disable_array_delete_last_row: 'true',
+		access: storedAccess,
 		schema: {
 			title:'',
 			properties: schema
@@ -132,7 +258,7 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	if(usePanel)
 	{
 		$('#'+container+' .well').first().removeClass('well well-sm');
-		$('#'+container+' h3').remove();
+		$('#'+container+' h4').remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
 	}
 
@@ -140,64 +266,190 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( parsedConfJSON[key] );
+			editor.getEditor("root."+key).setValue( serverConfig[key] );
 		}
 	}
 
 	return editor;
 }
 
-function createTableTh(th1, th2){
-	var elth1 = document.createElement('th');
-	var elth2 = document.createElement('th');
-	var tr = document.createElement('tr');
-
-	elth1.innerHTML = th1;
-	elth2.innerHTML = th2;
-	tr.appendChild(elth1);
-	tr.appendChild(elth2);
-
-	return tr;
+function rgbToHex(rgb)
+{
+	if(rgb.length == 3)
+	{
+		return "#" +
+		("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+		("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+		("0" + parseInt(rgb[2],10).toString(16)).slice(-2);    
+	}
+	else
+		debugMessage('rgbToHex: Given rgb is no array or has wrong length');
 }
+
+function createCP(id, color, cb)
+{
+	if(Array.isArray(color))
+		color = rgbToHex(color);
+	else if(color == "undefined")
+		color = "#AA3399";
 	
-function createTableTd(td1, td2){
-	var eltd1 = document.createElement('td');
-	var eltd2 = document.createElement('td');
-	var tr = document.createElement('tr');
-
-	eltd1.innerHTML = td1;
-	eltd2.innerHTML = td2;
-	tr.appendChild(eltd1);
-	tr.appendChild(eltd2);
-
-	return tr;
+	if(color.startsWith("#"))
+	{
+		$('#'+id).colorpicker({
+			format: 'rgb',
+			customClass: 'colorpicker-2x',
+			color: color,
+			sliders: {
+				saturation: {
+					maxLeft: 200,
+					maxTop: 200
+				},
+				hue: {
+					maxTop: 200
+				},
+			}
+		});
+		$('#'+id).colorpicker().on('changeColor', function(e) {
+			rgb = e.color.toRGB();
+			hex = e.color.toHex();
+			cb(rgb,hex,e);
+		});
+	}
+	else
+		debugMessage('createCP: Given color is not legit');
 }
-	
-function createHelpTable(list, phead){
+
+// Creates a table with thead and tbody ids
+// @param string hid  : a class for thead
+// @param string bid  : a class for tbody
+// @param string cont : a container id to html() the table
+// @param string bless: if true the table is borderless
+function createTable(hid, bid, cont, bless, tclass)
+{
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
 	
+	table.className = "table";
+	if(bless === true)
+		table.className += " borderless";
+	if(typeof tclass !== "undefined")
+		table.className += " "+tclass;
+	table.style.marginBottom = "0px";
+	if(hid != "")
+		thead.className = hid;
+	tbody.className = bid;
+	if(hid != "")
+		table.appendChild(thead);
+	table.appendChild(tbody);
+	
+	$('#'+cont).append(table);
+}
+
+// Creates a table row <tr>
+// @param array list :innerHTML content for <td>/<th>
+// @param bool head  :if null or false it's body
+// @param bool align :if null or false no alignment 
+//
+// @return : <tr> with <td> or <th> as child(s)
+function createTableRow(list, head, align)
+{
+	var row = document.createElement('tr');
+	
+	for(var i = 0; i < list.length; i++)
+	{
+		if(head === true)
+			var el = document.createElement('th');
+		else
+			var el = document.createElement('td');
+		
+		if(align)
+			el.style.verticalAlign = "middle";
+		
+		el.innerHTML = list[i];
+		row.appendChild(el);
+	}
+	return row;
+}
+
+function createRow(id)
+{
+	var el = document.createElement('div');
+	el.className = "row";
+	el.setAttribute('id', id);
+	return el;
+}
+
+function createOptPanel(phicon, phead, bodyid, footerid)
+{
+	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
+	pfooter = document.createElement('button');
+	pfooter.className = "btn btn-primary";
+	pfooter.setAttribute("id", footerid);
+	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
+	
+	return createPanel(phead, "", pfooter, "panel-default", bodyid);
+}
+
+function sortProperties(list)
+{
+	for(key in list)
+	{
+		list[key].key = key;
+	}
+	list = $.map(list, function(value, index) {
+				return [value];
+		});
+	return list.sort(function(a,b) {
+				return a.propertyOrder - b.propertyOrder;
+		});
+}
+
+function createHelpTable(list, phead){
+	var table = document.createElement('table');
+	var thead = document.createElement('thead');
+	var tbody = document.createElement('tbody');
+	list = sortProperties(list);
+	
+	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
+	
 	table.className = 'table table-hover borderless';
 	
-	thead.appendChild(createTableTh($.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')));
-		for (key in list){
-			if(list[key].access != 'system'){
-				text = list[key].title.replace('title', 'expl');
-				tbody.appendChild(createTableTd($.i18n(list[key].title), $.i18n(text)));
-			}
+	thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
+	
+	for (key in list)
+	{
+		if(list[key].access != 'system')
+		{
+			var text = list[key].title.replace('title', 'expl');
+			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
+			
+			if(list[key].items && list[key].items.properties)
+			{
+				var ilist = sortProperties(list[key].items.properties);
+				for (ikey in ilist)
+				{
+					
+					var itext = ilist[ikey].title.replace('title', 'expl');
+					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
+				}
+			}	
 		}
+	}
 	table.appendChild(thead);
 	table.appendChild(tbody);
 
 	return createPanel(phead, table);
 }
 
-function createPanel(head, body, footer, type){
+function createPanel(head, body, footer, type, bodyid){
+	var cont = document.createElement('div');
 	var p = document.createElement('div');
 	var phead = document.createElement('div');
 	var pbody = document.createElement('div');
 	var pfooter = document.createElement('div');
+	
+	cont.className = "col-lg-6";
 	
 	if(typeof type == 'undefined')
 		type = 'panel-default';
@@ -209,18 +461,30 @@ function createPanel(head, body, footer, type){
 	
 	phead.innerHTML = head;
 	
-	if(typeof body != 'undefined')
+	if(typeof bodyid != 'undefined')
+	{
+		pfooter.style.textAlign = 'right';
+		pbody.setAttribute("id", bodyid)
+	}
+	
+	if(typeof body != 'undefined' && body != "")
 		pbody.appendChild(body);
 	
-	pfooter.innerHTML = footer;
+	if(typeof footer != 'undefined')
+		pfooter.appendChild(footer);
 	
 	p.appendChild(phead);
 	p.appendChild(pbody);
 	
 	if(typeof footer != 'undefined')
+	{
+		pfooter.style.textAlign = "right";
 		p.appendChild(pfooter);
+	}
 	
-	return p;
+	cont.appendChild(p);
+	
+	return cont;
 }
 
 function createSelGroup(group)

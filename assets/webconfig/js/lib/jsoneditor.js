@@ -232,6 +232,7 @@ JSONEditor.prototype = {
     var theme_class = JSONEditor.defaults.themes[this.options.theme || JSONEditor.defaults.theme];
     if(!theme_class) throw "Unknown theme " + (this.options.theme || JSONEditor.defaults.theme);
 
+	this.access = this.options.access;
     this.schema = this.options.schema;
     this.theme = new theme_class();
     this.template = this.options.template;
@@ -322,7 +323,8 @@ JSONEditor.prototype = {
     this.validation_results = null;
     this.theme = null;
     this.iconlib = null;
-    this.template = null;
+    this.access = null;
+	this.template = null;
     this.__data = null;
     this.ready = false;
     this.element.innerHTML = '';
@@ -492,7 +494,7 @@ JSONEditor.prototype = {
     return this.editors[path];
   },
   watch: function(path,callback) {
-    this.watchlist = this.watchlist || {};
+	this.watchlist = this.watchlist || {};
     this.watchlist[path] = this.watchlist[path] || [];
     this.watchlist[path].push(callback);
 
@@ -515,7 +517,7 @@ JSONEditor.prototype = {
     return this;
   },
   notifyWatchers: function(path) {
-    if(!this.watchlist || !this.watchlist[path]) return this;
+	if(!this.watchlist || !this.watchlist[path]) return this;
     for(var i=0; i<this.watchlist[path].length; i++) {
       this.watchlist[path][i]();
     }
@@ -1418,7 +1420,8 @@ JSONEditor.AbstractEditor = Class.extend({
     this.theme = this.jsoneditor.theme;
     this.template_engine = this.jsoneditor.template;
     this.iconlib = this.jsoneditor.iconlib;
-
+	this.access = this.jsoneditor.access;
+	
     this.translate = this.jsoneditor.translate || JSONEditor.defaults.translate;
 
     this.original_schema = options.schema;
@@ -1458,13 +1461,12 @@ JSONEditor.AbstractEditor = Class.extend({
     this.register();
     this.onWatchedFieldChange();
 	
-	//hide input field, if it didn't match the current access level
-	var storedAccess = localStorage.getItem("accesslevel");
-
+	//hide input fields, if they didn't match the current access level
+	var storedAccess = this.access
 	if(this.schema.access){
 		if(this.schema.access == 'system')
 			this.container.style.display = "none";
-		if(this.schema.access == 'expert' && storedAccess != 'expert'){
+		else if(this.schema.access == 'expert' && storedAccess != 'expert'){
 			this.container.style.display = "none";
 			//this.disable();
 		}	
@@ -1725,7 +1727,7 @@ JSONEditor.AbstractEditor = Class.extend({
     }
   },
   setValue: function(value) {
-    this.value = value;
+	this.value = value;
   },
   getValue: function() {
     return this.value;
@@ -2150,7 +2152,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
 
     if(this.format) this.input.setAttribute('data-schemaformat',this.format);
 	if(this.defaultValue) this.input.setAttribute('data-schemaformat',this.format);
-	if(this.formname)this.label.setAttribute('for',this.formname);
+	if(this.formname && this.label)this.label.setAttribute('for',this.formname);
 	
     this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append, this.placeholder);
 	this.container.appendChild(this.control);
@@ -2898,7 +2900,7 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
     else this.showEditJSON();
   },
   insertPropertyControlUsingPropertyOrder: function (property, control, container) {
-    var propertyOrder;
+   var propertyOrder;
     if (this.schema.properties[property])
       propertyOrder = this.schema.properties[property].propertyOrder;
     if (typeof propertyOrder !== "number") propertyOrder = 1000;
@@ -4842,7 +4844,7 @@ JSONEditor.defaults.editors["enum"] = JSONEditor.AbstractEditor.extend({
     }
   },
   setValue: function(val) {
-    if(this.value !== val) {
+	if(this.value !== val) {
       this.value = val;
       this.refreshValue();
       this.onChange();
@@ -4861,16 +4863,15 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   setValue: function(value,initial) {
 	value = this.typecast(value||'');
 
-    // Sanitize value before setting it
+    //Sanitize value before setting it
     var sanitized = value;
     if(this.enum_values.indexOf(sanitized) < 0) {
       sanitized = this.enum_values[0];
     }
 
     if(this.value === sanitized) {
-      return;
+	  return;
     }
-
     this.input.value = this.enum_options[this.enum_values.indexOf(sanitized)];
     if(this.select2) this.select2.select2('val',this.input.value);
     this.value = sanitized;
@@ -4909,7 +4910,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     }
   },
   getValue: function() {
-    return this.value;
+	return this.value;
   },
   preBuild: function() {
     var self = this;
@@ -6283,7 +6284,7 @@ JSONEditor.AbstractTheme = Class.extend({
     return el;
   },
   getHeader: function(text) {
-    var el = document.createElement('h3');
+    var el = document.createElement('h4');
 	if(text.innerHTML == ''){
 		text.style.display = 'none';
 		return text;

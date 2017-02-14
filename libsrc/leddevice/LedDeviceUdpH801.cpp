@@ -11,7 +11,8 @@ bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 	/* The H801 port is fixed */
 	_LatchTime_ns = 10000000;
 	_port = 30977;
-	ProviderUdp::init(deviceConfig, "255.255.255.255");
+	_defaultHost = "255.255.255.255";
+	ProviderUdp::init(deviceConfig);
 
 	_ids.clear();
 	QJsonArray lArray = deviceConfig["lightIds"].toArray();

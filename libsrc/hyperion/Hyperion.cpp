@@ -158,13 +158,14 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 
 RgbTransform* Hyperion::createRgbTransform(const QJsonObject& colorConfig)
 {
-	const double brightnessMin = colorConfig["brightnessMin"].toDouble(0.0);
+	const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
+	const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
 	const double brightness    = colorConfig["brightness"].toDouble(0.5);
 	const double gammaR        = colorConfig["gammaRed"].toDouble(1.0);
 	const double gammaG        = colorConfig["gammaGreen"].toDouble(1.0);
 	const double gammaB        = colorConfig["gammaBlue"].toDouble(1.0);
 
-	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, brightnessMin, brightness);
+	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness);
 	return transform;
 }
 
@@ -392,10 +393,10 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _timer()
 	, _log(CORE_LOGGER)
 	, _hwLedCount(_ledString.leds().size())
-	, _colorAdjustmentV4Lonly(false)
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
+	, _prevCompId(hyperion::COMP_INVALID)
 {
 	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 
@@ -405,11 +406,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	}
 	// set color correction activity state
 	const QJsonObject& color = qjsonConfig["color"].toObject();
-	_adjustmentEnabled  = color["channelAdjustment_enable"].toBool(true);
-	_colorAdjustmentV4Lonly = color["channelAdjustment_v4l_only"].toBool(false);
-
-	InfoIf(!_adjustmentEnabled , _log, "Color adjustment disabled" );
-	InfoIf(_colorAdjustmentV4Lonly , _log, "Color adjustment for v4l inputs only" );
 	
 	// initialize the image processor factory
 	_ledMAppingType = ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString());
@@ -447,8 +443,13 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 }
 
 
-void Hyperion::freeObjects()
+void Hyperion::freeObjects(bool emitCloseSignal)
 {
+	if (emitCloseSignal)
+	{
+		emit closing();
+	}
+
 	// switch off all leds
 	clearall();
 	_device->switchOff();
@@ -462,7 +463,7 @@ void Hyperion::freeObjects()
 
 Hyperion::~Hyperion()
 {
-	freeObjects();
+	freeObjects(false);
 }
 
 unsigned Hyperion::getLedCount() const
@@ -716,8 +717,14 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( _adjustmentEnabled && priority < PriorityMuxer::LOWEST_PRIORITY && (!_colorAdjustmentV4Lonly || priorityInfo.componentId == hyperion::COMP_V4L) )
+	if ( priority < PriorityMuxer::LOWEST_PRIORITY)
 	{
+		if (priorityInfo.componentId != _prevCompId)
+		{
+			bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
+			_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
+			_prevCompId = priorityInfo.componentId;
+		}
 		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 	}
 

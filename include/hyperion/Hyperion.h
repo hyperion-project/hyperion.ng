@@ -70,7 +70,7 @@ public:
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
-	void freeObjects();
+	void freeObjects(bool emitCloseSignal=false);
 
 	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile);
 	static Hyperion* getInstance();
@@ -289,6 +289,7 @@ signals:
 
 	void imageToLedsMappingChanged(int mappingType);
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+	void closing();
 
 private slots:
 	///
@@ -354,12 +355,6 @@ private:
 	/// register of input sources and it's prio channel
 	PriorityRegister _priorityRegister;
 
-	/// flag for v4l color correction
-	bool _colorAdjustmentV4Lonly;
-	
-	/// flag for color adjustment enable
-	bool _adjustmentEnabled;
-
 	/// flag indicates state for autoselection of input source
 	bool _sourceAutoSelectEnabled;
 	
@@ -373,4 +368,6 @@ private:
 	int _ledMAppingType;
 	
 	int _configVersionId;
+	
+	hyperion::Components _prevCompId;
 };

@@ -1,15 +1,15 @@
 
 // global vars
-var showOptHelp = true;
+var webPrio = 1;
+var showOptHelp;
 var currentVersion;
-var cleanCurrentVersion;
 var latestVersion;
-var cleanLatestVersion;
-var parsedServerInfoJSON = {};
+var serverInfo = {};
 var parsedUpdateJSON = {};
-var parsedConfSchemaJSON = {};
-var parsedConfJSON = {};
-var hyperionport = 19444;
+var serverSchema = {};
+var serverConfig = {};
+var schema;
+var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
@@ -25,27 +25,42 @@ function initRestart()
 {
 	$(hyperion).off();
 	requestServerConfigReload();
-	watchdog = 2;
-	$("#wrapper").fadeOut("slow");
-	cron();
+	watchdog = 10;
+	connectionLostDetection('restart');
 }
 
 function cron()
 {
-	if ( watchdog > 2 )
-	{
-		var interval_id = window.setInterval("", 9999); // Get a reference to the last
-		for (var i = 1; i < interval_id; i++)
-			window.clearInterval(i);
-		$("body").html($("#container_connection_lost").html());
-		connectionLostAction();
-	}
-
 	requestServerInfo();
 	$(hyperion).trigger({type:"cron"});
 }
 
-setInterval(function(){ watchdog = 0 }, 8000);
+
+function connectionLostDetection(type)
+{
+	if ( watchdog > 1 )
+	{
+		var interval_id = window.setInterval("", 9999); // Get a reference to the last
+		for (var i = 1; i < interval_id; i++)
+			window.clearInterval(i);
+		if(type == 'restart')
+		{
+			$("body").html($("#container_restart").html());	
+			restartAction();
+		}
+		else
+		{
+			$("body").html($("#container_connection_lost").html());
+			connectionLostAction();
+		}
+	}
+	else
+	{
+		$.get( "/cgi/cfg_jsonserver", function() {watchdog=0}).fail(function() {watchdog++;});
+	}
+}
+
+setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -55,7 +70,7 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
-				hyperionport = data.substr(1);
+				jsonPort = data.substr(1);
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
@@ -88,6 +103,8 @@ function initWebSocket()
 						default: reason = "Unknown reason";
 					}
 					$(hyperion).trigger({type:"close", reason:reason});
+					watchdog = 10;
+					connectionLostDetection();
 				};
 
 				websocket.onmessage = function (event) {
@@ -150,7 +167,6 @@ function sendToHyperion(command, subcommand, msg)
 // also used for watchdog
 function requestServerInfo()
 {
-	watchdog++;
 	sendToHyperion("serverinfo");
 }
 
@@ -193,19 +209,22 @@ function requestLedImageStop()
 	sendToHyperion("ledcolors", "imagestream-stop");
 }
 
-function requestPriorityClear()
+function requestPriorityClear(prio)
 {
-	sendToHyperion("clear", "", '"priority":1');
+	if(typeof prio !== 'number')
+		prio = webPrio;
+
+	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
 function requestPlayEffect(effectName)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":1');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+'');
 }
 
 function requestSetColor(r,g,b)
 {
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":1');
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+'');
 }
 
 function requestSetComponentState(comp, state)
@@ -222,14 +241,18 @@ function requestSetSource(prio)
 		sendToHyperion("sourceselect", "", '"priority":'+prio);
 }
 
-function requestWriteConfig(config)
+function requestWriteConfig(config, full)
 {
-	var complete_config = parsedConfJSON;
-	jQuery.each(config, function(i, val) {
-		complete_config[i] = val;
-	});
+	if(full === true)
+		serverConfig = config;
+	else
+	{
+		jQuery.each(config, function(i, val) {
+			serverConfig[i] = val;
+		});
+	}
 
-	var config_str = encode_utf8(JSON.stringify(complete_config));
+	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
 
 	$.post( "/cgi/cfg_set", { cfg: config_str })
 	.done(function( data ) {
@@ -248,7 +271,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":'+webPrio+', "pythonScript":"'+effectPy+'"}');
 }
 
 function requestDeleteEffect(effectName)
@@ -273,3 +296,10 @@ function requestMappingType(type)
 	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 
+function requestAdjustment(type, value, complete)
+{
+	if(complete === true)
+		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
+	else	
+		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+}

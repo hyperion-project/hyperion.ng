@@ -22,6 +22,9 @@ public:
 
 	virtual bool init(const QJsonObject &deviceConfig);
 
+public slots:
+	void receivedData(QByteArray data);
+
 private:
 	///
 	/// Writes the led color values to the led-device
@@ -32,6 +35,6 @@ private:
 	virtual int write(const std::vector<ColorRgb> & ledValues);
 	
 	const short _headerSize;
-	bool _ligthBerryAPA102Mode;
+	bool        _ligthBerryAPA102Mode;
 };
 

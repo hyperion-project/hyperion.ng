@@ -22,8 +22,6 @@
 	"color" :
 	{
 		"imageToLedMappingType" : "multicolor_mean",
-		"channelAdjustment_enable" : true,
-		"channelAdjustment_v4l_only" : false,
 		"channelAdjustment" :
 		[
 			{
@@ -40,7 +38,8 @@
 				"gammaRed"   : 1.0,
 				"gammaGreen" : 1.0,
 				"gammaBlue"  : 1.0,
-				"brightnessMin"  : 0.0,
+				"backlightThreshold"  : 0.0,
+				"backlightColored"  : false,
 				"brightness" : 0.75
 			}
 		]
@@ -67,7 +66,7 @@
 			"height"   : -1,
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
-			"priority"    : 850,
+			"priority"    : 240,
 			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
@@ -91,13 +90,13 @@
 		"width" : 80,
 		"height" : 45,
 		"frequency_Hz" : 10,
-		"priority" : 900
+		"priority" : 250
 	},
 
 	"blackborderdetector" :
 	{
 		"enable" : true,
-		"threshold" : 0.0,
+		"threshold" : 0.5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -157,7 +156,7 @@
 	{
 		"enable"   : false,
 		"port"     : 19333,
-		"priority" : 800
+		"priority" : 200
 	},
 	
 	"udpListener" :
@@ -165,14 +164,16 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 800,
+		"priority" : 190,
 		"timeout"  : 10000,
 		"shared"   : false
 	},
 
 	"webConfig" :
 	{
-		"enable"        : true
+		"enable"        : true,
+		"document_root" : "",
+		"port"          : 8099
 	},
 
 	"effects" :

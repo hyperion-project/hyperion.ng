@@ -9,7 +9,7 @@
 			"propertyOrder" : 1
 		},
 		"port" : {
-			"type": "integer",
+			"type": "number",
 			"title":"edt_dev_spec_port_title",
 			"default": 7890,
 			"propertyOrder" : 2
@@ -55,15 +55,15 @@
 			"type" : "array",
 			"title" : "edt_dev_spec_whitepoint_title",
 			"propertyOrder" : 9,
-			"default" : [1.0,1.0,1.0],
+			"default" : [255,255,255],
 			"maxItems" : 3,
 			"minItems" : 3,
-			"format" : "table",
+			"format" : "colorpicker",
 			"items" : {
-				"type" : "number",
-				"minimum" : 0.0,
-				"maximum": 1.0,
-				"default" : 1.0
+				"type" : "integer",
+				"minimum" : 0,
+				"maximum": 255,
+				"default" : 255
 			}
 		}
 	},

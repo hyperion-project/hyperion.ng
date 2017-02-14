@@ -37,7 +37,7 @@ public:
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
-	const static int LOWEST_PRIORITY = std::numeric_limits<int>::max();
+	const static int LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
 	///
 	/// Constructs the PriorityMuxer for the given number of leds (used to switch to black when

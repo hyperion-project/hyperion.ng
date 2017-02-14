@@ -6,6 +6,8 @@
 		"speed"            : 1.2,
 		"alarm-color"      : [255,0,0],
 		"post-color"       : [255,174,11],
-		"shutdown-enabled" : false
+		"shutdown-enabled" : false,
+		"initial-blink"    : true,
+		"set-post-color"   : true
 	}
 }

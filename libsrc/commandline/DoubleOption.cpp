@@ -5,16 +5,17 @@ using namespace commandline;
 
 double DoubleOption::getDouble(Parser &parser, bool *ok)
 {
-    _double = value(parser).toDouble(ok);
-    return _double;
+	_double = value(parser).toDouble(ok);
+	return _double;
 }
 
 double *DoubleOption::getDoublePtr(Parser &parser, bool *ok)
 {
-    if (parser.isSet(this)) {
-        getDouble(parser, ok);
-        return &_double;
-    } else {
-        return nullptr;
-    }
+	if (parser.isSet(this))
+	{
+		getDouble(parser, ok);
+		return &_double;
+	}
+
+	return nullptr;
 }

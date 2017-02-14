@@ -12,6 +12,8 @@
 		},
 		"priority": {
 			"type": "integer",
+			"minimum" : 1,
+			"maximum" : 253,
 			"required": true
 		}
 	},

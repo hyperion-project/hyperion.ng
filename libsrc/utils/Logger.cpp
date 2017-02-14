@@ -11,7 +11,6 @@ static const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERR
 static const int    LogLevelSysLog[]    = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 static unsigned int loggerCount         = 0;
 static unsigned int loggerId            = 0;
-static const int loggerMaxMsgBufferSize = 50;
 
 std::map<std::string,Logger*> *Logger::LoggerMap = nullptr;
 Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;

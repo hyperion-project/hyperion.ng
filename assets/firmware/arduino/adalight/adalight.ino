@@ -9,10 +9,16 @@
    set following values to your needs
  **************************************/
 
-#define INITAL_LED_TEST_ENABLED true
+#define INITIAL_LED_TEST_ENABLED true
+#define INITIAL_LED_TEST_BRIGHTNESS 32  // 0..255
+#define INITIAL_LED_TEST_TIME_MS 500  // 10..
 
 // Number of leds in your strip. set to "1" and ANALOG_OUTPUT_ENABLED to "true" to activate analog only
-#define NUM_LEDS 100
+// As of 26/1/2017:
+// 582 leaves ZERO bytes free and this
+// 410 is ok
+// tested with 500 leds and is fine (despite the warning)
+#define MAX_LEDS 500
 
 // type of your led controller, possible values, see below
 #define LED_TYPE WS2812B 
@@ -54,8 +60,10 @@
 #define COLOR_CORRECTION  TypicalLEDStrip   // predefined fastled color correction
 //#define COLOR_CORRECTION  CRGB(255,255,255) // or RGB value describing the color correction
 
-// Baudrate, higher rate allows faster refresh rate and more LEDs (defined in /etc/boblight.conf)
-#define serialRate 460800      // use 115200 for ftdi based boards
+// Baudrate, higher rate allows faster refresh rate and more LEDs
+//#define serialRate 460800      // use 115200 for ftdi based boards
+#define serialRate 115200      // use 115200 for ftdi based boards
+//#define serialRate 500000         // use 115200 for ftdi based boards
 
 
 /**************************************
@@ -70,7 +78,7 @@ uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 unsigned long endTime;
 
 // Define the array of leds
-CRGB leds[NUM_LEDS];
+CRGB leds[MAX_LEDS];
 
 // set rgb to analog led stripe
 void showAnalogRGB(const CRGB& led) {
@@ -86,7 +94,7 @@ void showAnalogRGB(const CRGB& led) {
 
 // set color to all leds
 void showColor(const CRGB& led) {
-  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+  #if MAX_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
   LEDS.showColor(led);
   #endif
   showAnalogRGB(led);
@@ -94,8 +102,8 @@ void showColor(const CRGB& led) {
 
 // switch of digital and analog leds
 void switchOff() {
-  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
-  memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+  #if MAX_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+  memset(leds, 0, MAX_LEDS * sizeof(struct CRGB));
   FastLED.show();
   #endif
   showAnalogRGB(leds[0]);
@@ -118,25 +126,24 @@ bool checkIncommingData() {
 
 // main function that setups and runs the code
 void setup() {
-
-  // additional ground pin to make wiring a bit easier
-  pinMode(ANALOG_GROUND_PIN, OUTPUT);
-  digitalWrite(ANALOG_GROUND_PIN, LOW);
+  Serial.begin(serialRate);
 
   // analog output
   if (ANALOG_OUTPUT_ENABLED) {
+    // additional ground pin to make wiring a bit easier
+    pinMode(ANALOG_GROUND_PIN, OUTPUT);
+    digitalWrite(ANALOG_GROUND_PIN, LOW);
     pinMode(ANALOG_BLUE_PIN , OUTPUT);
     pinMode(ANALOG_RED_PIN  , OUTPUT);
     pinMode(ANALOG_GREEN_PIN, OUTPUT);
   }
 
-  // Uncomment/edit one of the following lines for your leds arrangement.
-  int ledCount = NUM_LEDS;
+  int ledCount = MAX_LEDS;
   if (ANALOG_MODE == ANALOG_MODE_LAST_LED) {
     ledCount--;
   }
 
-  #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+  #if MAX_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
     FastLED.addLeds<LED_TYPE, LED_PINS, COLOR_ORDER>(leds, ledCount);
   #endif
   
@@ -147,14 +154,21 @@ void setup() {
   FastLED.setDither     ( DITHER_MODE );
 
   // initial RGB flash
-  #if INITAL_LED_TEST_ENABLED == true
-  showColor(CRGB(255, 0, 0));  delay(400);
-  showColor(CRGB(0, 255, 0));  delay(400);
-  showColor(CRGB(0, 0, 255));  delay(400);
+  #if INITIAL_LED_TEST_ENABLED == true
+  for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
+  {
+    showColor(CRGB(v,v,v);  
+    delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
+  }
+ 
+  for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
+  {
+    showColor(CRGB(v,v,v);  
+    delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
+  }
   #endif
   showColor(CRGB(0, 0, 0));
 
-  Serial.begin(serialRate);
   Serial.print("Ada\n"); // Send "Magic Word" string to host
 
 
@@ -183,14 +197,16 @@ void setup() {
     // if checksum does not match go back to wait
     if (chk != (hi ^ lo ^ 0x55)) continue;
 
-    memset(leds, 0, NUM_LEDS * sizeof(struct CRGB));
+    memset(leds, 0, MAX_LEDS * sizeof(struct CRGB));
     transmissionSuccess = true;
     sum_r = 0;
     sum_g = 0;
     sum_b = 0;
 
+    int num_leds = min ( MAX_LEDS, (hi<<8) + lo + 1 );
+
     // read the transmission data and set LED values
-    for (uint8_t idx = 0; idx < NUM_LEDS; idx++) {
+    for (int idx = 0; idx < num_leds; idx++) {
       byte r, g, b;
       if (!checkIncommingData()) {
         transmissionSuccess = false;
@@ -220,22 +236,22 @@ void setup() {
     // shows new values
     if (transmissionSuccess) {
       endTime = millis() + OFF_TIMEOUT;
-      #if NUM_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
+      #if MAX_LEDS > 1 || ANALOG_OUTPUT_ENABLED == false
       FastLED.show();
       #endif
 
       #if ANALOG_OUTPUT_ENABLED == true
         #if ANALOG_MODE == ANALOG_MODE_LAST_LED
-          showAnalogRGB(leds[NUM_LEDS-1]);
+          showAnalogRGB(leds[MAX_LEDS-1]);
         #else
-          showAnalogRGB(CRGB(sum_r/NUM_LEDS, sum_g/NUM_LEDS, sum_b/NUM_LEDS));
+          showAnalogRGB(CRGB(sum_r/MAX_LEDS, sum_g/MAX_LEDS, sum_b/MAX_LEDS));
          #endif
       #endif
     }
   }
 } // end of setup
 
-
 void loop() {
   // Not used. See note in setup() function.
 }
+

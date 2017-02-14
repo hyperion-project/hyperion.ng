@@ -492,13 +492,13 @@ void KODIVideoChecker::setVideoMode(VideoMode newVideoMode)
 	switch (newVideoMode)
 	{
 	case VIDEO_2D:
-		Info(_log, "KODICHECK INFO: switching to 2D mode");
+		Info(_log, "switching to 2D mode");
 		break;
 	case VIDEO_3DSBS:
-		Info(_log, "KODICHECK INFO: switching to 3D SBS mode");
+		Info(_log, "switching to 3D SBS mode");
 		break;
 	case VIDEO_3DTAB:
-		Info(_log, "KODICHECK INFO: switching to 3D TAB mode");
+		Info(_log, "switching to 3D TAB mode");
 		break;
 	}
 

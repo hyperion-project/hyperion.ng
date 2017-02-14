@@ -351,13 +351,13 @@ private:
 	
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
-	static uint8_t const BHB0_RSV3 = 0x10;
-	static uint8_t const BHB0_RSV2 = 0x20;
-	static uint8_t const BHB0_RSV1 = 0x40;
-	static uint8_t const BHB0_FIN = 0x80;
+	static uint8_t const BHB0_RSV3   = 0x10;
+	static uint8_t const BHB0_RSV2   = 0x20;
+	static uint8_t const BHB0_RSV1   = 0x40;
+	static uint8_t const BHB0_FIN    = 0x80;
 
 	static uint8_t const BHB1_PAYLOAD = 0x7F;
-	static uint8_t const BHB1_MASK = 0x80;
+	static uint8_t const BHB1_MASK    = 0x80;
 
 	static uint8_t const payload_size_code_16bit = 0x7E; // 126
 	static uint8_t const payload_size_code_64bit = 0x7F; // 127

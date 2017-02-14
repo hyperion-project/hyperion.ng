@@ -6,6 +6,7 @@
 #include <QStringList>
 
 #include <hyperion/Hyperion.h>
+#include <utils/Logger.h>
 
 #include "QtHttpReply.h"
 #include "QtHttpRequest.h"
@@ -26,12 +27,13 @@ public:
 	void cmd_runscript ();
 	
 private:
-	Hyperion*             _hyperion;
-	QtHttpReply *         _reply;
-	QtHttpRequest *       _request;
-	QStringList          _args;
-	const QJsonObject    &_hyperionConfig;
-	const QString         _baseUrl;
+	Hyperion*           _hyperion;
+	QtHttpReply *       _reply;
+	QtHttpRequest *     _request;
+	QStringList         _args;
+	const QJsonObject & _hyperionConfig;
+	const QString       _baseUrl;
+	Logger *            _log;
 };
 
 #endif // CGIHANDLER_H
