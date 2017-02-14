@@ -21,6 +21,7 @@
 	#include "LedDeviceWs2801.h"
 	#include "LedDeviceWs2812SPI.h"
 	#include "LedDeviceSk6812SPI.h"
+	#include "LedDeviceSk6822SPI.h"
 	#include "LedDeviceAPA102.h"
 #endif
 
@@ -82,6 +83,7 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	REGISTER(Ws2801);
 	REGISTER(Ws2812SPI);
 	REGISTER(Sk6812SPI);
+	REGISTER(Sk6822SPI);
 	#endif
 	
 	// pwm devices
