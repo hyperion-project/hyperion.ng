@@ -1,9 +1,6 @@
 
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
-var IntListIds;
-var StrListIds;
-var BoolListIds;
 
 function validateText(){
 	e = isJsonString($("#ledconfig").val());
@@ -13,53 +10,6 @@ function validateText(){
 		return false
 	}
 	return true
-}
-
-function loadStoredValues()
-{
-	if (storageComp() && getStorage('ip_cl_ledstop') != null)
-	{	
-		
-		for(var i = 0; i < IntListIds.length; i++)
-		{
-			$('#'+IntListIds[i]).val(parseInt(getStorage(IntListIds[i])));
-		}
-		
-		for(var i = 0; i < BoolListIds.length; i++)
-		{
-			var vb = getStorage(BoolListIds[i]);
-			$('#'+BoolListIds[i]).prop('checked', vb == "true" ? true : false);
-		}
-		
-		for(var i = 0; i < StrListIds.length; i++)
-		{
-			$('#'+StrListIds[i]).val(getStorage(StrListIds[i]));
-		}
-		return;
-	}
-	return;
-}
-
-function saveValues()
-{
-	if(storageComp())
-	{		
-		for(var i = 0; i < IntListIds.length; i++)
-		{
-			setStorage(IntListIds[i], $('#'+IntListIds[i]).val());
-		}
-		
-		for(var i = 0; i < BoolListIds.length; i++)
-		{
-			setStorage(BoolListIds[i], $('#'+BoolListIds[i]).is(":checked"));
-		}
-		
-		for(var i = 0; i < StrListIds.length; i++)
-		{
-			setStorage(StrListIds[i], $('#'+StrListIds[i]).val());
-		}
-		return;
-	}
 }
 
 function round(number) {
@@ -115,20 +65,20 @@ function createLedPreview(leds, origin){
 
 function createClassicLeds(){
 	//get values
-	var ledstop = parseInt($("#ip_cl_ledstop").val());
-	var ledsbottom = parseInt($("#ip_cl_ledsbottom").val());
-	var ledsleft = parseInt($("#ip_cl_ledsleft").val());
-	var ledsright = parseInt($("#ip_cl_ledsright").val());
-	var ledsglength = parseInt($("#ip_cl_ledsglength").val());
-	var ledsgpos = parseInt($("#ip_cl_ledsgpos").val());
+	var ledstop = parseInt($("#ip_cl_top").val());
+	var ledsbottom = parseInt($("#ip_cl_bottom").val());
+	var ledsleft = parseInt($("#ip_cl_left").val());
+	var ledsright = parseInt($("#ip_cl_right").val());
+	var ledsglength = parseInt($("#ip_cl_glength").val());
+	var ledsgpos = parseInt($("#ip_cl_gpos").val());
 	var position = parseInt($("#ip_cl_position").val());
 	var reverse = $("#ip_cl_reverse").is(":checked");
 	
 	//advanced values
-	var ledsVDepth = parseInt($("#ip_cl_ledsvdepth").val())/100;
-	var ledsHDepth = parseInt($("#ip_cl_ledshdepth").val())/100;
-	var edgeVGap = parseInt($("#ip_cl_ledsedgegap").val())/100/2;
-	//var cornerVGap = parseInt($("#ip_cl_ledscornergap").val())/100/2;
+	var ledsVDepth = parseInt($("#ip_cl_vdepth").val())/100;
+	var ledsHDepth = parseInt($("#ip_cl_hdepth").val())/100;
+	var edgeVGap = parseInt($("#ip_cl_edgegap").val())/100/2;
+	//var cornerVGap = parseInt($("#ip_cl_cornergap").val())/100/2;
 	var overlap = $("#ip_cl_overlap").val()/4000;
 	
 	//helper
@@ -373,13 +323,31 @@ $(document).ready(function() {
 		$('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l1')+'</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l2')+'</div>');
 	}
 	
-	//gather ids
-	IntListIds = $('.led_val_int').map(function() { return this.id; }).get();
-	StrListIds = $('.led_val_string').map(function() { return this.id; }).get();
-	BoolListIds = $('.led_val_bool').map(function() { return this.id; }).get();
+	var slConfig = serverConfig.ledConfig;
 	
-	// restore values from storage
-	loadStoredValues();
+	//restore ledConfig
+	for(key in slConfig)
+	{
+		if(typeof(slConfig[key]) === "boolean")
+			$('#ip_cl_'+key).prop('checked', slConfig[key]);
+		else
+			$('#ip_cl_'+key).val(slConfig[key]);
+	}
+
+	function saveValues()
+	{
+		var ledConfig = {};
+		for(key in slConfig)
+		{
+			if(typeof(slConfig[key]) === "boolean")
+				ledConfig[key] = $('#ip_cl_'+key).is(':checked');
+			else if(Number.isInteger(slConfig[key]))
+				ledConfig[key] = parseInt($('#ip_cl_'+key).val());
+			else
+				ledConfig[key] = $('#ip_cl_'+key).val();
+		}
+		setTimeout(requestWriteConfig, 100, {ledConfig});
+	}
 	
 	// check access level and adjust ui
 	if(storedAccess == "default")
@@ -410,7 +378,6 @@ $(document).ready(function() {
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
 			$('#collapse1').collapse('hide');
 			$('#collapse4').collapse('show');
-			saveValues();
 		}
 	});
 	
@@ -420,7 +387,6 @@ $(document).ready(function() {
 			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
 			$('#collapse2').collapse('hide');
 			$('#collapse4').collapse('show');
-			saveValues();
 		}
 	});
 
@@ -518,7 +484,10 @@ $(document).ready(function() {
 	// validate and save led config from textfield
 	$("#leds_custom_save").off().on("click", function() {
 		if (validateText())
+		{
 			requestWriteConfig(JSON.parse('{"leds" :'+$("#ledconfig").val()+'}'));
+			saveValues();
+		}
 	});
 
 	// toggle led numbers

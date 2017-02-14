@@ -4,6 +4,7 @@ $(document).ready( function() {
 	var effectName = "";
 	var effects_editor = null;	
 	var effectPy = "";
+	var testrun;
 	
 	if(showOptHelp)
 		createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
@@ -27,6 +28,7 @@ $(document).ready( function() {
 	}
 	
 	function triggerTestEffect() {
+		testrun = true;
 		var args = effects_editor.getEditor('root.args');
 		requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()));
 	};
@@ -79,6 +81,9 @@ $(document).ready( function() {
 				showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
 		});
 		
+		if (testrun)
+			setTimeout(requestPriorityClear,100);
+		
 	});
 
 	$('#btn_start_test').off().on('click',function() {
@@ -87,6 +92,7 @@ $(document).ready( function() {
 	
 	$('#btn_stop_test').off().on('click',function() {
 		requestPriorityClear();
+		testrun = false;
 	});
 	
 	$('#btn_cont_test').off().on('click',function() {
