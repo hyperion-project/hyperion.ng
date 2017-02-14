@@ -4,7 +4,7 @@ import colorsys
 from random import randint
 
 #get args
-sleepTime = float(hyperion.args.get('sleep-time', 0.3))
+rotationTime = int(hyperion.args.get('rotationTime', 5))
 marginPos = float(hyperion.args.get('margin-pos', 1.5))
 
 # define pacman
@@ -23,6 +23,7 @@ background = bytearray((0, 0, 0))
 posPac = 1
 diffPac = 6*marginPos
 diffGuys = 3*marginPos
+sleepTime = rotationTime/ledCount
 
 posPinkGuy = posPac + diffPac
 posBlueGuy = posPinkGuy + diffGuys

@@ -85,12 +85,20 @@
 
 	"framegrabber" :
 	{
-		"enable" : true,
-		"type"   : "auto",
-		"width" : 80,
-		"height" : 45,
-		"frequency_Hz" : 10,
-		"priority" : 250
+		"enable"					: true,
+		"type"						: "auto",
+		"width"						: 80,
+		"height"					: 45,
+		"frequency_Hz"				: 10,
+		"priority"					: 250,
+		"useXGetImage"				: false,
+		"horizontalPixelDecimation"	: 8,
+		"verticalPixelDecimation"	: 8,
+		"cropLeft"					: 0,
+		"cropRight"					: 0,
+		"cropTop"					: 0,
+		"cropBottom"				: 0,
+		"device"					: "/dev/fb0"
 	},
 
 	"blackborderdetector" :

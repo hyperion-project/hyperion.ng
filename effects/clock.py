@@ -7,7 +7,6 @@ def myRange(index, margin):
 
 """ Define some variables """
 sleepTime = 1
-
 ledCount = hyperion.ledCount
 
 offset = hyperion.args.get('offset', 0)
