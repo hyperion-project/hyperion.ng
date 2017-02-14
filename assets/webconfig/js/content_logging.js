@@ -57,11 +57,12 @@ $(document).ready(function() {
 		var info = "######## PRIORITIES ######## \n";
 		for(var i = 0; i<prios.length; i++)
 		{
-			info += prios[i].owner+' ('+prios[i].component+') Prio: '+prios[i].priority;
+			info += prios[i].priority;
 			if(prios[i].visible)
-				info += '  VISIBLE! \n';
+				info += ' VISIBLE!';
 			else
-				info += '\n';
+				info += '         ';
+			info += ' ('+prios[i].component+') Owner: '+prios[i].owner+'\n';
 		}
 		info += '\npriorities_autoselect: '+serverInfo.info.priorities_autoselect+'\n\n';
 		
