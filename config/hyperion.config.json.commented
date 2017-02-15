@@ -195,7 +195,7 @@
 	"blackborderdetector" :
 	{
 		"enable"             : true,
-		"threshold"          : 0.0,
+		"threshold"          : 0.05,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -341,6 +341,23 @@
 		]
 	},
 	
+	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
+	"ledConfig" :
+	{
+		"top"	 	: 8,
+		"bottom"	: 8,
+		"left"		: 5,
+		"right"		: 5,
+		"glength"	: 0,
+		"gpos"		: 0,
+		"position"	: 0,
+		"reverse"	: false,
+		"hdepth"	: 8,
+		"vdepth"	: 5,
+		"overlap"	: 0,
+		"edgegap"	: 0
+	},
+	
 	///  The configuration for each individual led. This contains the specification of the area 
 	///  averaged of an input image for each led to determine its color. Each item in the list 
 	///  contains the following fields:
@@ -351,97 +368,293 @@
 	///  * vscan: The fractional part of the image along the vertical used for the averaging 
 	///           (minimum and maximum inclusive)
 	
-	"leds" :
+    "leds":
 	[
 		{
+			"hscan": {
+				"maximum": 0.125,
+				"minimum": 0
+			},
 			"index": 0,
-			"hscan": { "maximum": 0.1667, "minimum": 0 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.25,
+				"minimum": 0.125
+			},
 			"index": 1,
-			"hscan": { "maximum": 0.3332, "minimum": 0.1667 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.375,
+				"minimum": 0.25
+			},
 			"index": 2,
-			"hscan": { "maximum": 0.5, "minimum": 0.3333 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.5,
+				"minimum": 0.375
+			},
 			"index": 3,
-			"hscan": { "maximum": 0.6667, "minimum": 0.5 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.625,
+				"minimum": 0.5
+			},
 			"index": 4,
-			"hscan": { "maximum": 0.8333, "minimum": 0.6667 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.75,
+				"minimum": 0.625
+			},
 			"index": 5,
-			"hscan": { "maximum": 1, "minimum": 0.8333 },
-			"vscan": { "maximum": 0.0800, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.875,
+				"minimum": 0.75
+			},
 			"index": 6,
-			"hscan": { "maximum": 1, "minimum": 0.95 },
-			"vscan": { "maximum": 0.3333, "minimum": 0 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.875
+			},
 			"index": 7,
-			"hscan": { "maximum": 1, "minimum": 0.95 },
-			"vscan": { "maximum": 0.6667, "minimum": 0.3333 }
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
 			"index": 8,
-			"hscan": { "maximum": 1, "minimum": 0.95 },
-			"vscan": { "maximum": 1, "minimum": 0.6667 }
+			"vscan": {
+				"maximum": 0.2,
+				"minimum": 0
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
 			"index": 9,
-			"hscan": { "maximum": 1, "minimum": 0.8333 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 0.4,
+				"minimum": 0.2
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
 			"index": 10,
-			"hscan": { "maximum": 0.8333, "minimum": 0.6667 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 0.6,
+				"minimum": 0.4
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
 			"index": 11,
-			"hscan": { "maximum": 0.6667, "minimum": 0.5 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 0.8,
+				"minimum": 0.6
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
 			"index": 12,
-			"hscan": { "maximum": 0.5, "minimum": 0.3333 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.8
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.875
+			},
 			"index": 13,
-			"hscan": { "maximum": 0.3333, "minimum": 0.1667 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.875,
+				"minimum": 0.75
+			},
 			"index": 14,
-			"hscan": { "maximum": 0.1667, "minimum": 0 },
-			"vscan": { "maximum": 1, "minimum": 0.92 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.75,
+				"minimum": 0.625
+			},
 			"index": 15,
-			"hscan": { "maximum": 0.05, "minimum": 0 },
-			"vscan": { "maximum": 1, "minimum": 0.6667 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.625,
+				"minimum": 0.5
+			},
 			"index": 16,
-			"hscan": { "maximum": 0.05, "minimum": 0 },
-			"vscan": { "maximum": 0.6667, "minimum": 0.3333 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
+			"hscan": {
+				"maximum": 0.5,
+				"minimum": 0.375
+			},
 			"index": 17,
-			"hscan": { "maximum": 0.05, "minimum": 0 },
-			"vscan": { "maximum": 0.3333, "minimum": 0 }
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.375,
+				"minimum": 0.25
+			},
+			"index": 18,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.25,
+				"minimum": 0.125
+			},
+			"index": 19,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.125,
+				"minimum": 0
+			},
+			"index": 20,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 21,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.8
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 22,
+			"vscan": {
+				"maximum": 0.8,
+				"minimum": 0.6
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 23,
+			"vscan": {
+				"maximum": 0.6,
+				"minimum": 0.4
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 24,
+			"vscan": {
+				"maximum": 0.4,
+				"minimum": 0.2
+			}
+		},
+		{
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 25,
+			"vscan": {
+				"maximum": 0.2,
+				"minimum": 0
+			}
 		}
 	]
 }

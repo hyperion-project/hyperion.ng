@@ -175,7 +175,7 @@ $(document).ready( function() {
 	var picnr = 0;
 	var availVideos = ["Sweet_Cocoon","Caminandes_2_GranDillama","Caminandes_3_Llamigos"];
 	
-	if(getStorage("kodiAddress" != null))
+	if(getStorage("kodiAddress") != null)
 		kodiAddress = getStorage("kodiAddress");
 	
 	function switchPicture(pictures)
@@ -208,9 +208,9 @@ $(document).ready( function() {
 		$.ajax({
 			url: 'http://' + kodiAddress + '/jsonrpc',
 			dataType: 'jsonp',
+			crossDomain: true,
 			jsonpCallback: 'jsonCallback',
 			type: 'POST',
-			async: true,
 			timeout: 2000,
 			data: 'request=' + encodeURIComponent( command )
 		})
@@ -347,8 +347,8 @@ $(document).ready( function() {
 		}
 		if(step == 10)
 		{
-			updateWEditor(["backlightThreshold"]);
-			h = $.i18n('wiz_cc_minBright');
+			updateWEditor(["backlightThreshold","backlightColored"]);
+			h = $.i18n('wiz_cc_backlight');
 			if(withKodi)
 			{
 				h += '<br/>'+$.i18n('wiz_cc_kodishould',$.i18n('edt_conf_color_black_title'));
@@ -632,5 +632,4 @@ $(document).ready( function() {
 	}
 	
 	$('#btn_wizard_philipshue').off().on('click',startWizardPhilipsHue);
-	
 });
