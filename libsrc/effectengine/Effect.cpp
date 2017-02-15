@@ -22,15 +22,17 @@
 
 // Python method table
 PyMethodDef Effect::effectMethods[] = {
-	{"setColor",     Effect::wrapSetColor,    METH_VARARGS, "Set a new color for the leds."},
-	{"setImage",     Effect::wrapSetImage,    METH_VARARGS, "Set a new image to process and determine new led colors."},
-	{"abort",        Effect::wrapAbort,       METH_NOARGS,  "Check if the effect should abort execution."},
-	{"imageShow",    Effect::wrapImageShow,   METH_NOARGS,  "set current effect image to hyperion core."},
+	{"setColor"              , Effect::wrapSetColor              , METH_VARARGS, "Set a new color for the leds."},
+	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
+	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
+	{"imageShow"             , Effect::wrapImageShow             , METH_NOARGS,  "set current effect image to hyperion core."},
 	{"imageCanonicalGradient", Effect::wrapImageCanonicalGradient, METH_VARARGS,  ""},
-	{"imageRadialGradient"   , Effect::wrapImageRadialGradient,    METH_VARARGS,  ""},
-	{"imageSolidFill"   , Effect::wrapImageSolidFill,    METH_VARARGS,  ""},
-// 	{"imageSetPixel",Effect::wrapImageShow,   METH_VARARGS, "set pixel color of image"},
-// 	{"imageGetPixel",Effect::wrapImageShow,   METH_VARARGS, "get pixel color of image"},
+	{"imageRadialGradient"   , Effect::wrapImageRadialGradient   , METH_VARARGS,  ""},
+	{"imageSolidFill"        , Effect::wrapImageSolidFill        , METH_VARARGS,  ""},
+	{"imageDrawLine"         , Effect::wrapImageDrawLine         , METH_VARARGS,  ""},
+	{"imageDrawRect"         , Effect::wrapImageDrawRect         , METH_VARARGS,  ""},
+	{"imageSetPixel"         , Effect::wrapImageSetPixel         , METH_VARARGS, "set pixel color of image"},
+	{"imageGetPixel"         , Effect::wrapImageGetPixel         , METH_VARARGS, "get pixel color of image"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -452,11 +454,11 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 
 	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	if ( argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &angle, &bytearray) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	angle = std::max(std::min(angle,360),0);
 
@@ -536,7 +538,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	}
 	if ( argCount ==  7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	if ( argCount ==  4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray) )
 	{
@@ -609,19 +611,19 @@ PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
 
 	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &r, &g, &b, &a) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &startX, &startY, &width, &height, &r, &g, &b) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	if ( argCount == 4 && PyArg_ParseTuple(args, "iiii",&r, &g, &b, &a) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 	if ( argCount == 3 && PyArg_ParseTuple(args, "iii",&r, &g, &b) )
 	{
-		argsOK      = true;
+		argsOK = true;
 	}
 
 	if (argsOK)
@@ -629,6 +631,146 @@ PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
 		QRect myQRect(startX,startY,width,height);
 		effect->_painter->fillRect(myQRect, QColor(r,g,b,a));
 		return Py_BuildValue("");
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+
+PyObject* Effect::wrapImageDrawLine(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b;
+	int a      = 255;
+	int startX = 0;
+	int startY = 0;
+	int thick  = 1;
+	int endX   = effect->_imageSize.width();
+	int endY   = effect->_imageSize.height();
+
+	bool argsOK = false;
+
+	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b, &a) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		QRect myQRect(startX, startY, endX, endY);
+		QPen oldPen = effect->_painter->pen();
+		QPen newPen(QColor(r,g,b,a));
+		newPen.setWidth(thick);
+		effect->_painter->setPen(newPen);
+		effect->_painter->drawLine(startX, startY, endX, endY);
+		effect->_painter->setPen(oldPen);
+	
+		return Py_BuildValue("");
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+
+PyObject* Effect::wrapImageDrawRect(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b;
+	int a      = 255;
+	int startX = 0;
+	int startY = 0;
+	int thick  = 1;
+	int width   = effect->_imageSize.width();
+	int height  = effect->_imageSize.height();
+
+	bool argsOK = false;
+
+	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b, &a) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		QRect myQRect(startX,startY,width,height);
+		QPen oldPen = effect->_painter->pen();
+		QPen newPen(QColor(r,g,b,a));
+		newPen.setWidth(thick);
+		effect->_painter->setPen(newPen);
+		effect->_painter->drawRect(startX, startY, width, height);
+		effect->_painter->setPen(oldPen);
+	
+		return Py_BuildValue("");
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+
+PyObject* Effect::wrapImageSetPixel(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b, x, y;
+
+	bool argsOK = false;
+
+	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiii", &x, &y, &r, &g, &b ) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		effect->_image->setPixelColor(x,y,QColor(r,g,b));
+	
+		return Py_BuildValue("");
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+
+PyObject* Effect::wrapImageGetPixel(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int x, y;
+
+	bool argsOK = false;
+
+	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &x, &y) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		QRgb rgb = effect->_image->pixel(x,y);
+	
+		return Py_BuildValue("iii",qRed(rgb),qGreen(rgb),qBlue(rgb));
 	}
 	else
 	{
