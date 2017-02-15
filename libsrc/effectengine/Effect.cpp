@@ -741,8 +741,8 @@ PyObject* Effect::wrapImageSetPixel(PyObject *self, PyObject *args)
 
 	if (argsOK)
 	{
-		effect->_image->setPixelColor(x,y,QColor(r,g,b));
-	
+		effect->_image->setPixel(x,y,qRgb(r,g,b));
+
 		return Py_BuildValue("");
 	}
 	else
