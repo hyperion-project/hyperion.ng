@@ -3,6 +3,7 @@
 	"script" : "pacman.py",
 	"args" :
 	{
-		"sleep-time" : 0.3
+		"margin-pos" : 2.0,
+		"rotationTime" : 8
 	}
 }

@@ -41,9 +41,18 @@ $(document).ready(function() {
 					requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), '['+rgb.r+','+rgb.g+','+rgb.b+']');
 				});
 			}
+			else if(sColor[key].type == "boolean")
+			{
+				property = '<div class="checkbox"><input id="cr_'+sColor[key].key+'" type="checkbox" value="'+value+'"/><label></label></div>';
+				$('.crtbody').append(createTableRow([title, property], false, true));
+				
+				$('#cr_'+sColor[key].key).off().on('change', function(e){
+					requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.checked);
+				});
+			}
 			else
 			{
-				if(sColor[key].key == "brightness" || sColor[key].key == "brightnessMin")
+				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="1.0" step="0.05" value="'+value+'"/>';
 				else
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="4.0" step="0.1" value="'+value+'"/>';

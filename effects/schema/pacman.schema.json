@@ -4,14 +4,22 @@
 	"title":"edt_eff_pacman_header_title",
 	"required":true,
 	"properties":{
-		"sleep-time": {
-			"type": "number",
-			"title":"edt_eff_sleeptime_title",
-			"default": 0.3,
+		"rotationTime": {
+			"type": "integer",
+			"title":"edt_eff_rotationtime_title",
+			"default": 5,
 			"step" : 0.1,
-			"minimum": 0.01,
+			"minimum": 1,
 			"append" : "edt_append_s",
 			"propertyOrder" : 1
+		},
+		"margin-pos": {
+			"type": "number",
+			"title":"edt_eff_margin_title",
+			"default": 1.0,
+			"step" : 0.1,
+			"minimum": 1.0,
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": false
