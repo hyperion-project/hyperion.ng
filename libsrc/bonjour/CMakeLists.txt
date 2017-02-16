@@ -52,5 +52,5 @@ elseif (DEFAULT_USE_AVAHI_LIBS)
 		libavahi-client.a
 		libavahi-common.a
 		libavahi-core.a
-		libdbus-1.a)
+		dbus-1)
 endif()

@@ -11,7 +11,8 @@ for filename in sys.argv[1:]:
 		total += 1
 		msg = "   check json %s ... " % filename
 		try:
-			json.loads(f.read().decode('utf-8-sig'))
+			data = f.read()
+			json.loads(data)
 			#print(msg + "ok")
 		except ValueError as e:
 			print(msg + 'invalid ('+str(e)+')')
