@@ -297,7 +297,7 @@
 		"wiz_cc_kodidisconlink" : "Download link pictures:",
 		"wiz_cc_kodicon" : "Kodi webserver found, proceed with Kodi support.",
 		"wiz_cc_kodimsg_start" : "Test success - time to proceed!",
-		"wiz_cc_kodishould" : "Kodi should the following picture: $1",
+		"wiz_cc_kodishould" : "Kodi should show the following picture: $1",
 		"wiz_cc_lettvshow" : "Let your TV show the following picture: $1",
 		"wiz_cc_lettvshowm" : "Check this with the following pictures: $1",
 		"wiz_cc_adjustit" : "Adjust your \"$1\", until your are fine with it. Take notice: The more you adjust away from the default value the color spectrum will be limited (Also for all colors in between). Depending on TV/LED color spectrum the results will vary.",
