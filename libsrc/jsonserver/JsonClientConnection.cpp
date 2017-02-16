@@ -36,7 +36,7 @@
 #include <utils/ColorSys.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
-#include <Hyperion/GrabberWrapper.h>
+#include <hyperion/GrabberWrapper.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Process.h>
