@@ -301,7 +301,7 @@
 		"wiz_cc_lettvshow" : "Let your TV show the following picture: $1",
 		"wiz_cc_lettvshowm" : "Check this with the following pictures: $1",
 		"wiz_cc_adjustit" : "Adjust your \"$1\", until your are fine with it. Take notice: The more you adjust away from the default value the color spectrum will be limited (Also for all colors in between). Depending on TV/LED color spectrum the results will vary.",
-		"wiz_cc_adjustgamma" : "Gamma: Was du jetzt tun musst ist, jeden Gamma-Kanal so einstellen, dass der \"Grauverlauf\" auf den LEDs nicht grünlich/rötlich/bläulich aussieht. Beispiel: Sollte dein grau etwas rötlich sein bedeutet dies, dass du dein Gamma für Rot erhöhen musst um den Rot-Anteil zu verringern (Je mehr Gamma, desto weniger Farbe).",
+		"wiz_cc_adjustgamma" : "Gamma: What you have to do is, adjust gamma levels of each channel until you have the same perceived amount of each channel. For example, if your Grey is a bit reddish it means that you have to increase red gamma to reduce the amount of red (the more gamma, the less amount of color).",
 		"wiz_cc_chooseid" : "Define a name for this profile.",
 		"wiz_cc_btn_switchpic" : "Switch picture",
 		"wiz_cc_backlight" : "Additional you could define a backlight to sort out \"bad colors\" on nearly dark areas or if you don't like the switch between color and off during watching. Additional you could define if there should be some color in it or just white. This is disabled during the state \"Off\" ,\"Color\" and \"Effect\".",
