@@ -649,7 +649,7 @@
 				"width" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_v4l2_width_title",
+					"title" : "edt_conf_fg_width_title",
 					"minimum" : 10,
 					"default" : 80,
 					"append" : "edt_append_pixel",
@@ -658,7 +658,7 @@
 				"height" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_v4l2_height_title",
+					"title" : "edt_conf_fg_height_title",
 					"minimum" : 10,
 					"default" : 45,
 					"append" : "edt_append_pixel",
@@ -1333,7 +1333,6 @@
 		"leds":
 		{
 			"type":"array",
-			"format": "json",
 			"required":true,
 			"items":
 			{
