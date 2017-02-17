@@ -10,7 +10,13 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	, _dmxLedCount(0)
 	, _dmxChannelCount(0)
 {
+	_deviceReady = init(deviceConfig);
+}
+
+bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
+{
 	ProviderRs232::init(deviceConfig);
+
 	std::string _dmxString = deviceConfig["dmxdevice"].toString("invalid").toStdString();
 	if (_dmxString == "raw")
 	{
@@ -40,6 +46,8 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 
 	_ledBuffer.resize(_dmxChannelCount, 0);
 	_ledBuffer[0] = 0x00;	// NULL START code
+
+	return true;
 }
 
 LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)

@@ -16,11 +16,16 @@ public:
     explicit QtHttpReply (QtHttpServer * parent);
 
     enum StatusCode {
-        Ok            = 200,
-        BadRequest    = 400,
-        Forbidden     = 403,
-        NotFound      = 404,
-        InternalError = 502,
+        Ok                 = 200,
+        SeeOther           = 303,
+        BadRequest         = 400,
+        Forbidden          = 403,
+        NotFound           = 404,
+        MethodNotAllowed   = 405,
+        InternalError      = 500,
+        NotImplemented     = 501,
+        BadGateway         = 502,
+        ServiceUnavailable = 503,
     };
 
     int               getRawDataSize (void) const;

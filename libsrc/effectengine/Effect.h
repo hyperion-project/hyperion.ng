@@ -53,13 +53,17 @@ private:
 
 	// Wrapper methods for Python interpreter extra buildin methods
 	static PyMethodDef effectMethods[];
-	static PyObject* wrapSetColor(PyObject *self, PyObject *args);
-	static PyObject* wrapSetImage(PyObject *self, PyObject *args);
-	static PyObject* wrapAbort(PyObject *self, PyObject *args);
-	static PyObject* wrapImageShow(PyObject *self, PyObject *args);
+	static PyObject* wrapSetColor              (PyObject *self, PyObject *args);
+	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
+	static PyObject* wrapAbort                 (PyObject *self, PyObject *args);
+	static PyObject* wrapImageShow             (PyObject *self, PyObject *args);
 	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
-	static PyObject* wrapImageRadialGradient(PyObject *self, PyObject *args);
-	static PyObject* wrapImageSolidFill(PyObject *self, PyObject *args);
+	static PyObject* wrapImageRadialGradient   (PyObject *self, PyObject *args);
+	static PyObject* wrapImageSolidFill        (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawLine         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawRect         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageSetPixel         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageGetPixel         (PyObject *self, PyObject *args);
 
 	static Effect * getEffect();
 

@@ -5,21 +5,22 @@ using namespace commandline;
 
 bool ValidatorOption::validate(Parser & parser, QString & value)
 {
-	if (parser.isSet(*this) || !defaultValues().empty()) {
+	if (parser.isSet(*this) || !defaultValues().empty())
+	{
 		int pos = 0;
 		validator->fixup(value);
 		return validator->validate(value, pos) == QValidator::Acceptable;
-	} else {
-		return true;
 	}
+	return true;
 }
 
 const QValidator *ValidatorOption::getValidator() const
 {
-    return validator;
+	return validator;
 }
+
 void ValidatorOption::setValidator(const QValidator *validator)
 {
-    ValidatorOption::validator = validator;
+	ValidatorOption::validator = validator;
 }
 

@@ -1,0 +1,11 @@
+{
+	"name" : "Candle",
+	"script" : "candle.py",
+	"args" :
+	{
+		"sleepTime" : 0.15,
+		"brightness" : 100,
+		"color" : [ 255, 138, 0 ],
+		"candles" : "all"
+	}
+}
