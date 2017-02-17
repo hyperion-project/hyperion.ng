@@ -1,5 +1,6 @@
 
 // Hyperion includes
+#include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/ImageToLedsMap.h>
 
@@ -8,13 +9,16 @@
 
 using namespace hyperion;
 
-//ImageProcessor::ImageProcessor(const LedString& ledString, bool enableBlackBorderDetector, uint8_t blackborderThreshold) :
-ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig) :
-	_ledString(ledString),
-	_borderProcessor(new BlackBorderProcessor(blackborderConfig) ),
-	_imageToLeds(nullptr)
+ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig)
+	: QObject()
+	, _log(Logger::getInstance("BLACKBORDER"))
+	, _ledString(ledString)
+	, _borderProcessor(new BlackBorderProcessor(blackborderConfig) )
+	, _imageToLeds(nullptr)
+	, _mappingType(0)
 {
-	// empty
+// this is when we want to change the mapping for all input sources
+// 	connect(Hyperion::getInstance(), SIGNAL(imageToLedsMappingChanged(int)), this, SLOT(setLedMappingType(int))); 
 }
 
 ImageProcessor::~ImageProcessor()
@@ -51,6 +55,33 @@ void ImageProcessor::enableBlackBorderDetector(bool enable)
 bool ImageProcessor::blackBorderDetectorEnabled()
 {
 	return _borderProcessor->enabled();
+}
+
+void ImageProcessor::setLedMappingType(int mapType)
+{
+	Debug(_log, "set led mapping to type %d", mapType);
+	_mappingType = mapType;
+}
+
+int ImageProcessor::ledMappingType()
+{
+	return _mappingType;
+}
+
+int ImageProcessor::mappingTypeToInt(QString mappingType)
+{
+	if (mappingType == "unicolor_mean" )
+		return 1;
+
+	return 0;
+}
+
+QString ImageProcessor::mappingTypeToStr(int mappingType)
+{
+	if (mappingType == 1 )
+		return "unicolor_mean";
+
+	return "multicolor_mean";
 }
 
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const

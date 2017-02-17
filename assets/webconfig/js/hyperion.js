@@ -1,60 +1,66 @@
 
-/**
-* Enables translation for the form
-* with the ID given in "formID"
-* Generates token with the given token prefix
-* and an underscore followed by the input id
-* Example: input id = input_one
-* token prefix = tokenprefix
-* The translation token would be: "tokenprefix_input_one"
-* Default language in "lang" attribute will always be "en"
-* @param {String} tokenPrefix
-* @param {String} formID
-
-function enableFormTranslation(tokenPrefix, formID) {
-var $inputs = $("#" + formID + " label");
-
-$inputs.each(function() {
-  console.log("InputID: " + $(this).attr('id'));
-  var oldtext = $("label[for='" + $(this).attr('id') + "']").text();
-  $("label[for='" + $(this).attr('id') + "']").html('<span lang="en" data-lang-token="' + tokenPrefix + "_" + $(this).attr('id') + '">' + oldtext + '</span>');
-});
-}
-*/
 // global vars
+var webPrio = 1;
+var showOptHelp;
 var currentVersion;
-var cleanCurrentVersion;
 var latestVersion;
-var cleanLatestVersion;
-var parsedServerInfoJSON = {};
+var serverInfo = {};
 var parsedUpdateJSON = {};
-var parsedConfSchemaJSON = {};
-var parsedConfJSON = {};
-var hyperionport = 19444;
+var serverSchema = {};
+var serverConfig = {};
+var schema;
+var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
-var ledStreamActive=false;
-var loggingStreamActive=false;
+var ledStreamActive  = false;
+var imageStreamActive = false;
+var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
+var debugMessagesActive = true;
 
-//
+function initRestart()
+{
+	$(hyperion).off();
+	requestServerConfigReload();
+	watchdog = 10;
+	connectionLostDetection('restart');
+}
+
 function cron()
 {
-	if ( watchdog > 2)
+	requestServerInfo();
+	$(hyperion).trigger({type:"cron"});
+}
+
+
+function connectionLostDetection(type)
+{
+	if ( watchdog > 1 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
-		$("body").html($("#container_connection_lost").html());
-		connectionLostAction();
+		if(type == 'restart')
+		{
+			$("body").html($("#container_restart").html());	
+			restartAction();
+		}
+		else
+		{
+			$("body").html($("#container_connection_lost").html());
+			connectionLostAction();
+		}
 	}
-
-	requestServerInfo();
-	$(hyperion).trigger({type:"cron"});
+	else
+	{
+		$.get( "/cgi/cfg_jsonserver", function() {watchdog=0}).fail(function() {watchdog++;});
+	}
 }
+
+setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -64,7 +70,7 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
-				hyperionport = data.substr(1);
+				jsonPort = data.substr(1);
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
@@ -97,6 +103,8 @@ function initWebSocket()
 						default: reason = "Unknown reason";
 					}
 					$(hyperion).trigger({type:"close", reason:reason});
+					watchdog = 10;
+					connectionLostDetection();
 				};
 
 				websocket.onmessage = function (event) {
@@ -138,95 +146,160 @@ function initWebSocket()
 	}
 }
 
+function sendToHyperion(command, subcommand, msg)
+{
+	if (typeof subcommand != 'undefined' && subcommand.length > 0)
+		subcommand = ',"subcommand":"'+subcommand+'"';
+	else
+		subcommand = "";
 
+	if (typeof msg != 'undefined' && msg.length > 0)
+		msg = ","+msg;
+	else
+		msg = "";
+
+	websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+wsTan+subcommand+msg+'}'));
+}
 
 // -----------------------------------------------------------
 // wrapped server commands
 
 // also used for watchdog
-function requestServerInfo() {
-	watchdog++;
-	websocket.send('{"command":"serverinfo", "tan":'+wsTan+'}');
+function requestServerInfo()
+{
+	sendToHyperion("serverinfo");
 }
 
-function requestServerConfigSchema() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getschema"}');
+function requestServerConfigSchema()
+{
+	sendToHyperion("config","getschema");
 }
 
-function requestServerConfig() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"getconfig"}');
+function requestServerConfig()
+{
+	sendToHyperion("config", "getconfig");
 }
 
-function requestServerConfigReload() {
-	websocket.send('{"command":"config", "tan":'+wsTan+',"subcommand":"reload"}');
+function requestServerConfigReload()
+{
+	sendToHyperion("config", "reload");
 }
 
-function requestLedColorsStart() {
+function requestLedColorsStart()
+{
 	ledStreamActive=true;
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-start"}');
+	sendToHyperion("ledcolors", "ledstream-start");
 }
 
-function requestLedColorsStop() {
+function requestLedColorsStop()
+{
 	ledStreamActive=false;
-	websocket.send('{"command":"ledcolors", "tan":'+wsTan+',"subcommand":"ledstream-stop"}');
+	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
-function requestPriorityClear() {
-	websocket.send('{"command":"clear", "tan":'+wsTan+', "priority":1}');
+function requestLedImageStart()
+{
+	imageStreamActive=true;
+	sendToHyperion("ledcolors", "imagestream-start");
 }
 
-function requestPlayEffect(effectName) {
-	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'"},"priority":1}');
+function requestLedImageStop()
+{
+	imageStreamActive=false;
+	sendToHyperion("ledcolors", "imagestream-stop");
 }
 
-function requestSetColor(r,g,b) {
-	websocket.send('{"command":"color", "tan":'+wsTan+', "color":['+r+','+g+','+b+'], "priority":1}');
+function requestPriorityClear(prio)
+{
+	if(typeof prio !== 'number')
+		prio = webPrio;
+
+	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
-function requestSetComponentState(comp, state){
-	state_str = state?"true":"false";
-	websocket.send('{"command":"componentstate", "tan":'+wsTan+',"componentstate":{"component":"'+comp+'","state":'+state_str+'}}');
-	console.log(comp+' state: '+state_str);
+function requestPlayEffect(effectName)
+{
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+'');
+}
+
+function requestSetColor(r,g,b)
+{
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+'');
+}
+
+function requestSetComponentState(comp, state)
+{
+	state_str = state ? "true" : "false";
+	sendToHyperion("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
 }
 
 function requestSetSource(prio)
 {
 	if ( prio == "auto" )
-		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "auto" : true}');
+		sendToHyperion("sourceselect", "", '"auto":true');
 	else
-		websocket.send('{"command":"sourceselect", "tan":'+wsTan+', "priority" : '+prio+'}');
+		sendToHyperion("sourceselect", "", '"priority":'+prio);
 }
 
-function requestWriteConfig(config)
+function requestWriteConfig(config, full)
 {
-	var complete_config = parsedConfJSON;
-	jQuery.each(config, function(i, val) {
-		complete_config[i] = val;
+	if(full === true)
+		serverConfig = config;
+	else
+	{
+		jQuery.each(config, function(i, val) {
+			serverConfig[i] = val;
+		});
+	}
+
+	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
+
+	$.post( "/cgi/cfg_set", { cfg: config_str })
+	.done(function( data ) {
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+	})
+	.fail(function() {
+		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
 	});
-	websocket.send('{"command":"config","subcommand":"setconfig", "tan":'+wsTan+', "config":'+JSON.stringify(complete_config)+'}');
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
 {
 	var cutArgs = effectArgs.slice(1, -1);
-	websocket.send('{"command":"create-effect","name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+'}');
+	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs);
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs) {
-	websocket.send('{"command":"effect", "tan":'+wsTan+',"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+function requestTestEffect(effectName,effectPy,effectArgs)
+{
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":'+webPrio+', "pythonScript":"'+effectPy+'"}');
 }
 
-function requestDeleteEffect(effectName) {
-	websocket.send('{"command":"delete-effect", "tan":'+wsTan+',"name":"'+effectName+'"}');
+function requestDeleteEffect(effectName)
+{
+	sendToHyperion("delete-effect", "", '"name":"'+effectName+'"');
 }
 
-function requestLoggingStart() {
+function requestLoggingStart()
+{
 	loggingStreamActive=true;
-	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"start"}');
+	sendToHyperion("logging", "start");
 }
 
-function requestLoggingStop() {
+function requestLoggingStop()
+{
 	loggingStreamActive=false;
-	websocket.send('{"command":"logging", "tan":'+wsTan+',"subcommand":"stop"}');
+	sendToHyperion("logging", "stop");
 }
 
+function requestMappingType(type)
+{
+	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
+}
+
+function requestAdjustment(type, value, complete)
+{
+	if(complete === true)
+		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
+	else	
+		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+}

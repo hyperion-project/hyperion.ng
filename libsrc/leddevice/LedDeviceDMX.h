@@ -18,6 +18,8 @@ public:
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
+	
+	virtual bool init(const QJsonObject &deviceConfig);
 
 private:
 	///

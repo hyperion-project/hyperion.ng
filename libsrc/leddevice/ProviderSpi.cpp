@@ -33,12 +33,14 @@ ProviderSpi::~ProviderSpi()
 
 bool ProviderSpi::init(const QJsonObject &deviceConfig)
 {
+	LedDevice::init(deviceConfig);
+
 	_deviceName    = deviceConfig["output"].toString(QString::fromStdString(_deviceName)).toStdString();
 	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
 	_latchTime_ns  = deviceConfig["latchtime"].toInt(_latchTime_ns);
 	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
-
+	
 	return true;
 }
 
@@ -97,7 +99,7 @@ int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
 
-	if (retVal == 0 && _latchTime_ns > 0)
+	if (retVal >= 0 && _latchTime_ns > 0)
 	{
 		// The 'latch' time for latching the shifted-value into the leds
 		timespec latchTime;

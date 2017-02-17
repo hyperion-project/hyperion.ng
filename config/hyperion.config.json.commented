@@ -4,6 +4,16 @@
 
 
 {
+	/// geenral Settings 
+	/// * 'name'          : The user friendly name of the hyperion instance (used for network things)
+	/// * 'showOptHelp'   : Show option expanations at the webui. Highly recommended for beginners.
+	/// * 'configVersion' : Don't touch! It's an internal value regarding which validation schema for this config is used.
+	"general" :
+	{
+		"name"       : "MyHyperionConfig",
+		"showOptHelp" : true,
+		"configVersion" : 2
+	},
 	/// set log level: silent warn verbose debug
 	"logger" :
 	{
@@ -16,99 +26,55 @@
 	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
+	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
 	"device" :
 	{
-		"name"       : "MyHyperionConfig",
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
-		"colorOrder" : "rgb"
+		"colorOrder" : "rgb",
+		"rewriteTime": 0
 	},
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
 	/// The configuration contains a list of color-transforms. Each transform contains the 
 	/// following fields:
-	///  * 'channelAdjustment_enable'   : true/false enables/disables this channelAdjustment section
-	///  * 'channelAdjustment_v4l_only' : if enabled and set to true, then channelAdjustment is only for v4l devices
+	///  * 'imageToLedMappingType'      : multicolor_mean - every led has it's own calculatedmean color
+	///                                   unicolor_mean   - every led has same color, color is the mean of whole image
 	///  * 'channelAdjustment'
-	///  * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
-	///  * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'pureRed'/'pureGreen'/'pureBlue' : The manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
-	///  * 'transform_enable'   : true/false enables/disables this transform section
-	///  * 'transform_v4l_only' : if enabled and set to true, then transform is only for v4l devices
-	///  * 'transform'
-	///  * 'id'   : The unique identifier of the color transformation (eg 'device_1')
-	///  * 'leds' : The indices (or index ranges) of the leds to which this color transform applies
-	///             (eg '0-5, 9, 11, 12-17'). The indices are zero based.
-	///  * 'hsv' : The manipulation in the Hue-Saturation-Value color domain with the following 
-	///            tuning parameters:
-	///            - 'saturationGain'  The gain adjustement of the saturation
-	///            - 'luminanceGain'       The gain adjustement of the luminance
-	///            - 'luminanceMinimum'    The minimum luminance (backlight)
-	///  * 'red'/'green'/'blue' : The manipulation in the Red-Green-Blue color domain with the 
-	///                           following tuning parameters for each channel:
-	///            - 'threshold'       The minimum required input value for the channel to be on 
-	///                                (else zero)
-	///            - 'gamma'           The gamma-curve correction factor
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
+	///            (eg '0-5, 9, 11, 12-17'). The indices are zero based.
+	///      * 'black'/'white'/'red'/'green'/'blue'/'cyan'/'magenta'/'yellow' : Array of RGB to adjust the output color
+	///      * 'gammaRed'/'gammaGreen'/'gammaBlue'  : Gamma value for each channel 
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
+	///  	 * 'backlightThreshold' : Minimum brightness (backlight)
+	///  	 * 'backlightColored'   : backlight with color, instead of white
+	///  	 * 'brightness' : Between 0.0-0.5 the brightness is linearized (white is as bright as red, is as bright as yellow).
+	///						  Between 0.5-1.0 the linearization reduces slowly until it's gone with 1.0 (white is 3x brighter than red, yellow is 2x brighter than red)
 	"color" :
 	{
-		"channelAdjustment_enable" : true,
-		"channelAdjustment_v4l_only" : true,
+		"imageToLedMappingType" : "multicolor_mean",
 		"channelAdjustment" :
 		[
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"pureRed" :
-				{
-					"redChannel"   : 255,
-					"greenChannel" : 0,
-					"blueChannel"  : 0
-				},
-				"pureGreen" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 255,
-					"blueChannel"  : 0
-				},
-				"pureBlue" :
-				{
-					"redChannel"   : 0,
-					"greenChannel" : 0,
-					"blueChannel"  : 255
-				}
-			}
-		],
-		"transform_enable" : true,
-		"transform_v4l_only" : true,
-		"transform" :
-		[
-			{
-				"id"   : "default",
-				"leds" : "*",
-				"hsl" :
-				{
-					"saturationGain"   : 1.0000,
-					"luminanceGain"    : 1.0000,
-					"luminanceMinimum" : 0.0000
-				},
-				"red" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				},
-				"green" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				},
-				"blue" :
-				{
-					"threshold" : 0.0000,
-					"gamma"     : 2.5000
-				}
+				"black"   : [0,0,0],
+				"white"   : [255,255,255],
+				"red"     : [255,0,0],
+				"green"   : [0,255,0],
+				"blue"    : [0,0,255],
+				"cyan"    : [0,255,255],
+				"magenta" : [255,0,255],
+				"yellow"  : [255,255,0],
+				"gammaRed"   : 1.5,
+				"gammaGreen" : 1.5,
+				"gammaBlue"  : 1.5,
+				"backlightThreshold"  : 0.0,
+				"backlightColored"  : false,
+				"brightness" : 0.5
 			}
 		]
 	},
@@ -151,6 +117,10 @@
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
+	///  * signalDetectionVerticalOffsetMin   : area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionHorizontalOffsetMin : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionVerticalOffsetMax   : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
+	///  * signalDetectionHorizontalOffsetMax : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
 	[
 		{
@@ -162,7 +132,7 @@
 			"height"   : -1,
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
-			"priority"    : 890,
+			"priority"    : 240,
 			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
@@ -171,7 +141,11 @@
 			"cropBottom"  : 0,
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
-			"blueSignalThreshold"  : 0.0
+			"blueSignalThreshold"  : 0.0,
+			"signalDetectionVerticalOffsetMin"   : 0.25,
+			"signalDetectionHorizontalOffsetMin" : 0.25,
+			"signalDetectionVerticalOffsetMax"   : 0.75,
+			"signalDetectionHorizontalOffsetMax" : 0.75
 		}
 	],
 
@@ -181,7 +155,7 @@
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
-	///   * priority     : The priority of the frame-gabber (Default=890) HINT: lower value result in HIGHER priority! 
+	///   * priority     : The priority of the frame-gabber (Default=250) HINT: lower value result in HIGHER priority! 
 	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
 	"framegrabber" :
 	{
@@ -189,7 +163,7 @@
 		"enable"       : true,
 		"type"         : "framebuffer",
 		"frequency_Hz" : 10,
-		"priority"     : 890,
+		"priority"     : 250,
 
 		// valid for grabber: osx|dispmanx|amlogic|framebuffer
 		"width"        : 96,
@@ -221,7 +195,7 @@
 	"blackborderdetector" :
 	{
 		"enable"             : true,
-		"threshold"          : 0.0,
+		"threshold"          : 0.05,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -250,25 +224,37 @@
 		"grabAudio"         : true,
 		"grabMenu"          : false,
 		"grabPause"         : false,
-		"grabScreensaver"   : true,
-		"enable3DDetection" : true
+		"grabScreensaver"   : false,
+		"enable3DDetection" : false
 	},
 
-	/// Initial Effect sets a "booteffect" or "color" (foreground-effect) and optional set a "effect" or "color" during inactive grabbers and network receivers (background-effect) 
-	///  * background-effect      : 2 options: set a effect (example: ["Rainbow swirl fast"]) or set a color (RGB) (example: [255,134,0])
-	///  * background-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
-	///  * foreground-effect      : 2 options: set a effect (example: ["Rainbow swirl fast"]) or set a color (RGB) (example: [255,134,0])
-	///  * foreground-effect-args : Set optional effect arguments (Have a look at the select effect to get the possible values), define it only when needed
-	///  * foreground-duration_ms : The duration of the selected foreground-effect or color (0=endless)
-	///                       HINT: "foreground-effect" starts always with priority 0, so it blocks all remotes and grabbers if the loop is endless
-	///                       HINT: Set a empty value if you want to disable a component (example: "")
-	"initialEffect" :
+	/// foregroundEffect sets a "booteffect" or "bootcolor" during startup for a given period in ms (duration_ms)
+	///  * enable      : if true, foreground effect is enabled
+	///  * type        : choose between "color" or "effect"
+	///  * color       : if type is color, a color is used (RGB) (example: [0,0,255])
+	///  * effect      : if type is effect a effect is used (example: "Rainbow swirl fast")
+	///  * duration_ms : The duration of the selected effect or color (0=endless)
+	///            HINT: "foregroundEffect" starts always with priority 0, so it blocks all remotes and grabbers if the duration_ms is endless (0)
+	"foregroundEffect" :
 	{
-		"background-effect"      : ["Full color mood blobs"],
-		//"background-effect-args" : {},
-		"foreground-effect"      : ["Rainbow swirl fast"],
-		//"foreground-effect-args" : {},
-		"foreground-duration_ms" : 3000
+		"enable"      : true,
+		"type"        : "effect",
+		"color"       : [0,0,255],
+		"effect"      : "Rainbow swirl fast",
+		"duration_ms" : 3000
+	},
+	
+	/// backgroundEffect sets a background effect or color. It is used when all capture devices are stopped (with the help of the kodiVideChecker or manual via remote). Could be also selected via priorities selection.
+	///  * enable : if true, background effect is enabled
+	///  * type   : choose between "color" or "effect"
+	///  * color  : if type is color, a color is used (RGB) (example: [255,134,0])
+	///  * effect : if type is effect a effect is used (example: "Rainbow swirl fast")
+	"backgroundEffect" :
+	{
+		"enable" : true,
+		"type"   : "effect",
+		"color"  : [255,138,0],
+		"effect" : "Warm mood blobs"
 	},
 
 	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
@@ -302,19 +288,19 @@
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=800) HINT: lower value result in HIGHER priority! 
+	///  * priority : Priority of the boblight server (Default=200) HINT: lower value result in HIGHER priority! 
  	"boblightServer" :
  	{
  		"enable"   : false,
  		"port"     : 19333,
- 		"priority" : 800
+ 		"priority" : 200
  	},
 
 	/// The configuration of the udp listener
 	///  * enable   : Enable or disable the udp listener (true/false)
 	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
 	///  * port     : Port at which the udp listener starts
-	///  * priority : Priority of the udp lstener server (Default=800)
+	///  * priority : Priority of the udp listener server (Default=190)
 	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
 	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
 	"udpListener" :
@@ -322,19 +308,19 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 800,
+		"priority" : 190,
 		"timeout"  : 10000,
 		"shared"   : false
 	},
 
 	/// Configuration of the Hyperion webserver
-	///  * enable        : enable ir disable the webserver (true/false)
-	///  * document_root : path to hyperion webapp files
+	///  * enable        : enable or disable the webserver (true/false)
+	///  * document_root : path to hyperion webapp files (webconfig developer only)
 	///  * port          : the port where hyperion webapp is accasible
 	"webConfig" :
 	{
 		"enable"        : true,
-		"document_root" : "/usr/share/hyperion/webconfig",
+		"document_root" : "/path/to/files",
 		"port"          : 8099
 	},
 
@@ -355,6 +341,23 @@
 		]
 	},
 	
+	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
+	"ledConfig" :
+	{
+		"top"	 	: 8,
+		"bottom"	: 8,
+		"left"		: 5,
+		"right"		: 5,
+		"glength"	: 0,
+		"gpos"		: 0,
+		"position"	: 0,
+		"reverse"	: false,
+		"hdepth"	: 8,
+		"vdepth"	: 5,
+		"overlap"	: 0,
+		"edgegap"	: 0
+	},
+	
 	///  The configuration for each individual led. This contains the specification of the area 
 	///  averaged of an input image for each led to determine its color. Each item in the list 
 	///  contains the following fields:
@@ -365,237 +368,293 @@
 	///  * vscan: The fractional part of the image along the vertical used for the averaging 
 	///           (minimum and maximum inclusive)
 	
-	"leds" :
+    "leds":
 	[
 		{
-			"index" : 0,
-			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.125,
+				"minimum": 0
+			},
+			"index": 0,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 1,
-			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.25,
+				"minimum": 0.125
+			},
+			"index": 1,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 2,
-			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.375,
+				"minimum": 0.25
+			},
+			"index": 2,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 3,
-			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.5,
+				"minimum": 0.375
+			},
+			"index": 3,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 4,
-			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.625,
+				"minimum": 0.5
+			},
+			"index": 4,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 5,
-			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.75,
+				"minimum": 0.625
+			},
+			"index": 5,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 6,
-			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.875,
+				"minimum": 0.75
+			},
+			"index": 6,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 7,
-			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.875
+			},
+			"index": 7,
+			"vscan": {
+				"maximum": 0.08,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 8,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
+			"index": 8,
+			"vscan": {
+				"maximum": 0.2,
+				"minimum": 0
+			}
 		},
 		{
-			"index" : 9,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
+			"index": 9,
+			"vscan": {
+				"maximum": 0.4,
+				"minimum": 0.2
+			}
 		},
 		{
-			"index" : 10,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
+			"index": 10,
+			"vscan": {
+				"maximum": 0.6,
+				"minimum": 0.4
+			}
 		},
 		{
-			"index" : 11,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
+			"index": 11,
+			"vscan": {
+				"maximum": 0.8,
+				"minimum": 0.6
+			}
 		},
 		{
-			"index" : 12,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.95
+			},
+			"index": 12,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.8
+			}
 		},
 		{
-			"index" : 13,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
+			"hscan": {
+				"maximum": 1,
+				"minimum": 0.875
+			},
+			"index": 13,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 14,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
+			"hscan": {
+				"maximum": 0.875,
+				"minimum": 0.75
+			},
+			"index": 14,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 15,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
+			"hscan": {
+				"maximum": 0.75,
+				"minimum": 0.625
+			},
+			"index": 15,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 16,
-			"hscan" : { "minimum" : 0.0000, "maximum" : 0.0625 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.625,
+				"minimum": 0.5
+			},
+			"index": 16,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 17,
-			"hscan" : { "minimum" : 0.0625, "maximum" : 0.1250 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.5,
+				"minimum": 0.375
+			},
+			"index": 17,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 18,
-			"hscan" : { "minimum" : 0.1250, "maximum" : 0.1875 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.375,
+				"minimum": 0.25
+			},
+			"index": 18,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 19,
-			"hscan" : { "minimum" : 0.1875, "maximum" : 0.2500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.25,
+				"minimum": 0.125
+			},
+			"index": 19,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 20,
-			"hscan" : { "minimum" : 0.2500, "maximum" : 0.3125 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.125,
+				"minimum": 0
+			},
+			"index": 20,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.92
+			}
 		},
 		{
-			"index" : 21,
-			"hscan" : { "minimum" : 0.3125, "maximum" : 0.3750 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 21,
+			"vscan": {
+				"maximum": 1,
+				"minimum": 0.8
+			}
 		},
 		{
-			"index" : 22,
-			"hscan" : { "minimum" : 0.3750, "maximum" : 0.4375 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 22,
+			"vscan": {
+				"maximum": 0.8,
+				"minimum": 0.6
+			}
 		},
 		{
-			"index" : 23,
-			"hscan" : { "minimum" : 0.4375, "maximum" : 0.5000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 23,
+			"vscan": {
+				"maximum": 0.6,
+				"minimum": 0.4
+			}
 		},
 		{
-			"index" : 24,
-			"hscan" : { "minimum" : 0.5000, "maximum" : 0.5625 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 24,
+			"vscan": {
+				"maximum": 0.4,
+				"minimum": 0.2
+			}
 		},
 		{
-			"index" : 25,
-			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 26,
-			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 27,
-			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 28,
-			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 29,
-			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 30,
-			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 31,
-			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.0800 }
-		},
-		{
-			"index" : 32,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.0000, "maximum" : 0.1429 }
-		},
-		{
-			"index" : 33,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.1429, "maximum" : 0.2857 }
-		},
-		{
-			"index" : 34,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.2857, "maximum" : 0.4286 }
-		},
-		{
-			"index" : 35,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.4286, "maximum" : 0.5714 }
-		},
-		{
-			"index" : 36,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.5714, "maximum" : 0.7143 }
-		},
-		{
-			"index" : 37,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.7143, "maximum" : 0.8571 }
-		},
-		{
-			"index" : 38,
-			"hscan" : { "minimum" : 0.9500, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.8571, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 39,
-			"hscan" : { "minimum" : 0.9375, "maximum" : 1.0000 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 40,
-			"hscan" : { "minimum" : 0.8750, "maximum" : 0.9375 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 41,
-			"hscan" : { "minimum" : 0.8125, "maximum" : 0.8750 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 42,
-			"hscan" : { "minimum" : 0.7500, "maximum" : 0.8125 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 43,
-			"hscan" : { "minimum" : 0.6875, "maximum" : 0.7500 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 44,
-			"hscan" : { "minimum" : 0.6250, "maximum" : 0.6875 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
-		},
-		{
-			"index" : 45,
-			"hscan" : { "minimum" : 0.5625, "maximum" : 0.6250 },
-			"vscan" : { "minimum" : 0.9200, "maximum" : 1.0000 }
+			"hscan": {
+				"maximum": 0.05,
+				"minimum": 0
+			},
+			"index": 25,
+			"vscan": {
+				"maximum": 0.2,
+				"minimum": 0
+			}
 		}
 	]
 }

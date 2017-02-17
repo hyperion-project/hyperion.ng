@@ -21,7 +21,10 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 	{
 		_ofs.close();
 	}
-	
+
+	_refresh_timer_interval = 0;
+	LedDevice::init(deviceConfig);
+
 	std::string fileName = deviceConfig["output"].toString("/dev/null").toStdString();
 	_ofs.open( fileName.c_str() );
 

@@ -1,21 +1,23 @@
 {
 	"type":"object",
 	"script" : "random.py",
-	"title":"Random",
+	"title":"edt_eff_random_header_title",
 	"required":true,
 	"properties":{
 		"speed": {
 			"type": "number",
-			"title":"Speed",
+			"title":"edt_eff_speed_title",
 			"default": 1.0,
 			"minimum" : 0.0,
 			"propertyOrder" : 1
 		},
 		"saturation": {
 			"type": "number",
-			"title":"Saturation",
+			"title":"edt_eff_saturation_title",
 			"default": 1.0,
-			"minimum" : 0.0,
+			"minimum" : 0.1,
+			"maximum" : 1.0,
+			"step" : 0.1,
 			"propertyOrder" : 2
 		}
 	},

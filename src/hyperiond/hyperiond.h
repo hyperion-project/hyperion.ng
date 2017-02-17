@@ -49,11 +49,13 @@
 
 class HyperionDaemon : public QObject
 {
+	Q_OBJECT
 public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
 	
-	void loadConfig(const QString & configFile);
+	int tryLoadConfig(const QString & configFile, const int schemaVersion);
+	void loadConfig(const QString & configFile, const int neededConfigVersion);
 	void run();
 
 	void startInitialEffect();
@@ -63,6 +65,9 @@ public:
 	// grabber creators
 	void createGrabberV4L2();
 	void createSystemFrameGrabber();
+
+public slots:
+	void freeObjects();
 
 private:
 	void createGrabberDispmanx();

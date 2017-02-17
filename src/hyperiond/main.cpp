@@ -29,8 +29,16 @@
 
 using namespace commandline;
 
+#define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
+
 void signal_handler(const int signum)
 {
+	if(signum == SIGCHLD)
+	{
+		// only quit when a registered child process is gone
+		// currently this feature is not active ...
+		return;
+	}
 	QCoreApplication::quit();
 
 	// reset signal handler to default (in case this handler is not capable of stopping)
@@ -40,7 +48,8 @@ void signal_handler(const int signum)
 
 void startNewHyperion(int parentPid, std::string hyperionFile, std::string configFile)
 {
-	if ( fork() == 0 )
+	pid_t childPid = fork(); // child pid should store elsewhere for later use
+	if ( childPid == 0 )
 	{
 		sleep(3);
 		execl(hyperionFile.c_str(), hyperionFile.c_str(), "--parent", QString::number(parentPid).toStdString().c_str(), configFile.c_str(), NULL);
@@ -60,6 +69,7 @@ int main(int argc, char** argv)
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
+	signal(SIGABRT, signal_handler);
 	signal(SIGCHLD, signal_handler);
 	signal(SIGPIPE, signal_handler);
 
@@ -128,16 +138,19 @@ int main(int argc, char** argv)
 		{
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			QString destFileName;
 			foreach (const QString & filename, filenames)
 			{
-				if (QFile::exists(destDir.dirName()+"/"+filename))
+				destFileName = destDir.dirName()+"/"+filename;
+				if (QFile::exists(destFileName))
 				{
-					QFile::remove(destDir.dirName()+"/"+filename);
+					QFile::remove(destFileName);
 				}
 				
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(QString(":/effects/")+filename, destDir.dirName()+"/"+filename))
+				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
+					QFile::setPermissions(destFileName, PERM0664 );
 					std::cout << "ok" << std::endl;
 				}
 				else
@@ -176,11 +189,15 @@ int main(int argc, char** argv)
 		QDir().mkpath(FileUtils::getDirName(exportConfigFileTarget));
 		if (QFile::copy(":/hyperion_default.config",exportConfigFileTarget))
 		{
+			QFile::setPermissions(exportConfigFileTarget, PERM0664 );
 			Info(log, "export complete.");
 			if (exitAfterexportDefaultConfig) return 0;
 		}
-		Error(log, "can not export to %s",exportConfigFileTarget.toLocal8Bit().constData());
-		if (exitAfterexportDefaultConfig) return 1;
+		else
+		{
+			Error(log, "error while export to %s",exportConfigFileTarget.toLocal8Bit().constData());
+			if (exitAfterexportDefaultConfig) return 1;
+		}
 	}
 
 	if (configFiles.size() == 0)

@@ -110,11 +110,12 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
  		else if (attribute == "id")
  			; // references have already been collected
  		else if (attribute == "title" || attribute == "description"  || attribute == "default" || attribute == "format"
-			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append")
+			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append" || attribute == "step" || attribute == "access" || attribute == "options" || attribute == "script")
  			; // nothing to do.
 		else
 		{
 			// no check function defined for this attribute
+			_error = true;
 			setMessage(std::string("No check function defined for attribute ") + attribute.toStdString());
 			continue;
 		}

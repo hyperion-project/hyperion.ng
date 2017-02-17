@@ -30,6 +30,8 @@ public:
 
 	bool verifyAdjustments() const;
 
+	void setBacklightEnabled(bool enable);
+
 	///
 	/// Returns the identifier of all the unique ColorAdjustment
 	///
@@ -61,4 +63,7 @@ private:
 
 	/// List with a pointer to the ColorAdjustment for each individual led
 	std::vector<ColorAdjustment*> _ledAdjustments;
+
+	// logger instance
+	Logger * _log;
 };

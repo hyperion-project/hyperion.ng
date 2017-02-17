@@ -4,34 +4,34 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"Target IP",
+			"title":"edt_dev_spec_targetIp_title",
 			"propertyOrder" : 1
 		},
 		"username": {
 			"type": "string",
-			"title":"Username",
+			"title":"edt_dev_spec_username_title",
 			"default": "newdeveloper",
 			"propertyOrder" : 2
 		},
 		"lightIds": {
 			"type": "array",
-			"title":"Light ids",
+			"title":"edt_dev_spec_lightid_title",
 			"items" : {
-				"type" : "integer"
+				"type" : "integer",
+				"title" : "edt_dev_spec_lightid_itemtitle"
 			},
 			"propertyOrder" : 3
 		},
 		"transitiontime": {
 			"type": "integer",
-			"title":"Transistion time",
+			"title":"edt_dev_spec_transistionTime_title",
 			"default" : 1,
 			"append" : "x100ms",
 			"propertyOrder" : 4
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
-			"format": "checkbox",
-			"title":"Switch off on black",
+			"title":"edt_dev_spec_switchOffOnBlack_title",
 			"default" : true,
 			"propertyOrder" : 5
 		}
