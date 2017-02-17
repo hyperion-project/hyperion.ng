@@ -37,20 +37,21 @@ target_link_libraries(bonjour
 		hyperion-utils
         ${QT_LIBRARIES})
 
-set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
+IF (NOT APPLE)
+	set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
 
-if (USE_SHARED_AVAHI_LIBS)
-	target_link_libraries(bonjour
-		dns_sd
-		avahi-client
-		avahi-common
-		avahi-core
-		dbus-1)
-elseif (DEFAULT_USE_AVAHI_LIBS)
-	target_link_libraries(bonjour
-		libdns_sd.a
-		libavahi-client.a
-		libavahi-common.a
-		libavahi-core.a
-		dbus-1)
-endif()
+	if (USE_SHARED_AVAHI_LIBS)
+		target_link_libraries(bonjour
+			dns_sd
+			avahi-client
+			avahi-common
+			avahi-core)
+	else()
+		target_link_libraries(bonjour
+			libdns_sd.a
+			libavahi-client.a
+			libavahi-common.a
+			libavahi-core.a)
+	endif()
+	target_link_libraries(bonjour dbus-1)
+ENDIF()

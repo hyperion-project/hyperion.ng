@@ -36,6 +36,7 @@
 #include <utils/ColorSys.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
+#include <hyperion/GrabberWrapper.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Process.h>
@@ -761,14 +762,26 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	// get available led devices
 	QJsonObject ledDevices;
 	ledDevices["active"] = QString::fromStdString(LedDevice::activeDevice());
-	QJsonArray available;
+	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
-		available.append(QString::fromStdString(dev.first));
+		availableLedDevices.append(QString::fromStdString(dev.first));
 	}
 	
-	ledDevices["available"] = available;
+	ledDevices["available"] = availableLedDevices;
 	info["ledDevices"] = ledDevices;
+
+	// get available grabbers
+	QJsonObject grabbers;
+	//grabbers["active"] = ????;
+	QJsonArray availableGrabbers;
+	for (auto grabber: GrabberWrapper::availableGrabbers())
+	{
+		availableGrabbers.append(grabber);
+	}
+	
+	grabbers["available"] = availableGrabbers;
+	info["grabbers"] = grabbers;
 
 	// get available components
 	QJsonArray component;
