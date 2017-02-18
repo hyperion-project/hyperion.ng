@@ -1332,17 +1332,16 @@
 		},
 		"leds":
 		{
-			"type":"array",
-			"required":true,
+			"type":"array"
 			"items":
 			{
 				"type":"object",
+				"required":["hscan","vscan","index"],
 				"properties":
 				{
 					"index":
 					{
-						"type":"integer",
-						"required":true
+						"type":"integer"
 					},
 					"clone":
 					{
@@ -1357,15 +1356,13 @@
 							{
 								"type":"number",
 								"minimum" : 0,
-								"maximum" : 1,
-								"required":true
+								"maximum" : 1
 							},
 							"maximum":
 							{
 								"type":"number",
 								"minimum" : 0,
-								"maximum" : 1,
-								"required":true
+								"maximum" : 1
 							}
 						},
 						"additionalProperties" : false
@@ -1379,15 +1376,13 @@
 							{
 								"type":"number",
 								"minimum" : 0,
-								"maximum" : 1,
-								"required":true
+								"maximum" : 1
 							},
 							"maximum":
 							{
 								"type":"number",
 								"minimum" : 0,
-								"maximum" : 1,
-								"required":true
+								"maximum" : 1
 							}
 						},
 						"additionalProperties" : false
