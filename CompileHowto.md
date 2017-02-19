@@ -107,7 +107,7 @@ To generate make files on OS X:
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0  -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.8.0  -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 ### Run make to build Hyperion
