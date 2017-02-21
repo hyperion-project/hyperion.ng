@@ -376,7 +376,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 
 	// create the effect
     Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,QString="Blaah")), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,QString="Blaah")), Qt::QueuedConnection);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
