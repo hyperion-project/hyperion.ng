@@ -45,7 +45,7 @@ public:
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, int priority, int timeout = -1)
+	int runEffect(const QString &effectName, int priority, int timeout = -1, const QString origin="System")
 	{
 		return runEffect(effectName, QJsonObject(), priority, timeout);
 	};
@@ -68,7 +68,7 @@ private:
 	bool loadEffectSchema(const QString & path, const QString & effectSchemaFile, EffectSchema &effectSchema);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1);
+	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1, const QString origin="System");
 
 private:
 	Hyperion * _hyperion;

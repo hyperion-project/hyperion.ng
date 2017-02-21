@@ -342,7 +342,7 @@ void EffectEngine::readEffects()
 	}
 }
 
-int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript, const QString origin)
 {
 	Info( _log, "run effect %s on channel %d", effectName.toUtf8().constData(), priority);
 
@@ -364,12 +364,12 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 			return -1;
 		}
 
-		return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
+		return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout, origin);
 	} else
-		return runEffectScript(pythonScript, effectName, args, priority, timeout);
+		return runEffectScript(pythonScript, effectName, args, priority, timeout, origin);
 }
 
-int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout)
+int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout, const QString origin)
 {
 	// clear current effect on the channel
 	channelCleared(priority);
@@ -381,7 +381,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority(name.toStdString(), priority);
+	_hyperion->registerPriority(name.toStdString(), priority, origin);
 	effect->start();
 
 	return 0;
