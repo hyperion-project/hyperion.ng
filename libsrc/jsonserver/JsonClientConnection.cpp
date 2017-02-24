@@ -438,7 +438,6 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString origin = message["origin"].toString();
 	QString pythonScript = message["pythonScript"].toString("");
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
@@ -446,11 +445,11 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// set output
 	if (effect.contains("args"))
 	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript, origin);
+		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript);
 	}
 	else
 	{
-		_hyperion->setEffect(effectName, priority, duration, origin);
+		_hyperion->setEffect(effectName, priority, duration);
 	}
 
 	// send reply

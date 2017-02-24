@@ -504,7 +504,7 @@ bool Hyperion::configWriteable()
 }
 
 
-void Hyperion::registerPriority(const std::string name, const int priority, const QString origin)
+void Hyperion::registerPriority(const std::string name, const int priority)
 {
 	Info(_log, "Register new input source named '%s' for priority channel '%d'", name.c_str(), priority );
 	
@@ -514,7 +514,7 @@ void Hyperion::registerPriority(const std::string name, const int priority, cons
 		           "Input source '%s' uses same priority channel (%d) as '%s'.", name.c_str(), priority, entry.first.c_str());
 	}
 
-	_priorityRegister.emplace(name,priority,origin);
+	_priorityRegister.emplace(name,priority);
 }
 
 void Hyperion::unRegisterPriority(const std::string name)
@@ -688,14 +688,14 @@ const std::list<EffectSchema> & Hyperion::getEffectSchemas()
 	return _effectEngine->getEffectSchemas();
 }
 
-int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString origin)
+int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
 {
-	return _effectEngine->runEffect(effectName, priority, timeout, origin);
+	return _effectEngine->runEffect(effectName, priority, timeout);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript, const QString origin)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
 }
 
 void Hyperion::setLedMappingType(int mappingType)

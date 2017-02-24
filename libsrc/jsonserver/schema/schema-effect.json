@@ -20,10 +20,6 @@
 			"type": "integer",
 			"required": false
 		},
-		"origin": {
-			"type": "string",
-			"required": true
-		},
 		"effect": {
 			"type": "object",
 			"required": true,

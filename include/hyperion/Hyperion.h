@@ -133,8 +133,7 @@ public:
 	/// register a input source to a priority channel
 	/// @param name uniq name of input source
 	/// @param priority priority channel
-	/// @param origin External setter
-	void registerPriority(const std::string name, const int priority, const QString origin="System");
+	void registerPriority(const std::string name, const int priority);
 	
 	/// unregister a input source to a priority channel
 	/// @param name uniq name of input source
@@ -244,14 +243,14 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, int priority, int timeout = -1, const QString origin="System");
+	int setEffect(const QString & effectName, int priority, int timeout = -1);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "", const QString origin="System");
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
 
 	/// sets the methode how image is maped to leds
 	void setLedMappingType(int mappingType);
