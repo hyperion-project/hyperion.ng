@@ -47,11 +47,11 @@ public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const QString &effectName, int priority, int timeout = -1, const QString origin="System")
 	{
-		return runEffect(effectName, QJsonObject(), priority, timeout, origin);
+		return runEffect(effectName, QJsonObject(), priority, timeout);
 	};
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "", QString origin);
+	int runEffect(const QString &effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
 
 	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
