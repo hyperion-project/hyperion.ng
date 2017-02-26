@@ -1028,7 +1028,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 
 	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
-	
+
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
@@ -1039,7 +1039,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 	schemaData.close();
-	
+
 	if (error.error != QJsonParseError::NoError)
 	{
 		// report to the user the failure and their locations in the document.
