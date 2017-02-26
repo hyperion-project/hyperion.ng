@@ -38,4 +38,5 @@ qt5_use_modules(jsonserver Network Gui)
 target_link_libraries(jsonserver
 	hyperion
 	hyperion-utils
+	bonjour
 	${QT_LIBRARIES})

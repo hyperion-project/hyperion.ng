@@ -15,6 +15,7 @@
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
+#include <bonjour/bonjourservicebrowser.h>
 
 class ImageProcessor;
 
@@ -348,7 +349,9 @@ private:
 
 	/// timeout for live video refresh
 	volatile qint64 _image_stream_timeout;
-	
+
+	BonjourServiceBrowser _bonjourBrowser;
+
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3   = 0x10;
