@@ -35,6 +35,7 @@ function createLedPreview(leds, origin){
 	}
 	
 	$('#previewledcount').html($.i18n('conf_leds_layout_preview_totalleds', leds.length));
+	$('#previewledpower').html($.i18n('conf_leds_layout_preview_ledpower', (leds.length * 0.06).toFixed(1)));
 	
 	$('.st_helper').css("border", "8px solid grey");
 	
@@ -498,7 +499,7 @@ $(document).ready(function() {
 	
 	// open checklist
 	$('#leds_prev_checklist').off().on("click", function() {
-		var liList = [$.i18n('conf_leds_leyout_checkp1'),$.i18n('conf_leds_leyout_checkp3'),$.i18n('conf_leds_leyout_checkp2'),$.i18n('conf_leds_leyout_checkp4')];
+		var liList = [$.i18n('conf_leds_layout_checkp1'),$.i18n('conf_leds_layout_checkp3'),$.i18n('conf_leds_layout_checkp2'),$.i18n('conf_leds_layout_checkp4')];
 		var ul = document.createElement("ul");
 		ul.className = "checklist"
 		
