@@ -64,14 +64,16 @@ $(document).ready( function() {
 	}
 	
 	//hide specific options
-	var grabbers = serverInfo.info.grabbers.available;
+	conf_editor_fg.on('ready',function() {
+		var grabbers = serverInfo.info.grabbers.available;
 
-	if(grabbers.indexOf('dispmanx') > -1)
-		hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
-	else if(grabbers.indexOf('x11') > -1)
-		hideEl(["device","width","height"]);
-	else if(grabbers.indexOf('osx')  > -1 || grabbers.indexOf('amlogic')  > -1)
-		hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage","cropLeft","cropBottom","cropTop","cropRight"]);
+		if(grabbers.indexOf('dispmanx') > -1)
+			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
+		else if(grabbers.indexOf('x11') > -1)
+			hideEl(["device","width","height"]);
+		else if(grabbers.indexOf('osx')  > -1 || grabbers.indexOf('amlogic')  > -1)
+			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage","cropLeft","cropBottom","cropTop","cropRight"]);
+	});
 	
 	removeOverlay();
 });
