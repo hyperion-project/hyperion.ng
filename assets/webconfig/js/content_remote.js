@@ -4,7 +4,8 @@ $(document).ready(function() {
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
 	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
-
+	var duration = 0;
+	
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
 	$('.ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
@@ -55,10 +56,11 @@ $(document).ready(function() {
 				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="1.0" step="0.05" value="'+value+'"/>';
 				else
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="4.0" step="0.1" value="'+value+'"/>';
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.01" max="4.0" step="0.1" value="'+value+'"/>';
 				
 				$('.crtbody').append(createTableRow([title, property], false, true));
 				$('#cr_'+sColor[key].key).off().on('change', function(e){
+					valValue(this.id,this.value,this.min,this.max);
 					requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
 				});
 			}
@@ -86,9 +88,10 @@ $(document).ready(function() {
 		var data = "";
 		var prios = serverInfo.info.priorities
 		var i;
+
 		for(i = 0; i < prios.length; i++)
 		{
-			var origin   = "not impl";
+			var origin   = prios[i].origin;
 			var ip       = "xxx.xxx.xxx.xxx";
 			var owner    = prios[i].owner;
 			var active   = prios[i].active;
@@ -218,9 +221,15 @@ $(document).ready(function() {
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
 		cpcolor = getStorage('rmcpcolor');
+	
+	if (getStorage('rmduration') != null)
+	{
+		$("#remote_duration").val(getStorage('rmduration'));
+		duration = getStorage('rmduration');
+	}
 			
 	createCP('cp2', cpcolor, function(rgb,hex){
-		requestSetColor(rgb.r, rgb.g, rgb.b);
+		requestSetColor(rgb.r, rgb.g, rgb.b,duration);
 		$("#effect_select").val("__none__");
 		setStorage('rmcpcolor', hex);
 	});
@@ -229,6 +238,11 @@ $(document).ready(function() {
 		requestPriorityClear();
 		$("#effect_select").val("__none__");
 	});
+	
+	$("#remote_duration").off().on("change", function(){
+		duration = valValue(this.id,this.value,this.min,this.max);
+		setStorage('rmduration', duration);
+	});
 
 	$("#effect_select").off().on("change", function(event) {
 		efx = $(this).val();
@@ -236,9 +250,16 @@ $(document).ready(function() {
 		{
 			requestPriorityClear();
 			$(hyperion).one("cmd-clear", function(event) {
-				setTimeout(function() {requestPlayEffect(efx)}, 100);
+				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
 			});
 		}
+	});
+	
+	$("#remote_input_img").change(function(){
+		readImg(this, function(src,width,height){
+			console.log(src,width,height)
+			requestSetImage(src,width,height,duration)
+		});
 	});
 	
 	//force first update

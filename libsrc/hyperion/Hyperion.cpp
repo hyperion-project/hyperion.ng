@@ -571,7 +571,7 @@ void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_m
 	setColors(priority, ledColors, timeout_ms, clearEffects, hyperion::COMP_COLOR);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin)
 {
 	// clear effects if this call does not come from an effect
 	if (clearEffects)
@@ -582,11 +582,11 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		_muxer.setInput(priority, ledColors, timeoutTime, component);
+		_muxer.setInput(priority, ledColors, timeoutTime, component, origin);
 	}
 	else
 	{
-		_muxer.setInput(priority, ledColors, -1, component);
+		_muxer.setInput(priority, ledColors, -1, component, origin);
 	}
 
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())

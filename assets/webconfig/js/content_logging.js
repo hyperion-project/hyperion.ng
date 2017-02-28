@@ -25,7 +25,7 @@ $(document).ready(function() {
 	$('#btn_submit').off().on('click',function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
-	
+
 	function uploadLog()
 	{
 		var reportUrl = 'https://glot.io/snippets/';
@@ -33,6 +33,7 @@ $(document).ready(function() {
 		var config = JSON.stringify(serverConfig, null, "\t").replace(/"/g, '\\"');
 		var prios = serverInfo.info.priorities;
 		var comps = serverInfo.info.components;
+		var info;
 		
 		//create log
 		for(var i = 0; i<messages.length; i++)
@@ -52,9 +53,17 @@ $(document).ready(function() {
 				
 			log += "["+app_name+" "+logger_name+"] <"+level_string+"> "+debug+msg+"\n";
 		}
+		//create general info
+		info = "######## GENERAL ######## \n";
+		info += 'Build:      '+serverInfo.info.hyperion[0].build+'\n';
+		info += 'Build time: '+serverInfo.info.hyperion[0].time+'\n';
+		info += 'Version:    '+serverInfo.info.hyperion[0].version+'\n';
+		info += 'UI Lang:    '+storedLang+'\n';
+		info += 'UI Access:  '+storedAccess+'\n';
+		info += 'Avail Capt: '+serverInfo.info.grabbers.available+'\n\n';
 		
 		//create prios
-		var info = "######## PRIORITIES ######## \n";
+		info += "######## PRIORITIES ######## \n";
 		for(var i = 0; i<prios.length; i++)
 		{
 			info += prios[i].priority;
@@ -96,7 +105,8 @@ $(document).ready(function() {
 			}
 		})
 		.fail( function( jqXHR, textStatus ) {
-			//console.log(jqXHR, textStatus)
+			$('#btn_logupload').attr("disabled", false);
+			$('#upl_link').html('<span style="color:red">'+$.i18n('conf_logging_uplfailed')+'<span>');
 		});
 	}
 

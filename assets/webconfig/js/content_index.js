@@ -67,8 +67,9 @@ $(document).ready( function() {
 		initRestart();
 	});
 	
-	$(".mnava").on('click', function(e){
+	$(".mnava").bind('click.menu', function(e){
 		loadContent(e);
+		window.scrollTo(0, 0);
 	});
 
 });
