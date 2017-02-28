@@ -16,7 +16,7 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
 		const int priority)
-	: GrabberWrapper("V4L2:"+device, priority, hyperion::COMP_V4L)
+	: GrabberWrapper("V4L2:"+QString::fromStdString(device), priority, hyperion::COMP_V4L)
 	, _timeout_ms(1000)
 	, _grabber(device,
 			input,

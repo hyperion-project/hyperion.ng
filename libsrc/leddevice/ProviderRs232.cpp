@@ -73,7 +73,7 @@ void ProviderRs232::bytesWritten(qint64 bytes)
 void ProviderRs232::readyRead()
 {
 	emit receivedData(_rs232Port.readAll());
-	Debug(_log, "received data");
+	//Debug(_log, "received data");
 }
 
 

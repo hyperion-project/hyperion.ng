@@ -2,14 +2,15 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/GrabberWrapper.h>
+#include <HyperionConfig.h>
 
-
-GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hyperion::Components grabberComponentId)
+#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
+GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
 	, _priority(priority)
 	, _timer()
-	, _log(Logger::getInstance(grabberName.c_str()))
+	, _log(Logger::getInstance(grabberName))
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _grabberComponentId(grabberComponentId)
@@ -28,7 +29,7 @@ GrabberWrapper::GrabberWrapper(std::string grabberName, const int priority, hype
 GrabberWrapper::~GrabberWrapper()
 {
 	stop();
-	Debug(_log,"Close grabber: %s", _grabberName.c_str());
+	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 	delete _processor;
 }
 
@@ -36,7 +37,7 @@ bool GrabberWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
-	_hyperion->registerPriority(_grabberName,_priority);
+	_hyperion->registerPriority(_grabberName.toStdString(), _priority);
 	return _timer.isActive();
 
 }
@@ -45,7 +46,7 @@ void GrabberWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
-	_hyperion->unRegisterPriority(_grabberName);
+	_hyperion->unRegisterPriority(_grabberName.toStdString());
 }
 
 void GrabberWrapper::componentStateChanged(const hyperion::Components component, bool enable)
@@ -104,4 +105,35 @@ void GrabberWrapper::setGrabbingMode(const GrabbingMode mode)
 void GrabberWrapper::setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms)
 {
 	_hyperion->setColors(_priority, ledColors, timeout_ms, true, _grabberComponentId);
+}
+
+QStringList GrabberWrapper::availableGrabbers()
+{
+	QStringList grabbers;
+
+	#ifdef ENABLE_DISPMANX
+	grabbers << "dispmanx";
+	#endif
+
+	#ifdef ENABLE_V4L2
+	grabbers << "v4l2";
+	#endif
+
+	#ifdef ENABLE_FB
+	grabbers << "framebuffer";
+	#endif
+
+	#ifdef ENABLE_AMLOGIC
+	grabbers << "amlogic";
+	#endif
+
+	#ifdef ENABLE_OSX
+	grabbers << "osx";
+	#endif
+
+	#ifdef ENABLE_X11
+	grabbers << "x11";
+	#endif
+
+	return grabbers;
 }

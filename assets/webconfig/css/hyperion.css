@@ -9,6 +9,9 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 #page-content {
 	padding-bottom:50px;
 }
+body{
+    overflow-y: scroll; 
+}
 .btn{margin: 2px 0;}
 
 /*mobile nav*/
@@ -85,6 +88,7 @@ table label{margin:0}
 /*Dashboard*/
 .component-on{color:green;}
 .component-off{color:grey;}
+#dash_news hr{margin:10px 0}
 
 /*Colorpicker 2x*/
 .colorpicker-2x {z-index:99999}

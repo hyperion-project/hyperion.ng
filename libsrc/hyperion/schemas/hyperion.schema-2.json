@@ -308,7 +308,7 @@
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
-								"default" : 1.0,
+								"default" : 1.5,
 								"step" : 0.1,
 								"propertyOrder" : 14
 							},
@@ -319,7 +319,7 @@
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
-								"default" : 1.0,
+								"default" : 1.5,
 								"step" : 0.1,
 								"propertyOrder" : 15
 							},
@@ -330,7 +330,7 @@
 								"required" : true,
 								"minimum" : 0.0,
 								"maximum": 100.0,
-								"default" : 1.0,
+								"default" : 1.5,
 								"step" : 0.1,
 								"propertyOrder" : 16
 							}
@@ -649,7 +649,7 @@
 				"width" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_v4l2_width_title",
+					"title" : "edt_conf_fg_width_title",
 					"minimum" : 10,
 					"default" : 80,
 					"append" : "edt_append_pixel",
@@ -658,7 +658,7 @@
 				"height" :
 				{
 					"type" : "integer",
-					"title" : "edt_conf_v4l2_height_title",
+					"title" : "edt_conf_fg_height_title",
 					"minimum" : 10,
 					"default" : 45,
 					"append" : "edt_append_pixel",

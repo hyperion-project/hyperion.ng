@@ -36,6 +36,7 @@
 #include <utils/ColorSys.h>
 #include <utils/ColorRgb.h>
 #include <leddevice/LedDevice.h>
+#include <hyperion/GrabberWrapper.h>
 #include <HyperionConfig.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Process.h>
@@ -364,6 +365,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString origin = message["origin"].toString();
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -390,7 +392,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -597,6 +599,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = priorityInfo.componentId;
+		item["origin"] = priorityInfo.origin;
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
@@ -761,14 +764,26 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	// get available led devices
 	QJsonObject ledDevices;
 	ledDevices["active"] = QString::fromStdString(LedDevice::activeDevice());
-	QJsonArray available;
+	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
-		available.append(QString::fromStdString(dev.first));
+		availableLedDevices.append(QString::fromStdString(dev.first));
 	}
 	
-	ledDevices["available"] = available;
+	ledDevices["available"] = availableLedDevices;
 	info["ledDevices"] = ledDevices;
+
+	// get available grabbers
+	QJsonObject grabbers;
+	//grabbers["active"] = ????;
+	QJsonArray availableGrabbers;
+	for (auto grabber: GrabberWrapper::availableGrabbers())
+	{
+		availableGrabbers.append(grabber);
+	}
+	
+	grabbers["available"] = availableGrabbers;
+	info["grabbers"] = grabbers;
 
 	// get available components
 	QJsonArray component;
@@ -1015,7 +1030,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 
 	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
-	
+
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
@@ -1026,7 +1041,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 	schemaData.close();
-	
+
 	if (error.error != QJsonParseError::NoError)
 	{
 		// report to the user the failure and their locations in the document.
