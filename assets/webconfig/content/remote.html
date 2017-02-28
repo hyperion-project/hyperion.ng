@@ -40,15 +40,26 @@
 					<table class="table borderless">
 						<tbody>
 							<tr>
-								<td style="vertical-align:middle"><label data-i18n="remote_color_label_color"></label></td>
+								<td style="vertical-align:middle"><label for="cpeff" data-i18n="remote_color_label_color"></label></td>
 								<td><div id="cp2" class="colorpicker-component input-group">
-										<input type="text" class="form-control"/><span class="input-group-addon"><i></i></span>
+										<input type="text" id="cpeff" class="form-control"/><span class="input-group-addon"><i></i></span>
 									</div>
 								</td>
 							</tr>
 							<tr>
-								<td style="vertical-align:middle"><label data-i18n="remote_effects_label_effects">Effect:</label></td>
+								<td style="vertical-align:middle"><label for="effect_select" data-i18n="remote_effects_label_effects">Effect:</label></td>
 								<td><select id="effect_select" class="form-control"></select></td>
+							</tr>
+							<tr style="display:none">
+								<td style="vertical-align:middle"><label for="remote_input_img" >Picture:</label></td>
+								<td><input id="remote_input_img" type="file" accept="image/*" /></td>
+							</tr>
+							<tr>
+								<td style="vertical-align:middle"><label for="remote_duration" data-i18n="remote_input_duration"></label></td>
+								<td class="input-group">
+									<input id="remote_duration" type="number" class="form-control" value="0" min="0"/>
+									<span class="input-group-addon" data-i18n="edt_append_s"></span>
+								</td>
 							</tr>
 						</tbody>
 					</table>

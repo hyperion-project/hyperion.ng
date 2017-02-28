@@ -373,6 +373,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString origin = message["origin"].toString();
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -399,7 +400,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -614,6 +615,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = priorityInfo.componentId;
+		item["origin"] = priorityInfo.origin;
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);

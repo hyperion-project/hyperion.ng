@@ -1,6 +1,7 @@
 
 // global vars
 var webPrio = 1;
+var webOrigin = "Web Configuration";
 var showOptHelp;
 var currentVersion;
 var latestVersion;
@@ -217,14 +218,34 @@ function requestPriorityClear(prio)
 	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
-function requestPlayEffect(effectName)
+function requestPlayEffect(effectName, duration)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+'');
+	if(typeof duration === "undefined" || duration < 0)
+		duration = 0;
+	else
+		duration *= 1000;
+	
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+duration+',"origin":"'+webOrigin+'"');
 }
 
-function requestSetColor(r,g,b)
+function requestSetColor(r,g,b,duration)
 {
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+'');
+	if(typeof duration === "undefined" || duration < 0)
+		duration = 0;
+	else
+		duration *= 1000;
+	
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+duration+',"origin":"'+webOrigin+'"');
+}
+
+function requestSetImage(data,width,height,duration)
+{
+	if(typeof duration === "undefined" || duration < 0)
+		duration = 0;
+	else
+		duration *= 1000;
+	
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+duration+'');
 }
 
 function requestSetComponentState(comp, state)

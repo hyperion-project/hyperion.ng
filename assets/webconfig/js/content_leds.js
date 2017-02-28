@@ -2,16 +2,6 @@
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
 
-function validateText(){
-	e = isJsonString($("#ledconfig").val());
-
-	if (e.length != 0){
-		showInfoDialog("error", $.i18n('InfoDialog_leds_validfail_title'), e);
-		return false
-	}
-	return true
-}
-
 function round(number) {
 	var factor = Math.pow(10, 4);
 	var tempNumber = number * factor;
@@ -35,7 +25,7 @@ function createLedPreview(leds, origin){
 	}
 	
 	$('#previewledcount').html($.i18n('conf_leds_layout_preview_totalleds', leds.length));
-	$('#previewledpower').html($.i18n('conf_leds_layout_preview_ledpower', (leds.length * 0.06).toFixed(1)));
+	$('#previewledpower').html($.i18n('conf_leds_layout_preview_ledpower', ((leds.length * 0.06)*1.1).toFixed(1)));
 	
 	$('.st_helper').css("border", "8px solid grey");
 	
@@ -106,7 +96,7 @@ function createClassicLeds(){
 	}
 
 	function rotateArray(array, times){
-		if (times > "0"){
+		if (times > 0){
 			while( times-- ){
 				array.push(array.shift())
 			}
@@ -366,34 +356,69 @@ $(document).ready(function() {
 	
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function() {
+		valValue(this.id,this.value,this.min,this.max);
 		createClassicLeds();
 	});
 
 	$('.ledMAconstr').bind("change", function() {
+		valValue(this.id,this.value,this.min,this.max);
 		createMatrixLeds();
 	});
-	
-	// cl leds push to textfield and save values 
-	$('#btn_cl_generate').off().on("click", function() {
-		if (finalLedArray != ""){
-			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
-			$('#collapse1').collapse('hide');
-			$('#collapse4').collapse('show');
-		}
-	});
-	
-	// ma leds push to textfield and save values 
-	$('#btn_ma_generate').off().on("click", function() {
-		if (finalLedArray != ""){
-			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
-			$('#collapse2').collapse('hide');
-			$('#collapse4').collapse('show');
-		}
-	});
 
-	// fill textfield with current led conf and copy to finalLedArray
-	$("#ledconfig").text(JSON.stringify(serverConfig.leds, null, "\t"));
+	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
+	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan","index"],"properties":{"clone":{"type":"integer"},"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"index":{"type":"integer"},"vscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"}
+	//create jsonace editor
+	var aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
+		mode: 'code',
+		schema: ledschema,
+		onChange: function(){
+			var success = true;
+			try{
+				aceEdt.get();
+			}
+			catch(err)
+			{
+				success = false;
+			}
+			
+			if(success)
+			{
+				$('#leds_custom_updsim').attr("disabled", false);
+				$('#leds_custom_save').attr("disabled", false);
+			}
+			else
+			{
+				$('#leds_custom_updsim').attr("disabled", true);
+				$('#leds_custom_save').attr("disabled", true);
+			}
+		}
+	}, serverConfig.leds);
+	
+	//TODO: HACK! No callback for schema validation - Add it!
+	setInterval(function(){
+		if($('#aceedit table').hasClass('jsoneditor-text-errors'))
+		{
+			$('#leds_custom_updsim').attr("disabled", true);
+			$('#leds_custom_save').attr("disabled", true);
+		}
+	},1000)
+	
+	$('.jsoneditor-menu').toggle();
+	
+	// leds to finalLedArray
 	finalLedArray = serverConfig.leds;
+	
+	// cl/ma leds push to textfield
+	$('#btn_cl_generate, #btn_ma_generate').off().on("click", function(e) {
+		if(e.currentTarget.id == "btn_cl_generate")
+			$('#collapse1').collapse('hide');
+		else
+			$('#collapse2').collapse('hide');
+		
+		aceEdt.set(finalLedArray);
+		$('#collapse4').collapse('show');
+		
+	});
 	
 	// create and update editor
 	var conf_editor = null;
@@ -471,9 +496,7 @@ $(document).ready(function() {
 
 	// validate textfield and update preview
 	$("#leds_custom_updsim").off().on("click", function() {
-		if (validateText()){
-			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
-		}
+		createLedPreview(aceEdt.get(), 'text');
 	});
 	
 	// save led config and saveValues - passing textfield
@@ -482,13 +505,10 @@ $(document).ready(function() {
 		saveValues();
 	});
 	
-	// validate and save led config from textfield
+	// save led config from textfield
 	$("#leds_custom_save").off().on("click", function() {
-		if (validateText())
-		{
-			requestWriteConfig(JSON.parse('{"leds" :'+$("#ledconfig").val()+'}'));
-			saveValues();
-		}
+		requestWriteConfig(JSON.parse('{"leds" :'+aceEdt.getText()+'}'));
+		saveValues();
 	});
 
 	// toggle led numbers

@@ -21,7 +21,7 @@
 		libh += '<a href="'+libs[key]+'" target="_blank">'+key+'</a>, ';
 	libh += "<br/>"+$.i18n("about_credits");
 	
-	lang = lang.toString().replace(",",", ");
+	lang = lang.toString().replace(/,/g,", ");
 	
 	var fc = [$.i18n("about_version"),$.i18n("about_build"),$.i18n("about_builddate"),$.i18n("about_translations"),$.i18n("about_resources", $.i18n("general_webui_title"))];
 	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="#" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
