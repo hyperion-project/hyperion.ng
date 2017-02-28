@@ -146,7 +146,7 @@ void Effect::run()
 	}
 	else
 	{
-		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s", _script.toUtf8().constData());
+		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s.", QSTRING_CSTR(_script));
 	}
 	file.close();
 

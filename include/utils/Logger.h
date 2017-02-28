@@ -11,7 +11,7 @@
 #include <map>
 #include <QVector>
 
-
+#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
 
 // standard log messages
 //#define _FUNCNAME_ __PRETTY_FUNCTION__
@@ -99,3 +99,5 @@ protected:
 	QVector<Logger::T_LOG_MESSAGE> _logMessageBuffer;
 	const int                      _loggerMaxMsgBufferSize;
 };
+
+Q_DECLARE_METATYPE(Logger::T_LOG_MESSAGE);

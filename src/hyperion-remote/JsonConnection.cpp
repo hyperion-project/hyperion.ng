@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QHostInfo>
 
 // hyperion-remote includes
 #include "JsonConnection.h"
@@ -119,6 +120,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	// create command
 	QJsonObject command, effect;
 	command["command"] = QString("effect");
+	command["origin"] = "hyperion-remote@"+QHostInfo::localHostName();
 	command["priority"] = priority;
 	effect["name"] = effectName;
 	

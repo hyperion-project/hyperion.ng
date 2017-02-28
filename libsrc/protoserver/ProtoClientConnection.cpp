@@ -33,7 +33,7 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket)
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _imageProcessor, SLOT(setLedMappingType(int))); 
 
-	_priorityChannelName = "proto@"+ _socket->peerAddress().toString().toStdString();
+	_priorityChannelName = "proto@"+ _socket->peerAddress().toString();
 }
 
 ProtoClientConnection::~ProtoClientConnection()
