@@ -36,12 +36,10 @@ class BonjourRecord
 {
 public:
 	BonjourRecord() {}
-	BonjourRecord(const QString &name, const QString &regType, const QString &domain, QHostInfo &HostInfo, int Port )
+	BonjourRecord(const QString &name, const QString &regType, const QString &domain)
 		: serviceName(name)
 		, registeredType(regType)
 		, replyDomain(domain)
-		, hostInfo(HostInfo)
-		, port(Port)
 	{}
 
 	BonjourRecord(const char *name, const char *regType, const char *domain)
@@ -54,16 +52,12 @@ public:
 	QString   serviceName;
 	QString   registeredType;
 	QString   replyDomain;
-	QHostInfo hostInfo;
-	int       port;
 
 	bool operator==(const BonjourRecord &other) const
 	{
 		return serviceName       == other.serviceName
 			   && registeredType == other.registeredType
 			   && replyDomain    == other.replyDomain;
-			   && hostInfo       == other.hostInfo;
-			   && port           == other.port;
 	}
 };
 

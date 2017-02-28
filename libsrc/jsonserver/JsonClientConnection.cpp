@@ -623,7 +623,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		{
 			if (entry.second == priority)
 			{
-				item["owner"] = QString::fromStdString(entry.first);
+				item["owner"] = entry.first;
 				priorityRegister.erase(entry.first);
 				break;
 			}
@@ -681,7 +681,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["priority"] = entry.second;
 		item["active"] = false;
 		item["visible"] = false;
-		item["owner"] = QString::fromStdString(entry.first);
+		item["owner"] = entry.first;
 		priorities.append(item);
 	}
 

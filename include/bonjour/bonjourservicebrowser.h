@@ -33,6 +33,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dns_sd.h>
 #include "bonjour/bonjourrecord.h"
 
+
 class QSocketNotifier;
 class BonjourServiceBrowser : public QObject
 {
@@ -59,7 +60,6 @@ private:
 	QSocketNotifier *bonjourSocket;
 	QList<BonjourRecord> bonjourRecords;
 	QString browsingType;
-	BonjourServiceResolver resolver;
 };
 
 #endif // BONJOURSERVICEBROWSER_H
