@@ -46,6 +46,9 @@
 
 using namespace hyperion;
 
+BonjourServiceBrowser* JsonClientConnection::_bonjourBrowser = nullptr;
+int _connectionCounter = 0;
+
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
 	, _socket(socket)
@@ -57,7 +60,6 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
-	, _bonjourBrowser(this)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -67,7 +69,11 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 	_image_stream_mutex.unlock();
-	_bonjourBrowser.browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
+	if (_bonjourBrowser == nullptr)
+	{
+		_bonjourBrowser = new BonjourServiceBrowser(_hyperion);
+		_bonjourBrowser->browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
+	}
 }
 
 
@@ -572,7 +578,7 @@ void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message,
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
 {
 // debug
-	QList<BonjourRecord> hyperionWebServices = _bonjourBrowser.currentRecords();
+	QList<BonjourRecord> hyperionWebServices = _bonjourBrowser->currentRecords();
 	for ( auto rec : hyperionWebServices )
 	{
 		qDebug() << (rec.serviceName+"."+rec.replyDomain);

@@ -5,14 +5,14 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
  1. Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
+	this list of conditions and the following disclaimer.
 
  2. Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
+	this list of conditions and the following disclaimer in the documentation
+	and/or other materials provided with the distribution.
 
  3. The name of the author may not be used to endorse or promote products
-    derived from this software without specific prior written permission.
+	derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -36,29 +36,30 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class QSocketNotifier;
 class BonjourServiceBrowser : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    BonjourServiceBrowser(QObject *parent = 0);
-    ~BonjourServiceBrowser();
-    void browseForServiceType(const QString &serviceType);
-    inline QList<BonjourRecord> currentRecords() const { return bonjourRecords; }
-    inline QString serviceType() const { return browsingType; }
+	BonjourServiceBrowser(QObject *parent = 0);
+	~BonjourServiceBrowser();
+	void browseForServiceType(const QString &serviceType);
+	inline QList<BonjourRecord> currentRecords() const { return bonjourRecords; }
+	inline QString serviceType() const { return browsingType; }
 
 signals:
-    void currentBonjourRecordsChanged(const QList<BonjourRecord> &list);
-    void error(DNSServiceErrorType err);
+	void currentBonjourRecordsChanged(const QList<BonjourRecord> &list);
+	void error(DNSServiceErrorType err);
 
 private slots:
-    void bonjourSocketReadyRead();
+	void bonjourSocketReadyRead();
 
 private:
-    static void DNSSD_API bonjourBrowseReply(DNSServiceRef , DNSServiceFlags flags, quint32,
-                                   DNSServiceErrorType errorCode, const char *serviceName,
-                                   const char *regType, const char *replyDomain, void *context);
-    DNSServiceRef dnssref;
-    QSocketNotifier *bonjourSocket;
-    QList<BonjourRecord> bonjourRecords;
-    QString browsingType;
+	static void DNSSD_API bonjourBrowseReply(DNSServiceRef , DNSServiceFlags flags, quint32,
+								   DNSServiceErrorType errorCode, const char *serviceName,
+								   const char *regType, const char *replyDomain, void *context);
+	DNSServiceRef dnssref;
+	QSocketNotifier *bonjourSocket;
+	QList<BonjourRecord> bonjourRecords;
+	QString browsingType;
+	BonjourServiceResolver resolver;
 };
 
 #endif // BONJOURSERVICEBROWSER_H

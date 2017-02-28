@@ -350,7 +350,7 @@ private:
 	/// timeout for live video refresh
 	volatile qint64 _image_stream_timeout;
 
-	BonjourServiceBrowser _bonjourBrowser;
+	static BonjourServiceBrowser* _bonjourBrowser;
 
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
