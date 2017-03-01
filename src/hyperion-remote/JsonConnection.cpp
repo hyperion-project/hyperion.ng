@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QHostInfo>
 
 // hyperion-remote includes
 #include "JsonConnection.h"
@@ -51,6 +52,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 	// create command
 	QJsonObject command;
 	command["command"] = QString("color");
+	command["origin"] = QString("hyperion-remote");
 	command["priority"] = priority;
 	QJsonArray rgbValue;
 	for (const QColor & color : colors)
@@ -97,6 +99,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 	QJsonObject command;
 	command["command"] = QString("image");
 	command["priority"] = priority;
+	command["origin"] = QString("hyperion-remote");
 	command["imagewidth"] = image.width();
 	command["imageheight"] = image.height();
 	command["imagedata"] = QString(base64Image.data());
@@ -119,6 +122,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	// create command
 	QJsonObject command, effect;
 	command["command"] = QString("effect");
+	command["origin"] = QString("hyperion-remote");
 	command["priority"] = priority;
 	effect["name"] = effectName;
 	
