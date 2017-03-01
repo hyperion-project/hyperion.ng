@@ -13,13 +13,15 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+SysInfo* SysInfo::_instance = nullptr;
+
 SysInfo::SysInfo()
 	: QObject()
 {
-	int arch = QSysInfo::WordSize;
 	SysInfo::QUnixOSVersion v;
 	findUnixOsVersion(v);
-	std::cout << arch << " "
+	
+	std::cout
 		<< currentCpuArchitecture().toStdString() << " "
 		<< kernelType().toStdString() << " "
 		<< kernelVersion().toStdString() << " "
@@ -27,11 +29,29 @@ SysInfo::SysInfo()
 		<< v.productVersion.toStdString() << " "
 		<< v.prettyName.toStdString() << " "
 		<< std::endl;
+	
+	_sysinfo.kernelType     = kernelType();
+	_sysinfo.kernelVersion  = kernelVersion();
+	_sysinfo.architecture   = currentCpuArchitecture();
+	_sysinfo.wordSize       = QSysInfo::WordSize;
+	_sysinfo.productType    = v.productType;
+	_sysinfo.productVersion = v.productVersion;
+	_sysinfo.prettyName     = v.prettyName;
 }
 
 SysInfo::~SysInfo()
 {
 }
+
+SysInfo::HyperionSysInfo SysInfo::get()
+{
+	if ( SysInfo::_instance == nullptr )
+		SysInfo::_instance = new SysInfo();
+	
+	return SysInfo::_instance->_sysinfo;
+}
+
+
 
 QString SysInfo::kernelType()
 {

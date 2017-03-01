@@ -24,7 +24,6 @@
 #include <webconfig/WebConfig.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
-#include <utils/SysInfo.h>
 
 #include "hyperiond.h"
 
@@ -61,8 +60,6 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 int main(int argc, char** argv)
 {
-	SysInfo s; // just for testing
-
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);

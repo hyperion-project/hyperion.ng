@@ -9,8 +9,25 @@ class SysInfo : public QObject
 //	Q_OBJECT
 	
 public:
+	struct HyperionSysInfo
+	{
+		QString kernelType;
+		QString kernelVersion;
+		QString architecture;
+		QString wordSize;
+		QString productType;    // $ID                          $DISTRIB_ID                    // single line file containing:       // Debian
+		QString productVersion; // $VERSION_ID                  $DISTRIB_RELEASE               // <Vendor_ID release Version_ID>     // single line file <Release_ID/sid>
+		QString prettyName;     // $PRETTY_NAME                 $DISTRIB_DESCRIPTION
+	};
+
+	static HyperionSysInfo get();
+
+private:
 	SysInfo();
 	~SysInfo();
+	static SysInfo* _instance;
+
+	HyperionSysInfo _sysinfo;
 
 	struct QUnixOSVersion
 	{
@@ -26,7 +43,6 @@ public:
 	QString kernelVersion();
 	bool findUnixOsVersion(QUnixOSVersion &v);
 
-private:
 	QByteArray getEtcFileFirstLine(const char *fileName);
 	bool readEtcRedHatRelease(QUnixOSVersion &v);
 	bool readEtcDebianVersion(QUnixOSVersion &v);
