@@ -11,6 +11,7 @@
 #include <QRgb>
 #include <QResource>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
@@ -28,7 +29,7 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket)
 	, _receiveBuffer()
 	, _priority(-1)
 	, _priorityChannelName("Proto-Server")
-	, _clientAddress(socket->peerAddress())
+	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -198,7 +199,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 
 	// process the image
 	std::vector<ColorRgb> ledColors = _imageProcessor->process(image);
-	_hyperion->setColors(_priority, ledColors, duration, true, hyperion::COMP_PROTOSERVER , _clientAddress.toString());
+	_hyperion->setColors(_priority, ledColors, duration, true, hyperion::COMP_PROTOSERVER , "proto@"+_clientAddress);
 	_hyperion->setImage(_priority, image, duration);
 
 	// send reply

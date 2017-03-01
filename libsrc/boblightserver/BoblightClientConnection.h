@@ -4,7 +4,6 @@
 #include <QByteArray>
 #include <QTcpSocket>
 #include <QLocale>
-#include <QHostAddress>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -96,5 +95,5 @@ private:
 	Logger * _log;
 
 	/// address of client
-	QHostAddress _clientAddress;
+	QString _clientAddress;
 };

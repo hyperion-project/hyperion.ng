@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QIODevice>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -366,7 +367,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString origin = message["origin"].toString();
+	QString origin = message["origin"].toString() + "@"+QHostInfo::fromName(_clientAddress.toString()).hostName();
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -440,7 +441,7 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
 	QString pythonScript = message["pythonScript"].toString();
-	QString origin = message["origin"].toString();
+	QString origin = message["origin"].toString() + "@"+_clientAddress.toString();
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 

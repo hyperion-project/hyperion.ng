@@ -8,7 +8,6 @@
 #include <QTcpSocket>
 #include <QStringList>
 #include <QString>
-#include <QHostAddress>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -145,5 +144,5 @@ private:
 	QString _priorityChannelName;
 
 	/// address of client
-	QHostAddress _clientAddress;
+	QString _clientAddress;
 };

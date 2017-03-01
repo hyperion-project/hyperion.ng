@@ -12,6 +12,7 @@
 // Qt includes
 #include <QResource>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
@@ -32,7 +33,7 @@ BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int
 	, _priority(priority)
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
 	, _log(Logger::getInstance("BOBLIGHT"))
-	, _clientAddress(socket->peerAddress())
+	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
 	// initalize the locale. Start with the default C-locale
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
@@ -166,7 +167,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
 							{
-								_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress.toString());
+								_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
 							}
 
 							return;
@@ -204,7 +205,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			// send current color values to hyperion
 			if (_priority < 255)
 			{
-				_hyperion->setColors(_priority, _ledColors, -1, hyperion::COMP_BOBLIGHTSERVER);
+				_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
 			}
 			return;
 		}
