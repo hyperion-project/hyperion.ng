@@ -11,7 +11,7 @@
 #include <map>
 #include <QVector>
 
-#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
+#include <utils/global_defines.h>
 
 // standard log messages
 //#define _FUNCNAME_ __PRETTY_FUNCTION__
