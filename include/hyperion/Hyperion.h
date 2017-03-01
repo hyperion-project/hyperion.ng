@@ -134,7 +134,7 @@ public:
 	/// @param name uniq name of input source
 	/// @param origin External setter
 	/// @param priority priority channel
-	void registerPriority(const QString &name, const int priority, const QString &origin="System");
+	void registerPriority(const QString &name, const int priority/*, const QString &origin="System"*/);
 	
 	/// unregister a input source to a priority channel
 	/// @param name uniq name of input source

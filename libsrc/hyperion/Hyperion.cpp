@@ -504,7 +504,7 @@ bool Hyperion::configWriteable()
 }
 
 
-void Hyperion::registerPriority(const QString &name, const int priority, const QString &origin)
+void Hyperion::registerPriority(const QString &name, const int priority/*, const QString &origin*/)
 {
 	Info(_log, "Register new input source named '%s' for priority channel '%d'", QSTRING_CSTR(name), priority );
 	
@@ -690,7 +690,7 @@ const std::list<EffectSchema> & Hyperion::getEffectSchemas()
 
 int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)
 {
-	return _effectEngine->runEffect(effectName, priority, timeout);
+	return _effectEngine->runEffect(effectName, priority, timeout, origin);
 }
 
 int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString & pythonScript, const QString & origin)

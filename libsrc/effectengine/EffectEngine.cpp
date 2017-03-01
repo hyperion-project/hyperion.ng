@@ -380,13 +380,13 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), Qt::QueuedConnection);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args, origin);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority(name, priority, origin);
+	_hyperion->registerPriority(name, priority);
 	effect->start();
 
 	return 0;

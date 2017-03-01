@@ -57,6 +57,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
+	, _clientAddress(socket->peerAddress())
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));

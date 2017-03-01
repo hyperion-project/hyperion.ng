@@ -66,7 +66,7 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args)
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin)
 	: QThread()
 	, _mainThreadState(mainThreadState)
 	, _priority(priority)
@@ -79,6 +79,7 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	, _abortRequested(false)
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _colors()
+	, _origin(origin)
 {
 	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
 
@@ -265,7 +266,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
 			std::fill(effect->_colors.begin(), effect->_colors.end(), color);
-			effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT);
+			effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 			return Py_BuildValue("");
 		}
 		else
@@ -286,7 +287,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(effect->_colors.data(), data, length);
-					effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT);
+					effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 					return Py_BuildValue("");
 				}
 				else
@@ -356,7 +357,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 				memcpy(image.memptr(), data, length);
 
 				effect->_imageProcessor->process(image, effect->_colors);
-				effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT);
+				effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 				return Py_BuildValue("");
 			}
 			else
@@ -432,7 +433,7 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 	
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
 	effect->_imageProcessor->process(image, effect->_colors);
-	effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT);
+	effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 
 	return Py_BuildValue("");
 }
