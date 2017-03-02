@@ -52,7 +52,7 @@ class Hyperion : public QObject
 public:
 	///  Type definition of the info structure used by the priority muxer
 	typedef PriorityMuxer::InputInfo InputInfo;
-	typedef std::map<std::string,int> PriorityRegister;
+	typedef std::map<QString,int> PriorityRegister;
 
 	///
 	/// RGB-Color channel enumeration
@@ -132,12 +132,13 @@ public:
 
 	/// register a input source to a priority channel
 	/// @param name uniq name of input source
+	/// @param origin External setter
 	/// @param priority priority channel
-	void registerPriority(const std::string name, const int priority);
+	void registerPriority(const QString &name, const int priority);
 	
 	/// unregister a input source to a priority channel
 	/// @param name uniq name of input source
-	void unRegisterPriority(const std::string name);
+	void unRegisterPriority(const QString &name);
 	
 	/// gets current priority register
 	/// @return the priority register
@@ -191,8 +192,10 @@ public slots:
 	/// @param[in] priority The priority of the written colors
 	/// @param[in] ledColors The colors to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
+	/// @param[in] component The current component
+	/// @param[in] origin Who set it
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID);
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
 
 	///
 	/// Writes the given colors to all leds for the given time and priority
@@ -241,14 +244,15 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, int priority, int timeout = -1);
+	int setEffect(const QString & effectName, int priority, int timeout = -1, const QString & origin="System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, const QJsonObject & args, int priority, int timeout = -1, QString pythonScript = "");
+	int setEffect(const QString & effectName, const QJsonObject & args, int priority,
+				  int timeout = -1, const QString & pythonScript = "", const QString & origin="System");
 
 	/// sets the methode how image is maped to leds
 	void setLedMappingType(int mappingType);

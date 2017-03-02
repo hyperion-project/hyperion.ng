@@ -4,7 +4,8 @@ $(document).ready(function() {
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
 	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
-
+	var duration = 0;
+	
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
 	$('.ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
@@ -55,10 +56,11 @@ $(document).ready(function() {
 				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="1.0" step="0.05" value="'+value+'"/>';
 				else
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="4.0" step="0.1" value="'+value+'"/>';
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.01" max="4.0" step="0.1" value="'+value+'"/>';
 				
 				$('.crtbody').append(createTableRow([title, property], false, true));
 				$('#cr_'+sColor[key].key).off().on('change', function(e){
+					valValue(this.id,this.value,this.min,this.max);
 					requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
 				});
 			}
@@ -86,10 +88,19 @@ $(document).ready(function() {
 		var data = "";
 		var prios = serverInfo.info.priorities
 		var i;
+
 		for(i = 0; i < prios.length; i++)
 		{
-			var origin   = "not impl";
-			var ip       = "xxx.xxx.xxx.xxx";
+			var origin   = prios[i].origin;
+			if(typeof origin !== "undefined" && origin != "")
+			{
+				origin = origin.split("@");
+				var ip = origin[1];
+				origin = origin[0];
+			}
+			else
+				origin = "System";
+
 			var owner    = prios[i].owner;
 			var active   = prios[i].active;
 			var visible  = prios[i].visible;
@@ -99,7 +110,7 @@ $(document).ready(function() {
 			var btn_type = "default";
 			var btn_text = $.i18n('remote_input_setsource_btn');
 			var btn_state = "enabled";
-			if (active) btn_type = "warning";
+			if (active) btn_type = "primary";
 			if (visible)
 			{
 				 btn_state = "disabled";
@@ -108,26 +119,26 @@ $(document).ready(function() {
 			}
 			if(ip)
 				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
-			if(compId == "10")
+			if(compId == 10)
 				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
-			if(compId == "9")
+			if(compId == 9)
 				owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
-			if(compId == "7")
+			if(compId == 7)
 				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
-			if(compId == "8")
+			if(compId == 8)
 				owner = $.i18n('general_comp_V4L')+': ('+owner+')';
-			if(compId == "6")
+			if(compId == 6)
 				owner = $.i18n('general_comp_BOBLIGHTSERVER');
-			if(compId == "5")
+			if(compId == 5)
 				owner = $.i18n('general_comp_UDPLISTENER');
 			if(owner == "Off")
 				owner = $.i18n('general_btn_off');
-			if(duration)
+			if(duration && compId != 7 && compId != 11)
 				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
 			
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 			
-			if((compId == "10" || compId == "9") && priority != 254)
+			if((compId == 10 || compId == 9) && priority != 254)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')
@@ -156,7 +167,7 @@ $(document).ready(function() {
 			if(mapping == mappingList[ix])
 				btn_style = 'btn-success';
 			else
-				btn_style = 'btn-warning';
+				btn_style = 'btn-primary';
 
 			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:10px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
 		}
@@ -218,9 +229,15 @@ $(document).ready(function() {
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
 		cpcolor = getStorage('rmcpcolor');
+	
+	if (getStorage('rmduration') != null)
+	{
+		$("#remote_duration").val(getStorage('rmduration'));
+		duration = getStorage('rmduration');
+	}
 			
 	createCP('cp2', cpcolor, function(rgb,hex){
-		requestSetColor(rgb.r, rgb.g, rgb.b);
+		requestSetColor(rgb.r, rgb.g, rgb.b,duration);
 		$("#effect_select").val("__none__");
 		setStorage('rmcpcolor', hex);
 	});
@@ -229,6 +246,11 @@ $(document).ready(function() {
 		requestPriorityClear();
 		$("#effect_select").val("__none__");
 	});
+	
+	$("#remote_duration").off().on("change", function(){
+		duration = valValue(this.id,this.value,this.min,this.max);
+		setStorage('rmduration', duration);
+	});
 
 	$("#effect_select").off().on("change", function(event) {
 		efx = $(this).val();
@@ -236,9 +258,16 @@ $(document).ready(function() {
 		{
 			requestPriorityClear();
 			$(hyperion).one("cmd-clear", function(event) {
-				setTimeout(function() {requestPlayEffect(efx)}, 100);
+				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
 			});
 		}
+	});
+	
+	$("#remote_input_img").change(function(){
+		readImg(this, function(src,width,height){
+			console.log(src,width,height)
+			requestSetImage(src,width,height,duration)
+		});
 	});
 	
 	//force first update

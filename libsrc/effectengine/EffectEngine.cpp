@@ -342,11 +342,16 @@ void EffectEngine::readEffects()
 	}
 }
 
-int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
+int EffectEngine::runEffect(const QString &effectName, int priority, int timeout, const QString &origin)
+{
+	return runEffect(effectName, QJsonObject(), priority, timeout, "", origin);
+}
+
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin)
 {
 	Info( _log, "run effect %s on channel %d", effectName.toUtf8().constData(), priority);
 
-	if (pythonScript == "")
+	if (pythonScript.isEmpty())
 	{
 		const EffectDefinition * effectDefinition = nullptr;
 		for (const EffectDefinition & e : _availableEffects)
@@ -364,24 +369,24 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 			return -1;
 		}
 
-		return runEffectScript(effectDefinition->script, effectName, args.isEmpty() ? effectDefinition->args : args, priority, timeout);
-	} else
-		return runEffectScript(pythonScript, effectName, args, priority, timeout);
+		return runEffectScript(effectDefinition->script, effectName, (args.isEmpty() ? effectDefinition->args : args), priority, timeout, origin);
+	}
+	return runEffectScript(pythonScript, effectName, args, priority, timeout, origin);
 }
 
-int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout)
+int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout, const QString & origin)
 {
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components)), Qt::QueuedConnection);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args, origin);
+	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString)), Qt::QueuedConnection);
 	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority(name.toStdString(), priority);
+	_hyperion->registerPriority(name, priority);
 	effect->start();
 
 	return 0;
@@ -426,5 +431,5 @@ void EffectEngine::effectFinished(Effect *effect)
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority(effect->getName().toStdString());
+	_hyperion->unRegisterPriority(effect->getName());
 }

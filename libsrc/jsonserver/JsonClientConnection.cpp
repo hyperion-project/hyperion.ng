@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QIODevice>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -57,6 +58,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
+	, _clientAddress(socket->peerAddress())
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -365,6 +367,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString origin = message["origin"].toString() + "@"+QHostInfo::fromName(_clientAddress.toString()).hostName();
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -391,7 +394,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -437,18 +440,19 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString pythonScript = message["pythonScript"].toString("");
+	QString pythonScript = message["pythonScript"].toString();
+	QString origin = message["origin"].toString() + "@"+_clientAddress.toString();
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 
 	// set output
 	if (effect.contains("args"))
 	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript);
+		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript, origin);
 	}
 	else
 	{
-		_hyperion->setEffect(effectName, priority, duration);
+		_hyperion->setEffect(effectName, priority, duration, origin);
 	}
 
 	// send reply
@@ -598,6 +602,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = priorityInfo.componentId;
+		item["origin"] = priorityInfo.origin;
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
@@ -605,7 +610,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		{
 			if (entry.second == priority)
 			{
-				item["owner"] = QString::fromStdString(entry.first);
+				item["owner"] = entry.first;
 				priorityRegister.erase(entry.first);
 				break;
 			}
@@ -663,7 +668,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["priority"] = entry.second;
 		item["active"] = false;
 		item["visible"] = false;
-		item["owner"] = QString::fromStdString(entry.first);
+		item["owner"] = entry.first;
 		priorities.append(item);
 	}
 
@@ -1028,7 +1033,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 
 	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
-	
+
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
@@ -1039,7 +1044,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 	schemaData.close();
-	
+
 	if (error.error != QJsonParseError::NoError)
 	{
 		// report to the user the failure and their locations in the document.

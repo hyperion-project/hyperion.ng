@@ -1,6 +1,7 @@
 
 // global vars
 var webPrio = 1;
+var webOrigin = "Web Configuration";
 var showOptHelp;
 var currentVersion;
 var latestVersion;
@@ -217,14 +218,19 @@ function requestPriorityClear(prio)
 	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
-function requestPlayEffect(effectName)
-{
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+'');
+function requestPlayEffect(effectName, duration)
+{	
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
 }
 
-function requestSetColor(r,g,b)
-{
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+'');
+function requestSetColor(r,g,b,duration)
+{	
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
+}
+
+function requestSetImage(data,width,height,duration)
+{	
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+validateDuration(duration)+'');
 }
 
 function requestSetComponentState(comp, state)
@@ -271,7 +277,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":'+webPrio+', "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"}');
 }
 
 function requestDeleteEffect(effectName)

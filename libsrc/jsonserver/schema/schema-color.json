@@ -20,6 +20,10 @@
 			"type": "integer",
 			"required": false
 		},
+		"origin": {
+			"type": "string",
+			"required": true
+		},
 		"color": {
 			"type": "array",
 			"required": true,

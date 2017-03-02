@@ -504,22 +504,22 @@ bool Hyperion::configWriteable()
 }
 
 
-void Hyperion::registerPriority(const std::string name, const int priority)
+void Hyperion::registerPriority(const QString &name, const int priority/*, const QString &origin*/)
 {
-	Info(_log, "Register new input source named '%s' for priority channel '%d'", name.c_str(), priority );
+	Info(_log, "Register new input source named '%s' for priority channel '%d'", QSTRING_CSTR(name), priority );
 	
 	for(auto const &entry : _priorityRegister)
 	{
 		WarningIf( ( entry.first != name && entry.second == priority), _log,
-		           "Input source '%s' uses same priority channel (%d) as '%s'.", name.c_str(), priority, entry.first.c_str());
+		           "Input source '%s' uses same priority channel (%d) as '%s'.", QSTRING_CSTR(name), priority, QSTRING_CSTR(entry.first));
 	}
 
 	_priorityRegister.emplace(name,priority);
 }
 
-void Hyperion::unRegisterPriority(const std::string name)
+void Hyperion::unRegisterPriority(const QString &name)
 {
-	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
+	Info(_log, "Unregister input source named '%s' from priority register", QSTRING_CSTR(name));
 	_priorityRegister.erase(name);
 }
 
@@ -571,7 +571,7 @@ void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_m
 	setColors(priority, ledColors, timeout_ms, clearEffects, hyperion::COMP_COLOR);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin)
 {
 	// clear effects if this call does not come from an effect
 	if (clearEffects)
@@ -582,11 +582,11 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		_muxer.setInput(priority, ledColors, timeoutTime, component);
+		_muxer.setInput(priority, ledColors, timeoutTime, component, origin);
 	}
 	else
 	{
-		_muxer.setInput(priority, ledColors, -1, component);
+		_muxer.setInput(priority, ledColors, -1, component, origin);
 	}
 
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())
@@ -688,14 +688,14 @@ const std::list<EffectSchema> & Hyperion::getEffectSchemas()
 	return _effectEngine->getEffectSchemas();
 }
 
-int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)
 {
-	return _effectEngine->runEffect(effectName, priority, timeout);
+	return _effectEngine->runEffect(effectName, priority, timeout, origin);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString & pythonScript, const QString & origin)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin);
 }
 
 void Hyperion::setLedMappingType(int mappingType)

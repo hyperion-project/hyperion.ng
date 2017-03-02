@@ -63,7 +63,7 @@ private slots:
 	/// Slot which is called when a client tries to create a new connection
 	///
 	void readPendingDatagrams();
-	void processTheDatagram(const QByteArray * _datagram);
+	void processTheDatagram(const QByteArray * datagram, const QHostAddress * sender);
 
 private:
 	/// Hyperion instance
@@ -78,7 +78,7 @@ private:
 	/// hyperion priority
 	int _priority;
 
-	/// hyperion priority
+	/// hyperion timeout
 	int _timeout;
 
 	/// Logger instance
@@ -88,7 +88,7 @@ private:
 	bool _isActive;
 	
 	/// address to bind
-	QHostAddress _listenAddress;
-	quint16      _listenPort;
+	QHostAddress              _listenAddress;
+	quint16                   _listenPort;
 	QAbstractSocket::BindFlag _bondage;
 };

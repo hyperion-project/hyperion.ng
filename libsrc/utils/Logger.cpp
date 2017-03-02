@@ -18,6 +18,7 @@ LoggerManager* LoggerManager::_instance = nullptr;
 
 Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 {
+	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 	std::string loggerName = name.toStdString();
 	Logger* log = nullptr;
 	if (LoggerMap == nullptr)

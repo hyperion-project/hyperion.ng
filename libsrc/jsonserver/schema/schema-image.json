@@ -16,6 +16,10 @@
 			"maximum" : 253,
 			"required": true
 		},
+		"origin": {
+			"type": "string",
+			"required": true
+		},
 		"duration": {
 			"type": "integer",
 			"required": false

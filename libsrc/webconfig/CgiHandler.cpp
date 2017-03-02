@@ -101,7 +101,32 @@ void CgiHandler::cmd_cfg_set()
 			if (error.error == QJsonParseError::NoError)
 			{
 				QJsonObject hyperionConfigJsonObj = hyperionConfig.object();
-				QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfigJsonObj);
+				try
+				{
+					// make sure the resources are loaded (they may be left out after static linking)
+					Q_INIT_RESOURCE(resource);
+					QJsonObject schemaJson = QJsonFactory::readSchema(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
+					QJsonSchemaChecker schemaChecker;
+					schemaChecker.setSchema(schemaJson);
+					if ( schemaChecker.validate(hyperionConfigJsonObj) )
+					{
+						QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfigJsonObj);
+					}
+					else
+					{
+						std::string errorMsg = "ERROR: Json validation failed: \n";
+						for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+						{
+							Error(_log, "config write validation: %s", (*i).c_str());
+							errorMsg += *i + "\n";
+						}
+						throw std::runtime_error(errorMsg.c_str());
+					}
+				}
+				catch(const std::runtime_error& validate_error)
+				{
+					_reply->appendRawData (QString(validate_error.what()).toUtf8());
+				}
 			}
 			else
 			{
