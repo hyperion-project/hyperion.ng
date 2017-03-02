@@ -71,7 +71,7 @@ protected:
 
 	static libusb_device_handle * openDevice(libusb_device * device);
 
-	static std::string getString(libusb_device * device, int stringDescriptorIndex);
+	static QString getString(libusb_device * device, int stringDescriptorIndex);
 
 	/// command to write the leds
 	uint8_t _writeLedsCommand;
@@ -85,5 +85,5 @@ protected:
 	/// Usb device identifiers
 	static uint16_t     _usbVendorId;
 	static uint16_t     _usbProductId;
-	static std::string  _usbProductDescription;
+	static QString      _usbProductDescription;
 };
