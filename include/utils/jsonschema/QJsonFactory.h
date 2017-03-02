@@ -1,9 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <string>
 #include <stdexcept>
-#include <sstream>
 
 // JSON-Schema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -30,9 +28,10 @@ public:
 
 		bool valid = schemaChecker.validate(configTree);
 		
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		QStringList messages = schemaChecker.getMessages();
+		for (int i = 0; i < messages.size(); ++i)
 		{
-			std::cout << *i << std::endl;
+			std::cout << messages[i].toStdString() << std::endl;
 		}
 		
 		if (!valid)
@@ -52,9 +51,7 @@ public:
 
 		if (!file.open(QIODevice::ReadOnly))
 		{
-			std::stringstream sstream;
-			sstream << "Configuration file not found: '" << path.toStdString() << "' (" <<  file.errorString().toStdString() << ")";
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("Configuration file not found: '" + path + "' ("  +  file.errorString() + ")").toStdString());
 		}
 
 		QString config = QString(file.readAll());
@@ -78,9 +75,9 @@ public:
 				}
 			}
 
-			std::stringstream sstream;
-			sstream << "Failed to parse configuration: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error (
+				QString("Failed to parse configuration: " + error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn)).toStdString()
+			);
 		}
 
 		return doc.object();
@@ -93,9 +90,7 @@ public:
 
 		if (!schemaData.open(QIODevice::ReadOnly))
 		{
-			std::stringstream sstream;
-			sstream << "Schema not found: '" << path.toStdString() << "' (" <<  schemaData.errorString().toStdString() << ")";
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("Schema not found: '" + path + "' (" + schemaData.errorString() + ")").toStdString());
 		}
 
 		QByteArray schema = schemaData.readAll();
@@ -117,9 +112,9 @@ public:
 				}
 			}
 
-			std::stringstream sstream;
-			sstream << "ERROR: Json schema wrong: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("ERROR: Json schema wrong: " + error.errorString() + " at Line: " + QString::number(errorLine)
+				                     + ", Column: " + QString::number(errorColumn)).toStdString()
+			);
 		}
 
 		return doc.object();

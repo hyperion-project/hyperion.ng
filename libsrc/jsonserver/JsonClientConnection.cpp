@@ -98,13 +98,13 @@ void JsonClientConnection::readData()
 			while(bytes > 0)
 			{
 				// create message string
-				std::string message(_receiveBuffer.data(), bytes);
+				QString message(QByteArray(_receiveBuffer.data(), bytes));
 
 				// remove message data from buffer
 				_receiveBuffer = _receiveBuffer.mid(bytes);
 
 				// handle message
-				handleMessage(QString::fromStdString(message));
+				handleMessage(message);
 
 				// try too look up '\n' again
 				bytes = _receiveBuffer.indexOf('\n') + 1;
@@ -215,14 +215,14 @@ void JsonClientConnection::doWebSocketHandshake()
 
 	// get the key to prepare an answer
 	int start = _receiveBuffer.indexOf("Sec-WebSocket-Key") + 19;
-	std::string value(_receiveBuffer.mid(start, _receiveBuffer.indexOf("\r\n", start) - start).data());
+	QByteArray value = _receiveBuffer.mid(start, _receiveBuffer.indexOf("\r\n", start) - start);
 	_receiveBuffer.clear();
 
 	// must be always appended
 	value += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 	// generate sha1 hash
-	QByteArray hash = QCryptographicHash::hash(value.c_str(), QCryptographicHash::Sha1);
+	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
 
 	// prepare an answer
 	std::ostringstream h;
@@ -766,11 +766,11 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	// get available led devices
 	QJsonObject ledDevices;
-	ledDevices["active"] = QString::fromStdString(LedDevice::activeDevice());
+	ledDevices["active"] =LedDevice::activeDevice();
 	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
-		availableLedDevices.append(QString::fromStdString(dev.first));
+		availableLedDevices.append(dev.first);
 	}
 	
 	ledDevices["available"] = availableLedDevices;
@@ -1387,9 +1387,7 @@ bool JsonClientConnection::checkJson(const QJsonObject& message, const QString& 
 			}
 		}
 		
-		std::stringstream sstream;
-		sstream << "Schema error: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-		errorMessage = QString::fromStdString(sstream.str());
+		errorMessage = "Schema error: " + error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn);
 		return false;
 	}
 	
@@ -1399,15 +1397,13 @@ bool JsonClientConnection::checkJson(const QJsonObject& message, const QString& 
 	// check the message
 	if (!schemaChecker.validate(message, ignoreRequired))
 	{
-		const std::list<std::string> & errors = schemaChecker.getMessages();
-		std::stringstream ss;
-		ss << "{";
-		foreach (const std::string & error, errors)
+		const QStringList & errors = schemaChecker.getMessages();
+		errorMessage = "{";
+		foreach (auto & error, errors)
 		{
-			ss << error << " ";
+			errorMessage += error + " ";
 		}
-		ss << "}";
-		errorMessage = QString::fromStdString(ss.str());
+		errorMessage += "}";
 		return false;
 	}
 

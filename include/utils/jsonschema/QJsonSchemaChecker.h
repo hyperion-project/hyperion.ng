@@ -48,7 +48,7 @@ public:
 	///
 	/// @return A list of error messages
 	///
-	const std::list<std::string> & getMessages() const;
+	const QStringList & getMessages() const;
 
 private:
 	///
@@ -65,7 +65,7 @@ private:
 	///
 	/// @param[in] message The message to add to the queue
 	///
-	void setMessage(const std::string & message);
+	void setMessage(const QString & message);
 
 private:
 	// attribute check functions
@@ -166,9 +166,9 @@ private:
 	/// ignore the required value in json schema
 	bool _ignoreRequired;
 	/// The current location into a json-configuration structure being checked
-	std::list<std::string> _currentPath;
+	QStringList _currentPath;
 	/// The result messages collected during the schema verification
-	std::list<std::string> _messages;
+	QStringList _messages;
 	/// Flag indicating an error occured during validation
 	bool _error;
 };

@@ -152,10 +152,10 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 	schemaChecker.setSchema(configSchema.object());
 	if (!schemaChecker.validate(configEffect.object()))
 	{
-		const std::list<std::string> & errors = schemaChecker.getMessages();
-		foreach (const std::string & error, errors)
+		const QStringList & errors = schemaChecker.getMessages();
+		foreach (auto & error, errors)
 		{
-			Error( log, "Error while checking '%s':%s", fileName.toUtf8().constData(), error.c_str());
+			Error( log, "Error while checking '%s':%s", QSTRING_CSTR(fileName), QSTRING_CSTR(error));
 		}
 		return false;
 	}

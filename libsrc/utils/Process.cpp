@@ -41,7 +41,7 @@ void restartHyperion(bool asNewProcess)
 QByteArray command_exec(QString cmd, QByteArray data)
 {
 	char buffer[128];
-	std::string result = "";
+	QString result = "";
 
 	std::shared_ptr<FILE> pipe(popen(cmd.toLocal8Bit().constData(), "r"), pclose);
 	if (pipe) 
@@ -52,7 +52,7 @@ QByteArray command_exec(QString cmd, QByteArray data)
 				result += buffer;
 		}
 	}
-	return result.c_str();
+	return QSTRING_CSTR(result);
 }
 
 };

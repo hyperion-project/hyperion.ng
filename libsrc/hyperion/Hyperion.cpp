@@ -58,7 +58,7 @@ ColorOrder Hyperion::createColorOrder(const QJsonObject &deviceConfig)
 
 ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
-	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
+	const QString id = adjustmentConfig["id"].toString("default");
 
 	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
 	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
@@ -71,7 +71,7 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	RgbTransform         * rgbTransform      = createRgbTransform(adjustmentConfig);
 
 	ColorAdjustment * adjustment = new ColorAdjustment();
-	adjustment->_id = id;
+	adjustment->_id = id.toStdString();
 	adjustment->_rgbBlackAdjustment   = *blackAdjustment;
 	adjustment->_rgbWhiteAdjustment   = *whiteAdjustment;
 	adjustment->_rgbRedAdjustment     = *redAdjustment;
@@ -319,8 +319,7 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 
 LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice)
 {
-	std::string type = smoothingConfig["type"].toString("linear").toStdString();
-	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+	QString type = smoothingConfig["type"].toString("linear").toLower();
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	
@@ -337,7 +336,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	}
 	else
 	{
-		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
+		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", QSTRING_CSTR(type));
 	}
 	
 	device->setEnable(smoothingConfig["enable"].toBool(true));
@@ -358,7 +357,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Json forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addJsonSlave(addr[i].toString().toStdString());
+					forwarder->addJsonSlave(addr[i].toString());
 				}
 			}
 
@@ -368,7 +367,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Proto forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addProtoSlave(addr[i].toString().toStdString());
+					forwarder->addProtoSlave(addr[i].toString());
 				}
 			}
 		}

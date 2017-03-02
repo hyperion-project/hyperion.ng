@@ -8,7 +8,6 @@
 
 // STL incldues
 #include <vector>
-#include <string>
 #include <map>
 #include <algorithm>
 
@@ -24,7 +23,7 @@
 class LedDevice;
 
 typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<std::string,LedDeviceCreateFuncType> LedDeviceRegistry;
+typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
 /// Interface (pure virtual base class) for LedDevices.
@@ -52,10 +51,10 @@ public:
 	///
 	virtual int open();
 
-	static int addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr);
+	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();
-	static void setActiveDevice(std::string dev);
-	static std::string activeDevice() { return _activeDevice; }
+	static void setActiveDevice(QString dev);
+	static QString activeDevice() { return _activeDevice; }
 	static QJsonObject getLedDeviceSchemas();
 	static void setLedCount(int ledCount);
 	static int  getLedCount() { return _ledCount; }
@@ -78,7 +77,7 @@ protected:
 
 	bool _deviceReady;
 
-	static std::string _activeDevice;
+	static QString _activeDevice;
 	static LedDeviceRegistry _ledDeviceMap;
 
 	static int _ledCount;

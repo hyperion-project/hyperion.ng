@@ -158,9 +158,10 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	_qconfig = QJsonFactory::readConfig(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		QStringList schemaErrors = schemaChecker.getMessages();
+		foreach (auto & schemaError, schemaErrors)
 		{
-			std::cout << *i << std::endl;
+			std::cout << schemaError.toStdString() << std::endl;
 		}
 
 		throw std::runtime_error("ERROR: Json validation failed");

@@ -13,11 +13,11 @@ MessageForwarder::~MessageForwarder()
 }
 
 
-void MessageForwarder::addJsonSlave(std::string slave)
+void MessageForwarder::addJsonSlave(QString slave)
 {
-	QStringList parts = QString(slave.c_str()).split(":");
+	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
-		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: unable to parse address (%1)").arg(slave.c_str()).toStdString());
+		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: unable to parse address (%1)").arg(slave).toStdString());
 
 	bool ok;
 	quint16 port = parts[1].toUShort(&ok);
@@ -30,9 +30,9 @@ void MessageForwarder::addJsonSlave(std::string slave)
 	_jsonSlaves << c;
 }
 
-void MessageForwarder::addProtoSlave(std::string slave)
+void MessageForwarder::addProtoSlave(QString slave)
 {
-	_protoSlaves << QString(slave.c_str());
+	_protoSlaves << slave;
 }
 
 QStringList MessageForwarder::getProtoSlaves()

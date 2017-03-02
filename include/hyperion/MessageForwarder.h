@@ -25,8 +25,8 @@ public:
 	MessageForwarder();
 	~MessageForwarder();
 	
-	void addJsonSlave(std::string slave);
-	void addProtoSlave(std::string slave);
+	void addJsonSlave(QString slave);
+	void addProtoSlave(QString slave);
 
 	bool protoForwardingEnabled();
 	bool jsonForwardingEnabled();
