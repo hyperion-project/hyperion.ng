@@ -253,7 +253,6 @@
 	"infoDialog_general_error_title" : "Error",
 	"infoDialog_general_warning_title" : "Warning",
 	"infoDialog_checklist_title" : "Checklist!",
-	"InfoDialog_leds_validfail_title" : "JSON Validation failed!",
 	"infoDialog_effconf_deleted_text" : "The effect \"$1\" has been deleted successfully!",
 	"infoDialog_effconf_created_text" : "The effect \"$1\" has been created successfully!",
 	"InfoDialog_lang_title" : "Language setting",

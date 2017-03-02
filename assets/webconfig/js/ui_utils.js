@@ -48,6 +48,14 @@ function debugMessage(msg)
 	}
 }
 
+function validateDuration(d)
+{
+	if(typeof d === "undefined" || d < 0)
+		return d = 0;
+	else
+		return d *= 1000;
+}
+
 function getHashtag()
 {
 	if(getStorage('lasthashtag', true) != null)

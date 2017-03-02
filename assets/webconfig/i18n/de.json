@@ -253,7 +253,6 @@
 	"infoDialog_general_error_title" : "Fehler",
 	"infoDialog_general_warning_title" : "Warnung",
 	"infoDialog_checklist_title" : "Checkliste!",
-	"InfoDialog_leds_validfail_title" : "JSON Überprüfung fehlgeschlagen!",
 	"infoDialog_effconf_deleted_text" : "Der Effekt \"$1\" wurde erfolgreich entfernt!",
 	"infoDialog_effconf_created_text" : "Der Effekt \"$1\" wurde erfolgreich erstellt!",
 	"InfoDialog_lang_title" : "Spracheinstellung",
