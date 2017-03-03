@@ -80,6 +80,13 @@ public:
 	QString getServerInfo();
 
 	///
+	/// Retrieve system info
+	///
+	/// @return String with the sys info
+	///
+	QString getSysInfo();
+
+	///
 	/// Clear the given priority channel
 	///
 	/// @param priority The priority

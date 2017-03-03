@@ -41,6 +41,7 @@
 #include <HyperionConfig.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Process.h>
+#include <utils/SysInfo.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -292,38 +293,23 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 
 		int tan = message["tan"].toInt(0);
 		// switch over all possible commands and handle them
-		if (command == "color")
-			handleColorCommand(message, command, tan);
-		else if (command == "image")
-			handleImageCommand(message, command, tan);
-		else if (command == "effect")
-			handleEffectCommand(message, command, tan);
-		else if (command == "create-effect")
-			handleCreateEffectCommand(message, command, tan);
-		else if (command == "delete-effect")
-			handleDeleteEffectCommand(message, command, tan);
-		else if (command == "serverinfo")
-			handleServerInfoCommand(message, command, tan);
-		else if (command == "clear")
-			handleClearCommand(message, command, tan);
-		else if (command == "clearall")
-			handleClearallCommand(message, command, tan);
-		else if (command == "adjustment")
-			handleAdjustmentCommand(message, command, tan);
-		else if (command == "sourceselect")
-			handleSourceSelectCommand(message, command, tan);
-		else if (command == "config")
-			handleConfigCommand(message, command, tan);
-		else if (command == "componentstate")
-			handleComponentStateCommand(message, command, tan);
-		else if (command == "ledcolors")
-			handleLedColorsCommand(message, command, tan);
-		else if (command == "logging")
-			handleLoggingCommand(message, command, tan);
-		else if (command == "processing")
-			handleProcessingCommand(message, command, tan);
-		else
-			handleNotImplemented();
+		if      (command == "color")          handleColorCommand         (message, command, tan);
+		else if (command == "image")          handleImageCommand         (message, command, tan);
+		else if (command == "effect")         handleEffectCommand        (message, command, tan);
+		else if (command == "create-effect")  handleCreateEffectCommand  (message, command, tan);
+		else if (command == "delete-effect")  handleDeleteEffectCommand  (message, command, tan);
+		else if (command == "serverinfo")     handleServerInfoCommand    (message, command, tan);
+		else if (command == "sysinfo")        handleSysInfoCommand       (message, command, tan);
+		else if (command == "clear")          handleClearCommand         (message, command, tan);
+		else if (command == "clearall")       handleClearallCommand      (message, command, tan);
+		else if (command == "adjustment")     handleAdjustmentCommand    (message, command, tan);
+		else if (command == "sourceselect")   handleSourceSelectCommand  (message, command, tan);
+		else if (command == "config")         handleConfigCommand        (message, command, tan);
+		else if (command == "componentstate") handleComponentStateCommand(message, command, tan);
+		else if (command == "ledcolors")      handleLedColorsCommand     (message, command, tan);
+		else if (command == "logging")        handleLoggingCommand       (message, command, tan);
+		else if (command == "processing")     handleProcessingCommand    (message, command, tan);
+		else                                  handleNotImplemented       ();
  	}
  	catch (std::exception& e)
  	{
@@ -570,6 +556,32 @@ void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message,
 	} else
 		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
+
+
+void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QString& command, const int tan)
+{
+	// create result
+	QJsonObject result;
+	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
+	
+	QJsonObject info;
+	SysInfo::HyperionSysInfo data = SysInfo::get();
+	info["kernelType"    ] = data.kernelType;
+	info["kernelVersion" ] = data.kernelVersion;
+	info["architecture"  ] = data.architecture;
+	info["wordSize"      ] = data.wordSize;
+	info["productType"   ] = data.productType;
+	info["productVersion"] = data.productVersion;
+	info["prettyName"    ] = data.prettyName;
+	info["hostName"      ] = data.hostName;
+
+	// send the result
+	result["info"] = info;
+	sendMessage(result);
+}
+
 
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
 {

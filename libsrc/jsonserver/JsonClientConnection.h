@@ -190,6 +190,13 @@ private:
 	void handleServerInfoCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON System info message
+	///
+	/// @param message the incoming message
+	///
+	void handleSysInfoCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message

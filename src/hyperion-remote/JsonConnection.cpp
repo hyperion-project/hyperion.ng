@@ -256,6 +256,33 @@ QString JsonConnection::getServerInfo()
 	return QString();
 }
 
+QString JsonConnection::getSysInfo()
+{
+	qDebug() << "Get system info";
+
+	// create command
+	QJsonObject command;
+	command["command"] = QString("sysinfo");
+
+	// send command message
+	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	if (parseReply(reply))
+	{
+		if (!reply.contains("info") || !reply["info"].isObject())
+		{
+			throw std::runtime_error("No info available in result");
+		}
+
+		QJsonDocument doc(reply["info"].toObject());
+		QString info(doc.toJson(QJsonDocument::Indented));
+		return info;
+	}
+
+	return QString();
+}
+
 void JsonConnection::clear(int priority)
 {
 	qDebug() << "Clear priority channel " << priority;

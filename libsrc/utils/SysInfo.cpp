@@ -1,5 +1,6 @@
 #include "utils/SysInfo.h"
 
+#include <QHostInfo>
 #include <QSysInfo>
 #include <iostream>
 #include <sys/utsname.h>
@@ -8,7 +9,6 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -20,23 +20,15 @@ SysInfo::SysInfo()
 {
 	SysInfo::QUnixOSVersion v;
 	findUnixOsVersion(v);
-	
-	std::cout
-		<< currentCpuArchitecture().toStdString() << " "
-		<< kernelType().toStdString() << " "
-		<< kernelVersion().toStdString() << " "
-		<< v.productType.toStdString() << " "
-		<< v.productVersion.toStdString() << " "
-		<< v.prettyName.toStdString() << " "
-		<< std::endl;
-	
+
 	_sysinfo.kernelType     = kernelType();
 	_sysinfo.kernelVersion  = kernelVersion();
 	_sysinfo.architecture   = currentCpuArchitecture();
-	_sysinfo.wordSize       = QSysInfo::WordSize;
+	_sysinfo.wordSize       = QString::number(QSysInfo::WordSize);
 	_sysinfo.productType    = v.productType;
 	_sysinfo.productVersion = v.productVersion;
 	_sysinfo.prettyName     = v.prettyName;
+	_sysinfo.hostName       = QHostInfo::localHostName();
 }
 
 SysInfo::~SysInfo()
