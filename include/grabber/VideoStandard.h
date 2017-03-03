@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string>
-#include <algorithm>
-
 /**
  * Enumeration of the possible video standards the grabber can be set to
  */

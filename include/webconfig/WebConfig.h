@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QString>
-#include <string>
 #include <hyperion/Hyperion.h>
 
 class StaticFileServing;

@@ -1,9 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-#include <list>
-
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>

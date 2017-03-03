@@ -3,7 +3,6 @@
 
 #include <QCoreApplication>
 #include <QStringList>
-#include <string>
 
 #include <unistd.h>
 #include <cstdio>

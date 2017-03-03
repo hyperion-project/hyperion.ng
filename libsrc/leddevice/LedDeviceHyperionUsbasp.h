@@ -3,7 +3,6 @@
 // stl includes
 #include <vector>
 #include <cstdint>
-#include <string>
 
 // libusb include
 #include <libusb.h>

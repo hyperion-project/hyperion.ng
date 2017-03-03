@@ -1,7 +1,4 @@
 // Stl includes
-#include <string>
-#include <sstream>
-#include <algorithm>
 #include <exception>
 #include <map>
 
