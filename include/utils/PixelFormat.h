@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string>
-#include <algorithm>
+#include <QString>
 
 /**
  * Enumeration of the possible pixel formats the grabber can be set to
@@ -16,10 +15,10 @@ enum PixelFormat {
 	PIXELFORMAT_NO_CHANGE
 };
 
-inline PixelFormat parsePixelFormat(std::string pixelFormat)
+inline PixelFormat parsePixelFormat(QString pixelFormat)
 {
 	// convert to lower case
-	std::transform(pixelFormat.begin(), pixelFormat.end(), pixelFormat.begin(), ::tolower);
+	pixelFormat = pixelFormat.toLower();
 
 	if (pixelFormat == "yuyv")
 	{

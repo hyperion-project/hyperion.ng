@@ -12,10 +12,10 @@ enum VideoStandard {
 	VIDEOSTANDARD_NO_CHANGE
 };
 
-inline VideoStandard parseVideoStandard(std::string videoStandard)
+inline VideoStandard parseVideoStandard(QString videoStandard)
 {
 	// convert to lower case
-	std::transform(videoStandard.begin(), videoStandard.end(), videoStandard.begin(), ::tolower);
+	videoStandard = videoStandard.toLower();
 
 	if (videoStandard == "pal")
 	{

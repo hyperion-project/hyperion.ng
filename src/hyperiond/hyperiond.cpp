@@ -596,8 +596,8 @@ void HyperionDaemon::createGrabberV4L2()
 			V4L2Wrapper* grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["input"].toInt(0),
-				parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
-				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
+				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
+				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["width"].toInt(-1),
 				grabberConfig["height"].toInt(-1),
 				grabberConfig["frameDecimation"].toInt(2),
@@ -606,7 +606,7 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["greenSignalThreshold"].toDouble(0.0),
 				grabberConfig["blueSignalThreshold"].toDouble(0.0),
 				grabberConfig["priority"].toInt(890));
-			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
+			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
