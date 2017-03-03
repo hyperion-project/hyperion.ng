@@ -73,7 +73,7 @@ void CgiHandler::cmd_cfg_get()
 {
 	if ( _args.at(0) == "cfg_get" )
 	{
-		QFile file ( _hyperion->getConfigFileName().c_str() );
+		QFile file ( _hyperion->getConfigFileName() );
 		if (file.exists ())
 		{
 			if (file.open (QFile::ReadOnly)) {
@@ -110,7 +110,7 @@ void CgiHandler::cmd_cfg_set()
 					schemaChecker.setSchema(schemaJson);
 					if ( schemaChecker.validate(hyperionConfigJsonObj) )
 					{
-						QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfigJsonObj);
+						QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj);
 					}
 					else
 					{

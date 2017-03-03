@@ -71,7 +71,7 @@ ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustment
 	RgbTransform         * rgbTransform      = createRgbTransform(adjustmentConfig);
 
 	ColorAdjustment * adjustment = new ColorAdjustment();
-	adjustment->_id = id.toStdString();
+	adjustment->_id = id;
 	adjustment->_rgbBlackAdjustment   = *blackAdjustment;
 	adjustment->_rgbWhiteAdjustment   = *whiteAdjustment;
 	adjustment->_rgbRedAdjustment     = *redAdjustment;
@@ -117,13 +117,13 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 		{
 			// Special case for indices '*' => all leds
 			adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", colorAdjustment->_id.c_str(), ledCnt-1);
+			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", QSTRING_CSTR(colorAdjustment->_id), ledCnt-1);
 			continue;
 		}
 
 		if (!overallExp.exactMatch(ledIndicesStr))
 		{
-			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
+			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
 			continue;
 		}
 
@@ -150,7 +150,7 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 				ss << index;
 			}
 		}
-		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", colorAdjustment->_id.c_str(), ss.str().c_str()); 
+		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str()); 
 	}
 
 	return adjustment;
@@ -602,12 +602,12 @@ void Hyperion::setImage(int priority, const Image<ColorRgb> & image, int duratio
 	}
 }
 
-const std::vector<std::string> & Hyperion::getAdjustmentIds() const
+const QStringList & Hyperion::getAdjustmentIds() const
 {
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
 
-ColorAdjustment * Hyperion::getAdjustment(const std::string& id)
+ColorAdjustment * Hyperion::getAdjustment(const QString& id)
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }

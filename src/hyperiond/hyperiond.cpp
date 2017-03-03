@@ -537,7 +537,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
 	_fbGrabber = new FramebufferWrapper(
-				grabberConfig["device"].toString("/dev/fb0").toStdString(),
+				grabberConfig["device"].toString("/dev/fb0"),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
@@ -594,7 +594,7 @@ void HyperionDaemon::createGrabberV4L2()
 			}
 			#ifdef ENABLE_V4L2
 			V4L2Wrapper* grabber = new V4L2Wrapper(
-				grabberConfig["device"].toString("auto").toStdString(),
+				grabberConfig["device"].toString("auto"),
 				grabberConfig["input"].toInt(0),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),

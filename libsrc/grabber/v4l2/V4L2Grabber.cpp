@@ -23,7 +23,7 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-V4L2Grabber::V4L2Grabber(const std::string & device
+V4L2Grabber::V4L2Grabber(const QString & device
 		, int input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
@@ -51,7 +51,7 @@ V4L2Grabber::V4L2Grabber(const std::string & device
 	, _noSignalCounter(0)
 	, _streamNotifier(nullptr)
 	, _imageResampler()
-	, _log(Logger::getInstance("V4L2:"+QString::fromStdString(device)))
+	, _log(Logger::getInstance("V4L2:"+device))
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
 	, _noSignalDetected(false)
@@ -74,7 +74,7 @@ V4L2Grabber::~V4L2Grabber()
 
 void V4L2Grabber::uninit()
 {
-	Debug(_log,"uninit grabber: %s", _deviceName.c_str());
+	Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
@@ -91,16 +91,16 @@ bool V4L2Grabber::init()
 	if (! _initialized)
 	{
 		getV4Ldevices();
-		std::string v4lDevices_str;
+		QString v4lDevices_str;
 		
 		// show list only once
-		if ( ! QString(_deviceName.c_str()).startsWith("/dev/") )
+		if ( ! QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/") )
 		{
 			for (auto& dev: _v4lDevices)
 			{
 				v4lDevices_str += "\t"+ dev.first + "\t" + dev.second + "\n";
 			}
-			Info(_log, "available V4L2 devices:\n%s", v4lDevices_str.c_str());
+			Info(_log, "available V4L2 devices:\n%s", QSTRING_CSTR(v4lDevices_str));
 		}
 
 		if ( _deviceName == "auto" )
@@ -113,28 +113,28 @@ bool V4L2Grabber::init()
 				_deviceName = dev.first;
 				if ( init() )
 				{
-					Info(_log, "found usable v4l2 device: %s (%s)",dev.first.c_str(), dev.second.c_str());
+					Info(_log, "found usable v4l2 device: %s (%s)",QSTRING_CSTR(dev.first), QSTRING_CSTR(dev.second));
 					_deviceAutoDiscoverEnabled = false;
 					return _initialized;
 				}
 			}
 			Info( _log, "no usable device found" );
 		}
-		else if ( ! QString(_deviceName.c_str()).startsWith("/dev/") )
+		else if ( ! _deviceName.startsWith("/dev/") )
 		{
 			for (auto& dev: _v4lDevices)
 			{
-				if ( QString(_deviceName.c_str()).toLower() == QString(dev.second.c_str()).toLower() )
+				if ( _deviceName.toLower() == dev.second.toLower() )
 				{
 					_deviceName = dev.first;
-					Info(_log, "found v4l2 device with configured name: %s (%s)", dev.second.c_str(), dev.first.c_str() );
+					Info(_log, "found v4l2 device with configured name: %s (%s)", QSTRING_CSTR(dev.second), QSTRING_CSTR(dev.first) );
 					break;
 				}
 			}
 		}
 		else
 		{
-			Info(_log, "%s v4l device: %s", (_deviceAutoDiscoverEnabled? "test" : "configured"),_deviceName.c_str());
+			Info(_log, "%s v4l device: %s", (_deviceAutoDiscoverEnabled? "test" : "configured"), QSTRING_CSTR(_deviceName));
 		}
 
 		bool opened = false;
@@ -177,7 +177,7 @@ void V4L2Grabber::getV4Ldevices()
 				devName = devName.trimmed();
 				devNameFile.close();
 			}
-			_v4lDevices.emplace("/dev/"+it.fileName().toStdString(), devName.toStdString());
+			_v4lDevices.emplace("/dev/"+it.fileName(), devName);
 		}
     }
 }
@@ -194,14 +194,12 @@ void V4L2Grabber::set3D(VideoMode mode)
 
 void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
-	_noSignalThresholdColor.red = uint8_t(255*redSignalThreshold);
+	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
-	_noSignalThresholdColor.blue = uint8_t(255*blueSignalThreshold);
-	_noSignalCounterThreshold = std::max(1, noSignalCounterThreshold);
+	_noSignalThresholdColor.blue  = uint8_t(255*blueSignalThreshold);
+	_noSignalCounterThreshold     = std::max(1, noSignalCounterThreshold);
 
-	std::stringstream ss;
-	ss << _noSignalThresholdColor;
-	Info(_log, "Signal threshold set to: %s", ss.str().c_str() );
+	Info(_log, "Signal threshold set to: {%d, %d, %d}", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue );
 }
 
 void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
@@ -256,7 +254,7 @@ void V4L2Grabber::open_device()
 {
 	struct stat st;
 
-	if (-1 == stat(_deviceName.c_str(), &st))
+	if (-1 == stat(QSTRING_CSTR(_deviceName), &st))
 	{
 		throw_errno_exception("Cannot identify '" + _deviceName + "'");
 	}
@@ -266,7 +264,7 @@ void V4L2Grabber::open_device()
 		throw_exception("'" + _deviceName + "' is no device");
 	}
 
-	_fileDescriptor = open(_deviceName.c_str(), O_RDWR /* required */ | O_NONBLOCK, 0);
+	_fileDescriptor = open(QSTRING_CSTR(_deviceName), O_RDWR | O_NONBLOCK, 0);
 
 	if (-1 == _fileDescriptor)
 	{
@@ -870,14 +868,12 @@ int V4L2Grabber::xioctl(int request, void *arg)
 	return r;
 }
 
-void V4L2Grabber::throw_exception(const std::string & error)
+void V4L2Grabber::throw_exception(const QString & error)
 {
-	throw std::runtime_error(error);
+	throw std::runtime_error(error.toStdString());
 }
 
-void V4L2Grabber::throw_errno_exception(const std::string & error)
+void V4L2Grabber::throw_errno_exception(const QString & error)
 {
-	std::ostringstream oss;
-	oss << error << " error code " << errno << ", " << strerror(errno);
-	throw std::runtime_error(oss.str());
+	throw std::runtime_error(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno)).toStdString());
 }

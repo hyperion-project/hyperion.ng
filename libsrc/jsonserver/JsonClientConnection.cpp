@@ -677,17 +677,17 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	// collect adjustment information
 	QJsonArray adjustmentArray;
-	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
+	for (const QString& adjustmentId : _hyperion->getAdjustmentIds())
 	{
 		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
-			Error(_log, "Incorrect color adjustment id: %s", adjustmentId.c_str());
+			Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
 			continue;
 		}
 
 		QJsonObject adjustment;
-		adjustment["id"] = QString::fromStdString(adjustmentId);
+		adjustment["id"] = adjustmentId;
 
 		QJsonArray blackAdjust;
 		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentR());
@@ -852,8 +852,8 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 {
 	const QJsonObject & adjustment = message["adjustment"].toObject();
 
-	const QString adjustmentId = adjustment["id"].toString(QString::fromStdString(_hyperion->getAdjustmentIds().front()));
-	ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId.toStdString());
+	const QString adjustmentId = adjustment["id"].toString(_hyperion->getAdjustmentIds().first());
+	ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 	if (colorAdjustment == nullptr)
 	{
 		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
@@ -1008,7 +1008,7 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	
 	try
 	{
-		result["result"] = QJsonFactory::readConfig(QString::fromStdString(_hyperion->getConfigFileName()));
+		result["result"] = QJsonFactory::readConfig(_hyperion->getConfigFileName());
 	}
 	catch(...)
 	{
