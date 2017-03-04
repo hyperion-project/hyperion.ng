@@ -3,12 +3,13 @@
 var webPrio = 1;
 var webOrigin = "Web Configuration";
 var showOptHelp;
-var currentVersion;
+var currentVersion = "";
 var latestVersion;
 var serverInfo = {};
 var parsedUpdateJSON = {};
 var serverSchema = {};
 var serverConfig = {};
+var sysInfo = {};
 var schema;
 var jsonPort = 19444;
 var websocket = null;
@@ -76,7 +77,6 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
-
 					$(hyperion).on("cmd-serverinfo", function(event) {
 						watchdog = 0;
 					});
@@ -169,6 +169,11 @@ function sendToHyperion(command, subcommand, msg)
 function requestServerInfo()
 {
 	sendToHyperion("serverinfo");
+}
+
+function requestSysInfo()
+{
+	sendToHyperion("sysinfo");
 }
 
 function requestServerConfigSchema()

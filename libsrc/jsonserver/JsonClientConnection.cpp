@@ -562,23 +562,32 @@ void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QStrin
 {
 	// create result
 	QJsonObject result;
+	QJsonObject info;
 	result["success"] = true;
 	result["command"] = command;
 	result["tan"] = tan;
 	
-	QJsonObject info;
 	SysInfo::HyperionSysInfo data = SysInfo::get();
-	info["kernelType"    ] = data.kernelType;
-	info["kernelVersion" ] = data.kernelVersion;
-	info["architecture"  ] = data.architecture;
-	info["wordSize"      ] = data.wordSize;
-	info["productType"   ] = data.productType;
-	info["productVersion"] = data.productVersion;
-	info["prettyName"    ] = data.prettyName;
-	info["hostName"      ] = data.hostName;
+	QJsonObject system;
+	system["kernelType"    ] = data.kernelType;
+	system["kernelVersion" ] = data.kernelVersion;
+	system["architecture"  ] = data.architecture;
+	system["wordSize"      ] = data.wordSize;
+	system["productType"   ] = data.productType;
+	system["productVersion"] = data.productVersion;
+	system["prettyName"    ] = data.prettyName;
+	system["hostName"      ] = data.hostName;
+	info["system"] = system;
+
+	QJsonObject hyperion;
+	hyperion["jsonrpc_version" ] = QString(HYPERION_JSON_VERSION);
+	hyperion["version"         ] = QString(HYPERION_VERSION);
+	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
+	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
+	info["hyperion"] = hyperion;
 
 	// send the result
-	result["info"] = info;
+	result["info" ] = info;
 	sendMessage(result);
 }
 
@@ -592,9 +601,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	result["tan"] = tan;
 	
 	QJsonObject info;
-
-	// add host name for remote clients
-	info["hostname"] = QHostInfo::localHostName();
 
 	// collect priority information
 	QJsonArray priorities;
@@ -817,17 +823,10 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	info["components"] = component;
 	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
-	// Add Hyperion Version, build time
-	QJsonArray hyperion;
-	QJsonObject ver;
-	ver["jsonrpc_version"] = QString(HYPERION_JSON_VERSION);
-	ver["version"] = QString(HYPERION_VERSION);
-	ver["build"]   = QString(HYPERION_BUILD_ID);
-	ver["time"]    = QString(__DATE__ " " __TIME__);
-	ver["config_modified"] = _hyperion->configModified();
-	ver["config_writeable"] = _hyperion->configWriteable();
-
-	hyperion.append(ver);
+	// Add Hyperion 
+	QJsonObject hyperion;
+	hyperion["config_modified" ] = _hyperion->configModified();
+	hyperion["config_writeable"] = _hyperion->configWriteable();
 	info["hyperion"] = hyperion;
 	
 	// send the result
