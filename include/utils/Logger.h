@@ -5,7 +5,6 @@
 #include <QString>
 
 // stl includes
-#include <string>
 #include <stdio.h>
 #include <stdarg.h>
 #include <map>
@@ -51,9 +50,9 @@ public:
 	} T_LOG_MESSAGE;
 
 	static Logger*  getInstance(QString name="", LogLevel minLevel=Logger::INFO);
-	static void     deleteInstance(std::string name="");
-	static void     setLogLevel(LogLevel level,std::string name="");
-	static LogLevel getLogLevel(std::string name="");
+	static void     deleteInstance(QString name="");
+	static void     setLogLevel(LogLevel level, QString name="");
+	static LogLevel getLogLevel(QString name="");
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = level; };
@@ -63,18 +62,18 @@ signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
-	Logger( std::string name="", LogLevel minLevel=INFO);
+	Logger( QString name="", LogLevel minLevel=INFO);
 	~Logger();
 
 private:
-	static std::map<std::string,Logger*> *LoggerMap;
+	static std::map<QString,Logger*> *LoggerMap;
 	static LogLevel GLOBAL_MIN_LOG_LEVEL;
 
-	std::string _name;
-	std::string _appname;
-	LogLevel    _minLevel;
-	bool        _syslogEnabled;
-	unsigned int _loggerId;
+	QString  _name;
+	QString  _appname;
+	LogLevel _minLevel;
+	bool     _syslogEnabled;
+	unsigned _loggerId;
 };
 
 

@@ -13,7 +13,7 @@ class V4L2Wrapper : public GrabberWrapper
 	Q_OBJECT
 
 public:
-	V4L2Wrapper(const std::string & device,
+	V4L2Wrapper(const QString & device,
 			int input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,

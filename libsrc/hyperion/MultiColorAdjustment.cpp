@@ -27,7 +27,7 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 	_adjustment.push_back(adjustment);
 }
 
-void MultiColorAdjustment::setAdjustmentForLed(const std::string& id, const unsigned startLed, const unsigned endLed)
+void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, const unsigned endLed)
 {
 	assert(startLed <= endLed);
 	assert(endLed < _ledAdjustments.size());
@@ -61,12 +61,12 @@ bool MultiColorAdjustment::verifyAdjustments() const
 	return true;
 }
 
-const std::vector<std::string> & MultiColorAdjustment::getAdjustmentIds()
+const QStringList & MultiColorAdjustment::getAdjustmentIds()
 {
 	return _adjustmentIds;
 }
 
-ColorAdjustment* MultiColorAdjustment::getAdjustment(const std::string& id)
+ColorAdjustment* MultiColorAdjustment::getAdjustment(const QString& id)
 {
 	// Iterate through the unique adjustments until we find the one with the given id
 	for (ColorAdjustment* adjustment : _adjustment)

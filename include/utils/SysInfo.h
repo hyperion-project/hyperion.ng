@@ -6,8 +6,7 @@
 
 class SysInfo : public QObject
 {
-//	Q_OBJECT
-	
+
 public:
 	struct HyperionSysInfo
 	{
@@ -15,26 +14,27 @@ public:
 		QString kernelVersion;
 		QString architecture;
 		QString wordSize;
-		QString productType;    // $ID                          $DISTRIB_ID                    // single line file containing:       // Debian
-		QString productVersion; // $VERSION_ID                  $DISTRIB_RELEASE               // <Vendor_ID release Version_ID>     // single line file <Release_ID/sid>
-		QString prettyName;     // $PRETTY_NAME                 $DISTRIB_DESCRIPTION
+		QString productType;
+		QString productVersion;
+		QString prettyName;
+		QString hostName;
 	};
 
+	~SysInfo();
 	static HyperionSysInfo get();
 
 private:
 	SysInfo();
-	~SysInfo();
+
 	static SysInfo* _instance;
 
 	HyperionSysInfo _sysinfo;
 
 	struct QUnixOSVersion
 	{
-	                        // from /etc/os-release         older /etc/lsb-release         // redhat /etc/redhat-release         // debian /etc/debian_version
-	QString productType;    // $ID                          $DISTRIB_ID                    // single line file containing:       // Debian
-	QString productVersion; // $VERSION_ID                  $DISTRIB_RELEASE               // <Vendor_ID release Version_ID>     // single line file <Release_ID/sid>
-	QString prettyName;     // $PRETTY_NAME                 $DISTRIB_DESCRIPTION
+		QString productType;
+		QString productVersion;
+		QString prettyName;
 	};
 
 	QString machineHostName();

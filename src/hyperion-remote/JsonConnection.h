@@ -1,8 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QColor>
 #include <QImage>
@@ -78,6 +75,13 @@ public:
 	/// @return String with the server info
 	///
 	QString getServerInfo();
+
+	///
+	/// Retrieve system info
+	///
+	/// @return String with the sys info
+	///
+	QString getSysInfo();
 
 	///
 	/// Clear the given priority channel

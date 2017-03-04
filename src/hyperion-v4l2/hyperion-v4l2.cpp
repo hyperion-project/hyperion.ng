@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
 		// initialize the grabber
 		V4L2Grabber grabber(
-					argDevice.getStdString(parser),
+					argDevice.value(parser),
 					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),

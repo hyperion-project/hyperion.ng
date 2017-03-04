@@ -1,13 +1,11 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
 #include <QMutex>
 #include <QHostAddress>
+#include <QString>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -188,6 +186,13 @@ private:
 	/// @param message the incoming message
 	///
 	void handleServerInfoCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
+	/// Handle an incoming JSON System info message
+	///
+	/// @param message the incoming message
+	///
+	void handleSysInfoCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Clear message

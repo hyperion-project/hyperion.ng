@@ -43,9 +43,10 @@ bool loadConfig(const QString & configFile)
 	
 	if (!schemaChecker.validate(jsonConfig))
 	{
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		QStringList schemaErrors = schemaChecker.getMessages();
+		foreach (auto & schemaError, schemaErrors)
 		{
-			std::cout << *i << std::endl;
+			std::cout << "config write validation: " << schemaError.toStdString() << std::endl;
 		}
 		
 		std::cout << "FAILED" << std::endl;

@@ -1,7 +1,6 @@
 #pragma once
 
 // stl includes
-#include <string>
 #include <vector>
 #include <map>
 
@@ -29,7 +28,7 @@ class V4L2Grabber : public QObject
 	Q_OBJECT
 
 public:
-	V4L2Grabber(const std::string & device,
+	V4L2Grabber(const QString & device,
 			int input,
 			VideoStandard videoStandard, PixelFormat pixelFormat,
 			int width,
@@ -103,9 +102,9 @@ private:
 
 	int xioctl(int request, void *arg);
 
-	void throw_exception(const std::string &error);
+	void throw_exception(const QString &error);
 
-	void throw_errno_exception(const std::string &error);
+	void throw_errno_exception(const QString &error);
 
 private:
 	enum io_method {
@@ -120,8 +119,8 @@ private:
 	};
 
 private:
-	std::string _deviceName;
-	std::map<std::string,std::string> _v4lDevices;
+	QString _deviceName;
+	std::map<QString,QString> _v4lDevices;
 	int _input;
 	VideoStandard _videoStandard;
 	io_method _ioMethod;

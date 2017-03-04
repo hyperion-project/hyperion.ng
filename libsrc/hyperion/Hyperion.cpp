@@ -58,7 +58,7 @@ ColorOrder Hyperion::createColorOrder(const QJsonObject &deviceConfig)
 
 ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
-	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
+	const QString id = adjustmentConfig["id"].toString("default");
 
 	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
 	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
@@ -117,13 +117,13 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 		{
 			// Special case for indices '*' => all leds
 			adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", colorAdjustment->_id.c_str(), ledCnt-1);
+			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", QSTRING_CSTR(colorAdjustment->_id), ledCnt-1);
 			continue;
 		}
 
 		if (!overallExp.exactMatch(ledIndicesStr))
 		{
-			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
+			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
 			continue;
 		}
 
@@ -150,7 +150,7 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 				ss << index;
 			}
 		}
-		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", colorAdjustment->_id.c_str(), ss.str().c_str()); 
+		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str()); 
 	}
 
 	return adjustment;
@@ -319,8 +319,7 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 
 LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice)
 {
-	std::string type = smoothingConfig["type"].toString("linear").toStdString();
-	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+	QString type = smoothingConfig["type"].toString("linear").toLower();
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	
@@ -337,7 +336,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	}
 	else
 	{
-		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
+		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", QSTRING_CSTR(type));
 	}
 	
 	device->setEnable(smoothingConfig["enable"].toBool(true));
@@ -358,7 +357,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Json forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addJsonSlave(addr[i].toString().toStdString());
+					forwarder->addJsonSlave(addr[i].toString());
 				}
 			}
 
@@ -368,7 +367,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Proto forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addProtoSlave(addr[i].toString().toStdString());
+					forwarder->addProtoSlave(addr[i].toString());
 				}
 			}
 		}
@@ -603,12 +602,12 @@ void Hyperion::setImage(int priority, const Image<ColorRgb> & image, int duratio
 	}
 }
 
-const std::vector<std::string> & Hyperion::getAdjustmentIds() const
+const QStringList & Hyperion::getAdjustmentIds() const
 {
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
 
-ColorAdjustment * Hyperion::getAdjustment(const std::string& id)
+ColorAdjustment * Hyperion::getAdjustment(const QString& id)
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }

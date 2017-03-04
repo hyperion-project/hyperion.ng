@@ -3,7 +3,6 @@
 
 // STL includes
 #include <ctime>
-#include <string>
 #include <vector>
 
 // Local includes
