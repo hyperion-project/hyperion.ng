@@ -40,6 +40,7 @@ public:
 	virtual ~V4L2Grabber();
 
 	QRectF getSignalDetectionOffset();
+	bool getSignalDetectionEnabled();
 
 public slots:
 	void setCropping(int cropLeft,
@@ -60,6 +61,8 @@ public slots:
 					double horizontalMin,
 					double verticalMax,
 					double horizontalMax);
+
+	void setSignalDetectionEnable(bool enable);
 
 	bool start();
 
@@ -133,13 +136,19 @@ private:
 	int _lineLength;
 	int _frameByteSize;
 	int _frameDecimation;
-	int _noSignalCounterThreshold;
 
+	// signal detection
+	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
+	bool     _signalDetectionEnabled;
+	bool     _noSignalDetected;
+	int      _noSignalCounter;
+	double   _x_frac_min;
+	double   _y_frac_min;
+	double   _x_frac_max;
+	double   _y_frac_max;
 
 	int _currentFrame;
-	int _noSignalCounter;
-
 	QSocketNotifier * _streamNotifier;
 
 	ImageResampler _imageResampler;
@@ -148,10 +157,5 @@ private:
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
 	
-	bool  _noSignalDetected;
-	double _x_frac_min;
-	double _y_frac_min;
-	double _x_frac_max;
-	double _y_frac_max;
 
 };
