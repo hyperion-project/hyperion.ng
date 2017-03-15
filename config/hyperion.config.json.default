@@ -76,6 +76,7 @@
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
 			"blueSignalThreshold"  : 0.0,
+			"signalDetection"      : true,
 			"signalDetectionVerticalOffsetMin"   : 0.25,
 			"signalDetectionHorizontalOffsetMin" : 0.25,
 			"signalDetectionVerticalOffsetMax"   : 0.75,

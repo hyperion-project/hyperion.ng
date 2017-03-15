@@ -612,6 +612,7 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			grabber->setSignalDetectionOffset(
 				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
 				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
