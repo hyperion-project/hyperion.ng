@@ -58,7 +58,6 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	Logger * log = Logger::getInstance("LedDevice");
 	QJsonDocument config(deviceConfig);
 	QString ss(config.toJson(QJsonDocument::Indented));
-	Info(log, "configuration: %s ", ss.toUtf8().constData());
 
 	std::string type = deviceConfig["type"].toString("UNSPECIFIED").toStdString();
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
