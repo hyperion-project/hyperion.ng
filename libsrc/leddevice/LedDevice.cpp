@@ -7,7 +7,7 @@
 #include <QDir>
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
-std::string LedDevice::_activeDevice = "";
+QString LedDevice::_activeDevice = "";
 int LedDevice::_ledCount    = 0;
 int LedDevice::_ledRGBCount = 0;
 int LedDevice::_ledRGBWCount= 0;
@@ -34,7 +34,7 @@ int LedDevice::open()
 	return 0;
 }
 
-int LedDevice::addToDeviceMap(std::string name, LedDeviceCreateFuncType funcPtr)
+int LedDevice::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)
 {
 	_ledDeviceMap.emplace(name,funcPtr);
 	return 0;
@@ -45,7 +45,7 @@ const LedDeviceRegistry& LedDevice::getDeviceMap()
 	return _ledDeviceMap;
 }
 
-void LedDevice::setActiveDevice(std::string dev)
+void LedDevice::setActiveDevice(QString dev)
 {
 	_activeDevice = dev;
 }
@@ -74,7 +74,7 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 		
 		if (!schemaData.open(QIODevice::ReadOnly))
 		{
-			Error(Logger::getInstance("LedDevice"), "Schema not found: %s", item.toUtf8().constData());
+			Error(Logger::getInstance("LedDevice"), "Schema not found: %s", QSTRING_CSTR(item));
 			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
 		}
 		
@@ -97,10 +97,9 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 				}
 			}
 			
-			std::stringstream sstream;
-			sstream << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			Error(Logger::getInstance("LedDevice"), "LedDevice JSON schema error in %s (%s)", item.toUtf8().constData(), sstream.str().c_str());
-			throw std::runtime_error("ERROR: Json schema wrong: " + sstream.str());
+			QString errorMsg = error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn);
+			Error(Logger::getInstance("LedDevice"), "LedDevice JSON schema error in %s (%s)", QSTRING_CSTR(item), QSTRING_CSTR(errorMsg));
+			throw std::runtime_error("ERROR: Json schema wrong: " + errorMsg.toStdString());
 		}
 		
 		schemaJson = doc.object();

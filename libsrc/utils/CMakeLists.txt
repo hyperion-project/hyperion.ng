@@ -62,7 +62,7 @@ add_library(hyperion-utils
 	${PROFILER_SOURCE}
 )
 
-qt5_use_modules(hyperion-utils Core Gui)
+qt5_use_modules(hyperion-utils Core Gui Network)
 
 target_link_libraries(hyperion-utils
 	${QT_LIBRARIES})

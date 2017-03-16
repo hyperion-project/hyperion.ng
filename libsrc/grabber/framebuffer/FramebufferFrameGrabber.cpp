@@ -12,7 +12,7 @@
 // Local includes
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, const unsigned width, const unsigned height) :
+FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height) :
 	_fbfd(0),
 	_fbp(0),
 	_fbDevice(device),
@@ -25,10 +25,10 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const std::string & device, con
 	struct fb_var_screeninfo vinfo;
 
 	// Check if the framebuffer device can be opened and display the current resolution
-	_fbfd = open(_fbDevice.c_str(), O_RDONLY);
+	_fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
 	if (_fbfd == 0)
 	{
-		Error(_log, "Error openning %s", _fbDevice.c_str());
+		Error(_log, "Error openning %s", QSTRING_CSTR(_fbDevice));
 	}
 	else 
 	{
@@ -63,7 +63,7 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	PixelFormat pixelFormat;
 
 	/* Open the framebuffer device */
-	_fbfd = open(_fbDevice.c_str(), O_RDONLY);
+	_fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
 
 	/* get variable screen information */
 	ioctl (_fbfd, FBIOGET_VSCREENINFO, &vinfo);

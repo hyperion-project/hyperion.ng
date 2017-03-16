@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string>
-#include <algorithm>
+#include <QString>
 
 /**
  * Enumeration of the possible modes in which video can be playing (2D, 3D)
@@ -13,10 +12,10 @@ enum VideoMode
 	VIDEO_3DTAB
 };
 
-inline VideoMode parse3DMode(std::string videoMode)
+inline VideoMode parse3DMode(QString videoMode)
 {
 	// convert to lower case
-	std::transform(videoMode.begin(), videoMode.end(), videoMode.begin(), ::tolower);
+	videoMode = videoMode.toLower();
 
 	if (videoMode == "3DTAB")
 	{

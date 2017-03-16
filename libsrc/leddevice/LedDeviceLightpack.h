@@ -20,7 +20,7 @@ public:
 	///
 	/// @param serialNumber serial output device
 	///
-	LedDeviceLightpack(const std::string & serialNumber = "");
+	LedDeviceLightpack(const QString & serialNumber = "");
 	///
 	/// Constructs specific LedDevice
 	///
@@ -68,7 +68,7 @@ public:
 	virtual int switchOff();
 
 	/// Get the serial of the Lightpack
-	const std::string & getSerialNumber() const;
+	const QString & getSerialNumber() const;
 
 	/// Get the number of leds
 	int getLedCount() const;
@@ -88,7 +88,7 @@ private:
 	///
 	/// @return Zero on succes else negative
 	///
-	int testAndOpen(libusb_device * device, const std::string & requestedSerialNumber);
+	int testAndOpen(libusb_device * device, const QString & requestedSerialNumber);
 
 	/// write bytes to the device
 	int writeBytes(uint8_t *data, int size);
@@ -103,7 +103,7 @@ private:
 	};
 
 	static libusb_device_handle * openDevice(libusb_device * device);
-	static std::string getString(libusb_device * device, int stringDescriptorIndex);
+	static QString getString(libusb_device * device, int stringDescriptorIndex);
 
 	/// libusb context
 	libusb_context * _libusbContext;
@@ -118,7 +118,7 @@ private:
 	int  _addressNumber;
 
 	/// device serial number
-	std::string _serialNumber;
+	QString _serialNumber;
 
 	/// firmware version of the device
 	Version _firmwareVersion;

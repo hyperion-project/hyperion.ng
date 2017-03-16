@@ -467,6 +467,7 @@
 	"edt_conf_v4l2_cropTop_expl" : "Anzahl der Pixel auf der oberen Seite die vom Bild entfernt werden.",
 	"edt_conf_v4l2_cropBottom_title" : "Entferne unten",
 	"edt_conf_v4l2_cropBottom_expl" : "Anzahl der Pixel auf der unteren Seite die vom Bild entfernt werden.",
+	"edt_conf_v4l2_signalDetection_title" : "Signal Erkennung",
 	"edt_conf_v4l2_redSignalThreshold_title" : "Rote Signalschwelle",
 	"edt_conf_v4l2_redSignalThreshold_expl" : "Verdunkelt rote Werte. (Wird als schwarz interpretiert)",
 	"edt_conf_v4l2_greenSignalThreshold_title" : "Grüne Signalschwelle",

@@ -128,7 +128,7 @@ public:
 
 	/// get filename of configfile
 	/// @return the current config filename
-	std::string getConfigFileName() { return _configFile.toStdString(); };
+	QString getConfigFileName() { return _configFile; };
 
 	/// register a input source to a priority channel
 	/// @param name uniq name of input source
@@ -210,13 +210,13 @@ public slots:
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
 	///
-	const std::vector<std::string> & getAdjustmentIds() const;
+	const QStringList & getAdjustmentIds() const;
 
 	///
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
-	ColorAdjustment * getAdjustment(const std::string& id);
+	ColorAdjustment * getAdjustment(const QString& id);
 
 	///
 	/// Returns  MessageForwarder Object

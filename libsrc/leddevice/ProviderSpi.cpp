@@ -35,7 +35,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	_deviceName    = deviceConfig["output"].toString(QString::fromStdString(_deviceName)).toStdString();
+	_deviceName    = deviceConfig["output"].toString(_deviceName);
 	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
 	_latchTime_ns  = deviceConfig["latchtime"].toInt(_latchTime_ns);
 	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
@@ -51,11 +51,11 @@ int ProviderSpi::open()
 
 	const int bitsPerWord = 8;
 
-	_fid = ::open(_deviceName.c_str(), O_RDWR);
+	_fid = ::open(QSTRING_CSTR(_deviceName), O_RDWR);
 
 	if (_fid < 0)
 	{
-		Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
+		Error( _log, "Failed to open device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
 		return -1;
 	}
 

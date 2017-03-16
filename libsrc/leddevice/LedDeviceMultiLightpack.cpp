@@ -40,13 +40,13 @@ LedDevice* LedDeviceMultiLightpack::construct(const QJsonObject &deviceConfig)
 int LedDeviceMultiLightpack::open()
 {
 	// retrieve a list with Lightpack serials
-	std::list<std::string> serialList = getLightpackSerials();
+	QStringList serialList = getLightpackSerials();
 
 	// sort the list of Lightpacks based on the serial to get a fixed order
 	std::sort(_lightpacks.begin(), _lightpacks.end(), compareLightpacks);
 
 	// open each lightpack device
-	for (const std::string & serial : serialList)
+	foreach (auto serial , serialList)
 	{
 		LedDeviceLightpack * device = new LedDeviceLightpack(serial);	
 		int error = device->open();
@@ -57,7 +57,7 @@ int LedDeviceMultiLightpack::open()
 		}
 		else
 		{
-			Error(_log, "Error while creating Lightpack device with serial %s", serial.c_str());
+			Error(_log, "Error while creating Lightpack device with serial %s", QSTRING_CSTR(serial));
 			delete device;
 		}
 	}
@@ -109,9 +109,9 @@ int LedDeviceMultiLightpack::switchOff()
 	return 0;
 }
 
-std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
+QStringList LedDeviceMultiLightpack::getLightpackSerials()
 {
-	std::list<std::string> serialList;
+	QStringList serialList;
 	Logger * log = Logger::getInstance("LedDevice");
 	Debug(log, "Getting list of Lightpack serials");
 
@@ -148,7 +148,7 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 			Info(log, "Found a lightpack device. Retrieving serial...");
 
 			// get the serial number
-			std::string serialNumber;
+			QString serialNumber;
 			if (deviceDescriptor.iSerialNumber != 0)
 			{
 				try
@@ -162,8 +162,8 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 				}
 			}
 
-			Error(log, "Lightpack device found with serial %s", serialNumber.c_str());;
-			serialList.push_back(serialNumber);
+			Error(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));;
+			serialList.append(serialNumber);
 		}
 	}
 
@@ -174,7 +174,7 @@ std::list<std::string> LedDeviceMultiLightpack::getLightpackSerials()
 	return serialList;
 }
 
-std::string LedDeviceMultiLightpack::getString(libusb_device * device, int stringDescriptorIndex)
+QString LedDeviceMultiLightpack::getString(libusb_device * device, int stringDescriptorIndex)
 {
 	libusb_device_handle * handle = nullptr;
 
@@ -193,5 +193,5 @@ std::string LedDeviceMultiLightpack::getString(libusb_device * device, int strin
 	}
 
 	libusb_close(handle);
-	return std::string(buffer, error);
+	return QString(QByteArray(buffer, error));
 }
