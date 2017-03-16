@@ -20,7 +20,7 @@ $(document).ready( function() {
 
 			title = d[i].title.rendered;
 			excerpt = d[i].excerpt.rendered;
-			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=post_'+d[i].slug;
+			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
 			
 			newsCont(title,excerpt,link);
 		}
@@ -50,7 +50,7 @@ $(document).ready( function() {
 	
 	function updateComponents()
 	{
-		var components = serverInfo.info.components;
+		var components = serverInfo.components;
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
@@ -60,7 +60,7 @@ $(document).ready( function() {
 	}
 	
 	// add more info
-	$('#dash_leddevice').html(serverInfo.info.ledDevices.active);
+	$('#dash_leddevice').html(serverInfo.ledDevices.active);
 	$('#dash_currv').html(currentVersion);
 	$('#dash_instance').html(serverConfig.general.name);
 	$('#dash_ports').html(jsonPort+' | '+serverConfig.protoServer.port);
@@ -80,7 +80,7 @@ $(document).ready( function() {
 	});
 	
 	//determine platform
-	var grabbers = serverInfo.info.grabbers.available;
+	var grabbers = serverInfo.grabbers.available;
 	var html = "";
 
 	if(grabbers.indexOf('dispmanx') > -1)

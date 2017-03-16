@@ -65,7 +65,7 @@ $(document).ready( function() {
 	
 	//hide specific options
 	conf_editor_fg.on('ready',function() {
-		var grabbers = serverInfo.info.grabbers.available;
+		var grabbers = serverInfo.grabbers.available;
 
 		if(grabbers.indexOf('dispmanx') > -1)
 			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);

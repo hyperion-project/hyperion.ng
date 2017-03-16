@@ -24,7 +24,7 @@ $(document).ready(function() {
 	
 	//color adjustment
 	var sColor = sortProperties(serverSchema.properties.color.properties.channelAdjustment.items.properties)
-	var values = serverInfo.info.adjustment[0]
+	var values = serverInfo.adjustment[0]
 	
 	for(key in sColor)
 	{
@@ -86,7 +86,7 @@ $(document).ready(function() {
 	{	
 		$('.sstbody').html("");
 		var data = "";
-		var prios = serverInfo.info.priorities
+		var prios = serverInfo.priorities
 		var i;
 
 		for(i = 0; i < prios.length; i++)
@@ -144,9 +144,9 @@ $(document).ready(function() {
 			if(btn_type != 'default')
 				$('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
 		}
-		var btn_auto_color = (serverInfo.info.priorities_autoselect? "btn-success" : "btn-danger");
-		var btn_auto_state = (serverInfo.info.priorities_autoselect? "disabled" : "enabled");
-		var btn_auto_text = (serverInfo.info.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
+		var btn_auto_color = (serverInfo.priorities_autoselect? "btn-success" : "btn-danger");
+		var btn_auto_state = (serverInfo.priorities_autoselect? "disabled" : "enabled");
+		var btn_auto_text = (serverInfo.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
 		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin:10px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
 		
 		var max_width=100;
@@ -159,7 +159,7 @@ $(document).ready(function() {
 	
 	function updateLedMapping()
 	{
-		mapping = serverInfo.info.ledMAppingType;
+		mapping = serverInfo.ledMAppingType;
 
 		$('#mappingsbutton').html("");
 		for(var ix = 0; ix < mappingList.length; ix++)
@@ -175,7 +175,7 @@ $(document).ready(function() {
 
 	function updateComponents()
 	{
-		components = serverInfo.info.components;
+		components = serverInfo.components;
 		// create buttons
 		$('#componentsbutton').html("");
 		for ( idx=0; idx<components.length;idx++)
@@ -204,7 +204,7 @@ $(document).ready(function() {
 	
 	function updateEffectlist()
 	{
-		var newEffects = serverInfo.info.effects;
+		var newEffects = serverInfo.effects;
 		if (newEffects.length != oldEffects.length)
 		{
 			$('#effect_select').html('<option value="__none__"></option>');

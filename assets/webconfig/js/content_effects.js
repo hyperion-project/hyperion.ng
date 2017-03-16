@@ -123,7 +123,7 @@ $(document).ready( function() {
 	function updateEffectlist(){
 		if(editorReady)
 		{
-			var newEffects = serverInfo.info.effects;
+			var newEffects = serverInfo.effects;
 			if (newEffects.length != oldEffects.length)
 			{
 				$('#root_foregroundEffect_effect').html('');

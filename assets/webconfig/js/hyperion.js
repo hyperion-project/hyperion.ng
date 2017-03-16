@@ -3,14 +3,14 @@
 var webPrio = 1;
 var webOrigin = "Web Configuration";
 var showOptHelp;
-var currentVersion = "";
+var currentVersion;
 var latestVersion;
 var serverInfo = {};
 var parsedUpdateJSON = {};
 var serverSchema = {};
 var serverConfig = {};
-var sysInfo = {};
 var schema;
+var sysInfo = {};
 var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
@@ -77,6 +77,7 @@ function initWebSocket()
 
 				websocket.onopen = function (event) {
 					$(hyperion).trigger({type:"open"});
+
 					$(hyperion).on("cmd-serverinfo", function(event) {
 						watchdog = 0;
 					});
