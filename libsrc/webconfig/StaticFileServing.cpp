@@ -43,7 +43,7 @@ StaticFileServing::~StaticFileServing ()
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
+	Info(_log, "started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
 
 	const QString mDNSDescr = _server->getServerName() + "@" + QHostInfo::localHostName();
 
