@@ -1,12 +1,11 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
 #include <QMutex>
+#include <QHostAddress>
+#include <QString>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -189,6 +188,13 @@ private:
 	void handleServerInfoCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON System info message
+	///
+	/// @param message the incoming message
+	///
+	void handleSysInfoCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
@@ -348,7 +354,10 @@ private:
 
 	/// timeout for live video refresh
 	volatile qint64 _image_stream_timeout;
-	
+
+	/// address of client
+	QHostAddress _clientAddress;
+
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3   = 0x10;

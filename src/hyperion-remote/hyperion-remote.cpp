@@ -67,6 +67,7 @@ int main(int argc, char * argv[])
 		Option          & argCreateEffect= parser.add<Option>       (0x0, "createEffect","Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
 		Option          & argDeleteEffect= parser.add<Option>       (0x0, "deleteEffect","Delete a custom created Json Effect configuration file.");
 		BooleanOption   & argServerInfo  = parser.add<BooleanOption>('l', "list"      , "List server info and active effects with priority and duration");
+		BooleanOption   & argSysInfo     = parser.add<BooleanOption>('s', "sysinfo"   , "show system info");
 		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
 		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
@@ -110,7 +111,7 @@ int main(int argc, char * argv[])
 		
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
-		    parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
+		    parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
 		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
 			parser.isSet(argMapping) });
 		if (commandCount != 1)
@@ -122,6 +123,7 @@ int main(int argc, char * argv[])
 			showHelp(argCreateEffect);
 			showHelp(argDeleteEffect);
 			showHelp(argServerInfo);
+			showHelp(argSysInfo);
 			showHelp(argClear);
 			showHelp(argClearAll);
 			showHelp(argEnableComponent);
@@ -171,8 +173,11 @@ int main(int argc, char * argv[])
 		}
 		else if (parser.isSet(argServerInfo))
 		{
-			QString info = connection.getServerInfo();
-			std::cout << "Server info:\n" << info.toStdString() << std::endl;
+			std::cout << "Server info:\n" << connection.getServerInfo().toStdString() << std::endl;
+		}
+		else if (parser.isSet(argSysInfo))
+		{
+			std::cout << "System info:\n" << connection.getSysInfo().toStdString() << std::endl;
 		}
 		else if (parser.isSet(argClear))
 		{

@@ -116,7 +116,7 @@ namespace hyperion
 		unsigned _blurRemoveCnt;
 
 		/// The border detection mode
-		const std::string _detectionMode;
+		const QString _detectionMode;
 
 		/// The blackborder detector
 		BlackBorderDetector _detector;

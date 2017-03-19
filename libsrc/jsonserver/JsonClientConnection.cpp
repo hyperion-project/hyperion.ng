@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QIODevice>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -40,6 +41,7 @@
 #include <HyperionConfig.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Process.h>
+#include <utils/SysInfo.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -57,6 +59,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _forwarder_enabled(true)
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
+	, _clientAddress(socket->peerAddress())
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -96,13 +99,13 @@ void JsonClientConnection::readData()
 			while(bytes > 0)
 			{
 				// create message string
-				std::string message(_receiveBuffer.data(), bytes);
+				QString message(QByteArray(_receiveBuffer.data(), bytes));
 
 				// remove message data from buffer
 				_receiveBuffer = _receiveBuffer.mid(bytes);
 
 				// handle message
-				handleMessage(QString::fromStdString(message));
+				handleMessage(message);
 
 				// try too look up '\n' again
 				bytes = _receiveBuffer.indexOf('\n') + 1;
@@ -213,14 +216,14 @@ void JsonClientConnection::doWebSocketHandshake()
 
 	// get the key to prepare an answer
 	int start = _receiveBuffer.indexOf("Sec-WebSocket-Key") + 19;
-	std::string value(_receiveBuffer.mid(start, _receiveBuffer.indexOf("\r\n", start) - start).data());
+	QByteArray value = _receiveBuffer.mid(start, _receiveBuffer.indexOf("\r\n", start) - start);
 	_receiveBuffer.clear();
 
 	// must be always appended
 	value += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 	// generate sha1 hash
-	QByteArray hash = QCryptographicHash::hash(value.c_str(), QCryptographicHash::Sha1);
+	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
 
 	// prepare an answer
 	std::ostringstream h;
@@ -290,38 +293,23 @@ void JsonClientConnection::handleMessage(const QString& messageString)
 
 		int tan = message["tan"].toInt(0);
 		// switch over all possible commands and handle them
-		if (command == "color")
-			handleColorCommand(message, command, tan);
-		else if (command == "image")
-			handleImageCommand(message, command, tan);
-		else if (command == "effect")
-			handleEffectCommand(message, command, tan);
-		else if (command == "create-effect")
-			handleCreateEffectCommand(message, command, tan);
-		else if (command == "delete-effect")
-			handleDeleteEffectCommand(message, command, tan);
-		else if (command == "serverinfo")
-			handleServerInfoCommand(message, command, tan);
-		else if (command == "clear")
-			handleClearCommand(message, command, tan);
-		else if (command == "clearall")
-			handleClearallCommand(message, command, tan);
-		else if (command == "adjustment")
-			handleAdjustmentCommand(message, command, tan);
-		else if (command == "sourceselect")
-			handleSourceSelectCommand(message, command, tan);
-		else if (command == "config")
-			handleConfigCommand(message, command, tan);
-		else if (command == "componentstate")
-			handleComponentStateCommand(message, command, tan);
-		else if (command == "ledcolors")
-			handleLedColorsCommand(message, command, tan);
-		else if (command == "logging")
-			handleLoggingCommand(message, command, tan);
-		else if (command == "processing")
-			handleProcessingCommand(message, command, tan);
-		else
-			handleNotImplemented();
+		if      (command == "color")          handleColorCommand         (message, command, tan);
+		else if (command == "image")          handleImageCommand         (message, command, tan);
+		else if (command == "effect")         handleEffectCommand        (message, command, tan);
+		else if (command == "create-effect")  handleCreateEffectCommand  (message, command, tan);
+		else if (command == "delete-effect")  handleDeleteEffectCommand  (message, command, tan);
+		else if (command == "serverinfo")     handleServerInfoCommand    (message, command, tan);
+		else if (command == "sysinfo")        handleSysInfoCommand       (message, command, tan);
+		else if (command == "clear")          handleClearCommand         (message, command, tan);
+		else if (command == "clearall")       handleClearallCommand      (message, command, tan);
+		else if (command == "adjustment")     handleAdjustmentCommand    (message, command, tan);
+		else if (command == "sourceselect")   handleSourceSelectCommand  (message, command, tan);
+		else if (command == "config")         handleConfigCommand        (message, command, tan);
+		else if (command == "componentstate") handleComponentStateCommand(message, command, tan);
+		else if (command == "ledcolors")      handleLedColorsCommand     (message, command, tan);
+		else if (command == "logging")        handleLoggingCommand       (message, command, tan);
+		else if (command == "processing")     handleProcessingCommand    (message, command, tan);
+		else                                  handleNotImplemented       ();
  	}
  	catch (std::exception& e)
  	{
@@ -365,6 +353,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
+	QString origin = message["origin"].toString() + "@"+QHostInfo::fromName(_clientAddress.toString()).hostName();
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -391,7 +380,7 @@ void JsonClientConnection::handleColorCommand(const QJsonObject& message, const 
 	}
 
 	// set output
-	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR);
+	_hyperion->setColors(priority, colorData, duration, true, hyperion::COMP_COLOR, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -437,18 +426,19 @@ void JsonClientConnection::handleEffectCommand(const QJsonObject& message, const
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString pythonScript = message["pythonScript"].toString("");
+	QString pythonScript = message["pythonScript"].toString();
+	QString origin = message["origin"].toString() + "@"+_clientAddress.toString();
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 
 	// set output
 	if (effect.contains("args"))
 	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript);
+		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript, origin);
 	}
 	else
 	{
-		_hyperion->setEffect(effectName, priority, duration);
+		_hyperion->setEffect(effectName, priority, duration, origin);
 	}
 
 	// send reply
@@ -567,6 +557,41 @@ void JsonClientConnection::handleDeleteEffectCommand(const QJsonObject& message,
 		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
 
+
+void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QString& command, const int tan)
+{
+	// create result
+	QJsonObject result;
+	QJsonObject info;
+	result["success"] = true;
+	result["command"] = command;
+	result["tan"] = tan;
+	
+	SysInfo::HyperionSysInfo data = SysInfo::get();
+	QJsonObject system;
+	system["kernelType"    ] = data.kernelType;
+	system["kernelVersion" ] = data.kernelVersion;
+	system["architecture"  ] = data.architecture;
+	system["wordSize"      ] = data.wordSize;
+	system["productType"   ] = data.productType;
+	system["productVersion"] = data.productVersion;
+	system["prettyName"    ] = data.prettyName;
+	system["hostName"      ] = data.hostName;
+	info["system"] = system;
+
+	QJsonObject hyperion;
+	hyperion["jsonrpc_version" ] = QString(HYPERION_JSON_VERSION);
+	hyperion["version"         ] = QString(HYPERION_VERSION);
+	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
+	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
+	info["hyperion"] = hyperion;
+
+	// send the result
+	result["info" ] = info;
+	sendMessage(result);
+}
+
+
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
 {
 	// create result
@@ -576,9 +601,6 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	result["tan"] = tan;
 	
 	QJsonObject info;
-
-	// add host name for remote clients
-	info["hostname"] = QHostInfo::localHostName();
 
 	// collect priority information
 	QJsonArray priorities;
@@ -598,6 +620,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = priorityInfo.componentId;
+		item["origin"] = priorityInfo.origin;
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
@@ -605,7 +628,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		{
 			if (entry.second == priority)
 			{
-				item["owner"] = QString::fromStdString(entry.first);
+				item["owner"] = entry.first;
 				priorityRegister.erase(entry.first);
 				break;
 			}
@@ -663,7 +686,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["priority"] = entry.second;
 		item["active"] = false;
 		item["visible"] = false;
-		item["owner"] = QString::fromStdString(entry.first);
+		item["owner"] = entry.first;
 		priorities.append(item);
 	}
 
@@ -672,17 +695,17 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	// collect adjustment information
 	QJsonArray adjustmentArray;
-	for (const std::string& adjustmentId : _hyperion->getAdjustmentIds())
+	for (const QString& adjustmentId : _hyperion->getAdjustmentIds())
 	{
 		const ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
-			Error(_log, "Incorrect color adjustment id: %s", adjustmentId.c_str());
+			Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
 			continue;
 		}
 
 		QJsonObject adjustment;
-		adjustment["id"] = QString::fromStdString(adjustmentId);
+		adjustment["id"] = adjustmentId;
 
 		QJsonArray blackAdjust;
 		blackAdjust.append(colorAdjustment->_rgbBlackAdjustment.getAdjustmentR());
@@ -761,11 +784,11 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	// get available led devices
 	QJsonObject ledDevices;
-	ledDevices["active"] = QString::fromStdString(LedDevice::activeDevice());
+	ledDevices["active"] =LedDevice::activeDevice();
 	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
-		availableLedDevices.append(QString::fromStdString(dev.first));
+		availableLedDevices.append(dev.first);
 	}
 	
 	ledDevices["available"] = availableLedDevices;
@@ -800,17 +823,10 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	info["components"] = component;
 	info["ledMAppingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 	
-	// Add Hyperion Version, build time
-	QJsonArray hyperion;
-	QJsonObject ver;
-	ver["jsonrpc_version"] = QString(HYPERION_JSON_VERSION);
-	ver["version"] = QString(HYPERION_VERSION);
-	ver["build"]   = QString(HYPERION_BUILD_ID);
-	ver["time"]    = QString(__DATE__ " " __TIME__);
-	ver["config_modified"] = _hyperion->configModified();
-	ver["config_writeable"] = _hyperion->configWriteable();
-
-	hyperion.append(ver);
+	// Add Hyperion 
+	QJsonObject hyperion;
+	hyperion["config_modified" ] = _hyperion->configModified();
+	hyperion["config_writeable"] = _hyperion->configWriteable();
 	info["hyperion"] = hyperion;
 	
 	// send the result
@@ -847,8 +863,8 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 {
 	const QJsonObject & adjustment = message["adjustment"].toObject();
 
-	const QString adjustmentId = adjustment["id"].toString(QString::fromStdString(_hyperion->getAdjustmentIds().front()));
-	ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId.toStdString());
+	const QString adjustmentId = adjustment["id"].toString(_hyperion->getAdjustmentIds().first());
+	ColorAdjustment * colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 	if (colorAdjustment == nullptr)
 	{
 		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
@@ -1003,7 +1019,7 @@ void JsonClientConnection::handleConfigGetCommand(const QJsonObject& message, co
 	
 	try
 	{
-		result["result"] = QJsonFactory::readConfig(QString::fromStdString(_hyperion->getConfigFileName()));
+		result["result"] = QJsonFactory::readConfig(_hyperion->getConfigFileName());
 	}
 	catch(...)
 	{
@@ -1028,7 +1044,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 
 	// read the hyperion json schema from the resource
 	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
-	
+
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
 		std::stringstream error;
@@ -1039,7 +1055,7 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 	QByteArray schema = schemaData.readAll();
 	QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 	schemaData.close();
-	
+
 	if (error.error != QJsonParseError::NoError)
 	{
 		// report to the user the failure and their locations in the document.
@@ -1382,9 +1398,7 @@ bool JsonClientConnection::checkJson(const QJsonObject& message, const QString& 
 			}
 		}
 		
-		std::stringstream sstream;
-		sstream << "Schema error: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-		errorMessage = QString::fromStdString(sstream.str());
+		errorMessage = "Schema error: " + error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn);
 		return false;
 	}
 	
@@ -1394,15 +1408,13 @@ bool JsonClientConnection::checkJson(const QJsonObject& message, const QString& 
 	// check the message
 	if (!schemaChecker.validate(message, ignoreRequired))
 	{
-		const std::list<std::string> & errors = schemaChecker.getMessages();
-		std::stringstream ss;
-		ss << "{";
-		foreach (const std::string & error, errors)
+		const QStringList & errors = schemaChecker.getMessages();
+		errorMessage = "{";
+		foreach (auto & error, errors)
 		{
-			ss << error << " ";
+			errorMessage += error + " ";
 		}
-		ss << "}";
-		errorMessage = QString::fromStdString(ss.str());
+		errorMessage += "}";
 		return false;
 	}
 

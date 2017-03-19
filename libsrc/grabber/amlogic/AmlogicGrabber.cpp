@@ -69,13 +69,13 @@ void AmlogicGrabber::setVideoMode(const VideoMode videoMode)
 
 bool AmlogicGrabber::isVideoPlaying()
 {
-	const std::string videoDevice = "/dev/amvideo";
+	const QString videoDevice = "/dev/amvideo";
 
 	// Open the video device
-	int video_fd = open(videoDevice.c_str(), O_RDONLY);
+	int video_fd = open(QSTRING_CSTR(videoDevice), O_RDONLY);
 	if (video_fd < 0)
 	{
-		Error(_log, "Failed to open video device(%s): %d - %s", videoDevice.c_str(), errno, strerror(errno));
+		Error(_log, "Failed to open video device(%s): %d - %s", QSTRING_CSTR(videoDevice), errno, strerror(errno));
 		return false;
 	}
 

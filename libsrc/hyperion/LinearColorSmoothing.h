@@ -1,7 +1,6 @@
 #pragma once
 
 // STL includes
-#include <string>
 #include <vector>
 
 

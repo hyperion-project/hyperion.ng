@@ -18,7 +18,8 @@ enum Components
 	COMP_GRABBER,
 	COMP_V4L,
 	COMP_COLOR,
-	COMP_EFFECT
+	COMP_EFFECT,
+	COMP_PROTOSERVER
 };
 
 inline const char* componentToString(Components c)
@@ -35,6 +36,7 @@ inline const char* componentToString(Components c)
 		case COMP_V4L:           return "V4L capture device";
 		case COMP_COLOR:         return "Solid color";
 		case COMP_EFFECT:        return "Effect";
+		case COMP_PROTOSERVER:   return "Proto Server";
 		default:                 return "";
 	}
 }
@@ -53,6 +55,7 @@ inline const char* componentToIdString(Components c)
 		case COMP_V4L:           return "V4L";
 		case COMP_COLOR:         return "COLOR";
 		case COMP_EFFECT:        return "EFFECT";
+		case COMP_PROTOSERVER:   return "PROTOSERVER";
 		default:                 return "";
 	}
 }
@@ -70,8 +73,9 @@ inline  Components stringToComponent(QString component)
 	if (component == "V4L")           return COMP_V4L;
 	if (component == "COLOR")         return COMP_COLOR;
 	if (component == "EFFECT")        return COMP_EFFECT;
+	if (component == "PROTOSERVER")   return COMP_PROTOSERVER;
 
 	return COMP_INVALID;
 }
 
-}
+}; // end of namespace
