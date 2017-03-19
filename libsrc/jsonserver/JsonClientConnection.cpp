@@ -613,15 +613,14 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
-		if (priorityInfo.timeoutTime_ms != -1)
+		if (priorityInfo.timeoutTime_ms != -1 && (priorityInfo.componentId == 9 || priorityInfo.componentId == 10))
 		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = priorityInfo.componentId;
-		item["origin"] = priorityInfo.origin;
-		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
+		item["origin"] = priorityInfo.origin.isEmpty() ? QString("System") : priorityInfo.origin;
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
 		foreach(auto const &entry, priorityRegister)
