@@ -48,7 +48,6 @@
 
 using namespace hyperion;
 
-BonjourServiceBrowser* JsonClientConnection::_bonjourBrowser = nullptr;
 int _connectionCounter = 0;
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
@@ -72,11 +71,6 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	_timer_ledcolors.setSingleShot(false);
 	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 	_image_stream_mutex.unlock();
-	if (_bonjourBrowser == nullptr)
-	{
-		_bonjourBrowser = new BonjourServiceBrowser(_hyperion);
-		_bonjourBrowser->browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
-	}
 }
 
 
@@ -602,14 +596,6 @@ void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QStrin
 
 void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QString& command, const int tan)
 {
-// debug
-	QList<BonjourRecord> hyperionWebServices = _bonjourBrowser->currentRecords();
-	for ( auto rec : hyperionWebServices )
-	{
-		qDebug() << (rec.serviceName+"."+rec.replyDomain);
- 	}
-// debug
-	
 	// create result
 	QJsonObject result;
 	result["success"] = true;
@@ -640,17 +626,16 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;
 		item["visible"] = (priority == currentPriority);
-		foreach(auto const &entry, priorityRegister)
+
+		// remove item from prio register, because we have more valuable information via active priority
+		QList<QString> prios = priorityRegister.keys(priority);
+		if (! prios.empty())
 		{
-			if (entry.second == priority)
-			{
-				item["owner"] = entry.first;
-				priorityRegister.erase(entry.first);
-				break;
-			}
+			item["owner"] = prios[0];
+			priorityRegister.remove(prios[0]);
 		}
 		
-		if(priorityInfo.componentId == 9)
+		if(priorityInfo.componentId == hyperion::COMP_COLOR)
 		{
 			QJsonObject LEDcolor;
 			
@@ -695,14 +680,15 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		// priorities[priorities.size()] = item;
 		priorities.append(item);
 	}
-	
-	foreach(auto const &entry, priorityRegister)
+
+	// append left over priorities
+	for(auto key : priorityRegister.keys())
 	{
 		QJsonObject item;
-		item["priority"] = entry.second;
+		item["priority"] = priorityRegister[key];
 		item["active"] = false;
 		item["visible"] = false;
-		item["owner"] = entry.first;
+		item["owner"] = key;
 		priorities.append(item);
 	}
 
@@ -843,6 +829,15 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	QJsonObject hyperion;
 	hyperion["config_modified" ] = _hyperion->configModified();
 	hyperion["config_writeable"] = _hyperion->configWriteable();
+
+	// sessions
+	QJsonArray sessions;
+	for (auto s: _hyperion->getHyperionSessions())
+	{
+		sessions.append(s);
+	}
+	hyperion["sessions"] = sessions;
+
 	info["hyperion"] = hyperion;
 	
 	// send the result

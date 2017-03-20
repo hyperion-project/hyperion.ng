@@ -40,12 +40,12 @@ class BonjourRecord;
 
 class BonjourServiceResolver : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    BonjourServiceResolver(QObject *parent);
+	BonjourServiceResolver(QObject *parent);
     ~BonjourServiceResolver();
 
-    void resolveBonjourRecord(const BonjourRecord &record);
+    bool resolveBonjourRecord(const BonjourRecord &record);
 
 signals:
     void bonjourRecordResolved(const QHostInfo &hostInfo, int port);

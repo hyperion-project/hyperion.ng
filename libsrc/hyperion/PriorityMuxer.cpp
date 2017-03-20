@@ -11,10 +11,12 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	, _activeInputs()
 	, _lowestPriorityInfo()
 {
-	_lowestPriorityInfo.priority = LOWEST_PRIORITY;
+	_lowestPriorityInfo.priority       = LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;
-	_lowestPriorityInfo.ledColors = std::vector<ColorRgb>(ledCount, {0, 0, 0});
-	
+	_lowestPriorityInfo.ledColors      = std::vector<ColorRgb>(ledCount, {0, 0, 0});
+	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
+	_lowestPriorityInfo.origin         = "System";
+
 	_activeInputs[_currentPriority] = _lowestPriorityInfo;
 }
 

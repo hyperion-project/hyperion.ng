@@ -52,11 +52,11 @@ void BonjourServiceResolver::cleanupResolve()
     }
 }
 
-void BonjourServiceResolver::resolveBonjourRecord(const BonjourRecord &record)
+bool BonjourServiceResolver::resolveBonjourRecord(const BonjourRecord &record)
 {
     if (dnssref) {
-        qWarning("resolve in process, aborting");
-        return;
+        //qWarning("resolve in process, aborting");
+        return false;
     }
     DNSServiceErrorType err = DNSServiceResolve(&dnssref, 0, 0,
                                                 record.serviceName.toUtf8().constData(),
@@ -74,6 +74,7 @@ void BonjourServiceResolver::resolveBonjourRecord(const BonjourRecord &record)
             connect(bonjourSocket, SIGNAL(activated(int)), this, SLOT(bonjourSocketReadyRead()));
         }
     }
+    return true;
 }
 
 void BonjourServiceResolver::bonjourSocketReadyRead()
@@ -84,7 +85,7 @@ void BonjourServiceResolver::bonjourSocketReadyRead()
 }
 
 
-void BonjourServiceResolver::bonjourResolveReply(DNSServiceRef, DNSServiceFlags ,
+void BonjourServiceResolver::bonjourResolveReply(DNSServiceRef sdRef, DNSServiceFlags ,
                                     quint32 , DNSServiceErrorType errorCode,
                                     const char *, const char *hosttarget, quint16 port,
                                     quint16 , const char *, void *context)
@@ -100,8 +101,8 @@ void BonjourServiceResolver::bonjourResolveReply(DNSServiceRef, DNSServiceFlags 
         }
 #endif
     serviceResolver->bonjourPort = port;
-    QHostInfo::lookupHost(QString::fromUtf8(hosttarget),
-                          serviceResolver, SLOT(finishConnect(const QHostInfo &)));
+	
+    QHostInfo::lookupHost(QString::fromUtf8(hosttarget), serviceResolver, SLOT(finishConnect(const QHostInfo &)));
 }
 
 void BonjourServiceResolver::finishConnect(const QHostInfo &hostInfo)

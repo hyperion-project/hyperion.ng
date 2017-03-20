@@ -35,23 +35,27 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class BonjourRecord
 {
 public:
-	BonjourRecord() {}
+	BonjourRecord() : port(-1) {}
 	BonjourRecord(const QString &name, const QString &regType, const QString &domain)
 		: serviceName(name)
 		, registeredType(regType)
 		, replyDomain(domain)
+		, port(-1)
 	{}
 
 	BonjourRecord(const char *name, const char *regType, const char *domain)
+		: serviceName(QString::fromUtf8(name))
+		, registeredType(QString::fromUtf8(regType))
+		, replyDomain(QString::fromUtf8(domain))
+		, port(-1)
 	{
-		serviceName    = QString::fromUtf8(name);
-		registeredType = QString::fromUtf8(regType);
-		replyDomain    = QString::fromUtf8(domain);
 	}
 
 	QString   serviceName;
 	QString   registeredType;
 	QString   replyDomain;
+	QString   hostName;
+	int       port;
 
 	bool operator==(const BonjourRecord &other) const
 	{
