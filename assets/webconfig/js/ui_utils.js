@@ -48,6 +48,14 @@ function debugMessage(msg)
 	}
 }
 
+function validateDuration(d)
+{
+	if(typeof d === "undefined" || d < 0)
+		return d = 0;
+	else
+		return d *= 1000;
+}
+
 function getHashtag()
 {
 	if(getStorage('lasthashtag', true) != null)
@@ -81,7 +89,7 @@ function loadContent(event)
 		$("#page-content").off();
 		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 			if(status == "error")
-				$("#page-content").html('<h3>The page you requested is no longer available, click on another menu item!</h3>');
+				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
 				removeOverlay();
 		});
 	}
@@ -216,6 +224,46 @@ function createHint(type, text, container)
 		createTable('','htb',container, true, tclass);
 		$('#'+container+' .htb').append(createTableRow([fe ,text],false,true));
 	}
+}
+
+function valValue(id,value,min,max)
+{
+	//TODO: Do not use parser, all values are now typeof number
+	value = parseInt(value)
+	if(typeof value === 'number')
+	{
+		if(typeof max === 'undefined' || max == "")
+			max = 999999;
+		
+		if(value > max)	
+		{
+			$('#'+id).val(max);
+			showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
+			return max;
+		}
+		else if(value < min)
+		{
+			$('#'+id).val(min);
+			showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));
+			return min;
+		}
+		return value;		
+	}
+	return value;
+}
+
+function readImg(input,cb)
+{
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+			var i = new Image();
+			i.src = e.target.result;
+			cb(i.src,i.width,i.height);
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 function isJsonString(str)

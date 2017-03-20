@@ -6,11 +6,10 @@ $(document).ready( function() {
 	initWebSocket();
 
 	$(hyperion).on("cmd-serverinfo",function(event){
-		serverInfo = event.response;
-		currentVersion = serverInfo.info.hyperion[0].version;
+		serverInfo = event.response.info;
 		$(hyperion).trigger("ready");
 		
-		if (serverInfo.info.hyperion[0].config_modified)
+		if (serverInfo.hyperion.config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
 		else
 			$("#hyperion_reload_notify").fadeOut("fast");
@@ -22,7 +21,7 @@ $(document).ready( function() {
 			loggingStreamActive = false;
 		}
 
-		if (!serverInfo.info.hyperion[0].config_writeable)
+		if (!serverInfo.hyperion.config_writeable)
 		{
 			showInfoDialog('uilock',$.i18n('InfoDialog_nowrite_title'),$.i18n('InfoDialog_nowrite_text'));
 			$('#wrapper').toggle(false);
@@ -37,6 +36,12 @@ $(document).ready( function() {
 
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-sysinfo", function(event) {
+		requestServerInfo();
+		sysInfo = event.response.info;
+		currentVersion = sysInfo.hyperion.version;
+	});
+	
 	$(hyperion).one("cmd-config-getschema", function(event) {
 		serverSchema = event.response.result;
 		requestServerConfig();
@@ -46,7 +51,7 @@ $(document).ready( function() {
 
 	$(hyperion).one("cmd-config-getconfig", function(event) {
 		serverConfig = event.response.result;
-		requestServerInfo();
+		requestSysInfo();
 		
 		showOptHelp = serverConfig.general.showOptHelp;
 	});
@@ -67,8 +72,9 @@ $(document).ready( function() {
 		initRestart();
 	});
 	
-	$(".mnava").on('click', function(e){
+	$(".mnava").bind('click.menu', function(e){
 		loadContent(e);
+		window.scrollTo(0, 0);
 	});
 
 });

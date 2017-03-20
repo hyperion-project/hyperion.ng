@@ -2,6 +2,7 @@
 
 // STL/Qt includes
 #include <QTcpSocket>
+#include <QString>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -65,7 +66,7 @@ public:
 
 private:
 	QTcpSocket  _client;
-	std::string _host;
+	QString _host;
 	uint16_t    _port;
 	unsigned    _channel;
 	QByteArray  _opc_data;

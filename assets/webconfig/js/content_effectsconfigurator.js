@@ -10,7 +10,7 @@ $(document).ready( function() {
 		createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
 	
 	function updateDelEffectlist(){
-		var newDelList = serverInfo.info.effects;
+		var newDelList = serverInfo.effects;
 		if(newDelList.length != oldDelList.length)
 		{
 			var EffectHtml = null;

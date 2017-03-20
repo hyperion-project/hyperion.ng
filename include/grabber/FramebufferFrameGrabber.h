@@ -20,7 +20,7 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	FramebufferFrameGrabber(const std::string & device, const unsigned width, const unsigned height);
+	FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height);
 	~FramebufferFrameGrabber();
 
 	///
@@ -47,7 +47,7 @@ private:
 	unsigned char * _fbp;
 	
 	/// Framebuffer device e.g. /dev/fb0
-	const std::string _fbDevice;
+	const QString _fbDevice;
 	
 	/// With of the captured snapshot [pixels]
 	const unsigned _width;

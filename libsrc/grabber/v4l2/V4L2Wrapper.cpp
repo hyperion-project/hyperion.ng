@@ -4,7 +4,7 @@
 
 #include <hyperion/ImageProcessorFactory.h>
 
-V4L2Wrapper::V4L2Wrapper(const std::string &device,
+V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
@@ -121,4 +121,14 @@ void V4L2Wrapper::checkSources()
 void V4L2Wrapper::action()
 {
 	checkSources();
+}
+
+void V4L2Wrapper::setSignalDetectionEnable(bool enable)
+{
+	_grabber.setSignalDetectionEnable(enable);
+}
+
+bool V4L2Wrapper::getSignalDetectionEnable()
+{
+	return _grabber.getSignalDetectionEnabled();
 }

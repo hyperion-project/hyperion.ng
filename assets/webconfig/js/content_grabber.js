@@ -3,6 +3,14 @@ $(document).ready( function() {
 	var conf_editor_v4l2 = null;
 	var conf_editor_fg = null;
 	
+	function hideEl(el)
+	{
+		for(var i = 0; i<el.length; i++)
+		{
+			$('[data-schemapath*="root.framegrabber.'+el[i]+'"]').toggle(false);
+		}
+	}
+	
 	if(showOptHelp)
 	{
 		//fg
@@ -54,6 +62,18 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
 		createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
 	}
+	
+	//hide specific options
+	conf_editor_fg.on('ready',function() {
+		var grabbers = serverInfo.grabbers.available;
+
+		if(grabbers.indexOf('dispmanx') > -1)
+			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
+		else if(grabbers.indexOf('x11') > -1)
+			hideEl(["device","width","height"]);
+		else if(grabbers.indexOf('osx')  > -1 || grabbers.indexOf('amlogic')  > -1)
+			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage","cropLeft","cropBottom","cropTop","cropRight"]);
+	});
 	
 	removeOverlay();
 });

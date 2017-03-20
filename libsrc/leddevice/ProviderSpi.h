@@ -49,7 +49,7 @@ protected:
 	int writeBytes(const unsigned size, const uint8_t *data);
 
 	/// The name of the output device
-	std::string _deviceName;
+	QString _deviceName;
 
 	/// The used baudrate of the output device
 	int _baudRate_Hz;

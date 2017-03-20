@@ -43,13 +43,13 @@ StaticFileServing::~StaticFileServing ()
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
+	Info(_log, "started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
 
-	const std::string mDNSDescr = (_server->getServerName().toStdString() + "@" + QHostInfo::localHostName().toStdString());
+	const QString mDNSDescr = _server->getServerName() + "@" + QHostInfo::localHostName();
 
 	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
 	bonjourRegister_http->registerService(
-		BonjourRecord(mDNSDescr.c_str(), "_hyperiond-http._tcp", QString()),
+		BonjourRecord(mDNSDescr, "_hyperiond-http._tcp", QString()),
 		port
 		);
 	Debug(_log, "Web Config mDNS responder started");

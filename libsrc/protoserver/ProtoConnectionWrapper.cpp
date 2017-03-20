@@ -7,7 +7,7 @@ ProtoConnectionWrapper::ProtoConnectionWrapper(const QString &address,
 											   bool skipProtoReply)
 	: _priority(priority)
 	, _duration_ms(duration_ms)
-	, _connection(address.toStdString())
+	, _connection(address)
 {
 	_connection.setSkipReply(skipProtoReply);
 	connect(&_connection, SIGNAL(setGrabbingMode(GrabbingMode)), this, SIGNAL(setGrabbingMode(GrabbingMode)));
