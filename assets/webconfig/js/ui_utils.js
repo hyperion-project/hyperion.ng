@@ -48,6 +48,14 @@ function debugMessage(msg)
 	}
 }
 
+function validateDuration(d)
+{
+	if(typeof d === "undefined" || d < 0)
+		return d = 0;
+	else
+		return d *= 1000;
+}
+
 function getHashtag()
 {
 	if(getStorage('lasthashtag', true) != null)
@@ -227,9 +235,16 @@ function valValue(id,value,min,max)
 		if(typeof max === 'undefined' || max == "")
 			max = 999999;
 		
-		if(value > max || value < min)	
+		if(value > max)	
+		{
+			$('#'+id).val(max);
+			showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
+			return max;
+		}
+		else if(value < min)
 		{
 			$('#'+id).val(min);
+			showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));
 			return min;
 		}
 		return value;		

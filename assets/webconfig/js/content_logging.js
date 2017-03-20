@@ -6,6 +6,7 @@
 $(document).ready(function() {
 	
 	var messages;
+	var reportUrl = 'https://report.hyperion-project.org/#';
 	
 	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
 	if(showOptHelp)
@@ -26,13 +27,37 @@ $(document).ready(function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
 
+	//show prev uploads
+	var ent;
+
+	if(getStorage("prev_reports"))
+	{
+		ent = JSON.parse(getStorage("prev_reports"));
+		$('#prev_reports').append('<hr><h4>'+$.i18n('conf_logging_lastreports')+'</h4>');
+		for(var i = 0; i<ent.length; i++)
+		{
+			$('#prev_reports').append('<p><a href="'+reportUrl+ent[i].id+'" target="_blank">'+ent[i].title+'('+ent[i].time+')</a></p>');
+		}
+	}
+	else
+		ent = [];
+	
+	function updateLastReports(id,time,title)
+	{
+		if(ent.length > 4)
+			ent.pop();
+		ent.unshift({"id": id ,"time": time,"title": title})
+		setStorage("prev_reports",JSON.stringify(ent));
+	}
+	
 	function uploadLog()
 	{
-		var reportUrl = 'https://glot.io/snippets/';
 		var log = "";
-		var config = JSON.stringify(serverConfig, null, "\t").replace(/"/g, '\\"');
-		var prios = serverInfo.info.priorities;
-		var comps = serverInfo.info.components;
+		var config = JSON.stringify(serverConfig, null).replace(/"/g, '\"');
+		var prios = serverInfo.priorities;
+		var comps = serverInfo.components;
+		var sys = sysInfo.system;
+		var shy = sysInfo.hyperion;
 		var info;
 		
 		//create log
@@ -54,16 +79,21 @@ $(document).ready(function() {
 			log += "["+app_name+" "+logger_name+"] <"+level_string+"> "+debug+msg+"\n";
 		}
 		//create general info
-		info = "######## GENERAL ######## \n";
-		info += 'Build:      '+serverInfo.info.hyperion[0].build+'\n';
-		info += 'Build time: '+serverInfo.info.hyperion[0].time+'\n';
-		info += 'Version:    '+serverInfo.info.hyperion[0].version+'\n';
-		info += 'UI Lang:    '+storedLang+'\n';
-		info += 'UI Access:  '+storedAccess+'\n';
-		info += 'Avail Capt: '+serverInfo.info.grabbers.available+'\n\n';
+		info = "### GENERAL ### \n";
+		info += 'Build:       '+shy.build+'\n';
+		info += 'Build time:  '+shy.time+'\n';
+		info += 'Version:     '+shy.version+'\n';
+		info += 'UI Lang:     '+storedLang+' (BrowserL: '+navigator.language+')\n';
+		info += 'UI Access:   '+storedAccess+'\n';
+		info += 'Log lvl:     '+serverConfig.logger.level+'\n';
+		info += 'Avail Capt:  '+serverInfo.grabbers.available+'\n\n';
+		info += 'Distribution:'+sys.prettyName+'\n';
+		info += 'Arch:        '+sys.architecture+'\n';
+		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
+		info += 'Browser/OS:  '+navigator.userAgent+'\n\n';
 		
 		//create prios
-		info += "######## PRIORITIES ######## \n";
+		info += "### PRIORITIES ### \n";
 		for(var i = 0; i<prios.length; i++)
 		{
 			info += prios[i].priority;
@@ -73,23 +103,28 @@ $(document).ready(function() {
 				info += '         ';
 			info += ' ('+prios[i].component+') Owner: '+prios[i].owner+'\n';
 		}
-		info += '\npriorities_autoselect: '+serverInfo.info.priorities_autoselect+'\n\n';
+		info += '\npriorities_autoselect: '+serverInfo.priorities_autoselect+'\n\n';
 		
 		//create comps
-		info += '######## COMPONENTS ######## \n'
+		info += '### COMPONENTS ### \n'
 		for(var i = 0; i<comps.length; i++)
 		{
 			info += comps[i].enabled+' - '+comps[i].name+'\n';
 		}
 		
+		//escape data
+		info = JSON.stringify(info);
+		log = JSON.stringify(log);
+		config = JSON.stringify(config);
+		var title = 'Hyperion '+currentVersion+' Report ('+serverConfig.general.name+' ('+serverInfo.ledDevices.active+'))';
+
 		$.ajax({
-			url: 'https://snippets.glot.io/snippets',
-	//		headers: { "Authorization": "Token 9ed92d37-36ca-4430-858f-47b6a3d4d535", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT", "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization" },
+			url: 'https://api.hyperion-project.org/report.php',
 			crossDomain: true,
 			contentType: 'application/json',
 			type: 'POST',
 			timeout: 7000,
-			data: '{"language":"plaintext","title":"Hyperion '+currentVersion+' Report ('+serverConfig.general.name+' ('+serverInfo.info.ledDevices.active+'))","public":false,"files":[{"name":"Info","content":"'+info+'"},{"name":"Hyperion Log","content":"'+log+'"},{"name":"Hyperion Config","content":"'+config+'"}]}'
+			data: '{"title":"'+title+'","info":'+info+',"log":'+log+',"config":'+config+'}'
 		})
 		.done( function( data, textStatus, jqXHR ) {
 			reportUrl += data.id;
@@ -97,6 +132,7 @@ $(document).ready(function() {
 			{
 				$('#upl_link').html($.i18n('conf_logging_yourlink')+': <a href="'+reportUrl+'" target="_blank">'+reportUrl+'</a>');
 				$("html, body").animate({ scrollTop: 9999 }, "fast");
+				updateLastReports(data.id,data.time,title);
 			}
 			else
 			{
@@ -105,6 +141,7 @@ $(document).ready(function() {
 			}
 		})
 		.fail( function( jqXHR, textStatus ) {
+			console.log(jqXHR,textStatus);
 			$('#btn_logupload').attr("disabled", false);
 			$('#upl_link').html('<span style="color:red">'+$.i18n('conf_logging_uplfailed')+'<span>');
 		});

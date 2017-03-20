@@ -1,5 +1,4 @@
-#ifndef HYPERION_OPTION_H
-#define HYPERION_OPTION_H
+#pragma once
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
@@ -13,38 +12,30 @@ class Parser;
  * regular QCommandLineOption it is _not_ idempotent! */
 class Option: public QCommandLineOption
 {
-protected:
-    QString _error;
 public:
-    Option(const QString &name,
-           const QString &description = QString(),
-           const QString &valueName = QString::null,
-           const QString &defaultValue = QString()
-    )
-        : QCommandLineOption(name, description, valueName, defaultValue)
-    {}
-    Option(const QStringList &names,
-           const QString &description = QString(),
-           const QString &valueName = QString::null,
-           const QString &defaultValue = QString()
-    )
-        : QCommandLineOption(names, description, valueName, defaultValue)
-    {}
-    Option(const QCommandLineOption &other)
-        : QCommandLineOption(other)
-    {}
+	Option(const QString &name,
+		  const QString &description = QString(),
+		  const QString &valueName = QString::null,
+		  const QString &defaultValue = QString()
+	);
 
-    virtual bool validate(Parser &parser, QString &value);
-    QString name()
-    { return this->names().last();}
-    QString getError()
-    { return this->_error; }
+	Option(const QStringList &names,
+		   const QString &description = QString(),
+		   const QString &valueName = QString::null,
+		   const QString &defaultValue = QString()
+	);
+
+	Option(const QCommandLineOption &other);
+
+	virtual bool validate(Parser &parser, QString &value);
+	QString name();
+    QString getError();
     QString value(Parser &parser);
-    std::string getStdString(Parser &parser);
-    std::wstring getStdWString(Parser &parser);
-    const char* getCString(Parser &parser);
+	const char* getCString(Parser &parser);
+
+protected:
+	QString _error;
 };
 
 }
 
-#endif //HYPERION_OPTION_H
