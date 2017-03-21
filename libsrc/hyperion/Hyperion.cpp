@@ -397,7 +397,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
 	, _prevCompId(hyperion::COMP_INVALID)
 {
-	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{

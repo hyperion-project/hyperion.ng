@@ -210,7 +210,7 @@ void HyperionDaemon::startInitialEffect()
 		const QJsonObject & BGEffectConfig = _qconfig["backgroundEffect"].toObject();
 		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
-		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
+		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY;
 
 	// clear the leds
 	hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
