@@ -21,6 +21,7 @@
 	"general_comp_BOBLIGHTSERVER" : "Boblight Server",
 	"general_comp_GRABBER" : "Platform Capture",
 	"general_comp_V4L" : "USB Capture",
+	"general_comp_LEDDEVICE" : "LED device",
 	"general_col_red" : "red",
 	"general_col_green" : "green",
 	"general_col_blue" : "blue",
