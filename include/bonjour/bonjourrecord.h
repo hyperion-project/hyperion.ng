@@ -51,11 +51,11 @@ public:
 	{
 	}
 
-	QString   serviceName;
-	QString   registeredType;
-	QString   replyDomain;
-	QString   hostName;
-	int       port;
+	QString serviceName;
+	QString registeredType;
+	QString replyDomain;
+	QString hostName;
+	int     port;
 
 	bool operator==(const BonjourRecord &other) const
 	{

@@ -261,7 +261,7 @@ public slots:
 	void setLedMappingType(int mappingType);
 
 	///
-	QStringList getHyperionSessions();
+	Hyperion::BonjourRegister getHyperionSessions();
 
 public:
 	static Hyperion *_hyperion;

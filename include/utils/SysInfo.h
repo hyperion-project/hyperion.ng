@@ -18,6 +18,7 @@ public:
 		QString productVersion;
 		QString prettyName;
 		QString hostName;
+		QString domainName;
 	};
 
 	~SysInfo();

@@ -319,8 +319,7 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 
 
 
-LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice)
-{
+LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice){
 	QString type = smoothingConfig["type"].toString("linear").toLower();
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
@@ -425,6 +424,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	_device       = LedDeviceFactory::construct(qjsonConfig["device"].toObject(),_hwLedCount);
 	_deviceSmooth = createColorSmoothing(qjsonConfig["smoothing"].toObject(), _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
+	getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
 
 	// setup the timer
 	_timer.setSingleShot(true);
@@ -497,8 +497,14 @@ void Hyperion::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
 {
 	if ( _hyperionSessions.contains(_bonjourCurrentServiceToResolve))
 	{
-		_hyperionSessions[_bonjourCurrentServiceToResolve].hostName = hostInfo.hostName();
-		_hyperionSessions[_bonjourCurrentServiceToResolve].port = port;
+		QString host   = hostInfo.hostName();
+		QString domain = _hyperionSessions[_bonjourCurrentServiceToResolve].replyDomain;
+		if (host.endsWith("."+domain))
+		{
+			host.remove(host.length()-domain.length()-1,domain.length()+1);
+		}
+		_hyperionSessions[_bonjourCurrentServiceToResolve].hostName = host;
+		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
 		Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
 	}
 }
@@ -516,18 +522,9 @@ void Hyperion::bonjourResolve()
 	}
 }
 
-QStringList Hyperion::getHyperionSessions()
+Hyperion::BonjourRegister Hyperion::getHyperionSessions()
 {
-	QStringList result;
-	for(auto key : _hyperionSessions.keys())
-	{
-		if (_hyperionSessions[key].port > 0)
-		{
-			result << (_hyperionSessions[key].hostName + ":" + QString::number(_hyperionSessions[key].port));
-		}
-	}
-
-	return result;
+	return _hyperionSessions;
 }
 
 bool Hyperion::configModified()
@@ -609,14 +606,20 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 
 void Hyperion::setComponentState(const hyperion::Components component, const bool state)
 {
-	if (component == hyperion::COMP_SMOOTHING)
+	switch (component)
 	{
-		_deviceSmooth->setEnable(state);
-		getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
-	}
-	else
-	{
-		emit componentStateChanged(component, state);
+		case hyperion::COMP_SMOOTHING:
+			_deviceSmooth->setEnable(state);
+			getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
+			break;
+
+		case hyperion::COMP_LEDDEVICE:
+			_device->setEnable(state);
+			getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
+			break;
+
+		default:
+			emit componentStateChanged(component, state);
 	}
 }
 
@@ -844,10 +847,13 @@ void Hyperion::update()
 	}
 	
 	// Write the data to the device
-	if (_deviceSmooth->enabled())
-		_deviceSmooth->setLedValues(_ledBuffer);
-	else
-		_device->setLedValues(_ledBuffer);
+	if (_device->enabled())
+	{
+		if (_deviceSmooth->enabled())
+			_deviceSmooth->setLedValues(_ledBuffer);
+		else
+			_device->setLedValues(_ledBuffer);
+	}
 
 	// Start the timeout-timer
 	if (priorityInfo.timeoutTime_ms == -1)

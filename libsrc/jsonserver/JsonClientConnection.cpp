@@ -579,6 +579,7 @@ void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QStrin
 	system["productVersion"] = data.productVersion;
 	system["prettyName"    ] = data.prettyName;
 	system["hostName"      ] = data.hostName;
+	system["domainName"    ] = data.domainName;
 	info["system"] = system;
 
 	QJsonObject hyperion;
@@ -834,7 +835,14 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	QJsonArray sessions;
 	for (auto s: _hyperion->getHyperionSessions())
 	{
-		sessions.append(s);
+		if (s.port<0) continue;
+		QJsonObject item;
+		item["name"]           = s.serviceName;
+		item["registeredType"] = s.registeredType;
+		item["domain"]         = s.replyDomain;
+		item["host"]           = s.hostName;
+		item["port"]           = s.port;
+		sessions.append(item);
 	}
 	hyperion["sessions"] = sessions;
 

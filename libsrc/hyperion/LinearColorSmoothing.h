@@ -41,9 +41,6 @@ public:
 	virtual int switchOff();
 
 	void setEnable(bool enable);
-	bool enabled();
-
-	bool componentState() { return enabled(); };
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
@@ -91,6 +88,4 @@ private:
 	
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
-	
-	bool _enabled;
 };
