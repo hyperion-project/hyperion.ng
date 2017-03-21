@@ -2,11 +2,12 @@
 
 // stl includes
 #include <list>
-#include <map>
+#include <QMap>
 
 // QT includes
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QSize>
 #include <QJsonObject>
@@ -33,6 +34,8 @@
 
 // KodiVideoChecker includes
 #include <kodivideochecker/KODIVideoChecker.h>
+#include <bonjour/bonjourservicebrowser.h>
+#include <bonjour/bonjourserviceresolver.h>
 
 // Forward class declaration
 class LedDevice;
@@ -52,8 +55,8 @@ class Hyperion : public QObject
 public:
 	///  Type definition of the info structure used by the priority muxer
 	typedef PriorityMuxer::InputInfo InputInfo;
-	typedef std::map<QString,int> PriorityRegister;
-
+	typedef QMap<QString,int> PriorityRegister;
+	typedef QMap<QString,BonjourRecord>  BonjourRegister;
 	///
 	/// RGB-Color channel enumeration
 	///
@@ -257,6 +260,9 @@ public slots:
 	/// sets the methode how image is maped to leds
 	void setLedMappingType(int mappingType);
 
+	///
+	Hyperion::BonjourRegister getHyperionSessions();
+
 public:
 	static Hyperion *_hyperion;
 
@@ -302,6 +308,10 @@ private slots:
 	///
 	void update();
 
+	void currentBonjourRecordsChanged(const QList<BonjourRecord> &list);
+    void bonjourRecordResolved(const QHostInfo &hostInfo, int port);
+	void bonjourResolve();
+
 private:
 	
 	///
@@ -344,6 +354,7 @@ private:
 
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
+	QTimer _timerBonjourResolver;
 
 	/// buffer for leds
 	std::vector<ColorRgb> _ledBuffer;
@@ -373,5 +384,9 @@ private:
 	
 	int _configVersionId;
 	
-	hyperion::Components _prevCompId;
+	hyperion::Components   _prevCompId;
+	BonjourServiceBrowser  _bonjourBrowser;
+	BonjourServiceResolver _bonjourResolver;
+	BonjourRegister        _hyperionSessions;
+	QString                _bonjourCurrentServiceToResolve;
 };
