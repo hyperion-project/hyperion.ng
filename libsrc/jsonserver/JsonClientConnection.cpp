@@ -622,7 +622,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		}
 		
 		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
-		item["componentId"] = priorityInfo.componentId;
+		item["componentId"] = hyperion::componentToIdString(priorityInfo.componentId);
 		item["origin"] = priorityInfo.origin;
 		item["component"] = QString(hyperion::componentToString(priorityInfo.componentId));
 		item["active"] = true;

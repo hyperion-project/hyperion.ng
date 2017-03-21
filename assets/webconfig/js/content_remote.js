@@ -119,24 +119,24 @@ $(document).ready(function() {
 			}
 			if(ip)
 				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
-			if(compId == 10)
+			if(compId == "EFFECT")
 				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
-			if(compId == 9)
+			if(compId == "COLOR")
 				owner = (owner == "Off") ? $.i18n('general_btn_off') : $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
-			if(compId == 7)
+			if(compId == "GRABBER")
 				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
-			if(compId == 8)
+			if(compId == "V4L")
 				owner = $.i18n('general_comp_V4L')+': ('+owner+')';
-			if(compId == 6)
+			if(compId == "BOBLIGHTSERVER")
 				owner = $.i18n('general_comp_BOBLIGHTSERVER');
-			if(compId == 5)
+			if(compId == "UDPLISTENER")
 				owner = $.i18n('general_comp_UDPLISTENER');
-			if(duration && compId != 7 && compId != 11)
+			if(duration && compId != "GRABBER" && compId != "PROTOSERVER")
 				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
 			
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 			
-			if((compId == 10 || compId == 9) && priority < 254)
+			if((compId == "EFFECT" || compId == "COLOR") && priority < 254)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')
