@@ -833,15 +833,15 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 
 	// sessions
 	QJsonArray sessions;
-	for (auto s: _hyperion->getHyperionSessions())
+	for (auto session: _hyperion->getHyperionSessions())
 	{
-		if (s.port<0) continue;
+		if (session.port<0) continue;
 		QJsonObject item;
-		item["name"]           = s.serviceName;
-		item["registeredType"] = s.registeredType;
-		item["domain"]         = s.replyDomain;
-		item["host"]           = s.hostName;
-		item["port"]           = s.port;
+		item["name"]   = session.serviceName;
+		item["type"]   = session.registeredType;
+		item["domain"] = session.replyDomain;
+		item["host"]   = session.hostName;
+		item["port"]   = session.port;
 		sessions.append(item);
 	}
 	hyperion["sessions"] = sessions;
