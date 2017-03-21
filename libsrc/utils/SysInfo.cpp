@@ -29,6 +29,7 @@ SysInfo::SysInfo()
 	_sysinfo.productVersion = v.productVersion;
 	_sysinfo.prettyName     = v.prettyName;
 	_sysinfo.hostName       = QHostInfo::localHostName();
+	_sysinfo.domainName       = QHostInfo::localDomainName();
 }
 
 SysInfo::~SysInfo()

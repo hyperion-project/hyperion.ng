@@ -3,6 +3,7 @@
 #include <initializer_list>
 #include <limits>
 #include <iostream>
+#include <stdlib.h>
 
 // Qt includes
 #include <QCoreApplication>
@@ -40,6 +41,8 @@ void showHelp(Option & option){
 
 int main(int argc, char * argv[])
 {
+	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
+
 	std::cout
 		<< "hyperion-remote:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
@@ -70,8 +73,8 @@ int main(int argc, char * argv[])
 		BooleanOption   & argSysInfo     = parser.add<BooleanOption>('s', "sysinfo"   , "show system info");
 		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
-		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
-		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
+		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
 		Option          & argId           = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
 		DoubleOption    & argBrightness   = parser.add<DoubleOption> ('L', "brightness" , "Set the brightness gain of the leds");
 		DoubleOption    & argBacklightThreshold= parser.add<DoubleOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
