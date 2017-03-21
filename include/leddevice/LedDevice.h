@@ -19,6 +19,7 @@
 #include <utils/RgbToRgbw.h>
 #include <utils/Logger.h>
 #include <functional>
+#include <utils/Components.h>
 
 class LedDevice;
 
@@ -58,6 +59,12 @@ public:
 	static QJsonObject getLedDeviceSchemas();
 	static void setLedCount(int ledCount);
 	static int  getLedCount() { return _ledCount; }
+	
+	void setEnable(bool enable);
+	bool enabled() { return _enabled; };
+
+	inline bool componentState() { return enabled(); };
+	
 protected:
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -88,11 +95,13 @@ protected:
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
 	QTimer        _refresh_timer;
 	unsigned int _refresh_timer_interval;
-	
+
 protected slots:
 	/// Write the last data to the leds again
 	int rewriteLeds();
 
 private:
 	std::vector<ColorRgb> _ledValues;
+	bool _componentRegistered;
+	bool _enabled;
 };

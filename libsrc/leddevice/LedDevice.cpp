@@ -5,6 +5,7 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
+#include "hyperion/Hyperion.h"
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
 QString LedDevice::_activeDevice = "";
@@ -19,8 +20,11 @@ LedDevice::LedDevice()
 	, _deviceReady(true)
 	, _refresh_timer()
 	, _refresh_timer_interval(0)
+	, _componentRegistered(false)
+	, _enabled(true)
 {
 	LedDevice::getLedDeviceSchemas();
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// setup timer
 	_refresh_timer.setSingleShot(false);
@@ -32,6 +36,16 @@ LedDevice::LedDevice()
 int LedDevice::open()
 {
 	return 0;
+}
+
+void LedDevice::setEnable(bool enable)
+{
+	if ( _enabled && !enable)
+	{
+		switchOff();
+	}
+	_enabled = enable;
+	
 }
 
 int LedDevice::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)
@@ -111,12 +125,11 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 	return result;
 }
 
-
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
-	if (!_deviceReady)
+	if (!_deviceReady || !_enabled)
 		return -1;
-	
+
 	_ledValues = ledValues;
 
 	// restart the timer
@@ -142,5 +155,5 @@ void LedDevice::setLedCount(int ledCount)
 
 int LedDevice::rewriteLeds()
 {
-	return write(_ledValues);
+	return _enabled ? write(_ledValues) : -1;
 }
