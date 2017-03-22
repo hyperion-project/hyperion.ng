@@ -76,9 +76,13 @@ void PriorityMuxer::clearInput(const int priority)
 
 void PriorityMuxer::clearAll()
 {
-	_activeInputs.clear();
-	_currentPriority = LOWEST_PRIORITY;
-	_activeInputs[_currentPriority] = _lowestPriorityInfo;
+	for(auto key : _activeInputs.keys())
+	{
+		if (key < LOWEST_PRIORITY-1)
+		{
+			_activeInputs.remove(key);
+		}
+	}
 }
 
 void PriorityMuxer::setCurrentTime(const int64_t& now)
