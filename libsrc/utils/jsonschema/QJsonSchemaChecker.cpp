@@ -85,6 +85,8 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			checkMinimum(value, attributeValue);
 		else if (attribute == "maximum")
 			checkMaximum(value, attributeValue);
+		else if (attribute == "minLength")
+			checkMinLength(value, attributeValue);
 		else if (attribute == "maxLength")
 			checkMaxLength(value, attributeValue);
 		else if (attribute == "items")
@@ -252,20 +254,37 @@ void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue
 	}
 }
 
+void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonValue & schema)
+{
+	if (!value.isString())
+	{
+		// only for Strings
+		_error = true;
+		setMessage("minLength check only for string fields");
+		return;
+	}
+
+	if (value.toString().size() < schema.toInt())
+	{
+		_error = true;
+		setMessage("value is too short (minLength=" + schema.toString() + ")");
+	}
+}
+
 void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonValue & schema)
 {
 	if (!value.isString())
 	{
 		// only for Strings
 		_error = true;
-		setMessage("MaxLength check only for string fields");
+		setMessage("maxLength check only for string fields");
 		return;
 	}
 
 	if (value.toString().size() > schema.toInt())
 	{
 		_error = true;
-		setMessage("value is too large (maxLength=" + schema.toString() + ")");
+		setMessage("value is too long (maxLength=" + schema.toString() + ")");
 	}
 }
 

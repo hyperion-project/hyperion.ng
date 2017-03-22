@@ -14,7 +14,9 @@
 				{
 					"type" : "string",
 					"title" : "edt_conf_gen_name_title",
-					"default" : "MyHyperionConfig",
+					"default" : "My Hyperion Config",
+					"minLength" : 5,
+					"maxLength" : 25,
 					"required" : true,
 					"propertyOrder" : 1
 				},
