@@ -55,6 +55,7 @@ public:
 	QString registeredType;
 	QString replyDomain;
 	QString hostName;
+	QString address;
 	int     port;
 
 	bool operator==(const BonjourRecord &other) const

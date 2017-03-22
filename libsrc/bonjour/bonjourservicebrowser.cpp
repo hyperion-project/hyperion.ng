@@ -90,7 +90,7 @@ void BonjourServiceBrowser::bonjourBrowseReply(DNSServiceRef , DNSServiceFlags f
 	else
 	{
 		BonjourRecord bonjourRecord(serviceName, regType, replyDomain);
-		if (flags & kDNSServiceFlagsAdd)
+		if ((flags & kDNSServiceFlagsAdd) != 0)
 		{
 			if (!serviceBrowser->bonjourRecords.contains(bonjourRecord))
 			{
