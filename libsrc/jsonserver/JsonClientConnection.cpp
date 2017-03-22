@@ -841,7 +841,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		item["type"]   = session.registeredType;
 		item["domain"] = session.replyDomain;
 		item["host"]   = session.hostName;
-		item["address"]   = session.address;
+		item["address"]= session.address;
 		item["port"]   = session.port;
 		sessions.append(item);
 	}
