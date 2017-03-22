@@ -113,6 +113,15 @@ private:
 	void checkMaximum(const QJsonValue & value, const QJsonValue & schema);
 
 	///
+	/// Checks if the given value is hugher than the specified value. If this is the
+	/// case _error is set to true and an error-message is added to the message-queue.
+	///
+	/// @param value The given value 
+	/// @param schema The maximum size specification (as json-value)
+	///
+	void checkMaxLength(const QJsonValue & value, const QJsonValue & schema);
+
+	///
 	/// Validates all the items of an array.
 	///
 	/// @param value The json-array
