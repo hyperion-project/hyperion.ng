@@ -504,6 +504,7 @@ void Hyperion::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
 		}
 		_hyperionSessions[_bonjourCurrentServiceToResolve].hostName = host;
 		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
+		_hyperionSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
 		Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
 	}
 }
