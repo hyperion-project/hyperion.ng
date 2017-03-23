@@ -111,7 +111,6 @@ function initWebSocket()
 				};
 
 				websocket.onmessage = function (event) {
-					//console.log(event,event.data)
 					try
 					{
 						response = JSON.parse(event.data);
@@ -228,7 +227,7 @@ function requestPriorityClear(prio)
 
 function requestClearAll()
 {
-	sendToHyperion("clearall", "", "");
+	sendToHyperion("clearall");
 }
 
 function requestPlayEffect(effectName, duration)
