@@ -814,9 +814,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	for(auto comp : components)
 	{
 		QJsonObject item;
-		item["id"] = comp.first;
 		item["name"] = QString::fromStdString(hyperion::componentToIdString(comp.first));
-		item["title"] = QString::fromStdString(hyperion::componentToString(comp.first));
 		item["enabled"] = comp.second;
 		
 		component.append(item);
