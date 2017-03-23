@@ -782,12 +782,11 @@
 				},
 				"threshold" :
 				{
-					"type" : "number",
+					"type" : "integer",
 					"title" : "edt_conf_bb_threshold_title",
-					"minimum" : 0.0,
-					"maximum" : 1.0,
-					"default" : 0.05,
-					"step" : 0.01,
+					"minimum" : 0,
+					"maximum" : 100,
+					"default" : 5,
 					"append" : "edt_append_percent",
 					"propertyOrder" : 2
 				},

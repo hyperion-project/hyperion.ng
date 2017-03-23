@@ -188,7 +188,7 @@
 
 	/// The black border configuration, contains the following items: 
 	///  * enable             : true if the detector should be activated
-	///  * threshold          : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
+	///  * threshold          : Value below which a pixel is regarded as black (value between 0 and 100 [%])
 	///  * unknownFrameCnt    : Number of frames without any detection before the border is set to 0 (default 600)
 	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
 	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
@@ -197,7 +197,7 @@
 	"blackborderdetector" :
 	{
 		"enable"             : true,
-		"threshold"          : 0.05,
+		"threshold"          : 5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
