@@ -49,6 +49,7 @@
 using namespace hyperion;
 
 int _connectionCounter = 0;
+std::map<hyperion::Components, bool> JsonClientConnection::_componentsPrevState;
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
@@ -620,8 +621,8 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}
-		
-		item["owner"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
+
+		item["owner"]       = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["origin"] = priorityInfo.origin;
 		item["active"] = true;
@@ -686,9 +687,9 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	{
 		QJsonObject item;
 		item["priority"] = priorityRegister[key];
-		item["active"] = false;
-		item["visible"] = false;
-		item["owner"] = key;
+		item["active"]   = false;
+		item["visible"]  = false;
+		item["owner"]    = key;
 		priorities.append(item);
 	}
 
@@ -1144,16 +1145,52 @@ void JsonClientConnection::handleSchemaGetCommand(const QJsonObject& message, co
 void JsonClientConnection::handleComponentStateCommand(const QJsonObject& message, const QString &command, const int tan)
 {
 	const QJsonObject & componentState = message["componentstate"].toObject();
-	Components component = stringToComponent(componentState["component"].toString("invalid"));
 	
-	if (component != COMP_INVALID)
+	QString compStr   = componentState["component"].toString("invalid");
+	bool    compState = componentState["state"].toBool(true);
+
+	if (compStr == "ALL" )
 	{
-		_hyperion->setComponentState(component, componentState["state"].toBool(true));
+		if (hyperionIsActive() != compState)
+		{
+			std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+
+			if (!compState)
+			{
+				JsonClientConnection::_componentsPrevState = components;
+			}
+
+			for(auto comp : components)
+			{
+				_hyperion->setComponentState(comp.first, compState ? JsonClientConnection::_componentsPrevState[comp.first] : false);
+			}
+
+			if (compState)
+			{
+				JsonClientConnection::_componentsPrevState.clear();
+			}
+		}
+
 		sendSuccessReply(command, tan);
+		return;
+
 	}
 	else
 	{
-		sendErrorReply("invalid component name", command, tan);
+		Components component = stringToComponent(compStr);
+
+		if (hyperionIsActive())
+		{
+			if (component != COMP_INVALID)
+			{
+				_hyperion->setComponentState(component, compState);
+				sendSuccessReply(command, tan);
+				return;
+			}
+			sendErrorReply("invalid component name", command, tan);
+			return;
+		}
+		sendErrorReply("can't change component state when hyperion is off", command, tan);
 	}
 }
 
@@ -1199,7 +1236,7 @@ void JsonClientConnection::handleLoggingCommand(const QJsonObject& message, cons
 	QString subcommand = message["subcommand"].toString("");
 	_streaming_logging_reply["success"] = true;
 	_streaming_logging_reply["command"] = command;
-	_streaming_logging_reply["tan"] = tan;
+	_streaming_logging_reply["tan"]     = tan;
 	
 	if (subcommand == "start")
 	{
