@@ -1,7 +1,7 @@
 {
 	"general" :
 	{
-		"name"       : "MyHyperionConfig",
+		"name"       : "My Hyperion Config",
 		"showOptHelp" : true,
 		"configVersion" : 2
 	},
