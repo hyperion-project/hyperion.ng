@@ -828,6 +828,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	QJsonObject hyperion;
 	hyperion["config_modified" ] = _hyperion->configModified();
 	hyperion["config_writeable"] = _hyperion->configWriteable();
+	hyperion["off"] = hyperionIsActive()? false : true;
 
 	// sessions
 	QJsonArray sessions;
