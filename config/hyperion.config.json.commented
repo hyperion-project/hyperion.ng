@@ -290,19 +290,19 @@
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=200) HINT: lower value result in HIGHER priority! 
+	///  * priority : Priority of the boblight server (Default=201) HINT: lower value result in HIGHER priority! 
  	"boblightServer" :
  	{
  		"enable"   : false,
  		"port"     : 19333,
- 		"priority" : 200
+ 		"priority" : 201
  	},
 
 	/// The configuration of the udp listener
 	///  * enable   : Enable or disable the udp listener (true/false)
 	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
 	///  * port     : Port at which the udp listener starts
-	///  * priority : Priority of the udp listener server (Default=190)
+	///  * priority : Priority of the udp listener server (Default=200)
 	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
 	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
 	"udpListener" :
@@ -310,7 +310,7 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 190,
+		"priority" : 200,
 		"timeout"  : 10000,
 		"shared"   : false
 	},

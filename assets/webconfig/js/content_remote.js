@@ -54,9 +54,9 @@ $(document).ready(function() {
 			else
 			{
 				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="1.0" step="0.05" value="'+value+'"/>';
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="1.0" step="0.05" value="'+value+'"/>';
 				else
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.01" max="4.0" step="0.1" value="'+value+'"/>';
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="4.0" step="0.1" value="'+value+'"/>';
 				
 				$('.crtbody').append(createTableRow([title, property], false, true));
 				$('#cr_'+sColor[key].key).off().on('change', function(e){
@@ -88,19 +88,15 @@ $(document).ready(function() {
 		var data = "";
 		var prios = serverInfo.priorities
 		var i;
+		var clearAll = false;
 
 		for(i = 0; i < prios.length; i++)
 		{
-			var origin   = prios[i].origin;
-			if(typeof origin !== "undefined" && origin != "")
-			{
-				origin = origin.split("@");
-				var ip = origin[1];
-				origin = origin[0];
-			}
-			else
-				origin = "System";
-
+			var origin   = prios[i].origin ? prios[i].origin : "System";
+			origin = origin.split("@");
+			var ip = origin[1];
+			origin = origin[0];
+			
 			var owner    = prios[i].owner;
 			var active   = prios[i].active;
 			var visible  = prios[i].visible;
@@ -120,9 +116,17 @@ $(document).ready(function() {
 			if(ip)
 				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
 			if(compId == "EFFECT")
+			{
 				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
+				if(priority != 255)
+					clearAll = true;
+			}
 			if(compId == "COLOR")
-				owner = (owner == "Off") ? $.i18n('general_btn_off') : $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
+			{
+				owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
+				if(priority != 255)
+					clearAll = true;
+			}
 			if(compId == "GRABBER")
 				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
 			if(compId == "V4L")
@@ -136,7 +140,7 @@ $(document).ready(function() {
 			
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 			
-			if((compId == "EFFECT" || compId == "COLOR") && priority < 254)
+			if((compId == "EFFECT" || compId == "COLOR") && priority != 255)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')
@@ -145,7 +149,9 @@ $(document).ready(function() {
 		var btn_auto_color = (serverInfo.priorities_autoselect? "btn-success" : "btn-danger");
 		var btn_auto_state = (serverInfo.priorities_autoselect? "disabled" : "enabled");
 		var btn_auto_text = (serverInfo.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
-		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin:10px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
+		var btn_call_state = (clearAll? "enabled" : "disabled");
+		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
+		$('#auto_btn').append('<button type="button" '+btn_call_state+' class="btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">'+$.i18n('remote_input_clearall')+'</button>');
 		
 		var max_width=100;
 		$('.btn_input_selection').each(function() {
@@ -167,7 +173,7 @@ $(document).ready(function() {
 			else
 				btn_style = 'btn-primary';
 
-			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:10px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
+			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
 		}
 	}
 
@@ -186,9 +192,9 @@ $(document).ready(function() {
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)
 			{
-				d='<p><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
+				d='<span style="display:block;margin:3px"><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
 					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</p>';
+					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
 				$('#componentsbutton').append(d);
 			}
 			else // already create, update state

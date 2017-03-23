@@ -22,6 +22,7 @@ var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
+var wSess = [];
 
 function initRestart()
 {
@@ -110,6 +111,7 @@ function initWebSocket()
 				};
 
 				websocket.onmessage = function (event) {
+					//console.log(event,event.data)
 					try
 					{
 						response = JSON.parse(event.data);
@@ -222,6 +224,11 @@ function requestPriorityClear(prio)
 		prio = webPrio;
 
 	sendToHyperion("clear", "", '"priority":'+prio+'');
+}
+
+function requestClearAll()
+{
+	sendToHyperion("clearall", "", "");
 }
 
 function requestPlayEffect(effectName, duration)

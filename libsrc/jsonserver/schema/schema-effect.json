@@ -22,6 +22,7 @@
 		},
 		"origin": {
 			"type": "string",
+			"minLength" : 4,
 			"maxLength" : 20,
 			"required": true
 		},
