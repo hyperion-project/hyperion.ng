@@ -78,7 +78,7 @@ void PriorityMuxer::clearAll()
 {
 	for(auto key : _activeInputs.keys())
 	{
-		if (key < LOWEST_PRIORITY)
+		if (key < LOWEST_PRIORITY-1)
 		{
 			_activeInputs.remove(key);
 		}

@@ -846,6 +846,7 @@ void Hyperion::update()
 	// Write the data to the device
 	if (_device->enabled())
 	{
+		_deviceSmooth->pause(priorityInfo.componentId == hyperion::COMP_EFFECT);
 		if (_deviceSmooth->enabled())
 			_deviceSmooth->setLedValues(_ledBuffer);
 		else

@@ -41,6 +41,8 @@ public:
 	virtual int switchOff();
 
 	void setEnable(bool enable);
+	void pause(bool pause);
+	bool enabled() { return LedDevice::enabled() && !_pause; };
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
@@ -88,4 +90,7 @@ private:
 	
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
+
+	/// Flag for pausing
+	bool _pause;
 };

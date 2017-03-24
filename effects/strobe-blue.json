@@ -1,9 +1,11 @@
 {
 	"name" : "Strobe blue",
-	"script" : "strobe.py",
+	"script" : "fade.py",
 	"args" :
 	{
-		"color"     : [ 0, 0, 255 ],
-		"frequency" : 5.0
+		"color-start": [ 0, 0, 255 ],
+		"color-end": [ 0, 0, 50 ],
+		"fade-time" : 3,
+		"frequency" : 10.0
 	}
 }
