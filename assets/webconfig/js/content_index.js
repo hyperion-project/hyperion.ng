@@ -1,5 +1,6 @@
 $(document).ready( function() {
 	var uiLock = false;
+	var prevSess = 0;
 
 	loadContentTo("#container_connection_lost","connection_lost");
 	loadContentTo("#container_restart","restart");
@@ -34,6 +35,26 @@ $(document).ready( function() {
 			uiLock = false;
 		}
 
+		var sess = serverInfo.hyperion.sessions;
+		if (sess.length != prevSess)
+		{
+			wSess = [];
+			prevSess = sess.length;
+			for(var i = 0; i<sess.length; i++)
+			{
+				if(sess[i].type == "_hyperiond-http._tcp.")
+				{
+					wSess.push(sess[i]);  
+				}
+			}
+			
+			if (wSess.length > 1)
+				$('#btn_instanceswitch').toggle(true);
+			else
+				$('#btn_instanceswitch').toggle(false);
+		}
+
+		
 	}); // end cmd-serverinfo
 
 	$(hyperion).one("cmd-sysinfo", function(event) {

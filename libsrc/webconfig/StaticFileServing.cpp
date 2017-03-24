@@ -44,8 +44,8 @@ StaticFileServing::~StaticFileServing ()
 void StaticFileServing::onServerStarted (quint16 port)
 {
 	Info(_log, "started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
-
-	const QString mDNSDescr = _server->getServerName() + "@" + QHostInfo::localHostName();
+	const QJsonObject & generalConfig = _hyperion->getQJsonConfig()["general"].toObject();
+	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName() + ":" + QString::number(port);
 
 	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
 	bonjourRegister_http->registerService(

@@ -93,7 +93,8 @@ int main(int argc, char * argv[])
 		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
-		BooleanOption   & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
+		BooleanOption   & argOff         = parser.add<BooleanOption>(0x0, "off", "deactivates hyperion");
+		BooleanOption   & argOn          = parser.add<BooleanOption>(0x0, "on", "activates hyperion");
 		BooleanOption   & argConfigGet   = parser.add<BooleanOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
 		BooleanOption   & argSchemaGet   = parser.add<BooleanOption>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
 		Option          & argConfigSet   = parser.add<Option>       (0x0, "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
@@ -115,7 +116,7 @@ int main(int argc, char * argv[])
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
 		    parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
-		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
+		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
 			parser.isSet(argMapping) });
 		if (commandCount != 1)
 		{
@@ -198,9 +199,13 @@ int main(int argc, char * argv[])
 		{
 			connection.setComponentState(argDisableComponent.value(parser), false);
 		}
-		else if (parser.isSet(argSourceOff))
+		else if (parser.isSet(argOn))
 		{
-			connection.setSource(std::numeric_limits<uint8_t>::max());
+			connection.setComponentState("ALL", true);
+		}
+		else if (parser.isSet(argOff))
+		{
+			connection.setComponentState("ALL", false);
 		}
 		else if (parser.isSet(argSource))
 		{

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
@@ -317,6 +319,9 @@ private:
 	///
 	bool checkJson(const QJsonObject & message, const QString &schemaResource, QString & errors, bool ignoreRequired = false);
 
+	/// returns if hyperion is on or off
+	inline bool hyperionIsActive() { return JsonClientConnection::_componentsPrevState.empty(); };
+	
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
@@ -357,6 +362,9 @@ private:
 
 	/// address of client
 	QHostAddress _clientAddress;
+
+	/// holds the state before off state
+	static std::map<hyperion::Components, bool> _componentsPrevState;
 
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
