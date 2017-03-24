@@ -188,11 +188,12 @@ $(document).ready(function() {
 			enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 			comp_name    = components[idx].name;
 			comp_btn_id  = "comp_btn_"+comp_name;
+			comp_goff	 = serverInfo.hyperion.off? "disabled" : "enabled";
 			
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)
 			{
-				d='<span style="display:block;margin:3px"><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
+				d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
 					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
 					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
 				$('#componentsbutton').append(d);
@@ -201,7 +202,7 @@ $(document).ready(function() {
 			{
 				setClassByBool( $('#'+comp_btn_id)        , components[idx].enabled, "btn-danger", "btn-success" );
 				setClassByBool( $('#'+comp_btn_id+"_icon"), components[idx].enabled, "fa-stop"    , "fa-play" );
-				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')');
+				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')').attr(comp_goff);
 			}
 		}
 	}
