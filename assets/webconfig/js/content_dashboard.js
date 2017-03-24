@@ -57,6 +57,10 @@ $(document).ready( function() {
 			components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
+		
+		//info
+		$('#dash_statush').html(serverInfo.hyperion.off? '<span style="color:red">'+$.i18n('general_btn_off')+'</span>':'<span style="color:green">'+$.i18n('general_btn_on')+'</span>');
+		$('#btn_hsc').html(serverInfo.hyperion.off? '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>' : '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>');
 	}
 	
 	// add more info

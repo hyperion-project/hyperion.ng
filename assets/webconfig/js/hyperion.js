@@ -22,6 +22,7 @@ var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
+var wSess = [];
 
 function initRestart()
 {
@@ -222,6 +223,11 @@ function requestPriorityClear(prio)
 		prio = webPrio;
 
 	sendToHyperion("clear", "", '"priority":'+prio+'');
+}
+
+function requestClearAll()
+{
+	sendToHyperion("clearall");
 }
 
 function requestPlayEffect(effectName, duration)

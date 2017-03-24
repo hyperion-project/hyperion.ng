@@ -14,7 +14,9 @@
 				{
 					"type" : "string",
 					"title" : "edt_conf_gen_name_title",
-					"default" : "MyHyperionConfig",
+					"default" : "My Hyperion Config",
+					"minLength" : 4,
+					"maxLength" : 20,
 					"required" : true,
 					"propertyOrder" : 1
 				},
@@ -685,7 +687,7 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
+					"maximum" : 254,
 					"default" : 250,
 					"propertyOrder" : 5
 				},
@@ -780,12 +782,11 @@
 				},
 				"threshold" :
 				{
-					"type" : "number",
+					"type" : "integer",
 					"title" : "edt_conf_bb_threshold_title",
-					"minimum" : 0.0,
-					"maximum" : 1.0,
-					"default" : 0.05,
-					"step" : 0.01,
+					"minimum" : 0,
+					"maximum" : 100,
+					"default" : 5,
 					"append" : "edt_append_percent",
 					"propertyOrder" : 2
 				},
@@ -1128,8 +1129,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
-					"default" : 200,
+					"maximum" : 254,
+					"default" : 201,
 					"propertyOrder" : 3
 				}
 			},
@@ -1169,8 +1170,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
-					"default" : 190,
+					"maximum" : 254,
+					"default" : 200,
 					"propertyOrder" : 4
 				},
 				"timeout" :

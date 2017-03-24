@@ -617,17 +617,16 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
-		if (priorityInfo.timeoutTime_ms != -1)
+		if (priorityInfo.timeoutTime_ms != -1 && (priorityInfo.componentId == hyperion::COMP_COLOR || priorityInfo.componentId == hyperion::COMP_EFFECT))
 		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}
 
 		item["owner"]       = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
-		item["origin"]      = priorityInfo.origin;
-		item["component"]   = QString(hyperion::componentToString(priorityInfo.componentId));
-		item["active"]      = true;
-		item["visible"]     = (priority == currentPriority);
+		item["origin"] = priorityInfo.origin;
+		item["active"] = true;
+		item["visible"] = (priority == currentPriority);
 
 		// remove item from prio register, because we have more valuable information via active priority
 		QList<QString> prios = priorityRegister.keys(priority);
@@ -816,9 +815,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	for(auto comp : components)
 	{
 		QJsonObject item;
-		item["id"] = comp.first;
 		item["name"] = QString::fromStdString(hyperion::componentToIdString(comp.first));
-		item["title"] = QString::fromStdString(hyperion::componentToString(comp.first));
 		item["enabled"] = comp.second;
 		
 		component.append(item);
@@ -831,6 +828,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 	QJsonObject hyperion;
 	hyperion["config_modified" ] = _hyperion->configModified();
 	hyperion["config_writeable"] = _hyperion->configWriteable();
+	hyperion["off"] = hyperionIsActive()? false : true;
 
 	// sessions
 	QJsonArray sessions;
@@ -1521,6 +1519,5 @@ void JsonClientConnection::setImage(int priority, const Image<ColorRgb> & image,
 		_image_stream_mutex.unlock();
 	}
 }
-
 
 

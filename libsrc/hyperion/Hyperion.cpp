@@ -401,7 +401,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _bonjourBrowser(this)
 	, _bonjourResolver(this)
 {
-	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -779,16 +778,13 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( priority < PriorityMuxer::LOWEST_PRIORITY)
+	if (priorityInfo.componentId != _prevCompId)
 	{
-		if (priorityInfo.componentId != _prevCompId)
-		{
-			bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
-			_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
-			_prevCompId = priorityInfo.componentId;
-		}
-		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
+		bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
+		_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
+		_prevCompId = priorityInfo.componentId;
 	}
+	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
 	// init colororder vector, if empty
 	if (_ledStringColorOrder.empty())
