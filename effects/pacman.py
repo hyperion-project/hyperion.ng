@@ -20,10 +20,10 @@ light = bytearray((255, 184, 174))
 background = bytearray((0, 0, 0))
 
 #helper
-posPac = 1
-diffPac = 6*marginPos
-diffGuys = 3*marginPos
-sleepTime = rotationTime/ledCount
+posPac    = 1
+diffPac   = 6*marginPos
+diffGuys  = 3*marginPos
+sleepTime = max(0.02,rotationTime/hyperion.ledCount)
 
 posPinkGuy = posPac + diffPac
 posBlueGuy = posPinkGuy + diffGuys
@@ -89,7 +89,8 @@ while not hyperion.abort():
 	shiftLED(ledData, increment, hyperion.ledCount - random, s)
 
 	# chase mode
-	shift = 3*(hyperion.ledCount - random)
-	ledData=ledDataChase[shift:]+ledDataChase[:shift]
+	shift   = 3*(hyperion.ledCount - random)
+	ledData = ledDataChase[shift:]+ledDataChase[:shift]
 	shiftLED(ledData, -increment, 2*hyperion.ledCount-random)
+	time.sleep(sleepTime)
 

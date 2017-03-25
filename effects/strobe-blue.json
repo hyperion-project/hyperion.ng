@@ -4,8 +4,11 @@
 	"args" :
 	{
 		"color-start": [ 0, 0, 255 ],
-		"color-end": [ 0, 0, 50 ],
-		"fade-time" : 3,
-		"frequency" : 10.0
+		"color-end": [ 0, 0, 0 ],
+		"fade-in-time" : 0,
+		"fade-out-time" : 0,
+		"color-start-time" : 50,
+		"color-end-time" : 50,
+		"repeat" : true
 	}
 }

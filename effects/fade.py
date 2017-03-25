@@ -1,14 +1,16 @@
 import hyperion, time
 
 # Get the parameters
-fadeTime   = float(hyperion.args.get('fade-time', 5.0))
-colorStart = hyperion.args.get('color-start', (255,174,11))
-colorEnd   = hyperion.args.get('color-end', (0,0,0))
+fadeInTime     = float(hyperion.args.get('fade-in-time', 2000)) / 1000.0
+fadeOutTime    = float(hyperion.args.get('fade-out-time', 2000)) / 1000.0
+colorStart     = hyperion.args.get('color-start', (255,174,11))
+colorEnd       = hyperion.args.get('color-end', (0,0,0))
+colorStartTime = float(hyperion.args.get('color-start-time', 1000)) / 1000
+colorEndTime   = float(hyperion.args.get('color-end-time', 1000)) / 1000
+repeat         = hyperion.args.get('repeat', False)
+minStepTime    = 0.01
 
-steps     = (hyperion.args.get('steps', 0.0))
-frequency = float(hyperion.args.get('frequency', 0.0))
-sleepTime = 0 if frequency<=0 else 0.5 / frequency
-
+# create color table for fading from start to end color
 color_step = (
 	(colorEnd[0] - colorStart[0]) / 256.0,
 	(colorEnd[1] - colorStart[1]) / 256.0,
@@ -20,26 +22,54 @@ colors = []
 for step in range(256):
 	colors.append( (calcChannel(0),calcChannel(1),calcChannel(2)) )
 
-increment = 8
+# calculate timings
+if fadeInTime>0:
+	incrementIn  = max(1,int(round(256.0 / (fadeInTime / minStepTime) )))
+	sleepTimeIn  = fadeInTime / (256.0 / incrementIn)
+else:
+	incrementIn  = sleepTimeIn  = 1
+	
+if fadeOutTime>0:
+	incrementOut = max(1,int(round(256.0 / (fadeOutTime / minStepTime) )))
+	sleepTimeOut = fadeOutTime / (256.0 / incrementOut)
+else:
+	incrementOut  = sleepTimeOut  = 1
 
+# loop
 while not hyperion.abort():
-	for step in range(0,256,increment):
-		if hyperion.abort(): break
-		hyperion.setColor( colors[step][0],colors[step][1],colors[step][2] )
-		time.sleep( fadeTime / 256 )
+	# fadin
+	if fadeInTime > 0:
+		for step in range(0,256,incrementIn):
+			if hyperion.abort(): break
+			hyperion.setColor( colors[step][0],colors[step][1],colors[step][2] )
+			time.sleep(sleepTimeIn)
 
-	if sleepTime == 0: break
-	time.sleep(sleepTime)
+	# end color
+	t = 0.0
+	while t<colorStartTime and not hyperion.abort():
+		hyperion.setColor( colors[255][0],colors[255][1],colors[255][2] )
+		time.sleep(0.01)
+		t += 0.01
 
-	for step in range(255,-1,-increment):
-		if hyperion.abort(): break
-		hyperion.setColor( colors[step][0],colors[step][1],colors[step][2] )
-		time.sleep( fadeTime / 256 )
+	# fadeout
+	if fadeOutTime > 0:
+		for step in range(255,-1,-incrementOut):
+			if hyperion.abort(): break
+			hyperion.setColor( colors[step][0],colors[step][1],colors[step][2] )
+			time.sleep(sleepTimeOut)
 
-	time.sleep(sleepTime)
+	# start color
+	t = 0.0
+	while t<colorEndTime and not hyperion.abort():
+		hyperion.setColor( colors[0][0],colors[0][1],colors[0][2] )
+		time.sleep(0.01)
+		t += 0.01
 
-# maintain color until effect end
-hyperion.setColor(colorEnd[0],colorEnd[1],colorEnd[2])
+	# repeat
+	if not repeat: break
+
+# maintain end color until effect end
 while not hyperion.abort():
+	hyperion.setColor( colors[0][0],colors[0][1],colors[0][2] )
 	time.sleep(1)
 

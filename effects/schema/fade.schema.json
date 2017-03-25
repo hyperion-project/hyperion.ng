@@ -4,14 +4,6 @@
     "title":"edt_eff_fade_header_title",
     "required":true,
     "properties":{
-        "fade-time": {
-            "type": "number",
-            "title":"edt_eff_fadetime_title",
-            "default": 5.0,
-            "minimum" : 0.1,
-            "append" : "edt_append_s",
-            "propertyOrder" : 1
-        },
         "color-start": {
             "type": "array",
             "title":"edt_eff_colorstart_title",
@@ -25,7 +17,23 @@
             },
             "minItems": 3,
             "maxItems": 3,
+            "propertyOrder" : 1
+        },
+        "color-start-time": {
+            "type": "integer",
+            "title":"edt_eff_colorstarttime_title",
+            "default": 1000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
             "propertyOrder" : 2
+        },
+        "fade-in-time": {
+            "type": "integer",
+            "title":"edt_eff_fadeintime_title",
+            "default": 2000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 3
         },
         "color-end": {
             "type": "array",
@@ -39,16 +47,30 @@
             },
             "minItems": 3,
             "maxItems": 3,
-            "propertyOrder" : 3
+            "propertyOrder" : 4
         },
-        "frequency": {
-            "type": "number",
-            "title":"edt_eff_frequency_title",
-            "default": 10.0,
-            "minimum" : 0.0,
-            "append" : "edt_append_hz",
-            "propertyOrder" : 2
-        }
+        "color-end-time": {
+            "type": "integer",
+            "title":"edt_eff_colorendtime_title",
+            "default": 1000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 5
+        },
+        "fade-out-time": {
+            "type": "integer",
+            "title":"edt_eff_fadeouttime_title",
+            "default": 2000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 6
+        },
+		"repeat": {
+			"type": "boolean",
+			"title":"edt_eff_repeat_title",
+			"default": false,
+			"propertyOrder" : 7
+		}
     },
     "additionalProperties": false
 }
