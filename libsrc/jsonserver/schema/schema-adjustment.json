@@ -110,19 +110,19 @@
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.1,
-					"maximum" : 100.0
+					"maximum" : 5.0
 				},
 				"gammaGreen": {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.1,
-					"maximum" : 100.0
+					"maximum" : 5.0
 				},
 				"gammaBlue": {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.1,
-					"maximum" : 100.0
+					"maximum" : 5.0
 				},
 				"backlightThreshold" : {
 					"type" : "number",
