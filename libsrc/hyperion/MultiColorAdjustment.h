@@ -2,11 +2,11 @@
 
 // STL includes
 #include <vector>
-
-// Utils includes
-#include <utils/ColorRgb.h>
+#include <QStringList>
+#include <QString>
 
 // Hyperion includes
+#include <utils/ColorRgb.h>
 #include <hyperion/ColorAdjustment.h>
 
 ///
@@ -26,15 +26,17 @@ public:
 	 */
 	void addAdjustment(ColorAdjustment * adjustment);
 
-	void setAdjustmentForLed(const std::string& id, const unsigned startLed, const unsigned endLed);
+	void setAdjustmentForLed(const QString& id, const unsigned startLed, const unsigned endLed);
 
 	bool verifyAdjustments() const;
+
+	void setBacklightEnabled(bool enable);
 
 	///
 	/// Returns the identifier of all the unique ColorAdjustment
 	///
 	/// @return The list with unique id's of the ColorAdjustment
-	const std::vector<std::string> & getAdjustmentIds();
+	const QStringList & getAdjustmentIds();
 
 	///
 	/// Returns the pointer to the ColorAdjustment with the given id
@@ -43,7 +45,7 @@ public:
 	///
 	/// @return The ColorAdjustment with the given id (or nullptr if it does not exist)
 	///
-	ColorAdjustment* getAdjustment(const std::string& id);
+	ColorAdjustment* getAdjustment(const QString& id);
 
 	///
 	/// Performs the color adjustment from raw-color to led-color
@@ -54,11 +56,14 @@ public:
 
 private:
 	/// List with transform ids
-	std::vector<std::string> _adjustmentIds;
+	QStringList _adjustmentIds;
 
 	/// List with unique ColorTransforms
 	std::vector<ColorAdjustment*> _adjustment;
 
 	/// List with a pointer to the ColorAdjustment for each individual led
 	std::vector<ColorAdjustment*> _ledAdjustments;
+
+	// logger instance
+	Logger * _log;
 };

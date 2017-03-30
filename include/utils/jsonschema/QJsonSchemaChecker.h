@@ -1,9 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-#include <list>
-
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -48,7 +44,7 @@ public:
 	///
 	/// @return A list of error messages
 	///
-	const std::list<std::string> & getMessages() const;
+	const QStringList & getMessages() const;
 
 private:
 	///
@@ -65,15 +61,7 @@ private:
 	///
 	/// @param[in] message The message to add to the queue
 	///
-	void setMessage(const std::string & message);
-
-	///
-	/// Retrieves all references from the json-value as specified by the schema
-	///
-	/// @param[in] value The json-value
-	/// @param[in] schema The schema
-	///
-	void collectDependencies(const QJsonValue & value, const QJsonObject &schema);
+	void setMessage(const QString & message);
 
 private:
 	// attribute check functions
@@ -107,15 +95,6 @@ private:
 	void checkAdditionalProperties(const QJsonObject & value, const QJsonValue & schema, const QStringList & ignoredProperties);
 
 	///
-	/// Checks if references are configued and used correctly. If this is not the case _error is set
-	/// to true and an error-message is added to the message-queue.
-	///
-	/// @param value The given json-object
-	/// @param schemaLink The schema of the json-object
-	///
-	void checkDependencies(const QJsonValue & value, const QJsonValue & schemaLink);
-
-	///
 	/// Checks if the given value is larger or equal to the specified value. If this is not the case
 	/// _error is set to true and an error-message is added to the message-queue.
 	///
@@ -132,6 +111,24 @@ private:
 	/// @param[in] schema The maximum value (as json-value)
 	///
 	void checkMaximum(const QJsonValue & value, const QJsonValue & schema);
+
+	///
+	/// Checks if the given value is hugher than the specified value. If this is the
+	/// case _error is set to true and an error-message is added to the message-queue.
+	///
+	/// @param value The given value 
+	/// @param schema The minimum size specification (as json-value)
+	///
+	void checkMinLength(const QJsonValue & value, const QJsonValue & schema);
+
+	///
+	/// Checks if the given value is smaller than the specified value. If this is the
+	/// case _error is set to true and an error-message is added to the message-queue.
+	///
+	/// @param value The given value 
+	/// @param schema The maximum size specification (as json-value)
+	///
+	void checkMaxLength(const QJsonValue & value, const QJsonValue & schema);
 
 	///
 	/// Validates all the items of an array.
@@ -183,9 +180,9 @@ private:
 	/// ignore the required value in json schema
 	bool _ignoreRequired;
 	/// The current location into a json-configuration structure being checked
-	std::list<std::string> _currentPath;
+	QStringList _currentPath;
 	/// The result messages collected during the schema verification
-	std::list<std::string> _messages;
+	QStringList _messages;
 	/// Flag indicating an error occured during validation
 	bool _error;
 };

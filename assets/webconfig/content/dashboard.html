@@ -1,11 +1,9 @@
-			<div class="container-fluid" id="content_dashboard">
+			<div class="container-fluid">
 				<div class="row">
 					<div class="col-lg-12">
-						<h2 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h2>
-						<div class="introd">
-							<h4  data-i18n="dashboard_label_intro">The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.</h4>
-						</div>
-						<hr>
+						<h3 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
+						<div id="dash_intro">
+						<div class="row">
 							<div class="col-md-6 col-xxl-4">
 								<div class="panel panel-default">
 									<div class="panel-heading">
@@ -16,23 +14,38 @@
 										<table class="table borderless">
 											<tbody>
 												<tr>
-													<td  data-i18n="dashboard_infobox_label_currenthyp">Your Hyperion version:</td>
-													<td id="currentversion">unknown</td>
+													<td  data-i18n="dashboard_infobox_label_statush"></td>
+													<td id="dash_statush" style="font-weight:bold">unknown</td>
+												</tr>
+												<tr>
+													<td  data-i18n="dashboard_infobox_label_platform">Platform:</td>
+													<td id="dash_platform"></td>
+												</tr>
+												<tr>
+													<td  data-i18n="conf_leds_contr_label_contrtype">LED type:</td>
+													<td id="dash_leddevice"></td>
+												</tr>
+												<tr>
+													<td  data-i18n="dashboard_infobox_label_instance">Instance</td>
+													<td id="dash_instance"></td>
+												</tr>
+												<tr>
+													<td  data-i18n="dashboard_infobox_label_ports">Ports</td>
+													<td id="dash_ports"></td>
+												</tr>
+												<tr>
+													<td  data-i18n="dashboard_infobox_label_currenthyp">Hyperion version:</td>
+													<td id="dash_currv">unknown</td>
 												</tr>
 												<tr>
 													<td  data-i18n="dashboard_infobox_label_latesthyp">Latest version:</td>
-													<td id="latestversion">unknown</td>
-												</tr>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_leddevice">LED type:</td>
-													<td id="dash_leddevice">unknown</td>
-												</tr>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_device">Device:</td>
-													<td id="dash_systeminfo"></td>
+													<td id="dash_latev">unknown</td>
 												</tr>
 											</tbody>
 										</table>
+										<hr>
+										<p style="font-weight:bold" data-i18n="dashboard_infobox_label_smartacc">Smart Access<p>
+										<span id="btn_hsc"></span>
 										<hr>
 										<span id="versioninforesult"></span>
 									</div>
@@ -62,21 +75,20 @@
 								<div class="panel panel-default">
 									<div class="panel-heading">
 										<i class="fa fa-newspaper-o fa-fw"></i>
-										<span  data-i18n="dashboard_newsbox_label_title">Latest blog posts</span>
+										<span data-i18n="dashboard_newsbox_label_title">Visit Hyperion Blog</span>
 									</div>
 									<div class="panel-body">
-
+										<div id="dash_news" style="margin-bottom:7px"></div>
+										<a href="https://hyperion-project.org/blog/?pk_campaign=WebUI&pk_kwd=visitblog" target="_blank" data-i18n="dashboard_newsbox_visitblog"></a>
 									</div>
 								</div>
 							</div>
-
+						</div>
 					</div>
 					<!-- /.col-lg-12 -->
 				</div>
 				<!-- /.row -->
 			</div>
 			<!-- /.container-fluid -->
- 
-<script type="text/javascript">
-performTranslation('content_dashboard');
-</script>
+			
+<script src="/js/content_dashboard.js"></script>

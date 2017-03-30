@@ -33,11 +33,14 @@ public:
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
 		std::vector<ColorRgb> ledColors;
+		/// The component
 		hyperion::Components componentId;
+		/// Who set it
+		QString origin;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
-	const static int LOWEST_PRIORITY = std::numeric_limits<int>::max();
+	const static int LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
 	///
 	/// Constructs the PriorityMuxer for the given number of leds (used to switch to black when
@@ -90,8 +93,10 @@ public:
 	/// @param[in] priority The priority of the channel
 	/// @param[in] ledColors The led colors of the priority channel
 	/// @param[in] timeoutTime_ms The absolute timeout time of the channel
+	/// @param[in] component The component of the channel
+	/// @param[in] origin Who set the channel
 	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID);
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
 
 	///
 	/// Clears the specified priority channel

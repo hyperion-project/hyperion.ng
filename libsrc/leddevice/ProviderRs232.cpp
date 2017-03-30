@@ -5,6 +5,9 @@
 
 // Qt includes
 #include <QTimer>
+#include <QDateTime>
+#include <QFile>
+#include <QSerialPortInfo>
 
 // Local Hyperion includes
 #include "ProviderRs232.h"
@@ -17,6 +20,9 @@ ProviderRs232::ProviderRs232()
 	, _bytesWritten(0)
 	, _frameDropCounter(0)
 	, _lastError(QSerialPort::NoError)
+	, _preOpenDelayTimeOut(0)
+	, _preOpenDelay(2000)
+	, _enableAutoDeviceName(false)
 {
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
@@ -29,11 +35,28 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 
 	LedDevice::init(deviceConfig);
 
-	_deviceName           = deviceConfig["output"].toString().toStdString();
+	_deviceName           = deviceConfig["output"].toString("auto");
+	_enableAutoDeviceName = _deviceName == "auto";
 	_baudRate_Hz          = deviceConfig["rate"].toInt();
-	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(250);
+	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
+	_preOpenDelay         = deviceConfig["delayBeforeConnect"].toInt(1500);
 
 	return true;
+}
+
+QString ProviderRs232::findSerialDevice()
+{
+	// take first available usb serial port - currently no probing!
+	for( auto port : QSerialPortInfo::availablePorts())
+	{
+		if (port.hasProductIdentifier() && port.hasVendorIdentifier() && !port.isBusy())
+		{
+			Info(_log, "found serial device: %s", port.systemLocation().toLocal8Bit().constData());
+			return port.systemLocation();
+			break;
+		}
+	}
+	return "";
 }
 
 void ProviderRs232::bytesWritten(qint64 bytes)
@@ -49,8 +72,8 @@ void ProviderRs232::bytesWritten(qint64 bytes)
 
 void ProviderRs232::readyRead()
 {
-	QByteArray data = _rs232Port.readAll();
-	Debug(_log, "received %d bytes data", data.size());
+	emit receivedData(_rs232Port.readAll());
+	//Debug(_log, "received data");
 }
 
 
@@ -66,7 +89,9 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 			case QSerialPort::DeviceNotFoundError:
 				Error(_log, "An error occurred while attempting to open an non-existing device."); break;
 			case QSerialPort::PermissionError:
-				Error(_log, "An error occurred while attempting to open an already opened device by another process or a user not having enough permission and credentials to open."); break;
+				Error(_log, "An error occurred while attempting to open an already opened device by another process or a user not having enough permission and credentials to open. Device disabled.");
+				_deviceReady = false;
+				break;
 			case QSerialPort::OpenError:
 				Error(_log, "An error occurred while attempting to open an already opened device in this object."); break;
 			case QSerialPort::NotOpenError:
@@ -84,10 +109,14 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 			case QSerialPort::ResourceError:
 				Error(_log, "An I/O error occurred when a resource becomes unavailable, e.g. when the device is unexpectedly removed from the system."); break;
 			case QSerialPort::UnsupportedOperationError:
-				Error(_log, "The requested device operation is not supported or prohibited by the running operating system."); break;
+				Error(_log, "The requested device operation is not supported or prohibited by the running operating system. Device disabled.");
+				_deviceReady = false;
+				break;
 			case QSerialPort::TimeoutError:
 				Error(_log, "A timeout error occurred."); break;
-			default: Error(_log,"An unidentified error occurred. (%d)", error);
+			default: 
+				Error(_log,"An unidentified error occurred. Device disabled. (%d)", error);
+				_deviceReady = false;
 			}
 			_rs232Port.clearError();
 			closeDevice();
@@ -106,35 +135,60 @@ void ProviderRs232::closeDevice()
 	if (_rs232Port.isOpen())
 	{
 		_rs232Port.close();
-		Debug(_log,"Close UART: %s", _deviceName.c_str());
+		Debug(_log,"Close UART: %s", _deviceName.toLocal8Bit().constData());
 	}
 }
 
 int ProviderRs232::open()
 {
-	Info(_log, "Opening UART: %s", _deviceName.c_str());
-	_rs232Port.setPortName(_deviceName.c_str());
-
 	return tryOpen(_delayAfterConnect_ms) ? 0 : -1;
 }
 
 
 bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 {
+	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
+	{
+		if ( _enableAutoDeviceName )
+		{
+			_deviceName = findSerialDevice();
+			if ( _deviceName.isEmpty() )
+			{
+				return false;
+			}
+		}
+		Info(_log, "Opening UART: %s", _deviceName.toLocal8Bit().constData());
+		_rs232Port.setPortName(_deviceName);
+	}
+
 	if ( ! _rs232Port.isOpen() )
 	{
-		if ( ! _rs232Port.open(QIODevice::ReadWrite) )
+		_frameDropCounter = 0;
+		if (QFile::exists(_deviceName))
 		{
-			if ( _stateChanged )
+			if ( _preOpenDelayTimeOut > QDateTime::currentMSecsSinceEpoch() )
 			{
-				Error(_log, "Unable to open RS232 device (%s)", _deviceName.c_str());
-				_stateChanged = false;
+				return false;
 			}
+			if ( ! _rs232Port.open(QIODevice::ReadWrite) )
+			{
+				if ( _stateChanged )
+				{
+					Error(_log, "Unable to open RS232 device (%s)", _deviceName.toLocal8Bit().constData());
+					_stateChanged = false;
+				}
+				return false;
+			}
+			Debug(_log, "Setting baud rate to %d", _baudRate_Hz);
+			_rs232Port.setBaudRate(_baudRate_Hz);
+			_stateChanged = true;
+			_preOpenDelayTimeOut = 0;
+		}
+		else
+		{
+			_preOpenDelayTimeOut = QDateTime::currentMSecsSinceEpoch() + _preOpenDelay;
 			return false;
 		}
-		Debug(_log, "Setting baud rate to %d", _baudRate_Hz);
-		_rs232Port.setBaudRate(_baudRate_Hz);
-		_stateChanged = true;
 	}
 
 	if (delayAfterConnect_ms > 0)

@@ -2,7 +2,8 @@
 
 #include <QObject>
 #include <QTimer>
-#include <string>
+#include <QString>
+#include <QStringList>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -15,7 +16,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(std::string grabberName, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
+	GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	
@@ -28,6 +29,8 @@ public:
 	/// Stop grabber
 	///
 	virtual void stop();
+
+	static QStringList availableGrabbers();
 
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
@@ -48,12 +51,8 @@ signals:
 
 protected:
 
-	virtual void kodiPlay();
-	virtual void kodiOff();
-	virtual void kodiPause();
-
 	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
-	std::string _grabberName;
+	QString _grabberName;
 	
 	/// Pointer to Hyperion for writing led values
 	Hyperion * _hyperion;

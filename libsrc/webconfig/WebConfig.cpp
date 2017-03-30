@@ -19,11 +19,11 @@ WebConfig::WebConfig(QObject * parent)
 	{
 		const QJsonObject webconfigConfig = config["webConfig"].toObject();
 		webconfigEnable = webconfigConfig["enable"].toBool(true);
-		_port = webconfigConfig["port"].toInt(_port);
+		_port    = webconfigConfig["port"].toInt(_port);
 		_baseUrl = webconfigConfig["document_root"].toString(_baseUrl);
 	}
 
-	if (_baseUrl != ":/webconfig")
+	if ( (_baseUrl != ":/webconfig") && !_baseUrl.trimmed().isEmpty())
 	{
 		QFileInfo info(_baseUrl);
 		if (!info.exists() || !info.isDir())
@@ -32,6 +32,8 @@ WebConfig::WebConfig(QObject * parent)
 			_baseUrl = WEBCONFIG_DEFAULT_PATH;
 		}
 	}
+	else
+		_baseUrl = WEBCONFIG_DEFAULT_PATH;
 
 	Debug(log, "WebUI initialized, document root: %s", _baseUrl.toUtf8().constData());
 	if ( webconfigEnable )

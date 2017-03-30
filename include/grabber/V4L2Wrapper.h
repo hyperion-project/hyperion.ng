@@ -13,7 +13,7 @@ class V4L2Wrapper : public GrabberWrapper
 	Q_OBJECT
 
 public:
-	V4L2Wrapper(const std::string & device,
+	V4L2Wrapper(const QString & device,
 			int input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
@@ -27,14 +27,16 @@ public:
 			const int priority);
 	virtual ~V4L2Wrapper();
 
+	bool getSignalDetectionEnable();
+
 public slots:
 	bool start();
-
 	void stop();
 
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
-
+	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void set3D(VideoMode mode);
+	void setSignalDetectionEnable(bool enable);
 
 // signals:
 // 	void emitColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms);

@@ -4,14 +4,6 @@
     "title":"edt_eff_fade_header_title",
     "required":true,
     "properties":{
-        "fade-time": {
-            "type": "number",
-            "title":"edt_eff_fadetime_title",
-            "default": 5.0,
-            "minimum" : 0.1,
-			"append" : "edt_append_s",
-            "propertyOrder" : 1
-        },
         "color-start": {
             "type": "array",
             "title":"edt_eff_colorstart_title",
@@ -25,7 +17,23 @@
             },
             "minItems": 3,
             "maxItems": 3,
+            "propertyOrder" : 1
+        },
+        "color-start-time": {
+            "type": "integer",
+            "title":"edt_eff_colorstarttime_title",
+            "default": 1000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
             "propertyOrder" : 2
+        },
+        "fade-in-time": {
+            "type": "integer",
+            "title":"edt_eff_fadeintime_title",
+            "default": 2000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 3
         },
         "color-end": {
             "type": "array",
@@ -39,8 +47,36 @@
             },
             "minItems": 3,
             "maxItems": 3,
-            "propertyOrder" : 3
-        }
+            "propertyOrder" : 4
+        },
+        "color-end-time": {
+            "type": "integer",
+            "title":"edt_eff_colorendtime_title",
+            "default": 1000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 5
+        },
+        "fade-out-time": {
+            "type": "integer",
+            "title":"edt_eff_fadeouttime_title",
+            "default": 2000,
+            "minimum" : 0,
+            "append" : "edt_append_ms",
+            "propertyOrder" : 6
+        },
+		"repeat-count": {
+			"type": "integer",
+			"title":"edt_eff_repeatcount_title",
+			"default": 0,
+			"propertyOrder" : 7
+		},
+		"maintain-end-color": {
+			"type": "boolean",
+			"title":"edt_eff_maintain_end_color_title",
+			"default": true,
+			"propertyOrder" : 8
+		}
     },
     "additionalProperties": false
 }

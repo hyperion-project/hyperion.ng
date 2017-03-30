@@ -12,6 +12,12 @@
 		},
 		"priority": {
 			"type": "integer",
+			"minimum" : 1,
+			"maximum" : 253,
+			"required": true
+		},
+		"origin": {
+			"type": "string",
 			"required": true
 		},
 		"duration": {

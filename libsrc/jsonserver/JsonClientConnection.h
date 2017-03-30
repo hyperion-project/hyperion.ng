@@ -1,11 +1,13 @@
 #pragma once
 
-// stl includes
-#include <string>
+#include <map>
 
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
+#include <QMutex>
+#include <QHostAddress>
+#include <QString>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -72,7 +74,25 @@ namespace OPCODE {
 	}
 }
 
+struct find_schema: std::unary_function<EffectSchema, bool>
+{
+	QString pyFile;
+	find_schema(QString pyFile):pyFile(pyFile) { }
+	bool operator()(EffectSchema const& schema) const
+	{
+		return schema.pyFile == pyFile;
+	}
+};
 
+struct find_effect: std::unary_function<EffectDefinition, bool>
+{
+	QString effectName;
+	find_effect(QString effectName) :effectName(effectName) { }
+	bool operator()(EffectDefinition const& effectDefinition) const
+	{
+		return effectDefinition.name == effectName;
+	}
+};
 
 ///
 /// The Connection object created by \a JsonServer when a new connection is establshed
@@ -98,6 +118,7 @@ public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	void streamLedcolorsUpdate();
 	void incommingLogMessage(Logger::T_LOG_MESSAGE);
+	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
 
 signals:
 	///
@@ -169,6 +190,13 @@ private:
 	void handleServerInfoCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON System info message
+	///
+	/// @param message the incoming message
+	///
+	void handleSysInfoCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON Clear message
 	///
 	/// @param message the incoming message
@@ -181,13 +209,6 @@ private:
 	/// @param message the incoming message
 	///
 	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
-
-	///
-	/// Handle an incoming JSON Transform message
-	///
-	/// @param message the incoming message
-	///
-	void handleTransformCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Adjustment message
@@ -222,11 +243,6 @@ private:
 	void handleConfigGetCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
-	/// Handle an incoming JSON SetConfig message
-	///
-	void handleConfigSetCommand(const QJsonObject & message, const QString &command, const int tan);
-	
-	///
 	/// Handle an incoming JSON Component State message
 	///
 	/// @param message the incoming message
@@ -244,6 +260,12 @@ private:
 	/// @param message the incoming message
 	///
 	void handleLoggingCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	/// Handle an incoming JSON Proccessing message
+	///
+	/// @param message the incoming message
+	///
+	void handleProcessingCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type
@@ -297,6 +319,9 @@ private:
 	///
 	bool checkJson(const QJsonObject & message, const QString &schemaResource, QString & errors, bool ignoreRequired = false);
 
+	/// returns if hyperion is on or off
+	inline bool hyperionIsActive() { return JsonClientConnection::_componentsPrevState.empty(); };
+	
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
@@ -320,21 +345,36 @@ private:
 	
 	/// timer for ledcolors streaming
 	QTimer _timer_ledcolors;
-	
+
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
+	QJsonObject _streaming_image_reply;
 	QJsonObject _streaming_logging_reply;
+
+	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
+
+	/// mutex to determine state of image streaming
+	QMutex _image_stream_mutex;
+
+	/// timeout for live video refresh
+	volatile qint64 _image_stream_timeout;
+
+	/// address of client
+	QHostAddress _clientAddress;
+
+	/// holds the state before off state
+	static std::map<hyperion::Components, bool> _componentsPrevState;
 
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
-	static uint8_t const BHB0_RSV3 = 0x10;
-	static uint8_t const BHB0_RSV2 = 0x20;
-	static uint8_t const BHB0_RSV1 = 0x40;
-	static uint8_t const BHB0_FIN = 0x80;
+	static uint8_t const BHB0_RSV3   = 0x10;
+	static uint8_t const BHB0_RSV2   = 0x20;
+	static uint8_t const BHB0_RSV1   = 0x40;
+	static uint8_t const BHB0_FIN    = 0x80;
 
 	static uint8_t const BHB1_PAYLOAD = 0x7F;
-	static uint8_t const BHB1_MASK = 0x80;
+	static uint8_t const BHB1_MASK    = 0x80;
 
 	static uint8_t const payload_size_code_16bit = 0x7E; // 126
 	static uint8_t const payload_size_code_64bit = 0x7F; // 127

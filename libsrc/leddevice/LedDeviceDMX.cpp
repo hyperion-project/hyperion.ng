@@ -10,15 +10,21 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	, _dmxLedCount(0)
 	, _dmxChannelCount(0)
 {
+	_deviceReady = init(deviceConfig);
+}
+
+bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
+{
 	ProviderRs232::init(deviceConfig);
-	std::string _dmxString = deviceConfig["dmxdevice"].toString("invalid").toStdString();
-	if (_dmxString == "raw")
+
+	QString dmxString = deviceConfig["dmxdevice"].toString("invalid");
+	if (dmxString == "raw")
 	{
 		_dmxDeviceType = 0;
 		_dmxStart = 1;
 		_dmxSlotsPerLed = 3;
 	}
-	else if (_dmxString == "McCrypt")
+	else if (dmxString == "McCrypt")
 	{
 		_dmxDeviceType = 1;
 		_dmxStart = 1;
@@ -26,10 +32,10 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	}
 	else
 	{
-		Error(_log, "unknown dmx device type %s", _dmxString.c_str());
+		Error(_log, "unknown dmx device type %s", QSTRING_CSTR(dmxString));
 	}
 
-	Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", _dmxString.c_str(), _dmxDeviceType );
+	Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", QSTRING_CSTR(dmxString), _dmxDeviceType );
 	_rs232Port.setStopBits(QSerialPort::TwoStop);
 	
 	_dmxLedCount  =  std::min(_ledCount, 512/_dmxSlotsPerLed);
@@ -40,6 +46,8 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 
 	_ledBuffer.resize(_dmxChannelCount, 0);
 	_ledBuffer[0] = 0x00;	// NULL START code
+
+	return true;
 }
 
 LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)

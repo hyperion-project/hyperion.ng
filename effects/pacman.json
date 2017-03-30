@@ -1,0 +1,9 @@
+{
+	"name" : "Pac-Man",
+	"script" : "pacman.py",
+	"args" :
+	{
+		"margin-pos" : 2.0,
+		"rotationTime" : 4
+	}
+}

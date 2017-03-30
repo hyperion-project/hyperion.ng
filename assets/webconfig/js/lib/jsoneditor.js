@@ -232,6 +232,7 @@ JSONEditor.prototype = {
     var theme_class = JSONEditor.defaults.themes[this.options.theme || JSONEditor.defaults.theme];
     if(!theme_class) throw "Unknown theme " + (this.options.theme || JSONEditor.defaults.theme);
 
+	this.access = this.options.access;
     this.schema = this.options.schema;
     this.theme = new theme_class();
     this.template = this.options.template;
@@ -322,7 +323,8 @@ JSONEditor.prototype = {
     this.validation_results = null;
     this.theme = null;
     this.iconlib = null;
-    this.template = null;
+    this.access = null;
+	this.template = null;
     this.__data = null;
     this.ready = false;
     this.element.innerHTML = '';
@@ -492,7 +494,7 @@ JSONEditor.prototype = {
     return this.editors[path];
   },
   watch: function(path,callback) {
-    this.watchlist = this.watchlist || {};
+	this.watchlist = this.watchlist || {};
     this.watchlist[path] = this.watchlist[path] || [];
     this.watchlist[path].push(callback);
 
@@ -515,7 +517,7 @@ JSONEditor.prototype = {
     return this;
   },
   notifyWatchers: function(path) {
-    if(!this.watchlist || !this.watchlist[path]) return this;
+	if(!this.watchlist || !this.watchlist[path]) return this;
     for(var i=0; i<this.watchlist[path].length; i++) {
       this.watchlist[path][i]();
     }
@@ -1418,7 +1420,8 @@ JSONEditor.AbstractEditor = Class.extend({
     this.theme = this.jsoneditor.theme;
     this.template_engine = this.jsoneditor.template;
     this.iconlib = this.jsoneditor.iconlib;
-
+	this.access = this.jsoneditor.access;
+	
     this.translate = this.jsoneditor.translate || JSONEditor.defaults.translate;
 
     this.original_schema = options.schema;
@@ -1428,7 +1431,7 @@ JSONEditor.AbstractEditor = Class.extend({
 
     if(!options.path && !this.schema.id) this.schema.id = 'root';
     this.path = options.path || 'root';
-    this.formname = options.formname || this.path.replace(/\.([^.]+)/g,'[$1]');
+    this.formname = options.formname || this.path.replace(/\.([^.]+)/g,'_$1');
     if(this.jsoneditor.options.form_name_root) this.formname = this.formname.replace(/^root\[/,this.jsoneditor.options.form_name_root+'[');
     this.key = this.path.split('.').pop();
     this.parent = options.parent;
@@ -1458,12 +1461,14 @@ JSONEditor.AbstractEditor = Class.extend({
     this.register();
     this.onWatchedFieldChange();
 	
-	//disable input field, if it didn't match the current access level
-	var storedAccess = localStorage.getItem("accesslevel");
-
+	//hide input fields, if they didn't match the current access level
+	var storedAccess = this.access
 	if(this.schema.access){
-		if(this.schema.access == 'expert' && storedAccess != 'expert'){
-			this.disable();
+		if(this.schema.access == 'system')
+			this.container.style.display = "none";
+		else if(this.schema.access == 'expert' && storedAccess != 'expert'){
+			this.container.style.display = "none";
+			//this.disable();
 		}	
 	}
   },
@@ -1722,7 +1727,7 @@ JSONEditor.AbstractEditor = Class.extend({
     }
   },
   setValue: function(value) {
-    this.value = value;
+	this.value = value;
   },
   getValue: function() {
     return this.value;
@@ -1885,12 +1890,12 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
   register: function() {
     this._super();
     if(!this.input) return;
-    this.input.setAttribute('name',this.formname);
+    this.input.setAttribute('id',this.formname);
   },
   unregister: function() {
     this._super();
     if(!this.input) return;
-    this.input.removeAttribute('name');
+    this.input.removeAttribute('id');
   },
   setValue: function(value,initial,from_template) {
     var self = this;
@@ -1953,7 +1958,9 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
 	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 
-    this.format = this.schema.format;
+    this.placeholder = this.schema.default;
+	
+	this.format = this.schema.format;
     if(!this.format && this.schema.media && this.schema.media.type) {
       this.format = this.schema.media.type.replace(/(^(application|text)\/(x-)?(script\.)?)|(-source$)/g,'');
     }
@@ -2144,9 +2151,11 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     }
 
     if(this.format) this.input.setAttribute('data-schemaformat',this.format);
-
-    this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append);
-    this.container.appendChild(this.control);
+	if(this.defaultValue) this.input.setAttribute('data-schemaformat',this.format);
+	if(this.formname && this.label)this.label.setAttribute('for',this.formname);
+	
+    this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append, this.placeholder);
+	this.container.appendChild(this.control);
 
     // Any special formatting that needs to happen after the input is added to the dom
     window.requestAnimationFrame(function() {
@@ -2668,8 +2677,8 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
     else {
       this.header = document.createElement('span');
       this.header.textContent = this.getTitle();
-      this.title = this.theme.getHeader(this.header);
-      this.container.appendChild(this.title);
+	  this.title = this.theme.getHeader(this.header);
+	  this.container.appendChild(this.title);
       this.container.style.position = 'relative';
 
       // Edit JSON modal
@@ -2738,12 +2747,6 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
       if(this.schema.description) {
         this.description = this.theme.getDescription(this.schema.description);
         this.container.appendChild(this.description);
-      }
-	  
-	  // Appends
-      if(this.schema.append) {
-        this.append = this.theme.getAppend(this.schema.append);
-        this.container.appendChild(this.append);
       }
 
       // Validation error placeholder area
@@ -2897,7 +2900,7 @@ JSONEditor.defaults.editors.object = JSONEditor.AbstractEditor.extend({
     else this.showEditJSON();
   },
   insertPropertyControlUsingPropertyOrder: function (property, control, container) {
-    var propertyOrder;
+   var propertyOrder;
     if (this.schema.properties[property])
       propertyOrder = this.schema.properties[property].propertyOrder;
     if (typeof propertyOrder !== "number") propertyOrder = 1000;
@@ -4841,7 +4844,7 @@ JSONEditor.defaults.editors["enum"] = JSONEditor.AbstractEditor.extend({
     }
   },
   setValue: function(val) {
-    if(this.value !== val) {
+	if(this.value !== val) {
       this.value = val;
       this.refreshValue();
       this.onChange();
@@ -4858,18 +4861,17 @@ JSONEditor.defaults.editors["enum"] = JSONEditor.AbstractEditor.extend({
 
 JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   setValue: function(value,initial) {
-    value = this.typecast(value||'');
+	value = this.typecast(value||'');
 
-    // Sanitize value before setting it
+    //Sanitize value before setting it
     var sanitized = value;
     if(this.enum_values.indexOf(sanitized) < 0) {
       sanitized = this.enum_values[0];
     }
 
     if(this.value === sanitized) {
-      return;
+	  return;
     }
-
     this.input.value = this.enum_options[this.enum_values.indexOf(sanitized)];
     if(this.select2) this.select2.select2('val',this.input.value);
     this.value = sanitized;
@@ -4878,12 +4880,12 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
   register: function() {
     this._super();
     if(!this.input) return;
-    this.input.setAttribute('name',this.formname);
+    this.input.setAttribute('id',this.formname);
   },
   unregister: function() {
     this._super();
     if(!this.input) return;
-    this.input.removeAttribute('name');
+    this.input.removeAttribute('id');
   },
   getNumColumns: function() {
     if(!this.enum_options) return 3;
@@ -4908,7 +4910,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     }
   },
   getValue: function() {
-    return this.value;
+	return this.value;
   },
   preBuild: function() {
     var self = this;
@@ -5007,7 +5009,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     }
     // Other, not supported
     else {
-      throw "'select' editor requires the enum property to be set.";
+      //throw "'select' editor requires the enum property to be set.";
     }
   },
   build: function() {
@@ -5032,29 +5034,19 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
       self.onInputChange();
     });
 
+	if(this.formname)this.label.setAttribute('for',this.formname);
+	
     this.control = this.theme.getFormControl(this.label, this.input, this.description);
     this.container.appendChild(this.control);
 
     this.value = this.enum_values[0];
   },
   onInputChange: function() {
-    var val = this.input.value;
-
-    var new_val;
-    // Invalid option, use first option instead
-    if(this.enum_options.indexOf(val) === -1) {
-      new_val = this.enum_values[0];
-    }
-    else {
-      new_val = this.enum_values[this.enum_options.indexOf(val)];
-    }
-
-    // If valid hasn't changed
-    if(new_val === this.value) return;
+	var val = this.input.value;
 
     // Store new value and propogate change event
-    this.value = new_val;
-    this.onChange(true);
+    this.value = val;
+	this.onChange(true);
   },
   setupSelect2: function() {
     // If the Select2 library is loaded use it when we have lots of items
@@ -6023,7 +6015,9 @@ JSONEditor.defaults.editors.checkbox = JSONEditor.AbstractEditor.extend({
     if(this.options.compact) this.container.className += ' compact';
 
     this.input = this.theme.getCheckbox();
-    this.control = this.theme.getFormControl(this.label, this.input, this.description);
+    if(this.formname)this.label.setAttribute('for',this.formname);
+	if(this.formname)this.input.setAttribute('id',this.formname);
+	this.control = this.theme.getFormControl(this.label, this.input, this.description);
 
     if(this.schema.readOnly || this.schema.readonly) {
       this.always_disabled = true;
@@ -6038,6 +6032,8 @@ JSONEditor.defaults.editors.checkbox = JSONEditor.AbstractEditor.extend({
     });
 
     this.container.appendChild(this.control);
+	if (this.input.id.endsWith('_enable'))
+		this.container.appendChild(document.createElement('hr'));
   },
   enable: function() {
     if(!this.always_disabled) {
@@ -6155,6 +6151,63 @@ JSONEditor.defaults.editors.arraySelectize = JSONEditor.AbstractEditor.extend({
   }
 });
 
+// colorpicker creation and handling, build on top of strings editor
+JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
+    getValue: function() {
+        if ($(this.input).data("colorpicker") !== undefined) {
+            var color = $(this.input).data('colorpicker').color.toRGB();
+            return [color.r,color.g, color.b];
+        }
+        else {
+            return [0,0,0];
+        }
+    },
+
+    setValue: function(val) {
+            function rgb2hex(rgb)
+            {
+                return "#" +
+                ("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
+                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
+            }
+
+        $(this.input).colorpicker('updateInput', 'rgb('+val+')');
+        $(this.input).colorpicker('updateData', val);
+        $(this.input).colorpicker('updatePicker', rgb2hex(val));
+        $(this.input).colorpicker('updateComponent', 'rgb('+val+')');
+     },
+   
+   
+   
+    build: function() {
+        this._super();
+        var myinput = this;
+        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element input-group");
+        $(myinput.input).append("<span class='input-group-addon' id='event_catcher'><i></i></span>");
+        $(myinput.input).colorpicker({
+            format: 'rgb',
+            customClass: 'colorpicker-2x',
+            sliders: {
+                saturation: {
+                    maxLeft: 200,
+                    maxTop: 200
+                },
+                hue: {
+                    maxTop: 200
+                },
+            },
+        })
+
+        $("#event_catcher").detach().insertAfter(myinput.input);
+        $("#event_catcher").attr("id", "selector");
+       
+        $(this.input).colorpicker().on('changeColor', function(e) {
+            $(myinput).val(e.color.toRGB()).change();
+        });     
+    }
+});
+
 var matchKey = (function () {
   var elem = document.documentElement;
 
@@ -6227,18 +6280,21 @@ JSONEditor.AbstractTheme = Class.extend({
   },
   getCheckboxLabel: function(text) {
     var el = this.getFormInputLabel(text);
-    el.style.fontWeight = 'normal';
+    el.style.fontWeight = 'bold';
     return el;
   },
   getHeader: function(text) {
-    var el = document.createElement('h3');
-    if(typeof text === "string") {
-      el.textContent = text;
+    var el = document.createElement('h4');
+	if(text.innerHTML == ''){
+		text.style.display = 'none';
+		return text;
+	}
+	else if(typeof text === "string") {
+	  el.textContent = text;
     }
-    else {
-      el.appendChild(text);
+	else {
+	  el.appendChild(text);
     }
-
     return el;
   },
   getCheckbox: function() {
@@ -6291,14 +6347,20 @@ JSONEditor.AbstractTheme = Class.extend({
     this.setSelectOptions(switcher, options, titles);
   },
   setSelectOptions: function(select, options, titles) {
-    titles = titles || [];
-    select.innerHTML = '';
-    for(var i=0; i<options.length; i++) {
-      var option = document.createElement('option');
-      option.setAttribute('value',options[i]);
-      option.textContent = titles[i] || options[i];
-      select.appendChild(option);
-    }
+    if (typeof options != "undefined")
+	{
+		titles = titles || [];
+		select.innerHTML = '';
+		for(var i=0; i<options.length; i++) {
+			var option = document.createElement('option');
+			option.setAttribute('value',options[i]);
+			if (typeof titles[i] != 'undefined' && titles[i].startsWith('edt_'))
+				option.textContent = $.i18n(titles[i]);
+			else
+				option.textContent = titles[i] || options[i];
+			select.appendChild(option);
+		}
+	}
   },
   getTextareaInput: function() {
     var el = document.createElement('textarea');
@@ -6547,46 +6609,49 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
     }
     return el;
   },
-  getFormControl: function(label, input, description, append) {
+  getFormControl: function(label, input, description, append, placeholder) {
     var group = document.createElement('div');
 	var subgroup = document.createElement('div');
-
+	
+	if(placeholder)
+		input.setAttribute('placeholder',placeholder);
+	
 	if (input.type === 'checkbox'){
 		var helplabel = document.createElement("label")
 		
 		group.className += ' form-group';
 		group.style.minHeight = "30px";
-		label.className += ' col-form-label col-sm-2';
+		label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
 		label.style.fontWeight = "bold";
 		group.appendChild(label);
 		group.appendChild(subgroup);
-		subgroup.className += 'checkbox col-sm-10';
+		subgroup.className += 'checkbox col-sm-7 col-md-9 col-lg-7 col-xxl-8';
 		subgroup.style.marginTop = "0px";
 		subgroup.appendChild(input);
 		subgroup.appendChild(helplabel);
 
-		//if (input.name.includes('enable'))
-		//	subgroup.className += ' checkbox-success';
+		if (input.id.endsWith('_enable'))
+			subgroup.className += ' checkbox-success';
 	}
 	else if (append){
 		group.className += ' form-group';
 		if(label) {
-			label.className += ' col-form-label col-sm-2';
+			label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
 			group.appendChild(label);
 		}
 		group.appendChild(subgroup);
-		subgroup.className += 'col-sm-10 input-group';
+		subgroup.className += ' col-sm-7 col-md-9 col-lg-7 input-group col-xxl-8';
 		subgroup.appendChild(input);
 		subgroup.appendChild(append);
 	}
     else {
       group.className += ' form-group';
       if(label) {
-        label.className += ' col-form-label col-sm-2';
+        label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
         group.appendChild(label);
       }
 		group.appendChild(subgroup);
-	      subgroup.className += ' input-group col-sm-10';
+	      subgroup.className += ' input-group col-sm-7 col-md-9 col-lg-7 col-xxl-8';
 	      subgroup.appendChild(input);
 	  }
     
@@ -6625,7 +6690,7 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   },
   getButton: function(text, icon, title) {
     var el = this._super(text, icon, title);
-    el.className += 'btn btn-default';
+    el.className += 'btn btn-sm btn-primary';
     return el;
   },
   getTable: function() {
@@ -6986,6 +7051,11 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
     }
   }
 });
+// Use the `select` editor if a string has format "select"
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+  if(schema.type === "string" && schema.format === "select")
+	  return "select";
+});
 // Specialized editors for arrays of strings
 JSONEditor.defaults.resolvers.unshift(function(schema) {
   if(schema.type === "array" && schema.items && !(Array.isArray(schema.items)) && schema.uniqueItems && ['string','number','integer'].indexOf(schema.items.type) >= 0) {
@@ -7003,6 +7073,12 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 JSONEditor.defaults.resolvers.unshift(function(schema) {
   // If this schema uses `oneOf` or `anyOf`
   if(schema.oneOf || schema.anyOf) return "multiple";
+});
+// colorpicker extend for strings
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+    if(schema.type === "array" && schema.format === "colorpicker") {
+        return "colorPicker";
+    }
 });
 
 /**

@@ -1,0 +1,14 @@
+{
+	"name" : "Trails",
+	"script" : "trails.py",
+	"args" :
+	{
+		"min_len" : 2,
+		"max_len" : 7,
+		"height" : 8,
+		"trails": 3,
+		"speed" : 1.0,
+		"random" : false,
+		"color" : [255, 255, 255]
+	}
+}

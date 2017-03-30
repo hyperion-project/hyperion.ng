@@ -1,13 +1,13 @@
 #pragma once
 
 // stl includes
-#include <string>
 #include <vector>
 #include <map>
 
 // Qt includes
 #include <QObject>
 #include <QSocketNotifier>
+#include <QRectF>
 
 // util includes
 #include <utils/Image.h>
@@ -28,15 +28,19 @@ class V4L2Grabber : public QObject
 	Q_OBJECT
 
 public:
-	V4L2Grabber(const std::string & device,
+	V4L2Grabber(const QString & device,
 			int input,
 			VideoStandard videoStandard, PixelFormat pixelFormat,
 			int width,
 			int height,
 			int frameDecimation,
 			int horizontalPixelDecimation,
-			int verticalPixelDecimation);
+			int verticalPixelDecimation
+	);
 	virtual ~V4L2Grabber();
+
+	QRectF getSignalDetectionOffset();
+	bool getSignalDetectionEnabled();
 
 public slots:
 	void setCropping(int cropLeft,
@@ -46,10 +50,19 @@ public slots:
 
 	void set3D(VideoMode mode);
 
-	void setSignalThreshold(double redSignalThreshold,
+	void setSignalThreshold(
+					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
 					int noSignalCounterThreshold);
+
+	void setSignalDetectionOffset(
+					double verticalMin,
+					double horizontalMin,
+					double verticalMax,
+					double horizontalMax);
+
+	void setSignalDetectionEnable(bool enable);
 
 	bool start();
 
@@ -92,9 +105,9 @@ private:
 
 	int xioctl(int request, void *arg);
 
-	void throw_exception(const std::string &error);
+	void throw_exception(const QString &error);
 
-	void throw_errno_exception(const std::string &error);
+	void throw_errno_exception(const QString &error);
 
 private:
 	enum io_method {
@@ -109,8 +122,8 @@ private:
 	};
 
 private:
-	std::string _deviceName;
-	std::map<std::string,std::string> _v4lDevices;
+	QString _deviceName;
+	std::map<QString,QString> _v4lDevices;
 	int _input;
 	VideoStandard _videoStandard;
 	io_method _ioMethod;
@@ -123,13 +136,19 @@ private:
 	int _lineLength;
 	int _frameByteSize;
 	int _frameDecimation;
-	int _noSignalCounterThreshold;
 
+	// signal detection
+	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
+	bool     _signalDetectionEnabled;
+	bool     _noSignalDetected;
+	int      _noSignalCounter;
+	double   _x_frac_min;
+	double   _y_frac_min;
+	double   _x_frac_max;
+	double   _y_frac_max;
 
 	int _currentFrame;
-	int _noSignalCounter;
-
 	QSocketNotifier * _streamNotifier;
 
 	ImageResampler _imageResampler;
@@ -137,4 +156,6 @@ private:
 	Logger * _log;
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
+	
+
 };

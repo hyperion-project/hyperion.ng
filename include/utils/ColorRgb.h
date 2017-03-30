@@ -49,7 +49,6 @@ inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
 	return os;
 }
 
-
 /// Compare operator to check if a color is 'smaller' than another color
 inline bool operator<(const ColorRgb & lhs, const ColorRgb & rhs)
 {
@@ -61,3 +60,16 @@ inline bool operator<=(const ColorRgb & lhs, const ColorRgb & rhs)
 {
 	return (lhs.red <= rhs.red) && (lhs.green <= rhs.green) && (lhs.blue <= rhs.blue);
 }
+
+/// Compare operator to check if a color is 'greater' to another color
+inline bool operator>(const ColorRgb & lhs, const ColorRgb & rhs)
+{
+	return (lhs.red > rhs.red) && (lhs.green > rhs.green) && (lhs.blue > rhs.blue);
+}
+
+/// Compare operator to check if a color is 'greater' than or 'equal' to another color
+inline bool operator>=(const ColorRgb & lhs, const ColorRgb & rhs)
+{
+	return (lhs.red >= rhs.red) && (lhs.green >= rhs.green) && (lhs.blue >= rhs.blue);
+}
+

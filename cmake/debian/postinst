@@ -5,22 +5,32 @@ install_file()
 	src="$1"
 	dest="$2"
 
-	if [ -e "$dest" ] && ! cmp --quiet "$src" "$dest"
-	then
-		echo "INFO: $dest exists, new version copied to ${dest}.new"
-		cp "$src" "${dest}.new"
+	if [ ! -e "$dest" ]
+		cp "$src" "${dest}"
 		return 1
+	else
+		echo "--> Service file already exists, skip creation"
+		return 0
 	fi
-
-	cp "$src" "${dest}"
-	return 0
 }
 
 
 echo "--- hyperion ambient light postinstall ---"
 echo "- install configuration template"
 mkdir -p /etc/hyperion
+mkdir -p /usr/share/hyperion/custom-effects
 
+#check system
+CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
+CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
+
+#Check for a bootloader as Berryboot
+BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
+
+#get current system ip + add default port
+address=$(ip -o -4 a | awk '$2 == "eth0" { gsub(/\/.*/, "", $4); print $4 }')":8099"
+
+#check if hyperion is running
 HYPERION_RUNNING=false
 pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true
 
@@ -30,38 +40,91 @@ SERVICE_POSTFIX=""
 
 if grep -m1 systemd /proc/1/comm > /dev/null
 then
-	echo "- init deamon: systemd"
+	echo "--> init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperion 2> /dev/null
-	install_file /usr/share/hyperion/service/hyperion.systemd.sh /etc/systemd/system/hyperiond.service || SERVICE_POSTFIX=".new"
-	systemctl -q enable hyperiond.service
-	start_msg="systemctl start hyperion"
-	$HYPERION_RUNNING && systemctl start hyperiond
+	$HYPERION_RUNNING && systemctl stop hyperiond 2> /dev/null
+	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond.service && systemctl -q enable hyperiond.service
+	start_msg="--> systemctl start hyperiond"
+	systemctl start hyperiond
 
 elif [ -e /sbin/initctl ]
 then
-	echo "- init deamon: upstart"
+	echo "--> init deamon: upstart"
 	# upstart
 	$HYPERION_RUNNING && initctl stop hyperiond
-	install_file /usr/share/hyperion/service/hyperiond.initctl.sh /etc/init/hyperion.conf || SERVICE_POSTFIX=".new"
-	initctl reload-configuration
-	start_msg="initctl start hyperion"
-	$HYPERION_RUNNING && initctl start hyperiond
+	install_file /usr/share/hyperion/service/hyperiond.initctl /etc/init/hyperion.conf && initctl reload-configuration
+	start_msg="--> initctl start hyperiond"
+	initctl start hyperiond
 
 else
-	echo "- init deamon: sysV"
+	echo "--> init deamon: sysV"
 	# sysV
 	$HYPERION_RUNNING && service hyperiond stop 2>/dev/null
-	install_file /usr/share/hyperion/service/hyperion.init.sh /etc/init.d/hyperiond || SERVICE_POSTFIX=".new"
-	chmod +x /etc/init.d/hyperiond
-	update-rc.d hyperiond defaults 98 02
-	start_msg="service hyperion start"
-	$HYPERION_RUNNING && service hyperiond start
+	install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperiond && chmod +x /etc/init.d/hyperiond && update-rc.d hyperiond defaults 98 02
+	start_msg="--> service hyperiond start"
+	service hyperiond start
+fi
+
+#cleanup
+rm -r /usr/share/hyperion/service
+
+#link binarys and set exec bit
+BINSP=/usr/share/hyperion/bin
+BINTP=/usr/bin
+chmod +x -R $BINSP
+ln -fs $BINSP/hyperiond $BINTP/hyperiond
+ln -fs $BINSP/hyperion-remote $BINTP/hyperion-remote
+ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
+ln -fs $BINSP/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
+ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
+ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
+
+
+#Check, if dtparam=spi=on is in place
+if [ $CPU_RPI -eq 1 ]; then
+	BOOT_DIR="/boot"
+	if [ $BOOT_BERRYBOOT -eq 1 ]; then
+		BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
+	fi
+	if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
+		echo '---> Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
+		SPIOK=1 # Not sure if OK, but don't ask to reboot
+	else
+		SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
+		if [ $SPIOK -ne 1 ]; then
+			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
+			sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
+			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to $BOOT_DIR/config.txt"
+		fi
+	fi
 fi
 
 echo "-----------------------------------------------------------------------------"
-echo "- hyperion is installed, please check your configuration in /etc/hyperion/  -"
+echo "--> Hyperion has been installed/updated!"
+echo "--> For configuration, visit with your browser: ${address}"
+$REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
+echo "Webpage: www.hyperion-project.org"
+echo "Wiki: wiki.hyperion-project.org"
+echo "Forum: forum.hyperion-project.org"
+echo "-----------------------------------------------------------------------------"
+
+# try to open the browser for desktops. TODO: add headless detection(?)
+if	[ $CPU_X32X64 -eq 1]
+echo "--> Will open browser with target: ${address}"
+	if [[ -e /usr/bin/xdg-open ]]
+		then
+		xdg-open http://"$address"
+	elif [[ -e /usr/bin/x-www-browser ]]
+		then
+		x-www-browser http://"$address"
+	elif [[ -e /usr/bin/www-browser ]]
+		then
+		www-browser http://"$address"
+	fi
+fi
+
 
 if [ -e /opt/hyperion/ ]
 then

@@ -1,7 +1,4 @@
 // Stl includes
-#include <string>
-#include <sstream>
-#include <algorithm>
 #include <exception>
 #include <map>
 
@@ -21,6 +18,7 @@
 	#include "LedDeviceWs2801.h"
 	#include "LedDeviceWs2812SPI.h"
 	#include "LedDeviceSk6812SPI.h"
+	#include "LedDeviceSk6822SPI.h"
 	#include "LedDeviceAPA102.h"
 #endif
 
@@ -57,15 +55,13 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	Logger * log = Logger::getInstance("LedDevice");
 	QJsonDocument config(deviceConfig);
 	QString ss(config.toJson(QJsonDocument::Indented));
-	Info(log, "configuration: %s ", ss.toUtf8().constData());
 
-	std::string type = deviceConfig["type"].toString("UNSPECIFIED").toStdString();
-	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+	QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
 	// set amount of led to leddevice
 	LedDevice::setLedCount(ledCount);
 
-	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower().toStdString(), LedDevice##className::construct);
+	#define REGISTER(className) LedDevice::addToDeviceMap(QString(#className).toLower(), LedDevice##className::construct);
 	// rs232 devices
 	REGISTER(Adalight);
 	REGISTER(Sedu);
@@ -82,6 +78,7 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	REGISTER(Ws2801);
 	REGISTER(Ws2812SPI);
 	REGISTER(Sk6812SPI);
+	REGISTER(Sk6822SPI);
 	#endif
 	
 	// pwm devices
@@ -124,21 +121,21 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 			{
 				device = dev.second(deviceConfig);
 				LedDevice::setActiveDevice(dev.first);
-				Info(log,"LedDevice '%s' configured.", dev.first.c_str());
+				Info(log,"LedDevice '%s' configured.", QSTRING_CSTR(dev.first));
 				break;
 			}
 		}
 	
 		if (device == nullptr)
 		{
-			Error(log, "Dummy device used, because configured device '%s' is unknown", type.c_str() );
+			Error(log, "Dummy device used, because configured device '%s' is unknown", QSTRING_CSTR(type) );
 			throw std::runtime_error("unknown device");
 		}
 	}
 	catch(std::exception& e)
 	{
 		
-		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", type.c_str(), e.what());
+		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", QSTRING_CSTR(type), e.what());
 		const QJsonObject dummyDeviceConfig;
 		device = LedDeviceFile::construct(QJsonObject());
 	}

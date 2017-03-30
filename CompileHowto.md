@@ -1,11 +1,14 @@
 # Install the required tools and dependencies
 
-## Debian/Ubuntu
+## Debian/Ubuntu/Win10LinuxSubsystem
 
 ```
 sudo apt-get update
 sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
+
+**ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
+all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
 
 ## RPI Only
 when you build on the rapberry pi and include the dispmanx grabber (which is the default)
@@ -37,6 +40,8 @@ brew install doxygen
 # Compiling and installing Hyperion
 
 ### The general quick way (without big comments)
+be sure you fullfill the prerequisites above.
+
 assume your home is /home/pi
 ```bash
 git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
@@ -102,9 +107,9 @@ To generate make files on OS X:
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0  -DCMAKE_BUILD_TYPE=Release ..
+export QVER=$(find  /usr/local/Cellar/qt5 -type d -name "5.*" | sort -n  | head -n1)
+cmake -DCMAKE_PREFIX_PATH=$QVER  -DCMAKE_BUILD_TYPE=Release ..
 ```
-
 ### Run make to build Hyperion
 The `-j $(nproc)` specifies the amount of CPU cores to use.
 ```bash

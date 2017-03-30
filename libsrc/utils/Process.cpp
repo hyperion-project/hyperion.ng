@@ -37,21 +37,21 @@ void restartHyperion(bool asNewProcess)
 	Error(log, "error while restarting hyperion");
 }
 
-std::string command_exec(const char* cmd)
+QByteArray command_exec(QString cmd, QByteArray data)
 {
 	char buffer[128];
-	std::string result = "";
-	std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+	QString result = "";
+
+	std::shared_ptr<FILE> pipe(popen(cmd.toLocal8Bit().constData(), "r"), pclose);
 	if (pipe) 
 	{
-	while (!feof(pipe.get()))
-	{
-		if (fgets(buffer, 128, pipe.get()) != NULL)
-			result += buffer;
+		while (!feof(pipe.get()))
+		{
+			if (fgets(buffer, 128, pipe.get()) != NULL)
+				result += buffer;
+		}
 	}
-	}
-	
-	return result;
+	return QSTRING_CSTR(result);
 }
 
 };

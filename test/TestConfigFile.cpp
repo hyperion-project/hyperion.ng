@@ -10,64 +10,43 @@
 
 // hyperion includes
 #include <hyperion/LedString.h>
+#include "HyperionConfig.h"
 
 bool loadConfig(const QString & configFile)
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
-	QJsonParseError error;
-	
+
 	////////////////////////////////////////////////////////////
 	// read and set the json schema from the resource
 	////////////////////////////////////////////////////////////
+
+	QJsonObject schemaJson;
 	
-	QFile schemaData(":/hyperion-schema");
-	
-	if (!schemaData.open(QIODevice::ReadOnly))
+	try
 	{
-		std::stringstream error;
-		error << "Schema not found: " << schemaData.errorString().toStdString();
-		throw std::runtime_error(error.str());
+		schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
 	}
-
-	QByteArray schema = schemaData.readAll();
-	QJsonDocument schemaJson = QJsonDocument::fromJson(schema, &error);
-
-	if (error.error != QJsonParseError::NoError)
+	catch(const std::runtime_error& error)
 	{
-		// report to the user the failure and their locations in the document.
-		int errorLine(0), errorColumn(0);
-		
-		for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
-		{
-			++errorColumn;
-			if(schema.at(i) == '\n' )
-			{
-				errorColumn = 0;
-				++errorLine;
-			}
-		}
-		
-		std::stringstream sstream;
-		sstream << "Schema error: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-
-		throw std::runtime_error(sstream.str());
+		throw std::runtime_error(error.what());
 	}
 	
 	QJsonSchemaChecker schemaChecker;
-	schemaChecker.setSchema(schemaJson.object());
+	schemaChecker.setSchema(schemaJson);
 	
 	////////////////////////////////////////////////////////////
 	// read and validate the configuration file from the command line
 	////////////////////////////////////////////////////////////
 	
-	const QJsonObject jsonConfig = QJsonFactory::readJson(configFile);
+	const QJsonObject jsonConfig = QJsonFactory::readConfig(configFile);
 	
 	if (!schemaChecker.validate(jsonConfig))
 	{
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		QStringList schemaErrors = schemaChecker.getMessages();
+		foreach (auto & schemaError, schemaErrors)
 		{
-			std::cout << *i << std::endl;
+			std::cout << "config write validation: " << schemaError.toStdString() << std::endl;
 		}
 		
 		std::cout << "FAILED" << std::endl;

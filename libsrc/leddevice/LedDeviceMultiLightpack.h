@@ -3,8 +3,8 @@
 // stl includes
 #include <vector>
 #include <cstdint>
-#include <string>
-#include <list>
+#include <QStringList>
+#include <QString>
 
 // libusb include
 #include <libusb.h>
@@ -56,8 +56,8 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues);
 
-	static std::list<std::string> getLightpackSerials();
-	static std::string getString(libusb_device * device, int stringDescriptorIndex);
+	static QStringList getLightpackSerials();
+	static QString getString(libusb_device * device, int stringDescriptorIndex);
 
 	/// buffer for led data
 	std::vector<LedDeviceLightpack *> _lightpacks;

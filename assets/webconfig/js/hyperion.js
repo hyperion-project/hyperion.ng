@@ -1,38 +1,69 @@
 
 // global vars
+var webPrio = 1;
+var webOrigin = "Web Configuration";
+var showOptHelp;
 var currentVersion;
-var cleanCurrentVersion;
 var latestVersion;
-var cleanLatestVersion;
-var parsedServerInfoJSON = {};
+var serverInfo = {};
 var parsedUpdateJSON = {};
-var parsedConfSchemaJSON = {};
-var parsedConfJSON = {};
-var hyperionport = 19444;
+var serverSchema = {};
+var serverConfig = {};
+var schema;
+var sysInfo = {};
+var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
 var cronId = 0;
-var ledStreamActive=false;
-var loggingStreamActive=false;
+var ledStreamActive  = false;
+var imageStreamActive = false;
+var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
+var debugMessagesActive = true;
+var wSess = [];
 
-//
+function initRestart()
+{
+	$(hyperion).off();
+	requestServerConfigReload();
+	watchdog = 10;
+	connectionLostDetection('restart');
+}
+
 function cron()
 {
-	if ( watchdog > 2)
+	requestServerInfo();
+	$(hyperion).trigger({type:"cron"});
+}
+
+
+function connectionLostDetection(type)
+{
+	if ( watchdog > 1 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
-		$("body").html($("#container_connection_lost").html());
-		connectionLostAction();
+		if(type == 'restart')
+		{
+			$("body").html($("#container_restart").html());	
+			restartAction();
+		}
+		else
+		{
+			$("body").html($("#container_connection_lost").html());
+			connectionLostAction();
+		}
 	}
-
-	requestServerInfo();
-	$(hyperion).trigger({type:"cron"});
+	else
+	{
+		$.get( "/cgi/cfg_jsonserver", function() {watchdog=0}).fail(function() {watchdog++;});
+	}
 }
+
+setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 function initWebSocket()
@@ -42,7 +73,7 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
-				hyperionport = data.substr(1);
+				jsonPort = data.substr(1);
 				websocket = new WebSocket('ws://'+document.location.hostname+data);
 
 				websocket.onopen = function (event) {
@@ -75,6 +106,8 @@ function initWebSocket()
 						default: reason = "Unknown reason";
 					}
 					$(hyperion).trigger({type:"close", reason:reason});
+					watchdog = 10;
+					connectionLostDetection();
 				};
 
 				websocket.onmessage = function (event) {
@@ -137,8 +170,12 @@ function sendToHyperion(command, subcommand, msg)
 // also used for watchdog
 function requestServerInfo()
 {
-	watchdog++;
 	sendToHyperion("serverinfo");
+}
+
+function requestSysInfo()
+{
+	sendToHyperion("sysinfo");
 }
 
 function requestServerConfigSchema()
@@ -168,19 +205,44 @@ function requestLedColorsStop()
 	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
-function requestPriorityClear()
+function requestLedImageStart()
 {
-	sendToHyperion("clear", "", '"priority":1');
+	imageStreamActive=true;
+	sendToHyperion("ledcolors", "imagestream-start");
 }
 
-function requestPlayEffect(effectName)
+function requestLedImageStop()
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":1');
+	imageStreamActive=false;
+	sendToHyperion("ledcolors", "imagestream-stop");
 }
 
-function requestSetColor(r,g,b)
+function requestPriorityClear(prio)
 {
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":1');
+	if(typeof prio !== 'number')
+		prio = webPrio;
+
+	sendToHyperion("clear", "", '"priority":'+prio+'');
+}
+
+function requestClearAll()
+{
+	sendToHyperion("clearall");
+}
+
+function requestPlayEffect(effectName, duration)
+{	
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
+}
+
+function requestSetColor(r,g,b,duration)
+{	
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
+}
+
+function requestSetImage(data,width,height,duration)
+{	
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+validateDuration(duration)+'');
 }
 
 function requestSetComponentState(comp, state)
@@ -197,15 +259,26 @@ function requestSetSource(prio)
 		sendToHyperion("sourceselect", "", '"priority":'+prio);
 }
 
-function requestWriteConfig(config)
+function requestWriteConfig(config, full)
 {
-	var complete_config = parsedConfJSON;
-	jQuery.each(config, function(i, val) {
-		complete_config[i] = val;
-	});
+	if(full === true)
+		serverConfig = config;
+	else
+	{
+		jQuery.each(config, function(i, val) {
+			serverConfig[i] = val;
+		});
+	}
 
-	var config_str = JSON.stringify(complete_config);
-	sendToHyperion("config","setconfig", '"config":'+config_str);
+	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
+
+	$.post( "/cgi/cfg_set", { cfg: config_str })
+	.done(function( data ) {
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+	})
+	.fail(function() {
+		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
+	});
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
@@ -216,7 +289,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":1, "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"}');
 }
 
 function requestDeleteEffect(effectName)
@@ -236,3 +309,15 @@ function requestLoggingStop()
 	sendToHyperion("logging", "stop");
 }
 
+function requestMappingType(type)
+{
+	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
+}
+
+function requestAdjustment(type, value, complete)
+{
+	if(complete === true)
+		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
+	else	
+		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+}

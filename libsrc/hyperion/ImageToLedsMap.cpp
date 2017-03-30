@@ -18,26 +18,26 @@ ImageToLedsMap::ImageToLedsMap(
 	, _height(height)
 	, _horizontalBorder(horizontalBorder)
 	, _verticalBorder(verticalBorder)
-	, mColorsMap()
+	, _colorsMap()
 {
 	// Sanity check of the size of the borders (and width and height)
-	assert(width  > 2*verticalBorder);
-	assert(height > 2*horizontalBorder);
+	assert(_width  > 2*_verticalBorder);
+	assert(_height > 2*_horizontalBorder);
 
 	// Reserve enough space in the map for the leds
-	mColorsMap.reserve(leds.size());
+	_colorsMap.reserve(leds.size());
 
-	const unsigned xOffset = verticalBorder;
-	const unsigned actualWidth  = width  - 2 * verticalBorder;
-	const unsigned yOffset = horizontalBorder;
-	const unsigned actualHeight = height - 2 * horizontalBorder;
+	const unsigned xOffset      = _verticalBorder;
+	const unsigned actualWidth  = _width  - 2 * _verticalBorder;
+	const unsigned yOffset      = _horizontalBorder;
+	const unsigned actualHeight = _height - 2 * _horizontalBorder;
 
 	for (const Led& led : leds)
 	{
 		// skip leds without area
 		if ((led.maxX_frac-led.minX_frac) < 1e-6 || (led.maxY_frac-led.minY_frac) < 1e-6)
 		{
-			mColorsMap.emplace_back();
+			_colorsMap.emplace_back();
 			continue;
 		}
 
@@ -70,7 +70,7 @@ ImageToLedsMap::ImageToLedsMap(
 		}
 
 		// Add the constructed vector to the map
-		mColorsMap.push_back(ledColors);
+		_colorsMap.push_back(ledColors);
 	}
 }
 

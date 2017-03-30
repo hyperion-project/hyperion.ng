@@ -6,6 +6,8 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/bonjour)
 # Group the headers that go through the MOC compiler
 set(Bonjour_QT_HEADERS
 		${CURRENT_HEADER_DIR}/bonjourserviceregister.h
+		${CURRENT_HEADER_DIR}/bonjourservicebrowser.h
+		${CURRENT_HEADER_DIR}/bonjourserviceresolver.h
 )
 
 set(Bonjour_HEADERS
@@ -13,13 +15,15 @@ set(Bonjour_HEADERS
 
 set(Bonjour_SOURCES
 		${CURRENT_SOURCE_DIR}/bonjourserviceregister.cpp
+		${CURRENT_SOURCE_DIR}/bonjourservicebrowser.cpp
+		${CURRENT_SOURCE_DIR}/bonjourserviceresolver.cpp
 )
 
-set(Bonjour_RESOURCES
-)
+#set(Bonjour_RESOURCES
+#)
 
 qt5_wrap_cpp(Bonjour_HEADERS_MOC ${Bonjour_QT_HEADERS})
-qt5_add_resources(Bonjour_RESOURCES_RCC ${Bonjour_RESOURCES} OPTIONS "-no-compress")
+#qt5_add_resources(Bonjour_RESOURCES_RCC ${Bonjour_RESOURCES} OPTIONS "-no-compress")
 
 add_library(bonjour
 		${Bonjour_HEADERS}
@@ -37,20 +41,21 @@ target_link_libraries(bonjour
 		hyperion-utils
         ${QT_LIBRARIES})
 
-set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
+IF (NOT APPLE)
+	set(USE_SHARED_AVAHI_LIBS ${DEFAULT_USE_SHARED_AVAHI_LIBS} CACHE BOOL "use avahi libraries from system")
 
-if (USE_SHARED_AVAHI_LIBS)
-	target_link_libraries(bonjour
-		dns_sd
-		avahi-client
-		avahi-common
-		avahi-core
-		dbus-1)
-elseif (DEFAULT_USE_AVAHI_LIBS)
-	target_link_libraries(bonjour
-		libdns_sd.a
-		libavahi-client.a
-		libavahi-common.a
-		libavahi-core.a
-		libdbus-1.a)
-endif()
+	if (USE_SHARED_AVAHI_LIBS)
+		target_link_libraries(bonjour
+			dns_sd
+			avahi-client
+			avahi-common
+			avahi-core)
+	else()
+		target_link_libraries(bonjour
+			libdns_sd.a
+			libavahi-client.a
+			libavahi-common.a
+			libavahi-core.a)
+	endif()
+	target_link_libraries(bonjour dbus-1)
+ENDIF()

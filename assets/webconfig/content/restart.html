@@ -1,0 +1,46 @@
+<div class="container" style="margin:20px auto;max-width:500px;">
+	<center>
+		<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">
+		<div>
+			<h3  data-i18n="info_restart_title"></h3>
+			<h4  data-i18n="info_restart_rightback"></h4>
+			<p data-i18n="info_restart_contus"></p>
+			<a href="https://forum.hyperion-project.org?pk_campaign=WebUI&pk_kwd=failedrestart" data-i18n="info_restart_contusa"></a>
+		</div>
+	</center>
+</div>
+
+
+<!-- ************************************ -->
+
+<script>
+performTranslation();
+var connectionLost = false;
+var connectionTimer;
+var count = 1;
+
+function tryReconnect()
+{
+	if(count > 25)
+		window.clearInterval(connectionTimer);
+	
+	$.ajax({ url: "/" }).done(function(data) {
+		window.clearInterval(connectionTimer);
+		window.location.href ="/";
+	})
+	.fail( function( jqXHR, textStatus ) {
+		count++;
+	});
+}
+
+function restartAction()
+{
+	if(!connectionLost)
+	{
+		window.clearInterval(cronId);
+		connectionLost = true;
+		connectionTimer = window.setInterval(tryReconnect, 1000);
+	}
+}
+
+</script>

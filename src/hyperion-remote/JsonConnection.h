@@ -1,8 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QColor>
 #include <QImage>
@@ -80,6 +77,13 @@ public:
 	QString getServerInfo();
 
 	///
+	/// Retrieve system info
+	///
+	/// @return String with the sys info
+	///
+	QString getSysInfo();
+
+	///
 	/// Clear the given priority channel
 	///
 	/// @param priority The priority
@@ -90,7 +94,7 @@ public:
 	/// Clear all priority channels
 	///
 	void clearAll();
-	
+
 	///
 	/// Enable/Disable components during runtime
 	///
@@ -105,12 +109,12 @@ public:
 	/// @param priority The priority
 	///
 	void setSource(int priority);
-	
+
 	///
 	/// Enables auto source, if disabled prio by manual selecting input source
 	///
 	void setSourceAutoSelect();
-	
+
 	///
 	/// Print the current loaded Hyperion configuration file 
 	///
@@ -125,34 +129,6 @@ public:
 	void setConfig(const QString &jsonString);
 
 	///
-	/// Set the color transform of the leds
-	///
-	/// @note Note that providing a NULL will leave the settings on the server unchanged
-	///
-	/// @param transformId The identifier of the transform to set
-	/// @param saturation The HSV saturation gain
-	/// @param value The HSV value gain
-	/// @param saturationL The HSL saturation gain
-	/// @param luminance The HSL luminance gain
-	/// @param luminanceMin The HSL luminance minimum
-	/// @param threshold The threshold
-	/// @param gamma The gamma value
-	/// @param blacklevel The blacklevel
-	/// @param whitelevel The whitelevel
-	///
-	void setTransform(
-		const QString &transformId,
-		double *saturation,
-		double *value,
-		double *saturationL,
-		double *luminance,
-		double *luminanceMin,
-		QColor threshold,
-		QColor gamma,
-		QColor blacklevel,
-		QColor whitelevel);
-
-	///
 	/// Set the color adjustment of the leds
 	///
 	/// @note Note that providing a NULL will leave the settings on the server unchanged
@@ -161,11 +137,32 @@ public:
 	/// @param redAdjustment The red channel adjustment values
 	/// @param greenAdjustment The green channel adjustment values
 	/// @param blueAdjustment The blue channel adjustment values
+	/// @param gamma The gamma value
+	/// @param backlightThreshold The threshold aka backlight
+	/// @param brightness The threshold aka upper brightness limit
+
 	void setAdjustment(
 		const QString & adjustmentId,
 		const QColor & redAdjustment,
 		const QColor & greenAdjustment,
-		const QColor & blueAdjustment);
+		const QColor & blueAdjustment,
+		const QColor & cyanAdjustment,
+		const QColor & magentaAdjustment,
+		const QColor & yellowAdjustment,
+		const QColor & blackAdjustment,
+		const QColor & whiteAdjustment,
+		double *gammaR,
+		double *gammaG,
+		double *gammaB,
+		double *backlightThreshold,
+		int    *backlightColored,
+		double *brightness);
+
+	///
+	/// sets the image to leds mapping type
+	///
+	/// @param mappingType led mapping type
+	void setLedMapping(QString mappingType);
 
 private:
 	///

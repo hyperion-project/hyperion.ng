@@ -42,11 +42,7 @@ public slots:
 	///
 	virtual void action();
 
-	void setCropping(const unsigned cropLeft, const unsigned cropRight,
-		const unsigned cropTop, const unsigned cropBottom);
-
-	virtual void kodiPlay();
-	virtual void kodiPause();
+	void setCropping(const unsigned cropLeft, const unsigned cropRight, const unsigned cropTop, const unsigned cropBottom);
 
 	///
 	/// Set the video mode (2D/3D)

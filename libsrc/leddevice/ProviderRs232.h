@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QTimer>
+#include <QString>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -39,6 +40,19 @@ public:
 	///
 	int open();
 
+private slots:
+	/// Write the last data to the leds again
+	int rewriteLeds();
+
+	/// Unblock the device after a connection delay
+	void unblockAfterDelay();
+	void error(QSerialPort::SerialPortError error);
+	void bytesWritten(qint64 bytes);
+	void readyRead();
+
+signals:
+	void receivedData(QByteArray data);
+
 protected:
 	/**
 	 * Writes the given bytes to the RS232-device and
@@ -52,22 +66,14 @@ protected:
 
 	void closeDevice();
 
-private slots:
-	/// Write the last data to the leds again
-	int rewriteLeds();
+	QString findSerialDevice();
 
-	/// Unblock the device after a connection delay
-	void unblockAfterDelay();
-	void error(QSerialPort::SerialPortError error);
-	void bytesWritten(qint64 bytes);
-	void readyRead();
-
-protected:
 	// tries to open device if not opened
 	bool tryOpen(const int delayAfterConnect_ms);
-	
+
+
 	/// The name of the output device
-	std::string _deviceName;
+	QString _deviceName;
 
 	/// The used baudrate of the output device
 	qint32 _baudRate_Hz;
@@ -86,4 +92,7 @@ protected:
 	qint64 _bytesWritten;
 	qint64 _frameDropCounter;
 	QSerialPort::SerialPortError _lastError;
+	qint64                       _preOpenDelayTimeOut;
+	int                          _preOpenDelay;
+	bool                         _enableAutoDeviceName;
 };

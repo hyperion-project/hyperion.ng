@@ -1,71 +1,16 @@
-JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
-
-    getValue: function() {
-        if ($(this.input).data("colorpicker") !== undefined) {
-            var color = $(this.input).data('colorpicker').color.toRGB();
-            return [color.r,color.g, color.b];
-        }
-        else {
-            return [0,0,0];
-        }
-    },
-
-    setValue: function(val) {
-            function rgb2hex(rgb)
-            {
-                return "#" +
-                ("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
-                ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-                ("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
-            }
-
-        $(this.input).colorpicker('updateInput', 'rgb('+val+')');
-        $(this.input).colorpicker('updateData', val);
-        $(this.input).colorpicker('updatePicker', rgb2hex(val));
-        $(this.input).colorpicker('updateComponent', 'rgb('+val+')');
-        },
-   
-   
-   
-    build: function() {
-        this._super();
-        var myinput = this;
-        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element");
-        $(myinput.input).append("<span class='input-group-addon' id='event_catcher'><i></i></span>");
-        $(myinput.input).colorpicker({
-            format: 'rgb',
-            customClass: 'colorpicker-2x',
-            sliders: {
-                saturation: {
-                    maxLeft: 200,
-                    maxTop: 200
-                },
-                hue: {
-                    maxTop: 200
-                },
-            },
-        })
-
-        $("#event_catcher").detach().insertAfter(myinput.input);
-        $("#event_catcher").attr("id", "selector");
-       
-        $(this.input).colorpicker().on('changeColor', function(e) {
-            $(myinput).val(e.color.toRGB()).change();
-        });     
-    }
-});
-
-JSONEditor.defaults.resolvers.unshift(function(schema) {
-    if(schema.type === "array" && schema.format === "colorpicker") {
-        return "colorPicker";
-    }
-
-});
-
+$(document).ready( function() {
+	performTranslation();
 	var oldDelList = [];
+	var effectName = "";
+	var effects_editor = null;	
+	var effectPy = "";
+	var testrun;
 	
-	function updateDelEffectlist(event){
-		var newDelList = event.response.info.effects
+	if(showOptHelp)
+		createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
+	
+	function updateDelEffectlist(){
+		var newDelList = serverInfo.effects;
 		if(newDelList.length != oldDelList.length)
 		{
 			var EffectHtml = null;
@@ -81,56 +26,44 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 			$('#effectsdellist').trigger('change');
 		}
 	}
-
-$(hyperion).one("cmd-config-getschema", function(event) {
-	effects = parsedConfSchemaJSON.properties.effectSchemas.internal
-	EffectsHtml = "";
-	for(var idx=0; idx<effects.length; idx++)
-		{
-			EffectsHtml += '<option value="'+effects[idx].schemaContent.script+'">'+$.i18n(effects[idx].schemaContent.title)+'</option>';
-		}
-		$("#effectslist").html(EffectsHtml);
-		$("#effectslist").trigger("change");
-	});
-	
-	function validateEditor() {
-		if(effects_editor.validate().length)
-		{
-			showInfoDialog('error', $.i18n('infoDialog_effconf_invalidvalue_title'), $.i18n('infoDialog_effconf_invalidvalue_text'));
-			return false;
-		}
-		return true;
-	};
 	
 	function triggerTestEffect() {
+		testrun = true;
 		var args = effects_editor.getEditor('root.args');
 		requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()));
 	};
 	
-	effectName = "";
-	effects_editor = null;	
-	effectPy = "";
 	
 	$("#effectslist").off().on("change", function(event) {
 		for(var idx=0; idx<effects.length; idx++){
 			if (effects[idx].schemaContent.script == this.value){
 				effects_editor = createJsonEditor('editor_container', {
 				args : effects[idx].schemaContent,
-				},false);
+				},false, true);
 			effectPy = ':';
 			effectPy += effects[idx].schemaContent.script;
 			}
 			$("#name-input").trigger("change");
 		}
 		effects_editor.on('change',function() {
-			if ($("#btn_cont_test").hasClass("btn-success") && validateEditor())
+			if ($("#btn_cont_test").hasClass("btn-success") && effects_editor.validate().length == 0 && effectName != "")
 			{
 				triggerTestEffect();
+			}
+			if( effects_editor.validate().length == 0 && effectName != "")
+			{
+				$('#btn_start_test').attr('disabled', false);
+				$('#btn_write').attr('disabled', false);
+			}
+			else
+			{
+				$('#btn_start_test').attr('disabled', true);
+				$('#btn_write').attr('disabled', true);
 			}
 		});
 	});
 	
-	$("#name-input").on('change keydown click', function(event) {
+	$("#name-input").on('change keyup', function(event) {
 		effectName = $(this).val();
 		if ($(this).val() == '') {
             effects_editor.disable();
@@ -142,22 +75,24 @@ $(hyperion).one("cmd-config-getschema", function(event) {
     });
 	
 	$('#btn_write').off().on('click',function() {
-		if(validateEditor())
-		{
-			requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
-			showInfoDialog('success', $.i18n('infoDialog_effconf_created_title'), $.i18n('infoDialog_effconf_created_text', effectName));
-		}
+		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
+		$(hyperion).one("cmd-create-effect", function(event) {
+			if (event.response.success)
+				showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
+		});
+		
+		if (testrun)
+			setTimeout(requestPriorityClear,100);
+		
 	});
 
 	$('#btn_start_test').off().on('click',function() {
-		if(validateEditor())
-		{
-			triggerTestEffect();
-		}
+		triggerTestEffect();
 	});
 	
 	$('#btn_stop_test').off().on('click',function() {
 		requestPriorityClear();
+		testrun = false;
 	});
 	
 	$('#btn_cont_test').off().on('click',function() {
@@ -167,7 +102,10 @@ $(hyperion).one("cmd-config-getschema", function(event) {
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val();
 		requestDeleteEffect(name);
-		showInfoDialog('success', $.i18n('infoDialog_effconf_deleted_title'), $.i18n('infoDialog_effconf_deleted_text', name));
+		$(hyperion).one("cmd-delete-effect", function(event) {
+			if (event.response.success)
+				showInfoDialog('success', "", $.i18n('infoDialog_effconf_deleted_text', name));
+		});
 	});
 	
 	$('#effectsdellist').off().on('change', function(){
@@ -178,8 +116,18 @@ $(hyperion).one("cmd-config-getschema", function(event) {
         }
 	});
 	
-$(document).ready( function() {
-	performTranslation();
-	requestServerConfigSchema();
+	//create basic effect list
+	var effects = serverSchema.properties.effectSchemas.internal
+	for(var idx=0; idx<effects.length; idx++)
+		{
+			$("#effectslist").append(createSelOpt(effects[idx].schemaContent.script, $.i18n(effects[idx].schemaContent.title)));
+		}
+	$("#effectslist").trigger("change");
+	
+	updateDelEffectlist();
+	
+	//interval update
 	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
+	
+	removeOverlay();
 });

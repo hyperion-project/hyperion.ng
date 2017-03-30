@@ -3,12 +3,14 @@
 #include "QtHttpHeader.h"
 #include "QtHttpServer.h"
 
-QtHttpRequest::QtHttpRequest (QtHttpServer * parent)
+QtHttpRequest::QtHttpRequest (QtHttpClientWrapper * client, QtHttpServer * parent)
     : QObject         (parent)
     , m_url           (QUrl ())
     , m_command       (QString ())
     , m_data          (QByteArray ())
     , m_serverHandle  (parent)
+    , m_clientHandle  (client)
+    , m_postData      (QtHttpPostData())
 {
     // set some additional headers
     addHeader (QtHttpHeader::ContentLength, QByteArrayLiteral ("0"));
@@ -36,8 +38,16 @@ QByteArray QtHttpRequest::getRawData (void) const {
     return m_data;
 }
 
+QtHttpPostData QtHttpRequest::getPostData (void) const {
+    return m_postData;
+}
+
 QList<QByteArray> QtHttpRequest::getHeadersList (void) const {
     return m_headersHash.keys ();
+}
+
+QtHttpClientWrapper * QtHttpRequest::getClient (void) const {
+    return m_clientHandle;
 }
 
 QByteArray QtHttpRequest::getHeader (const QByteArray & header) const {
@@ -66,4 +76,8 @@ void QtHttpRequest::addHeader (const QByteArray & header, const QByteArray & val
 
 void QtHttpRequest::appendRawData (const QByteArray & data) {
     m_data.append (data);
+}
+
+void QtHttpRequest::setPostData (const QtHttpPostData & data) {
+    m_postData = data;
 }

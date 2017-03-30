@@ -258,8 +258,6 @@ PhilipsHueLight::~PhilipsHueLight()
 
 void PhilipsHueLight::set(QString state)
 {
-	// Un-comment for debug output.
-	// std::cout << "PhilipsHueLight::set(): { \"id\": " << id << ", \"state\": " << state.toStdString() << " }" << std::endl;
 	bridge.post(QString("lights/%1/state").arg(id), state);
 }
 

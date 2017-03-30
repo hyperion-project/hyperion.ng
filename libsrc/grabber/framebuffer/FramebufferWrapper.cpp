@@ -7,7 +7,7 @@
 #include <grabber/FramebufferWrapper.h>
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
+FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
 	: GrabberWrapper("FrameBuffer", priority)
 	, _updateInterval_ms(1000/updateRate_Hz)
 	, _timeout_ms(2 * _updateInterval_ms)
@@ -31,10 +31,7 @@ void FramebufferWrapper::action()
 	// Grab frame into the allocated image
 	_grabber->grabFrame(_image);
 
-	if ( _forward )
-	{
-		emit emitImage(_priority, _image, _timeout_ms);
-	}
+	emit emitImage(_priority, _image, _timeout_ms);
 	
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);

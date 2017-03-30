@@ -4,7 +4,7 @@
 
 #include <hyperion/ImageProcessorFactory.h>
 
-V4L2Wrapper::V4L2Wrapper(const std::string &device,
+V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
@@ -74,6 +74,12 @@ void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
+void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
+{
+	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
+}
+
+
 void V4L2Wrapper::set3D(VideoMode mode)
 {
 	_grabber.set3D(mode);
@@ -81,11 +87,7 @@ void V4L2Wrapper::set3D(VideoMode mode)
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
-	// forward to other hyperions
-	if ( _forward )
-	{
-		emit emitImage(_priority, image, _timeout_ms);
-	}
+	emit emitImage(_priority, image, _timeout_ms);
 
 	// process the new image
 	_processor->process(image, _ledColors);
@@ -119,4 +121,14 @@ void V4L2Wrapper::checkSources()
 void V4L2Wrapper::action()
 {
 	checkSources();
+}
+
+void V4L2Wrapper::setSignalDetectionEnable(bool enable)
+{
+	_grabber.setSignalDetectionEnable(enable);
+}
+
+bool V4L2Wrapper::getSignalDetectionEnable()
+{
+	return _grabber.getSignalDetectionEnabled();
 }
