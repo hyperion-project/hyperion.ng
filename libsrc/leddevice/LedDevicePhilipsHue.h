@@ -4,6 +4,7 @@
 #include <set>
 
 // Qt includes
+#include <QPointer>
 #include <QNetworkAccessManager>
 #include <QTimer>
 
@@ -93,20 +94,27 @@ class PhilipsHueBridge
 {
 private:
 	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager* manager;
+	QPointer<QNetworkAccessManager> manager;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
 
 public:
-	PhilipsHueBridge(QNetworkAccessManager* manager, QString host, QString username) :
-			manager(manager), host(host), username(username)
+	PhilipsHueBridge(QString host, QString username) :
+			manager(new QNetworkAccessManager), host(host), username(username)
 	{
 	}
 	PhilipsHueBridge()
 	{
 		manager = NULL;
+	}
+	virtual ~PhilipsHueBridge()
+	{
+		if (manager)
+		{
+			delete manager;
+		}
 	}
 
 	///

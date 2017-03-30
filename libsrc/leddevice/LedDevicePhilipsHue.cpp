@@ -129,7 +129,7 @@ float CiColor::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2)
 QByteArray PhilipsHueBridge::get(QString route)
 {
 	// Perfrom request
-	QNetworkRequest request(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route));
+	QNetworkRequest request(QUrl(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route)));
 	QNetworkReply* reply = manager->get(request);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
@@ -147,7 +147,7 @@ QByteArray PhilipsHueBridge::get(QString route)
 void PhilipsHueBridge::post(QString route, QString content)
 {
 	// Perfrom request
-	QNetworkRequest request(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route));
+	QNetworkRequest request(QUrl(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route)));
 	QNetworkReply* reply = manager->put(request, content.toLatin1());
 	// Connect finished signal to quit slot of the loop.
 	QEventLoop loop;
@@ -305,7 +305,6 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject &deviceConfig) :
 {
 	_deviceReady = init(deviceConfig);
 
-	manager = new QNetworkAccessManager;
 	timer.setInterval(3000);
 	timer.setSingleShot(true);
 	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
@@ -315,7 +314,6 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 	// Switch off.
 	switchOff();
-	delete manager;
 }
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
@@ -323,7 +321,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 	LedDevice::init(deviceConfig);
 
 	bridge =
-	{	manager, deviceConfig["output"].toString(), deviceConfig["username"].toString("newdeveloper")};
+	{	deviceConfig["output"].toString(), deviceConfig["username"].toString("newdeveloper")};
 	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);
 	brightnessFactor = (float) deviceConfig["transitiontime"].toDouble(1.0);
 	transitionTime = deviceConfig["transitiontime"].toInt(1);
