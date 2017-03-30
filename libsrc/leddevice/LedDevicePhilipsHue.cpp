@@ -150,7 +150,6 @@ void PhilipsHueBridge::post(QString route, QString content)
 {
 	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
 	Debug(log, "Post %s: %s", url.toStdString().c_str(), content.toStdString().c_str());
-	return;
 	// Perfrom request
 	QNetworkRequest request(url);
 	QNetworkReply* reply = manager->put(request, content.toLatin1());
