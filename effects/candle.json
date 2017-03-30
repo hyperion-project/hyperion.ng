@@ -3,7 +3,7 @@
 	"script" : "candle.py",
 	"args" :
 	{
-		"sleepTime" : 0.15,
+		"sleepTime" : 0.20,
 		"brightness" : 100,
 		"color" : [ 255, 138, 0 ],
 		"candles" : "all"
