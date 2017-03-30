@@ -4,7 +4,6 @@
 #include <set>
 
 // Qt includes
-#include <QPointer>
 #include <QNetworkAccessManager>
 #include <QTimer>
 
@@ -93,28 +92,23 @@ struct CiColorTriangle
 class PhilipsHueBridge
 {
 private:
+	Logger* log;
 	/// QNetworkAccessManager object for sending requests.
-	QPointer<QNetworkAccessManager> manager;
+	QNetworkAccessManager* manager;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
 
 public:
-	PhilipsHueBridge(QString host, QString username) :
-			manager(new QNetworkAccessManager), host(host), username(username)
+	PhilipsHueBridge(Logger* log, QNetworkAccessManager* manager, QString host, QString username) :
+			log(log), manager(manager), host(host), username(username)
 	{
 	}
 	PhilipsHueBridge()
 	{
+		log = NULL;
 		manager = NULL;
-	}
-	virtual ~PhilipsHueBridge()
-	{
-		if (manager)
-		{
-			delete manager;
-		}
 	}
 
 	///
@@ -138,7 +132,7 @@ public:
 class PhilipsHueLight
 {
 private:
-	Logger * _log;
+	Logger * log;
 	PhilipsHueBridge& bridge;
 	unsigned int id;
 	bool on;
@@ -167,11 +161,11 @@ public:
 	///
 	/// Constructs the light.
 	///
-	/// @param logger the logger
+	/// @param log the logger
 	/// @param bridge the bridge
 	/// @param id the light id
 	///
-	PhilipsHueLight(Logger* _log, PhilipsHueBridge& bridge, unsigned int id);
+	PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id);
 	~PhilipsHueLight();
 
 	///
