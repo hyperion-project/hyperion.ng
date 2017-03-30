@@ -617,7 +617,7 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
-		if (priorityInfo.timeoutTime_ms != -1 && (priorityInfo.componentId == hyperion::COMP_COLOR || priorityInfo.componentId == hyperion::COMP_EFFECT))
+		if (priorityInfo.timeoutTime_ms != -1 )
 		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
 		}

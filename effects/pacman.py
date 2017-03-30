@@ -1,17 +1,15 @@
-import hyperion
-import time
-import colorsys
+import hyperion, time, colorsys
 from random import randint
 
 #get args
-rotationTime = int(hyperion.args.get('rotationTime', 8))
-marginPos = float(hyperion.args.get('margin-pos', 1.5))
+rotationTime = float(hyperion.args.get('rotationTime', 4))
+marginPos    = float(hyperion.args.get('margin-pos', 2))
 
 # define pacman
 pacman = bytearray((255, 255, 0))
 
 # define ghosts
-redGuy = bytearray((255, 0, 0))
+redGuy  = bytearray((255, 0, 0))
 pinkGuy = bytearray((255, 184, 255))
 blueGuy = bytearray((0, 255, 255))
 slowGuy = bytearray((255, 184, 81))

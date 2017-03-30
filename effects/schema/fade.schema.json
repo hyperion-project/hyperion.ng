@@ -65,11 +65,17 @@
             "append" : "edt_append_ms",
             "propertyOrder" : 6
         },
-		"repeat": {
-			"type": "boolean",
-			"title":"edt_eff_repeat_title",
-			"default": false,
+		"repeat-count": {
+			"type": "integer",
+			"title":"edt_eff_repeatcount_title",
+			"default": 0,
 			"propertyOrder" : 7
+		},
+		"maintain-end-color": {
+			"type": "boolean",
+			"title":"edt_eff_maintain_end_color_title",
+			"default": true,
+			"propertyOrder" : 8
 		}
     },
     "additionalProperties": false

@@ -1,0 +1,16 @@
+{
+	"name" : "Notify blue",
+	"script" : "fade.py",
+	"args" :
+	{
+		"color-start": [ 0, 0, 50 ],
+		"color-end": [ 0, 0, 255 ],
+		"fade-in-time" : 200,
+		"fade-out-time" : 100,
+		"color-start-time" : 40,
+		"color-end-time" : 150,
+		"repeat-count" : 3,
+		"maintain-end-color" : false
+	}
+}
+ 

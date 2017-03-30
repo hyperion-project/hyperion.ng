@@ -9,6 +9,7 @@
 		"fade-out-time" : 0,
 		"color-start-time" : 0,
 		"color-end-time" : 0,
-		"repeat" : false
+		"repeat-count" : 1,
+		"maintain-end-color" : true
 	}
 }

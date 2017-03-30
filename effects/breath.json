@@ -9,6 +9,7 @@
 		"fade-out-time" : 1000,
 		"color-start-time" : 50,
 		"color-end-time" : 250,
-		"repeat" : true
+		"repeat-count" : 0,
+		"maintain-end-color" : true
 	}
 }

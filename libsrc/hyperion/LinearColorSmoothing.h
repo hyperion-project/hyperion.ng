@@ -41,7 +41,8 @@ public:
 	virtual int switchOff();
 
 	void setEnable(bool enable);
-	void pause(bool pause);
+	void setPause(bool pause);
+	bool pause() { return _pause; } ;
 	bool enabled() { return LedDevice::enabled() && !_pause; };
 
 private slots:

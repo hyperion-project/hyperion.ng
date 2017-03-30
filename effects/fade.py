@@ -7,8 +7,10 @@ colorStart     = hyperion.args.get('color-start', (255,174,11))
 colorEnd       = hyperion.args.get('color-end', (0,0,0))
 colorStartTime = float(hyperion.args.get('color-start-time', 1000)) / 1000
 colorEndTime   = float(hyperion.args.get('color-end-time', 1000)) / 1000
-repeat         = hyperion.args.get('repeat', False)
-minStepTime    = 0.01
+repeat         = hyperion.args.get('repeat-count', 0)
+maintainEndCol = hyperion.args.get('maintain-end-color', True)
+minStepTime    = 0.03
+currentR = currentG = currentB = 0
 
 # create color table for fading from start to end color
 color_step = (
@@ -35,23 +37,32 @@ if fadeOutTime>0:
 else:
 	incrementOut  = sleepTimeOut  = 1
 
+def setColor(r,g,b):
+	global currentR,currentG,currentB
+	
+	currentR = r
+	currentG = g
+	currentB = b
+	hyperion.setColor(r,g,b)
+
 # loop
+repeatCounter = 1
 while not hyperion.abort():
-	# fadin
+	# fade in
 	if fadeInTime > 0:
 		for step in range(0,256,incrementIn):
 			if hyperion.abort(): break
-			hyperion.setColor( colors[step][0],colors[step][1],colors[step][2] )
+			setColor( colors[step][0],colors[step][1],colors[step][2] )
 			time.sleep(sleepTimeIn)
 
 	# end color
 	t = 0.0
 	while t<colorStartTime and not hyperion.abort():
-		hyperion.setColor( colors[255][0],colors[255][1],colors[255][2] )
+		setColor( colors[255][0],colors[255][1],colors[255][2] )
 		time.sleep(0.01)
 		t += 0.01
 
-	# fadeout
+	# fade out
 	if fadeOutTime > 0:
 		for step in range(255,-1,-incrementOut):
 			if hyperion.abort(): break
@@ -61,15 +72,17 @@ while not hyperion.abort():
 	# start color
 	t = 0.0
 	while t<colorEndTime and not hyperion.abort():
-		hyperion.setColor( colors[0][0],colors[0][1],colors[0][2] )
+		setColor( colors[0][0],colors[0][1],colors[0][2] )
 		time.sleep(0.01)
 		t += 0.01
 
 	# repeat
-	if not repeat: break
+	if repeat > 0 and repeatCounter >= repeat : break
+	repeatCounter += 1
 
+time.sleep(0.5)
 # maintain end color until effect end
-while not hyperion.abort():
-	hyperion.setColor( colors[0][0],colors[0][1],colors[0][2] )
+while not hyperion.abort() and maintainEndCol:
+	hyperion.setColor( currentR, currentG, currentB )
 	time.sleep(1)
-
+	
