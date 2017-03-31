@@ -45,9 +45,9 @@ private:
 	/// color channels
 	enum ColorChannel { RED=0,GREEN=1, BLUE=2 };
 
-	/// (re)-initilize the color mapping
-	void initializeMapping();
-	
+	/// reset init of color mapping
+	void resetInitialized();
+
 	/// The adjustment of RGB channel
 	uint8_t _adjust[3];
 	
@@ -59,4 +59,7 @@ private:
 
 	/// Logger instance
 	Logger * _log;
+
+	bool _initialized[256];
+
 };
