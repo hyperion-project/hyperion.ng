@@ -91,7 +91,7 @@ void PriorityMuxer::setCurrentTime(const int64_t& now)
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
-		if (infoIt->timeoutTime_ms != -1 && infoIt->timeoutTime_ms <= now)
+		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
 			infoIt = _activeInputs.erase(infoIt);
 		}
