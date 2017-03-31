@@ -34,6 +34,12 @@
 			"title":"edt_dev_spec_switchOffOnBlack_title",
 			"default" : true,
 			"propertyOrder" : 5
+		},
+		"brightnessFactor": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessFactor_title",
+			"default" : 1.0,
+			"propertyOrder" : 6
 		}
 	},
 	"additionalProperties": true
