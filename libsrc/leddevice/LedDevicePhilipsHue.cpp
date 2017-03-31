@@ -328,7 +328,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 	bridge =
 	{	_log, manager, deviceConfig["output"].toString(), deviceConfig["username"].toString("newdeveloper")};
 	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);
-	brightnessFactor = (float) deviceConfig["transitiontime"].toDouble(1.0);
+	brightnessFactor = (float) deviceConfig["brightnessFactor"].toDouble(1.0);
 	transitionTime = deviceConfig["transitiontime"].toInt(1);
 	lightIds.clear();
 	QJsonArray lArray = deviceConfig["lightIds"].toArray();
