@@ -123,37 +123,15 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t yellow  = rg  *(255-oblue)/65025;
 		uint8_t white   = rg  *(oblue)    /65025;
 		
-		uint8_t OR = adjustment->_rgbBlackAdjustment.getAdjustmentR(black);
-		uint8_t OG = adjustment->_rgbBlackAdjustment.getAdjustmentG(black);
-		uint8_t OB = adjustment->_rgbBlackAdjustment.getAdjustmentB(black);
-		
-		uint8_t RR = adjustment->_rgbRedAdjustment.getAdjustmentR(red);
-		uint8_t	RG = adjustment->_rgbRedAdjustment.getAdjustmentG(red);
-		uint8_t	RB = adjustment->_rgbRedAdjustment.getAdjustmentB(red);
-		
-		uint8_t GR = adjustment->_rgbGreenAdjustment.getAdjustmentR(green);
-		uint8_t	GG = adjustment->_rgbGreenAdjustment.getAdjustmentG(green);
-		uint8_t	GB = adjustment->_rgbGreenAdjustment.getAdjustmentB(green);
-		
-		uint8_t BR = adjustment->_rgbBlueAdjustment.getAdjustmentR(blue);
-		uint8_t	BG = adjustment->_rgbBlueAdjustment.getAdjustmentG(blue);
-		uint8_t	BB = adjustment->_rgbBlueAdjustment.getAdjustmentB(blue);
-		
-		uint8_t CR = adjustment->_rgbCyanAdjustment.getAdjustmentR(cyan);
-		uint8_t CG = adjustment->_rgbCyanAdjustment.getAdjustmentG(cyan);
-		uint8_t CB = adjustment->_rgbCyanAdjustment.getAdjustmentB(cyan);
-		
-		uint8_t MR = adjustment->_rgbMagentaAdjustment.getAdjustmentR(magenta);
-		uint8_t MG = adjustment->_rgbMagentaAdjustment.getAdjustmentG(magenta);
-		uint8_t MB = adjustment->_rgbMagentaAdjustment.getAdjustmentB(magenta);
-		
-		uint8_t YR = adjustment->_rgbYellowAdjustment.getAdjustmentR(yellow);
-		uint8_t YG = adjustment->_rgbYellowAdjustment.getAdjustmentG(yellow);
-		uint8_t YB = adjustment->_rgbYellowAdjustment.getAdjustmentB(yellow);
-		
-		uint8_t WR = adjustment->_rgbWhiteAdjustment.getAdjustmentR(white);
-		uint8_t WG = adjustment->_rgbWhiteAdjustment.getAdjustmentG(white);
-		uint8_t WB = adjustment->_rgbWhiteAdjustment.getAdjustmentB(white);
+		uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB, CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
+		adjustment->_rgbBlackAdjustment.apply(black, OR, OG, OB);
+		adjustment->_rgbRedAdjustment.apply(red, RR, RG, RB);
+		adjustment->_rgbGreenAdjustment.apply(green, GR, GG, GB);
+		adjustment->_rgbBlueAdjustment.apply(blue, BR, BG, BB);
+		adjustment->_rgbCyanAdjustment.apply(cyan, CR, CG, CB);
+		adjustment->_rgbMagentaAdjustment.apply(magenta, MR, MG, MB);
+		adjustment->_rgbYellowAdjustment.apply(yellow, YR, YG, YB);
+		adjustment->_rgbWhiteAdjustment.apply(white, WR, WG, WB);
 
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;

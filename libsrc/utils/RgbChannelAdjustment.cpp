@@ -26,9 +26,9 @@ RgbChannelAdjustment::~RgbChannelAdjustment()
 
 void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
 {
-	_adjust[RED] = adjustR;
+	_adjust[RED]   = adjustR;
 	_adjust[GREEN] = adjustG;
-	_adjust[BLUE] = adjustB;
+	_adjust[BLUE]  = adjustB;
 	initializeMapping();
 }
 
@@ -37,19 +37,9 @@ uint8_t RgbChannelAdjustment::getAdjustmentR() const
 	return _adjust[RED];
 }
 
-void RgbChannelAdjustment::setAdjustmentR(uint8_t adjustR)
-{
-	setAdjustment(adjustR, _adjust[GREEN], _adjust[BLUE]);
-}
-
 uint8_t RgbChannelAdjustment::getAdjustmentG() const
 {
 	return _adjust[GREEN];
-}
-
-void RgbChannelAdjustment::setAdjustmentG(uint8_t adjustG)
-{
-	setAdjustment(_adjust[RED], adjustG, _adjust[BLUE]);
 }
 
 uint8_t RgbChannelAdjustment::getAdjustmentB() const
@@ -57,24 +47,11 @@ uint8_t RgbChannelAdjustment::getAdjustmentB() const
 	return _adjust[BLUE];
 }
 
-void RgbChannelAdjustment::setAdjustmentB(uint8_t adjustB)
+void RgbChannelAdjustment::apply(uint8_t input, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
-	setAdjustment(_adjust[RED], _adjust[GREEN], adjustB);
-}
-
-uint8_t RgbChannelAdjustment::getAdjustmentR(uint8_t inputR) const
-{
-	return _mapping[RED][inputR];
-}
-
-uint8_t RgbChannelAdjustment::getAdjustmentG(uint8_t inputG) const
-{
-	return _mapping[GREEN][inputG];
-}
-
-uint8_t RgbChannelAdjustment::getAdjustmentB(uint8_t inputB) const
-{
-	return _mapping[BLUE][inputB];
+	red   = _mapping[RED][input];
+	green = _mapping[GREEN][input];
+	blue  = _mapping[BLUE][input];
 }
 
 void RgbChannelAdjustment::initializeMapping()
