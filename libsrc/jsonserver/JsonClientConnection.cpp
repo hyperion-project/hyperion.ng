@@ -893,60 +893,44 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 	if (adjustment.contains("red"))
 	{
 		const QJsonArray & values = adjustment["red"].toArray();
-		colorAdjustment->_rgbRedAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbRedAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbRedAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbRedAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 
 	if (adjustment.contains("green"))
 	{
 		const QJsonArray & values = adjustment["green"].toArray();
-		colorAdjustment->_rgbGreenAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbGreenAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbGreenAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbGreenAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 
 	if (adjustment.contains("blue"))
 	{
 		const QJsonArray & values = adjustment["blue"].toArray();
-		colorAdjustment->_rgbBlueAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbBlueAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbBlueAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbBlueAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 	if (adjustment.contains("cyan"))
 	{
 		const QJsonArray & values = adjustment["cyan"].toArray();
-		colorAdjustment->_rgbCyanAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbCyanAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbCyanAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbCyanAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 	if (adjustment.contains("magenta"))
 	{
 		const QJsonArray & values = adjustment["magenta"].toArray();
-		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbMagentaAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbMagentaAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 	if (adjustment.contains("yellow"))
 	{
 		const QJsonArray & values = adjustment["yellow"].toArray();
-		colorAdjustment->_rgbYellowAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbYellowAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbYellowAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbYellowAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 	if (adjustment.contains("black"))
 	{
 		const QJsonArray & values = adjustment["black"].toArray();
-		colorAdjustment->_rgbBlackAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbBlackAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbBlackAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbBlackAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 	if (adjustment.contains("white"))
 	{
 		const QJsonArray & values = adjustment["white"].toArray();
-		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentR(values[0u].toInt());
-		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentG(values[1u].toInt());
-		colorAdjustment->_rgbWhiteAdjustment.setAdjustmentB(values[2u].toInt());
+		colorAdjustment->_rgbWhiteAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}	
 
 	if (adjustment.contains("gammaRed"))
