@@ -12,7 +12,7 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	, _lowestPriorityInfo()
 {
 	_lowestPriorityInfo.priority       = LOWEST_PRIORITY;
-	_lowestPriorityInfo.timeoutTime_ms = -1;
+	_lowestPriorityInfo.timeoutTime_ms = 0;
 	_lowestPriorityInfo.ledColors      = std::vector<ColorRgb>(ledCount, {0, 0, 0});
 	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
 	_lowestPriorityInfo.origin         = "System";

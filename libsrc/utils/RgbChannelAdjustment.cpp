@@ -9,6 +9,7 @@
 RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
 	: _channelName(channelName)
 	, _log(Logger::getInstance(channelName))
+	, _brightness(0)
 {
 	resetInitialized();
 }
@@ -27,10 +28,7 @@ RgbChannelAdjustment::~RgbChannelAdjustment()
 void RgbChannelAdjustment::resetInitialized()
 {
 	Debug(_log, "initialize mapping with %d,%d,%d", _adjust[RED], _adjust[GREEN], _adjust[BLUE]);
-	for(int idx=0;idx<256;idx++)
-	{
-		_initialized[idx] = false;
-	}
+	memset(_initialized, false, sizeof(_initialized));
 }
 
 void RgbChannelAdjustment::setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB)
@@ -56,16 +54,22 @@ uint8_t RgbChannelAdjustment::getAdjustmentB() const
 	return _adjust[BLUE];
 }
 
-void RgbChannelAdjustment::apply(uint8_t input, uint8_t & red, uint8_t & green, uint8_t & blue)
+void RgbChannelAdjustment::apply(uint8_t input, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
+	if (_brightness != brightness)
+	{
+		_brightness = brightness;
+		resetInitialized();
+	}
+
 	if (!_initialized[input])
 	{
-		_mapping[0][input] = std::min( (((unsigned)input * _adjust[0]) / UINT8_MAX), (unsigned)UINT8_MAX);
-		_mapping[1][input] = std::min( (((unsigned)input * _adjust[1]) / UINT8_MAX), (unsigned)UINT8_MAX);
-		_mapping[2][input] = std::min( (((unsigned)input * _adjust[2]) / UINT8_MAX), (unsigned)UINT8_MAX);
+		_mapping[RED  ][input] = std::min( ((_brightness * input * _adjust[RED  ]) / 65025), UINT8_MAX);
+		_mapping[GREEN][input] = std::min( ((_brightness * input * _adjust[GREEN]) / 65025), UINT8_MAX);
+		_mapping[BLUE ][input] = std::min( ((_brightness * input * _adjust[BLUE ]) / 65025), UINT8_MAX);
 		_initialized[input] = true;
 	}
-	red   = _mapping[RED][input];
+	red   = _mapping[RED  ][input];
 	green = _mapping[GREEN][input];
-	blue  = _mapping[BLUE][input];
+	blue  = _mapping[BLUE ][input];
 }

@@ -135,10 +135,16 @@
 					"required" : false
 				},
 				"brightness" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 1.0
+					"minimum" : 0,
+					"maximum" : 100
+				},
+				"brightnessCompensation" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 100
 				}
 			},
 			"additionalProperties": false

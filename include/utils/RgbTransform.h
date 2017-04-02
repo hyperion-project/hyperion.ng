@@ -24,7 +24,7 @@ public:
 	/// @param backlightColored use color in backlight
 	/// @param brightnessHigh The used higher brightness
 	///
-	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh);
+	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
 	///
 	/// Destructor
@@ -65,10 +65,14 @@ public:
 
 
 	/// @return The current brightness
-	double getBrightness() const;
+	uint8_t getBrightness() const;
 
 	/// @param brightness New brightness
-	void setBrightness(double brightness);
+	void setBrightness(uint8_t brightness);
+
+	void getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w );
+	uint8_t getBrightnessCompensation() const;
+	void setBrightnessCompensation(uint8_t brightnessCompensation);
 
 	///
 	/// Apply the transform the the given RGB values.
@@ -92,16 +96,18 @@ private:
 	/// @param backlightColored en/disable color in backlight
 	/// @param brightnessHigh The used higher brightness
 	///
-	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh);
+	void init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
 	/// (re)-initilize the color mapping
 	void initializeMapping();	/// The saturation gain
 
+	void updateBrightnessComponents();
+	
 	double  _backlightThreshold;
 	bool    _backlightColored;
-	double  _brightnessHigh;
+	uint8_t _brightness;
+	uint8_t _brightnessCompensation;
 	double  _sumBrightnessLow;
-	double  _sumBrightnessHigh;
 
 	double _gammaR;
 	double _gammaG;
@@ -112,5 +118,8 @@ private:
 	uint8_t _mappingG[256];
 	uint8_t _mappingB[256];
 
+	uint8_t _brightness_rgb;
+	uint8_t _brightness_cmy;
+	uint8_t _brightness_w;
 	bool _backLightEnabled;
 };

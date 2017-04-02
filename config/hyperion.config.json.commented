@@ -74,7 +74,8 @@
 				"gammaBlue"  : 1.5,
 				"backlightThreshold"  : 0.0,
 				"backlightColored"  : false,
-				"brightness" : 0.5
+				"brightness" : 100,
+				"brightnessCompensation" : 80
 			}
 		]
 	},

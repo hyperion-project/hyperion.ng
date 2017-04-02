@@ -156,7 +156,8 @@ public:
 		double *gammaB,
 		double *backlightThreshold,
 		int    *backlightColored,
-		double *brightness);
+		int    *brightness,
+		int    *brightnessC);
 
 	///
 	/// sets the image to leds mapping type

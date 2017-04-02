@@ -24,7 +24,7 @@ public:
 	
 	/// Transform the given array value
 	/// @param input The input color bytes
-	void apply(uint8_t input, uint8_t & red, uint8_t & green, uint8_t & blue);
+	void apply(uint8_t input, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue);
 
 	/// setAdjustment RGB
 	/// @param adjustR  
@@ -61,5 +61,6 @@ private:
 	Logger * _log;
 
 	bool _initialized[256];
-
+	
+	uint8_t _brightness;
 };

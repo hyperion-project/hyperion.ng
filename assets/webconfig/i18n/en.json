@@ -442,6 +442,8 @@
 	"edt_conf_color_backlightColored_expl" : "Add some color to your backlight.",
 	"edt_conf_color_brightness_title" : "maximal brightness",
 	"edt_conf_color_brightness_expl" : "From 0.0 to 0.5 the brightness is linearised, from 0.5 to 1.0 cyan, magenta, yellow is up to 2x brighter and white 3x.",
+	"edt_conf_color_brightnessComp_title" : "Brightness Compensation",
+	"edt_conf_color_brightnessComp_expl" : "compensates bightness differences between RGB, CMY and white. 100 means full compensation, 0 no compensation",
 	"edt_conf_smooth_heading_title" : "Smoothing",
 	"edt_conf_smooth_type_title" : "Type",
 	"edt_conf_smooth_type_expl" : "Type of smoothing.",
