@@ -312,6 +312,7 @@
 								"maximum": 100,
 								"default" : 90,
 								"append" : "edt_append_percent",
+								"access" : "advanced",
 								"propertyOrder" : 14
 							},
 							"gammaRed" :
