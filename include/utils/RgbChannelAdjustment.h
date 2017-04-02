@@ -22,14 +22,26 @@ public:
 	/// Destructor
 	~RgbChannelAdjustment();
 	
+	///
 	/// Transform the given array value
+	///
 	/// @param input The input color bytes
+	/// @param brightness The current brightness value
+	/// @param red The red color component
+	/// @param green The green color component
+	/// @param blue The blue color component
+	///
+	/// @note The values are updated in place.
+	///
 	void apply(uint8_t input, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue);
 
+	///
 	/// setAdjustment RGB
+	///
 	/// @param adjustR  
 	/// @param adjustG 
 	/// @param adjustB 
+	///
 	void setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB);
 
 	/// @return The current adjustR value
@@ -43,7 +55,7 @@ public:
 
 private:
 	/// color channels
-	enum ColorChannel { RED=0,GREEN=1, BLUE=2 };
+	enum ColorChannel { RED=0, GREEN=1, BLUE=2 };
 
 	/// reset init of color mapping
 	void resetInitialized();
@@ -60,7 +72,9 @@ private:
 	/// Logger instance
 	Logger * _log;
 
+	/// bitfield to determine white value is alreade initialized
 	bool _initialized[256];
-	
+
+	/// current brightness value
 	uint8_t _brightness;
 };

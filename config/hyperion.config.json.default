@@ -41,7 +41,7 @@
 				"backlightThreshold"  : 0.0,
 				"backlightColored"  : false,
 				"brightness" : 100,
-				"brightnessCompensation" : 80
+				"brightnessCompensation" : 100
 			}
 		]
 	},
