@@ -157,13 +157,13 @@ void setup() {
   #if INITIAL_LED_TEST_ENABLED == true
   for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
   {
-    showColor(CRGB(v,v,v);  
+    showColor(CRGB(v,v,v));  
     delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
   }
  
   for (int v=0;v<INITIAL_LED_TEST_BRIGHTNESS;v++)
   {
-    showColor(CRGB(v,v,v);  
+    showColor(CRGB(v,v,v));  
     delay(INITIAL_LED_TEST_TIME_MS/2/INITIAL_LED_TEST_BRIGHTNESS);
   }
   #endif

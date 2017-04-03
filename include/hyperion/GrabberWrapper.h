@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QTimer>
-#include <string>
 #include <QString>
 #include <QStringList>
 

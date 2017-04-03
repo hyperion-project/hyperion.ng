@@ -48,7 +48,7 @@ private:
 	int write(const std::vector<ColorRgb> &ledValues);
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
-	std::string _deviceName;
+	QString _deviceName;
 
 	int _gpio_to_led[64];
 	char _gpio_to_color[64];

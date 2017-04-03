@@ -115,4 +115,24 @@ $(document).ready( function() {
 	//hide menu elements
 	if (storedAccess != 'expert')
 		$('#load_webconfig').toggle(false);
+	
+	
+	// instance switcher
+	$('#btn_instanceswitch').off().on('click',function() {
+		var lsys = sysInfo.system.hostName+':'+serverConfig.webConfig.port;
+		showInfoDialog('iswitch', $.i18n('InfoDialog_iswitch_title'), $.i18n('InfoDialog_iswitch_text'));
+		
+		for (var i = 0; i<wSess.length; i++)
+		{
+			
+			if(lsys != wSess[i].host+':'+wSess[i].port)
+				$('#id_select').append(createSelOpt('http://'+wSess[i].address+':'+wSess[i].port, wSess[i].name))
+		}
+
+		$('#id_btn_saveset').off().on('click',function() {		
+			$("#loading_overlay").addClass("overlay");
+			window.location.href = $('#id_select').val()
+		});
+		
+	});
 });

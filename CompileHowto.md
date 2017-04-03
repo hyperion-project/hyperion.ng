@@ -107,9 +107,9 @@ To generate make files on OS X:
 
 After which you can run cmake with the correct qt5 path:
 ```
-cmake -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.7.0  -DCMAKE_BUILD_TYPE=Release ..
+export QVER=$(find  /usr/local/Cellar/qt5 -type d -name "5.*" | sort -n  | head -n1)
+cmake -DCMAKE_PREFIX_PATH=$QVER  -DCMAKE_BUILD_TYPE=Release ..
 ```
-
 ### Run make to build Hyperion
 The `-j $(nproc)` specifies the amount of CPU cores to use.
 ```bash

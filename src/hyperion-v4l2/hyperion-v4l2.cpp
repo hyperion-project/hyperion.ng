@@ -72,6 +72,7 @@ int main(int argc, char** argv)
 		IntOption          & argFrameDecimation     = parser.add<IntOption>    ('f', "frame-decimator", "Decimation factor for the video frames [default=%1]", "1");
 		BooleanOption      & argScreenshot          = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
 
+		BooleanOption      & argSignalDetection     = parser.add<BooleanOption>('s', "signal-detection-disabled", "disable signal detection");
 		DoubleOption       & argSignalThreshold     = parser.add<DoubleOption> ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
 		DoubleOption       & argRedSignalThreshold  = parser.add<DoubleOption> (0x0, "red-threshold", "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption       & argGreenSignalThreshold= parser.add<DoubleOption> (0x0, "green-threshold", "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
@@ -109,7 +110,7 @@ int main(int argc, char** argv)
 
 		// initialize the grabber
 		V4L2Grabber grabber(
-					argDevice.getStdString(parser),
+					argDevice.value(parser),
 					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
@@ -120,6 +121,7 @@ int main(int argc, char** argv)
 					std::max(1, argSizeDecimation.getInt(parser)));
 
 		// set signal detection
+		grabber.setSignalDetectionEnable(! parser.isSet(argSignalDetection));
 		grabber.setSignalThreshold(
 					std::min(1.0, std::max(0.0, parser.isSet(argRedSignalThreshold)   ? argRedSignalThreshold.getDouble(parser)   : argSignalThreshold.getDouble(parser))),
 					std::min(1.0, std::max(0.0, parser.isSet(argGreenSignalThreshold) ? argGreenSignalThreshold.getDouble(parser) : argSignalThreshold.getDouble(parser))),

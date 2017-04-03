@@ -158,9 +158,10 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	_qconfig = QJsonFactory::readConfig(configFile);
 	if (!schemaChecker.validate(_qconfig))
 	{
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		QStringList schemaErrors = schemaChecker.getMessages();
+		foreach (auto & schemaError, schemaErrors)
 		{
-			std::cout << *i << std::endl;
+			std::cout << schemaError.toStdString() << std::endl;
 		}
 
 		throw std::runtime_error("ERROR: Json validation failed");
@@ -209,7 +210,7 @@ void HyperionDaemon::startInitialEffect()
 		const QJsonObject & BGEffectConfig = _qconfig["backgroundEffect"].toObject();
 		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
-		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY -1;
+		const int BG_PRIORITY = PriorityMuxer::LOWEST_PRIORITY-1;
 
 	// clear the leds
 	hyperion->setColor(FG_PRIORITY, ColorRgb::BLACK, 100, false);
@@ -367,35 +368,27 @@ void HyperionDaemon::startNetworkServices()
 
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	const std::string mDNSDescr = ( generalConfig["name"].toString("").toStdString()
-					+ "@" +
-					QHostInfo::localHostName().toStdString()
-					);
+	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName();
 
 	// zeroconf udp listener 
-	if (_udpListener != nullptr) {
+	if (_udpListener != nullptr)
+	{
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-					BonjourRecord(mDNSDescr.c_str(), "_hyperiond-udp._udp", QString()),
-					_udpListener->getPort()
-					);
+			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort() );
 		Debug(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
-	bonjourRegister_json->registerService( 
-				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-json._tcp", QString()),
-				_jsonServer->getPort()
-				);
+	bonjourRegister_json->registerService(
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort());
 	Debug(_log, "Json mDNS responder started");
 
 	// zeroconf proto
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
 	bonjourRegister_proto->registerService(
-				BonjourRecord(mDNSDescr.c_str(), "_hyperiond-proto._tcp", QString()),
-				_protoServer->getPort()
-				);
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort());
 	Debug(_log, "Proto mDNS responder started");
 }
 
@@ -536,7 +529,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
 	_fbGrabber = new FramebufferWrapper(
-				grabberConfig["device"].toString("/dev/fb0").toStdString(),
+				grabberConfig["device"].toString("/dev/fb0"),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
@@ -593,10 +586,10 @@ void HyperionDaemon::createGrabberV4L2()
 			}
 			#ifdef ENABLE_V4L2
 			V4L2Wrapper* grabber = new V4L2Wrapper(
-				grabberConfig["device"].toString("auto").toStdString(),
+				grabberConfig["device"].toString("auto"),
 				grabberConfig["input"].toInt(0),
-				parseVideoStandard(grabberConfig["standard"].toString("no-change").toStdString()),
-				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change").toStdString()),
+				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
+				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["width"].toInt(-1),
 				grabberConfig["height"].toInt(-1),
 				grabberConfig["frameDecimation"].toInt(2),
@@ -605,12 +598,13 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["greenSignalThreshold"].toDouble(0.0),
 				grabberConfig["blueSignalThreshold"].toDouble(0.0),
 				grabberConfig["priority"].toInt(890));
-			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D").toStdString()));
+			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			grabber->setSignalDetectionOffset(
 				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
 				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),

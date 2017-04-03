@@ -114,6 +114,7 @@
 	///  * cropRight            : Cropping from the right [default=0]
 	///  * cropTop              : Cropping from the top [default=0]
 	///  * cropBottom           : Cropping from the bottom [default=0]
+	///  * signalDetection      : enable/disable signal detection [default=true]
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
@@ -142,6 +143,7 @@
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
 			"blueSignalThreshold"  : 0.0,
+			"signalDetection"      : true,
 			"signalDetectionVerticalOffsetMin"   : 0.25,
 			"signalDetectionHorizontalOffsetMin" : 0.25,
 			"signalDetectionVerticalOffsetMax"   : 0.75,
@@ -186,7 +188,7 @@
 
 	/// The black border configuration, contains the following items: 
 	///  * enable             : true if the detector should be activated
-	///  * threshold          : Value below which a pixel is regarded as black (value between 0.0 and 1.0)
+	///  * threshold          : Value below which a pixel is regarded as black (value between 0 and 100 [%])
 	///  * unknownFrameCnt    : Number of frames without any detection before the border is set to 0 (default 600)
 	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
 	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
@@ -195,7 +197,7 @@
 	"blackborderdetector" :
 	{
 		"enable"             : true,
-		"threshold"          : 0.05,
+		"threshold"          : 5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -288,19 +290,19 @@
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=200) HINT: lower value result in HIGHER priority! 
+	///  * priority : Priority of the boblight server (Default=201) HINT: lower value result in HIGHER priority! 
  	"boblightServer" :
  	{
  		"enable"   : false,
  		"port"     : 19333,
- 		"priority" : 200
+ 		"priority" : 201
  	},
 
 	/// The configuration of the udp listener
 	///  * enable   : Enable or disable the udp listener (true/false)
 	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
 	///  * port     : Port at which the udp listener starts
-	///  * priority : Priority of the udp listener server (Default=190)
+	///  * priority : Priority of the udp listener server (Default=200)
 	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
 	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
 	"udpListener" :
@@ -308,7 +310,7 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 190,
+		"priority" : 200,
 		"timeout"  : 10000,
 		"shared"   : false
 	},

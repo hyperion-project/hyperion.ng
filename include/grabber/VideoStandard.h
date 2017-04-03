@@ -1,8 +1,5 @@
 #pragma once
 
-#include <string>
-#include <algorithm>
-
 /**
  * Enumeration of the possible video standards the grabber can be set to
  */
@@ -12,10 +9,10 @@ enum VideoStandard {
 	VIDEOSTANDARD_NO_CHANGE
 };
 
-inline VideoStandard parseVideoStandard(std::string videoStandard)
+inline VideoStandard parseVideoStandard(QString videoStandard)
 {
 	// convert to lower case
-	std::transform(videoStandard.begin(), videoStandard.end(), videoStandard.begin(), ::tolower);
+	videoStandard = videoStandard.toLower();
 
 	if (videoStandard == "pal")
 	{

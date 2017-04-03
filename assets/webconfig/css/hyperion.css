@@ -9,7 +9,14 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 #page-content {
 	padding-bottom:50px;
 }
+body{
+    overflow-y: scroll; 
+}
 .btn{margin: 2px 0;}
+/* fixed brand icon */
+@media (min-width: 768px){
+	.navbar-brand{position:fixed}
+}
 
 /*mobile nav*/
 @media (max-width: 768px){
@@ -85,6 +92,7 @@ table label{margin:0}
 /*Dashboard*/
 .component-on{color:green;}
 .component-off{color:grey;}
+#dash_news hr{margin:10px 0}
 
 /*Colorpicker 2x*/
 .colorpicker-2x {z-index:99999}
@@ -119,6 +127,7 @@ table label{margin:0}
 .support-container:hover .bg-color-btc{background-color:#f7931a; color:white;}
 .support-container:hover .bg-color-pp{background-color:#0070ba; color:white;}
 .support-container:hover .bg-color-am{background-color:#ef9c00; color:white;}
+.support-container:hover .bg-color-ig{background-color:#ab3392; color:white;}
 
 /*Config introduction*/
 .introd h4{padding-left:14px;border-left:5px solid #0088cc;}

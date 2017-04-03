@@ -34,7 +34,7 @@ bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 
-	_host        = deviceConfig["output"].toString("127.0.0.1").toStdString();
+	_host        = deviceConfig["output"].toString("127.0.0.1");
 	_port        = deviceConfig["port"].toInt(7890);
 	_channel     = deviceConfig["channel"].toInt(0);
 	_gamma       = deviceConfig["gamma"].toDouble(1.0);
@@ -74,10 +74,10 @@ bool LedDeviceFadeCandy::isConnected()
 bool LedDeviceFadeCandy::tryConnect()
 {
 	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
-		_client.connectToHost( _host.c_str(), _port);
+		_client.connectToHost( _host, _port);
 		if ( _client.waitForConnected(1000) )
 		{
-			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", _host.c_str(), _port, _channel);
+			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", QSTRING_CSTR(_host), _port, _channel);
 			if (_setFcConfig)
 			{
 				sendFadeCandyConfiguration();
