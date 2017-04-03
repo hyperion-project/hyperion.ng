@@ -62,15 +62,15 @@ void RgbTransform::initializeMapping()
 }
 
 
-double RgbTransform::getBacklightThreshold() const
+int RgbTransform::getBacklightThreshold() const
 {
 	return _backlightThreshold;
 }
 
-void RgbTransform::setBacklightThreshold(double backlightThreshold)
+void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow   = 765.0 * ((std::pow(2.0,backlightThreshold*2)-1) / 3.0);
+	_sumBrightnessLow   = 765.0 * ((std::pow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -127,8 +127,7 @@ void RgbTransform::updateBrightnessComponents()
 
 	if (_brightness > 0)
 	{
-		B_in = -0.093*_brightness+std::sqrt(_brightness);
-		if (_brightness< 57) B_in += std::sqrt(57)-std::sqrt(_brightness);
+		B_in = (_brightness<50)? -0.09*_brightness+7.5 : -0.04*_brightness+5.0;
 
 		_brightness_rgb = std::ceil(std::min(255.0,255.0/B_in));
 		_brightness_cmy = std::ceil(std::min(255.0,255.0/(B_in*Fcmy)));

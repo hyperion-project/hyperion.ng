@@ -275,13 +275,13 @@
 							},
 							"backlightThreshold" :
 							{
-								"type" : "number",
+								"type" : "integer",
 								"title" : "edt_conf_color_backlightThreshold_title",
 								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 1.0,
-								"default" : 0.0,
-								"step" : 0.05,
+								"minimum" : 0,
+								"maximum": 100,
+								"default" : 0,
+								"append" : "edt_append_percent",
 								"propertyOrder" : 11
 							},
 							"backlightColored" :

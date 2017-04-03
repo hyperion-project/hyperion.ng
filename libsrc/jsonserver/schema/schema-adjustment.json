@@ -125,10 +125,10 @@
 					"maximum" : 5.0
 				},
 				"backlightThreshold" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 1.0
+					"minimum" : 0,
+					"maximum" : 100
 				},
 				"backlightColored" : {
 					"type" : "boolean",

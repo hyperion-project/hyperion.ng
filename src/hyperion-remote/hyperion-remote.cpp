@@ -78,7 +78,7 @@ int main(int argc, char * argv[])
 		Option          & argId           = parser.add<Option>      ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
 		IntOption       & argBrightness   = parser.add<IntOption>   ('L', "brightness" , "Set the brightness gain of the leds");
 		IntOption       & argBrightnessC  = parser.add<IntOption>   (0x0, "brightnessCompensation" , "Set the brightness compensation");
-		DoubleOption    & argBacklightThreshold= parser.add<DoubleOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
+		IntOption       & argBacklightThreshold= parser.add<IntOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
 		IntOption       & argBacklightColored  = parser.add<IntOption>    (0x0, "backlightColored" , "0 = white backlight; 1 =  colored backlight");
 		DoubleOption    & argGamma       = parser.add<DoubleOption>  ('g', "gamma"     , "Set the overall gamma of the leds");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
@@ -250,7 +250,7 @@ int main(int argc, char * argv[])
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
-				argBacklightThreshold.getDoublePtr(parser),
+				argBacklightThreshold.getIntPtr(parser),
 				argBacklightColored.getIntPtr(parser),
 				argBrightness.getIntPtr(parser),
 				argBrightnessC.getIntPtr(parser)

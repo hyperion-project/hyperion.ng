@@ -445,7 +445,7 @@ void JsonConnection::setAdjustment(
 		double *gammaR,
 		double *gammaG,
 		double *gammaB,
-		double *backlightThreshold,
+		int    *backlightThreshold,
 		int    *backlightColored,
 		int    *brightness,
 		int    *brightnessC)

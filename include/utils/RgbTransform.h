@@ -46,10 +46,10 @@ public:
 	void setGamma(double gammaR,double gammaG=-1, double gammaB=-1);
 
 	/// @return The current lower brightness
-	double getBacklightThreshold() const;
+	int getBacklightThreshold() const;
 
 	/// @param backlightThreshold New lower brightness
-	void setBacklightThreshold(double backlightThreshold);
+	void setBacklightThreshold(int backlightThreshold);
 
 	/// @return The current state
 	bool getBacklightColored() const;
