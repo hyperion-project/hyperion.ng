@@ -53,8 +53,8 @@ $(document).ready(function() {
 			}
 			else
 			{
-				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="1.0" step="0.05" value="'+value+'"/>';
+				if(sColor[key].key == "backlightThreshold" || sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation")
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="100" step="10" value="'+value+'"/>';
 				else
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="'+value+'"/>';
 				

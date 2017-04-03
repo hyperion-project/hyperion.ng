@@ -38,9 +38,10 @@
 				"gammaRed"   : 1.5,
 				"gammaGreen" : 1.5,
 				"gammaBlue"  : 1.5,
-				"backlightThreshold"  : 0.0,
+				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
-				"brightness" : 0.75
+				"brightness" : 100,
+				"brightnessCompensation" : 100
 			}
 		]
 	},
