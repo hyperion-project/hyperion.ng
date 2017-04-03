@@ -757,10 +757,11 @@ void JsonClientConnection::handleServerInfoCommand(const QJsonObject&, const QSt
 		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentG());
 		yellowAdjust.append(colorAdjustment->_rgbYellowAdjustment.getAdjustmentB());
 		adjustment.insert("yellow", yellowAdjust);
-		
+
 		adjustment["backlightThreshold"] = colorAdjustment->_rgbTransform.getBacklightThreshold();
 		adjustment["backlightColored"]   = colorAdjustment->_rgbTransform.getBacklightColored();
 		adjustment["brightness"] = colorAdjustment->_rgbTransform.getBrightness();
+		adjustment["brightnessCompensation"] = colorAdjustment->_rgbTransform.getBrightnessCompensation();
 		adjustment["gammaRed"]   = colorAdjustment->_rgbTransform.getGammaR();
 		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
 		adjustment["gammaBlue"]  = colorAdjustment->_rgbTransform.getGammaB();
@@ -956,7 +957,11 @@ void JsonClientConnection::handleAdjustmentCommand(const QJsonObject& message, c
 	}	
 	if (adjustment.contains("brightness"))
 	{
-		colorAdjustment->_rgbTransform.setBrightness(adjustment["brightness"].toDouble());
+		colorAdjustment->_rgbTransform.setBrightness(adjustment["brightness"].toInt());
+	}	
+	if (adjustment.contains("brightnessCompensation"))
+	{
+		colorAdjustment->_rgbTransform.setBrightnessCompensation(adjustment["brightnessCompensation"].toInt());
 	}	
 
 	// commit the changes

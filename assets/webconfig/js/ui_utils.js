@@ -235,14 +235,14 @@ function valValue(id,value,min,max)
 {
 	if(typeof max === 'undefined' || max == "")
 		max = 999999;
-	
-	if(value > max)	
+
+	if(Number(value) > Number(max))	
 	{
 		$('#'+id).val(max);
 		showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
 		return max;
 	}
-	else if(value < min)
+	else if(Number(value) < Number(min))
 	{
 		$('#'+id).val(min);
 		showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));

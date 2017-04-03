@@ -106,8 +106,10 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t ored   = color.red;
 		uint8_t ogreen = color.green;
 		uint8_t oblue  = color.blue;
+		uint8_t B_RGB, B_CMY, B_W;
 		
 		adjustment->_rgbTransform.transform(ored,ogreen,oblue);
+		adjustment->_rgbTransform.getBrightnessComponents(B_RGB, B_CMY, B_W);
 
 		uint32_t nrng = (uint32_t) (255-ored)*(255-ogreen);
 		uint32_t rng  = (uint32_t) (ored)    *(255-ogreen);
@@ -123,15 +125,17 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t yellow  = rg  *(255-oblue)/65025;
 		uint8_t white   = rg  *(oblue)    /65025;
 		
-		uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB, CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
-		adjustment->_rgbBlackAdjustment.apply(black, OR, OG, OB);
-		adjustment->_rgbRedAdjustment.apply(red, RR, RG, RB);
-		adjustment->_rgbGreenAdjustment.apply(green, GR, GG, GB);
-		adjustment->_rgbBlueAdjustment.apply(blue, BR, BG, BB);
-		adjustment->_rgbCyanAdjustment.apply(cyan, CR, CG, CB);
-		adjustment->_rgbMagentaAdjustment.apply(magenta, MR, MG, MB);
-		adjustment->_rgbYellowAdjustment.apply(yellow, YR, YG, YB);
-		adjustment->_rgbWhiteAdjustment.apply(white, WR, WG, WB);
+		uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB;
+		uint8_t CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
+
+		adjustment->_rgbBlackAdjustment.apply  (black  , 255  , OR, OG, OB);
+		adjustment->_rgbRedAdjustment.apply    (red    , B_RGB, RR, RG, RB);
+		adjustment->_rgbGreenAdjustment.apply  (green  , B_RGB, GR, GG, GB);
+		adjustment->_rgbBlueAdjustment.apply   (blue   , B_RGB, BR, BG, BB);
+		adjustment->_rgbCyanAdjustment.apply   (cyan   , B_CMY, CR, CG, CB);
+		adjustment->_rgbMagentaAdjustment.apply(magenta, B_CMY, MR, MG, MB);
+		adjustment->_rgbYellowAdjustment.apply (yellow , B_CMY, YR, YG, YB);
+		adjustment->_rgbWhiteAdjustment.apply  (white  , B_W  , WR, WG, WB);
 
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;
