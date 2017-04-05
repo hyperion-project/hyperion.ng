@@ -53,8 +53,8 @@ $(document).ready(function() {
 			}
 			else
 			{
-				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="1.0" step="0.05" value="'+value+'"/>';
+				if(sColor[key].key == "backlightThreshold" || sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation")
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="100" step="10" value="'+value+'"/>';
 				else
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="'+value+'"/>';
 				
@@ -106,41 +106,53 @@ $(document).ready(function() {
 			var btn_type = "default";
 			var btn_text = $.i18n('remote_input_setsource_btn');
 			var btn_state = "enabled";
-			if (active) btn_type = "primary";
+
+			if (active)
+				btn_type = "primary";
+				  
+			if(priority > 254)
+				continue;
+			if(priority < 254 && (compId == "EFFECT" || compId == "COLOR") )
+				clearAll = true;
+
 			if (visible)
 			{
 				 btn_state = "disabled";
 				 btn_type = "success";
 				 btn_text = $.i18n('remote_input_sourceactiv_btn');
 			}
+
 			if(ip)
 				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
-			if(compId == "EFFECT")
+
+			switch (compId)
 			{
-				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
-				if(priority != 255)
-					clearAll = true;
+				case "EFFECT":
+					owner = $.i18n('remote_effects_label_effects')+'  '+owner;
+					break;
+				case "COLOR":
+					owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
+					break;
+				case  "GRABBER":
+					owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
+					break;
+				case "V4L":
+					owner = $.i18n('general_comp_V4L')+': ('+owner+')';
+					break;
+				case "BOBLIGHTSERVER":
+					owner = $.i18n('general_comp_BOBLIGHTSERVER');
+					break;
+				case "UDPLISTENER":
+					owner = $.i18n('general_comp_UDPLISTENER');
+					break;
 			}
-			if(compId == "COLOR")
-			{
-				owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
-				if(priority != 255)
-					clearAll = true;
-			}
-			if(compId == "GRABBER")
-				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
-			if(compId == "V4L")
-				owner = $.i18n('general_comp_V4L')+': ('+owner+')';
-			if(compId == "BOBLIGHTSERVER")
-				owner = $.i18n('general_comp_BOBLIGHTSERVER');
-			if(compId == "UDPLISTENER")
-				owner = $.i18n('general_comp_UDPLISTENER');
+			
 			if(duration && compId != "GRABBER" && compId != "PROTOSERVER")
 				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
 			
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 			
-			if((compId == "EFFECT" || compId == "COLOR") && priority != 255)
+			if((compId == "EFFECT" || compId == "COLOR") && priority < 254)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')

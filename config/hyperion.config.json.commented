@@ -49,10 +49,11 @@
 	///      * 'gammaRed'/'gammaGreen'/'gammaBlue'  : Gamma value for each channel 
 	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
-	///  	 * 'backlightThreshold' : Minimum brightness (backlight)
-	///  	 * 'backlightColored'   : backlight with color, instead of white
-	///  	 * 'brightness' : Between 0.0-0.5 the brightness is linearized (white is as bright as red, is as bright as yellow).
-	///						  Between 0.5-1.0 the linearization reduces slowly until it's gone with 1.0 (white is 3x brighter than red, yellow is 2x brighter than red)
+	///      * 'backlightThreshold' : Minimum brightness (backlight)
+	///      * 'backlightColored'   : backlight with color, instead of white
+	///      * 'brightness' : overall brightness
+	///      * 'brightnessCompensation' : 100 means brightness differences are compensated (white is as bright as red, is as bright as yellow.
+	///                                   0 means white is 3x brighter than red, yellow is 2x brighter than red
 	"color" :
 	{
 		"imageToLedMappingType" : "multicolor_mean",
@@ -72,9 +73,10 @@
 				"gammaRed"   : 1.5,
 				"gammaGreen" : 1.5,
 				"gammaBlue"  : 1.5,
-				"backlightThreshold"  : 0.0,
+				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
-				"brightness" : 0.5
+				"brightness" : 100,
+				"brightnessCompensation" : 80
 			}
 		]
 	},
