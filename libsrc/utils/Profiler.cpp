@@ -13,7 +13,7 @@ struct StopWatchItem {
 };
 
 static unsigned int blockCounter = 0;
-static std::map<std::string,StopWatchItem> GlobalProfilerMap;
+static std::map<QString,StopWatchItem> GlobalProfilerMap;
 Logger* Profiler::_logger = nullptr;
 
 double getClockDelta(clock_t start)
@@ -44,9 +44,9 @@ void Profiler::initLogger()
 		_logger = Logger::getInstance("PROFILER", Logger::DEBUG);
 }
 
-void Profiler::TimerStart(const std::string timerName, const char* sourceFile, const char* func, unsigned int line)
+void Profiler::TimerStart(const QString timerName, const char* sourceFile, const char* func, unsigned int line)
 {
-	std::pair<std::map<std::string,StopWatchItem>::iterator,bool> ret;
+	std::pair<std::map<QString,StopWatchItem>::iterator,bool> ret;
 	Profiler::initLogger();
 
 	StopWatchItem item = {sourceFile, func, line};
@@ -56,34 +56,34 @@ void Profiler::TimerStart(const std::string timerName, const char* sourceFile, c
 	{
 		if ( ret.first->second.sourceFile == sourceFile && ret.first->second.func == func && ret.first->second.line == line )
 		{
-			_logger->Message(Logger::DEBUG, sourceFile, func, line, "restart timer '%s'", timerName.c_str() );
+			_logger->Message(Logger::DEBUG, sourceFile, func, line, "restart timer '%s'", QSTRING_CSTR(timerName) );
 			ret.first->second.startTime = clock();
 		}
 		else
 		{
 			_logger->Message(Logger::DEBUG, sourceFile, func, line, "ERROR timer '%s' started in multiple locations. First occurence %s:%d:%s()",
-			                 timerName.c_str(), FileUtils::getBaseName(ret.first->second.sourceFile).toLocal8Bit().constData(), ret.first->second.line, ret.first->second.func );
+			                 QSTRING_CSTR(timerName), FileUtils::getBaseName(ret.first->second.sourceFile).toLocal8Bit().constData(), ret.first->second.line, ret.first->second.func );
 		}
 	}
 	else
 	{
-		_logger->Message(Logger::DEBUG, sourceFile, func, line, "start timer '%s'", timerName.c_str() );
+		_logger->Message(Logger::DEBUG, sourceFile, func, line, "start timer '%s'", QSTRING_CSTR(timerName) );
 	}
 }
 
 
-void Profiler::TimerGetTime(const std::string timerName, const char* sourceFile, const char* func, unsigned int line)
+void Profiler::TimerGetTime(const QString timerName, const char* sourceFile, const char* func, unsigned int line)
 {
-	std::map<std::string,StopWatchItem>::iterator ret = GlobalProfilerMap.find(timerName);
+	std::map<QString,StopWatchItem>::iterator ret = GlobalProfilerMap.find(timerName);
 	Profiler::initLogger();
 	if (ret != GlobalProfilerMap.end())
 	{
-		_logger->Message(Logger::DEBUG, sourceFile, func, line, "timer '%s' started at %s:%d:%s() took %f s execution time until here", timerName.c_str(),
+		_logger->Message(Logger::DEBUG, sourceFile, func, line, "timer '%s' started at %s:%d:%s() took %f s execution time until here", QSTRING_CSTR(timerName),
 		                 FileUtils::getBaseName(ret->second.sourceFile).toLocal8Bit().constData(), ret->second.line, ret->second.func, getClockDelta(ret->second.startTime) );
 	}
 	else
 	{
-		_logger->Message(Logger::DEBUG, sourceFile, func, line, "ERROR timer '%s' not started", timerName.c_str() );
+		_logger->Message(Logger::DEBUG, sourceFile, func, line, "ERROR timer '%s' not started", QSTRING_CSTR(timerName) );
 	}
 }
 

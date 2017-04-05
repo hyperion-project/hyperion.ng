@@ -432,7 +432,7 @@ $(document).ready(function() {
 		
 		values_general = {};
 		values_specific = {};
-		isCurrentDevice = (serverInfo.info.ledDevices.active == $(this).val());
+		isCurrentDevice = (serverInfo.ledDevices.active == $(this).val());
 
 		for(var key in serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
@@ -455,7 +455,7 @@ $(document).ready(function() {
 	});
 	
 	// create led device selection
-	ledDevices = serverInfo.info.ledDevices.available
+	ledDevices = serverInfo.ledDevices.available
 	devRPiSPI = ['apa102', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
 	devRPiPWM = ['ws281x'];
 	devRPiGPIO = ['piblaster'];
@@ -491,7 +491,7 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(serverInfo.info.ledDevices.active);
+	$("#leddevices").val(serverInfo.ledDevices.active);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview

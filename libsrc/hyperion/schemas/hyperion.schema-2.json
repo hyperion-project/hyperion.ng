@@ -14,7 +14,9 @@
 				{
 					"type" : "string",
 					"title" : "edt_conf_gen_name_title",
-					"default" : "MyHyperionConfig",
+					"default" : "My Hyperion Config",
+					"minLength" : 4,
+					"maxLength" : 20,
 					"required" : true,
 					"propertyOrder" : 1
 				},
@@ -306,7 +308,7 @@
 								"type" : "number",
 								"title" : "edt_conf_color_gammaRed_title",
 								"required" : true,
-								"minimum" : 0.0,
+								"minimum" : 0.1,
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
@@ -317,7 +319,7 @@
 								"type" : "number",
 								"title" : "edt_conf_color_gammaGreen_title",
 								"required" : true,
-								"minimum" : 0.0,
+								"minimum" : 0.1,
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
@@ -328,7 +330,7 @@
 								"type" : "number",
 								"title" : "edt_conf_color_gammaBlue_title",
 								"required" : true,
-								"minimum" : 0.0,
+								"minimum" : 0.1,
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
@@ -544,6 +546,13 @@
 						"append" : "edt_append_pixel",
 						"propertyOrder" : 15
 					},
+					"signalDetection" :
+					{
+						"type" : "boolean",
+						"title" : "edt_conf_v4l2_signalDetection_title",
+						"default" : true,
+						"propertyOrder" : 16
+					},
 					"redSignalThreshold" :
 					{
 						"type" : "number",
@@ -553,7 +562,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 16
+						"propertyOrder" : 17
 					},
 					"greenSignalThreshold" :
 					{
@@ -564,7 +573,7 @@
 						"default" : 0.1,
 						"step" : 0.025,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 17
+						"propertyOrder" : 18
 					},
 					"blueSignalThreshold" :
 					{
@@ -575,7 +584,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 18
+						"propertyOrder" : 19
 					},
 					"signalDetectionVerticalOffsetMin" :
 					{
@@ -586,7 +595,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 19
+						"propertyOrder" : 20
 					},
 					"signalDetectionVerticalOffsetMax" :
 					{
@@ -597,7 +606,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 20
+						"propertyOrder" : 21
 					},
 					"signalDetectionHorizontalOffsetMin" :
 					{
@@ -608,7 +617,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 21
+						"propertyOrder" : 22
 					},
 					"signalDetectionHorizontalOffsetMax" :
 					{
@@ -619,7 +628,7 @@
 						"default" : 0.1,
 						"step" : 0.005,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 22
+						"propertyOrder" : 23
 					}
 				},
 			"additionalProperties" : false
@@ -678,7 +687,7 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
+					"maximum" : 254,
 					"default" : 250,
 					"propertyOrder" : 5
 				},
@@ -773,12 +782,11 @@
 				},
 				"threshold" :
 				{
-					"type" : "number",
+					"type" : "integer",
 					"title" : "edt_conf_bb_threshold_title",
-					"minimum" : 0.0,
-					"maximum" : 1.0,
-					"default" : 0.05,
-					"step" : 0.01,
+					"minimum" : 0,
+					"maximum" : 100,
+					"default" : 5,
 					"append" : "edt_append_percent",
 					"propertyOrder" : 2
 				},
@@ -1121,8 +1129,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
-					"default" : 200,
+					"maximum" : 254,
+					"default" : 201,
 					"propertyOrder" : 3
 				}
 			},
@@ -1162,8 +1170,8 @@
 					"type" : "integer",
 					"title" : "edt_conf_general_priority_title",
 					"minimum" : 100,
-					"maximum" : 253,
-					"default" : 190,
+					"maximum" : 254,
+					"default" : 200,
 					"propertyOrder" : 4
 				},
 				"timeout" :

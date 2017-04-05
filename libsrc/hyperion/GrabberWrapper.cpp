@@ -4,7 +4,6 @@
 #include <hyperion/GrabberWrapper.h>
 #include <HyperionConfig.h>
 
-#define QSTRING_CSTR(str) str.toLocal8Bit().constData()
 GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
@@ -37,7 +36,7 @@ bool GrabberWrapper::start()
 {
 	// Start the timer with the pre configured interval
 	_timer.start();
-	_hyperion->registerPriority(_grabberName.toStdString(), _priority);
+	_hyperion->registerPriority(_grabberName, _priority);
 	return _timer.isActive();
 
 }
@@ -46,7 +45,7 @@ void GrabberWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
 	_timer.stop();
-	_hyperion->unRegisterPriority(_grabberName.toStdString());
+	_hyperion->unRegisterPriority(_grabberName);
 }
 
 void GrabberWrapper::componentStateChanged(const hyperion::Components component, bool enable)

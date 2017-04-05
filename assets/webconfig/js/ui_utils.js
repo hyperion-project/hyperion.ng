@@ -48,6 +48,14 @@ function debugMessage(msg)
 	}
 }
 
+function validateDuration(d)
+{
+	if(typeof d === "undefined" || d < 0)
+		return d = 0;
+	else
+		return d *= 1000;
+}
+
 function getHashtag()
 {
 	if(getStorage('lasthashtag', true) != null)
@@ -146,6 +154,11 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
+	else if (type == "iswitch"){
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
 	else if (type == "uilock"){
 		$('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
@@ -166,7 +179,7 @@ function showInfoDialog(type,header,message)
 	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 	$('#id_body').append(message);
 	
-	if(type == "select")
+	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 	
 	$("#modal_dialog").modal({
@@ -220,21 +233,22 @@ function createHint(type, text, container)
 
 function valValue(id,value,min,max)
 {
-	//TODO: Do not use parser, all values are now typeof number
-	value = parseInt(value)
-	if(typeof value === 'number')
+	if(typeof max === 'undefined' || max == "")
+		max = 999999;
+	
+	if(value > max)	
 	{
-		if(typeof max === 'undefined' || max == "")
-			max = 999999;
-		
-		if(value > max || value < min)	
-		{
-			$('#'+id).val(min);
-			return min;
-		}
-		return value;		
+		$('#'+id).val(max);
+		showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
+		return max;
 	}
-	return value;
+	else if(value < min)
+	{
+		$('#'+id).val(min);
+		showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));
+		return min;
+	}
+	return value;		
 }
 
 function readImg(input,cb)

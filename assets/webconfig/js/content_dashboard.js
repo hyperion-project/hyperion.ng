@@ -20,7 +20,7 @@ $(document).ready( function() {
 
 			title = d[i].title.rendered;
 			excerpt = d[i].excerpt.rendered;
-			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=post_'+d[i].slug;
+			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
 			
 			newsCont(title,excerpt,link);
 		}
@@ -50,17 +50,21 @@ $(document).ready( function() {
 	
 	function updateComponents()
 	{
-		var components = serverInfo.info.components;
+		var components = serverInfo.components;
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
 			components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
+		
+		//info
+		$('#dash_statush').html(serverInfo.hyperion.off? '<span style="color:red">'+$.i18n('general_btn_off')+'</span>':'<span style="color:green">'+$.i18n('general_btn_on')+'</span>');
+		$('#btn_hsc').html(serverInfo.hyperion.off? '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>' : '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>');
 	}
 	
 	// add more info
-	$('#dash_leddevice').html(serverInfo.info.ledDevices.active);
+	$('#dash_leddevice').html(serverInfo.ledDevices.active);
 	$('#dash_currv').html(currentVersion);
 	$('#dash_instance').html(serverConfig.general.name);
 	$('#dash_ports').html(jsonPort+' | '+serverConfig.protoServer.port);
@@ -80,7 +84,7 @@ $(document).ready( function() {
 	});
 	
 	//determine platform
-	var grabbers = serverInfo.info.grabbers.available;
+	var grabbers = serverInfo.grabbers.available;
 	var html = "";
 
 	if(grabbers.indexOf('dispmanx') > -1)

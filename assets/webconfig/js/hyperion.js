@@ -10,6 +10,7 @@ var parsedUpdateJSON = {};
 var serverSchema = {};
 var serverConfig = {};
 var schema;
+var sysInfo = {};
 var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
@@ -21,6 +22,7 @@ var loggingStreamActive = false;
 var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
+var wSess = [];
 
 function initRestart()
 {
@@ -171,6 +173,11 @@ function requestServerInfo()
 	sendToHyperion("serverinfo");
 }
 
+function requestSysInfo()
+{
+	sendToHyperion("sysinfo");
+}
+
 function requestServerConfigSchema()
 {
 	sendToHyperion("config","getschema");
@@ -218,34 +225,24 @@ function requestPriorityClear(prio)
 	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
-function requestPlayEffect(effectName, duration)
+function requestClearAll()
 {
-	if(typeof duration === "undefined" || duration < 0)
-		duration = 0;
-	else
-		duration *= 1000;
-	
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+duration+',"origin":"'+webOrigin+'"');
+	sendToHyperion("clearall");
+}
+
+function requestPlayEffect(effectName, duration)
+{	
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
 }
 
 function requestSetColor(r,g,b,duration)
-{
-	if(typeof duration === "undefined" || duration < 0)
-		duration = 0;
-	else
-		duration *= 1000;
-	
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+duration+',"origin":"'+webOrigin+'"');
+{	
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
 }
 
 function requestSetImage(data,width,height,duration)
-{
-	if(typeof duration === "undefined" || duration < 0)
-		duration = 0;
-	else
-		duration *= 1000;
-	
-	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+duration+'');
+{	
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+validateDuration(duration)+'');
 }
 
 function requestSetComponentState(comp, state)
@@ -292,7 +289,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'},"priority":'+webPrio+', "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"}');
 }
 
 function requestDeleteEffect(effectName)
