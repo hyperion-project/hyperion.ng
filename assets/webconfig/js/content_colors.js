@@ -68,6 +68,9 @@ $(document).ready( function() {
 		requestWriteConfig(editor_blackborder.getValue());
 	});
 	
+	//wiki links
+	$('#editor_container_blackborder').append(buildWL("user/moretopics/bbmode","edt_conf_bb_mode_title",true));
+	
 	//create introduction
 	if(showOptHelp)
 	{

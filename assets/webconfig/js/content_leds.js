@@ -1,6 +1,7 @@
 
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
+var conf_editor = null;
 
 function round(number) {
 	var factor = Math.pow(10, 4);
@@ -354,6 +355,9 @@ $(document).ready(function() {
 		$('#btn_cl_save').toggle(false);
 	}
 	
+	//Wiki link
+	$('#leds_wl').append('<p style="font-weight:bold">'+$.i18n('general_wiki_moreto',$.i18n('conf_leds_nav_label_ledlayout'))+buildWL("user/moretopics/ledarea","Wiki")+'</p>');
+	
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function() {
 		valValue(this.id,this.value,this.min,this.max);
@@ -421,7 +425,6 @@ $(document).ready(function() {
 	});
 	
 	// create and update editor
-	var conf_editor = null;
 	$("#leddevices").off().on("change", function() {
 		generalOptions  = serverSchema.properties.device;
 		specificOptions = serverSchema.properties.alldevices[$(this).val()];
@@ -452,6 +455,18 @@ $(document).ready(function() {
 		
 		// change save button state based on validation result
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
+		
+		// led controller sepecific wizards
+		if($(this).val() == "philipshue")
+		{
+			createHint("wizard", $.i18n('wiz_hue_title'), "btn_wiz_holder","btn_led_device_wiz");
+			$('#btn_led_device_wiz').off().on('click',startWizardPhilipsHue);
+		}
+		else
+		{
+			$('#btn_wiz_holder').html("")
+			$('#btn_led_device_wiz').off();
+		}
 	});
 	
 	// create led device selection
