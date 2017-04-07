@@ -37,8 +37,10 @@
 		"lightIds": {
 			"type": "array",
 			"title":"edt_dev_spec_lightid_title",
+			"minItems": 1,
 			"items" : {
 				"type" : "integer",
+				"minimum" : 0,
 				"title" : "edt_dev_spec_lightid_itemtitle"
 			},
 			"propertyOrder" : 6

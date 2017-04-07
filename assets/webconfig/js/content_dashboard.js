@@ -75,12 +75,12 @@ $(document).ready( function() {
 		var cleanLatestVersion = latestVersion.replace(/\./g, '');
 		var cleanCurrentVersion = currentVersion.replace(/\./g, '');
 
-		$('#dash_latev').html(latestVersion);
+	//	$('#dash_latev').html(latestVersion);
 		
-		if ( cleanCurrentVersion < cleanLatestVersion )
-			$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-warning">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
-		else
-			$('#versioninforesult').html('<div style="margin:0px;" class="alert alert-success">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+	//	if ( cleanCurrentVersion < cleanLatestVersion )
+	//		$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
+	//	else
+			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 	});
 	
 	//determine platform

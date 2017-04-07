@@ -124,15 +124,6 @@
 								</div>
 							</a>
 						</li>
-						<li class="divider"></li>
-						<li id="btn_wizard_philipshue">
-							<a>
-								<div>
-									<i class="fa fa-magic fa-fw"></i>
-									<span data-i18n="wiz_hue_title"></span>
-								</div>
-							</a>
-						</li>
 					</ul>
 				</li>
 				<!-- /.dropdown -->
@@ -200,10 +191,17 @@
 
 		<!-- Page Content -->
 		<div id="page-wrapper" style="padding-top:10px; overflow: hidden;">
-		<div id="hyperion_reload_notify" class="alert alert-warning" style="display:none;padding:10px;margin:0">
-			<div class="panel-danger" style="text-align:right">
-				<div style="float:left;line-height:33px;"  data-i18n="dashboard_alert_message_confedit">Your Hyperion configuration has been modified. To apply it, restart Hyperion.</div>
-				<button id="btn_hyperion_reload" class="btn btn-danger"  data-i18n="general_btn_restarthyperion">Restart Hyperion</button>
+		<div id="hyperion_reload_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-warning">
+				<h4 data-i18n="dashboard_alert_message_confedit_t"></h4>
+				<span data-i18n="dashboard_alert_message_confedit"></span>
+				<p><button id="btn_hyperion_reload" class="btn btn-warning btn-sm" style="margin-top:10px" data-i18n="general_btn_restarthyperion"></button></p>
+			</div>
+		</div>
+		<div id="hyperion_disabled_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-danger">
+				<h4 data-i18n="dashboard_alert_message_disabled_t"></h4>
+				<span data-i18n="dashboard_alert_message_disabled"></span>
 			</div>
 		</div>
 
