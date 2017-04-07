@@ -5,21 +5,22 @@
 
 RgbTransform::RgbTransform()
 {
-	init(1.0, 1.0, 1.0, 0.0, false, 1.0);
+	init(1.0, 1.0, 1.0, 0.0, false, 100, 100);
 }
 
-RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh)
+RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation)
 {
-	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightnessHigh);
+	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessCompensation);
 }
 
-void RgbTransform::init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, double brightnessHigh)
+void RgbTransform::init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation)
 {
 	_backLightEnabled = true;
 	setGamma(gammaR,gammaG,gammaB);
 	setBacklightThreshold(backlightThreshold);
 	setBacklightColored(backlightColored);
-	setBrightness(brightnessHigh);
+	setBrightness(brightness);
+	setBrightnessCompensation(brightnessCompensation);
 	initializeMapping();
 }
 
@@ -61,15 +62,15 @@ void RgbTransform::initializeMapping()
 }
 
 
-double RgbTransform::getBacklightThreshold() const
+int RgbTransform::getBacklightThreshold() const
 {
 	return _backlightThreshold;
 }
 
-void RgbTransform::setBacklightThreshold(double backlightThreshold)
+void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow   = 765.0 * ((std::pow(2.0,backlightThreshold*2)-1) / 3.0);
+	_sumBrightnessLow   = 765.0 * ((std::pow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -92,15 +93,53 @@ void RgbTransform::setBackLightEnabled(bool enable)
 	_backLightEnabled = enable;
 }
 
-double RgbTransform::getBrightness() const
+uint8_t RgbTransform::getBrightness() const
 {
-	return _brightnessHigh;
+	return _brightness;
 }
 
-void RgbTransform::setBrightness(double brightness)
+void RgbTransform::setBrightness(uint8_t brightness)
 {
-	_brightnessHigh    = brightness;
-	_sumBrightnessHigh = 765.0 * ((std::pow(2.0,brightness*2)-1) / 3.0);
+	_brightness    = brightness;
+	updateBrightnessComponents();
+}
+
+void RgbTransform::setBrightnessCompensation(uint8_t brightnessCompensation)
+{
+	_brightnessCompensation = brightnessCompensation;
+	updateBrightnessComponents();
+}
+
+uint8_t RgbTransform::getBrightnessCompensation() const
+{
+	return _brightnessCompensation;
+}
+
+void RgbTransform::updateBrightnessComponents()
+{
+	double Fw   = _brightnessCompensation*2.0/100.0+1.0;
+	double Fcmy = _brightnessCompensation/100.0+1.0;
+	
+	double B_in= 0;
+	_brightness_rgb = 0;
+	_brightness_cmy = 0;
+	_brightness_w   = 0;
+
+	if (_brightness > 0)
+	{
+		B_in = (_brightness<50)? -0.09*_brightness+7.5 : -0.04*_brightness+5.0;
+
+		_brightness_rgb = std::ceil(std::min(255.0,255.0/B_in));
+		_brightness_cmy = std::ceil(std::min(255.0,255.0/(B_in*Fcmy)));
+		_brightness_w   = std::ceil(std::min(255.0,255.0/(B_in*Fw)));
+	}
+}
+
+void RgbTransform::getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w )
+{
+	rgb = _brightness_rgb;
+	cmy = _brightness_cmy;
+	w   = _brightness_w;
 }
 
 void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
@@ -114,14 +153,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	// apply brightnesss
 	int rgbSum = red+green+blue;
 
-	if (_sumBrightnessHigh > 0 && rgbSum > _sumBrightnessHigh)
-	{
-		double cH = _sumBrightnessHigh / rgbSum;
-		red   *= cH;
-		green *= cH;
-		blue  *= cH;
-	}
-	else if ( _backLightEnabled && _sumBrightnessLow>0 && rgbSum < _sumBrightnessLow)
+	if ( _backLightEnabled && _sumBrightnessLow>0 && rgbSum < _sumBrightnessLow)
 	{
 		if (_backlightColored)
 		{
@@ -147,3 +179,4 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	}
 	//std::cout << _sumBrightnessLow << " " << (int)red << " " << (int)green << " " << (int)blue << std::endl;
 }
+

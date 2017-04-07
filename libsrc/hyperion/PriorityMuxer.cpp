@@ -12,7 +12,7 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	, _lowestPriorityInfo()
 {
 	_lowestPriorityInfo.priority       = LOWEST_PRIORITY;
-	_lowestPriorityInfo.timeoutTime_ms = -1;
+	_lowestPriorityInfo.timeoutTime_ms = 0;
 	_lowestPriorityInfo.ledColors      = std::vector<ColorRgb>(ledCount, {0, 0, 0});
 	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
 	_lowestPriorityInfo.origin         = "System";
@@ -78,7 +78,7 @@ void PriorityMuxer::clearAll()
 {
 	for(auto key : _activeInputs.keys())
 	{
-		if (key < LOWEST_PRIORITY)
+		if (key < LOWEST_PRIORITY-1)
 		{
 			_activeInputs.remove(key);
 		}
@@ -91,7 +91,7 @@ void PriorityMuxer::setCurrentTime(const int64_t& now)
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
-		if (infoIt->timeoutTime_ms != -1 && infoIt->timeoutTime_ms <= now)
+		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
 			infoIt = _activeInputs.erase(infoIt);
 		}

@@ -1,4 +1,4 @@
-$(document).ready( function() {
+
 	//clear priority and other tasks if people reload the page or lost connection while a wizard was active
 	$(hyperion).one("ready", function(event) {	
 		if(getStorage("wizardactive") === 'true')	
@@ -517,21 +517,29 @@ $(document).ready( function() {
 	$('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
 	
 	//hue wizard
+	var hueIPs = [];
+	var hueIPsinc = 0;
+	var lightIDs = null;
+	var huePosTop =    {hscan: {maximum: 0.85,minimum: 0.15},index: 0,vscan: {maximum: 0.2,minimum: 0}};
+	var huePosBottom = {hscan: {maximum: 0.85,minimum: 0.15},index: 2,vscan: {maximum: 1,minimum: 0.8}};
+	var huePosLeft =   {hscan: {maximum: 0.15,minimum: 0},index: 1,vscan: {maximum: 0.85,minimum: 0.15}};
+	var huePosRight =  {hscan: {maximum: 1,minimum: 0.85},index: 3,vscan: {maximum: 0.85,minimum: 0.15}};
+	var huePosEntire = {hscan: {maximum: 1.0,minimum: 0.0},index: 0,vscan: {maximum: 1.0,minimum: 0.0}};
+	
 	function startWizardPhilipsHue()
 	{
 		//create html
 		$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>'+$.i18n('wiz_hue_title'));
-		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('wiz_hue_title')+'</h4><p>'+$.i18n('wiz_hue_intro1')+'</p><p style="font-weight:bold;">'+$.i18n('wiz_hue_intro2')+'</p>');
+		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('wiz_hue_title')+'</h4><p>'+$.i18n('wiz_hue_intro1')+'</p>');
 		$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-		$('#wizp2_body').append('<span id="ip_alert" style="display:none; color:red; font-weight: bold;">'+$.i18n('wiz_hue_failure_ip')+'</span>');
-		$('#wizp2_body').append('<span id="abortConnection" style="display:none; color:red; font-weight: bold;">'+$.i18n('wiz_hue_failure_connection')+'</span><br />');
-		$('#wizp2_body').append('<div class="form-group"><label>'+$.i18n('wiz_hue_ip')+'</label><div class="input-group" style="width:150px"><input type="text" class="input-group" id="ip"></div></div>');
-		$('#wizp2_body').append('<div class="form-group"><label>'+$.i18n('wiz_hue_username')+'</label<div class="input-group" style="width:150px"><input type="text" class="input-group" id="user" readonly="readonly"></div></div>');
-		$('#wizp2_body').append('<div id="hue_lights" class="row"><table></table></div>');
-		$('#wizp2_footer').html('<button type="button" class="btn btn-success" id="wiz_hue_create_user"> <i class="fa fa-floppy-o"></i>'+$.i18n('wiz_hue_create_user')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-		$('#wizp3_body').html('<span>'+$.i18n('wiz_hue_press_link')+'</span> <br /><br /><center><span id="connectionTime"></span><br /><img src="/img/hyperion/ring-alt.svg" /><center>');
-
-
+		$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+		$('#wh_topcontainer').append('<p style="font-weight:bold">'+$.i18n('wiz_hue_desc1')+'</p><div class="form-group"><label>'+$.i18n('wiz_hue_ip')+'</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span>');
+		$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"><label>'+$.i18n('wiz_hue_username')+'</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>'+$.i18n('wiz_hue_create_user')+'</button></div>');
+		$('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold">'+$.i18n('wiz_hue_desc2')+'</p></div>');
+		createTable("lidsh", "lidsb", "hue_ids_t");
+		$('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lightid_title'),$.i18n('wiz_hue_pos'),$.i18n('wiz_hue_ident')], true));
+		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#wizp3_body').html('<span>'+$.i18n('wiz_hue_press_link')+'</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
 
 		//open modal
 		$("#wizard_modal").modal({
@@ -548,17 +556,207 @@ $(document).ready( function() {
 		});
 	}
 
+	function checkHueBridge(cb,hueUser){
+		var usr = "";
+		
+		if(typeof hueUser != "undefined")
+			usr = hueUser;
+
+		$.ajax({
+			url: 'http://'+hueIPs[hueIPsinc].internalipaddress+'/api/'+usr,
+			contentType: 'application/json',
+			type: 'GET',
+			timeout: 2000
+		})
+		.done( function( data, textStatus, jqXHR ) {
+			if(Array.isArray(data) && data[0].error && data[0].error.type == 4)
+				cb(true);
+			else if(Array.isArray(data) && data[0].error)
+				cb(false);
+			else
+				cb(true);
+		})
+		.fail( function( jqXHR, textStatus ) {
+			cb(false);
+		});	
+	} 			
+
+	function checkUserResult(reply){
+		if(reply)
+		{
+			$('#wiz_hue_usrstate').html("");
+			$('#wiz_hue_create_user').toggle(false);
+			get_hue_lights();
+		}
+		else
+		{
+			$('#wiz_hue_usrstate').html($.i18n('wiz_hue_failure_user'));
+			$('#wiz_hue_create_user').toggle(true);
+		}
+	};
+	
+	function checkBridgeResult(reply){
+		if(reply)
+		{
+			//abort checking, first reachable result is used
+			$('#wiz_hue_ipstate').html("");
+			$('#ip').val(hueIPs[hueIPsinc].internalipaddress)
+			
+			//now check hue user on this bridge
+			$('#usrcont').toggle(true);
+			checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
+		}	
+		else
+		{
+			//increment and check again
+			if(hueIPs.length-1 > hueIPsinc)
+			{
+				hueIPsinc++;
+				checkHueBridge(checkBridgeResult);
+			}
+			else
+			{
+				$('#usrcont').toggle(false);
+				$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+			}	
+		}
+	};
+	
+	function assignHuePos(id, pos, inc)
+	{
+		var i = null;
+		
+		if(pos == "top")
+			i = huePosTop;
+		else if(pos == "bottom")
+			i = huePosBottom;
+		else if(pos == "left")
+			i = huePosLeft;
+		else if(pos == "right")
+			i = huePosRight;
+		else
+			i = huePosEntire;
+		
+		i.index = inc;
+		return i;
+	}
+	
+	function identHueId(id, off)
+	{
+		var on = true;
+		if(off !== true)
+			setTimeout(identHueId,1500,id,true);
+		else
+			on = false;
+
+		$.ajax({
+			url: 'http://'+$('#ip').val()+'/api/'+$('#user').val()+'/lights/'+id+'/state',
+			type: 'PUT',
+			timeout: 2000,
+			data: '	{"on":'+on+', "sat":254, "bri":254,"hue":47000}'
+		})
+	}
+	
+	function getHueIPs(){
+		$('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
+		$.ajax({
+			url: 'https://www.meethue.com/api/nupnp',
+			crossDomain: true,
+			type: 'GET',
+			timeout: 3000
+		})
+		.done( function( data, textStatus, jqXHR ) {
+			if(data.length == 0)
+				$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+			else
+			{
+				hueIPs = data;
+				checkHueBridge(checkBridgeResult);
+			}
+		})
+		.fail( function( jqXHR, textStatus ) {
+			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+		});	
+	};
+	
 	function beginWizardHue()
 	{
-		//listen for continue
-		$('#wiz_hue_create_user').off().on('click',function() {
-			doWizardHue();
+		//check if ip is empty/reachable/search for bridge
+		if(conf_editor.getEditor("root.specificOptions.output").getValue() == "")
+			getHueIPs();
+		else
+		{
+			var ip = conf_editor.getEditor("root.specificOptions.output").getValue();
+			$('#ip').val(ip);
+			hueIPs.push({internalipaddress : ip});
+			checkHueBridge(checkBridgeResult);
+			
+			var usr = conf_editor.getEditor("root.specificOptions.username").getValue();
+			$('#user').val(usr);
+		}
+		
+		$('#retry_bridge').off().on('click', function(){
+			hueIPs[0].internalipaddress = $('#ip').val();
+			hueIPsinc = 0;
+			checkHueBridge(checkBridgeResult);
 		});
+		
+		$('#retry_usr').off().on('click', function(){
+			checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
+		});
+		
+		$('#wiz_hue_create_user').off().on('click',function() {
+			createHueUser();
+		});
+		
+		$('#btn_wiz_save').off().on("click", function(){
+			var hueLedConfig = [];
+			var finalLightIds = [];
+			
+			//create hue led config
+			var incC = 0;
+			for(key in lightIDs)
+			{	
+				if($('#hue_'+key).val() != "disabled")
+				{
+					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val(), incC));
+					finalLightIds.push(parseInt(key));
+					incC++;
+				}
+			}
+			
+			serverConfig.leds = hueLedConfig;
+			
+			//Adjust gamma, brightness and compensation
+			var c = serverConfig.color.channelAdjustment[0];
+			c.gammaBlue = 1.0;
+			c.gammaRed = 1.0;
+			c.gammaGreen = 1.0;
+			c.brightness = 100;
+			c.brightnessCompensation = 0;
+			
+			//device config
+			var d = serverConfig.device;
+			d.output = $('#ip').val();
+			d.lightIds = finalLightIds;
+			d.username = $('#user').val();
+			d.type = "philipshue";
+			d.transitiontime = 1;
+			d.switchOffOnBlack = true;
+			
+			//smoothing off
+			serverConfig.smoothing.enable = false;
+			
+			requestWriteConfig(serverConfig, true);
+			setTimeout(initRestart,200);
+		});
+		
+		$('#btn_wiz_abort').off().on('click', resetWizard);
 	}
 
-	function doWizardHue()
+	function createHueUser()
 	{
-	    var connectionRetries = 15;
+	    var connectionRetries = 30;
 			var data = {"devicetype":"hyperion#"+Date.now()};
 			var UserInterval = setInterval(function(){
 			$.ajax({
@@ -580,8 +778,6 @@ $(document).ready( function() {
 	          }
 						else
 						{
-							$("#abortConnection").hide();
-							$("#ip_alert").hide();
 							if (typeof r[0].error != 'undefined') {
 								console.log(connectionRetries+": link not pressed");
 							}
@@ -590,9 +786,7 @@ $(document).ready( function() {
 								$('#wizp2').toggle(true);
 								$('#wizp3').toggle(false);
 								$('#user').val(r[0].success.username);
-
-								$( "#hue_lights" ).empty();
-								get_hue_lights();
+								checkHueBridge(checkUserResult,r[0].success.username);
 								clearInterval(UserInterval);
 						  }
 						}
@@ -601,7 +795,6 @@ $(document).ready( function() {
 					$('#wizp1').toggle(false);
 					$('#wizp2').toggle(true);
 					$('#wizp3').toggle(false);
-					$("#ip_alert").show();
 					clearInterval(UserInterval);
 				 }
 			});
@@ -615,8 +808,34 @@ $(document).ready( function() {
 			processData: false,
 			contentType: 'application/json',
 			success: function(r) {
-				for(var lightid in r){
-					$('#hue_lights').append('<tr><td>ID: '+lightid+'</td><td>Name: '+r[lightid].name+'</td></tr>');
+				if(Object.keys(r).length > 0)
+				{
+					$('#wh_topcontainer').toggle(false);
+					$('#hue_ids_t, #btn_wiz_save').toggle(true);
+					lightIDs = r;
+					
+					for(var lightid in r)
+					{
+						$('.lidsb').append(createTableRow([lightid+' ('+r[lightid].name+')', '<select id="hue_'+lightid+'" class="hue_sel_watch form-control"><option value="disabled">'+$.i18n('wiz_hue_ids_disabled')+'</option><option value="top">'+$.i18n('conf_leds_layout_cl_top')+'</option><option value="bottom">'+$.i18n('conf_leds_layout_cl_bottom')+'</option><option value="left">'+$.i18n('conf_leds_layout_cl_left')+'</option><option value="right">'+$.i18n('conf_leds_layout_cl_right')+'</option><option value="entire">'+$.i18n('wiz_hue_ids_entire')+'</option></select>','<button class="btn btn-sm btn-primary" onClick=identHueId('+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
+					}
+					
+					$('.hue_sel_watch').bind("change", function(){
+						var cC = 0;
+						for(key in lightIDs)
+						{	
+							if($('#hue_'+key).val() != "disabled")
+							{
+								cC++;
+							}
+						}
+						cC == 0 ? $('#btn_wiz_save').attr("disabled",true) : $('#btn_wiz_save').attr("disabled",false);
+					});
+					
+					$('.hue_sel_watch').trigger('change');
+				}
+				else
+				{
+					$('#wizp2_body').html('<h4>'+$.i18n('wiz_hue_noids')+'</h4>')
 				}
 			}
 		});
@@ -627,9 +846,5 @@ $(document).ready( function() {
 		$('#wizp1').toggle(false);
 		$('#wizp2').toggle(true);
 		$('#wizp3').toggle(false);
-		$("#abortConnection").show();
-
+		$("#wiz_hue_usrstate").html($.i18n('wiz_hue_failure_connection'));
 	}
-	
-	$('#btn_wizard_philipshue').off().on('click',startWizardPhilipsHue);
-});

@@ -13,6 +13,16 @@ body{
     overflow-y: scroll; 
 }
 .btn{margin: 2px 0;}
+/*
+#page-wrapper a[target=_blank]::after { 
+    content:"\f08e";
+	position:relative;
+	font:normal normal normal 10px/1 FontAwesome;
+	top:-3px;
+	left:3px;
+	margin-right:5px;
+}
+*/
 /* fixed brand icon */
 @media (min-width: 768px){
 	.navbar-brand{position:fixed}
@@ -139,6 +149,23 @@ table label{margin:0}
     margin-bottom: 0;
 }
 
+/*wizard button*/
+.btn-wizard {
+    color: #fff;
+    background-color: #993399;
+    border-color: #732673;
+}
+.btn-wizard:hover{
+    color: #fff;
+    background-color: #732673;
+    border-color: #602060;
+}
+.btn-wizard:focus{
+    color: #fff;
+    background-color: #732673;
+    border-color: #602060;
+}
+
 /*led preview & led visualisation*/
 #leds_canvas {background-color:#AAAAAA; position:absolute; margin:15px; background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center;}
 .led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}
@@ -226,6 +253,70 @@ li a:active:after {
   transform: scale(0, 0);
   opacity: .2;
   transition: 0s;
+}
+
+/*Bootstrap callouts*/
+.bs-callout {
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+.bs-callout h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+    margin-bottom: 0;
+}
+.bs-callout code {
+    border-radius: 3px;
+}
+.bs-callout+.bs-callout {
+    margin-top: -5px;
+}
+.bs-callout-default {
+    border-left-color: #777;
+}
+.bs-callout-default h4 {
+    color: #777;
+}
+.bs-callout-primary {
+    border-left-color: #428bca;
+}
+.bs-callout-primary h4 {
+    color: #428bca;
+}
+.bs-callout-success {
+    border-left-color: #5cb85c;
+}
+.bs-callout-success h4 {
+    color: #5cb85c;
+}
+.bs-callout-danger {
+    border-left-color: #d9534f;
+}
+.bs-callout-danger h4 {
+    color: #d9534f;
+}
+.bs-callout-warning {
+    border-left-color: #f0ad4e;
+}
+.bs-callout-warning h4 {
+    color: #f0ad4e;
+}
+.bs-callout-info {
+    border-left-color: #5bc0de;
+}
+.bs-callout-info h4 {
+    color: #5bc0de;
+}
+.bs-callout-wizard {
+    border-left-color: #993399;
+}
+.bs-callout-wizard h4 {
+    color: #993399;
 }
 
 /**add a dditional width defintion for bootstrap**/

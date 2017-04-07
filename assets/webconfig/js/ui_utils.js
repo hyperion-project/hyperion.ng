@@ -197,7 +197,7 @@ function createHintH(type, text, container)
 	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
 }
 
-function createHint(type, text, container)
+function createHint(type, text, container, buttonid, buttontxt)
 {
 	var fe, tclass;
 	
@@ -222,8 +222,15 @@ function createHint(type, text, container)
 		tclass = "warning-hint";
 	}
 	
-	if(fe == "")
-		$('#'+container).prepend('<div class="'+tclass+'">'+text+'</div>');
+	if(buttonid)
+		buttonid = '<p><button id="'+buttonid+'" class="btn btn-wizard" style="margin-top:15px;">'+text+'</button></p>';
+	else
+		buttonid = "";
+	
+	if(type == "intro")
+		$('#'+container).prepend('<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>'+$.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
+	else if(type == "wizard")
+		$('#'+container).prepend('<div class="bs-callout bs-callout-wizard" style="margin-top:0px"><h4>'+$.i18n("wiz_wizavail")+'</h4>'+$.i18n('wiz_guideyou',text)+buttonid+'</div>');
 	else
 	{
 		createTable('','htb',container, true, tclass);
@@ -236,13 +243,13 @@ function valValue(id,value,min,max)
 	if(typeof max === 'undefined' || max == "")
 		max = 999999;
 	
-	if(value > max)	
+	if(Number(value) > Number(max))	
 	{
 		$('#'+id).val(max);
 		showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
 		return max;
 	}
-	else if(value < min)
+	else if(Number(value) < Number(min))
 	{
 		$('#'+id).val(min);
 		showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));
@@ -320,6 +327,28 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 	return editor;
 }
 
+function buildWL(link,linkt,cl)
+{	
+	var baseLink = "https://docs.hyperion-project.org/";
+	var lang;
+	
+	if(typeof linkt == "undefined")
+		linkt = "Placeholder";
+	
+	if(storedLang == "de" || navigator.locale == "de")
+		lang = "de";
+	else
+		lang = "en";
+	
+	if(cl === true)
+	{
+		linkt = $.i18n(linkt);
+		return '<div class="bs-callout bs-callout-primary"><h4>'+linkt+'</h4>'+$.i18n('general_wiki_moreto',linkt)+': <a href="'+baseLink+lang+'/'+link+'" target="_blank">'+linkt+'<a></div>'
+	}
+	else
+		return ': <a href="'+baseLink+lang+'/'+link+'" target="_blank">'+linkt+'<a>';
+}
+
 function rgbToHex(rgb)
 {
 	if(rgb.length == 3)
@@ -332,6 +361,16 @@ function rgbToHex(rgb)
 	else
 		debugMessage('rgbToHex: Given rgb is no array or has wrong length');
 }
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
 
 function createCP(id, color, cb)
 {

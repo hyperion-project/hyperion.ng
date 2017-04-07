@@ -14,6 +14,7 @@ $(document).ready(function() {
 		$('#conf_cont').append(createHelpTable(schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
 		createHintH("intro", $.i18n('conf_logging_label_intro'), "log_head");
 	}
+	$("#log_upl_pol").append('<span style="color:grey;font-size:80%">'+$.i18n("conf_logging_uplpolicy")+' '+buildWL("user/support#report_privacy_policy",$.i18n("conf_logging_contpolicy")));
 	
 	conf_editor = createJsonEditor('editor_container', {
 		logger : schema.logger
@@ -27,13 +28,19 @@ $(document).ready(function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
 
+	$('#btn_logupload').off().on('click',function() {
+		uploadLog();
+		$(this).attr("disabled", true);
+		$('#upl_link').html($.i18n('conf_logging_uploading'))
+	});
+	
 	//show prev uploads
 	var ent;
 
 	if(getStorage("prev_reports"))
 	{
 		ent = JSON.parse(getStorage("prev_reports"));
-		$('#prev_reports').append('<hr><h4>'+$.i18n('conf_logging_lastreports')+'</h4>');
+		$('#prev_reports').append('<h4 style="margin-top:30px">'+$.i18n('conf_logging_lastreports')+'</h4>');
 		for(var i = 0; i<ent.length; i++)
 		{
 			$('#prev_reports').append('<p><a href="'+reportUrl+ent[i].id+'" target="_blank">'+ent[i].title+'('+ent[i].time+')</a></p>');
@@ -61,23 +68,29 @@ $(document).ready(function() {
 		var info;
 		
 		//create log
-		for(var i = 0; i<messages.length; i++)
+		if(messages)
 		{
-			app_name = messages[i].appName;
-			logger_name = messages[i].loggerName;
-			function_ = messages[i].function;
-			line = messages[i].line;
-			file_name = messages[i].fileName;
-			msg = messages[i].message;
-			level_string = messages[i].levelString;
-			debug = "";
+			for(var i = 0; i<messages.length; i++)
+			{
+				app_name = messages[i].appName;
+				logger_name = messages[i].loggerName;
+				function_ = messages[i].function;
+				line = messages[i].line;
+				file_name = messages[i].fileName;
+				msg = messages[i].message;
+				level_string = messages[i].levelString;
+				debug = "";
 			
-			if(level_string == "DEBUG") {
-				debug = "<"+file_name+":"+line+":"+function_+"()> ";
-			}
+				if(level_string == "DEBUG") {
+					debug = "<"+file_name+":"+line+":"+function_+"()> ";
+				}
 				
-			log += "["+app_name+" "+logger_name+"] <"+level_string+"> "+debug+msg+"\n";
+				log += "["+app_name+" "+logger_name+"] <"+level_string+"> "+debug+msg+"\n";
+			}
 		}
+		else
+			log = "Log was empty!";
+
 		//create general info
 		info = "### GENERAL ### \n";
 		info += 'Build:       '+shy.build+'\n';
@@ -154,16 +167,11 @@ $(document).ready(function() {
 			messages = (event.response.result.messages);
 			if(messages.length != 0 && !createdCont)
 			{
-				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button  class="btn btn-primary" id="btn_logupload">'+$.i18n('conf_logging_btn_pbupload')+'</button><button class="btn btn-success" id="btn_autoscroll" style="margin-left:10px;">'+$.i18n('conf_logging_btn_autoscroll')+'</button><div id="upl_link" style="margin-top:10px;font-weight:bold;"></div>');
+				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-success" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
 				createdCont = true;
 				
 				$('#btn_autoscroll').off().on('click',function() {
 					toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
-				});
-				$('#btn_logupload').off().on('click',function() {
-					uploadLog();
-					$(this).attr("disabled", true);
-					$('#upl_link').html($.i18n('conf_logging_uploading'))
 				});
 			}
 			for(var idx=0; idx<messages.length; idx++)

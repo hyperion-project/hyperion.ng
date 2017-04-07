@@ -28,14 +28,20 @@
 						<tbody>
 							<tr>
 								<td style="vertical-align:middle"><label for="cpeff" data-i18n="remote_color_label_color"></label></td>
-								<td><div id="cp2" class="colorpicker-component input-group">
-										<input type="text" id="cpeff" class="form-control"/><span class="input-group-addon"><i></i></span>
+								<td>
+									<div id="cp2" class="colorpicker-component input-group">
+										<input type="text" id="cpeff" class="form-control"/>
+										<span class="input-group-addon"><i></i></span>
+										<span class="input-group-addon" id="remote_input_rescol" title="Repeat Color" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
 									</div>
 								</td>
 							</tr>
 							<tr>
 								<td style="vertical-align:middle"><label for="effect_select" data-i18n="remote_effects_label_effects">Effect:</label></td>
-								<td><select id="effect_select" class="form-control"></select></td>
+								<td class="input-group">
+									<select id="effect_select" class="form-control"></select>
+									<span class="input-group-addon" id="remote_input_reseff" title="Repeat Effect" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
+								</td>
 							</tr>
 							<tr style="display:none">
 								<td style="vertical-align:middle"><label for="remote_input_img" >Picture:</label></td>

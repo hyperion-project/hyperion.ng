@@ -275,13 +275,13 @@
 							},
 							"backlightThreshold" :
 							{
-								"type" : "number",
+								"type" : "integer",
 								"title" : "edt_conf_color_backlightThreshold_title",
 								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 1.0,
-								"default" : 0.0,
-								"step" : 0.05,
+								"minimum" : 0,
+								"maximum": 100,
+								"default" : 0,
+								"append" : "edt_append_percent",
 								"propertyOrder" : 11
 							},
 							"backlightColored" :
@@ -294,14 +294,26 @@
 							},
 							"brightness" :
 							{
-								"type" : "number",
+								"type" : "integer",
 								"title" : "edt_conf_color_brightness_title",
 								"required" : true,
-								"minimum" : 0.0,
-								"maximum": 1.0,
-								"default" : 1.0,
-								"step" : 0.05,
+								"minimum" : 0,
+								"maximum": 100,
+								"default" : 100,
+								"append" : "edt_append_percent",
 								"propertyOrder" : 13
+							},
+							"brightnessCompensation" :
+							{
+								"type" : "integer",
+								"title" : "edt_conf_color_brightnessComp_title",
+								"required" : true,
+								"minimum" : 0,
+								"maximum": 100,
+								"default" : 90,
+								"append" : "edt_append_percent",
+								"access" : "advanced",
+								"propertyOrder" : 14
 							},
 							"gammaRed" :
 							{
@@ -312,7 +324,7 @@
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
-								"propertyOrder" : 14
+								"propertyOrder" : 15
 							},
 							"gammaGreen" :
 							{
@@ -323,7 +335,7 @@
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
-								"propertyOrder" : 15
+								"propertyOrder" : 16
 							},
 							"gammaBlue" :
 							{
@@ -334,7 +346,7 @@
 								"maximum": 100.0,
 								"default" : 1.5,
 								"step" : 0.1,
-								"propertyOrder" : 16
+								"propertyOrder" : 17
 							}
 						},
 						"additionalProperties" : false
