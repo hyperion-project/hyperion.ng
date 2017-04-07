@@ -24,7 +24,7 @@ ledDataEven = ledDataOdd[3*length:] + ledDataOdd[0:3*length]
 
 # Start the write data loop
 while not hyperion.abort():
-    hyperion.setColor(ledDataOdd)
-    time.sleep(sleepTime)
-    hyperion.setColor(ledDataEven)
-    time.sleep(sleepTime)
+	hyperion.setColor(ledDataOdd)
+	time.sleep(sleepTime)
+	hyperion.setColor(ledDataEven)
+	time.sleep(sleepTime)
