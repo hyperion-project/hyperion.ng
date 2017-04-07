@@ -5,6 +5,8 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
+#include <QDateTime>
+
 #include "hyperion/Hyperion.h"
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
@@ -20,6 +22,8 @@ LedDevice::LedDevice()
 	, _deviceReady(true)
 	, _refresh_timer()
 	, _refresh_timer_interval(0)
+	, _last_write_time(QDateTime::currentMSecsSinceEpoch())
+	, _limit_ms(0)
 	, _componentRegistered(false)
 	, _enabled(true)
 {
@@ -67,6 +71,7 @@ void LedDevice::setActiveDevice(QString dev)
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
 	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(_refresh_timer_interval) );
+	_limit_ms = deviceConfig["minimumWriteTime"].toInt(_limit_ms);
 	return true;
 }
 
@@ -131,6 +136,12 @@ int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 		return -1;
 
 	_ledValues = ledValues;
+
+	if (_limit_ms > 0 && QDateTime::currentMSecsSinceEpoch()-_last_write_time < _limit_ms)
+	{
+		return 0;
+	}
+	_last_write_time = QDateTime::currentMSecsSinceEpoch();
 
 	// restart the timer
 	if (_refresh_timer.interval() > 0)
