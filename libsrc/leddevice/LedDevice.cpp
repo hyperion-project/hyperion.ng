@@ -70,8 +70,14 @@ void LedDevice::setActiveDevice(QString dev)
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
-	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(_refresh_timer_interval) );
 	_limit_ms = deviceConfig["minimumWriteTime"].toInt(_limit_ms);
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt( _refresh_timer_interval) );
+	if (_refresh_timer.interval() <= _limit_ms )
+	{
+		Warning(_log, "minimumWriteTime(%d) is bigger/equal rewriteTime(%d)", _refresh_timer.interval(), _limit_ms);
+		_refresh_timer.setInterval(_limit_ms+10);
+	}
+
 	return true;
 }
 

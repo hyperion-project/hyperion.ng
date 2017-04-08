@@ -45,7 +45,7 @@
 			},
 			"minItems": 3,
 			"maxItems": 3,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": false
