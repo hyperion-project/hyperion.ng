@@ -179,6 +179,8 @@ public:
 	
 	int getConfigVersionId() { return _configVersionId; };
 
+	int getMinimumWriteTime() const;
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority

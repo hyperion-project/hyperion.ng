@@ -138,23 +138,26 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
+	int retval = 0;
 	if (!_deviceReady || !_enabled)
 		return -1;
 
-	_ledValues = ledValues;
-
-	if (_limit_ms > 0 && QDateTime::currentMSecsSinceEpoch()-_last_write_time < _limit_ms)
-	{
-		return 0;
-	}
-	_last_write_time = QDateTime::currentMSecsSinceEpoch();
 
 	// restart the timer
 	if (_refresh_timer.interval() > 0)
 	{
 		_refresh_timer.start();
 	}
-	return write(ledValues);
+
+	if (_limit_ms == 0 || QDateTime::currentMSecsSinceEpoch()-_last_write_time >= _limit_ms)
+	{
+		_ledValues = ledValues;
+		retval = write(ledValues);
+		_last_write_time = QDateTime::currentMSecsSinceEpoch();
+	} 
+	//else Debug(_log, "latch %d", QDateTime::currentMSecsSinceEpoch()-_last_write_time);
+
+	return retval;
 }
 
 int LedDevice::switchOff()

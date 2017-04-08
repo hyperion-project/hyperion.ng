@@ -62,6 +62,7 @@ public:
 	
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
+	int getMinimumWriteTime() { return _limit_ms; };
 
 	inline bool componentState() { return enabled(); };
 	

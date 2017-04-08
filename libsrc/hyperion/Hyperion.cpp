@@ -436,7 +436,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	_timerBonjourResolver.start();
 
 	// create the effect engine
-	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject());
+	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
 	
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
@@ -455,6 +455,10 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	update();
 }
 
+int Hyperion::getMinimumWriteTime() const
+{
+  return _device->getMinimumWriteTime();
+}
 
 void Hyperion::freeObjects(bool emitCloseSignal)
 {
