@@ -861,7 +861,7 @@ void Hyperion::update()
 	}
 
 	// Start the timeout-timer
-	if (priorityInfo.timeoutTime_ms == -1)
+	if (priorityInfo.timeoutTime_ms <= 0)
 	{
 		_timer.stop();
 	}
