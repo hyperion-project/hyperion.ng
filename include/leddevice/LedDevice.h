@@ -62,7 +62,7 @@ public:
 	
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
-	int getMinimumWriteTime() { return _limit_ms; };
+	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
 	
@@ -97,7 +97,7 @@ protected:
 	QTimer       _refresh_timer;
 	unsigned int _refresh_timer_interval;
 	qint64       _last_write_time;
-	int          _limit_ms;
+	unsigned int _latchTime_ms;
 protected slots:
 	/// Write the last data to the leds again
 	int rewriteLeds();

@@ -94,16 +94,6 @@
 					"minimum": 0,
 					"access" : "expert",
 					"propertyOrder" : 4
-				},
-				"minimumWriteTime": {
-					"type": "integer",
-					"title":"edt_dev_general_minimumWriteTime_title",
-					"default": 10,
-					"append" : "edt_append_ms",
-					"minimum": 0,
-					"maximum": 100,
-					"access" : "expert",
-					"propertyOrder" : 5
 				}
 			},
 			"additionalProperties" : true

@@ -6,7 +6,7 @@ reverse      = bool(hyperion.args.get('reverse', False))
 centerX      = float(hyperion.args.get('center_x', 0.5))
 centerY      = float(hyperion.args.get('center_y', 0.5))
 
-minStepTime  = float(hyperion.minimumWriteTime)/1000.0
+minStepTime  = float(hyperion.latchTime)/1000.0
 sleepTime = max(0.1, rotationTime) / 360
 angle     = 0
 centerX   = int(round(float(hyperion.imageWidth)*centerX))

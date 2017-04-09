@@ -6,7 +6,7 @@ for i in range(hyperion.ledCount):
 	ledData += bytearray((0,0,0))
 
 sleepTime   = float(hyperion.args.get('speed', 1.0)) * 0.004
-minStepTime = float(hyperion.minimumWriteTime)/1000.0
+minStepTime = float(hyperion.latchTime)/1000.0
 factor      = 1 if sleepTime > minStepTime else int(math.ceil(minStepTime/sleepTime))
 
 runners = [

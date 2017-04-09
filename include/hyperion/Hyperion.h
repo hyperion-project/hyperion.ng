@@ -179,7 +179,7 @@ public:
 	
 	int getConfigVersionId() { return _configVersionId; };
 
-	int getMinimumWriteTime() const;
+	int getLatchTime() const;
 
 public slots:
 	///

@@ -9,7 +9,7 @@ colorStartTime = float(hyperion.args.get('color-start-time', 1000)) / 1000
 colorEndTime   = float(hyperion.args.get('color-end-time', 1000)) / 1000
 repeat         = hyperion.args.get('repeat-count', 0)
 maintainEndCol = hyperion.args.get('maintain-end-color', True)
-minStepTime    = float(hyperion.minimumWriteTime)/1000.0
+minStepTime    = float(hyperion.latchTime)/1000.0
 currentR = currentG = currentB = 0
 
 # create color table for fading from start to end color

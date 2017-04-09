@@ -17,7 +17,7 @@
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
 		"rewriteTime": 5000,
-		"minimumWriteTime" : 10
+		"latchTime" : 10
 	},
 
 	"color" :

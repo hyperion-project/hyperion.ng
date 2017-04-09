@@ -346,7 +346,6 @@
 	"edt_dev_general_ledCount_title" : "Count of all hardware LEDs",
 	"edt_dev_general_colorOrder_title" : "RGB byte order",
 	"edt_dev_general_rewriteTime_title" : "Refresh time",
-	"edt_dev_general_minimumWriteTime_title" : "Minimum write time",
 	"edt_dev_spec_header_title" : "Specific Settings",
 	"edt_dev_spec_baudrate_title" : "Baudrate",
 	"edt_dev_spec_spipath_title" : "SPI path",

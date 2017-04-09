@@ -455,9 +455,9 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	update();
 }
 
-int Hyperion::getMinimumWriteTime() const
+int Hyperion::getLatchTime() const
 {
-  return _device->getMinimumWriteTime();
+  return _device->getLatchTime();
 }
 
 void Hyperion::freeObjects(bool emitCloseSignal)

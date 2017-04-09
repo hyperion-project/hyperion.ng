@@ -23,7 +23,7 @@ LedDevice::LedDevice()
 	, _refresh_timer()
 	, _refresh_timer_interval(0)
 	, _last_write_time(QDateTime::currentMSecsSinceEpoch())
-	, _limit_ms(0)
+	, _latchTime_ms(0)
 	, _componentRegistered(false)
 	, _enabled(true)
 {
@@ -70,12 +70,12 @@ void LedDevice::setActiveDevice(QString dev)
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
-	_limit_ms = deviceConfig["minimumWriteTime"].toInt(_limit_ms);
+	_latchTime_ms = deviceConfig["latchTime"].toInt(_latchTime_ms);
 	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt( _refresh_timer_interval) );
-	if (_refresh_timer.interval() <= _limit_ms )
+	if (_refresh_timer.interval() <= (signed)_latchTime_ms )
 	{
-		Warning(_log, "minimumWriteTime(%d) is bigger/equal rewriteTime(%d)", _refresh_timer.interval(), _limit_ms);
-		_refresh_timer.setInterval(_limit_ms+10);
+		Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d)", _refresh_timer.interval(), _latchTime_ms);
+		_refresh_timer.setInterval(_latchTime_ms+10);
 	}
 
 	return true;
@@ -149,7 +149,7 @@ int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 		_refresh_timer.start();
 	}
 
-	if (_limit_ms == 0 || QDateTime::currentMSecsSinceEpoch()-_last_write_time >= _limit_ms)
+	if (_latchTime_ms == 0 || QDateTime::currentMSecsSinceEpoch()-_last_write_time >= _latchTime_ms)
 	{
 		_ledValues = ledValues;
 		retval = write(ledValues);
