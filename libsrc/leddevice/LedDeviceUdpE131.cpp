@@ -12,7 +12,6 @@ LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	_LatchTime_ns = 104000;
 	_port = 5568;
 	ProviderUdp::init(deviceConfig);
 	_e131_universe = deviceConfig["universe"].toInt(1);

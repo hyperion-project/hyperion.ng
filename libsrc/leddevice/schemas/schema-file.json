@@ -5,7 +5,18 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_outputPath_title",
-			"default" : "/dev/null"
+			"default" : "/dev/null",
+			"propertyOrder" : 1
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": true

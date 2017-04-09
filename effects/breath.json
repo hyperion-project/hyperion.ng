@@ -5,7 +5,7 @@
 	{
 		"color-end": [ 255, 255, 255 ],
 		"color-start": [ 50, 50, 50 ],
-		"fade-in-time" : 4000,
+		"fade-in-time" : 3000,
 		"fade-out-time" : 1000,
 		"color-start-time" : 50,
 		"color-end-time" : 250,

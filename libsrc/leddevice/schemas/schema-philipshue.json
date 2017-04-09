@@ -44,6 +44,16 @@
 				"title" : "edt_dev_spec_lightid_itemtitle"
 			},
 			"propertyOrder" : 6
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 200,
+			"append" : "edt_append_ms",
+			"minimum": 100,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": true

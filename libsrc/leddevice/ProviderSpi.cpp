@@ -18,12 +18,12 @@ ProviderSpi::ProviderSpi()
 	: LedDevice()
 	, _deviceName("/dev/spidev0.0")
 	, _baudRate_Hz(1000000)
-	, _latchTime_ns(0)
 	, _fid(-1)
 	, _spiMode(SPI_MODE_0)
 	, _spiDataInvert(false)
 {
 	memset(&_spi, 0, sizeof(_spi));
+	_latchTime_ms = 1;
 }
 
 ProviderSpi::~ProviderSpi()
@@ -37,7 +37,6 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 
 	_deviceName    = deviceConfig["output"].toString(_deviceName);
 	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
-	_latchTime_ns  = deviceConfig["latchtime"].toInt(_latchTime_ns);
 	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
 	
@@ -46,7 +45,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 
 int ProviderSpi::open()
 {
-	Debug(_log, "_baudRate_Hz %d,  _latchTime_ns %d", _baudRate_Hz, _latchTime_ns);
+	Debug(_log, "_baudRate_Hz %d,  _latchTime_ns %d", _baudRate_Hz, _latchTime_ms);
 	Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
 
 	const int bitsPerWord = 8;
@@ -98,17 +97,6 @@ int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)
 
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
-
-	if (retVal >= 0 && _latchTime_ns > 0)
-	{
-		// The 'latch' time for latching the shifted-value into the leds
-		timespec latchTime;
-		latchTime.tv_sec  = 0;
-		latchTime.tv_nsec = _latchTime_ns;
-
-		// Sleep to latch the leds (only if write succesfull)
-		nanosleep(&latchTime, NULL);
-	}
 
 	return retVal;
 }

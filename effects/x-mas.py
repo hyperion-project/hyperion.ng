@@ -1,22 +1,26 @@
 import hyperion, time, colorsys
 
 # Get the parameters
-sleepTime = float(hyperion.args.get('sleepTime', 1.0))
+sleepTime   = float(hyperion.args.get('sleepTime', 1000))/1000.0
+length = hyperion.args.get('length', 1)
+color1 = hyperion.args.get('color1', (255,255,255))
+color2 = hyperion.args.get('color2', (255,0,0))
 
 # Initialize the led data
+i = 0
 ledDataOdd = bytearray()
-for i in range(hyperion.ledCount):
-	if i%2 == 0:
-		ledDataOdd += bytearray((int(255), int(0), int(0)))
-	else:
-		ledDataOdd += bytearray((int(255), int(255), int(255)))
-		
-ledDataEven = bytearray()
-for i in range(hyperion.ledCount):
-	if i%2 == 0:
-		ledDataEven += bytearray((int(255), int(255), int(255)))
-	else:
-		ledDataEven += bytearray((int(255), int(0), int(0)))
+while i < hyperion.ledCount:
+	for l in range(length):
+		if i<hyperion.ledCount:
+			ledDataOdd += bytearray((int(color1[0]), int(color1[1]), int(color1[2])))
+			i += 1
+
+	for l in range(length):
+		if i<hyperion.ledCount:
+			ledDataOdd += bytearray((int(color2[0]), int(color2[1]), int(color2[2])))
+			i += 1
+
+ledDataEven = ledDataOdd[3*length:] + ledDataOdd[0:3*length]
 
 # Start the write data loop
 while not hyperion.abort():

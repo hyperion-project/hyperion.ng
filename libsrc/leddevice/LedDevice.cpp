@@ -5,6 +5,8 @@
 #include <QResource>
 #include <QStringList>
 #include <QDir>
+#include <QDateTime>
+
 #include "hyperion/Hyperion.h"
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
@@ -20,6 +22,8 @@ LedDevice::LedDevice()
 	, _deviceReady(true)
 	, _refresh_timer()
 	, _refresh_timer_interval(0)
+	, _last_write_time(QDateTime::currentMSecsSinceEpoch())
+	, _latchTime_ms(0)
 	, _componentRegistered(false)
 	, _enabled(true)
 {
@@ -66,7 +70,14 @@ void LedDevice::setActiveDevice(QString dev)
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
-	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt(_refresh_timer_interval) );
+	_latchTime_ms = deviceConfig["latchTime"].toInt(_latchTime_ms);
+	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt( _refresh_timer_interval) );
+	if (_refresh_timer.interval() <= (signed)_latchTime_ms )
+	{
+		Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d)", _refresh_timer.interval(), _latchTime_ms);
+		_refresh_timer.setInterval(_latchTime_ms+10);
+	}
+
 	return true;
 }
 
@@ -127,17 +138,26 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 {
+	int retval = 0;
 	if (!_deviceReady || !_enabled)
 		return -1;
 
-	_ledValues = ledValues;
 
 	// restart the timer
 	if (_refresh_timer.interval() > 0)
 	{
 		_refresh_timer.start();
 	}
-	return write(ledValues);
+
+	if (_latchTime_ms == 0 || QDateTime::currentMSecsSinceEpoch()-_last_write_time >= _latchTime_ms)
+	{
+		_ledValues = ledValues;
+		retval = write(ledValues);
+		_last_write_time = QDateTime::currentMSecsSinceEpoch();
+	} 
+	//else Debug(_log, "latch %d", QDateTime::currentMSecsSinceEpoch()-_last_write_time);
+
+	return retval;
 }
 
 int LedDevice::switchOff()
