@@ -126,6 +126,9 @@ void Effect::run()
 	// add imageHeight variable to the interpreter
 	PyObject_SetAttrString(module, "imageHeight", Py_BuildValue("i", _imageSize.height()));
 
+	// add minimumWriteTime variable to the interpreter
+	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", Hyperion::getInstance()->getLatchTime()));
+
 	// add a args variable to the interpreter
 	PyObject_SetAttrString(module, "args", json2python(_args));
 

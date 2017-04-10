@@ -61,7 +61,7 @@
 			"type" : "object",
 			"title" : "edt_dev_general_heading_title",
 			"required" : true,
-			"defaultProperties": ["ledCount","colorOrder","rewriteTime"],
+			"defaultProperties": ["ledCount","colorOrder","rewriteTime","minimumWriteTime"],
 			"properties" :
 			{
 				"type" :
@@ -89,7 +89,7 @@
 				"rewriteTime": {
 					"type": "integer",
 					"title":"edt_dev_general_rewriteTime_title",
-					"default": 5000,
+					"default": 1000,
 					"append" : "edt_append_ms",
 					"minimum": 0,
 					"access" : "expert",

@@ -4,7 +4,18 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"edt_dev_spec_serial_title"
+			"title":"edt_dev_spec_serial_title",
+			"propertyOrder" : 1
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 11,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": true

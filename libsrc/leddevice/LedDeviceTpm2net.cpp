@@ -8,7 +8,6 @@ LedDeviceTpm2net::LedDeviceTpm2net(const QJsonObject &deviceConfig)
 
 bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 {
-	_LatchTime_ns = 104000;
 	_port = TPM2_DEFAULT_PORT;
 	ProviderUdp::init(deviceConfig);
 	_tpm2_max  = deviceConfig["max-packet"].toInt(170);

@@ -14,7 +14,6 @@ LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
 bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 {
 	ProviderSpi::init(deviceConfig);
-	_latchTime_ns = 500000; // fixed latchtime
 
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);
