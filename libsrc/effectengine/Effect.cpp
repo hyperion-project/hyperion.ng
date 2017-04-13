@@ -25,7 +25,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"setColor"              , Effect::wrapSetColor              , METH_VARARGS, "Set a new color for the leds."},
 	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
-	{"imageShow"             , Effect::wrapImageShow             , METH_NOARGS,  "set current effect image to hyperion core."},
+	{"imageShow"             , Effect::wrapImageShow             , METH_VARARGS,  "set current effect image to hyperion core."},
 	{"imageCanonicalGradient", Effect::wrapImageCanonicalGradient, METH_VARARGS,  ""},
 	{"imageRadialGradient"   , Effect::wrapImageRadialGradient   , METH_VARARGS,  ""},
 	{"imageSolidFill"        , Effect::wrapImageSolidFill        , METH_VARARGS,  ""},
@@ -33,6 +33,10 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageDrawRect"         , Effect::wrapImageDrawRect         , METH_VARARGS,  ""},
 	{"imageSetPixel"         , Effect::wrapImageSetPixel         , METH_VARARGS, "set pixel color of image"},
 	{"imageGetPixel"         , Effect::wrapImageGetPixel         , METH_VARARGS, "get pixel color of image"},
+	{"imageSave"             , Effect::wrapImageSave             , METH_NOARGS,  "adds a new background image"},
+	{"imageMinSize"          , Effect::wrapImageMinSize             , METH_VARARGS, "sets minimal dimension of background image"},
+	{"imageWidth"            , Effect::wrapImageWidth            , METH_NOARGS,  "gets image width"},
+	{"imageHeight"           , Effect::wrapImageHeight           , METH_NOARGS,  "gets image height"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -80,17 +84,18 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _colors()
 	, _origin(origin)
+	, _imageSize(Hyperion::getInstance()->getLedGridSize())
+	,_image(_imageSize,QImage::Format_ARGB32_Premultiplied)
 {
-	_colors.resize(_imageProcessor->getLedCount(), ColorRgb::BLACK);
+	_colors.resize(_imageProcessor->getLedCount());
+	_colors.fill(ColorRgb::BLACK);
 
 	// disable the black border detector for effects
 	_imageProcessor->enableBlackBorderDetector(false);
 	
 	// init effect image for image based effects, size is based on led layout
-	_imageSize = Hyperion::getInstance()->getLedGridSize();
-	_image = new QImage(_imageSize, QImage::Format_ARGB32_Premultiplied);
-	_image->fill(Qt::black);
-	_painter = new QPainter(_image);
+	_image.fill(Qt::black);
+	_painter = new QPainter(&_image);
 
 	// connect the finished signal
 	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
@@ -100,7 +105,7 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 Effect::~Effect()
 {
 	delete _painter;
-	delete _image;
+	_imageStack.clear();
 }
 
 void Effect::run()
@@ -119,12 +124,6 @@ void Effect::run()
 
 	// add ledCount variable to the interpreter
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _imageProcessor->getLedCount()));
-
-	// add imageWidth variable to the interpreter
-	PyObject_SetAttrString(module, "imageWidth", Py_BuildValue("i", _imageSize.width()));
-
-	// add imageHeight variable to the interpreter
-	PyObject_SetAttrString(module, "imageHeight", Py_BuildValue("i", _imageSize.height()));
 
 	// add minimumWriteTime variable to the interpreter
 	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", Hyperion::getInstance()->getLatchTime()));
@@ -268,14 +267,11 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 		ColorRgb color;
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
-			std::fill(effect->_colors.begin(), effect->_colors.end(), color);
-			effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+			effect->_colors.fill(color);
+			effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 			return Py_BuildValue("");
 		}
-		else
-		{
-			return nullptr;
-		}
+		return nullptr;
 	}
 	else if (argCount == 1)
 	{
@@ -290,7 +286,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(effect->_colors.data(), data, length);
-					effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+					effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 					return Py_BuildValue("");
 				}
 				else
@@ -358,9 +354,9 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 				Image<ColorRgb> image(width, height);
 				char * data = PyByteArray_AS_STRING(bytearray);
 				memcpy(image.memptr(), data, length);
-
-				effect->_imageProcessor->process(image, effect->_colors);
-				effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+				std::vector<ColorRgb> v = effect->_colors.toStdVector();
+				effect->_imageProcessor->process(image, v);
+				effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 				return Py_BuildValue("");
 			}
 			else
@@ -416,17 +412,31 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 		}
 	}
 
-	int width = effect->_imageSize.width();
-	int height = effect->_imageSize.height();
-	QImage * qimage = effect->_image;
-	
+	int argCount = PyTuple_Size(args);
+	int imgId = -1;
+	bool argsOk = (argCount == 0);
+	if (argCount == 1 && PyArg_ParseTuple(args, "i", &imgId))
+	{
+		argsOk = true;
+	}
+
+	if ( ! argsOk || (imgId>-1 && imgId >= effect->_imageStack.size()))
+	{
+		return nullptr;
+	}
+
+
+	QImage * qimage = (imgId<0) ? &(effect->_image) : &(effect->_imageStack[imgId]);
+	int width = qimage->width();
+	int height = qimage->height();
+
 	Image<ColorRgb> image(width, height);
 	QByteArray binaryImage;
 
-	for (int i = 0; i <qimage->height(); ++i)
+	for (int i = 0; i<height; ++i)
 	{
 		const QRgb * scanline = reinterpret_cast<const QRgb *>(qimage->scanLine(i));
-		for (int j = 0; j < qimage->width(); ++j)
+		for (int j = 0; j< width; ++j)
 		{
 			binaryImage.append((char) qRed(scanline[j]));
 			binaryImage.append((char) qGreen(scanline[j]));
@@ -435,8 +445,9 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 	}
 	
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
-	effect->_imageProcessor->process(image, effect->_colors);
-	effect->setColors(effect->_priority, effect->_colors, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+	std::vector<ColorRgb> v = effect->_colors.toStdVector();
+	effect->_imageProcessor->process(image, v);
+	effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
 
 	return Py_BuildValue("");
 }
@@ -474,8 +485,6 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 			const unsigned arrayItemLength = 5;
 			if (length % arrayItemLength == 0)
 			{
-
-				QPainter * painter = effect->_painter;
 				QRect myQRect(startX,startY,width,height);
 				QConicalGradient gradient(QPoint(centerX,centerY), angle );
 				char * data = PyByteArray_AS_STRING(bytearray);
@@ -492,7 +501,7 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 					));
 				}
 
-				painter->fillRect(myQRect, gradient);
+				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
 			}
@@ -508,10 +517,7 @@ PyObject* Effect::wrapImageCanonicalGradient(PyObject *self, PyObject *args)
 			return nullptr;
 		}
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 
@@ -560,7 +566,6 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			if (length % 4 == 0)
 			{
 
-				QPainter * painter = effect->_painter;
 				QRect myQRect(startX,startY,width,height);
 				QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
 				char * data = PyByteArray_AS_STRING(bytearray);
@@ -577,7 +582,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 				}
 
 				//gradient.setSpread(QGradient::ReflectSpread);
-				painter->fillRect(myQRect, gradient);
+				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
 			}
@@ -593,10 +598,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			return nullptr;
 		}
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
@@ -636,10 +638,7 @@ PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
 		effect->_painter->fillRect(myQRect, QColor(r,g,b,a));
 		return Py_BuildValue("");
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 
@@ -669,20 +668,18 @@ PyObject* Effect::wrapImageDrawLine(PyObject *self, PyObject *args)
 
 	if (argsOK)
 	{
+		QPainter * painter = effect->_painter;
 		QRect myQRect(startX, startY, endX, endY);
-		QPen oldPen = effect->_painter->pen();
+		QPen oldPen = painter->pen();
 		QPen newPen(QColor(r,g,b,a));
 		newPen.setWidth(thick);
-		effect->_painter->setPen(newPen);
-		effect->_painter->drawLine(startX, startY, endX, endY);
-		effect->_painter->setPen(oldPen);
+		painter->setPen(newPen);
+		painter->drawLine(startX, startY, endX, endY);
+		painter->setPen(oldPen);
 	
 		return Py_BuildValue("");
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 
@@ -712,20 +709,18 @@ PyObject* Effect::wrapImageDrawRect(PyObject *self, PyObject *args)
 
 	if (argsOK)
 	{
+		QPainter * painter = effect->_painter;
 		QRect myQRect(startX,startY,width,height);
-		QPen oldPen = effect->_painter->pen();
+		QPen oldPen = painter->pen();
 		QPen newPen(QColor(r,g,b,a));
 		newPen.setWidth(thick);
-		effect->_painter->setPen(newPen);
-		effect->_painter->drawRect(startX, startY, width, height);
-		effect->_painter->setPen(oldPen);
+		painter->setPen(newPen);
+		painter->drawRect(startX, startY, width, height);
+		painter->setPen(oldPen);
 	
 		return Py_BuildValue("");
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 
@@ -736,23 +731,13 @@ PyObject* Effect::wrapImageSetPixel(PyObject *self, PyObject *args)
 	int argCount = PyTuple_Size(args);
 	int r, g, b, x, y;
 
-	bool argsOK = false;
-
 	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiii", &x, &y, &r, &g, &b ) )
 	{
-		argsOK = true;
-	}
-
-	if (argsOK)
-	{
-		effect->_image->setPixel(x,y,qRgb(r,g,b));
-
+		effect->_image.setPixel(x,y,qRgb(r,g,b));
 		return Py_BuildValue("");
 	}
-	else
-	{
-		return nullptr;
-	}
+
+	return nullptr;
 }
 
 
@@ -763,25 +748,58 @@ PyObject* Effect::wrapImageGetPixel(PyObject *self, PyObject *args)
 	int argCount = PyTuple_Size(args);
 	int x, y;
 
-	bool argsOK = false;
-
 	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &x, &y) )
 	{
-		argsOK = true;
-	}
-
-	if (argsOK)
-	{
-		QRgb rgb = effect->_image->pixel(x,y);
-	
+		QRgb rgb = effect->_image.pixel(x,y);
 		return Py_BuildValue("iii",qRed(rgb),qGreen(rgb),qBlue(rgb));
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
+PyObject* Effect::wrapImageSave(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	QImage img(effect->_image.copy());
+	effect->_imageStack.append(img);
+
+	return Py_BuildValue("i", effect->_imageStack.size()-1);	
+}
+
+PyObject* Effect::wrapImageMinSize(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int w, h;
+	int width   = effect->_imageSize.width();
+	int height  = effect->_imageSize.height();
+
+	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &w, &h) )
+	{
+		if (width<w || height<h)
+		{
+			delete effect->_painter;
+			
+			effect->_image = effect->_image.scaled(std::max(width,w),std::max(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+			effect->_imageSize = effect->_image.size();
+			effect->_painter = new QPainter(&(effect->_image));
+		}
+		return Py_BuildValue("ii", effect->_image.width(), effect->_image.height());
+	}
+	return nullptr;
+}
+
+PyObject* Effect::wrapImageWidth(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	return Py_BuildValue("i", effect->_imageSize.width());
+}
+
+PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	return Py_BuildValue("i", effect->_imageSize.height());
+}
 
 Effect * Effect::getEffect()
 {

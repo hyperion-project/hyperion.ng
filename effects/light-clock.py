@@ -2,8 +2,8 @@ import hyperion, time, datetime
 
 # Get the parameters
 showSeconds = bool(hyperion.args.get('show_seconds', True))
-centerX     = int(round(hyperion.imageWidth)/2)
-centerY     = int(round(float(hyperion.imageHeight)/2))
+centerX     = int(round(hyperion.imageWidth())/2)
+centerY     = int(round(float(hyperion.imageHeight())/2))
 
 colorsSecond = bytearray([
 	0, 255,255,0,255,
