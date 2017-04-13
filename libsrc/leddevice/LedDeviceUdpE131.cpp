@@ -12,20 +12,19 @@ LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	_LatchTime_ns = 104000;
 	_port = 5568;
 	ProviderUdp::init(deviceConfig);
 	_e131_universe = deviceConfig["universe"].toInt(1);
-	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName()).toStdString();
+	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 	QString _json_cid = deviceConfig["cid"].toString("");
 
 	if (_json_cid.isEmpty()) 
 	{
 		_e131_cid = QUuid::createUuid();
-		Debug( _log, "e131 no cid found, generated %s", _e131_cid.toString().toStdString().c_str());
+		Debug( _log, "e131 no cid found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
 	} else {
 		_e131_cid = QUuid(_json_cid);
-		Debug( _log, "e131  cid found, using %s", _e131_cid.toString().toStdString().c_str());
+		Debug( _log, "e131  cid found, using %s", QSTRING_CSTR(_e131_cid.toString()));
 	}
 
 	return true;
@@ -53,7 +52,7 @@ void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this
 	/* Frame Layer */
 	e131_packet.frame_flength = htons(0x7000 | (88+this_dmxChannelCount));
 	e131_packet.frame_vector = htonl(VECTOR_E131_DATA_PACKET);
-	snprintf (e131_packet.source_name, sizeof(e131_packet.source_name), "%s", _e131_source_name.c_str() );
+	snprintf (e131_packet.source_name, sizeof(e131_packet.source_name), "%s", QSTRING_CSTR(_e131_source_name) );
 	e131_packet.priority = 100;
 	e131_packet.reserved = htons(0);
 	e131_packet.options = 0;	// Bit 7 =  Preview_Data

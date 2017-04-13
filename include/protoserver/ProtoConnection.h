@@ -1,9 +1,7 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
+#include <QString>
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
@@ -33,7 +31,7 @@ public:
 	///
 	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
 	///
-	ProtoConnection(const std::string & address);
+	ProtoConnection(const QString & address);
 
 	///
 	/// Destructor

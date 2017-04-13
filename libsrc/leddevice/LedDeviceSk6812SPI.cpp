@@ -21,15 +21,15 @@ LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
-	std::string whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off").toStdString();
+	QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off");
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 
 	if (_whiteAlgorithm == RGBW::INVALID)
 	{
-		Error(_log, "unknown whiteAlgorithm %s", whiteAlgorithm.c_str());
+		Error(_log, "unknown whiteAlgorithm %s", QSTRING_CSTR(whiteAlgorithm));
 		return false;
 	}
-	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
+	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
 
 	_baudRate_Hz = 3000000;
 	if ( !ProviderSpi::init(deviceConfig) )

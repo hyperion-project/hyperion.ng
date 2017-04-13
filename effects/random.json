@@ -3,7 +3,7 @@
 	"script" : "random.py",
 	"args"   :
 	{
-		"speed"      : 1.0,
+		"speed"      : 750,
 		"saturation" : 1.0
 	}
 }

@@ -1,20 +1,24 @@
 $(document).ready( function() {
 	var uiLock = false;
+	var prevSess = 0;
 
 	loadContentTo("#container_connection_lost","connection_lost");
 	loadContentTo("#container_restart","restart");
 	initWebSocket();
 
 	$(hyperion).on("cmd-serverinfo",function(event){
-		serverInfo = event.response;
-		currentVersion = serverInfo.info.hyperion[0].version;
+		serverInfo = event.response.info;
 		$(hyperion).trigger("ready");
 		
-		if (serverInfo.info.hyperion[0].config_modified)
+		if (serverInfo.hyperion.config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
 		else
 			$("#hyperion_reload_notify").fadeOut("fast");
 
+		if (serverInfo.hyperion.off)
+			$("#hyperion_disabled_notify").fadeIn("fast");
+		else
+			$("#hyperion_disabled_notify").fadeOut("fast");
 		
 		if ($("#logmessages").length == 0 && loggingStreamActive)
 		{
@@ -22,7 +26,7 @@ $(document).ready( function() {
 			loggingStreamActive = false;
 		}
 
-		if (!serverInfo.info.hyperion[0].config_writeable)
+		if (!serverInfo.hyperion.config_writeable)
 		{
 			showInfoDialog('uilock',$.i18n('InfoDialog_nowrite_title'),$.i18n('InfoDialog_nowrite_text'));
 			$('#wrapper').toggle(false);
@@ -35,8 +39,34 @@ $(document).ready( function() {
 			uiLock = false;
 		}
 
+		var sess = serverInfo.hyperion.sessions;
+		if (sess.length != prevSess)
+		{
+			wSess = [];
+			prevSess = sess.length;
+			for(var i = 0; i<sess.length; i++)
+			{
+				if(sess[i].type == "_hyperiond-http._tcp.")
+				{
+					wSess.push(sess[i]);  
+				}
+			}
+			
+			if (wSess.length > 1)
+				$('#btn_instanceswitch').toggle(true);
+			else
+				$('#btn_instanceswitch').toggle(false);
+		}
+
 	}); // end cmd-serverinfo
 
+	$(hyperion).one("cmd-sysinfo", function(event) {
+		requestServerInfo();
+		sysInfo = event.response.info;
+
+		currentVersion = sysInfo.hyperion.version;
+	});
+	
 	$(hyperion).one("cmd-config-getschema", function(event) {
 		serverSchema = event.response.result;
 		requestServerConfig();
@@ -46,7 +76,7 @@ $(document).ready( function() {
 
 	$(hyperion).one("cmd-config-getconfig", function(event) {
 		serverConfig = event.response.result;
-		requestServerInfo();
+		requestSysInfo();
 		
 		showOptHelp = serverConfig.general.showOptHelp;
 	});
@@ -67,8 +97,9 @@ $(document).ready( function() {
 		initRestart();
 	});
 	
-	$(".mnava").on('click', function(e){
+	$(".mnava").bind('click.menu', function(e){
 		loadContent(e);
+		window.scrollTo(0, 0);
 	});
 
 });

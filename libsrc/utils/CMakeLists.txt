@@ -25,6 +25,8 @@ SET(Utils_HEADERS
 	${CURRENT_HEADER_DIR}/RgbToRgbw.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonSchemaChecker.h
+	${CURRENT_HEADER_DIR}/global_defines.h
+	${CURRENT_HEADER_DIR}/SysInfo.h
 )
 
 SET(Utils_SOURCES
@@ -41,6 +43,7 @@ SET(Utils_SOURCES
 	${CURRENT_SOURCE_DIR}/RgbChannelAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/RgbTransform.cpp
 	${CURRENT_SOURCE_DIR}/RgbToRgbw.cpp
+	${CURRENT_SOURCE_DIR}/SysInfo.cpp
 	${CURRENT_SOURCE_DIR}/jsonschema/QJsonSchemaChecker.cpp
 )
 
@@ -59,7 +62,7 @@ add_library(hyperion-utils
 	${PROFILER_SOURCE}
 )
 
-qt5_use_modules(hyperion-utils Core Gui)
+qt5_use_modules(hyperion-utils Core Gui Network)
 
 target_link_libraries(hyperion-utils
 	${QT_LIBRARIES})

@@ -4,7 +4,7 @@
 
 #include <hyperion/ImageProcessorFactory.h>
 
-V4L2Wrapper::V4L2Wrapper(const std::string &device,
+V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
@@ -16,7 +16,7 @@ V4L2Wrapper::V4L2Wrapper(const std::string &device,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
 		const int priority)
-	: GrabberWrapper("V4L2:"+QString::fromStdString(device), priority, hyperion::COMP_V4L)
+	: GrabberWrapper("V4L2:"+device, priority, hyperion::COMP_V4L)
 	, _timeout_ms(1000)
 	, _grabber(device,
 			input,
@@ -121,4 +121,14 @@ void V4L2Wrapper::checkSources()
 void V4L2Wrapper::action()
 {
 	checkSources();
+}
+
+void V4L2Wrapper::setSignalDetectionEnable(bool enable)
+{
+	_grabber.setSignalDetectionEnable(enable);
+}
+
+bool V4L2Wrapper::getSignalDetectionEnable()
+{
+	return _grabber.getSignalDetectionEnabled();
 }
