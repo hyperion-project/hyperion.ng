@@ -8,6 +8,7 @@
 #include <QSize>
 #include <QImage>
 #include <QPainter>
+#include <QMap>
 
 // Hyperion includes
 #include <hyperion/ImageProcessor.h>
@@ -64,6 +65,10 @@ private:
 	static PyObject* wrapImageDrawRect         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSetPixel         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageGetPixel         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageSave             (PyObject *self, PyObject *args);
+	static PyObject* wrapImageMinSize          (PyObject *self, PyObject *args);
+	static PyObject* wrapImageWidth            (PyObject *self, PyObject *args);
+	static PyObject* wrapImageHeight           (PyObject *self, PyObject *args);
 
 	static Effect * getEffect();
 
@@ -74,7 +79,8 @@ private:
 	static void PyInit_hyperion();
 #endif
 
-private:
+	void addImage();
+
 	PyThreadState * _mainThreadState;
 
 	const int _priority;
@@ -96,12 +102,13 @@ private:
 	ImageProcessor * _imageProcessor;
 
 	/// Buffer for colorData
-	std::vector<ColorRgb> _colors;
+	QVector<ColorRgb> _colors;
 	
+	
+	QString      _origin;
 	QSize _imageSize;
-	
-	QImage * _image;
-	QPainter * _painter;
-	QString _origin;
+	QImage       _image;
+	QPainter*    _painter;
+	QVector<QImage> _imageStack;
 };
 	
