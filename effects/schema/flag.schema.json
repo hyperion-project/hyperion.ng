@@ -1,0 +1,27 @@
+{
+	"type":"object",
+	"script" : "flag.py",
+	"title":"edt_eff_flag_header_title",
+	"required":true,
+	"properties":{
+		"flags": {
+			"type": "array",
+			"format": "select",
+			"title" : "edt_eff_flags_title",
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": ["de","lt","fr","se","nl"]
+			},
+			"propertyOrder" : 1
+		}
+		"switch-time": {
+			"type": "integer",
+			"title":"edt_eff_switchtime_title",
+			"default": 5000,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties": false
+}
