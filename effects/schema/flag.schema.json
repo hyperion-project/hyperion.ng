@@ -14,7 +14,7 @@
 				"enum": ["de","lt","fr","se","nl"]
 			},
 			"propertyOrder" : 1
-		}
+		},
 		"switch-time": {
 			"type": "integer",
 			"title":"edt_eff_switchtime_title",
