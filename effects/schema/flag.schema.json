@@ -1,7 +1,7 @@
 {
 	"type":"object",
 	"script" : "flag.py",
-	"title":"edt_eff_flag_header_title",
+	"title":"edt_eff_flag_header",
 	"required":true,
 	"properties":{
 		"countries": {
@@ -11,13 +11,13 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"enum": ["de","lt","fr","se","nl"]
+				"enum": ["de","at","fr","be","it","es","bg","ee","dk","fi","hu","ie","lv","lt","lu","mt","nl","pl","pt","ro","sl","se","ch"]
 			},
 			"propertyOrder" : 1
 		},
 		"switch-time": {
 			"type": "integer",
-			"title":"edt_eff_switchtime_title",
+			"title":"edt_eff_interval_title",
 			"default": 5,
 			"minimum" : 1,
 			"append" : "edt_append_s",
