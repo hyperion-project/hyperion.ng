@@ -1,9 +1,8 @@
 {
-	"name" : "Flag EFFECT",
-	"script" : "flag.py",
-	"args" :
-	{
-		"countries" : ["de"],
-		"switch-time" : 5
+	"name": "Flag DE",
+	"script": "flag.py",
+	"args": {
+		"countries": ["de"],
+		"switch-time": 5
 	}
 }
