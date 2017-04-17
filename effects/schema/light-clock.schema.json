@@ -64,7 +64,7 @@
 			"type": "integer",
 			"title": "edt_eff_markerDepth_title",
 			"default": 5,
-			"minmum" : 0,
+			"minimum" : 0,
 			"maximum" : 100,
 			"append" : "edt_append_percent",
 			"propertyOrder" : 5
@@ -73,7 +73,7 @@
 			"type": "integer",
 			"title": "edt_eff_markerWidth_title",
 			"default": 5,
-			"minmum" : 0,
+			"minimum" : 0,
 			"maximum" : 100,
 			"append" : "edt_append_percent",
 			"propertyOrder" : 6

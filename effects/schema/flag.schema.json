@@ -4,10 +4,10 @@
 	"title":"edt_eff_flag_header_title",
 	"required":true,
 	"properties":{
-		"flags": {
+		"countries": {
 			"type": "array",
 			"format": "select",
-			"title" : "edt_eff_flags_title",
+			"title" : "edt_eff_countries_title",
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
@@ -18,8 +18,9 @@
 		"switch-time": {
 			"type": "integer",
 			"title":"edt_eff_switchtime_title",
-			"default": 5000,
-			"append" : "edt_append_ms",
+			"default": 5,
+			"minimum" : 1,
+			"append" : "edt_append_s",
 			"propertyOrder" : 2
 		}
 	},
