@@ -18,7 +18,7 @@ and copies the required files to the correct place. The firmware directory can b
 ```
 export FIRMWARE_DIR="raspberrypi-firmware"
 git clone --depth 1 https://github.com/raspberrypi/firmware.git "$FIRMWARE_DIR"
-sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /opt
+sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /
 ```
 
 ## Arch
