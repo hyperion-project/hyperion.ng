@@ -594,9 +594,9 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["height"].toInt(-1),
 				grabberConfig["frameDecimation"].toInt(2),
 				grabberConfig["sizeDecimation"].toInt(8),
-				grabberConfig["redSignalThreshold"].toDouble(0.0),
-				grabberConfig["greenSignalThreshold"].toDouble(0.0),
-				grabberConfig["blueSignalThreshold"].toDouble(0.0),
+				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890));
 			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(

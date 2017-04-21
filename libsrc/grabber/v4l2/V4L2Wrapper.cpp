@@ -12,9 +12,9 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int height,
 		int frameDecimation,
 		int pixelDecimation,
-		double redSignalThreshold.toDouble()/100.0,
-		double greenSignalThreshold.toDouble()/100.0,
-		double blueSignalThreshold.toDouble()/100.0,
+		double redSignalThreshold,
+		double greenSignalThreshold,
+		double blueSignalThreshold,
 		const int priority)
 	: GrabberWrapper("V4L2:"+device, priority, hyperion::COMP_V4L)
 	, _timeout_ms(1000)
