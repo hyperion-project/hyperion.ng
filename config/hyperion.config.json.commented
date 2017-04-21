@@ -119,9 +119,9 @@
 	///  * cropTop              : Cropping from the top [default=0]
 	///  * cropBottom           : Cropping from the bottom [default=0]
 	///  * signalDetection      : enable/disable signal detection [default=true]
-	///  * redSignalThreshold   : Signal threshold for the red channel between 0.0 and 1.0 [default=0.0]
-	///  * greenSignalThreshold : Signal threshold for the green channel between 0.0 and 1.0 [default=0.0]
-	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0.0 and 1.0 [default=0.0]
+	///  * redSignalThreshold   : Signal threshold for the red channel between 0 and 100 [default=5]
+	///  * greenSignalThreshold : Signal threshold for the green channel between 0 and 100 [default=5]
+	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0 and 100 [default=5]
 	///  * signalDetectionVerticalOffsetMin   : area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
 	///  * signalDetectionHorizontalOffsetMin : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
 	///  * signalDetectionVerticalOffsetMax   : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
@@ -144,10 +144,10 @@
 			"cropRight"   : 0,
 			"cropTop"     : 0,
 			"cropBottom"  : 0,
-			"redSignalThreshold"   : 0.0,
-			"greenSignalThreshold" : 0.0,
-			"blueSignalThreshold"  : 0.0,
-			"signalDetection"      : true,
+			"redSignalThreshold"   : 5,
+			"greenSignalThreshold" : 5,
+			"blueSignalThreshold"  : 5,
+			"signalDetection"      : false,
 			"signalDetectionVerticalOffsetMin"   : 0.25,
 			"signalDetectionHorizontalOffsetMin" : 0.25,
 			"signalDetectionVerticalOffsetMax"   : 0.75,

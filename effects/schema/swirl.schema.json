@@ -1,7 +1,7 @@
 {
 	"type":"object",
 	"script" : "swirl.py",
-	"title":"edt_eff_rainbowswirl_header_title",
+	"title":"edt_eff_swirl_header_title",
 	"required":true,
 	"properties":{
 		"rotation-time": {
@@ -49,6 +49,7 @@
 				"type": "array",
 				"title" : "edt_eff_color_title",
 				"format":"colorpicker",
+				"default" : [255,0,0],
 				"items":{
 					"type":"integer",
 					"minimum": 0,
@@ -57,7 +58,7 @@
 				"minItems": 3,
 				"maxItems": 3
 			},
-			"propertyOrder" : 1
+			"propertyOrder" : 6
 		}
 	},
 	"additionalProperties": false
