@@ -1,0 +1,8 @@
+{
+	"name": "Flag DE",
+	"script": "flag.py",
+	"args": {
+
+		"switch-time": 5
+	}
+}

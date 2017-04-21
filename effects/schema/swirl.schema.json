@@ -1,6 +1,6 @@
 {
 	"type":"object",
-	"script" : "rainbow-swirl.py",
+	"script" : "swirl.py",
 	"title":"edt_eff_rainbowswirl_header_title",
 	"required":true,
 	"properties":{
@@ -35,6 +35,29 @@
 			"title":"edt_eff_reversedirection_title",
 			"default": false,
 			"propertyOrder" : 4
+		},
+		"random-center": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter_title",
+			"default": false,
+			"propertyOrder" : 5
+		},
+		"custom-colors": {
+			"type": "array",
+			"title":"edt_eff_customColor_title",
+			"items" : {
+				"type": "array",
+				"title" : "edt_eff_color_title",
+				"format":"colorpicker",
+				"items":{
+					"type":"integer",
+					"minimum": 0,
+					"maximum": 255
+				},
+				"minItems": 3,
+				"maxItems": 3
+			},
+			"propertyOrder" : 1
 		}
 	},
 	"additionalProperties": false
