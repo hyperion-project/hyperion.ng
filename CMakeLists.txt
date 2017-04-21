@@ -150,14 +150,14 @@ SET( JSON_FILES
 #	MESSAGE (FATAL_ERROR "check of json files failed" )
 #ENDIF ()
 
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_EFFECTS_FAILED
-)
-IF ( ${CHECK_EFFECTS_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json effect files failed" )
-ENDIF ()
+#EXECUTE_PROCESS (
+#	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
+#	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#	RESULT_VARIABLE CHECK_EFFECTS_FAILED
+#)
+#IF ( ${CHECK_EFFECTS_FAILED} )
+#	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+#ENDIF ()
 
 EXECUTE_PROCESS (
 	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json

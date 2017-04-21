@@ -1,6 +1,6 @@
 {
 	"name" : "Rainbow swirl fast",
-	"script" : "rainbow-swirl.py",
+	"script" : "swirl.py",
 	"args" :
 	{
 		"rotation-time" : 7.0,
