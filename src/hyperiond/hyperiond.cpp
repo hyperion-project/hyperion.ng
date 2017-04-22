@@ -606,10 +606,10 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropBottom"].toInt(0));
 			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			grabber->setSignalDetectionOffset(
-				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionHorizontalOffsetMax"].toDouble(0.75),
-				grabberConfig["signalDetectionVerticalOffsetMax"].toDouble(0.75));
+				grabberConfig["sDHOffsetMin"].toDouble(0.25),
+				grabberConfig["sDVOffsetMin"].toDouble(0.25),
+				grabberConfig["sDHOffsetMax"].toDouble(0.75),
+				grabberConfig["sDVOffsetMax"].toDouble(0.75));
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));

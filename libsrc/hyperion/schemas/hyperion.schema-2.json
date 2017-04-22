@@ -611,14 +611,14 @@
 						},
 						"propertyOrder" : 19
 					},
-					"signalDetectionVerticalOffsetMin" :
+					"sDVOffsetMin" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+						"title" : "edt_conf_v4l2_sDVOffsetMin_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"default" : 0.25,
+						"step" : 0.01,
 						"options": {
 							"dependencies": {
 								"signalDetection": true
@@ -626,14 +626,14 @@
 						},
 						"propertyOrder" : 20
 					},
-					"signalDetectionVerticalOffsetMax" :
+					"sDVOffsetMax" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+						"title" : "edt_conf_v4l2_sDVOffsetMax_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"default" : 0.75,
+						"step" : 0.01,
 						"options": {
 							"dependencies": {
 								"signalDetection": true
@@ -641,14 +641,14 @@
 						},
 						"propertyOrder" : 21
 					},
-					"signalDetectionHorizontalOffsetMin" :
+					"sDHOffsetMin" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+						"title" : "edt_conf_v4l2_sDHOffsetMin_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"default" : 0.25,
+						"step" : 0.01,
 						"options": {
 							"dependencies": {
 								"signalDetection": true
@@ -656,14 +656,14 @@
 						},
 						"propertyOrder" : 22
 					},
-					"signalDetectionHorizontalOffsetMax" :
+					"sDHOffsetMax" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+						"title" : "edt_conf_v4l2_sDHOffsetMax_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"default" : 0.75,
+						"step" : 0.01,
 						"options": {
 							"dependencies": {
 								"signalDetection": true

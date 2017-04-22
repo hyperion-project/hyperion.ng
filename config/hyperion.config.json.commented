@@ -122,10 +122,10 @@
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0 and 100 [default=5]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0 and 100 [default=5]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0 and 100 [default=5]
-	///  * signalDetectionVerticalOffsetMin   : area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
-	///  * signalDetectionHorizontalOffsetMin : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
-	///  * signalDetectionVerticalOffsetMax   : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
-	///  * signalDetectionHorizontalOffsetMax : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
+	///  * sDHOffsetMin 		: area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
+	///  * sDVOffsetMin			: area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
+	///  * sDHOffsetMax   		: area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
+	///  * sDVOffsetMax			: area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
 	[
 		{
@@ -148,10 +148,10 @@
 			"greenSignalThreshold" : 5,
 			"blueSignalThreshold"  : 5,
 			"signalDetection"      : false,
-			"signalDetectionVerticalOffsetMin"   : 0.25,
-			"signalDetectionHorizontalOffsetMin" : 0.25,
-			"signalDetectionVerticalOffsetMax"   : 0.75,
-			"signalDetectionHorizontalOffsetMax" : 0.75
+			"sDVOffsetMin"   : 0.25,
+			"sDHOffsetMin" : 0.25,
+			"sDVOffsetMax"   : 0.75,
+			"sDHOffsetMax" : 0.75
 		}
 	],
 
