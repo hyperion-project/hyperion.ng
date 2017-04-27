@@ -66,7 +66,7 @@
 			"default": true,
 			"propertyOrder" : 5
 		},
-		"marker-enabled" {
+		"marker-enabled": {
 			"type": "boolean",
 			"title": "edt_eff_markerEnable",
 			"default": false,
