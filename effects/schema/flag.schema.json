@@ -7,7 +7,7 @@
 		"countries": {
 			"type": "array",
 			"format": "select",
-			"title" : "edt_eff_countries_title",
+			"title" : "edt_eff_countries",
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
@@ -17,7 +17,7 @@
 		},
 		"switch-time": {
 			"type": "integer",
-			"title":"edt_eff_interval_title",
+			"title":"edt_eff_interval",
 			"default": 5,
 			"minimum" : 1,
 			"append" : "edt_append_s",

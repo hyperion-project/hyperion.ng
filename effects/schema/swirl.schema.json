@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "swirl.py",
-	"title":"edt_eff_swirl_header_title",
+	"title":"edt_eff_swirl_header",
 	"required":true,
 	"properties":{
 		"rotation-time": {
 			"type": "number",
-			"title":"edt_eff_rotationtime_title",
+			"title":"edt_eff_rotationtime",
 			"default": 10.0,
 			"minimum" : 0.1,
 			"append" : "edt_append_s",
@@ -14,7 +14,7 @@
 		},
 		"center_x": {
 			"type": "number",
-			"title":"edt_eff_centerx_title",
+			"title":"edt_eff_centerx",
 			"default": 0.5,
 			"minimum" : 0.0,
 			"maximum" : 2.0,
@@ -23,7 +23,7 @@
 		},
 		"center_y": {
 			"type": "number",
-			"title":"edt_eff_centery_title",
+			"title":"edt_eff_centery",
 			"default": 0.5,
 			"minimum" : 0.0,
 			"maximum" : 2.0,
@@ -32,22 +32,22 @@
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"edt_eff_reversedirection_title",
+			"title":"edt_eff_reversedirection",
 			"default": false,
 			"propertyOrder" : 4
 		},
 		"random-center": {
 			"type": "boolean",
-			"title":"edt_eff_randomCenter_title",
+			"title":"edt_eff_randomCenter",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"custom-colors": {
 			"type": "array",
-			"title":"edt_eff_customColor_title",
+			"title":"edt_eff_customColor",
 			"items" : {
 				"type": "array",
-				"title" : "edt_eff_color_title",
+				"title" : "edt_eff_color",
 				"format":"colorpicker",
 				"default" : [255,0,0],
 				"items":{

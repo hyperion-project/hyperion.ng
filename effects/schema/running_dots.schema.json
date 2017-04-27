@@ -1,19 +1,19 @@
 {
 	"type":"object",
 	"script" : "running_dots.py",
-	"title":"edt_eff_runningdots_header_title",
+	"title":"edt_eff_runningdots_header",
 	"required":true,
 	"properties":{
 		"speed": {
 			"type": "number",
-			"title":"edt_eff_speed_title",
+			"title":"edt_eff_speed",
 			"default": 1.5,
 			"minimum" : 0.1,
 			"propertyOrder" : 1
 		},
 		"colorLevel": {
 			"type": "integer",
-			"title":"edt_eff_colorevel_title",
+			"title":"edt_eff_colorevel",
 			"default": 220,
 			"minimium" : 0,
 			"maximum" : 255,
@@ -21,7 +21,7 @@
 		},
 		"whiteLevel": {
 			"type": "integer",
-			"title":"edt_eff_whitelevel_title",
+			"title":"edt_eff_whitelevel",
 			"default": 0,
 			"minimium" : 0,
 			"maximum" : 254,

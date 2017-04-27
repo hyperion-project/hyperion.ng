@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "light-clock.py",
-	"title":"edt_eff_lightclock_header_title",
+	"title":"edt_eff_lightclock_header",
 	"required":true,
 	"properties":{
 		"hour-color": {
 			"type": "array",
-			"title": "edt_eff_colorHour_title",
+			"title": "edt_eff_colorHour",
 			"format": "colorpicker",
 			"default": [0, 0, 255],
 			"items": {
@@ -20,7 +20,7 @@
 		},
 		"minute-color": {
 			"type": "array",
-			"title": "edt_eff_colorMinute_title",
+			"title": "edt_eff_colorMinute",
 			"format": "colorpicker",
 			"default": [0, 255, 0],
 			"items": {
@@ -34,7 +34,7 @@
 		},
 		"second-color": {
 			"type": "array",
-			"title": "edt_eff_colorSecond_title",
+			"title": "edt_eff_colorSecond",
 			"format": "colorpicker",
 			"default": [255, 0, 0],
 			"items": {
@@ -48,9 +48,9 @@
 		},
 		"background-color": {
 			"type": "array",
-			"title": "edt_eff_backgroundColor_title",
+			"title": "edt_eff_backgroundColor",
 			"format": "colorpicker",
-			"default": [0, 0, 0,],
+			"default": [0, 0, 0],
 			"items": {
 				"type": "integer",
 				"minimum": 0,
@@ -62,7 +62,7 @@
 		},
 		"marker-depth": {
 			"type": "integer",
-			"title": "edt_eff_markerDepth_title",
+			"title": "edt_eff_markerDepth",
 			"default": 5,
 			"minimum" : 0,
 			"maximum" : 50,
@@ -71,7 +71,7 @@
 		},
 		"marker-width": {
 			"type": "integer",
-			"title": "edt_eff_markerWidth_title",
+			"title": "edt_eff_markerWidth",
 			"default": 5,
 			"minimum" : 0,
 			"maximum" : 25,
@@ -80,7 +80,7 @@
 		},
 		"marker-color": {
 			"type": "array",
-			"title":"edt_eff_colorMarker_title",
+			"title":"edt_eff_colorMarker",
 			"format":"colorpicker",
 			"default": [255,255,255],
 			"items" : {
@@ -94,7 +94,7 @@
 		},
 		"show_seconds": {
 			"type": "boolean",
-			"title":"edt_eff_showseconds_title",
+			"title":"edt_eff_showseconds",
 			"default": true,
 			"propertyOrder" : 8
 		}

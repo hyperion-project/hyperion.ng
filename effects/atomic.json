@@ -1,0 +1,13 @@
+{
+	"name" : "Atomic swirl",
+	"script" : "swirl.py",
+	"args" :
+	{
+		"rotation-time" : 10.0,
+		"center_x" : 0.5,
+		"center_y" : 0.5,
+		"reverse" : false,
+		"custom-colors":[[0,0,0],[255,255,0],[0,0,0],[255,255,0],[0,0,0],[255,255,0]],
+		"random-center":false
+	}
+}
