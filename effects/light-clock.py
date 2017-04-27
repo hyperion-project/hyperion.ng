@@ -8,6 +8,7 @@ hC         = hyperion.args.get('hour-color', (0,0,255))
 mC  	   = hyperion.args.get('minute-color', (0,255,0))
 sC 		   = hyperion.args.get('second-color', (255,0,0))
 bgC		   = hyperion.args.get('background-color', (0,0,0))
+markEnable = hyperion.args.get('marker-enabled', False)
 markD      = int(hyperion.args.get('marker-depth', 5))/100.0
 markW      = int(hyperion.args.get('marker-width', 5))/100.0
 markC	   = hyperion.args.get('marker-color', (255,255,255))
@@ -66,7 +67,7 @@ while not hyperion.abort():
 
 	if showSec:
 		hyperion.imageCanonicalGradient(centerX, centerY, angleS, colorsSecond)
-	if markD > 0.0:
+	if markEnable:
 		#marker left, right, top, bottom
 		hyperion.imageDrawLine(0, centerY, 0+markDepthX, centerY, markThick, markC[0], markC[1], markC[2])
 		hyperion.imageDrawLine(int(hyperion.imageWidth()), centerY, int(hyperion.imageWidth())-markDepthX, centerY, markThick, markC[0], markC[1], markC[2])
@@ -74,4 +75,4 @@ while not hyperion.abort():
 		hyperion.imageDrawLine(centerX, int(hyperion.imageHeight()), centerX, int(hyperion.imageHeight())-markDepthY, markThick, markC[0], markC[1], markC[2])
 
 	hyperion.imageShow()
-	time.sleep(1)
+	time.sleep(0.5)
