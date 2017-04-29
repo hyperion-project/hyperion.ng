@@ -1,0 +1,10 @@
+{
+	"name"   : "cinemastart",
+	"script" : "cinemastart.py",
+	"args"   :
+	{
+		"speed"            : 1.2,
+		"alarm-color"      : [255,0,0],
+		"shutdown-enabled" : false
+	}
+}
