@@ -62,6 +62,7 @@ private:
 	static PyObject* wrapImageRadialGradient   (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSolidFill        (PyObject *self, PyObject *args);
 	static PyObject* wrapImageDrawLine         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawPoint        (PyObject *self, PyObject *args);
 	static PyObject* wrapImageDrawRect         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSetPixel         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageGetPixel         (PyObject *self, PyObject *args);

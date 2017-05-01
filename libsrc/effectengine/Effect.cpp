@@ -30,6 +30,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageRadialGradient"   , Effect::wrapImageRadialGradient   , METH_VARARGS,  ""},
 	{"imageSolidFill"        , Effect::wrapImageSolidFill        , METH_VARARGS,  ""},
 	{"imageDrawLine"         , Effect::wrapImageDrawLine         , METH_VARARGS,  ""},
+	{"imageDrawPoint"        , Effect::wrapImageDrawPoint        , METH_VARARGS,  ""},
 	{"imageDrawRect"         , Effect::wrapImageDrawRect         , METH_VARARGS,  ""},
 	{"imageSetPixel"         , Effect::wrapImageSetPixel         , METH_VARARGS, "set pixel color of image"},
 	{"imageGetPixel"         , Effect::wrapImageGetPixel         , METH_VARARGS, "get pixel color of image"},
@@ -682,6 +683,40 @@ PyObject* Effect::wrapImageDrawLine(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
+PyObject* Effect::wrapImageDrawPoint(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b, x, y;
+	int a      = 255;
+	int thick  = 1;
+
+	bool argsOK = false;
+
+	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &x, &y, &thick, &r, &g, &b, &a) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiii", &x, &y, &thick, &r, &g, &b) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		QPainter * painter = effect->_painter;
+		QPen oldPen = painter->pen();
+		QPen newPen(QColor(r,g,b,a));
+		newPen.setWidth(thick);
+		painter->setPen(newPen);
+		painter->drawPoint(x, y);
+		painter->setPen(oldPen);
+	
+		return Py_BuildValue("");
+	}
+	return nullptr;
+}
 
 PyObject* Effect::wrapImageDrawRect(PyObject *self, PyObject *args)
 {
