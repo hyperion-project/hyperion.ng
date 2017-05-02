@@ -844,7 +844,8 @@ PyObject* Effect::wrapHsvFtoRgb(PyObject *self, PyObject *args)
 
 	if ( argCount == 3 && PyArg_ParseTuple(args, "ddd", &h, &s, &v) )
 	{
-		QColor cC.fromHsvF(h,s,v,a = 1.0).toRgb()
+		QColor cC;
+		cC.fromHsvF(h,s,v,a = 1.0).toRgb();
 		return Py_BuildValue("iii", cC.red(), cC.green(), cC.blue());
 	}
 	return nullptr;
