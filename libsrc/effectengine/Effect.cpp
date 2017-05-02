@@ -35,9 +35,10 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageSetPixel"         , Effect::wrapImageSetPixel         , METH_VARARGS, "set pixel color of image"},
 	{"imageGetPixel"         , Effect::wrapImageGetPixel         , METH_VARARGS, "get pixel color of image"},
 	{"imageSave"             , Effect::wrapImageSave             , METH_NOARGS,  "adds a new background image"},
-	{"imageMinSize"          , Effect::wrapImageMinSize             , METH_VARARGS, "sets minimal dimension of background image"},
+	{"imageMinSize"          , Effect::wrapImageMinSize          , METH_VARARGS, "sets minimal dimension of background image"},
 	{"imageWidth"            , Effect::wrapImageWidth            , METH_NOARGS,  "gets image width"},
 	{"imageHeight"           , Effect::wrapImageHeight           , METH_NOARGS,  "gets image height"},
+	{"hsvF_to_rgb"           , Effect::wrapHsvFtoRgb             , METH_NOARGS,  "convert hsvF (double) to rgb (int)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -834,6 +835,19 @@ PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	return Py_BuildValue("i", effect->_imageSize.height());
+}
+
+PyObject* Effect::wrapHsvFtoRgb(PyObject *self, PyObject *args)
+{
+	int argCount = PyTuple_Size(args);
+	double h, s, v, a;
+
+	if ( argCount == 3 && PyArg_ParseTuple(args, "ddd", &h, &s, &v) )
+	{
+		QColor cC.fromHsvF(h,s,v,a = 1.0).toRgb()
+		return Py_BuildValue("iii", cC.red(), cC.green(), cC.blue());
+	}
+	return nullptr;
 }
 
 Effect * Effect::getEffect()

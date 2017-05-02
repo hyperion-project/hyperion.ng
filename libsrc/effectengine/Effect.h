@@ -70,6 +70,7 @@ private:
 	static PyObject* wrapImageMinSize          (PyObject *self, PyObject *args);
 	static PyObject* wrapImageWidth            (PyObject *self, PyObject *args);
 	static PyObject* wrapImageHeight           (PyObject *self, PyObject *args);
+	static PyObject* wrapHsvFtoRgb             (PyObject *self, PyObject *args);
 
 	static Effect * getEffect();
 
