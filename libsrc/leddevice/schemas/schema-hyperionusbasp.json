@@ -11,7 +11,14 @@
 			"maximum": 1000,
 			"access" : "expert",
 			"propertyOrder" : 1
-		}
+		},
+                "ledType": {
+                        "type": "string",
+                        "title":"edt_dev_spec_ledType_title",
+                        "enum" : ["ws2801","ws2812"],
+                        "default": "ws2801",
+                        "propertyOrder" : 2
+                }
 	},
 	"additionalProperties": true
 }
