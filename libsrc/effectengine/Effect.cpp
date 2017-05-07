@@ -628,11 +628,6 @@ PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 			if (length % 2 == 0)
 			{
 				QVector <QPoint> points;
-				static const QPoint pointss[3] = {
-					QPoint(0, 0),
-					QPoint(6, 3),
-					QPoint(0, 6)
-				};
 				char * data = PyByteArray_AS_STRING(bytearray);
 
 				for (int idx=0; idx<length; idx+=2)
@@ -642,7 +637,7 @@ PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 
 				QPainter * painter = effect->_painter;
 				painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
-				painter->drawPolygon(pointss, 3);
+				painter->drawPolygon(points);
 				
 				return Py_BuildValue("");
 			}
