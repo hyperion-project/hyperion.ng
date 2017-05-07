@@ -32,13 +32,14 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageDrawLine"         , Effect::wrapImageDrawLine         , METH_VARARGS,  ""},
 	{"imageDrawPoint"        , Effect::wrapImageDrawPoint        , METH_VARARGS,  ""},
 	{"imageDrawRect"         , Effect::wrapImageDrawRect         , METH_VARARGS,  ""},
+	{"imageDrawPolygon"      , Effect::wrapImageDrawPolygon      , METH_VARARGS,  ""},
+	{"imageDrawPie"          , Effect::wrapImageDrawPie          , METH_VARARGS,  ""},
 	{"imageSetPixel"         , Effect::wrapImageSetPixel         , METH_VARARGS, "set pixel color of image"},
 	{"imageGetPixel"         , Effect::wrapImageGetPixel         , METH_VARARGS, "get pixel color of image"},
 	{"imageSave"             , Effect::wrapImageSave             , METH_NOARGS,  "adds a new background image"},
 	{"imageMinSize"          , Effect::wrapImageMinSize          , METH_VARARGS, "sets minimal dimension of background image"},
 	{"imageWidth"            , Effect::wrapImageWidth            , METH_NOARGS,  "gets image width"},
 	{"imageHeight"           , Effect::wrapImageHeight           , METH_NOARGS,  "gets image height"},
-	{"hsvF_to_rgb"           , Effect::wrapHsvFtoRgb             , METH_NOARGS,  "convert hsvF (double) to rgb (int)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -603,6 +604,147 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
+PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b;
+	int a = 255;
+	PyObject * bytearray = nullptr;
+
+	bool argsOK = false;
+
+	if ( argCount == 4 && PyArg_ParseTuple(args, "Oiii", &bytearray, &r, &g, &b) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		if (PyByteArray_Check(bytearray))
+		{
+			int length = PyByteArray_Size(bytearray);
+			if (length % 2 == 0)
+			{
+				QVector <QPoint> points;
+				char * data = PyByteArray_AS_STRING(bytearray);
+
+				for (int idx=0; idx<length; idx+=2)
+				{
+					points.append(QPoint((int)(data[idx]),(int)(data[idx+1])));
+				}
+
+				QPainter * painter = effect->_painter;
+				painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
+				effect->_painter->drawPolygon(points, length/2);
+				
+				return Py_BuildValue("");
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 2");
+				return nullptr;
+			}
+		}
+		else
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Argument 1 is not a bytearray");
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
+
+PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	int r, g, b, radius,
+	int startAngle = 0;
+	int spanAngle = 359;
+	int a = 255;
+	int centerX = 0;
+	int centerY = 0;
+	int width  = effect->_imageSize.width();
+	int height = effect->_imageSize.height();
+
+	bool argsOK = false;
+
+	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b, &a) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b) )
+	{
+		argsOK = true;
+	}
+	//if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &startAngle, &spanAngle, &brush, &bytearray) )
+	//{
+	//	argsOK = true;
+	//}
+	//if ( argCount == 5 && PyArg_ParseTuple(args, "iiiiO", &centerX, &centerY, &radius, &brush, &bytearray) )
+	//{
+	//	argsOK = true;
+	//}
+
+	if (argsOK)
+	{
+		QPainter * painter = effect->_painter;
+		
+		if( argCount == 7 || argCount == 5 )
+		{
+			a = 0;
+			if (PyByteArray_Check(bytearray))
+			{
+				int length = PyByteArray_Size(bytearray);
+				if (length % 4 == 0)
+				{
+
+					//QRect myQRect(startX,startY,width,height);
+					//QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
+					//char * data = PyByteArray_AS_STRING(bytearray);
+
+					//for (int idx=0; idx<length; idx+=4)
+					//{
+					//	gradient.setColorAt(
+					//		((uint8_t)data[idx])/255.0,
+					//		QColor(
+					//			(uint8_t)(data[idx+1]),
+					//			(uint8_t)(data[idx+2]),
+					//			(uint8_t)(data[idx+3])
+					//	));
+					}
+
+					//set a brush
+					painter->setBrush(QBrush(Qt::green));
+				
+					return Py_BuildValue("");
+				}
+				else
+				{
+					PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 4");
+					return nullptr;
+				}
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Last argument is not a bytearray");
+				return nullptr;
+			}
+		}
+		
+		QPen oldPen = painter->pen();
+		QPen newPen(QColor(r,g,b,a));
+		painter->setPen(newPen);
+		painter->drawPie(centerX - radius, centerY - radius, centerX + radius, centerY + radius, startAngle * 16, spanAngle * 16);
+		painter->setPen(oldPen);
+		return Py_BuildValue("");
+	}
+	return nullptr;
+}
+
 PyObject* Effect::wrapImageSolidFill(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
@@ -835,20 +977,6 @@ PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	return Py_BuildValue("i", effect->_imageSize.height());
-}
-
-PyObject* Effect::wrapHsvFtoRgb(PyObject *self, PyObject *args)
-{
-	int argCount = PyTuple_Size(args);
-	double h, s, v, a;
-
-	if ( argCount == 3 && PyArg_ParseTuple(args, "ddd", &h, &s, &v) )
-	{
-		QColor cC;
-		cC.fromHsvF(h,s,v,a = 1.0).toRgb();
-		return Py_BuildValue("iii", cC.red(), cC.green(), cC.blue());
-	}
-	return nullptr;
 }
 
 Effect * Effect::getEffect()
