@@ -716,7 +716,6 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 					//			(uint8_t)(data[idx+2]),
 					//			(uint8_t)(data[idx+3])
 					//	));
-					}
 
 					//set a brush
 					painter->setBrush(QBrush(Qt::green));
@@ -735,7 +734,6 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 				return nullptr;
 			}
 		}
-		
 		QPen oldPen = painter->pen();
 		QPen newPen(QColor(r,g,b,a));
 		painter->setPen(newPen);
