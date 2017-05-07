@@ -637,7 +637,7 @@ PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 
 				QPainter * painter = effect->_painter;
 				painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
-				effect->_painter->drawPolygon(points, length/2);
+				painter->drawPolygon(points);
 				
 				return Py_BuildValue("");
 			}
@@ -661,7 +661,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	Effect * effect = getEffect();
 
 	int argCount = PyTuple_Size(args);
-	int r, g, b, radius,
+	int r, g, b, radius;
 	int startAngle = 0;
 	int spanAngle = 359;
 	int a = 255;
