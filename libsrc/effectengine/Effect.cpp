@@ -669,7 +669,8 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	int centerY = 0;
 	int width  = effect->_imageSize.width();
 	int height = effect->_imageSize.height();
-
+	PyObject * bytearray = nullptr;
+	
 	bool argsOK = false;
 
 	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b, &a) )
