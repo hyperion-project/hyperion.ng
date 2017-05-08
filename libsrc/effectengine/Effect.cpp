@@ -711,7 +711,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 				int length = PyByteArray_Size(bytearray);
 				if (length % 5 == 0)
 				{
-					if(brush == "conancial")
+					if(brush == "conical")
 					{
 						QConicalGradient gradient(QPoint(centerX,centerY), startAngle);
 					}
@@ -721,6 +721,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 					}
 					else
 					{
+						QRadialGradient gradient();
 						PyErr_SetString(PyExc_RuntimeError, "Requested brush not found!");
 						return nullptr;
 					}
