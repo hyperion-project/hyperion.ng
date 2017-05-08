@@ -668,6 +668,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	Effect * effect = getEffect();
 	PyObject * bytearray = nullptr;
 	
+	QString brush;
 	int argCount = PyTuple_Size(args);
 	int radius, centerX, centerY;
 	int startAngle = 0;
