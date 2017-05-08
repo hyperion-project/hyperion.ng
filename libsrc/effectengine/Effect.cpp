@@ -607,14 +607,18 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
+	PyObject * bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a = 255;
-	PyObject * bytearray = nullptr;
 
 	bool argsOK = false;
 
+	if ( argCount == 5 && PyArg_ParseTuple(args, "Oiiii", &bytearray, &r, &g, &b, &a) )
+	{
+		argsOK = true;
+	}
 	if ( argCount == 4 && PyArg_ParseTuple(args, "Oiii", &bytearray, &r, &g, &b) )
 	{
 		argsOK = true;
@@ -636,9 +640,12 @@ PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 				}
 
 				QPainter * painter = effect->_painter;
+				QPen oldPen = painter->pen();
+				QPen newPen(QColor(r,g,b,a));
+				painter->setPen(newPen);
 				painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
 				painter->drawPolygon(points);
-				
+				painter->setPen(oldPen);
 				return Py_BuildValue("");
 			}
 			else
@@ -659,18 +666,17 @@ PyObject* Effect::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
-
-	int argCount = PyTuple_Size(args);
-	int r, g, b, radius;
-	int startAngle = 0;
-	int spanAngle = 359;
-	int a = 255;
-	int centerX = 0;
-	int centerY = 0;
-	int width  = effect->_imageSize.width();
-	int height = effect->_imageSize.height();
 	PyObject * bytearray = nullptr;
 	
+	int argCount = PyTuple_Size(args);
+	int radius, centerX, centerY;
+	int startAngle = 0;
+	int spanAngle = 360;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	int a = 255;
+
 	bool argsOK = false;
 
 	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b, &a) )
@@ -681,50 +687,63 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	//if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &startAngle, &spanAngle, &brush, &bytearray) )
-	//{
-	//	argsOK = true;
-	//}
-	//if ( argCount == 5 && PyArg_ParseTuple(args, "iiiiO", &centerX, &centerY, &radius, &brush, &bytearray) )
-	//{
-	//	argsOK = true;
-	//}
+	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiisO", &centerX, &centerY, &radius, &startAngle, &spanAngle, &brush, &bytearray) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 5 && PyArg_ParseTuple(args, "iiisO", &centerX, &centerY, &radius, &brush, &bytearray) )
+	{
+		argsOK = true;
+	}
 
 	if (argsOK)
 	{
 		QPainter * painter = effect->_painter;
-		
+		startAngle = std::max(std::min(startAngle,360),0);
+		spanAngle = std::max(std::min(spanAngle,360),-360);
+
 		if( argCount == 7 || argCount == 5 )
 		{
 			a = 0;
 			if (PyByteArray_Check(bytearray))
 			{
 				int length = PyByteArray_Size(bytearray);
-				if (length % 4 == 0)
+				if (length % 5 == 0)
 				{
+					if(brush == "conancial")
+					{
+						QConancialGradient gradient(QPoint(centerX,centerY), startAngle);
+					}
+					else if(brush == "radial")
+					{
+						QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
+					}
+					else
+					{
+						PyErr_SetString(PyExc_RuntimeError, "Requested brush not found!");
+						return nullptr;
+					}
 
-					//QRect myQRect(startX,startY,width,height);
-					//QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
-					//char * data = PyByteArray_AS_STRING(bytearray);
+					char * data = PyByteArray_AS_STRING(bytearray);
 
-					//for (int idx=0; idx<length; idx+=4)
-					//{
-					//	gradient.setColorAt(
-					//		((uint8_t)data[idx])/255.0,
-					//		QColor(
-					//			(uint8_t)(data[idx+1]),
-					//			(uint8_t)(data[idx+2]),
-					//			(uint8_t)(data[idx+3])
-					//	));
-
-					//set a brush
-					painter->setBrush(QBrush(Qt::green));
+					for (int idx=0; idx<length; idx+=5)
+					{
+						gradient.setColorAt(
+							((uint8_t)data[idx])/255.0,
+							QColor(
+								(uint8_t)(data[idx+1]),
+								(uint8_t)(data[idx+2]),
+								(uint8_t)(data[idx+3]),
+								(uint8_t)(data[idx+4])
+						));
+					}
+					painter->setBrush(QBrush(gradient));
 				
 					return Py_BuildValue("");
 				}
 				else
 				{
-					PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 4");
+					PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 5");
 					return nullptr;
 				}
 			}
@@ -733,6 +752,10 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 				PyErr_SetString(PyExc_RuntimeError, "Last argument is not a bytearray");
 				return nullptr;
 			}
+		}
+		else
+		{
+			painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
 		}
 		QPen oldPen = painter->pen();
 		QPen newPen(QColor(r,g,b,a));
