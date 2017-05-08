@@ -713,7 +713,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 				{
 					if(brush == "conancial")
 					{
-						QConancialGradient gradient(QPoint(centerX,centerY), startAngle);
+						QConicalGradient gradient(QPoint(centerX,centerY), startAngle);
 					}
 					else if(brush == "radial")
 					{
