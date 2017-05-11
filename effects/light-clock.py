@@ -59,14 +59,14 @@ while not hyperion.abort():
 	
 	#paint clock
 	if angleH-angleM < 90 and angleH-angleM > 0:
-		hyperion.imageCanonicalGradient(centerX, centerY, angleM, colorsMinute)
-		hyperion.imageCanonicalGradient(centerX, centerY, angleH, colorsHour)
+		hyperion.imageConicalGradient(centerX, centerY, angleM, colorsMinute)
+		hyperion.imageConicalGradient(centerX, centerY, angleH, colorsHour)
 	else:
-		hyperion.imageCanonicalGradient(centerX, centerY, angleH, colorsHour)
-		hyperion.imageCanonicalGradient(centerX, centerY, angleM, colorsMinute)
+		hyperion.imageConicalGradient(centerX, centerY, angleH, colorsHour)
+		hyperion.imageConicalGradient(centerX, centerY, angleM, colorsMinute)
 
 	if showSec:
-		hyperion.imageCanonicalGradient(centerX, centerY, angleS, colorsSecond)
+		hyperion.imageConicalGradient(centerX, centerY, angleS, colorsSecond)
 	if markEnable:
 		#marker left, right, top, bottom
 		hyperion.imageDrawLine(0, centerY, 0+markDepthX, centerY, markThick, markC[0], markC[1], markC[2])

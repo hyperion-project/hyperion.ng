@@ -61,7 +61,7 @@ while not hyperion.abort():
 	if angle > 360: angle=0
 	if angle <   0: angle=360
 	
-	hyperion.imageCanonicalGradient(centerX, centerY, angle, rainbowColors)
+	hyperion.imageConicalGradient(centerX, centerY, angle, rainbowColors)
 
 	hyperion.imageShow()
 	time.sleep(sleepTime)
