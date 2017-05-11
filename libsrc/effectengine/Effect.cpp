@@ -26,6 +26,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow"             , Effect::wrapImageShow             , METH_VARARGS,  "set current effect image to hyperion core."},
+	{"imageConicalGradient"  , Effect::wrapImageLinearGradient   , METH_VARARGS,  ""},
 	{"imageConicalGradient"  , Effect::wrapImageConicalGradient  , METH_VARARGS,  ""},
 	{"imageRadialGradient"   , Effect::wrapImageRadialGradient   , METH_VARARGS,  ""},
 	{"imageSolidFill"        , Effect::wrapImageSolidFill        , METH_VARARGS,  ""},
@@ -455,6 +456,72 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 	return Py_BuildValue("");
 }
 
+PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	int argCount = PyTuple_Size(args);
+	PyObject * bytearray = nullptr;
+	int startX = 0;
+	int startY = 0;
+	int endX   = effect->_imageSize.width();
+	int endY   = effect->_imageSize.height();
+	int spread = 0;
+
+	bool argsOK = false;
+
+	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiOi", &startX, &startY, &endX, &endY, &bytearray, &spread) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 2 && PyArg_ParseTuple(args, "iO", &angle, &bytearray) )
+	{
+		argsOK = true;
+	}
+
+	if (argsOK)
+	{
+		if (PyByteArray_Check(bytearray))
+		{
+			const int length = PyByteArray_Size(bytearray);
+			const unsigned arrayItemLength = 5;
+			if (length % arrayItemLength == 0)
+			{
+				QRect myQRect(startX,startY,endX,endY);
+				QLinearGradient gradient(QPoint(startX,startY), QPoint(endX,endY));
+				char * data = PyByteArray_AS_STRING(bytearray);
+
+				for (int idx=0; idx<length; idx+=arrayItemLength)
+				{
+					gradient.setColorAt(
+						((uint8_t)data[idx])/255.0,
+						QColor(
+							(uint8_t)(data[idx+1]),
+							(uint8_t)(data[idx+2]),
+							(uint8_t)(data[idx+3]),
+							(uint8_t)(data[idx+4])
+					));
+				}
+
+				gradient.setSpread(spread);
+				effect->_painter->fillRect(myQRect, gradient);
+				
+				return Py_BuildValue("");
+			}
+			else
+			{
+				PyErr_SetString(PyExc_RuntimeError, "Length of bytearray argument should multiple of 5");
+				return nullptr;
+			}
+		}
+		else
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Argument 8 is not a bytearray");
+			return nullptr;
+		}
+	}
+	return nullptr;
+}
 
 PyObject* Effect::wrapImageConicalGradient(PyObject *self, PyObject *args)
 {
@@ -533,14 +600,26 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	int centerX, centerY, radius, focalX, focalY, focalRadius;
 	int startX = 0;
 	int startY = 0;
+	int spread = 0;
 	int width  = effect->_imageSize.width();
 	int height = effect->_imageSize.height();
 
 	bool argsOK = false;
-	
+
+	if ( argCount == 12 && PyArg_ParseTuple(args, "iiiiiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread) )
+	{
+		argsOK      = true;
+	}	
 	if ( argCount == 11 && PyArg_ParseTuple(args, "iiiiiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
 	{
 		argsOK      = true;
+	}
+	if ( argCount ==  9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread) )
+	{
+		argsOK      = true;
+		focalX      = centerX;
+		focalY      = centerY;
+		focalRadius = radius;
 	}
 	if ( argCount ==  8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray) )
 	{
@@ -552,6 +631,13 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	if ( argCount ==  7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
 	{
 		argsOK = true;
+	}
+	if ( argCount ==  5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread) )
+	{
+		argsOK      = true;
+		focalX      = centerX;
+		focalY      = centerY;
+		focalRadius = radius;
 	}
 	if ( argCount ==  4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray) )
 	{
@@ -584,7 +670,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 					));
 				}
 
-				gradient.setSpread(QGradient::RepeatSpread);
+				gradient.setSpread(spread);
 				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
