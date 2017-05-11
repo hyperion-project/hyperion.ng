@@ -16,9 +16,9 @@ def switchImage():
 	nr += 1
 
 def printFlag(country):
-	# offcial country codes
+	# official country codes
 	#############
-	# EU flags -> missing cyprus, Czech Republic, Greece, UK
+	# EU flags -> missing: cyprus, UK
 	#############
 	# de flag (Germany)
 	if country == "de":
@@ -145,7 +145,23 @@ def printFlag(country):
 		hyperion.imageSolidFill(0, 106, 167)
 		hyperion.imageDrawLine(int(iW*0.35), 0, int(iW*0.35), iH, int(iW*0.14), 254, 204, 0)
 		hyperion.imageDrawLine(0, int(iH*0.5), iW, int(iH*0.5), int(iW*0.14), 254, 204, 0)
-
+	
+	# cz flag (Czech Republic)
+	if country == "cz":
+		hyperion.imageSolidFill(255, 255, 255)
+		hyperion.imageSolidFill(0, int(iH*0.5), iW, iH, 215, 20, 26)
+		hyperion.imageDrawPolygon(bytearray([0,0,int(iH*0.5),int(iH*0.5),0,iH]),17, 69, 126)
+	
+	# gr flag (Greece)
+	if country == "gr":
+		hyperion.imageSolidFill(13, 94, 175)
+		hyperion.imageDrawLine(int(iW*0.35), int(iH*0.15), iW, int(iH*0.15),int(0.1*iH), 255, 255, 255)
+		hyperion.imageDrawLine(int(iW*0.35), int(iH*0.35), iW, int(iH*0.35),int(0.1*iH), 255, 255, 255)
+		hyperion.imageDrawLine(0, int(iH*0.55), iW, int(iH*0.55),int(0.1*iH), 255, 255, 255)
+		hyperion.imageDrawLine(0, int(iH*0.75), iW, int(iH*0.75),int(0.1*iH), 255, 255, 255)
+		hyperion.imageDrawLine(int(0.175*iW), 0, int(0.175*iW), int(iH*0.35),int(0.1*iH), 255, 255, 255)
+		hyperion.imageDrawLine(0, int(0.175*iW), int(iH*0.35), int(0.175*iW),int(0.1*iH), 255, 255, 255)
+		
 	#############
 	# other flags
 	#############

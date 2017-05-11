@@ -584,7 +584,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 					));
 				}
 
-				//gradient.setSpread(QGradient::ReflectSpread);
+				gradient.setSpread(QGradient::RepeatSpread);
 				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
@@ -728,7 +728,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 								(uint8_t)(data[idx+4])
 						));
 					}
-					painter->setBrush(QBrush(gradient));
+					painter->setBrush(gradient);
 				
 					return Py_BuildValue("");
 				}
