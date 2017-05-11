@@ -474,10 +474,6 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	if ( argCount == 2 && PyArg_ParseTuple(args, "iO", &angle, &bytearray) )
-	{
-		argsOK = true;
-	}
 
 	if (argsOK)
 	{
@@ -503,7 +499,7 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 					));
 				}
 
-				gradient.setSpread(spread);
+				gradient.setSpread(static_cast<QGradient::Spread>(spread));
 				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
@@ -670,7 +666,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 					));
 				}
 
-				gradient.setSpread(spread);
+				gradient.setSpread(static_cast<QGradient::Spread>(spread));
 				effect->_painter->fillRect(myQRect, gradient);
 				
 				return Py_BuildValue("");
