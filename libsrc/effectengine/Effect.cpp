@@ -610,32 +610,18 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	{
 		argsOK      = true;
 	}
-	if ( argCount ==  9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread) )
+	if ( (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread)) || ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray)) )
 	{
 		argsOK      = true;
 		focalX      = centerX;
 		focalY      = centerY;
 		focalRadius = radius;
 	}
-	if ( argCount ==  8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray) )
-	{
-		argsOK      = true;
-		focalX      = centerX;
-		focalY      = centerY;
-		focalRadius = radius;
-	}
-	if ( argCount ==  7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
+	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
 	{
 		argsOK = true;
 	}
-	if ( argCount ==  5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread) )
-	{
-		argsOK      = true;
-		focalX      = centerX;
-		focalY      = centerY;
-		focalRadius = radius;
-	}
-	if ( argCount ==  4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray) )
+	if ( (argCount == 5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread)) || (argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray)) )
 	{
 		argsOK      = true;
 		focalX      = centerX;
