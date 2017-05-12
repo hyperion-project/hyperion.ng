@@ -476,15 +476,7 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiiO", &startRX, &startRY, &width, &height, &startX, &startY, &endX, &endY, &bytearray) )
-	{
-		argsOK = true;
-	}
 	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiOi", &startX, &startY, &endX, &endY, &bytearray, &spread) )
-	{
-		argsOK = true;
-	}
-	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiiO", &startX, &startY, &endX, &endY, &bytearray) )
 	{
 		argsOK = true;
 	}
@@ -501,7 +493,7 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 			const unsigned arrayItemLength = 5;
 			if (length % arrayItemLength == 0)
 			{
-				QRect myQRect(startX,startY,endX,endY);
+				QRect myQRect(startRX,startRY,width,height);
 				QLinearGradient gradient(QPoint(startX,startY), QPoint(endX,endY));
 				char * data = PyByteArray_AS_STRING(bytearray);
 
@@ -530,7 +522,7 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 		}
 		else
 		{
-			PyErr_SetString(PyExc_RuntimeError, "Argument 8 is not a bytearray");
+			PyErr_SetString(PyExc_RuntimeError, "No bytearray properly defined");
 			return nullptr;
 		}
 	}
@@ -624,22 +616,18 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	{
 		argsOK      = true;
 	}	
-	if ( argCount == 11 && PyArg_ParseTuple(args, "iiiiiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
-	{
-		argsOK      = true;
-	}
-	if ( (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread)) || ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray)) )
+	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread) )
 	{
 		argsOK      = true;
 		focalX      = centerX;
 		focalY      = centerY;
 		focalRadius = radius;
 	}
-	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiiO", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray) )
+	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiOi", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread) )
 	{
 		argsOK = true;
 	}
-	if ( (argCount == 5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread)) || (argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &radius, &bytearray)) )
+	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread) )
 	{
 		argsOK      = true;
 		focalX      = centerX;
