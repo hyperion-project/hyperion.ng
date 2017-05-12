@@ -462,15 +462,33 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
+	int startRX = 0;
+	int startRY = 0;
 	int startX = 0;
 	int startY = 0;
-	int endX   = effect->_imageSize.width();
-	int endY   = effect->_imageSize.height();
+	int endX, width = effect->_imageSize.width();
+	int endY, height = effect->_imageSize.height();
 	int spread = 0;
 
 	bool argsOK = false;
 
+	if ( argCount == 10 && PyArg_ParseTuple(args, "iiiiiiiiOi", &startRX, &startRY, &width, &height, &startX, &startY, &endX, &endY, &bytearray, &spread) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiiO", &startRX, &startRY, &width, &height, &startX, &startY, &endX, &endY, &bytearray) )
+	{
+		argsOK = true;
+	}
 	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiOi", &startX, &startY, &endX, &endY, &bytearray, &spread) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiiO", &startX, &startY, &endX, &endY, &bytearray) )
+	{
+		argsOK = true;
+	}
+	if ( argCount == 1 && PyArg_ParseTuple(args, "O", &bytearray) )
 	{
 		argsOK = true;
 	}
