@@ -41,6 +41,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageMinSize"          , Effect::wrapImageMinSize          , METH_VARARGS, "sets minimal dimension of background image"},
 	{"imageWidth"            , Effect::wrapImageWidth            , METH_NOARGS,  "gets image width"},
 	{"imageHeight"           , Effect::wrapImageHeight           , METH_NOARGS,  "gets image height"},
+	{"imageRotate"           , Effect::wrapImageRotate           , METH_VARARGS, "rotate the coordinate system by given angle"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1064,6 +1065,22 @@ PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	return Py_BuildValue("i", effect->_imageSize.height());
+}
+
+PyObject* Effect::wrapImageRotate(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	
+	int argCount = PyTuple_Size(args);
+	int angle;
+	
+	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
+	{
+		angle = std::max(std::min(angle,360),0);
+		effect->_painter->rotate(angle.toDouble());
+		return Py_BuildValue("");
+	}
+	return nullptr;
 }
 
 Effect * Effect::getEffect()
