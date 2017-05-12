@@ -26,7 +26,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow"             , Effect::wrapImageShow             , METH_VARARGS,  "set current effect image to hyperion core."},
-	{"imageConicalGradient"  , Effect::wrapImageLinearGradient   , METH_VARARGS,  ""},
+	{"imageLinearGradient"   , Effect::wrapImageLinearGradient   , METH_VARARGS,  ""},
 	{"imageConicalGradient"  , Effect::wrapImageConicalGradient  , METH_VARARGS,  ""},
 	{"imageRadialGradient"   , Effect::wrapImageRadialGradient   , METH_VARARGS,  ""},
 	{"imageSolidFill"        , Effect::wrapImageSolidFill        , METH_VARARGS,  ""},
