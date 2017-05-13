@@ -1077,7 +1077,7 @@ PyObject* Effect::wrapImageRotate(PyObject *self, PyObject *args)
 	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
 	{
 		angle = std::max(std::min(angle,360),0);
-		effect->_painter->rotate(angle.toDouble());
+		effect->_painter->rotate(angle);
 		return Py_BuildValue("");
 	}
 	return nullptr;
