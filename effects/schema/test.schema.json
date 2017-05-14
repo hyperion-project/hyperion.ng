@@ -1,6 +1,6 @@
 {
 	"type":"object",
-	"script" : "swirl.py",
+	"script" : "test.py",
 	"title":"Test schema",
 	"required":true,
 	"properties":{
