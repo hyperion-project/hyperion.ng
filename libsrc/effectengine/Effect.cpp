@@ -1071,12 +1071,20 @@ PyObject* Effect::wrapImageRotate(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	
+	int offsetX, offsetY;
 	int argCount = PyTuple_Size(args);
 	int angle;
 	
 	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
 	{
 		angle = std::max(std::min(angle,360),0);
+		effect->_painter->rotate(angle);
+		return Py_BuildValue("");
+	}
+	if ( argCount == 3 && PyArg_ParseTuple(args, "iii", &angle, &offsetX, &offsetY ) )
+	{
+		angle = std::max(std::min(angle,360),0);
+		effect->_painter->translate(QPoint(offsetX,offsetY));
 		effect->_painter->rotate(angle);
 		return Py_BuildValue("");
 	}
