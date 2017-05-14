@@ -1,0 +1,22 @@
+{
+	"type":"object",
+	"script" : "swirl.py",
+	"title":"Test schema",
+	"required":true,
+	"properties":{
+		"custom-colors": {
+			"type": "array",
+			"title":"edt_eff_customColor",
+			"items" : {
+				"type": "array",
+				"title" : "edt_eff_color",
+				"format":"colorpickerRGBA",
+				"default" : [255,0,0,0.5],
+				"minItems": 4,
+				"maxItems": 4
+			},
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties": false
+}
