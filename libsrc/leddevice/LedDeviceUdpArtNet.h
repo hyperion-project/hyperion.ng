@@ -7,11 +7,6 @@
 
 /**
  *
- * https://raw.githubusercontent.com/forkineye/ESPixelStick/master/_ArtNet.h
- * Project: ArtNet - E.131 (sACN) library for Arduino
- * Copyright (c) 2015 Shelby Merrick
- * http://www.forkineye.com
- *
  *  This program is provided free for you to use in any way that you wish,
  *  subject to the laws and regulations where you are using it.  Due diligence
  *  is strongly suggested before using this code.  Please give credit where due.
@@ -21,18 +16,19 @@
 #define ArtNet_DEFAULT_PORT 5568
 
 
+// http://stackoverflow.com/questions/16396013/artnet-packet-structure
 typedef union
 {
 	struct {
-		char		ID[8];         //"Art-Net"
-		uint16_t	OpCode;      // See Doc. Table 1 - OpCodes eg. 0x5000 OpOutput / OpDmx
-		uint16_t	version;     // 0x0e00 (aka 14)
-		uint8_t		seq;         // monotonic counter
-		uint8_t		physical;    // 0x00
-		uint8_t		subUni;      // low universe (0-255)
-		uint8_t		net;         // high universe (not used)
-		uint16_t	length;      // data length (2 - 512)
-		uint8_t		data[512];  // universe data
+		char		ID[8];		// "Art-Net"
+		uint16_t	OpCode;		// See Doc. Table 1 - OpCodes eg. 0x5000 OpOutput / OpDmx
+		uint16_t	ProtVer;	// 0x0e00 (aka 14)
+		uint8_t		Sequence;	// monotonic counter
+		uint8_t		Physical;	// 0x00
+		uint8_t		SubUni;		// low universe (0-255)
+		uint8_t		Net;		// high universe (not used)
+		uint16_t	Length;		// data length (2 - 512)
+		uint8_t		Data[512];	// universe data
 	} __attribute__((packed));
 
 	uint8_t raw[18+512];
@@ -77,7 +73,6 @@ private:
 	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
 
 	artnet_packet_t artnet_packet;
-	uint8_t _artnet_seq = 0;
-	uint8_t _artnet_universe = 1;
-	uint8_t _acn_id[8] = {0x41, 0x72, 0x74, 0x2d, 0x4e, 0x65, 0x74, 0x00 }; //  "Art-Net", 0x00 
+	uint8_t _artnet_seq = 1;
+	unsigned _artnet_universe = 1;
 };
