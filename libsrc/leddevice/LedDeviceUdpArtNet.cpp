@@ -39,7 +39,7 @@ void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned th
 	artnet_packet.physical = 0;
 	artnet_packet.subUni = this_universe;
 	artnet_packet.net = 0;
-	artnet_packet.length = 0;
+	artnet_packet.length = htons(this_dmxChannelCount);
 
 }
 
@@ -77,7 +77,7 @@ int LedDeviceUdpArtNet::write(const std::vector<ColorRgb> &ledValues)
 				, ArtNet_DMP_DATA + 1 + thisChannelCount
 				);
 #endif
-			retVal &= writeBytes(19 + thisChannelCount, artnet_packet.data);
+			retVal &= writeBytes(18 + thisChannelCount, artnet_packet.raw);
 		}
 	}
 
