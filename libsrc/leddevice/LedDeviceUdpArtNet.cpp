@@ -33,8 +33,8 @@ void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned th
 
 	memcpy (artnet_packet.ID, "Art-Net\0", 8);
 
-	artnet_packet.OpCode	= 0x5000;	// OpOutput / OpDmx
-	artnet_packet.ProtVer	= 0x0e00;
+	artnet_packet.OpCode	= htons(0x0050);	// OpOutput / OpDmx
+	artnet_packet.ProtVer	= htons(0x000e);
 	artnet_packet.Sequence	= 0;
 	artnet_packet.Physical	= 0;
 	artnet_packet.SubUni	= this_universe & 0xff ;
