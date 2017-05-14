@@ -13,8 +13,9 @@
  *
  **/
 
-#define ArtNet_DEFAULT_PORT 5568
+#define ArtNet_DEFAULT_PORT	5568
 
+#define DMX_MAX			512        // 512 usable slots
 
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
 typedef union
@@ -28,14 +29,12 @@ typedef union
 		uint8_t		SubUni;		// low universe (0-255)
 		uint8_t		Net;		// high universe (not used)
 		uint16_t	Length;		// data length (2 - 512)
-		uint8_t		Data[512];	// universe data
+		uint8_t		Data[ DMX_MAX ];	// universe data
 	} __attribute__((packed));
 
-	uint8_t raw[18+512];
+	uint8_t raw[ 18 + DMX_MAX ];
 
 } artnet_packet_t;
-
-#define DMX_MAX                                 512        // 512 usable slots
 
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp/E1.31 packets
