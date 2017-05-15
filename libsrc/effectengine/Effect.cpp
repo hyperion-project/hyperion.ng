@@ -41,7 +41,10 @@ PyMethodDef Effect::effectMethods[] = {
 	{"imageMinSize"          , Effect::wrapImageMinSize          , METH_VARARGS, "sets minimal dimension of background image"},
 	{"imageWidth"            , Effect::wrapImageWidth            , METH_NOARGS,  "gets image width"},
 	{"imageHeight"           , Effect::wrapImageHeight           , METH_NOARGS,  "gets image height"},
-	{"imageRotate"           , Effect::wrapImageRotate           , METH_VARARGS, "rotate the coordinate system by given angle"},
+	{"imageCRotate"          , Effect::wrapImageCRotate          , METH_VARARGS, "rotate the coordinate system by given angle"},
+	{"imageCOffset"          , Effect::wrapImageCOffset          , METH_VARARGS, "Add offset to the coordinate system"},
+	{"imageCShear"           , Effect::wrapImageCShear           , METH_VARARGS, "Shear of coordinate system by the given horizontal/vertical axis"},
+	{"imageResetT"           , Effect::wrapImageResetT           , METH_NOARGS,  "Resets all coords modifications (rotate,offset,shear)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -481,10 +484,6 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	if ( argCount == 1 && PyArg_ParseTuple(args, "O", &bytearray) )
-	{
-		argsOK = true;
-	}
 
 	if (argsOK)
 	{
@@ -604,10 +603,9 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
-	int centerX, centerY, radius, focalX, focalY, focalRadius;
+	int centerX, centerY, radius, focalX, focalY, focalRadius, spread;
 	int startX = 0;
 	int startY = 0;
-	int spread = 0;
 	int width  = effect->_imageSize.width();
 	int height = effect->_imageSize.height();
 
@@ -1067,7 +1065,7 @@ PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
 	return Py_BuildValue("i", effect->_imageSize.height());
 }
 
-PyObject* Effect::wrapImageRotate(PyObject *self, PyObject *args)
+PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	
@@ -1081,14 +1079,47 @@ PyObject* Effect::wrapImageRotate(PyObject *self, PyObject *args)
 		effect->_painter->rotate(angle);
 		return Py_BuildValue("");
 	}
-	if ( argCount == 3 && PyArg_ParseTuple(args, "iii", &angle, &offsetX, &offsetY ) )
+	return nullptr;
+}
+
+PyObject* Effect::wrapImageCOffset(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	
+	int offsetX = 0;
+	int offsetY = 0;
+	int argCount = PyTuple_Size(args);
+	
+	if ( argCount == 2 )
 	{
-		angle = std::max(std::min(angle,360),0);
-		effect->_painter->translate(QPoint(offsetX,offsetY));
-		effect->_painter->rotate(angle);
+		PyArg_ParseTuple(args, "ii", &offsetX, &offsetY );
+	}
+	
+	effect->_painter->translate(QPoint(offsetX,offsetY));
+	return Py_BuildValue("");
+}
+
+PyObject* Effect::wrapImageCShear(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+	
+	int sh,sv;
+	int argCount = PyTuple_Size(args);
+	
+	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &sh, &sv ))
+	{
+		effect->_painter->shear(sh,sv);
 		return Py_BuildValue("");
 	}
 	return nullptr;
+}
+
+PyObject* Effect::wrapImageResetT(PyObject *self, PyObject *args)
+{
+	Effect * effect = getEffect();
+
+	effect->_painter->resetTransform();
+	return Py_BuildValue("");
 }
 
 Effect * Effect::getEffect()
