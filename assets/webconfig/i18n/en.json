@@ -372,6 +372,7 @@
 	"edt_dev_spec_transistionTime_title" : "Transistion time",
 	"edt_dev_spec_switchOffOnBlack_title" : "Switch off on black",
 	"edt_dev_spec_brightnessFactor_title" : "Brightness factor",
+	"edt_dev_spec_ledType_title" : "LED Type",
 	"edt_dev_spec_uid_title" : "UID",
 	"edt_dev_spec_intervall_title" : "Intervall",
 	"edt_dev_spec_latchtime_title" : "Latch time",

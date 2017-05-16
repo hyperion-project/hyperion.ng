@@ -347,6 +347,7 @@
     "edt_dev_spec_gpioBcm_title": "Pin GPIO",
     "edt_dev_spec_ledIndex_title": "Índice LED",
     "edt_dev_spec_colorComponent_title": "Componente de color",
+    "edt_dev_spec_ledType_title": "Tipo de LED",
     "edt_conf_general_enable_title": "Activar",
     "edt_conf_general_enable_expl": "Si está marcada, el componente está habilitado",
     "edt_conf_general_priority_title": "Canal prioritario",
