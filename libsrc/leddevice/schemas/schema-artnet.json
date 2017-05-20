@@ -21,6 +21,12 @@
 			"default": 1,
 			"propertyOrder" : 3
 		},
+		"channelsPerFixture": {
+			"type": "integer",
+			"title":"edt_dev_spec_chanperfixture_title",
+			"default": 3,
+			"propertyOrder" : 4
+		},
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
@@ -29,7 +35,7 @@
 			"minimum": 1,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties": true

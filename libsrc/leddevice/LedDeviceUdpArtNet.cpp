@@ -15,7 +15,7 @@ bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 	_port = 6454;
 	ProviderUdp::init(deviceConfig);
 	_artnet_universe = deviceConfig["universe"].toInt(1);
-
+	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 
 	return true;
 }
@@ -27,15 +27,20 @@ LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 
 
 // populates the headers
-void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_dmxChannelCount)
+void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_sequence, unsigned this_dmxChannelCount)
 {
-	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
+// WTF? why do the specs say:
+// "This value should be an even number in the range 2 – 512. "
+	if (this_dmxChannelCount & 0x1)
+	{
+		this_dmxChannelCount++;
+	}
 
 	memcpy (artnet_packet.ID, "Art-Net\0", 8);
 
 	artnet_packet.OpCode	= htons(0x0050);	// OpOutput / OpDmx
 	artnet_packet.ProtVer	= htons(0x000e);
-	artnet_packet.Sequence	= 0;
+	artnet_packet.Sequence	= this_sequence;
 	artnet_packet.Physical	= 0;
 	artnet_packet.SubUni	= this_universe & 0xff ;
 	artnet_packet.Net	= (this_universe >> 8) & 0x7f;
@@ -46,8 +51,7 @@ void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned th
 int LedDeviceUdpArtNet::write(const std::vector<ColorRgb> &ledValues)
 {
 	int retVal            = 0;
-	int thisChannelCount = 0;
-
+	int thisUniverse	= _artnet_universe;
 	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
 
 /*
@@ -59,31 +63,29 @@ The Sequence field is set to 0x00 to disable this feature.
 		_artnet_seq = 1;
 	}
 
-	for (int rawIdx = 0; rawIdx < _ledRGBCount; rawIdx++)
+	int dmxIdx = 0;			// offset into the current dmx packet
+
+	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
+	for (int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
 	{
-		if (rawIdx % DMX_MAX == 0) // start of new packet
+
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx];
+		if ( (ledIdx % 3 == 2) && (ledIdx > 0) )
 		{
-			thisChannelCount = (_ledRGBCount - rawIdx < DMX_MAX) ? _ledRGBCount % DMX_MAX : DMX_MAX;
-//			                       is this the last packet?         ?       ^^ last packet      : ^^ earlier packets
-
-// WTF? why do the specs say:
-// "This value should be an even number in the range 2 – 512. "
-			if (thisChannelCount & 0x1)
-			{
-				thisChannelCount++;
-			}
-
-			prepare(_artnet_universe + rawIdx / DMX_MAX, thisChannelCount);
-			artnet_packet.Sequence = _artnet_seq;
+			dmxIdx += (_artnet_channelsPerFixture-3);
 		}
 
-		artnet_packet.Data[rawIdx%DMX_MAX] = rawdata[rawIdx];
-
-//     is this the     last byte of last packet    ||   last byte of other packets
-		if ( (rawIdx == _ledRGBCount-1) || (rawIdx %DMX_MAX == DMX_MAX-1) )
+//     is this the   last byte of last packet   ||   last byte of other packets
+		if ( (ledIdx == _ledRGBCount-1) || (dmxIdx >= DMX_MAX) )
 		{
-			retVal &= writeBytes(18 + thisChannelCount, artnet_packet.raw);
+			prepare(thisUniverse, _artnet_seq, dmxIdx);
+			retVal &= writeBytes(18 + std::min(dmxIdx, DMX_MAX), artnet_packet.raw);
+
+			memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
+			thisUniverse ++;
+			dmxIdx = 0;
 		}
+
 	}
 
 	return retVal;

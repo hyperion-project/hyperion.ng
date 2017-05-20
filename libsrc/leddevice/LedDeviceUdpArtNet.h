@@ -69,9 +69,11 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
-	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
+	void prepare(const unsigned this_universe, const unsigned this_sequence, const unsigned this_dmxChannelCount);
+
 
 	artnet_packet_t artnet_packet;
 	uint8_t _artnet_seq = 1;
+	uint8_t _artnet_channelsPerFixture = 3;
 	unsigned _artnet_universe = 1;
 };
