@@ -39,6 +39,7 @@
 #include "LedDeviceTpm2net.h"
 #include "LedDeviceUdpRaw.h"
 #include "LedDeviceUdpE131.h"
+#include "LedDeviceUdpArtNet.h"
 #include "LedDeviceHyperionUsbasp.h"
 #include "LedDevicePhilipsHue.h"
 #include "LedDeviceTpm2.h"
@@ -91,6 +92,7 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	REGISTER(Tpm2net);
 	REGISTER(UdpRaw);
 	REGISTER(UdpE131);
+	REGISTER(UdpArtNet);
 	REGISTER(UdpH801);
 	REGISTER(PhilipsHue);
 	REGISTER(AtmoOrb);
