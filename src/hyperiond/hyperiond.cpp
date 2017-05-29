@@ -50,6 +50,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
+	, _stats(nullptr)
 {
 	loadConfig(configFile, CURRENT_CONFIG_VERSION );
 
@@ -99,6 +100,7 @@ void HyperionDaemon::freeObjects()
 	delete _protoServer;
 	delete _boblightServer;
 	delete _udpListener;
+	delete _stats;
 
 	_v4l2Grabbers.clear();
 	_amlGrabber     = nullptr;
@@ -110,6 +112,7 @@ void HyperionDaemon::freeObjects()
 	_protoServer    = nullptr;
 	_boblightServer = nullptr;
 	_udpListener    = nullptr;
+	_stats          = nullptr;
 }
 
 void HyperionDaemon::run()
@@ -301,6 +304,9 @@ void HyperionDaemon::createKODIVideoChecker()
 void HyperionDaemon::startNetworkServices()
 {
 	KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
+
+	// Create Stats
+	_stats = new Stats();
 
 	// Create Json server if configuration is present
 	unsigned int jsonPort = 19444;

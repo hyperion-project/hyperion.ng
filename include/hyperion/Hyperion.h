@@ -178,6 +178,8 @@ public:
 	int getLedMappingType() { return _ledMAppingType; };
 	
 	int getConfigVersionId() { return _configVersionId; };
+	
+	QJsonObject getConfig() { return _qjsonConfig; };
 
 	int getLatchTime() const;
 
