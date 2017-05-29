@@ -293,7 +293,7 @@ void EffectEngine::readEffects()
 				Warning(_log, "Failed to create Effect path \"%s\", please check permissions",path.toUtf8().constData() );
 			}
 		}
-		if (directory.exists(path))
+		else
 		{
 			int efxCount = 0;
 			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
@@ -335,10 +335,6 @@ void EffectEngine::readEffects()
 			}
 			if (efxCount > 0)
 				Info(_log, "%d effect schemas loaded from directory %s", efxCount, (path + "schema/").toUtf8().constData());
-		}
-		else
-		{
-			Warning(_log, "Effect path \"%s\" does not exist",path.toUtf8().constData() );
 		}
 	}
 
