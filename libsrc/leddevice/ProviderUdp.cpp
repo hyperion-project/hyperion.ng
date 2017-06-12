@@ -17,10 +17,10 @@
 
 ProviderUdp::ProviderUdp()
 	: LedDevice()
-	, _LatchTime_ns(-1)
 	, _port(1)
 	, _defaultHost("127.0.0.1")
 {
+	_latchTime_ms = 1;
 	_udpSocket = new QUdpSocket();
 }
 
@@ -60,8 +60,6 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	
-	_LatchTime_ns = deviceConfig["latchtime"].toInt(_LatchTime_ns);
-
 	return true;
 }
 
@@ -79,21 +77,7 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 {
 
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);
-
-	if (retVal >= 0 && _LatchTime_ns > 0)
-	{
-		// The 'latch' time for latching the shifted-value into the leds
-		timespec latchTime;
-		latchTime.tv_sec  = 0;
-		latchTime.tv_nsec = _LatchTime_ns;
-
-		// Sleep to latch the leds (only if write succesfull)
-		nanosleep(&latchTime, NULL);
-	}
-	else
-	{
-		Warning( _log, "Error sending: %s", strerror(errno));
-	}
+	WarningIf((retVal<0), _log, "Error sending: %s", strerror(errno));
 
 	return retVal;
 }

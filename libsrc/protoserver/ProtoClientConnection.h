@@ -7,6 +7,7 @@
 #include <QByteArray>
 #include <QTcpSocket>
 #include <QStringList>
+#include <QString>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -140,5 +141,8 @@ private:
 	
 	int _priority;
 	
-	std::string _priorityChannelName;
+	QString _priorityChannelName;
+
+	/// address of client
+	QString _clientAddress;
 };

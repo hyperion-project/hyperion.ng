@@ -1,6 +1,5 @@
 // stdlib includes
 #include <iterator>
-#include <sstream>
 #include <algorithm>
 #include <math.h>
 
@@ -33,7 +32,7 @@ bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired
 	_error = false;
 	_messages.clear();
 	_currentPath.clear();
-	_currentPath.push_back("[root]");
+	_currentPath.append("[root]");
 
 	// validate
 	validate(value, _qSchema);
@@ -86,6 +85,10 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			checkMinimum(value, attributeValue);
 		else if (attribute == "maximum")
 			checkMaximum(value, attributeValue);
+		else if (attribute == "minLength")
+			checkMinLength(value, attributeValue);
+		else if (attribute == "maxLength")
+			checkMaxLength(value, attributeValue);
 		else if (attribute == "items")
 		{
 			if (value.isArray())
@@ -116,21 +119,18 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 		{
 			// no check function defined for this attribute
 			_error = true;
-			setMessage(std::string("No check function defined for attribute ") + attribute.toStdString());
+			setMessage("No check function defined for attribute " + attribute);
 			continue;
 		}
 	}
 }
 
-void QJsonSchemaChecker::setMessage(const std::string & message)
+void QJsonSchemaChecker::setMessage(const QString & message)
 {
-	std::ostringstream oss;
-	std::copy(_currentPath.begin(), _currentPath.end(), std::ostream_iterator<std::string>(oss, ""));
-	oss << ": " << message;
-	_messages.push_back(oss.str());
+	_messages.append(_currentPath.join("") +": "+message);
 }
 
-const std::list<std::string> & QJsonSchemaChecker::getMessages() const
+const QStringList & QJsonSchemaChecker::getMessages() const
 {
 	return _messages;
 }
@@ -166,7 +166,7 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 	if (wrongType)
 	{
 		_error = true;
-		setMessage(type.toStdString() + " expected");
+		setMessage(type + " expected");
 	}
 }
 
@@ -178,7 +178,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 
 		const QJsonValue  & propertyValue = i.value();
 
-		_currentPath.push_back(std::string(".") + property.toStdString());
+		_currentPath.append("." + property);
 		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
 
 		if (value.contains(property))
@@ -190,7 +190,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 			_error = true;
 			setMessage("missing member");
 		}
-		_currentPath.pop_back();
+		_currentPath.removeLast();
 	}
 }
 
@@ -202,7 +202,7 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 		if (std::find(ignoredProperties.begin(), ignoredProperties.end(), property) == ignoredProperties.end())
 		{
 			// property has no property definition. check against the definition for additional properties
-			_currentPath.push_back(std::string(".") + property.toStdString());
+			_currentPath.append("." + property);
 			if (schema.isBool())
 			{
 				if (schema.toBool() == false)
@@ -215,7 +215,7 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 			{
 				validate(value[property].toObject(), schema.toObject());
 			}
-			_currentPath.pop_back();
+			_currentPath.removeLast();
 		}
 	}
 }
@@ -233,9 +233,7 @@ void QJsonSchemaChecker::checkMinimum(const QJsonValue & value, const QJsonValue
 	if (value.toDouble() < schema.toDouble())
 	{
 		_error = true;
-		std::ostringstream oss;
-		oss << "value is too small (minimum=" << schema.toDouble() << ")";
-		setMessage(oss.str());
+		setMessage("value is too small (minimum=" + schema.toString() + ")");
 	}
 }
 
@@ -252,9 +250,41 @@ void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue
 	if (value.toDouble() > schema.toDouble())
 	{
 		_error = true;
-		std::ostringstream oss;
-		oss << "value is too large (maximum=" << schema.toDouble() << ")";
-		setMessage(oss.str());
+		setMessage("value is too large (maximum=" + schema.toString() + ")");
+	}
+}
+
+void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonValue & schema)
+{
+	if (!value.isString())
+	{
+		// only for Strings
+		_error = true;
+		setMessage("minLength check only for string fields");
+		return;
+	}
+
+	if (value.toString().size() < schema.toInt())
+	{
+		_error = true;
+		setMessage("value is too short (minLength=" + schema.toString() + ")");
+	}
+}
+
+void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonValue & schema)
+{
+	if (!value.isString())
+	{
+		// only for Strings
+		_error = true;
+		setMessage("maxLength check only for string fields");
+		return;
+	}
+
+	if (value.toString().size() > schema.toInt())
+	{
+		_error = true;
+		setMessage("value is too long (maxLength=" + schema.toString() + ")");
 	}
 }
 
@@ -272,11 +302,9 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 	for(int i = 0; i < jArray.size(); ++i)
 	{
 		// validate each item
-		std::ostringstream oss;
-		oss << "[" << i << "]";
-		_currentPath.push_back(oss.str());
+		_currentPath.append("[" + QString::number(i) + "]");
 		validate(jArray[i], schema);
-		_currentPath.pop_back();
+		_currentPath.removeLast();
 	}
 }
 
@@ -296,9 +324,7 @@ void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValu
 	if (static_cast<int>(jArray.size()) < minimum)
 	{
 		_error = true;
-		std::ostringstream oss;
-		oss << "array is too small (minimum=" << minimum << ")";
-		setMessage(oss.str());
+		setMessage("array is too large (minimum=" + QString::number(minimum) + ")");
 	}
 }
 
@@ -318,9 +344,7 @@ void QJsonSchemaChecker::checkMaxItems(const QJsonValue & value, const QJsonValu
 	if (static_cast<int>(jArray.size()) > maximum)
 	{
 		_error = true;
-		std::ostringstream oss;
-		oss << "array is too large (maximum=" << maximum << ")";
-		setMessage(oss.str());
+		setMessage("array is too large (maximum=" + QString::number(maximum) + ")");
 	}
 }
 
@@ -371,10 +395,7 @@ void QJsonSchemaChecker::checkEnum(const QJsonValue & value, const QJsonValue & 
 
 	// nothing found
 	_error = true;
-	std::ostringstream oss;
-	oss << "Unknown enum value (allowed values are: " << schema.toString().toStdString();
 	QJsonDocument doc(schema.toArray());
 	QString strJson(doc.toJson(QJsonDocument::Compact));
-	oss << strJson.toStdString() << ")";
-	setMessage(oss.str());
+	setMessage("Unknown enum value (allowed values are: " + schema.toString() + strJson+ ")");
 }

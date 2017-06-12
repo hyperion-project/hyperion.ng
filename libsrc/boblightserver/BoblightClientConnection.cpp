@@ -12,6 +12,7 @@
 // Qt includes
 #include <QResource>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion util includes
 #include "hyperion/ImageProcessorFactory.h"
@@ -32,6 +33,7 @@ BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int
 	, _priority(priority)
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
 	, _log(Logger::getInstance("BOBLIGHT"))
+	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
 	// initalize the locale. Start with the default C-locale
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
@@ -165,16 +167,16 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
 							{
-								_hyperion->setColors(_priority, _ledColors, -1, hyperion::COMP_BOBLIGHTSERVER);
+								_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
 							}
 
 							return;
 						}
 					}
 					else if(messageParts[3] == "speed" ||
-							messageParts[3] == "interpolation" ||
-							messageParts[3] == "use" ||
-							messageParts[3] == "singlechange")
+						      messageParts[3] == "interpolation" ||
+						      messageParts[3] == "use" ||
+						      messageParts[3] == "singlechange")
 					{
 						// these message are ignored by Hyperion
 						return;
@@ -203,38 +205,33 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			// send current color values to hyperion
 			if (_priority < 255)
 			{
-				_hyperion->setColors(_priority, _ledColors, -1, hyperion::COMP_BOBLIGHTSERVER);
+				_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
 			}
 			return;
 		}
 	}
 
-	Debug(_log, "unknown boblight message: %s", message.toStdString().c_str());
+	Debug(_log, "unknown boblight message: %s", QSTRING_CSTR(message));
 }
 
-void BoblightClientConnection::sendMessage(const std::string & message)
+void BoblightClientConnection::sendMessage(const QByteArray & message)
 {
 	//std::cout << "send boblight message: " << message;
-	_socket->write(message.c_str(), message.size());
-}
-
-void BoblightClientConnection::sendMessage(const char * message, int size)
-{
-	//std::cout << "send boblight message: " << std::string(message, size);
-	_socket->write(message, size);
+	_socket->write(message);
 }
 
 void BoblightClientConnection::sendLightMessage()
 {
 	char buffer[256];
-	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
-	sendMessage(buffer, n);
 
+	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
+	sendMessage(QByteArray(buffer, n));
+
+	double h0, h1, v0, v1;
 	for (unsigned i = 0; i < _hyperion->getLedCount(); ++i)
 	{
-		double h0, h1, v0, v1;
 		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
 		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
-		sendMessage(buffer, n);
+		sendMessage(QByteArray(buffer, n));
 	}
 }

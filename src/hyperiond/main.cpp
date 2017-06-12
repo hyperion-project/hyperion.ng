@@ -1,6 +1,7 @@
 #include <cassert>
 #include <csignal>
 #include <unistd.h>
+#include <stdlib.h>
 
 #ifndef __APPLE__
 /* prctl is Linux only */
@@ -60,6 +61,8 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 int main(int argc, char** argv)
 {
+	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
+
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);

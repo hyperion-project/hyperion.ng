@@ -2,6 +2,23 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 10,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 1
+		},
+                "ledType": {
+                        "type": "string",
+                        "title":"edt_dev_spec_ledType_title",
+                        "enum" : ["ws2801","ws2812"],
+                        "default": "ws2801",
+                        "propertyOrder" : 2
+                }
 	},
 	"additionalProperties": true
 }

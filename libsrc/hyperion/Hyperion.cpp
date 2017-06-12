@@ -3,6 +3,7 @@
 #include <cassert>
 #include <exception>
 #include <sstream>
+#include <unistd.h>
 
 // QT includes
 #include <QDateTime>
@@ -13,6 +14,7 @@
 #include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
+#include <QHostInfo>
 
 // hyperion include
 #include <hyperion/Hyperion.h>
@@ -58,7 +60,7 @@ ColorOrder Hyperion::createColorOrder(const QJsonObject &deviceConfig)
 
 ColorAdjustment * Hyperion::createColorAdjustment(const QJsonObject & adjustmentConfig)
 {
-	const std::string id = adjustmentConfig["id"].toString("default").toStdString();
+	const QString id = adjustmentConfig["id"].toString("default");
 
 	RgbChannelAdjustment * blackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
 	RgbChannelAdjustment * whiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
@@ -117,13 +119,13 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 		{
 			// Special case for indices '*' => all leds
 			adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", colorAdjustment->_id.c_str(), ledCnt-1);
+			Info(CORE_LOGGER, "ColorAdjustment '%s' => [0; %d]", QSTRING_CSTR(colorAdjustment->_id), ledCnt-1);
 			continue;
 		}
 
 		if (!overallExp.exactMatch(ledIndicesStr))
 		{
-			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, ledIndicesStr.toStdString().c_str());
+			Error(CORE_LOGGER, "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
 			continue;
 		}
 
@@ -150,7 +152,7 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 				ss << index;
 			}
 		}
-		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", colorAdjustment->_id.c_str(), ss.str().c_str()); 
+		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str()); 
 	}
 
 	return adjustment;
@@ -160,12 +162,13 @@ RgbTransform* Hyperion::createRgbTransform(const QJsonObject& colorConfig)
 {
 	const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
 	const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
-	const double brightness    = colorConfig["brightness"].toDouble(0.5);
+	const double brightness    = colorConfig["brightness"].toInt(100);
+	const double brightnessComp= colorConfig["brightnessCompensation"].toInt(100);
 	const double gammaR        = colorConfig["gammaRed"].toDouble(1.0);
 	const double gammaG        = colorConfig["gammaGreen"].toDouble(1.0);
 	const double gammaB        = colorConfig["gammaBlue"].toDouble(1.0);
 
-	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness);
+	RgbTransform* transform = new RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessComp);
 	return transform;
 }
 
@@ -317,10 +320,8 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 
 
 
-LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice)
-{
-	std::string type = smoothingConfig["type"].toString("linear").toStdString();
-	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice){
+	QString type = smoothingConfig["type"].toString("linear").toLower();
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
 	
@@ -337,7 +338,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	}
 	else
 	{
-		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", type.c_str());
+		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", QSTRING_CSTR(type));
 	}
 	
 	device->setEnable(smoothingConfig["enable"].toBool(true));
@@ -358,7 +359,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Json forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addJsonSlave(addr[i].toString().toStdString());
+					forwarder->addJsonSlave(addr[i].toString());
 				}
 			}
 
@@ -368,7 +369,7 @@ MessageForwarder * Hyperion::createMessageForwarder(const QJsonObject & forwarde
 				for (signed i = 0; i < addr.size(); ++i)
 				{
 					Info(CORE_LOGGER, "Proto forward to %s", addr.at(i).toString().toStdString().c_str());
-					forwarder->addProtoSlave(addr[i].toString().toStdString());
+					forwarder->addProtoSlave(addr[i].toString());
 				}
 			}
 		}
@@ -391,14 +392,16 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _qjsonConfig(qjsonConfig)
 	, _configFile(configFile)
 	, _timer()
+	, _timerBonjourResolver()
 	, _log(CORE_LOGGER)
 	, _hwLedCount(_ledString.leds().size())
 	, _sourceAutoSelectEnabled(true)
 	, _configHash()
 	, _ledGridSize(getLedLayoutGridSize(qjsonConfig["leds"]))
 	, _prevCompId(hyperion::COMP_INVALID)
+	, _bonjourBrowser(this)
+	, _bonjourResolver(this)
 {
-	registerPriority("Off", PriorityMuxer::LOWEST_PRIORITY);
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -406,6 +409,10 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	}
 	// set color correction activity state
 	const QJsonObject& color = qjsonConfig["color"].toObject();
+
+	_bonjourBrowser.browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
+	connect(&_bonjourBrowser, SIGNAL(currentBonjourRecordsChanged(const QList<BonjourRecord>&)),this, SLOT(currentBonjourRecordsChanged(const QList<BonjourRecord> &)));
+	connect(&_bonjourResolver, SIGNAL(bonjourRecordResolved(const QHostInfo &, int)), this, SLOT(bonjourRecordResolved(const QHostInfo &, int)));
 	
 	// initialize the image processor factory
 	_ledMAppingType = ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString());
@@ -417,13 +424,19 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	_device       = LedDeviceFactory::construct(qjsonConfig["device"].toObject(),_hwLedCount);
 	_deviceSmooth = createColorSmoothing(qjsonConfig["smoothing"].toObject(), _device);
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
+	getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
 
 	// setup the timer
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 
+	_timerBonjourResolver.setSingleShot(false);
+	_timerBonjourResolver.setInterval(1000);
+	QObject::connect(&_timerBonjourResolver, SIGNAL(timeout()), this, SLOT(bonjourResolve()));
+	_timerBonjourResolver.start();
+
 	// create the effect engine
-	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject());
+	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
 	
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
@@ -442,6 +455,10 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	update();
 }
 
+int Hyperion::getLatchTime() const
+{
+  return _device->getLatchTime();
+}
 
 void Hyperion::freeObjects(bool emitCloseSignal)
 {
@@ -471,6 +488,49 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
+void Hyperion::currentBonjourRecordsChanged(const QList<BonjourRecord> &list)
+{
+	_hyperionSessions.clear();
+	for ( auto rec : list )
+	{
+		_hyperionSessions.insert(rec.serviceName, rec);
+	}
+}
+
+void Hyperion::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
+{
+	if ( _hyperionSessions.contains(_bonjourCurrentServiceToResolve))
+	{
+		QString host   = hostInfo.hostName();
+		QString domain = _hyperionSessions[_bonjourCurrentServiceToResolve].replyDomain;
+		if (host.endsWith("."+domain))
+		{
+			host.remove(host.length()-domain.length()-1,domain.length()+1);
+		}
+		_hyperionSessions[_bonjourCurrentServiceToResolve].hostName = host;
+		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
+		_hyperionSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
+		Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
+	}
+}
+
+void Hyperion::bonjourResolve()
+{
+	for(auto key : _hyperionSessions.keys())
+	{
+		if (_hyperionSessions[key].port < 0)
+		{
+			_bonjourCurrentServiceToResolve = key;
+			_bonjourResolver.resolveBonjourRecord(_hyperionSessions[key]);
+			break;
+		}
+	}
+}
+
+Hyperion::BonjourRegister Hyperion::getHyperionSessions()
+{
+	return _hyperionSessions;
+}
 
 bool Hyperion::configModified()
 {
@@ -504,23 +564,23 @@ bool Hyperion::configWriteable()
 }
 
 
-void Hyperion::registerPriority(const std::string name, const int priority)
+void Hyperion::registerPriority(const QString &name, const int priority/*, const QString &origin*/)
 {
-	Info(_log, "Register new input source named '%s' for priority channel '%d'", name.c_str(), priority );
+	Info(_log, "Register new input source named '%s' for priority channel '%d'", QSTRING_CSTR(name), priority );
 	
-	for(auto const &entry : _priorityRegister)
+	for(auto key : _priorityRegister.keys())
 	{
-		WarningIf( ( entry.first != name && entry.second == priority), _log,
-		           "Input source '%s' uses same priority channel (%d) as '%s'.", name.c_str(), priority, entry.first.c_str());
+		WarningIf( ( key != name && _priorityRegister.value(key) == priority), _log,
+		           "Input source '%s' uses same priority channel (%d) as '%s'.", QSTRING_CSTR(name), priority, QSTRING_CSTR(key));
 	}
 
-	_priorityRegister.emplace(name,priority);
+	_priorityRegister.insert(name, priority);
 }
 
-void Hyperion::unRegisterPriority(const std::string name)
+void Hyperion::unRegisterPriority(const QString &name)
 {
-	Info(_log, "Unregister input source named '%s' from priority register", name.c_str());
-	_priorityRegister.erase(name);
+	Info(_log, "Unregister input source named '%s' from priority register", QSTRING_CSTR(name));
+	_priorityRegister.remove(name);
 }
 
 void Hyperion::setSourceAutoSelectEnabled(bool enabled)
@@ -551,14 +611,20 @@ bool Hyperion::setCurrentSourcePriority(int priority )
 
 void Hyperion::setComponentState(const hyperion::Components component, const bool state)
 {
-	if (component == hyperion::COMP_SMOOTHING)
+	switch (component)
 	{
-		_deviceSmooth->setEnable(state);
-		getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
-	}
-	else
-	{
-		emit componentStateChanged(component, state);
+		case hyperion::COMP_SMOOTHING:
+			_deviceSmooth->setEnable(state);
+			getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
+			break;
+
+		case hyperion::COMP_LEDDEVICE:
+			_device->setEnable(state);
+			getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
+			break;
+
+		default:
+			emit componentStateChanged(component, state);
 	}
 }
 
@@ -571,7 +637,7 @@ void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_m
 	setColors(priority, ledColors, timeout_ms, clearEffects, hyperion::COMP_COLOR);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin)
 {
 	// clear effects if this call does not come from an effect
 	if (clearEffects)
@@ -582,11 +648,11 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		_muxer.setInput(priority, ledColors, timeoutTime, component);
+		_muxer.setInput(priority, ledColors, timeoutTime, component, origin);
 	}
 	else
 	{
-		_muxer.setInput(priority, ledColors, -1, component);
+		_muxer.setInput(priority, ledColors, -1, component, origin);
 	}
 
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())
@@ -603,12 +669,12 @@ void Hyperion::setImage(int priority, const Image<ColorRgb> & image, int duratio
 	}
 }
 
-const std::vector<std::string> & Hyperion::getAdjustmentIds() const
+const QStringList & Hyperion::getAdjustmentIds() const
 {
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
 
-ColorAdjustment * Hyperion::getAdjustment(const std::string& id)
+ColorAdjustment * Hyperion::getAdjustment(const QString& id)
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }
@@ -688,14 +754,14 @@ const std::list<EffectSchema> & Hyperion::getEffectSchemas()
 	return _effectEngine->getEffectSchemas();
 }
 
-int Hyperion::setEffect(const QString &effectName, int priority, int timeout)
+int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)
 {
-	return _effectEngine->runEffect(effectName, priority, timeout);
+	return _effectEngine->runEffect(effectName, priority, timeout, origin);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, QString pythonScript)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString & pythonScript, const QString & origin)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin);
 }
 
 void Hyperion::setLedMappingType(int mappingType)
@@ -717,16 +783,13 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
-	if ( priority < PriorityMuxer::LOWEST_PRIORITY)
+	if (priorityInfo.componentId != _prevCompId)
 	{
-		if (priorityInfo.componentId != _prevCompId)
-		{
-			bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
-			_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
-			_prevCompId = priorityInfo.componentId;
-		}
-		_raw2ledAdjustment->applyAdjustment(_ledBuffer);
+		bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
+		_raw2ledAdjustment->setBacklightEnabled(backlightEnabled);
+		_prevCompId = priorityInfo.componentId;
 	}
+	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
 	// init colororder vector, if empty
 	if (_ledStringColorOrder.empty())
@@ -786,13 +849,19 @@ void Hyperion::update()
 	}
 	
 	// Write the data to the device
-	if (_deviceSmooth->enabled())
-		_deviceSmooth->setLedValues(_ledBuffer);
-	else
-		_device->setLedValues(_ledBuffer);
+	if (_device->enabled())
+	{
+		_deviceSmooth->setPause(priorityInfo.componentId == hyperion::COMP_EFFECT);
+		// feed smoothing in pause mode to maintain a smooth transistion back to smoth mode
+		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
+			_deviceSmooth->setLedValues(_ledBuffer);
+		
+		if  (! _deviceSmooth->enabled())
+			_device->setLedValues(_ledBuffer);
+	}
 
 	// Start the timeout-timer
-	if (priorityInfo.timeoutTime_ms == -1)
+	if (priorityInfo.timeoutTime_ms <= 0)
 	{
 		_timer.stop();
 	}
@@ -801,4 +870,5 @@ void Hyperion::update()
 		int timeout_ms = std::max(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
 		_timer.start(timeout_ms);
 	}
+
 }

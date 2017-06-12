@@ -3,7 +3,6 @@
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	_LatchTime_ns = 500000;
 	_port = 5568;
 	init(deviceConfig);
 }

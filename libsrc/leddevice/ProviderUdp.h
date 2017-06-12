@@ -48,9 +48,6 @@ protected:
 	///
 	int writeBytes(const unsigned size, const uint8_t *data);
 
-	/// The time which the device should be untouched after a write
-	int _LatchTime_ns;
-
 	///
 	QUdpSocket * _udpSocket;
 	QHostAddress _address;

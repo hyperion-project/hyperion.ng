@@ -3,6 +3,7 @@
 #include <initializer_list>
 #include <limits>
 #include <iostream>
+#include <stdlib.h>
 
 // Qt includes
 #include <QCoreApplication>
@@ -40,6 +41,8 @@ void showHelp(Option & option){
 
 int main(int argc, char * argv[])
 {
+	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
+
 	std::cout
 		<< "hyperion-remote:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
@@ -67,13 +70,15 @@ int main(int argc, char * argv[])
 		Option          & argCreateEffect= parser.add<Option>       (0x0, "createEffect","Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
 		Option          & argDeleteEffect= parser.add<Option>       (0x0, "deleteEffect","Delete a custom created Json Effect configuration file.");
 		BooleanOption   & argServerInfo  = parser.add<BooleanOption>('l', "list"      , "List server info and active effects with priority and duration");
+		BooleanOption   & argSysInfo     = parser.add<BooleanOption>('s', "sysinfo"   , "show system info");
 		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
-		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
-		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L]");
-		Option          & argId           = parser.add<Option>       ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
-		DoubleOption    & argBrightness   = parser.add<DoubleOption> ('L', "brightness" , "Set the brightness gain of the leds");
-		DoubleOption    & argBacklightThreshold= parser.add<DoubleOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
+		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argId           = parser.add<Option>      ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
+		IntOption       & argBrightness   = parser.add<IntOption>   ('L', "brightness" , "Set the brightness gain of the leds");
+		IntOption       & argBrightnessC  = parser.add<IntOption>   (0x0, "brightnessCompensation" , "Set the brightness compensation");
+		IntOption       & argBacklightThreshold= parser.add<IntOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
 		IntOption       & argBacklightColored  = parser.add<IntOption>    (0x0, "backlightColored" , "0 = white backlight; 1 =  colored backlight");
 		DoubleOption    & argGamma       = parser.add<DoubleOption>  ('g', "gamma"     , "Set the overall gamma of the leds");
 		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
@@ -89,7 +94,8 @@ int main(int argc, char * argv[])
 		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
-		BooleanOption   & argSourceOff   = parser.add<BooleanOption>(0x0, "sourceOff", "select no source, this results in leds activly set to black (=off)");
+		BooleanOption   & argOff         = parser.add<BooleanOption>(0x0, "off", "deactivates hyperion");
+		BooleanOption   & argOn          = parser.add<BooleanOption>(0x0, "on", "activates hyperion");
 		BooleanOption   & argConfigGet   = parser.add<BooleanOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
 		BooleanOption   & argSchemaGet   = parser.add<BooleanOption>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
 		Option          & argConfigSet   = parser.add<Option>       (0x0, "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
@@ -105,13 +111,13 @@ int main(int argc, char * argv[])
 
 		// check if at least one of the available color transforms is set
 		bool colorAdjust = parser.isSet(argRAdjust) || parser.isSet(argGAdjust) || parser.isSet(argBAdjust) || parser.isSet(argCAdjust) || parser.isSet(argMAdjust)
-			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)
+			|| parser.isSet(argYAdjust) || parser.isSet(argWAdjust) || parser.isSet(argbAdjust) || parser.isSet(argGamma)|| parser.isSet(argBrightness)|| parser.isSet(argBrightnessC)
 			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored);
 		
 		// check that exactly one command was given
 		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect), 
-		    parser.isSet(argServerInfo), parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
-		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argSourceOff), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
+		    parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
+		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
 			parser.isSet(argMapping) });
 		if (commandCount != 1)
 		{
@@ -122,6 +128,7 @@ int main(int argc, char * argv[])
 			showHelp(argCreateEffect);
 			showHelp(argDeleteEffect);
 			showHelp(argServerInfo);
+			showHelp(argSysInfo);
 			showHelp(argClear);
 			showHelp(argClearAll);
 			showHelp(argEnableComponent);
@@ -132,6 +139,7 @@ int main(int argc, char * argv[])
 			qWarning() << "or one or more of the available color modding operations:";
 			showHelp(argId);
 			showHelp(argBrightness);
+			showHelp(argBrightnessC);
 			showHelp(argBacklightThreshold);
 			showHelp(argBacklightColored);
 			showHelp(argGamma);
@@ -171,8 +179,11 @@ int main(int argc, char * argv[])
 		}
 		else if (parser.isSet(argServerInfo))
 		{
-			QString info = connection.getServerInfo();
-			std::cout << "Server info:\n" << info.toStdString() << std::endl;
+			std::cout << "Server info:\n" << connection.getServerInfo().toStdString() << std::endl;
+		}
+		else if (parser.isSet(argSysInfo))
+		{
+			std::cout << "System info:\n" << connection.getSysInfo().toStdString() << std::endl;
 		}
 		else if (parser.isSet(argClear))
 		{
@@ -190,9 +201,13 @@ int main(int argc, char * argv[])
 		{
 			connection.setComponentState(argDisableComponent.value(parser), false);
 		}
-		else if (parser.isSet(argSourceOff))
+		else if (parser.isSet(argOn))
 		{
-			connection.setSource(std::numeric_limits<uint8_t>::max());
+			connection.setComponentState("ALL", true);
+		}
+		else if (parser.isSet(argOff))
+		{
+			connection.setComponentState("ALL", false);
 		}
 		else if (parser.isSet(argSource))
 		{
@@ -235,9 +250,10 @@ int main(int argc, char * argv[])
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
 				argGamma.getDoublePtr(parser),
-				argBacklightThreshold.getDoublePtr(parser),
+				argBacklightThreshold.getIntPtr(parser),
 				argBacklightColored.getIntPtr(parser),
-				argBrightness.getDoublePtr(parser)
+				argBrightness.getIntPtr(parser),
+				argBrightnessC.getIntPtr(parser)
 			);
 		}
 	}

@@ -4,7 +4,9 @@ $(document).ready(function() {
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
 	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
-
+	var duration = 0;
+	var rgb = {r:255,g:0,b:0};
+	
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
 	$('.ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
@@ -23,7 +25,7 @@ $(document).ready(function() {
 	
 	//color adjustment
 	var sColor = sortProperties(serverSchema.properties.color.properties.channelAdjustment.items.properties)
-	var values = serverInfo.info.adjustment[0]
+	var values = serverInfo.adjustment[0]
 	
 	for(key in sColor)
 	{
@@ -52,19 +54,37 @@ $(document).ready(function() {
 			}
 			else
 			{
-				if(sColor[key].key == "brightness" || sColor[key].key == "backlightThreshold")
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="1.0" step="0.05" value="'+value+'"/>';
+				if(sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation" || sColor[key].key == "backlightThreshold")	
+					property = '<div class="input-group"><input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="100" step="10" value="'+value+'"/><span class="input-group-addon">'+$.i18n("edt_append_percent")+'</span></div>';
 				else
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.0" max="4.0" step="0.1" value="'+value+'"/>';
+					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="'+value+'"/>';
 				
 				$('.crtbody').append(createTableRow([title, property], false, true));
 				$('#cr_'+sColor[key].key).off().on('change', function(e){
+					valValue(this.id,this.value,this.min,this.max);
 					requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
 				});
 			}
 		}
 	}
 
+	function sendEffect()
+	{
+		efx = $("#effect_select").val();
+		if(efx != "__none__")
+		{
+			requestPriorityClear();
+			$(hyperion).one("cmd-clear", function(event) {
+				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
+			});
+		}
+	}
+	
+	function sendColor()
+	{
+		requestSetColor(rgb.r, rgb.g, rgb.b,duration);
+	}
+	
 	function updateRemote()
 	{
 		if ($('#componentsbutton').length == 0)
@@ -84,12 +104,17 @@ $(document).ready(function() {
 	{	
 		$('.sstbody').html("");
 		var data = "";
-		var prios = serverInfo.info.priorities
+		var prios = serverInfo.priorities
 		var i;
+		var clearAll = false;
+
 		for(i = 0; i < prios.length; i++)
 		{
-			var origin   = "not impl";
-			var ip       = "xxx.xxx.xxx.xxx";
+			var origin   = prios[i].origin ? prios[i].origin : "System";
+			origin = origin.split("@");
+			var ip = origin[1];
+			origin = origin[0];
+			
 			var owner    = prios[i].owner;
 			var active   = prios[i].active;
 			var visible  = prios[i].visible;
@@ -99,44 +124,64 @@ $(document).ready(function() {
 			var btn_type = "default";
 			var btn_text = $.i18n('remote_input_setsource_btn');
 			var btn_state = "enabled";
-			if (active) btn_type = "warning";
+
+			if (active)
+				btn_type = "primary";
+				  
+			if(priority > 254)
+				continue;
+			if(priority < 254 && (compId == "EFFECT" || compId == "COLOR") )
+				clearAll = true;
+
 			if (visible)
 			{
 				 btn_state = "disabled";
 				 btn_type = "success";
 				 btn_text = $.i18n('remote_input_sourceactiv_btn');
 			}
+
 			if(ip)
 				origin += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_ip')+' '+ip+'</span>';
-			if(compId == "10")
-				owner = $.i18n('remote_effects_label_effects')+'  '+owner;
-			if(compId == "9")
-				owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
-			if(compId == "7")
-				owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
-			if(compId == "8")
-				owner = $.i18n('general_comp_V4L')+': ('+owner+')';
-			if(compId == "6")
-				owner = $.i18n('general_comp_BOBLIGHTSERVER');
-			if(compId == "5")
-				owner = $.i18n('general_comp_UDPLISTENER');
-			if(owner == "Off")
-				owner = $.i18n('general_btn_off');
-			if(duration)
+
+			switch (compId)
+			{
+				case "EFFECT":
+					owner = $.i18n('remote_effects_label_effects')+'  '+owner;
+					break;
+				case "COLOR":
+					owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+prios[i].value.RGB+'); display:inline-block" title="RGB: ('+prios[i].value.RGB+')"></div>';
+					break;
+				case  "GRABBER":
+					owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
+					break;
+				case "V4L":
+					owner = $.i18n('general_comp_V4L')+': ('+owner+')';
+					break;
+				case "BOBLIGHTSERVER":
+					owner = $.i18n('general_comp_BOBLIGHTSERVER');
+					break;
+				case "UDPLISTENER":
+					owner = $.i18n('general_comp_UDPLISTENER');
+					break;
+			}
+			
+			if(duration && compId != "GRABBER" && compId != "PROTOSERVER")
 				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
 			
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 			
-			if((compId == "10" || compId == "9") && priority != 254)
+			if((compId == "EFFECT" || compId == "COLOR") && priority < 254)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 			
 			if(btn_type != 'default')
 				$('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
 		}
-		var btn_auto_color = (serverInfo.info.priorities_autoselect? "btn-success" : "btn-danger");
-		var btn_auto_state = (serverInfo.info.priorities_autoselect? "disabled" : "enabled");
-		var btn_auto_text = (serverInfo.info.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
-		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin:10px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
+		var btn_auto_color = (serverInfo.priorities_autoselect? "btn-success" : "btn-danger");
+		var btn_auto_state = (serverInfo.priorities_autoselect? "disabled" : "enabled");
+		var btn_auto_text = (serverInfo.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
+		var btn_call_state = (clearAll? "enabled" : "disabled");
+		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
+		$('#auto_btn').append('<button type="button" '+btn_call_state+' class="btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">'+$.i18n('remote_input_clearall')+'</button>');
 		
 		var max_width=100;
 		$('.btn_input_selection').each(function() {
@@ -148,7 +193,7 @@ $(document).ready(function() {
 	
 	function updateLedMapping()
 	{
-		mapping = serverInfo.info.ledMAppingType;
+		mapping = serverInfo.ledMAppingType;
 
 		$('#mappingsbutton').html("");
 		for(var ix = 0; ix < mappingList.length; ix++)
@@ -156,15 +201,15 @@ $(document).ready(function() {
 			if(mapping == mappingList[ix])
 				btn_style = 'btn-success';
 			else
-				btn_style = 'btn-warning';
+				btn_style = 'btn-primary';
 
-			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:10px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
+			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
 		}
 	}
 
 	function updateComponents()
 	{
-		components = serverInfo.info.components;
+		components = serverInfo.components;
 		// create buttons
 		$('#componentsbutton').html("");
 		for ( idx=0; idx<components.length;idx++)
@@ -173,27 +218,28 @@ $(document).ready(function() {
 			enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 			comp_name    = components[idx].name;
 			comp_btn_id  = "comp_btn_"+comp_name;
+			comp_goff	 = serverInfo.hyperion.off? "disabled" : "enabled";
 			
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)
 			{
-				d='<p><button type="button" id="'+comp_btn_id+'" class="btn '+enable_style
+				d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
 					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</p>';
+					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
 				$('#componentsbutton').append(d);
 			}
 			else // already create, update state
 			{
 				setClassByBool( $('#'+comp_btn_id)        , components[idx].enabled, "btn-danger", "btn-success" );
 				setClassByBool( $('#'+comp_btn_id+"_icon"), components[idx].enabled, "fa-stop"    , "fa-play" );
-				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')');
+				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')').attr(comp_goff);
 			}
 		}
 	}
 	
 	function updateEffectlist()
 	{
-		var newEffects = serverInfo.info.effects;
+		var newEffects = serverInfo.effects;
 		if (newEffects.length != oldEffects.length)
 		{
 			$('#effect_select').html('<option value="__none__"></option>');
@@ -217,10 +263,20 @@ $(document).ready(function() {
 	
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
+	{
 		cpcolor = getStorage('rmcpcolor');
+		rgb = hexToRgb(cpcolor);
+	}
+	
+	if (getStorage('rmduration') != null)
+	{
+		$("#remote_duration").val(getStorage('rmduration'));
+		duration = getStorage('rmduration');
+	}
 			
-	createCP('cp2', cpcolor, function(rgb,hex){
-		requestSetColor(rgb.r, rgb.g, rgb.b);
+	createCP('cp2', cpcolor, function(rgbT,hex){
+		rgb = rgbT;
+		sendColor()
 		$("#effect_select").val("__none__");
 		setStorage('rmcpcolor', hex);
 	});
@@ -229,16 +285,28 @@ $(document).ready(function() {
 		requestPriorityClear();
 		$("#effect_select").val("__none__");
 	});
+	
+	$("#remote_duration").off().on("change", function(){
+		duration = valValue(this.id,this.value,this.min,this.max);
+		setStorage('rmduration', duration);
+	});
 
 	$("#effect_select").off().on("change", function(event) {
-		efx = $(this).val();
-		if(efx != "__none__")
-		{
-			requestPriorityClear();
-			$(hyperion).one("cmd-clear", function(event) {
-				setTimeout(function() {requestPlayEffect(efx)}, 100);
-			});
-		}
+		sendEffect();
+	});
+	
+	$("#remote_input_reseff, #remote_input_rescol").off().on("click", function(){
+		if(this.id == "remote_input_rescol")
+			sendColor();
+		else
+			sendEffect();
+	});
+	
+	$("#remote_input_img").change(function(){
+		readImg(this, function(src,width,height){
+			console.log(src,width,height)
+			requestSetImage(src,width,height,duration)
+		});
 	});
 	
 	//force first update

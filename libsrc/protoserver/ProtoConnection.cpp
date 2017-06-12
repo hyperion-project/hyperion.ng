@@ -7,13 +7,12 @@
 // protoserver includes
 #include "protoserver/ProtoConnection.h"
 
-ProtoConnection::ProtoConnection(const std::string & a) :
+ProtoConnection::ProtoConnection(const QString & address) :
 	_socket(),
 	_skipReply(false),
 	_prevSocketState(QAbstractSocket::UnconnectedState),
 	_log(Logger::getInstance("PROTOCONNECTION"))
 	{
-	QString address(a.c_str());
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
