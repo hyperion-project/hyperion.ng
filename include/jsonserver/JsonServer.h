@@ -6,6 +6,7 @@
 // Qt includes
 #include <QTcpServer>
 #include <QSet>
+#include <QTimer>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -41,6 +42,10 @@ private slots:
 	/// Slot which is called when a client tries to create a new connection
 	///
 	void newConnection();
+	///
+	/// Slot which is called when a new forced serverinfo should be pushed
+	///
+	void pushReq();
 
 	///
 	/// Slot which is called when a client closes a connection
@@ -52,9 +57,15 @@ private:
 	/// The TCP server object
 	QTcpServer _server;
 
+	/// Link to Hyperion to get hyperion state emiter
+	Hyperion * _hyperion;
+
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
 
 	/// the logger instance
 	Logger * _log;
+
+	QTimer _timer;
+	QTimer _blockTimer;
 };
