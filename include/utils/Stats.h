@@ -1,11 +1,9 @@
 // qt includes
-#include <QDebug>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QEventLoop>
 #include <QTimer>
 
 // hyperion includes
@@ -22,13 +20,15 @@ public:
 private:
 	Logger* _log;
 	QString _hash = "";
+	QByteArray _ba;
+	QNetworkRequest _req;
 	QNetworkAccessManager _mgr;
 
 	bool trigger(bool set = false);
 
 private slots:
-	void sendHTTP(bool put = false);
+	void sendHTTP();
+	void sendHTTPp();
 	void resolveReply(QNetworkReply *reply);
-
 
 };

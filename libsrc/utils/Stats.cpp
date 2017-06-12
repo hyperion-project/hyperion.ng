@@ -19,7 +19,6 @@ Stats::Stats()
 	, _log(Logger::getInstance("STATS"))
 {
 	// generate hash
-	QString hash;
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
 		if (!(interface.flags() & QNetworkInterface::IsLoopBack))     
@@ -35,36 +34,13 @@ Stats::Stats()
 		Warning(_log, "No interface found, abort");
 		return;
 	}
-    
-	connect(&_mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(resolveReply(QNetworkReply*)));
 	
-	// 7 days interval
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
-	timer->start(604800000);
-
-	// check instant execution required
-	if(trigger())
-	{
-   		QTimer::singleShot(0, this, [=]() {
-    		sendHTTP();
-		});
-	}
-}
-
-Stats::~Stats()
-{
-
-}
-
-void Stats::sendHTTP(bool put)
-{
+	// prepare content
 	QJsonObject config = Hyperion::getInstance()->getConfig();
 	SysInfo::HyperionSysInfo data = SysInfo::get();
 
 	QJsonObject system;
 	system["kType"    ] = data.kernelType;
-	//system["kernelVersion" ] = data.kernelVersion;
 	system["arch"       ] = data.architecture;
 	system["pType"      ] = data.productType;
 	system["pVersion"   ] = data.productVersion;
@@ -82,22 +58,41 @@ void Stats::sendHTTP(bool put)
 	system["comp_uc"    ] = config["grabberV4L2"].toArray().at(0).toObject().take("enable");
 
 	QJsonDocument doc(system);
-	QByteArray ba = doc.toJson();
+	_ba = doc.toJson();
     
-	QNetworkRequest req;
-   	req.setRawHeader("Content-Type", "application/json");
-   	req.setRawHeader("Authorization", "Basic SHlwZXJpb25YbDQ5MlZrcXA6ZDQxZDhjZDk4ZjAwYjIw");
-    
-	if(put)
+	// QNetworkRequest Header
+	_req.setRawHeader("Content-Type", "application/json");
+   	_req.setRawHeader("Authorization", "Basic SHlwZXJpb25YbDQ5MlZrcXA6ZDQxZDhjZDk4ZjAwYjIw");
+	
+	connect(&_mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(resolveReply(QNetworkReply*)));
+	
+	// 7 days interval
+	QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
+	timer->start(604800000);
+
+	// check instant execution required
+	if(trigger())
 	{
-		req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hash));
-		_mgr.put(req,ba);
+   		QTimer::singleShot(0,this, SLOT(sendHTTP()));
 	}
-	else
-	{
-		req.setUrl(QUrl("https://api.hyperion-project.org/api/stats"));
-		_mgr.post(req,ba);
-	}
+}
+
+Stats::~Stats()
+{
+
+}
+
+void Stats::sendHTTP()
+{
+	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats"));
+	_mgr.post(_req,_ba);
+}
+
+void Stats::sendHTTPp()
+{   
+	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hash));
+	_mgr.put(_req,_ba);
 }
 
 void Stats::resolveReply(QNetworkReply *reply)
@@ -109,10 +104,7 @@ void Stats::resolveReply(QNetworkReply *reply)
 		// already created, update entry
 		if(reply->readAll().startsWith("null"))
 		{
-			//bool put = true;
-   			QTimer::singleShot(0, this, [=]() {
-     			sendHTTP(true);
-			});
+			QTimer::singleShot(0, this, SLOT(sendHTTPp()));
 		}
 	}
 }
