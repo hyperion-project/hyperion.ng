@@ -1,5 +1,5 @@
 import hyperion, time
-#hyperion.imageMinSize(32,32)
+hyperion.imageMinSize(10,10)
 
 iW = hyperion.imageWidth()
 iH = hyperion.imageHeight()

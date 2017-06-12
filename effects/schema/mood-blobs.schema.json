@@ -65,6 +65,11 @@
 			"minimum" : 0.0,
 			"maximum" : 360.0,
 			"append" : "edt_append_degree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 9
 		},
 		"baseColorRangeRight": {
@@ -74,6 +79,11 @@
 			"minimum" : 0.0,
 			"maximum" : 360.0,
 			"append" : "edt_append_degree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 10
 		},
 		"baseColorChangeRate": {
@@ -82,6 +92,11 @@
 			"default": 2.0,
 			"minimum" : 0.0,
 			"append" : "edt_append_sdegree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 8
 		}
 	},
