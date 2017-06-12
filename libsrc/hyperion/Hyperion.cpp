@@ -4,6 +4,7 @@
 #include <exception>
 #include <sstream>
 #include <unistd.h>
+#include <iostream>
 
 // QT includes
 #include <QDateTime>
@@ -444,9 +445,13 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
-	WarningIf(!configWriteable(), _log, "Your config is not writeable - you won't be able to use the web ui for configuration.");
-	// initialize hash of current config
-	configModified();
+	// setup interval timer for config state checks	and initial shot
+	checkConfigState();
+        QObject::connect(&_cTimer, SIGNAL(timeout()), this, SLOT(checkConfigState()));
+        _cTimer.start(2000);
+
+	// pipe muxer signal for effect/color timerunner to hyperionStateChanged signal
+	QObject::connect(&_muxer, &PriorityMuxer::timerunner, this, &Hyperion::hyperionStateChanged);
 
 	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
 	_configVersionId = generalConfig["configVersion"].toInt(-1);
@@ -511,6 +516,9 @@ void Hyperion::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
 		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
 		_hyperionSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
 		Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
+
+		//emit change
+		emit hyperionStateChanged();
 	}
 }
 
@@ -532,9 +540,9 @@ Hyperion::BonjourRegister Hyperion::getHyperionSessions()
 	return _hyperionSessions;
 }
 
-bool Hyperion::configModified()
+void Hyperion::checkConfigState()
 {
-	bool isModified = false;
+	// Check config modifications	
 	QFile f(_configFile);
 	if (f.open(QFile::ReadOnly))
 	{
@@ -545,24 +553,28 @@ bool Hyperion::configModified()
 			{
 				_configHash = hash.result();
 			}
-			else
-			{
-				isModified = _configHash != hash.result();
-			}
+			_configMod = _configHash != hash.result() ? true : false;
 		}
 	}
 	f.close();
 
-	return isModified;
-}
+	if(_prevConfigMod != _configMod)
+	{
+		emit hyperionStateChanged();
+		_prevConfigMod = _configMod;
+	}
 
-bool Hyperion::configWriteable()
-{
+	// Check config writeable
 	QFile file(_configFile);
 	QFileInfo fileInfo(file);
-	return fileInfo.isWritable() && fileInfo.isReadable();
+	_configWrite = fileInfo.isWritable() && fileInfo.isReadable() ? true : false;
+	
+	if(_prevConfigWrite != _configWrite)
+	{	
+		emit hyperionStateChanged();
+		_prevConfigWrite = _configWrite;
+	}
 }
-
 
 void Hyperion::registerPriority(const QString &name, const int priority/*, const QString &origin*/)
 {
@@ -575,12 +587,14 @@ void Hyperion::registerPriority(const QString &name, const int priority/*, const
 	}
 
 	_priorityRegister.insert(name, priority);
+	emit hyperionStateChanged();
 }
 
 void Hyperion::unRegisterPriority(const QString &name)
 {
 	Info(_log, "Unregister input source named '%s' from priority register", QSTRING_CSTR(name));
 	_priorityRegister.remove(name);
+	emit hyperionStateChanged();
 }
 
 void Hyperion::setSourceAutoSelectEnabled(bool enabled)
@@ -868,7 +882,8 @@ void Hyperion::update()
 	else
 	{
 		int timeout_ms = std::max(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
-		_timer.start(timeout_ms);
+		// std::min() 200ms forced refresh if color is active to update priorityMuxer properly for forced serverinfo push
+		_timer.start(std::min(timeout_ms, 200));
 	}
 
 }
