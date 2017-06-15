@@ -115,7 +115,7 @@ public:
 	~JsonClientConnection();
 
 	///
-	/// send a forced serverinfo to a client (just websocket)
+	/// send a forced serverinfo to a client
 	///
 	void forceServerInfo();
 

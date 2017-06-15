@@ -1397,7 +1397,7 @@ void JsonClientConnection::sendSuccessReply(const QString &command, const int ta
 	// blacklisted commands for emitter
 	QVector<QString> vector;
 	vector << "ledcolors-imagestream-stop" << "ledcolors-imagestream-start" << "ledcolors-ledstream-stop" << "ledcolors-ledstream-start" << "logging-start" << "logging-stop";
-	if(_webSocketHandshakeDone && vector.indexOf(command) == -1)
+	if(vector.indexOf(command) == -1)
 	{
 		emit pushReq();
 	}
