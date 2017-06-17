@@ -181,6 +181,8 @@ public:
 	int getConfigVersionId() { return _configVersionId; };
 	
 	QJsonObject getConfig() { return _qjsonConfig; };
+	
+	QString getConfigFile() { return _configFile; };
 
 	/// unique id per instance
 	QString id;
