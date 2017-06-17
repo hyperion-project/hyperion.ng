@@ -8,17 +8,19 @@
 
 // hyperion includes
 #include <utils/Logger.h>
+#include <hyperion/Hyperion.h>
 
 class Stats : public QObject
 {
 	Q_OBJECT
 
 public:
-	Stats();	
+	Stats();
 	~Stats();
 
 private:
 	Logger* _log;
+	Hyperion* _hyperion;
 	QString _hash = "";
 	QByteArray _ba;
 	QNetworkRequest _req;
@@ -27,6 +29,7 @@ private:
 	bool trigger(bool set = false);
 
 private slots:
+	void initialExec();
 	void sendHTTP();
 	void sendHTTPp();
 	void resolveReply(QNetworkReply *reply);

@@ -181,6 +181,9 @@ public:
 	
 	QJsonObject getConfig() { return _qjsonConfig; };
 
+	/// unique id per instance
+	QString id;
+
 	int getLatchTime() const;
 
 public slots:

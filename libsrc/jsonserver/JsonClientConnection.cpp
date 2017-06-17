@@ -588,6 +588,7 @@ void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QStrin
 	hyperion["version"         ] = QString(HYPERION_VERSION);
 	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
 	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
+	hyperion["id"              ] = _hyperion->id;
 	info["hyperion"] = hyperion;
 
 	// send the result

@@ -2,7 +2,6 @@
 #include <utils/SysInfo.h>
 #include <HyperionConfig.h>
 #include <leddevice/LedDevice.h>
-#include <hyperion/Hyperion.h>
 
 // qt includes
 #include <QJsonObject>
@@ -17,26 +16,30 @@
 Stats::Stats()
 	: QObject()
 	, _log(Logger::getInstance("STATS"))
+	, _hyperion(Hyperion::getInstance())
 {
 	// generate hash
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
-		if (!(interface.flags() & QNetworkInterface::IsLoopBack))     
+		if (!(interface.flags() & QNetworkInterface::IsLoopBack))
 		{
+			_hyperion->id = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit().append(_hyperion->getConfigFile().toLocal8Bit()),QCryptographicHash::Sha1).toHex());
 			_hash = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 			break;
 		}
     }
-    
+
 	// stop reporting if not found
 	if(_hash.isEmpty())
 	{
 		Warning(_log, "No interface found, abort");
+		// fallback id
+		_hyperion->id = QString(QCryptographicHash::hash(_hyperion->getConfigFile().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 		return;
 	}
-	
+
 	// prepare content
-	QJsonObject config = Hyperion::getInstance()->getConfig();
+	QJsonObject config = _hyperion->getConfig();
 	SysInfo::HyperionSysInfo data = SysInfo::get();
 
 	QJsonObject system;
@@ -47,7 +50,8 @@ Stats::Stats()
 	system["pName"      ] = data.prettyName;
 	system["version"    ] = QString(HYPERION_VERSION);
 	system["device"     ] = LedDevice::activeDevice();
-	system["id"         ] = _hash;
+	system["id"         ] = _hyperion->id;
+	system["hw_id"      ] = _hash;
 	system["ledCount"   ] = QString::number(Hyperion::getInstance()->getLedCount());
 	system["comp_sm"    ] = config["smoothing"].toObject().take("enable");
 	system["comp_bb"    ] = config["blackborderdetector"].toObject().take("enable");
@@ -59,28 +63,33 @@ Stats::Stats()
 
 	QJsonDocument doc(system);
 	_ba = doc.toJson();
-    
+
 	// QNetworkRequest Header
 	_req.setRawHeader("Content-Type", "application/json");
    	_req.setRawHeader("Authorization", "Basic SHlwZXJpb25YbDQ5MlZrcXA6ZDQxZDhjZDk4ZjAwYjIw");
-	
+
 	connect(&_mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(resolveReply(QNetworkReply*)));
-	
+
 	// 7 days interval
 	QTimer *timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
 	timer->start(604800000);
 
-	// check instant execution required
-	if(trigger())
-	{
-   		QTimer::singleShot(0,this, SLOT(sendHTTP()));
-	}
+	//delay initial check
+	QTimer::singleShot(60000, this, SLOT(initialExec()));
 }
 
 Stats::~Stats()
 {
 
+}
+
+void Stats::initialExec()
+{
+	if(trigger())
+	{
+		QTimer::singleShot(0,this, SLOT(sendHTTP()));
+	}
 }
 
 void Stats::sendHTTP()
@@ -90,8 +99,8 @@ void Stats::sendHTTP()
 }
 
 void Stats::sendHTTPp()
-{   
-	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hash));
+{
+	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hyperion->id));
 	_mgr.put(_req,_ba);
 }
 
@@ -113,7 +122,7 @@ bool Stats::trigger(bool set)
 {
 	QString path =	QDir::homePath()+"/.hyperion/misc/";
 	QDir dir;
-	QFile file(path + "ts");
+	QFile file(path + _hyperion->id);
 
 	if(set && file.open(QIODevice::ReadWrite) )
 	{
@@ -130,7 +139,7 @@ bool Stats::trigger(bool set)
 		if (!file.exists())
 	  	{
 			if(file.open(QIODevice::ReadWrite))
-			{			
+			{
 				file.close();
 				return true;
 			}
