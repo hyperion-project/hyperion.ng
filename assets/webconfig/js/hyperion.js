@@ -15,7 +15,6 @@ var jsonPort = 19444;
 var websocket = null;
 var hyperion = {};
 var wsTan = 1;
-var cronId = 0;
 var ledStreamActive  = false;
 var imageStreamActive = false;
 var loggingStreamActive = false;
@@ -31,13 +30,6 @@ function initRestart()
 	watchdog = 10;
 	connectionLostDetection('restart');
 }
-
-function cron()
-{
-	requestServerInfo();
-	$(hyperion).trigger({type:"cron"});
-}
-
 
 function connectionLostDetection(type)
 {
@@ -82,7 +74,6 @@ function initWebSocket()
 					$(hyperion).on("cmd-serverinfo", function(event) {
 						watchdog = 0;
 					});
-					cronId = window.setInterval(cron,2000);
 				};
 
 				websocket.onclose = function (event) {
