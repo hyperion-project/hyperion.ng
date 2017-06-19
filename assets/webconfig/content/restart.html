@@ -37,7 +37,6 @@ function restartAction()
 {
 	if(!connectionLost)
 	{
-		window.clearInterval(cronId);
 		connectionLost = true;
 		connectionTimer = window.setInterval(tryReconnect, 1000);
 	}

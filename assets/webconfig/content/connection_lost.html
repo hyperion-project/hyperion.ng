@@ -51,7 +51,6 @@ function connectionLostAction()
 {
 	if(!connectionLost)
 	{
-		window.clearInterval(cronId);
 		connectionLost = true;
 		connectionTimer = window.setInterval(tryReconnect, 4000);
 	}

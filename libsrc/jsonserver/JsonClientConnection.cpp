@@ -48,7 +48,6 @@
 
 using namespace hyperion;
 
-int _connectionCounter = 0;
 std::map<hyperion::Components, bool> JsonClientConnection::_componentsPrevState;
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
@@ -83,7 +82,7 @@ JsonClientConnection::~JsonClientConnection()
 void JsonClientConnection::readData()
 {
 	_receiveBuffer += _socket->readAll();
-	
+
 	if (_webSocketHandshakeDone)
 	{
 		// websocket mode, data frame
@@ -237,6 +236,7 @@ void JsonClientConnection::doWebSocketHandshake()
 
 	_socket->write(h.str().c_str());
 	_socket->flush();
+
 	// we are in WebSocket mode, data frames should follow next
 	_webSocketHandshakeDone = true;
 }
@@ -588,6 +588,7 @@ void JsonClientConnection::handleSysInfoCommand(const QJsonObject&, const QStrin
 	hyperion["version"         ] = QString(HYPERION_VERSION);
 	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
 	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
+	hyperion["id"              ] = _hyperion->id;
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -1393,6 +1394,14 @@ void JsonClientConnection::sendSuccessReply(const QString &command, const int ta
 
 	// send reply
 	sendMessage(reply);
+
+	// blacklisted commands for emitter
+	QVector<QString> vector;
+	vector << "ledcolors-imagestream-stop" << "ledcolors-imagestream-start" << "ledcolors-ledstream-stop" << "ledcolors-ledstream-start" << "logging-start" << "logging-stop";
+	if(vector.indexOf(command) == -1)
+	{
+		emit pushReq();
+	}
 }
 
 void JsonClientConnection::sendErrorReply(const QString &error, const QString &command, const int tan)
@@ -1509,4 +1518,11 @@ void JsonClientConnection::setImage(int priority, const Image<ColorRgb> & image,
 	}
 }
 
+void JsonClientConnection::forceServerInfo()
+{
+	const QString command("serverinfo");
+	const int tan = 1;
+	const QJsonObject obj;
+	handleServerInfoCommand(obj,command,tan);
+}
 
