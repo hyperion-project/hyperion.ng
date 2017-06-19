@@ -3,7 +3,6 @@
 
 // system includes
 #include <cstdint>
-#include <string>
 
 // QT includes
 #include <QTimer>

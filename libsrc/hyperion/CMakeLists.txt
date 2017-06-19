@@ -57,5 +57,6 @@ target_link_libraries(hyperion
 	blackborder
 	hyperion-utils
 	leddevice
+	bonjour
 	${QT_LIBRARIES}
 )

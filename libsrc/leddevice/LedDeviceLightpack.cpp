@@ -32,7 +32,7 @@ enum DATA_VERSION_INDEXES{
 	INDEX_FW_VER_MINOR
 };
 
-LedDeviceLightpack::LedDeviceLightpack(const std::string & serialNumber)
+LedDeviceLightpack::LedDeviceLightpack(const QString & serialNumber)
 	: LedDevice()
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
@@ -72,7 +72,7 @@ LedDeviceLightpack::~LedDeviceLightpack()
 bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
-	_serialNumber = deviceConfig["output"].toString("").toStdString();
+	_serialNumber = deviceConfig["output"].toString("");
 
 	return true;
 }
@@ -118,20 +118,20 @@ int LedDeviceLightpack::open()
 
 	if (_deviceHandle == nullptr)
 	{
-		if (_serialNumber.empty())
+		if (_serialNumber.isEmpty())
 		{
 			Warning(_log, "No Lightpack device has been found");
 		}
 		else
 		{
-			Error(_log,"No Lightpack device has been found with serial %s", _serialNumber.c_str());
+			Error(_log,"No Lightpack device has been found with serial %s", QSTRING_CSTR(_serialNumber));
 		}
 	}
 
 	return _deviceHandle == nullptr ? -1 : 0;
 }
 
-int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & requestedSerialNumber)
+int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requestedSerialNumber)
 {
 	libusb_device_descriptor deviceDescriptor;
 	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
@@ -151,7 +151,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 		int addressNumber = libusb_get_device_address(device);
 
 		// get the serial number
-		std::string serialNumber;
+		QString serialNumber;
 		if (deviceDescriptor.iSerialNumber != 0)
 		{
 			try
@@ -165,10 +165,10 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 			}
 		}
 
-		Debug(_log,"Lightpack device found: bus=%d address=%d serial=%s", busNumber, addressNumber, serialNumber.c_str());
+		Debug(_log,"Lightpack device found: bus=%d address=%d serial=%s", busNumber, addressNumber, QSTRING_CSTR(serialNumber));
 
 		// check if this is the device we are looking for
-		if (requestedSerialNumber.empty() || requestedSerialNumber == serialNumber)
+		if (requestedSerialNumber.isEmpty() || requestedSerialNumber == serialNumber)
 		{
 			// This is it!
 			try
@@ -231,7 +231,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const std::string & 
 				_ledBuffer[0] = CMD_UPDATE_LEDS;
 
 				// return success
-				Debug(_log, "Lightpack device opened: bus=%d address=%d serial=%s version=%s.%s.", _busNumber, _addressNumber, _serialNumber.c_str(), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
+				Debug(_log, "Lightpack device opened: bus=%d address=%d serial=%s version=%s.%s.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
 				return 0;
 			}
 			catch(int e)
@@ -279,7 +279,7 @@ int LedDeviceLightpack::switchOff()
 	return writeBytes(buf, sizeof(buf)) == sizeof(buf);
 }
 
-const std::string &LedDeviceLightpack::getSerialNumber() const
+const QString &LedDeviceLightpack::getSerialNumber() const
 {
 	return _serialNumber;
 }
@@ -352,7 +352,7 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 	return handle;
 }
 
-std::string LedDeviceLightpack::getString(libusb_device * device, int stringDescriptorIndex)
+QString LedDeviceLightpack::getString(libusb_device * device, int stringDescriptorIndex)
 {
 	libusb_device_handle * handle = nullptr;
 
@@ -371,5 +371,5 @@ std::string LedDeviceLightpack::getString(libusb_device * device, int stringDesc
 	}
 
 	libusb_close(handle);
-	return std::string(buffer, error);
+	return QString(QByteArray(buffer, error));
 }

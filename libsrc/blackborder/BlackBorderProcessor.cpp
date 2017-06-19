@@ -14,8 +14,8 @@ BlackBorderProcessor::BlackBorderProcessor(const QJsonObject &blackborderConfig)
 	, _borderSwitchCnt(blackborderConfig["borderFrameCnt"].toInt(50))
 	, _maxInconsistentCnt(blackborderConfig["maxInconsistentCnt"].toInt(10))
 	, _blurRemoveCnt(blackborderConfig["blurRemoveCnt"].toInt(1))
-	, _detectionMode(blackborderConfig["mode"].toString("default").toStdString())
-	, _detector(blackborderConfig["threshold"].toDouble(0.01))
+	, _detectionMode(blackborderConfig["mode"].toString("default"))
+	, _detector(blackborderConfig["threshold"].toDouble(5.0)/100)
 	, _currentBorder({true, -1, -1})
 	, _previousDetectedBorder({true, -1, -1})
 	, _consistentCnt(0)
@@ -23,7 +23,7 @@ BlackBorderProcessor::BlackBorderProcessor(const QJsonObject &blackborderConfig)
 {
 	if (_enabled)
 	{
-		Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", _detectionMode.c_str());
+		Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", QSTRING_CSTR(_detectionMode));
 	}
 }
 

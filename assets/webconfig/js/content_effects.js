@@ -99,13 +99,17 @@ $(document).ready( function() {
 	});
 	
 	$('#btn_submit_foregroundEffect').off().on('click',function() {
-		//requestWriteConfig(foregroundEffect_editor.getValue());
-		console.log(foregroundEffect_editor.getValue());
+		var value = foregroundEffect_editor.getValue();
+		if(typeof value.foregroundEffect.effect == 'undefined')
+			value.foregroundEffect.effect = serverConfig.foregroundEffect.effect;
+		requestWriteConfig(value);		
 	});
 	
 	$('#btn_submit_backgroundEffect').off().on('click',function() {
-		//requestWriteConfig(backgroundEffect_editor.getValue());
-		console.log(backgroundEffect_editor.getValue());
+		var value = backgroundEffect_editor.getValue();
+		if(typeof value.backgroundEffect.effect == 'undefined')
+			value.backgroundEffect.effect = serverConfig.backgroundEffect.effect;
+		requestWriteConfig(value);
 	});
 	
 	//create introduction
@@ -119,7 +123,7 @@ $(document).ready( function() {
 	function updateEffectlist(){
 		if(editorReady)
 		{
-			var newEffects = serverInfo.info.effects;
+			var newEffects = serverInfo.effects;
 			if (newEffects.length != oldEffects.length)
 			{
 				$('#root_foregroundEffect_effect').html('');

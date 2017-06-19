@@ -6690,7 +6690,10 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   },
   getButton: function(text, icon, title) {
     var el = this._super(text, icon, title);
-    el.className += 'btn btn-sm btn-primary';
+	if(icon.className.includes("fa-times"))
+		el.className += 'btn btn-sm btn-danger';
+	else
+		el.className += 'btn btn-sm btn-primary';
     return el;
   },
   getTable: function() {

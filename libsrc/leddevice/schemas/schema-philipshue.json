@@ -13,27 +13,47 @@
 			"default": "newdeveloper",
 			"propertyOrder" : 2
 		},
-		"lightIds": {
-			"type": "array",
-			"title":"edt_dev_spec_lightid_title",
-			"items" : {
-				"type" : "integer",
-				"title" : "edt_dev_spec_lightid_itemtitle"
-			},
-			"propertyOrder" : 3
-		},
 		"transitiontime": {
 			"type": "integer",
 			"title":"edt_dev_spec_transistionTime_title",
 			"default" : 1,
 			"append" : "x100ms",
-			"propertyOrder" : 4
+			"propertyOrder" : 3
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"title":"edt_dev_spec_switchOffOnBlack_title",
 			"default" : true,
+			"propertyOrder" : 4
+		},
+		"brightnessFactor": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessFactor_title",
+			"default" : 1.0,
+			"minimum" : 0.0,
+			"maximum" : 1.0,
 			"propertyOrder" : 5
+		},
+		"lightIds": {
+			"type": "array",
+			"title":"edt_dev_spec_lightid_title",
+			"minItems": 1,
+			"items" : {
+				"type" : "integer",
+				"minimum" : 0,
+				"title" : "edt_dev_spec_lightid_itemtitle"
+			},
+			"propertyOrder" : 6
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 200,
+			"append" : "edt_append_ms",
+			"minimum": 100,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": true

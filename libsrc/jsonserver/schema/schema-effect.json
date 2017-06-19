@@ -20,6 +20,12 @@
 			"type": "integer",
 			"required": false
 		},
+		"origin": {
+			"type": "string",
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required": true
+		},
 		"effect": {
 			"type": "object",
 			"required": true,
