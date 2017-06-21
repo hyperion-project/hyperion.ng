@@ -23,7 +23,7 @@ Stats::Stats()
 	{
 		if (!(interface.flags() & QNetworkInterface::IsLoopBack))
 		{
-			_hyperion->id = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit().append(_hyperion->getConfigFile().toLocal8Bit()),QCryptographicHash::Sha1).toHex());
+			_hyperion->id = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit().append(_hyperion->getConfigFileName().toLocal8Bit()),QCryptographicHash::Sha1).toHex());
 			_hash = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 			break;
 		}
@@ -34,7 +34,7 @@ Stats::Stats()
 	{
 		Warning(_log, "No interface found, abort");
 		// fallback id
-		_hyperion->id = QString(QCryptographicHash::hash(_hyperion->getConfigFile().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
+		_hyperion->id = QString(QCryptographicHash::hash(_hyperion->getConfigFileName().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 		return;
 	}
 
