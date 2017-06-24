@@ -5,6 +5,14 @@
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
+// hyperion include
+#include <hyperion/MessageForwarder.h>
+
+// qt includes
+#include <QTcpSocket>
+#include <QJsonDocument>
+#include <QByteArray>
+
 JsonServer::JsonServer(uint16_t port)
 	: QObject()
 	, _server()
@@ -28,17 +36,14 @@ JsonServer::JsonServer(uint16_t port)
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 
-	// connect delay timer and setup
-	connect(&_timer, SIGNAL(timeout()), this, SLOT(pushReq()));
-	_timer.setSingleShot(true);
-	_blockTimer.setSingleShot(true);
-
-	// register for hyprion state changes (bonjour, config, prioritymuxer, register/unregister source)
-	connect(_hyperion, SIGNAL(hyperionStateChanged()), this, SLOT(pushReq()));
-
 	// make sure the resources are loaded (they may be left out after static linking
 	Q_INIT_RESOURCE(JsonSchemas);
 
+	// receive state of forwarder
+	connect(_hyperion, &Hyperion::componentStateChanged, this, &JsonServer::componentStateChanged);
+
+	// initial connect TODO get initial state from config to stop messing
+	connect(_hyperion, &Hyperion::forwardJsonMessage, this, &JsonServer::forwardJsonMessage);
 }
 
 JsonServer::~JsonServer()
@@ -63,9 +68,6 @@ void JsonServer::newConnection()
 		JsonClientConnection * connection = new JsonClientConnection(socket);
 		_openConnections.insert(connection);
 
-		// register for JSONClientConnection events
-		connect(connection, SIGNAL(pushReq()), this, SLOT(pushReq()));
-
 		// register slot for cleaning up after the connection closed
 		connect(connection, SIGNAL(connectionClosed(JsonClientConnection*)), this, SLOT(closedConnection(JsonClientConnection*)));
 	}
@@ -80,17 +82,75 @@ void JsonServer::closedConnection(JsonClientConnection *connection)
 	connection->deleteLater();
 }
 
-void JsonServer::pushReq()
+void JsonServer::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if(_blockTimer.isActive())
+	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
 	{
-		_timer.start(250);
-	}
-	else
-	{
-		foreach (JsonClientConnection * connection, _openConnections) {
-			connection->forceServerInfo();
+		_forwarder_enabled = enable;
+		Info(_log, "forwarder change state to %s", (enable ? "enabled" : "disabled") );
+		if(_forwarder_enabled)
+		{
+			connect(_hyperion, &Hyperion::forwardJsonMessage, this, &JsonServer::forwardJsonMessage);
 		}
-		_blockTimer.start(250);
+		else
+		{
+			disconnect(_hyperion, &Hyperion::forwardJsonMessage, this, &JsonServer::forwardJsonMessage);
+		}
 	}
+}
+
+void JsonServer::forwardJsonMessage(const QJsonObject &message)
+{
+	QTcpSocket client;
+	QList<MessageForwarder::JsonSlaveAddress> list = _hyperion->getForwarder()->getJsonSlaves();
+
+	for ( int i=0; i<list.size(); i++ )
+	{
+		client.connectToHost(list.at(i).addr, list.at(i).port);
+		if ( client.waitForConnected(500) )
+		{
+			sendMessage(message,&client);
+			client.close();
+		}
+	}
+}
+
+void JsonServer::sendMessage(const QJsonObject & message, QTcpSocket * socket)
+{
+	// serialize message
+	QJsonDocument writer(message);
+	QByteArray serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
+
+	// write message
+	socket->write(serializedMessage);
+	if (!socket->waitForBytesWritten())
+	{
+		Debug(_log, "Error while writing data to host");
+		return;
+	}
+
+	// read reply data
+	QByteArray serializedReply;
+	while (!serializedReply.contains('\n'))
+	{
+		// receive reply
+		if (!socket->waitForReadyRead())
+		{
+			Debug(_log, "Error while writing data from host");
+			return;
+		}
+
+		serializedReply += socket->readAll();
+	}
+
+	// parse reply data
+	QJsonParseError error;
+	QJsonDocument reply = QJsonDocument::fromJson(serializedReply ,&error);
+
+	if (error.error != QJsonParseError::NoError)
+	{
+		Error(_log, "Error while parsing reply: invalid json");
+		return;
+	}
+
 }

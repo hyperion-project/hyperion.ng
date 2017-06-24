@@ -6,7 +6,6 @@
 // Qt includes
 #include <QTcpServer>
 #include <QSet>
-#include <QTimer>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -37,15 +36,12 @@ public:
 	///
 	uint16_t getPort() const;
 
+
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
 	///
 	void newConnection();
-	///
-	/// Slot which is called when a new forced serverinfo should be pushed
-	///
-	void pushReq();
 
 	///
 	/// Slot which is called when a client closes a connection
@@ -53,11 +49,25 @@ private slots:
 	///
 	void closedConnection(JsonClientConnection * connection);
 
+	/// forward message to all json slaves
+	void forwardJsonMessage(const QJsonObject &message);
+
+public slots:
+	/// process current forwarder state
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
+	///
+	/// forward message to a single json slaves
+	///
+	/// @param message The JSON message to send
+	///
+	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
+
 private:
 	/// The TCP server object
 	QTcpServer _server;
 
-	/// Link to Hyperion to get hyperion state emiter
+	/// Link to Hyperion to get config state emiter
 	Hyperion * _hyperion;
 
 	/// List with open connections
@@ -66,6 +76,6 @@ private:
 	/// the logger instance
 	Logger * _log;
 
-	QTimer _timer;
-	QTimer _blockTimer;
+	/// Flag if forwarder is enabled
+	bool _forwarder_enabled = true;
 };
