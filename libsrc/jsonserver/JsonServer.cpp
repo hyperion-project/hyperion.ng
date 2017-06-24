@@ -8,6 +8,7 @@
 JsonServer::JsonServer(uint16_t port)
 	: QObject()
 	, _server()
+	, _hyperion(Hyperion::getInstance())
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
 {
@@ -26,6 +27,14 @@ JsonServer::JsonServer(uint16_t port)
 
 	// Set trigger for incoming connections
 	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+
+	// connect delay timer and setup
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(pushReq()));
+	_timer.setSingleShot(true);
+	_blockTimer.setSingleShot(true);
+
+	// register for hyprion state changes (bonjour, config, prioritymuxer, register/unregister source)
+	connect(_hyperion, SIGNAL(hyperionStateChanged()), this, SLOT(pushReq()));
 
 	// make sure the resources are loaded (they may be left out after static linking
 	Q_INIT_RESOURCE(JsonSchemas);
@@ -50,9 +59,12 @@ void JsonServer::newConnection()
 
 	if (socket != nullptr)
 	{
-		Debug(_log, "New connection");
+		Debug(_log, "New connection from: %s ",socket->localAddress().toString().toStdString().c_str());
 		JsonClientConnection * connection = new JsonClientConnection(socket);
 		_openConnections.insert(connection);
+
+		// register for JSONClientConnection events
+		connect(connection, SIGNAL(pushReq()), this, SLOT(pushReq()));
 
 		// register slot for cleaning up after the connection closed
 		connect(connection, SIGNAL(connectionClosed(JsonClientConnection*)), this, SLOT(closedConnection(JsonClientConnection*)));
@@ -66,4 +78,19 @@ void JsonServer::closedConnection(JsonClientConnection *connection)
 
 	// schedule to delete the connection object
 	connection->deleteLater();
+}
+
+void JsonServer::pushReq()
+{
+	if(_blockTimer.isActive())
+	{
+		_timer.start(250);
+	}
+	else
+	{
+		foreach (JsonClientConnection * connection, _openConnections) {
+			connection->forceServerInfo();
+		}
+		_blockTimer.start(250);
+	}
 }

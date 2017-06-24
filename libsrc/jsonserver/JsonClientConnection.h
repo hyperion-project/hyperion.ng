@@ -114,6 +114,11 @@ public:
 	///
 	~JsonClientConnection();
 
+	///
+	/// send a forced serverinfo to a client
+	///
+	void forceServerInfo();
+
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	void streamLedcolorsUpdate();
@@ -126,6 +131,11 @@ signals:
 	/// @param connection This connection object
 	///
 	void connectionClosed(JsonClientConnection * connection);
+
+	///
+	/// Signal which is emitted when a sendSuccessReply() has been executed
+	///
+	void pushReq();
 
 private slots:
 	///

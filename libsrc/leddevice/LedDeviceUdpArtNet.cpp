@@ -1,0 +1,93 @@
+#include <arpa/inet.h>
+#include <QHostInfo>
+
+// hyperion local includes
+#include "LedDeviceUdpArtNet.h"
+
+LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
+	: ProviderUdp()
+{
+	_deviceReady = init(deviceConfig);
+}
+
+bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
+{
+	_port = 6454;
+	ProviderUdp::init(deviceConfig);
+	_artnet_universe = deviceConfig["universe"].toInt(1);
+	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
+
+	return true;
+}
+
+LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceUdpArtNet(deviceConfig);
+}
+
+
+// populates the headers
+void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_sequence, unsigned this_dmxChannelCount)
+{
+// WTF? why do the specs say:
+// "This value should be an even number in the range 2 – 512. "
+	if (this_dmxChannelCount & 0x1)
+	{
+		this_dmxChannelCount++;
+	}
+
+	memcpy (artnet_packet.ID, "Art-Net\0", 8);
+
+	artnet_packet.OpCode	= htons(0x0050);	// OpOutput / OpDmx
+	artnet_packet.ProtVer	= htons(0x000e);
+	artnet_packet.Sequence	= this_sequence;
+	artnet_packet.Physical	= 0;
+	artnet_packet.SubUni	= this_universe & 0xff ;
+	artnet_packet.Net	= (this_universe >> 8) & 0x7f;
+	artnet_packet.Length	= htons(this_dmxChannelCount);
+
+}
+
+int LedDeviceUdpArtNet::write(const std::vector<ColorRgb> &ledValues)
+{
+	int retVal            = 0;
+	int thisUniverse	= _artnet_universe;
+	const uint8_t * rawdata = reinterpret_cast<const uint8_t *>(ledValues.data());
+
+/*
+This field is incremented in the range 0x01 to 0xff to allow the receiving node to resequence packets.
+The Sequence field is set to 0x00 to disable this feature.
+*/
+	if (_artnet_seq++ == 0)
+	{
+		_artnet_seq = 1;
+	}
+
+	int dmxIdx = 0;			// offset into the current dmx packet
+
+	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
+	for (int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
+	{
+
+		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx];
+		if ( (ledIdx % 3 == 2) && (ledIdx > 0) )
+		{
+			dmxIdx += (_artnet_channelsPerFixture-3);
+		}
+
+//     is this the   last byte of last packet   ||   last byte of other packets
+		if ( (ledIdx == _ledRGBCount-1) || (dmxIdx >= DMX_MAX) )
+		{
+			prepare(thisUniverse, _artnet_seq, dmxIdx);
+			retVal &= writeBytes(18 + std::min(dmxIdx, DMX_MAX), artnet_packet.raw);
+
+			memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
+			thisUniverse ++;
+			dmxIdx = 0;
+		}
+
+	}
+
+	return retVal;
+}
+

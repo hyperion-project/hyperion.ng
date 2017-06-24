@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QTimer>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -170,14 +171,21 @@ public:
 
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
-	bool configModified();
+	bool configModified() { return _configMod; };
 
-	bool configWriteable();
+	bool configWriteable() { return _configWrite; };
 
 	/// gets the methode how image is maped to leds
 	int getLedMappingType() { return _ledMAppingType; };
 	
 	int getConfigVersionId() { return _configVersionId; };
+	
+	QJsonObject getConfig() { return _qjsonConfig; };
+	
+	QString getConfigFile() { return _configFile; };
+
+	/// unique id per instance
+	QString id;
 
 	int getLatchTime() const;
 
@@ -303,6 +311,9 @@ signals:
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
 	void closing();
 
+	/// Signal which is emitted, when state of config or bonjour or priorityMuxer changed
+	void hyperionStateChanged();
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -311,8 +322,11 @@ private slots:
 	void update();
 
 	void currentBonjourRecordsChanged(const QList<BonjourRecord> &list);
-    void bonjourRecordResolved(const QHostInfo &hostInfo, int port);
+	void bonjourRecordResolved(const QHostInfo &hostInfo, int port);
 	void bonjourResolve();
+
+	/// check for configWriteable and modified changes, called by _cTimer timeout()
+	void checkConfigState();
 
 private:
 	
@@ -330,6 +344,7 @@ private:
 	LedString _ledStringClone;
 
 	std::vector<ColorOrder> _ledStringColorOrder;
+	
 	/// The priority muxer
 	PriorityMuxer _muxer;
 
@@ -351,7 +366,7 @@ private:
 	// json configuration
 	const QJsonObject& _qjsonConfig;
 
-	// the name of config file
+	/// the name of config file
 	QString _configFile;
 
 	/// The timer for handling priority channel timeouts
@@ -391,4 +406,15 @@ private:
 	BonjourServiceResolver _bonjourResolver;
 	BonjourRegister        _hyperionSessions;
 	QString                _bonjourCurrentServiceToResolve;
+
+	/// Interval timer to check config write and mod
+	QTimer _cTimer;
+
+	/// holds the prev states of configWriteable and modified
+	bool _prevConfigMod = false;
+	bool _prevConfigWrite = true;
+
+	/// holds the current states of configWriteable and modified
+	bool _configMod = false;
+	bool _configWrite = true;
 };

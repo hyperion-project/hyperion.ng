@@ -8,6 +8,8 @@
 
 // QT includes
 #include <QMap>
+#include <QObject>
+#include <QTimer>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -18,8 +20,9 @@
 /// and the muxer keeps track of all active priorities. The current priority can be queried and per
 /// priority the led colors.
 ///
-class PriorityMuxer
+class PriorityMuxer : public QObject
 {
+	Q_OBJECT
 public:
 	///
 	/// The information structure for a single priority channel
@@ -118,6 +121,18 @@ public:
 	///
 	void setCurrentTime(const int64_t& now);
 
+signals:
+	///
+	/// Signal which is called, when a effect or color with timeout is running, once per second
+	///
+	void timerunner();
+
+private slots:
+	///
+	/// Slots which is called to adapt to 1s interval for signal timerunner()
+	///
+	void emitReq();
+
 private:
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;
@@ -127,5 +142,8 @@ private:
 
 	/// The information of the lowest priority channel
 	InputInfo _lowestPriorityInfo;
+
+	QTimer _timer;
+	QTimer _blockTimer;
 
 };
