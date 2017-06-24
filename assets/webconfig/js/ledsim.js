@@ -13,7 +13,7 @@ $(document).ready(function() {
 		{
 			createHint('intro', $.i18n('main_ledsim_text'), 'ledsim_text');
 			$('#ledsim_text').css({'margin':'10px 15px 0px 15px'});
-			$('#ledsim_text .intro-hint').css("margin","0px")
+			$('#ledsim_text .bs-callout').css("margin","0px")
 		}
 		
 		if(getStorage('ledsim_width') != null)
