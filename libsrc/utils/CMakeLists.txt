@@ -6,6 +6,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/utils)
 SET(Utils_QT_HEADERS
 	${CURRENT_HEADER_DIR}/Logger.h
 	${CURRENT_HEADER_DIR}/Stats.h
+	${CURRENT_HEADER_DIR}/JsonProcessor.h
 )
 
 SET(Utils_HEADERS
@@ -46,6 +47,7 @@ SET(Utils_SOURCES
 	${CURRENT_SOURCE_DIR}/RgbToRgbw.cpp
 	${CURRENT_SOURCE_DIR}/SysInfo.cpp
 	${CURRENT_SOURCE_DIR}/Stats.cpp
+	${CURRENT_SOURCE_DIR}/JsonProcessor.cpp
 	${CURRENT_SOURCE_DIR}/jsonschema/QJsonSchemaChecker.cpp
 )
 
