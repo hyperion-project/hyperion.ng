@@ -69,13 +69,7 @@ $(document).ready(function() {
 		var info;
 		
 		//create log
-		if(messages)
-		{
-			log = loguplmess;
-			console.log(loguplmess)
-		}
-		else
-			log = "Log was empty!";
+		log = (messages ? loguplmess : "Log was empty!");
 
 		//create general info
 		info = "### GENERAL ### \n";

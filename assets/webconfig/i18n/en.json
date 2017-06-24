@@ -59,7 +59,7 @@
     "dashboard_newsbox_visitblog" : "Visit Hyperion-Blog",
 	"dashboard_newsbox_noconn" : "Can't connect to Hyperion Server to retrieve latest posts, does your internet connection work?",
 	"dashboard_newsbox_readmore" : "Read more",
-	"dashboard_alert_message_confedit_t" : "Konfiguration geändert",
+	"dashboard_alert_message_confedit_t" : "Configuration modified",
 	"dashboard_alert_message_confedit" : "Your Hyperion configuration has been modified. To apply it, restart Hyperion.",
 	"dashboard_alert_message_disabled_t" : "Hyperion disabled",
 	"dashboard_alert_message_disabled" : "Hyperion is currently disabled! To use it again, enable it at the dashboard.",
