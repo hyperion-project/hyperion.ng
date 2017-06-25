@@ -232,6 +232,7 @@ PyObject *Effect::json2python(const QJsonValue &jsonData) const
 			for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
 			{
 				PyObject * obj = json2python(*i);
+				Py_INCREF(obj);
 				PyList_SetItem(list, index, obj);
 				Py_XDECREF(obj);
 			}
