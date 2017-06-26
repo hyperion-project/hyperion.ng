@@ -12,6 +12,12 @@
 			"append" : "edt_append_s",
 			"propertyOrder" : 1
 		},
+		"random-center": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter",
+			"default": false,
+			"propertyOrder" : 2
+		},
 		"center_x": {
 			"type": "number",
 			"title":"edt_eff_centerx",
@@ -24,7 +30,7 @@
 					"random-center": false
 				}
 			},
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		},
 		"center_y": {
 			"type": "number",
@@ -38,17 +44,11 @@
 					"random-center": false
 				}
 			},
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"reverse": {
 			"type": "boolean",
 			"title":"edt_eff_reversedirection",
-			"default": false,
-			"propertyOrder" : 4
-		},
-		"random-center": {
-			"type": "boolean",
-			"title":"edt_eff_randomCenter",
 			"default": false,
 			"propertyOrder" : 5
 		},
@@ -72,9 +72,20 @@
 		},
 		"enable-second": {
 			"type": "boolean",
-			"title":"edt_eff_enableSecond",
+			"title":"edt_eff_enableSecondSwirl",
 			"default": false,
 			"propertyOrder" : 7
+		},
+		"random-center2": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter",
+			"default": false,
+			"options": {
+				"dependencies": {
+					"enable-second": true
+				}
+			},
+			"propertyOrder" : 8
 		},
 		"center_x2": {
 			"type": "number",
@@ -89,7 +100,7 @@
 					"random-center2": false
 				}
 			},
-			"propertyOrder" : 8
+			"propertyOrder" : 9
 		},
 		"center_y2": {
 			"type": "number",
@@ -104,23 +115,12 @@
 					"random-center2": false
 				}
 			},
-			"propertyOrder" : 9
+			"propertyOrder" : 10
 		},
 		"reverse2": {
 			"type": "boolean",
 			"title":"edt_eff_reversedirection",
-			"default": false,
-			"options": {
-				"dependencies": {
-					"enable-second": true
-				}
-			},
-			"propertyOrder" : 10
-		},
-		"random-center2": {
-			"type": "boolean",
-			"title":"edt_eff_randomCenter",
-			"default": false,
+			"default": true,
 			"options": {
 				"dependencies": {
 					"enable-second": true
