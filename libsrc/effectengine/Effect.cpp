@@ -1070,7 +1070,6 @@ PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	
-	int offsetX, offsetY;
 	int argCount = PyTuple_Size(args);
 	int angle;
 	
