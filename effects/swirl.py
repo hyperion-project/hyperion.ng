@@ -88,7 +88,7 @@ centerY       = float(hyperion.args.get('center_y', 0.5))
 randomCenter  = bool(hyperion.args.get('random-center', False))
 custColors	  = hyperion.args.get('custom-colors', ((255,0,0),(0,255,0),(0,0,255)))
 
-enableSecond  = bool(hyperion.args.get('enable-second', True))
+enableSecond  = bool(hyperion.args.get('enable-second', False))
 #rotationTime2 = float(hyperion.args.get('rotation-time2', 5.0))
 reverse2      = bool(hyperion.args.get('reverse2', True))
 centerX2      = float(hyperion.args.get('center_x2', 0.5))

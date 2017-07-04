@@ -8,6 +8,8 @@
 		"center_y" : 0.5,
 		"reverse" : false,
 		"custom-colors":[[0,0,0],[0,0,0],[255,255,0],[0,0,0],[0,0,0],[255,255,0],[0,0,0],[0,0,0],[255,255,0]],
-		"random-center":false
+		"random-center":false,
+		"custom-colors2":[],
+		"enable-second":false
 	}
 }
