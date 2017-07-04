@@ -378,7 +378,7 @@ void HyperionDaemon::startNetworkServices()
 	// txt record for zeroconf
 	QString id = _hyperion->id;
 	std::string version = HYPERION_VERSION;
-	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version};
+	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version}};
 
 	// zeroconf udp listener
 	if (_udpListener != nullptr)
