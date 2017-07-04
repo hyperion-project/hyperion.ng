@@ -1,16 +1,7 @@
 
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
-
-function validateText(){
-	e = isJsonString($("#ledconfig").val());
-
-	if (e.length != 0){
-		showInfoDialog("error", $.i18n('InfoDialog_leds_validfail_title'), e);
-		return false
-	}
-	return true
-}
+var conf_editor = null;
 
 function round(number) {
 	var factor = Math.pow(10, 4);
@@ -35,6 +26,7 @@ function createLedPreview(leds, origin){
 	}
 	
 	$('#previewledcount').html($.i18n('conf_leds_layout_preview_totalleds', leds.length));
+	$('#previewledpower').html($.i18n('conf_leds_layout_preview_ledpower', ((leds.length * 0.06)*1.1).toFixed(1)));
 	
 	$('.st_helper').css("border", "8px solid grey");
 	
@@ -105,7 +97,7 @@ function createClassicLeds(){
 	}
 
 	function rotateArray(array, times){
-		if (times > "0"){
+		if (times > 0){
 			while( times-- ){
 				array.push(array.shift())
 			}
@@ -363,39 +355,76 @@ $(document).ready(function() {
 		$('#btn_cl_save').toggle(false);
 	}
 	
+	//Wiki link
+	$('#leds_wl').append('<p style="font-weight:bold">'+$.i18n('general_wiki_moreto',$.i18n('conf_leds_nav_label_ledlayout'))+buildWL("user/moretopics/ledarea","Wiki")+'</p>');
+	
 	// bind change event to all inputs
 	$('.ledCLconstr').bind("change", function() {
+		valValue(this.id,this.value,this.min,this.max);
 		createClassicLeds();
 	});
 
 	$('.ledMAconstr').bind("change", function() {
+		valValue(this.id,this.value,this.min,this.max);
 		createMatrixLeds();
 	});
-	
-	// cl leds push to textfield and save values 
-	$('#btn_cl_generate').off().on("click", function() {
-		if (finalLedArray != ""){
-			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
-			$('#collapse1').collapse('hide');
-			$('#collapse4').collapse('show');
-		}
-	});
-	
-	// ma leds push to textfield and save values 
-	$('#btn_ma_generate').off().on("click", function() {
-		if (finalLedArray != ""){
-			$("#ledconfig").text(JSON.stringify(finalLedArray, null, "\t"));
-			$('#collapse2').collapse('hide');
-			$('#collapse4').collapse('show');
-		}
-	});
 
-	// fill textfield with current led conf and copy to finalLedArray
-	$("#ledconfig").text(JSON.stringify(serverConfig.leds, null, "\t"));
+	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
+	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan","index"],"properties":{"clone":{"type":"integer"},"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"index":{"type":"integer"},"vscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"}
+	//create jsonace editor
+	var aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
+		mode: 'code',
+		schema: ledschema,
+		onChange: function(){
+			var success = true;
+			try{
+				aceEdt.get();
+			}
+			catch(err)
+			{
+				success = false;
+			}
+			
+			if(success)
+			{
+				$('#leds_custom_updsim').attr("disabled", false);
+				$('#leds_custom_save').attr("disabled", false);
+			}
+			else
+			{
+				$('#leds_custom_updsim').attr("disabled", true);
+				$('#leds_custom_save').attr("disabled", true);
+			}
+		}
+	}, serverConfig.leds);
+	
+	//TODO: HACK! No callback for schema validation - Add it!
+	setInterval(function(){
+		if($('#aceedit table').hasClass('jsoneditor-text-errors'))
+		{
+			$('#leds_custom_updsim').attr("disabled", true);
+			$('#leds_custom_save').attr("disabled", true);
+		}
+	},1000)
+	
+	$('.jsoneditor-menu').toggle();
+	
+	// leds to finalLedArray
 	finalLedArray = serverConfig.leds;
 	
+	// cl/ma leds push to textfield
+	$('#btn_cl_generate, #btn_ma_generate').off().on("click", function(e) {
+		if(e.currentTarget.id == "btn_cl_generate")
+			$('#collapse1').collapse('hide');
+		else
+			$('#collapse2').collapse('hide');
+		
+		aceEdt.set(finalLedArray);
+		$('#collapse4').collapse('show');
+		
+	});
+	
 	// create and update editor
-	var conf_editor = null;
 	$("#leddevices").off().on("change", function() {
 		generalOptions  = serverSchema.properties.device;
 		specificOptions = serverSchema.properties.alldevices[$(this).val()];
@@ -406,7 +435,7 @@ $(document).ready(function() {
 		
 		values_general = {};
 		values_specific = {};
-		isCurrentDevice = (serverInfo.info.ledDevices.active == $(this).val());
+		isCurrentDevice = (serverInfo.ledDevices.active == $(this).val());
 
 		for(var key in serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
@@ -426,14 +455,26 @@ $(document).ready(function() {
 		
 		// change save button state based on validation result
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
+		
+		// led controller sepecific wizards
+		if($(this).val() == "philipshue")
+		{
+			createHint("wizard", $.i18n('wiz_hue_title'), "btn_wiz_holder","btn_led_device_wiz");
+			$('#btn_led_device_wiz').off().on('click',startWizardPhilipsHue);
+		}
+		else
+		{
+			$('#btn_wiz_holder').html("")
+			$('#btn_led_device_wiz').off();
+		}
 	});
 	
 	// create led device selection
-	ledDevices = serverInfo.info.ledDevices.available
+	ledDevices = serverInfo.ledDevices.available
 	devRPiSPI = ['apa102', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
 	devRPiPWM = ['ws281x'];
 	devRPiGPIO = ['piblaster'];
-	devNET = ['atmoorb', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udph801', 'udpraw'];
+	devNET = ['atmoorb', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw'];
 	devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2'];
 	
 	var optArr = [[]];
@@ -465,14 +506,12 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(serverInfo.info.ledDevices.active);
+	$("#leddevices").val(serverInfo.ledDevices.active);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview
 	$("#leds_custom_updsim").off().on("click", function() {
-		if (validateText()){
-			createLedPreview(JSON.parse($("#ledconfig").val()), 'text');
-		}
+		createLedPreview(aceEdt.get(), 'text');
 	});
 	
 	// save led config and saveValues - passing textfield
@@ -481,13 +520,10 @@ $(document).ready(function() {
 		saveValues();
 	});
 	
-	// validate and save led config from textfield
+	// save led config from textfield
 	$("#leds_custom_save").off().on("click", function() {
-		if (validateText())
-		{
-			requestWriteConfig(JSON.parse('{"leds" :'+$("#ledconfig").val()+'}'));
-			saveValues();
-		}
+		requestWriteConfig(JSON.parse('{"leds" :'+aceEdt.getText()+'}'));
+		saveValues();
 	});
 
 	// toggle led numbers
@@ -498,7 +534,7 @@ $(document).ready(function() {
 	
 	// open checklist
 	$('#leds_prev_checklist').off().on("click", function() {
-		var liList = [$.i18n('conf_leds_leyout_checkp1'),$.i18n('conf_leds_leyout_checkp3'),$.i18n('conf_leds_leyout_checkp2'),$.i18n('conf_leds_leyout_checkp4')];
+		var liList = [$.i18n('conf_leds_layout_checkp1'),$.i18n('conf_leds_layout_checkp3'),$.i18n('conf_leds_layout_checkp2'),$.i18n('conf_leds_layout_checkp4')];
 		var ul = document.createElement("ul");
 		ul.className = "checklist"
 		

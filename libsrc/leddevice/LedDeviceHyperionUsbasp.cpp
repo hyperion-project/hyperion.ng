@@ -8,7 +8,7 @@
 // Static constants which define the Hyperion Usbasp device
 uint16_t LedDeviceHyperionUsbasp::_usbVendorId = 0x16c0;
 uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
-std::string LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
+QString  LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
 
 
 LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig)
@@ -41,10 +41,10 @@ bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	std::string ledType = deviceConfig["output"].toString("ws2801").toStdString();
+	QString ledType = deviceConfig["ledType"].toString("ws2801");
 	if (ledType != "ws2801" && ledType != "ws2812")
 	{
-		throw std::runtime_error("HyperionUsbasp: invalid output; must be 'ws2801' or 'ws2812'.");
+		throw std::runtime_error("HyperionUsbasp: invalid ledType; must be 'ws2801' or 'ws2812'.");
 	}
 
 	_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
@@ -94,7 +94,7 @@ int LedDeviceHyperionUsbasp::open()
 
 	if (_deviceHandle == nullptr)
 	{
-		Error(_log, "No %s has been found", _usbProductDescription.c_str());
+		Error(_log, "No %s has been found", QSTRING_CSTR(_usbProductDescription));
 	}
 
 	return _deviceHandle == nullptr ? -1 : 0;
@@ -119,18 +119,18 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 		int busNumber = libusb_get_bus_number(device);
 		int addressNumber = libusb_get_device_address(device);
 
-		Info(_log, "%s found: bus=%d address=%d", _usbProductDescription.c_str(), busNumber, addressNumber);
+		Info(_log, "%s found: bus=%d address=%d", QSTRING_CSTR(_usbProductDescription), busNumber, addressNumber);
 
 		try
 		{
 			_deviceHandle = openDevice(device);
-			Info(_log, "%s successfully opened", _usbProductDescription.c_str() );
+			Info(_log, "%s successfully opened", QSTRING_CSTR(_usbProductDescription) );
 			return 0;
 		}
 		catch(int e)
 		{
 			_deviceHandle = nullptr;
-			Error(_log, "Unable to open %s. Searching for other device(%d): %s", _usbProductDescription.c_str(), e, libusb_error_name(e));
+			Error(_log, "Unable to open %s. Searching for other device(%d): %s", QSTRING_CSTR(_usbProductDescription), e, libusb_error_name(e));
 		}
 	}
 
@@ -152,7 +152,7 @@ int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 	// Disabling interupts for a little while on the device results in a PIPE error. All seems to keep functioning though...
 	if(nbytes < 0 && nbytes != LIBUSB_ERROR_PIPE)
 	{
-		Error(_log, "Error while writing data to %s (%s)",  _usbProductDescription.c_str(), libusb_error_name(nbytes));
+		Error(_log, "Error while writing data to %s (%s)",  QSTRING_CSTR(_usbProductDescription), libusb_error_name(nbytes));
 		return -1;
 	}
 
@@ -195,7 +195,7 @@ libusb_device_handle * LedDeviceHyperionUsbasp::openDevice(libusb_device *device
 	return handle;
 }
 
-std::string LedDeviceHyperionUsbasp::getString(libusb_device * device, int stringDescriptorIndex)
+QString LedDeviceHyperionUsbasp::getString(libusb_device * device, int stringDescriptorIndex)
 {
 	libusb_device_handle * handle = nullptr;
 
@@ -214,5 +214,5 @@ std::string LedDeviceHyperionUsbasp::getString(libusb_device * device, int strin
 	}
 
 	libusb_close(handle);
-	return std::string(buffer, error);
+	return QString(QByteArray(buffer, error));
 }

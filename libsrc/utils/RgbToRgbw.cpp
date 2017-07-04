@@ -5,11 +5,11 @@
 
 namespace RGBW {
 
-WhiteAlgorithm stringToWhiteAlgorithm(std::string str)
+WhiteAlgorithm stringToWhiteAlgorithm(QString str)
 {
 	if (str == "subtract_minimum")         return SUBTRACT_MINIMUM;
 	if (str == "sub_min_warm_adjust")      return SUB_MIN_WARM_ADJUST;
-	if (str.empty() || str == "white_off") return WHITE_OFF;
+	if (str.isEmpty() || str == "white_off") return WHITE_OFF;
 	return INVALID;
 }
 

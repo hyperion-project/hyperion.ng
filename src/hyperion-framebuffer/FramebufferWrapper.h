@@ -9,7 +9,7 @@ class FramebufferWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	const Image<ColorRgb> & getScreenshot();
 

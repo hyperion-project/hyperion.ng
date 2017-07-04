@@ -1,8 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QByteArray>
 #include <QTcpSocket>
@@ -65,15 +62,7 @@ private:
 	///
 	/// @param message The boblight message to send
 	///
-	void sendMessage(const std::string &message);
-
-	///
-	/// Send a message to the connected client
-	///
-	/// @param message The boblight message to send
-	/// @param size The size of the message
-	///
-	void sendMessage(const char * message, int size);
+	void sendMessage(const QByteArray &message);
 
 	///
 	/// Send a lights message the to connected client
@@ -104,4 +93,7 @@ private:
 	
 	/// logger instance
 	Logger * _log;
+
+	/// address of client
+	QString _clientAddress;
 };

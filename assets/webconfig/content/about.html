@@ -4,16 +4,22 @@
 		<div class="col-lg-6">
 			<div id="about_cont"></div>
 		</div>
+		<div id="danger_act"class="col-lg-6" style="display:none">
+			<h4>You found a hidden service menu!</h4>
+			<button id="reset_cache" class="btn btn-danger">Reset Browser Cache</button>
+			<button id="hyp_restart" class="btn btn-danger">Force Hyperion Restart</button>
+		</div>
 	</div>
 </div>
 
 <script type="text/javascript">
 	performTranslation();
-	
-	var si = serverInfo.info.hyperion[0];
+
+	var si = sysInfo.hyperion;
 	var libs = {"Bootstrap 3" : "http://getbootstrap.com/", "JQuery" : "https://jquery.com/", "Bootstrap Colorpicker" : "https://itsjavi.com/bootstrap-colorpicker/", "JSON-Editor" : "http://jeremydorn.com/json-editor/", "jQuery.i18n" : "https://github.com/wikimedia/jquery.i18n", "metisMenu" : "http://mm.onokumus.com/index.html", "download.js" : "http://danml.com/download.html", "gijgo" : "http://gijgo.com/"};
 	var libh = "";
 	var lang = [];
+	var dcount = 0;
 	
 	for(var i = 0; i<availLang.length; i++)
 		lang.push($.i18n('general_speech_'+availLang[i]));
@@ -21,14 +27,26 @@
 		libh += '<a href="'+libs[key]+'" target="_blank">'+key+'</a>, ';
 	libh += "<br/>"+$.i18n("about_credits");
 	
-	lang = lang.toString().replace(",",", ");
+	lang = lang.toString().replace(/,/g,", ");
 	
-	var fc = [$.i18n("about_version"),$.i18n("about_build"),$.i18n("about_builddate"),$.i18n("about_translations"),$.i18n("about_resources", $.i18n("general_webui_title"))];
-	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="#" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
-
+	var fc = ['<span id="danger_trig">'+$.i18n("about_version")+'<span>',$.i18n("about_build"),$.i18n("about_builddate"),$.i18n("about_translations"),$.i18n("about_resources", $.i18n("general_webui_title"))];
+	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="https://hyperion-project.org/contribute/?pk_campaign=WebUI&pk_kwd=about_contribute" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
 
 	createTable("","atb","about_cont");
 	for(var i = 0; i<fc.length; i++)
 		$('.atb').append(createTableRow([fc[i],sc[i]], "atb", false, true));
 		
+	$('#danger_trig').off().on('click',function(){
+		dcount++;
+		if(dcount > 2)
+			$('#danger_act').toggle(true);
+	});
+	
+	$('#reset_cache').off().on('click',function(){
+		localStorage.clear();
+	});
+	
+	$('#hyp_restart').off().on('click',function(){
+		initRestart();
+	});
 </script>

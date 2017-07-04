@@ -9,7 +9,7 @@ LedDeviceUdpH801::LedDeviceUdpH801(const QJsonObject &deviceConfig)
 bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 {
 	/* The H801 port is fixed */
-	_LatchTime_ns = 10000000;
+	_latchTime_ms = 10;
 	_port = 30977;
 	_defaultHost = "255.255.255.255";
 	ProviderUdp::init(deviceConfig);

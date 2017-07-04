@@ -17,19 +17,29 @@
 performTranslation();
 var connectionLost = false;
 var connectionTimer;
+var count = 1;
 
 function tryReconnect()
 {
+	if(count > 25)
+		window.clearInterval(connectionTimer);
+	
 	$.ajax({ url: "/" }).done(function(data) {
 		window.clearInterval(connectionTimer);
 		window.location.href ="/";
+	})
+	.fail( function( jqXHR, textStatus ) {
+		count++;
 	});
 }
 
 function restartAction()
 {
-	connectionLost = true;
-	connectionTimer = window.setInterval(tryReconnect, 1000);
+	if(!connectionLost)
+	{
+		connectionLost = true;
+		connectionTimer = window.setInterval(tryReconnect, 1000);
+	}
 }
 
 </script>

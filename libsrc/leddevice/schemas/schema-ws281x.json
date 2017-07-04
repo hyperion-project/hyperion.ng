@@ -14,17 +14,23 @@
 			"default": 18,
 			"propertyOrder" : 2
 		},
+		"dma": {
+			"type": "integer",
+			"title":"edt_dev_spec_dmaNumber_title",
+			"default": 5,
+			"propertyOrder" : 3
+		},
 		"invert": {
 			"type": "boolean",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"rgbw": {
 			"type": "boolean",
 			"title":"edt_dev_spec_useRgbwProtocol_title",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 5
 		},
 		"whiteAlgorithm": {
 			"type": "string",
@@ -34,7 +40,17 @@
 			"options" : {
 				"enum_titles" : ["edt_dev_enum_subtract_minimum", "edt_dev_enum_sub_min_warm_adjust", "edt_dev_enum_white_off"]
 			},
-			"propertyOrder" : 4
+			"propertyOrder" : 6
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": true

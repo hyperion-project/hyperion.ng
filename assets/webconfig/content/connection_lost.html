@@ -1,22 +1,22 @@
-
-	<div class="container" style="margin:20px auto;max-width:600px;">
-		<center>
-		<img src="img/hyperion/hyperionlostconnection.png" alt="Redefine ambient light!">
-			<div>
-				<h2  data-i18n="info_conlost_label_title">Lost connection to Hyperion service!</h2>
-				<hr>
-				<h4  data-i18n="info_conlost_label_reason">Possible reasons:</h4>
-				<p  data-i18n="info_conlost_label_reason1">- Hyperion restarts</p>
-				<p  data-i18n="info_conlost_label_reason2">- You perform an update</p>
-				<p  data-i18n="info_conlost_label_reason3">- Hyperion isn't running</p>
-				<hr>
-				<i class="fa fa-refresh fa-spin" style="font-size:50px"></i>
-				<h4  data-i18n="info_conlost_label_autorefresh">This page will be automatically refreshed.</h4>
-				<h4  data-i18n="info_conlost_label_autorecon">We reconnect again after Hyperion is available.</h4>
-				<a href="/"  data-i18n="info_conlost_label_reload">If not, click me or reload the page</a>
-			</div>
-		</center>
-	</div>
+<div class="container" style="margin:20px auto;max-width:600px;">
+	<center>
+	<img src="img/hyperion/hyperionlostconnection.png" alt="Redefine ambient light!">
+		<div>
+			<h2 data-i18n="info_conlost_label_title">Lost connection to Hyperion service!</h2>
+			<hr>
+			<h4 data-i18n="info_conlost_label_reason">Possible reasons:</h4>
+			<p data-i18n="info_conlost_label_reason1">- Hyperion restarts</p>
+			<p data-i18n="info_conlost_label_reason2">- You perform an update</p>
+			<p data-i18n="info_conlost_label_reason3">- Hyperion isn't running</p>
+			<hr>
+			<i class="fa fa-refresh fa-spin reconstop" style="font-size:50px"></i>
+			<h4 class="reconstop" data-i18n="info_conlost_label_autorefresh">This page will be automatically refreshed.</h4>
+			<h4 class="reconstop" data-i18n="info_conlost_label_autorecon">We reconnect again after Hyperion is available.</h4>
+			<span id="counter" class="reconstop"></span>
+			<a class="reconstop" style="display:none" href="/" data-i18n="info_conlost_label_reload"></a>
+		</div>
+	</center>
+</div>
 
 
 <!-- ************************************ -->
@@ -25,19 +25,35 @@
 performTranslation();
 var connectionLost = false;
 var connectionTimer;
+var count = 1;
 
 function tryReconnect()
 {
+	if(count > 100)
+	{
+		window.clearInterval(connectionTimer);
+		$('.reconstop').toggle();
+	}
+	
+	$('#counter').html(count+'/100');
+	
 	$.ajax({ url: "/" }).done(function(data) {
 		window.clearInterval(connectionTimer);
 		window.location.href ="/";
+	})
+	.fail( function( jqXHR, textStatus ) {
+		count++;
 	});
+
 }
 
 function connectionLostAction()
 {
-	connectionLost = true;
-	connectionTimer = window.setInterval(tryReconnect, 4000);
+	if(!connectionLost)
+	{
+		connectionLost = true;
+		connectionTimer = window.setInterval(tryReconnect, 4000);
+	}
 }
 
 </script>

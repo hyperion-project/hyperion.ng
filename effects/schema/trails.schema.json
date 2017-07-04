@@ -33,10 +33,11 @@
 			"propertyOrder" : 4
 		},
 		"speed": {
-			"type": "number",
+			"type": "integer",
 			"title":"edt_eff_speed_title",
-			"default": 1.0,
-			"minimum" : 0.1,
+			"default": 100,
+			"minimum" : 10,
+			"append" : "edt_append_ms",
 			"propertyOrder" : 5
 		},
 		"random": {
