@@ -375,26 +375,30 @@ void HyperionDaemon::startNetworkServices()
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
 	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName();
+	// txt record for zeroconf
+	QString id = _hyperion->id;
+	std::string version = HYPERION_VERSION;
+	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version};
 
-	// zeroconf udp listener 
+	// zeroconf udp listener
 	if (_udpListener != nullptr)
 	{
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort() );
+			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort(), txtRecord);
 		Debug(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
 	bonjourRegister_json->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort(), txtRecord);
 	Debug(_log, "Json mDNS responder started");
 
 	// zeroconf proto
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
 	bonjourRegister_proto->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort(), txtRecord);
 	Debug(_log, "Proto mDNS responder started");
 }
 
