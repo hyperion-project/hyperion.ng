@@ -41,15 +41,22 @@ class JsonProcessor : public QObject
 	Q_OBJECT
 
 public:
-	JsonProcessor(QString peerAddress);
+	///
+	/// Constructor
+	///
+	/// @param peerAddress provide the Address of the peer
+	/// @param noListener if true, this instance won't listen for hyperion push events
+	///
+	JsonProcessor(QString peerAddress, bool noListener = false);
 	~JsonProcessor();
 
 	///
 	/// Handle an incoming JSON message
 	///
 	/// @param message the incoming message as string
+	/// @param peerAddress overwrite peerAddress of constructor
 	///
-	void handleMessage(const QString & message);
+	void handleMessage(const QString & message, const QString peerAddress = NULL);
 
 	///
 	/// send a forced serverinfo to a client

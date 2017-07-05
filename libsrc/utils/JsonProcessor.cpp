@@ -38,7 +38,7 @@ using namespace hyperion;
 
 std::map<hyperion::Components, bool> JsonProcessor::_componentsPrevState;
 
-JsonProcessor::JsonProcessor(QString peerAddress)
+JsonProcessor::JsonProcessor(QString peerAddress, bool noListener)
 	: QObject()
     , _peerAddress(peerAddress)
 	, _log(Logger::getInstance("JSONRPCPROCESSOR"))
@@ -51,8 +51,12 @@ JsonProcessor::JsonProcessor(QString peerAddress)
     connect(this, &JsonProcessor::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
     // notify hyperion about a push emit
     connect(this, &JsonProcessor::pushReq, _hyperion, &Hyperion::hyperionStateChanged);
-	// listen for sendServerInfo pushes from hyperion
-	connect(_hyperion, &Hyperion::sendServerInfo, this, &JsonProcessor::forceServerInfo);
+
+	if(!noListener)
+	{
+		// listen for sendServerInfo pushes from hyperion
+		connect(_hyperion, &Hyperion::sendServerInfo, this, &JsonProcessor::forceServerInfo);
+	}
 
 	// led color stream update timer
 	_timer_ledcolors.setSingleShot(false);
@@ -65,8 +69,11 @@ JsonProcessor::~JsonProcessor()
 
 }
 
-void JsonProcessor::handleMessage(const QString& messageString)
+void JsonProcessor::handleMessage(const QString& messageString, const QString peerAddress)
 {
+	if(!peerAddress.isNull())
+		_peerAddress = peerAddress;
+
 	QString errors;
 
  	try
