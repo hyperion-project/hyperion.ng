@@ -20,12 +20,12 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	std::string whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off").toStdString();
+	QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off");
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-	Debug( _log, "whiteAlgorithm : %s", whiteAlgorithm.c_str());
+	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
 	if (_whiteAlgorithm == RGBW::INVALID)
 	{
-		Error(_log, "unknown whiteAlgorithm %s", whiteAlgorithm.c_str());
+		Error(_log, "unknown whiteAlgorithm %s", QSTRING_CSTR(whiteAlgorithm));
 		return false;
 	}
 
@@ -36,7 +36,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	}
 
 	_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
-	_led_string.dmanum = deviceConfig["dmanum"].toInt(5);
+	_led_string.dmanum = deviceConfig["dma"].toInt(5);
 	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
 	_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
 	_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);

@@ -1,7 +1,7 @@
 {
 	"general" :
 	{
-		"name"       : "MyHyperionConfig",
+		"name"       : "My Hyperion Config",
 		"showOptHelp" : true,
 		"configVersion" : 2
 	},
@@ -16,7 +16,8 @@
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"rewriteTime": 5000
+		"rewriteTime": 5000,
+		"latchTime" : 10
 	},
 
 	"color" :
@@ -38,9 +39,10 @@
 				"gammaRed"   : 1.5,
 				"gammaGreen" : 1.5,
 				"gammaBlue"  : 1.5,
-				"backlightThreshold"  : 0.0,
+				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
-				"brightness" : 0.75
+				"brightness" : 100,
+				"brightnessCompensation" : 100
 			}
 		]
 	},
@@ -76,6 +78,7 @@
 			"redSignalThreshold"   : 0.0,
 			"greenSignalThreshold" : 0.0,
 			"blueSignalThreshold"  : 0.0,
+			"signalDetection"      : true,
 			"signalDetectionVerticalOffsetMin"   : 0.25,
 			"signalDetectionHorizontalOffsetMin" : 0.25,
 			"signalDetectionVerticalOffsetMax"   : 0.75,
@@ -104,7 +107,7 @@
 	"blackborderdetector" :
 	{
 		"enable" : true,
-		"threshold" : 0.05,
+		"threshold" : 5,
 		"unknownFrameCnt"    : 600,
 		"borderFrameCnt"     : 50,
 		"maxInconsistentCnt" : 10,
@@ -164,7 +167,7 @@
 	{
 		"enable"   : false,
 		"port"     : 19333,
-		"priority" : 200
+		"priority" : 201
 	},
 	
 	"udpListener" :
@@ -172,7 +175,7 @@
 		"enable"   : false,
 		"address"  : "239.255.28.01",
 		"port"     : 2801,
-		"priority" : 190,
+		"priority" : 200,
 		"timeout"  : 10000,
 		"shared"   : false
 	},

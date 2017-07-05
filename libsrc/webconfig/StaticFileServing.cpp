@@ -11,6 +11,7 @@
 #include <QHostInfo>
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
+#include <HyperionConfig.h>
 #include <exception>
 
 StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint16 port, QObject * parent)
@@ -43,14 +44,20 @@ StaticFileServing::~StaticFileServing ()
 
 void StaticFileServing::onServerStarted (quint16 port)
 {
-	Info(_log, "started on port %d name \"%s\"", port ,_server->getServerName().toStdString().c_str());
+	Info(_log, "started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
+	const QJsonObject & generalConfig = _hyperion->getQJsonConfig()["general"].toObject();
+	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName() + ":" + QString::number(port);
 
-	const std::string mDNSDescr = (_server->getServerName().toStdString() + "@" + QHostInfo::localHostName().toStdString());
+	// txt record for zeroconf
+	QString id = _hyperion->id;
+	std::string version = HYPERION_VERSION;
+	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version}};
 
 	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
 	bonjourRegister_http->registerService(
-		BonjourRecord(mDNSDescr.c_str(), "_hyperiond-http._tcp", QString()),
-		port
+		BonjourRecord(mDNSDescr, "_hyperiond-http._tcp", QString()),
+		port,
+		txtRecord
 		);
 	Debug(_log, "Web Config mDNS responder started");
 }

@@ -45,6 +45,7 @@
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
 #include <udplistener/UDPListener.h>
+#include <utils/Stats.h>
 #include <QJsonObject>
 
 class HyperionDaemon : public QObject
@@ -92,6 +93,7 @@ private:
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;
 	Hyperion*           _hyperion;
+	Stats*              _stats;
 	
 	unsigned            _grabber_width;
 	unsigned            _grabber_height;

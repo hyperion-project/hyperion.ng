@@ -49,13 +49,10 @@ protected:
 	int writeBytes(const unsigned size, const uint8_t *data);
 
 	/// The name of the output device
-	std::string _deviceName;
+	QString _deviceName;
 
 	/// The used baudrate of the output device
 	int _baudRate_Hz;
-
-	/// The time which the device should be untouched after a write
-	int _latchTime_ns;
 
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int _fid;

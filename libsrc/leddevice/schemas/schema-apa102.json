@@ -20,6 +20,16 @@
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
 			"propertyOrder" : 3
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

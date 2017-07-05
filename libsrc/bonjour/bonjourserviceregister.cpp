@@ -48,7 +48,7 @@ BonjourServiceRegister::~BonjourServiceRegister()
 	}
 }
 
-void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort)
+void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt)
 {
 	if (dnssref)
 	{
@@ -62,10 +62,25 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 	}
 #endif
 
+    // create txt record
+    TXTRecordRef txtRec;
+    TXTRecordCreate(&txtRec,0,NULL);
+
+    // add txt records
+    if(!txt.empty())
+    {
+        for(std::vector<std::pair<std::string, std::string> >::const_iterator it = txt.begin(); it != txt.end(); ++it)
+        {
+            //Debug(Logger::getInstance("BonJour"), "TXTRecord: key:%s, value:%s",it->first.c_str(),it->second.c_str());
+            uint8_t txtLen = (uint8_t)strlen(it->second.c_str());
+            TXTRecordSetValue(&txtRec, it->first.c_str(), txtLen, it->second.c_str());
+        }
+    }
+
 	DNSServiceErrorType err = DNSServiceRegister(&dnssref, 0, 0, record.serviceName.toUtf8().constData(),
 	                                            record.registeredType.toUtf8().constData(),
 	                                            (record.replyDomain.isEmpty() ? 0 : record.replyDomain.toUtf8().constData()),
-	                                            0, bigEndianPort, 0, 0, bonjourRegisterService, this);
+	                                            0, bigEndianPort, TXTRecordGetLength(&txtRec), TXTRecordGetBytesPtr(&txtRec), bonjourRegisterService, this);
 	if (err != kDNSServiceErr_NoError)
 	{
 		emit error(err);

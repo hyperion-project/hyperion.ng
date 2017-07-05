@@ -2,54 +2,58 @@
 <html>
 
 <head>
+	<script>
+	if (/MSIE/.test(navigator.userAgent) || /Trident/.test(navigator.userAgent))
+	{
+		window.location.pathname = '/content/ie_not_supported.html';
+	}
+	</script>
+
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
-	<meta name="description" content="">
-
-	<title data-i18n="general_webui_title">Hyperion - Error</title>
+	<meta name="description" content="Hyperion Web Configuration">
+	<meta name="msapplication-TileColor" content="#91989C">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+	<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" href="/favicon.png" sizes="32x32">
+	
+	<title data-i18n="general_webui_title">Hyperion - Web Configuration</title>
 
 	<!-- jQuery -->
-	<script src="/js/lib/jquery.min.js"></script>
+	<script src="js/lib/jquery.min.js"></script>
 
 	<!-- Hyperion -->
-	<script src="/js/hyperion.js"></script>
-	<script src="/js/ui_utils.js"></script>
-
-	<!-- textarea --> 
-	<script src="/js/lib/jquery-linedtextarea.js"></script>
-	<link href="/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	<script src="js/hyperion.js"></script>
+	<script src="js/ui_utils.js"></script>
 	
 	<!-- Colorpicker -->
-	<script src="/js/lib/bootstrap-colorpicker.min.js"></script>
-	<link href="/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+	<script src="js/lib/bootstrap-colorpicker.min.js"></script>
+	<link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
 	<!-- JSONEditor -->
-	<script src="/js/lib/jsoneditor.js"></script>
+	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
-	<script src="/js/lib/jquery.i18n.js"></script>
-	<script src="/js/lib/jquery.i18n.messagestore.js"></script>
-	<script src="/js/lib/jquery.i18n.fallbacks.js"></script>
-	<script src="/js/lib/jquery.i18n.parser.js"></script>
-	<script src="/js/lib/jquery.i18n.emitter.js"></script>
-	<script src="/js/lib/jquery.i18n.language.js"></script>
+	<script src="js/lib/jquery.i18n.js"></script>
+	<script src="js/lib/jquery.i18n.messagestore.js"></script>
+	<script src="js/lib/jquery.i18n.fallbacks.js"></script>
+	<script src="js/lib/jquery.i18n.parser.js"></script>
+	<script src="js/lib/jquery.i18n.emitter.js"></script>
+	<script src="js/lib/jquery.i18n.language.js"></script>
 	
 	<!-- Bootstrap Core CSS -->
-	<link href="/css/bootstrap.css" rel="stylesheet">
-
-	<!-- Flags -->
-	<link href="/css/flag-icon.min.css" rel="stylesheet">
+	<link href="css/bootstrap.min.css" rel="stylesheet">
 
 	<!-- MetisMenu CSS -->
-	<link href="/css/metisMenu.css" rel="stylesheet">
+	<link href="css/metisMenu.css" rel="stylesheet">
 
 	<!-- Custom CSS -->
-	<link href="/css/sb-admin-2.css" rel="stylesheet">
-	<link href="/css/hyperion.css" rel="stylesheet">
+	<link href="css/sb-admin-2.css" rel="stylesheet">
+	<link href="css/hyperion.css" rel="stylesheet">
 
 	<!-- Custom Fonts -->
-	<link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -87,14 +91,9 @@
 			<!-- /.navbar-header -->
 
 			<ul class="nav navbar-top-links navbar-right">
-				<li class="dropdown" id="btn_setlang">
+				<li class="dropdown" id="btn_instanceswitch" style="display:none">
 					<a>		
-						<i class="fa fa-globe fa-fw"></i>
-					</a>
-				</li>
-				<li class="dropdown" id="btn_setaccess">
-					<a>		
-						<i class="fa fa-key fa-fw"></i>
+						<i class="fa fa-exchange fa-fw"></i>
 					</a>
 				</li>
 				<li class="dropdown" id="btn_open_ledsim">
@@ -125,19 +124,33 @@
 								</div>
 							</a>
 						</li>
-						<li class="divider"></li>
-						<li id="btn_wizard_philipshue">
+					</ul>
+				</li>
+				<!-- /.dropdown -->
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-wrench fa-fw"></i>  <i class="fa fa-caret-down"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-alerts">
+						<li id="btn_setlang">
 							<a>
 								<div>
-									<i class="fa fa-magic fa-fw"></i>
-									<span data-i18n="wiz_hue_title"></span>
+									<i class="fa fa-globe fa-fw"></i>
+									<span data-i18n="InfoDialog_lang_title"></span>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
+						<li id="btn_setaccess">
+							<a>
+								<div>
+									<i class="fa fa-key fa-fw"></i>
+									<span data-i18n="InfoDialog_access_title"></span>
 								</div>
 							</a>
 						</li>
 					</ul>
-					<!-- /.dropdown-alerts -->
 				</li>
-				<!-- /.dropdown -->
 			</ul>
 			<!-- /.navbar-top-left -->
 
@@ -177,11 +190,18 @@
 		</nav>
 
 		<!-- Page Content -->
-		<div id="page-wrapper" style="padding-top:10px">
-		<div id="hyperion_reload_notify" class="alert alert-warning" style="display:none;padding:10px;margin:0">
-			<div class="panel-danger" style="text-align:right">
-				<div style="float:left;line-height:33px;"  data-i18n="dashboard_alert_message_confedit">Your Hyperion configuration has been modified. To apply it, restart Hyperion.</div>
-				<button id="btn_hyperion_reload" class="btn btn-danger"  data-i18n="general_btn_restarthyperion">Restart Hyperion</button>
+		<div id="page-wrapper" style="padding-top:10px; overflow: hidden;">
+		<div id="hyperion_reload_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-warning">
+				<h4 data-i18n="dashboard_alert_message_confedit_t"></h4>
+				<span data-i18n="dashboard_alert_message_confedit"></span>
+				<p><button id="btn_hyperion_reload" class="btn btn-warning btn-sm" style="margin-top:10px" data-i18n="general_btn_restarthyperion"></button></p>
+			</div>
+		</div>
+		<div id="hyperion_disabled_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-danger">
+				<h4 data-i18n="dashboard_alert_message_disabled_t"></h4>
+				<span data-i18n="dashboard_alert_message_disabled"></span>
 			</div>
 		</div>
 
@@ -254,25 +274,29 @@
 	</div>
 
 	<!-- Bootstrap Core JavaScript -->
-	<script src="/js/lib/bootstrap.min.js"></script>
+	<script src="js/lib/bootstrap.min.js"></script>
 
 	<!-- Metis Menu Plugin JavaScript -->
-	<script src="/js/lib/metisMenu.min.js"></script>
+	<script src="js/lib/metisMenu.min.js"></script>
 
 	<!-- Custom Theme JavaScript -->
-	<script src="/js/lib/sb-admin-2.js"></script>
+	<script src="js/lib/sb-admin-2.js"></script>
 
-	<script src="/js/content_index.js"></script>
-	<script src="/js/settings.js"></script>
-	<script src="/js/wizard.js"></script>
+	<script src="js/content_index.js"></script>
+	<script src="js/settings.js"></script>
+	<script src="js/wizard.js"></script>
 	
 	<!--gijgo dialog-->
-	<script src="/js/lib/draggable.min.js"></script>
-	<script src="/js/lib/dialog.min.js"></script>
-	<script src="/js/ledsim.js"></script>
+	<script src="js/lib/draggable.min.js"></script>
+	<script src="js/lib/dialog.min.js"></script>
+	<script src="js/ledsim.js"></script>
 	
 	<!--Client-side download-->
-	<script src='/js/lib/download.min.js'></script>
+	<script src='js/lib/download.min.js'></script>
+	
+	<!--JsonAceEditor-->
+	<script src='js/lib/jsonaceeditor.min.js'></script>
+	<link href="css/jsonaceeditor.min.css" rel="stylesheet" type="text/css">
 	
 </body>
 </html>

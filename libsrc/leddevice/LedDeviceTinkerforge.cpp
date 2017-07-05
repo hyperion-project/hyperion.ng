@@ -35,9 +35,9 @@ bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	_host     = deviceConfig["output"].toString("127.0.0.1").toStdString();
+	_host     = deviceConfig["output"].toString("127.0.0.1");
 	_port     = deviceConfig["port"].toInt(4223);
-	_uid      = deviceConfig["uid"].toString().toStdString();
+	_uid      = deviceConfig["uid"].toString();
 	_interval = deviceConfig["rate"].toInt();
 
 	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
@@ -75,16 +75,16 @@ int LedDeviceTinkerforge::open()
 	_ipConnection = new IPConnection;
 	ipcon_create(_ipConnection);
 
-	int connectionStatus = ipcon_connect(_ipConnection, _host.c_str(), _port);
+	int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
 	if (connectionStatus < 0) 
 	{
-		Warning(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", _host.c_str(), _port, connectionStatus);
+		Warning(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
 		return -1;
 	}
 
 	// Create the 'LedStrip'
 	_ledStrip = new LEDStrip;
-	led_strip_create(_ledStrip, _uid.c_str(), _ipConnection);
+	led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
 
 	int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
 	if (frameStatus < 0) 
