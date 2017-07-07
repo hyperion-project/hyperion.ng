@@ -1,17 +1,15 @@
-import hyperion
-import time
-import colorsys
+import hyperion, time, colorsys
 from random import randint
 
 #get args
-rotationTime = int(hyperion.args.get('rotationTime', 8))
-marginPos = float(hyperion.args.get('margin-pos', 1.5))
+rotationTime = float(hyperion.args.get('rotationTime', 4))
+marginPos    = float(hyperion.args.get('margin-pos', 2))
 
 # define pacman
 pacman = bytearray((255, 255, 0))
 
 # define ghosts
-redGuy = bytearray((255, 0, 0))
+redGuy  = bytearray((255, 0, 0))
 pinkGuy = bytearray((255, 184, 255))
 blueGuy = bytearray((0, 255, 255))
 slowGuy = bytearray((255, 184, 81))
@@ -20,10 +18,10 @@ light = bytearray((255, 184, 174))
 background = bytearray((0, 0, 0))
 
 #helper
-posPac = 1
-diffPac = 6*marginPos
-diffGuys = 3*marginPos
-sleepTime = rotationTime/ledCount
+posPac    = 1
+diffPac   = 6*marginPos
+diffGuys  = 3*marginPos
+sleepTime = max(0.02,rotationTime/hyperion.ledCount)
 
 posPinkGuy = posPac + diffPac
 posBlueGuy = posPinkGuy + diffGuys
@@ -89,7 +87,8 @@ while not hyperion.abort():
 	shiftLED(ledData, increment, hyperion.ledCount - random, s)
 
 	# chase mode
-	shift = 3*(hyperion.ledCount - random)
-	ledData=ledDataChase[shift:]+ledDataChase[:shift]
+	shift   = 3*(hyperion.ledCount - random)
+	ledData = ledDataChase[shift:]+ledDataChase[:shift]
 	shiftLED(ledData, -increment, 2*hyperion.ledCount-random)
+	time.sleep(sleepTime)
 

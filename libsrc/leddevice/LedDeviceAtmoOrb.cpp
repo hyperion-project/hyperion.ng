@@ -6,13 +6,10 @@
 #include <QEventLoop>
 #include <QtNetwork>
 #include <QNetworkReply>
+#include <QStringList>
 
-#include <stdexcept>
-#include <sstream>
-#include <string>
-#include <set>
-
-AtmoOrbLight::AtmoOrbLight(unsigned int id) {
+AtmoOrbLight::AtmoOrbLight(unsigned int id)
+{
 	// Not implemented
 }
 
@@ -38,28 +35,20 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 	_multiCastGroupPort = deviceConfig["port"].toInt(49692);
 	_numLeds            = deviceConfig["numLeds"].toInt(24);
 	
-	const std::string orbId = deviceConfig["orbIds"].toString().toStdString();
+	const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
 	_orbIds.clear();
 
-	// If we find multiple Orb ids separate them and add to list
-	const std::string separator (",");
-	if (orbId.find(separator) != std::string::npos)
+	foreach(auto & id_str, orbIds)
 	{
-		std::stringstream ss(orbId);
-		std::vector<int> output;
-		unsigned int i;
-		while (ss >> i)
-		{
-			_orbIds.push_back(i);
-			if (ss.peek() == ',' || ss.peek() == ' ') ss.ignore();
-		}
-	}
-	else
-	{
-		_orbIds.push_back(atoi(orbId.c_str()));
+		bool ok;
+		int id = id_str.toInt(&ok);
+		if (ok)
+			_orbIds.append(id);
+		else
+			Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
 	}
 
-	return true;
+	return _orbIds.size() > 0;
 }
 
 LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
@@ -104,7 +93,7 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 				abs(color.green - lastGreen) >= _skipSmoothingDiff))
 		{
 			// Skip Orb smoothing when using  (command type 4)
-			for (unsigned int i = 0; i < _orbIds.size(); i++)
+			for (int i = 0; i < _orbIds.size(); i++)
 			{
 				if (_orbIds[i] == idx)
 				{
@@ -115,7 +104,7 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 		else
 		{
 			// Send color
-			for (unsigned int i = 0; i < _orbIds.size(); i++)
+			for (int i = 0; i < _orbIds.size(); i++)
 			{
 				if (_orbIds[i] == idx)
 				{

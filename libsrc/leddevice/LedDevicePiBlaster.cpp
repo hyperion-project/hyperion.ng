@@ -44,7 +44,7 @@ bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	_deviceName            = deviceConfig["output"].toString("/dev/pi-blaster").toStdString();
+	_deviceName    = deviceConfig["output"].toString("/dev/pi-blaster");
 	QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
 
 	if (gpioMapping.isEmpty())
@@ -82,24 +82,24 @@ int LedDevicePiBlaster::open()
 	if (_fid != nullptr)
 	{
 		// The file pointer is already open
-		Error( _log, "Device (%s) is already open.", _deviceName.c_str() );
+		Error( _log, "Device (%s) is already open.", QSTRING_CSTR(_deviceName) );
 		return -1;
 	}
 
-	if (!QFile::exists(_deviceName.c_str()))
+	if (!QFile::exists(_deviceName))
 	{
-		Error( _log, "The device (%s) does not yet exist.", _deviceName.c_str() );
+		Error( _log, "The device (%s) does not yet exist.",QSTRING_CSTR(_deviceName) );
 		return -1;
 	}
 
-	_fid = fopen(_deviceName.c_str(), "w");
+	_fid = fopen(QSTRING_CSTR(_deviceName), "w");
 	if (_fid == nullptr)
 	{
-		Error( _log, "Failed to open device (%s). Error message: %s", _deviceName.c_str(),  strerror(errno) );
+		Error( _log, "Failed to open device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
 		return -1;
 	}
 
-	Info( _log, "Connected to device(%s)", _deviceName.c_str());
+	Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
 
 	return 0;
 }

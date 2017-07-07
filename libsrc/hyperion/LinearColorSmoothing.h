@@ -1,7 +1,6 @@
 #pragma once
 
 // STL includes
-#include <string>
 #include <vector>
 
 
@@ -42,9 +41,9 @@ public:
 	virtual int switchOff();
 
 	void setEnable(bool enable);
-	bool enabled();
-
-	bool componentState() { return enabled(); };
+	void setPause(bool pause);
+	bool pause() { return _pause; } ;
+	bool enabled() { return LedDevice::enabled() && !_pause; };
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
@@ -92,6 +91,7 @@ private:
 	
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
-	
-	bool _enabled;
+
+	/// Flag for pausing
+	bool _pause;
 };

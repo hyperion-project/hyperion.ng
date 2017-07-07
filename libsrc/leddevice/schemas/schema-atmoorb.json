@@ -33,6 +33,16 @@
 			"title":"edt_dev_spec_useOrbSmoothing_title",
 			"default": true,
 			"propertyOrder" : 5
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 6
 		}
 	},
 	"additionalProperties": true

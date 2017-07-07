@@ -7,8 +7,9 @@
 		"speed": {
 			"type": "number",
 			"title":"edt_eff_speed_title",
-			"default": 1.0,
-			"minimum" : 0.0,
+			"default": 1000,
+			"minimum" : 10,
+			"append" : "edt_append_ms",
 			"propertyOrder" : 1
 		},
 		"saturation": {

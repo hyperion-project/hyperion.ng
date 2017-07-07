@@ -109,36 +109,42 @@
 				"gammaRed": {
 					"type" : "number",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 100.0
+					"minimum" : 0.1,
+					"maximum" : 5.0
 				},
 				"gammaGreen": {
 					"type" : "number",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 100.0
+					"minimum" : 0.1,
+					"maximum" : 5.0
 				},
 				"gammaBlue": {
 					"type" : "number",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 100.0
+					"minimum" : 0.1,
+					"maximum" : 5.0
 				},
 				"backlightThreshold" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 1.0
+					"minimum" : 0,
+					"maximum" : 100
 				},
 				"backlightColored" : {
 					"type" : "boolean",
 					"required" : false
 				},
 				"brightness" : {
-					"type" : "number",
+					"type" : "integer",
 					"required" : false,
-					"minimum" : 0.0,
-					"maximum" : 1.0
+					"minimum" : 0,
+					"maximum" : 100
+				},
+				"brightnessCompensation" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 100
 				}
 			},
 			"additionalProperties": false

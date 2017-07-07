@@ -19,7 +19,7 @@ WebConfig::WebConfig(QObject * parent)
 	{
 		const QJsonObject webconfigConfig = config["webConfig"].toObject();
 		webconfigEnable = webconfigConfig["enable"].toBool(true);
-		_port = webconfigConfig["port"].toInt(_port);
+		_port    = webconfigConfig["port"].toInt(_port);
 		_baseUrl = webconfigConfig["document_root"].toString(_baseUrl);
 	}
 

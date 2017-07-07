@@ -87,5 +87,5 @@ private:
 	/// state of connection
 	bool _isActive;
 
-	uint16_t      _port;
+	uint16_t  _port;
 };

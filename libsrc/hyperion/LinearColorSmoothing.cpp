@@ -17,7 +17,7 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	, _outputDelay(updateDelay)
 	, _writeToLedsEnable(true)
 	, _continuousOutput(continuousOutput)
-	, _enabled(true)
+	, _pause(false)
 {
 	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
@@ -119,7 +119,7 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	if (_outputDelay == 0)
 	{
 		// No output delay => immediate write
-		if ( _writeToLedsEnable )
+		if ( _writeToLedsEnable && !_pause)
 			_ledDevice->setLedValues(ledColors);
 	}
 	else
@@ -133,7 +133,10 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 		{
 			if ( _outputQueue.size() > _outputDelay || !_writeToLedsEnable )
 			{
-				_ledDevice->setLedValues(_outputQueue.front());
+				if (!_pause)
+				{
+					_ledDevice->setLedValues(_outputQueue.front());
+				}
 				_outputQueue.pop_front();
 			}
 		}
@@ -143,16 +146,17 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 
 void LinearColorSmoothing::setEnable(bool enable)
 {
-	_enabled = enable;
+	LedDevice::setEnable(enable);
+
 	if (!enable)
 	{
 		_timer.stop();
 		_previousValues.clear();
-		
 	}
 }
 
-bool LinearColorSmoothing::enabled()
+void LinearColorSmoothing::setPause(bool pause)
 {
-	return _enabled;
+	_pause = pause;
 }
+

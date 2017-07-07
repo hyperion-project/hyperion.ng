@@ -1,8 +1,5 @@
 #pragma once
 
-// stl includes
-#include <string>
-
 // Qt includes
 #include <QColor>
 #include <QImage>
@@ -80,6 +77,13 @@ public:
 	QString getServerInfo();
 
 	///
+	/// Retrieve system info
+	///
+	/// @return String with the sys info
+	///
+	QString getSysInfo();
+
+	///
 	/// Clear the given priority channel
 	///
 	/// @param priority The priority
@@ -150,9 +154,10 @@ public:
 		double *gammaR,
 		double *gammaG,
 		double *gammaB,
-		double *backlightThreshold,
+		int    *backlightThreshold,
 		int    *backlightColored,
-		double *brightness);
+		int    *brightness,
+		int    *brightnessC);
 
 	///
 	/// sets the image to leds mapping type

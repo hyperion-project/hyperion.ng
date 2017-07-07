@@ -36,6 +36,7 @@ public:
 	///
 	uint16_t getPort() const;
 
+
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
@@ -48,13 +49,33 @@ private slots:
 	///
 	void closedConnection(JsonClientConnection * connection);
 
+	/// forward message to all json slaves
+	void forwardJsonMessage(const QJsonObject &message);
+
+public slots:
+	/// process current forwarder state
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
+	///
+	/// forward message to a single json slaves
+	///
+	/// @param message The JSON message to send
+	///
+	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
+
 private:
 	/// The TCP server object
 	QTcpServer _server;
+
+	/// Link to Hyperion to get config state emiter
+	Hyperion * _hyperion;
 
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
 
 	/// the logger instance
 	Logger * _log;
+
+	/// Flag if forwarder is enabled
+	bool _forwarder_enabled = true;
 };

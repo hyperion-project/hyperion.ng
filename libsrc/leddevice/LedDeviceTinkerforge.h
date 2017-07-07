@@ -3,6 +3,8 @@
 // STL includes
 #include <cstdio>
 
+#include <QString>
+
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
 
@@ -56,13 +58,13 @@ private:
 	int transferLedData(LEDStrip *ledstrip, unsigned int index, unsigned int length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel);
 
 	/// The host of the master brick
-	std::string _host;
+	QString _host;
 
 	/// The port of the master brick
 	uint16_t _port;
 
 	/// The uid of the led strip bricklet
-	std::string _uid;
+	QString _uid;
 
 	/// The interval/rate
 	unsigned _interval;
