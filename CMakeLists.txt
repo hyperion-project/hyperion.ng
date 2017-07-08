@@ -209,6 +209,9 @@ else()
     message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 endif()
 
+# setup -rpath to search for shared libs in BINARY/../libs folder
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-rpath -Wl,\$ORIGIN/../lib")
+
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
 find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)

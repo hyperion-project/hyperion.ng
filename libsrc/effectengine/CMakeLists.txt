@@ -1,7 +1,7 @@
 set(Python_ADDITIONAL_VERSIONS 2.7.12)
-find_package(PythonLibs REQUIRED)
-
-message( STATUS "PYTHON VERSIONS: ${PYTHONLIBS_VERSION_STRING}" )
+find_package(PythonLibs 2.7 REQUIRED)
+#message( STATUS "PYTHON VERSIONS: ${PYTHONLIBS_VERSION_STRING}" )
+# The detection of cmake is GARBAGE, write your own to prefer 2.7, but don't fail if just 3.x is available. Or we hardcode it to 3.x and deliver our own copy along with the binary.
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.
