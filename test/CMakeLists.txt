@@ -48,22 +48,17 @@ target_link_libraries(test_blackborderprocessor
 
 add_executable(test_qregexp TestQRegExp.cpp)
 target_link_libraries(test_qregexp
-		${QT_LIBRARIES})
+		Qt5::Widgets)
 
 add_executable(test_qtscreenshot TestQtScreenshot.cpp)
 target_link_libraries(test_qtscreenshot
-		${QT_LIBRARIES})
-
-qt5_use_modules(test_qregexp Widgets)
-qt5_use_modules(test_qtscreenshot Widgets)
+		Qt5::Widgets)
 
 if(ENABLE_X11)
     # Find X11
     find_package(X11 REQUIRED)
 
     add_executable(test_x11performance TestX11Performance.cpp)
-	target_link_libraries(test_x11performance ${X11_LIBRARIES} ${QT_LIBRARIES})
+	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt5::Widgets)
 
-	qt5_use_modules(test_x11performance Widgets)
 endif(ENABLE_X11)
-

@@ -843,7 +843,7 @@ void JsonProcessor::handleSchemaGetCommand(const QJsonObject& message, const QSt
 	result["tan"] = tan;
 
 	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(resource);
+	Q_INIT_RESOURCE(JSONRPC_schemas);
 	QJsonParseError error;
 
 	// read the hyperion json schema from the resource

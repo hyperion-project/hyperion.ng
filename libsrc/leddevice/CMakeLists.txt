@@ -7,22 +7,13 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 find_package(libusb-1.0 REQUIRED)
 #find_package(Threads REQUIRED)
 
+# qt files
+find_package(Qt5 COMPONENTS Network SerialPort REQUIRED)
+
 include_directories(
 	${CMAKE_SOURCE_DIR}/include/hidapi
 	${LIBUSB_1_INCLUDE_DIRS}
 ) # for Lightpack device
-
-# Group the headers that go through the MOC compiler
-SET(Leddevice_QT_HEADERS
-	${CURRENT_HEADER_DIR}/LedDevice.h
-	${CURRENT_SOURCE_DIR}/ProviderRs232.h
-	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
-	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
-	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
-	${CURRENT_SOURCE_DIR}/ProviderHID.h
-	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
-	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
-)
 
 SET(Leddevice_HEADERS
 	${CURRENT_HEADER_DIR}/LedDeviceFactory.h
@@ -37,12 +28,19 @@ SET(Leddevice_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.h
-	${CURRENT_SOURCE_DIR}/LedDeviceUdpArtNet.h
 	${CURRENT_SOURCE_DIR}/ProviderUdp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2net.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmo.h
+	${CURRENT_HEADER_DIR}/LedDevice.h
+	${CURRENT_SOURCE_DIR}/ProviderRs232.h
+	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
+	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
+	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
+	${CURRENT_SOURCE_DIR}/ProviderHID.h
+	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
+	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
 
 SET(Leddevice_SOURCES
@@ -66,7 +64,6 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpRaw.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.cpp
-	${CURRENT_SOURCE_DIR}/LedDeviceUdpArtNet.cpp
 	${CURRENT_SOURCE_DIR}/ProviderUdp.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.cpp
@@ -129,27 +126,21 @@ set(LedDevice_RESOURCES
 	${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc
 )
 
-QT5_WRAP_CPP(Leddevice_HEADERS_MOC ${Leddevice_QT_HEADERS})
 qt5_add_resources(LedDevice_RESOURCES_RCC ${LedDevice_RESOURCES} OPTIONS "-no-compress")
-
-
 
 add_library(leddevice
 	${Leddevice_HEADERS}
-	${Leddevice_QT_HEADERS}
-	${Leddevice_HEADERS_MOC}
 	${Leddevice_SOURCES}
 	${LedDevice_RESOURCES}
 	${LedDevice_RESOURCES_RCC}
 )
 
-qt5_use_modules(leddevice Network SerialPort)
-
 target_link_libraries(leddevice
 	hyperion-utils
 	${LIBUSB_1_LIBRARIES} #apt-get install libusb-1.0-0-dev
 	${CMAKE_THREAD_LIBS_INIT}
-	${QT_LIBRARIES}
+	Qt5::Network
+	Qt5::SerialPort
 )
 
 if(ENABLE_TINKERFORGE)

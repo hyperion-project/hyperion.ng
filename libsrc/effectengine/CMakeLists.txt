@@ -11,14 +11,10 @@ include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/effectengine)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/effectengine)
 
-# Group the headers that go through the MOC compiler
-SET(EffectEngineQT_HEADERS
-	${CURRENT_HEADER_DIR}/EffectEngine.h
-	${CURRENT_SOURCE_DIR}/Effect.h
-)
-
 SET(EffectEngineHEADERS
 	${CURRENT_HEADER_DIR}/EffectDefinition.h
+	${CURRENT_HEADER_DIR}/EffectEngine.h
+	${CURRENT_SOURCE_DIR}/Effect.h
 )
 
 SET(EffectEngineSOURCES
@@ -37,20 +33,16 @@ CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/Eff
 
 SET(EffectEngine_RESOURCES ${CMAKE_BINARY_DIR}/EffectEngine.qrc)
 
-QT5_WRAP_CPP(EffectEngineHEADERS_MOC ${EffectEngineQT_HEADERS})
 qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} ) # OPTIONS "-no-compress"
 
 add_library(effectengine
 	${EffectEngineHEADERS}
-	${EffectEngineQT_HEADERS}
-	${EffectEngineHEADERS_MOC}
 	${EffectEngine_RESOURCES_RCC}
 	${EffectEngineSOURCES}
 )
 
-qt5_use_modules(effectengine Core Gui)
-
 target_link_libraries(effectengine
 	hyperion
-	${QT_LIBRARIES}
+	Qt5::Core
+	Qt5::Gui
 	${PYTHON_LIBRARIES})

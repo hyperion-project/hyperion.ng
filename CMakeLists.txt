@@ -1,13 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 PROJECT(hyperion)
 
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
 IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
-ENDIF()
-
-IF ( POLICY CMP0043 )
-	CMAKE_POLICY( SET CMP0043 OLD )
 ENDIF()
 
 SET ( HYPERION_VERSION_STABLE OFF )
@@ -213,7 +212,6 @@ endif()
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
 find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
@@ -246,7 +244,7 @@ endif ()
 add_subdirectory(doc)
 
 # remove generated files on make cleaan too
-LIST( APPEND GENERATED_QRC 
+LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/EffectEngine.qrc
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
@@ -259,5 +257,3 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
-
-
