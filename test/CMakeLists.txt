@@ -1,6 +1,8 @@
  # Needed for testing non-public components
 include_directories(../libsrc)
 
+find_package(Qt5Widgets REQUIRED)
+
 if(ENABLE_SPIDEV)
 	# Add the simple test executable 'TestSpi'
 	add_executable(test_spi TestSpi.cpp)
