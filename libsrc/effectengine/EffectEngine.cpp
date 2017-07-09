@@ -1,5 +1,6 @@
 // Python includes
 #include <Python.h>
+#undef B0
 
 // Stl includes
 #include <fstream>

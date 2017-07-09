@@ -210,7 +210,11 @@ else()
 endif()
 
 # setup -rpath to search for shared libs in BINARY/../libs folder
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-rpath -Wl,\$ORIGIN/../lib")
+if (UNIX AND NOT APPLE)
+	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif ()
 
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
@@ -227,9 +231,9 @@ find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
-if(NOT APPLE)
-	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
-endif()
+#if(NOT APPLE)
+#	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
+#endif()
 
 if(ENABLE_OSX)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
