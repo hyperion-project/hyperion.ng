@@ -4,6 +4,7 @@
 
 // QT includes
 #include <QResource>
+#include <QDebug>
 
 // JsonSchema includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -12,7 +13,7 @@
 #include <hyperion/LedString.h>
 #include "HyperionConfig.h"
 
-bool loadConfig(const QString & configFile)
+bool loadConfig(const QString & configFile, bool correct)
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
@@ -39,39 +40,67 @@ bool loadConfig(const QString & configFile)
 	// read and validate the configuration file from the command line
 	////////////////////////////////////////////////////////////
 	
-	const QJsonObject jsonConfig = QJsonFactory::readConfig(configFile);
-	
-	if (!schemaChecker.validate(jsonConfig))
+	QJsonObject jsonConfig = QJsonFactory::readConfig(configFile);
+
+	if (!correct)
 	{
-		QStringList schemaErrors = schemaChecker.getMessages();
-		foreach (auto & schemaError, schemaErrors)
+		if (!schemaChecker.validate(jsonConfig))
 		{
-			std::cout << "config write validation: " << schemaError.toStdString() << std::endl;
+			QStringList schemaErrors = schemaChecker.getMessages();
+			foreach (auto & schemaError, schemaErrors)
+			{
+				std::cout << "config write validation: " << schemaError.toStdString() << std::endl;
+			}
+			
+			std::cout << "FAILED" << std::endl;
+			exit(1);
+			return false;
 		}
-		
-		std::cout << "FAILED" << std::endl;
-		exit(1);
-		return false;
+	}
+	else
+	{
+		jsonConfig = schemaChecker.getAutoCorrectedConfig(jsonConfig);
+		QJsonFactory::writeJson(configFile, jsonConfig);
 	}
 
 	return true;
 }
 
+void usage()
+{
+	qDebug() << "Missing required configuration file to test";
+	qDebug() << "Usage: test_configfile <option> [configfile]";
+	qDebug() << "<option>:";
+	qDebug() << "\t--autocorrection - for json auto correction";
+}
+
 int main(int argc, char** argv)
 {
-	if (argc != 2)
+	if (argc < 2)
 	{
-		std::cerr << "Missing required configuration file to test" << std::endl;
-		std::cerr << "Usage: test_configfile [configfile]" << std::endl;
+		usage();
 		return 0;
 	}
 
-	const QString configFile(argv[1]);
+	QString option = argv[1];
+	QString configFile;
+
+    if (option == "--autocorrection")
+		if (argc > 2)
+			configFile = argv[2];
+		else
+		{
+			usage();
+			return 0;
+		}
+	else
+		configFile = argv[1];
+
 	std::cout << "Configuration file selected: " << configFile.toStdString() << std::endl;
 	std::cout << "Attemp to load..." << std::endl;
 	try
 	{
-		if (loadConfig(configFile))
+		if (loadConfig(configFile, (option == "--autocorrection")))
 			std::cout << "PASSED" << std::endl;
 		return 0;
 	}
