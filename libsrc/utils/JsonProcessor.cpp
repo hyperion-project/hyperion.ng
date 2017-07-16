@@ -594,6 +594,7 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 	ledDevices["available"] = availableLedDevices;
 	info["ledDevices"] = ledDevices;
 
+#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
 	// get available grabbers
 	QJsonObject grabbers;
 	//grabbers["active"] = ????;
@@ -605,6 +606,9 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 
 	grabbers["available"] = availableGrabbers;
 	info["grabbers"] = grabbers;
+#else
+	info["grabbers"] = QString("none");
+#endif
 
 	// get available components
 	QJsonArray component;
