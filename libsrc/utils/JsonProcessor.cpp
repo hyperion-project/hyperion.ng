@@ -15,7 +15,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
-#include <QVariantMap>
 #include <QDir>
 #include <QImage>
 #include <QBuffer>
@@ -851,7 +850,7 @@ void JsonProcessor::handleSchemaGetCommand(const QJsonObject& message, const QSt
 	QJsonParseError error;
 
 	// read the hyperion json schema from the resource
-	QFile schemaData(":/hyperion-schema-"+QString::number(_hyperion->getConfigVersionId()));
+	QFile schemaData(":/hyperion-schema");
 
 	if (!schemaData.open(QIODevice::ReadOnly))
 	{
