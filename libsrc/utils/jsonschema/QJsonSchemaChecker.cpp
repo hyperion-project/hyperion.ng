@@ -5,6 +5,7 @@
 
 // Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <utils/jsonschema/QJsonUtils.h>
 
 QJsonSchemaChecker::QJsonSchemaChecker()
 {
@@ -40,6 +41,25 @@ bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired
 	return !_error;
 }
 
+QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value)
+{
+	_ignoreRequired = false;
+	QStringList sequence = QStringList() << "remove" << "modify" << "create";
+	_error = false;
+	_messages.clear();
+	_autoCorrected = value;
+
+	for(const QString &correct : sequence)
+	{
+		_correct = correct;
+		_currentPath.clear();
+		_currentPath.append("[root]");
+		validate(_autoCorrected, _qSchema);
+	}
+
+	return _autoCorrected;
+}
+
 void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &schema)
 {
 	// check the current json value
@@ -48,8 +68,10 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 		QString attribute = i.key();
 		const QJsonValue & attributeValue = *i;
 
+		QJsonObject::const_iterator defaultValue = schema.find("default");
+
 		if (attribute == "type")
-			checkType(value, attributeValue);
+			checkType(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "properties")
 		{
 			if (value.isObject())
@@ -82,13 +104,13 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			}
 		}
 		else if (attribute == "minimum")
-			checkMinimum(value, attributeValue);
+			checkMinimum(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "maximum")
-			checkMaximum(value, attributeValue);
+			checkMaximum(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "minLength")
-			checkMinLength(value, attributeValue);
+			checkMinLength(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "maxLength")
-			checkMaxLength(value, attributeValue);
+			checkMaxLength(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "items")
 		{
 			if (value.isArray())
@@ -101,13 +123,13 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			}
 		}
 		else if (attribute == "minItems")
-			checkMinItems(value, attributeValue);
+			checkMinItems(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "maxItems")
-			checkMaxItems(value, attributeValue);
+			checkMaxItems(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
 		else if (attribute == "uniqueItems")
 			checkUniqueItems(value, attributeValue);
 		else if (attribute == "enum")
-			checkEnum(value, attributeValue);
+			checkEnum(value, attributeValue, (defaultValue != schema.end() ? defaultValue.value() : QJsonValue::Null));
  		else if (attribute == "required")
  			; // nothing to do. value is present so always oke
  		else if (attribute == "id")
@@ -135,7 +157,7 @@ const QStringList & QJsonSchemaChecker::getMessages() const
 	return _messages;
 }
 
-void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	QString type = schema.toString();
 
@@ -145,7 +167,12 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 	else if (type == "number")
 		wrongType = !value.isDouble();
 	else if (type == "integer")
-		wrongType = (rint(value.toDouble()) != value.toDouble());
+	{
+		if (value.isDouble()) //check if value type not boolean (true = 1 && false = 0)
+			wrongType = (rint(value.toDouble()) != value.toDouble());
+		else
+			wrongType = true;
+	}
 	else if (type == "double")
 		wrongType = !value.isDouble();
 	else if (type == "boolean")
@@ -160,13 +187,16 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 		wrongType = !value.isString();
 	else if (type == "any")
 		wrongType = false;
-//	else
-//		assert(false);
 
 	if (wrongType)
 	{
 		_error = true;
-		setMessage(type + " expected");
+
+		if (_correct == "modify")
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue);
+
+		if (_correct == "")
+			setMessage(type + " expected");
 	}
 }
 
@@ -176,7 +206,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 	{
 		QString property = i.key();
 
-		const QJsonValue  & propertyValue = i.value();
+		const QJsonValue  & propertyValue = *i;
 
 		_currentPath.append("." + property);
 		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
@@ -185,10 +215,15 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (required != propertyValue.toObject().end() && required.value().toBool() && !_ignoreRequired)
+		else if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
 		{
 			_error = true;
-			setMessage("missing member");
+
+			if (_correct == "create")
+				QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue), property);
+
+			if (_correct == "")
+				setMessage("missing member");
 		}
 		_currentPath.removeLast();
 	}
@@ -208,7 +243,12 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 				if (schema.toBool() == false)
 				{
 					_error = true;
-					setMessage("no schema definition");
+
+					if (_correct == "remove")
+						QJsonUtils::modify(_autoCorrected, _currentPath);
+
+					if (_correct == "")
+						setMessage("no schema definition");
 				}
 			}
 			else
@@ -220,7 +260,7 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 	}
 }
 
-void QJsonSchemaChecker::checkMinimum(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMinimum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isDouble())
 	{
@@ -233,11 +273,18 @@ void QJsonSchemaChecker::checkMinimum(const QJsonValue & value, const QJsonValue
 	if (value.toDouble() < schema.toDouble())
 	{
 		_error = true;
-		setMessage("value is too small (minimum=" + schema.toString() + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("value is too small (minimum=" + QString::number(schema.toDouble()) + ")");
 	}
 }
 
-void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isDouble())
 	{
@@ -250,11 +297,18 @@ void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue
 	if (value.toDouble() > schema.toDouble())
 	{
 		_error = true;
-		setMessage("value is too large (maximum=" + schema.toString() + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("value is too large (maximum=" + QString::number(schema.toDouble()) + ")");
 	}
 }
 
-void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isString())
 	{
@@ -267,11 +321,18 @@ void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonVal
 	if (value.toString().size() < schema.toInt())
 	{
 		_error = true;
-		setMessage("value is too short (minLength=" + schema.toString() + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("value is too short (minLength=" + QString::number(schema.toInt()) + ")");
 	}
 }
 
-void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isString())
 	{
@@ -284,7 +345,14 @@ void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonVal
 	if (value.toString().size() > schema.toInt())
 	{
 		_error = true;
-		setMessage("value is too long (maxLength=" + schema.toString() + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("value is too long (maxLength=" + QString::number(schema.toInt()) + ")");
 	}
 }
 
@@ -308,7 +376,7 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 	}
 }
 
-void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isArray())
 	{
@@ -318,17 +386,22 @@ void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValu
 		return;
 	}
 
-	int minimum = schema.toInt();
-
 	QJsonArray jArray = value.toArray();
-	if (static_cast<int>(jArray.size()) < minimum)
+	if (jArray.size() < schema.toInt())
 	{
 		_error = true;
-		setMessage("array is too large (minimum=" + QString::number(minimum) + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("array is too large (minimum=" + QString::number(schema.toInt()) + ")");
 	}
 }
 
-void QJsonSchemaChecker::checkMaxItems(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkMaxItems(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (!value.isArray())
 	{
@@ -338,13 +411,18 @@ void QJsonSchemaChecker::checkMaxItems(const QJsonValue & value, const QJsonValu
 		return;
 	}
 
-	int maximum = schema.toInt();
-
 	QJsonArray jArray = value.toArray();
-	if (static_cast<int>(jArray.size()) > maximum)
+	if (jArray.size() > schema.toInt())
 	{
 		_error = true;
-		setMessage("array is too large (maximum=" + QString::number(maximum) + ")");
+
+		if (_correct == "modify")
+			(defaultValue != QJsonValue::Null) ?
+			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+
+		if (_correct == "")
+			setMessage("array is too large (maximum=" + QString::number(schema.toInt()) + ")");
 	}
 }
 
@@ -362,6 +440,8 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue & value, const QJsonV
 	{
 		// make sure no two items are identical
 
+		bool removeDuplicates = false;
+
 		QJsonArray jArray = value.toArray();
 		for(int i = 0; i < jArray.size(); ++i)
 		{
@@ -371,14 +451,28 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue & value, const QJsonV
 				{
 					// found a value twice
 					_error = true;
-					setMessage("array must have unique values");
+					removeDuplicates = true;
+
+					if (_correct == "")
+						setMessage("array must have unique values");
 				}
 			}
+		}
+
+		if (removeDuplicates && _correct == "modify")
+		{
+			QJsonArray uniqueItemsArray;
+			
+			for(int i = 0; i < jArray.size(); ++i)
+				if (!uniqueItemsArray.contains(jArray[i]))
+					uniqueItemsArray.append(jArray[i]);
+			
+			QJsonUtils::modify(_autoCorrected, _currentPath, uniqueItemsArray);
 		}
 	}
 }
 
-void QJsonSchemaChecker::checkEnum(const QJsonValue & value, const QJsonValue & schema)
+void QJsonSchemaChecker::checkEnum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue)
 {
 	if (schema.isArray())
 	{
@@ -395,7 +489,16 @@ void QJsonSchemaChecker::checkEnum(const QJsonValue & value, const QJsonValue & 
 
 	// nothing found
 	_error = true;
-	QJsonDocument doc(schema.toArray());
-	QString strJson(doc.toJson(QJsonDocument::Compact));
-	setMessage("Unknown enum value (allowed values are: " + schema.toString() + strJson+ ")");
+
+	if (_correct == "modify")
+		(defaultValue != QJsonValue::Null) ?
+		QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
+		QJsonUtils::modify(_autoCorrected, _currentPath, schema.toArray().first());
+
+	if (_correct == "")
+	{
+		QJsonDocument doc(schema.toArray());
+		QString strJson(doc.toJson(QJsonDocument::Compact));
+		setMessage("Unknown enum value (allowed values are: " + strJson+ ")");
+	}
 }
