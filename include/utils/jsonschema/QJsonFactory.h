@@ -54,6 +54,7 @@ public:
 			throw std::runtime_error(QString("Configuration file not found: '" + path + "' ("  +  file.errorString() + ")").toStdString());
 		}
 
+		//Allow Comments in Config
 		QString config = QString(file.readAll());
 		config.remove(QRegularExpression("([^:]?\\/\\/.*)"));
 		
@@ -93,8 +94,11 @@ public:
 			throw std::runtime_error(QString("Schema not found: '" + path + "' (" + schemaData.errorString() + ")").toStdString());
 		}
 
-		QByteArray schema = schemaData.readAll();
-		QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
+		//Allow Comments in Hyperion Schema
+		QString schema = QString(schemaData.readAll());
+		schema.remove(QRegularExpression("([^:]?\\/\\/.*)"));
+		
+		QJsonDocument doc = QJsonDocument::fromJson(schema.toUtf8(), &error);
 		schemaData.close();
 		
 		if (error.error != QJsonParseError::NoError)
