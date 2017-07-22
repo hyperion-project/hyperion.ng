@@ -41,9 +41,9 @@ bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired
 	return !_error;
 }
 
-QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value)
+QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value, bool ignoreRequired)
 {
-	_ignoreRequired = false;
+	_ignoreRequired = ignoreRequired;
 	QStringList sequence = QStringList() << "remove" << "modify" << "create";
 	_error = false;
 	_messages.clear();
@@ -220,11 +220,14 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 			_error = true;
 
 			if (_correct == "create")
-				QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue), property);
+				QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue, _ignoreRequired), property);
 
 			if (_correct == "")
 				setMessage("missing member");
 		}
+		else if (_correct == "create" && _ignoreRequired)
+			QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue, _ignoreRequired), property);
+
 		_currentPath.removeLast();
 	}
 }
@@ -367,6 +370,11 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 	}
 
 	QJsonArray jArray = value.toArray();
+
+	if (_correct == "remove")
+		if (jArray.isEmpty())
+			QJsonUtils::modify(_autoCorrected, _currentPath);
+
 	for(int i = 0; i < jArray.size(); ++i)
 	{
 		// validate each item
@@ -397,7 +405,7 @@ void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValu
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
 
 		if (_correct == "")
-			setMessage("array is too large (minimum=" + QString::number(schema.toInt()) + ")");
+			setMessage("array is too small (minimum=" + QString::number(schema.toInt()) + ")");
 	}
 }
 
