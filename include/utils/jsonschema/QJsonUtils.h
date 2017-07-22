@@ -27,20 +27,23 @@ public:
 					*it = current.mid(1, current.size()-1);
 			}
 			
-			modifyValue(value, result, path, newValue, propertyName);
+			if (!value.isEmpty())
+				modifyValue(value, result, path, newValue, propertyName);
+			else if (newValue != QJsonValue::Null && !propertyName.isEmpty())
+				result[propertyName] = newValue;
 		}
 
 		value = result;
 	}
 
-	static QJsonValue create(QJsonValue schema)
+	static QJsonValue create(QJsonValue schema, bool ignoreRequired = false)
 	{
-		return createValue(schema);
+		return createValue(schema, ignoreRequired);
 	}
 
 private:
 
-	static QJsonValue createValue(QJsonValue schema)
+	static QJsonValue createValue(QJsonValue schema, bool ignoreRequired)
 	{
 		QJsonObject result;
 		QJsonObject obj = schema.toObject();
@@ -49,9 +52,9 @@ private:
 		{
 			QJsonValue ret = QJsonValue::Null;
 			
-			if (obj.find("type").value().toString() == "object")
-				ret = createValue(obj["properties"]);
-			else if (obj.find("type").value().toString() == "array")
+			if (obj.find("type").value().toString() == "object" && ( obj.find("required").value().toBool() || ignoreRequired ) )
+				ret = createValue(obj["properties"], ignoreRequired);
+			else if (obj.find("type").value().toString() == "array" && ( obj.find("required").value().toBool() || ignoreRequired ) )
 			{
 				QJsonArray array;
 				
@@ -59,18 +62,16 @@ private:
 					ret = obj.find("default").value();
 				else
 				{
-					ret = createValue(obj["items"]);
+					ret = createValue(obj["items"], ignoreRequired);
 
 					if (!ret.toObject().isEmpty())
 						array.append(ret);
 					ret = array;
 				}
 			}
-			else
-			{
+			else if ( obj.find("required").value().toBool() || ignoreRequired )
 				if (obj.find("default") != obj.end())
 					ret = obj.find("default").value();
-			}
 			
 			return ret;
 		}
@@ -84,14 +85,14 @@ private:
 
 				if (attributeValue.toObject().find("type") != attributeValue.toObject().end())
 				{
-					if (attributeValue.toObject().find("type").value().toString() == "object")
+					if (attributeValue.toObject().find("type").value().toString() == "object" && ( attributeValue.toObject().find("required").value().toBool() || ignoreRequired ) )
 					{
 						if (obj.contains("properties"))
-							result[attribute] = createValue(obj["properties"]);
+							result[attribute] = createValue(obj["properties"], ignoreRequired);
 						else
-							result[attribute] = createValue(subValue);
+							result[attribute] = createValue(subValue, ignoreRequired);
 					}
-					else if (attributeValue.toObject().find("type").value().toString() == "array")
+					else if (attributeValue.toObject().find("type").value().toString() == "array" && ( attributeValue.toObject().find("required").value().toBool() || ignoreRequired ) )
 					{
 						QJsonArray array;
 
@@ -100,14 +101,14 @@ private:
 						else
 						{
 							QJsonValue retEmpty;
-							retEmpty = createValue(obj["items"]);
+							retEmpty = createValue(attributeValue.toObject()["items"], ignoreRequired);
 							
 							if (!retEmpty.toObject().isEmpty())
 								array.append(retEmpty);
 							result[attribute] = array;
 						}
 					}
-					else
+					else if ( attributeValue.toObject().find("required").value().toBool() || ignoreRequired )
 					{
 						if (attributeValue.toObject().find("default") != attributeValue.toObject().end())
 							result[attribute] = attributeValue.toObject().find("default").value();
@@ -124,142 +125,149 @@ private:
 	static void modifyValue(QJsonValue source, QJsonObject& target, QStringList path, const QJsonValue& newValue, QString& property)
 	{
 		QJsonObject obj = source.toObject();
-		for (QJsonObject::iterator i = obj.begin(); i != obj.end(); ++i)
+
+		if (!obj.isEmpty())
 		{
-			QString propertyName = i.key();
-			QJsonValue subValue = obj[propertyName];
-
-			if (subValue.isObject())
+			for (QJsonObject::iterator i = obj.begin(); i != obj.end(); ++i)
 			{
-				if (!path.isEmpty())
+				QString propertyName = i.key();
+				QJsonValue subValue = obj[propertyName];
+
+				if (subValue.isObject())
 				{
-					if (propertyName == path.first())
+					if (!path.isEmpty())
 					{
-						path.removeFirst();
-
-						if (!path.isEmpty())
+						if (propertyName == path.first())
 						{
-							QJsonObject obj;
-							modifyValue(subValue, obj, path, newValue, property);
-							subValue = obj;
-						}
-						else if (newValue != QJsonValue::Null)
-							subValue = newValue;
-						else
-							continue;
+							path.removeFirst();
 
-						if (!subValue.toObject().isEmpty())
-							target[propertyName] = subValue;
-					}
-					else
-					{
-						if (path.first() == property && newValue != QJsonValue::Null)
-						{
-							target[property] = newValue;
-							property = QString();
-						}
-						
-						if (!subValue.toObject().isEmpty())
-							target[propertyName] = subValue;
-					}
-				}
-				else
-					if (!subValue.toObject().isEmpty())
-						target[propertyName] = subValue;
-			}
-			else if (subValue.isArray())
-			{
-				if (!path.isEmpty())
-				{
-					if (propertyName == path.first())
-					{
-						path.removeFirst();
-
-						int arrayLevel = -1;
-						if (!path.isEmpty())
-						{
-							if ((path.first().left(1) == "[") && (path.first().right(1) == "]"))
-							{
-								arrayLevel = path.first().mid(1, path.first().size()-2).toInt();
-								path.removeFirst();
-							}
-						}
-
-						QJsonArray array = subValue.toArray();
-						QJsonArray json_array;
-
-						for (QJsonArray::iterator i = array.begin(); i != array.end(); ++i)
-						{
 							if (!path.isEmpty())
 							{
-								QJsonObject arr;
-								modifyValue(*i, arr, path, newValue, property);
-								subValue = arr;
+								QJsonObject obj;
+								modifyValue(subValue, obj, path, newValue, property);
+								subValue = obj;
 							}
 							else if (newValue != QJsonValue::Null)
 								subValue = newValue;
 							else
 								continue;
-							
-							if (!subValue.toObject().isEmpty())
-								json_array.append(subValue);
-							else if (newValue != QJsonValue::Null && arrayLevel != -1)
-								json_array.append( (i - array.begin() == arrayLevel) ? subValue : *i );
-						}
 
-						if (!json_array.isEmpty())
-							target[propertyName] = json_array;
-						else if (newValue != QJsonValue::Null && arrayLevel == -1)
-							target[propertyName] = newValue;
+							if (!subValue.toObject().isEmpty())
+								target[propertyName] = subValue;
+						}
+						else
+						{
+							if (path.first() == property && newValue != QJsonValue::Null)
+							{
+								target[property] = newValue;
+								property = QString();
+							}
+
+							target[propertyName] = subValue;
+						}
 					}
 					else
+						if (!subValue.toObject().isEmpty())
+							target[propertyName] = subValue;
+				}
+				else if (subValue.isArray())
+				{
+					if (!path.isEmpty())
 					{
-						if (path.first() == property && newValue != QJsonValue::Null)
+						if (propertyName == path.first())
 						{
-							target[property] = newValue;
-							property = QString();
+							path.removeFirst();
+
+							int arrayLevel = -1;
+							if (!path.isEmpty())
+							{
+								if ((path.first().left(1) == "[") && (path.first().right(1) == "]"))
+								{
+									arrayLevel = path.first().mid(1, path.first().size()-2).toInt();
+									path.removeFirst();
+								}
+							}
+
+							QJsonArray array = subValue.toArray();
+							QJsonArray json_array;
+
+							for (QJsonArray::iterator i = array.begin(); i != array.end(); ++i)
+							{
+								if (!path.isEmpty())
+								{
+									QJsonObject arr;
+									modifyValue(*i, arr, path, newValue, property);
+									subValue = arr;
+								}
+								else if (newValue != QJsonValue::Null)
+									subValue = newValue;
+								else
+									continue;
+								
+								if (!subValue.toObject().isEmpty())
+									json_array.append(subValue);
+								else if (newValue != QJsonValue::Null && arrayLevel != -1)
+									json_array.append( (i - array.begin() == arrayLevel) ? subValue : *i );
+							}
+
+							if (!json_array.isEmpty())
+								target[propertyName] = json_array;
+							else if (newValue != QJsonValue::Null && arrayLevel == -1)
+								target[propertyName] = newValue;
 						}
-						
+						else
+						{
+							if (path.first() == property && newValue != QJsonValue::Null)
+							{
+								target[property] = newValue;
+								property = QString();
+							}
+
+							target[propertyName] = subValue;
+						}
+					}
+					else
 						if (!subValue.toArray().isEmpty())
 							target[propertyName] = subValue;
-					}
 				}
 				else
-					if (!subValue.toArray().isEmpty())
-						target[propertyName] = subValue;
-			}
-			else
-			{
-				if (!path.isEmpty())
 				{
-					if (propertyName == path.first())
+					if (!path.isEmpty())
 					{
-						path.removeFirst();
-
-						if (path.isEmpty())
+						if (propertyName == path.first())
 						{
-							if (newValue != QJsonValue::Null && property.isEmpty())
-								subValue = newValue;
-							else
-								continue;
-						}
+							path.removeFirst();
 
-						target[propertyName] = subValue;
+							if (path.isEmpty())
+							{
+								if (newValue != QJsonValue::Null && property.isEmpty())
+									subValue = newValue;
+								else
+									continue;
+							}
+
+							target[propertyName] = subValue;
+						}
+						else
+						{
+							if (path.first() == property && newValue != QJsonValue::Null)
+							{
+								target[property] = newValue;
+								property = QString();
+							}
+
+							target[propertyName] = subValue;
+						}
 					}
 					else
-					{
-						if (path.first() == property && newValue != QJsonValue::Null)
-						{
-							target[property] = newValue;
-							property = QString();
-						}
-
 						target[propertyName] = subValue;
-					}
 				}
-				else
-					target[propertyName] = subValue;
 			}
+		}
+		else if (newValue != QJsonValue::Null && !property.isEmpty())
+		{
+			target[property] = newValue;
+			property = QString();
 		}
 	}
 };
