@@ -1,3 +1,5 @@
+// Comments are now allowed. Please describe non self-explanatory fields
+
 {
 	"type" : "object",
 	"required" : true,
@@ -28,6 +30,7 @@
 					"required" : true,
 					"propertyOrder" : 2
 				},
+				// default value ????????????? @brindosch
 				"configVersion" :
 				{
 					"type" : "integer",
