@@ -37,6 +37,7 @@ public:
 	///
 	/// @brief Validate a JSON structure
 	/// @param value The JSON value to check
+	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
 	/// @return true when the arguments is valid according to the schema
 	///
 	bool validate(const QJsonObject & value, bool ignoreRequired = false);
@@ -44,9 +45,10 @@ public:
 	///
 	/// @brief Auto correct a JSON structure
 	/// @param value The JSON value to correct
+	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
 	/// @return The corrected JSON structure
 	///
-	QJsonObject getAutoCorrectedConfig(const QJsonObject & value);
+	QJsonObject getAutoCorrectedConfig(const QJsonObject & value, bool ignoreRequired = false);
 
 	///
 	/// @return A list of error messages
