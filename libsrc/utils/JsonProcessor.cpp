@@ -847,44 +847,18 @@ void JsonProcessor::handleSchemaGetCommand(const QJsonObject& message, const QSt
 
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
-	QJsonParseError error;
 
 	// read the hyperion json schema from the resource
-	QFile schemaData(":/hyperion-schema");
+	QString schemaFile = ":/hyperion-schema";
 
-	if (!schemaData.open(QIODevice::ReadOnly))
+	try
 	{
-		std::stringstream error;
-		error << "Schema not found: " << schemaData.errorString().toStdString();
-		throw std::runtime_error(error.str());
+		schemaJson = QJsonFactory::readSchema(schemaFile);
 	}
-
-	QByteArray schema = schemaData.readAll();
-	QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
-	schemaData.close();
-
-	if (error.error != QJsonParseError::NoError)
+	catch(const std::runtime_error& error)
 	{
-		// report to the user the failure and their locations in the document.
-		int errorLine(0), errorColumn(0);
-
-		for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
-		{
-			++errorColumn;
-			if(schema.at(i) == '\n' )
-			{
-				errorColumn = 0;
-				++errorLine;
-			}
-		}
-
-		std::stringstream sstream;
-		sstream << "ERROR: Json schema wrong: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-
-		throw std::runtime_error(sstream.str());
+		throw std::runtime_error(error.what());
 	}
-
-	schemaJson = doc.object();
 
 	// collect all LED Devices
 	properties = schemaJson["properties"].toObject();
