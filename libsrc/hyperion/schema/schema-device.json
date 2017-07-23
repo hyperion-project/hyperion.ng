@@ -1,0 +1,41 @@
+{
+	"type" : "object",
+	"title" : "edt_dev_general_heading_title",
+	"required" : true,
+	"defaultProperties": ["ledCount","colorOrder","rewriteTime","minimumWriteTime"],
+	"properties" :
+	{
+		"type" :
+		{
+			"type" : "string"
+		},
+		"ledCount" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"title" : "edt_dev_general_ledCount_title",
+			"propertyOrder" : 2
+		},
+		"colorOrder" :
+		{
+			"type" : "string",
+			"title" : "edt_dev_general_colorOrder_title",
+			"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
+			"default" : "rgb",
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
+			},
+			"propertyOrder" : 3
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties" : true
+}

@@ -1,0 +1,63 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_smooth_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : true,
+			"propertyOrder" : 1
+		},
+		"type" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_smooth_type_title",
+			"enum" : ["linear"],
+			"default" : "linear",
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_linear"]
+			},
+			"propertyOrder" : 2
+		},
+		"time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_smooth_time_ms_title",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 3
+		},
+		"updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_conf_smooth_updateFrequency_title",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"propertyOrder" : 4
+		},
+		"updateDelay" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_smooth_updateDelay_title",
+			"minimum" : 0,
+			"maximum": 2048,
+			"default" : 0,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 5
+		},
+		"continuousOutput" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_smooth_continuousOutput_title",
+			"default" : true,
+			"propertyOrder" : 6
+		}
+	},
+	"additionalProperties" : false
+}

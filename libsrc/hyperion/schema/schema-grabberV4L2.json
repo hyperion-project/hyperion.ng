@@ -1,0 +1,226 @@
+{
+	"type":"array",
+	"title" : "edt_conf_v4l2_heading_title",
+	"minItems": 1,
+	"maxItems": 2,
+	"items":
+	{
+		"type" : "object",
+		"title" : "edt_conf_v4l2_heading_title",
+		"properties" :
+		{
+			"enable" :
+			{
+				"type" : "boolean",
+				"title" : "edt_conf_general_enable_title",
+				"default" : false,
+				"propertyOrder" : 1
+			},
+			"device" :
+			{
+				"type" : "string",
+				"title" : "edt_conf_v4l2_device_title",
+				"default" : "auto",
+				"propertyOrder" : 2
+			},
+			"input" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_input_title",
+				"minimum" : 0,
+				"default" : 0,
+				"propertyOrder" : 3
+			},
+			"standard" :
+			{
+				"type" : "string",
+				"title" : "edt_conf_v4l2_standard_title",
+				"enum" : ["PAL","NTSC"],
+				"default" : "PAL",
+				"options" : {
+					"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC"]
+				},
+				"propertyOrder" : 4
+			},
+			"width" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_width_title",
+				"minimum" : -1,
+				"default" : -1,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 5
+			},
+			"height" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_height_title",
+				"minimum" : -1,
+				"default" : -1,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 6
+			},
+			"frameDecimation" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_frameDecimation_title",
+				"minimum" : 0,
+				"default" : 2,
+				"propertyOrder" : 7
+			},
+			"sizeDecimation" :
+			{
+				"type" : "integer",
+				"title" : "Size decimation",
+				"minimum" : 0,
+				"default" : 6,
+				"propertyOrder" : 8
+			},
+			"priority" :
+			{
+				"type" : "integer",
+				"minimum" : 100,
+				"maximum" : 253,
+				"title" : "edt_conf_general_priority_title",
+				"default" : 240,
+				"propertyOrder" : 9
+			},
+			"mode" :
+			{
+				"type" : "string",
+				"title" : "edt_conf_v4l2_mode_title",
+				"enum" : ["2D","3DSBS","3DTAB"],
+				"default" : "2D",
+				"propertyOrder" : 10
+			},
+			"useKodiChecker" :
+			{
+				"type" : "boolean",
+				"title" : "edt_conf_v4l2_useKodiChecker_title",
+				"default" : false,
+				"propertyOrder" : 11
+			},
+			"cropLeft" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_cropLeft_title",
+				"minimum" : 0,
+				"default" : 0,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 12
+			},
+			"cropRight" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_cropRight_title",
+				"minimum" : 0,
+				"default" : 0,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 13
+			},
+			"cropTop" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_cropTop_title",
+				"minimum" : 0,
+				"default" : 0,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 14
+			},
+			"cropBottom" :
+			{
+				"type" : "integer",
+				"title" : "edt_conf_v4l2_cropBottom_title",
+				"minimum" : 0,
+				"default" : 0,
+				"append" : "edt_append_pixel",
+				"propertyOrder" : 15
+			},
+			"signalDetection" :
+			{
+				"type" : "boolean",
+				"title" : "edt_conf_v4l2_signalDetection_title",
+				"default" : true,
+				"propertyOrder" : 16
+			},
+			"redSignalThreshold" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_redSignalThreshold_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 17
+			},
+			"greenSignalThreshold" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_greenSignalThreshold_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.025,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 18
+			},
+			"blueSignalThreshold" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_blueSignalThreshold_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 19
+			},
+			"signalDetectionVerticalOffsetMin" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 20
+			},
+			"signalDetectionVerticalOffsetMax" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 21
+			},
+			"signalDetectionHorizontalOffsetMin" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 22
+			},
+			"signalDetectionHorizontalOffsetMax" :
+			{
+				"type" : "number",
+				"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+				"minimum" : 0.0,
+				"maximum" : 1.0,
+				"default" : 0.1,
+				"step" : 0.005,
+				"append" : "edt_append_percent",
+				"propertyOrder" : 23
+			}
+		},
+	"additionalProperties" : false
+	}
+}
