@@ -94,13 +94,10 @@ public:
 			throw std::runtime_error(QString("Schema not found: '" + path + "' (" + schemaData.errorString() + ")").toStdString());
 		}
 
-		//Allow Comments in Hyperion Schema
-		QString schema = QString(schemaData.readAll());
-		schema.remove(QRegularExpression("([^:]?\\/\\/.*)"));
-		
-		QJsonDocument doc = QJsonDocument::fromJson(schema.toUtf8(), &error);
+		QByteArray schema = schemaData.readAll();
+		QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 		schemaData.close();
-		
+
 		if (error.error != QJsonParseError::NoError)
 		{
 			// report to the user the failure and their locations in the document.
@@ -121,7 +118,36 @@ public:
 			);
 		}
 
-		return doc.object();
+		return resolveReferences(doc.object());
+	}
+
+	static QJsonObject resolveReferences(const QJsonObject& schema)
+	{
+		QJsonObject result;
+
+		for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
+		{
+			QString attribute = i.key();
+			const QJsonValue & attributeValue = *i;
+
+			if (attribute == "$ref" && attributeValue.isString())
+			{
+				try
+				{
+					result = readSchema(":/" + attributeValue.toString());
+				}
+				catch(...)
+				{
+					return result;
+				}
+			}
+			else if (attributeValue.isObject())
+				result.insert(attribute, resolveReferences(attributeValue.toObject()));
+			else
+				result.insert(attribute, attributeValue);
+		}
+
+		return result;
 	}
 
 	static void writeJson(const QString& filename, QJsonObject& jsonTree)
