@@ -4,46 +4,71 @@ An implementation of JSON Schema for Python
 The main functionality is provided by the validator classes for each of the
 supported JSON Schema versions.
 
-Most commonly, the :function:`validate` function is the quickest way to simply
-validate a given instance under a schema, and will create a validator for you.
+Most commonly, :func:`validate` is the quickest way to simply validate a given
+instance under a schema, and will create a validator for you.
 
 """
 
 from __future__ import division, unicode_literals
 
 import collections
+import json
 import itertools
 import operator
 import re
 import sys
-import warnings
 
 
-__version__ = "0.7"
+__version__ = "0.8.0"
 
-FLOAT_TOLERANCE = 10 ** -15
 PY3 = sys.version_info[0] >= 3
 
 if PY3:
+    from urllib import parse as urlparse
+    from urllib.parse import unquote
+    from urllib.request import urlopen
     basestring = unicode = str
     iteritems = operator.methodcaller("items")
-    from urllib.parse import unquote
 else:
     from itertools import izip as zip
-    iteritems = operator.methodcaller("iteritems")
     from urllib import unquote
+    from urllib2 import urlopen
+    import urlparse
+    iteritems = operator.methodcaller("iteritems")
+
+
+FLOAT_TOLERANCE = 10 ** -15
+validators = {}
+
+
+def validates(version):
+    """
+    Register the decorated validator for a ``version`` of the specification.
+
+    Registered validators and their meta schemas will be considered when
+    parsing ``$schema`` properties' URIs.
+
+    :argument str version: an identifier to use as the version's name
+    :returns: a class decorator to decorate the validator with the version
+
+    """
+
+    def _validates(cls):
+        validators[version] = cls
+        return cls
+    return _validates
 
 
 class UnknownType(Exception):
     """
-    An unknown type was given.
+    An attempt was made to check if an instance was of an unknown type.
 
     """
 
 
-class InvalidRef(Exception):
+class RefResolutionError(Exception):
     """
-    An invalid reference was given.
+    A JSON reference failed to resolve.
 
     """
 
@@ -52,21 +77,23 @@ class SchemaError(Exception):
     """
     The provided schema is malformed.
 
-    The same attributes exist for ``SchemaError``s as for ``ValidationError``s.
+    The same attributes are present as for :exc:`ValidationError`\s.
 
     """
 
-    validator = None
-
-    def __init__(self, message):
-        super(SchemaError, self).__init__(message)
+    def __init__(self, message, validator=None, path=()):
+        super(SchemaError, self).__init__(message, validator, path)
         self.message = message
-        self.path = []
+        self.path = list(path)
+        self.validator = validator
+
+    def __str__(self):
+        return self.message
 
 
 class ValidationError(Exception):
     """
-    The instance didn't properly validate with the provided schema.
+    The instance didn't properly validate under the provided schema.
 
     Relevant attributes are:
         * ``message`` : a human readable message explaining the error
@@ -76,19 +103,20 @@ class ValidationError(Exception):
 
     """
 
-    # the failing validator will be set externally at whatever recursion level
-    # is immediately above the validation failure
-    validator = None
-
-    def __init__(self, message):
-        super(ValidationError, self).__init__(message)
+    def __init__(self, message, validator=None, path=()):
+        # Any validator that recurses (e.g. properties and items) must append
+        # to the ValidationError's path to properly maintain where in the
+        # instance the error occurred
+        super(ValidationError, self).__init__(message, validator, path)
         self.message = message
+        self.path = list(path)
+        self.validator = validator
 
-        # Any validator that recurses must append to the ValidationError's
-        # path (e.g., properties and items)
-        self.path = []
+    def __str__(self):
+        return self.message
 
 
+@validates("draft3")
 class Draft3Validator(object):
     """
     A validator for JSON Schema draft 3.
@@ -100,37 +128,20 @@ class Draft3Validator(object):
         "number" : (int, float), "object" : dict, "string" : basestring,
     }
 
-    def __init__(self, schema, types=()):
-        """
-        Initialize a validator.
-
-        ``schema`` should be a *valid* JSON Schema object already converted to
-        a native Python object (typically a dict via ``json.load``).
-
-        ``types`` is a mapping (or iterable of 2-tuples) containing additional
-        types or alternate types to verify via the 'type' property. For
-        instance, the default types for the 'number' JSON Schema type are
-        ``int`` and ``float``.  To override this behavior (e.g. for also
-        allowing ``decimal.Decimal``), pass ``types={"number" : (int, float,
-        decimal.Decimal)} *including* the default types if so desired, which
-        are fairly obvious but can be accessed via the ``DEFAULT_TYPES``
-        attribute on this class if necessary.
-
-        """
-
+    def __init__(self, schema, types=(), resolver=None):
         self._types = dict(self.DEFAULT_TYPES)
         self._types.update(types)
-        self._types["any"] = tuple(self._types.values())
 
+        if resolver is None:
+            resolver = RefResolver.from_schema(schema)
+
+        self.resolver = resolver
         self.schema = schema
 
     def is_type(self, instance, type):
-        """
-        Check if an ``instance`` is of the provided (JSON Schema) ``type``.
-
-        """
-
-        if type not in self._types:
+        if type == "any":
+            return True
+        elif type not in self._types:
             raise UnknownType(type)
         type = self._types[type]
 
@@ -142,36 +153,17 @@ class Draft3Validator(object):
         return isinstance(instance, type)
 
     def is_valid(self, instance, _schema=None):
-        """
-        Check if the ``instance`` is valid under the current schema.
-
-        Returns a bool indicating whether validation succeeded.
-
-        """
-
         error = next(self.iter_errors(instance, _schema), None)
         return error is None
 
     @classmethod
     def check_schema(cls, schema):
-        """
-        Validate a ``schema`` against the meta-schema to see if it is valid.
-
-        """
-
         for error in cls(cls.META_SCHEMA).iter_errors(schema):
-            s = SchemaError(error.message)
-            s.path = error.path
-            s.validator = error.validator
-            # I think we're safer raising these always, not yielding them
-            raise s
+            raise SchemaError(
+                error.message, validator=error.validator, path=error.path,
+            )
 
     def iter_errors(self, instance, _schema=None):
-        """
-        Lazily yield each of the errors in the given ``instance``.
-
-        """
-
         if _schema is None:
             _schema = self.schema
 
@@ -183,17 +175,12 @@ class Draft3Validator(object):
 
             errors = validator(v, instance, _schema) or ()
             for error in errors:
-                # if the validator hasn't already been set (due to recursion)
-                # make sure to set it
-                error.validator = error.validator or k
+                # set the validator if it wasn't already set by the called fn
+                if error.validator is None:
+                    error.validator = k
                 yield error
 
     def validate(self, *args, **kwargs):
-        """
-        Validate an ``instance`` under the given ``schema``.
-
-        """
-
         for error in self.iter_errors(*args, **kwargs):
             raise error
 
@@ -201,21 +188,12 @@ class Draft3Validator(object):
         types = _list(types)
 
         for type in types:
-            # Ouch. Brain hurts. Two paths here, either we have a schema, then
-            # check if the instance is valid under it
-            if ((
-                self.is_type(type, "object") and
-                self.is_valid(instance, type)
-
-            # Or we have a type as a string, just check if the instance is that
-            # type. Also, HACK: we can reach the `or` here if skip_types is
-            # something other than error. If so, bail out.
-
-            ) or (
-                self.is_type(type, "string") and
-                (self.is_type(instance, type) or type not in self._types)
-            )):
-                return
+            if self.is_type(type, "object"):
+                if self.is_valid(instance, type):
+                    return
+            elif self.is_type(type, "string"):
+                if self.is_type(instance, type):
+                    return
         else:
             yield ValidationError(_types_msg(instance, types))
 
@@ -229,14 +207,16 @@ class Draft3Validator(object):
                     error.path.append(property)
                     yield error
             elif subschema.get("required", False):
-                error = ValidationError(
-                    "%r is a required property" % (property,)
+                yield ValidationError(
+                    "%r is a required property" % (property,),
+                    validator="required",
+                    path=[property],
                 )
-                error.path.append(property)
-                error.validator = "required"
-                yield error
 
     def validate_patternProperties(self, patternProperties, instance, schema):
+        if not self.is_type(instance, "object"):
+            return
+
         for pattern, subschema in iteritems(patternProperties):
             for k, v in iteritems(instance):
                 if re.match(pattern, k):
@@ -292,9 +272,10 @@ class Draft3Validator(object):
                     yield error
 
     def validate_additionalItems(self, aI, instance, schema):
-        if not self.is_type(instance, "array"):
-            return
-        if not self.is_type(schema.get("items"), "array"):
+        if (
+            not self.is_type(instance, "array") or
+            not self.is_type(schema.get("items"), "array")
+        ):
             return
 
         if self.is_type(aI, "object"):
@@ -397,11 +378,7 @@ class Draft3Validator(object):
                 yield error
 
     def validate_ref(self, ref, instance, schema):
-        if ref != "#" and not ref.startswith("#/"):
-            warnings.warn("jsonschema only supports json-pointer $refs")
-            return
-
-        resolved = resolve_json_pointer(self.schema, ref)
+        resolved = self.resolver.resolve(ref)
         for error in self.iter_errors(instance, resolved):
             yield error
 
@@ -490,22 +467,89 @@ Draft3Validator.META_SCHEMA = {
 }
 
 
-class Validator(Draft3Validator):
+class RefResolver(object):
     """
-    Deprecated: Use :class:`Draft3Validator` instead.
+    Resolve JSON References.
+
+    :argument str base_uri: URI of the referring document
+    :argument referrer: the actual referring document
+    :argument dict store: a mapping from URIs to documents to cache
 
     """
 
-    def __init__(
-        self, version=None, unknown_type="skip", unknown_property="skip",
-        *args, **kwargs
-    ):
-        super(Validator, self).__init__({}, *args, **kwargs)
-        warnings.warn(
-            "Validator is deprecated and will be removed. "
-            "Use Draft3Validator instead.",
-            DeprecationWarning, stacklevel=2,
-        )
+    def __init__(self, base_uri, referrer, store=()):
+        self.base_uri = base_uri
+        self.referrer = referrer
+        self.store = dict(store, **_meta_schemas())
+
+    @classmethod
+    def from_schema(cls, schema, *args, **kwargs):
+        """
+        Construct a resolver from a JSON schema object.
+
+        :argument schema schema: the referring schema
+        :rtype: :class:`RefResolver`
+
+        """
+
+        return cls(schema.get("id", ""), schema, *args, **kwargs)
+
+    def resolve(self, ref):
+        """
+        Resolve a JSON ``ref``.
+
+        :argument str ref: reference to resolve
+        :returns: the referrant document
+
+        """
+
+        base_uri = self.base_uri
+        uri, fragment = urlparse.urldefrag(urlparse.urljoin(base_uri, ref))
+
+        if uri in self.store:
+            document = self.store[uri]
+        elif not uri or uri == self.base_uri:
+            document = self.referrer
+        else:
+            document = self.resolve_remote(uri)
+
+        return self.resolve_fragment(document, fragment.lstrip("/"))
+
+    def resolve_fragment(self, document, fragment):
+        """
+        Resolve a ``fragment`` within the referenced ``document``.
+
+        :argument document: the referrant document
+        :argument str fragment: a URI fragment to resolve within it
+
+        """
+
+        parts = unquote(fragment).split("/") if fragment else []
+
+        for part in parts:
+            part = part.replace("~1", "/").replace("~0", "~")
+
+            if part not in document:
+                raise RefResolutionError(
+                    "Unresolvable JSON pointer: %r" % fragment
+                )
+
+            document = document[part]
+
+        return document
+
+    def resolve_remote(self, uri):
+        """
+        Resolve a remote ``uri``.
+
+        Does not check the store first.
+
+        :argument str uri: the URI to resolve
+        :returns: the retrieved document
+
+        """
+
+        return json.load(urlopen(uri))
 
 
 class ErrorTree(object):
@@ -528,6 +572,11 @@ class ErrorTree(object):
         return k in self._contents
 
     def __getitem__(self, k):
+        """
+        Retrieve the child tree with key ``k``.
+
+        """
+
         return self._contents[k]
 
     def __setitem__(self, k, v):
@@ -537,36 +586,30 @@ class ErrorTree(object):
         return iter(self._contents)
 
     def __len__(self):
+        return self.total_errors
+
+    def __repr__(self):
+        return "<%s (%s total errors)>" % (self.__class__.__name__, len(self))
+
+    @property
+    def total_errors(self):
+        """
+        The total number of errors in the entire tree, including children.
+
+        """
+
         child_errors = sum(len(tree) for _, tree in iteritems(self._contents))
         return len(self.errors) + child_errors
 
-    def __repr__(self):
-        return "<%s (%s errors)>" % (self.__class__.__name__, len(self))
 
-
-def resolve_json_pointer(schema, ref):
+def _meta_schemas():
     """
-    Resolve a local reference ``ref`` within the given root ``schema``.
-
-    ``ref`` should be a local ref whose ``#`` is still present.
+    Collect the urls and meta schemas from each known validator.
 
     """
 
-    if ref == "#":
-        return schema
-
-    parts = ref.lstrip("#/").split("/")
-
-    parts = map(unquote, parts)
-    parts = [part.replace('~1', '/').replace('~0', '~') for part in parts]
-
-    try:
-        for part in parts:
-            schema = schema[part]
-    except KeyError:
-        raise InvalidRef("Unresolvable json-pointer %r" % ref)
-    else:
-        return schema
+    meta_schemas = (v.META_SCHEMA for v in validators.values())
+    return dict((urlparse.urldefrag(m["id"])[0], m) for m in meta_schemas)
 
 
 def _find_additional_properties(instance, schema):
@@ -675,6 +718,19 @@ def _delist(thing):
     return thing
 
 
+def _unbool(element, true=object(), false=object()):
+    """
+    A hack to make True and 1 and False and 0 unique for _uniq.
+
+    """
+
+    if element is True:
+        return true
+    elif element is False:
+        return false
+    return element
+
+
 def _uniq(container):
     """
     Check if all of a container's elements are unique.
@@ -686,17 +742,18 @@ def _uniq(container):
     """
 
     try:
-        return len(set(container)) == len(container)
+        return len(set(_unbool(i) for i in container)) == len(container)
     except TypeError:
         try:
-            sort = sorted(container)
-            sliced = itertools.islice(container, 1, None)
-            for i, j in zip(container, sliced):
+            sort = sorted(_unbool(i) for i in container)
+            sliced = itertools.islice(sort, 1, None)
+            for i, j in zip(sort, sliced):
                 if i == j:
                     return False
         except (NotImplementedError, TypeError):
             seen = []
             for e in container:
+                e = _unbool(e)
                 if e in seen:
                     return False
                 seen.append(e)
@@ -707,28 +764,29 @@ def validate(instance, schema, cls=Draft3Validator, *args, **kwargs):
     """
     Validate an ``instance`` under the given ``schema``.
 
-    First verifies that the provided schema is itself valid, since not doing so
-    can lead to less obvious failures when validating. If you know it is or
-    don't care, use ``YourValidator(schema).validate(instance)`` directly
-    instead (e.g. ``Draft3Validator``).
+        >>> validate([2, 3, 4], {"maxItems" : 2})
+        Traceback (most recent call last):
+            ...
+        ValidationError: [2, 3, 4] is too long
+
+    :func:`validate` will first verify that the provided schema is itself
+    valid, since not doing so can lead to less obvious error messages and fail
+    in less obvious or consistent ways. If you know you have a valid schema
+    already or don't care, you might prefer using the ``validate`` method
+    directly on a specific validator (e.g. :meth:`Draft3Validator.validate`).
 
     ``cls`` is a validator class that will be used to validate the instance.
     By default this is a draft 3 validator.  Any other provided positional and
     keyword arguments will be provided to this class when constructing a
     validator.
 
+    :raises:
+        :exc:`ValidationError` if the instance is invalid
+
+        :exc:`SchemaError` if the schema itself is invalid
+
     """
 
 
-    meta_validate = kwargs.pop("meta_validate", None)
-
-    if meta_validate is not None:
-        warnings.warn(
-            "meta_validate is deprecated and will be removed. If you do not "
-            "want to validate a schema, use Draft3Validator.validate instead.",
-            DeprecationWarning, stacklevel=2,
-        )
-
-    if meta_validate is not False:  # yes this is needed since True was default
-        cls.check_schema(schema)
+    cls.check_schema(schema)
     cls(schema, *args, **kwargs).validate(instance)
