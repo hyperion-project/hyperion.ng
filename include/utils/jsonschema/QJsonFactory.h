@@ -25,17 +25,14 @@ public:
 		// create the validator
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schemaTree);
-
-		bool valid = schemaChecker.validate(configTree);
 		
 		QStringList messages = schemaChecker.getMessages();
-		for (int i = 0; i < messages.size(); ++i)
+
+		if (!schemaChecker.validate(configTree).first)
 		{
-			std::cout << messages[i].toStdString() << std::endl;
-		}
-		
-		if (!valid)
-		{
+			for (int i = 0; i < messages.size(); ++i)
+				std::cout << messages[i].toStdString() << std::endl;
+
 			std::cerr << "Validation failed for configuration file: " << config.toStdString() << std::endl;
 			return -3;
 		}
@@ -97,7 +94,7 @@ public:
 		QByteArray schema = schemaData.readAll();
 		QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 		schemaData.close();
-
+		
 		if (error.error != QJsonParseError::NoError)
 		{
 			// report to the user the failure and their locations in the document.
@@ -113,9 +110,9 @@ public:
 				}
 			}
 
-			throw std::runtime_error(QString("ERROR: Json schema wrong: " + error.errorString() + " at Line: " + QString::number(errorLine)
-				                     + ", Column: " + QString::number(errorColumn)).toStdString()
-			);
+			throw std::runtime_error(QString("ERROR: Json schema wrong: " + error.errorString() +
+											" at Line: " + QString::number(errorLine) +
+											", Column: " + QString::number(errorColumn)).toStdString());
 		}
 
 		return resolveReferences(doc.object());
@@ -136,9 +133,9 @@ public:
 				{
 					result = readSchema(":/" + attributeValue.toString());
 				}
-				catch(...)
+				catch (std::runtime_error& error)
 				{
-					return result;
+					throw std::runtime_error(error.what());
 				}
 			}
 			else if (attributeValue.isObject())
@@ -150,15 +147,25 @@ public:
 		return result;
 	}
 
-	static void writeJson(const QString& filename, QJsonObject& jsonTree)
+	static bool writeJson(const QString& filename, QJsonObject& jsonTree)
 	{
 		QJsonDocument doc;
+
 		doc.setObject(jsonTree);
 		QByteArray configData = doc.toJson(QJsonDocument::Indented);
-		
+
 		QFile configFile(filename);
-		configFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+		if (!configFile.open(QFile::WriteOnly | QFile::Truncate))
+			return false;
+
 		configFile.write(configData);
+
+		QFile::FileError error = configFile.error();
+		if (error != QFile::NoError)
+			return false;
+
 		configFile.close();
+
+		return true;
 	}
 };
