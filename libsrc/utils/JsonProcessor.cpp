@@ -1116,7 +1116,7 @@ bool JsonProcessor::checkJson(const QJsonObject& message, const QString& schemaR
 	schemaChecker.setSchema(schemaJson.object());
 
 	// check the message
-	if (!schemaChecker.validate(message, ignoreRequired))
+	if (!schemaChecker.validate(message, ignoreRequired).first)
 	{
 		const QStringList & errors = schemaChecker.getMessages();
 		errorMessage = "{";
