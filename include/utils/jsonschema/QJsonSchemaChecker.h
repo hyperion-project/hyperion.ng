@@ -5,6 +5,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QStringList>
+#include <QPair>
 
 /// JsonSchemaChecker is a very basic implementation of json schema.
 /// The json schema definition draft can be found at
@@ -38,9 +39,10 @@ public:
 	/// @brief Validate a JSON structure
 	/// @param value The JSON value to check
 	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
-	/// @return true when the arguments is valid according to the schema
+	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors 
+	/// @return TODO: Check the Schema in SetSchema() function and remove the QPair result
 	///
-	bool validate(const QJsonObject & value, bool ignoreRequired = false);
+	QPair<bool, bool> validate(const QJsonObject & value, bool ignoreRequired = false);
 
 	///
 	/// @brief Auto correct a JSON structure
@@ -198,4 +200,6 @@ private:
 	QStringList _messages;
 	/// Flag indicating an error occured during validation
 	bool _error;
+	/// Flag indicating an schema error occured during validation
+	bool _schemaError;
 };
