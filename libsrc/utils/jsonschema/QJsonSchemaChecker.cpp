@@ -26,11 +26,12 @@ bool QJsonSchemaChecker::setSchema(const QJsonObject & schema)
 	return true;
 }
 
-bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
+QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired)
 {
 	// initialize state
 	_ignoreRequired = ignoreRequired;
 	_error = false;
+	_schemaError = false;
 	_messages.clear();
 	_currentPath.clear();
 	_currentPath.append("[root]");
@@ -38,7 +39,7 @@ bool QJsonSchemaChecker::validate(const QJsonObject & value, bool ignoreRequired
 	// validate
 	validate(value, _qSchema);
 
-	return !_error;
+	return QPair<bool, bool>(!_error, !_schemaError);
 }
 
 QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value, bool ignoreRequired)
@@ -46,6 +47,7 @@ QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value,
 	_ignoreRequired = ignoreRequired;
 	QStringList sequence = QStringList() << "remove" << "modify" << "create";
 	_error = false;
+	_schemaError = false;
 	_messages.clear();
 	_autoCorrected = value;
 
@@ -78,7 +80,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 				checkProperties(value.toObject(), attributeValue.toObject());
 			else
 			{
-				_error = true;
+				_schemaError = true;
 				setMessage("properties attribute is only valid for objects");
 				continue;
 			}
@@ -98,7 +100,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 			}
 			else
 			{
-				_error = true;
+				_schemaError = true;
 				setMessage("additional properties attribute is only valid for objects");
 				continue;
 			}
@@ -140,7 +142,7 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 		else
 		{
 			// no check function defined for this attribute
-			_error = true;
+			_schemaError = true;
 			setMessage("No check function defined for attribute " + attribute);
 			continue;
 		}
