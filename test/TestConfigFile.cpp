@@ -40,7 +40,7 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 
 	if (!correct)
 	{
-		if (!schemaChecker.validate(jsonConfig))
+		if (!schemaChecker.validate(jsonConfig).first)
 		{
 			QStringList schemaErrors = schemaChecker.getMessages();
 			foreach (auto & schemaError, schemaErrors)
