@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPair>
 #include <cstdint>
 #include <limits>
 
@@ -158,14 +159,23 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	schemaChecker.setSchema(schemaJson);
 
 	_qconfig = QJsonFactory::readConfig(configFile);
-	if (!schemaChecker.validate(_qconfig))
+	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+	
+	if (!validate.first && validate.second)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		
+		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		if (!QJsonFactory::writeJson(configFile, _qconfig))
+			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+	}
+	else if (validate.first && !validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)
-		{
 			std::cout << schemaError.toStdString() << std::endl;
-		}
-		
+
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
 }
