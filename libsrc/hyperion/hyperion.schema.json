@@ -5,9 +5,84 @@
 	{
 		"general" :
 		{
-			"type" : "object",
-			"required" : true
+			"$ref": "schema-general.json"
+		},
+		"logger" :
+		{
+			"$ref": "schema-logger.json"
+		},
+		"device" :
+		{
+			"$ref": "schema-device.json"
+		},
+		"color" :
+		{
+			"$ref": "schema-color.json"
+		},
+		"smoothing":
+		{
+			"$ref": "schema-smoothing.json"
+		},
+		"grabberV4L2" :
+		{
+			"$ref": "schema-grabberV4L2.json"
+		},
+		"framegrabber" :
+		{
+			"$ref": "schema-framegrabber.json"
+		},
+		"blackborderdetector" :
+		{
+			"$ref": "schema-blackborderdetector.json"
+		},
+		"kodiVideoChecker" :
+		{
+			"$ref": "schema-kodiVideoChecker.json"
+		},
+		"foregroundEffect" :
+		{
+			"$ref": "schema-foregroundEffect.json"
+		},
+		"backgroundEffect" :
+		{
+			"$ref": "schema-backgroundEffect.json"
+		},
+		"forwarder" :
+		{
+			"$ref": "schema-forwarder.json"
+		},
+		"jsonServer" :
+		{
+			"$ref": "schema-jsonServer.json"
+		},
+		"protoServer" :
+		{
+			"$ref": "schema-protoServer.json"
+		},
+		"boblightServer" :
+		{
+			"$ref": "schema-boblightServer.json"
+		},
+		"udpListener" :
+		{
+			"$ref": "schema-udpListener.json"
+		},
+		"webConfig" :
+		{
+			"$ref": "schema-webConfig.json"
+		},
+		"effects" :
+		{
+			"$ref": "schema-effects.json"
+		},
+		"ledConfig":
+		{
+			"$ref": "schema-ledConfig.json"
+		},
+		"leds":
+		{
+			"$ref": "schema-leds.json"
 		}
 	},
-	"additionalProperties" : true
+	"additionalProperties" : false
 }

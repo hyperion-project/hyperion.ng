@@ -1,0 +1,56 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_udpl_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"address" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_udpl_address_title",
+			"default" : "239.255.28.01",
+			"propertyOrder" : 2
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_port_title",
+			"minimum" : 0,
+			"maximum" : 65535,
+			"default" : 2801,
+			"propertyOrder" : 3
+		},
+		"priority" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 254,
+			"default" : 200,
+			"propertyOrder" : 4
+		},
+		"timeout" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_udpl_timeout_title",
+			"minimum" : 1000,
+			"default" : 10000,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 5
+		},
+		"shared" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_udpl_shared_title",
+			"default" : false,
+			"propertyOrder" : 6
+		}
+	},
+	"additionalProperties" : false
+}

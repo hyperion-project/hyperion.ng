@@ -1,0 +1,70 @@
+{
+	"type":"array",
+	"required":true,
+	"items":
+	{
+		"type":"object",
+		"properties":
+		{
+			"index":
+			{
+				"type":"integer",
+				"required":true
+			},
+			"clone":
+			{
+				"type":"integer"
+			},
+			"hscan":
+			{
+				"type":"object",
+				"properties":
+				{
+					"minimum":
+					{
+						"type":"number",
+						"minimum" : 0,
+						"maximum" : 1,
+						"required":true
+					},
+					"maximum":
+					{
+						"type":"number",
+						"minimum" : 0,
+						"maximum" : 1,
+						"required":true
+					}
+				},
+				"additionalProperties" : false
+			},
+			"vscan":
+			{
+				"type":"object",
+				"properties":
+				{
+					"minimum":
+					{
+						"type":"number",
+						"minimum" : 0,
+						"maximum" : 1,
+						"required":true
+					},
+					"maximum":
+					{
+						"type":"number",
+						"minimum" : 0,
+						"maximum" : 1,
+						"required":true
+					}
+				},
+				"additionalProperties" : false
+			},
+			"colorOrder":
+			{
+				"type": "string",
+				"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"]
+			}
+		},
+		"additionalProperties" : false
+	}
+}

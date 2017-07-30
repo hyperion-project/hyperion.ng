@@ -1,14 +1,6 @@
 
-SET(Hyperiond_HEADERS
-	hyperiond.h
-)
-
 add_executable(hyperiond
-	${Hyperiond_HEADERS}
-	configMigratorBase.cpp
-	configMigratorBase.h
-	configMigrator.cpp
-	configMigrator.h
+	hyperiond.h
 	hyperiond.cpp
 	main.cpp
 )

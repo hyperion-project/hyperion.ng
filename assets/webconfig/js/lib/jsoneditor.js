@@ -1439,6 +1439,81 @@ JSONEditor.AbstractEditor = Class.extend({
     this.link_watchers = [];
 
     if(options.container) this.setContainer(options.container);
+	this.registerDependencies();
+  },
+  registerDependencies: function() {
+    this.dependenciesFulfilled = true;
+    var deps = this.options.dependencies;
+    if (!deps) {
+      return;
+    }
+    
+    var self = this;
+    Object.keys(deps).forEach(function(dependency) {
+      var path = self.path.split('.');
+      path[path.length - 1] = dependency;
+      path = path.join('.');
+      var choices = deps[dependency];
+      self.jsoneditor.watch(path, function() {
+        self.checkDependency(path, choices);
+      });
+    });
+  },
+  checkDependency: function(path, choices) {
+    var wrapper = this.control || this.container;
+    if (this.path === path || !wrapper) {
+      return;
+    }
+    
+    var self = this;
+    var editor = this.jsoneditor.getEditor(path);
+    var value = editor ? editor.getValue() : undefined;
+    var previousStatus = this.dependenciesFulfilled;
+    this.dependenciesFulfilled = false;
+    
+	if (!editor || !editor.dependenciesFulfilled) {
+      this.dependenciesFulfilled = false;
+    } else if (Array.isArray(choices)) {
+      choices.some(function(choice) {
+        if (value === choice) {
+          self.dependenciesFulfilled = true;
+          return true;
+        }
+      });
+    } else if (typeof choices === 'object') {
+      if (typeof value !== 'object') {
+        this.dependenciesFulfilled = choices === value;
+      } else {
+        Object.keys(choices).some(function(key) {
+          if (!choices.hasOwnProperty(key)) {
+            return false;
+          }
+          if (!value.hasOwnProperty(key) || choices[key] !== value[key]) {
+            self.dependenciesFulfilled = false;
+            return true;
+          }
+          self.dependenciesFulfilled = true;
+        });
+      }
+    } else if (typeof choices === 'string' || typeof choices === 'number') {
+      this.dependenciesFulfilled = value === choices;
+    } else if (typeof choices === 'boolean') {
+      if (choices) {
+        this.dependenciesFulfilled = value;
+      } else {
+        this.dependenciesFulfilled = !value;
+      }
+    }
+	
+    if (this.dependenciesFulfilled !== previousStatus) {
+      this.notify();
+    }
+
+    if (this.dependenciesFulfilled) {
+      wrapper.style.display = 'block';
+    } else {
+      wrapper.style.display = 'none';
+    }
   },
   setContainer: function(container) {
     this.container = container;
@@ -6205,7 +6280,67 @@ JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.ext
         $(this.input).colorpicker().on('changeColor', function(e) {
             $(myinput).val(e.color.toRGB()).change();
         });     
-    }
+    },
+	
+  destroy: function() {
+	$(this.input).colorpicker('destroy');
+  }
+});
+
+// colorpickerRGBA creation and handling, build on top of strings editor
+JSONEditor.defaults.editors.colorPickerRGBA = JSONEditor.defaults.editors.string.extend({
+    getValue: function() {
+        if ($(this.input).data("colorpicker") !== undefined) {
+            var color = $(this.input).data('colorpicker').color.toRGB();
+            return [color.r,color.g, color.b, color.a];
+        }
+        else {
+            return [0,0,0,1];
+        }
+    },
+
+    setValue: function(val) {
+        $(this.input).colorpicker('updateInput', 'rgba('+val+')');
+        $(this.input).colorpicker('updateData', val);
+       // $(this.input).colorpicker('updatePicker', rgb2hex(val));
+        $(this.input).colorpicker('updateComponent', 'rgba('+val+')');
+     },
+   
+   
+   
+    build: function() {
+        this._super();
+        var myinput = this;
+        $(myinput.input).parent().attr("class", $(myinput.input).parent().attr('class') + " colorpicker-element input-group");
+        $(myinput.input).append("<span class='input-group-addon' id='event_catcher'><i></i></span>");
+        $(myinput.input).colorpicker({
+            format: 'rgba',
+            customClass: 'colorpicker-2x',
+            sliders: {
+                saturation: {
+                    maxLeft: 200,
+                    maxTop: 200
+                },
+                hue: {
+                    maxTop: 200
+                },
+                alpha: {
+                    maxTop: 200
+                }
+            },
+        })
+
+        $("#event_catcher").detach().insertAfter(myinput.input);
+        $("#event_catcher").attr("id", "selector");
+       
+        $(this.input).colorpicker().on('changeColor', function(e) {
+            $(myinput).val(e.color.toRGB()).change();
+        });     
+    },
+  
+  destroy: function() {
+	$(this.input).colorpicker('destroy');
+  }
 });
 
 var matchKey = (function () {
@@ -7081,6 +7216,12 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 JSONEditor.defaults.resolvers.unshift(function(schema) {
     if(schema.type === "array" && schema.format === "colorpicker") {
         return "colorPicker";
+    }
+});
+// colorpickerRGBA extend for strings
+JSONEditor.defaults.resolvers.unshift(function(schema) {
+    if(schema.type === "array" && schema.format === "colorpickerRGBA") {
+        return "colorPickerRGBA";
     }
 });
 

@@ -1,0 +1,151 @@
+{
+	"type":"object",
+	"script" : "swirl.py",
+	"title":"edt_eff_swirl_header",
+	"required":true,
+	"properties":{
+		"rotation-time": {
+			"type": "number",
+			"title":"edt_eff_rotationtime",
+			"default": 10.0,
+			"minimum" : 0.1,
+			"append" : "edt_append_s",
+			"propertyOrder" : 1
+		},
+		"random-center": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter",
+			"default": false,
+			"propertyOrder" : 2
+		},
+		"center_x": {
+			"type": "number",
+			"title":"edt_eff_centerx",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"random-center": false
+				}
+			},
+			"propertyOrder" : 3
+		},
+		"center_y": {
+			"type": "number",
+			"title":"edt_eff_centery",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"random-center": false
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"edt_eff_reversedirection",
+			"default": false,
+			"propertyOrder" : 5
+		},
+		"custom-colors": {
+			"type": "array",
+			"title":"edt_eff_customColor",
+			"items" : {
+				"type": "array",
+				"title" : "edt_eff_color",
+				"format":"colorpicker",
+				"default" : [255,0,0],
+				"items":{
+					"type":"integer",
+					"minimum": 0,
+					"maximum": 255
+				},
+				"minItems": 3,
+				"maxItems": 3
+			},
+			"propertyOrder" : 6
+		},
+		"enable-second": {
+			"type": "boolean",
+			"title":"edt_eff_enableSecondSwirl",
+			"default": false,
+			"propertyOrder" : 7
+		},
+		"random-center2": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter",
+			"default": false,
+			"options": {
+				"dependencies": {
+					"enable-second": true
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"center_x2": {
+			"type": "number",
+			"title":"edt_eff_centerx",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"enable-second": true,
+					"random-center2": false
+				}
+			},
+			"propertyOrder" : 9
+		},
+		"center_y2": {
+			"type": "number",
+			"title":"edt_eff_centery",
+			"default": 0.5,
+			"minimum" : 0.0,
+			"maximum" : 2.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"enable-second": true,
+					"random-center2": false
+				}
+			},
+			"propertyOrder" : 10
+		},
+		"reverse2": {
+			"type": "boolean",
+			"title":"edt_eff_reversedirection",
+			"default": true,
+			"options": {
+				"dependencies": {
+					"enable-second": true
+				}
+			},
+			"propertyOrder" : 11
+		},
+		"custom-colors2": {
+			"type": "array",
+			"title":"edt_eff_customColor",
+			"items" : {
+				"type": "array",
+				"title" : "edt_eff_color",
+				"format":"colorpickerRGBA",
+				"default" : [255,0,0,0.5],
+				"minItems": 4,
+				"maxItems": 4
+			},
+			"options": {
+				"dependencies": {
+					"enable-second": true
+				}
+			},
+			"propertyOrder" : 12
+		}
+	},
+	"additionalProperties": false
+}
