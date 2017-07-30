@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPair>
 #include <cstdint>
 #include <limits>
 
@@ -31,7 +32,6 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -52,7 +52,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _hyperion(nullptr)
 	, _stats(nullptr)
 {
-	loadConfig(configFile, CURRENT_CONFIG_VERSION );
+	loadConfig(configFile);
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -135,16 +135,16 @@ void HyperionDaemon::run()
 	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
-int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
+void HyperionDaemon::loadConfig(const QString & configFile)
 {
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
+	
 	QString schemaFile = ":/hyperion-schema";
-	if (schemaVersion > 0)
-		schemaFile += "-" + QString::number(schemaVersion);
-
 	QJsonObject schemaJson;
 	try
 	{
@@ -159,45 +159,25 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	schemaChecker.setSchema(schemaJson);
 
 	_qconfig = QJsonFactory::readConfig(configFile);
-	if (!schemaChecker.validate(_qconfig))
+	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+	
+	if (!validate.first && validate.second)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		
+		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		if (!QJsonFactory::writeJson(configFile, _qconfig))
+			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+	}
+	else if (validate.first && !validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)
-		{
 			std::cout << schemaError.toStdString() << std::endl;
-		}
 
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
-	
-	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	return generalConfig["configVersion"].toInt(-1);
-}
-
-void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
-{
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
-	int configVersionId = tryLoadConfig(configFile,0);
-
-	// no config id found, assume legacy hyperion
-	if (configVersionId < 0)
-	{
-		Debug(_log, "config file has no version, assume old hyperion.");
-		configVersionId = tryLoadConfig(configFile,1);
-	}
-	Debug(_log, "config version: %d", configVersionId);
-	configVersionId = tryLoadConfig(configFile, configVersionId);
-
-	if (neededConfigVersion == configVersionId)
-	{
-		return;
-	}
-
-	// migrate configVersionId
-	ConfigMigrator migrator;
-	migrator.migrate(configFile, configVersionId, neededConfigVersion);
-	
 }
 
 

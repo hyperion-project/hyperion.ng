@@ -1,0 +1,33 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_bobls_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_general_port_title",
+			"minimum" : 0,
+			"maximum" : 65535,
+			"propertyOrder" : 2
+		},
+		"priority" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 254,
+			"default" : 201,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}

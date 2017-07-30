@@ -1,0 +1,72 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_bb_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : true,
+			"propertyOrder" : 1
+		},
+		"threshold" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_bb_threshold_title",
+			"minimum" : 0,
+			"maximum" : 100,
+			"default" : 5,
+			"append" : "edt_append_percent",
+			"propertyOrder" : 2
+		},
+		"unknownFrameCnt"    :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_bb_unknownFrameCnt_title",
+			"minimum" : 0,
+			"default" : 600,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},
+		"borderFrameCnt" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_bb_borderFrameCnt_title",
+			"minimum" : 0,
+			"default" : 50,
+			"access" : "expert",
+			"propertyOrder" : 4
+		},
+		"maxInconsistentCnt" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_bb_maxInconsistentCnt_title",
+			"minimum" : 0,
+			"default" : 10,
+			"access" : "expert",
+			"propertyOrder" : 5
+		},
+		"blurRemoveCnt" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_bb_blurRemoveCnt_title",
+			"minimum" : 0,
+			"default" : 1,
+			"access" : "expert",
+			"propertyOrder" : 6
+		},
+		"mode" :
+		{
+			"type" : "string",
+			"title": "edt_conf_bb_mode_title",
+			"enum" : ["default", "classic", "osd"],
+			"default" : "default",
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd"]
+			},
+			"propertyOrder" : 7
+		}
+	},
+	"additionalProperties" : false
+}

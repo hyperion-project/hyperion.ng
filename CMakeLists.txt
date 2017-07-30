@@ -14,7 +14,6 @@ SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
 SET ( HYPERION_VERSION_PATCH 0 )
-SET ( CURRENT_CONFIG_VERSION 2 )
 
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
@@ -160,7 +159,7 @@ IF ( ${CHECK_EFFECTS_FAILED} )
 ENDIF ()
 
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json
+	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_CONFIG_FAILED
 )

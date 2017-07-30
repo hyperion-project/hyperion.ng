@@ -150,7 +150,7 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 	
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(configSchema.object());
-	if (!schemaChecker.validate(configEffect.object()))
+	if (!schemaChecker.validate(configEffect.object()).first)
 	{
 		const QStringList & errors = schemaChecker.getMessages();
 		foreach (auto & error, errors)

@@ -40,7 +40,7 @@ $(document).ready( function() {
 			var r = new FileReader();
 			r.onload = function(e)
 			{
-				var content = e.target.result;
+				var content = e.target.result.replace(/[^:]?\/\/.*/g, ''); //remove Comments
 
 				//check file is json
 				var check = isJsonString(content);
@@ -56,7 +56,7 @@ $(document).ready( function() {
 					if(typeof content.leds === 'undefined' || typeof content.general === 'undefined')
 					{
 						showInfoDialog('error', "", $.i18n('infoDialog_import_hyperror_text', f.name));
-						dis_imp_btn(true);					
+						dis_imp_btn(true);
 					}
 					else
 					{

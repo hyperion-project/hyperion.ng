@@ -1,0 +1,34 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_gen_heading_title",
+	"required" : true,
+	"properties" :
+	{
+		"name" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_gen_name_title",
+			"default" : "My Hyperion Config",
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required" : true,
+			"propertyOrder" : 1
+		},
+		"showOptHelp" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_gen_showOptHelp_title",
+			"default" : true,
+			"required" : true,
+			"propertyOrder" : 2
+		},
+		"configVersion" :
+		{
+			"type" : "integer",
+			"default" : 2,
+			"minimum" : 1,
+			"access" : "system",
+			"required" : true
+		}
+	}
+}

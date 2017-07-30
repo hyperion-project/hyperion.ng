@@ -1,0 +1,33 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_webc_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : true,
+			"access" : "expert",
+			"propertyOrder" : 1
+		},
+		"document_root" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_webc_docroot_title",
+			"access" : "expert",
+			"propertyOrder" : 2
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_port_title",
+			"minimum" : 0,
+			"maximum" : 65535,
+			"default" : 8099,
+			"access" : "expert",
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}
