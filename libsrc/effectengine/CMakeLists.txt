@@ -1,4 +1,4 @@
-find_package(PythonLibs 2.7.12 REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 message( STATUS "PYTHON VERSIONS FOUND: ${PYTHONLIBS_VERSION_STRING}" )
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
