@@ -13,17 +13,18 @@ $(document).ready( function() {
 		var newDelList = serverInfo.effects;
 		if(newDelList.length != oldDelList.length)
 		{
-			var EffectHtml = null;
+			$('#effectsdellist').html("");
+			var usrEffArr = [];
+			var sysEffArr = [];
 			for(var idx=0; idx<newDelList.length; idx++)
 			{
 				if(!/^\:/.test(newDelList[idx].file))
-				{
-					EffectHtml += '<option value="'+newDelList[idx].name+'">'+newDelList[idx].name+'</option>';
-				}
+					usrEffArr.push('ext_'+newDelList[idx].name+':'+newDelList[idx].name);
+				else
+					sysEffArr.push('int_'+newDelList[idx].name+':'+newDelList[idx].name);
 			}
-			$("#effectsdellist").html(EffectHtml);
+			$('#effectsdellist').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets'), true)).append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets'), true)).trigger('change');
 			oldDelList = newDelList;
-			$('#effectsdellist').trigger('change');
 		}
 	}
 	
@@ -35,15 +36,23 @@ $(document).ready( function() {
 	
 	
 	$("#effectslist").off().on("change", function(event) {
+		if(effects_editor != null)
+			effects_editor.destroy();
+		
 		for(var idx=0; idx<effects.length; idx++){
-			if (effects[idx].schemaContent.script == this.value){
+			if (effects[idx].schemaContent.script == this.value)
+			{
 				effects_editor = createJsonEditor('editor_container', {
 				args : effects[idx].schemaContent,
-				},false, true);
-			effectPy = ':';
-			effectPy += effects[idx].schemaContent.script;
+				},false, true, false);
+				
+				effectPy = ':';
+				effectPy += effects[idx].schemaContent.script;
+				$("#name-input").trigger("change");
+
+				$("#eff_desc").html(createEffHint($.i18n(effects[idx].schemaContent.title),$.i18n(effects[idx].schemaContent.title+'_desc')));
+				break;
 			}
-			$("#name-input").trigger("change");
 		}
 		effects_editor.on('change',function() {
 			if ($("#btn_cont_test").hasClass("btn-success") && effects_editor.validate().length == 0 && effectName != "")
@@ -52,13 +61,11 @@ $(document).ready( function() {
 			}
 			if( effects_editor.validate().length == 0 && effectName != "")
 			{
-				$('#btn_start_test').attr('disabled', false);
-				$('#btn_write').attr('disabled', false);
+				$('#btn_start_test, #btn_write').attr('disabled', false);
 			}
 			else
 			{
-				$('#btn_start_test').attr('disabled', true);
-				$('#btn_write').attr('disabled', true);
+				$('#btn_start_test, #btn_write').attr('disabled', true);
 			}
 		});
 	});
@@ -109,11 +116,40 @@ $(document).ready( function() {
 	});
 	
 	$('#effectsdellist').off().on('change', function(){
-		if ($(this).val() == null) {
-            $('#btn_delete').prop('disabled',true);
-        } else {
-            $('#btn_delete').prop('disabled',false);
-        }
+		$(this).val() == null ? $('#btn_edit, #btn_delete').prop('disabled',true) : "";
+		$(this).val().startsWith("int_") ? $('#btn_delete').prop('disabled',true) : $('#btn_delete').prop('disabled',false);
+	});
+	
+	$('#btn_edit').off().on('click', function(){
+		var name = $("#effectsdellist").val();
+		
+		if(name.startsWith("int_"))
+		{	name = name.split("_").pop();
+			$("#name-input").val("My Modded Effect");
+		}
+		else
+		{
+			name = name.split("_").pop();
+			$("#name-input").val(name);
+		}
+
+		var efx = serverInfo.effects;
+		for(var i = 0; i<efx.length; i++)
+		{
+			if(efx[i].name == name)
+			{
+				var py = efx[i].script.split("/").pop()
+				$("#effectslist").val(py).trigger("change");
+
+				for(key in efx[i].args)
+				{
+					var ed = effects_editor.getEditor('root.args.'+[key]);
+					if(ed)
+						ed.setValue(efx[i].args[key]);
+				}
+				break;
+			}
+		}
 	});
 	
 	//create basic effect list

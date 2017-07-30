@@ -445,10 +445,18 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
-	// setup interval timer for config state checks	and initial shot
+	// setup config state checks and initial shot
 	checkConfigState();
-        QObject::connect(&_cTimer, SIGNAL(timeout()), this, SLOT(checkConfigState()));
-        _cTimer.start(2000);
+	if(_fsWatcher.addPath(_configFile))
+	{
+		QObject::connect(&_fsWatcher, &QFileSystemWatcher::fileChanged, this, &Hyperion::checkConfigState);
+	}
+	else
+	{
+		Warning(_log,"Filesystem Observer failed for file: %s, use fallback timer", _configFile.toStdString().c_str());
+		QObject::connect(&_cTimer, SIGNAL(timeout()), this, SLOT(checkConfigState()));
+		_cTimer.start(2000);
+	}
 
 	// pipe muxer signal for effect/color timerunner to hyperionStateChanged slot
 	QObject::connect(&_muxer, &PriorityMuxer::timerunner, this, &Hyperion::hyperionStateChanged);
@@ -545,7 +553,7 @@ Hyperion::BonjourRegister Hyperion::getHyperionSessions()
 	return _hyperionSessions;
 }
 
-void Hyperion::checkConfigState()
+void Hyperion::checkConfigState(QString cfile)
 {
 	// Check config modifications
 	QFile f(_configFile);

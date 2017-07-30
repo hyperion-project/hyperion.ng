@@ -3,6 +3,14 @@
 	"script" : "light-clock.py",
 	"args" :
 	{
-		"show_seconds" : true
+		"show_seconds" : true,
+		"marker-enabled" : false,
+		"hour-color" : [0,0,255],
+		"minute-color" : [0,255,0],
+		"second-color" : [255,0,0],
+		"background-color" : [0,0,0],
+		"marker-depth" : 0,
+		"marker-width" : 5,
+		"marker-color" : [255,255,255]
 	}
 }

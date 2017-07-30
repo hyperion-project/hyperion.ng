@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "rainbow-mood.py",
-	"title":"edt_eff_rainbowmood_header_title",
+	"title":"edt_eff_rainbowmood_header",
 	"required":true,
 	"properties":{
 		"rotation-time": {
 			"type": "number",
-			"title":"edt_eff_rotationtime_title",
+			"title":"edt_eff_rotationtime",
 			"default": 60.0,
 			"minimum" : 1.0,
 			"append" : "edt_append_s",
@@ -14,7 +14,7 @@
 		},
 		"brightness": {
 			"type": "number",
-			"title":"edt_eff_brightness_title",
+			"title":"edt_eff_brightness",
 			"default": 100,
 			"minimum" : 1,
 			"maximum" : 100,
@@ -24,7 +24,7 @@
 		},
 		"saturation": {
 			"type": "number",
-			"title":"edt_eff_saturation_title",
+			"title":"edt_eff_saturation",
 			"default": 100,
 			"minimum" : 1,
 			"maximum" : 100,
@@ -34,7 +34,7 @@
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"edt_eff_reversedirection_title",
+			"title":"edt_eff_reversedirection",
 			"default": false,
 			"propertyOrder" : 4
 		}

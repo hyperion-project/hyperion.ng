@@ -1,0 +1,258 @@
+{
+	"type":"object",
+	"title" : "edt_conf_color_heading_title",
+	"required" : true,
+	"properties":
+	{
+		"imageToLedMappingType" :
+		{
+			"type" : "string",
+			"required" : true,
+			"title" : "edt_conf_color_imageToLedMappingType_title",
+			"enum" : ["multicolor_mean", "unicolor_mean"],
+			"default" : "multicolor_mean",
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean"]
+			},
+			"propertyOrder" : 1
+		},
+		"channelAdjustment" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_color_channelAdjustment_header_title",
+			"minItems": 1,
+			"required" : true,
+			"propertyOrder" : 3,
+			"items" :
+			{
+				"type" : "object",
+				"required" : true,
+				"title" : "edt_conf_color_channelAdjustment_header_itemtitle",
+				"properties" :
+				{
+					"id" :
+					{
+						"type" : "string",
+						"title" : "edt_conf_color_id_title",
+						"required" : true,
+						"default" : "A userdefined name",
+						"propertyOrder" : 1
+					},
+					"leds" :
+					{
+						"type" : "string",
+						"title" : "edt_conf_color_leds_title",
+						"required" : true,
+						"default" : "*",
+						"propertyOrder" : 2
+					},
+					"black" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_black_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [0,0,0],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 3
+					},
+					"white" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_white_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [255,255,255],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 4
+					},
+					"red" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_red_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [255,0,0],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 5
+					},
+					"green" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_green_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [0,255,0],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 6
+					},
+					"blue" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_blue_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [0,0,255],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 7
+					},
+					"cyan" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_cyan_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [0,255,255],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 8
+					},
+					"magenta" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_magenta_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [255,0,255],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 9
+					},
+					"yellow" :
+					{
+						"type" : "array",
+						"title" : "edt_conf_color_yellow_title",
+						"format" : "colorpicker",
+						"required" : true,
+						"default": [255,255,0],
+						"items" : {
+							"type" : "integer",
+							"minimum" : 0,
+							"maximum" : 255
+						},
+						"minItems" : 3,
+						"maxItems" : 3,
+						"propertyOrder" : 10
+					},
+					"backlightThreshold" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_color_backlightThreshold_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 100,
+						"default" : 0,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 11
+					},
+					"backlightColored" :
+					{
+						"type" : "boolean",
+						"title" : "edt_conf_color_backlightColored_title",
+						"required" : true,
+						"default" : false,
+						"propertyOrder" : 12
+					},
+					"brightness" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_color_brightness_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 100,
+						"default" : 100,
+						"append" : "edt_append_percent",
+						"propertyOrder" : 13
+					},
+					"brightnessCompensation" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_color_brightnessComp_title",
+						"required" : true,
+						"minimum" : 0,
+						"maximum": 100,
+						"default" : 90,
+						"append" : "edt_append_percent",
+						"access" : "advanced",
+						"propertyOrder" : 14
+					},
+					"gammaRed" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_gammaRed_title",
+						"required" : true,
+						"minimum" : 0.1,
+						"maximum": 100.0,
+						"default" : 1.5,
+						"step" : 0.1,
+						"propertyOrder" : 15
+					},
+					"gammaGreen" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_gammaGreen_title",
+						"required" : true,
+						"minimum" : 0.1,
+						"maximum": 100.0,
+						"default" : 1.5,
+						"step" : 0.1,
+						"propertyOrder" : 16
+					},
+					"gammaBlue" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_gammaBlue_title",
+						"required" : true,
+						"minimum" : 0.1,
+						"maximum": 100.0,
+						"default" : 1.5,
+						"step" : 0.1,
+						"propertyOrder" : 17
+					}
+				},
+				"additionalProperties" : false
+			}
+		}
+	},
+	"additionalProperties" : false
+}

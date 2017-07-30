@@ -121,6 +121,7 @@
 					"type" : "array",
 					"title" : "edt_conf_color_channelAdjustment_header_title",
 					"required" : true,
+					"minItems": 1,
 					"propertyOrder" : 3,
 					"items" :
 					{
@@ -562,84 +563,112 @@
 					{
 						"type" : "boolean",
 						"title" : "edt_conf_v4l2_signalDetection_title",
-						"default" : true,
+						"default" : false,
 						"propertyOrder" : 16
 					},
 					"redSignalThreshold" :
 					{
 						"type" : "number",
 						"title" : "edt_conf_v4l2_redSignalThreshold_title",
-						"minimum" : 0.0,
-						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"minimum" : 0,
+						"maximum" : 100,
+						"default" : 5,
 						"append" : "edt_append_percent",
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 17
 					},
 					"greenSignalThreshold" :
 					{
 						"type" : "number",
 						"title" : "edt_conf_v4l2_greenSignalThreshold_title",
-						"minimum" : 0.0,
-						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.025,
+						"minimum" : 0,
+						"maximum" : 100,
+						"default" : 5,
 						"append" : "edt_append_percent",
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 18
 					},
 					"blueSignalThreshold" :
 					{
 						"type" : "number",
 						"title" : "edt_conf_v4l2_blueSignalThreshold_title",
-						"minimum" : 0.0,
-						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
+						"minimum" : 0,
+						"maximum" : 100,
+						"default" : 5,
 						"append" : "edt_append_percent",
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 19
 					},
-					"signalDetectionVerticalOffsetMin" :
+					"sDVOffsetMin" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMin_title",
+						"title" : "edt_conf_v4l2_sDVOffsetMin_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
-						"append" : "edt_append_percent",
+						"default" : 0.25,
+						"step" : 0.01,
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 20
 					},
-					"signalDetectionVerticalOffsetMax" :
+					"sDVOffsetMax" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionVerticalOffsetMax_title",
+						"title" : "edt_conf_v4l2_sDVOffsetMax_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
-						"append" : "edt_append_percent",
+						"default" : 0.75,
+						"step" : 0.01,
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 21
 					},
-					"signalDetectionHorizontalOffsetMin" :
+					"sDHOffsetMin" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMin_title",
+						"title" : "edt_conf_v4l2_sDHOffsetMin_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
-						"append" : "edt_append_percent",
+						"default" : 0.25,
+						"step" : 0.01,
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 22
 					},
-					"signalDetectionHorizontalOffsetMax" :
+					"sDHOffsetMax" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_v4l2_signalDetectionHorizontalOffsetMax_title",
+						"title" : "edt_conf_v4l2_sDHOffsetMax_title",
 						"minimum" : 0.0,
 						"maximum" : 1.0,
-						"default" : 0.1,
-						"step" : 0.005,
-						"append" : "edt_append_percent",
+						"default" : 0.75,
+						"step" : 0.01,
+						"options": {
+							"dependencies": {
+								"signalDetection": true
+							}
+						},
 						"propertyOrder" : 23
 					}
 				},
@@ -970,14 +999,24 @@
 					},
 					"minItems" : 3,
 					"maxItems" : 3,
-					"propertyOrder" : 3
+					"propertyOrder" : 3,
+					"options": {
+						"dependencies": {
+							"type": "color"
+						}
+					}
 				},
 				"effect" :
 				{
 					"type" : "string",
 					"format" : "select",
 					"title" : "edt_conf_fge_effect_title",
-					"propertyOrder" : 4
+					"propertyOrder" : 4,
+					"options": {
+						"dependencies": {
+							"type": "effect"
+						}
+					}
 				},
 				"duration_ms" :
 				{
@@ -1028,14 +1067,24 @@
 					},
 					"minItems" : 3,
 					"maxItems" : 3,
-					"propertyOrder" : 3
+					"propertyOrder" : 3,
+					"options": {
+						"dependencies": {
+							"type": "color"
+						}
+					}
 				},
 				"effect" :
 				{
 					"type" : "string",
 					"format" : "select",
 					"title" : "edt_conf_fge_effect_title",
-					"propertyOrder" : 4
+					"propertyOrder" : 4,
+					"options": {
+						"dependencies": {
+							"type": "effect"
+						}
+					}
 				}
 			},
 			"additionalProperties" : false
@@ -1254,6 +1303,7 @@
 						"type": "string",
 						"title" : "edt_conf_effp_paths_itemtitle"
 					},
+					"minItems": 1,
 					"propertyOrder" : 1
 				},
 				"disable" :

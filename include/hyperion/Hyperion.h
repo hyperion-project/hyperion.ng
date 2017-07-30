@@ -14,6 +14,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QTimer>
+#include <QFileSystemWatcher>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -329,8 +330,8 @@ private slots:
 	void bonjourRecordResolved(const QHostInfo &hostInfo, int port);
 	void bonjourResolve();
 
-	/// check for configWriteable and modified changes, called by _cTimer timeout()
-	void checkConfigState();
+	/// check for configWriteable and modified changes, called by _fsWatcher or fallback _cTimer
+	void checkConfigState(QString cfile = NULL);
 
 private:
 
@@ -411,7 +412,8 @@ private:
 	BonjourRegister        _hyperionSessions;
 	QString                _bonjourCurrentServiceToResolve;
 
-	/// Interval timer to check config write and mod
+	/// Observe filesystem changes (_configFile), if failed use Timer
+	QFileSystemWatcher _fsWatcher;
 	QTimer _cTimer;
 
 	/// holds the prev states of configWriteable and modified

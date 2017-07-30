@@ -58,18 +58,25 @@ private:
 	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
 	static PyObject* wrapAbort                 (PyObject *self, PyObject *args);
 	static PyObject* wrapImageShow             (PyObject *self, PyObject *args);
-	static PyObject* wrapImageCanonicalGradient(PyObject *self, PyObject *args);
+	static PyObject* wrapImageLinearGradient   (PyObject *self, PyObject *args);
+	static PyObject* wrapImageConicalGradient  (PyObject *self, PyObject *args);
 	static PyObject* wrapImageRadialGradient   (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSolidFill        (PyObject *self, PyObject *args);
 	static PyObject* wrapImageDrawLine         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawPoint        (PyObject *self, PyObject *args);
 	static PyObject* wrapImageDrawRect         (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawPolygon      (PyObject *self, PyObject *args);
+	static PyObject* wrapImageDrawPie          (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSetPixel         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageGetPixel         (PyObject *self, PyObject *args);
 	static PyObject* wrapImageSave             (PyObject *self, PyObject *args);
 	static PyObject* wrapImageMinSize          (PyObject *self, PyObject *args);
 	static PyObject* wrapImageWidth            (PyObject *self, PyObject *args);
 	static PyObject* wrapImageHeight           (PyObject *self, PyObject *args);
-
+	static PyObject* wrapImageCRotate          (PyObject *self, PyObject *args);
+	static PyObject* wrapImageCOffset          (PyObject *self, PyObject *args);
+	static PyObject* wrapImageCShear           (PyObject *self, PyObject *args);
+	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
 	static Effect * getEffect();
 
 #if PY_MAJOR_VERSION >= 3

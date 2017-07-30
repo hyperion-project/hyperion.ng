@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPair>
 #include <cstdint>
 #include <limits>
 
@@ -31,7 +32,6 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -52,7 +52,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _hyperion(nullptr)
 	, _stats(nullptr)
 {
-	loadConfig(configFile, CURRENT_CONFIG_VERSION );
+	loadConfig(configFile);
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -135,16 +135,16 @@ void HyperionDaemon::run()
 	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
-int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
+void HyperionDaemon::loadConfig(const QString & configFile)
 {
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
+	
 	QString schemaFile = ":/hyperion-schema";
-	if (schemaVersion > 0)
-		schemaFile += "-" + QString::number(schemaVersion);
-
 	QJsonObject schemaJson;
 	try
 	{
@@ -159,45 +159,25 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	schemaChecker.setSchema(schemaJson);
 
 	_qconfig = QJsonFactory::readConfig(configFile);
-	if (!schemaChecker.validate(_qconfig))
+	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+	
+	if (!validate.first && validate.second)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		
+		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		if (!QJsonFactory::writeJson(configFile, _qconfig))
+			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+	}
+	else if (validate.first && !validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)
-		{
 			std::cout << schemaError.toStdString() << std::endl;
-		}
 
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
-	
-	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	return generalConfig["configVersion"].toInt(-1);
-}
-
-void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
-{
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
-	int configVersionId = tryLoadConfig(configFile,0);
-
-	// no config id found, assume legacy hyperion
-	if (configVersionId < 0)
-	{
-		Debug(_log, "config file has no version, assume old hyperion.");
-		configVersionId = tryLoadConfig(configFile,1);
-	}
-	Debug(_log, "config version: %d", configVersionId);
-	configVersionId = tryLoadConfig(configFile, configVersionId);
-
-	if (neededConfigVersion == configVersionId)
-	{
-		return;
-	}
-
-	// migrate configVersionId
-	ConfigMigrator migrator;
-	migrator.migrate(configFile, configVersionId, neededConfigVersion);
-	
 }
 
 
@@ -604,9 +584,9 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["height"].toInt(-1),
 				grabberConfig["frameDecimation"].toInt(2),
 				grabberConfig["sizeDecimation"].toInt(8),
-				grabberConfig["redSignalThreshold"].toDouble(0.0),
-				grabberConfig["greenSignalThreshold"].toDouble(0.0),
-				grabberConfig["blueSignalThreshold"].toDouble(0.0),
+				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890));
 			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
@@ -616,10 +596,10 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropBottom"].toInt(0));
 			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			grabber->setSignalDetectionOffset(
-				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionHorizontalOffsetMax"].toDouble(0.75),
-				grabberConfig["signalDetectionVerticalOffsetMax"].toDouble(0.75));
+				grabberConfig["sDHOffsetMin"].toDouble(0.25),
+				grabberConfig["sDVOffsetMin"].toDouble(0.25),
+				grabberConfig["sDHOffsetMax"].toDouble(0.75),
+				grabberConfig["sDVOffsetMax"].toDouble(0.75));
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
