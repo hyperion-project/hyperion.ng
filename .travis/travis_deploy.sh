@@ -25,5 +25,6 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
 		sf_upload $deploylist alpha
 	else
 		echo "PR can't be uploaded for security reasons"
+		sf_upload $deploylist pr
 	fi
 fi
