@@ -12,7 +12,8 @@
 						<select id="effectslist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
 					</div>
 					<div class="panel-body">
-						<table style="margin-bottom:8px">
+						<div id="eff_desc"></div>
+						<table style="margin-bottom:8px" id="effc_nametable">
 							<tbody>
 								<tr>
 									<td class="ltd"><label for="name-input" data-i18n="effectsconfigurator_label_effectname">Effect name:</label></td>
@@ -33,9 +34,12 @@
 			<div class="col-lg-6">
 				<div class="panel panel-default" >
 					<div class="panel-heading">
-						<label for="effectsdellist"  data-i18n="effectsconfigurator_label_deleffect">Delete Effect:</label>
+						<label for="effectsdellist"  data-i18n="effectsconfigurator_editdeleff"></label>
 						<select id="effectsdellist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
+					</div>
+					<div class="panel-body">
 						<button  class="btn btn-primary" id='btn_delete' data-i18n="effectsconfigurator_button_deleffect">Delete Effect</button>
+						<button  class="btn btn-primary" id='btn_edit' data-i18n="effectsconfigurator_button_editeffect"></button>
 					</div>
 				</div>
 			</div>

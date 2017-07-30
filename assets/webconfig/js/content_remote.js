@@ -277,7 +277,6 @@ $(document).ready(function() {
 	createCP('cp2', cpcolor, function(rgbT,hex){
 		rgb = rgbT;
 		sendColor()
-		$("#effect_select").val("__none__");
 		setStorage('rmcpcolor', hex);
 	});
 

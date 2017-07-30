@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "knight-rider.py",
-	"title":"edt_eff_knightrider_header_title",
+	"title":"edt_eff_knightrider_header",
 	"required":true,
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"edt_eff_color_title",
+			"title":"edt_eff_color",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,7 +20,7 @@
 		},
 		"speed": {
 			"type": "number",
-			"title":"edt_eff_speed_title",
+			"title":"edt_eff_speed",
 			"default": 1.0,
 			"minimum": 0.1,
 			"step" : 0.1,
@@ -28,7 +28,7 @@
 		},
 		"fadeFactor": {
 			"type": "number",
-			"title":"edt_eff_fadefactor_title",
+			"title":"edt_eff_fadefactor",
 			"default": 0.7,
 			"minimum" : 0.0,
 			"maximum" : 0.9,
