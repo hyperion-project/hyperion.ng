@@ -27,6 +27,7 @@ SET(Utils_HEADERS
 	${CURRENT_HEADER_DIR}/RgbToRgbw.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonSchemaChecker.h
+	${CURRENT_HEADER_DIR}/jsonschema/QJsonUtils.h
 	${CURRENT_HEADER_DIR}/global_defines.h
 	${CURRENT_HEADER_DIR}/SysInfo.h
 )

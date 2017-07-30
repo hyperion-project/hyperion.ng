@@ -5,6 +5,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QStringList>
+#include <QPair>
 
 /// JsonSchemaChecker is a very basic implementation of json schema.
 /// The json schema definition draft can be found at
@@ -33,13 +34,23 @@ public:
 	/// @return true upon succes
 	///
 	bool setSchema(const QJsonObject & schema);
-	
+
 	///
 	/// @brief Validate a JSON structure
 	/// @param value The JSON value to check
-	/// @return true when the arguments is valid according to the schema
+	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
+	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors 
+	/// @return TODO: Check the Schema in SetSchema() function and remove the QPair result
 	///
-	bool validate(const QJsonObject & value, bool ignoreRequired = false);
+	QPair<bool, bool> validate(const QJsonObject & value, bool ignoreRequired = false);
+
+	///
+	/// @brief Auto correct a JSON structure
+	/// @param value The JSON value to correct
+	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
+	/// @return The corrected JSON structure
+	///
+	QJsonObject getAutoCorrectedConfig(const QJsonObject & value, bool ignoreRequired = false);
 
 	///
 	/// @return A list of error messages
@@ -72,7 +83,7 @@ private:
 	/// @param[in] value The given value
 	/// @param[in] schema The specified type (as json-value)
 	///
-	void checkType(const QJsonValue & value, const QJsonValue & schema);
+	void checkType(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 	
 	///
 	/// Checks is required properties of an json-object exist and if all properties are of the
@@ -101,7 +112,7 @@ private:
 	/// @param[in] value The given value
 	/// @param[in] schema The minimum value (as json-value)
 	///
-	void checkMinimum(const QJsonValue & value, const QJsonValue & schema);
+	void checkMinimum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Checks if the given value is smaller or equal to the specified value. If this is not the
@@ -110,7 +121,7 @@ private:
 	/// @param[in] value The given value
 	/// @param[in] schema The maximum value (as json-value)
 	///
-	void checkMaximum(const QJsonValue & value, const QJsonValue & schema);
+	void checkMaximum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Checks if the given value is hugher than the specified value. If this is the
@@ -119,7 +130,7 @@ private:
 	/// @param value The given value 
 	/// @param schema The minimum size specification (as json-value)
 	///
-	void checkMinLength(const QJsonValue & value, const QJsonValue & schema);
+	void checkMinLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Checks if the given value is smaller than the specified value. If this is the
@@ -128,7 +139,7 @@ private:
 	/// @param value The given value 
 	/// @param schema The maximum size specification (as json-value)
 	///
-	void checkMaxLength(const QJsonValue & value, const QJsonValue & schema);
+	void checkMaxLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Validates all the items of an array.
@@ -145,7 +156,7 @@ private:
 	/// @param value The json-array
 	/// @param schema The minimum size specification (as json-value)
 	///
-	void checkMinItems(const QJsonValue & value, const QJsonValue & schema);
+	void checkMinItems(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Checks if a given array has at most a maximum number of items. If this is not the case
@@ -154,7 +165,7 @@ private:
 	/// @param value The json-array
 	/// @param schema The maximum size specification (as json-value)
 	///
-	void checkMaxItems(const QJsonValue & value, const QJsonValue & schema);
+	void checkMaxItems(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 	///
 	/// Checks if a given array contains only unique items. If this is not the case
@@ -172,17 +183,23 @@ private:
 	/// @param value The enum value
 	/// @param schema The enum schema definition
 	///
-	void checkEnum(const QJsonValue & value, const QJsonValue & schema);
+	void checkEnum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
 private:
 	/// The schema of the entire json-configuration
 	QJsonObject _qSchema;
 	/// ignore the required value in json schema
 	bool _ignoreRequired;
+	/// Auto correction variable
+	QString _correct;
+	/// The auto corrected json-configuration
+	QJsonObject _autoCorrected;
 	/// The current location into a json-configuration structure being checked
 	QStringList _currentPath;
 	/// The result messages collected during the schema verification
 	QStringList _messages;
 	/// Flag indicating an error occured during validation
 	bool _error;
+	/// Flag indicating an schema error occured during validation
+	bool _schemaError;
 };

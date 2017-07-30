@@ -8,10 +8,6 @@ QT5_WRAP_CPP(Hyperiond_HEADERS_MOC ${Hyperiond_QT_HEADERS})
 add_executable(hyperiond 
 	${Hyperiond_QT_HEADERS}
 	${Hyperiond_HEADERS_MOC}
-	configMigratorBase.cpp
-	configMigratorBase.h
-	configMigrator.cpp
-	configMigrator.h
 	hyperiond.cpp
 	main.cpp
 )

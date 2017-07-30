@@ -43,7 +43,7 @@ public:
     BonjourServiceRegister(QObject *parent = 0);
     ~BonjourServiceRegister();
 
-    void registerService(const BonjourRecord &record, quint16 servicePort);
+    void registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt);
     inline BonjourRecord registeredRecord() const {return finalRecord; }
 
 signals:

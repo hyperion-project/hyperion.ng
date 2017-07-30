@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPair>
 #include <cstdint>
 #include <limits>
 
@@ -31,7 +32,6 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -52,7 +52,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _hyperion(nullptr)
 	, _stats(nullptr)
 {
-	loadConfig(configFile, CURRENT_CONFIG_VERSION );
+	loadConfig(configFile);
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -135,16 +135,16 @@ void HyperionDaemon::run()
 	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
-int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
+void HyperionDaemon::loadConfig(const QString & configFile)
 {
+	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
+	
 	QString schemaFile = ":/hyperion-schema";
-	if (schemaVersion > 0)
-		schemaFile += "-" + QString::number(schemaVersion);
-
 	QJsonObject schemaJson;
 	try
 	{
@@ -159,45 +159,25 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	schemaChecker.setSchema(schemaJson);
 
 	_qconfig = QJsonFactory::readConfig(configFile);
-	if (!schemaChecker.validate(_qconfig))
+	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+	
+	if (!validate.first && validate.second)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		
+		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		if (!QJsonFactory::writeJson(configFile, _qconfig))
+			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+	}
+	else if (validate.first && !validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)
-		{
 			std::cout << schemaError.toStdString() << std::endl;
-		}
 
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
-	
-	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	return generalConfig["configVersion"].toInt(-1);
-}
-
-void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
-{
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
-	int configVersionId = tryLoadConfig(configFile,0);
-
-	// no config id found, assume legacy hyperion
-	if (configVersionId < 0)
-	{
-		Debug(_log, "config file has no version, assume old hyperion.");
-		configVersionId = tryLoadConfig(configFile,1);
-	}
-	Debug(_log, "config version: %d", configVersionId);
-	configVersionId = tryLoadConfig(configFile, configVersionId);
-
-	if (neededConfigVersion == configVersionId)
-	{
-		return;
-	}
-
-	// migrate configVersionId
-	ConfigMigrator migrator;
-	migrator.migrate(configFile, configVersionId, neededConfigVersion);
-	
 }
 
 
@@ -375,26 +355,30 @@ void HyperionDaemon::startNetworkServices()
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
 	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName();
+	// txt record for zeroconf
+	QString id = _hyperion->id;
+	std::string version = HYPERION_VERSION;
+	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version}};
 
-	// zeroconf udp listener 
+	// zeroconf udp listener
 	if (_udpListener != nullptr)
 	{
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort() );
+			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort(), txtRecord);
 		Debug(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
 	bonjourRegister_json->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort(), txtRecord);
 	Debug(_log, "Json mDNS responder started");
 
 	// zeroconf proto
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
 	bonjourRegister_proto->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort(), txtRecord);
 	Debug(_log, "Proto mDNS responder started");
 }
 

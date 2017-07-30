@@ -54,9 +54,8 @@ class HyperionDaemon : public QObject
 public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
-	
-	int tryLoadConfig(const QString & configFile, const int schemaVersion);
-	void loadConfig(const QString & configFile, const int neededConfigVersion);
+
+	void loadConfig(const QString & configFile);
 	void run();
 
 	void startInitialEffect();

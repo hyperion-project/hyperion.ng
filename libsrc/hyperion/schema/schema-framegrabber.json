@@ -1,0 +1,132 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_fg_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"default" : true,
+			"propertyOrder" : 1
+		},
+		"type" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_fg_type_title",
+			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
+			"default" : "auto",
+			"propertyOrder" : 2
+		},
+		"width" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_width_title",
+			"minimum" : 10,
+			"default" : 80,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 3
+		},
+		"height" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_height_title",
+			"minimum" : 10,
+			"default" : 45,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 3
+		},
+		"frequency_Hz" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_frequency_Hz_title",
+			"minimum" : 1,
+			"default" : 10,
+			"append" : "edt_append_hz",
+			"propertyOrder" : 4
+		},
+		"priority" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_general_priority_title",
+			"minimum" : 100,
+			"maximum" : 254,
+			"default" : 250,
+			"propertyOrder" : 5
+		},
+		"cropLeft" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_cropLeft_title",
+			"minimum" : 0,
+			"default" : 0,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 6
+		},
+		"cropRight" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_cropRight_title",
+			"minimum" : 0,
+			"default" : 0,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 7
+		},
+		"cropTop" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_cropTop_title",
+			"minimum" : 0,
+			"default" : 0,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 8
+		},
+		"cropBottom" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_cropBottom_title",
+			"minimum" : 0,
+			"default" : 0,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 9
+		},
+		"useXGetImage" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_fg_useXGetImage_title",
+			"default" : false,
+			"propertyOrder" : 10
+		},
+		"horizontalPixelDecimation" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_horizontalPixelDecimation_title",
+			"minimum" : 0,
+			"default" : 8,
+			"propertyOrder" : 11
+		},
+		"verticalPixelDecimation" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_verticalPixelDecimation_title",
+			"minimum" : 0,
+			"default" : 8,
+			"propertyOrder" : 12
+		},
+		"device" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_fg_device_title",
+			"default" : "/dev/fb0",
+			"propertyOrder" : 13
+		},
+		"display" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_display_title",
+			"minimum" : 0,
+			"propertyOrder" : 14
+		}
+	},
+	"additionalProperties" : false
+}

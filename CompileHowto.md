@@ -51,9 +51,9 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
 # optional: install into your system
-make install/strip
+sudo make install/strip
 # to uninstall (not very well tested, please keep that in mind)
-make uninstall
+sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond myconfig.json
 # webui is located on localhost:8099

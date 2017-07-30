@@ -1,0 +1,36 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_fw_heading_title",
+	"required" : true,
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_general_enable_title",
+			"propertyOrder" : 1
+		},
+		"json" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_fw_json_title",
+			"required" : true,
+			"items" : {
+				"type": "string",
+				"title" : "edt_conf_fw_json_itemtitle"
+			},
+			"propertyOrder" : 2
+		},
+		"proto" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_fw_proto_title",
+			"items" : {
+				"type": "string",
+				"title" : "edt_conf_fw_proto_itemtitle"
+			},
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}
