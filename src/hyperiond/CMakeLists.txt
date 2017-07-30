@@ -1,6 +1,7 @@
 
 SET(Hyperiond_QT_HEADERS
 	hyperiond.h
+	systray.h
 )
 
 QT5_WRAP_CPP(Hyperiond_HEADERS_MOC ${Hyperiond_QT_HEADERS})
@@ -13,6 +14,7 @@ add_executable(hyperiond
 	configMigrator.cpp
 	configMigrator.h
 	hyperiond.cpp
+	systray.cpp
 	main.cpp
 )
 
@@ -52,6 +54,8 @@ endif ()
 if (ENABLE_X11)
 	target_link_libraries(hyperiond	x11-grabber	)
 endif ()
+
+qt5_use_modules(hyperiond Gui Core Network Widgets)
 
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )

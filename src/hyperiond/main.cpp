@@ -11,12 +11,16 @@
 #include <exception>
 
 #include <QCoreApplication>
+#include <QApplication>
 #include <QLocale>
 #include <QFile>
 #include <QString>
 #include <QResource>
 #include <QDir>
 #include <QStringList>
+#include <QSystemTrayIcon>
+#include <QMessageBox>
+#include <QDesktopWidget>
 
 #include "HyperionConfig.h"
 
@@ -27,6 +31,7 @@
 #include <commandline/IntOption.h>
 
 #include "hyperiond.h"
+#include "systray.h"
 
 using namespace commandline;
 
@@ -58,6 +63,17 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 	}
 }
 
+QCoreApplication* createApplication(int &argc, char *argv[])
+{
+	for (int i = 1; i < argc; ++i)
+	{
+		if (qstrcmp(argv[i], "--systray") == 0)
+		{
+			return new QApplication(argc, argv);
+		}
+	}
+	return new QCoreApplication(argc, argv);
+}
 
 int main(int argc, char** argv)
 {
@@ -68,7 +84,8 @@ int main(int argc, char** argv)
 	Logger::setLogLevel(Logger::WARNING);
 
 	// Initialising QCoreApplication
-	QCoreApplication app(argc, argv);
+    QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
+	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
@@ -88,12 +105,13 @@ int main(int argc, char** argv)
 	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
 	BooleanOption &   debugOption       = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	parser.add<BooleanOption>(0x0, "systray", "show systray on desktop");
 	Option        & exportConfigOption  = parser.add<Option>       (0x0, "export-config", "export default config to file");
 	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
 
 	parser.addPositionalArgument("config-files", QCoreApplication::translate("main", "Configuration file"), "config.file");
 
-    parser.process(app);
+    parser.process(*qApp);
 
 	const QStringList configFiles = parser.positionalArguments();
 
@@ -223,10 +241,11 @@ int main(int argc, char** argv)
 #endif
 	}
 
+
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[0], &app);
+		hyperiond = new HyperionDaemon(configFiles[0], qApp);
 		hyperiond->run();
 	}
 	catch (std::exception& e)
@@ -238,10 +257,21 @@ int main(int argc, char** argv)
 	WebConfig* webConfig = nullptr;
 	try
 	{
-		webConfig = new WebConfig(&app);
+		webConfig = new WebConfig(qApp);
 		// run the application
-		rc = app.exec();
-		Info(log, "INFO: Application closed with code %d", rc);
+		if (isGuiApp)
+		{
+			Info(log, "start systray");
+			QApplication::setQuitOnLastWindowClosed(false);
+			SysTray tray(hyperiond, webConfig->getPort());
+			tray.hide();
+			rc = (qobject_cast<QApplication *>(app.data()))->exec();
+		}
+		else
+		{
+			rc = app->exec();
+		}
+		Info(log, "Application closed with code %d", rc);
 	}
 	catch (std::exception& e)
 	{

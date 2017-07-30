@@ -212,7 +212,7 @@ endif()
 
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
-find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Network Widgets REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
