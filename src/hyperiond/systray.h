@@ -28,10 +28,6 @@ public slots:
 	void clearEfxColor();
 
 private slots:
-	///
-	/// Performs a single screenshot capture and publishes the capture screenshot on the screenshot signal.
-	///
-// 	void capture();
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:

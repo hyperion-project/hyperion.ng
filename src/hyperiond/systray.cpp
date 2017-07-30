@@ -27,13 +27,11 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 		this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
  
  	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
-// 	QIcon icon = QIcon::fromTheme("video-display");
 	QIcon icon(":/webconfig/systray-icon.png");
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);
 	_colorDlg.setModal(true);
-	//_colorDlg.show();
 	_colorDlg.setOptions(QColorDialog::NoButtons);
 }
 

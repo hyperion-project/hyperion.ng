@@ -19,8 +19,6 @@
 #include <QDir>
 #include <QStringList>
 #include <QSystemTrayIcon>
-#include <QMessageBox>
-#include <QDesktopWidget>
 
 #include "HyperionConfig.h"
 
