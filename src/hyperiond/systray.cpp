@@ -27,7 +27,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 		this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
  
  	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
-	QIcon icon(":/webconfig/systray-icon.png");
+	QIcon icon(":/webconfig/apple-touch-icon.png");
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);
@@ -44,13 +44,11 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 	switch (reason)
 	{
 		case QSystemTrayIcon::Trigger:
-			_trayIconMenu->show();
 			break;
 		case QSystemTrayIcon::DoubleClick:
 			showColorDialog();
 			break;
 		case QSystemTrayIcon::MiddleClick:
-			//showMessage();
 			break;
 		default: ;
 	}

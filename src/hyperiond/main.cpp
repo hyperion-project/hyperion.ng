@@ -28,6 +28,10 @@
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
 
+#ifdef ENABLE_X11
+#include <X11/Xlib.h>
+#endif
+
 #include "hyperiond.h"
 #include "systray.h"
 
@@ -63,14 +67,36 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 
 QCoreApplication* createApplication(int &argc, char *argv[])
 {
+	bool isGuiApp = false;
+	// command line
 	for (int i = 1; i < argc; ++i)
 	{
-		if (qstrcmp(argv[i], "--systray") == 0)
+		if (qstrcmp(argv[i], "--desktop") == 0)
 		{
-			return new QApplication(argc, argv);
+			isGuiApp = true;
+		}
+		else if (qstrcmp(argv[i], "--service") == 0)
+		{
+			isGuiApp = false;
 		}
 	}
-	return new QCoreApplication(argc, argv);
+
+	// on osx/windows gui always available
+#if defined(__APPLE__) || defined(__WIN32__)
+	isGuiApp = true;
+#else
+	// if x11, then test if xserver is available
+	#ifdef ENABLE_X11
+	Display* dpy = XOpenDisplay(NULL);
+	if (dpy != NULL) 
+	{
+		XCloseDisplay(dpy);
+		isGuiApp = true;
+	}
+	#endif
+#endif
+
+	return isGuiApp ? new QApplication(argc, argv) : new QCoreApplication(argc, argv);
 }
 
 int main(int argc, char** argv)
@@ -103,7 +129,8 @@ int main(int argc, char** argv)
 	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
 	BooleanOption &   debugOption       = parser.add<BooleanOption>('d', "debug", "Show debug messages");
-	parser.add<BooleanOption>(0x0, "systray", "show systray on desktop");
+	parser.add<BooleanOption>(0x0, "desktop", "show systray on desktop");
+	parser.add<BooleanOption>(0x0, "service", "force hyperion to start as console service");
 	Option        & exportConfigOption  = parser.add<Option>       (0x0, "export-config", "export default config to file");
 	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
 
@@ -111,7 +138,7 @@ int main(int argc, char** argv)
 
     parser.process(*qApp);
 
-	const QStringList configFiles = parser.positionalArguments();
+	QStringList configFiles = parser.positionalArguments();
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
@@ -185,23 +212,39 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	
+	// handle default config file
+	if (configFiles.size() == 0)
+	{
+		QString hyperiond_path   = QDir::homePath();
+		QString hyperiond_config = hyperiond_path+"/.hyperion.config.json";
+		QFileInfo hyperiond_pathinfo(hyperiond_path);
+
+		if ( ! hyperiond_pathinfo.isWritable() && ! QFile::exists(hyperiond_config) )
+		{
+			QFileInfo hyperiond_fileinfo(argv[0]);
+			hyperiond_config = hyperiond_fileinfo.absolutePath()+"/hyperion.config.json";
+		}
+
+		configFiles.append(hyperiond_config);
+		Info(log, "No config file given. Standard config file used: %s", QSTRING_CSTR(configFiles[0]));
+	}
+
 	bool exportDefaultConfig = false;
-	bool exitAfterexportDefaultConfig = false;
+	bool exitAfterExportDefaultConfig = false;
 	QString exportConfigFileTarget;
 	if (parser.isSet(exportConfigOption))
 	{
 		exportDefaultConfig = true;
-		exitAfterexportDefaultConfig = true;
+		exitAfterExportDefaultConfig = true;
 		exportConfigFileTarget = exportConfigOption.value(parser);
 	}
-	else if ( configFiles.size() > 0 && ! QFile::exists(configFiles[0]) )
+	else if ( ! QFile::exists(configFiles[0]) )
 	{
 		exportDefaultConfig = true;
 		exportConfigFileTarget = configFiles[0];
 		Warning(log, "Your configuration file does not exist. hyperion writes default config");
 	}
-	
+
 	if (exportDefaultConfig)
 	{
 		Q_INIT_RESOURCE(resource);
@@ -210,21 +253,15 @@ int main(int argc, char** argv)
 		{
 			QFile::setPermissions(exportConfigFileTarget, PERM0664 );
 			Info(log, "export complete.");
-			if (exitAfterexportDefaultConfig) return 0;
+			if (exitAfterExportDefaultConfig) return 0;
 		}
 		else
 		{
-			Error(log, "error while export to %s",exportConfigFileTarget.toLocal8Bit().constData());
-			if (exitAfterexportDefaultConfig) return 1;
+			Error(log, "error while export to %s", QSTRING_CSTR(exportConfigFileTarget) );
+			return 1;
 		}
 	}
 
-	if (configFiles.size() == 0)
-	{
-		Error(log, "Missing required configuration file. Usage: hyperiond <options ...> config.file");
-		parser.showHelp(0);
-		return 1;
-	}
 	if (configFiles.size() > 1)
 	{
 		Warning(log, "You provided more than one config file. Hyperion will use only the first one");
