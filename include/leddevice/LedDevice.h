@@ -62,6 +62,7 @@ public:
 	
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
+	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
 	
@@ -93,15 +94,16 @@ protected:
 
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
-	QTimer        _refresh_timer;
+	QTimer       _refresh_timer;
 	unsigned int _refresh_timer_interval;
-
+	qint64       _last_write_time;
+	unsigned int _latchTime_ms;
 protected slots:
 	/// Write the last data to the leds again
 	int rewriteLeds();
 
 private:
 	std::vector<ColorRgb> _ledValues;
-	bool _componentRegistered;
-	bool _enabled;
+	bool   _componentRegistered;
+	bool   _enabled;
 };

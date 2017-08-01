@@ -7,7 +7,7 @@
 		"max_len" : 6,
 		"height" : 8,
 		"trails": 16,
-		"speed" : 8.0,
+		"speed" : 50,
 		"random" : true,
 		"color" : [255, 255, 255]
 	}

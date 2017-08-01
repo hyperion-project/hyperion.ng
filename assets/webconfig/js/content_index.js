@@ -15,6 +15,10 @@ $(document).ready( function() {
 		else
 			$("#hyperion_reload_notify").fadeOut("fast");
 
+		if (serverInfo.hyperion.off)
+			$("#hyperion_disabled_notify").fadeIn("fast");
+		else
+			$("#hyperion_disabled_notify").fadeOut("fast");
 		
 		if ($("#logmessages").length == 0 && loggingStreamActive)
 		{
@@ -54,12 +58,12 @@ $(document).ready( function() {
 				$('#btn_instanceswitch').toggle(false);
 		}
 
-		
 	}); // end cmd-serverinfo
 
 	$(hyperion).one("cmd-sysinfo", function(event) {
 		requestServerInfo();
 		sysInfo = event.response.info;
+
 		currentVersion = sysInfo.hyperion.version;
 	});
 	

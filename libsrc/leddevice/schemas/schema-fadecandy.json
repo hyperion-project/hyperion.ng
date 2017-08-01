@@ -14,47 +14,57 @@
 			"default": 7890,
 			"propertyOrder" : 2
 		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},
 		"setFcConfig": {
 			"type": "boolean",
 			"title":"edt_dev_spec_FCsetConfig_title",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"manualLed": {
 			"type": "boolean",
 			"title":"edt_dev_spec_FCmanualControl_title",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"ledOn": {
 			"type": "boolean",
 			"title":"edt_dev_spec_FCledToOn_title",
 			"default": false,
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"interpolation": {
 			"type": "boolean",
 			"title":"edt_dev_spec_interpolation_title",
 			"default": false,
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"dither": {
 			"type": "boolean",
 			"title":"edt_dev_spec_dithering_title",
 			"default": false,
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		},
 		"gamma" : {
 			"type" : "number",
 			"title" : "edt_dev_spec_gamma_title",
-			"minimum" : 0.0,
-			"maximum": 100.0,
-			"propertyOrder" : 8
+			"minimum" : 0.1,
+			"maximum": 5.0,
+			"propertyOrder" : 9
 		},
 		"whitepoint" : {
 			"type" : "array",
 			"title" : "edt_dev_spec_whitepoint_title",
-			"propertyOrder" : 9,
+			"propertyOrder" : 10,
 			"default" : [255,255,255],
 			"maxItems" : 3,
 			"minItems" : 3,

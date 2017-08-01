@@ -51,4 +51,4 @@ while not hyperion.abort():
 		hyperion.imageCanonicalGradient(centerX, centerY, angleS, colorsSecond)
 
 	hyperion.imageShow()
-	time.sleep(0.01 )
+	time.sleep(0.5 )

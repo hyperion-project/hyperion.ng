@@ -54,9 +54,6 @@ protected:
 	/// The used baudrate of the output device
 	int _baudRate_Hz;
 
-	/// The time which the device should be untouched after a write
-	int _latchTime_ns;
-
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int _fid;
 

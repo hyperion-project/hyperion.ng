@@ -5,6 +5,7 @@ $(document).ready(function() {
 	var cpcolor = '#B500FF';
 	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
 	var duration = 0;
+	var rgb = {r:255,g:0,b:0};
 	
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
@@ -53,8 +54,8 @@ $(document).ready(function() {
 			}
 			else
 			{
-				if(sColor[key].key == "backlightThreshold" || sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation")
-					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="100" step="10" value="'+value+'"/>';
+				if(sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation" || sColor[key].key == "backlightThreshold")	
+					property = '<div class="input-group"><input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0" max="100" step="10" value="'+value+'"/><span class="input-group-addon">'+$.i18n("edt_append_percent")+'</span></div>';
 				else
 					property = '<input id="cr_'+sColor[key].key+'" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="'+value+'"/>';
 				
@@ -67,6 +68,23 @@ $(document).ready(function() {
 		}
 	}
 
+	function sendEffect()
+	{
+		efx = $("#effect_select").val();
+		if(efx != "__none__")
+		{
+			requestPriorityClear();
+			$(hyperion).one("cmd-clear", function(event) {
+				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
+			});
+		}
+	}
+	
+	function sendColor()
+	{
+		requestSetColor(rgb.r, rgb.g, rgb.b,duration);
+	}
+	
 	function updateRemote()
 	{
 		if ($('#componentsbutton').length == 0)
@@ -245,7 +263,10 @@ $(document).ready(function() {
 	
 	// colorpicker and effect
 	if (getStorage('rmcpcolor') != null)
+	{
 		cpcolor = getStorage('rmcpcolor');
+		rgb = hexToRgb(cpcolor);
+	}
 	
 	if (getStorage('rmduration') != null)
 	{
@@ -253,8 +274,9 @@ $(document).ready(function() {
 		duration = getStorage('rmduration');
 	}
 			
-	createCP('cp2', cpcolor, function(rgb,hex){
-		requestSetColor(rgb.r, rgb.g, rgb.b,duration);
+	createCP('cp2', cpcolor, function(rgbT,hex){
+		rgb = rgbT;
+		sendColor()
 		$("#effect_select").val("__none__");
 		setStorage('rmcpcolor', hex);
 	});
@@ -270,14 +292,14 @@ $(document).ready(function() {
 	});
 
 	$("#effect_select").off().on("change", function(event) {
-		efx = $(this).val();
-		if(efx != "__none__")
-		{
-			requestPriorityClear();
-			$(hyperion).one("cmd-clear", function(event) {
-				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
-			});
-		}
+		sendEffect();
+	});
+	
+	$("#remote_input_reseff, #remote_input_rescol").off().on("click", function(){
+		if(this.id == "remote_input_rescol")
+			sendColor();
+		else
+			sendEffect();
 	});
 	
 	$("#remote_input_img").change(function(){
