@@ -427,6 +427,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 	getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
 
+	_deviceSmooth->addConfig(1000);
+
 	// setup the timer
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -891,7 +893,14 @@ void Hyperion::update()
 	// Write the data to the device
 	if (_device->enabled())
 	{
-		_deviceSmooth->setPause(priorityInfo.componentId == hyperion::COMP_EFFECT);
+		if ( priorityInfo.componentId == hyperion::COMP_EFFECT )
+		{
+			_deviceSmooth->selectConfig(1);
+		}
+		else
+		{
+			_deviceSmooth->selectConfig(0);
+		}
 		// feed smoothing in pause mode to maintain a smooth transistion back to smoth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			_deviceSmooth->setLedValues(_ledBuffer);

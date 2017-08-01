@@ -8,6 +8,7 @@
 
 using namespace hyperion;
 
+// ledUpdateFrequency_hz = 0 > cause divide by zero!
 LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms, unsigned updateDelay, bool continuousOutput)
 	: LedDevice()
 	, _ledDevice(ledDevice)
@@ -22,6 +23,8 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
+
+	addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay, continuousOutput);
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 	Info( _log, "Created linear-smoothing with interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",
@@ -160,3 +163,37 @@ void LinearColorSmoothing::setPause(bool pause)
 	_pause = pause;
 }
 
+unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay, bool continuousOutput)
+{
+	SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay, continuousOutput};
+	_cfgList.append(cfg);
+	return _cfgList.count() - 1;
+}
+
+unsigned LinearColorSmoothing::addConfig(bool pause)
+{
+	SMOOTHING_CFG cfg = {true, 100, 50, 0, false};
+	_cfgList.append(cfg);
+	return _cfgList.count() - 1;
+}
+
+bool LinearColorSmoothing::selectConfig(unsigned cfg)
+{
+	if ( cfg < (unsigned)_cfgList.count())
+	{
+		_settlingTime     = _cfgList[cfg].settlingTime;
+		_outputDelay      = _cfgList[cfg].outputDelay;
+		_continuousOutput = _cfgList[cfg].continuousOutput;
+
+		if (_cfgList[cfg].updateInterval != _updateInterval)
+		{
+			_timer.stop();
+			_updateInterval = _cfgList[cfg].updateInterval;
+			_timer.start();
+		}
+		return true;
+	}
+	
+	return false;
+}
+	
