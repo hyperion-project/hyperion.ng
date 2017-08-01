@@ -137,7 +137,7 @@ void HyperionDaemon::run()
 
 void HyperionDaemon::loadConfig(const QString & configFile)
 {
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
+	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
 	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
@@ -224,7 +224,7 @@ void HyperionDaemon::startInitialEffect()
 		else
 		{
 			int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", fgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	// initial background effect/color
@@ -246,7 +246,7 @@ void HyperionDaemon::startInitialEffect()
 		else
 		{
 			int result = hyperion->setEffect(bgEffectConfig, BG_PRIORITY, DURATION_INFINITY);
-			Info(_log,"Inital background effect '%s' %s", bgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	
@@ -435,7 +435,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				{
 					type = "framebuffer";
 				}
-				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
+				Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 			}
 			
 			bool grabberCompState = grabberConfig["enable"].toBool(true);
@@ -445,7 +445,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
+			else { Warning( _log, "unknown framegrabber type '%s'", QSTRING_CSTR(type)); grabberCompState = false; }
 			
 //			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );

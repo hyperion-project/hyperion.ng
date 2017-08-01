@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+#include <cassert>
 #include <utils/ColorRgb.h>
 
 
