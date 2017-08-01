@@ -482,9 +482,15 @@ li a:active:after {
 }
 
 /* drag and resizable modal http://gijgo.com/ */
-.gj-draggable {
-    cursor: move;
+.gj-button {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #000;
+    border-radius: 3px;
+    padding: 6px 10px;
+    cursor: pointer;
 }
+
 .gj-unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -492,6 +498,46 @@ li a:active:after {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.gj-margin-left-5 {
+    margin-left: 5px;
+}
+
+.gj-margin-left-10 {
+    margin-left: 10px;
+}
+
+.gj-width-full {
+    width: 100%;
+}
+
+.gj-cursor-pointer {
+    cursor: pointer;
+}
+
+.gj-text-align-center {
+    text-align: center;
+}
+
+.gj-font-size-16 {
+    font-size: 16px;
+}
+
+.gj-hidden {
+    display: none;
+}
+
+.gj-mdl-icon-plus::after {
+    content: "\E145";
+}
+
+.gj-mdl-icon-minus::after {
+    content: "\E15B";
+}
+
+.gj-draggable {
+    cursor: move;
 }
 .gj-resizable-handle {
     position: absolute;
@@ -563,6 +609,7 @@ li a:active:after {
     position: absolute;
     bottom: 0px;
     width: 100%;
+    margin-top: 0px;
 }
 
 .gj-modal {
@@ -591,6 +638,15 @@ li a:active:after {
     border-bottom: 1px solid #e5e5e5;
 }
 
+.gj-footer {
+    min-height: 16.43px;
+    padding: 15px;
+    border-top: 1px solid #e5e5e5;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
 .gj-title {
     margin: 2px;
 }
@@ -610,6 +666,7 @@ li a:active:after {
     position: relative;
     padding: 15px;
 }
+
 
 /*https://github.com/flatlogic/awesome-bootstrap-checkbox slighty edited for our purposes*/
 .checkbox {

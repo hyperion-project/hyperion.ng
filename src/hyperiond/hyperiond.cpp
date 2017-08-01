@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QPair>
 #include <cstdint>
 #include <limits>
 
@@ -31,7 +32,6 @@
 #include <udplistener/UDPListener.h>
 
 #include "hyperiond.h"
-#include "configMigrator.h"
 
 HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	: QObject(parent)
@@ -50,8 +50,9 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
+	, _stats(nullptr)
 {
-	loadConfig(configFile, CURRENT_CONFIG_VERSION );
+	loadConfig(configFile);
 
 	if (Logger::getLogLevel() == Logger::WARNING)
 	{
@@ -99,6 +100,7 @@ void HyperionDaemon::freeObjects()
 	delete _protoServer;
 	delete _boblightServer;
 	delete _udpListener;
+	delete _stats;
 
 	_v4l2Grabbers.clear();
 	_amlGrabber     = nullptr;
@@ -110,6 +112,7 @@ void HyperionDaemon::freeObjects()
 	_protoServer    = nullptr;
 	_boblightServer = nullptr;
 	_udpListener    = nullptr;
+	_stats          = nullptr;
 }
 
 void HyperionDaemon::run()
@@ -132,16 +135,16 @@ void HyperionDaemon::run()
 	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
 }
 
-int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVersion)
+void HyperionDaemon::loadConfig(const QString & configFile)
 {
+	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
+	
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
+	
 	QString schemaFile = ":/hyperion-schema";
-	if (schemaVersion > 0)
-		schemaFile += "-" + QString::number(schemaVersion);
-
 	QJsonObject schemaJson;
 	try
 	{
@@ -156,45 +159,25 @@ int HyperionDaemon::tryLoadConfig(const QString & configFile, const int schemaVe
 	schemaChecker.setSchema(schemaJson);
 
 	_qconfig = QJsonFactory::readConfig(configFile);
-	if (!schemaChecker.validate(_qconfig))
+	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+	
+	if (!validate.first && validate.second)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		
+		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		if (!QJsonFactory::writeJson(configFile, _qconfig))
+			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+	}
+	else if (validate.first && !validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)
-		{
 			std::cout << schemaError.toStdString() << std::endl;
-		}
 
 		throw std::runtime_error("ERROR: Json validation failed");
 	}
-	
-	const QJsonObject & generalConfig = _qconfig["general"].toObject();
-	return generalConfig["configVersion"].toInt(-1);
-}
-
-void HyperionDaemon::loadConfig(const QString & configFile, const int neededConfigVersion)
-{
-	Info(_log, "Selected configuration file: %s", configFile.toUtf8().constData());
-
-	int configVersionId = tryLoadConfig(configFile,0);
-
-	// no config id found, assume legacy hyperion
-	if (configVersionId < 0)
-	{
-		Debug(_log, "config file has no version, assume old hyperion.");
-		configVersionId = tryLoadConfig(configFile,1);
-	}
-	Debug(_log, "config version: %d", configVersionId);
-	configVersionId = tryLoadConfig(configFile, configVersionId);
-
-	if (neededConfigVersion == configVersionId)
-	{
-		return;
-	}
-
-	// migrate configVersionId
-	ConfigMigrator migrator;
-	migrator.migrate(configFile, configVersionId, neededConfigVersion);
-	
 }
 
 
@@ -241,7 +224,7 @@ void HyperionDaemon::startInitialEffect()
 		else
 		{
 			int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
-			Info(_log,"Inital foreground effect '%s' %s", fgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	// initial background effect/color
@@ -263,7 +246,7 @@ void HyperionDaemon::startInitialEffect()
 		else
 		{
 			int result = hyperion->setEffect(bgEffectConfig, BG_PRIORITY, DURATION_INFINITY);
-			Info(_log,"Inital background effect '%s' %s", bgEffectConfig.toUtf8().constData(), ((result == 0) ? "started" : "failed"));
+			Info(_log,"Inital background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
 	
@@ -301,6 +284,9 @@ void HyperionDaemon::createKODIVideoChecker()
 void HyperionDaemon::startNetworkServices()
 {
 	KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
+
+	// Create Stats
+	_stats = new Stats();
 
 	// Create Json server if configuration is present
 	unsigned int jsonPort = 19444;
@@ -369,26 +355,30 @@ void HyperionDaemon::startNetworkServices()
 	// zeroconf description - $leddevicename@$hostname
 	const QJsonObject & generalConfig = _qconfig["general"].toObject();
 	const QString mDNSDescr = generalConfig["name"].toString("") + "@" + QHostInfo::localHostName();
+	// txt record for zeroconf
+	QString id = _hyperion->id;
+	std::string version = HYPERION_VERSION;
+	std::vector<std::pair<std::string, std::string> > txtRecord = {{"id",id.toStdString()},{"version",version}};
 
-	// zeroconf udp listener 
+	// zeroconf udp listener
 	if (_udpListener != nullptr)
 	{
 		BonjourServiceRegister *bonjourRegister_udp = new BonjourServiceRegister();
 		bonjourRegister_udp->registerService(
-			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort() );
+			BonjourRecord(mDNSDescr + ":" + QString::number(_udpListener->getPort()), "_hyperiond-udp._udp", QString()), _udpListener->getPort(), txtRecord);
 		Debug(_log, "UDP LIstener mDNS responder started");
 	}
 
 	// zeroconf json
 	BonjourServiceRegister *bonjourRegister_json = new BonjourServiceRegister();
 	bonjourRegister_json->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-json._tcp", QString()), _jsonServer->getPort(), txtRecord);
 	Debug(_log, "Json mDNS responder started");
 
 	// zeroconf proto
 	BonjourServiceRegister *bonjourRegister_proto = new BonjourServiceRegister();
 	bonjourRegister_proto->registerService(
-		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort());
+		BonjourRecord(mDNSDescr + ":" + QString::number(_jsonServer->getPort()), "_hyperiond-proto._tcp", QString()), _protoServer->getPort(), txtRecord);
 	Debug(_log, "Proto mDNS responder started");
 }
 
@@ -445,7 +435,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				{
 					type = "framebuffer";
 				}
-				Info(  _log, "set screen capture device to '%s'", type.toUtf8().constData());
+				Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 			}
 			
 			bool grabberCompState = grabberConfig["enable"].toBool(true);
@@ -455,7 +445,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
-			else { Warning( _log, "unknown framegrabber type '%s'", type.toUtf8().constData()); grabberCompState = false; }
+			else { Warning( _log, "unknown framegrabber type '%s'", QSTRING_CSTR(type)); grabberCompState = false; }
 			
 //			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );
@@ -594,9 +584,9 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["height"].toInt(-1),
 				grabberConfig["frameDecimation"].toInt(2),
 				grabberConfig["sizeDecimation"].toInt(8),
-				grabberConfig["redSignalThreshold"].toDouble(0.0),
-				grabberConfig["greenSignalThreshold"].toDouble(0.0),
-				grabberConfig["blueSignalThreshold"].toDouble(0.0),
+				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
+				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890));
 			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
@@ -606,10 +596,10 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["cropBottom"].toInt(0));
 			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			grabber->setSignalDetectionOffset(
-				grabberConfig["signalDetectionHorizontalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionVerticalOffsetMin"].toDouble(0.25),
-				grabberConfig["signalDetectionHorizontalOffsetMax"].toDouble(0.75),
-				grabberConfig["signalDetectionVerticalOffsetMax"].toDouble(0.75));
+				grabberConfig["sDHOffsetMin"].toDouble(0.25),
+				grabberConfig["sDVOffsetMin"].toDouble(0.25),
+				grabberConfig["sDHOffsetMax"].toDouble(0.75),
+				grabberConfig["sDVOffsetMax"].toDouble(0.75));
 			Debug(_log, "V4L2 grabber created");
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));

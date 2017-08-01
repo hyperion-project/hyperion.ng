@@ -5,6 +5,7 @@ if(ENABLE_WS281XPWM)
 	add_library(ws281x
 		external/rpi_ws281x/mailbox.c external/rpi_ws281x/ws2811.c
 		external/rpi_ws281x/pwm.c external/rpi_ws281x/dma.c
+		external/rpi_ws281x/pcm.c
 		external/rpi_ws281x/rpihw.c)
 endif()
 

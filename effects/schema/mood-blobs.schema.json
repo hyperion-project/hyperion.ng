@@ -1,12 +1,12 @@
 {
 	"type":"object",
 	"script" : "mood-blobs.py",
-	"title":"edt_eff_moodblobs_header_title",
+	"title":"edt_eff_moodblobs_header",
 	"required":true,
 	"properties":{
 		"color": {
 			"type": "array",
-			"title":"edt_eff_color_title",
+			"title":"edt_eff_color",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {
@@ -20,14 +20,14 @@
 		},
 		"blobs": {
 			"type": "integer",
-			"title":"edt_eff_blobcount_title",
+			"title":"edt_eff_blobcount",
 			"default": 5,
 			"minimum" : 1,
 			"propertyOrder" : 2
 		},
 		"rotationTime": {
 			"type": "number",
-			"title":"edt_eff_rotationtime_title",
+			"title":"edt_eff_rotationtime",
 			"default": 20.0,
 			"minimum" : 1.0,
 			"append" : "edt_append_s",
@@ -35,53 +35,68 @@
 		},
 		"hueChange": {
 			"type": "number",
-			"title":"edt_eff_huechange_title",
+			"title":"edt_eff_huechange",
 			"default": 60.0,
 			"minimum" : 1.0,
 			"propertyOrder" : 4
 		},
 		"reverse": {
 			"type": "boolean",
-			"title":"edt_eff_reversedirection_title",
+			"title":"edt_eff_reversedirection",
 			"default": false,
 			"propertyOrder" : 5
 		},
 		"colorRandom": {
 			"type": "boolean",
-			"title":"edt_eff_colorrandom_title",
+			"title":"edt_eff_colorrandom",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"baseChange": {
 			"type": "boolean",
-			"title":"edt_eff_basecolorchange_title",
+			"title":"edt_eff_basecolorchange",
 			"default": false,
 			"propertyOrder" : 7
 		},
 		"baseColorRangeLeft": {
 			"type": "number",
-			"title":"edt_eff_basecolorrangeleft_title",
+			"title":"edt_eff_basecolorrangeleft",
 			"default": 0.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
 			"append" : "edt_append_degree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 9
 		},
 		"baseColorRangeRight": {
 			"type": "number",
-			"title":"edt_eff_basecolorrangeright_title",
+			"title":"edt_eff_basecolorrangeright",
 			"default": 360.0,
 			"minimum" : 0.0,
 			"maximum" : 360.0,
 			"append" : "edt_append_degree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 10
 		},
 		"baseColorChangeRate": {
 			"type": "number",
-			"title":"edt_eff_basecolorchangerate_title",
+			"title":"edt_eff_basecolorchangerate",
 			"default": 2.0,
 			"minimum" : 0.0,
 			"append" : "edt_append_sdegree",
+			"options": {
+				"dependencies": {
+					"baseChange": true
+				}
+			},
 			"propertyOrder" : 8
 		}
 	},

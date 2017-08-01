@@ -5,12 +5,13 @@ import random
 
 min_len = int(hyperion.args.get('min_len', 3))
 max_len = int(hyperion.args.get('max_len', 3))
-height = int(hyperion.args.get('height', 8))
+#iHeight = int(hyperion.args.get('iHeight', 8))
 trails = int(hyperion.args.get('int', 8))
 sleepTime = float(hyperion.args.get('speed', 1)) / 1000.0
 color = list(hyperion.args.get('color', (255,255,255)))
 randomise = bool(hyperion.args.get('random', False))
-whidth = hyperion.ledCount / height
+iWidth = hyperion.imageWidth()
+iHeight = hyperion.imageHeight()
 
 class trail:
 	def __init__(self):
@@ -48,17 +49,17 @@ for i in range(trails):
 	r = {'exec': trail()}
 
 	if randomise:
-		col = (random.uniform(0.1, 1.0), random.uniform(0.1, 1.0), random.uniform(0.1, 1.0))
+		col = (random.uniform(0.0, 1.0),1,1)
 	else:
 		col = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color[2]/255.0)
 
 	r['exec'].start(
-		random.randint(0, whidth),
-		random.randint(0, height),
+		random.randint(0, iWidth),
+		random.randint(0, iHeight),
 		random.uniform(0.2, 0.8),
 		col,
 		random.randint(min_len, max_len),
-		height
+		iHeight
 	)
 	tr.append(r)
 
@@ -70,21 +71,21 @@ while not hyperion.abort():
 		r['x'], r['data'], c = r['exec'].getdata()
 		if c:
 			if randomise:
-				col = (random.uniform(0.1, 1.0), random.uniform(0.1, 1.0), random.uniform(0.1, 1.0))
+				col = (random.uniform(0.0, 1.0),1,1)
 			else:
 				col = colorsys.rgb_to_hsv(color[0]/255.0, color[1]/255.0, color[2]/255.0)
 
 			r['exec'].start(
-				random.randint(0, whidth),
-				random.randint(0, height),
+				random.randint(0, iWidth),
+				random.randint(0, iHeight),
 				random.uniform(0.2, 0.8),
 				col,
 				random.randint(min_len, max_len),
-				height
+				iHeight
 			)
 
-	for y in range(0, height):
-		for x in range(0, whidth):
+	for y in range(0, iHeight):
+		for x in range(0, iWidth):
 			for r in tr:
 				if x == r['x']:
 					led = bytearray(r['data'][y])
@@ -92,6 +93,6 @@ while not hyperion.abort():
 				led = bytearray((0,0,0))
 			ledData += led
 
-	hyperion.setImage(whidth,height,ledData)
+	hyperion.setImage(iWidth,iHeight,ledData)
 	time.sleep(sleepTime)
 

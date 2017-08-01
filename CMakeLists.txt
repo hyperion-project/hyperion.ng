@@ -14,7 +14,6 @@ SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
 SET ( HYPERION_VERSION_PATCH 0 )
-SET ( CURRENT_CONFIG_VERSION 2 )
 
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
@@ -141,26 +140,26 @@ SET( JSON_FILES
 	config/hyperion.config.json.default
 	${HYPERION_SCHEMAS}
 )
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_JSON_FAILED
-)
-IF ( ${CHECK_JSON_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json files failed" )
-ENDIF ()
+#EXECUTE_PROCESS (
+#	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
+#	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#	RESULT_VARIABLE CHECK_JSON_FAILED
+#)
+#IF ( ${CHECK_JSON_FAILED} )
+#	MESSAGE (FATAL_ERROR "check of json files failed" )
+#ENDIF ()
+
+#EXECUTE_PROCESS (
+#	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
+#	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#	RESULT_VARIABLE CHECK_EFFECTS_FAILED
+#)
+#IF ( ${CHECK_EFFECTS_FAILED} )
+#	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+#ENDIF ()
 
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_EFFECTS_FAILED
-)
-IF ( ${CHECK_EFFECTS_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json effect files failed" )
-ENDIF ()
-
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json
+	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_CONFIG_FAILED
 )
@@ -212,7 +211,7 @@ endif()
 
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
-find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Network Widgets REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )

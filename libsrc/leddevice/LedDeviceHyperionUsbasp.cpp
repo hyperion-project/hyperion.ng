@@ -41,10 +41,10 @@ bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	QString ledType = deviceConfig["output"].toString("ws2801");
+	QString ledType = deviceConfig["ledType"].toString("ws2801");
 	if (ledType != "ws2801" && ledType != "ws2812")
 	{
-		throw std::runtime_error("HyperionUsbasp: invalid output; must be 'ws2801' or 'ws2812'.");
+		throw std::runtime_error("HyperionUsbasp: invalid ledType; must be 'ws2801' or 'ws2812'.");
 	}
 
 	_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
