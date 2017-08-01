@@ -7,12 +7,8 @@ include_directories(${BCM_INCLUDE_DIRS})
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/dispmanx)
 
-# Group the headers that go through the MOC compiler
-SET(DispmanxGrabberQT_HEADERS
-	${CURRENT_HEADER_DIR}/DispmanxWrapper.h
-)
-
 SET(DispmanxGrabberHEADERS
+	${CURRENT_HEADER_DIR}/DispmanxWrapper.h
 	${CURRENT_HEADER_DIR}/DispmanxFrameGrabber.h
 )
 
@@ -21,12 +17,8 @@ SET(DispmanxGrabberSOURCES
 	${CURRENT_SOURCE_DIR}/DispmanxFrameGrabber.cpp
 )
 
-QT5_WRAP_CPP(DispmanxGrabberHEADERS_MOC ${DispmanxGrabberQT_HEADERS})
-
 add_library(dispmanx-grabber
 	${DispmanxGrabberHEADERS}
-	${DispmanxGrabberQT_HEADERS}
-	${DispmanxGrabberHEADERS_MOC}
 	${DispmanxGrabberSOURCES}
 )
 

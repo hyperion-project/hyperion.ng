@@ -1,13 +1,6 @@
 
-SET(Hyperiond_QT_HEADERS
+add_executable(hyperiond
 	hyperiond.h
-)
-
-QT5_WRAP_CPP(Hyperiond_HEADERS_MOC ${Hyperiond_QT_HEADERS})
-
-add_executable(hyperiond 
-	${Hyperiond_QT_HEADERS}
-	${Hyperiond_HEADERS_MOC}
 	hyperiond.cpp
 	main.cpp
 )
@@ -58,4 +51,3 @@ if(CMAKE_HOST_UNIX)
 	install(FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "${PLATFORM}" )
 	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "${PLATFORM}" )
 endif(CMAKE_HOST_UNIX)
-

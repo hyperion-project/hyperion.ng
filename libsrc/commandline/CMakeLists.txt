@@ -35,8 +35,7 @@ add_library(commandline
     ${Parser_SOURCES}
 )
 
-qt5_use_modules(commandline Gui)
-
 target_link_libraries(commandline
     hyperion
+    Qt5::Gui
 )
