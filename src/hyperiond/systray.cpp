@@ -16,6 +16,7 @@
 
 SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 	: QWidget()
+	, _colorDlg(this)
 	, _hyperiond(hyperiond)
 	, _webPort(webPort)
 {

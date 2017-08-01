@@ -68,6 +68,7 @@ void startNewHyperion(int parentPid, std::string hyperionFile, std::string confi
 QCoreApplication* createApplication(int &argc, char *argv[])
 {
 	bool isGuiApp = false;
+	bool forceNoGui = false;
 	// command line
 	for (int i = 1; i < argc; ++i)
 	{
@@ -78,25 +79,39 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 		else if (qstrcmp(argv[i], "--service") == 0)
 		{
 			isGuiApp = false;
+			forceNoGui = true;
 		}
 	}
 
 	// on osx/windows gui always available
 #if defined(__APPLE__) || defined(__WIN32__)
-	isGuiApp = true;
+	isGuiApp = true && ! forceNoGui;
 #else
-	// if x11, then test if xserver is available
-	#ifdef ENABLE_X11
-	Display* dpy = XOpenDisplay(NULL);
-	if (dpy != NULL) 
+	if (!forceNoGui)
 	{
-		XCloseDisplay(dpy);
-		isGuiApp = true;
+		// if x11, then test if xserver is available
+		#ifdef ENABLE_X11
+		Display* dpy = XOpenDisplay(NULL);
+		if (dpy != NULL) 
+		{
+			XCloseDisplay(dpy);
+			isGuiApp = true;
+		}
 	}
 	#endif
 #endif
 
-	return isGuiApp ? new QApplication(argc, argv) : new QCoreApplication(argc, argv);
+	if (isGuiApp)
+	{
+		QApplication* app = new QApplication(argc, argv);
+		app->setApplicationDisplayName("Hyperion");
+		return  app;
+	}
+
+	QCoreApplication* app = new QCoreApplication(argc, argv);
+	app->setApplicationName("Hyperion");
+	app->setApplicationVersion(HYPERION_VERSION);
+	return app;
 }
 
 int main(int argc, char** argv)
