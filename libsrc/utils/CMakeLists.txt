@@ -3,10 +3,6 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/utils)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/utils)
 
-SET(Utils_QT_HEADERS
-	${CURRENT_HEADER_DIR}/Logger.h
-)
-
 SET(Utils_HEADERS
 	${CURRENT_HEADER_DIR}/ColorBgr.h
 	${CURRENT_HEADER_DIR}/ColorRgb.h
@@ -25,6 +21,12 @@ SET(Utils_HEADERS
 	${CURRENT_HEADER_DIR}/RgbToRgbw.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonFactory.h
 	${CURRENT_HEADER_DIR}/jsonschema/QJsonSchemaChecker.h
+	${CURRENT_HEADER_DIR}/jsonschema/QJsonUtils.h
+	${CURRENT_HEADER_DIR}/global_defines.h
+	${CURRENT_HEADER_DIR}/SysInfo.h
+	${CURRENT_HEADER_DIR}/Logger.h
+	${CURRENT_HEADER_DIR}/Stats.h
+	${CURRENT_HEADER_DIR}/JsonProcessor.h
 )
 
 SET(Utils_SOURCES
@@ -41,6 +43,9 @@ SET(Utils_SOURCES
 	${CURRENT_SOURCE_DIR}/RgbChannelAdjustment.cpp
 	${CURRENT_SOURCE_DIR}/RgbTransform.cpp
 	${CURRENT_SOURCE_DIR}/RgbToRgbw.cpp
+	${CURRENT_SOURCE_DIR}/SysInfo.cpp
+	${CURRENT_SOURCE_DIR}/Stats.cpp
+	${CURRENT_SOURCE_DIR}/JsonProcessor.cpp
 	${CURRENT_SOURCE_DIR}/jsonschema/QJsonSchemaChecker.cpp
 )
 
@@ -48,18 +53,24 @@ if ( ENABLE_PROFILER )
 	SET ( PROFILER_SOURCE ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp )
 endif()
 
-qt5_wrap_cpp(Utils_HEADERS_MOC ${Utils_QT_HEADERS})
+set(Utils_RESOURCES
+	${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc
+)
+
+qt5_add_resources(Utils_RESOURCES_RCC ${Utils_RESOURCES} OPTIONS "-no-compress")
 
 
 add_library(hyperion-utils
-	${Utils_QT_HEADERS}
-	${Utils_HEADERS_MOC}
 	${Utils_HEADERS}
 	${Utils_SOURCES}
 	${PROFILER_SOURCE}
+	${Utils_RESOURCES}
+	${Utils_RESOURCES_RCC}
 )
 
-qt5_use_modules(hyperion-utils Core Gui)
-
 target_link_libraries(hyperion-utils
-	${QT_LIBRARIES})
+	hyperion
+	Qt5::Core
+	Qt5::Gui
+	Qt5::Network
+)

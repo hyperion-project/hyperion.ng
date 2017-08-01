@@ -1,53 +1,54 @@
 {
 	"type":"object",
 	"script" : "trails.py",
-	"title":"edt_eff_trails_header_title",
+	"title":"edt_eff_trails_header",
 	"required":true,
 	"properties":{
 		"min_len": {
 			"type": "integer",
-			"title":"edt_eff_min_len_title",
+			"title":"edt_eff_min_len",
 			"default": 2,
 			"minimum" : 1,
 			"propertyOrder" : 1
 		},
 		"max_len": {
 			"type": "integer",
-			"title":"edt_eff_max_len_title",
+			"title":"edt_eff_max_len",
 			"default": 7,
 			"minimum" : 1,
 			"propertyOrder" : 2
 		},
 		"height": {
 			"type": "integer",
-			"title":"edt_eff_height_title",
+			"title":"edt_eff_height",
 			"default": 8,
 			"minimum" : 1,
 			"propertyOrder" : 3
 		},
 		"trails": {
 			"type": "integer",
-			"title":"edt_eff_count_title",
+			"title":"edt_eff_count",
 			"default": 3,
 			"minimum" : 1,
 			"propertyOrder" : 4
 		},
 		"speed": {
-			"type": "number",
-			"title":"edt_eff_speed_title",
-			"default": 1.0,
-			"minimum" : 0.1,
+			"type": "integer",
+			"title":"edt_eff_speed",
+			"default": 100,
+			"minimum" : 10,
+			"append" : "edt_append_ms",
 			"propertyOrder" : 5
 		},
 		"random": {
 			"type": "boolean",
-			"title":"edt_eff_colorrandom_title",
+			"title":"edt_eff_colorrandom",
 			"default": false,
 			"propertyOrder" : 6
 		},
 		"color": {
 			"type": "array",
-			"title":"edt_eff_color_title",
+			"title":"edt_eff_color",
 			"format":"colorpicker",
 			"default": [255,0,0],
 			"items" : {

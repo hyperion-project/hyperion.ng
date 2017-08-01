@@ -1,8 +1,27 @@
 <RCC>
-    <qresource prefix="/">
-        <file alias="hyperion-schema">hyperion.schema.json</file>
-        <file alias="hyperion-schema-1">schemas/hyperion.schema-1.json</file>
-        <file alias="hyperion-schema-2">schemas/hyperion.schema-2.json</file>
-        <file alias="hyperion_default.config">../../config/hyperion.config.json.default</file>
-    </qresource>
+	<qresource prefix="/">
+		<file alias="hyperion-icon.png">hyperion-icon_32px.png</file>
+		<file alias="hyperion-schema">hyperion.schema.json</file>
+		<file alias="hyperion_default.config">../../config/hyperion.config.json.default</file>
+		<file alias="schema-general.json">schema/schema-general.json</file>
+		<file alias="schema-logger.json">schema/schema-logger.json</file>
+		<file alias="schema-device.json">schema/schema-device.json</file>
+		<file alias="schema-color.json">schema/schema-color.json</file>
+		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
+		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
+		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
+		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>
+		<file alias="schema-kodiVideoChecker.json">schema/schema-kodiVideoChecker.json</file>
+		<file alias="schema-foregroundEffect.json">schema/schema-foregroundEffect.json</file>
+		<file alias="schema-backgroundEffect.json">schema/schema-backgroundEffect.json</file>
+		<file alias="schema-forwarder.json">schema/schema-forwarder.json</file>
+		<file alias="schema-jsonServer.json">schema/schema-jsonServer.json</file>
+		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
+		<file alias="schema-boblightServer.json">schema/schema-boblightServer.json</file>
+		<file alias="schema-udpListener.json">schema/schema-udpListener.json</file>
+		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
+		<file alias="schema-effects.json">schema/schema-effects.json</file>
+		<file alias="schema-ledConfig.json">schema/schema-ledConfig.json</file>
+		<file alias="schema-leds.json">schema/schema-leds.json</file>
+	</qresource>
 </RCC>

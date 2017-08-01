@@ -1,7 +1,7 @@
 #pragma once
 
 // STL includes
-#include <string>
+#include <QString>
 
 // Utils includes
 #include <utils/RgbChannelAdjustment.h>
@@ -12,7 +12,7 @@ class ColorAdjustment
 public:
 
 	/// Unique identifier for this color transform
-	std::string _id;
+	QString _id;
 	
 	/// The BLACK (RGB-Channel) adjustment
 	RgbChannelAdjustment _rgbBlackAdjustment;

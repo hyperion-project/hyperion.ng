@@ -1,9 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(hyperion-remote)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#	set(CMAKE_CXX_FLAGS "-fPIC")
 
 # The following I do not undrstand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
@@ -11,8 +9,6 @@ find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 IF ( EXISTS ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf )
 	LINK_DIRECTORIES(${LINK_DIRECTORIES} ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 ENDIF()
-
-include_directories(${QT_INCLUDES})
 
 set(hyperion-remote_HEADERS
 	JsonConnection.h)
@@ -28,9 +24,9 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	effectengine
 	commandline
-	${QT_LIBRARIES})
-
-qt5_use_modules(${PROJECT_NAME} Gui Core Network)
+	Qt5::Gui
+	Qt5::Core
+	Qt5::Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 

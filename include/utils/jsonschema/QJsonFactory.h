@@ -1,9 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <string>
 #include <stdexcept>
-#include <sstream>
 
 // JSON-Schema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -27,16 +25,14 @@ public:
 		// create the validator
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schemaTree);
+		
+		QStringList messages = schemaChecker.getMessages();
 
-		bool valid = schemaChecker.validate(configTree);
-		
-		for (std::list<std::string>::const_iterator i = schemaChecker.getMessages().begin(); i != schemaChecker.getMessages().end(); ++i)
+		if (!schemaChecker.validate(configTree).first)
 		{
-			std::cout << *i << std::endl;
-		}
-		
-		if (!valid)
-		{
+			for (int i = 0; i < messages.size(); ++i)
+				std::cout << messages[i].toStdString() << std::endl;
+
 			std::cerr << "Validation failed for configuration file: " << config.toStdString() << std::endl;
 			return -3;
 		}
@@ -52,11 +48,10 @@ public:
 
 		if (!file.open(QIODevice::ReadOnly))
 		{
-			std::stringstream sstream;
-			sstream << "Configuration file not found: '" << path.toStdString() << "' (" <<  file.errorString().toStdString() << ")";
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("Configuration file not found: '" + path + "' ("  +  file.errorString() + ")").toStdString());
 		}
 
+		//Allow Comments in Config
 		QString config = QString(file.readAll());
 		config.remove(QRegularExpression("([^:]?\\/\\/.*)"));
 		
@@ -78,9 +73,9 @@ public:
 				}
 			}
 
-			std::stringstream sstream;
-			sstream << "Failed to parse configuration: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error (
+				QString("Failed to parse configuration: " + error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn)).toStdString()
+			);
 		}
 
 		return doc.object();
@@ -93,9 +88,7 @@ public:
 
 		if (!schemaData.open(QIODevice::ReadOnly))
 		{
-			std::stringstream sstream;
-			sstream << "Schema not found: '" << path.toStdString() << "' (" <<  schemaData.errorString().toStdString() << ")";
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("Schema not found: '" + path + "' (" + schemaData.errorString() + ")").toStdString());
 		}
 
 		QByteArray schema = schemaData.readAll();
@@ -117,23 +110,62 @@ public:
 				}
 			}
 
-			std::stringstream sstream;
-			sstream << "ERROR: Json schema wrong: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error(QString("ERROR: Json schema wrong: " + error.errorString() +
+											" at Line: " + QString::number(errorLine) +
+											", Column: " + QString::number(errorColumn)).toStdString());
 		}
 
-		return doc.object();
+		return resolveReferences(doc.object());
 	}
 
-	static void writeJson(const QString& filename, QJsonObject& jsonTree)
+	static QJsonObject resolveReferences(const QJsonObject& schema)
+	{
+		QJsonObject result;
+
+		for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
+		{
+			QString attribute = i.key();
+			const QJsonValue & attributeValue = *i;
+
+			if (attribute == "$ref" && attributeValue.isString())
+			{
+				try
+				{
+					result = readSchema(":/" + attributeValue.toString());
+				}
+				catch (std::runtime_error& error)
+				{
+					throw std::runtime_error(error.what());
+				}
+			}
+			else if (attributeValue.isObject())
+				result.insert(attribute, resolveReferences(attributeValue.toObject()));
+			else
+				result.insert(attribute, attributeValue);
+		}
+
+		return result;
+	}
+
+	static bool writeJson(const QString& filename, QJsonObject& jsonTree)
 	{
 		QJsonDocument doc;
+
 		doc.setObject(jsonTree);
 		QByteArray configData = doc.toJson(QJsonDocument::Indented);
-		
+
 		QFile configFile(filename);
-		configFile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+		if (!configFile.open(QFile::WriteOnly | QFile::Truncate))
+			return false;
+
 		configFile.write(configData);
+
+		QFile::FileError error = configFile.error();
+		if (error != QFile::NoError)
+			return false;
+
 		configFile.close();
+
+		return true;
 	}
 };

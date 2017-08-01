@@ -24,6 +24,7 @@
 		<file alias="schema-tpm2net">schemas/schema-tpm2net.json</file>
 		<file alias="schema-tpm2">schemas/schema-tpm2.json</file>
 		<file alias="schema-udpe131">schemas/schema-e131.json</file>
+		<file alias="schema-udpartnet">schemas/schema-artnet.json</file>
 		<file alias="schema-udph801">schemas/schema-h801.json</file>
 		<file alias="schema-udpraw">schemas/schema-udpraw.json</file>
 		<file alias="schema-ws2801">schemas/schema-ws2801.json</file>

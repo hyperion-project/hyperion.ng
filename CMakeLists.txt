@@ -1,20 +1,18 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 PROJECT(hyperion)
 
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
 IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
-ENDIF()
-
-IF ( POLICY CMP0043 )
-	CMAKE_POLICY( SET CMP0043 OLD )
 ENDIF()
 
 SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
 SET ( HYPERION_VERSION_PATCH 0 )
-SET ( CURRENT_CONFIG_VERSION 2 )
 
 SET ( DEFAULT_AMLOGIC    OFF )
 SET ( DEFAULT_DISPMANX   OFF )
@@ -52,7 +50,7 @@ if ( NOT DEFINED PLATFORM )
 		STRING ( TOLOWER "${SYSTEM_CPUINFO}" SYSTEM_CPUINFO )
 		if ( "${SYSTEM_CPUINFO}" MATCHES "amlogic" AND ${CMAKE_SIZEOF_VOID_P} EQUAL 4 )
 			SET( PLATFORM "amlogic" )
-		elseif ( ("${SYSTEM_CPUINFO}" MATCHES "amlogic" OR "${SYSTEM_CPUINFO}" MATCHES "odroid-c2") AND ${CMAKE_SIZEOF_VOID_P} EQUAL 8 )
+		elseif ( ("${SYSTEM_CPUINFO}" MATCHES "amlogic" OR "${SYSTEM_CPUINFO}" MATCHES "odroid-c2" OR "${SYSTEM_CPUINFO}" MATCHES "vero4k") AND ${CMAKE_SIZEOF_VOID_P} EQUAL 8 )
 			SET( PLATFORM "amlogic64" )
 		endif()
 	endif()
@@ -141,26 +139,26 @@ SET( JSON_FILES
 	config/hyperion.config.json.default
 	${HYPERION_SCHEMAS}
 )
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_JSON_FAILED
-)
-IF ( ${CHECK_JSON_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json files failed" )
-ENDIF ()
+#EXECUTE_PROCESS (
+#	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
+#	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#	RESULT_VARIABLE CHECK_JSON_FAILED
+#)
+#IF ( ${CHECK_JSON_FAILED} )
+#	MESSAGE (FATAL_ERROR "check of json files failed" )
+#ENDIF ()
+
+#EXECUTE_PROCESS (
+#	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
+#	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#	RESULT_VARIABLE CHECK_EFFECTS_FAILED
+#)
+#IF ( ${CHECK_EFFECTS_FAILED} )
+#	MESSAGE (FATAL_ERROR "check of json effect files failed" )
+#ENDIF ()
 
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_EFFECTS_FAILED
-)
-IF ( ${CHECK_EFFECTS_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json effect files failed" )
-ENDIF ()
-
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/schemas/hyperion.schema-${CURRENT_CONFIG_VERSION}.json
+	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_CONFIG_FAILED
 )
@@ -210,10 +208,16 @@ else()
     message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 endif()
 
+# setup -rpath to search for shared libs in BINARY/../libs folder
+if (UNIX AND NOT APPLE)
+	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+endif ()
+
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
 find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}    ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
@@ -226,9 +230,9 @@ find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
-if(NOT APPLE)
-	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
-endif()
+#if(NOT APPLE)
+#	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
+#endif()
 
 if(ENABLE_OSX)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
@@ -246,7 +250,7 @@ endif ()
 add_subdirectory(doc)
 
 # remove generated files on make cleaan too
-LIST( APPEND GENERATED_QRC 
+LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/EffectEngine.qrc
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
@@ -259,5 +263,3 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
-
-

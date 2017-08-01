@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QString>
-#include <string>
 #include <hyperion/Hyperion.h>
 
 class StaticFileServing;
@@ -18,6 +17,8 @@ public:
 
 	void start();
 	void stop();
+
+	quint16 getPort() { return _port; };
 
 private:
 	Hyperion*            _hyperion;

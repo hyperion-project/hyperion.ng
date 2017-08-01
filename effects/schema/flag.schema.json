@@ -1,0 +1,27 @@
+{
+	"type":"object",
+	"script" : "flag.py",
+	"title":"edt_eff_flag_header",
+	"required":true,
+	"properties":{
+		"countries": {
+			"type": "array",
+			"title" : "edt_eff_countries",
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"enum": ["de","at","fr","be","it","es","bg","ee","dk","fi","hu","ie","lv","lt","lu","mt","nl","pl","pt","ro","sl","se","ch"]
+			},
+			"propertyOrder" : 1
+		},
+		"switch-time": {
+			"type": "integer",
+			"title":"edt_eff_interval",
+			"default": 5,
+			"minimum" : 1,
+			"append" : "edt_append_s",
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties": false
+}

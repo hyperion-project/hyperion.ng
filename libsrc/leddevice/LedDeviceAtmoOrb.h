@@ -5,6 +5,8 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QHostAddress>
+#include <QMap>
+#include <QVector>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -101,7 +103,7 @@ private:
 	QUdpSocket * _udpSocket;
 
 	/// Array of the orb ids.
-	std::vector<unsigned int> _orbIds;
+	QVector<unsigned int> _orbIds;
 
 	///
 	/// Set Orbcolor

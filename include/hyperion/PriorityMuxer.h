@@ -8,6 +8,8 @@
 
 // QT includes
 #include <QMap>
+#include <QObject>
+#include <QTimer>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -18,8 +20,9 @@
 /// and the muxer keeps track of all active priorities. The current priority can be queried and per
 /// priority the led colors.
 ///
-class PriorityMuxer
+class PriorityMuxer : public QObject
 {
+	Q_OBJECT
 public:
 	///
 	/// The information structure for a single priority channel
@@ -33,7 +36,10 @@ public:
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
 		std::vector<ColorRgb> ledColors;
+		/// The component
 		hyperion::Components componentId;
+		/// Who set it
+		QString origin;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
@@ -90,8 +96,10 @@ public:
 	/// @param[in] priority The priority of the channel
 	/// @param[in] ledColors The led colors of the priority channel
 	/// @param[in] timeoutTime_ms The absolute timeout time of the channel
+	/// @param[in] component The component of the channel
+	/// @param[in] origin Who set the channel
 	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID);
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
 
 	///
 	/// Clears the specified priority channel
@@ -113,6 +121,18 @@ public:
 	///
 	void setCurrentTime(const int64_t& now);
 
+signals:
+	///
+	/// Signal which is called, when a effect or color with timeout is running, once per second
+	///
+	void timerunner();
+
+private slots:
+	///
+	/// Slots which is called to adapt to 1s interval for signal timerunner()
+	///
+	void emitReq();
+
 private:
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;
@@ -122,5 +142,8 @@ private:
 
 	/// The information of the lowest priority channel
 	InputInfo _lowestPriorityInfo;
+
+	QTimer _timer;
+	QTimer _blockTimer;
 
 };

@@ -1,0 +1,15 @@
+{
+	"name" : "Strobe red",
+	"script" : "fade.py",
+	"args" :
+	{
+		"color-start": [ 255, 0, 0 ],
+		"color-end": [ 0, 0, 0 ],
+		"fade-in-time" : 100,
+		"fade-out-time" : 100,
+		"color-start-time" : 100,
+		"color-end-time" : 100,
+		"repeat-count" : 0,
+		"maintain-end-color" : true
+	}
+}

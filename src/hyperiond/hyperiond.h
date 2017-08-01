@@ -45,17 +45,22 @@
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
 #include <udplistener/UDPListener.h>
+#include <utils/Stats.h>
 #include <QJsonObject>
+
+class SysTray;
 
 class HyperionDaemon : public QObject
 {
 	Q_OBJECT
+	
+	friend SysTray;
+
 public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
-	
-	int tryLoadConfig(const QString & configFile, const int schemaVersion);
-	void loadConfig(const QString & configFile, const int neededConfigVersion);
+
+	void loadConfig(const QString & configFile);
 	void run();
 
 	void startInitialEffect();
@@ -92,6 +97,7 @@ private:
 	FramebufferWrapper* _fbGrabber; 
 	OsxWrapper*         _osxGrabber;
 	Hyperion*           _hyperion;
+	Stats*              _stats;
 	
 	unsigned            _grabber_width;
 	unsigned            _grabber_height;

@@ -1,15 +1,51 @@
 {
 	"type":"object",
 	"script" : "x-mas.py",
-	"title":"edt_eff_x-mas_header_title",
+	"title":"edt_eff_x-mas_header",
 	"required":true,
 	"properties":{
 		"sleepTime": {
-			"type": "number",
-			"title":"edt_eff_sleeptime_title",
-			"default": 1.0,
-			"minimum" : 0.1,
+			"type": "integer",
+			"title":"edt_eff_sleeptime",
+			"default": 1000,
+			"minimum" : 100,
+			"append" : "edt_append_ms",
 			"propertyOrder" : 1
+		},
+		"length": {
+			"type": "integer",
+			"title":"edt_eff_length",
+			"default": 1,
+			"minimum" : 1,
+			"propertyOrder" : 2
+		},
+		"color1": {
+			"type": "array",
+			"title":"edt_eff_color",
+			"format":"colorpicker",
+			"default": [255,255,255],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 3
+		},
+		"color2": {
+			"type": "array",
+			"title":"edt_eff_color",
+			"format":"colorpicker",
+			"default": [255,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": false

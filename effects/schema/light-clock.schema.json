@@ -1,14 +1,123 @@
 {
 	"type":"object",
 	"script" : "light-clock.py",
-	"title":"edt_eff_lightclock_header_title",
+	"title":"edt_eff_lightclock_header",
 	"required":true,
 	"properties":{
+		"hour-color": {
+			"type": "array",
+			"title": "edt_eff_colorHour",
+			"format": "colorpicker",
+			"default": [0, 0, 255],
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder": 1
+		},
+		"minute-color": {
+			"type": "array",
+			"title": "edt_eff_colorMinute",
+			"format": "colorpicker",
+			"default": [0, 255, 0],
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder": 2
+		},
+		"second-color": {
+			"type": "array",
+			"title": "edt_eff_colorSecond",
+			"format": "colorpicker",
+			"default": [255, 0, 0],
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder": 3
+		},
+		"background-color": {
+			"type": "array",
+			"title": "edt_eff_backgroundColor",
+			"format": "colorpicker",
+			"default": [0, 0, 0],
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder": 4
+		},
 		"show_seconds": {
 			"type": "boolean",
-			"title":"edt_eff_showseconds_title",
+			"title":"edt_eff_showseconds",
 			"default": true,
-			"propertyOrder" : 1
+			"propertyOrder" : 5
+		},
+		"marker-enabled": {
+			"type": "boolean",
+			"title": "edt_eff_markerEnable",
+			"default": false,
+			"propertyOrder" : 6
+		},
+		"marker-depth": {
+			"type": "integer",
+			"title": "edt_eff_markerDepth",
+			"default": 5,
+			"minimum" : 1,
+			"maximum" : 50,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"marker-enabled": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"marker-width": {
+			"type": "integer",
+			"title": "edt_eff_markerWidth",
+			"default": 5,
+			"minimum" : 1,
+			"maximum" : 25,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"marker-enabled": true
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"marker-color": {
+			"type": "array",
+			"title":"edt_eff_colorMarker",
+			"format":"colorpicker",
+			"default": [255,255,255],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"options": {
+				"dependencies": {
+					"marker-enabled": true
+				}
+			},
+			"propertyOrder" : 9
 		}
 	},
 	"additionalProperties": false

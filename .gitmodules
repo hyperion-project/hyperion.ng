@@ -4,4 +4,4 @@
 [submodule "dependencies/external/rpi_ws281x"]
 	path = dependencies/external/rpi_ws281x
 	url = https://github.com/hyperion-project/rpi_ws281x.git
-	branch = sk6812
+	branch = master

@@ -3,8 +3,7 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/webconfig)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/webconfig)
 
-# Group the headers that go through the MOC compiler
-set(WebConfig_QT_HEADERS
+set(WebConfig_HEADERS
 	${CURRENT_SOURCE_DIR}/QtHttpClientWrapper.h
 	${CURRENT_SOURCE_DIR}/QtHttpReply.h
 	${CURRENT_SOURCE_DIR}/QtHttpRequest.h
@@ -12,9 +11,6 @@ set(WebConfig_QT_HEADERS
 	${CURRENT_SOURCE_DIR}/CgiHandler.h
 	${CURRENT_SOURCE_DIR}/StaticFileServing.h
 	${CURRENT_HEADER_DIR}/WebConfig.h
-)
-
-set(WebConfig_HEADERS
 )
 
 set(WebConfig_SOURCES
@@ -35,23 +31,16 @@ ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/WebConfig.qrc.in ${CMAKE_BINARY_DIR}/WebConfig.qrc )
 SET(WebConfig_RESOURCES ${CMAKE_BINARY_DIR}/WebConfig.qrc)
 
-qt5_wrap_cpp(WebConfig_HEADERS_MOC ${WebConfig_QT_HEADERS})
 qt5_add_resources(WebConfig_RESOURCES_RCC ${WebConfig_RESOURCES} ) #OPTIONS "-no-compress"
 
 add_library(webconfig
 	${WebConfig_HEADERS}
-	${WebConfig_QT_HEADERS}
 	${WebConfig_SOURCES}
-	${WebConfig_HEADERS_MOC}
 	${WebConfig_RESOURCES_RCC}
 )
-
-qt5_use_modules(webconfig Network)
 
 target_link_libraries(webconfig
 	hyperion
 	hyperion-utils
-	${QT_LIBRARIES}
+	Qt5::Network
 )
-
-

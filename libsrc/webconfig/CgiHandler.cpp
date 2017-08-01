@@ -73,7 +73,7 @@ void CgiHandler::cmd_cfg_get()
 {
 	if ( _args.at(0) == "cfg_get" )
 	{
-		QFile file ( _hyperion->getConfigFileName().c_str() );
+		QFile file ( _hyperion->getConfigFileName() );
 		if (file.exists ())
 		{
 			if (file.open (QFile::ReadOnly)) {
@@ -101,7 +101,63 @@ void CgiHandler::cmd_cfg_set()
 			if (error.error == QJsonParseError::NoError)
 			{
 				QJsonObject hyperionConfigJsonObj = hyperionConfig.object();
-				QJsonFactory::writeJson(QString::fromStdString(_hyperion->getConfigFileName()), hyperionConfigJsonObj);
+				try
+				{
+					// make sure the resources are loaded (they may be left out after static linking)
+					Q_INIT_RESOURCE(resource);
+
+					QString schemaFile = ":/hyperion-schema";
+					QJsonObject schemaJson;
+
+					try
+					{
+						schemaJson = QJsonFactory::readSchema(schemaFile);
+					}
+					catch(const std::runtime_error& error)
+					{
+						throw std::runtime_error(error.what());
+					}
+
+					QJsonSchemaChecker schemaChecker;
+					schemaChecker.setSchema(schemaJson);
+
+					QPair<bool, bool> validate = schemaChecker.validate(hyperionConfigJsonObj);
+
+					
+					if (validate.first && validate.second)
+					{
+						QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj);
+					}
+					else if (!validate.first && validate.second)
+					{
+						Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+						
+						QStringList schemaErrors = schemaChecker.getMessages();
+						foreach (auto & schemaError, schemaErrors)
+							Info(_log, schemaError.toUtf8().constData());
+
+						hyperionConfigJsonObj = schemaChecker.getAutoCorrectedConfig(hyperionConfigJsonObj);
+
+						if (!QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj))
+							throw std::runtime_error("ERROR: can not save configuration file, aborting ");
+					}
+					else //Error in Schema
+					{
+						QString errorMsg = "ERROR: Json validation failed: \n";
+						QStringList schemaErrors = schemaChecker.getMessages();
+						foreach (auto & schemaError, schemaErrors)
+						{
+							Error(_log, "config write validation: %s", QSTRING_CSTR(schemaError));
+							errorMsg += schemaError + "\n";
+						}
+
+						throw std::runtime_error(errorMsg.toStdString());
+					}
+				}
+				catch(const std::runtime_error& validate_error)
+				{
+					_reply->appendRawData (QString(validate_error.what()).toUtf8());
+				}
 			}
 			else
 			{

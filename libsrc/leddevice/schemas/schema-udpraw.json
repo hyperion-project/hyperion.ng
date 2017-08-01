@@ -14,6 +14,16 @@
 			"minimum" : 0,
 			"maximum" : 65535,
 			"propertyOrder" : 2
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 1,
+			"append" : "edt_append_ms",
+			"minimum": 1,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties": true

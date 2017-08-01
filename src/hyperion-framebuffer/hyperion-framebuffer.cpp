@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
 			parser.showHelp(0);
 		}
 
-		FramebufferWrapper fbWrapper(argDevice.getStdString(parser), argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
+		FramebufferWrapper fbWrapper(argDevice.value(parser), argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{

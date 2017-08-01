@@ -7,7 +7,7 @@
 #include <grabber/FramebufferWrapper.h>
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferWrapper::FramebufferWrapper(const std::string & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
+FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
 	: GrabberWrapper("FrameBuffer", priority)
 	, _updateInterval_ms(1000/updateRate_Hz)
 	, _timeout_ms(2 * _updateInterval_ms)
