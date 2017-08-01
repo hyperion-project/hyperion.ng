@@ -5,7 +5,6 @@ rotationTime = float(hyperion.args.get('rotation-time', 3.0))
 sleepTime    = float(hyperion.args.get('sleep-time', 0.05))
 brightness   = float(hyperion.args.get('brightness', 100))/100.0
 saturation   = float(hyperion.args.get('saturation', 100))/100.0
-reverse      = bool(hyperion.args.get('reverse', False))
 color        = list(hyperion.args.get('color', (255,255,255)))
 randomColor  = bool(hyperion.args.get('random-color', False))
 
@@ -24,7 +23,7 @@ while not hyperion.abort():
 		if random.random() < 0.005:
 
 			if randomColor:
-				rgb = colorsys.hsv_to_rgb(random.random(), 1, 1)
+				rgb = colorsys.hsv_to_rgb(random.random(), saturation, brightness)
 				for n in range(3):
 					color[n] = int(rgb[n]*255)
 

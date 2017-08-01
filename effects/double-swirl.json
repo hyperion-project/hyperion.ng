@@ -1,0 +1,78 @@
+{
+    "args": {
+        "center_x": 0.5,
+        "center_x2": 0.5,
+        "center_y": 0.5,
+        "center_y2": 0.5,
+        "custom-colors": [
+            [
+                255,
+                0,
+                0
+            ],
+            [
+                20,
+                0,
+                255
+            ]
+        ],
+        "custom-colors2": [
+            [
+                255,
+                0,
+                0,
+                0
+            ],
+            [
+                255,
+                0,
+                0,
+                0
+            ],
+            [
+                255,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1
+            ],
+            [
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                255,
+                0,
+                0,
+                0
+            ],
+            [
+                255,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1
+            ]
+        ],
+        "enable-second": true,
+        "random-center": false,
+        "random-center2": false,
+        "reverse": false,
+        "reverse2": true,
+        "rotation-time": 25
+    },
+    "name": "Double swirl",
+    "script": "swirl.py"
+}

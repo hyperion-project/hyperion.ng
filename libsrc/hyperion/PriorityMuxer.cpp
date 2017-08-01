@@ -1,4 +1,4 @@
-
+#include <iostream>
 // STL includes
 #include <algorithm>
 #include <stdexcept>
@@ -18,6 +18,11 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	_lowestPriorityInfo.origin         = "System";
 
 	_activeInputs[_currentPriority] = _lowestPriorityInfo;
+
+	// do a reuqest after blocking timer runs out
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(emitReq()));
+	_timer.setSingleShot(true);
+	_blockTimer.setSingleShot(true);
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -96,9 +101,28 @@ void PriorityMuxer::setCurrentTime(const int64_t& now)
 			infoIt = _activeInputs.erase(infoIt);
 		}
 		else
-		{
+		{			
 			_currentPriority = std::min(_currentPriority, infoIt->priority);
+			
+			// call emitReq when effect or color is running with timeout > -1, blacklist prio 255
+			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > -1 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR))
+			{
+				emitReq();
+			}
 			++infoIt;
 		}
+	}
+}
+
+void PriorityMuxer::emitReq()
+{
+	if(_blockTimer.isActive())
+	{
+		_timer.start(500);
+	}
+	else
+	{
+		emit timerunner();
+		_blockTimer.start(1000);
 	}
 }

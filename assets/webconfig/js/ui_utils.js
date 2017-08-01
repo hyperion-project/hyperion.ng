@@ -238,6 +238,11 @@ function createHint(type, text, container, buttonid, buttontxt)
 	}
 }
 
+function createEffHint(title, text)
+{
+	return '<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>'+title+'</h4>'+text+'</div>';
+}
+
 function valValue(id,value,min,max)
 {
 	if(typeof max === 'undefined' || max == "")
@@ -285,10 +290,15 @@ function isJsonString(str)
 	return "";
 }
 
-function createJsonEditor(container,schema,setconfig,usePanel)
+function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 {
 	$('#'+container).off();
 	$('#'+container).html("");
+	
+	//JSONEditor.plugins.selectize.enable = true;
+	
+	if (typeof arrayre === 'undefined')
+		arrayre = true;
 	
 	var editor = new JSONEditor(document.getElementById(container),
 	{
@@ -296,23 +306,23 @@ function createJsonEditor(container,schema,setconfig,usePanel)
 		iconlib: "fontawesome4",
 		disable_collapse: 'true',
 		form_name_root: 'sa',
-		disable_edit_json: 'true',
-		disable_properties: 'true',
-		disable_array_reorder: 'true',
-		no_additional_properties: 'true',
-		disable_array_delete_all_rows: 'true',
-		disable_array_delete_last_row: 'true',
+		disable_edit_json: true,
+		disable_properties: true,
+		disable_array_reorder: arrayre,
+		no_additional_properties: true,
+		disable_array_delete_all_rows: true,
+		disable_array_delete_last_row: true,
 		access: storedAccess,
 		schema: {
 			title:'',
 			properties: schema
 		}
 	});
-	
+
 	if(usePanel)
 	{
 		$('#'+container+' .well').first().removeClass('well well-sm');
-		$('#'+container+' h4').remove();
+		$('#'+container+' h4').first().remove();
 		$('#'+container+' .well').first().removeClass('well well-sm');
 	}
 
@@ -591,14 +601,21 @@ function createSelOpt(opt, title)
 	return el;
 }
 
-function createSel(array, group)
+function createSel(array, group, split)
 {
-	if (array.length != "0")
+	if (array.length != 0)
 	{
 		var el = createSelGroup(group);
 		for(var i=0; i<array.length; i++)
 		{
-			var opt = createSelOpt(array[i])
+			var opt;
+			if(split)
+			{
+				opt = array[i].split(":")
+				opt = createSelOpt(opt[0],opt[1])
+			}
+			else
+				opt = createSelOpt(array[i])
 			el.appendChild(opt);
 		}
 		return el;

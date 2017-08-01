@@ -1,0 +1,80 @@
+{
+	"type" : "object",
+	"properties" :
+	{
+		"top" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 8
+		},
+		"bottom" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 8
+		},
+		"left" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 5
+		},
+		"right" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 5
+		},
+		"glength" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 0
+		},
+		"gpos" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 0
+		},
+		"position" :
+		{
+			"type" : "integer",
+			"default" : 0
+		},
+		"reverse" :
+		{
+			"type" : "boolean",
+			"default" : false
+		},
+		"hdepth" :
+		{
+			"type" : "integer",
+			"minimum" : 1,
+			"maximum" : 100,
+			"default" : 8
+		},
+		"vdepth" :
+		{
+			"type" : "integer",
+			"minimum" : 1,
+			"maximum" : 100,
+			"default" : 5
+		},
+		"overlap" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"default" : 0
+		},
+		"edgegap" :
+		{
+			"type" : "integer",
+			"minimum" : 0,
+			"maximum" : 50,
+			"default" : 0
+		}
+	},
+	"additionalProperties" : false
+}

@@ -6,6 +6,7 @@
 $(document).ready(function() {
 	
 	var messages;
+	var loguplmess = "";
 	var reportUrl = 'https://report.hyperion-project.org/#';
 	
 	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
@@ -68,28 +69,7 @@ $(document).ready(function() {
 		var info;
 		
 		//create log
-		if(messages)
-		{
-			for(var i = 0; i<messages.length; i++)
-			{
-				app_name = messages[i].appName;
-				logger_name = messages[i].loggerName;
-				function_ = messages[i].function;
-				line = messages[i].line;
-				file_name = messages[i].fileName;
-				msg = messages[i].message;
-				level_string = messages[i].levelString;
-				debug = "";
-			
-				if(level_string == "DEBUG") {
-					debug = "<"+file_name+":"+line+":"+function_+"()> ";
-				}
-				
-				log += "["+app_name+" "+logger_name+"] <"+level_string+"> "+debug+msg+"\n";
-			}
-		}
-		else
-			log = "Log was empty!";
+		log = (messages ? loguplmess : "Log was empty!");
 
 		//create general info
 		info = "### GENERAL ### \n";
@@ -187,10 +167,11 @@ $(document).ready(function() {
 				var debug = "";
 				
 				if(level_string == "DEBUG") {
-					debug = "&lt;"+file_name+":"+line+":"+function_+"()&gt; ";
+					debug = "("+file_name+":"+line+":"+function_+"()) ";
 				}
 				
-				$("#logmessages").html($("#logmessages").html()+"\n <code>"+"["+app_name+" "+logger_name+"] &lt;"+level_string+"&gt; "+debug+msg+"</code>");
+				$("#logmessages").append("\n <code>"+"["+app_name+" "+logger_name+"] ("+level_string+") "+debug+msg+"</code>");
+				loguplmess += "["+app_name+" "+logger_name+"] ("+level_string+") "+debug+msg+"\n";
 			}
 			if($("#btn_autoscroll").hasClass('btn-success')){
 				$('#logmessages').stop().animate({

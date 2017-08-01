@@ -4,6 +4,7 @@
 #include <exception>
 #include <sstream>
 #include <unistd.h>
+#include <iostream>
 
 // QT includes
 #include <QDateTime>
@@ -49,7 +50,7 @@ Hyperion* Hyperion::getInstance()
 {
 	if ( Hyperion::_hyperion == nullptr )
 		throw std::runtime_error("Hyperion::getInstance used without call of Hyperion::initInstance before");
-		
+
 	return Hyperion::_hyperion;
 }
 
@@ -152,7 +153,7 @@ MultiColorAdjustment * Hyperion::createLedColorsAdjustment(const unsigned ledCnt
 				ss << index;
 			}
 		}
-		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str()); 
+		Info(CORE_LOGGER, "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str());
 	}
 
 	return adjustment;
@@ -189,7 +190,7 @@ LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrd
 	const QString deviceOrderStr = colorOrderToString(deviceOrder);
 	const QJsonArray & ledConfigArray = ledsConfig.toArray();
 	int maxLedId = ledConfigArray.size();
-	
+
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
 		const QJsonObject& index = ledConfigArray[i].toObject();
@@ -324,7 +325,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	QString type = smoothingConfig["type"].toString("linear").toLower();
 	LinearColorSmoothing * device = nullptr;
 	type = "linear"; // TODO currently hardcoded type, delete it if we have more types
-	
+
 	if (type == "linear")
 	{
 		Info( CORE_LOGGER, "Creating linear smoothing");
@@ -340,7 +341,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	{
 		Error(CORE_LOGGER, "Smoothing disabled, because of unknown type '%s'.", QSTRING_CSTR(type));
 	}
-	
+
 	device->setEnable(smoothingConfig["enable"].toBool(true));
 	InfoIf(!device->enabled(), CORE_LOGGER,"Smoothing disabled");
 
@@ -413,11 +414,11 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	_bonjourBrowser.browseForServiceType(QLatin1String("_hyperiond-http._tcp"));
 	connect(&_bonjourBrowser, SIGNAL(currentBonjourRecordsChanged(const QList<BonjourRecord>&)),this, SLOT(currentBonjourRecordsChanged(const QList<BonjourRecord> &)));
 	connect(&_bonjourResolver, SIGNAL(bonjourRecordResolved(const QHostInfo &, int)), this, SLOT(bonjourRecordResolved(const QHostInfo &, int)));
-	
+
 	// initialize the image processor factory
 	_ledMAppingType = ImageProcessor::mappingTypeToInt(color["imageToLedMappingType"].toString());
 	ImageProcessorFactory::getInstance().init(_ledString, qjsonConfig["blackborderdetector"].toObject(),_ledMAppingType );
-	
+
 	getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, _messageForwarder->forwardingEnabled());
 
 	// initialize leddevices
@@ -437,16 +438,33 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 
 	// create the effect engine
 	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
-	
+
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
 	_hwLedCount = std::max(hwLedCount, getLedCount());
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
-	WarningIf(!configWriteable(), _log, "Your config is not writeable - you won't be able to use the web ui for configuration.");
-	// initialize hash of current config
-	configModified();
+	// setup config state checks and initial shot
+	checkConfigState();
+	if(_fsWatcher.addPath(_configFile))
+	{
+		QObject::connect(&_fsWatcher, &QFileSystemWatcher::fileChanged, this, &Hyperion::checkConfigState);
+	}
+	else
+	{
+		Warning(_log,"Filesystem Observer failed for file: %s, use fallback timer", _configFile.toStdString().c_str());
+		QObject::connect(&_cTimer, SIGNAL(timeout()), this, SLOT(checkConfigState()));
+		_cTimer.start(2000);
+	}
+
+	// pipe muxer signal for effect/color timerunner to hyperionStateChanged slot
+	QObject::connect(&_muxer, &PriorityMuxer::timerunner, this, &Hyperion::hyperionStateChanged);
+
+	// prepare processing of hyperionStateChanged for forced serverinfo
+	connect(&_fsi_timer, SIGNAL(timeout()), this, SLOT(hyperionStateChanged()));
+	_fsi_timer.setSingleShot(true);
+	_fsi_blockTimer.setSingleShot(true);
 
 	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
 	_configVersionId = generalConfig["configVersion"].toInt(-1);
@@ -511,6 +529,9 @@ void Hyperion::bonjourRecordResolved(const QHostInfo &hostInfo, int port)
 		_hyperionSessions[_bonjourCurrentServiceToResolve].port     = port;
 		_hyperionSessions[_bonjourCurrentServiceToResolve].address  = hostInfo.addresses().isEmpty() ? "" : hostInfo.addresses().first().toString();
 		Debug(_log, "found hyperion session: %s:%d",QSTRING_CSTR(hostInfo.hostName()), port);
+
+		//emit change
+		emit hyperionStateChanged();
 	}
 }
 
@@ -532,9 +553,9 @@ Hyperion::BonjourRegister Hyperion::getHyperionSessions()
 	return _hyperionSessions;
 }
 
-bool Hyperion::configModified()
+void Hyperion::checkConfigState(QString cfile)
 {
-	bool isModified = false;
+	// Check config modifications
 	QFile f(_configFile);
 	if (f.open(QFile::ReadOnly))
 	{
@@ -545,29 +566,33 @@ bool Hyperion::configModified()
 			{
 				_configHash = hash.result();
 			}
-			else
-			{
-				isModified = _configHash != hash.result();
-			}
+			_configMod = _configHash != hash.result() ? true : false;
 		}
 	}
 	f.close();
 
-	return isModified;
-}
+	if(_prevConfigMod != _configMod)
+	{
+		emit hyperionStateChanged();
+		_prevConfigMod = _configMod;
+	}
 
-bool Hyperion::configWriteable()
-{
+	// Check config writeable
 	QFile file(_configFile);
 	QFileInfo fileInfo(file);
-	return fileInfo.isWritable() && fileInfo.isReadable();
-}
+	_configWrite = fileInfo.isWritable() && fileInfo.isReadable() ? true : false;
 
+	if(_prevConfigWrite != _configWrite)
+	{
+		emit hyperionStateChanged();
+		_prevConfigWrite = _configWrite;
+	}
+}
 
 void Hyperion::registerPriority(const QString &name, const int priority/*, const QString &origin*/)
 {
 	Info(_log, "Register new input source named '%s' for priority channel '%d'", QSTRING_CSTR(name), priority );
-	
+
 	for(auto key : _priorityRegister.keys())
 	{
 		WarningIf( ( key != name && _priorityRegister.value(key) == priority), _log,
@@ -575,12 +600,14 @@ void Hyperion::registerPriority(const QString &name, const int priority/*, const
 	}
 
 	_priorityRegister.insert(name, priority);
+	emit hyperionStateChanged();
 }
 
 void Hyperion::unRegisterPriority(const QString &name)
 {
 	Info(_log, "Unregister input source named '%s' from priority register", QSTRING_CSTR(name));
 	_priorityRegister.remove(name);
+	emit hyperionStateChanged();
 }
 
 void Hyperion::setSourceAutoSelectEnabled(bool enabled)
@@ -720,7 +747,7 @@ void Hyperion::clearall()
 
 int Hyperion::getCurrentPriority() const
 {
-	
+
 	return _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
 }
 
@@ -770,6 +797,19 @@ void Hyperion::setLedMappingType(int mappingType)
 	emit imageToLedsMappingChanged(mappingType);
 }
 
+void Hyperion::hyperionStateChanged()
+{
+	if(_fsi_blockTimer.isActive())
+	{
+		_fsi_timer.start(300);
+	}
+	else
+	{
+		emit sendServerInfo();
+		_fsi_blockTimer.start(250);
+	}
+}
+
 void Hyperion::update()
 {
 	// Update the muxer, cleaning obsolete priorities
@@ -803,13 +843,13 @@ void Hyperion::update()
 			_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
 		}
 	}
-	
+
 	// insert cloned leds into buffer
 	for (Led& led : _ledStringClone.leds())
 	{
 		_ledBuffer.insert(_ledBuffer.begin() + led.index, _ledBuffer.at(led.clone));
 	}
-	
+
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)
 	{
@@ -847,7 +887,7 @@ void Hyperion::update()
 	{
 		_ledBuffer.resize(_hwLedCount, ColorRgb::BLACK);
 	}
-	
+
 	// Write the data to the device
 	if (_device->enabled())
 	{
@@ -855,7 +895,7 @@ void Hyperion::update()
 		// feed smoothing in pause mode to maintain a smooth transistion back to smoth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			_deviceSmooth->setLedValues(_ledBuffer);
-		
+
 		if  (! _deviceSmooth->enabled())
 			_device->setLedValues(_ledBuffer);
 	}
@@ -868,7 +908,8 @@ void Hyperion::update()
 	else
 	{
 		int timeout_ms = std::max(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
-		_timer.start(timeout_ms);
+		// std::min() 200ms forced refresh if color is active to update priorityMuxer properly for forced serverinfo push
+		_timer.start(std::min(timeout_ms, 200));
 	}
 
 }
