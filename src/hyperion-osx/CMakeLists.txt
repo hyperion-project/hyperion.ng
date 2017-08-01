@@ -1,19 +1,15 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(hyperion-osx)
 
 find_package(Qt5Widgets REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
-	${QT_INCLUDES}
 	${PROTOBUF_INCLUDE_DIRS}
 )
 
-set(Hyperion_OSX_QT_HEADERS
-	OsxWrapper.h
-)
-
 set(Hyperion_OSX_HEADERS
+	OsxWrapper.h
 )
 
 set(Hyperion_OSX_SOURCES
@@ -21,12 +17,9 @@ set(Hyperion_OSX_SOURCES
 	OsxWrapper.cpp
 )
 
-QT5_WRAP_CPP(Hyperion_OSX_HEADERS_MOC ${Hyperion_OSX_QT_HEADERS})
-
 add_executable( ${PROJECT_NAME}
 	${Hyperion_OSX_HEADERS}
 	${Hyperion_OSX_SOURCES}
-	${Hyperion_OSX_HEADERS_MOC}
 )
 
 target_link_libraries( ${PROJECT_NAME}
@@ -37,9 +30,10 @@ target_link_libraries( ${PROJECT_NAME}
 	protoserver
 	osx-grabber
 	pthread
+	Qt5::Core
+	Qt5::Gui
+	Qt5::Network
 )
-
-qt5_use_modules(${PROJECT_NAME} Core Gui Network)
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 

@@ -8,15 +8,11 @@ include_directories(
 	${PROTOBUF_INCLUDE_DIRS}
 )
 
-# Group the headers that go through the MOC compiler
-set(ProtoServer_QT_HEADERS
+set(ProtoServer_HEADERS
 	${CURRENT_HEADER_DIR}/ProtoServer.h
 	${CURRENT_HEADER_DIR}/ProtoConnection.h
 	${CURRENT_SOURCE_DIR}/ProtoClientConnection.h
 	${CURRENT_HEADER_DIR}/ProtoConnectionWrapper.h
-)
-
-set(ProtoServer_HEADERS
 )
 
 set(ProtoServer_SOURCES
@@ -34,23 +30,17 @@ protobuf_generate_cpp(ProtoServer_PROTO_SRCS ProtoServer_PROTO_HDRS
 	${ProtoServer_PROTOS}
 )
 
-qt5_wrap_cpp(ProtoServer_HEADERS_MOC ${ProtoServer_QT_HEADERS})
-
 add_library(protoserver
 	${ProtoServer_HEADERS}
-	${ProtoServer_QT_HEADERS}
 	${ProtoServer_SOURCES}
-	${ProtoServer_HEADERS_MOC}
 	${ProtoServer_PROTOS}
 	${ProtoServer_PROTO_SRCS}
 	${ProtoServer_PROTO_HDRS}
 )
 
-qt5_use_modules(protoserver Gui)
-
 target_link_libraries(protoserver
 	hyperion
 	hyperion-utils
 	protobuf
-	${QT_LIBRARIES}
+	Qt5::Gui
 )
