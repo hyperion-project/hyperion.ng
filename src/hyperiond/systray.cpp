@@ -19,7 +19,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 	, _hyperiond(hyperiond)
 	, _webPort(webPort)
 {
-	Q_INIT_RESOURCE(WebConfig);
+	Q_INIT_RESOURCE(resource);
 	_hyperion = Hyperion::getInstance();
 	createTrayIcon();
 
@@ -27,7 +27,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 		this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
  
  	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
-	QIcon icon(":/webconfig/apple-touch-icon.png");
+	QIcon icon(":/hyperion-icon.png");
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);
