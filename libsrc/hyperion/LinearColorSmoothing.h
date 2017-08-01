@@ -111,4 +111,6 @@ private:
 
 	/// config list
 	QVector<SMOOTHING_CFG> _cfgList;
+	
+	unsigned _currentConfigId;
 };

@@ -19,6 +19,7 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	, _writeToLedsEnable(true)
 	, _continuousOutput(continuousOutput)
 	, _pause(false)
+	, _currentConfigId(0)
 {
 	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
@@ -27,8 +28,6 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay, continuousOutput);
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
-	Info( _log, "Created linear-smoothing with interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",
-	      _updateInterval, settlingTime_ms,  _outputDelay );
 }
 
 LinearColorSmoothing::~LinearColorSmoothing()
@@ -167,6 +166,8 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 {
 	SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay, continuousOutput};
 	_cfgList.append(cfg);
+	
+	Debug( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, _updateInterval, _settlingTime,  _outputDelay );
 	return _cfgList.count() - 1;
 }
 
@@ -174,11 +175,18 @@ unsigned LinearColorSmoothing::addConfig(bool pause)
 {
 	SMOOTHING_CFG cfg = {true, 100, 50, 0, false};
 	_cfgList.append(cfg);
+
+	Info( _log, "smoothing cfg %d: pause",  _cfgList.count()-1);
 	return _cfgList.count() - 1;
 }
 
 bool LinearColorSmoothing::selectConfig(unsigned cfg)
 {
+	if (_currentConfigId == cfg)
+	{
+		return true;
+	}
+
 	if ( cfg < (unsigned)_cfgList.count())
 	{
 		_settlingTime     = _cfgList[cfg].settlingTime;
@@ -189,11 +197,16 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg)
 		{
 			_timer.stop();
 			_updateInterval = _cfgList[cfg].updateInterval;
+			_timer.setInterval(_updateInterval);
 			_timer.start();
 		}
+		_currentConfigId = cfg;
+		Info( _log, "set smoothing config preset %d", _currentConfigId);
 		return true;
 	}
 	
+	// reset to default
+	_currentConfigId = 0;
 	return false;
 }
 	
