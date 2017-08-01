@@ -1077,7 +1077,7 @@ void JsonProcessor::sendErrorReply(const QString &error, const QString &command,
 bool JsonProcessor::checkJson(const QJsonObject& message, const QString& schemaResource, QString& errorMessage, bool ignoreRequired)
 {
 	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(JsonSchemas);
+	Q_INIT_RESOURCE(JSONRPC_schemas);
 	QJsonParseError error;
 
 	// read the json schema from the resource

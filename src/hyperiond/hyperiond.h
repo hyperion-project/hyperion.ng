@@ -48,9 +48,14 @@
 #include <utils/Stats.h>
 #include <QJsonObject>
 
+class SysTray;
+
 class HyperionDaemon : public QObject
 {
 	Q_OBJECT
+	
+	friend SysTray;
+
 public:
 	HyperionDaemon(QString configFile, QObject *parent=nullptr);
 	~HyperionDaemon();
