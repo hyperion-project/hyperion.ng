@@ -147,8 +147,8 @@ private:
 	double   _y_frac_min;
 	double   _x_frac_max;
 	double   _y_frac_max;
+	int      _currentFrame;
 
-	int _currentFrame;
 	QSocketNotifier * _streamNotifier;
 
 	ImageResampler _imageResampler;
