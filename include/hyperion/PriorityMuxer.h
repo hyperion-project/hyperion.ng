@@ -40,6 +40,8 @@ public:
 		hyperion::Components componentId;
 		/// Who set it
 		QString origin;
+		///
+		unsigned smooth_cfg;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
