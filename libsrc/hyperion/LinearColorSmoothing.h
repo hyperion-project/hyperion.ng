@@ -46,7 +46,7 @@ public:
 	bool pause() { return _pause; } ;
 	bool enabled() { return LedDevice::enabled() && !_pause; };
 
-	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0, bool continuousOutput=true);
+	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 	unsigned addConfig(bool pause);
 	bool selectConfig(unsigned cfg);
 
@@ -106,7 +106,6 @@ private:
 		int64_t  settlingTime;
 		int64_t  updateInterval;
 		unsigned outputDelay;
-		bool     continuousOutput;
 	};
 
 	/// config list

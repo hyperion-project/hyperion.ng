@@ -63,11 +63,11 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	for (Effect * effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
-		activeEffectDefinition.script = effect->getScript();
-		activeEffectDefinition.name = effect->getName();
+		activeEffectDefinition.script   = effect->getScript();
+		activeEffectDefinition.name     = effect->getName();
 		activeEffectDefinition.priority = effect->getPriority();
-		activeEffectDefinition.timeout = effect->getTimeout();
-		activeEffectDefinition.args = effect->getArgs();
+		activeEffectDefinition.timeout  = effect->getTimeout();
+		activeEffectDefinition.args     = effect->getArgs();
 		_availableActiveEffects.push_back(activeEffectDefinition);
 	}
   
