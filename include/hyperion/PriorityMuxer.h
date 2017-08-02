@@ -40,7 +40,7 @@ public:
 		hyperion::Components componentId;
 		/// Who set it
 		QString origin;
-		///
+		/// id fo smoothing config
 		unsigned smooth_cfg;
 	};
 
@@ -101,7 +101,7 @@ public:
 	/// @param[in] component The component of the channel
 	/// @param[in] origin Who set the channel
 	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smooth_cfg=0);
 
 	///
 	/// Clears the specified priority channel

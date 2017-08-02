@@ -438,7 +438,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	QObject::connect(&_timerBonjourResolver, SIGNAL(timeout()), this, SLOT(bonjourResolve()));
 	_timerBonjourResolver.start();
 
-	// create the effect engine
+	// create the effect engine, must be initialized after smoothing!
 	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
 
 	const QJsonObject& device = qjsonConfig["device"].toObject();
@@ -478,6 +478,16 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 int Hyperion::getLatchTime() const
 {
   return _device->getLatchTime();
+}
+
+unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+{
+	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
+}
+
+unsigned Hyperion::addSmoothingConfig(bool pause)
+{
+	return _deviceSmooth->addConfig(pause);
 }
 
 void Hyperion::freeObjects(bool emitCloseSignal)
@@ -666,7 +676,7 @@ void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_m
 	setColors(priority, ledColors, timeout_ms, clearEffects, hyperion::COMP_COLOR);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin, unsigned smoothCfg)
 {
 	// clear effects if this call does not come from an effect
 	if (clearEffects)
@@ -677,11 +687,11 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		_muxer.setInput(priority, ledColors, timeoutTime, component, origin);
+		_muxer.setInput(priority, ledColors, timeoutTime, component, origin, smoothCfg);
 	}
 	else
 	{
-		_muxer.setInput(priority, ledColors, -1, component, origin);
+		_muxer.setInput(priority, ledColors, -1, component, origin, smoothCfg);
 	}
 
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())

@@ -55,7 +55,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	return elemIt.value();
 }
 
-void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms, hyperion::Components component, const QString origin)
+void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms, hyperion::Components component, const QString origin, unsigned smooth_cfg)
 {
 	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
@@ -63,7 +63,7 @@ void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 	input.ledColors      = ledColors;
 	input.componentId    = component;
 	input.origin         = origin;
-	input.smooth_cfg     = (component != hyperion::COMP_EFFECT)? 0 : 1;
+	input.smooth_cfg     = smooth_cfg;
 	_currentPriority     = std::min(_currentPriority, priority);
 }
 
