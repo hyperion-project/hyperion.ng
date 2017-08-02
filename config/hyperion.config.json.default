@@ -191,6 +191,8 @@
 	{
 		"paths" : ["../custom-effects"]
 	},
+	
+	"instances" : [],
 
 	"ledConfig" :
 	{

@@ -23,5 +23,6 @@
 		<file alias="schema-effects.json">schema/schema-effects.json</file>
 		<file alias="schema-ledConfig.json">schema/schema-ledConfig.json</file>
 		<file alias="schema-leds.json">schema/schema-leds.json</file>
+		<file alias="schema-instances.json">schema/schema-instances.json</file>
 	</qresource>
 </RCC>

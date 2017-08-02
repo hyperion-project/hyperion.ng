@@ -347,6 +347,23 @@
 		]
 	},
 	
+	/// Instances that should be started to configure a second/third led device with the same source independent of the main instance:
+	/// Note that you need to forward from your main instance to the new created one to reuse the source
+	/// Min/Max length of instName is 4/20!
+	///  * enable: Enables or disables the instance
+	///  * instName : Pretty name of the instance, also used as new instance name
+	"instances" :
+	[
+		{
+			"enable": true,
+			"instName": "My PhilipsHue"
+		},
+		{
+			"enable": false,
+			"instName": "My AtmoOrb"
+		}
+	],
+	
 	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
 	"ledConfig" :
 	{

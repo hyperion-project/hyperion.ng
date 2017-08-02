@@ -1,5 +1,6 @@
 add_subdirectory(hyperiond)
 add_subdirectory(hyperion-remote)
+add_subdirectory(hyperiond-starter)
 
 # The following clients depend on the protobuf library
 if (ENABLE_AMLOGIC)

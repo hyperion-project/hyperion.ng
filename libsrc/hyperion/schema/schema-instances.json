@@ -1,0 +1,31 @@
+{
+	"type" : "array",
+	"uniqueItems": true,
+	"required" : true,
+	"title" : "edt_conf_inst_heading_title",
+	"items" :
+	{
+		"type" : "object",
+		"title" : "edt_conf_inst_title",
+		"properties" :
+		{
+			"enable" :
+			{
+				"type" : "boolean",
+				"title" : "edt_conf_general_enable_title",
+				"default" : true,
+				"propertyOrder" : 1
+			},
+			"instName" :
+			{
+				"type" : "string",
+				"title" : "edt_conf_instName_title",
+				"default" : "My new instance",
+				"minLength" : 4,
+				"maxLength" : 20,
+				"propertyOrder" : 2
+			}
+		}
+	}
+}
+		
