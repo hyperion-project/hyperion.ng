@@ -553,7 +553,7 @@ PyObject* Effect::wrapImageConicalGradient(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	angle = std::max(std::min(angle,360),0);
+	angle = qMax(qMin(angle,360),0);
 
 	if (argsOK)
 	{
@@ -645,7 +645,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			{
 
 				QRect myQRect(startX,startY,width,height);
-				QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
+				QRadialGradient gradient(QPoint(centerX,centerY), qMax(radius,0) );
 				char * data = PyByteArray_AS_STRING(bytearray);
 
 				for (int idx=0; idx<length; idx+=4)
@@ -775,8 +775,8 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	if (argsOK)
 	{
 		QPainter * painter = effect->_painter;
-		startAngle = std::max(std::min(startAngle,360),0);
-		spanAngle = std::max(std::min(spanAngle,360),-360);
+		startAngle = qMax(qMin(startAngle,360),0);
+		spanAngle = qMax(qMin(spanAngle,360),-360);
 
 		if( argCount == 7 || argCount == 5 )
 		{
@@ -1046,7 +1046,7 @@ PyObject* Effect::wrapImageMinSize(PyObject *self, PyObject *args)
 		{
 			delete effect->_painter;
 			
-			effect->_image = effect->_image.scaled(std::max(width,w),std::max(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+			effect->_image = effect->_image.scaled(qMax(width,w),qMax(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 			effect->_imageSize = effect->_image.size();
 			effect->_painter = new QPainter(&(effect->_image));
 		}
@@ -1076,7 +1076,7 @@ PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 	
 	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
 	{
-		angle = std::max(std::min(angle,360),0);
+		angle = qMax(qMin(angle,360),0);
 		effect->_painter->rotate(angle);
 		return Py_BuildValue("");
 	}

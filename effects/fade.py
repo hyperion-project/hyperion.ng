@@ -13,12 +13,17 @@ minStepTime    = float(hyperion.latchTime)/1000.0
 currentR = currentG = currentB = 0
 
 # create color table for fading from start to end color
-steps = float(abs(max((colorEnd[0] - colorStart[0]),max((colorEnd[1] - colorStart[1]),(colorEnd[2] - colorStart[2])))))
-color_step = (
-	(colorEnd[0] - colorStart[0]) / steps,
-	(colorEnd[1] - colorStart[1]) / steps,
-	(colorEnd[2] - colorStart[2]) / steps
-)
+steps = float(max(abs(colorEnd[0] - colorStart[0]),max(abs(colorEnd[1] - colorStart[1]),abs(colorEnd[2] - colorStart[2]))))
+color_step = (0,0,0)
+
+if steps == 0:
+	steps = 1
+else:
+	color_step = (
+		(colorEnd[0] - colorStart[0]) / steps,
+		(colorEnd[1] - colorStart[1]) / steps,
+		(colorEnd[2] - colorStart[2]) / steps
+	)
 
 calcChannel = lambda i: min(max(int(round(colorStart[i] + color_step[i]*step)),0), colorEnd[i] if colorStart[i] < colorEnd[i] else colorStart[i])
 colors = []

@@ -25,8 +25,7 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
 
-	addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay);
-
+	selectConfig( addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay) );
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 }
 
@@ -167,7 +166,7 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 	SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay};
 	_cfgList.append(cfg);
 	
-	Debug( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, _updateInterval, _settlingTime,  _outputDelay );
+	Info( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, cfg.updateInterval, cfg.settlingTime,  cfg.outputDelay );
 	return _cfgList.count() - 1;
 }
 
@@ -191,6 +190,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg)
 	{
 		_settlingTime     = _cfgList[cfg].settlingTime;
 		_outputDelay      = _cfgList[cfg].outputDelay;
+		_pause            = _cfgList[cfg].pause;
 
 		if (_cfgList[cfg].updateInterval != _updateInterval)
 		{
@@ -200,7 +200,9 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg)
 			_timer.start();
 		}
 		_currentConfigId = cfg;
-		Info( _log, "set smoothing config preset %d", _currentConfigId);
+		InfoIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
+		InfoIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
+
 		return true;
 	}
 	

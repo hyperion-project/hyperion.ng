@@ -32,7 +32,6 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);
-	_colorDlg.setModal(true);
 	_colorDlg.setOptions(QColorDialog::NoButtons);
 }
 

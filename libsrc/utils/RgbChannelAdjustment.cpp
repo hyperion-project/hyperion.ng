@@ -1,9 +1,3 @@
-// STL includes
-#include <cmath>
-#include <cstdint>
-#include <algorithm>
-
-// Utils includes
 #include <utils/RgbChannelAdjustment.h>
 
 RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
@@ -64,9 +58,9 @@ void RgbChannelAdjustment::apply(uint8_t input, uint8_t brightness, uint8_t & re
 
 	if (!_initialized[input])
 	{
-		_mapping[RED  ][input] = std::min( ((_brightness * input * _adjust[RED  ]) / 65025), UINT8_MAX);
-		_mapping[GREEN][input] = std::min( ((_brightness * input * _adjust[GREEN]) / 65025), UINT8_MAX);
-		_mapping[BLUE ][input] = std::min( ((_brightness * input * _adjust[BLUE ]) / 65025), UINT8_MAX);
+		_mapping[RED  ][input] = qMin( ((_brightness * input * _adjust[RED  ]) / 65025), UINT8_MAX);
+		_mapping[GREEN][input] = qMin( ((_brightness * input * _adjust[GREEN]) / 65025), UINT8_MAX);
+		_mapping[BLUE ][input] = qMin( ((_brightness * input * _adjust[BLUE ]) / 65025), UINT8_MAX);
 		_initialized[input] = true;
 	}
 	red   = _mapping[RED  ][input];
