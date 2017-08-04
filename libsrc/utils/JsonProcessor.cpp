@@ -604,10 +604,9 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 		availableGrabbers.append(grabber);
 	}
 #endif
-	grabbers["available"]    = availableGrabbers;
-	grabbers["videomode"]    = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
-	grabbers["grabbingmode"] = QString(grabbingMode2String(_hyperion->getCurrentGrabbingMode()));
-	info["grabbers"]         = grabbers;
+	grabbers["available"] = availableGrabbers;
+	grabbers["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+	info["grabbers"]      = grabbers;
 
 	// get available components
 	QJsonArray component;
