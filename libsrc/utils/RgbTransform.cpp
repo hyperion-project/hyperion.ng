@@ -1,6 +1,4 @@
-#include <iostream>
-#include <cmath>
-
+#include <QtCore/qmath.h>
 #include <utils/RgbTransform.h>
 
 RgbTransform::RgbTransform()
@@ -55,9 +53,9 @@ void RgbTransform::initializeMapping()
 {
 	for (int i = 0; i < 256; ++i)
 	{
-		_mappingR[i] = std::min(std::max((int)(std::pow(i / 255.0, _gammaR) * 255), 0), 255);
-		_mappingG[i] = std::min(std::max((int)(std::pow(i / 255.0, _gammaG) * 255), 0), 255);
-		_mappingB[i] = std::min(std::max((int)(std::pow(i / 255.0, _gammaB) * 255), 0), 255);
+		_mappingR[i] = qMin(qMax((int)(qPow(i / 255.0, _gammaR) * 255), 0), 255);
+		_mappingG[i] = qMin(qMax((int)(qPow(i / 255.0, _gammaG) * 255), 0), 255);
+		_mappingB[i] = qMin(qMax((int)(qPow(i / 255.0, _gammaB) * 255), 0), 255);
 	}
 }
 
@@ -70,7 +68,7 @@ int RgbTransform::getBacklightThreshold() const
 void RgbTransform::setBacklightThreshold(int backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
-	_sumBrightnessLow   = 765.0 * ((std::pow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
+	_sumBrightnessLow   = 765.0 * ((qPow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);
 }
 
 bool RgbTransform::getBacklightColored() const
@@ -129,9 +127,9 @@ void RgbTransform::updateBrightnessComponents()
 	{
 		B_in = (_brightness<50)? -0.09*_brightness+7.5 : -0.04*_brightness+5.0;
 
-		_brightness_rgb = std::ceil(std::min(255.0,255.0/B_in));
-		_brightness_cmy = std::ceil(std::min(255.0,255.0/(B_in*Fcmy)));
-		_brightness_w   = std::ceil(std::min(255.0,255.0/(B_in*Fw)));
+		_brightness_rgb = std::ceil(qMin(255.0,255.0/B_in));
+		_brightness_cmy = std::ceil(qMin(255.0,255.0/(B_in*Fcmy)));
+		_brightness_w   = std::ceil(qMin(255.0,255.0/(B_in*Fw)));
 	}
 }
 
@@ -149,7 +147,6 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 	green = _mappingR[green];
 	blue  = _mappingR[blue];
 
-	//std::cout << (int)red << " " << (int)green << " " << (int)blue << " => ";
 	// apply brightnesss
 	int rgbSum = red+green+blue;
 
@@ -164,7 +161,7 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 				if (blue ==0) blue  = 1;
 				rgbSum = red+green+blue;
 			}
-			double cL =std::min((int)(_sumBrightnessLow /rgbSum), 255);
+			double cL =qMin((int)(_sumBrightnessLow /rgbSum), 255);
 
 			red   *= cL;
 			green *= cL;
@@ -172,11 +169,10 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		}
 		else
 		{
-			red   = std::min((int)(_sumBrightnessLow/3.0), 255);
+			red   = qMin((int)(_sumBrightnessLow/3.0), 255);
 			green = red;
 			blue  = red;
 		}
 	}
-	//std::cout << _sumBrightnessLow << " " << (int)red << " " << (int)green << " " << (int)blue << std::endl;
 }
 

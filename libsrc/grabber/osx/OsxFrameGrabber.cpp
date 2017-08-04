@@ -5,12 +5,9 @@
 // Local includes
 #include <grabber/OsxFrameGrabber.h>
 
-OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height) :
-	_screenIndex(display),
-	_width(width),
-	_height(height),
-	_imgResampler(new ImageResampler()),
-	_log(Logger::getInstance("OSXGRABBER"))
+OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height)
+	: Grabber("OSXGRABBER", width, height)
+	, _screenIndex(display)
 {
 	CGImageRef image;
 	CGDisplayCount displayCount;
@@ -36,12 +33,6 @@ OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, c
 
 OsxFrameGrabber::~OsxFrameGrabber()
 {
-	delete _imgResampler;
-}
-
-void OsxFrameGrabber::setVideoMode(const VideoMode videoMode)
-{
-	_imgResampler->set3D(videoMode);
 }
 
 void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
@@ -53,7 +44,7 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	dispImage = CGDisplayCreateImage(_display);
 	
-	// dsiplay lost, use main
+	// display lost, use main
 	if (dispImage == NULL && _display)
 	{
 		dispImage = CGDisplayCreateImage(kCGDirectMainDisplay);
@@ -69,9 +60,9 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	dspWidth = CGImageGetWidth(dispImage);
 	dspHeight = CGImageGetHeight(dispImage);
 	
-	_imgResampler->setHorizontalPixelDecimation(dspWidth/_width);
-	_imgResampler->setVerticalPixelDecimation(dspHeight/_height);
-	_imgResampler->processImage( pImgData,
+	_imageResampler.setHorizontalPixelDecimation(dspWidth/_width);
+	_imageResampler.setVerticalPixelDecimation(dspHeight/_height);
+	_imageResampler.processImage( pImgData,
 								dspWidth,
 								dspHeight,
 								CGImageGetBytesPerRow(dispImage),

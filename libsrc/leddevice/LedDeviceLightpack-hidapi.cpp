@@ -209,7 +209,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = std::min(_hwLedCount,size);
+	int count = qMin(_hwLedCount,size);
 	for (int i=0; i<count; i++)
 	{
 		const ColorRgb & color = ledValues[i];

@@ -1,9 +1,3 @@
-// STL includes
-#include <algorithm>
-#include <cmath>
-#include <cassert>
-
-// hyperion includes
 #include <hyperion/ImageToLedsMap.h>
 
 using namespace hyperion;
@@ -21,8 +15,8 @@ ImageToLedsMap::ImageToLedsMap(
 	, _colorsMap()
 {
 	// Sanity check of the size of the borders (and width and height)
-	assert(_width  > 2*_verticalBorder);
-	assert(_height > 2*_horizontalBorder);
+	Q_ASSERT(_width  > 2*_verticalBorder);
+	Q_ASSERT(_height > 2*_horizontalBorder);
 
 	// Reserve enough space in the map for the leds
 	_colorsMap.reserve(leds.size());
@@ -42,18 +36,18 @@ ImageToLedsMap::ImageToLedsMap(
 		}
 
 		// Compute the index boundaries for this led
-		unsigned minX_idx = xOffset + unsigned(std::round(actualWidth  * led.minX_frac));
-		unsigned maxX_idx = xOffset + unsigned(std::round(actualWidth  * led.maxX_frac));
-		unsigned minY_idx = yOffset + unsigned(std::round(actualHeight * led.minY_frac));
-		unsigned maxY_idx = yOffset + unsigned(std::round(actualHeight * led.maxY_frac));
+		unsigned minX_idx = xOffset + unsigned(qRound(actualWidth  * led.minX_frac));
+		unsigned maxX_idx = xOffset + unsigned(qRound(actualWidth  * led.maxX_frac));
+		unsigned minY_idx = yOffset + unsigned(qRound(actualHeight * led.minY_frac));
+		unsigned maxY_idx = yOffset + unsigned(qRound(actualHeight * led.maxY_frac));
 
 		// make sure that the area is at least a single led large
-		minX_idx = std::min(minX_idx, xOffset + actualWidth - 1);
+		minX_idx = qMin(minX_idx, xOffset + actualWidth - 1);
 		if (minX_idx == maxX_idx)
 		{
 			maxX_idx = minX_idx + 1;
 		}
-		minY_idx = std::min(minY_idx, yOffset + actualHeight - 1);
+		minY_idx = qMin(minY_idx, yOffset + actualHeight - 1);
 		if (minY_idx == maxY_idx)
 		{
 			maxY_idx = minY_idx + 1;

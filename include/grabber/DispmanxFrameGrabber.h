@@ -4,20 +4,15 @@
 #pragma GCC system_header
 #include <bcm_host.h>
 
-// STL includes
-#include <cstdint>
-
 // Utils includes
-#include <utils/Image.h>
 #include <utils/ColorRgba.h>
-#include <utils/VideoMode.h>
-#include <utils/Logger.h>
+#include <hyperion/Grabber.h>
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
 /// downsized and scaled resolution.
 ///
-class DispmanxFrameGrabber
+class DispmanxFrameGrabber : public Grabber
 {
 public:
 	///
@@ -35,12 +30,6 @@ public:
 	/// @param vc_flags  The snapshot grabbing mask
 	///
 	void setFlags(const int vc_flags);
-
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(const VideoMode videoMode);
 
 	void setCropping(const unsigned cropLeft, const unsigned cropRight,
 			 const unsigned cropTop, const unsigned cropBottom);
@@ -68,23 +57,10 @@ private:
 	/// Flags (transforms) for creating snapshots
 	int _vc_flags;
 
-	/// With of the captured snapshot [pixels]
-	const unsigned _width;
-	/// Height of the captured snapshot [pixels]
-	const unsigned _height;
-
-	// the selected VideoMode
-	VideoMode _videoMode;
-
-	// number of pixels to crop after capturing
-	unsigned _cropLeft, _cropRight, _cropTop, _cropBottom;
-
 	// temp buffer when capturing with unsupported pitch size or
 	// when we need to crop the image
 	ColorRgba* _captureBuffer;
 
 	// size of the capture buffer in Pixels
 	unsigned _captureBufferSize;
-	
-	Logger * _log;
 };

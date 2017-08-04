@@ -10,12 +10,9 @@
 #include <QRectF>
 
 // util includes
-#include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/PixelFormat.h>
-#include <utils/VideoMode.h>
-#include <utils/ImageResampler.h>
-#include <utils/Logger.h>
+#include <hyperion/Grabber.h>
 
 // grabber includes
 #include <grabber/VideoStandard.h>
@@ -23,7 +20,7 @@
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-class V4L2Grabber : public QObject
+class V4L2Grabber : public Grabber
 {
 	Q_OBJECT
 
@@ -47,8 +44,6 @@ public slots:
 					 int cropRight,
 					 int cropTop,
 					 int cropBottom);
-
-	void set3D(VideoMode mode);
 
 	void setSignalThreshold(
 					double redSignalThreshold,
@@ -124,18 +119,16 @@ private:
 private:
 	QString _deviceName;
 	std::map<QString,QString> _v4lDevices;
-	int _input;
-	VideoStandard _videoStandard;
-	io_method _ioMethod;
-	int _fileDescriptor;
+	int                 _input;
+	VideoStandard       _videoStandard;
+	io_method           _ioMethod;
+	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 
 	PixelFormat _pixelFormat;
-	int _width;
-	int _height;
-	int _lineLength;
-	int _frameByteSize;
-	int _frameDecimation;
+	int         _lineLength;
+	int         _frameByteSize;
+	int         _frameDecimation;
 
 	// signal detection
 	int      _noSignalCounterThreshold;
@@ -151,11 +144,6 @@ private:
 
 	QSocketNotifier * _streamNotifier;
 
-	ImageResampler _imageResampler;
-	
-	Logger * _log;
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
-	
-
 };

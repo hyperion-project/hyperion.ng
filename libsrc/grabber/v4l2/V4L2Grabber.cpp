@@ -33,18 +33,17 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, int horizontalPixelDecimation
 		, int verticalPixelDecimation
 		)
-	: _deviceName(device)
+	: Grabber("V4L2:"+device, width, height)
+	, _deviceName(device)
 	, _input(input)
 	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _pixelFormat(pixelFormat)
-	, _width(width)
-	, _height(height)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
-	, _frameDecimation(std::max(1, frameDecimation))
+	, _frameDecimation(qMax(1, frameDecimation))
 	, _noSignalCounterThreshold(50)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
@@ -56,14 +55,12 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _y_frac_max(0.75)
 	, _currentFrame(0)
 	, _streamNotifier(nullptr)
-	, _imageResampler()
-	, _log(Logger::getInstance("V4L2:"+device))
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
 
 {
-	_imageResampler.setHorizontalPixelDecimation(std::max(1, horizontalPixelDecimation));
-	_imageResampler.setVerticalPixelDecimation(std::max(1, verticalPixelDecimation));
+	_imageResampler.setHorizontalPixelDecimation(qMax(1, horizontalPixelDecimation));
+	_imageResampler.setVerticalPixelDecimation(qMax(1, verticalPixelDecimation));
 
 	getV4Ldevices();
 }
@@ -188,17 +185,12 @@ void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
-void V4L2Grabber::set3D(VideoMode mode)
-{
-	_imageResampler.set3D(mode);
-}
-
 void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
 	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);
 	_noSignalThresholdColor.green = uint8_t(255*greenSignalThreshold);
 	_noSignalThresholdColor.blue  = uint8_t(255*blueSignalThreshold);
-	_noSignalCounterThreshold     = std::max(1, noSignalCounterThreshold);
+	_noSignalCounterThreshold     = qMax(1, noSignalCounterThreshold);
 
 	Info(_log, "Signal threshold set to: {%d, %d, %d}", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue );
 }

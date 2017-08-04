@@ -76,7 +76,7 @@
 			"type": "integer",
 			"title": "edt_eff_markerDepth",
 			"default": 5,
-			"minimum" : 1,
+			"minimum" : 0,
 			"maximum" : 50,
 			"append" : "edt_append_percent",
 			"options": {

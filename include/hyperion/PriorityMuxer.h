@@ -15,6 +15,11 @@
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
+// global defines
+#define SMOOTHING_MODE_DEFAULT 0
+#define SMOOTHING_MODE_PAUSE   1
+
+
 ///
 /// The PriorityMuxer handles the priority channels. Led values input is written to the priority map
 /// and the muxer keeps track of all active priorities. The current priority can be queried and per
@@ -40,6 +45,8 @@ public:
 		hyperion::Components componentId;
 		/// Who set it
 		QString origin;
+		/// id fo smoothing config
+		unsigned smooth_cfg;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
@@ -99,7 +106,7 @@ public:
 	/// @param[in] component The component of the channel
 	/// @param[in] origin Who set the channel
 	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
+	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smooth_cfg=SMOOTHING_MODE_DEFAULT);
 
 	///
 	/// Clears the specified priority channel

@@ -78,13 +78,14 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin)
+Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin, unsigned smoothCfg)
 	: QThread()
 	, _mainThreadState(mainThreadState)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _script(script)
 	, _name(name)
+	, _smoothCfg(smoothCfg)
 	, _args(args)
 	, _endTime(-1)
 	, _interpreterThreadState(nullptr)
@@ -93,7 +94,7 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	, _colors()
 	, _origin(origin)
 	, _imageSize(Hyperion::getInstance()->getLedGridSize())
-	,_image(_imageSize,QImage::Format_ARGB32_Premultiplied)
+	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
 {
 	_colors.resize(_imageProcessor->getLedCount());
 	_colors.fill(ColorRgb::BLACK);
@@ -277,7 +278,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
 			effect->_colors.fill(color);
-			effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+			effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin, effect->_smoothCfg);
 			return Py_BuildValue("");
 		}
 		return nullptr;
@@ -295,7 +296,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(effect->_colors.data(), data, length);
-					effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+					effect->setColors(effect->_priority, effect->_colors.toStdVector(), timeout, false, hyperion::COMP_EFFECT, effect->_origin, effect->_smoothCfg);
 					return Py_BuildValue("");
 				}
 				else
@@ -365,7 +366,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 				memcpy(image.memptr(), data, length);
 				std::vector<ColorRgb> v = effect->_colors.toStdVector();
 				effect->_imageProcessor->process(image, v);
-				effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+				effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin, effect->_smoothCfg);
 				return Py_BuildValue("");
 			}
 			else
@@ -456,7 +457,7 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
 	std::vector<ColorRgb> v = effect->_colors.toStdVector();
 	effect->_imageProcessor->process(image, v);
-	effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin);
+	effect->setColors(effect->_priority, v, timeout, false, hyperion::COMP_EFFECT, effect->_origin, effect->_smoothCfg);
 
 	return Py_BuildValue("");
 }
@@ -552,7 +553,7 @@ PyObject* Effect::wrapImageConicalGradient(PyObject *self, PyObject *args)
 	{
 		argsOK = true;
 	}
-	angle = std::max(std::min(angle,360),0);
+	angle = qMax(qMin(angle,360),0);
 
 	if (argsOK)
 	{
@@ -644,7 +645,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			{
 
 				QRect myQRect(startX,startY,width,height);
-				QRadialGradient gradient(QPoint(centerX,centerY), std::max(radius,0) );
+				QRadialGradient gradient(QPoint(centerX,centerY), qMax(radius,0) );
 				char * data = PyByteArray_AS_STRING(bytearray);
 
 				for (int idx=0; idx<length; idx+=4)
@@ -774,8 +775,8 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 	if (argsOK)
 	{
 		QPainter * painter = effect->_painter;
-		startAngle = std::max(std::min(startAngle,360),0);
-		spanAngle = std::max(std::min(spanAngle,360),-360);
+		startAngle = qMax(qMin(startAngle,360),0);
+		spanAngle = qMax(qMin(spanAngle,360),-360);
 
 		if( argCount == 7 || argCount == 5 )
 		{
@@ -1045,7 +1046,7 @@ PyObject* Effect::wrapImageMinSize(PyObject *self, PyObject *args)
 		{
 			delete effect->_painter;
 			
-			effect->_image = effect->_image.scaled(std::max(width,w),std::max(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+			effect->_image = effect->_image.scaled(qMax(width,w),qMax(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 			effect->_imageSize = effect->_image.size();
 			effect->_painter = new QPainter(&(effect->_image));
 		}
@@ -1075,7 +1076,7 @@ PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 	
 	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
 	{
-		angle = std::max(std::min(angle,360),0);
+		angle = qMax(qMin(angle,360),0);
 		effect->_painter->rotate(angle);
 		return Py_BuildValue("");
 	}

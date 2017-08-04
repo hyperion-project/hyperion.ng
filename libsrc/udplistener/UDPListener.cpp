@@ -1,6 +1,3 @@
-// system includes
-#include <stdexcept>
-
 // project includes
 #include <udplistener/UDPListener.h>
 
@@ -123,7 +120,7 @@ void UDPListener::processTheDatagram(const QByteArray * datagram, const QHostAdd
 
 	std::vector<ColorRgb> _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK);
 
-	for (int ledIndex=0; ledIndex < std::min(packetLedCount, hyperionLedCount); ledIndex++) {
+	for (int ledIndex=0; ledIndex < qMin(packetLedCount, hyperionLedCount); ledIndex++) {
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red   = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);

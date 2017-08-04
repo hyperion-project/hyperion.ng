@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleVersion</key>
+    <string>1489366340</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+
+    <key>CFBundleExecutable</key>
+    <string>hyperiond</string>
+    <key>CFBundleIconFile</key>
+    <string>Hyperion.icns</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.hyperion-project.Hyperion</string>
+    <key>CFBundleName</key>
+    <string>Hyperion</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.0</string>
+
+    <key>BuildMachineOSBuild</key>
+    <string>11G63</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+
+    <key>DTCompiler</key>
+    <string></string>
+    <key>DTPlatformBuild</key>
+    <string>4H1003</string>
+    <key>DTPlatformVersion</key>
+    <string>GM</string>
+    <key>DTSDKBuild</key>
+    <string>12D75</string>
+    <key>DTSDKName</key>
+    <string>macosx10.8</string>
+    <key>DTXcode</key>
+    <string>0462</string>
+    <key>DTXcodeBuild</key>
+    <string>4H1003</string>
+
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.6</string>
+
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2017 Hyperion team. All rights reserved.</string>
+    <!--key>NSMainNibFile</key>
+    <string>MainMenu</string-->
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUEnableSystemProfiling</key>
+    <false/>
+    <key>SUShowReleaseNotes</key>
+    <true/>
+    <key>SUAllowsAutomaticUpdates</key>
+    <true/>
+</dict>
+</plist>

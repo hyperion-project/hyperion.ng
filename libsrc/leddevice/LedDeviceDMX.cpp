@@ -38,7 +38,7 @@ bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
 	Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", QSTRING_CSTR(dmxString), _dmxDeviceType );
 	_rs232Port.setStopBits(QSerialPort::TwoStop);
 	
-	_dmxLedCount  =  std::min(_ledCount, 512/_dmxSlotsPerLed);
+	_dmxLedCount  =  qMin(_ledCount, 512/_dmxSlotsPerLed);
 	_dmxChannelCount  = 1 + _dmxSlotsPerLed * _dmxLedCount;
 
 	Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);

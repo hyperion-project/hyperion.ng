@@ -21,6 +21,8 @@
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
+#include <utils/VideoMode.h>
+#include <utils/GrabbingMode.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -47,6 +49,7 @@ class EffectEngine;
 class RgbChannelAdjustment;
 class MultiColorAdjustment;
 class KODIVideoChecker;
+
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
@@ -187,6 +190,12 @@ public:
 	QString id;
 
 	int getLatchTime() const;
+	
+	/// forward smoothing config
+	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+
+	VideoMode getCurrentVideoMode() { return _videoMode; };
+	GrabbingMode getCurrentGrabbingMode() { return _grabbingMode; };
 
 public slots:
 	///
@@ -206,8 +215,9 @@ public slots:
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	/// @param[in] component The current component
 	/// @param[in] origin Who set it
+	/// @param[in] smoothCfg smoothing config id
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smoothCfg=SMOOTHING_MODE_DEFAULT);
 
 	///
 	/// Writes the given colors to all leds for the given time and priority
@@ -275,6 +285,19 @@ public slots:
 	/// Slot which is called, when state of hyperion has been changed
 	void hyperionStateChanged();
 
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(VideoMode mode);
+	
+	///
+	/// Set the grabbing mode
+	/// @param[in] mode The new grabbing mode
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+
+
 public:
 	static Hyperion *_hyperion;
 
@@ -318,6 +341,11 @@ signals:
 
 	/// Signal which is emitted, after the hyperionStateChanged has been processed with a emit count blocker (250ms interval)
 	void sendServerInfo();
+
+	/// Signal emitted when a 3D movie is detected
+	void videoMode(VideoMode mode);
+
+	void grabbingMode(GrabbingMode mode);
 
 private slots:
 	///
@@ -427,4 +455,7 @@ private:
 	/// timers to handle severinfo blocking
 	QTimer _fsi_timer;
 	QTimer _fsi_blockTimer; 
+	
+	VideoMode _videoMode;
+	GrabbingMode _grabbingMode;
 };

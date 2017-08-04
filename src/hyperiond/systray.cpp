@@ -32,7 +32,6 @@ SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);
-	_colorDlg.setModal(true);
 	_colorDlg.setOptions(QColorDialog::NoButtons);
 }
 
@@ -58,21 +57,31 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 void SysTray::createTrayIcon()
 {
 	quitAction = new QAction(tr("&Quit"), this);
+	QIcon quitIcon = QIcon::fromTheme("application-exit");
+	quitAction->setIcon(quitIcon);
 	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
 	colorAction = new QAction(tr("&Color"), this);
+	QIcon colorIcon = QIcon::fromTheme("applications-graphics");
+	colorAction->setIcon(colorIcon);
 	connect(colorAction, SIGNAL(triggered()), this, SLOT(showColorDialog()));
 
 	settingsAction = new QAction(tr("&Settings"), this);
+	QIcon settingsIcon = QIcon::fromTheme("preferences-system");
+	settingsAction->setIcon(settingsIcon);
 	connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
 
 	clearAction = new QAction(tr("&Clear"), this);
+	QIcon clearIcon = QIcon::fromTheme("edit-delete");
+	clearAction->setIcon(clearIcon);
 	connect(clearAction, SIGNAL(triggered()), this, SLOT(clearEfxColor()));
 
 	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
 	_trayIconMenu = new QMenu(this);
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
+	QIcon efxIcon = QIcon::fromTheme("media-playback-start");
+	_trayIconEfxMenu->setIcon(efxIcon);
 	for (auto efx : efxs)
 	{
 		QAction *efxAction = new QAction(efx.name, this);

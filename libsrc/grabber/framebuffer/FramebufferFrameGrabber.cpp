@@ -12,14 +12,11 @@
 // Local includes
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height) :
-	_fbfd(0),
-	_fbp(0),
-	_fbDevice(device),
-	_width(width),
-	_height(height),
-	_imgResampler(new ImageResampler()),
-	_log(Logger::getInstance("FRAMEBUFFERGRABBER"))
+FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height)
+	: Grabber("FRAMEBUFFERGRABBER", width, height)
+	, _fbfd(0)
+	, _fbp(0)
+	, _fbDevice(device)
 {
 	int result;
 	struct fb_var_screeninfo vinfo;
@@ -48,12 +45,6 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const u
 
 FramebufferFrameGrabber::~FramebufferFrameGrabber()
 {
-	delete _imgResampler;
-}
-
-void FramebufferFrameGrabber::setVideoMode(const VideoMode videoMode)
-{
-	_imgResampler->set3D(videoMode);
 }
 
 void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
@@ -93,9 +84,9 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	/* map the device to memory */
 	_fbp = (unsigned char*)mmap(0, capSize, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _fbfd, 0);	
 
-	_imgResampler->setHorizontalPixelDecimation(vinfo.xres/_width);
-	_imgResampler->setVerticalPixelDecimation(vinfo.yres/_height);
-	_imgResampler->processImage(_fbp,
+	_imageResampler.setHorizontalPixelDecimation(vinfo.xres/_width);
+	_imageResampler.setVerticalPixelDecimation(vinfo.yres/_height);
+	_imageResampler.processImage(_fbp,
 								vinfo.xres,
 								vinfo.yres,
 								vinfo.xres * bytesPerPixel,

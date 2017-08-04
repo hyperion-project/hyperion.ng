@@ -46,6 +46,13 @@ public slots:
 	///
 	void setGrabbingMode(const GrabbingMode mode);
 
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	virtual void setVideoMode(const VideoMode videoMode) = 0;
+
+
 signals:
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
 

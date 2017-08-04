@@ -22,6 +22,9 @@ GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion
 
 	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _processor, SLOT(setLedMappingType(int))); 
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	connect(_hyperion, SIGNAL(grabbingMode(GrabbingMode)), this, SLOT(setGrabbingMode(GrabbingMode)));
+	connect(_hyperion, SIGNAL(videoMode(VideoMode)), this, SLOT(setVideoMode(VideoMode)));
+	connect(this, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
 }
 

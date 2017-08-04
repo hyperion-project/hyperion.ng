@@ -18,6 +18,10 @@ include_directories(
 SET(Leddevice_HEADERS
 	${CURRENT_HEADER_DIR}/LedDeviceFactory.h
 
+	${CURRENT_SOURCE_DIR}/ProviderRs232.h
+	${CURRENT_SOURCE_DIR}/ProviderHID.h
+	${CURRENT_SOURCE_DIR}/ProviderUdp.h
+
 	${CURRENT_SOURCE_DIR}/LedDeviceLightpack.h
 	${CURRENT_SOURCE_DIR}/LedDeviceMultiLightpack.h
 	${CURRENT_SOURCE_DIR}/LedDevicePaintpack.h
@@ -29,17 +33,14 @@ SET(Leddevice_HEADERS
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.h
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpArtNet.h
-	${CURRENT_SOURCE_DIR}/ProviderUdp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2.h
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2net.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmo.h
 	${CURRENT_HEADER_DIR}/LedDevice.h
-	${CURRENT_SOURCE_DIR}/ProviderRs232.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.h
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.h
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.h
-	${CURRENT_SOURCE_DIR}/ProviderHID.h
 	${CURRENT_SOURCE_DIR}/LedDeviceRawHID.h
 	${CURRENT_SOURCE_DIR}/LedDeviceFadeCandy.h
 )
@@ -50,6 +51,7 @@ SET(Leddevice_SOURCES
 
 	${CURRENT_SOURCE_DIR}/ProviderRs232.cpp
 	${CURRENT_SOURCE_DIR}/ProviderHID.cpp
+	${CURRENT_SOURCE_DIR}/ProviderUdp.cpp
 
 	${CURRENT_SOURCE_DIR}/LedDeviceAdalight.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceAtmoOrb.cpp
@@ -66,7 +68,6 @@ SET(Leddevice_SOURCES
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpH801.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpE131.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceUdpArtNet.cpp
-	${CURRENT_SOURCE_DIR}/ProviderUdp.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceHyperionUsbasp.cpp
 	${CURRENT_SOURCE_DIR}/LedDevicePhilipsHue.cpp
 	${CURRENT_SOURCE_DIR}/LedDeviceTpm2.cpp

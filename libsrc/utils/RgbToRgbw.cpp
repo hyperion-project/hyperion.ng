@@ -19,7 +19,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 	{
 		case SUBTRACT_MINIMUM:
 		{
-			output->white = std::min(std::min(input.red, input.green), input.blue);
+			output->white = qMin(qMin(input.red, input.green), input.blue);
 			output->red   = input.red   - output->white;
 			output->green = input.green - output->white;
 			output->blue  = input.blue  - output->white;
