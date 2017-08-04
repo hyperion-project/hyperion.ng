@@ -244,6 +244,12 @@ private:
 	///
 	void handleProcessingCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON VideoMode message
+	///
+	/// @param message the incoming message
+	///
+	void handleVideoModeCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

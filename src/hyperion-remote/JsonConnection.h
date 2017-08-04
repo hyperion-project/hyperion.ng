@@ -165,6 +165,10 @@ public:
 	/// @param mappingType led mapping type
 	void setLedMapping(QString mappingType);
 
+	// sets video mode 3D/2D
+	void setVideoMode(QString videoMode);
+
+
 private:
 	///
 	/// Send a json command message and receive its reply

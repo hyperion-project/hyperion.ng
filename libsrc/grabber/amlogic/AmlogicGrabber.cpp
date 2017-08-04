@@ -31,10 +31,8 @@
 #endif
 
 AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
-	: _width(qMax(160u, width))    // Minimum required width or height is 160
-	, _height(qMax(160u, height))
+	: Grabber("AMLOGICGRABBER", qMax(160u, width), qMax(160u, height)) // Minimum required width or height is 160
 	, _amlogicCaptureDev(-1)
-	, _log(Logger::getInstance("AMLOGICGRABBER"))
 {
 	Debug(_log, "constructed(%d x %d)",_width,_height);
 }
@@ -51,24 +49,13 @@ AmlogicGrabber::~AmlogicGrabber()
 	}
 }
 
-void AmlogicGrabber::setVideoMode(const VideoMode videoMode)
-{
-	switch (videoMode) {
-	case VIDEO_3DSBS:
-		//vc_dispmanx_rect_set(&_rectangle, 0, 0, _width/2, _height);
-		break;
-	case VIDEO_3DTAB:
-		//vc_dispmanx_rect_set(&_rectangle, 0, 0, _width, _height/2);
-		break;
-	case VIDEO_2D:
-	default:
-		//vc_dispmanx_rect_set(&_rectangle, 0, 0, _width, _height);
-		break;
-	}
-}
 
 bool AmlogicGrabber::isVideoPlaying()
 {
+	
+	// TODO crop resulting image accroding member _videoMode
+	// TODO add croping
+	
 	const QString videoDevice = "/dev/amvideo";
 
 	// Open the video device
@@ -97,7 +84,7 @@ bool AmlogicGrabber::isVideoPlaying()
 int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 {
 	// resize the given image if needed
-	if (image.width() != _width || image.height() != _height)
+	if (image.width() != (unsigned)_width || image.height() != (unsigned)_height)
 	{
 		image.resize(_width, _height);
 	}

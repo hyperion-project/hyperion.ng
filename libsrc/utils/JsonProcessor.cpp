@@ -136,6 +136,7 @@ void JsonProcessor::handleMessage(const QString& messageString, const QString pe
 		else if (command == "ledcolors")      handleLedColorsCommand     (message, command, tan);
 		else if (command == "logging")        handleLoggingCommand       (message, command, tan);
 		else if (command == "processing")     handleProcessingCommand    (message, command, tan);
+		else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
 		else                                  handleNotImplemented       ();
  	}
  	catch (std::exception& e)
@@ -583,7 +584,7 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 
 	// get available led devices
 	QJsonObject ledDevices;
-	ledDevices["active"] =LedDevice::activeDevice();
+	ledDevices["active"] = LedDevice::activeDevice();
 	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
@@ -593,21 +594,19 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 	ledDevices["available"] = availableLedDevices;
 	info["ledDevices"] = ledDevices;
 
+	QJsonObject grabbers;
+	QJsonArray availableGrabbers;
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
 	// get available grabbers
-	QJsonObject grabbers;
 	//grabbers["active"] = ????;
-	QJsonArray availableGrabbers;
 	for (auto grabber: GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
 	}
-
-	grabbers["available"] = availableGrabbers;
-	info["grabbers"] = grabbers;
-#else
-	info["grabbers"] = QString("none");
 #endif
+	grabbers["available"] = availableGrabbers;
+	grabbers["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+	info["grabbers"]      = grabbers;
 
 	// get available components
 	QJsonArray component;
@@ -1032,6 +1031,13 @@ void JsonProcessor::handleLoggingCommand(const QJsonObject& message, const QStri
 void JsonProcessor::handleProcessingCommand(const QJsonObject& message, const QString &command, const int tan)
 {
 	_hyperion->setLedMappingType(ImageProcessor::mappingTypeToInt( message["mappingType"].toString("multicolor_mean")) );
+
+	sendSuccessReply(command, tan);
+}
+
+void JsonProcessor::handleVideoModeCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	_hyperion->setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
 
 	sendSuccessReply(command, tan);
 }

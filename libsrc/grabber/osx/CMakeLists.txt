@@ -2,20 +2,9 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/osx)
 
-SET(OsxGrabberHEADERS
-	${CURRENT_HEADER_DIR}/OsxWrapper.h
-	${CURRENT_HEADER_DIR}/OsxFrameGrabber.h
-)
+FILE ( GLOB OsxGrabberSOURCES "${CURRENT_HEADER_DIR}/Osx*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-SET(OsxGrabberSOURCES
-	${CURRENT_SOURCE_DIR}/OsxWrapper.cpp
-	${CURRENT_SOURCE_DIR}/OsxFrameGrabber.cpp
-)
-
-add_library(osx-grabber
-	${OsxGrabberHEADERS}
-	${OsxGrabberSOURCES}
-)
+add_library(osx-grabber ${OsxGrabberSOURCES} )
 
 target_link_libraries(osx-grabber
 	hyperion

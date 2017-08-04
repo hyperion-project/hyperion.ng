@@ -3,29 +3,9 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/bonjour)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/bonjour)
 
-set(Bonjour_HEADERS
-	${CURRENT_HEADER_DIR}/bonjourserviceregister.h
-	${CURRENT_HEADER_DIR}/bonjourservicebrowser.h
-	${CURRENT_HEADER_DIR}/bonjourserviceresolver.h
-)
+FILE ( GLOB Bonjour_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-set(Bonjour_SOURCES
-		${CURRENT_SOURCE_DIR}/bonjourserviceregister.cpp
-		${CURRENT_SOURCE_DIR}/bonjourservicebrowser.cpp
-		${CURRENT_SOURCE_DIR}/bonjourserviceresolver.cpp
-)
-
-#set(Bonjour_RESOURCES
-#)
-
-#qt5_add_resources(Bonjour_RESOURCES_RCC ${Bonjour_RESOURCES} OPTIONS "-no-compress")
-
-add_library(bonjour
-		${Bonjour_HEADERS}
-		${Bonjour_SOURCES}
-		${Bonjour_RESOURCES}
-		${Bonjour_RESOURCES_RCC}
-)
+add_library(bonjour ${Bonjour_SOURCES} )
 
 target_link_libraries(bonjour
 		hyperion

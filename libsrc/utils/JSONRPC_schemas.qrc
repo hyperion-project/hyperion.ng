@@ -17,5 +17,6 @@
         <file alias="schema-ledcolors">JSONRPC_schema/schema-ledcolors.json</file>
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
+        <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
     </qresource>
 </RCC>
