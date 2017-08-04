@@ -1,6 +1,10 @@
 # cmake file for generating distribution packages
 
-SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ" "Bundle") # "RPM"
+IF (APPLE)
+	SET ( CPACK_GENERATOR "TGZ" "Bundle") # "RPM"
+ELSE()
+	SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ") # "RPM"
+ENDIF()
 
 SET ( CPACK_PACKAGE_NAME "hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
