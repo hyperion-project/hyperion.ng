@@ -20,6 +20,50 @@
 			"maximum" : 1.0,
 			"step" : 0.1,
 			"propertyOrder" : 2
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom_title",
+			"default" : false,
+			"propertyOrder" : 3
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms_title",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 4
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency_title",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"propertyOrder" : 5
+		},
+		"smoothing-updateDelay" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_updateDelay_title",
+			"minimum" : 0,
+			"maximum": 2048,
+			"default" : 0,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 6
+		},
+		"smoothing-pause" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_pause_title",
+			"default" : false,
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": false
