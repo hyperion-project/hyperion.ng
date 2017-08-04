@@ -23,7 +23,7 @@ SET ( CPACK_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
 SET ( CPACK_BUNDLE_NAME "Hyperion" )
 SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
 SET ( CPACK_BUNDLE_PLIST - path to a file that will become the bundle plist. )
-SET ( CPACK_BUNDLE_STARTUP_COMMAND - path to a file that will be executed when the user opens the bundle. Could be a shell-script or a binary.
+SET ( CPACK_BUNDLE_STARTUP_COMMAND - path to a file that will be executed when the user opens the bundle. Could be a shell-script or a binary. )
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
