@@ -183,7 +183,7 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 	}
 		
 	effectDefinition.args = config["args"].toObject();
-	effectDefinition.smoothCfg = 1;
+	effectDefinition.smoothCfg = SMOOTHING_MODE_PAUSE;
 	if (effectDefinition.args["smoothing-custom-settings"].toBool())
 	{
 		bool pause = effectDefinition.args["smoothing-pause"].toBool();

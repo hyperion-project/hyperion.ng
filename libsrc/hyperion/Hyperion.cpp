@@ -483,11 +483,6 @@ unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequ
 	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
 }
 
-unsigned Hyperion::addSmoothingConfig(bool pause)
-{
-	return _deviceSmooth->addConfig(pause);
-}
-
 void Hyperion::freeObjects(bool emitCloseSignal)
 {
 	if (emitCloseSignal)

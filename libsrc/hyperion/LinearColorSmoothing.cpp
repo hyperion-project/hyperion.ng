@@ -26,6 +26,12 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	_timer.setInterval(_updateInterval);
 
 	selectConfig( addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay) );
+	
+	// add pause on cfg 1
+	SMOOTHING_CFG cfg = {true, 100, 50, 0};
+	_cfgList.append(cfg);
+	Info( _log, "smoothing cfg %d: pause",  _cfgList.count()-1);
+
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 }
 
@@ -167,15 +173,6 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 	_cfgList.append(cfg);
 	
 	Info( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, cfg.updateInterval, cfg.settlingTime,  cfg.outputDelay );
-	return _cfgList.count() - 1;
-}
-
-unsigned LinearColorSmoothing::addConfig(bool pause)
-{
-	SMOOTHING_CFG cfg = {true, 100, 50, 0};
-	_cfgList.append(cfg);
-
-	Info( _log, "smoothing cfg %d: pause",  _cfgList.count()-1);
 	return _cfgList.count() - 1;
 }
 

@@ -47,7 +47,6 @@ public:
 	bool enabled() { return LedDevice::enabled() && !_pause; };
 
 	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
-	unsigned addConfig(bool pause);
 	bool selectConfig(unsigned cfg);
 
 private slots:
