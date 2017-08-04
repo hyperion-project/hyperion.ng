@@ -36,6 +36,11 @@
 			"maximum": 600,
 			"default" : 200,
 			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
 			"propertyOrder" : 4
 		},
 		"smoothing-updateFrequency" :
@@ -46,6 +51,11 @@
 			"maximum" : 100.0,
 			"default" : 25.0,
 			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
 			"propertyOrder" : 5
 		},
 		"smoothing-updateDelay" :
@@ -56,6 +66,11 @@
 			"maximum": 2048,
 			"default" : 0,
 			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
 			"propertyOrder" : 6
 		},
 		"smoothing-pause" :
@@ -63,6 +78,11 @@
 			"type" : "boolean",
 			"title" : "edt_eff_smooth_pause_title",
 			"default" : false,
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
 			"propertyOrder" : 7
 		}
 	},
