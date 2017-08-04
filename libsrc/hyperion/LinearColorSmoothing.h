@@ -6,6 +6,7 @@
 
 // Qt includes
 #include <QTimer>
+#include <QVector>
 
 // hyperion incluse
 #include <leddevice/LedDevice.h>
@@ -33,7 +34,7 @@ public:
 	/// write updated values as input for the smoothing filter
 	///
 	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @return Zero on success else negative
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
@@ -44,6 +45,9 @@ public:
 	void setPause(bool pause);
 	bool pause() { return _pause; } ;
 	bool enabled() { return LedDevice::enabled() && !_pause; };
+
+	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+	bool selectConfig(unsigned cfg);
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
@@ -61,10 +65,10 @@ private:
 	LedDevice * _ledDevice;
 
 	/// The interval at which to update the leds (msec)
-	const int64_t _updateInterval;
+	int64_t _updateInterval;
 
 	/// The time after which the updated led values have been fully applied (msec)
-	const int64_t _settlingTime;
+	int64_t _settlingTime;
 
 	/// The Qt timer object
 	QTimer _timer;
@@ -82,7 +86,7 @@ private:
 	std::vector<ColorRgb> _previousValues;
 
 	/// The number of updates to keep in the output queue (delayed) before being output
-	const unsigned _outputDelay;
+	unsigned _outputDelay;
 	/// The output queue
 	std::list<std::vector<ColorRgb> > _outputQueue;
 
@@ -94,4 +98,17 @@ private:
 
 	/// Flag for pausing
 	bool _pause;
+
+	struct SMOOTHING_CFG
+	{
+		bool     pause;
+		int64_t  settlingTime;
+		int64_t  updateInterval;
+		unsigned outputDelay;
+	};
+
+	/// config list
+	QVector<SMOOTHING_CFG> _cfgList;
+	
+	unsigned _currentConfigId;
 };

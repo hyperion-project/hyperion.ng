@@ -1,9 +1,4 @@
-// STL includes
-#include <iostream>
-#include <cstdint>
 #include <utils/Logger.h>
-
-// X11Grabber includes
 #include <grabber/X11Grabber.h>
 
 X11Grabber::X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation)
@@ -137,7 +132,7 @@ Image<ColorRgb> & X11Grabber::grab()
 	{
 		double scale_x = static_cast<double>(_windowAttr.width / _horizontalDecimation) / static_cast<double>(_windowAttr.width);
 		double scale_y = static_cast<double>(_windowAttr.height / _verticalDecimation) / static_cast<double>(_windowAttr.height);
-		double scale = std::min(scale_y, scale_x);
+		double scale = qMin(scale_y, scale_x);
 		
 		_transform =
 		{
@@ -215,7 +210,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image)
 	{
 		double scale_x = static_cast<double>(_windowAttr.width / _horizontalDecimation) / static_cast<double>(_windowAttr.width);
 		double scale_y = static_cast<double>(_windowAttr.height / _verticalDecimation) / static_cast<double>(_windowAttr.height);
-		double scale = std::min(scale_y, scale_x);
+		double scale = qMin(scale_y, scale_x);
 		
 		_transform =
 		{

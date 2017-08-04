@@ -79,7 +79,7 @@ The Sequence field is set to 0x00 to disable this feature.
 		if ( (ledIdx == _ledRGBCount-1) || (dmxIdx >= DMX_MAX) )
 		{
 			prepare(thisUniverse, _artnet_seq, dmxIdx);
-			retVal &= writeBytes(18 + std::min(dmxIdx, DMX_MAX), artnet_packet.raw);
+			retVal &= writeBytes(18 + qMin(dmxIdx, DMX_MAX), artnet_packet.raw);
 
 			memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
 			thisUniverse ++;

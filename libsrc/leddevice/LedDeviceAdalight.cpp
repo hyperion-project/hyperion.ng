@@ -26,7 +26,7 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 	{
 		const unsigned int startFrameSize = 4;
 		const unsigned int bytesPerRGBLed = 4;
-		const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), bytesPerRGBLed);
+		const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), bytesPerRGBLed);
 		_ledBuffer.resize(_headerSize + (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize, 0x00);
 		
 		// init constant data values

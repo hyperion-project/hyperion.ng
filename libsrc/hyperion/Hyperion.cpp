@@ -1,10 +1,8 @@
 
 // STL includes
-#include <cassert>
 #include <exception>
 #include <sstream>
 #include <unistd.h>
-#include <iostream>
 
 // QT includes
 #include <QDateTime>
@@ -208,10 +206,10 @@ LedString Hyperion::createLedString(const QJsonValue& ledsConfig, const ColorOrd
 		{
 			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
 			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-			led.minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].toDouble()));
-			led.maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].toDouble()));
-			led.minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].toDouble()));
-			led.maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].toDouble()));
+			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
+			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
+			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
+			led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
 			// Fix if the user swapped min and max
 			if (led.minX_frac > led.maxX_frac)
 			{
@@ -287,10 +285,10 @@ QSize Hyperion::getLedLayoutGridSize(const QJsonValue& ledsConfig)
 		{
 			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
 			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-			double minX_frac = std::max(0.0, std::min(1.0, hscanConfig["minimum"].toDouble()));
-			double maxX_frac = std::max(0.0, std::min(1.0, hscanConfig["maximum"].toDouble()));
-			double minY_frac = std::max(0.0, std::min(1.0, vscanConfig["minimum"].toDouble()));
-			double maxY_frac = std::max(0.0, std::min(1.0, vscanConfig["maximum"].toDouble()));
+			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
+			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
+			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
+			double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
 			// Fix if the user swapped min and max
 			if (minX_frac > maxX_frac)
 			{
@@ -345,7 +343,7 @@ LinearColorSmoothing * Hyperion::createColorSmoothing(const QJsonObject & smooth
 	device->setEnable(smoothingConfig["enable"].toBool(true));
 	InfoIf(!device->enabled(), CORE_LOGGER,"Smoothing disabled");
 
-	assert(device != nullptr);
+	Q_ASSERT(device != nullptr);
 	return device;
 }
 
@@ -427,6 +425,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, _deviceSmooth->componentState());
 	getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
 
+	_deviceSmooth->addConfig(true); // add pause to config 1
+
 	// setup the timer
 	_timer.setSingleShot(true);
 	QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -436,12 +436,12 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	QObject::connect(&_timerBonjourResolver, SIGNAL(timeout()), this, SLOT(bonjourResolve()));
 	_timerBonjourResolver.start();
 
-	// create the effect engine
+	// create the effect engine, must be initialized after smoothing!
 	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
 
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
-	_hwLedCount = std::max(hwLedCount, getLedCount());
+	_hwLedCount = qMax(hwLedCount, getLedCount());
 	Debug(_log,"configured leds: %d hw leds: %d", getLedCount(), _hwLedCount);
 	WarningIf(hwLedCount < getLedCount(), _log, "more leds configured than available. check 'ledCount' in 'device' section");
 
@@ -476,6 +476,11 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 int Hyperion::getLatchTime() const
 {
   return _device->getLatchTime();
+}
+
+unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+{
+	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
 }
 
 void Hyperion::freeObjects(bool emitCloseSignal)
@@ -664,7 +669,7 @@ void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_m
 	setColors(priority, ledColors, timeout_ms, clearEffects, hyperion::COMP_COLOR);
 }
 
-void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin)
+void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, bool clearEffects, hyperion::Components component, const QString origin, unsigned smoothCfg)
 {
 	// clear effects if this call does not come from an effect
 	if (clearEffects)
@@ -675,11 +680,11 @@ void Hyperion::setColors(int priority, const std::vector<ColorRgb>& ledColors, c
 	if (timeout_ms > 0)
 	{
 		const uint64_t timeoutTime = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
-		_muxer.setInput(priority, ledColors, timeoutTime, component, origin);
+		_muxer.setInput(priority, ledColors, timeoutTime, component, origin, smoothCfg);
 	}
 	else
 	{
-		_muxer.setInput(priority, ledColors, -1, component, origin);
+		_muxer.setInput(priority, ledColors, -1, component, origin, smoothCfg);
 	}
 
 	if (! _sourceAutoSelectEnabled || priority == _muxer.getCurrentPriority())
@@ -891,7 +896,8 @@ void Hyperion::update()
 	// Write the data to the device
 	if (_device->enabled())
 	{
-		_deviceSmooth->setPause(priorityInfo.componentId == hyperion::COMP_EFFECT);
+		_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
+
 		// feed smoothing in pause mode to maintain a smooth transistion back to smoth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			_deviceSmooth->setLedValues(_ledBuffer);
@@ -907,9 +913,9 @@ void Hyperion::update()
 	}
 	else
 	{
-		int timeout_ms = std::max(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
-		// std::min() 200ms forced refresh if color is active to update priorityMuxer properly for forced serverinfo push
-		_timer.start(std::min(timeout_ms, 200));
+		int timeout_ms = qMax(0, int(priorityInfo.timeoutTime_ms - QDateTime::currentMSecsSinceEpoch()));
+		// qMin() 200ms forced refresh if color is active to update priorityMuxer properly for forced serverinfo push
+		_timer.start(qMin(timeout_ms, 200));
 	}
 
 }

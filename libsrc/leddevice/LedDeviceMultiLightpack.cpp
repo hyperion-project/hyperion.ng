@@ -81,7 +81,7 @@ int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
-		int count = std::min(device->getLedCount(), size);
+		int count = qMin(device->getLedCount(), size);
 
 		if (count > 0)
 		{

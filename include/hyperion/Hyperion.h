@@ -47,6 +47,7 @@ class EffectEngine;
 class RgbChannelAdjustment;
 class MultiColorAdjustment;
 class KODIVideoChecker;
+
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
@@ -187,6 +188,9 @@ public:
 	QString id;
 
 	int getLatchTime() const;
+	
+	/// forward smoothing config
+	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
 public slots:
 	///
@@ -206,8 +210,9 @@ public slots:
 	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
 	/// @param[in] component The current component
 	/// @param[in] origin Who set it
+	/// @param[in] smoothCfg smoothing config id
 	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System");
+	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smoothCfg=SMOOTHING_MODE_DEFAULT);
 
 	///
 	/// Writes the given colors to all leds for the given time and priority

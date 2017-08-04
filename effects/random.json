@@ -4,6 +4,11 @@
 	"args"   :
 	{
 		"speed"      : 750,
-		"saturation" : 1.0
+		"saturation" : 1.0,
+		"smoothing-custom-settings" : true,
+		"smoothing-time_ms" : 200,
+		"smoothing-updateDelay" : 0,
+		"smoothing-updateFrequency" : 20.0,
+		"smoothing-pause" : false
 	}
 }
