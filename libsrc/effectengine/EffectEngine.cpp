@@ -1,13 +1,13 @@
+// Python includes
+#include <Python.h>
+#undef B0
+
 // Qt includes
 #include <QResource>
 #include <QMetaType>
 #include <QFile>
 #include <QDir>
 #include <QMap>
-
-// Python includes
-#include <Python.h>
-#undef B0
 
 // hyperion util includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
