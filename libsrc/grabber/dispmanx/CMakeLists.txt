@@ -1,4 +1,3 @@
-
 # Find the BCM-package (VC control)
 find_package(BCM REQUIRED)
 include_directories(${BCM_INCLUDE_DIRS})
@@ -7,20 +6,9 @@ include_directories(${BCM_INCLUDE_DIRS})
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/dispmanx)
 
-SET(DispmanxGrabberHEADERS
-	${CURRENT_HEADER_DIR}/DispmanxWrapper.h
-	${CURRENT_HEADER_DIR}/DispmanxFrameGrabber.h
-)
+FILE ( GLOB DispmanxGrabberSOURCES "${CURRENT_HEADER_DIR}/Dispmanx*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-SET(DispmanxGrabberSOURCES
-	${CURRENT_SOURCE_DIR}/DispmanxWrapper.cpp
-	${CURRENT_SOURCE_DIR}/DispmanxFrameGrabber.cpp
-)
-
-add_library(dispmanx-grabber
-	${DispmanxGrabberHEADERS}
-	${DispmanxGrabberSOURCES}
-)
+add_library(dispmanx-grabber ${DispmanxGrabberSOURCES} )
 
 target_link_libraries(dispmanx-grabber
 	hyperion

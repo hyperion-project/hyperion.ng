@@ -3,22 +3,12 @@
 set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/jsonserver)
 set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/jsonserver)
 
-set(JsonServer_HEADERS
-	${CURRENT_HEADER_DIR}/JsonServer.h
-	${CURRENT_SOURCE_DIR}/JsonClientConnection.h
-)
+FILE ( GLOB JsonServer_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-set(JsonServer_SOURCES
-	${CURRENT_SOURCE_DIR}/JsonServer.cpp
-	${CURRENT_SOURCE_DIR}/JsonClientConnection.cpp
-)
-
-add_library(jsonserver
-	${JsonServer_HEADERS}
-	${JsonServer_SOURCES}
-)
+add_library(jsonserver ${JsonServer_SOURCES} )
 
 target_link_libraries(jsonserver
 	hyperion
 	Qt5::Network
-	Qt5::Gui)
+	Qt5::Gui
+)

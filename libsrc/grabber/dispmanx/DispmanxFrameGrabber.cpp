@@ -66,7 +66,7 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 
 void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
 {
-	if (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height)
+	if (cropLeft + cropRight >= (unsigned)_width || cropTop + cropBottom >= (unsigned)_height)
 	{
 		Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d", cropLeft, cropRight, cropTop, cropBottom);
 		return;
