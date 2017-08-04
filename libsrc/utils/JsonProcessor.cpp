@@ -584,7 +584,7 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 
 	// get available led devices
 	QJsonObject ledDevices;
-	ledDevices["active"] =LedDevice::activeDevice();
+	ledDevices["active"] = LedDevice::activeDevice();
 	QJsonArray availableLedDevices;
 	for (auto dev: LedDevice::getDeviceMap())
 	{
@@ -594,21 +594,20 @@ void JsonProcessor::handleServerInfoCommand(const QJsonObject&, const QString& c
 	ledDevices["available"] = availableLedDevices;
 	info["ledDevices"] = ledDevices;
 
+	QJsonObject grabbers;
+	QJsonArray availableGrabbers;
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
 	// get available grabbers
-	QJsonObject grabbers;
 	//grabbers["active"] = ????;
-	QJsonArray availableGrabbers;
 	for (auto grabber: GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
 	}
-
-	grabbers["available"] = availableGrabbers;
-	info["grabbers"] = grabbers;
-#else
-	info["grabbers"] = QString("none");
 #endif
+	grabbers["available"]    = availableGrabbers;
+	grabbers["videomode"]    = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+	grabbers["grabbingmode"] = QString(grabbingMode2String(_hyperion->getCurrentGrabbingMode()));
+	info["grabbers"]         = grabbers;
 
 	// get available components
 	QJsonArray component;
