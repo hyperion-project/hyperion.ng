@@ -1,6 +1,10 @@
 # cmake file for generating distribution packages
 
-SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ" ) # "RPM" 
+IF (APPLE)
+	SET ( CPACK_GENERATOR "TGZ" "Bundle") # "RPM"
+ELSE()
+	SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ") # "RPM"
+ENDIF()
 
 SET ( CPACK_PACKAGE_NAME "hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
@@ -15,8 +19,15 @@ SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.2.0), libqt5network5 (>= 
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 SET ( CPACK_RPM_PACKAGE_NAME "Hyperion" )
-SET ( CPACK_RPM_PACKAGE_URL "https://github.com/hyperion-project/hyperion" )
+SET ( CPACK_RPM_PACKAGE_URL "https://github.com/hyperion-project/hyperion.ng" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
+
+SET ( CPACK_PACKAGE_FILE_NAME "Hyperion")
+SET ( CPACK_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
+SET ( CPACK_BUNDLE_NAME "Hyperion" )
+SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
+SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Info.plist )
+#SET ( CPACK_BUNDLE_STARTUP_COMMAND - path to a file that will be executed when the user opens the bundle. Could be a shell-script or a binary. )
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
