@@ -44,7 +44,7 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	dispImage = CGDisplayCreateImage(_display);
 	
-	// dsiplay lost, use main
+	// display lost, use main
 	if (dispImage == NULL && _display)
 	{
 		dispImage = CGDisplayCreateImage(kCGDirectMainDisplay);
@@ -60,9 +60,9 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	dspWidth = CGImageGetWidth(dispImage);
 	dspHeight = CGImageGetHeight(dispImage);
 	
-	_imgResampler.setHorizontalPixelDecimation(dspWidth/_width);
-	_imgResampler.setVerticalPixelDecimation(dspHeight/_height);
-	_imgResampler.processImage( pImgData,
+	_imageResampler.setHorizontalPixelDecimation(dspWidth/_width);
+	_imageResampler.setVerticalPixelDecimation(dspHeight/_height);
+	_imageResampler.processImage( pImgData,
 								dspWidth,
 								dspHeight,
 								CGImageGetBytesPerRow(dispImage),
