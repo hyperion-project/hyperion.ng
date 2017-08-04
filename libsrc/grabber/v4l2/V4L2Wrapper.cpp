@@ -15,7 +15,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		double redSignalThreshold,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
-		const int priority)
+		const int priority,
+		bool useGrabbingMode)
 	: GrabberWrapper("V4L2:"+device, priority, hyperion::COMP_V4L)
 	, _timeout_ms(1000)
 	, _grabber(device,
@@ -42,6 +43,10 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 
 	QObject::connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 
+	if (!useGrabbingMode)
+	{
+			disconnect(_hyperion, SIGNAL(grabbingMode(GrabbingMode)), this, 0);
+	}
 	// send color data to Hyperion using a queued connection to handle the data over to the main event loop
 // 	QObject::connect(
 // 				this, SIGNAL(emitColors(int,std::vector<ColorRgb>,int)),
@@ -82,7 +87,7 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 
 void V4L2Wrapper::setVideoMode(VideoMode mode)
 {
-	_grabber.set3D(mode);
+	_grabber.setVideoMode(mode);
 }
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)

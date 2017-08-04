@@ -22,6 +22,7 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
+#include <utils/GrabbingMode.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -281,7 +282,18 @@ public slots:
 	/// Slot which is called, when state of hyperion has been changed
 	void hyperionStateChanged();
 
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
 	void setVideoMode(VideoMode mode);
+	
+	///
+	/// Set the grabbing mode
+	/// @param[in] mode The new grabbing mode
+	///
+	void setGrabbingMode(const GrabbingMode mode);
+
 
 public:
 	static Hyperion *_hyperion;
@@ -328,7 +340,9 @@ signals:
 	void sendServerInfo();
 
 	/// Signal emitted when a 3D movie is detected
-	void videoMode(VideoMode videoMode);
+	void videoMode(VideoMode mode);
+
+	void grabbingMode(GrabbingMode mode);
 
 private slots:
 	///

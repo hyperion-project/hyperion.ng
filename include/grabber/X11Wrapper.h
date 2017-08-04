@@ -17,7 +17,6 @@ class ImageProcessor;
 ///
 class X11Wrapper: public GrabberWrapper
 {
-	Q_OBJECT
 public:
 	///
 	/// Constructs the framebuffer frame grabber with a specified grab size and update rate.

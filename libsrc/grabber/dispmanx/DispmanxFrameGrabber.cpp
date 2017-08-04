@@ -6,20 +6,13 @@
 // Local includes
 #include "grabber/DispmanxFrameGrabber.h"
 
-DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height) :
-	_vc_display(0),
-	_vc_resource(0),
-	_vc_flags(0),
-	_width(width),
-	_height(height),
-	_videoMode(VIDEO_2D),
-	_cropLeft(0),
-	_cropRight(0),
-	_cropTop(0),
-	_cropBottom(0),
-	_captureBuffer(new ColorRgba[0]),
-	_captureBufferSize(0),
-	_log(Logger::getInstance("DISPMANXGRABBER"))
+DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height)
+	: Grabber("DISPMANXGRABBER", width, height)
+	, _vc_display(0)
+	, _vc_resource(0)
+	, _vc_flags(0)
+	, _captureBuffer(new ColorRgba[0])
+	, _captureBufferSize(0)
 {
 	// Initiase BCM
 	bcm_host_init();
@@ -69,11 +62,6 @@ DispmanxFrameGrabber::~DispmanxFrameGrabber()
 void DispmanxFrameGrabber::setFlags(const int vc_flags)
 {
 	_vc_flags = vc_flags;
-}
-
-void DispmanxFrameGrabber::setVideoMode(const VideoMode videoMode)
-{
-	_videoMode = videoMode;
 }
 
 void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)

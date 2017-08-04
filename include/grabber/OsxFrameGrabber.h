@@ -4,16 +4,13 @@
 #include <CoreGraphics/CoreGraphics.h>
 
 // Utils includes
-#include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
-#include <utils/ImageResampler.h>
-#include <utils/Logger.h>
+#include <hyperion/Grabber.h>
 
 ///
 /// The OsxFrameGrabber is used for creating snapshots of the display (screenshots) 
 ///
-class OsxFrameGrabber
+class OsxFrameGrabber : public Grabber
 {
 public:
 	///
@@ -25,12 +22,6 @@ public:
 	///
 	OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height);
 	~OsxFrameGrabber();
-
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(const VideoMode videoMode);
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -46,17 +37,6 @@ private:
 	/// display
 	const unsigned _screenIndex;
 	
-	/// With of the captured snapshot [pixels]
-	const unsigned _width;
-	
-	/// Height of the captured snapshot [pixels]
-	const unsigned _height;
-	
 	/// Reference to the captured diaplay
 	CGDirectDisplayID _display;
-	
-	/// Image resampler for downscaling the image
-	ImageResampler * _imgResampler;
-	
-	Logger * _log;
 };

@@ -3,46 +3,11 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
-SET(Hyperion_HEADERS
-	${CURRENT_HEADER_DIR}/ImageProcessorFactory.h
-	${CURRENT_HEADER_DIR}/ImageToLedsMap.h
-	${CURRENT_HEADER_DIR}/LedString.h
+FILE ( GLOB Hyperion_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
-	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.h
-	${CURRENT_HEADER_DIR}/MessageForwarder.h
-
-	${CURRENT_HEADER_DIR}/Hyperion.h
-	${CURRENT_HEADER_DIR}/ImageProcessor.h
-
-	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.h
-	${CURRENT_HEADER_DIR}/GrabberWrapper.h
-	${CURRENT_HEADER_DIR}/ComponentRegister.h
-	${CURRENT_HEADER_DIR}/PriorityMuxer.h
-)
-
-SET(Hyperion_SOURCES
-	${CURRENT_SOURCE_DIR}/Hyperion.cpp
-	${CURRENT_SOURCE_DIR}/ImageProcessor.cpp
-	${CURRENT_SOURCE_DIR}/ImageProcessorFactory.cpp
-	${CURRENT_SOURCE_DIR}/LedString.cpp
-	${CURRENT_SOURCE_DIR}/PriorityMuxer.cpp
-
-	${CURRENT_SOURCE_DIR}/ImageToLedsMap.cpp
-	${CURRENT_SOURCE_DIR}/MultiColorAdjustment.cpp
-	${CURRENT_SOURCE_DIR}/LinearColorSmoothing.cpp
-	${CURRENT_SOURCE_DIR}/MessageForwarder.cpp
-	${CURRENT_SOURCE_DIR}/GrabberWrapper.cpp
-	${CURRENT_SOURCE_DIR}/ComponentRegister.cpp
-)
-
-SET(Hyperion_RESOURCES
-	${CURRENT_SOURCE_DIR}/resource.qrc
-)
-
-QT5_ADD_RESOURCES(Hyperion_RESOURCES_RCC ${Hyperion_RESOURCES} OPTIONS "-no-compress")
+QT5_ADD_RESOURCES(Hyperion_RESOURCES_RCC ${CURRENT_SOURCE_DIR}/resource.qrc OPTIONS "-no-compress")
 
 add_library(hyperion
-	${Hyperion_HEADERS}
 	${Hyperion_SOURCES}
 	${Hyperion_RESOURCES_RCC}
 )

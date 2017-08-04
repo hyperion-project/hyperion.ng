@@ -1,3 +1,4 @@
+
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessorFactory.h>

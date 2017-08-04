@@ -807,6 +807,11 @@ void Hyperion::setVideoMode(VideoMode mode)
 	emit videoMode(mode);
 }
 
+void Hyperion::setGrabbingMode(GrabbingMode mode)
+{
+	emit grabbingMode(mode);
+}
+
 
 void Hyperion::hyperionStateChanged()
 {
