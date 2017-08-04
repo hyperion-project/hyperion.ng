@@ -194,6 +194,9 @@ public:
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
+	VideoMode getCurrentVideoMode() { return _videoMode; };
+	GrabbingMode getCurrentGrabbingMode() { return _grabbingMode; };
+
 public slots:
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -452,4 +455,7 @@ private:
 	/// timers to handle severinfo blocking
 	QTimer _fsi_timer;
 	QTimer _fsi_blockTimer; 
+	
+	VideoMode _videoMode;
+	GrabbingMode _grabbingMode;
 };

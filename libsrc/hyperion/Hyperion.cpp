@@ -400,6 +400,8 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _prevCompId(hyperion::COMP_INVALID)
 	, _bonjourBrowser(this)
 	, _bonjourResolver(this)
+	, _videoMode(VIDEO_2D)
+	, _grabbingMode(GRABBINGMODE_INVALID)
 {
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
@@ -804,11 +806,13 @@ void Hyperion::setLedMappingType(int mappingType)
 
 void Hyperion::setVideoMode(VideoMode mode)
 {
+	_videoMode = mode;
 	emit videoMode(mode);
 }
 
 void Hyperion::setGrabbingMode(GrabbingMode mode)
 {
+	_grabbingMode = mode;
 	emit grabbingMode(mode);
 }
 
