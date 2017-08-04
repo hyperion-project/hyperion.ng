@@ -21,6 +21,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
+#include <utils/VideoMode.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -280,6 +281,8 @@ public slots:
 	/// Slot which is called, when state of hyperion has been changed
 	void hyperionStateChanged();
 
+	void setVideoMode(VideoMode mode);
+
 public:
 	static Hyperion *_hyperion;
 
@@ -323,6 +326,9 @@ signals:
 
 	/// Signal which is emitted, after the hyperionStateChanged has been processed with a emit count blocker (250ms interval)
 	void sendServerInfo();
+
+	/// Signal emitted when a 3D movie is detected
+	void videoMode(VideoMode videoMode);
 
 private slots:
 	///

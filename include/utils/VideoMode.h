@@ -15,7 +15,7 @@ enum VideoMode
 inline VideoMode parse3DMode(QString videoMode)
 {
 	// convert to lower case
-	videoMode = videoMode.toLower();
+	videoMode = videoMode.toUpper();
 
 	if (videoMode == "3DTAB")
 	{

@@ -462,6 +462,7 @@ void HyperionDaemon::createGrabberDispmanx()
 
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
@@ -481,6 +482,7 @@ void HyperionDaemon::createGrabberAmlogic()
 
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _amlGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)),       _amlGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
@@ -503,6 +505,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _x11Grabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)),       _x11Grabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
@@ -524,6 +527,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _fbGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _fbGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
@@ -545,6 +549,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	
 	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _osxGrabber, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _osxGrabber, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 
@@ -588,7 +593,7 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890));
-			grabber->set3D(parse3DMode(grabberConfig["mode"].toString("2D")));
+			grabber->setVideoMode(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
@@ -604,9 +609,11 @@ void HyperionDaemon::createGrabberV4L2()
 
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)));
 			QObject::connect(grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)));
+			QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), grabber, SLOT(setVideoMode(VideoMode)));
 			if (grabberConfig["useKodiChecker"].toBool(false))
 			{
 				QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), grabber, SLOT(setGrabbingMode(GrabbingMode)));
+				QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), grabber, SLOT(setVideoMode(VideoMode)));
 			}
 			if (enableV4l && grabber->start())
 			{

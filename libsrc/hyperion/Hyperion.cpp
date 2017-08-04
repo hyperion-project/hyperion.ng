@@ -802,6 +802,12 @@ void Hyperion::setLedMappingType(int mappingType)
 	emit imageToLedsMappingChanged(mappingType);
 }
 
+void Hyperion::setVideoMode(VideoMode mode)
+{
+	emit videoMode(mode);
+}
+
+
 void Hyperion::hyperionStateChanged()
 {
 	if(_fsi_blockTimer.isActive())

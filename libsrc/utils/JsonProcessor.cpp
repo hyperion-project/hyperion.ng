@@ -136,6 +136,7 @@ void JsonProcessor::handleMessage(const QString& messageString, const QString pe
 		else if (command == "ledcolors")      handleLedColorsCommand     (message, command, tan);
 		else if (command == "logging")        handleLoggingCommand       (message, command, tan);
 		else if (command == "processing")     handleProcessingCommand    (message, command, tan);
+		else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
 		else                                  handleNotImplemented       ();
  	}
  	catch (std::exception& e)
@@ -1032,6 +1033,13 @@ void JsonProcessor::handleLoggingCommand(const QJsonObject& message, const QStri
 void JsonProcessor::handleProcessingCommand(const QJsonObject& message, const QString &command, const int tan)
 {
 	_hyperion->setLedMappingType(ImageProcessor::mappingTypeToInt( message["mappingType"].toString("multicolor_mean")) );
+
+	sendSuccessReply(command, tan);
+}
+
+void JsonProcessor::handleVideoModeCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	_hyperion->setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
 
 	sendSuccessReply(command, tan);
 }

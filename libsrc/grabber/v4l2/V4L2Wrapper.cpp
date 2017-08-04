@@ -80,7 +80,7 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 }
 
 
-void V4L2Wrapper::set3D(VideoMode mode)
+void V4L2Wrapper::setVideoMode(VideoMode mode)
 {
 	_grabber.set3D(mode);
 }
