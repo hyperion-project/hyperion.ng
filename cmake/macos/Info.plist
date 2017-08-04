@@ -13,7 +13,7 @@
     <string>6.0</string>
 
     <key>CFBundleExecutable</key>
-    <string>Hyperion</string>
+    <string>hyperiond</string>
     <key>CFBundleIconFile</key>
     <string>Hyperion.icns</string>
 
