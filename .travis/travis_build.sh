@@ -35,8 +35,8 @@ echo "compile jobs: ${JOBS:=4}"
 make -j ${JOBS} || exit 3
 
 # Build the package on Linux
-#if [[ $TRAVIS_OS_NAME == 'linux' ]]
-#then
-    make -j ${JOBS} package || exit 4
-#fi
+if [[ $TRAVIS_OS_NAME == 'linux' ]]
+then
+	make -j ${JOBS} package || exit 4
+fi
 
