@@ -1,6 +1,6 @@
 # cmake file for generating distribution packages
 
-SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ" ) # "RPM" 
+SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ" "Bundle") # "RPM"
 
 SET ( CPACK_PACKAGE_NAME "hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
@@ -17,6 +17,13 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_RPM_PACKAGE_URL "https://github.com/hyperion-project/hyperion" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
+
+SET ( CPACK_PACKAGE_FILE_NAME "Hyperion")
+SET ( CPACK_PACKAGE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
+SET ( CPACK_BUNDLE_NAME "Hyperion" )
+SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/macos/Hyperion.icns )
+SET ( CPACK_BUNDLE_PLIST - path to a file that will become the bundle plist. )
+SET ( CPACK_BUNDLE_STARTUP_COMMAND - path to a file that will be executed when the user opens the bundle. Could be a shell-script or a binary.
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
