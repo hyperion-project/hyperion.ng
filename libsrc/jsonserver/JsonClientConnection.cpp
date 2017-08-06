@@ -1,6 +1,3 @@
-// stl includes
-#include <sstream>
-
 // Qt includes
 #include <QCryptographicHash>
 #include <QtEndian>
@@ -8,7 +5,7 @@
 // project includes
 #include "JsonClientConnection.h"
 
-const quint64 FRAME_SIZE_IN_BYTES = 512 * 512 * 2;	//maximum size of a frame when sending a message
+const quint64 FRAME_SIZE_IN_BYTES = 512 * 512 * 2;  //maximum size of a frame when sending a message
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
@@ -182,15 +179,17 @@ void JsonClientConnection::doWebSocketHandshake()
 
 	// generate sha1 hash
 	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
+	QByteArray hashB64 = hash.toBase64();
 
 	// prepare an answer
-	std::ostringstream h;
-	h << "HTTP/1.1 101 Switching Protocols\r\n" <<
-	"Upgrade: websocket\r\n" <<
-	"Connection: Upgrade\r\n" <<
-	"Sec-WebSocket-Accept: " << QString(hash.toBase64()).toStdString() << "\r\n\r\n";
+	QString data 
+	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
+		+ QString("Upgrade: websocket\r\n")
+		+ QString("Connection: Upgrade\r\n")
+		+ QString("Sec-WebSocket-Accept: ")
+		+ QString(hashB64.data()) + "\r\n\r\n";
 
-	_socket->write(h.str().c_str());
+	_socket->write(QSTRING_CSTR(data), data.size());
 	_socket->flush();
 
 	// we are in WebSocket mode, data frames should follow next
