@@ -89,7 +89,7 @@ public:
 	~JsonClientConnection();
 
 public slots:
-	void sendMessage(QJsonObject);
+	qint64 sendMessage(QJsonObject);
 
 signals:
 	///
@@ -124,6 +124,12 @@ private:
 	///
 	void handleWebSocketFrame();
 
+	QByteArray getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
+
+	qint64 sendMessage_Raw(const char* data, quint64 size);
+	qint64 sendMessage_Raw(QByteArray data);
+	qint64 sendMessage_Websockets(QByteArray &data);
+	
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
 
