@@ -145,7 +145,7 @@
 			},
 			"redSignalThreshold" :
 			{
-				"type" : "number",
+				"type" : "integer",
 				"title" : "edt_conf_v4l2_redSignalThreshold_title",
 				"minimum" : 0,
 				"maximum" : 100,
@@ -160,7 +160,7 @@
 			},
 			"greenSignalThreshold" :
 			{
-				"type" : "number",
+				"type" : "integer",
 				"title" : "edt_conf_v4l2_greenSignalThreshold_title",
 				"minimum" : 0,
 				"maximum" : 100,
@@ -175,7 +175,7 @@
 			},
 			"blueSignalThreshold" :
 			{
-				"type" : "number",
+				"type" : "integer",
 				"title" : "edt_conf_v4l2_blueSignalThreshold_title",
 				"minimum" : 0,
 				"maximum" : 100,
