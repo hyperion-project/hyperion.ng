@@ -27,7 +27,6 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	_jsonProcessor = new JsonProcessor(_clientAddress.toString());
 	// get the callback messages from JsonProcessor and send it to the client
 	connect(_jsonProcessor,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
-	_log->setLogLevel(Logger::DEBUG,"JSONCLIENTCONNECTION");
 }
 
 JsonClientConnection::~JsonClientConnection()
