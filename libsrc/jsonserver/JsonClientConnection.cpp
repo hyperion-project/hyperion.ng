@@ -1,11 +1,11 @@
-// stl includes
-#include <sstream>
-
 // Qt includes
 #include <QCryptographicHash>
+#include <QtEndian>
 
 // project includes
 #include "JsonClientConnection.h"
+
+const quint64 FRAME_SIZE_IN_BYTES = 512 * 512 * 2;  //maximum size of a frame when sending a message
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
@@ -79,7 +79,7 @@ void JsonClientConnection::handleWebSocketFrame()
 		bool isMasked = (_receiveBuffer.at(1) & BHB0_FIN) == BHB0_FIN;
 		quint64 payloadLength = _receiveBuffer.at(1) & BHB1_PAYLOAD;
 		quint32 index = 2;
-
+//printf("%ld\n", payloadLength);
 		switch (payloadLength)
 		{
 			case payload_size_code_16bit:
@@ -179,15 +179,17 @@ void JsonClientConnection::doWebSocketHandshake()
 
 	// generate sha1 hash
 	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
+	QByteArray hashB64 = hash.toBase64();
 
 	// prepare an answer
-	std::ostringstream h;
-	h << "HTTP/1.1 101 Switching Protocols\r\n" <<
-	"Upgrade: websocket\r\n" <<
-	"Connection: Upgrade\r\n" <<
-	"Sec-WebSocket-Accept: " << QString(hash.toBase64()).toStdString() << "\r\n\r\n";
+	QString data 
+	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
+		+ QString("Upgrade: websocket\r\n")
+		+ QString("Connection: Upgrade\r\n")
+		+ QString("Sec-WebSocket-Accept: ")
+		+ QString(hashB64.data()) + "\r\n\r\n";
 
-	_socket->write(h.str().c_str());
+	_socket->write(QSTRING_CSTR(data), data.size());
 	_socket->flush();
 
 	// we are in WebSocket mode, data frames should follow next
@@ -200,34 +202,102 @@ void JsonClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
-void JsonClientConnection::sendMessage(QJsonObject message)
+QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
+{
+	QByteArray header;
+	bool ok = payloadLength <= 0x7FFFFFFFFFFFFFFFULL;
+	
+	if (ok)
+	{
+		//FIN, RSV1-3, opcode (RSV-1, RSV-2 and RSV-3 are zero)
+		quint8 byte = static_cast<quint8>((opCode & 0x0F) | (lastFrame ? 0x80 : 0x00));
+		header.append(static_cast<char>(byte));
+
+		byte = 0x00;
+		if (payloadLength <= 125)
+		{
+			byte |= static_cast<quint8>(payloadLength);
+			header.append(static_cast<char>(byte));
+		}
+		else if (payloadLength <= 0xFFFFU)
+		{
+			byte |= 126;
+			header.append(static_cast<char>(byte));
+			quint16 swapped = qToBigEndian<quint16>(static_cast<quint16>(payloadLength));
+			header.append(static_cast<const char *>(static_cast<const void *>(&swapped)), 2);
+		}
+		else if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
+		{
+			byte |= 127;
+			header.append(static_cast<char>(byte));
+			quint64 swapped = qToBigEndian<quint64>(payloadLength);
+			header.append(static_cast<const char *>(static_cast<const void *>(&swapped)), 8);
+		}
+	}
+	else
+	{
+		Error(_log, "JsonClientConnection::getHeader: payload too big!");
+	}
+
+	return header;
+}
+
+qint64 JsonClientConnection::sendMessage(QJsonObject message)
 {
 	QJsonDocument writer(message);
 	QByteArray serializedReply = writer.toJson(QJsonDocument::Compact) + "\n";
 
-	if (!_webSocketHandshakeDone)
-	{
-		// raw tcp socket mode
-		_socket->write(serializedReply.data(), serializedReply.length());
-	} else
-	{
-		// websocket mode
-		quint32 size = serializedReply.length();
+	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState)) return 0;
+	if (_webSocketHandshakeDone) return sendMessage_Websockets(serializedReply);
 
-		// prepare data frame
-		QByteArray response;
-		response.append(0x81);
-		if (size > 125)
-		{
-			response.append(0x7E);
-			response.append((size >> 8) & 0xFF);
-			response.append(size & 0xFF);
-		} else {
-			response.append(size);
-		}
-
-		response.append(serializedReply, serializedReply.length());
-
-		_socket->write(response.data(), response.length());
-	}
+	return sendMessage_Raw(serializedReply);
 }
+
+qint64 JsonClientConnection::sendMessage_Raw(const char* data, quint64 size)
+{
+	return _socket->write(data, size);
+}
+
+qint64 JsonClientConnection::sendMessage_Raw(QByteArray data)
+{
+	return _socket->write(data.data(), data.size());
+}
+
+qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
+{
+	qint64 payloadWritten = 0;
+	quint32 payloadSize   = data.size();
+	const char * payload  = data.data();
+
+	qint32 numFrames = payloadSize / FRAME_SIZE_IN_BYTES + ((quint64(payloadSize) % FRAME_SIZE_IN_BYTES) > 0 ? 1 : 0);
+
+	for (int i = 0; i < numFrames; ++i)
+	{
+		const bool isLastFrame = (i == (numFrames - 1));
+
+		quint64 position  = i * FRAME_SIZE_IN_BYTES;
+		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
+		
+		sendMessage_Raw(getFrameHeader(OPCODE::TEXT, frameSize, isLastFrame));
+		qint64 written = sendMessage_Raw(payload+position,frameSize);
+		if (written > 0)
+		{
+			payloadWritten += written;
+		}
+		else
+		{
+			_socket->flush();
+			Error(_log, "Error writing bytes to socket: %s", QSTRING_CSTR(_socket->errorString()));
+			break;
+		}
+	}
+
+	if (payloadSize != payloadWritten)
+	{
+		Error(_log, "Error writing bytes to socket %d bytes from %d writte", payloadWritten, payloadSize);
+		return -1;
+	}
+	return payloadWritten;
+}
+
+
