@@ -12,43 +12,46 @@
 
 // Local Leddevice includes
 #ifdef ENABLE_SPIDEV
-	#include "LedDeviceLpd6803.h"
-	#include "LedDeviceLpd8806.h"
-	#include "LedDeviceP9813.h"
-	#include "LedDeviceWs2801.h"
-	#include "LedDeviceWs2812SPI.h"
-	#include "LedDeviceSk6812SPI.h"
-	#include "LedDeviceSk6822SPI.h"
-	#include "LedDeviceAPA102.h"
+	#include "dev_spi/LedDeviceLpd6803.h"
+	#include "dev_spi/LedDeviceLpd8806.h"
+	#include "dev_spi/LedDeviceP9813.h"
+	#include "dev_spi/LedDeviceWs2801.h"
+	#include "dev_spi/LedDeviceWs2812SPI.h"
+	#include "dev_spi/LedDeviceSk6812SPI.h"
+	#include "dev_spi/LedDeviceSk6822SPI.h"
+	#include "dev_spi/LedDeviceAPA102.h"
 #endif
 
 #ifdef ENABLE_TINKERFORGE
 	#include "LedDeviceTinkerforge.h"
 #endif
 
-#include "LedDeviceAdalight.h"
-#include "LedDeviceRawHID.h"
-#include "LedDeviceLightpack.h"
-#include "LedDeviceMultiLightpack.h"
-#include "LedDevicePaintpack.h"
-#include "LedDevicePiBlaster.h"
-#include "LedDeviceSedu.h"
-#include "LedDeviceDMX.h"
-#include "LedDeviceFile.h"
-#include "LedDeviceFadeCandy.h"
-#include "LedDeviceTpm2net.h"
-#include "LedDeviceUdpRaw.h"
-#include "LedDeviceUdpE131.h"
-#include "LedDeviceUdpArtNet.h"
-#include "LedDeviceHyperionUsbasp.h"
-#include "LedDevicePhilipsHue.h"
-#include "LedDeviceTpm2.h"
-#include "LedDeviceAtmo.h"
-#include "LedDeviceAtmoOrb.h"
-#include "LedDeviceUdpH801.h"
+#ifdef ENABLE_USB_HID
+	#include "dev_hid/LedDeviceRawHID.h"
+	#include "dev_hid/LedDeviceLightpack.h"
+	#include "dev_hid/LedDeviceMultiLightpack.h"
+	#include "dev_hid/LedDevicePaintpack.h"
+	#include "dev_hid/LedDeviceHyperionUsbasp.h"
+#endif
+
+#include "dev_serial/LedDeviceAdalight.h"
+#include "dev_other/LedDevicePiBlaster.h"
+#include "dev_serial/LedDeviceSedu.h"
+#include "dev_serial/LedDeviceDMX.h"
+#include "dev_other/LedDeviceFile.h"
+#include "dev_net/LedDeviceFadeCandy.h"
+#include "dev_net/LedDeviceTpm2net.h"
+#include "dev_net/LedDeviceUdpRaw.h"
+#include "dev_net/LedDeviceUdpE131.h"
+#include "dev_net/LedDeviceUdpArtNet.h"
+#include "dev_net/LedDevicePhilipsHue.h"
+#include "dev_serial/LedDeviceTpm2.h"
+#include "dev_serial/LedDeviceAtmo.h"
+#include "dev_net/LedDeviceAtmoOrb.h"
+#include "dev_net/LedDeviceUdpH801.h"
 
 #ifdef ENABLE_WS281XPWM
-	#include "LedDeviceWS281x.h"
+	#include "dev_rpi_pwm/LedDeviceWS281x.h"
 #endif
 
 LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const int ledCount)
@@ -101,12 +104,14 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig, const 
 	#endif
 
 	// direct usb
+	#ifdef ENABLE_USB_HID
 	REGISTER(HyperionUsbasp);
 	REGISTER(RawHID);
 	REGISTER(Paintpack);
 	REGISTER(Lightpack);
 	REGISTER(MultiLightpack);
-	
+	#endif
+
 	// other
 	REGISTER(File);
 	REGISTER(PiBlaster);

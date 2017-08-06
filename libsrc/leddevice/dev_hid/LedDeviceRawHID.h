@@ -11,7 +11,6 @@
 ///
 class LedDeviceRawHID : public ProviderHID
 {
-	Q_OBJECT
 
 public:
 	///

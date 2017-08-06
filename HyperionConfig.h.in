@@ -6,15 +6,6 @@
 // Define to enable the v4l2 grabber
 #cmakedefine ENABLE_V4L2
 
-// Define to enable the spi-device
-#cmakedefine ENABLE_SPIDEV
-
-// Define to enable the ws281x-pwm-via-dma-device using jgarff's library
-#cmakedefine ENABLE_WS281XPWM
-
-// Define to enable the spi-device
-#cmakedefine ENABLE_TINKERFORGE
-
 // Define to enable the framebuffer grabber
 #cmakedefine ENABLE_FB
 
@@ -26,6 +17,18 @@
 
 // Define to enable the x11 grabber
 #cmakedefine ENABLE_X11
+
+// Define to enable the spi-device
+#cmakedefine ENABLE_SPIDEV
+
+// Define to enable the ws281x-pwm-via-dma-device using jgarff's library
+#cmakedefine ENABLE_WS281XPWM
+
+// Define to enable the tinkerforge device
+#cmakedefine ENABLE_TINKERFORGE
+
+// Define to enable the usb / hid devices
+#cmakedefine ENABLE_USB_HID
 
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER

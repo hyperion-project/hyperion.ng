@@ -1,3 +1,6 @@
+// code currently disabled. must be ported to new structure
+#if 0
+
 #pragma once
 
 // stl includes
@@ -101,3 +104,4 @@ private:
 	/// the number of bits per channel
 	int _bitsPerChannel;
 };
+#endif

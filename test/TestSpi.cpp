@@ -13,7 +13,7 @@
 //QT includes
 #include <QJsonObject>
 
-#include "../libsrc/leddevice/LedDeviceWs2801.h"
+#include "../libsrc/leddevice/dev_spi/LedDeviceWs2801.h"
 
 QJsonObject deviceConfig;
 
