@@ -37,7 +37,9 @@ public:
 	
 	///
 	/// update dimension according current screen
-	int updateScreenDimensions();
+	int updateScreenDimensions(bool force=false);
+
+	virtual void setVideoMode(VideoMode mode);
 
 private:
 	bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
@@ -63,6 +65,8 @@ private:
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;
+	unsigned _src_x;
+	unsigned _src_y;
 
 	Image<ColorRgb> _image;
 	

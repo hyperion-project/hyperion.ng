@@ -499,6 +499,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 				grabberConfig["horizontalPixelDecimation"].toInt(8),
 				grabberConfig["verticalPixelDecimation"].toInt(8),
 				_grabber_frequency, _grabber_priority );
+	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	QObject::connect(_x11Grabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
@@ -517,7 +518,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	_fbGrabber = new FramebufferWrapper(
 				grabberConfig["device"].toString("/dev/fb0"),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
-	
+	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	QObject::connect(_fbGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 	_fbGrabber->start();

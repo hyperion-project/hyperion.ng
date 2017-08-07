@@ -32,6 +32,15 @@ AmlogicWrapper::~AmlogicWrapper()
 
 void AmlogicWrapper::action()
 {
+	unsigned w = _grabber->getImageWidth();
+	unsigned h = _grabber->getImageHeight();
+
+	if ( _image.width() != w || _image.height() != h)
+	{
+		_processor->setSize(w, h);
+		_image.resize(w, h);
+	}
+
 	// Grab frame into the allocated image
 	if (_grabber->grabFrame(_image) < 0)
 	{

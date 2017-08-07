@@ -35,7 +35,7 @@ bool X11Wrapper::start()
 		_x11SetupSuccess = _grabber->Setup();
 		if ( _x11SetupSuccess )
 		{
-			_x11SetupSuccess = (_grabber->updateScreenDimensions() >= 0);
+			_x11SetupSuccess = (_grabber->updateScreenDimensions(true) >= 0);
 			_processor->setSize(_grabber->getImageWidth(), _grabber->getImageHeight());
 			_image.resize(_grabber->getImageWidth(), _grabber->getImageHeight());
 		}
@@ -54,20 +54,21 @@ bool X11Wrapper::start()
 void X11Wrapper::action()
 {
 	int result = _grabber->updateScreenDimensions();
-	if (result < 0 )
+	if (result >= 0 )
 	{
-		return;
-	}
-	if ( result > 0 )
-	{
-		_processor->setSize(_grabber->getImageWidth(), _grabber->getImageHeight());
-		_image.resize(_grabber->getImageWidth(), _grabber->getImageHeight());
-	}
-	// Grab frame into the allocated image
-	_grabber->grabFrame(_image);
+		unsigned w = _grabber->getImageWidth();
+		unsigned h = _grabber->getImageHeight();
 
-	emit emitImage(_priority, _image, _timeout_ms);
+		if ( result > 0 || _image.width() != w || _image.height() != h)
+		{
+			_processor->setSize(w, h);
+			_image.resize(w, h);
+		}
+		// Grab frame into the allocated image
+		_grabber->grabFrame(_image);
 
-	_processor->process(_image, _ledColors);
-	setColors(_ledColors, _timeout_ms);
+		emit emitImage(_priority, _image, _timeout_ms);
+		_processor->process(_image, _ledColors);
+		setColors(_ledColors, _timeout_ms);
+	}
 }

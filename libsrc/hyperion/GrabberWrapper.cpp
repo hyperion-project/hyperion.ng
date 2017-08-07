@@ -151,3 +151,8 @@ void GrabberWrapper::setVideoMode(const VideoMode mode)
 		_ggrabber->setVideoMode(mode);
 	}
 }
+
+void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+{
+	_ggrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
+}

@@ -14,6 +14,8 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
 {
+		_useImageResampler = false;
+
 	// Initiase BCM
 	bcm_host_init();
 
@@ -106,12 +108,12 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	switch (_videoMode)
 	{
 	case VIDEO_3DSBS:
-		imageWidth = imageWidth / 2;
-		cropLeft = cropLeft / 2;
+		imageWidth /= 2;
+		cropLeft /= 2;
 		break;
 	case VIDEO_3DTAB:
-		imageHeight = imageHeight / 2;
-		cropTop = cropTop / 2;
+		imageHeight /= 2;
+		cropTop /= 2;
 		break;
 	case VIDEO_2D:
 	default:

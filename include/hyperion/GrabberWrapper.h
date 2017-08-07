@@ -53,6 +53,7 @@ public slots:
 	///
 	virtual void setVideoMode(const VideoMode videoMode);
 
+	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 
 signals:
 	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);

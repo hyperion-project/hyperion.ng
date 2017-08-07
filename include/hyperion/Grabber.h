@@ -22,18 +22,22 @@ public:
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	void setVideoMode(VideoMode mode);
+	virtual void setVideoMode(VideoMode mode);
 
+	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	
 	/// gets resulting height of image
-	const int getImageWidth() { return _width; };
+	virtual const int getImageWidth() { return _width; };
 
 	/// gets resulting width of image
-	const int getImageHeight() { return _height; };
+	virtual const int getImageHeight() { return _height; };
 
 
 protected:
 	ImageResampler _imageResampler;
 
+	bool _useImageResampler;
+	
 	/// the selected VideoMode
 	VideoMode    _videoMode;
 
