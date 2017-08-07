@@ -1,3 +1,5 @@
+// code currently disabled. must be ported to new structure
+#if 0
 // stl includes
 #include <exception>
 #include <cstring>
@@ -266,3 +268,4 @@ int LedDeviceLightpackHidapi::disableSmoothing()
 	unsigned char buf[2] = {CMD_SET_SMOOTH_SLOWDOWN, 0};
 	return writeBytes(buf, sizeof(buf)) == sizeof(buf);
 }
+#endif
