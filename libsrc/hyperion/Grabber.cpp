@@ -13,6 +13,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _log(Logger::getInstance(grabberName))
 
 {
+	setVideoMode(VIDEO_2D);
 }
 
 Grabber::~Grabber()
@@ -22,6 +23,7 @@ Grabber::~Grabber()
 
 void Grabber::setVideoMode(VideoMode mode)
 {
+	Debug(_log,"setvideomode");
 	_videoMode = mode;
 	_imageResampler.set3D(_videoMode);
 }

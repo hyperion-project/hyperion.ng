@@ -11,6 +11,7 @@
 #include <hyperion/Hyperion.h>
 
 class ImageProcessor;
+class Grabber;
 
 class GrabberWrapper : public QObject
 {
@@ -50,7 +51,7 @@ public slots:
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	virtual void setVideoMode(const VideoMode videoMode) = 0;
+	virtual void setVideoMode(const VideoMode videoMode);
 
 
 signals:
@@ -80,4 +81,6 @@ protected:
 	ImageProcessor * _processor;
 
 	hyperion::Components _grabberComponentId;
+	
+	Grabber *_ggrabber;
 };

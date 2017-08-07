@@ -17,7 +17,7 @@ FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned gr
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-
+	_ggrabber = _grabber;
 	_processor->setSize(grabWidth, grabHeight);
 }
 
@@ -35,9 +35,4 @@ void FramebufferWrapper::action()
 	
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
-}
-
-void FramebufferWrapper::setVideoMode(const VideoMode mode)
-{
-	_grabber->setVideoMode(mode);
 }

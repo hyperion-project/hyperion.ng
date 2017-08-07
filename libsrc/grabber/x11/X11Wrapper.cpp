@@ -17,6 +17,7 @@ X11Wrapper::X11Wrapper(bool useXGetImage, int cropLeft, int cropRight, int cropT
 	, _init(false)
 	, _x11SetupSuccess(false)
 {
+	_ggrabber = _grabber;
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
 }
@@ -69,10 +70,4 @@ void X11Wrapper::action()
 
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
-}
-
-
-void X11Wrapper::setVideoMode(const VideoMode mode)
-{
-	_grabber->setVideoMode(mode);
 }

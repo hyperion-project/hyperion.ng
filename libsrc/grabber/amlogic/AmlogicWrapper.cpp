@@ -21,7 +21,7 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-
+	_ggrabber = _grabber;
 	_processor->setSize(grabWidth, grabHeight);
 }
 
@@ -45,9 +45,4 @@ void AmlogicWrapper::action()
 
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
-}
-
-void AmlogicWrapper::setVideoMode(const VideoMode mode)
-{
-	_grabber->setVideoMode(mode);
 }

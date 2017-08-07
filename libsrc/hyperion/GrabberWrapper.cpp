@@ -2,6 +2,7 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/GrabberWrapper.h>
+#include <hyperion/Grabber.h>
 #include <HyperionConfig.h>
 
 GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId)
@@ -13,6 +14,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _grabberComponentId(grabberComponentId)
+	, _ggrabber(nullptr)
 {
 	_timer.setSingleShot(false);
 
@@ -138,4 +140,14 @@ QStringList GrabberWrapper::availableGrabbers()
 	#endif
 
 	return grabbers;
+}
+
+
+void GrabberWrapper::setVideoMode(const VideoMode mode)
+{
+	if (_ggrabber != nullptr)
+	{
+		Info(_log,"setvideomode");
+		_ggrabber->setVideoMode(mode);
+	}
 }

@@ -32,6 +32,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 {
 	// set the signal detection threshold of the grabber
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
+	_ggrabber = &_grabber;
 
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
@@ -82,12 +83,6 @@ void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int crop
 void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax)
 {
 	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
-}
-
-
-void V4L2Wrapper::setVideoMode(VideoMode mode)
-{
-	_grabber.setVideoMode(mode);
 }
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)

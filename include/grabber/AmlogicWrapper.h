@@ -42,8 +42,6 @@ public slots:
 	///
 	virtual void action();
 
-	virtual void setVideoMode(const VideoMode mode);
-
 private:
 	/// The update rate [Hz]
 	const int _updateInterval_ms;

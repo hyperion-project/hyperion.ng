@@ -44,12 +44,6 @@ public slots:
 
 	void setCropping(const unsigned cropLeft, const unsigned cropRight, const unsigned cropTop, const unsigned cropBottom);
 
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(const VideoMode videoMode);
-
 private:
 	/// The update rate [Hz]
 	const int _updateInterval_ms;

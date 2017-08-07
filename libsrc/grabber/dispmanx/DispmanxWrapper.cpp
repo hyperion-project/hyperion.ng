@@ -21,7 +21,7 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-
+	_ggrabber = _grabber;
 	_processor->setSize(grabWidth, grabHeight);
 }
 
@@ -41,12 +41,6 @@ void DispmanxWrapper::action()
 
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
-}
-
-
-void DispmanxWrapper::setVideoMode(const VideoMode mode)
-{
-	_grabber->setVideoMode(mode);
 }
 
 void DispmanxWrapper::setCropping(const unsigned cropLeft, const unsigned cropRight,

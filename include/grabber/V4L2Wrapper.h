@@ -36,7 +36,6 @@ public slots:
 
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
-	void setVideoMode(VideoMode mode);
 	void setSignalDetectionEnable(bool enable);
 
 // signals:

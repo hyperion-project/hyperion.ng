@@ -17,7 +17,7 @@ OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const u
 {
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-
+	_ggrabber = _grabber;
 	_processor->setSize(grabWidth, grabHeight);
 }
 
@@ -35,10 +35,4 @@ void OsxWrapper::action()
 
 	_processor->process(_image, _ledColors);
 	setColors(_ledColors, _timeout_ms);
-}
-
-
-void OsxWrapper::setVideoMode(const VideoMode mode)
-{
-	_grabber->setVideoMode(mode);
 }
