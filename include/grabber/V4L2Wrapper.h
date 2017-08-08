@@ -51,7 +51,4 @@ private slots:
 private:
 	/// The V4L2 grabber
 	V4L2Grabber _grabber;
-
-	/// The list with computed led colors
-	std::vector<ColorRgb> _ledColors;
 };

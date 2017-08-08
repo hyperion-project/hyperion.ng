@@ -13,7 +13,7 @@
 
 DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
 	: GrabberWrapper("Dispmanx", grabWidth, grabHeight, updateRate_Hz, priority, hyperion::COMP_GRABBER)
-	, _image(grabWidth, grabHeight)
+	, _image_rgba(grabWidth, grabHeight)
 	, _grabber(new DispmanxFrameGrabber(grabWidth, grabHeight))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
@@ -27,15 +27,9 @@ DispmanxWrapper::~DispmanxWrapper()
 
 void DispmanxWrapper::action()
 {
-	// Grab frame into the allocated image
-	_grabber->grabFrame(_image);
-
-	Image<ColorRgb> image_rgb;
-	_image.toRgb(image_rgb);
-	emit emitImage(_priority, image_rgb, _timeout_ms);
-
-	_processor->process(_image, _ledColors);
-	setColors(_ledColors, _timeout_ms);
+	_grabber->grabFrame(_image_rgba);
+	_image_rgba.toRgb(_image);
+	setImage();
 }
 
 void DispmanxWrapper::setCropping(const unsigned cropLeft, const unsigned cropRight,

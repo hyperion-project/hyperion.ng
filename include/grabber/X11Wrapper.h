@@ -43,11 +43,6 @@ private:
 	/// The actual grabber
 	X11Grabber * _grabber;
 
-	/// The list with computed led colors
-	std::vector<ColorRgb> _ledColors;
-
-
 	bool _init;
-	bool _x11SetupSuccess;
 };
  

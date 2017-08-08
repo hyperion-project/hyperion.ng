@@ -46,7 +46,8 @@ public slots:
 
 private:
 	/// The image used for grabbing frames
-	Image<ColorRgba> _image;
+	Image<ColorRgba> _image_rgba;
+
 	/// The actual grabber
 	DispmanxFrameGrabber * _grabber;
 

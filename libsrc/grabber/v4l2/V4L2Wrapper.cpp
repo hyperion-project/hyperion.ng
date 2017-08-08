@@ -27,7 +27,6 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			frameDecimation,
 			pixelDecimation,
 			pixelDecimation)
-	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
 // 	_timeout_ms = 1000;
 	// set the signal detection threshold of the grabber

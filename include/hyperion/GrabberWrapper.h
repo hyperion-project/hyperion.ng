@@ -61,6 +61,10 @@ signals:
 protected:
 
 	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
+	
+	void setImage();
+	bool updateOutputSize();
+	
 	QString _grabberName;
 	
 	/// Pointer to Hyperion for writing led values
@@ -93,4 +97,8 @@ protected:
 
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
+
+	/// The list with computed led colors
+	std::vector<ColorRgb> _ledColors;
 };
+

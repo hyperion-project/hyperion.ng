@@ -11,9 +11,7 @@
 X11Wrapper::X11Wrapper(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation, const unsigned updateRate_Hz, const int priority)
 	: GrabberWrapper("X11", 0, 0, updateRate_Hz, priority, hyperion::COMP_GRABBER)
 	, _grabber(new X11Grabber(useXGetImage, cropLeft, cropRight, cropTop, cropBottom, horizontalPixelDecimation, verticalPixelDecimation))
-	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 	, _init(false)
-	, _x11SetupSuccess(false)
 {
 	_ggrabber = _grabber;
 }
@@ -34,22 +32,10 @@ void X11Wrapper::action()
 		}
 	}
 
-	int result = _grabber->updateScreenDimensions();
-	if (result >= 0 )
+	if (_grabber->updateScreenDimensions() >= 0 )
 	{
-		unsigned w = _grabber->getImageWidth();
-		unsigned h = _grabber->getImageHeight();
-
-		if ( result > 0 || _image.width() != w || _image.height() != h)
-		{
-			_processor->setSize(w, h);
-			_image.resize(w, h);
-		}
-		// Grab frame into the allocated image
+		updateOutputSize();
 		_grabber->grabFrame(_image);
-
-		emit emitImage(_priority, _image, _timeout_ms);
-		_processor->process(_image, _ledColors);
-		setColors(_ledColors, _timeout_ms);
+		setImage();
 	}
 }

@@ -46,7 +46,4 @@ public slots:
 private:
 	/// The actual grabber
 	OsxFrameGrabber * _grabber;
-
-	/// The list with computed led colors
-	std::vector<ColorRgb> _ledColors;
 };
