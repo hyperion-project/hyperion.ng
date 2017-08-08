@@ -17,7 +17,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
+	GrabberWrapper(QString grabberName, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	
@@ -72,6 +72,12 @@ protected:
 	/// The timer for generating events with the specified update rate
 	QTimer _timer;
 
+	/// The update rate [Hz]
+	const int _updateInterval_ms;
+
+	/// The timeout of the led colors [ms]
+	const int _timeout_ms;
+
 	/// The Logger instance
 	Logger * _log;
 	
@@ -84,4 +90,7 @@ protected:
 	hyperion::Components _grabberComponentId;
 	
 	Grabber *_ggrabber;
+
+	/// The image used for grabbing frames
+	Image<ColorRgb> _image;
 };

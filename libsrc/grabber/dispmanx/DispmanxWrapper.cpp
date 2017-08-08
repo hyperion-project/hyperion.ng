@@ -12,9 +12,7 @@
 
 
 DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
-	: GrabberWrapper("Dispmanx", priority)
-	, _updateInterval_ms(1000/updateRate_Hz)
-	, _timeout_ms(2 * _updateInterval_ms)
+	: GrabberWrapper("Dispmanx", updateRate_Hz, priority, hyperion::COMP_GRABBER)
 	, _image(grabWidth, grabHeight)
 	, _grabber(new DispmanxFrameGrabber(grabWidth, grabHeight))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})

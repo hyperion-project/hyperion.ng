@@ -45,11 +45,6 @@ public slots:
 	void setCropping(const unsigned cropLeft, const unsigned cropRight, const unsigned cropTop, const unsigned cropBottom);
 
 private:
-	/// The update rate [Hz]
-	const int _updateInterval_ms;
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
 	/// The image used for grabbing frames
 	Image<ColorRgba> _image;
 	/// The actual grabber

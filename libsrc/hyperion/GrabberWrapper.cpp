@@ -5,18 +5,24 @@
 #include <hyperion/Grabber.h>
 #include <HyperionConfig.h>
 
-GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId)
+GrabberWrapper::GrabberWrapper(QString grabberName, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
 	, _priority(priority)
 	, _timer()
+	, _updateInterval_ms(1000/updateRate_Hz)
+	, _timeout_ms(2 * _updateInterval_ms)
 	, _log(Logger::getInstance(grabberName))
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _grabberComponentId(grabberComponentId)
 	, _ggrabber(nullptr)
+	, _image(0,0)
+
 {
 	_timer.setSingleShot(false);
+	// Configure the timer to generate events every n milliseconds
+	_timer.setInterval(_updateInterval_ms);
 
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());

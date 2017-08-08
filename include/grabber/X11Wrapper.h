@@ -35,24 +35,11 @@ public:
 
 public slots:
 	///
-	/// Starts the grabber wich produces led values with the specified update rate
-	///
-	bool start();
-
-	///
 	/// Performs a single frame grab and computes the led-colors
 	///
 	virtual void action();
 
 private:
-	/// The update rate [Hz]
-	const int _updateInterval_ms;
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
-	/// The image used for grabbing frames
-	Image<ColorRgb> _image;
-
 	/// The actual grabber
 	X11Grabber * _grabber;
 

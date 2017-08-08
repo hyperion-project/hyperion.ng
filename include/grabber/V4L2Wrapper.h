@@ -49,9 +49,6 @@ private slots:
 	void checkSources();
 
 private:
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
 	/// The V4L2 grabber
 	V4L2Grabber _grabber;
 

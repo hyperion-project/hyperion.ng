@@ -77,7 +77,7 @@ bool AmlogicGrabber::isVideoPlaying()
 	return videoDisabled == 0;
 }
 
-int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
+int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	// TODO crop resulting image accroding member _videoMode
 	// TODO add croping
@@ -113,7 +113,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	}
 
 	// Read the snapshot into the memory
-	void * image_ptr = image.memptr();
+	void * image_ptr = _image.memptr();
 	const ssize_t bytesToRead = _width * _height * sizeof(ColorBgr);
 
 	const ssize_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
@@ -145,6 +145,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	
 	_imageResampler.setHorizontalPixelDecimation(_width);
 	_imageResampler.setVerticalPixelDecimation(_height);
+	_image.toRgb(image);
 
 	return 0;
 }

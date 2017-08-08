@@ -29,7 +29,7 @@ public:
 	/// height)
 	/// @return Zero on success else negative
 	///
-	int grabFrame(Image<ColorBgr> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 private:
 	/**
@@ -40,4 +40,6 @@ private:
 
 	/** The snapshot/capture device of the amlogic video chip */
 	int _amlogicCaptureDev;
+	
+	Image<ColorBgr> _image;
 };

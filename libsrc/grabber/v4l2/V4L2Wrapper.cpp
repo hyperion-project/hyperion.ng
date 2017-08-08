@@ -17,8 +17,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		double blueSignalThreshold,
 		const int priority,
 		bool useGrabbingMode)
-	: GrabberWrapper("V4L2:"+device, priority, hyperion::COMP_V4L)
-	, _timeout_ms(1000)
+	: GrabberWrapper("V4L2:"+device, 8, priority, hyperion::COMP_V4L)
 	, _grabber(device,
 			input,
 			videoStandard,
@@ -30,6 +29,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			pixelDecimation)
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
+// 	_timeout_ms = 1000;
 	// set the signal detection threshold of the grabber
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 	_ggrabber = &_grabber;
@@ -41,22 +41,12 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 
 	// Handle the image in the captured thread using a direct connection
 	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
-
 	QObject::connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 
 	if (!useGrabbingMode)
 	{
 			disconnect(_hyperion, SIGNAL(grabbingMode(GrabbingMode)), this, 0);
 	}
-	// send color data to Hyperion using a queued connection to handle the data over to the main event loop
-// 	QObject::connect(
-// 				this, SIGNAL(emitColors(int,std::vector<ColorRgb>,int)),
-// 				_hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int)),
-// 				Qt::QueuedConnection);
-
-	
-	// setup the higher prio source checker
-	// this will disable the v4l2 grabber when a source with higher priority is active
 	_timer.setInterval(500);
 }
 

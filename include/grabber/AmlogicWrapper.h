@@ -43,13 +43,6 @@ public slots:
 	virtual void action();
 
 private:
-	/// The update rate [Hz]
-	const int _updateInterval_ms;
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
-	/// The image used for grabbing frames
-	Image<ColorBgr> _image;
 	/// The actual grabber
 	AmlogicGrabber * _grabber;
 

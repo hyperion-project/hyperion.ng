@@ -110,7 +110,9 @@ bool X11Grabber::Setup()
 	_imageResampler.setHorizontalPixelDecimation(_XRenderAvailable ? 1 : _horizontalDecimation);
 	_imageResampler.setVerticalPixelDecimation(_XRenderAvailable ? 1 : _verticalDecimation);
 
-	return true;
+	bool result = (updateScreenDimensions(true) >=0);
+	ErrorIf(!result, _log, "X11 Grabber start failed");
+	return result;
 }
 
 int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)

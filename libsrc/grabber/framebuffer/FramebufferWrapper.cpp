@@ -8,17 +8,13 @@
 #include <grabber/FramebufferFrameGrabber.h>
 
 FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
-	: GrabberWrapper("FrameBuffer", priority)
-	, _updateInterval_ms(1000/updateRate_Hz)
-	, _timeout_ms(2 * _updateInterval_ms)
-	, _image(grabWidth, grabHeight)
+	: GrabberWrapper("FrameBuffer", updateRate_Hz, priority, hyperion::COMP_GRABBER)
 	, _grabber(new FramebufferFrameGrabber(device, grabWidth, grabHeight))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
-	// Configure the timer to generate events every n milliseconds
-	_timer.setInterval(_updateInterval_ms);
 	_ggrabber = _grabber;
 	_processor->setSize(grabWidth, grabHeight);
+	_image.resize(grabWidth, grabHeight);
 }
 
 FramebufferWrapper::~FramebufferWrapper()
