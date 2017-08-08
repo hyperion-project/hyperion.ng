@@ -17,7 +17,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(QString grabberName, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
+	GrabberWrapper(QString grabberName, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	

@@ -9,7 +9,7 @@
 #include <grabber/X11Grabber.h>
 
 X11Wrapper::X11Wrapper(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation, const unsigned updateRate_Hz, const int priority)
-	: GrabberWrapper("X11", updateRate_Hz, priority, hyperion::COMP_GRABBER)
+	: GrabberWrapper("X11", 0, 0, updateRate_Hz, priority, hyperion::COMP_GRABBER)
 	, _grabber(new X11Grabber(useXGetImage, cropLeft, cropRight, cropTop, cropBottom, horizontalPixelDecimation, verticalPixelDecimation))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 	, _init(false)

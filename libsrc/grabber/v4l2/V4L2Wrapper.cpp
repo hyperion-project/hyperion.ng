@@ -17,7 +17,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		double blueSignalThreshold,
 		const int priority,
 		bool useGrabbingMode)
-	: GrabberWrapper("V4L2:"+device, 8, priority, hyperion::COMP_V4L)
+	: GrabberWrapper("V4L2:"+device, width, height, 8, priority, hyperion::COMP_V4L)
 	, _grabber(device,
 			input,
 			videoStandard,

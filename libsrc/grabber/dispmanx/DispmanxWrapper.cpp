@@ -12,7 +12,7 @@
 
 
 DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
-	: GrabberWrapper("Dispmanx", updateRate_Hz, priority, hyperion::COMP_GRABBER)
+	: GrabberWrapper("Dispmanx", grabWidth, grabHeight, updateRate_Hz, priority, hyperion::COMP_GRABBER)
 	, _image(grabWidth, grabHeight)
 	, _grabber(new DispmanxFrameGrabber(grabWidth, grabHeight))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
@@ -20,7 +20,6 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
 	_ggrabber = _grabber;
-	_processor->setSize(grabWidth, grabHeight);
 }
 
 DispmanxWrapper::~DispmanxWrapper()
