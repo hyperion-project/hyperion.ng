@@ -55,4 +55,6 @@ private:
 
 	/// The grabber for creating screenshots
 	X11Grabber _grabber;
+	
+	Image<ColorRgb>  _screenshot;
 };

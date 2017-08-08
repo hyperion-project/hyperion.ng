@@ -66,24 +66,6 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
-void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
-{
-	if (cropLeft + cropRight >= (unsigned)_width || cropTop + cropBottom >= (unsigned)_height)
-	{
-		Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d", cropLeft, cropRight, cropTop, cropBottom);
-		return;
-	}
-	_cropLeft = cropLeft;
-	_cropRight = cropRight;
-	_cropTop = cropTop;
-	_cropBottom = cropBottom;
-
-	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
-	{
-		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
-	}
-}
-
 void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 {
 	int ret;

@@ -40,11 +40,6 @@ public:
 	bool getSignalDetectionEnabled();
 
 public slots:
-	void setCropping(int cropLeft,
-					 int cropRight,
-					 int cropTop,
-					 int cropBottom);
-
 	void setSignalThreshold(
 					double redSignalThreshold,
 					double greenSignalThreshold,

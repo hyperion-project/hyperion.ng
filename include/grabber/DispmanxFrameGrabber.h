@@ -24,15 +24,6 @@ public:
 	DispmanxFrameGrabber(const unsigned width, const unsigned height);
 	~DispmanxFrameGrabber();
 
-	///
-	/// Updates the frame-grab flags as used by the VC library for frame grabbing
-	///
-	/// @param vc_flags  The snapshot grabbing mask
-	///
-	void setFlags(const int vc_flags);
-
-	void setCropping(const unsigned cropLeft, const unsigned cropRight,
-			 const unsigned cropTop, const unsigned cropBottom);
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -45,6 +36,13 @@ public:
 	void grabFrame(Image<ColorRgba> & image);
 
 private:
+		///
+	/// Updates the frame-grab flags as used by the VC library for frame grabbing
+	///
+	/// @param vc_flags  The snapshot grabbing mask
+	///
+	void setFlags(const int vc_flags);
+	
 	/// Handle to the display that is being captured
 	DISPMANX_DISPLAY_HANDLE_T _vc_display;
 

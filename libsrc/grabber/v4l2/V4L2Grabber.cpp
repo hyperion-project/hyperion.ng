@@ -180,11 +180,6 @@ void V4L2Grabber::getV4Ldevices()
     }
 }
 
-void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
-{
-	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
-}
-
 void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
 {
 	_noSignalThresholdColor.red   = uint8_t(255*redSignalThreshold);

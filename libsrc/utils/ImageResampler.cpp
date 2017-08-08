@@ -30,22 +30,22 @@ void ImageResampler::setVerticalPixelDecimation(int decimator)
 
 void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-	_cropLeft = cropLeft;
-	_cropRight = cropRight;
-	_cropTop = cropTop;
+	_cropLeft   = cropLeft;
+	_cropRight  = cropRight;
+	_cropTop    = cropTop;
 	_cropBottom = cropBottom;
 }
 
-void ImageResampler::set3D(VideoMode mode)
+void ImageResampler::setVideoMode(VideoMode mode)
 {
 	_videoMode = mode;
 }
 
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
-	int cropLeft = _cropLeft;
-	int cropRight = _cropRight;
-	int cropTop = _cropTop;
+	int cropLeft   = _cropLeft;
+	int cropRight  = _cropRight;
+	int cropTop    = _cropTop;
 	int cropBottom = _cropBottom;
 
 	// handle 3D mode

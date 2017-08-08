@@ -113,8 +113,11 @@ bool X11Grabber::Setup()
 	return true;
 }
 
-int X11Grabber::grabFrame(Image<ColorRgb> & image)
+int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 {
+	if (forceUpdate)
+		updateScreenDimensions(true);
+	
 	if (_XRenderAvailable && !_useXGetImage)
 	{
 		double scale_x = static_cast<double>(_windowAttr.width / _horizontalDecimation) / static_cast<double>(_windowAttr.width);
@@ -266,15 +269,6 @@ int X11Grabber::updateScreenDimensions(bool force)
 
 	return 1;
 }
-
-
-Image<ColorRgb> & X11Grabber::grab()
-{
-	updateScreenDimensions();
-	grabFrame(_image);
-	return _image;
-}
-
 
 void X11Grabber::setVideoMode(VideoMode mode)
 {

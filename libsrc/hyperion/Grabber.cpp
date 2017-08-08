@@ -29,7 +29,7 @@ void Grabber::setVideoMode(VideoMode mode)
 	_videoMode = mode;
 	if ( _useImageResampler )
 	{
-		_imageResampler.set3D(_videoMode);
+		_imageResampler.setVideoMode(_videoMode);
 	}
 }
 
@@ -44,9 +44,9 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 		}
 	}
 
-	_cropLeft = cropLeft;
-	_cropRight = cropRight;
-	_cropTop = cropTop;
+	_cropLeft   = cropLeft;
+	_cropRight  = cropRight;
+	_cropTop    = cropTop;
 	_cropBottom = cropBottom;
 
 	if ( _useImageResampler )
