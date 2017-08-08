@@ -17,8 +17,6 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	, _grabber(new DispmanxFrameGrabber(grabWidth, grabHeight))
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 {
-	// Configure the timer to generate events every n milliseconds
-	_timer.setInterval(_updateInterval_ms);
 	_ggrabber = _grabber;
 }
 

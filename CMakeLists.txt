@@ -240,7 +240,7 @@ add_definitions(${QT_DEFINITIONS})
 #	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 #endif()
 
-if(ENABLE_OSX)
+if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
 

@@ -72,9 +72,9 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 
 	// vc_dispmanx_resource_read_data doesn't seem to work well
 	// with arbitrary positions so we have to handle cropping by ourselves
-	unsigned cropLeft = _cropLeft;
-	unsigned cropRight = _cropRight;
-	unsigned cropTop = _cropTop;
+	unsigned cropLeft   = _cropLeft;
+	unsigned cropRight  = _cropRight;
+	unsigned cropTop    = _cropTop;
 	unsigned cropBottom = _cropBottom;
 
 	if (_vc_flags & DISPMANX_SNAPSHOT_FILL)

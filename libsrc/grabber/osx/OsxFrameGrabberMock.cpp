@@ -1,0 +1,122 @@
+#ifndef __APPLE__
+#include <grabber/OsxFrameGrabberMock.h>
+
+unsigned __frame_counter = 0;
+
+void CGGetActiveDisplayList(int max, CGDirectDisplayID *displays, CGDisplayCount *displayCount)
+{
+	*displayCount = 1;
+	displays[0]   = 1;
+}
+
+CGImageRef CGDisplayCreateImage(CGDirectDisplayID display)
+{
+	CGImageRef image = new CGImage(__screenWidth, __screenHeight);
+
+	return image;
+}
+
+void CGImageRelease(CGImageRef image)
+{
+	delete image;
+}
+
+CGImageRef CGImageGetDataProvider(CGImageRef image)
+{
+	__frame_counter++;
+	if (__frame_counter > 100)
+	{
+		__frame_counter = 0;
+	}
+	
+	ColorRgb color[4] = {ColorRgb::RED, ColorRgb::BLUE, ColorRgb::GREEN, ColorRgb::WHITE};
+	if (__frame_counter < 25)
+	{
+		color[0] = ColorRgb::WHITE;
+		color[1] = ColorRgb::RED;
+		color[2] = ColorRgb::BLUE;
+		color[3] = ColorRgb::GREEN;
+	}
+	else if(__frame_counter < 50)
+	{
+			color[1] = ColorRgb::WHITE;
+			color[2] = ColorRgb::RED;
+			color[3] = ColorRgb::BLUE;
+			color[0] = ColorRgb::GREEN;
+	}
+	else if(__frame_counter < 75)
+	{
+			color[2] = ColorRgb::WHITE;
+			color[3] = ColorRgb::RED;
+			color[0] = ColorRgb::BLUE;
+			color[1] = ColorRgb::GREEN;
+	}
+
+	for (unsigned y=0; y<image->height(); y++)
+	{
+		for (unsigned x=0; x<image->width(); x++)
+		{
+			unsigned id = 0;
+			if (x  < __screenWidth/2 && y  < __screenHeight/2) id = 1;
+			if (x  < __screenWidth/2 && y >= __screenHeight/2) id = 2;
+			if (x >= __screenWidth/2 && y  < __screenHeight/2) id = 3;
+			
+			image->memptr()[y*(image->width()) + x] = color[id];
+		}
+	}
+	
+	return image;
+}
+
+CFDataRef CGDataProviderCopyData(CGImageRef image)
+{
+	const unsigned indexMax = image->width() * image->height() * CGImageGetBitsPerPixel(image);
+	CFDataRef data = new CFData[indexMax];
+	int lineLength = CGImageGetBytesPerRow(image);
+
+	for (unsigned y=0; y<image->height(); y++)
+	{
+		for (unsigned x=0; x<image->width(); x++)
+		{
+			int index = lineLength * y + x * CGImageGetBitsPerPixel(image);
+
+			data[index  ] = (*image)(x,y).blue;
+			data[index+1] = (*image)(x,y).green;
+			data[index+2] = (*image)(x,y).red;
+			data[index+3] = 0;
+		}
+	}
+	return data;
+}
+
+unsigned char* CFDataGetBytePtr(CFDataRef imgData)
+{
+	return imgData;
+}
+
+unsigned CGImageGetWidth(CGImageRef image)
+{
+	return image->width();
+}
+
+unsigned CGImageGetHeight(CGImageRef image)
+{
+	return image->height();
+}
+
+unsigned CGImageGetBytesPerRow(CGImageRef image)
+{
+	return image->width()*CGImageGetBitsPerPixel(image);
+}
+
+unsigned CGImageGetBitsPerPixel(CGImageRef)
+{
+	return 4;
+}
+
+void CFRelease(CFDataRef imgData)
+{
+	delete imgData;
+}
+
+#endif

@@ -26,7 +26,7 @@ void OsxWrapper::action()
 	int w = _grabber->getImageWidth();
 	int h = _grabber->getImageHeight();
 
-	if ( _image.width() != w || _image.height() != h)
+	if ( _image.width() != (unsigned)w || _image.height() != (unsigned)h)
 	{
 		_processor->setSize(w, h);
 		_image.resize(w, h);
