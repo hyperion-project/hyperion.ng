@@ -40,8 +40,9 @@ void vc_dispmanx_resource_delete(DISPMANX_RESOURCE_HANDLE_T resource)
 	delete resource;
 }
 
-int  vc_dispmanx_resource_read_data(DISPMANX_RESOURCE_HANDLE_T vc_resource, VC_RECT_T *rectangle, void* capturePtr, unsigned capturePitch)
+int  vc_dispmanx_resource_read_data(DISPMANX_RESOURCE_HANDLE_T resource, VC_RECT_T *rectangle, void* capturePtr, unsigned capturePitch)
 {
+	memcpy(capturePtr, resource->memptr(), resource->height()*resource->width() * sizeof(ColorRgba));
 	return 0;
 }
 
@@ -71,32 +72,34 @@ int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, int vc_flags)
 	}
 	else if(__bcm_frame_counter < 50)
 	{
-			color[1] = ColorRgba::WHITE;
-			color[2] = ColorRgba::RED;
-			color[3] = ColorRgba::BLUE;
-			color[0] = ColorRgba::GREEN;
+		color[1] = ColorRgba::WHITE;
+		color[2] = ColorRgba::RED;
+		color[3] = ColorRgba::BLUE;
+		color[0] = ColorRgba::GREEN;
 	}
 	else if(__bcm_frame_counter < 75)
 	{
-			color[2] = ColorRgba::WHITE;
-			color[3] = ColorRgba::RED;
-			color[0] = ColorRgba::BLUE;
-			color[1] = ColorRgba::GREEN;
+		color[2] = ColorRgba::WHITE;
+		color[3] = ColorRgba::RED;
+		color[0] = ColorRgba::BLUE;
+		color[1] = ColorRgba::GREEN;
 	}
 
-	for (unsigned y=0; y<resource->height(); y++)
+	unsigned w = resource->width();
+	unsigned h = resource->height();
+	for (unsigned y=0; y<h; y++)
 	{
-		for (unsigned x=0; x<resource->width(); x++)
+		for (unsigned x=0; x<w; x++)
 		{
 			unsigned id = 0;
-			if (x  < __screenWidth/2 && y  < __screenHeight/2) id = 1;
-			if (x  < __screenWidth/2 && y >= __screenHeight/2) id = 2;
-			if (x >= __screenWidth/2 && y  < __screenHeight/2) id = 3;
+			if (x  < w/2 && y  < h/2) id = 1;
+			if (x  < w/2 && y >= h/2) id = 2;
+			if (x >= w/2 && y  < h/2) id = 3;
 			
-			resource->memptr()[y*(resource->width()) + x] = color[id];
+			resource->memptr()[y*w + x] = color[id];
 		}
 	}
-	
+
 	return 0;
 }
 

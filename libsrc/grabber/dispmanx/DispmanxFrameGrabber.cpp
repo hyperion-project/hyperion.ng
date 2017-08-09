@@ -14,7 +14,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
 {
-		_useImageResampler = false;
+	_useImageResampler = false;
 
 	// Initiase BCM
 	bcm_host_init();
@@ -126,7 +126,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	}
 
 	// Read the snapshot into the memory
-	void* imagePtr = image.memptr();
+	void* imagePtr   = image.memptr();
 	void* capturePtr = imagePtr;
 
 	unsigned imagePitch = imageWidth * sizeof(ColorRgba);

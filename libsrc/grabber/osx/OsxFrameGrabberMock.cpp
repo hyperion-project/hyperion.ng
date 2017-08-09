@@ -41,29 +41,31 @@ CGImageRef CGImageGetDataProvider(CGImageRef image)
 	}
 	else if(__osx_frame_counter < 50)
 	{
-			color[1] = ColorRgb::WHITE;
-			color[2] = ColorRgb::RED;
-			color[3] = ColorRgb::BLUE;
-			color[0] = ColorRgb::GREEN;
+		color[1] = ColorRgb::WHITE;
+		color[2] = ColorRgb::RED;
+		color[3] = ColorRgb::BLUE;
+		color[0] = ColorRgb::GREEN;
 	}
 	else if(__osx_frame_counter < 75)
 	{
-			color[2] = ColorRgb::WHITE;
-			color[3] = ColorRgb::RED;
-			color[0] = ColorRgb::BLUE;
-			color[1] = ColorRgb::GREEN;
+		color[2] = ColorRgb::WHITE;
+		color[3] = ColorRgb::RED;
+		color[0] = ColorRgb::BLUE;
+		color[1] = ColorRgb::GREEN;
 	}
-
-	for (unsigned y=0; y<image->height(); y++)
+	unsigned w = image->width();
+	unsigned h = image->height();
+	
+	for (unsigned y=0; y<h; y++)
 	{
-		for (unsigned x=0; x<image->width(); x++)
+		for (unsigned x=0; x<w; x++)
 		{
 			unsigned id = 0;
-			if (x  < __screenWidth/2 && y  < __screenHeight/2) id = 1;
-			if (x  < __screenWidth/2 && y >= __screenHeight/2) id = 2;
-			if (x >= __screenWidth/2 && y  < __screenHeight/2) id = 3;
+			if (x  < w/2 && y  < h/2) id = 1;
+			if (x  < w/2 && y >= h/2) id = 2;
+			if (x >= w/2 && y  < h/2) id = 3;
 			
-			image->memptr()[y*(image->width()) + x] = color[id];
+			image->memptr()[y*w + x] = color[id];
 		}
 	}
 	
