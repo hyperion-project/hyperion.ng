@@ -9,6 +9,7 @@
 #endif
 
 // Utils includes
+#include <utils/Image.h>
 #include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
 
@@ -65,4 +66,7 @@ private:
 
 	// size of the capture buffer in Pixels
 	unsigned _captureBufferSize;
+	
+	Image<ColorRgba> & _image_rgba;
+
 };
