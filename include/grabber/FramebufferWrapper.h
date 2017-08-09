@@ -1,15 +1,7 @@
 #pragma once
 
-// Utils includes
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/GrabbingMode.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
-
-// Forward class declaration
-class FramebufferFrameGrabber;
-class ImageProcessor;
+#include <grabber/FramebufferFrameGrabber.h>
 
 ///
 /// The FramebufferWrapper uses an instance of the FramebufferFrameGrabber to obtain ImageRgb's from the
@@ -43,5 +35,5 @@ public slots:
 
 private:
 	/// The actual grabber
-	FramebufferFrameGrabber * _grabber;
+	FramebufferFrameGrabber _grabber;
 };

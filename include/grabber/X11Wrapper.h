@@ -1,14 +1,12 @@
 #pragma once
 
-// Utils includes
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
+#include <grabber/X11Grabber.h>
+// some include of xorg defines "None" this is also used by QT and has to be undefined to avoid collisions
+#ifdef None
+	#undef None
+#endif
 
-// Forward class declaration
-class X11Grabber;
-class ImageProcessor;
 
 ///
 /// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the
@@ -41,7 +39,7 @@ public slots:
 
 private:
 	/// The actual grabber
-	X11Grabber * _grabber;
+	X11Grabber  _grabber;
 
 	bool _init;
 };

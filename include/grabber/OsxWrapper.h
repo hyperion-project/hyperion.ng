@@ -1,16 +1,7 @@
 #pragma once
 
-// Utils includes
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/ColorRgba.h>
-#include <utils/GrabbingMode.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
-
-// Forward class declaration
-class OsxFrameGrabber;
-class ImageProcessor;
+#include <grabber/OsxFrameGrabber.h>
 
 ///
 /// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the
@@ -45,5 +36,5 @@ public slots:
 
 private:
 	/// The actual grabber
-	OsxFrameGrabber * _grabber;
+	OsxFrameGrabber _grabber;
 };

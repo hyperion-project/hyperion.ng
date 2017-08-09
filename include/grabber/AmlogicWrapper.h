@@ -1,16 +1,7 @@
 #pragma once
 
-// Utils includes
-#include <utils/Image.h>
-#include <utils/ColorBgr.h>
-#include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
-
-// Forward class declaration
-class AmlogicGrabber;
-class Hyperion;
-class ImageProcessor;
+#include <grabber/AmlogicGrabber.h>
 
 ///
 /// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain ImageRgb's from the
@@ -44,5 +35,5 @@ public slots:
 
 private:
 	/// The actual grabber
-	AmlogicGrabber * _grabber;
+	AmlogicGrabber  _grabber;
 };

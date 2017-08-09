@@ -9,6 +9,10 @@
 #include <utils/Components.h>
 #include <utils/GrabbingMode.h>
 #include <hyperion/Hyperion.h>
+#include <hyperion/ImageProcessor.h>
+#include <utils/Image.h>
+#include <utils/ColorRgb.h>
+#include <utils/VideoMode.h>
 
 class ImageProcessor;
 class Grabber;

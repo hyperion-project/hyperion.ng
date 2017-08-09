@@ -1,11 +1,6 @@
 #pragma once
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-#include <hyperion/ImageProcessor.h>
 #include <hyperion/GrabberWrapper.h>
-
-// Grabber includes
 #include <grabber/V4L2Grabber.h>
 
 class V4L2Wrapper : public GrabberWrapper
