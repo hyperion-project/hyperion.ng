@@ -118,7 +118,7 @@ bool X11Grabber::Setup()
 int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 {
 	if (forceUpdate)
-		updateScreenDimensions(true);
+		updateScreenDimensions(forceUpdate);
 	
 	if (_XRenderAvailable && !_useXGetImage)
 	{

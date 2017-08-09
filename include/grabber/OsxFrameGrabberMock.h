@@ -17,8 +17,6 @@ typedef unsigned char CFData;
 typedef CFData* CFDataRef;
 typedef unsigned CGDisplayCount;
 
-const int __screenWidth  = 800;
-const int __screenHeight = 600;
 const int kCGDirectMainDisplay = 0;
 
 void           CGGetActiveDisplayList(int max, CGDirectDisplayID *displays, CGDisplayCount *displayCount);

@@ -1,8 +1,12 @@
 #pragma once
 
 // BCM includes
-#pragma GCC system_header
-#include <bcm_host.h>
+#ifdef PLATFORM_RPI
+	#pragma GCC system_header
+	#include <bcm_host.h>
+#else
+	#include <grabber/DispmanxFrameGrabberMock.h>
+#endif
 
 // Utils includes
 #include <utils/ColorRgba.h>

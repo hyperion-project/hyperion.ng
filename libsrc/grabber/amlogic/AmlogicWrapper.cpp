@@ -1,7 +1,3 @@
-// QT includes
-#include <QDateTime>
-
-// Amlogic grabber includes
 #include <grabber/AmlogicWrapper.h>
 
 

@@ -1,7 +1,9 @@
 #ifndef __APPLE__
 #include <grabber/OsxFrameGrabberMock.h>
 
-unsigned __frame_counter = 0;
+unsigned __osx_frame_counter = 0;
+const int __screenWidth  = 800;
+const int __screenHeight = 600;
 
 void CGGetActiveDisplayList(int max, CGDirectDisplayID *displays, CGDisplayCount *displayCount)
 {
@@ -23,28 +25,28 @@ void CGImageRelease(CGImageRef image)
 
 CGImageRef CGImageGetDataProvider(CGImageRef image)
 {
-	__frame_counter++;
-	if (__frame_counter > 100)
+	__osx_frame_counter++;
+	if (__osx_frame_counter > 100)
 	{
-		__frame_counter = 0;
+		__osx_frame_counter = 0;
 	}
 	
 	ColorRgb color[4] = {ColorRgb::RED, ColorRgb::BLUE, ColorRgb::GREEN, ColorRgb::WHITE};
-	if (__frame_counter < 25)
+	if (__osx_frame_counter < 25)
 	{
 		color[0] = ColorRgb::WHITE;
 		color[1] = ColorRgb::RED;
 		color[2] = ColorRgb::BLUE;
 		color[3] = ColorRgb::GREEN;
 	}
-	else if(__frame_counter < 50)
+	else if(__osx_frame_counter < 50)
 	{
 			color[1] = ColorRgb::WHITE;
 			color[2] = ColorRgb::RED;
 			color[3] = ColorRgb::BLUE;
 			color[0] = ColorRgb::GREEN;
 	}
-	else if(__frame_counter < 75)
+	else if(__osx_frame_counter < 75)
 	{
 			color[2] = ColorRgb::WHITE;
 			color[3] = ColorRgb::RED;

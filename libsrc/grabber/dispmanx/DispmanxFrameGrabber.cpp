@@ -83,7 +83,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 		cropLeft = cropRight = cropTop = cropBottom = 0;
 	}
 
-	unsigned imageWidth = _width - cropLeft - cropRight;
+	unsigned imageWidth  = _width - cropLeft - cropRight;
 	unsigned imageHeight = _height - cropTop - cropBottom;
 
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
