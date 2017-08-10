@@ -86,6 +86,7 @@ HyperionDaemon::~HyperionDaemon()
 
 void HyperionDaemon::freeObjects()
 {
+	_hyperion->clearall(true);
 	Debug(_log, "destroy grabbers and network stuff");
 	delete _amlGrabber;
 	delete _dispmanx;
