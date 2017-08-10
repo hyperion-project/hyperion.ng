@@ -37,7 +37,7 @@ OsxFrameGrabber::~OsxFrameGrabber()
 {
 }
 
-void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	CGImageRef dispImage;
 	CFDataRef imgData;
@@ -54,7 +54,7 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		if (dispImage == NULL)
 		{
 			Error(_log, "No display connected...");
-			return;
+			return -1;
 		}
 	}
 	imgData   = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
@@ -73,4 +73,6 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	CFRelease(imgData);
 	CGImageRelease(dispImage);
+
+	return 0;
 }

@@ -10,11 +10,8 @@
 #include <QRectF>
 
 // util includes
-#include <utils/ColorRgb.h>
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-
-// grabber includes
 #include <grabber/VideoStandard.h>
 
 /// Capture class for V4L2 devices
@@ -39,6 +36,8 @@ public:
 	QRectF getSignalDetectionOffset();
 	bool getSignalDetectionEnabled();
 
+	int grabFrame(Image<ColorRgb> &);
+		
 public slots:
 	void setSignalThreshold(
 					double redSignalThreshold,

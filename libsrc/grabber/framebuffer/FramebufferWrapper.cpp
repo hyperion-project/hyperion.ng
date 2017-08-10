@@ -14,6 +14,5 @@ FramebufferWrapper::~FramebufferWrapper()
 void FramebufferWrapper::action()
 {
 	updateOutputSize();
-	_grabber.grabFrame(_image);
 	setImage();
 }

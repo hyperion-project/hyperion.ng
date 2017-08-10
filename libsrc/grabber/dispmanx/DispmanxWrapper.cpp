@@ -14,6 +14,5 @@ DispmanxWrapper::~DispmanxWrapper()
 
 void DispmanxWrapper::action()
 {
-	_grabber.grabFrame(_image);
-	setImage();
+	if (_grabber.grabFrame(_image) >= 0) setImage();
 }

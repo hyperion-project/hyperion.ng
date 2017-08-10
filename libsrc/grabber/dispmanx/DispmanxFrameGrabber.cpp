@@ -67,7 +67,7 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
-void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	int ret;
 
@@ -119,7 +119,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	if (_vc_display < 0)
 	{
 		Error(_log, "Cannot open display: %d", _vc_display);
-		return;
+		return -1;
 	}
 
 	// Create the snapshot (incl down-scaling)
@@ -128,7 +128,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	{
 		Error(_log, "Snapshot failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
-		return;
+		return ret;
 	}
 
 	// Read the snapshot into the memory
@@ -162,7 +162,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	{
 		Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
-		return;
+		return ret;
 	}
 
 	// copy capture data to image if we captured to temp buffer
@@ -187,4 +187,5 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	// image to output image
 	_image_rgba.toRgb(image);
 
+	return 0;
 }

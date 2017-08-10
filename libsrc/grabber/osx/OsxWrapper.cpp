@@ -14,6 +14,5 @@ OsxWrapper::~OsxWrapper()
 void OsxWrapper::action()
 {
 	updateOutputSize();
-	_grabber.grabFrame(_image);
-	setImage();
+	if (_grabber.grabFrame(_image) >= 0) setImage();
 }

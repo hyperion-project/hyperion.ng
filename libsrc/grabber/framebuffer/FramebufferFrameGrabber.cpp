@@ -47,7 +47,7 @@ FramebufferFrameGrabber::~FramebufferFrameGrabber()
 {
 }
 
-void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	struct fb_var_screeninfo vinfo;
 	unsigned capSize, bytesPerPixel;
@@ -78,7 +78,7 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	{
 		Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);
 		close(_fbfd);
-		return;
+		return -1;
 	}
 			
 	/* map the device to memory */
@@ -95,4 +95,6 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	munmap(_fbp, capSize);
 	close(_fbfd);
+
+	return 0;
 }

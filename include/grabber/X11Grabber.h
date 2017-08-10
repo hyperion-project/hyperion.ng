@@ -31,7 +31,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
+	virtual int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
 	
 	///
 	/// update dimension according current screen

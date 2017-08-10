@@ -39,7 +39,7 @@ public slots:
 
 private:
 	/// The actual grabber
-	X11Grabber  _grabber;
+	X11Grabber _grabber;
 
 	bool _init;
 };

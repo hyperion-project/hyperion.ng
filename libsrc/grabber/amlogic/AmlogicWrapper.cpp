@@ -15,8 +15,5 @@ AmlogicWrapper::~AmlogicWrapper()
 void AmlogicWrapper::action()
 {
 	updateOutputSize();
-	if (_grabber.grabFrame(_image) >= 0)
-	{
-		setImage();
-	}
+	if (_grabber.grabFrame(_image) >= 0) setImage();
 }

@@ -3,6 +3,7 @@
 #include <QObject>
 #include <cstdint>
 
+#include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/VideoMode.h>
 #include <utils/GrabbingMode.h>
@@ -16,8 +17,8 @@ class Grabber : public QObject
 
 public:
 	Grabber(QString grabberName, int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
-	~Grabber();
-	
+	virtual ~Grabber();
+
 	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
