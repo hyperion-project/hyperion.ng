@@ -42,7 +42,6 @@ public:
 	///
 	void setSize(const unsigned width, const unsigned height);
 
-
 	/// Returns starte of black border detector
 	bool blackBorderDetectorEnabled();
 	
@@ -59,7 +58,20 @@ public slots:
 	/// Enable or disable the black border detector
 	void setLedMappingType(int mapType);
 
-public:	
+public:
+	///
+	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// match the given size.
+	/// NB All earlier obtained references will be invalid.
+	///
+	/// @param[in] image   The dimensions taken from image
+	///
+	template <typename Pixel_T>
+	void setSize(const Image<Pixel_T> &image)
+	{
+		setSize(image.width(), image.height());
+	}
+
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -72,10 +84,10 @@ public:
 	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
 		std::vector<ColorRgb> colors;
-		if (_imageToLeds!=nullptr && image.width()>0 && image.height()>0)
+		if (image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
-			setSize(image.width(), image.height());
+			setSize(image);
 
 			// Check black border detection
 			verifyBorder(image);
@@ -86,6 +98,10 @@ public:
 				case 1: colors = _imageToLeds->getUniLedColor(image); break;
 				default: colors = _imageToLeds->getMeanLedColor(image);
 			}
+		}
+		else
+		{
+			Warning(_log, "ImageProcessor::process called without image size 0");
 		}
 
 		// return the computed colors
@@ -101,10 +117,10 @@ public:
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
 	{
-		if (_imageToLeds!=nullptr && image.width()>0 && image.height()>0)
+		if ( image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
-			setSize(image.width(), image.height());
+			setSize(image);
 
 			// Check black border detection
 			verifyBorder(image);
@@ -115,6 +131,10 @@ public:
 				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
 				default: _imageToLeds->getMeanLedColor(image, ledColors);
 			}
+		}
+		else
+		{
+			Warning(_log, "ImageProcessor::process called without image size 0");
 		}
 	}
 
