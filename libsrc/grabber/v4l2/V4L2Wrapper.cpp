@@ -8,8 +8,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
-		int width,
-		int height,
+		unsigned width,
+		unsigned height,
 		int frameDecimation,
 		int pixelDecimation,
 		double redSignalThreshold,
@@ -28,7 +28,6 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 			pixelDecimation,
 			pixelDecimation)
 {
-// 	_timeout_ms = 1000;
 	// set the signal detection threshold of the grabber
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 	_ggrabber = &_grabber;

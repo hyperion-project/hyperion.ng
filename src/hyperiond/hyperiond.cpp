@@ -117,7 +117,6 @@ void HyperionDaemon::freeObjects()
 
 void HyperionDaemon::run()
 {
-	startInitialEffect();
 	createKODIVideoChecker();
 
 	// ---- network services -----
@@ -133,6 +132,8 @@ void HyperionDaemon::run()
 	Info(_log, "Hyperion started");
 
 	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
+
+	startInitialEffect();
 }
 
 void HyperionDaemon::loadConfig(const QString & configFile)
@@ -571,8 +572,8 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["input"].toInt(0),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				grabberConfig["width"].toInt(-1),
-				grabberConfig["height"].toInt(-1),
+				grabberConfig["width"].toInt(0),
+				grabberConfig["height"].toInt(0),
 				grabberConfig["frameDecimation"].toInt(2),
 				grabberConfig["sizeDecimation"].toInt(8),
 				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,

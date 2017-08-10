@@ -28,8 +28,8 @@ public:
 	V4L2Grabber(const QString & device,
 			int input,
 			VideoStandard videoStandard, PixelFormat pixelFormat,
-			int width,
-			int height,
+			unsigned width,
+			unsigned height,
 			int frameDecimation,
 			int horizontalPixelDecimation,
 			int verticalPixelDecimation

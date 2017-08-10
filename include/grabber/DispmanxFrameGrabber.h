@@ -38,7 +38,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	void grabFrame(Image<ColorRgba> & image);
+	void grabFrame(Image<ColorRgb> & image);
 
 private:
 		///
@@ -66,7 +66,8 @@ private:
 
 	// size of the capture buffer in Pixels
 	unsigned _captureBufferSize;
-	
-	Image<ColorRgba> & _image_rgba;
+
+	// rgba output buffer
+	Image<ColorRgba>  _image_rgba;
 
 };

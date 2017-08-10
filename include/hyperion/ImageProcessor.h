@@ -71,18 +71,21 @@ public:
 	template <typename Pixel_T>
 	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
-		// Ensure that the buffer-image is the proper size
-		setSize(image.width(), image.height());
-
-		// Check black border detection
-		verifyBorder(image);
-
-		// Create a result vector and call the 'in place' functionl
 		std::vector<ColorRgb> colors;
-		switch (_mappingType)
+		if (_imageToLeds!=nullptr && image.width()>0 && image.height()>0)
 		{
-			case 1: colors = _imageToLeds->getUniLedColor(image); break;
-			default: colors = _imageToLeds->getMeanLedColor(image);
+			// Ensure that the buffer-image is the proper size
+			setSize(image.width(), image.height());
+
+			// Check black border detection
+			verifyBorder(image);
+
+			// Create a result vector and call the 'in place' functionl
+			switch (_mappingType)
+			{
+				case 1: colors = _imageToLeds->getUniLedColor(image); break;
+				default: colors = _imageToLeds->getMeanLedColor(image);
+			}
 		}
 
 		// return the computed colors
@@ -98,19 +101,21 @@ public:
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
 	{
-		// Ensure that the buffer-image is the proper size
-		setSize(image.width(), image.height());
-
-		// Check black border detection
-		verifyBorder(image);
-
-		// Determine the mean-colors of each led (using the existing mapping)
-		switch (_mappingType)
+		if (_imageToLeds!=nullptr && image.width()>0 && image.height()>0)
 		{
-			case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
-			default: _imageToLeds->getMeanLedColor(image, ledColors);
-		}
+			// Ensure that the buffer-image is the proper size
+			setSize(image.width(), image.height());
 
+			// Check black border detection
+			verifyBorder(image);
+
+			// Determine the mean-colors of each led (using the existing mapping)
+			switch (_mappingType)
+			{
+				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
+				default: _imageToLeds->getMeanLedColor(image, ledColors);
+			}
+		}
 	}
 
 	///

@@ -23,8 +23,9 @@ GrabberWrapper::GrabberWrapper(QString grabberName, unsigned width, unsigned hei
 	_timer.setSingleShot(false);
 	// Configure the timer to generate events every n milliseconds
 	_timer.setInterval(_updateInterval_ms);
-	_processor->setSize(width, height);
+
 	_image.resize(width, height);
+	_processor->setSize(width, height);
 	
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
@@ -36,6 +37,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, unsigned width, unsigned hei
 	connect(_hyperion, SIGNAL(videoMode(VideoMode)), this, SLOT(setVideoMode(VideoMode)));
 	connect(this, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+
 }
 
 GrabberWrapper::~GrabberWrapper()

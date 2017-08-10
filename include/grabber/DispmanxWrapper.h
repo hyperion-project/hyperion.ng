@@ -36,9 +36,6 @@ public slots:
 	virtual void action();
 
 private:
-	/// The image used for grabbing frames
-	Image<ColorRgba> _image_rgba;
-
 	/// The actual grabber
 	DispmanxFrameGrabber _grabber;
 };

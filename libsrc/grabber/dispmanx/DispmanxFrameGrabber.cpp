@@ -13,6 +13,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	, _vc_flags(0)
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
+	, _image_rgba(width, height)
 {
 	_useImageResampler = false;
 
@@ -66,7 +67,7 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
-void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
+void DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	int ret;
 
@@ -108,6 +109,11 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 		image.resize(imageWidth, imageHeight);
 	}
 
+	if (_image_rgba.width() != imageWidth || _image_rgba.height() != imageHeight)
+	{
+		_image_rgba.resize(imageWidth, imageHeight);
+	}
+
 	// Open the connection to the display
 	_vc_display = vc_dispmanx_display_open(0);
 	if (_vc_display < 0)
@@ -126,7 +132,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	}
 
 	// Read the snapshot into the memory
-	void* imagePtr   = image.memptr();
+	void* imagePtr   = _image_rgba.memptr();
 	void* capturePtr = imagePtr;
 
 	unsigned imagePitch = imageWidth * sizeof(ColorRgba);
@@ -177,4 +183,8 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 
 	// Close the displaye
 	vc_dispmanx_display_close(_vc_display);
+
+	// image to output image
+	_image_rgba.toRgb(image);
+
 }
