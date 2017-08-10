@@ -145,7 +145,7 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	_imageResampler.setHorizontalPixelDecimation(_width);
 	_imageResampler.setVerticalPixelDecimation(_height);
-	_image.toRgb(image);
+	_imageResampler.processImage((const uint8_t*)image_ptr, _width, _height, 3, PIXELFORMAT_BGR24, image);
 
 	return 0;
 }
