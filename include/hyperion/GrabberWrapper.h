@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <QString>
 #include <QStringList>
-#include <typeinfo>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -23,7 +22,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public: 
-	GrabberWrapper(QString grabberName, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
+	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
 	
 	virtual ~GrabberWrapper();
 	

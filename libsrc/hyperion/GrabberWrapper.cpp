@@ -5,7 +5,7 @@
 #include <hyperion/Grabber.h>
 #include <HyperionConfig.h>
 
-GrabberWrapper::GrabberWrapper(QString grabberName, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId)
+GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
 	, _priority(priority)
@@ -16,7 +16,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, unsigned width, unsigned hei
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _grabberComponentId(grabberComponentId)
-	, _ggrabber(nullptr)
+	, _ggrabber(ggrabber)
 	, _image(0,0)
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
 	, _imageProcessorEnabled(true)
