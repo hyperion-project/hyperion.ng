@@ -26,7 +26,7 @@ public:
 	///
 	/// Destructor of this osx frame grabber. Releases any claimed resources.
 	///
-	virtual ~OsxWrapper();
+	virtual ~OsxWrapper() {};
 
 public slots:
 	///

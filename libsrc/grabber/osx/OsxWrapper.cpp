@@ -7,12 +7,7 @@ OsxWrapper::OsxWrapper(const unsigned display, const unsigned grabWidth, const u
 	_ggrabber = &_grabber;
 }
 
-OsxWrapper::~OsxWrapper()
-{
-}
-
 void OsxWrapper::action()
 {
-	updateOutputSize();
-	if (_grabber.grabFrame(_image) >= 0) setImage();
+	transferFrame(_grabber);
 }

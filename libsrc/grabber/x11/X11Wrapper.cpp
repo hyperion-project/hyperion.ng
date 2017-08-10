@@ -8,10 +8,6 @@ X11Wrapper::X11Wrapper(bool useXGetImage, int cropLeft, int cropRight, int cropT
 	_ggrabber = &_grabber;
 }
 
-X11Wrapper::~X11Wrapper()
-{
-}
-
 void X11Wrapper::action()
 {
 	if (! _init )
@@ -25,7 +21,6 @@ void X11Wrapper::action()
 
 	if (_grabber.updateScreenDimensions() >= 0 )
 	{
-		updateOutputSize();
-		if (_grabber.grabFrame(_image) >= 0) setImage();
+		transferFrame(_grabber);
 	}
 }

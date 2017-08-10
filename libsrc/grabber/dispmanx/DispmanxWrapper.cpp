@@ -6,13 +6,10 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	, _grabber(grabWidth, grabHeight)
 {
 	_ggrabber = &_grabber;
-}
-
-DispmanxWrapper::~DispmanxWrapper()
-{
+	setImageProcessorEnabled(false);
 }
 
 void DispmanxWrapper::action()
 {
-	if (_grabber.grabFrame(_image) >= 0) setImage();
+	transferFrame(_grabber);
 }

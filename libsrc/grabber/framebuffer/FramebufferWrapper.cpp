@@ -7,12 +7,7 @@ FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned gr
 	_ggrabber = &_grabber;
 }
 
-FramebufferWrapper::~FramebufferWrapper()
-{
-}
-
 void FramebufferWrapper::action()
 {
-	updateOutputSize();
-	if (_grabber.grabFrame(_image) >= 0) setImage();
+	transferFrame(_grabber);
 }

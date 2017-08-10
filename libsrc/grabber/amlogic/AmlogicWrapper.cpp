@@ -8,12 +8,7 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 	_ggrabber = &_grabber;
 }
 
-AmlogicWrapper::~AmlogicWrapper()
-{
-}
-
 void AmlogicWrapper::action()
 {
-	updateOutputSize();
-	if (_grabber.grabFrame(_image) >= 0) setImage();
+	transferFrame(_grabber);
 }

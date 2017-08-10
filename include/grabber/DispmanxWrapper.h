@@ -27,7 +27,7 @@ public:
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.
 	///
-	virtual ~DispmanxWrapper();
+	virtual ~DispmanxWrapper() {};
 
 public slots:
 	///

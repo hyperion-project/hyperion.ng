@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QString>
 #include <QStringList>
+#include <typeinfo>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -16,6 +17,7 @@
 
 class ImageProcessor;
 class Grabber;
+class DispmanxFrameGrabber;
 
 class GrabberWrapper : public QObject
 {
@@ -35,8 +37,32 @@ public:
 	///
 	virtual void stop();
 
+	void setImageProcessorEnabled(bool enable);
+
 	static QStringList availableGrabbers();
 
+
+public:
+	template <typename Grabber_T>
+	void transferFrame(Grabber_T &grabber)
+	{
+		unsigned w = grabber.getImageWidth();
+		unsigned h = grabber.getImageHeight();
+		if (_imageProcessorEnabled && ( _image.width() != w || _image.height() != h))
+		{
+			_processor->setSize(w, h);
+			_image.resize(w, h);
+		}
+
+		if (grabber.grabFrame(_image) >= 0)
+		{
+			emit emitImage(_priority, _image, _timeout_ms);
+			_processor->process(_image, _ledColors);
+			setColors(_ledColors, _timeout_ms);
+		}
+	}
+
+	
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
 	
@@ -65,9 +91,6 @@ signals:
 protected:
 
 	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
-	
-	void setImage();
-	bool updateOutputSize();
 	
 	QString _grabberName;
 	
@@ -104,5 +127,7 @@ protected:
 
 	/// The list with computed led colors
 	std::vector<ColorRgb> _ledColors;
+	
+	bool _imageProcessorEnabled;
 };
 

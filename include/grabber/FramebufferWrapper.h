@@ -25,7 +25,7 @@ public:
 	///
 	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
 	///
-	virtual ~FramebufferWrapper();
+	virtual ~FramebufferWrapper() {};
 
 public slots:
 	///

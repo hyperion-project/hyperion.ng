@@ -19,6 +19,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, unsigned width, unsigned hei
 	, _ggrabber(nullptr)
 	, _image(0,0)
 	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
+	, _imageProcessorEnabled(true)
 {
 	_timer.setSingleShot(false);
 	// Configure the timer to generate events every n milliseconds
@@ -167,24 +168,8 @@ void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned
 	_ggrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
-void GrabberWrapper::setImage()
+void GrabberWrapper::setImageProcessorEnabled(bool enable)
 {
-	emit emitImage(_priority, _image, _timeout_ms);
-	_processor->process(_image, _ledColors);
-	setColors(_ledColors, _timeout_ms);
+	_imageProcessorEnabled = enable;
 }
 
-bool GrabberWrapper::updateOutputSize()
-{
-	unsigned w = _ggrabber->getImageWidth();
-	unsigned h = _ggrabber->getImageHeight();
-
-	if ( _image.width() != w || _image.height() != h)
-	{
-		_processor->setSize(w, h);
-		_image.resize(w, h);
-		return true;
-	}
-	
-	return false;
-}

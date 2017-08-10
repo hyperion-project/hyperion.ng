@@ -48,10 +48,6 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	_timer.setInterval(500);
 }
 
-V4L2Wrapper::~V4L2Wrapper()
-{
-}
-
 bool V4L2Wrapper::start()
 {
 	return ( _grabber.start() && GrabberWrapper::start());
