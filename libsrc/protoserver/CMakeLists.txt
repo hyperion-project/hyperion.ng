@@ -19,6 +19,8 @@ add_library(protoserver
 	${ProtoServer_PROTO_SRCS}
 	${ProtoServer_PROTO_HDRS}
 )
+# disable warnings for auto generatet proto files, we can't change the files ....
+SET_SOURCE_FILES_PROPERTIES ( ${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS -w )
 
 target_link_libraries(protoserver
 	hyperion

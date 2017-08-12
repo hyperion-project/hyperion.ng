@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 2.8.12)
 project(hyperion-dispmanx)
 
 find_package(Qt5Widgets REQUIRED)
-find_package(BCM REQUIRED)
+IF ( "${PLATFORM}" MATCHES rpi)
+	find_package(BCM REQUIRED)
+ELSE()
+	SET(BCM_INCLUDE_DIRS "")
+	SET(BCM_LIBRARIES "")
+ENDIF()
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver

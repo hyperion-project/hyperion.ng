@@ -1,7 +1,11 @@
 #pragma once
 
 // OSX includes
+#ifdef __APPLE__
 #include <CoreGraphics/CoreGraphics.h>
+#else
+#include <grabber/OsxFrameGrabberMock.h>
+#endif
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -31,7 +35,7 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	void grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 private:	
 	/// display

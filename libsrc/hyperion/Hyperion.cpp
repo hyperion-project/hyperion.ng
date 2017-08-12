@@ -487,14 +487,15 @@ unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequ
 
 void Hyperion::freeObjects(bool emitCloseSignal)
 {
+	// switch off all leds
+	clearall(true);
+	_device->switchOff();
+
 	if (emitCloseSignal)
 	{
 		emit closing();
 	}
 
-	// switch off all leds
-	clearall();
-	_device->switchOff();
 
 	// delete components on exit of hyperion core
 	delete _effectEngine;
@@ -740,9 +741,9 @@ void Hyperion::clear(int priority)
 	_effectEngine->channelCleared(priority);
 }
 
-void Hyperion::clearall()
+void Hyperion::clearall(bool forceClearAll)
 {
-	_muxer.clearAll();
+	_muxer.clearAll(forceClearAll);
 	setSourceAutoSelectEnabled(true);
 
 	// update leds

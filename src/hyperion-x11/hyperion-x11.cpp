@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 	catch (const std::runtime_error & e)
 	{
 		// An error occured. Display error and quit
-                Error(Logger::getInstance("X11GRABBER"), "%s", e.what());
+		Error(Logger::getInstance("X11GRABBER"), "%s", e.what());
 		return -1;
 	}
 

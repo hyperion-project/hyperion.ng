@@ -78,13 +78,22 @@ void PriorityMuxer::clearInput(const int priority)
 	}
 }
 
-void PriorityMuxer::clearAll()
+void PriorityMuxer::clearAll(bool forceClearAll)
 {
-	for(auto key : _activeInputs.keys())
+	if (forceClearAll)
 	{
-		if (key < LOWEST_PRIORITY-1)
+		_activeInputs.clear();
+		_currentPriority = LOWEST_PRIORITY;
+		_activeInputs[_currentPriority] = _lowestPriorityInfo;
+	}
+	else
+	{
+		for(auto key : _activeInputs.keys())
 		{
-			_activeInputs.remove(key);
+			if (key < LOWEST_PRIORITY-1)
+			{
+				_activeInputs.remove(key);
+			}
 		}
 	}
 }

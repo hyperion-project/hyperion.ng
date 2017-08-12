@@ -118,7 +118,7 @@ public:
 	///
 	/// Clears all priority channels
 	///
-	void clearAll();
+	void clearAll(bool forceClearAll=false);
 
 	///
 	/// Updates the current time. Channels with a configured time out will be checked and cleared if
@@ -152,5 +152,4 @@ private:
 
 	QTimer _timer;
 	QTimer _blockTimer;
-
 };

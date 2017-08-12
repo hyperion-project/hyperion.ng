@@ -1,14 +1,12 @@
 #pragma once
 
-// Utils includes
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
+#include <grabber/X11Grabber.h>
+// some include of xorg defines "None" this is also used by QT and has to be undefined to avoid collisions
+#ifdef None
+	#undef None
+#endif
 
-// Forward class declaration
-class X11Grabber;
-class ImageProcessor;
 
 ///
 /// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the
@@ -31,42 +29,18 @@ public:
 	///
 	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
 	///
-	virtual ~X11Wrapper();
+	virtual ~X11Wrapper() {};
 
 public slots:
-	///
-	/// Starts the grabber wich produces led values with the specified update rate
-	///
-	bool start();
-
 	///
 	/// Performs a single frame grab and computes the led-colors
 	///
 	virtual void action();
 
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(const VideoMode videoMode);
-
 private:
-	/// The update rate [Hz]
-	const int _updateInterval_ms;
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
-	/// The image used for grabbing frames
-	Image<ColorRgb> _image;
-
 	/// The actual grabber
-	X11Grabber * _grabber;
-
-	/// The list with computed led colors
-	std::vector<ColorRgb> _ledColors;
-
+	X11Grabber _grabber;
 
 	bool _init;
-	bool _x11SetupSuccess;
 };
  

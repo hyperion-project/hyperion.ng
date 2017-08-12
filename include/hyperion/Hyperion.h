@@ -260,7 +260,7 @@ public slots:
 	///
 	/// Clears all priority channels. This will switch the leds off until a new priority is written.
 	///
-	void clearall();
+	void clearall(bool forceClearAll=false);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run

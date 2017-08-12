@@ -1,10 +1,15 @@
 #pragma once
 
 // BCM includes
-#pragma GCC system_header
-#include <bcm_host.h>
+#ifdef PLATFORM_RPI
+	#pragma GCC system_header
+	#include <bcm_host.h>
+#else
+	#include <grabber/DispmanxFrameGrabberMock.h>
+#endif
 
 // Utils includes
+#include <utils/Image.h>
 #include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
 
@@ -24,15 +29,6 @@ public:
 	DispmanxFrameGrabber(const unsigned width, const unsigned height);
 	~DispmanxFrameGrabber();
 
-	///
-	/// Updates the frame-grab flags as used by the VC library for frame grabbing
-	///
-	/// @param vc_flags  The snapshot grabbing mask
-	///
-	void setFlags(const int vc_flags);
-
-	void setCropping(const unsigned cropLeft, const unsigned cropRight,
-			 const unsigned cropTop, const unsigned cropBottom);
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -42,9 +38,16 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	void grabFrame(Image<ColorRgba> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 private:
+		///
+	/// Updates the frame-grab flags as used by the VC library for frame grabbing
+	///
+	/// @param vc_flags  The snapshot grabbing mask
+	///
+	void setFlags(const int vc_flags);
+	
 	/// Handle to the display that is being captured
 	DISPMANX_DISPLAY_HANDLE_T _vc_display;
 
@@ -63,4 +66,8 @@ private:
 
 	// size of the capture buffer in Pixels
 	unsigned _captureBufferSize;
+
+	// rgba output buffer
+	Image<ColorRgba>  _image_rgba;
+
 };

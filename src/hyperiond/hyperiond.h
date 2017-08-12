@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QJsonObject>
 
 #ifdef ENABLE_DISPMANX
 	#include <grabber/DispmanxWrapper.h>
@@ -46,7 +47,7 @@
 #include <boblightserver/BoblightServer.h>
 #include <udplistener/UDPListener.h>
 #include <utils/Stats.h>
-#include <QJsonObject>
+
 
 class SysTray;
 

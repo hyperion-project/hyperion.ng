@@ -2,20 +2,32 @@
 #include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/GrabberWrapper.h>
+#include <hyperion/Grabber.h>
 #include <HyperionConfig.h>
 
-GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion::Components grabberComponentId)
+GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId)
 	: _grabberName(grabberName)
 	, _hyperion(Hyperion::getInstance())
 	, _priority(priority)
 	, _timer()
+	, _updateInterval_ms(1000/updateRate_Hz)
+	, _timeout_ms(2 * _updateInterval_ms)
 	, _log(Logger::getInstance(grabberName))
 	, _forward(true)
 	, _processor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _grabberComponentId(grabberComponentId)
+	, _ggrabber(ggrabber)
+	, _image(0,0)
+	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb{0,0,0})
+	, _imageProcessorEnabled(true)
 {
 	_timer.setSingleShot(false);
+	// Configure the timer to generate events every n milliseconds
+	_timer.setInterval(_updateInterval_ms);
 
+	_image.resize(width, height);
+	_processor->setSize(width, height);
+	
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
@@ -26,6 +38,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, const int priority, hyperion
 	connect(_hyperion, SIGNAL(videoMode(VideoMode)), this, SLOT(setVideoMode(VideoMode)));
 	connect(this, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(action()));
+
 }
 
 GrabberWrapper::~GrabberWrapper()
@@ -139,3 +152,24 @@ QStringList GrabberWrapper::availableGrabbers()
 
 	return grabbers;
 }
+
+
+void GrabberWrapper::setVideoMode(const VideoMode mode)
+{
+	if (_ggrabber != nullptr)
+	{
+		Info(_log,"setvideomode");
+		_ggrabber->setVideoMode(mode);
+	}
+}
+
+void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+{
+	_ggrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
+}
+
+void GrabberWrapper::setImageProcessorEnabled(bool enable)
+{
+	_imageProcessorEnabled = enable;
+}
+

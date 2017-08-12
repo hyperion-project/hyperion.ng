@@ -42,7 +42,6 @@ public:
 	///
 	void setSize(const unsigned width, const unsigned height);
 
-
 	/// Returns starte of black border detector
 	bool blackBorderDetectorEnabled();
 	
@@ -59,7 +58,20 @@ public slots:
 	/// Enable or disable the black border detector
 	void setLedMappingType(int mapType);
 
-public:	
+public:
+	///
+	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// match the given size.
+	/// NB All earlier obtained references will be invalid.
+	///
+	/// @param[in] image   The dimensions taken from image
+	///
+	template <typename Pixel_T>
+	void setSize(const Image<Pixel_T> &image)
+	{
+		setSize(image.width(), image.height());
+	}
+
 	///
 	/// Processes the image to a list of led colors. This will update the size of the buffer-image
 	/// if required and call the image-to-leds mapping to determine the mean color per led.
@@ -71,18 +83,25 @@ public:
 	template <typename Pixel_T>
 	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
-		// Ensure that the buffer-image is the proper size
-		setSize(image.width(), image.height());
-
-		// Check black border detection
-		verifyBorder(image);
-
-		// Create a result vector and call the 'in place' functionl
 		std::vector<ColorRgb> colors;
-		switch (_mappingType)
+		if (image.width()>0 && image.height()>0)
 		{
-			case 1: colors = _imageToLeds->getUniLedColor(image); break;
-			default: colors = _imageToLeds->getMeanLedColor(image);
+			// Ensure that the buffer-image is the proper size
+			setSize(image);
+
+			// Check black border detection
+			verifyBorder(image);
+
+			// Create a result vector and call the 'in place' functionl
+			switch (_mappingType)
+			{
+				case 1: colors = _imageToLeds->getUniLedColor(image); break;
+				default: colors = _imageToLeds->getMeanLedColor(image);
+			}
+		}
+		else
+		{
+			Warning(_log, "ImageProcessor::process called without image size 0");
 		}
 
 		// return the computed colors
@@ -98,19 +117,25 @@ public:
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
 	{
-		// Ensure that the buffer-image is the proper size
-		setSize(image.width(), image.height());
-
-		// Check black border detection
-		verifyBorder(image);
-
-		// Determine the mean-colors of each led (using the existing mapping)
-		switch (_mappingType)
+		if ( image.width()>0 && image.height()>0)
 		{
-			case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
-			default: _imageToLeds->getMeanLedColor(image, ledColors);
-		}
+			// Ensure that the buffer-image is the proper size
+			setSize(image);
 
+			// Check black border detection
+			verifyBorder(image);
+
+			// Determine the mean-colors of each led (using the existing mapping)
+			switch (_mappingType)
+			{
+				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
+				default: _imageToLeds->getMeanLedColor(image, ledColors);
+			}
+		}
+		else
+		{
+			Warning(_log, "ImageProcessor::process called without image size 0");
+		}
 	}
 
 	///

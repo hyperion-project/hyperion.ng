@@ -15,8 +15,8 @@ X11Wrapper::X11Wrapper(int grabInterval, bool useXGetImage, int cropLeft, int cr
 
 const Image<ColorRgb> & X11Wrapper::getScreenshot()
 {
-	const Image<ColorRgb> & screenshot = _grabber.grab();
-	return screenshot;
+	_grabber.grabFrame(_screenshot, true);
+	return _screenshot;
 }
 
 void X11Wrapper::start()
@@ -36,8 +36,8 @@ bool X11Wrapper::displayInit()
 
 void X11Wrapper::capture()
 {
-	const Image<ColorRgb> & screenshot = _grabber.grab();
-	emit sig_screenshot(screenshot);
+	_grabber.grabFrame(_screenshot, true);
+	emit sig_screenshot(_screenshot);
 }
 
 void X11Wrapper::setGrabbingMode(const GrabbingMode mode)

@@ -37,7 +37,6 @@ private:
 	AmlogicGrabber   _grabber;
 
 	// image buffers
-	Image<ColorRgb>  _screenshot_rgb;
-	Image<ColorBgr>  _screenshot;
+	Image<ColorRgb>  _screenshot;
 
 };

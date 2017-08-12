@@ -29,14 +29,17 @@ public:
 	/// height)
 	/// @return Zero on success else negative
 	///
-	int grabFrame(Image<ColorBgr> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
+private:
 	/**
 	 * Returns true if video is playing over the amlogic chip
 	 * @return True if video is playing else false
 	 */
 	bool isVideoPlaying();
-private:
+
 	/** The snapshot/capture device of the amlogic video chip */
 	int _amlogicCaptureDev;
+	
+	Image<ColorBgr> _image;
 };

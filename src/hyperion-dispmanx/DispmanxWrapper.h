@@ -40,7 +40,5 @@ private:
 
 	/// The grabber for creating screenshots
 	DispmanxFrameGrabber _grabber;
-	Image<ColorRgb>   _screenshot_rgb;
-	Image<ColorRgba>  _screenshot;
-
+	Image<ColorRgb>   _screenshot;
 };

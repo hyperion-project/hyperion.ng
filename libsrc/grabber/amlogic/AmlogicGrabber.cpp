@@ -52,10 +52,6 @@ AmlogicGrabber::~AmlogicGrabber()
 
 bool AmlogicGrabber::isVideoPlaying()
 {
-	
-	// TODO crop resulting image accroding member _videoMode
-	// TODO add croping
-	
 	const QString videoDevice = "/dev/amvideo";
 
 	// Open the video device
@@ -81,20 +77,16 @@ bool AmlogicGrabber::isVideoPlaying()
 	return videoDisabled == 0;
 }
 
-int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
+int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	// resize the given image if needed
-	if (image.width() != (unsigned)_width || image.height() != (unsigned)_height)
-	{
-		image.resize(_width, _height);
-	}
+	// TODO crop resulting image accroding member _videoMode
+	// TODO add croping
 
 	// Make sure video is playing, else there is nothing to grab
 	if (!isVideoPlaying())
 	{
 		return -1;
 	}
-
 
 	// If the device is not open, attempt to open it
 	if (_amlogicCaptureDev == -1)
@@ -121,7 +113,7 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 	}
 
 	// Read the snapshot into the memory
-	void * image_ptr = image.memptr();
+	void * image_ptr = _image.memptr();
 	const ssize_t bytesToRead = _width * _height * sizeof(ColorBgr);
 
 	const ssize_t bytesRead   = pread(_amlogicCaptureDev, image_ptr, bytesToRead, 0);
@@ -150,5 +142,10 @@ int AmlogicGrabber::grabFrame(Image<ColorBgr> & image)
 		_amlogicCaptureDev = -1;
 		readCnt = 0;
 	}
+	
+	_imageResampler.setHorizontalPixelDecimation(_width);
+	_imageResampler.setVerticalPixelDecimation(_height);
+	_imageResampler.processImage((const uint8_t*)image_ptr, _width, _height, 3, PIXELFORMAT_BGR24, image);
+
 	return 0;
 }

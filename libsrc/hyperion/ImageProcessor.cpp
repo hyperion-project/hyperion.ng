@@ -44,7 +44,7 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 	delete _imageToLeds;
 
 	// Construct a new buffer and mapping
-	_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
+	_imageToLeds = (width>0 && height>0) ? (new ImageToLedsMap(width, height, 0, 0, _ledString.leds())) : nullptr;
 }
 
 void ImageProcessor::enableBlackBorderDetector(bool enable)

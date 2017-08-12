@@ -95,6 +95,9 @@ if ( "${PLATFORM}" MATCHES "-dev" )
 	SET ( DEFAULT_TESTS      ON )
 endif()
 
+STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
+STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
+ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
@@ -240,7 +243,7 @@ add_definitions(${QT_DEFINITIONS})
 #	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 #endif()
 
-if(ENABLE_OSX)
+if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
 

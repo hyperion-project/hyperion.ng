@@ -13,7 +13,10 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	, _vc_flags(0)
 	, _captureBuffer(new ColorRgba[0])
 	, _captureBufferSize(0)
+	, _image_rgba(width, height)
 {
+	_useImageResampler = false;
+
 	// Initiase BCM
 	bcm_host_init();
 
@@ -64,33 +67,15 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 	_vc_flags = vc_flags;
 }
 
-void DispmanxFrameGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
-{
-	if (cropLeft + cropRight >= (unsigned)_width || cropTop + cropBottom >= (unsigned)_height)
-	{
-		Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d", cropLeft, cropRight, cropTop, cropBottom);
-		return;
-	}
-	_cropLeft = cropLeft;
-	_cropRight = cropRight;
-	_cropTop = cropTop;
-	_cropBottom = cropBottom;
-
-	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
-	{
-		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
-	}
-}
-
-void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
+int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	int ret;
 
 	// vc_dispmanx_resource_read_data doesn't seem to work well
 	// with arbitrary positions so we have to handle cropping by ourselves
-	unsigned cropLeft = _cropLeft;
-	unsigned cropRight = _cropRight;
-	unsigned cropTop = _cropTop;
+	unsigned cropLeft   = _cropLeft;
+	unsigned cropRight  = _cropRight;
+	unsigned cropTop    = _cropTop;
 	unsigned cropBottom = _cropBottom;
 
 	if (_vc_flags & DISPMANX_SNAPSHOT_FILL)
@@ -99,19 +84,19 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 		cropLeft = cropRight = cropTop = cropBottom = 0;
 	}
 
-	unsigned imageWidth = _width - cropLeft - cropRight;
+	unsigned imageWidth  = _width - cropLeft - cropRight;
 	unsigned imageHeight = _height - cropTop - cropBottom;
 
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
 	case VIDEO_3DSBS:
-		imageWidth = imageWidth / 2;
-		cropLeft = cropLeft / 2;
+		imageWidth /= 2;
+		cropLeft /= 2;
 		break;
 	case VIDEO_3DTAB:
-		imageHeight = imageHeight / 2;
-		cropTop = cropTop / 2;
+		imageHeight /= 2;
+		cropTop /= 2;
 		break;
 	case VIDEO_2D:
 	default:
@@ -124,12 +109,17 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 		image.resize(imageWidth, imageHeight);
 	}
 
+	if (_image_rgba.width() != imageWidth || _image_rgba.height() != imageHeight)
+	{
+		_image_rgba.resize(imageWidth, imageHeight);
+	}
+
 	// Open the connection to the display
 	_vc_display = vc_dispmanx_display_open(0);
 	if (_vc_display < 0)
 	{
 		Error(_log, "Cannot open display: %d", _vc_display);
-		return;
+		return -1;
 	}
 
 	// Create the snapshot (incl down-scaling)
@@ -138,11 +128,11 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	{
 		Error(_log, "Snapshot failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
-		return;
+		return ret;
 	}
 
 	// Read the snapshot into the memory
-	void* imagePtr = image.memptr();
+	void* imagePtr   = _image_rgba.memptr();
 	void* capturePtr = imagePtr;
 
 	unsigned imagePitch = imageWidth * sizeof(ColorRgba);
@@ -172,7 +162,7 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 	{
 		Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
 		vc_dispmanx_display_close(_vc_display);
-		return;
+		return ret;
 	}
 
 	// copy capture data to image if we captured to temp buffer
@@ -193,4 +183,9 @@ void DispmanxFrameGrabber::grabFrame(Image<ColorRgba> & image)
 
 	// Close the displaye
 	vc_dispmanx_display_close(_vc_display);
+
+	// image to output image
+	_image_rgba.toRgb(image);
+
+	return 0;
 }

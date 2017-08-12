@@ -47,7 +47,7 @@ FramebufferFrameGrabber::~FramebufferFrameGrabber()
 {
 }
 
-void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	struct fb_var_screeninfo vinfo;
 	unsigned capSize, bytesPerPixel;
@@ -62,25 +62,17 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	bytesPerPixel = vinfo.bits_per_pixel / 8;
 	capSize = vinfo.xres * vinfo.yres * bytesPerPixel;
 	
-	if (vinfo.bits_per_pixel == 16)
+	switch (vinfo.bits_per_pixel)
 	{
-		pixelFormat = PIXELFORMAT_BGR16;
+		case 16: pixelFormat = PIXELFORMAT_BGR16; break;
+		case 24: pixelFormat = PIXELFORMAT_BGR24; break;
+		case 32: pixelFormat = PIXELFORMAT_BGR32; break;
+		default:
+			Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);
+			close(_fbfd);
+			return -1;
 	}
-	else if (vinfo.bits_per_pixel == 24)
-	{
-		pixelFormat = PIXELFORMAT_BGR24;
-	}	
-	else if (vinfo.bits_per_pixel == 32)
-	{
-		pixelFormat = PIXELFORMAT_BGR32;
-	}
-	else
-	{
-		Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);
-		close(_fbfd);
-		return;
-	}
-			
+
 	/* map the device to memory */
 	_fbp = (unsigned char*)mmap(0, capSize, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _fbfd, 0);	
 
@@ -95,4 +87,6 @@ void FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	munmap(_fbp, capSize);
 	close(_fbfd);
+
+	return 0;
 }
