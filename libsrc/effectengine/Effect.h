@@ -55,6 +55,8 @@ private:
 	// Wrapper methods for Python interpreter extra buildin methods
 	static PyMethodDef effectMethods[];
 	static PyObject* wrapSetColor              (PyObject *self, PyObject *args);
+	static PyObject* wrapGetColorsFromPriority              (PyObject *self, PyObject *args);
+	static PyObject* wrapGetActivePriorities              (PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
 	static PyObject* wrapAbort                 (PyObject *self, PyObject *args);
 	static PyObject* wrapImageShow             (PyObject *self, PyObject *args);
