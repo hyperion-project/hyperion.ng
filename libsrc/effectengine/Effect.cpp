@@ -23,6 +23,8 @@
 // Python method table
 PyMethodDef Effect::effectMethods[] = {
 	{"setColor"              , Effect::wrapSetColor              , METH_VARARGS, "Set a new color for the leds."},
+	{"getColorsFromPriority" , Effect::wrapGetColorsFromPriority , METH_VARARGS, "Get the current colors from the specified Priority"},
+	{"getActivePriorities"   , Effect::wrapGetActivePriorities   , METH_NOARGS, "Get a list of active priorities"},
 	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
 	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow"             , Effect::wrapImageShow             , METH_VARARGS,  "set current effect image to hyperion core."},
@@ -325,6 +327,34 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 	// error
 	PyErr_SetString(PyExc_RuntimeError, "Unknown error");
 	return nullptr;
+}
+
+PyObject* Effect::wrapGetColorsFromPriority(PyObject *self, PyObject *args)
+{
+	int priority;
+
+	if(!PyArg_ParseTuple(args, "i", &priority))
+	{
+		PyErr_SetString(PyExc_SystemError, "Argument is not an iteger");
+		return NULL;
+	}
+
+	PriorityMuxer::InputInfo priorityInfo = Hyperion::getInstance()->getPriorityInfo(priority);
+	return PyByteArray_FromStringAndSize(reinterpret_cast<char const *>(&priorityInfo.ledColors.front()), sizeof(priorityInfo.ledColors[0]) * priorityInfo.ledColors.size());
+}
+
+PyObject* Effect::wrapGetActivePriorities(PyObject *self, PyObject *args)
+{
+	QList<int> activePriorities = Hyperion::getInstance()->getActivePriorities();
+	PyObject* result = PyList_New((int) activePriorities.size() -1);
+
+	auto it = activePriorities.begin();
+	for (int idx = 0; it != activePriorities.end(); ++it, ++idx)
+	{
+			PyList_SET_ITEM(result, idx, Py_BuildValue("i", *it));
+	}
+
+	return result;
 }
 
 PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)

@@ -3,11 +3,15 @@ import hyperion, time, colorsys, random, math
 # get args
 sleepTime  = float(hyperion.args.get('speed', 1.0))/1000.0
 saturation = float(hyperion.args.get('saturation', 1.0))
+backgroundFromPriority = int(hyperion.args.get('backgroundFromPriority', -1))
 ledData    = bytearray()
 ledDataBuf = bytearray()
 color_step = []
 minStepTime= float(hyperion.latchTime)/1000.0
 fadeSteps  = min(256.0, math.floor(sleepTime/minStepTime))
+
+# Check parameters
+alternateBackground = backgroundFromPriority in hyperion.getActivePriorities()
 
 # Initialize the led data
 for i in range(hyperion.ledCount):
@@ -17,6 +21,9 @@ for i in range(hyperion.ledCount):
 
 # Start the write data loop
 while not hyperion.abort():
+	if (alternateBackground):
+		ledData = hyperion.getColorsFromPriority(backgroundFromPriority)
+
 	for i in range(len(ledData)):
 		ledDataBuf[i] = ledData[i]
 

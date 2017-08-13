@@ -604,6 +604,7 @@
 	"edt_conf_log_heading_title" : "Logging",
 	"edt_conf_log_level_title" : "Log-Level",
 	"edt_conf_log_level_expl" : "Depending on loglevel you see less or more messages in your log.",
+	"edt_eff_background_from_priority" : "Alternative background",
 	"edt_eff_smooth_custom_title" : "Enable smoothing",
 	"edt_eff_smooth_time_ms_title" : "Smoothing time",
 	"edt_eff_smooth_updateFrequency_title" : "Smoothing update frequency",

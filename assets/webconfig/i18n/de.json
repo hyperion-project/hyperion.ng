@@ -603,6 +603,7 @@
 	"edt_conf_log_heading_title" : "Protokoll",
 	"edt_conf_log_level_title" : "Protokollstufe",
 	"edt_conf_log_level_expl" : "Abhängig der Stufe sind weniger oder mehr Meldungen sichtbar.",
+	"edt_eff_background_from_priority" : "Alternativer Hintergrund",
 	"edt_eff_smooth_custom_title" : "Aktivere Glättung",
 	"edt_eff_smooth_time_ms_title" : "Glättung: Zeit",
 	"edt_eff_smooth_updateFrequency_title" : "Glättung: Aktualisierungsfrequenz",
