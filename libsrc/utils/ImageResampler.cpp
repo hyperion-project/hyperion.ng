@@ -10,12 +10,10 @@ ImageResampler::ImageResampler()
 	, _cropBottom(0)
 	, _videoMode(VIDEO_2D)
 {
-
 }
 
 ImageResampler::~ImageResampler()
 {
-
 }
 
 void ImageResampler::setHorizontalPixelDecimation(int decimator)
@@ -69,7 +67,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 	for (int yDest = 0, ySource = cropTop + _verticalDecimation/2; yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
-	        for (int xDest = 0, xSource = cropLeft + _horizontalDecimation/2; xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
+		for (int xDest = 0, xSource = cropLeft + _horizontalDecimation/2; xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
 			ColorRgb & rgb = outputImage(xDest, yDest);
 			

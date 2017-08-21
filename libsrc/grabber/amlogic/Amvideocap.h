@@ -1,13 +1,14 @@
-#ifndef __AMVIDEOCAP_HEADHER_
-#define __AMVIDEOCAP_HEADHER_
-#define AMVIDEOCAP_IOC_MAGIC  'V'
-#include <linux/videodev2.h>
+#pragma once
 
+#include <exception>
+#include <linux/videodev2.h>
+#include "ion.h"
+#include "meson_ion.h"
+
+#define AMVIDEOCAP_IOC_MAGIC  'V'
 #define CAP_FLAG_AT_CURRENT		0
 #define CAP_FLAG_AT_TIME_WINDOW	1
 #define CAP_FLAG_AT_END			2
-
-
 
 /*
 format see linux/ge2d/ge2d.h
@@ -49,5 +50,96 @@ enum amvideocap_state{
 	AMVIDEOCAP_STATE_FINISHED_CAPTURE=300,
 	AMVIDEOCAP_STATE_ERROR=0xffff,
 };
-#endif//__AMVIDEOCAP_HEADHER_
+
+
+#define AMVIDEO_MAGIC  'X'
+
+#define AMVIDEO_EXT_GET_CURRENT_VIDEOFRAME _IOR((AMVIDEO_MAGIC), 0x01, int32_t)
+#define AMVIDEO_EXT_PUT_CURRENT_VIDEOFRAME _IO((AMVIDEO_MAGIC), 0x02)
+
+#define AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_GE2D_FORMAT _IOR((AMVIDEO_MAGIC), 0x03, uint32_t)
+#define AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_SIZE _IOR((AMVIDEO_MAGIC), 0x04, uint64_t)
+#define AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_CANVAS0ADDR _IOR((AMVIDEO_MAGIC), 0x05, uint32_t)
+
+#define _A_M  'S'
+#define AMSTREAM_IOC_GET_VIDEO_DISABLE  _IOR((_A_M), 0x48, int)
+#define AMSTREAM_IOC_SET_VIDEO_DISABLE  _IOW((_A_M), 0x49, int)
+
+
+struct IonBuffer
+{
+	ion_user_handle_t Handle;
+	int ExportHandle;
+	size_t Length;
+	unsigned long PhysicalAddress;
+};
+
+IonBuffer IonAllocate(int ion_fd, size_t bufferSize)
+{
+	int io;
+	IonBuffer result; 
+
+	// Allocate a buffer
+	ion_allocation_data allocation_data = { 0 };
+	allocation_data.len = bufferSize;
+	allocation_data.heap_id_mask = ION_HEAP_CARVEOUT_MASK;
+	allocation_data.flags = ION_FLAG_CACHED;
+
+	io = ioctl(ion_fd, ION_IOC_ALLOC, &allocation_data);
+	if (io != 0)
+	{
+		throw std::Exception("ION_IOC_ALLOC failed.");
+	}
+
+	printf("ion handle=%d\n", allocation_data.handle);
+
+
+	// Map/share the buffer
+	ion_fd_data ionData = { 0 };
+	ionData.handle = allocation_data.handle;
+
+	io = ioctl(ion_fd, ION_IOC_SHARE, &ionData);
+	if (io != 0)
+	{
+		throw std::Exception("ION_IOC_SHARE failed.");
+	}
+
+	printf("ion map=%d\n", ionData.fd);
+
+
+	// Get the physical address for the buffer
+	meson_phys_data physData = { 0 };
+	physData.handle = ionData.fd;
+
+	ion_custom_data ionCustomData = { 0 };
+	ionCustomData.cmd = ION_IOC_MESON_PHYS_ADDR;
+	ionCustomData.arg = (long unsigned int)&physData;
+
+	io = ioctl(ion_fd, ION_IOC_CUSTOM, &ionCustomData);
+	if (io != 0)
+	{
+		//throw Exception("ION_IOC_CUSTOM failed.");
+		printf("ION_IOC_CUSTOM failed (%d).", io);
+	}
+
+
+	result.Handle = allocation_data.handle;
+	result.ExportHandle = ionData.fd;
+	result.Length = allocation_data.len;
+	result.PhysicalAddress = physData.phys_addr;
+
+	printf("ion phys_addr=%lu\n", result.PhysicalAddress);
+
+
+	//ion_handle_data ionHandleData = { 0 };
+	//ionHandleData.handle = allocation_data.handle;
+
+	//io = ioctl(ion_fd, ION_IOC_FREE, &ionHandleData);
+	//if (io != 0)
+	//{
+	//	throw Exception("ION_IOC_FREE failed.");
+	//}
+
+	return result;
+}
 

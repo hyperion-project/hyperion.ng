@@ -410,8 +410,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				QString type = grabberConfig["type"].toString("auto");
 			#endif
 				
-			QFile amvideo("/dev/amvideo");
-			QFile amvideocap("/dev/amvideocap0");
+			
 			// auto eval of type
 			if ( type == "auto" )
 			{
@@ -426,7 +425,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 					type = "dispmanx";
 				}
 				// amlogic -> /dev/amvideo exists
-				else if ( amvideo.exists() && amvideocap.exists() )
+				else if ( QFile::exists("/dev/amvideo") && ( QFile::exists("/dev/amvideocap0") || QFile::exists("/dev/ge2d") ) )
 				{
 					type = "amlogic";
 				}

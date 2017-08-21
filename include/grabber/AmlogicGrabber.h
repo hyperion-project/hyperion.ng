@@ -42,12 +42,12 @@ private:
 	int grabFrame_ge2d(Image<ColorRgb> & image);
 
 	/** The snapshot/capture device of the amlogic video chip */
-	int _amlogicCaptureDev;
-	
+	int _captureDev;
+	int _videoDev;
+	int _ge2dDev;
+
 	Image<ColorBgr> _image;
 	
-	const QString _videoDevice;
-	const QString _captureDevice;
 	int           _lastError;
 	bool          _videoPlaying;
 	FramebufferFrameGrabber _fbGrabber;
