@@ -69,6 +69,8 @@ void DispmanxFrameGrabber::setFlags(const int vc_flags)
 
 int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (!_enabled) return 0;
+
 	int ret;
 
 	// vc_dispmanx_resource_read_data doesn't seem to work well

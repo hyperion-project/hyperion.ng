@@ -411,6 +411,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			#endif
 				
 			QFile amvideo("/dev/amvideo");
+			QFile amvideocap("/dev/amvideocap0");
 			// auto eval of type
 			if ( type == "auto" )
 			{
@@ -425,7 +426,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 					type = "dispmanx";
 				}
 				// amlogic -> /dev/amvideo exists
-				else if ( amvideo.exists() )
+				else if ( amvideo.exists() && amvideocap.exists() )
 				{
 					type = "amlogic";
 				}
@@ -446,7 +447,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
 			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
 			else if (type == "dispmanx") createGrabberDispmanx();
-			else if (type == "amlogic")  { createGrabberAmlogic(); createGrabberFramebuffer(grabberConfig); }
+			else if (type == "amlogic")  createGrabberAmlogic();
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
 			else { Warning( _log, "unknown framegrabber type '%s'", QSTRING_CSTR(type)); grabberCompState = false; }
@@ -481,7 +482,8 @@ void HyperionDaemon::createGrabberDispmanx()
 void HyperionDaemon::createGrabberAmlogic()
 {
 #ifdef ENABLE_AMLOGIC
-	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority-1);
+	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
+	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	QObject::connect(_amlGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 

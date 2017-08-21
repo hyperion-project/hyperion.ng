@@ -98,6 +98,13 @@ public:
 	int getCurrentPriority() const;
 
 	///
+	/// Returns true if current priority is given priority
+	///
+	/// @return bool
+	///
+	bool isCurrentPriority(const int priority) const;
+
+	///
 	/// Returns a list of active priorities
 	///
 	/// @return The list with priorities
