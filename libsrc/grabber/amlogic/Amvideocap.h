@@ -4,6 +4,7 @@
 #include <linux/videodev2.h>
 #include "ion.h"
 #include "meson_ion.h"
+#include "IonBuffer.h"
 
 #define AMVIDEOCAP_IOC_MAGIC  'V'
 #define CAP_FLAG_AT_CURRENT		0
@@ -64,8 +65,14 @@ enum amvideocap_state{
 #define _A_M  'S'
 #define AMSTREAM_IOC_GET_VIDEO_DISABLE  _IOR((_A_M), 0x48, int)
 #define AMSTREAM_IOC_SET_VIDEO_DISABLE  _IOW((_A_M), 0x49, int)
-
-
+struct Rectangle
+{
+	int X;
+	int Y;
+	int Width;
+	int Height;
+};
+/*
 struct IonBuffer
 {
 	ion_user_handle_t Handle;
@@ -88,7 +95,7 @@ IonBuffer IonAllocate(int ion_fd, size_t bufferSize)
 	io = ioctl(ion_fd, ION_IOC_ALLOC, &allocation_data);
 	if (io != 0)
 	{
-		throw std::Exception("ION_IOC_ALLOC failed.");
+		throw std::runtime_error("ION_IOC_ALLOC failed.");
 	}
 
 	printf("ion handle=%d\n", allocation_data.handle);
@@ -101,7 +108,7 @@ IonBuffer IonAllocate(int ion_fd, size_t bufferSize)
 	io = ioctl(ion_fd, ION_IOC_SHARE, &ionData);
 	if (io != 0)
 	{
-		throw std::Exception("ION_IOC_SHARE failed.");
+		throw std::runtime_error("ION_IOC_SHARE failed.");
 	}
 
 	printf("ion map=%d\n", ionData.fd);
@@ -142,4 +149,4 @@ IonBuffer IonAllocate(int ion_fd, size_t bufferSize)
 
 	return result;
 }
-
+*/

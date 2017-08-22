@@ -49,7 +49,7 @@ AmlogicGrabber::~AmlogicGrabber()
 
 bool AmlogicGrabber::isVideoPlaying()
 {
-	if(!QFile::exists(_videoDevice)) return false;
+	if(!QFile::exists(VIDEO_DEVICE)) return false;
 
 	int videoDisabled = 0;
 	if (_videoDev<0)
@@ -91,7 +91,7 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 			_ge2dAvailable = (ret == 0);
 			WarningIf(!_ge2dAvailable, _log, "GE2D capture interface not available! try Amvideocap instead");
 		}
-		else if (QFile::exists(_captureDevice))
+		else if (QFile::exists(CAPTURE_DEVICE))
 		{
 			ret = grabFrame_amvideocap(image);
 		}
@@ -101,6 +101,7 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 		InfoIf(_grabbingModeNotification!=2, _log, "FB mode");
 		_grabbingModeNotification = 2;
 		ret = _fbGrabber.grabFrame(image);
+		_ge2dAvailable = true;
 	}
 	
 	return 0;
@@ -205,7 +206,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		Error(_log, "AMSTREAM_EXT_CURRENT_VIDEOFRAME_GET_CANVAS0ADDR failed.");
 		return -1;
 	}
-	//printf("amvideo: canvas0addr=%x\n", canvas0addr);
+	printf("amvideo: canvas0addr=%x\n", canvas0addr);
 
 	uint32_t ge2dformat;
 	if (ioctl(_videoDev, AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_GE2D_FORMAT, &ge2dformat) <0)
@@ -213,7 +214,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		Error(_log, "AMSTREAM_EXT_CURRENT_VIDEOFRAME_GET_GE2D_FORMAT failed.");
 		return -1;
 	}
-	//printf("amvideo: ge2dformat=%x\n", ge2dformat);
+	printf("amvideo: ge2dformat=%x\n", ge2dformat);
 
 	uint64_t size;
 	if (ioctl(_videoDev, AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_SIZE, &size) < 0)
@@ -224,7 +225,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 
 	int videoWidth = size >> 32;
 	int videoHeight = size & 0xffffff;
-	//printf("amvideo: size=%x (%dx%d)\n", size, size >> 32, size & 0xffffff);
+	printf("amvideo: size=%x (%dx%d)\n", size, size >> 32, size & 0xffffff);
 
 	Rectangle videoRect;
 	float videoAspect = (float)videoWidth / (float)videoHeight;
@@ -255,7 +256,26 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
-	
+	blitRect.src1_rect.x = 0;
+	blitRect.src1_rect.y = 0;
+	blitRect.src1_rect.w = configex.src_para.width;
+	blitRect.src1_rect.h = configex.src_para.height;
+
+	blitRect.dst_rect.x = videoRect.X;
+	blitRect.dst_rect.y = videoRect.Y;
+	blitRect.dst_rect.w = videoRect.Width;
+	blitRect.dst_rect.h = videoRect.Height;
+
+
+	printf("rect=%d,%d %dx%d\n", videoRect.X, videoRect.Y, videoRect.Width, videoRect.Height);
+
+	// Blit to videoBuffer
+	if (ioctl(_ge2dDev, GE2D_STRETCHBLIT_NOALPHA, &blitRect) < 0)
+	{
+		Error(_log,"GE2D_STRETCHBLIT_NOALPHA failed.");
+		return -1;
+	}
+               
 	// Return video frame
 	if (ioctl(_videoDev, AMVIDEO_EXT_PUT_CURRENT_VIDEOFRAME) < 0)
 	{
