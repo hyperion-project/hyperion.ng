@@ -4,6 +4,9 @@
 #include <utils/ColorBgr.h>
 #include <hyperion/Grabber.h>
 #include <grabber/FramebufferFrameGrabber.h>
+
+class IonBuffer;
+
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
 /// downsized and scaled resolution.
@@ -53,4 +56,6 @@ private:
 	FramebufferFrameGrabber _fbGrabber;
 	bool          _ge2dAvailable;
 	int           _grabbingModeNotification;
+	void*         _ge2dVideoBufferPtr;
+	IonBuffer*    _ge2dIonBuffer;
 };

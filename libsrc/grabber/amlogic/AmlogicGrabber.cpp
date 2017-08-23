@@ -35,6 +35,8 @@ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
 	, _fbGrabber("/dev/fb0",width,height)
 	, _ge2dAvailable(true)
 	, _grabbingModeNotification(0)
+	, _ge2dVideoBufferPtr(nullptr)
+	, _ge2dIonBuffer(nullptr)
 {
 	Debug(_log, "constructed(%d x %d)",_width,_height);
 }
@@ -44,6 +46,11 @@ AmlogicGrabber::~AmlogicGrabber()
 	if (_captureDev != -1) close(_captureDev);
 	if (_videoDev   != -1) close(_videoDev);
 	if (_ge2dDev    != -1) close(_ge2dDev);
+// 	if (_ge2dVideoBufferPtr != nullptr && _ge2dIonBuffer != nullptr)
+// 	{
+// 		munmap(_ge2dVideoBufferPtr, _ge2dIonBuffer->Length());
+// 		delete _ge2dIonBuffer;
+// 	}
 }
 
 
@@ -181,12 +188,16 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	if (_ge2dDev<0)
 		_ge2dDev = open(GE2D_DEVICE, O_RDWR);
 		
+	if (_videoDev<0)
+		_videoDev = open(VIDEO_DEVICE, O_RDWR);
+	
 	// Ion
-	IonBuffer videoBuffer(_width * _height * 3); // RGB565
-
-	void* videoBufferPtr = videoBuffer.Map();
-	memset(videoBufferPtr, 0, videoBuffer.BufferSize());
-
+	if (_ge2dIonBuffer == nullptr)
+	{
+		_ge2dIonBuffer = new IonBuffer(_width * _height * 3); // RGB565
+		_ge2dVideoBufferPtr = _ge2dIonBuffer->Map();
+		memset(_ge2dVideoBufferPtr, 0, _ge2dIonBuffer->BufferSize());
+	}
 
 
 	struct config_para_ex_s configex = { 0 };
@@ -225,9 +236,14 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 
 	int videoWidth = size >> 32;
 	int videoHeight = size & 0xffffff;
-	printf("amvideo: size=%x (%dx%d)\n", size, size >> 32, size & 0xffffff);
+	printf("amvideo: size=%lx (%dx%d)\n", size, size >> 32, size & 0xffffff);
 
 	Rectangle videoRect;
+	videoRect.X = _cropLeft;
+	videoRect.Y = _cropTop;
+	videoRect.Width = _width - _cropLeft - _cropRight;
+	videoRect.Height = _height - _cropTop - _cropBottom;
+
 	float videoAspect = (float)videoWidth / (float)videoHeight;
 
 	configex = { 0 };
@@ -246,7 +262,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 
 	configex.dst_para.width = _width;
 	configex.dst_para.height = _height;
-	configex.dst_planes[0].addr = (long unsigned int)videoBuffer.PhysicalAddress();
+	configex.dst_planes[0].addr = (long unsigned int)_ge2dIonBuffer->PhysicalAddress();
 	configex.dst_planes[0].w = configex.dst_para.width;
 	configex.dst_planes[0].h = configex.dst_para.height;
 
@@ -283,6 +299,9 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
+				close(_videoDev);
+			_videoDev = -1;
+			
 	return 0;
 }
 
