@@ -194,7 +194,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	// Ion
 	if (_ge2dIonBuffer == nullptr)
 	{
-		_ge2dIonBuffer = new IonBuffer(_width * _height * 3); // RGB565
+		_ge2dIonBuffer = new IonBuffer(_width * _height * 4); // RGBA
 		_ge2dVideoBufferPtr = _ge2dIonBuffer->Map();
 		memset(_ge2dVideoBufferPtr, 0, _ge2dIonBuffer->BufferSize());
 	}
@@ -267,7 +267,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	videoRect.Width  = imageWidth;
 	videoRect.Height = imageHeight;
 
-	float videoAspect = (float)videoWidth / (float)videoHeight;
+	//float videoAspect = (float)videoWidth / (float)videoHeight;
 
 	configex = { 0 };
 	configex.src_para.mem_type = CANVAS_TYPE_INVALID;
@@ -279,7 +279,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	configex.src_para.format = ge2dformat;
 
 	configex.dst_para.mem_type = CANVAS_ALLOC;
-	configex.dst_para.format = GE2D_FORMAT_S24_RGB;
+	configex.dst_para.format = GE2D_FORMAT_S24_RGB | GE2D_LITTLE_ENDIAN;
 	configex.dst_para.left = 0;
 	configex.dst_para.top = 0;
 
@@ -322,9 +322,36 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
+	_ge2dIonBuffer->Sync();
+
+	// Read the snapshot into the memory
+	image.resize(_width,_height);
+	_image_rgba.resize(_width,_height);
+	const ssize_t bytesToRead = _width * _height * 4;
+
+	//memcpy(image.memptr(), _ge2dVideoBufferPtr, bytesToRead);
+	uint8_t * data = (uint8_t*)_ge2dVideoBufferPtr; 
+	int lineLength = _width * 3;
+	for (int y=0; y < _height; y++)
+	{
+		for (int x=0; x < _width; x++)
+		{
+			ColorRgb & rgb = image(x, y);
+			
+			int index = lineLength * y + x * 3;
+			rgb.red  = data[index  ];
+			rgb.green = data[index+1];
+			rgb.blue   = data[index+2];
+		}
+	}
+	
+	printf("buf %d %d %d\n", _ge2dIonBuffer->BufferSize(), _ge2dIonBuffer->Length(), videoRect.Width * videoRect.Height * 4);
 	close(_videoDev);
 	_videoDev = -1;
-			
+	
+	// image to output image
+	//_image_rgba.toRgb(image);
+	
 	return 0;
 }
 

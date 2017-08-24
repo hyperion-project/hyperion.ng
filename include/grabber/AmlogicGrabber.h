@@ -2,6 +2,7 @@
 
 // Utils includes
 #include <utils/ColorBgr.h>
+#include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
 #include <grabber/FramebufferFrameGrabber.h>
 
@@ -50,6 +51,7 @@ private:
 	int _ge2dDev;
 
 	Image<ColorBgr> _image;
+	Image<ColorRgba> _image_rgba;
 	
 	int           _lastError;
 	bool          _videoPlaying;
