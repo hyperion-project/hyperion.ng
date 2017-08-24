@@ -234,15 +234,38 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
+	unsigned cropLeft   = _cropLeft;
+	unsigned cropRight  = _cropRight;
+	unsigned cropTop    = _cropTop;
+	unsigned cropBottom = _cropBottom;
+	unsigned imageWidth  = _width - cropLeft - cropRight;
+	unsigned imageHeight = _height - cropTop - cropBottom;
+
+	// calculate final image dimensions and adjust top/left cropping in 3D modes
+	switch (_videoMode)
+	{
+	case VIDEO_3DSBS:
+		imageWidth /= 2;
+		cropLeft /= 2;
+		break;
+	case VIDEO_3DTAB:
+		imageHeight /= 2;
+		cropTop /= 2;
+		break;
+	case VIDEO_2D:
+	default:
+		break;
+	}
+
 	int videoWidth = size >> 32;
 	int videoHeight = size & 0xffffff;
 	printf("amvideo: size=%lx (%dx%d)\n", size, size >> 32, size & 0xffffff);
 
 	Rectangle videoRect;
-	videoRect.X = _cropLeft;
-	videoRect.Y = _cropTop;
-	videoRect.Width = _width - _cropLeft - _cropRight;
-	videoRect.Height = _height - _cropTop - _cropBottom;
+	videoRect.X = cropLeft;
+	videoRect.Y = cropTop;
+	videoRect.Width  = imageWidth;
+	videoRect.Height = imageHeight;
 
 	float videoAspect = (float)videoWidth / (float)videoHeight;
 
@@ -299,8 +322,8 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
-				close(_videoDev);
-			_videoDev = -1;
+	close(_videoDev);
+	_videoDev = -1;
 			
 	return 0;
 }
