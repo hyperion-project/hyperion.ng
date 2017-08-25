@@ -200,8 +200,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	}
 
 
-	struct config_para_ex_s configex = { 0 };
-	ge2d_para_s blitRect = { 0 };
+
 
 	int canvas_index;
 	if (ioctl(_videoDev, AMVIDEO_EXT_GET_CURRENT_VIDEOFRAME, &canvas_index) < 0)
@@ -259,32 +258,26 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 
 	int videoWidth = size >> 32;
 	int videoHeight = size & 0xffffff;
-	printf("amvideo: size=%lx (%dx%d)\n", size, size >> 32, size & 0xffffff);
+	printf("amvideo: size=%lx (%dx%d)\n", size, videoWidth, videoHeight);
 
-	Rectangle videoRect;
-	videoRect.X = cropLeft;
-	videoRect.Y = cropTop;
-	videoRect.Width  = imageWidth;
-	videoRect.Height = imageHeight;
+// 	float videoAspect = (float)videoWidth / (float)videoHeight;
 
-	//float videoAspect = (float)videoWidth / (float)videoHeight;
-
-	configex = { 0 };
+	struct config_para_ex_s configex = { 0 };
 	configex.src_para.mem_type = CANVAS_TYPE_INVALID;
 	configex.src_para.canvas_index = canvas0addr;
 	configex.src_para.left = 0;
 	configex.src_para.top = 0;
 	configex.src_para.width = videoWidth;
-	configex.src_para.height = videoHeight / 2;
+	configex.src_para.height = videoHeight /2;
 	configex.src_para.format = ge2dformat;
 
 	configex.dst_para.mem_type = CANVAS_ALLOC;
-	configex.dst_para.format = GE2D_FORMAT_S24_RGB | GE2D_LITTLE_ENDIAN;
+	configex.dst_para.format =  GE2D_FORMAT_S32_RGBA;
 	configex.dst_para.left = 0;
 	configex.dst_para.top = 0;
-
 	configex.dst_para.width = _width;
 	configex.dst_para.height = _height;
+
 	configex.dst_planes[0].addr = (long unsigned int)_ge2dIonBuffer->PhysicalAddress();
 	configex.dst_planes[0].w = configex.dst_para.width;
 	configex.dst_planes[0].h = configex.dst_para.height;
@@ -295,18 +288,19 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		return -1;
 	}
 
+	ge2d_para_s blitRect = { 0 };
 	blitRect.src1_rect.x = 0;
 	blitRect.src1_rect.y = 0;
 	blitRect.src1_rect.w = configex.src_para.width;
 	blitRect.src1_rect.h = configex.src_para.height;
 
-	blitRect.dst_rect.x = videoRect.X;
-	blitRect.dst_rect.y = videoRect.Y;
-	blitRect.dst_rect.w = videoRect.Width;
-	blitRect.dst_rect.h = videoRect.Height;
+	blitRect.dst_rect.x = cropLeft;
+	blitRect.dst_rect.y = cropTop;
+	blitRect.dst_rect.w = imageWidth;
+	blitRect.dst_rect.h = imageHeight;
 
 
-	printf("rect=%d,%d %dx%d\n", videoRect.X, videoRect.Y, videoRect.Width, videoRect.Height);
+	printf("rect=%d,%d %dx%d\n", cropLeft, cropTop, imageWidth, imageHeight);
 
 	// Blit to videoBuffer
 	if (ioctl(_ge2dDev, GE2D_STRETCHBLIT_NOALPHA, &blitRect) < 0)
@@ -329,9 +323,9 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	_image_rgba.resize(_width,_height);
 	const ssize_t bytesToRead = _width * _height * 4;
 
-	//memcpy(image.memptr(), _ge2dVideoBufferPtr, bytesToRead);
-	uint8_t * data = (uint8_t*)_ge2dVideoBufferPtr; 
-	int lineLength = _width * 3;
+	memcpy(_image_rgba.memptr(), _ge2dVideoBufferPtr, bytesToRead);
+	/*uint8_t * data = (uint8_t*)_ge2dVideoBufferPtr; 
+	int lineLength = _width * 4;
 	for (int y=0; y < _height; y++)
 	{
 		for (int x=0; x < _width; x++)
@@ -344,13 +338,13 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 			rgb.blue   = data[index+2];
 		}
 	}
-	
-	printf("buf %d %d %d\n", _ge2dIonBuffer->BufferSize(), _ge2dIonBuffer->Length(), videoRect.Width * videoRect.Height * 4);
+	*/
+	printf("buf %d %d\n", _width*_height*4, _ge2dIonBuffer->Length());
 	close(_videoDev);
 	_videoDev = -1;
 	
 	// image to output image
-	//_image_rgba.toRgb(image);
+	_image_rgba.toRgb(image);
 	
 	return 0;
 }
