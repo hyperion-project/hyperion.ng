@@ -2,9 +2,6 @@
 
 #include <exception>
 #include <linux/videodev2.h>
-#include "ion.h"
-#include "meson_ion.h"
-#include "IonBuffer.h"
 
 #define AMVIDEOCAP_IOC_MAGIC  'V'
 #define CAP_FLAG_AT_CURRENT		0
@@ -72,81 +69,3 @@ struct Rectangle
 	int Width;
 	int Height;
 };
-/*
-struct IonBuffer
-{
-	ion_user_handle_t Handle;
-	int ExportHandle;
-	size_t Length;
-	unsigned long PhysicalAddress;
-};
-
-IonBuffer IonAllocate(int ion_fd, size_t bufferSize)
-{
-	int io;
-	IonBuffer result; 
-
-	// Allocate a buffer
-	ion_allocation_data allocation_data = { 0 };
-	allocation_data.len = bufferSize;
-	allocation_data.heap_id_mask = ION_HEAP_CARVEOUT_MASK;
-	allocation_data.flags = ION_FLAG_CACHED;
-
-	io = ioctl(ion_fd, ION_IOC_ALLOC, &allocation_data);
-	if (io != 0)
-	{
-		throw std::runtime_error("ION_IOC_ALLOC failed.");
-	}
-
-	printf("ion handle=%d\n", allocation_data.handle);
-
-
-	// Map/share the buffer
-	ion_fd_data ionData = { 0 };
-	ionData.handle = allocation_data.handle;
-
-	io = ioctl(ion_fd, ION_IOC_SHARE, &ionData);
-	if (io != 0)
-	{
-		throw std::runtime_error("ION_IOC_SHARE failed.");
-	}
-
-	printf("ion map=%d\n", ionData.fd);
-
-
-	// Get the physical address for the buffer
-	meson_phys_data physData = { 0 };
-	physData.handle = ionData.fd;
-
-	ion_custom_data ionCustomData = { 0 };
-	ionCustomData.cmd = ION_IOC_MESON_PHYS_ADDR;
-	ionCustomData.arg = (long unsigned int)&physData;
-
-	io = ioctl(ion_fd, ION_IOC_CUSTOM, &ionCustomData);
-	if (io != 0)
-	{
-		//throw Exception("ION_IOC_CUSTOM failed.");
-		printf("ION_IOC_CUSTOM failed (%d).", io);
-	}
-
-
-	result.Handle = allocation_data.handle;
-	result.ExportHandle = ionData.fd;
-	result.Length = allocation_data.len;
-	result.PhysicalAddress = physData.phys_addr;
-
-	printf("ion phys_addr=%lu\n", result.PhysicalAddress);
-
-
-	//ion_handle_data ionHandleData = { 0 };
-	//ionHandleData.handle = allocation_data.handle;
-
-	//io = ioctl(ion_fd, ION_IOC_FREE, &ionHandleData);
-	//if (io != 0)
-	//{
-	//	throw Exception("ION_IOC_FREE failed.");
-	//}
-
-	return result;
-}
-*/

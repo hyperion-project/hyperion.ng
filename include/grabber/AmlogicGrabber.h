@@ -2,11 +2,8 @@
 
 // Utils includes
 #include <utils/ColorBgr.h>
-#include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
 #include <grabber/FramebufferFrameGrabber.h>
-
-class IonBuffer;
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
@@ -43,21 +40,15 @@ private:
 	bool isVideoPlaying();
 
 	int grabFrame_amvideocap(Image<ColorRgb> & image);
-	int grabFrame_ge2d(Image<ColorRgb> & image);
 
 	/** The snapshot/capture device of the amlogic video chip */
 	int _captureDev;
 	int _videoDev;
-	int _ge2dDev;
 
 	Image<ColorBgr> _image;
-	Image<ColorRgba> _image_rgba;
 	
 	int           _lastError;
 	bool          _videoPlaying;
 	FramebufferFrameGrabber _fbGrabber;
-	bool          _ge2dAvailable;
 	int           _grabbingModeNotification;
-	void*         _ge2dVideoBufferPtr;
-	IonBuffer*    _ge2dIonBuffer;
 };

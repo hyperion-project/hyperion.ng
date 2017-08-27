@@ -17,26 +17,16 @@
 #include <grabber/AmlogicGrabber.h>
 #include "Amvideocap.h"
 
-#include "ge2d.h"
-#include "ge2d_cmd.h"
-//#include "ge2d_func.h"
-
-
 #define VIDEO_DEVICE   "/dev/amvideo"
 #define CAPTURE_DEVICE "/dev/amvideocap0"
-#define GE2D_DEVICE    "/dev/ge2d"
 
 AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
 	: Grabber("AMLOGICGRABBER", qMax(285u, width), qMax(160u, height)) // Minimum required width or height is 160
 	, _captureDev(-1)
 	, _videoDev(-1)
-	, _ge2dDev(-1)
 	, _lastError(0)
 	, _fbGrabber("/dev/fb0",width,height)
-	, _ge2dAvailable(true)
 	, _grabbingModeNotification(0)
-	, _ge2dVideoBufferPtr(nullptr)
-	, _ge2dIonBuffer(nullptr)
 {
 	Debug(_log, "constructed(%d x %d)",_width,_height);
 }
@@ -45,12 +35,6 @@ AmlogicGrabber::~AmlogicGrabber()
 {
 	if (_captureDev != -1) close(_captureDev);
 	if (_videoDev   != -1) close(_videoDev);
-	if (_ge2dDev    != -1) close(_ge2dDev);
-// 	if (_ge2dVideoBufferPtr != nullptr && _ge2dIonBuffer != nullptr)
-// 	{
-// 		munmap(_ge2dVideoBufferPtr, _ge2dIonBuffer->Length());
-// 		delete _ge2dIonBuffer;
-// 	}
 }
 
 
@@ -58,14 +42,14 @@ bool AmlogicGrabber::isVideoPlaying()
 {
 	if(!QFile::exists(VIDEO_DEVICE)) return false;
 
-	int videoDisabled = 0;
+	int videoDisabled = 1;
 	if (_videoDev<0)
 		_videoDev = open(VIDEO_DEVICE, O_RDWR);
 
 	if (_videoDev < 0)
 	{
 		Error(_log, "Failed to open video device(%s): %d - %s", VIDEO_DEVICE, errno, strerror(errno));
-		videoDisabled = 1;
+		return false;
 	}
 	else
 	{
@@ -73,9 +57,9 @@ bool AmlogicGrabber::isVideoPlaying()
 		if(ioctl(_videoDev, AMSTREAM_IOC_GET_VIDEO_DISABLE, &videoDisabled) == -1)
 		{
 			Error(_log, "Failed to retrieve video state from device: %d - %s", errno, strerror(errno));
-			videoDisabled = 1;
 			close(_videoDev);
 			_videoDev = -1;
+			return false;
 		}
 	}
 
@@ -87,30 +71,22 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 	if (!_enabled) return 0;
 
 	// Make sure video is playing, else there is nothing to grab
-	int ret = -1;
 	if (isVideoPlaying())
 	{
 		InfoIf(_grabbingModeNotification!=1, _log, "VPU mode");
 		_grabbingModeNotification = 1;
-		if (_ge2dAvailable)
+		if (QFile::exists(CAPTURE_DEVICE))
 		{
-			ret = grabFrame_ge2d(image);
-			_ge2dAvailable = (ret == 0);
-			WarningIf(!_ge2dAvailable, _log, "GE2D capture interface not available! try Amvideocap instead");
-		}
-		else if (QFile::exists(CAPTURE_DEVICE))
-		{
-			ret = grabFrame_amvideocap(image);
+			grabFrame_amvideocap(image);
 		}
 	}
 	else
 	{
 		InfoIf(_grabbingModeNotification!=2, _log, "FB mode");
 		_grabbingModeNotification = 2;
-		ret = _fbGrabber.grabFrame(image);
-		_ge2dAvailable = true;
+		_fbGrabber.grabFrame(image);
 	}
-	
+
 	return 0;
 }
 
@@ -166,263 +142,18 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	}
 
 	// For now we always close the device now and again
-// 	static int readCnt = 0;
-// 	++readCnt;
-// 	if (readCnt > 20)
-// 	{
-// 		close(_captureDev);
-// 		_captureDev = -1;
-// 		readCnt = 0;
-// 	}
+	static int readCnt = 0;
+	++readCnt;
+	if (readCnt > 20)
+	{
+		close(_captureDev);
+		_captureDev = -1;
+		readCnt = 0;
+	}
 	
-	//_imageResampler.setHorizontalPixelDecimation(w/_width);
-	//_imageResampler.setVerticalPixelDecimation(h/_height);
 	_imageResampler.processImage((const uint8_t*)image_ptr, _width, _height, 3, PIXELFORMAT_BGR24, image);
 
 	_lastError = 0;
 	return 0;
 }
 
-int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
-{
-	if (_ge2dDev<0)
-		_ge2dDev = open(GE2D_DEVICE, O_RDWR);
-		
-	if (_videoDev<0)
-		_videoDev = open(VIDEO_DEVICE, O_RDWR);
-	
-	// Ion
-	if (_ge2dIonBuffer == nullptr)
-	{
-		_ge2dIonBuffer = new IonBuffer(_width * _height * 4); // RGBA
-		_ge2dVideoBufferPtr = _ge2dIonBuffer->Map();
-		memset(_ge2dVideoBufferPtr, 0, _ge2dIonBuffer->BufferSize());
-	}
-
-
-
-
-	int canvas_index;
-	if (ioctl(_videoDev, AMVIDEO_EXT_GET_CURRENT_VIDEOFRAME, &canvas_index) < 0)
-	{
-		Error(_log, "AMSTREAM_EXT_GET_CURRENT_VIDEOFRAME failed.");
-		return -1;
-	}
-
-	uint32_t canvas0addr;
-
-	if (ioctl(_videoDev, AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_CANVAS0ADDR, &canvas0addr) < 0)
-	{
-		Error(_log, "AMSTREAM_EXT_CURRENT_VIDEOFRAME_GET_CANVAS0ADDR failed.");
-		return -1;
-	}
-	printf("amvideo: canvas0addr=%x\n", canvas0addr);
-
-	uint32_t ge2dformat;
-	if (ioctl(_videoDev, AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_GE2D_FORMAT, &ge2dformat) <0)
-	{
-		Error(_log, "AMSTREAM_EXT_CURRENT_VIDEOFRAME_GET_GE2D_FORMAT failed.");
-		return -1;
-	}
-	printf("amvideo: ge2dformat=%x\n", ge2dformat);
-
-	uint64_t size;
-	if (ioctl(_videoDev, AMVIDEO_EXT_CURRENT_VIDEOFRAME_GET_SIZE, &size) < 0)
-	{
-		Error(_log, "AMSTREAM_EXT_CURRENT_VIDEOFRAME_GET_SIZE failed.");
-		return -1;
-	}
-
-	unsigned cropLeft   = _cropLeft;
-	unsigned cropRight  = _cropRight;
-	unsigned cropTop    = _cropTop;
-	unsigned cropBottom = _cropBottom;
-	unsigned imageWidth  = _width - cropLeft - cropRight;
-	unsigned imageHeight = _height - cropTop - cropBottom;
-
-	// calculate final image dimensions and adjust top/left cropping in 3D modes
-	switch (_videoMode)
-	{
-	case VIDEO_3DSBS:
-		imageWidth /= 2;
-		cropLeft /= 2;
-		break;
-	case VIDEO_3DTAB:
-		imageHeight /= 2;
-		cropTop /= 2;
-		break;
-	case VIDEO_2D:
-	default:
-		break;
-	}
-
-	int videoWidth = size >> 32;
-	int videoHeight = size & 0xffffff;
-	printf("amvideo: size=%lx (%dx%d)\n", size, videoWidth, videoHeight);
-
-// 	float videoAspect = (float)videoWidth / (float)videoHeight;
-
-	struct config_para_ex_s configex = { 0 };
-	configex.src_para.mem_type = CANVAS_TYPE_INVALID;
-	configex.src_para.canvas_index = canvas0addr;
-	configex.src_para.left = 0;
-	configex.src_para.top = 0;
-	configex.src_para.width = videoWidth;
-	configex.src_para.height = videoHeight /2;
-	configex.src_para.format = ge2dformat;
-
-	configex.dst_para.mem_type = CANVAS_ALLOC;
-	configex.dst_para.format =  GE2D_FORMAT_S32_RGBA;
-	configex.dst_para.left = 0;
-	configex.dst_para.top = 0;
-	configex.dst_para.width = _width;
-	configex.dst_para.height = _height;
-
-	configex.dst_planes[0].addr = (long unsigned int)_ge2dIonBuffer->PhysicalAddress();
-	configex.dst_planes[0].w = configex.dst_para.width;
-	configex.dst_planes[0].h = configex.dst_para.height;
-
-	if (ioctl(_ge2dDev, GE2D_CONFIG_EX, &configex) < 0)
-	{
-		Error(_log, "video GE2D_CONFIG_EX failed.");
-		return -1;
-	}
-
-	ge2d_para_s blitRect = { 0 };
-	blitRect.src1_rect.x = 0;
-	blitRect.src1_rect.y = 0;
-	blitRect.src1_rect.w = configex.src_para.width;
-	blitRect.src1_rect.h = configex.src_para.height;
-
-	blitRect.dst_rect.x = cropLeft;
-	blitRect.dst_rect.y = cropTop;
-	blitRect.dst_rect.w = imageWidth;
-	blitRect.dst_rect.h = imageHeight;
-
-
-	printf("rect=%d,%d %dx%d\n", cropLeft, cropTop, imageWidth, imageHeight);
-
-	// Blit to videoBuffer
-	if (ioctl(_ge2dDev, GE2D_STRETCHBLIT_NOALPHA, &blitRect) < 0)
-	{
-		Error(_log,"GE2D_STRETCHBLIT_NOALPHA failed.");
-		return -1;
-	}
-               
-	// Return video frame
-	if (ioctl(_videoDev, AMVIDEO_EXT_PUT_CURRENT_VIDEOFRAME) < 0)
-	{
-		Error(_log, "AMSTREAM_EXT_PUT_CURRENT_VIDEOFRAME failed.");
-		return -1;
-	}
-
-	_ge2dIonBuffer->Sync();
-
-	// Read the snapshot into the memory
-	image.resize(_width,_height);
-	_image_rgba.resize(_width,_height);
-	const ssize_t bytesToRead = _width * _height * 4;
-
-	memcpy(_image_rgba.memptr(), _ge2dVideoBufferPtr, bytesToRead);
-	/*uint8_t * data = (uint8_t*)_ge2dVideoBufferPtr; 
-	int lineLength = _width * 4;
-	for (int y=0; y < _height; y++)
-	{
-		for (int x=0; x < _width; x++)
-		{
-			ColorRgb & rgb = image(x, y);
-			
-			int index = lineLength * y + x * 3;
-			rgb.red  = data[index  ];
-			rgb.green = data[index+1];
-			rgb.blue   = data[index+2];
-		}
-	}
-	*/
-	printf("buf %d %d\n", _width*_height*4, _ge2dIonBuffer->Length());
-	close(_videoDev);
-	_videoDev = -1;
-	
-	// image to output image
-	_image_rgba.toRgb(image);
-	
-	return 0;
-}
-
-
-
-
-/*
-#define VIDEOCAPDEV "/dev/amvideocap0"              
-int amvideocap_capframe(char *buf,int size,int *w,int *h,int fmt_ignored,int at_end, int* ret_size)
-{
-	int fd=open(VIDEOCAPDEV,O_RDWR);
-	int ret = 0;
-	if(fd<0){
-		ALOGI("amvideocap_capframe open %s failed\n",VIDEOCAPDEV);
-		return -1;
-	}
-	if(w!= NULL && *w>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH,*w);
-	}
-	if(h!= NULL && *h>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT,*h);
-	}
-	if(at_end){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS,CAP_FLAG_AT_END);
-	}
-	*ret_size =read(fd,buf,size);
-	if(w != NULL){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_GET_FRAME_WIDTH,w);
-	}
-	if(h != NULL){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_GET_FRAME_HEIGHT,h);
-	}
-	close(fd);
-	return ret;
-}
-
-int amvideocap_capframe_with_rect(char *buf,int size, int src_rect_x, int src_rect_y, int *w,int *h,int fmt_ignored,int at_end, int* ret_size)
-{
-	int fd=open(VIDEOCAPDEV,O_RDWR);
-	int ret = 0;
-	if(fd<0){
-		ALOGI("amvideocap_capframe_with_rect open %s failed\n",VIDEOCAPDEV);
-		return -1;
-	}
-	ALOGI("amvideocap_capframe_with_rect open %d, %d\n",*w, *h);
-    if(src_rect_x>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_SET_SRC_X,src_rect_x);
-	}
-    if(src_rect_y>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_SET_SRC_Y,src_rect_y);
-	}
-    if(*w>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_SET_SRC_WIDTH,*w);
-	}
-    if(*h>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_SET_SRC_HEIGHT,*h);
-	}
-	if(*w>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH,*w);
-	}
-	if(*h>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT,*h);
-	}
-	if(at_end){
-		ret=ioctl(fd,AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS,CAP_FLAG_AT_END);
-	}
-	*ret_size =read(fd,buf,size);
-
-	if(*w>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_GET_FRAME_WIDTH,w);
-	}
-
-	if(*h>0){
-		ret=ioctl(fd,AMVIDEOCAP_IOR_GET_FRAME_HEIGHT,h);
-	}
-	close(fd);
-	return ret;
-}
-
- */
