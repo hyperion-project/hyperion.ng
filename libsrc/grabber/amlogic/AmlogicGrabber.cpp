@@ -70,11 +70,19 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	if (!_enabled) return 0;
 
+	if (image.width()!=(unsigned)_width || image.height()!=(unsigned)_height)
+		image.resize(_width, _height);
+
 	// Make sure video is playing, else there is nothing to grab
 	if (isVideoPlaying())
 	{
-		InfoIf(_grabbingModeNotification!=1, _log, "VPU mode");
-		_grabbingModeNotification = 1;
+		if (_grabbingModeNotification!=1)
+		{
+			Info(_log, "VPU mode");
+			_grabbingModeNotification = 1;
+			_lastError = 0;
+		}
+
 		if (QFile::exists(CAPTURE_DEVICE))
 		{
 			grabFrame_amvideocap(image);
@@ -82,8 +90,12 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 	}
 	else
 	{
-		InfoIf(_grabbingModeNotification!=2, _log, "FB mode");
-		_grabbingModeNotification = 2;
+		if (_grabbingModeNotification!=2)
+		{
+			Info( _log, "FB mode");
+			_grabbingModeNotification = 2;
+			_lastError = 0;
+		}
 		_fbGrabber.grabFrame(image);
 	}
 
@@ -120,6 +132,7 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	}
 
 	// Read the snapshot into the memory
+	_image.resize(w,h);
 	void * image_ptr = _image.memptr();
 	const ssize_t bytesToRead = _width * _height * sizeof(ColorBgr);
 
@@ -141,19 +154,11 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 		return -1;
 	}
 
-	// For now we always close the device now and again
-	static int readCnt = 0;
-	++readCnt;
-	if (readCnt > 20)
-	{
-		close(_captureDev);
-		_captureDev = -1;
-		readCnt = 0;
-	}
-	
+	_imageResampler.setHorizontalPixelDecimation(1);
+	_imageResampler.setVerticalPixelDecimation(1);
 	_imageResampler.processImage((const uint8_t*)image_ptr, _width, _height, 3, PIXELFORMAT_BGR24, image);
-
 	_lastError = 0;
+
 	return 0;
 }
 
