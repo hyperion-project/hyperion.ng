@@ -17,9 +17,11 @@ add_executable(hyperiond-starter
 )
 
 target_link_libraries(hyperiond-starter
+	hyperion
 	Qt5::Core
 	Qt5::Network
 )
+
 install ( TARGETS hyperiond-starter DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 
 if(CMAKE_HOST_UNIX)

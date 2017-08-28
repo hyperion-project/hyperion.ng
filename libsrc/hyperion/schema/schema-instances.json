@@ -9,17 +9,17 @@
 		"title" : "edt_conf_inst_title",
 		"properties" :
 		{
-			"enable" :
+			"enabled" :
 			{
 				"type" : "boolean",
-				"title" : "edt_conf_general_enable_title",
+				"title" : "edt_conf_inst_enabled_title",
 				"default" : true,
 				"propertyOrder" : 1
 			},
 			"instName" :
 			{
 				"type" : "string",
-				"title" : "edt_conf_instName_title",
+				"title" : "edt_conf_inst_instName_title",
 				"default" : "My new instance",
 				"minLength" : 4,
 				"maxLength" : 20,
@@ -28,4 +28,3 @@
 		}
 	}
 }
-		

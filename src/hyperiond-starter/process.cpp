@@ -14,7 +14,7 @@ Process::~Process()
 		if(info.running)
 		{
 			info.proc->terminate();
-			info.proc->waitForFinished(2000);
+			info.proc->waitForFinished(1000);
 		}
 		delete info.proc;
 	}
@@ -22,7 +22,8 @@ Process::~Process()
 
 void Process::createProcess(QString configName)
 {
-	if(!isCreated(configName))
+	Process::procInfo p;
+	if(!getStructByCName(p, configName))
 	{
 	    QProcess* proc = new QProcess();
 	    connect(proc, &QProcess::stateChanged, this, &Process::stateChanged);
@@ -32,153 +33,156 @@ void Process::createProcess(QString configName)
 	    proc->setArguments(QStringList(_configPath+configName));
 	    proc->setProgram(_daemonPath);
 
-		procInfo pEntry;
-		pEntry.proc = proc;
-		pEntry.cName = configName;
-		pEntry.running = false;
-		pEntry.restCount= 0;
+		procInfo pEntry{proc, configName, false, 0};
 		procInfoList.append(pEntry);
+		qDebug() << "Create Process:" << configName;
 	}
 
 }
 
-bool Process::isCreated(QString cName)
+bool Process::getStructByCName(Process::procInfo &p, QString cName)
 {
 	for (const procInfo & info : procInfoList)
 	{
 		if(info.cName == cName)
 		{
+			p = info;
 			return true;
 		}
 	}
 	return false;
 }
 
-void Process::startProcess(QProcess* proc)
+bool Process::getStructByProcess(Process::procInfo &p, QProcess* proc)
 {
-	proc->start();
+	for (const procInfo & info : procInfoList)
+	{
+		if(info.proc == proc)
+		{
+			p = info;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Process::updateStateByProcess(QProcess* proc, bool newState)
+{
+	for (procInfo & info : procInfoList)
+	{
+		if(info.proc == proc)
+		{
+			info.running = newState;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Process::updateRetryCountByProcess(QProcess* proc, quint8 newCount)
+{
+	for (procInfo & info : procInfoList)
+	{
+		if(info.proc == proc)
+		{
+			info.restCount = newCount;
+			return true;
+		}
+	}
+	return false;
 }
 
 void Process::startProcessByCName(QString cName)
 {
-	for (const procInfo & info : procInfoList)
+	Process::procInfo p;
+	if(getStructByCName(p, cName) && !p.running)
 	{
-		if(info.cName == cName)
-		{
-			if(!info.running)
-			{
-				qDebug() << "start process:" << cName;
-				info.proc->start();
-			}
-			break;
-		}
+		qDebug() << "Start Process:" << cName;
+		p.proc->start();
 	}
-}
-
-void Process::stopProcess(QProcess* proc)
-{
-	proc->terminate();
 }
 
 void Process::stopProcessByCName(QString cName)
 {
-	for (procInfo & info : procInfoList)
+	Process::procInfo p;
+	if(getStructByCName(p, cName) && p.running)
 	{
-		if(info.cName == cName)
-		{
-			if(info.running)
-			{
-				qDebug() << "stop process:" << cName;
-				info.running = false;
-				info.proc->terminate();
-			}
-			break;
-		}
+		qDebug() << "Stop Process:" << cName;
+		updateStateByProcess(p.proc,false);
+		p.proc->terminate();
 	}
 }
 
 void Process::stateChanged(QProcess::ProcessState newState)
 {
-    // get the sender
     QProcess* proc = qobject_cast<QProcess*>(sender());
+	Process::procInfo p;
 
-	for (procInfo & info : procInfoList)
+	if(getStructByProcess(p, proc))
 	{
-		if(info.proc == proc)
-		{
-			switch (newState) {
-		    case QProcess::NotRunning:
-				qDebug() << "Process state changed to stopped:" << info.cName;
-		        break;
-		    case QProcess::Starting:
-		        qDebug() << "Process state changed to starting:" << info.cName;
-		        break;
-		    case QProcess::Running:
-				qDebug() << "Process state changed to running:" << info.cName;
-				info.running = true;
-		        break;
-		    }
-			break;
-		}
+		switch (newState) {
+	    case QProcess::NotRunning:
+			qDebug() << "Process state changed to stopped:" << p.cName;
+	        break;
+	    case QProcess::Starting:
+	        qDebug() << "Process state changed to starting:" << p.cName;
+	        break;
+	    case QProcess::Running:
+			qDebug() << "Process state changed to running:" << p.cName;
+			updateStateByProcess(proc,true);
+	        break;
+	    }
 	}
-
 }
 
 void Process::readyReadStandardError(void)
 {
     QProcess* proc = qobject_cast<QProcess*>(sender());
+	Process::procInfo p;
 
-	for (procInfo & info : procInfoList)
+	if(getStructByProcess(p, proc))
 	{
-		if(info.proc == proc)
-		{
-			qDebug() << "ERR:" << info.cName << ":" <<proc->readAllStandardError();
-			break;
-		}
+		qDebug() << p.cName << "ERR:" << proc->readAllStandardError();
 	}
 }
 
 void Process::readyReadStandardOutput(void)
 {
     QProcess* proc = qobject_cast<QProcess*>(sender());
+	Process::procInfo p;
 
-	for (procInfo & info : procInfoList)
+	if(getStructByProcess(p, proc))
 	{
-		if(info.proc == proc)
-		{
-			qDebug() << "OUT:" << info.cName << ":" <<proc->readAllStandardOutput();
-			break;
-		}
+		qDebug() << p.cName << "OUT:" << proc->readAllStandardOutput();
 	}
 }
 
 void Process::finished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     QProcess* proc = qobject_cast<QProcess*>(sender());
-	for (procInfo & info : procInfoList)
+	Process::procInfo p;
+
+	if(getStructByProcess(p, proc))
 	{
-		if(info.proc == proc)
+		// check if the terminate was requested before
+		if(p.running)
 		{
-			// check if the terminate was requested before
-			if(info.running)
+			if(p.restCount < 6)
 			{
-				if(info.restCount < 6)
-				{
-					info.running = false;
-					info.restCount += 1;
-					qDebug() << "It seems that the process crashed, restart now" << info.cName << "try" << info.restCount << "of 5";
-					startProcess(proc);
-				}
-				else
-				{
-					qDebug()<< "The process crashed more than 5 times, stop restart attempts for"<< info.cName;
-				}
+				updateStateByProcess(proc,false);
+				updateRetryCountByProcess(proc, p.restCount += 1);
+				qDebug() << "It seems that the process crashed, restart now" << p.cName << "try" << p.restCount << "of 5";
+				p.proc->start();
 			}
 			else
 			{
-			    qDebug() << "Proccess" << info.cName << "finished with exitCode" << exitCode << "and exitStatus:" << exitStatus;
+				qDebug()<< "The process crashed more than 5 times, stop restart attempts for"<< p.cName;
 			}
-
+		}
+		else
+		{
+			p.running = false;
+			qDebug() << "Proccess" << p.cName << "finished with exitCode:" << exitCode << "and exitStatus:" << exitStatus;
 		}
 	}
 }

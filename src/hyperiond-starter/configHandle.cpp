@@ -76,7 +76,7 @@ void configHandle::readAllPorts(void)
 void configHandle::processConfigChange(QString configPath)
 {
 	QString config = readFile(configPath);
-
+	qDebug() << "processConfigChange" << configPath;
 	QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
 	QJsonArray arr = doc.object()["instances"].toArray();
 
@@ -90,7 +90,7 @@ void configHandle::processConfigChange(QString configPath)
 			if(createConfig(cName,pName))
 			{
 				_process.createProcess(cName);
-				if(arr[i].toObject().take("enable").toBool())
+				if(arr[i].toObject().take("enabled").toBool())
 					_process.startProcessByCName(cName);
 			}
 		}
@@ -98,9 +98,13 @@ void configHandle::processConfigChange(QString configPath)
 		{
 			_process.createProcess(cName);
 			if(arr[i].toObject().take("enable").toBool())
+			{
 				_process.startProcessByCName(cName);
+			}
 			else
+			{
 				_process.stopProcessByCName(cName);
+			}
 		}
 	}
 }
@@ -110,6 +114,7 @@ QString configHandle::convertToCName(QString pName)
 	pName = pName.trimmed();
 	while(pName.startsWith("."))
 		pName.remove(0,1);
+
 	if(!pName.endsWith(".json"))
 		pName.append(".json");
 

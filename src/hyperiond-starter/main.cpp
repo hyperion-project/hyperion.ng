@@ -17,14 +17,13 @@ int main(int argc, char** argv)
 {
     // Initialising QCoreApplication
     QCoreApplication app(argc, argv);
-    qDebug() << "hyperiond-starter started!";
 
     // signals
-    signal(SIGINT,  signal_handler);
-    signal(SIGTERM, signal_handler);
-    signal(SIGABRT, signal_handler);
-    signal(SIGCHLD, signal_handler);
-    signal(SIGPIPE, signal_handler);
+    //signal(SIGINT,  signal_handler);
+    //signal(SIGTERM, signal_handler);
+    //signal(SIGABRT, signal_handler);
+    //signal(SIGCHLD, signal_handler);
+    //signal(SIGPIPE, signal_handler);
 
     // force the locale
     setlocale(LC_ALL, "C");
@@ -35,5 +34,5 @@ int main(int argc, char** argv)
     QString daemonPath = app.applicationDirPath()+"/hyperiond";
     configHandle cHandle(configPath, daemonPath);
 
-    app.exec();
+    return app.exec();
 }

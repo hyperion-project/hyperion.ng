@@ -1,36 +1,61 @@
 $(document).ready( function() {
 	performTranslation();
-	
+
 	var importedConf;
 	var confName;
 	var conf_editor = null;
-	
-	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+	var conf_editor_inst = null;
+
 	if(showOptHelp)
 	{
-		$('#conf_cont').append(createHelpTable(schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
+		// general
+		$('#conf_cont').append(createRow('conf_cont_gen'))
+		$('#conf_cont_gen').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+		$('#conf_cont_gen').append(createHelpTable(schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
+
+		// instances
+		$('#conf_cont').append(createRow('conf_cont_inst'))
+		$('#conf_cont_inst').append(createOptPanel('fa-wrench', $.i18n("edt_conf_inst_heading_title"), 'editor_container_inst', 'btn_submit_inst'));
+		$('#conf_cont_inst').append(createHelpTable(schema.instances.items.properties, $.i18n("edt_conf_inst_heading_title")));
 	}
 	else
-		$('#conf_imp').appendTo('#conf_cont');
-	
+	{
+		$('#conf_cont').addClass('row');
+		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_inst_heading_title"), 'editor_container_inst', 'btn_submit_inst'));
+	}
+
 	conf_editor = createJsonEditor('editor_container', {
 		general: schema.general
 	}, true, true);
-	
+
 	conf_editor.on('change',function() {
 		conf_editor.validate().length ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 	});
-	
+
 	$('#btn_submit').off().on('click',function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
-	
+
+	// instances
+	conf_editor_inst = createJsonEditor('editor_container_inst', {
+		instances: schema.instances
+	}, true, true);
+
+	conf_editor_inst.on('change',function() {
+		conf_editor_inst.validate().length ? $('#btn_submit_inst').attr('disabled', true) : $('#btn_submit_inst').attr('disabled', false);
+	});
+
+	$('#btn_submit_inst').off().on('click',function() {
+		requestWriteConfig(conf_editor_inst.getValue());
+	});
+
 	//import
 	function dis_imp_btn(state)
 	{
 		state ? $('#btn_import_conf').attr('disabled', true) : $('#btn_import_conf').attr('disabled', false);
 	}
-	
+
 	function readFile(evt)
 	{
 		var f = evt.target.files[0];
@@ -78,27 +103,27 @@ $(document).ready( function() {
 			r.readAsText(f);
 		}
 	}
-	
+
 	$('#btn_import_conf').off().on('click', function(){
 		showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
-			
+
 		$('#id_btn_import').off().on('click', function(){
 			requestWriteConfig(importedConf, true);
 			setTimeout(initRestart, 100);
 		});
 	});
-	
+
 	$('#select_import_conf').off().on('change', function(e){
 		if (window.File && window.FileReader && window.FileList && window.Blob)
 			readFile(e);
 		else
 			showInfoDialog('error', "", $.i18n('infoDialog_import_comperror_text'));
 	});
-	
+
 	//export
 	$('#btn_export_conf').off().on('click', function(){
 		var name = serverConfig.general.name;
-	
+
 		var d = new Date();
 		var month = d.getMonth()+1;
 		var day = d.getDate();
@@ -106,14 +131,16 @@ $(document).ready( function() {
 		var timestamp = d.getFullYear() + '.' +
 			(month<10 ? '0' : '') + month + '.' +
 			(day<10 ? '0' : '') + day;
-	
+
 		download(JSON.stringify(serverConfig, null, "\t"), 'Hyperion-'+currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
 	});
-	
+
 	//create introduction
 	if(showOptHelp)
+	{
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
-	
+		createHint("intro", $.i18n('conf_general_instances_intro'), "editor_container_inst");
+	}
+
 	removeOverlay();
 });
-
