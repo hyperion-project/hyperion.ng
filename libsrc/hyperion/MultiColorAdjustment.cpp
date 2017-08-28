@@ -1,7 +1,3 @@
-
-// STL includes
-#include <cassert>
-
 // Hyperion includes
 #include <utils/Logger.h>
 #include "MultiColorAdjustment.h"
@@ -29,8 +25,8 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 
 void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, const unsigned endLed)
 {
-	assert(startLed <= endLed);
-	assert(endLed < _ledAdjustments.size());
+	Q_ASSERT(startLed <= endLed);
+	Q_ASSERT(endLed < _ledAdjustments.size());
 
 	// Get the identified adjustment (don't care if is nullptr)
 	ColorAdjustment * adjustment = getAdjustment(id);
@@ -83,10 +79,9 @@ void MultiColorAdjustment::setBacklightEnabled(bool enable)
 	}
 }
 
-
 void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 {
-	const size_t itCnt = std::min(_ledAdjustments.size(), ledColors.size());
+	const size_t itCnt = qMin(_ledAdjustments.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)
 	{
 		ColorAdjustment* adjustment = _ledAdjustments[i];

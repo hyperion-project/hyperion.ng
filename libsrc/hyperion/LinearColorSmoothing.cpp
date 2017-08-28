@@ -8,6 +8,7 @@
 
 using namespace hyperion;
 
+// ledUpdateFrequency_hz = 0 > cause divide by zero!
 LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpdateFrequency_hz, int settlingTime_ms, unsigned updateDelay, bool continuousOutput)
 	: LedDevice()
 	, _ledDevice(ledDevice)
@@ -18,14 +19,20 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, double ledUpd
 	, _writeToLedsEnable(true)
 	, _continuousOutput(continuousOutput)
 	, _pause(false)
+	, _currentConfigId(0)
 {
 	_log = Logger::getInstance("Smoothing");
 	_timer.setSingleShot(false);
 	_timer.setInterval(_updateInterval);
 
+	selectConfig( addConfig(_settlingTime, ledUpdateFrequency_hz, updateDelay) );
+	
+	// add pause on cfg 1
+	SMOOTHING_CFG cfg = {true, 100, 50, 0};
+	_cfgList.append(cfg);
+	Info( _log, "smoothing cfg %d: pause",  _cfgList.count()-1);
+
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
-	Info( _log, "Created linear-smoothing with interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",
-	      _updateInterval, settlingTime_ms,  _outputDelay );
 }
 
 LinearColorSmoothing::~LinearColorSmoothing()
@@ -160,3 +167,44 @@ void LinearColorSmoothing::setPause(bool pause)
 	_pause = pause;
 }
 
+unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+{
+	SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay};
+	_cfgList.append(cfg);
+	
+	Info( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, cfg.updateInterval, cfg.settlingTime,  cfg.outputDelay );
+	return _cfgList.count() - 1;
+}
+
+bool LinearColorSmoothing::selectConfig(unsigned cfg)
+{
+	if (_currentConfigId == cfg)
+	{
+		return true;
+	}
+
+	if ( cfg < (unsigned)_cfgList.count())
+	{
+		_settlingTime     = _cfgList[cfg].settlingTime;
+		_outputDelay      = _cfgList[cfg].outputDelay;
+		_pause            = _cfgList[cfg].pause;
+
+		if (_cfgList[cfg].updateInterval != _updateInterval)
+		{
+			_timer.stop();
+			_updateInterval = _cfgList[cfg].updateInterval;
+			_timer.setInterval(_updateInterval);
+			_timer.start();
+		}
+		_currentConfigId = cfg;
+		InfoIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
+		InfoIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
+
+		return true;
+	}
+	
+	// reset to default
+	_currentConfigId = 0;
+	return false;
+}
+	

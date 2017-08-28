@@ -1,4 +1,3 @@
-#include <iostream>
 // STL includes
 #include <algorithm>
 #include <stdexcept>
@@ -27,7 +26,6 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 
 PriorityMuxer::~PriorityMuxer()
 {
-	// empty
 }
 
 int PriorityMuxer::getCurrentPriority() const
@@ -55,7 +53,7 @@ const PriorityMuxer::InputInfo& PriorityMuxer::getInputInfo(const int priority) 
 	return elemIt.value();
 }
 
-void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms, hyperion::Components component, const QString origin)
+void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms, hyperion::Components component, const QString origin, unsigned smooth_cfg)
 {
 	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
@@ -63,7 +61,8 @@ void PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 	input.ledColors      = ledColors;
 	input.componentId    = component;
 	input.origin         = origin;
-	_currentPriority     = std::min(_currentPriority, priority);
+	input.smooth_cfg     = smooth_cfg;
+	_currentPriority     = qMin(_currentPriority, priority);
 }
 
 void PriorityMuxer::clearInput(const int priority)
@@ -101,8 +100,8 @@ void PriorityMuxer::setCurrentTime(const int64_t& now)
 			infoIt = _activeInputs.erase(infoIt);
 		}
 		else
-		{			
-			_currentPriority = std::min(_currentPriority, infoIt->priority);
+		{
+			_currentPriority = qMin(_currentPriority, infoIt->priority);
 			
 			// call emitReq when effect or color is running with timeout > -1, blacklist prio 255
 			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > -1 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR))

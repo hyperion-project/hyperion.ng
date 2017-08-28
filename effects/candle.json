@@ -6,6 +6,11 @@
 		"sleepTime" : 0.20,
 		"brightness" : 100,
 		"color" : [ 255, 138, 0 ],
-		"candles" : "all"
+		"candles" : "all",
+		"smoothing-custom-settings" : true,
+		"smoothing-time_ms" : 500,
+		"smoothing-updateDelay" : 0,
+		"smoothing-updateFrequency" : 20.0,
+		"smoothing-pause" : false
 	}
 }

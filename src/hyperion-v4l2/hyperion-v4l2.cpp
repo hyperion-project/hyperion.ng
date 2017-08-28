@@ -176,11 +176,11 @@ int main(int argc, char** argv)
 		// set 3D mode if applicable
 		if (parser.isSet(arg3DSBS))
 		{
-			grabber.set3D(VIDEO_3DSBS);
+			grabber.setVideoMode(VIDEO_3DSBS);
 		}
 		else if (parser.isSet(arg3DTAB))
 		{
-			grabber.set3D(VIDEO_3DTAB);
+			grabber.setVideoMode(VIDEO_3DTAB);
 		}
 
 		// run the grabber

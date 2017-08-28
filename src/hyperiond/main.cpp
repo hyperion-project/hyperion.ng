@@ -97,8 +97,8 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 			XCloseDisplay(dpy);
 			isGuiApp = true;
 		}
+		#endif
 	}
-	#endif
 #endif
 
 	if (isGuiApp)

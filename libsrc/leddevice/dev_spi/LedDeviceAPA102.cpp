@@ -16,7 +16,7 @@ bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 	ProviderSpi::init(deviceConfig);
 
 	const unsigned int startFrameSize = 4;
-	const unsigned int endFrameSize = std::max<unsigned int>(((_ledCount + 15) / 16), 4);
+	const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), 4);
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
 	_ledBuffer.resize(APAbufferSize, 0xFF);

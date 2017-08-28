@@ -1,0 +1,19 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["videomode"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"mappingType": {
+			"type" : "string",
+			"enum" : ["2D", "3DSBS", "3DTAB"]
+		}
+	},
+	"additionalProperties": false
+}

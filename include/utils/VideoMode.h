@@ -14,8 +14,8 @@ enum VideoMode
 
 inline VideoMode parse3DMode(QString videoMode)
 {
-	// convert to lower case
-	videoMode = videoMode.toLower();
+	// convert to upper case
+	videoMode = videoMode.toUpper();
 
 	if (videoMode == "3DTAB")
 	{
@@ -28,4 +28,15 @@ inline VideoMode parse3DMode(QString videoMode)
 
 	// return the default 2D
 	return VIDEO_2D;
+}
+
+inline QString videoMode2String(VideoMode mode)
+{
+	switch(mode)
+	{
+		case VIDEO_3DTAB: return "3DTAB";
+		case VIDEO_3DSBS: return "3DSBS";
+		case VIDEO_2D: return "2D";
+		default: return "INVALID";
+	}
 }

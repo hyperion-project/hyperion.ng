@@ -34,24 +34,44 @@
 			"type": "boolean",
 			"title":"edt_dev_spec_FCmanualControl_title",
 			"default": false,
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 5
 		},
 		"ledOn": {
 			"type": "boolean",
 			"title":"edt_dev_spec_FCledToOn_title",
 			"default": false,
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 6
 		},
 		"interpolation": {
 			"type": "boolean",
 			"title":"edt_dev_spec_interpolation_title",
 			"default": false,
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 7
 		},
 		"dither": {
 			"type": "boolean",
 			"title":"edt_dev_spec_dithering_title",
 			"default": false,
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 8
 		},
 		"gamma" : {
@@ -59,11 +79,21 @@
 			"title" : "edt_dev_spec_gamma_title",
 			"minimum" : 0.1,
 			"maximum": 5.0,
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 9
 		},
 		"whitepoint" : {
 			"type" : "array",
 			"title" : "edt_dev_spec_whitepoint_title",
+			"options": {
+				"dependencies": {
+					"setFcConfig": true
+				}
+			},
 			"propertyOrder" : 10,
 			"default" : [255,255,255],
 			"maxItems" : 3,
