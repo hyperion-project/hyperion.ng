@@ -144,7 +144,7 @@ void configHandle::modifyJsonValue(QJsonValue& destValue, const QString& path, c
 	const QString squareBracketSubPath = indexOfSquareBracketClose > 0 ? (path.mid(indexOfSquareBracketClose + 1)[0] == '.' ? path.mid(indexOfSquareBracketClose + 2) : path.mid(indexOfSquareBracketClose + 1)) : QString();
 
     // determine what is first in path. dot or bracket
-	bool useDot = (indexOfDot >= 0 && indexOfSquareBracketOpen >= 0) ? (indexOfDot <= indexOfSquareBracketOpen) : (indexOfSquareBracketOpen < 0);	useDot = true;
+	bool useDot = (indexOfDot >= 0 && indexOfSquareBracketOpen >= 0) ? (indexOfDot <= indexOfSquareBracketOpen) : (indexOfSquareBracketOpen < 0);
 
 	QString usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
 	QString usedSubPath = useDot ? dotSubPath : squareBracketSubPath;
