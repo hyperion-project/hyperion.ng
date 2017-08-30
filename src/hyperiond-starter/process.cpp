@@ -2,8 +2,8 @@
 
 Process::Process(QString configPath, QString daemonPath)
 	: QObject()
-    , _configPath(configPath)
-    , _daemonPath(daemonPath)
+	, _configPath(configPath)
+	, _daemonPath(daemonPath)
 {
 }
 
@@ -25,13 +25,13 @@ void Process::createProcess(QString configName)
 	Process::procInfo p;
 	if(!getStructByCName(p, configName))
 	{
-	    QProcess* proc = new QProcess();
-	    connect(proc, &QProcess::stateChanged, this, &Process::stateChanged);
-	    connect(proc, &QProcess::readyReadStandardError, this, &Process::readyReadStandardError);
-	    connect(proc, &QProcess::readyReadStandardOutput, this, &Process::readyReadStandardOutput);
-	    connect(proc, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &Process::finished);
-	    proc->setArguments(QStringList(_configPath+configName));
-	    proc->setProgram(_daemonPath);
+		QProcess* proc = new QProcess();
+		connect(proc, &QProcess::stateChanged, this, &Process::stateChanged);
+		connect(proc, &QProcess::readyReadStandardError, this, &Process::readyReadStandardError);
+		connect(proc, &QProcess::readyReadStandardOutput, this, &Process::readyReadStandardOutput);
+		connect(proc, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &Process::finished);
+		proc->setArguments(QStringList(_configPath+configName));
+		proc->setProgram(_daemonPath);
 
 		procInfo pEntry{proc, configName, false, 0};
 		procInfoList.append(pEntry);
@@ -115,29 +115,29 @@ void Process::stopProcessByCName(QString cName)
 
 void Process::stateChanged(QProcess::ProcessState newState)
 {
-    QProcess* proc = qobject_cast<QProcess*>(sender());
+	QProcess* proc = qobject_cast<QProcess*>(sender());
 	Process::procInfo p;
 
 	if(getStructByProcess(p, proc))
 	{
 		switch (newState) {
-	    case QProcess::NotRunning:
+		case QProcess::NotRunning:
 			qDebug() << "Process state changed to stopped:" << p.cName;
-	        break;
-	    case QProcess::Starting:
-	        qDebug() << "Process state changed to starting:" << p.cName;
-	        break;
-	    case QProcess::Running:
+			break;
+		case QProcess::Starting:
+			qDebug() << "Process state changed to starting:" << p.cName;
+			break;
+		case QProcess::Running:
 			qDebug() << "Process state changed to running:" << p.cName;
 			updateStateByProcess(proc,true);
-	        break;
-	    }
+			break;
+		}
 	}
 }
 
 void Process::readyReadStandardError(void)
 {
-    QProcess* proc = qobject_cast<QProcess*>(sender());
+	QProcess* proc = qobject_cast<QProcess*>(sender());
 	Process::procInfo p;
 
 	if(getStructByProcess(p, proc))
@@ -148,7 +148,7 @@ void Process::readyReadStandardError(void)
 
 void Process::readyReadStandardOutput(void)
 {
-    QProcess* proc = qobject_cast<QProcess*>(sender());
+	QProcess* proc = qobject_cast<QProcess*>(sender());
 	Process::procInfo p;
 
 	if(getStructByProcess(p, proc))
@@ -159,7 +159,7 @@ void Process::readyReadStandardOutput(void)
 
 void Process::finished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    QProcess* proc = qobject_cast<QProcess*>(sender());
+	QProcess* proc = qobject_cast<QProcess*>(sender());
 	Process::procInfo p;
 
 	if(getStructByProcess(p, proc))

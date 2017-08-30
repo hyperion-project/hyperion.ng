@@ -1,18 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-SET(Hyperiond-starter_HEADERS
-	process.h
-	configHandle.h
-)
-
-set(Hyperiond-starter_SOURCES
-	process.cpp
-	configHandle.cpp
-	main.cpp
-)
+FILE ( GLOB Hyperiond-starter_SOURCES "*.h" "*.cpp" )
 
 add_executable(hyperiond-starter
-	${Hyperiond-starter_HEADERS}
 	${Hyperiond-starter_SOURCES}
 )
 

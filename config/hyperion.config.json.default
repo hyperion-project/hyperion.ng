@@ -189,7 +189,7 @@
 
 	"effects" :
 	{
-		"paths" : ["../custom-effects"]
+		"paths" : ["$HOME/.hyperion/custom-effects"]
 	},
 	
 	"instances" : [],

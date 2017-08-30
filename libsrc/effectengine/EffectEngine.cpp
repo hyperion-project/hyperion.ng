@@ -281,8 +281,16 @@ void EffectEngine::readEffects()
 
 	for(auto p : paths)
 	{
-		efxPathList << p.toString();
+		p.toString();
+
+		if(p.startsWith("$HOME"))
+		{
+			p.remove(0, 5);
+			p = QDir::homePath()+QDir(p);
+		}
+		efxPathList << p;
 	}
+
 	for(auto efx : disabledEfx)
 	{
 		disableList << efx.toString();

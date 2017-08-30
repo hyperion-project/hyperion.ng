@@ -2,31 +2,34 @@
 
 configHandle::configHandle(QString configPath, QString daemonPath)
 	: QObject()
-    , _configPath(configPath)
+	, _configPath(configPath)
 	, _process(configPath,daemonPath)
 {
-    // check if config dir exists
-    QDir dir(configPath);
-    if(!dir.exists())
-        dir.mkpath(configPath);
+	// check if config dir exists
+	QDir dir(configPath);
+	dir.mkpath(configPath);
 
 	// create main config
-    QString configName("hyperion_main.json");
+	QString configName("hyperion_main.json");
 	QString prettyName("My Main Configuration");
-    if(!configExists(configName))
-    {
-    	createConfig(configName, prettyName);
-    }
+	if(!configExists(configName))
+	{
+		createConfig(configName, prettyName);
+	}
 
-    // create main process instance & start
-    _process.createProcess(configName);
-    _process.startProcessByCName(configName);
+	// create main process instance & start
+	_process.createProcess(configName);
+	_process.startProcessByCName(configName);
 
 	// listen for hyperion_main.json edits
 	if(_fWatch.addPath(configPath+configName))
+	{
 		connect(&_fWatch, &QFileSystemWatcher::fileChanged, this, &configHandle::fileChanged);
+	}
 	else
+	{
 		qDebug() << "File Observer failed! Instance changes won't be applied until next start";
+	}
 
 	// read ports from all configs in config dir
 	readAllPorts();
@@ -59,10 +62,9 @@ void configHandle::readAllPorts(void)
 	dir.setNameFilters(filters);
 	QStringList allConfigs = dir.entryList(QDir::Files);
 
-	QStringList::const_iterator it;
-	for (it = allConfigs.constBegin(); it != allConfigs.constEnd(); ++it)
+	for (auto cfg : AllConfigs)
 	{
-		QString config = readFile(_configPath+it->toLocal8Bit().constData());
+		QString config = readFile(_configPath+cfg.toLocal8Bit().constData());
 		QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
 		QJsonObject obj = doc.object();
 		quint16 jsonPort = obj["jsonServer"].toObject().take("port").toInt();
@@ -129,163 +131,144 @@ void configHandle::fileChanged(const QString path)
 //Snippet from : https://forum.qt.io/post/393109
 void configHandle::modifyJsonValue(QJsonValue& destValue, const QString& path, const QJsonValue& newValue)
 {
-    const int indexOfDot = path.indexOf('.');
-    const QString dotPropertyName = path.left(indexOfDot);
-    const QString dotSubPath = indexOfDot > 0 ? path.mid(indexOfDot + 1) : QString();
+	const int indexOfDot = path.indexOf('.');
+	const QString dotPropertyName = path.left(indexOfDot);
+	const QString dotSubPath = indexOfDot > 0 ? path.mid(indexOfDot + 1) : QString();
 
-    const int indexOfSquareBracketOpen = path.indexOf('[');
-    const int indexOfSquareBracketClose = path.indexOf(']');
+	const int indexOfSquareBracketOpen = path.indexOf('[');
+	const int indexOfSquareBracketClose = path.indexOf(']');
 
-    const int arrayIndex = path.mid(indexOfSquareBracketOpen + 1, indexOfSquareBracketClose - indexOfSquareBracketOpen - 1).toInt();
+	const int arrayIndex = path.mid(indexOfSquareBracketOpen + 1, indexOfSquareBracketClose - indexOfSquareBracketOpen - 1).toInt();
 
-    const QString squareBracketPropertyName = path.left(indexOfSquareBracketOpen);
-    const QString squareBracketSubPath = indexOfSquareBracketClose > 0 ? (path.mid(indexOfSquareBracketClose + 1)[0] == '.' ? path.mid(indexOfSquareBracketClose + 2) : path.mid(indexOfSquareBracketClose + 1)) : QString();
+	const QString squareBracketPropertyName = path.left(indexOfSquareBracketOpen);
+	const QString squareBracketSubPath = indexOfSquareBracketClose > 0 ? (path.mid(indexOfSquareBracketClose + 1)[0] == '.' ? path.mid(indexOfSquareBracketClose + 2) : path.mid(indexOfSquareBracketClose + 1)) : QString();
 
     // determine what is first in path. dot or bracket
-    bool useDot = true;
-    if (indexOfDot >= 0) // there is a dot in path
-    {
-        if (indexOfSquareBracketOpen >= 0) // there is squarebracket in path
-        {
-            if (indexOfDot > indexOfSquareBracketOpen)
-                useDot = false;
-            else
-                useDot = true;
-        }
-        else
-            useDot = true;
-    }
-    else
-    {
-        if (indexOfSquareBracketOpen >= 0)
-            useDot = false;
-        else
-            useDot = true; // acutally, id doesn't matter, both dot and square bracket don't exist
-    }
+	bool useDot = (indexOfDot >= 0 && indexOfSquareBracketOpen >= 0) ? (indexOfDot <= indexOfSquareBracketOpen) : (indexOfSquareBracketOpen < 0);	useDot = true;
 
-    QString usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
-    QString usedSubPath = useDot ? dotSubPath : squareBracketSubPath;
+	QString usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
+	QString usedSubPath = useDot ? dotSubPath : squareBracketSubPath;
 
-    QJsonValue subValue;
-    if (destValue.isArray())
-        subValue = destValue.toArray()[usedPropertyName.toInt()];
-    else if (destValue.isObject())
-        subValue = destValue.toObject()[usedPropertyName];
-    else
-        qDebug() << "oh, what should i do now with the following value?! " << destValue;
+	QJsonValue subValue;
+	if (destValue.isArray())
+	{
+		subValue = destValue.toArray()[usedPropertyName.toInt()];
+	}
+	else if (destValue.isObject())
+	{
+		subValue = destValue.toObject()[usedPropertyName];
+	}
+	else
+	{
+		qDebug() << "oh, what should i do now with the following value?! " << destValue;
+	}
 
-    if(usedSubPath.isEmpty())
-    {
-        subValue = newValue;
-    }
-    else
-    {
-        if (subValue.isArray())
-        {
-            QJsonArray arr = subValue.toArray();
-            QJsonValue arrEntry = arr[arrayIndex];
-            modifyJsonValue(arrEntry,usedSubPath,newValue);
-            arr[arrayIndex] = arrEntry;
-            subValue = arr;
-        }
-        else if (subValue.isObject())
-            modifyJsonValue(subValue,usedSubPath,newValue);
-        else
-            subValue = newValue;
-    }
+	if(usedSubPath.isEmpty())
+	{
+		subValue = newValue;
+	}
+	else
+	{
+		if (subValue.isArray())
+		{
+			QJsonArray arr = subValue.toArray();
+			QJsonValue arrEntry = arr[arrayIndex];
+			modifyJsonValue(arrEntry,usedSubPath,newValue);
+			arr[arrayIndex] = arrEntry;
+			subValue = arr;
+		}
+		else if (subValue.isObject())
+		{
+			modifyJsonValue(subValue,usedSubPath,newValue);
+		}
+		else
+		{
+			subValue = newValue;
+		}
+	}
 
-    if (destValue.isArray())
-    {
-        QJsonArray arr = destValue.toArray();
-        arr[arrayIndex] = subValue;
-        destValue = arr;
-    }
-    else if (destValue.isObject())
-    {
-        QJsonObject obj = destValue.toObject();
-        obj[usedPropertyName] = subValue;
-        destValue = obj;
-    }
-    else
-        destValue = newValue;
+	if (destValue.isArray())
+	{
+		QJsonArray arr = destValue.toArray();
+		arr[arrayIndex] = subValue;
+		destValue = arr;
+	}
+	else if (destValue.isObject())
+	{
+		QJsonObject obj = destValue.toObject();
+		obj[usedPropertyName] = subValue;
+		destValue = obj;
+	}
+	else
+	{
+		destValue = newValue;
+	}
 }
 
 void configHandle::modifyJsonValue(QJsonDocument& doc, const QString& path, const QJsonValue& newValue)
 {
-    QJsonValue val;
-    if (doc.isArray())
-        val = doc.array();
-    else
-        val = doc.object();
+	QJsonValue val;
+	val = doc.isArray() ? doc.array() : doc.object();
 
-    modifyJsonValue(val,path,newValue);
+	modifyJsonValue(val,path,newValue);
 
-    if (val.isArray())
-        doc = QJsonDocument(val.toArray());
-    else
-        doc = QJsonDocument(val.toObject());
+	doc = QJsonDocument((val.isArray() ? val.toArray() : val.toObject() );
 }
 
 quint16 configHandle::checkPort(quint16 port, bool incOne)
 {
-    QTcpServer server;
-    while (_usedPorts.indexOf(port) != -1 || !server.listen(QHostAddress::Any, port))
-    {
-        if(incOne)
-            port += 1;
-        else
-            port += 2;
-    }
-    server.close();
-    return port;
+	QTcpServer server;
+	while (_usedPorts.indexOf(port) != -1 || !server.listen(QHostAddress::Any, port))
+	{
+		port += incOne ? 1 : 2;
+	}
+	server.close();
+	return port;
 }
 
 bool configHandle::configExists(QString configName)
 {
-    QFile tryFile(_configPath+configName);
-    if(tryFile.exists())
-        return true;
-    else
-        return false;
+	QFile tryFile(_configPath+configName);
+	return tryFile.exists();
 }
 
 bool configHandle::createConfig(QString configName, QString pName)
 {
-    // init default config
-    Q_INIT_RESOURCE(resource);
+	// init default config
+	Q_INIT_RESOURCE(resource);
 
-    // get default config for edits
+	// get default config for edits
 	QString config = readFile(":/hyperion_default.config");
 
-    QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
-    QJsonObject obj = doc.object();
-    quint16 jsonPort = obj["jsonServer"].toObject().take("port").toInt();
-    quint16 protoPort = obj["protoServer"].toObject().take("port").toInt();
+	QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
+	QJsonObject obj = doc.object();
+	quint16 jsonPort = obj["jsonServer"].toObject().take("port").toInt();
+	quint16 protoPort = obj["protoServer"].toObject().take("port").toInt();
     quint16 webPort = obj["webConfig"].toObject().take("port").toInt();
 
-    jsonPort = checkPort(jsonPort);
-    protoPort = checkPort(protoPort);
-    webPort = checkPort(webPort, true);
+	jsonPort = checkPort(jsonPort);
+	protoPort = checkPort(protoPort);
+	webPort = checkPort(webPort, true);
 
 	_usedPorts << jsonPort << protoPort << webPort;
 
-    modifyJsonValue(doc, "jsonServer.port", jsonPort);
-    modifyJsonValue(doc, "protoServer.port", protoPort);
-    modifyJsonValue(doc, "webConfig.port", webPort);
+	modifyJsonValue(doc, "jsonServer.port", jsonPort);
+	modifyJsonValue(doc, "protoServer.port", protoPort);
+	modifyJsonValue(doc, "webConfig.port", webPort);
 	modifyJsonValue(doc, "general.name", pName);
 
-    // write the final doc
-    QFile tFile(_configPath+configName);
-    if(tFile.open(QFile::WriteOnly))
-    {
-        tFile.write(doc.toJson());
+	// write the final doc
+	QFile tFile(_configPath+configName);
+	if(tFile.open(QFile::WriteOnly))
+	{
+		tFile.write(doc.toJson());
 		tFile.close();
 		qDebug() << "config creation success:" << configName;
-        return true;
-    }
-    else
-    {
+		return true;
+	}
+	else
+	{
 		qDebug() << "config creation FAILED:" << configName;
-        return false;
-    }
+		return false;
+	}
 }
