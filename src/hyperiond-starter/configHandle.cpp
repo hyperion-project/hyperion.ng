@@ -244,7 +244,7 @@ bool configHandle::createConfig(QString configName, QString pName)
 	QJsonObject obj = doc.object();
 	quint16 jsonPort = obj["jsonServer"].toObject().take("port").toInt();
 	quint16 protoPort = obj["protoServer"].toObject().take("port").toInt();
-    quint16 webPort = obj["webConfig"].toObject().take("port").toInt();
+	quint16 webPort = obj["webConfig"].toObject().take("port").toInt();
 
 	jsonPort = checkPort(jsonPort);
 	protoPort = checkPort(protoPort);
