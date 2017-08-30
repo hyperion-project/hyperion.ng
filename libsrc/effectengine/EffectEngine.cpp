@@ -338,7 +338,7 @@ void EffectEngine::readEffects()
 			
 			// collect effect schemas
 			efxCount = 0;
-			directory = path + "schema/";
+			directory = path.endsWith("/") ? (path + "schema/") : (path + "/schema/");
 			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			for (const QString & pyname : pynames)
 			{
