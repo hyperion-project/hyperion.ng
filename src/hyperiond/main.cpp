@@ -233,8 +233,9 @@ int main(int argc, char** argv)
 		QString hyperiond_path   = QDir::homePath()+"/.hyperion/config";
 		QString hyperiond_config = hyperiond_path+"/hyperion_main.json";
 		QFileInfo hyperiond_pathinfo(hyperiond_path);
-
-		if ( ! hyperiond_pathinfo.isWritable() && ! QFile::exists(hyperiond_config) )
+		QDir dir(hyperiond_path);
+		
+		if ( ! dir.mkpath(hyperiond_path) && ! hyperiond_pathinfo.isWritable() && ! QFile::exists(hyperiond_config) )
 		{
 			QFileInfo hyperiond_fileinfo(argv[0]);
 			hyperiond_config = hyperiond_fileinfo.absolutePath()+"/hyperion_main.json";
