@@ -62,7 +62,7 @@ void configHandle::readAllPorts(void)
 	dir.setNameFilters(filters);
 	QStringList allConfigs = dir.entryList(QDir::Files);
 
-	for (auto cfg : AllConfigs)
+	for (auto cfg : allConfigs)
 	{
 		QString config = readFile(_configPath+cfg.toLocal8Bit().constData());
 		QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8());
