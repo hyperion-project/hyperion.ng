@@ -230,14 +230,14 @@ int main(int argc, char** argv)
 	// handle default config file
 	if (configFiles.size() == 0)
 	{
-		QString hyperiond_path   = QDir::homePath();
-		QString hyperiond_config = hyperiond_path+"/.hyperion.config.json";
+		QString hyperiond_path   = QDir::homePath()+"/.hyperion/config";
+		QString hyperiond_config = hyperiond_path+"/hyperion_main.json";
 		QFileInfo hyperiond_pathinfo(hyperiond_path);
 
 		if ( ! hyperiond_pathinfo.isWritable() && ! QFile::exists(hyperiond_config) )
 		{
 			QFileInfo hyperiond_fileinfo(argv[0]);
-			hyperiond_config = hyperiond_fileinfo.absolutePath()+"/hyperion.config.json";
+			hyperiond_config = hyperiond_fileinfo.absolutePath()+"/hyperion_main.json";
 		}
 
 		configFiles.append(hyperiond_config);
@@ -257,7 +257,7 @@ int main(int argc, char** argv)
 	{
 		exportDefaultConfig = true;
 		exportConfigFileTarget = configFiles[0];
-		Warning(log, "Your configuration file does not exist. hyperion writes default config");
+		Warning(log, "Your configuration file does not exist. Hyperion creates new config (%s)", QSTRING_CSTR(configFiles[0]));
 	}
 
 	if (exportDefaultConfig)

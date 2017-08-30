@@ -1,6 +1,7 @@
-// This is a example config (hyperion.config.json) with comments, in any case you need to create your own one with HyperCon!
-// location of all configs: /etc/hyperion
+// This is a example config (hyperion.config.json) with comments, we provide a UI for your Browser to configure Hyperion
+// location of all configs: ~/.hyperion/config/hyperion_main.json
 // Webpage: https://www.hyperion-project.org
+// Documentation: https://docs.hyperion-project.org
 
 
 {
@@ -22,8 +23,7 @@
 
 	/// Device configuration contains the following fields: 
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
-	/// * 'type'       : The type of the device or leds (known types for now are
-	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
+	/// * 'type'       : The type of the device. Read more here: https://docs.hyperion-project.org/en/user/led-hardware/intro
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
@@ -322,12 +322,12 @@
 	/// Configuration of the Hyperion webserver
 	///  * enable        : enable or disable the webserver (true/false)
 	///  * document_root : path to hyperion webapp files (webconfig developer only)
-	///  * port          : the port where hyperion webapp is accasible
+	///  * port          : the port where hyperion webapp is accessible
 	"webConfig" :
 	{
 		"enable"        : true,
 		"document_root" : "/path/to/files",
-		"port"          : 8099
+		"port"          : 8090
 	},
 
 	/// The configuration of the effect engine, contains the following items: 
@@ -337,7 +337,7 @@
 	{
 		"paths" :
 		[
-			"$HOME/.hyperion/custom-effects",
+			"$HOME/.hyperion/custom-effects"
 		],
 		"disable" :
 		[

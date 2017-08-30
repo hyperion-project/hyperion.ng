@@ -184,7 +184,7 @@
 	{
 		"enable"        : true,
 		"document_root" : "",
-		"port"          : 8099
+		"port"          : 8090
 	},
 
 	"effects" :
