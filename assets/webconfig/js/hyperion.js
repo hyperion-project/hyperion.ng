@@ -306,6 +306,11 @@ function requestMappingType(type)
 	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 
+function requestVideoMode(newMode)
+{
+	sendToHyperion("videomode", "", '"videoMode": "'+newMode+'"');
+}
+
 function requestAdjustment(type, value, complete)
 {
 	if(complete === true)
