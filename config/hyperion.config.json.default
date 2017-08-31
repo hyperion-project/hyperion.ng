@@ -186,7 +186,8 @@
 
 	"effects" :
 	{
-		"paths" : ["../custom-effects"]
+		"paths" : ["../custom-effects"],
+		"disable": [""]
 	},
 
 	"ledConfig" :
