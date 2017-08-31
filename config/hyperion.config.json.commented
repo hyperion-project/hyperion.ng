@@ -164,6 +164,10 @@
 		"type"         : "framebuffer",
 		"frequency_Hz" : 10,
 		"priority"     : 250,
+		"cropLeft"     : 0,
+		"cropRight"    : 0,
+		"cropTop"      : 0,
+		"cropBottom"   : 0,
 
 		// valid for grabber: osx|dispmanx|amlogic|framebuffer
 		"width"        : 96,
@@ -173,12 +177,6 @@
 		"useXGetImage"              : false,
 		"horizontalPixelDecimation" : 8,
 		"verticalPixelDecimation"   : 8,
-
-		// valid for dispmanx and x11
-		"cropLeft"   : 0,
-		"cropRight"  : 0,
-		"cropTop"    : 0,
-		"cropBottom" : 0,
 
 		// valid for framebuffer
 		"device"     : "/dev/fb0"
