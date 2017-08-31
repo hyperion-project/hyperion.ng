@@ -25,15 +25,13 @@
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
-	/// * 'latchTime' : minimum time between led writes. 0 means no limit. default 10 means a rate of max 100Hz write time
 	"device" :
 	{
 		"type"       : "file",
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
 		"colorOrder" : "rgb",
-		"rewriteTime": 0,
-		"latchTime" : 10
+		"rewriteTime": 0
 	},
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings.
