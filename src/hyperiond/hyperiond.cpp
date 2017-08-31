@@ -582,7 +582,6 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890),
 				grabberConfig["useKodiChecker"].toBool(false));
-			//grabber->setVideoMode(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
