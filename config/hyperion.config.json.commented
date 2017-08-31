@@ -4,15 +4,13 @@
 
 
 {
-	/// geenral Settings 
+	/// general Settings
 	/// * 'name'          : The user friendly name of the hyperion instance (used for network things)
 	/// * 'showOptHelp'   : Show option expanations at the webui. Highly recommended for beginners.
-	/// * 'configVersion' : Don't touch! It's an internal value regarding which validation schema for this config is used.
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
-		"showOptHelp" : true,
-		"configVersion" : 2
+		"showOptHelp" : true
 	},
 	/// set log level: silent warn verbose debug
 	"logger" :
@@ -20,7 +18,7 @@
 		"level" : "warn"
 	},
 
-	/// Device configuration contains the following fields: 
+	/// Device configuration contains the following fields:
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device or leds (known types for now are
 	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
@@ -38,8 +36,8 @@
 		"latchTime" : 10
 	},
 
-	/// Color manipulation configuration used to tune the output colors to specific surroundings. 
-	/// The configuration contains a list of color-transforms. Each transform contains the 
+	/// Color manipulation configuration used to tune the output colors to specific surroundings.
+	/// The configuration contains a list of color-transforms. Each transform contains the
 	/// following fields:
 	///  * 'imageToLedMappingType'      : multicolor_mean - every led has it's own calculatedmean color
 	///                                   unicolor_mean   - every led has same color, color is the mean of whole image
@@ -48,7 +46,7 @@
 	///      * 'leds'   : The indices (or index ranges) of the leds to which this channel adjustment applies
 	///            (eg '0-5, 9, 11, 12-17'). The indices are zero based.
 	///      * 'black'/'white'/'red'/'green'/'blue'/'cyan'/'magenta'/'yellow' : Array of RGB to adjust the output color
-	///      * 'gammaRed'/'gammaGreen'/'gammaBlue'  : Gamma value for each channel 
+	///      * 'gammaRed'/'gammaGreen'/'gammaBlue'  : Gamma value for each channel
 	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///      * 'id'     : The unique identifier of the channel adjustments (eg 'device_1')
 	///      * 'backlightThreshold' : Minimum brightness (backlight)
@@ -84,7 +82,7 @@
 	},
 
 	/// smoothing
-	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning 
+	///  * 'smoothing' : Smoothing of the colors in the time-domain with the following tuning
 	///                  parameters:
 	///            - 'enable'          Enable or disable the smoothing (true/false)
 	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
@@ -112,7 +110,6 @@
 	///  * frameDecimation      : Frame decimation factor [default=2]
 	///  * sizeDecimation       : Size decimation factor [default=8]
 	///  * priority             : Hyperion priority channel [default=900]
-	///  * mode                 : 3D mode to use 2D/3DSBS/3DTAB (note: no autodetection) [default="2D"]
 	///  * useKodiChecker       : Enable/disable V4L2 according kodichecker sate if set to true [default=false]
 	///  * cropLeft             : Cropping from the left [default=0]
 	///  * cropRight            : Cropping from the right [default=0]
@@ -138,7 +135,6 @@
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
-			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
@@ -155,14 +151,14 @@
 		}
 	],
 
-	///  The configuration for the frame-grabber, contains the following items: 
+	///  The configuration for the frame-grabber, contains the following items:
 	///   * enable       : true if the framegrabber (platform grabber) should be activated
 	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer) [auto]
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
-	///   * priority     : The priority of the frame-gabber (Default=250) HINT: lower value result in HIGHER priority! 
-	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour! 
+	///   * priority     : The priority of the frame-gabber (Default=250) HINT: lower value result in HIGHER priority!
+	///   * ATTENTION    : Power-of-Two resolution is not supported and leads to unexpected behaviour!
 	"framegrabber" :
 	{
 		// for all type of grabbers
@@ -174,12 +170,12 @@
 		// valid for grabber: osx|dispmanx|amlogic|framebuffer
 		"width"        : 96,
 		"height"       : 96,
-		
+
 		// valid for x11
 		"useXGetImage"              : false,
 		"horizontalPixelDecimation" : 8,
 		"verticalPixelDecimation"   : 8,
-		
+
 		// valid for dispmanx and x11
 		"cropLeft"   : 0,
 		"cropRight"  : 0,
@@ -190,7 +186,7 @@
 		"device"     : "/dev/fb0"
 	},
 
-	/// The black border configuration, contains the following items: 
+	/// The black border configuration, contains the following items:
 	///  * enable             : true if the detector should be activated
 	///  * threshold          : Value below which a pixel is regarded as black (value between 0 and 100 [%])
 	///  * unknownFrameCnt    : Number of frames without any detection before the border is set to 0 (default 600)
@@ -209,7 +205,7 @@
 		"mode"               : "default"
 	},
 
-	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields: 
+	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields:
 	///  * enable            : enable/disable Kodi-Checker
 	///  * kodiAddress       : The IP address of the Kodi-host
 	///  * kodiTcpPort       : The TCP-port of the Kodi-server
@@ -220,7 +216,7 @@
 	///  * grabPause         : Flag indicating that the frame-grabber is on(true) at player state "pause"
 	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when Kodi is on screensaver
 	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
-	"kodiVideoChecker" : 
+	"kodiVideoChecker" :
 	{
 		"enable"            : true,
 		"kodiAddress"       : "127.0.0.1",
@@ -249,7 +245,7 @@
 		"effect"      : "Rainbow swirl fast",
 		"duration_ms" : 3000
 	},
-	
+
 	/// backgroundEffect sets a background effect or color. It is used when all capture devices are stopped (with the help of the kodiVideChecker or manual via remote). Could be also selected via priorities selection.
 	///  * enable : if true, background effect is enabled
 	///  * type   : choose between "color" or "effect"
@@ -263,11 +259,11 @@
 		"effect" : "Warm mood blobs"
 	},
 
-	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts 
-	/// 'proto' is mostly used for video streams and 'json' for effects 
+	/// The configuration of the Json/Proto forwarder. Forward messages to multiple instances of Hyperion on same and/or other hosts
+	/// 'proto' is mostly used for video streams and 'json' for effects
 	///  * enable : Enable or disable the forwarder (true/false)
-	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"] 
-	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"] 
+	///  * proto  : Proto server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19447"] or more instances to forward ["127.0.0.1:19447","192.168.0.24:19449"]
+	///  * json   : Json server adress and port of your target. Syntax:[IP:PORT] -> ["127.0.0.1:19446"] or more instances to forward ["127.0.0.1:19446","192.168.0.24:19448"]
 	///  HINT:If you redirect to "127.0.0.1" (localhost) you could start a second hyperion with another device/led config!
 	///       Be sure your client(s) is/are listening on the configured ports. The second Hyperion (if used) also needs to be configured! (HyperCon -> External -> Json Server/Proto Server)
 	"forwarder" :
@@ -294,7 +290,7 @@
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=201) HINT: lower value result in HIGHER priority! 
+	///  * priority : Priority of the boblight server (Default=201) HINT: lower value result in HIGHER priority!
  	"boblightServer" :
  	{
  		"enable"   : false,
@@ -330,10 +326,10 @@
 		"port"          : 8099
 	},
 
-	/// The configuration of the effect engine, contains the following items: 
-	///  * paths : An array with absolute/relative location(s) of directories with effects 
-	///  * disable : An array with effect names that shouldn't be loaded 
-	"effects" : 
+	/// The configuration of the effect engine, contains the following items:
+	///  * paths : An array with absolute/relative location(s) of directories with effects
+	///  * disable : An array with effect names that shouldn't be loaded
+	"effects" :
 	{
 		"paths" :
 		[
@@ -346,7 +342,7 @@
 			"X-Mas"
 		]
 	},
-	
+
 	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
 	"ledConfig" :
 	{
@@ -363,17 +359,17 @@
 		"overlap"	: 0,
 		"edgegap"	: 0
 	},
-	
-	///  The configuration for each individual led. This contains the specification of the area 
-	///  averaged of an input image for each led to determine its color. Each item in the list 
+
+	///  The configuration for each individual led. This contains the specification of the area
+	///  averaged of an input image for each led to determine its color. Each item in the list
 	///  contains the following fields:
-	///  * index: The index of the led. This determines its location in the string of leds; zero 
+	///  * index: The index of the led. This determines its location in the string of leds; zero
 	///           being the first led.
-	///  * hscan: The fractional part of the image along the horizontal used for the averaging 
+	///  * hscan: The fractional part of the image along the horizontal used for the averaging
 	///           (minimum and maximum inclusive)
-	///  * vscan: The fractional part of the image along the vertical used for the averaging 
+	///  * vscan: The fractional part of the image along the vertical used for the averaging
 	///           (minimum and maximum inclusive)
-	
+
     "leds":
 	[
 		{

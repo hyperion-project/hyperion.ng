@@ -490,8 +490,6 @@
 	"edt_conf_v4l2_frameDecimation_expl" : "The factor of frame decimation",
 	"edt_conf_v4l2_sizeDecimation_title" : "Size decimation",
 	"edt_conf_v4l2_sizeDecimation_expl" : "The factor of size decimation",
-	"edt_conf_v4l2_mode_title" : "Mode",
-	"edt_conf_v4l2_mode_expl" : "Modus of USB capture",
 	"edt_conf_v4l2_useKodiChecker_title" : "Use Kodi Watch",
 	"edt_conf_v4l2_useKodiChecker_expl" : "Start/stop capturing with Kodi Watch results.",
 	"edt_conf_v4l2_cropLeft_title" : "Crop left",

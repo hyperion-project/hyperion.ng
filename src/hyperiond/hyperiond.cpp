@@ -65,14 +65,14 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 			else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
 			else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
 			else Error(Logger::getInstance("LOGGER"), "log level '%s' used in config is unknown. valid: silent warn verbose debug", level.c_str());
-			
+
 		}
 	}
 	else
 	{
 		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
 	}
-	
+
 	_hyperion = Hyperion::initInstance(_qconfig, configFile);
 
 	Info(_log, "Hyperion initialized");
@@ -140,12 +140,12 @@ void HyperionDaemon::run()
 void HyperionDaemon::loadConfig(const QString & configFile)
 {
 	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
-	
+
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
-	
+
 	QString schemaFile = ":/hyperion-schema";
 	QJsonObject schemaJson;
 	try
@@ -162,11 +162,11 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 
 	_qconfig = QJsonFactory::readConfig(configFile);
 	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
-	
+
 	if (!validate.first && validate.second)
 	{
 		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
-		
+
 		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
 
 		if (!QJsonFactory::writeJson(configFile, _qconfig))
@@ -251,7 +251,7 @@ void HyperionDaemon::startInitialEffect()
 			Info(_log,"Inital background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 		}
 	}
-	
+
 	#undef FGCONFIG_ARRAY
 	#undef BGCONFIG_ARRAY
 }
@@ -409,7 +409,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			#else
 				QString type = grabberConfig["type"].toString("auto");
 			#endif
-				
+
 			QFile amvideo("/dev/amvideo");
 			// auto eval of type
 			if ( type == "auto" )
@@ -430,7 +430,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 					type = "amlogic";
 				}
 				// x11 -> if DISPLAY is set
-				else if (getenv("DISPLAY") != NULL ) 
+				else if (getenv("DISPLAY") != NULL )
 				{
 					type = "x11";
 				}
@@ -441,7 +441,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 				}
 				Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 			}
-			
+
 			bool grabberCompState = grabberConfig["enable"].toBool(true);
 			if (type == "") { Info( _log, "screen capture device disabled"); grabberCompState = false; }
 			else if (type == "framebuffer")   createGrabberFramebuffer(grabberConfig);
@@ -450,7 +450,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			else if (type == "osx")      createGrabberOsx(grabberConfig);
 			else if (type == "x11")      createGrabberX11(grabberConfig);
 			else { Warning( _log, "unknown framegrabber type '%s'", QSTRING_CSTR(type)); grabberCompState = false; }
-			
+
 //			_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, grabberCompState);
 			_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberCompState );
 		}
@@ -538,7 +538,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	_osxGrabber = new OsxWrapper(
 				grabberConfig["display"].toInt(0),
 				_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
-	
+
 	QObject::connect(_osxGrabber, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 
 	_osxGrabber->start();
@@ -555,7 +555,7 @@ void HyperionDaemon::createGrabberV4L2()
 	bool v4lConfigured = _qconfig.contains("grabberV4L2");
 	bool v4lStarted = false;
 	unsigned v4lEnableCount = 0;
-	
+
 	if (_qconfig["grabberV4L2"].isArray())
 	{
 		const QJsonArray & v4lArray = _qconfig["grabberV4L2"].toArray();
@@ -582,7 +582,7 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["priority"].toInt(890),
 				grabberConfig["useKodiChecker"].toBool(false));
-			grabber->setVideoMode(parse3DMode(grabberConfig["mode"].toString("2D")));
+			//grabber->setVideoMode(parse3DMode(grabberConfig["mode"].toString("2D")));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),

@@ -2,8 +2,7 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
-		"showOptHelp" : true,
-		"configVersion" : 2
+		"showOptHelp" : true
 	},
 	"logger" :
 	{
@@ -69,7 +68,6 @@
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
-			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
@@ -137,7 +135,7 @@
 		"effect"      : "Rainbow swirl fast",
 		"duration_ms" : 3000
 	},
-	
+
 	"backgroundEffect" :
 	{
 		"enable"      : true,
@@ -162,14 +160,14 @@
 	{
 		"port" : 19445
 	},
-	
+
 	"boblightServer" :
 	{
 		"enable"   : false,
 		"port"     : 19333,
 		"priority" : 201
 	},
-	
+
 	"udpListener" :
 	{
 		"enable"   : false,
@@ -207,7 +205,7 @@
 		"overlap"	: 0,
 		"edgegap"	: 0
 	},
-	
+
     "leds":
 	[
 		{

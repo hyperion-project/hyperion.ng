@@ -489,8 +489,6 @@
 	"edt_conf_v4l2_frameDecimation_expl" : "Der Faktor der Bildverkleinerung",
 	"edt_conf_v4l2_sizeDecimation_title" : "Größenänderung",
 	"edt_conf_v4l2_sizeDecimation_expl" : "Der Faktor der Größenänderung",
-	"edt_conf_v4l2_mode_title" : "Modus",
-	"edt_conf_v4l2_mode_expl" : "Modus der USB Aufnahme",
 	"edt_conf_v4l2_useKodiChecker_title" : "Nutze Kodi Überwachung",
 	"edt_conf_v4l2_useKodiChecker_expl" : "Starte/Stoppe Aufnahme mithilfe der Kodi Überwachung.",
 	"edt_conf_v4l2_cropLeft_title" : "Entferne links",
