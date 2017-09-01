@@ -9,8 +9,6 @@
 class IonBuffer;
 
 ///
-/// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
-/// downsized and scaled resolution.
 ///
 class AmlogicGrabber : public Grabber
 {
@@ -41,23 +39,24 @@ private:
 	 * @return True if video is playing else false
 	 */
 	bool isVideoPlaying();
+	void closeDev(int &fd);
+	bool openDev(int &fd, const char* dev);
 
 	int grabFrame_amvideocap(Image<ColorRgb> & image);
 	int grabFrame_ge2d(Image<ColorRgb> & image);
 
 	/** The snapshot/capture device of the amlogic video chip */
-	int _captureDev;
-	int _videoDev;
-	int _ge2dDev;
+	int             _captureDev;
+	int             _videoDev;
+	int             _ge2dDev;
 
-	Image<ColorBgr> _image;
-	Image<ColorRgba> _image_rgba;
+	Image<ColorBgr> _image_bgr;
 	
-	int           _lastError;
-	bool          _videoPlaying;
+	int             _lastError;
+	bool            _videoPlaying;
 	FramebufferFrameGrabber _fbGrabber;
-	bool          _ge2dAvailable;
-	int           _grabbingModeNotification;
-	void*         _ge2dVideoBufferPtr;
-	IonBuffer*    _ge2dIonBuffer;
+	int             _grabbingModeNotification;
+	bool            _ge2dAvailable;
+	void*           _ge2dVideoBufferPtr;
+	IonBuffer*      _ge2dIonBuffer;
 };

@@ -103,7 +103,7 @@ public:
 			throw std::runtime_error("ION_IOC_ALLOC failed.");
 		}
 
-		fprintf(stderr, "ion handle=%d\n", allocation_data.handle);
+// 		fprintf(stderr, "ion handle=%d\n", allocation_data.handle);
 
 
 		// Map/share the buffer
@@ -116,7 +116,7 @@ public:
 			throw std::runtime_error("ION_IOC_SHARE failed.");
 		}
 
-		fprintf(stderr, "ion map=%d\n", ionData.fd);
+// 		fprintf(stderr, "ion map=%d\n", ionData.fd);
 
 
 		// Get the physical address for the buffer
@@ -140,7 +140,7 @@ public:
 		length = allocation_data.len;
 		physicalAddress = physData.phys_addr;
 
-		fprintf(stderr, "ion phys_addr=%lu\n", physicalAddress);
+// 		fprintf(stderr, "ion phys_addr=%lu\n", physicalAddress);
 	}
 
 	virtual ~IonBuffer()
