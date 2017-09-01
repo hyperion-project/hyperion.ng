@@ -37,7 +37,7 @@ FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const u
 		}
 		else
 		{
-			Error(_log, "Display opened with resolution: %dx%d@%dbit", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);			
+			Info(_log, "Display opened with resolution: %dx%d@%dbit", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);			
 		}
 		close(_fbfd);
 	}
@@ -49,6 +49,8 @@ FramebufferFrameGrabber::~FramebufferFrameGrabber()
 
 int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (!_enabled) return 0;
+
 	struct fb_var_screeninfo vinfo;
 	unsigned capSize, bytesPerPixel;
 	PixelFormat pixelFormat;

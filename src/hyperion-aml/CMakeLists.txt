@@ -29,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
 	hyperion-utils
 	protoserver
 	amlogic-grabber
+	framebuffer-grabber
 	pthread
 	Qt5::Core
 	Qt5::Gui

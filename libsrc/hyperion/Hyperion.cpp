@@ -759,6 +759,11 @@ int Hyperion::getCurrentPriority() const
 	return _sourceAutoSelectEnabled || !_muxer.hasPriority(_currentSourcePriority) ? _muxer.getCurrentPriority() : _currentSourcePriority;
 }
 
+bool Hyperion::isCurrentPriority(const int priority) const
+{
+	return getCurrentPriority() == priority;
+}
+
 QList<int> Hyperion::getActivePriorities() const
 {
 	return _muxer.getPriorities();

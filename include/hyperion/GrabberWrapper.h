@@ -40,10 +40,9 @@ public:
 
 	static QStringList availableGrabbers();
 
-
 public:
 	template <typename Grabber_T>
-	void transferFrame(Grabber_T &grabber)
+	bool transferFrame(Grabber_T &grabber)
 	{
 		unsigned w = grabber.getImageWidth();
 		unsigned h = grabber.getImageHeight();
@@ -53,12 +52,15 @@ public:
 			_image.resize(w, h);
 		}
 
-		if (grabber.grabFrame(_image) >= 0)
+		int ret = grabber.grabFrame(_image);
+		if (ret >= 0)
 		{
 			emit emitImage(_priority, _image, _timeout_ms);
 			_processor->process(_image, _ledColors);
 			setColors(_ledColors, _timeout_ms);
+			return true;
 		}
+		return false;
 	}
 
 	
@@ -69,6 +71,8 @@ public slots:
 	/// virtual method, should perform single frame grab and computes the led-colors
 	///
 	virtual void action() = 0;
+
+	void actionWrapper();
 
 	///
 	/// Set the grabbing mode

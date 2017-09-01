@@ -86,20 +86,14 @@ void V4L2Wrapper::readError(const char* err)
 	
 void V4L2Wrapper::checkSources()
 {
-	QList<int> activePriorities = _hyperion->getActivePriorities();
-
-	for (int x : activePriorities)
+	if ( _hyperion->isCurrentPriority(_priority))
 	{
-		if (x < _priority)
-		{
-			// found a higher priority source: grabber should be disabled
-			_grabber.stop();
-			return;
-		}
+		_grabber.start();
 	}
-
-	// no higher priority source was found: grabber should be enabled
-	_grabber.start();
+	else
+	{
+		_grabber.stop();
+	}
 }
 
 void V4L2Wrapper::action()

@@ -34,7 +34,7 @@ struct ColorBgr
 };
 
 /// Assert to ensure that the size of the structure is 'only' 3 bytes
-static_assert(sizeof(ColorBgr) == 3, "Incorrect size of ColorRgb");
+static_assert(sizeof(ColorBgr) == 3, "Incorrect size of ColorBgr");
 
 ///
 /// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")

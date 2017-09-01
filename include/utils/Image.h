@@ -205,6 +205,14 @@ public:
 		}
 	}
 
+	///
+	/// get size of buffer
+	//
+	ssize_t size()
+	{
+		return  _width * _height * sizeof(Pixel_T);
+	}
+
 private:
 
 	///

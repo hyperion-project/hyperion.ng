@@ -3,10 +3,10 @@
 // Utils includes
 #include <utils/ColorBgr.h>
 #include <hyperion/Grabber.h>
+#include <grabber/FramebufferFrameGrabber.h>
+
 
 ///
-/// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
-/// downsized and scaled resolution.
 ///
 class AmlogicGrabber : public Grabber
 {
@@ -37,9 +37,18 @@ private:
 	 * @return True if video is playing else false
 	 */
 	bool isVideoPlaying();
+	int grabFrame_amvideocap(Image<ColorRgb> & image);
+	void closeDev(int &fd);
+	bool openDev(int &fd, const char* dev, int flags);
 
 	/** The snapshot/capture device of the amlogic video chip */
-	int _amlogicCaptureDev;
+	int             _captureDev;
+	int             _videoDev;
+
+	Image<ColorBgr> _image_bgr;
 	
-	Image<ColorBgr> _image;
+	int             _lastError;
+	bool            _videoPlaying;
+	FramebufferFrameGrabber _fbGrabber;
+	int             _grabbingModeNotification;
 };
