@@ -191,6 +191,10 @@ bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effe
 			effectDefinition.args["smoothing-updateFrequency"].toDouble(),
 			0 );
 	}
+	else
+	{
+		effectDefinition.smoothCfg = _hyperion->addSmoothingConfig(true);
+	}
 	return true;
 }
 
