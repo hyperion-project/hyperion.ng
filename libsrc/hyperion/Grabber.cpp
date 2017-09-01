@@ -11,6 +11,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
+	, _enabled(true)
 	, _log(Logger::getInstance(grabberName))
 
 {
@@ -22,6 +23,10 @@ Grabber::~Grabber()
 {
 }
 
+void Grabber::setEnabled(bool enable)
+{
+	_enabled = enable;
+}
 
 void Grabber::setVideoMode(VideoMode mode)
 {

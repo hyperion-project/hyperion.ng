@@ -106,7 +106,11 @@ message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
 message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
 
-option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
+if (ENABLE_AMLOGIC)
+	SET(ENABLE_FB ON)
+else()
+	option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
+endif()
 message(STATUS "ENABLE_FB = ${ENABLE_FB}")
 
 option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )

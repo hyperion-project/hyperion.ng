@@ -39,6 +39,8 @@ OsxFrameGrabber::~OsxFrameGrabber()
 
 int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (!_enabled) return 0;
+
 	CGImageRef dispImage;
 	CFDataRef imgData;
 	unsigned char * pImgData;	

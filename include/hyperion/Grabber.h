@@ -33,6 +33,7 @@ public:
 	/// gets resulting width of image
 	virtual const int getImageHeight() { return _height; };
 
+	void setEnabled(bool enable);
 
 protected:
 	ImageResampler _imageResampler;
@@ -51,6 +52,7 @@ protected:
 	// number of pixels to crop after capturing
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
 
+	bool _enabled;
 
 	/// logger instance
 	Logger * _log;
