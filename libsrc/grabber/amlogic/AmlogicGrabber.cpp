@@ -17,9 +17,6 @@
 #include <grabber/AmlogicGrabber.h>
 #include "Amvideocap.h"
 
-#include "ge2d.h"
-#include "ge2d_cmd.h"
-
 #define VIDEO_DEVICE   "/dev/amvideo"
 #define CAPTURE_DEVICE "/dev/amvideocap0"
 #define GE2D_DEVICE    "/dev/ge2d"
@@ -145,8 +142,6 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 
 int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 {
-	_useImageResampler = true;
-
 	// If the device is not open, attempt to open it
 	if (! openDev(_captureDev, CAPTURE_DEVICE))
 	{
@@ -189,16 +184,16 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	}
 
 	closeDev(_captureDev);
+	_useImageResampler = true;
 	_imageResampler.processImage((const uint8_t*)image_ptr, _width, _height, _width*3, PIXELFORMAT_BGR24, image);
 	_lastError = 0;
 
 	return 0;
 }
 
+
 int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 {
-	_useImageResampler = false;
-
 	if ( ! openDev(_ge2dDev, GE2D_DEVICE) || ! openDev(_videoDev, VIDEO_DEVICE))
 	{
 		Error(_log, "cannot open devices");
@@ -246,8 +241,8 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	unsigned cropRight   = _cropRight;
 	unsigned cropTop     = _cropTop;
 	unsigned cropBottom  = _cropBottom;
-	int videoWidth       = size >> 32 - cropLeft - cropRight;
-	int videoHeight      = size & 0xffffff - cropTop - cropBottom;
+	int videoWidth       = (size >> 32) - cropLeft - cropRight;
+	int videoHeight      = (size & 0xffffff) - cropTop - cropBottom;
 	
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
@@ -265,8 +260,6 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 		break;
 	}
 
-// 	float videoAspect = (float)videoWidth / (float)videoHeight;
-
 	struct config_para_ex_s configex = { 0 };
 	configex.src_para.mem_type = CANVAS_TYPE_INVALID;
 	configex.src_para.canvas_index = canvas0addr;
@@ -277,7 +270,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	configex.src_para.format   = ge2dformat;
 
 	configex.dst_para.mem_type = CANVAS_ALLOC;
-	configex.dst_para.format   =  GE2D_FORMAT_S24_RGB;
+	configex.dst_para.format   = GE2D_FORMAT_S24_RGB;
 	configex.dst_para.left     = 0;
 	configex.dst_para.top      = 0;
 	configex.dst_para.width    = _width;
@@ -304,7 +297,6 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	blitRect.dst_rect.w = configex.dst_para.width ;
 	blitRect.dst_rect.h = configex.dst_para.height;
 
-
 	// Blit to videoBuffer
 	if (ioctl(_ge2dDev, GE2D_STRETCHBLIT_NOALPHA, &blitRect) < 0)
 	{
@@ -322,6 +314,7 @@ int AmlogicGrabber::grabFrame_ge2d(Image<ColorRgb> & image)
 	_ge2dIonBuffer->Sync();
 
 	// Read the snapshot into the memory
+	_useImageResampler = false;
 	_imageResampler.processImage((const uint8_t*)_ge2dVideoBufferPtr, _width, _height, _width*3, PIXELFORMAT_BGR24, image);
 
 	closeDev(_videoDev);

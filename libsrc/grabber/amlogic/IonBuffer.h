@@ -133,7 +133,6 @@ public:
 			throw std::runtime_error("ION_IOC_CUSTOM failed.");
 		}
 
-
 		// Assignment
 		handle = allocation_data.handle;
 		exportHandle = ionData.fd;
