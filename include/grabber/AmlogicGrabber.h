@@ -2,9 +2,11 @@
 
 // Utils includes
 #include <utils/ColorBgr.h>
+#include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
 #include <grabber/FramebufferFrameGrabber.h>
 
+class IonBuffer;
 
 ///
 ///
@@ -37,13 +39,16 @@ private:
 	 * @return True if video is playing else false
 	 */
 	bool isVideoPlaying();
-	int grabFrame_amvideocap(Image<ColorRgb> & image);
 	void closeDev(int &fd);
-	bool openDev(int &fd, const char* dev, int flags);
+	bool openDev(int &fd, const char* dev);
+
+	int grabFrame_amvideocap(Image<ColorRgb> & image);
+	int grabFrame_ge2d(Image<ColorRgb> & image);
 
 	/** The snapshot/capture device of the amlogic video chip */
 	int             _captureDev;
 	int             _videoDev;
+	int             _ge2dDev;
 
 	Image<ColorBgr> _image_bgr;
 	
@@ -51,4 +56,7 @@ private:
 	bool            _videoPlaying;
 	FramebufferFrameGrabber _fbGrabber;
 	int             _grabbingModeNotification;
+	bool            _ge2dAvailable;
+	void*           _ge2dVideoBufferPtr;
+	IonBuffer*      _ge2dIonBuffer;
 };

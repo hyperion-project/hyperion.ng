@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
 		ColorOption     & argWAdjust     = parser.add<ColorOption>  ('W', "whiteAdjustment", "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argbAdjust     = parser.add<ColorOption>  ('b', "blackAdjustment", "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
 		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
-		Option          & argVideoMode   = parser.add<Option>       ('V', "videoMode"   , "Set the video mode valid values: 3D, 3DSBS, 3DTAB");
+		Option          & argVideoMode   = parser.add<Option>       ('V', "videoMode"   , "Set the video mode valid values: 2D, 3DSBS, 3DTAB");
 		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
 		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
 		BooleanOption   & argOff         = parser.add<BooleanOption>(0x0, "off", "deactivates hyperion");
@@ -137,6 +137,7 @@ int main(int argc, char * argv[])
 			showHelp(argSource);
 			showHelp(argSourceAuto);
 			showHelp(argConfigGet);
+			showHelp(argVideoMode);
 			qWarning() << "or one or more of the available color modding operations:";
 			showHelp(argId);
 			showHelp(argBrightness);
