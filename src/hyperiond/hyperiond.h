@@ -54,7 +54,7 @@ class SysTray;
 class HyperionDaemon : public QObject
 {
 	Q_OBJECT
-	
+
 	friend SysTray;
 
 public:
