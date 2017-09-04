@@ -40,8 +40,9 @@ function connectionLostDetection(type)
 			window.clearInterval(i);
 		if(type == 'restart')
 		{
-			$("body").html($("#container_restart").html());	
-			restartAction();
+			$("body").html($("#container_restart").html());
+			// setTimeout delay for probably slower systems, some browser don't execute THIS action
+			setTimeout(restartAction,250);
 		}
 		else
 		{
@@ -222,17 +223,17 @@ function requestClearAll()
 }
 
 function requestPlayEffect(effectName, duration)
-{	
+{
 	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
 }
 
 function requestSetColor(r,g,b,duration)
-{	
+{
 	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
 }
 
 function requestSetImage(data,width,height,duration)
-{	
+{
 	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+validateDuration(duration)+'');
 }
 
@@ -305,10 +306,15 @@ function requestMappingType(type)
 	sendToHyperion("processing", "", '"mappingType": "'+type+'"');
 }
 
+function requestVideoMode(newMode)
+{
+	sendToHyperion("videomode", "", '"videoMode": "'+newMode+'"');
+}
+
 function requestAdjustment(type, value, complete)
 {
 	if(complete === true)
 		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
-	else	
+	else
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
 }

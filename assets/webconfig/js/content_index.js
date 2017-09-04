@@ -19,12 +19,6 @@ $(document).ready( function() {
 			$("#hyperion_disabled_notify").fadeIn("fast");
 		else
 			$("#hyperion_disabled_notify").fadeOut("fast");
-		
-		if ($("#logmessages").length == 0 && loggingStreamActive)
-		{
-			requestLoggingStop();
-			loggingStreamActive = false;
-		}
 
 		if (!serverInfo.hyperion.config_writeable)
 		{
