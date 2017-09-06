@@ -145,6 +145,43 @@
 				}
 			},
 			"propertyOrder" : 12
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom",
+			"default" : false,
+			"propertyOrder" : 13
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 14
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 15
 		}
 	},
 	"additionalProperties": false

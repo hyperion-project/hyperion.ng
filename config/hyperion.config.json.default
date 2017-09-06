@@ -2,8 +2,7 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
-		"showOptHelp" : true,
-		"configVersion" : 2
+		"showOptHelp" : true
 	},
 	"logger" :
 	{
@@ -16,8 +15,7 @@
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"rewriteTime": 5000,
-		"latchTime" : 10
+		"rewriteTime": 5000
 	},
 
 	"color" :
@@ -69,7 +67,6 @@
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
-			"mode"        : "2D",
 			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
@@ -137,7 +134,7 @@
 		"effect"      : "Rainbow swirl fast",
 		"duration_ms" : 3000
 	},
-	
+
 	"backgroundEffect" :
 	{
 		"enable"      : true,
@@ -162,14 +159,14 @@
 	{
 		"port" : 19445
 	},
-	
+
 	"boblightServer" :
 	{
 		"enable"   : false,
 		"port"     : 19333,
 		"priority" : 201
 	},
-	
+
 	"udpListener" :
 	{
 		"enable"   : false,
@@ -189,7 +186,8 @@
 
 	"effects" :
 	{
-		"paths" : ["../custom-effects"]
+		"paths" : ["../custom-effects"],
+		"disable": [""]
 	},
 
 	"ledConfig" :
@@ -207,7 +205,7 @@
 		"overlap"	: 0,
 		"edgegap"	: 0
 	},
-	
+
     "leds":
 	[
 		{

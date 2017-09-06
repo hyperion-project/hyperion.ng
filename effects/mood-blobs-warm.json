@@ -11,6 +11,9 @@
 		"baseChange" : true,
 		"baseColorRangeLeft" : 333,
 		"baseColorRangeRight" : 151,
-		"baseColorChangeRate" : 2.0
+		"baseColorChangeRate" : 2.0,
+		"smoothing-custom-settings" : true,
+		"smoothing-time_ms" : 200,
+		"smoothing-updateFrequency" : 25.0
 	}
 }

@@ -10,6 +10,9 @@
 		"custom-colors":[],
 		"random-center":false,
 		"custom-colors2":[],
-		"enable-second":false
+		"enable-second":false,
+		"smoothing-custom-settings" : true,
+		"smoothing-time_ms" : 200,
+		"smoothing-updateFrequency" : 25.0
 	}
 }
