@@ -186,6 +186,9 @@ private:
 	/// The logger instance
 	Logger * _log;
 
+	WebSocketHeader _wsh;
+	bool _notEnoughData;
+
 	/// address of client
 	QHostAddress _clientAddress;
 

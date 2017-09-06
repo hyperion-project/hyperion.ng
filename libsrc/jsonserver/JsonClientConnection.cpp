@@ -16,6 +16,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _webSocketHandshakeDone(false)
 	, _onContinuation(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	, _notEnoughData(false)
 	, _clientAddress(socket->peerAddress())
 	, _connectionMode(CON_MODE::INIT)
 {
@@ -127,22 +128,26 @@ void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
 
 void JsonClientConnection::handleWebSocketFrame()
 {
-	printf("frame\n");
+	//printf("frame\n");
 
-	WebSocketHeader wsh;
-	getWsFrameHeader(&wsh);
+	// we are on no continious reading from socket from call before
+	if (!_notEnoughData)
+	{
+		getWsFrameHeader(&_wsh);
+	}
 
-	if(_socket->bytesAvailable() < wsh.payloadLength) sleep(2);
-	if(_socket->bytesAvailable() < wsh.payloadLength) printf("not enough data\n");
-// 	while (_socket->bytesAvailable() < wsh.payloadLength)
-//  	{
-//  		seep(1);
-//  	}
-// 	
-	QByteArray buf = _socket->read(wsh.payloadLength);
-	printf("%ld\n", wsh.payloadLength);
+	if(_socket->bytesAvailable() < (qint64)_wsh.payloadLength)
+	{
+		//printf("not enough data %llu %llu\n", _socket->bytesAvailable(),  _wsh.payloadLength);
+		_notEnoughData=true;
+		return;
+	}
+	_notEnoughData = false;
 
-	if (OPCODE::invalid((OPCODE::value)wsh.opCode))
+	QByteArray buf = _socket->read(_wsh.payloadLength);
+	//printf("opcode %x payload bytes %llu avail: %llu\n", _wsh.opCode, _wsh.payloadLength, _socket->bytesAvailable());
+
+	if (OPCODE::invalid((OPCODE::value)_wsh.opCode))
 	{
 		sendClose(CLOSECODE::INV_TYPE, "invalid opcode");
 		return;
@@ -150,51 +155,46 @@ void JsonClientConnection::handleWebSocketFrame()
 
 	// check the type of data frame
 	bool isContinuation=false;
-	switch (wsh.opCode)
+	switch (_wsh.opCode)
 	{
 		case OPCODE::CONTINUATION:
 			isContinuation = true;
-			printf("cont\n");
+			// no break here, just jump over to opcode text
 
 		case OPCODE::TEXT:
 		{
-			printf("text\n");
 			// check for protocal violations
 			if (_onContinuation && !isContinuation)
 			{
 				sendClose(CLOSECODE::VIOLATION, "protocol violation, somebody sends frames in between continued frames");
 				return;
 			}
-	
-			if (!wsh.masked)
+
+			if (!_wsh.masked)
 			{
 				sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked frames not allowed");
 				return;
 			}
-	
+
 			// unmask data
 			for (int i=0; i < buf.size(); i++)
 			{
-				buf[i] = buf[i] ^ wsh.key[i % 4];
+				buf[i] = buf[i] ^ _wsh.key[i % 4];
 			}
-			
-			_onContinuation = !wsh.fin || isContinuation;
 
+			_onContinuation = !_wsh.fin || isContinuation;
 
 			// frame contains text, extract it, append data if this is a continuation
-			if (wsh.fin && ! isContinuation) // one frame
+			if (_wsh.fin && ! isContinuation) // one frame
 			{
 				_wsReceiveBuffer.clear();
 			}
 			_wsReceiveBuffer.append(buf);
 
 			// this is the final frame, decode and handle data
-			if (wsh.fin)
+			if (_wsh.fin)
 			{
 				_onContinuation = false;
-
-				printf("%s\n",QSTRING_CSTR(_wsReceiveBuffer));
-				printf("fin\n");
 				_jsonProcessor->handleMessage(_wsReceiveBuffer);
 				_wsReceiveBuffer.clear();
 			}
@@ -203,14 +203,13 @@ void JsonClientConnection::handleWebSocketFrame()
 			
 		case OPCODE::BINARY:
 			{
-				printf("bin\n");
+				Error(_log, "receive of binary  data is not supported yet");
 				sendClose(CLOSECODE::INV_TYPE, "binary data not supported yet");
 				return;
 			}
 
 		case OPCODE::CLOSE:
 			{
-				printf("close\n");
 				sendClose(CLOSECODE::NORMAL);
 			}
 			break;
@@ -227,22 +226,20 @@ void JsonClientConnection::handleWebSocketFrame()
 
 		case OPCODE::PONG:
 			{
-				printf("pong\n");
-				Error(_log, "protocol violation");
+				Error(_log, "pong recievied, protocol violation!");
 			}
 
 		default:
-			printf("strange %d\n%s\n",  wsh.opCode, QSTRING_CSTR(QString(buf)));
+			printf("strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
 		}
 	
 
 }
 
- /// fin_rsv_opcode: 129=one fragment, text, 130=one fragment, binary, 136=close connection.
 /// See http://tools.ietf.org/html/rfc6455#section-5.2 for more information
 void JsonClientConnection::sendClose(int status, QString reason)
 {
-	printf("send close\n");
+	Info(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
 	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
 	_receiveBuffer.clear();
 	QByteArray sendBuffer;

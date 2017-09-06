@@ -153,7 +153,7 @@ function sendToHyperion(command, subcommand, msg)
 		msg = ","+msg;
 	else
 		msg = "";
-console.log("send "+command+" "+subcommand);
+
 	websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+wsTan+subcommand+msg+'}'));
 }
 
@@ -263,18 +263,7 @@ function requestWriteConfig(config, full)
 		});
 	}
 
-//	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
-
-// 	$.post( "/cgi/cfg_set", { cfg: config_str })
-// 	.done(function( data ) {
-// 		$("html, body").animate({ scrollTop: 0 }, "slow");
-// 	})
-// 	.fail(function() {
-// 		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
-// 	});
-	var config_str = JSON.stringify(serverConfig);
-	sendToHyperion("config","setconfig", '"config":'+config_str);
-//	alert("xx "+config_str.length);
+	sendToHyperion("config","setconfig", '"config":'+JSON.stringify(serverConfig));
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)

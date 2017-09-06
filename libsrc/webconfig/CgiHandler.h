@@ -22,8 +22,7 @@ public:
 	
 	// cgi commands
 	void cmd_cfg_jsonserver();
-	void cmd_cfg_get ();
-	void cmd_cfg_set ();
+// 	void cmd_cfg_set ();
 	void cmd_runscript ();
 	
 private:

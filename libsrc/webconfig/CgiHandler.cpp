@@ -37,15 +37,13 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 		_request = request;
 		_reply   = reply;
 		cmd_cfg_jsonserver();
-		cmd_cfg_get();
-		cmd_cfg_set();
+// 		cmd_cfg_set();
 		cmd_runscript();
 		throw 1;
 	}
 	catch(int e)
 	{
-		if (e != 0)
-			throw 1;
+		if (e != 0) throw 1;
 	}
 }
 
@@ -69,24 +67,7 @@ void CgiHandler::cmd_cfg_jsonserver()
 }
 
 
-void CgiHandler::cmd_cfg_get()
-{
-	if ( _args.at(0) == "cfg_get" )
-	{
-		QFile file ( _hyperion->getConfigFileName() );
-		if (file.exists ())
-		{
-			if (file.open (QFile::ReadOnly)) {
-				QByteArray data = file.readAll ();
-				_reply->addHeader ("Content-Type", "text/plain");
-				_reply->appendRawData (data);
-				file.close ();
-			}
-		}
-		throw 0;
-	}
-}
-
+/*
 void CgiHandler::cmd_cfg_set()
 {
 	_reply->addHeader ("Content-Type", "text/plain");
@@ -169,6 +150,7 @@ void CgiHandler::cmd_cfg_set()
 		throw 0;
 	}
 }
+*/
 
 void CgiHandler::cmd_runscript()
 {
