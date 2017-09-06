@@ -795,9 +795,14 @@ void JsonProcessor::handleConfigCommand(const QJsonObject& message, const QStrin
 {
 	QString subcommand = message["subcommand"].toString("");
 	QString full_command = command + "-" + subcommand;
+	printf("cfg %s\n",QSTRING_CSTR(subcommand));
 	if (subcommand == "getschema")
 	{
 		handleSchemaGetCommand(message, full_command, tan);
+	}
+	else if (subcommand == "setconfig")
+	{
+		handleConfigSetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
@@ -813,6 +818,28 @@ void JsonProcessor::handleConfigCommand(const QJsonObject& message, const QStrin
 	{
 		sendErrorReply("unknown or missing subcommand", full_command, tan);
 	}
+}
+
+void JsonProcessor::handleConfigSetCommand(const QJsonObject& message, const QString &command, const int tan)
+ {
+ 	if(message.size() > 0)
+ 	{
+ 		if (message.contains("config"))
+ 		{	
+ 			QString errors;
+ 			if (!checkJson(message["config"].toObject(), ":/hyperion-schema", errors, true))
+ 			{
+ 				sendErrorReply("Error while validating json: " + errors, command, tan);
+ 				return;
+ 			}
+ 			
+ 			QJsonObject hyperionConfig = message["config"].toObject();
+ 			QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfig);
+			//printf("no write %s",QSTRING_CSTR(message["config"].toString()));
+ 			sendSuccessReply(command, tan);
+ 		}
+ 	} else
+ 		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 }
 
 void JsonProcessor::handleConfigGetCommand(const QJsonObject& message, const QString& command, const int tan)

@@ -96,6 +96,7 @@ function initWebSocket()
 						case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
 						default: reason = "Unknown reason";
 					}
+					console.log("[websocket::onclose] "+reason)
 					$(hyperion).trigger({type:"close", reason:reason});
 					watchdog = 10;
 					connectionLostDetection();
@@ -151,7 +152,7 @@ function sendToHyperion(command, subcommand, msg)
 		msg = ","+msg;
 	else
 		msg = "";
-
+console.log("send "+command+" "+subcommand);
 	websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+wsTan+subcommand+msg+'}'));
 }
 
@@ -261,15 +262,18 @@ function requestWriteConfig(config, full)
 		});
 	}
 
-	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
+//	var config_str = escape(encode_utf8(JSON.stringify(serverConfig)));
 
-	$.post( "/cgi/cfg_set", { cfg: config_str })
-	.done(function( data ) {
-		$("html, body").animate({ scrollTop: 0 }, "slow");
-	})
-	.fail(function() {
-		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
-	});
+// 	$.post( "/cgi/cfg_set", { cfg: config_str })
+// 	.done(function( data ) {
+// 		$("html, body").animate({ scrollTop: 0 }, "slow");
+// 	})
+// 	.fail(function() {
+// 		showInfoDialog('error', $.i18n('infoDialog_writeconf_error_title'), $.i18n('infoDialog_writeconf_error_text'));
+// 	});
+	var config_str = JSON.stringify(serverConfig);
+	sendToHyperion("config","setconfig", '"config":'+config_str);
+//	alert("xx "+config_str.length);
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs)
