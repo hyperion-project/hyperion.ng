@@ -829,27 +829,15 @@ void JsonProcessor::handleConfigSetCommand(const QJsonObject& message, const QSt
 			QJsonObject hyperionConfigJsonObj = message["config"].toObject();
 			try
 			{
-				// make sure the resources are loaded (they may be left out after static linking)
 				Q_INIT_RESOURCE(resource);
 
-				QString schemaFile = ":/hyperion-schema";
-				QJsonObject schemaJson;
-
-				try
-				{
-					schemaJson = QJsonFactory::readSchema(schemaFile);
-				}
-				catch(const std::runtime_error& error)
-				{
-					throw std::runtime_error(error.what());
-				}
+				QJsonObject schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
 
 				QJsonSchemaChecker schemaChecker;
 				schemaChecker.setSchema(schemaJson);
 
 				QPair<bool, bool> validate = schemaChecker.validate(hyperionConfigJsonObj);
 
-				
 				if (validate.first && validate.second)
 				{
 					QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj);
@@ -888,7 +876,9 @@ void JsonProcessor::handleConfigSetCommand(const QJsonObject& message, const QSt
 		}
 	}
 	else
+	{
 		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
+	}
 }
 
 void JsonProcessor::handleConfigGetCommand(const QJsonObject& message, const QString& command, const int tan)
