@@ -122,7 +122,6 @@ void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
 	{
 		_socket->read(header->key, 4);
 	}
-
 }
 
 
@@ -231,9 +230,7 @@ void JsonClientConnection::handleWebSocketFrame()
 
 		default:
 			printf("strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
-		}
-	
-
+	}
 }
 
 /// See http://tools.ietf.org/html/rfc6455#section-5.2 for more information
