@@ -215,7 +215,6 @@ void JsonClientConnection::handleWebSocketFrame()
 
 		case OPCODE::PING:
 			{
-				printf("ping\n");
 				// ping received, send pong
 				quint8 pong[] = {OPCODE::PONG, 0};
 				_socket->write((const char*)pong, 2);
@@ -229,7 +228,7 @@ void JsonClientConnection::handleWebSocketFrame()
 			}
 
 		default:
-			printf("strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
+			Warning(_log, "strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
 	}
 }
 
@@ -279,16 +278,14 @@ void JsonClientConnection::doWebSocketHandshake()
 	value += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 	// generate sha1 hash
-	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
-	QByteArray hashB64 = hash.toBase64();
+	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1).toBase64();
 
 	// prepare an answer
 	QString data 
 	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
 		+ QString("Upgrade: websocket\r\n")
 		+ QString("Connection: Upgrade\r\n")
-		+ QString("Sec-WebSocket-Accept: ")
-		+ QString(hashB64.data()) + "\r\n\r\n";
+		+ QString("Sec-WebSocket-Accept: ")+QString(hash.data()) + "\r\n\r\n";
 
 	_socket->write(QSTRING_CSTR(data), data.size());
 	_socket->flush();
