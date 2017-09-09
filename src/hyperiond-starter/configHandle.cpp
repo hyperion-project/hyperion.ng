@@ -128,93 +128,6 @@ void configHandle::fileChanged(const QString path)
 	processConfigChange(path);
 }
 
-//Snippet from : https://forum.qt.io/post/393109
-void configHandle::modifyJsonValue(QJsonValue& destValue, const QString& path, const QJsonValue& newValue)
-{
-	const int indexOfDot = path.indexOf('.');
-	const QString dotPropertyName = path.left(indexOfDot);
-	const QString dotSubPath = indexOfDot > 0 ? path.mid(indexOfDot + 1) : QString();
-
-	const int indexOfSquareBracketOpen = path.indexOf('[');
-	const int indexOfSquareBracketClose = path.indexOf(']');
-
-	const int arrayIndex = path.mid(indexOfSquareBracketOpen + 1, indexOfSquareBracketClose - indexOfSquareBracketOpen - 1).toInt();
-
-	const QString squareBracketPropertyName = path.left(indexOfSquareBracketOpen);
-	const QString squareBracketSubPath = indexOfSquareBracketClose > 0 ? (path.mid(indexOfSquareBracketClose + 1)[0] == '.' ? path.mid(indexOfSquareBracketClose + 2) : path.mid(indexOfSquareBracketClose + 1)) : QString();
-
-    // determine what is first in path. dot or bracket
-	bool useDot = (indexOfDot >= 0 && indexOfSquareBracketOpen >= 0) ? (indexOfDot <= indexOfSquareBracketOpen) : (indexOfSquareBracketOpen < 0);
-
-	QString usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
-	QString usedSubPath = useDot ? dotSubPath : squareBracketSubPath;
-
-	QJsonValue subValue;
-	if (destValue.isArray())
-	{
-		subValue = destValue.toArray()[usedPropertyName.toInt()];
-	}
-	else if (destValue.isObject())
-	{
-		subValue = destValue.toObject()[usedPropertyName];
-	}
-	else
-	{
-		qDebug() << "oh, what should i do now with the following value?! " << destValue;
-	}
-
-	if(usedSubPath.isEmpty())
-	{
-		subValue = newValue;
-	}
-	else
-	{
-		if (subValue.isArray())
-		{
-			QJsonArray arr = subValue.toArray();
-			QJsonValue arrEntry = arr[arrayIndex];
-			modifyJsonValue(arrEntry,usedSubPath,newValue);
-			arr[arrayIndex] = arrEntry;
-			subValue = arr;
-		}
-		else if (subValue.isObject())
-		{
-			modifyJsonValue(subValue,usedSubPath,newValue);
-		}
-		else
-		{
-			subValue = newValue;
-		}
-	}
-
-	if (destValue.isArray())
-	{
-		QJsonArray arr = destValue.toArray();
-		arr[arrayIndex] = subValue;
-		destValue = arr;
-	}
-	else if (destValue.isObject())
-	{
-		QJsonObject obj = destValue.toObject();
-		obj[usedPropertyName] = subValue;
-		destValue = obj;
-	}
-	else
-	{
-		destValue = newValue;
-	}
-}
-
-void configHandle::modifyJsonValue(QJsonDocument& doc, const QString& path, const QJsonValue& newValue)
-{
-	QJsonValue val;
-	val = doc.isArray() ? doc.array() : doc.object();
-
-	modifyJsonValue(val,path,newValue);
-
-	doc = QJsonDocument((val.isArray() ? val.toArray() : val.toObject() );
-}
-
 quint16 configHandle::checkPort(quint16 port, bool incOne)
 {
 	QTcpServer server;
@@ -252,10 +165,12 @@ bool configHandle::createConfig(QString configName, QString pName)
 
 	_usedPorts << jsonPort << protoPort << webPort;
 
-	modifyJsonValue(doc, "jsonServer.port", jsonPort);
-	modifyJsonValue(doc, "protoServer.port", protoPort);
-	modifyJsonValue(doc, "webConfig.port", webPort);
-	modifyJsonValue(doc, "general.name", pName);
+	QJsonUtils::modify(obj, QStringList() << "jsonServer" << "port", jsonPort);
+	QJsonUtils::modify(obj, QStringList() << "protoServer" << "port", protoPort);
+	QJsonUtils::modify(obj, QStringList() << "webConfig" << "port", webPort);
+	QJsonUtils::modify(obj, QStringList() << "general" << "name", pName);
+
+	doc.setObject(obj);
 
 	// write the final doc
 	QFile tFile(_configPath+configName);

@@ -165,7 +165,7 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 
 	if (!validate.first && validate.second)
 	{
-		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction has been applied");
 
 		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
 
@@ -409,7 +409,7 @@ void HyperionDaemon::createSystemFrameGrabber()
 			#else
 				QString type = grabberConfig["type"].toString("auto");
 			#endif
-			
+
 			// auto eval of type
 			if ( type == "auto" )
 			{

@@ -14,6 +14,9 @@
 #include <QStringList>
 #include <QDebug>
 
+// Hyperion includes
+#include <utils/jsonschema/QJsonUtils.h>
+
 class configHandle : public QObject
 {
 	Q_OBJECT

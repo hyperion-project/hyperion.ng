@@ -8,6 +8,7 @@ add_executable(hyperiond-starter
 
 target_link_libraries(hyperiond-starter
 	hyperion
+	hyperion-utils
 	Qt5::Core
 	Qt5::Network
 )
