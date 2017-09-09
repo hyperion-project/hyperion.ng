@@ -99,8 +99,6 @@ private:
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
-	/// Connection state of the bridge
-	bool connected = false;
 	/// Timer for bridge reconnect interval
 	QTimer bTimer;
 
@@ -125,14 +123,6 @@ signals:
 
 public:
 	PhilipsHueBridge(Logger* log, QString host, QString username);
-
-	///
-	/// @return bridge connection state.
-	///
-	inline bool isConnected(void)
-	{
-		return connected;
-	}
 
 	///
 	/// @param route the route of the POST request.

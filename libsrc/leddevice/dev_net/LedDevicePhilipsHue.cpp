@@ -191,16 +191,10 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 				}
 				emit newLights(map);
 			}
-
-			connected = true;
-
-			if(bTimer.isActive())
-				bTimer.stop();
 		}
 		else
 		{
-			Error(log,"Bridge Error: %s", QSTRING_CSTR(reply->errorString()));
-			connected = false;
+			Error(log,"Network Error: %s", QSTRING_CSTR(reply->errorString()));
 			bTimer.start();
 		}
 	}
@@ -414,16 +408,10 @@ void LedDevicePhilipsHue::newLights(QMap<quint16, QJsonObject> map)
 			}
 		}
 	}
-	else
-	{
-		Error(_log, "newLights() called without lightIds available");
-	}
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 {
-	if(!bridge.isConnected()) return -1;
-
 	// request updated Light states from bridge
 	if(newLightsRequested)
 	{
