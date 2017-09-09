@@ -172,25 +172,23 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 				Error(log, "Authorization failed, username invalid");
 				return;
 			}
-			else
+
+			QJsonObject obj = doc.object()["lights"].toObject();
+
+			if(obj.isEmpty())
 			{
-				QJsonObject obj = doc.object()["lights"].toObject();
-
-				if(obj.isEmpty())
-				{
-					Error(log, "Bridge has no registered bulbs/stripes");
-					return;
-				}
-
-				// get all available light ids and their values
-				QStringList keys = obj.keys();
-				QMap<quint16,QJsonObject> map;
-				for (int i = 0; i < keys.size(); ++i)
-				{
-					map.insert(keys.at(i).toInt(), obj.take(keys.at(i)).toObject());
-				}
-				emit newLights(map);
+				Error(log, "Bridge has no registered bulbs/stripes");
+				return;
 			}
+
+			// get all available light ids and their values
+			QStringList keys = obj.keys();
+			QMap<quint16,QJsonObject> map;
+			for (int i = 0; i < keys.size(); ++i)
+			{
+				map.insert(keys.at(i).toInt(), obj.take(keys.at(i)).toObject());
+			}
+			emit newLights(map);
 		}
 		else
 		{
