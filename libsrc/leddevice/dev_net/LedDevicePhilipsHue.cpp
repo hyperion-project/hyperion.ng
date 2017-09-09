@@ -4,10 +4,6 @@
 // qt includes
 #include <QtCore/qmath.h>
 #include <QNetworkReply>
-#include <iostream>
-
-const CiColor CiColor::BLACK =
-{ 0, 0, 0 };
 
 bool operator ==(CiColor p1, CiColor p2)
 {

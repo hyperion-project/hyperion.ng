@@ -24,8 +24,6 @@ struct CiColor
 	float y;
 	/// The brightness.
 	float bri;
-	/// Black color constant.
-	static const CiColor BLACK;
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness.
