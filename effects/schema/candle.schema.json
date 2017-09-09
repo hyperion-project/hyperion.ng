@@ -71,14 +71,14 @@
 		"smoothing-custom-settings" :
 		{
 			"type" : "boolean",
-			"title" : "edt_eff_smooth_custom_title",
+			"title" : "edt_eff_smooth_custom",
 			"default" : false,
 			"propertyOrder" : 7
 		},
 		"smoothing-time_ms" :
 		{
 			"type" : "integer",
-			"title" : "edt_eff_smooth_time_ms_title",
+			"title" : "edt_eff_smooth_time_ms",
 			"minimum" : 25,
 			"maximum": 600,
 			"default" : 200,
@@ -93,7 +93,7 @@
 		"smoothing-updateFrequency" :
 		{
 			"type" : "number",
-			"title" : "edt_eff_smooth_updateFrequency_title",
+			"title" : "edt_eff_smooth_updateFrequency",
 			"minimum" : 1.0,
 			"maximum" : 100.0,
 			"default" : 25.0,
@@ -104,33 +104,6 @@
 				}
 			},
 			"propertyOrder" : 9
-		},
-		"smoothing-updateDelay" :
-		{
-			"type" : "integer",
-			"title" : "edt_eff_smooth_updateDelay_title",
-			"minimum" : 0,
-			"maximum": 2048,
-			"default" : 0,
-			"append" : "edt_append_ms",
-			"options": {
-				"dependencies": {
-					"smoothing-custom-settings": true
-				}
-			},
-			"propertyOrder" : 10
-		},
-		"smoothing-pause" :
-		{
-			"type" : "boolean",
-			"title" : "edt_eff_smooth_pause_title",
-			"default" : false,
-			"options": {
-				"dependencies": {
-					"smoothing-custom-settings": true
-				}
-			},
-			"propertyOrder" : 12
 		}
 	},
 	"additionalProperties": false

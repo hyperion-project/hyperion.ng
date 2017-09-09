@@ -22,8 +22,6 @@ public:
 	virtual ~X11Grabber();
 
 	bool Setup();
-
-	Image<ColorRgb> & grab();
 	
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -33,11 +31,13 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	int grabFrame(Image<ColorRgb> & image);
+	virtual int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
 	
 	///
 	/// update dimension according current screen
-	int updateScreenDimensions();
+	int updateScreenDimensions(bool force=false);
+
+	virtual void setVideoMode(VideoMode mode);
 
 private:
 	bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
@@ -63,6 +63,8 @@ private:
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;
+	unsigned _src_x;
+	unsigned _src_y;
 
 	Image<ColorRgb> _image;
 	

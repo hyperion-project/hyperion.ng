@@ -27,8 +27,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, int input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
-		, int width
-		, int height
+		, unsigned width
+		, unsigned height
 		, int frameDecimation
 		, int horizontalPixelDecimation
 		, int verticalPixelDecimation
@@ -178,11 +178,6 @@ void V4L2Grabber::getV4Ldevices()
 			_v4lDevices.emplace("/dev/"+it.fileName(), devName);
 		}
     }
-}
-
-void V4L2Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
-{
-	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
 void V4L2Grabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)

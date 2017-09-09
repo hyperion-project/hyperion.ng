@@ -71,8 +71,10 @@ $(document).ready( function() {
 			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
 		else if(grabbers.indexOf('x11') > -1)
 			hideEl(["device","width","height"]);
-		else if(grabbers.indexOf('osx')  > -1 || grabbers.indexOf('amlogic')  > -1)
-			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage","cropLeft","cropBottom","cropTop","cropRight"]);
+		else if(grabbers.indexOf('osx')  > -1 )
+			hideEl(["device","verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
+		else if(grabbers.indexOf('amlogic')  > -1)
+			hideEl(["verticalPixelDecimation","horizontalPixelDecimation","useXGetImage"]);
 	});
 	
 	removeOverlay();

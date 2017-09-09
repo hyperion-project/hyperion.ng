@@ -1,16 +1,9 @@
 #pragma once
 
 // Utils includes
-#include <utils/Image.h>
-#include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
-#include <utils/GrabbingMode.h>
-#include <utils/VideoMode.h>
 #include <hyperion/GrabberWrapper.h>
-
-// Forward class declaration
-class DispmanxFrameGrabber;
-class ImageProcessor;
+#include <grabber/DispmanxFrameGrabber.h>
 
 ///
 /// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain ImageRgb's from the
@@ -34,7 +27,7 @@ public:
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.
 	///
-	virtual ~DispmanxWrapper();
+	virtual ~DispmanxWrapper() {};
 
 public slots:
 	///
@@ -42,25 +35,7 @@ public slots:
 	///
 	virtual void action();
 
-	void setCropping(const unsigned cropLeft, const unsigned cropRight, const unsigned cropTop, const unsigned cropBottom);
-
-	///
-	/// Set the video mode (2D/3D)
-	/// @param[in] mode The new video mode
-	///
-	void setVideoMode(const VideoMode videoMode);
-
 private:
-	/// The update rate [Hz]
-	const int _updateInterval_ms;
-	/// The timeout of the led colors [ms]
-	const int _timeout_ms;
-
-	/// The image used for grabbing frames
-	Image<ColorRgba> _image;
 	/// The actual grabber
-	DispmanxFrameGrabber * _grabber;
-
-	/// The list with computed led colors
-	std::vector<ColorRgb> _ledColors;
+	DispmanxFrameGrabber _grabber;
 };

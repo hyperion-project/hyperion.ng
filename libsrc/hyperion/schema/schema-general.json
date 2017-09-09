@@ -21,14 +21,7 @@
 			"default" : true,
 			"required" : true,
 			"propertyOrder" : 2
-		},
-		"configVersion" :
-		{
-			"type" : "integer",
-			"default" : 2,
-			"minimum" : 1,
-			"access" : "system",
-			"required" : true
 		}
-	}
+	},
+	"additionalProperties" : false
 }

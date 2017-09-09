@@ -16,7 +16,7 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 const Image<ColorRgb> & AmlogicWrapper::getScreenshot()
 {
 	capture();
-	return _screenshot_rgb;
+	return _screenshot;
 }
 
 void AmlogicWrapper::start()
@@ -32,7 +32,5 @@ void AmlogicWrapper::stop()
 void AmlogicWrapper::capture()
 {
 	_grabber.grabFrame(_screenshot);
-	_screenshot.toRgb(_screenshot_rgb);
-
-	emit sig_screenshot(_screenshot_rgb);
+	emit sig_screenshot(_screenshot);
 }

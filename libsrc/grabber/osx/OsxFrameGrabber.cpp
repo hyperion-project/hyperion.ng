@@ -19,7 +19,9 @@ OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, c
 	{
 		Error(_log, "Display with index %d is not available. Using main display", _screenIndex);
 		_display = kCGDirectMainDisplay;
-	} else {
+	}
+	else
+	{
 		_display = displays[_screenIndex];
 	}
 		
@@ -35,8 +37,10 @@ OsxFrameGrabber::~OsxFrameGrabber()
 {
 }
 
-void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
+int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (!_enabled) return 0;
+
 	CGImageRef dispImage;
 	CFDataRef imgData;
 	unsigned char * pImgData;	
@@ -52,12 +56,12 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		if (dispImage == NULL)
 		{
 			Error(_log, "No display connected...");
-			return;
+			return -1;
 		}
 	}
-	imgData = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
-	pImgData = (unsigned char*) CFDataGetBytePtr(imgData);
-	dspWidth = CGImageGetWidth(dispImage);
+	imgData   = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
+	pImgData  = (unsigned char*) CFDataGetBytePtr(imgData);
+	dspWidth  = CGImageGetWidth(dispImage);
 	dspHeight = CGImageGetHeight(dispImage);
 	
 	_imageResampler.setHorizontalPixelDecimation(dspWidth/_width);
@@ -71,4 +75,6 @@ void OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	
 	CFRelease(imgData);
 	CGImageRelease(dispImage);
+
+	return 0;
 }

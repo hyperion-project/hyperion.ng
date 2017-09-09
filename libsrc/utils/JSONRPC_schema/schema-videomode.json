@@ -10,7 +10,7 @@
 		"tan" : {
 			"type" : "integer"
 		},
-		"mappingType": {
+		"videoMode": {
 			"type" : "string",
 			"enum" : ["2D", "3DSBS", "3DTAB"]
 		}

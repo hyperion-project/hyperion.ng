@@ -7,19 +7,16 @@ sudo apt-get update
 sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
 
+**on RPI you need the videocore IV headers**
+
+```
+sudo apt-get install libraspberrypi-dev
+```
+
+
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
 
-## RPI Only
-when you build on the rapberry pi and include the dispmanx grabber (which is the default)
-you also need the firmware including headers installed. This downloads the firmware from the raspberrypi github
-and copies the required files to the correct place. The firmware directory can be deleted afterwards if desired.
-
-```
-export FIRMWARE_DIR="raspberrypi-firmware"
-git clone --depth 1 https://github.com/raspberrypi/firmware.git "$FIRMWARE_DIR"
-sudo cp -R "$FIRMWARE_DIR/hardfp/opt/" /
-```
 
 ## Arch
 See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB=n&SO=a&PP=50&do_Search=Go) for PKGBUILDs on arch. If the PKGBUILD does not work ask questions there please.
@@ -40,9 +37,15 @@ brew install doxygen
 # Compiling and installing Hyperion
 
 ### The general quick way (without big comments)
-be sure you fullfill the prerequisites above.
 
-assume your home is /home/pi
+complete automated process:
+```bash
+wget -qO- https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/bin/compile.sh | sh
+```
+
+some more detailed way: (or more or less the content of the script above)
+be sure you fulfill the prerequisites above.
+
 ```bash
 git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperion
 cd hyperion

@@ -144,6 +144,13 @@ $(document).ready(function() {
 	{
 		loggingHandlerInstalled = true;
 		$(hyperion).on("cmd-logging-update",function(event){
+			
+			if ($("#logmessages").length == 0 && loggingStreamActive)
+			{
+				requestLoggingStop();
+				loggingStreamActive = false;
+			}
+			
 			messages = (event.response.result.messages);
 			if(messages.length != 0 && !createdCont)
 			{

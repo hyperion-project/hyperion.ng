@@ -22,7 +22,7 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 const Image<ColorRgb> & DispmanxWrapper::getScreenshot()
 {
 	capture();
-	return _screenshot_rgb;
+	return _screenshot;
 }
 
 void DispmanxWrapper::start()
@@ -38,7 +38,5 @@ void DispmanxWrapper::stop()
 void DispmanxWrapper::capture()
 {
 	_grabber.grabFrame(_screenshot);
-	_screenshot.toRgb(_screenshot_rgb);
-
-	emit sig_screenshot(_screenshot_rgb);
+	emit sig_screenshot(_screenshot);
 }

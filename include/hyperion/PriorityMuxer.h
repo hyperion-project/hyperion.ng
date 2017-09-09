@@ -2,14 +2,14 @@
 
 // STL includes
 #include <vector>
-#include <map>
 #include <cstdint>
-#include <limits>
 
 // QT includes
 #include <QMap>
 #include <QObject>
 #include <QTimer>
+#include <QMap>
+#include <QVector>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -50,7 +50,7 @@ public:
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
-	const static int LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
+	const static int LOWEST_PRIORITY;
 
 	///
 	/// Constructs the PriorityMuxer for the given number of leds (used to switch to black when
@@ -118,7 +118,7 @@ public:
 	///
 	/// Clears all priority channels
 	///
-	void clearAll();
+	void clearAll(bool forceClearAll=false);
 
 	///
 	/// Updates the current time. Channels with a configured time out will be checked and cleared if
@@ -152,5 +152,4 @@ private:
 
 	QTimer _timer;
 	QTimer _blockTimer;
-
 };

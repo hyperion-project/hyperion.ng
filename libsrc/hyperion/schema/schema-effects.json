@@ -13,6 +13,7 @@
 				"type": "string",
 				"title" : "edt_conf_effp_paths_itemtitle"
 			},
+			"minItems" : 1,
 			"propertyOrder" : 1
 		},
 		"disable" :
@@ -20,10 +21,12 @@
 			"type" : "array",
 			"uniqueItems": true,
 			"title" : "edt_conf_effp_disable_title",
+			"default" : [""],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_effp_disable_itemtitle"
 			},
+			"required" : true,
 			"propertyOrder" : 2
 		}
 	},

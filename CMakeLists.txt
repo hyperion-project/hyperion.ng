@@ -95,6 +95,9 @@ if ( "${PLATFORM}" MATCHES "-dev" )
 	SET ( DEFAULT_TESTS      ON )
 endif()
 
+STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
+STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
+ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
@@ -103,7 +106,11 @@ message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
 message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
 
-option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
+if (ENABLE_AMLOGIC)
+	SET(ENABLE_FB ON)
+else()
+	option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
+endif()
 message(STATUS "ENABLE_FB = ${ENABLE_FB}")
 
 option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )
@@ -240,7 +247,7 @@ add_definitions(${QT_DEFINITIONS})
 #	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
 #endif()
 
-if(ENABLE_OSX)
+if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
 

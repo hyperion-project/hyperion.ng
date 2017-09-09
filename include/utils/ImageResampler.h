@@ -20,7 +20,7 @@ public:
 					 int cropTop,
 					 int cropBottom);
 
-	void set3D(VideoMode mode);
+	void setVideoMode(VideoMode mode);
 
 	void processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> & outputImage) const;
 

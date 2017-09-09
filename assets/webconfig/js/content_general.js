@@ -6,6 +6,8 @@ $(document).ready( function() {
 	var conf_editor = null;
 	var conf_editor_inst = null;
 
+
+	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 	if(showOptHelp)
 	{
 		// general
@@ -24,6 +26,8 @@ $(document).ready( function() {
 		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_inst_heading_title"), 'editor_container_inst', 'btn_submit_inst'));
 	}
+
+  $('#conf_imp').appendTo('#conf_cont');
 
 	conf_editor = createJsonEditor('editor_container', {
 		general: schema.general
@@ -85,18 +89,9 @@ $(document).ready( function() {
 					}
 					else
 					{
-						//check config revision
-						if(content.general.configVersion !== serverConfig.general.configVersion)
-						{
-							showInfoDialog('error', "", $.i18n('infoDialog_import_reverror_text', f.name, content.general.configVersion, serverConfig.general.configVersion));
-							dis_imp_btn(true);
-						}
-						else
-						{
-							dis_imp_btn(false);
-							importedConf = content;
-							confName = f.name;
-						}
+						dis_imp_btn(false);
+						importedConf = content;
+						confName = f.name;
 					}
 				}
 			}

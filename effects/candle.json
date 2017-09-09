@@ -9,8 +9,6 @@
 		"candles" : "all",
 		"smoothing-custom-settings" : true,
 		"smoothing-time_ms" : 500,
-		"smoothing-updateDelay" : 0,
-		"smoothing-updateFrequency" : 20.0,
-		"smoothing-pause" : false
+		"smoothing-updateFrequency" : 20.0
 	}
 }

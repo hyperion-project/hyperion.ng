@@ -1,7 +1,7 @@
 
 	//clear priority and other tasks if people reload the page or lost connection while a wizard was active
-	$(hyperion).one("ready", function(event) {	
-		if(getStorage("wizardactive") === 'true')	
+	$(hyperion).one("ready", function(event) {
+		if(getStorage("wizardactive") === 'true')
 		{
 			requestPriorityClear();
 			setStorage("wizardactive", false);
@@ -12,7 +12,7 @@
 			}
 		}
 	});
-	
+
 	function resetWizard()
 	{
 		$("#wizard_modal").modal('hide');
@@ -27,7 +27,7 @@
 			sendToKodi("stop");
 		step = 0;
 	}
-	
+
 	//rgb byte order wizard
 	var wIntveralId;
 	var new_rgb_order;
@@ -59,14 +59,14 @@
 		$('#wizp2_body').append('<canvas id="wiz_canv_color" width="100" height="100" style="border-radius:60px;background-color:red; display:block; margin: 10px 0;border:4px solid grey;"></canvas><label>'+$.i18n('wiz_rgb_q')+'</label>');
 		$('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>'+$.i18n('wiz_rgb_qrend')+'</label></td><td class="itd"><select id="wiz_r_select" class="form-control wselect"></select></td></tr><tr><td class="ltd"><label>'+$.i18n('wiz_rgb_qgend')+'</label></td><td class="itd"><select id="wiz_g_select" class="form-control wselect"></select></td></tr></tbody></table>');
 		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_ok')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>')
-		
+
 		//open modal
 		$("#wizard_modal").modal({
 			backdrop : "static",
 			keyboard: false,
 			show: true
 		});
-		
+
 		//listen for continue
 		$('#btn_wiz_cont').off().on('click',function() {
 			beginWizardRGB();
@@ -76,7 +76,7 @@
 	}
 
 	function beginWizardRGB()
-	{	
+	{
 		$("#wiz_switchtime_select").off().on('change',function() {
 			clearInterval(wIntveralId);
 			var time = $("#wiz_switchtime_select").val();
@@ -88,19 +88,19 @@
 			var redS = $("#wiz_r_select").val();
 			var greenS = $("#wiz_g_select").val();
 			var blueS = rgb_order.toString().replace(/,/g,"").replace(redS, "").replace(greenS,"");
-		
+
 			for (var i = 0; i<rgb_order.length; i++)
 			{
 				if (redS == rgb_order[i])
-					$('#wiz_g_select option[value='+rgb_order[i]+']').attr('disabled',true);		
+					$('#wiz_g_select option[value='+rgb_order[i]+']').attr('disabled',true);
 				else
 					$('#wiz_g_select option[value='+rgb_order[i]+']').attr('disabled',false);
 				if (greenS == rgb_order[i])
 					$('#wiz_r_select option[value='+rgb_order[i]+']').attr('disabled',true);
 				else
-					$('#wiz_r_select option[value='+rgb_order[i]+']').attr('disabled',false);	
+					$('#wiz_r_select option[value='+rgb_order[i]+']').attr('disabled',false);
 			}
-			
+
 			if(redS != 'null' && greenS != 'null')
 			{
 				$('#btn_wiz_save').attr('disabled',false);
@@ -114,9 +114,9 @@
 					else
 						rgb_order[i] = blueS;
 				}
-				
+
 				rgb_order = rgb_order.toString().replace(/,/g,"");
-				
+
 				if(redS == "r" && greenS == "g")
 				{
 					$('#btn_wiz_save').toggle(false);
@@ -132,14 +132,14 @@
 			else
 				$('#btn_wiz_save').attr('disabled',true);
 		});
-	
+
 		$("#wiz_switchtime_select").append(createSelOpt('5','5'),createSelOpt('10','10'),createSelOpt('15','15'),createSelOpt('30','30'));
 		$("#wiz_switchtime_select").trigger('change');
-	
+
 		$("#wiz_r_select").append(createSelOpt("null", ""),createSelOpt('r', $.i18n('general_col_red')),createSelOpt('g', $.i18n('general_col_green')),createSelOpt('b', $.i18n('general_col_blue')));
 		$("#wiz_g_select").html($("#wiz_r_select").html());
 		$("#wiz_r_select").trigger('change');
-		
+
 		requestSetColor('255','0','0');
 		setTimeout(requestSetSource, 100, 'auto');
 		setStorage("wizardactive", true);
@@ -158,9 +158,9 @@
 			setTimeout(initRestart, 100);
 		});
 	}
-	
+
 	$('#btn_wizard_byteorder').off().on('click',startWizardRGB);
-	
+
 	//color calibration wizard
 	var kodiAddress = document.location.hostname+':8080';
 	var wiz_editor;
@@ -174,28 +174,28 @@
 	var vidAddress = "https://sourceforge.net/projects/hyperion-project/files/resources/vid/";
 	var picnr = 0;
 	var availVideos = ["Sweet_Cocoon","Caminandes_2_GranDillama","Caminandes_3_Llamigos"];
-	
+
 	if(getStorage("kodiAddress") != null)
 		kodiAddress = getStorage("kodiAddress");
-	
+
 	function switchPicture(pictures)
-	{	
+	{
 		if(typeof pictures[picnr] === 'undefined')
 			picnr = 0;
-		
+
 		sendToKodi('playP',pictures[picnr]);
 		picnr++;
 	}
-	
+
 	function sendToKodi(type, content, cb)
 	{
 		var command;
-		
+
 		if(type == "playP")
 			content = imgAddress+content+'.png';
 		if(type == "playV")
 			content = vidAddress+content;
-		
+
 		if(type == "msg")
 			command = '{"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title": "'+$.i18n('wiz_cc_title')+'", "message": "'+content+'", "image":"info", "displaytime":5000 },"id":"1"}';
 		else if (type == "stop")
@@ -222,13 +222,13 @@
 		.fail( function( jqXHR, textStatus ) {
 			if ( jqXHR.status != 200 && type == "msg")
 				cb("error")
-		});	
+		});
 	}
-	
+
 	function performAction()
 	{
 		var h;
-		
+
 		if(step == 1)
 		{
 			$('#wiz_cc_desc').html($.i18n('wiz_cc_chooseid'));
@@ -237,7 +237,7 @@
 		}
 		else
 			$('#btn_wiz_back').attr("disabled", false)
-		
+
 		if(step == 2)
 		{
 			updateWEditor(["white"]);
@@ -273,7 +273,7 @@
 			h = $.i18n('wiz_cc_adjustit',$.i18n('edt_conf_color_red_title'));
 			if(withKodi)
 			{
-				h += '<br/>'+$.i18n('wiz_cc_kodishould',$.i18n('edt_conf_color_red_title'));	
+				h += '<br/>'+$.i18n('wiz_cc_kodishould',$.i18n('edt_conf_color_red_title'));
 				sendToKodi('playP',"red");
 			}
 			else
@@ -286,7 +286,7 @@
 			h = $.i18n('wiz_cc_adjustit',$.i18n('edt_conf_color_green_title'));
 			if(withKodi)
 			{
-				h += '<br/>'+$.i18n('wiz_cc_kodishould',$.i18n('edt_conf_color_green_title'));	
+				h += '<br/>'+$.i18n('wiz_cc_kodishould',$.i18n('edt_conf_color_green_title'));
 				sendToKodi('playP',"green");
 			}
 			else
@@ -377,17 +377,17 @@
 				h += '<p>'+$.i18n('wiz_cc_testintrowok')+' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/vid/" target="_blank">'+$.i18n('wiz_cc_link')+'</a></p>';
 			h += '<p>'+$.i18n('wiz_cc_summary')+'</p>';
 			$('#wiz_cc_desc').html(h);
-			
+
 			$('.videobtn').off().on('click', function(e){
 				if(e.target.id == "stop")
 					sendToKodi("stop");
 				else
 					sendToKodi("playV",e.target.id+'.mp4');
-				
+
 				$(this).attr("disabled", true);
 				setTimeout(function(){$('.videobtn').attr("disabled", false)},10000);
 			});
-			
+
 			$('#btn_wiz_next').attr("disabled", true);
 			$('#btn_wiz_save').toggle(true);
 		}
@@ -397,7 +397,7 @@
 			$('#btn_wiz_save').toggle(false);
 		}
 	}
-	
+
 	function updateWEditor(el, all)
 	{
 		for (var key in cobj)
@@ -408,7 +408,7 @@
 				$('#editor_container_wiz [data-schemapath*=".'+profile+'.'+key+'"]').toggle(false);
 		}
 	}
-	
+
 	function startWizardCC()
 	{
 		//create html
@@ -417,14 +417,14 @@
 		$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 		$('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
 		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>'+$.i18n('general_btn_back')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_next">'+$.i18n('general_btn_next')+'<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>')
-		
+
 		//open modal
 		$("#wizard_modal").modal({
 			backdrop : "static",
 			keyboard: false,
 			show: true
 		});
-		
+
 		$('#wiz_cc_kodiip').off().on('change',function() {
 			kodiAddress = $(this).val();
 			setStorage("kodiAddress", kodiAddress);
@@ -439,62 +439,62 @@
 					$('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodicon')+'</p>');
 					withKodi = true;
 				}
-				
+
 				$('#btn_wiz_cont').attr('disabled', false);
 			});
 		});
-		
+
 		//listen for continue
 		$('#btn_wiz_cont').off().on('click',function() {
 			beginWizardCC();
 			$('#wizp1').toggle(false);
 			$('#wizp2').toggle(true);
 		});
-		
+
 		$('#wiz_cc_kodiip').trigger("change")
 		colorLength = serverConfig.color.channelAdjustment;
 		cobj = schema.color.properties.channelAdjustment.items.properties;
 		websAddress = document.location.hostname+':'+serverConfig.webConfig.port;
 		imgAddress = 'http://'+websAddress+'/img/cc/';
 		setStorage("wizardactive", true);
-		
+
 		//check profile count
 		if(colorLength.length > 1)
 		{
 			$('#multi_cali').html('<p style="font-weight:bold;">'+$.i18n('wiz_cc_morethanone')+'</p><select id="wiz_select" class="form-control" style="width:200px;margin:auto"></select>');
 			for(var i = 0; i<colorLength.length; i++)
 				$('#wiz_select').append(createSelOpt(i,i+1+' ('+colorLength[i].id+')'));
-			
+
 			$('#wiz_select').off().on('change', function(){
 				profile = $(this).val();
 			});
 		}
-	
+
 		//prepare editor
 		wiz_editor = createJsonEditor('editor_container_wiz', {
 			color : schema.color
 		}, true, true);
-		
+
 		$('#editor_container_wiz h4').toggle(false);
 		$('#editor_container_wiz .btn-group').toggle(false);
 		$('#editor_container_wiz [data-schemapath="root.color.imageToLedMappingType"]').toggle(false);
 		for(var i = 0; i<colorLength.length; i++)
 			$('#editor_container_wiz [data-schemapath*="root.color.channelAdjustment.'+i+'."]').toggle(false);
 	}
-	
+
 	function beginWizardCC()
 	{
-		
+
 		$('#btn_wiz_next').off().on('click',function() {
 			step++;
 			performAction();
 		});
-		
+
 		$('#btn_wiz_back').off().on('click',function() {
 			step--;
 			performAction();
 		});
-		
+
 		$('#btn_wiz_abort').off().on('click', resetWizard);
 
 		$('#btn_wiz_save').off().on('click',function() {
@@ -509,13 +509,13 @@
 			delete temp.leds
 			requestAdjustment(JSON.stringify(temp),"",true);
 		});
-		
+
 		step++
 		performAction();
 	}
-	
+
 	$('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
-	
+
 	//hue wizard
 	var hueIPs = [];
 	var hueIPsinc = 0;
@@ -525,7 +525,7 @@
 	var huePosLeft =   {hscan: {maximum: 0.15,minimum: 0},index: 1,vscan: {maximum: 0.85,minimum: 0.15}};
 	var huePosRight =  {hscan: {maximum: 1,minimum: 0.85},index: 3,vscan: {maximum: 0.85,minimum: 0.15}};
 	var huePosEntire = {hscan: {maximum: 1.0,minimum: 0.0},index: 0,vscan: {maximum: 1.0,minimum: 0.0}};
-	
+
 	function startWizardPhilipsHue()
 	{
 		//create html
@@ -558,7 +558,7 @@
 
 	function checkHueBridge(cb,hueUser){
 		var usr = "";
-		
+
 		if(typeof hueUser != "undefined")
 			usr = hueUser;
 
@@ -578,8 +578,8 @@
 		})
 		.fail( function( jqXHR, textStatus ) {
 			cb(false);
-		});	
-	} 			
+		});
+	}
 
 	function checkUserResult(reply){
 		if(reply)
@@ -594,18 +594,18 @@
 			$('#wiz_hue_create_user').toggle(true);
 		}
 	};
-	
+
 	function checkBridgeResult(reply){
 		if(reply)
 		{
 			//abort checking, first reachable result is used
 			$('#wiz_hue_ipstate').html("");
 			$('#ip').val(hueIPs[hueIPsinc].internalipaddress)
-			
+
 			//now check hue user on this bridge
 			$('#usrcont').toggle(true);
 			checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
-		}	
+		}
 		else
 		{
 			//increment and check again
@@ -618,14 +618,14 @@
 			{
 				$('#usrcont').toggle(false);
 				$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-			}	
+			}
 		}
 	};
-	
+
 	function assignHuePos(id, pos, inc)
 	{
 		var i = null;
-		
+
 		if(pos == "top")
 			i = huePosTop;
 		else if(pos == "bottom")
@@ -636,11 +636,11 @@
 			i = huePosRight;
 		else
 			i = huePosEntire;
-		
+
 		i.index = inc;
 		return i;
 	}
-	
+
 	function identHueId(id, off)
 	{
 		var on = true;
@@ -656,7 +656,7 @@
 			data: '	{"on":'+on+', "sat":254, "bri":254,"hue":47000}'
 		})
 	}
-	
+
 	function getHueIPs(){
 		$('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
 		$.ajax({
@@ -676,11 +676,17 @@
 		})
 		.fail( function( jqXHR, textStatus ) {
 			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-		});	
+		});
 	};
-	
+
 	function beginWizardHue()
 	{
+		var usr = conf_editor.getEditor("root.specificOptions.username").getValue();
+		if(usr != "")
+		{
+			$('#user').val(usr);
+		}
+
 		//check if ip is empty/reachable/search for bridge
 		if(conf_editor.getEditor("root.specificOptions.output").getValue() == "")
 			getHueIPs();
@@ -690,33 +696,30 @@
 			$('#ip').val(ip);
 			hueIPs.push({internalipaddress : ip});
 			checkHueBridge(checkBridgeResult);
-			
-			var usr = conf_editor.getEditor("root.specificOptions.username").getValue();
-			$('#user').val(usr);
 		}
-		
+
 		$('#retry_bridge').off().on('click', function(){
 			hueIPs[0].internalipaddress = $('#ip').val();
 			hueIPsinc = 0;
 			checkHueBridge(checkBridgeResult);
 		});
-		
+
 		$('#retry_usr').off().on('click', function(){
 			checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
 		});
-		
+
 		$('#wiz_hue_create_user').off().on('click',function() {
 			createHueUser();
 		});
-		
+
 		$('#btn_wiz_save').off().on("click", function(){
 			var hueLedConfig = [];
 			var finalLightIds = [];
-			
+
 			//create hue led config
 			var incC = 0;
 			for(key in lightIDs)
-			{	
+			{
 				if($('#hue_'+key).val() != "disabled")
 				{
 					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val(), incC));
@@ -724,9 +727,9 @@
 					incC++;
 				}
 			}
-			
+
 			serverConfig.leds = hueLedConfig;
-			
+
 			//Adjust gamma, brightness and compensation
 			var c = serverConfig.color.channelAdjustment[0];
 			c.gammaBlue = 1.0;
@@ -734,7 +737,7 @@
 			c.gammaGreen = 1.0;
 			c.brightness = 100;
 			c.brightnessCompensation = 0;
-			
+
 			//device config
 			var d = serverConfig.device;
 			d.output = $('#ip').val();
@@ -743,14 +746,14 @@
 			d.type = "philipshue";
 			d.transitiontime = 1;
 			d.switchOffOnBlack = true;
-			
+
 			//smoothing off
 			serverConfig.smoothing.enable = false;
-			
+
 			requestWriteConfig(serverConfig, true);
 			setTimeout(initRestart,200);
 		});
-		
+
 		$('#btn_wiz_abort').off().on('click', resetWizard);
 	}
 
@@ -775,7 +778,7 @@
 						$("#connectionTime").html(connectionRetries);
 						if(connectionRetries == 0) {
 							abortConnection(UserInterval);
-	          }
+						}
 						else
 						{
 							if (typeof r[0].error != 'undefined') {
@@ -813,16 +816,16 @@
 					$('#wh_topcontainer').toggle(false);
 					$('#hue_ids_t, #btn_wiz_save').toggle(true);
 					lightIDs = r;
-					
+
 					for(var lightid in r)
 					{
 						$('.lidsb').append(createTableRow([lightid+' ('+r[lightid].name+')', '<select id="hue_'+lightid+'" class="hue_sel_watch form-control"><option value="disabled">'+$.i18n('wiz_hue_ids_disabled')+'</option><option value="top">'+$.i18n('conf_leds_layout_cl_top')+'</option><option value="bottom">'+$.i18n('conf_leds_layout_cl_bottom')+'</option><option value="left">'+$.i18n('conf_leds_layout_cl_left')+'</option><option value="right">'+$.i18n('conf_leds_layout_cl_right')+'</option><option value="entire">'+$.i18n('wiz_hue_ids_entire')+'</option></select>','<button class="btn btn-sm btn-primary" onClick=identHueId('+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
 					}
-					
+
 					$('.hue_sel_watch').bind("change", function(){
 						var cC = 0;
 						for(key in lightIDs)
-						{	
+						{
 							if($('#hue_'+key).val() != "disabled")
 							{
 								cC++;
@@ -830,7 +833,7 @@
 						}
 						cC == 0 ? $('#btn_wiz_save').attr("disabled",true) : $('#btn_wiz_save').attr("disabled",false);
 					});
-					
+
 					$('.hue_sel_watch').trigger('change');
 				}
 				else

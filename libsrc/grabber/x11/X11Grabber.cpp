@@ -14,8 +14,11 @@ X11Grabber::X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropT
 	, _verticalDecimation(verticalPixelDecimation)
 	, _screenWidth(0)
 	, _screenHeight(0)
+	, _src_x(cropLeft)
+	, _src_y(cropTop)
 	, _image(0,0)
 {
+	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XRender, XShmGetImage or XGetImage
 	memset(&_pictAttr, 0, sizeof(_pictAttr));
 	_pictAttr.repeat = RepeatNone;
@@ -52,9 +55,7 @@ void X11Grabber::setupResources()
 {
 	if(_XShmAvailable && !_useXGetImage)
 	{
-		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual,
-		_windowAttr.depth, ZPixmap, NULL, &_shminfo,
-		_width, _height);
+		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, NULL, &_shminfo, _width, _height);
 		_shminfo.shmid = shmget(IPC_PRIVATE, _xImage->bytes_per_line * _xImage->height, IPC_CREAT|0777);
 		_xImage->data = (char*)shmat(_shminfo.shmid,0,0);
 		_shminfo.shmaddr = _xImage->data;
@@ -109,13 +110,18 @@ bool X11Grabber::Setup()
 	_imageResampler.setHorizontalPixelDecimation(_XRenderAvailable ? 1 : _horizontalDecimation);
 	_imageResampler.setVerticalPixelDecimation(_XRenderAvailable ? 1 : _verticalDecimation);
 
-	return true;
+	bool result = (updateScreenDimensions(true) >=0);
+	ErrorIf(!result, _log, "X11 Grabber start failed");
+	return result;
 }
 
-Image<ColorRgb> & X11Grabber::grab()
+int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 {
-	updateScreenDimensions(); 
+	if (!_enabled) return 0;
 
+	if (forceUpdate)
+		updateScreenDimensions(forceUpdate);
+	
 	if (_XRenderAvailable && !_useXGetImage)
 	{
 		double scale_x = static_cast<double>(_windowAttr.width / _horizontalDecimation) / static_cast<double>(_windowAttr.width);
@@ -145,19 +151,11 @@ Image<ColorRgb> & X11Grabber::grab()
 		
 		XRenderSetPictureTransform (_x11Display, _srcPicture, &_transform);
 		
-		XRenderComposite( _x11Display,					// dpy
-					PictOpSrc,				// op
-					_srcPicture,				// src
-					None,					// mask
-					_dstPicture,				// dst
-					_cropLeft / _horizontalDecimation,	// src_x _cropLeft
-					_cropTop / _verticalDecimation,		// src_y _cropTop
-					0,					// mask_x
-					0,					// mask_y
-					0,					// dst_x
-					0,					// dst_y
-					_width,				// width
-					_height);			// height
+		// display, op, src, mask, dest, src_x = cropLeft,
+		// src_y = cropTop, mask_x, mask_y, dest_x, dest_y, width, height 
+		XRenderComposite(
+			_x11Display, PictOpSrc, _srcPicture, None, _dstPicture, ( _src_x/_horizontalDecimation),
+			(_src_y/_verticalDecimation), 0, 0, 0, 0, _width, _height);
     
 		XSync(_x11Display, False);
 		
@@ -170,93 +168,15 @@ Image<ColorRgb> & X11Grabber::grab()
 			_xImage = XGetImage(_x11Display, _pixmap, 0, 0, _width, _height, AllPlanes, ZPixmap);   
 		}
 	}
-	else
+	else if (_XShmAvailable && !_useXGetImage)
 	{
-		if (_XShmAvailable && !_useXGetImage) {
-			XShmGetImage(_x11Display, _window, _xImage, _cropLeft, _cropTop, AllPlanes);
-		}
-		else
-		{
-			_xImage = XGetImage(_x11Display, _window, _cropLeft, _cropTop, _width, _height, AllPlanes, ZPixmap);
-		}
-	}
-
-	if (_xImage == nullptr)
-	{
-		Error(_log, "Grab Failed!");
-		return _image;
-	}
-
-	_imageResampler.processImage(reinterpret_cast<const uint8_t *>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PIXELFORMAT_BGR32, _image);
-
-	return _image;
-}
-
-int X11Grabber::grabFrame(Image<ColorRgb> & image)
-{
-	if (_XRenderAvailable && !_useXGetImage)
-	{
-		double scale_x = static_cast<double>(_windowAttr.width / _horizontalDecimation) / static_cast<double>(_windowAttr.width);
-		double scale_y = static_cast<double>(_windowAttr.height / _verticalDecimation) / static_cast<double>(_windowAttr.height);
-		double scale = qMin(scale_y, scale_x);
-		
-		_transform =
-		{
-			{
-				{
-					XDoubleToFixed(1),
-					XDoubleToFixed(0),
-					XDoubleToFixed(0)
-				},
-				{
-					XDoubleToFixed(0),
-					XDoubleToFixed(1),
-					XDoubleToFixed(0)
-				},
-				{
-					XDoubleToFixed(0),
-					XDoubleToFixed(0),
-					XDoubleToFixed(scale)
-				}
-			}
-		};
-		
-		XRenderSetPictureTransform (_x11Display, _srcPicture, &_transform);
-		
-		XRenderComposite( _x11Display,					// dpy
-					PictOpSrc,				// op
-					_srcPicture,				// src
-					None,					// mask
-					_dstPicture,				// dst
-					_cropLeft / _horizontalDecimation,	// src_x _cropLeft
-					_cropTop / _verticalDecimation,		// src_y _cropTop
-					0,					// mask_x
-					0,					// mask_y
-					0,					// dst_x
-					0,					// dst_y
-					_width,				// width
-					_height);			// height
-    
-		XSync(_x11Display, False);
-		
-		if (_XShmAvailable)
-		{
-			XShmGetImage(_x11Display, _pixmap, _xImage, 0, 0, AllPlanes);
-		}
-		else
-		{
-			_xImage = XGetImage(_x11Display, _pixmap, 0, 0, _width, _height, AllPlanes, ZPixmap);   
-		}
+		// use xshm
+		XShmGetImage(_x11Display, _window, _xImage, _src_x, _src_y, AllPlanes);
 	}
 	else
 	{
-		if (_XShmAvailable && !_useXGetImage) {
-			XShmGetImage(_x11Display, _window, _xImage, _cropLeft, _cropTop, AllPlanes);
-		}
-		else
-		{
-			_xImage = XGetImage(_x11Display, _window, _cropLeft, _cropTop, _width, _height, AllPlanes, ZPixmap);
-		}
+		// all things done by xgetimage
+		_xImage = XGetImage(_x11Display, _window, _src_x, _src_y, _width, _height, AllPlanes, ZPixmap);
 	}
 
 	if (_xImage == nullptr)
@@ -270,7 +190,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image)
 	return 0;
 }
 
-int X11Grabber::updateScreenDimensions()
+int X11Grabber::updateScreenDimensions(bool force)
 {
 	const Status status = XGetWindowAttributes(_x11Display, _window, &_windowAttr);
 	if (status == 0)
@@ -279,7 +199,7 @@ int X11Grabber::updateScreenDimensions()
 		return -1;
 	}
 
-	if (_screenWidth == unsigned(_windowAttr.width) && _screenHeight == unsigned(_windowAttr.height))
+	if (!force && _screenWidth == unsigned(_windowAttr.width) && _screenHeight == unsigned(_windowAttr.height))
 	{
 		// No update required
 		return 0;
@@ -294,14 +214,16 @@ int X11Grabber::updateScreenDimensions()
 	_screenWidth  = _windowAttr.width;
 	_screenHeight = _windowAttr.height;
 	
+	int width=0, height=0;
+	
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	if (_XRenderAvailable && !_useXGetImage)
 	{
-		_width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
+		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
 			? ((_screenWidth - _cropLeft - _cropRight) / _horizontalDecimation)
 			: _screenWidth / _horizontalDecimation;
 		
-		_height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
+		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
 			? ((_screenHeight - _cropTop - _cropBottom) / _verticalDecimation)
 			: _screenHeight / _verticalDecimation;
 			
@@ -309,19 +231,52 @@ int X11Grabber::updateScreenDimensions()
 	}
 	else
 	{
-		_width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
+		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
 			? (_screenWidth - _cropLeft - _cropRight)
 			: _screenWidth;
 		
-		_height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
+		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
 			? (_screenHeight - _cropTop - _cropBottom)
 			: _screenHeight;
 			
 		Info(_log, "Using XGetImage for grabbing");
 	}
 
+	// calculate final image dimensions and adjust top/left cropping in 3D modes
+	switch (_videoMode)
+	{
+	case VIDEO_3DSBS:
+		_width  = width /2;
+		_height = height;
+		_src_x  = _cropLeft / 2;
+		_src_y  = _cropTop;
+		break;
+	case VIDEO_3DTAB:
+		_width  = width;
+		_height = height / 2;
+		_src_x  = _cropLeft;
+		_src_y  = _cropTop / 2;
+		break;
+	case VIDEO_2D:
+	default:
+		_width  = width;
+		_height = height;
+		_src_x  = _cropLeft;
+		_src_y  = _cropTop;
+		break;
+	}
+	
+	Info(_log, "Update output image resolution: [%dx%d]  to [%dx%d]", _image.width(), _image.height(), _width, _height);
+
 	_image.resize(_width, _height);
 	setupResources();
 
 	return 1;
+}
+
+void X11Grabber::setVideoMode(VideoMode mode)
+{
+	Info(_log, "a %d", mode);
+	Grabber::setVideoMode(mode);
+	updateScreenDimensions(true);
 }

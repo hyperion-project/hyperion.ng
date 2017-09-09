@@ -17,6 +17,8 @@ ImageToLedsMap::ImageToLedsMap(
 	// Sanity check of the size of the borders (and width and height)
 	Q_ASSERT(_width  > 2*_verticalBorder);
 	Q_ASSERT(_height > 2*_horizontalBorder);
+	Q_ASSERT(_width  < 10000);
+	Q_ASSERT(_height < 10000);
 
 	// Reserve enough space in the map for the leds
 	_colorsMap.reserve(leds.size());

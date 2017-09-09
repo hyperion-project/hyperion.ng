@@ -10,12 +10,10 @@ ImageResampler::ImageResampler()
 	, _cropBottom(0)
 	, _videoMode(VIDEO_2D)
 {
-
 }
 
 ImageResampler::~ImageResampler()
 {
-
 }
 
 void ImageResampler::setHorizontalPixelDecimation(int decimator)
@@ -30,22 +28,22 @@ void ImageResampler::setVerticalPixelDecimation(int decimator)
 
 void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-	_cropLeft = cropLeft;
-	_cropRight = cropRight;
-	_cropTop = cropTop;
+	_cropLeft   = cropLeft;
+	_cropRight  = cropRight;
+	_cropTop    = cropTop;
 	_cropBottom = cropBottom;
 }
 
-void ImageResampler::set3D(VideoMode mode)
+void ImageResampler::setVideoMode(VideoMode mode)
 {
 	_videoMode = mode;
 }
 
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
-	int cropLeft = _cropLeft;
-	int cropRight = _cropRight;
-	int cropTop = _cropTop;
+	int cropLeft   = _cropLeft;
+	int cropRight  = _cropRight;
+	int cropTop    = _cropTop;
 	int cropBottom = _cropBottom;
 
 	// handle 3D mode
@@ -69,7 +67,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 	for (int yDest = 0, ySource = cropTop + _verticalDecimation/2; yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
-	        for (int xDest = 0, xSource = cropLeft + _horizontalDecimation/2; xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
+		for (int xDest = 0, xSource = cropLeft + _horizontalDecimation/2; xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
 			ColorRgb & rgb = outputImage(xDest, yDest);
 			

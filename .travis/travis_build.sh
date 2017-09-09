@@ -30,6 +30,11 @@ cd build
 [ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
 
 cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr .. || exit 2
+if [[ "$TRAVIS_OS_NAME" == 'linux' ]]
+then
+	# activate dispmanx and osx mocks
+	cmake -DENABLE_OSX=ON -DENABLE_DISPMANX=ON .. || exit 5
+fi
 
 echo "compile jobs: ${JOBS:=4}"
 make -j ${JOBS} || exit 3
