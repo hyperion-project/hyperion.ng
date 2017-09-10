@@ -160,6 +160,7 @@ void JsonClientConnection::handleWebSocketFrame()
 			isContinuation = true;
 			// no break here, just jump over to opcode text
 
+		case OPCODE::BINARY:
 		case OPCODE::TEXT:
 		{
 			// check for protocal violations
@@ -169,9 +170,9 @@ void JsonClientConnection::handleWebSocketFrame()
 				return;
 			}
 
-			if (!_wsh.masked)
+			if (!_wsh.masked && _wsh.opCode == OPCODE::TEXT)
 			{
-				sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked frames not allowed");
+				sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked text frames not allowed");
 				return;
 			}
 
@@ -194,18 +195,18 @@ void JsonClientConnection::handleWebSocketFrame()
 			if (_wsh.fin)
 			{
 				_onContinuation = false;
-				_jsonProcessor->handleMessage(_wsReceiveBuffer);
+				if (_wsh.opCode == OPCODE::TEXT)
+				{
+					_jsonProcessor->handleMessage(QString(_wsReceiveBuffer));
+				}
+				else
+				{
+					handleBinaryMessage(_wsReceiveBuffer);
+				}
 				_wsReceiveBuffer.clear();
 			}
 		}
 		break;
-			
-		case OPCODE::BINARY:
-			{
-				Error(_log, "receive of binary  data is not supported yet");
-				sendClose(CLOSECODE::INV_TYPE, "binary data not supported yet");
-				return;
-			}
 
 		case OPCODE::CLOSE:
 			{
@@ -300,12 +301,11 @@ void JsonClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
-QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
+QByteArray JsonClientConnection::makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
 {
 	QByteArray header;
-	bool ok = payloadLength <= 0x7FFFFFFFFFFFFFFFULL;
 	
-	if (ok)
+	if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
 	{
 		//FIN, RSV1-3, opcode (RSV-1, RSV-2 and RSV-3 are zero)
 		quint8 byte = static_cast<quint8>((opCode & 0x0F) | (lastFrame ? 0x80 : 0x00));
@@ -324,7 +324,7 @@ QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLe
 			quint16 swapped = qToBigEndian<quint16>(static_cast<quint16>(payloadLength));
 			header.append(static_cast<const char *>(static_cast<const void *>(&swapped)), 2);
 		}
-		else if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
+		else
 		{
 			byte |= 127;
 			header.append(static_cast<char>(byte));
@@ -356,7 +356,7 @@ qint64 JsonClientConnection::sendMessage_Raw(const char* data, quint64 size)
 	return _socket->write(data, size);
 }
 
-qint64 JsonClientConnection::sendMessage_Raw(QByteArray data)
+qint64 JsonClientConnection::sendMessage_Raw(QByteArray &data)
 {
 	return _socket->write(data.data(), data.size());
 }
@@ -376,7 +376,8 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
 		
-		sendMessage_Raw(getFrameHeader(OPCODE::TEXT, frameSize, isLastFrame));
+		QByteArray buf = makeFrameHeader(OPCODE::TEXT, frameSize, isLastFrame);
+		sendMessage_Raw(buf);
 		qint64 written = sendMessage_Raw(payload+position,frameSize);
 		if (written > 0)
 		{
@@ -398,4 +399,24 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 	return payloadWritten;
 }
 
+void JsonClientConnection::handleBinaryMessage(QByteArray &data)
+{
+	uint8_t  priority   = data.at(0);
+	unsigned duration_s = data.at(1);
+	unsigned imgSize    = data.size() - 4;
+	unsigned width      = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
+	unsigned height     =  imgSize / width;
+
+	if ( ! (imgSize) % width)
+	{
+		Error(_log, "data size is not multiple of width");
+		return;
+	}
+	
+	Image<ColorRgb> image;
+	image.resize(width, height);
+
+	memcpy(image.memptr(), data.data()+4, imgSize);
+	_hyperion->setImage(priority, image, duration_s*1000);
+}
 

@@ -154,12 +154,25 @@ private:
 	///
 	void handleWebSocketFrame();
 
+	///
+	/// Handle incoming raw data frame
+	///
 	void handleRawJsonData();
 	
-	QByteArray getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
+	///
+	/// create ws header from socket and decode it
+	///
+	QByteArray makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
+
+	///
+	/// handle binary message
+	///
+	/// This function should be placed elsewhere .... 
+	///
+	void handleBinaryMessage(QByteArray &data);
 
 	qint64 sendMessage_Raw(const char* data, quint64 size);
-	qint64 sendMessage_Raw(QByteArray data);
+	qint64 sendMessage_Raw(QByteArray &data);
 	qint64 sendMessage_Websockets(QByteArray &data);
 	void sendClose(int status, QString reason = "");
 
@@ -175,7 +188,7 @@ private:
 	QByteArray _receiveBuffer;
 
 	/// buffer for websockets multi frame receive
-	QString _wsReceiveBuffer;
+	QByteArray _wsReceiveBuffer;
 	quint8 _maskKey[4];
 	
 	/// used for WebSocket detection and connection handling
