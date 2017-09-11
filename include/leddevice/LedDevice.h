@@ -40,11 +40,14 @@ public:
 	///
 	virtual ~LedDevice() {}
 
-	/// Switch the leds off
+	/// Switch the leds off (led hardware disable)
 	virtual int switchOff();
-	
+
+	/// Switch the leds on (led hardware enable), used if reinitialization is required for the device implementation
+	virtual int switchOn();
+
 	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
-	
+
 	///
 	/// Opens and configures the output device
 	///
@@ -59,13 +62,13 @@ public:
 	static QJsonObject getLedDeviceSchemas();
 	static void setLedCount(int ledCount);
 	static int  getLedCount() { return _ledCount; }
-	
+
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
 	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
-	
+
 protected:
 	///
 	/// Writes the RGB-Color values to the leds.

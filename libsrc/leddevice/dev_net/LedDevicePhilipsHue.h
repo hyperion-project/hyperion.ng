@@ -235,9 +235,14 @@ private slots:
 	void newLights(QMap<quint16, QJsonObject> map);
 
 	///
-	/// reset lights and stop timer, next write() will reinitialize all lights
+	/// reset lights if device switched off
 	///
 	virtual int switchOff();
+
+	///
+	/// reinitialize lights if device switched on
+	///
+	virtual int switchOn();
 
 protected:
 	///
@@ -265,7 +270,4 @@ private:
 	std::vector<unsigned int> lightIds;
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> lights;
-	/// set to true if new lights are required
-	bool newLightsRequested = false;
-
 };

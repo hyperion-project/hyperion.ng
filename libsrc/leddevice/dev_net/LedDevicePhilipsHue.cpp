@@ -215,9 +215,9 @@ const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
 { "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values)
-		: log(log)
-		, bridge(bridge)
-		, id(id)
+	: log(log)
+	, bridge(bridge)
+	, id(id)
 {
 	// Get state object values which are subject to change.
 	if (!values["state"].toObject().contains("on"))
@@ -345,8 +345,8 @@ LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 }
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
-		: LedDevice()
-		, bridge(_log, deviceConfig["output"].toString(), deviceConfig["username"].toString())
+	: LedDevice()
+	, bridge(_log, deviceConfig["output"].toString(), deviceConfig["username"].toString())
 {
 	_deviceReady = init(deviceConfig);
 
@@ -410,14 +410,7 @@ void LedDevicePhilipsHue::newLights(QMap<quint16, QJsonObject> map)
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 {
-	// request updated Light states from bridge
-	if(newLightsRequested)
-	{
-		newLightsRequested = false;
-		bridge.bConnect();
-	}
-
-	// lights will be empty sometimes, stop here
+	// lights will be empty sometimes
 	if(lights.empty()) return -1;
 
 	// more lights then leds, stop always
@@ -459,7 +452,11 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 int LedDevicePhilipsHue::switchOff()
 {
 	lights.clear();
-	// next write() will reinitialize lights from bridge
-	newLightsRequested = true;
+	return 0;
+}
+
+int LedDevicePhilipsHue::switchOn()
+{
+	bridge.bConnect();
 	return 0;
 }
