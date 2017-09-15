@@ -351,6 +351,7 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	_deviceReady = init(deviceConfig);
 
 	connect(&bridge, &PhilipsHueBridge::newLights, this, &LedDevicePhilipsHue::newLights);
+	connect(this, &LedDevice::enableStateChanged, this, &LedDevicePhilipsHue::stateChanged);
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue()
@@ -449,14 +450,10 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 	return 0;
 }
 
-int LedDevicePhilipsHue::switchOff()
+void LedDevicePhilipsHue::stateChanged(bool newState)
 {
-	lights.clear();
-	return 0;
-}
-
-int LedDevicePhilipsHue::switchOn()
-{
-	bridge.bConnect();
-	return 0;
+	if(newState)
+		bridge.bConnect();
+	else
+		lights.clear();
 }

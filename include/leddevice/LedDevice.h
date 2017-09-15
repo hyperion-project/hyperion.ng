@@ -69,6 +69,13 @@ public:
 
 	inline bool componentState() { return enabled(); };
 
+signals:
+	///
+	/// Emits whenever the led device switches between on/off
+	/// @param newState The new state of the device
+	///
+	void enableStateChanged(bool newState);
+
 protected:
 	///
 	/// Writes the RGB-Color values to the leds.

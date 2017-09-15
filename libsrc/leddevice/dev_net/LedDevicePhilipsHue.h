@@ -234,15 +234,7 @@ private slots:
 	///
 	void newLights(QMap<quint16, QJsonObject> map);
 
-	///
-	/// reset lights if device switched off
-	///
-	virtual int switchOff();
-
-	///
-	/// reinitialize lights if device switched on
-	///
-	virtual int switchOn();
+	void stateChanged(bool newState);
 
 protected:
 	///

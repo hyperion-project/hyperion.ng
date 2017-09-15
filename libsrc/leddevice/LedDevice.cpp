@@ -44,7 +44,17 @@ int LedDevice::open()
 
 void LedDevice::setEnable(bool enable)
 {
-	( _enabled && !enable) ? switchOff() : switchOn();
+	// emit signal when state changed
+	if (_enabled != enable)
+	{
+		emit enableStateChanged(enable);
+	}
+
+	// set black to leds when they should go off
+	if ( _enabled && !enable)
+	{
+		switchOff();
+	}
 	_enabled = enable;
 }
 
