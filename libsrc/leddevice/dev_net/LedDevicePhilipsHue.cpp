@@ -3,11 +3,7 @@
 
 // qt includes
 #include <QtCore/qmath.h>
-#include <QEventLoop>
 #include <QNetworkReply>
-
-const CiColor CiColor::BLACK =
-{ 0, 0, 0 };
 
 bool operator ==(CiColor p1, CiColor p2)
 {
@@ -126,40 +122,89 @@ float CiColor::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2)
 	return sqrt(dx * dx + dy * dy);
 }
 
-QByteArray PhilipsHueBridge::get(QString route)
+PhilipsHueBridge::PhilipsHueBridge(Logger* log, QString host, QString username)
+	: QObject()
+	, log(log)
+	, host(host)
+	, username(username)
 {
-	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
-	Debug(log, "Get %s", url.toStdString().c_str());
-	// Perfrom request
-	QNetworkRequest request(url);
-	QNetworkReply* reply = manager->get(request);
-	// Connect requestFinished signal to quit slot of the loop.
-	QEventLoop loop;
-	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
-	// Go into the loop until the request is finished.
-	loop.exec();
-	// Read all data of the response.
-	QByteArray response = reply->readAll();
-	// Free space.
+	// setup reconnection timer
+	bTimer.setInterval(5000);
+	bTimer.setSingleShot(true);
+
+	connect(&bTimer, &QTimer::timeout, this, &PhilipsHueBridge::bConnect);
+	connect(&manager, &QNetworkAccessManager::finished, this, &PhilipsHueBridge::resolveReply);
+}
+
+void PhilipsHueBridge::bConnect(void)
+{
+	if(username.isEmpty() || host.isEmpty())
+	{
+		Error(log,"Username or IP Address is empty!");
+	}
+	else
+	{
+		QString url = QString("http://%1/api/%2").arg(host).arg(username);
+		Debug(log, "Connect to bridge %s", QSTRING_CSTR(url));
+
+		QNetworkRequest request(url);
+		manager.get(request);
+	}
+}
+void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
+{
+	// TODO use put request also for network error checking with decent threshold
+	if(reply->operation() == QNetworkAccessManager::GetOperation)
+	{
+		if(reply->error() == QNetworkReply::NoError)
+		{
+			QByteArray response = reply->readAll();
+			QJsonParseError error;
+			QJsonDocument doc = QJsonDocument::fromJson(response, &error);
+			if (error.error != QJsonParseError::NoError)
+			{
+				Error(log, "Got invalid response from bridge");
+				return;
+			}
+			// check for authorization
+			if(doc.isArray())
+			{
+				Error(log, "Authorization failed, username invalid");
+				return;
+			}
+
+			QJsonObject obj = doc.object()["lights"].toObject();
+
+			if(obj.isEmpty())
+			{
+				Error(log, "Bridge has no registered bulbs/stripes");
+				return;
+			}
+
+			// get all available light ids and their values
+			QStringList keys = obj.keys();
+			QMap<quint16,QJsonObject> map;
+			for (int i = 0; i < keys.size(); ++i)
+			{
+				map.insert(keys.at(i).toInt(), obj.take(keys.at(i)).toObject());
+			}
+			emit newLights(map);
+		}
+		else
+		{
+			Error(log,"Network Error: %s", QSTRING_CSTR(reply->errorString()));
+			bTimer.start();
+		}
+	}
 	reply->deleteLater();
-	// Return response;
-	return response;
 }
 
 void PhilipsHueBridge::post(QString route, QString content)
 {
-	QString url = QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route);
-	Debug(log, "Post %s: %s", url.toStdString().c_str(), content.toStdString().c_str());
-	// Perfrom request
-	QNetworkRequest request(url);
-	QNetworkReply* reply = manager->put(request, content.toLatin1());
-	// Connect finished signal to quit slot of the loop.
-	QEventLoop loop;
-	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
-	// Go into the loop until the request is finished.
-	loop.exec();
-	// Free space.
-	reply->deleteLater();
+	Debug(log, "Post %s: %s", QSTRING_CSTR(QString("http://IP/api/USR/%1").arg(route)), QSTRING_CSTR(content));
+
+	QNetworkRequest request(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route));
+	manager.put(request, content.toLatin1());
 }
 
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
@@ -167,54 +212,42 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 { "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-{ "LLC020", "LST002" };
+{ "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014" };
 
-PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id) :
-		log(log), bridge(bridge), id(id)
+PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values)
+	: log(log)
+	, bridge(bridge)
+	, id(id)
 {
-
-	// Get model id and original state.
-	QByteArray response = bridge.get(QString("lights/%1").arg(id));
-	// Use JSON parser to parse response.
-	QJsonParseError error;
-	QJsonDocument reader = QJsonDocument::fromJson(response, &error);
-	;
-	// Parse response.
-	if (error.error != QJsonParseError::NoError)
-	{
-		Error(log, "Got invalid response from light %d", id);
-	}
 	// Get state object values which are subject to change.
-	QJsonObject json = reader.object();
-	if (!json["state"].toObject().contains("on"))
+	if (!values["state"].toObject().contains("on"))
 	{
-		Error(log, "Got no state object from light %d", id);
-	}
-	if (!json["state"].toObject().contains("on"))
-	{
-		Error(log, "Got invalid state object from light %d", id);
+		Error(log, "Got invalid state object from light ID %d", id);
 	}
 	QJsonObject state;
-	state["on"] = json["state"].toObject()["on"];
+	state["on"] = values["state"].toObject()["on"];
 	on = false;
-	if (json["state"].toObject()["on"].toBool() == true)
+	if (values["state"].toObject()["on"].toBool())
 	{
-		state["xy"] = json["state"].toObject()["xy"];
-		state["bri"] = json["state"].toObject()["bri"];
+		state["xy"] = values["state"].toObject()["xy"];
+		state["bri"] = values["state"].toObject()["bri"];
 		on = true;
 
-		color =
-		{	(float) state["xy"].toArray()[0].toDouble(),(float) state["xy"].toArray()[1].toDouble(), (float) state["bri"].toDouble() / 255.0f};
-		transitionTime = json["state"].toObject()["transitiontime"].toInt();
+		color = {
+					(float) state["xy"].toArray()[0].toDouble(),
+					(float) state["xy"].toArray()[1].toDouble(),
+					(float) state["bri"].toDouble() / 255.0f
+				};
+		transitionTime = values["state"].toObject()["transitiontime"].toInt();
 	}
 	// Determine the model id.
-	modelId = json["modelid"].toString().trimmed().replace("\"", "");
+	modelId = values["modelid"].toString().trimmed().replace("\"", "");
 	// Determine the original state.
 	originalState = QJsonDocument(state).toJson(QJsonDocument::JsonFormat::Compact).trimmed();
 	// Find id in the sets and set the appropriate color space.
 	if (GAMUT_A_MODEL_IDS.find(modelId) != GAMUT_A_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s as gamut A", modelId.toStdString().c_str());
+		Debug(log, "Recognized model id %s of light ID %d as gamut A", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.703f, 0.296f};
 		colorSpace.green =
@@ -224,7 +257,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	}
 	else if (GAMUT_B_MODEL_IDS.find(modelId) != GAMUT_B_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s as gamut B", modelId.toStdString().c_str());
+		Debug(log, "Recognized model id %s of light ID %d as gamut B", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.675f, 0.322f};
 		colorSpace.green =
@@ -234,7 +267,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	}
 	else if (GAMUT_C_MODEL_IDS.find(modelId) != GAMUT_C_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s as gamut C", modelId.toStdString().c_str());
+		Debug(log, "Recognized model id %s of light ID %d as gamut C", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.675f, 0.322f};
 		colorSpace.green =
@@ -244,7 +277,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	}
 	else
 	{
-		Warning(log, "Did not recognize model id %s", modelId.toStdString().c_str());
+		Warning(log, "Did not recognize model id %s of light ID %d", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	1.0f, 0.0f};
 		colorSpace.green =
@@ -252,6 +285,8 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 		colorSpace.blue =
 		{	0.0f, 0.0f};
 	}
+
+	Info(log,"Light ID %d created", id);
 }
 
 PhilipsHueLight::~PhilipsHueLight()
@@ -304,154 +339,121 @@ CiColorTriangle PhilipsHueLight::getColorSpace() const
 	return colorSpace;
 }
 
-LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject &deviceConfig) :
-		LedDevice()
-{
-	manager = new QNetworkAccessManager();
-	_deviceReady = init(deviceConfig);
-
-	timer.setInterval(3000);
-	timer.setSingleShot(true);
-	connect(&timer, SIGNAL(timeout()), this, SLOT(restoreStates()));
-}
-
-LedDevicePhilipsHue::~LedDevicePhilipsHue()
-{
-	// Switch off.
-	switchOff();
-}
-
-bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
-{
-	LedDevice::init(deviceConfig);
-
-	bridge =
-	{	_log, manager, deviceConfig["output"].toString(), deviceConfig["username"].toString("newdeveloper")};
-	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);
-	brightnessFactor = (float) deviceConfig["brightnessFactor"].toDouble(1.0);
-	transitionTime = deviceConfig["transitiontime"].toInt(1);
-	lightIds.clear();
-	QJsonArray lArray = deviceConfig["lightIds"].toArray();
-	for (int i = 0; i < lArray.size(); i++)
-	{
-		lightIds.push_back(lArray[i].toInt());
-	}
-
-	return true;
-}
-
 LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDevicePhilipsHue(deviceConfig);
 }
 
+LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
+	: LedDevice()
+	, bridge(_log, deviceConfig["output"].toString(), deviceConfig["username"].toString())
+{
+	_deviceReady = init(deviceConfig);
+
+	connect(&bridge, &PhilipsHueBridge::newLights, this, &LedDevicePhilipsHue::newLights);
+	connect(this, &LedDevice::enableStateChanged, this, &LedDevicePhilipsHue::stateChanged);
+}
+
+LedDevicePhilipsHue::~LedDevicePhilipsHue()
+{
+	switchOff();
+}
+
+bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
+{
+	switchOffOnBlack = deviceConfig["switchOffOnBlack"].toBool(true);
+	brightnessFactor = (float) deviceConfig["brightnessFactor"].toDouble(1.0);
+	transitionTime = deviceConfig["transitiontime"].toInt(1);
+	QJsonArray lArray = deviceConfig["lightIds"].toArray();
+
+	QJsonObject newDC = deviceConfig;
+	if(!lArray.empty())
+	{
+		for(const auto i : lArray)
+		{
+			lightIds.push_back(i.toInt());
+		}
+		// get light info from bridge
+		bridge.bConnect();
+
+		// adapt latchTime to count of user lightIds (bridge 10Hz max overall)
+		newDC.insert("latchTime",QJsonValue(100*(int)lightIds.size()));
+	}
+	else
+	{
+		Error(_log,"No light ID provided, abort");
+	}
+
+	LedDevice::init(newDC);
+
+	return true;
+}
+
+void LedDevicePhilipsHue::newLights(QMap<quint16, QJsonObject> map)
+{
+	if(!lightIds.empty())
+	{
+		// search user lightid inside map and create light if found
+		lights.clear();
+		for(const auto id : lightIds)
+		{
+			if (map.contains(id))
+			{
+				lights.push_back(PhilipsHueLight(_log, bridge, id, map.value(id)));
+			}
+			else
+			{
+				Error(_log,"Light id %d isn't used on this bridge", id);
+			}
+		}
+	}
+}
+
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 {
-	// Save light states if not done before.
-	if (!areStatesSaved())
+	// lights will be empty sometimes
+	if(lights.empty()) return -1;
+
+	// more lights then leds, stop always
+	if(ledValues.size() < lights.size())
 	{
-		saveStates((unsigned int) ledValues.size());
+		Error(_log,"More LightIDs configured than leds, each LightID requires one led!");
+		return -1;
 	}
-	// If there are less states saved than colors given, then maybe something went wrong before.
-	if (lights.size() != ledValues.size())
-	{
-		restoreStates();
-		return 0;
-	}
-	// Iterate through colors and set light states.
+
+	// Iterate through lights and set colors.
 	unsigned int idx = 0;
-	for (const ColorRgb& color : ledValues)
+	for (PhilipsHueLight& light : lights)
 	{
-		// Get lamp.
-		PhilipsHueLight& light = lights.at(idx);
+		// Get color.
+		ColorRgb color = ledValues.at(idx);
+
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		CiColor xy = CiColor::rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f,
 				light.getColorSpace());
-		// Write color if color has been changed.
-		if (switchOffOnBlack && light.getColor() != CiColor::BLACK && xy == CiColor::BLACK)
+
+		if (switchOffOnBlack && xy.bri == 0)
 		{
 			light.setOn(false);
-		}
-		else if (switchOffOnBlack && light.getColor() == CiColor::BLACK && xy != CiColor::BLACK)
-		{
-			light.setOn(true);
 		}
 		else
 		{
 			light.setOn(true);
 		}
+		// Write color if color has been changed.
 		light.setTransitionTime(transitionTime);
 		light.setColor(xy, brightnessFactor);
-		// Next light id.
+
 		idx++;
 	}
-	// Reset timer.
-	timer.start();
+
 	return 0;
 }
 
-int LedDevicePhilipsHue::switchOff()
+void LedDevicePhilipsHue::stateChanged(bool newState)
 {
-	timer.stop();
-	// If light states have been saved before, ...
-	if (areStatesSaved())
-	{
-		// ... restore them.
-		restoreStates();
-	}
-	return 0;
-}
-
-void LedDevicePhilipsHue::saveStates(unsigned int nLights)
-{
-
-	// Clear saved lamps.
-	lights.clear();
-	//
-	if (nLights == 0) {
-		return;
-	}
-	// Read light ids if none have been supplied by the user.
-	if (lightIds.size() != nLights)
-	{
-		lightIds.clear();
-		// Retrieve lights from bridge.
-		QByteArray response = bridge.get("lights");
-		// Use QJsonDocument to parse reponse.
-		QJsonParseError error;
-		QJsonDocument reader = QJsonDocument::fromJson(response, &error);
-		if (error.error != QJsonParseError::NoError)
-		{
-			Error(_log, "No lights found.");
-		}
-		// Loop over all children.
-		QJsonObject json = reader.object();
-		for (QJsonObject::iterator it = json.begin(); it != json.end() && lightIds.size() < nLights; it++)
-		{
-			int lightId = atoi(it.key().toStdString().c_str());
-			lightIds.push_back(lightId);
-			Debug(_log, "nLights=%d: found light with id %d.", nLights, lightId);
-		}
-		// Check if we found enough lights.
-		if (lightIds.size() != nLights)
-		{
-			Error(_log, "Not enough lights found");
-		}
-	}
-	// Iterate lights.
-	for (unsigned int i = 0; i < nLights; i++)
-	{
-		lights.push_back(PhilipsHueLight(_log, bridge, lightIds.at(i)));
-	}
-
-}
-
-void LedDevicePhilipsHue::restoreStates()
-{
-	lights.clear();
-}
-
-bool LedDevicePhilipsHue::areStatesSaved()
-{
-	return !lights.empty();
+	if(newState)
+		bridge.bConnect();
+	else
+		lights.clear();
 }

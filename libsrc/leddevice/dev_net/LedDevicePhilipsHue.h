@@ -24,8 +24,6 @@ struct CiColor
 	float y;
 	/// The brightness.
 	float bri;
-	/// Black color constant.
-	static const CiColor BLACK;
 
 	///
 	/// Converts an RGB color to the Hue xy color space and brightness.
@@ -89,34 +87,42 @@ struct CiColorTriangle
 	CiColor red, green, blue;
 };
 
-class PhilipsHueBridge
+class PhilipsHueBridge : public QObject
 {
+	Q_OBJECT
+
 private:
 	Logger* log;
-	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager* manager;
+	/// QNetworkAccessManager  for sending requests.
+	QNetworkAccessManager manager;
 	/// Ip address of the bridge
 	QString host;
 	/// User name for the API ("newdeveloper")
 	QString username;
+	/// Timer for bridge reconnect interval
+	QTimer bTimer;
+
+private slots:
+	///
+	/// Receive all replies and check for error, schedule reconnect on issues
+	/// Emits newLights() on success when triggered from connect()
+	///
+	void resolveReply(QNetworkReply* reply);
+
+public slots:
+	///
+	/// Connect to bridge to check availbility and user
+	///
+	void bConnect(void);
+
+signals:
+	///
+	///	Emits with a QMap of current bridge light/value pairs
+	///
+	void newLights(QMap<quint16,QJsonObject> map);
 
 public:
-	PhilipsHueBridge(Logger* log, QNetworkAccessManager* manager, QString host, QString username) :
-			log(log), manager(manager), host(host), username(username)
-	{
-	}
-	PhilipsHueBridge()
-	{
-		log = NULL;
-		manager = NULL;
-	}
-
-	///
-	/// @param route the route of the GET request.
-	///
-	/// @return the response of the GET request.
-	///
-	QByteArray get(QString route);
+	PhilipsHueBridge(Logger* log, QString host, QString username);
 
 	///
 	/// @param route the route of the POST request.
@@ -132,8 +138,9 @@ public:
 class PhilipsHueLight
 {
 private:
-	Logger * log;
+	Logger* log;
 	PhilipsHueBridge& bridge;
+	/// light id
 	unsigned int id;
 	bool on;
 	unsigned int transitionTime;
@@ -165,7 +172,7 @@ public:
 	/// @param bridge the bridge
 	/// @param id the light id
 	///
-	PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id);
+	PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values);
 	~PhilipsHueLight();
 
 	///
@@ -196,8 +203,6 @@ public:
  *
  * To use set the device to "philipshue".
  * Uses the official Philips Hue API (http://developers.meethue.com).
- * Framegrabber must be limited to 10 Hz / numer of lights to avoid rate limitation by the hue bridge.
- * Create a new API user name "newdeveloper" on the bridge (http://developers.meethue.com/gettingstarted.html)
  *
  * @author ntim (github), bimsarck (github)
  */
@@ -222,12 +227,14 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	/// Restores the original state of the leds.
-	virtual int switchOff();
-
 private slots:
-	/// Restores the status of all lights.
-	void restoreStates();
+	/// creates new PhilipsHueLight(s) based on user lightid with bridge feedback
+	///
+	/// @param map Map of lightid/value pairs of bridge
+	///
+	void newLights(QMap<quint16, QJsonObject> map);
+
+	void stateChanged(bool newState);
 
 protected:
 	///
@@ -241,10 +248,9 @@ protected:
 	bool init(const QJsonObject &deviceConfig);
 
 private:
-	QNetworkAccessManager* manager;
+	/// bridge class
 	PhilipsHueBridge bridge;
-	/// Use timer to reset lights when we got into "GRABBINGMODE_OFF".
-	QTimer timer;
+
 	///
 	bool switchOffOnBlack;
 	/// The brightness factor to multiply on color change.
@@ -256,17 +262,4 @@ private:
 	std::vector<unsigned int> lightIds;
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> lights;
-
-	///
-	/// Queries the status of all lights and saves it.
-	///
-	/// @param nLights the number of lights
-	///
-	void saveStates(unsigned int nLights);
-
-	///
-	/// @return true if light states have been saved.
-	///
-	bool areStatesSaved();
-
 };
