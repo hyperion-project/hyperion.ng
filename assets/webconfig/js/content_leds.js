@@ -421,7 +421,6 @@ $(document).ready(function() {
 		
 		aceEdt.set(finalLedArray);
 		$('#collapse4').collapse('show');
-		
 	});
 	
 	// create and update editor

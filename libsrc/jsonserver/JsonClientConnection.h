@@ -69,6 +69,28 @@ namespace OPCODE {
 	}
 }
 
+namespace CLOSECODE {
+	enum value {
+		NORMAL    = 1000,
+		AWAY      = 1001,
+		TERM      = 1002,
+		INV_TYPE  = 1003,
+		INV_DATA  = 1007,
+		VIOLATION = 1008,
+		BIG_MSG   = 1009,
+		UNEXPECTED= 1011
+	};
+}
+
+namespace CON_MODE {
+	enum value {
+		INIT      = 0,
+		RAW       = 1,
+		WEBSOCKET = 2
+	};
+}
+
+
 ///
 /// The Connection object created by \a JsonServer when a new connection is establshed
 ///
@@ -88,6 +110,14 @@ public:
 	///
 	~JsonClientConnection();
 
+	struct WebSocketHeader
+	{
+		bool          fin;
+		quint8 opCode;
+		bool          masked;
+		quint64       payloadLength;
+		char          key[4];
+	};
 public slots:
 	qint64 sendMessage(QJsonObject);
 
@@ -124,11 +154,29 @@ private:
 	///
 	void handleWebSocketFrame();
 
-	QByteArray getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
+	///
+	/// Handle incoming raw data frame
+	///
+	void handleRawJsonData();
+	
+	///
+	/// create ws header from socket and decode it
+	///
+	QByteArray makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);
+
+	///
+	/// handle binary message
+	///
+	/// This function should be placed elsewhere .... 
+	///
+	void handleBinaryMessage(QByteArray &data);
 
 	qint64 sendMessage_Raw(const char* data, quint64 size);
-	qint64 sendMessage_Raw(QByteArray data);
+	qint64 sendMessage_Raw(QByteArray &data);
 	qint64 sendMessage_Websockets(QByteArray &data);
+	void sendClose(int status, QString reason = "");
+
+	void getWsFrameHeader(WebSocketHeader* header);
 	
 	/// The TCP-Socket that is connected tot the Json-client
 	QTcpSocket * _socket;
@@ -139,15 +187,25 @@ private:
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
 
+	/// buffer for websockets multi frame receive
+	QByteArray _wsReceiveBuffer;
+	quint8 _maskKey[4];
+	
 	/// used for WebSocket detection and connection handling
 	bool _webSocketHandshakeDone;
+
+	bool _onContinuation;
 
 	/// The logger instance
 	Logger * _log;
 
+	WebSocketHeader _wsh;
+	bool _notEnoughData;
+
 	/// address of client
 	QHostAddress _clientAddress;
 
+	CON_MODE::value _connectionMode;
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3   = 0x10;

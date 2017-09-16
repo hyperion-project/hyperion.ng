@@ -1,6 +1,7 @@
 // Qt includes
 #include <QCryptographicHash>
 #include <QtEndian>
+#include <unistd.h>
 
 // project includes
 #include "JsonClientConnection.h"
@@ -13,8 +14,11 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	, _hyperion(Hyperion::getInstance())
 	, _receiveBuffer()
 	, _webSocketHandshakeDone(false)
+	, _onContinuation(false)
 	, _log(Logger::getInstance("JSONCLIENTCONNECTION"))
+	, _notEnoughData(false)
 	, _clientAddress(socket->peerAddress())
+	, _connectionMode(CON_MODE::INIT)
 {
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
@@ -34,116 +38,182 @@ JsonClientConnection::~JsonClientConnection()
 
 void JsonClientConnection::readData()
 {
-	_receiveBuffer += _socket->readAll();
+	switch(_connectionMode)
+	{
+		case CON_MODE::INIT:
+			_receiveBuffer = _socket->readAll(); // initial read to determine connection
+			_connectionMode = (_receiveBuffer.contains("Upgrade: websocket")) ? CON_MODE::WEBSOCKET : CON_MODE::RAW;
 
-	if (_webSocketHandshakeDone)
-	{
-		// websocket mode, data frame
-		handleWebSocketFrame();
-	}
-	else
-	{
-		// might be a handshake request or raw socket data
-		if(_receiveBuffer.contains("Upgrade: websocket"))
-		{
-			doWebSocketHandshake();
-		} else
-		{
-			// raw socket data, handling as usual
-			int bytes = _receiveBuffer.indexOf('\n') + 1;
-			while(bytes > 0)
+			// init websockets
+			if (_connectionMode == CON_MODE::WEBSOCKET)
 			{
-				// create message string
-				QString message(QByteArray(_receiveBuffer.data(), bytes));
-
-				// remove message data from buffer
-				_receiveBuffer = _receiveBuffer.mid(bytes);
-
-				// handle message
-				_jsonProcessor->handleMessage(message);
-
-				// try too look up '\n' again
-				bytes = _receiveBuffer.indexOf('\n') + 1;
+				doWebSocketHandshake();
+				break;
 			}
-		}
+			// if no ws, hand over the data to raw handling
+
+		case CON_MODE::RAW:
+			handleRawJsonData();
+			break;
+
+		case CON_MODE::WEBSOCKET:
+			handleWebSocketFrame();
+			break;
 	}
 }
 
+
+void JsonClientConnection::handleRawJsonData()
+{
+	_receiveBuffer += _socket->readAll(); 
+	// raw socket data, handling as usual
+	int bytes = _receiveBuffer.indexOf('\n') + 1;
+	while(bytes > 0)
+	{
+		// create message string
+		QString message(QByteArray(_receiveBuffer.data(), bytes));
+
+		// remove message data from buffer
+		_receiveBuffer = _receiveBuffer.mid(bytes);
+
+		// handle message
+		_jsonProcessor->handleMessage(message);
+
+		// try too look up '\n' again
+		bytes = _receiveBuffer.indexOf('\n') + 1;
+	}
+}
+
+void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
+{
+	char fin_rsv_opcode, mask_length;
+	_socket->getChar(&fin_rsv_opcode);
+	_socket->getChar(&mask_length);
+	
+	header->fin    = (fin_rsv_opcode & BHB0_FIN) == BHB0_FIN;
+	header->opCode = fin_rsv_opcode  & BHB0_OPCODE;
+	header->masked = (mask_length & BHB1_MASK) == BHB1_MASK;
+	header->payloadLength = mask_length  & BHB1_PAYLOAD;
+
+	// get size of payload
+	switch (header->payloadLength)
+	{
+		case payload_size_code_16bit:
+		{
+			QByteArray buf = _socket->read(2);
+			header->payloadLength = ((buf.at(2) << 8) & 0xFF00) | (buf.at(3) & 0xFF);
+		}
+		break;
+
+		case payload_size_code_64bit:
+		{
+			QByteArray buf = _socket->read(8);
+			header->payloadLength = 0;
+			for (uint i=0; i < 8; i++)
+			{
+				header->payloadLength |= ((quint64)(buf.at(i) & 0xFF)) << (8*(7-i));
+			}
+		}
+		break;
+	}
+	
+	// if the data is masked we need to get the key for unmasking
+	if (header->masked)
+	{
+		_socket->read(header->key, 4);
+	}
+}
+
+
 void JsonClientConnection::handleWebSocketFrame()
 {
-	if ((_receiveBuffer.at(0) & BHB0_FIN) == BHB0_FIN)
+	//printf("frame\n");
+
+	// we are on no continious reading from socket from call before
+	if (!_notEnoughData)
 	{
-		// final bit found, frame complete
-		quint8 * maskKey = NULL;
-		quint8 opCode = _receiveBuffer.at(0) & BHB0_OPCODE;
-		bool isMasked = (_receiveBuffer.at(1) & BHB0_FIN) == BHB0_FIN;
-		quint64 payloadLength = _receiveBuffer.at(1) & BHB1_PAYLOAD;
-		quint32 index = 2;
-//printf("%ld\n", payloadLength);
-		switch (payloadLength)
-		{
-			case payload_size_code_16bit:
-				payloadLength = ((_receiveBuffer.at(2) << 8) & 0xFF00) | (_receiveBuffer.at(3) & 0xFF);
-				index += 2;
-				break;
-			case payload_size_code_64bit:
-				payloadLength = 0;
-				for (uint i=0; i < 8; i++)
-				{
-					payloadLength |= ((quint64)(_receiveBuffer.at(index+i) & 0xFF)) << (8*(7-i));
-				}
-				index += 8;
-				break;
-			default:
-				break;
-		}
+		getWsFrameHeader(&_wsh);
+	}
 
-		if (isMasked)
+	if(_socket->bytesAvailable() < (qint64)_wsh.payloadLength)
+	{
+		//printf("not enough data %llu %llu\n", _socket->bytesAvailable(),  _wsh.payloadLength);
+		_notEnoughData=true;
+		return;
+	}
+	_notEnoughData = false;
+
+	QByteArray buf = _socket->read(_wsh.payloadLength);
+	//printf("opcode %x payload bytes %llu avail: %llu\n", _wsh.opCode, _wsh.payloadLength, _socket->bytesAvailable());
+
+	if (OPCODE::invalid((OPCODE::value)_wsh.opCode))
+	{
+		sendClose(CLOSECODE::INV_TYPE, "invalid opcode");
+		return;
+	}
+
+	// check the type of data frame
+	bool isContinuation=false;
+	switch (_wsh.opCode)
+	{
+		case OPCODE::CONTINUATION:
+			isContinuation = true;
+			// no break here, just jump over to opcode text
+
+		case OPCODE::BINARY:
+		case OPCODE::TEXT:
 		{
-			// if the data is masked we need to get the key for unmasking
-			maskKey = new quint8[4];
-			for (uint i=0; i < 4; i++)
+			// check for protocal violations
+			if (_onContinuation && !isContinuation)
 			{
-				maskKey[i] = _receiveBuffer.at(index + i);
+				sendClose(CLOSECODE::VIOLATION, "protocol violation, somebody sends frames in between continued frames");
+				return;
 			}
-			index += 4;
-		}
 
-		// check the type of data frame
-		switch (opCode)
-		{
-			case OPCODE::TEXT:
+			if (!_wsh.masked && _wsh.opCode == OPCODE::TEXT)
 			{
-				// frame contains text, extract it
-				QByteArray result = _receiveBuffer.mid(index, payloadLength);
-				_receiveBuffer.clear();
-
-				// unmask data if necessary
-				if (isMasked)
-				{
-					for (uint i=0; i < payloadLength; i++)
-					{
-						result[i] = (result[i] ^ maskKey[i % 4]);
-					}
-					if (maskKey != NULL)
-					{
-						delete[] maskKey;
-						maskKey = NULL;
-					}
-				}
-
-				_jsonProcessor->handleMessage(QString(result));
+				sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked text frames not allowed");
+				return;
 			}
-			break;
+
+			// unmask data
+			for (int i=0; i < buf.size(); i++)
+			{
+				buf[i] = buf[i] ^ _wsh.key[i % 4];
+			}
+
+			_onContinuation = !_wsh.fin || isContinuation;
+
+			// frame contains text, extract it, append data if this is a continuation
+			if (_wsh.fin && ! isContinuation) // one frame
+			{
+				_wsReceiveBuffer.clear();
+			}
+			_wsReceiveBuffer.append(buf);
+
+			// this is the final frame, decode and handle data
+			if (_wsh.fin)
+			{
+				_onContinuation = false;
+				if (_wsh.opCode == OPCODE::TEXT)
+				{
+					_jsonProcessor->handleMessage(QString(_wsReceiveBuffer));
+				}
+				else
+				{
+					handleBinaryMessage(_wsReceiveBuffer);
+				}
+				_wsReceiveBuffer.clear();
+			}
+		}
+		break;
+
 		case OPCODE::CLOSE:
 			{
-				// close request, confirm
-				quint8 close[] = {0x88, 0};
-				_socket->write((const char*)close, 2);
-				_socket->flush();
-				_socket->close();
+				sendClose(CLOSECODE::NORMAL);
 			}
 			break;
+
 		case OPCODE::PING:
 			{
 				// ping received, send pong
@@ -152,16 +222,47 @@ void JsonClientConnection::handleWebSocketFrame()
 				_socket->flush();
 			}
 			break;
+
+		case OPCODE::PONG:
+			{
+				Error(_log, "pong recievied, protocol violation!");
+			}
+
+		default:
+			Warning(_log, "strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
+	}
+}
+
+/// See http://tools.ietf.org/html/rfc6455#section-5.2 for more information
+void JsonClientConnection::sendClose(int status, QString reason)
+{
+	Info(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
+	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
+	_receiveBuffer.clear();
+	QByteArray sendBuffer;
+	
+	sendBuffer.append(136+(status-1000));
+	int length = reason.size();
+	if(length >= 126)
+	{
+		sendBuffer.append( (length > 0xffff) ? 127 : 126);
+		int num_bytes = (length > 0xffff) ? 8 : 2;
+
+		for(int c = num_bytes - 1; c != -1; c--)
+		{
+			sendBuffer.append( quint8((static_cast<unsigned long long>(length) >> (8 * c)) % 256));
 		}
 	}
 	else
 	{
-		Error(_log, "Someone is sending very big messages over several frames... it's not supported yet");
-		quint8 close[] = {0x88, 0};
-		_socket->write((const char*)close, 2);
-		_socket->flush();
-		_socket->close();
+		sendBuffer.append(quint8(length));
 	}
+	
+	sendBuffer.append(reason);
+
+	_socket->write(sendBuffer);
+	_socket->flush();
+	_socket->close();
 }
 
 void JsonClientConnection::doWebSocketHandshake()
@@ -178,16 +279,14 @@ void JsonClientConnection::doWebSocketHandshake()
 	value += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 	// generate sha1 hash
-	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1);
-	QByteArray hashB64 = hash.toBase64();
+	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1).toBase64();
 
 	// prepare an answer
 	QString data 
 	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
 		+ QString("Upgrade: websocket\r\n")
 		+ QString("Connection: Upgrade\r\n")
-		+ QString("Sec-WebSocket-Accept: ")
-		+ QString(hashB64.data()) + "\r\n\r\n";
+		+ QString("Sec-WebSocket-Accept: ")+QString(hash.data()) + "\r\n\r\n";
 
 	_socket->write(QSTRING_CSTR(data), data.size());
 	_socket->flush();
@@ -202,12 +301,11 @@ void JsonClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
-QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
+QByteArray JsonClientConnection::makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
 {
 	QByteArray header;
-	bool ok = payloadLength <= 0x7FFFFFFFFFFFFFFFULL;
 	
-	if (ok)
+	if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
 	{
 		//FIN, RSV1-3, opcode (RSV-1, RSV-2 and RSV-3 are zero)
 		quint8 byte = static_cast<quint8>((opCode & 0x0F) | (lastFrame ? 0x80 : 0x00));
@@ -226,7 +324,7 @@ QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLe
 			quint16 swapped = qToBigEndian<quint16>(static_cast<quint16>(payloadLength));
 			header.append(static_cast<const char *>(static_cast<const void *>(&swapped)), 2);
 		}
-		else if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
+		else
 		{
 			byte |= 127;
 			header.append(static_cast<char>(byte));
@@ -258,7 +356,7 @@ qint64 JsonClientConnection::sendMessage_Raw(const char* data, quint64 size)
 	return _socket->write(data, size);
 }
 
-qint64 JsonClientConnection::sendMessage_Raw(QByteArray data)
+qint64 JsonClientConnection::sendMessage_Raw(QByteArray &data)
 {
 	return _socket->write(data.data(), data.size());
 }
@@ -278,7 +376,8 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
 		
-		sendMessage_Raw(getFrameHeader(OPCODE::TEXT, frameSize, isLastFrame));
+		QByteArray buf = makeFrameHeader(OPCODE::TEXT, frameSize, isLastFrame);
+		sendMessage_Raw(buf);
 		qint64 written = sendMessage_Raw(payload+position,frameSize);
 		if (written > 0)
 		{
@@ -300,4 +399,24 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 	return payloadWritten;
 }
 
+void JsonClientConnection::handleBinaryMessage(QByteArray &data)
+{
+	uint8_t  priority   = data.at(0);
+	unsigned duration_s = data.at(1);
+	unsigned imgSize    = data.size() - 4;
+	unsigned width      = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
+	unsigned height     =  imgSize / width;
+
+	if ( ! (imgSize) % width)
+	{
+		Error(_log, "data size is not multiple of width");
+		return;
+	}
+	
+	Image<ColorRgb> image;
+	image.resize(width, height);
+
+	memcpy(image.memptr(), data.data()+4, imgSize);
+	_hyperion->setImage(priority, image, duration_s*1000);
+}
 
