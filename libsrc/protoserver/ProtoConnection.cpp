@@ -47,7 +47,7 @@ ProtoConnection::~ProtoConnection()
 }
 
 void ProtoConnection::readData()
-{	
+{
 	_receiveBuffer += _socket.readAll();
 
 	// check if we can read a message size
@@ -68,18 +68,18 @@ void ProtoConnection::readData()
 	{
 		return;
 	}
-	
+
 	// read a message
 	proto::HyperionReply reply;
-	
+
 	if (!reply.ParseFromArray(_receiveBuffer.data() + 4, messageSize))
 	{
 		Error(_log, "Unable to parse message");
 		return;
 	}
-	
+
 	parseReply(reply);
-	
+
 	// remove message data from buffer
 	_receiveBuffer = _receiveBuffer.mid(messageSize + 4);
 }
@@ -139,7 +139,7 @@ void ProtoConnection::clearAll()
 
 void ProtoConnection::connectToHost()
 {
-	// try connection only when 
+	// try connection only when
 	if (_socket.state() == QAbstractSocket::UnconnectedState)
 	{
 	   _socket.connectToHost(_host, _port);
@@ -201,7 +201,7 @@ void ProtoConnection::sendMessage(const proto::HyperionRequest &message)
 bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 {
 	bool success = false;
-	
+
 	switch (reply.type())
 	{
 		case proto::HyperionReply::REPLY:
@@ -226,13 +226,6 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 			}
 			break;
 		}
-		case proto::HyperionReply::GRABBING:
-		{
-			int grabbing = reply.has_grabbing() ? reply.grabbing() : 7;
-			GrabbingMode gMode = (GrabbingMode)grabbing;
-			emit setGrabbingMode(gMode);
-			break;
-		}
 		case proto::HyperionReply::VIDEO:
 		{
 			int video = reply.has_video() ? reply.video() : 0;
@@ -241,6 +234,6 @@ bool ProtoConnection::parseReply(const proto::HyperionReply &reply)
 			break;
 		}
 	}
-	
+
 	return success;
 }

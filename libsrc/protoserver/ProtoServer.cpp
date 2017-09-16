@@ -45,7 +45,7 @@ ProtoServer::~ProtoServer()
 	foreach (ProtoClientConnection * connection, _openConnections) {
 		delete connection;
 	}
-	
+
 	while (!_proxy_connections.isEmpty())
 		delete _proxy_connections.takeFirst();
 }
@@ -68,11 +68,9 @@ void ProtoServer::newConnection()
 		// register slot for cleaning up after the connection closed
 		connect(connection, SIGNAL(connectionClosed(ProtoClientConnection*)), this, SLOT(closedConnection(ProtoClientConnection*)));
 		connect(connection, SIGNAL(newMessage(const proto::HyperionRequest*)), this, SLOT(newMessage(const proto::HyperionRequest*)));
-		
-		// register forward signal for kodi checker
-		connect(this, SIGNAL(grabbingMode(GrabbingMode)), connection, SLOT(setGrabbingMode(GrabbingMode)));
-		connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
 
+		// register forward signal for video mode
+		connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
 	}
 }
 

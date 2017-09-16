@@ -22,7 +22,6 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
-#include <utils/GrabbingMode.h>
 
 // Hyperion includes
 #include <hyperion/LedString.h>
@@ -36,8 +35,7 @@
 #include <effectengine/ActiveEffectDefinition.h>
 #include <effectengine/EffectSchema.h>
 
-// KodiVideoChecker includes
-#include <kodivideochecker/KODIVideoChecker.h>
+// bonjour includes
 #include <bonjour/bonjourservicebrowser.h>
 #include <bonjour/bonjourserviceresolver.h>
 
@@ -48,7 +46,6 @@ class RgbTransform;
 class EffectEngine;
 class RgbChannelAdjustment;
 class MultiColorAdjustment;
-class KODIVideoChecker;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -175,7 +172,7 @@ public:
 	///
 	/// Enable/Disable components during runtime
 	///
-	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const hyperion::Components component, const bool state);
@@ -197,12 +194,11 @@ public:
 	QString id;
 
 	int getLatchTime() const;
-	
+
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
 	VideoMode getCurrentVideoMode() { return _videoMode; };
-	GrabbingMode getCurrentGrabbingMode() { return _grabbingMode; };
 
 public slots:
 	///
@@ -297,13 +293,6 @@ public slots:
 	/// @param[in] mode The new video mode
 	///
 	void setVideoMode(VideoMode mode);
-	
-	///
-	/// Set the grabbing mode
-	/// @param[in] mode The new grabbing mode
-	///
-	void setGrabbingMode(const GrabbingMode mode);
-
 
 public:
 	static Hyperion *_hyperion;
@@ -351,8 +340,6 @@ signals:
 
 	/// Signal emitted when a 3D movie is detected
 	void videoMode(VideoMode mode);
-
-	void grabbingMode(GrabbingMode mode);
 
 private slots:
 	///
@@ -461,8 +448,7 @@ private:
 
 	/// timers to handle severinfo blocking
 	QTimer _fsi_timer;
-	QTimer _fsi_blockTimer; 
-	
+	QTimer _fsi_blockTimer;
+
 	VideoMode _videoMode;
-	GrabbingMode _grabbingMode;
 };

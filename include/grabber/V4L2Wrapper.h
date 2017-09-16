@@ -19,8 +19,7 @@ public:
 			double redSignalThreshold,
 			double greenSignalThreshold,
 			double blueSignalThreshold,
-			const int priority,
-			bool useGrabbingMode);
+			const int priority);
 	virtual ~V4L2Wrapper() {};
 
 	bool getSignalDetectionEnable();

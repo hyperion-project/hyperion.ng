@@ -67,7 +67,6 @@
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
-			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
 			"cropTop"     : 0,
@@ -110,20 +109,6 @@
 		"maxInconsistentCnt" : 10,
 		"blurRemoveCnt"      : 1,
 		"mode" : "default"
-	},
-
-	"kodiVideoChecker" :
-	{
-		"enable"            : false,
-		"kodiAddress"       : "localhost",
-		"kodiTcpPort"       : 9090,
-		"grabVideo"         : true,
-		"grabPictures"      : true,
-		"grabAudio"         : true,
-		"grabMenu"          : false,
-		"grabPause"         : false,
-		"grabScreensaver"   : false,
-		"enable3DDetection" : false
 	},
 
 	"foregroundEffect" :

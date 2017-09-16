@@ -11,7 +11,6 @@
 		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
 		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
 		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>
-		<file alias="schema-kodiVideoChecker.json">schema/schema-kodiVideoChecker.json</file>
 		<file alias="schema-foregroundEffect.json">schema/schema-foregroundEffect.json</file>
 		<file alias="schema-backgroundEffect.json">schema/schema-backgroundEffect.json</file>
 		<file alias="schema-forwarder.json">schema/schema-forwarder.json</file>

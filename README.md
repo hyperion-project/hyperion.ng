@@ -22,7 +22,6 @@ The main features of Hyperion are:
 * Json interface which allows easy integration into scripts
 * A command line utility to for testing and integration in automated environment
 * Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our Android app).
-* Kodi-checker which checks the playing status of Kodi and decides whether or not to capture the screen.
 * Black border detector.
 * A scriptable (Python) effect engine
 * A web ui to configure and remote control hyperion

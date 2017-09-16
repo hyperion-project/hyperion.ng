@@ -10,7 +10,6 @@ add_executable(hyperiond
 target_link_libraries(hyperiond
 		commandline
 		hyperion
-		kodivideochecker
 		effectengine
 		jsonserver
 		boblightserver

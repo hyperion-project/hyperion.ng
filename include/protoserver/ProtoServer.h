@@ -15,7 +15,6 @@
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
@@ -56,9 +55,8 @@ public slots:
 
 signals:
 	///
-	/// Forwarding KODI Checker
+	/// Forwarding videoMode
 	///
-	void grabbingMode(const GrabbingMode mode);
 	void videoMode(const VideoMode VideoMode);
 
 private slots:
@@ -91,7 +89,7 @@ private:
 
 	/// Logger instance
 	Logger * _log;
-	
+
 	/// flag if forwarder is enabled
 	bool _forwarder_enabled;
 };

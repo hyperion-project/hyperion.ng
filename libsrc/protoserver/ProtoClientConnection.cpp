@@ -34,7 +34,7 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket *socket)
 	// connect internal signals and slots
 	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
-	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _imageProcessor, SLOT(setLedMappingType(int))); 
+	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _imageProcessor, SLOT(setLedMappingType(int)));
 }
 
 ProtoClientConnection::~ProtoClientConnection()
@@ -85,27 +85,14 @@ void ProtoClientConnection::socketClosed()
 	emit connectionClosed(this);
 }
 
-void ProtoClientConnection::setGrabbingMode(const GrabbingMode mode)
-{
-	int grabbing_mode = (int)mode;
-	proto::HyperionReply gMode;
-
-	// create proto message
-	gMode.set_type(proto::HyperionReply::GRABBING);
-	gMode.set_grabbing(grabbing_mode);
-
-	// send message
-	sendMessage(gMode);
-}
-
 void ProtoClientConnection::setVideoMode(const VideoMode videoMode)
 {
 	int video_Mode = (int)videoMode;
 	proto::HyperionReply vMode;
-	
+
 	// create proto message
 	vMode.set_type(proto::HyperionReply::VIDEO);
-	vMode.set_grabbing(video_Mode);
+	vMode.set_video(video_Mode);
 
 	// send message
 	sendMessage(vMode);
@@ -149,7 +136,7 @@ void ProtoClientConnection::handleMessage(const proto::HyperionRequest & message
 	default:
 		handleNotImplemented();
 	}
-	
+
 	if (prevPriority != _priority)
 	{
 		_hyperion->registerPriority(_priorityChannelName, _priority);

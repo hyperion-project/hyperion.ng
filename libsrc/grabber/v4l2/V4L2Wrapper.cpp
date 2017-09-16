@@ -15,8 +15,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		double redSignalThreshold,
 		double greenSignalThreshold,
 		double blueSignalThreshold,
-		const int priority,
-		bool useGrabbingMode)
+		const int priority)
 	: GrabberWrapper("V4L2:"+device, &_grabber, width, height, 8, priority, hyperion::COMP_V4L)
 	, _grabber(device,
 			input,
@@ -41,10 +40,6 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
 	QObject::connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 
-	if (!useGrabbingMode)
-	{
-			disconnect(_hyperion, SIGNAL(grabbingMode(GrabbingMode)), this, 0);
-	}
 	_timer.setInterval(500);
 }
 
@@ -83,7 +78,7 @@ void V4L2Wrapper::readError(const char* err)
 	Error(_log, "stop grabber, because reading device failed. (%s)", err);
 	stop();
 }
-	
+
 void V4L2Wrapper::checkSources()
 {
 	if ( _hyperion->isCurrentPriority(_priority))

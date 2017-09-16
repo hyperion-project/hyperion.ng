@@ -61,7 +61,7 @@ public:
 	/// @param effectArgs The arguments of the effect
 	///
 	void createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs);
-	
+
 	///
 	/// Delete a effect configuration file (.json)
 	///
@@ -98,7 +98,7 @@ public:
 	///
 	/// Enable/Disable components during runtime
 	///
-	/// @param component The component [SMOOTHING, BLACKBORDER, KODICHECKER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const QString & component, const bool state);
@@ -116,7 +116,7 @@ public:
 	void setSourceAutoSelect();
 
 	///
-	/// Print the current loaded Hyperion configuration file 
+	/// Print the current loaded Hyperion configuration file
 	///
 	QString getConfig(std::string type);
 

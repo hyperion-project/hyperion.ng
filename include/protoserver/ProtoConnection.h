@@ -11,7 +11,6 @@
 // hyperion util
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
@@ -90,9 +89,8 @@ private slots:
 signals:
 
 	///
-	/// KODI Video Checker Message
+	/// emits when a new videoMode was requested from proto client
 	///
-	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);
 
 private:
@@ -121,9 +119,9 @@ private:
 
 	QTimer _timer;
 	QAbstractSocket::SocketState  _prevSocketState;
-	
+
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
-	
+
 	Logger * _log;
 };

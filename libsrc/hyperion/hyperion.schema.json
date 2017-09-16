@@ -35,10 +35,6 @@
 		{
 			"$ref": "schema-blackborderdetector.json"
 		},
-		"kodiVideoChecker" :
-		{
-			"$ref": "schema-kodiVideoChecker.json"
-		},
 		"foregroundEffect" :
 		{
 			"$ref": "schema-foregroundEffect.json"

@@ -63,22 +63,18 @@ message ClearRequest {
 message HyperionReply {
 	enum Type {
 		REPLY = 1;
-		GRABBING = 2;
-		VIDEO = 3;
+		VIDEO = 2;
 	}
-	
+
 	// Identifies which field is filled in.
 	required Type type = 1;
-	
+
 	// flag indication success or failure
 	optional bool success = 2;
 
 	// string indicating the reason for failure (if applicable)
 	optional string error = 3;
 
-	// KODI Video Checker Proto Messages for Grabbing mode
-	optional int32 grabbing = 4;
-	
-	// KODI Video Checker Proto Messages for Video mode
-	optional int32 video = 5;
+	// Proto Messages for video mode
+	optional int32 video = 4;
 }

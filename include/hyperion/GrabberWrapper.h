@@ -7,7 +7,6 @@
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
-#include <utils/GrabbingMode.h>
 #include <hyperion/Hyperion.h>
 #include <hyperion/ImageProcessor.h>
 #include <utils/Image.h>
@@ -21,11 +20,11 @@ class DispmanxFrameGrabber;
 class GrabberWrapper : public QObject
 {
 	Q_OBJECT
-public: 
+public:
 	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz, const int priority, hyperion::Components grabberComponentId=hyperion::COMP_GRABBER);
-	
+
 	virtual ~GrabberWrapper();
-	
+
 	///
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
@@ -63,22 +62,16 @@ public:
 		return false;
 	}
 
-	
+
 public slots:
 	void componentStateChanged(const hyperion::Components component, bool enable);
-	
+
 	///
 	/// virtual method, should perform single frame grab and computes the led-colors
 	///
 	virtual void action() = 0;
 
 	void actionWrapper();
-
-	///
-	/// Set the grabbing mode
-	/// @param[in] mode The new grabbing mode
-	///
-	void setGrabbingMode(const GrabbingMode mode);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -94,9 +87,9 @@ signals:
 protected:
 
 	void setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms);
-	
+
 	QString _grabberName;
-	
+
 	/// Pointer to Hyperion for writing led values
 	Hyperion * _hyperion;
 
@@ -114,7 +107,7 @@ protected:
 
 	/// The Logger instance
 	Logger * _log;
-	
+
 	// forwarding enabled
 	bool _forward;
 
@@ -122,7 +115,7 @@ protected:
 	ImageProcessor * _processor;
 
 	hyperion::Components _grabberComponentId;
-	
+
 	Grabber *_ggrabber;
 
 	/// The image used for grabbing frames
@@ -130,7 +123,6 @@ protected:
 
 	/// The list with computed led colors
 	std::vector<ColorRgb> _ledColors;
-	
+
 	bool _imageProcessorEnabled;
 };
-

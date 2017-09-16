@@ -13,7 +13,6 @@
 #include <hyperion/Hyperion.h>
 
 //Utils includes
-#include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 
 // proto includes
@@ -41,12 +40,11 @@ public:
 	/// Destructor
 	///
 	~ProtoClientConnection();
-	
+
 public slots:
 	///
-	/// Send KODI Video Checker message to connected client
+	/// Send video mode message to connected client
 	///
-	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);
 
 signals:
@@ -138,9 +136,9 @@ private:
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
-	
+
 	int _priority;
-	
+
 	QString _priorityChannelName;
 
 	/// address of client

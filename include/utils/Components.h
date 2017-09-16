@@ -11,7 +11,6 @@ enum Components
 	COMP_INVALID,
 	COMP_SMOOTHING,
 	COMP_BLACKBORDER,
-	COMP_KODICHECKER,
 	COMP_FORWARDER,
 	COMP_UDPLISTENER,
 	COMP_BOBLIGHTSERVER,
@@ -29,7 +28,6 @@ inline const char* componentToString(Components c)
 	{
 		case COMP_SMOOTHING:     return "Smoothing";
 		case COMP_BLACKBORDER:   return "Blackborder detector";
-		case COMP_KODICHECKER:   return "KodiVideoChecker";
 		case COMP_FORWARDER:     return "Json/Proto forwarder";
 		case COMP_UDPLISTENER:   return "UDP listener";
 		case COMP_BOBLIGHTSERVER:return "Boblight server";
@@ -49,7 +47,6 @@ inline const char* componentToIdString(Components c)
 	{
 		case COMP_SMOOTHING:     return "SMOOTHING";
 		case COMP_BLACKBORDER:   return "BLACKBORDER";
-		case COMP_KODICHECKER:   return "KODICHECKER";
 		case COMP_FORWARDER:     return "FORWARDER";
 		case COMP_UDPLISTENER:   return "UDPLISTENER";
 		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
@@ -68,7 +65,6 @@ inline  Components stringToComponent(QString component)
 	component = component.toUpper();
 	if (component == "SMOOTHING")     return COMP_SMOOTHING;
 	if (component == "BLACKBORDER")   return COMP_BLACKBORDER;
-	if (component == "KODICHECKER")   return COMP_KODICHECKER;
 	if (component == "FORWARDER")     return COMP_FORWARDER;
 	if (component == "UDPLISTENER")   return COMP_UDPLISTENER;
 	if (component == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
