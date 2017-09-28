@@ -45,9 +45,10 @@ public:
 	/// Constructor
 	///
 	/// @param peerAddress provide the Address of the peer
-	/// @param noListener if true, this instance won't listen for hyperion push events
+	/// @param log         The Logger class of the creator
+	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonProcessor(QString peerAddress, bool noListener = false);
+	JsonProcessor(QString peerAddress, Logger* log, bool noListener = false);
 	~JsonProcessor();
 
 	///
@@ -266,16 +267,4 @@ private:
 	/// @param error String describing the error
 	///
 	void sendErrorReply(const QString & error, const QString &command="", const int tan=0);
-
-	///
-	/// Check if a JSON messag is valid according to a given JSON schema
-	///
-	/// @param message JSON message which need to be checked
-	/// @param schemaResource Qt Resource identifier with the JSON schema
-	/// @param errors Output error message
-	/// @param ignoreRequired ignore the required value in JSON schema
-	///
-	/// @return true if message conforms the given JSON schema
-	///
-	bool checkJson(const QJsonObject & message, const QString &schemaResource, QString & errors, bool ignoreRequired = false);
 };

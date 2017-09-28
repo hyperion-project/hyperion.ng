@@ -60,9 +60,9 @@ void StaticFileServing::onServerStarted (quint16 port)
 		txtRecord
 		);
 	Debug(_log, "Web Config mDNS responder started");
-	
+
 	// json-rpc for http
-	_jsonProcessor = new JsonProcessor(QString("HTTP-API"),true);
+	_jsonProcessor = new JsonProcessor(QString("HTTP-API"), _log, true);
 }
 
 void StaticFileServing::onServerStopped () {
@@ -200,4 +200,3 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		printErrorToReply (reply, QtHttpReply::MethodNotAllowed,"Unhandled HTTP/1.1 method " % command);
 	}
 }
-

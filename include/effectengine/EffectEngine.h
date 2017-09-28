@@ -77,7 +77,7 @@ private:
 	std::list<Effect *> _activeEffects;
 
 	std::list<ActiveEffectDefinition> _availableActiveEffects;
-	
+
 	std::list<EffectSchema> _effectSchemas;
 
 	PyThreadState * _mainThreadState;

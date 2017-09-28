@@ -21,7 +21,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 
 	// create a new instance of JsonProcessor
-	_jsonProcessor = new JsonProcessor(_clientAddress.toString());
+	_jsonProcessor = new JsonProcessor(_clientAddress.toString(), _log);
 	// get the callback messages from JsonProcessor and send it to the client
 	connect(_jsonProcessor,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
 }
@@ -182,7 +182,7 @@ void JsonClientConnection::doWebSocketHandshake()
 	QByteArray hashB64 = hash.toBase64();
 
 	// prepare an answer
-	QString data 
+	QString data
 	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
 		+ QString("Upgrade: websocket\r\n")
 		+ QString("Connection: Upgrade\r\n")
@@ -206,7 +206,7 @@ QByteArray JsonClientConnection::getFrameHeader(quint8 opCode, quint64 payloadLe
 {
 	QByteArray header;
 	bool ok = payloadLength <= 0x7FFFFFFFFFFFFFFFULL;
-	
+
 	if (ok)
 	{
 		//FIN, RSV1-3, opcode (RSV-1, RSV-2 and RSV-3 are zero)
@@ -277,7 +277,7 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
-		
+
 		sendMessage_Raw(getFrameHeader(OPCODE::TEXT, frameSize, isLastFrame));
 		qint64 written = sendMessage_Raw(payload+position,frameSize);
 		if (written > 0)
@@ -299,5 +299,3 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 	}
 	return payloadWritten;
 }
-
-

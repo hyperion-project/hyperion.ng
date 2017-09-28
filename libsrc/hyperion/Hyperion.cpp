@@ -35,11 +35,11 @@
 
 Hyperion* Hyperion::_hyperion = nullptr;
 
-Hyperion* Hyperion::initInstance(const QJsonObject& qjsonConfig, const QString configFile) // REMOVE jsonConfig variable when the conversion from jsonCPP to QtJSON is finished
+Hyperion* Hyperion::initInstance(const QJsonObject& qjsonConfig, const QString configFile, const QString rootPath)
 {
 	if ( Hyperion::_hyperion != nullptr )
 		throw std::runtime_error("Hyperion::initInstance can be called only one time");
-	Hyperion::_hyperion = new Hyperion(qjsonConfig, configFile);
+	Hyperion::_hyperion = new Hyperion(qjsonConfig, configFile, rootPath);
 
 	return Hyperion::_hyperion;
 }
@@ -381,7 +381,7 @@ MessageForwarder * Hyperion::getForwarder()
 	return _messageForwarder;
 }
 
-Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
+Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile, const QString rootPath)
 	: _ledString(createLedString(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _ledStringClone(createLedStringClone(qjsonConfig["leds"], createColorOrder(qjsonConfig["device"].toObject())))
 	, _muxer(_ledString.leds().size())
@@ -390,6 +390,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	, _messageForwarder(createMessageForwarder(qjsonConfig["forwarder"].toObject()))
 	, _qjsonConfig(qjsonConfig)
 	, _configFile(configFile)
+	, _rootPath(rootPath)
 	, _timer()
 	, _timerBonjourResolver()
 	, _log(CORE_LOGGER)
@@ -469,7 +470,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile)
 	_fsi_blockTimer.setSingleShot(true);
 
 	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
-	_configVersionId = generalConfig["configVersion"].toInt(-1);
 
 	// initialize the leds
 	update();

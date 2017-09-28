@@ -123,7 +123,7 @@ void CgiHandler::cmd_cfg_set()
 
 					QPair<bool, bool> validate = schemaChecker.validate(hyperionConfigJsonObj);
 
-					
+
 					if (validate.first && validate.second)
 					{
 						QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj);
@@ -131,7 +131,7 @@ void CgiHandler::cmd_cfg_set()
 					else if (!validate.first && validate.second)
 					{
 						Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
-						
+
 						QStringList schemaErrors = schemaChecker.getMessages();
 						foreach (auto & schemaError, schemaErrors)
 							Info(_log, schemaError.toUtf8().constData());
@@ -176,7 +176,7 @@ void CgiHandler::cmd_runscript()
 	{
 		QStringList scriptFilePathList(_args);
 		scriptFilePathList.removeAt(0);
-		
+
 		QString scriptFilePath = scriptFilePathList.join('/');
 		// relative path not allowed
 		if (scriptFilePath.indexOf("..") >=0)

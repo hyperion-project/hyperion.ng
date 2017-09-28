@@ -472,11 +472,11 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue & value, const QJsonV
 		if (removeDuplicates && _correct == "modify")
 		{
 			QJsonArray uniqueItemsArray;
-			
+
 			for(int i = 0; i < jArray.size(); ++i)
 				if (!uniqueItemsArray.contains(jArray[i]))
 					uniqueItemsArray.append(jArray[i]);
-			
+
 			QJsonUtils::modify(_autoCorrected, _currentPath, uniqueItemsArray);
 		}
 	}
