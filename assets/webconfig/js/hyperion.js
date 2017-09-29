@@ -281,7 +281,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"');
 }
 
 function requestDeleteEffect(effectName)

@@ -22,9 +22,9 @@
 		{
 			"type" : "integer",
 			"title" : "edt_conf_general_port_title",
-			"minimum" : 0,
+			"minimum" : 80,
 			"maximum" : 65535,
-			"default" : 8099,
+			"default" : 8090,
 			"access" : "expert",
 			"propertyOrder" : 3
 		}

@@ -440,7 +440,7 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile, con
 	_timerBonjourResolver.start();
 
 	// create the effect engine, must be initialized after smoothing!
-	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject() );
+	_effectEngine = new EffectEngine(this,qjsonConfig["effects"].toObject());
 
 	const QJsonObject& device = qjsonConfig["device"].toObject();
 	unsigned int hwLedCount = device["ledCount"].toInt(getLedCount());
@@ -468,8 +468,6 @@ Hyperion::Hyperion(const QJsonObject &qjsonConfig, const QString configFile, con
 	connect(&_fsi_timer, SIGNAL(timeout()), this, SLOT(hyperionStateChanged()));
 	_fsi_timer.setSingleShot(true);
 	_fsi_blockTimer.setSingleShot(true);
-
-	const QJsonObject & generalConfig = qjsonConfig["general"].toObject();
 
 	// initialize the leds
 	update();

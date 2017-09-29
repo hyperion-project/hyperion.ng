@@ -170,7 +170,7 @@ void EffectEngine::readEffects()
 
 	for(auto p : paths)
 	{
-		efxPathList << p.toString();
+		efxPathList << p.toString().replace("$ROOT",_hyperion->getRootPath());
 	}
 	for(auto efx : disabledEfx)
 	{
@@ -307,7 +307,10 @@ void EffectEngine::allChannelsCleared()
 {
 	for (Effect * effect : _activeEffects)
 	{
-		effect->abort();
+		if (effect->getPriority() != 254)
+		{
+			effect->abort();
+		}
 	}
 }
 

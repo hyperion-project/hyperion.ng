@@ -1,6 +1,11 @@
 #include <utils/FileUtils.h>
 
+// qt incl
 #include <QFileInfo>
+#include <QDebug>
+
+// hyperion include
+#include <hyperion/Hyperion.h>
 
 namespace FileUtils {
 
@@ -75,6 +80,12 @@ namespace FileUtils {
 			return false;
 		}
 		return true;
+	}
+	
+ 	QString convertPath(const QString path)
+ 	{
+		QString p = path;
+		return p.replace(QString("$ROOT"), Hyperion::getInstance()->getRootPath());
 	}
 
 	void resolveFileError(const QFile& file, Logger* log)

@@ -173,14 +173,14 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
 	if (!validate.first)
 	{
-		Warning(_log,"Errors have been found in the configuration file. Automatic correction has been applied");
+		Warning(_log,"Error(s) have been found in the configuration file. Automatic correction has been applied");
 
 		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
 
 		if (!JsonUtils::write(configFile, _qconfig, _log))
-			throw std::runtime_error("ERROR: can not save configuration file, aborting");
+			throw std::runtime_error("ERROR: Can't save configuration file, aborting");
 	}
-	else if (!validate.second) //Error in Schema
+	if (!validate.second) //Error in Schema
 	{
 		QStringList schemaErrors = schemaChecker.getMessages();
 		foreach (auto & schemaError, schemaErrors)

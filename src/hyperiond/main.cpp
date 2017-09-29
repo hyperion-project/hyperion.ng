@@ -299,11 +299,6 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if (configFiles.size() > 1)
-	{
-		Warning(log, "You provided more than one config file. Hyperion will use only the first one");
-	}
-
     int parentPid = parser.value(parentOption).toInt();
 	if (parentPid > 0 )
 	{

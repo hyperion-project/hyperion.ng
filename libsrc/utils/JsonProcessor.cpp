@@ -46,7 +46,7 @@ JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, bool noListener)
 {
 	// notify hyperion about a jsonMessageForward
 	connect(this, &JsonProcessor::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
-	// notify hyperion about a push emit
+	// notify hyperion about a push emit TODO: Remove! Make sure that the target of the commands trigger this (less error margin) instead this instance
 	connect(this, &JsonProcessor::pushReq, _hyperion, &Hyperion::hyperionStateChanged);
 
 	if(!noListener)
@@ -77,14 +77,14 @@ void JsonProcessor::handleMessage(const QString& messageString, const QString pe
 	// parse the message
 	if(!JsonUtils::parse(ident, messageString, message, _log))
 	{
-		sendErrorReply("Errors during message parsing, please consult the Hyperion Log for more information.");
+		sendErrorReply("Errors during message parsing, please consult the Hyperion Log. Data:"+messageString);
 		return;
 	}
 
 	// check basic message
 	if(!JsonUtils::validate(ident, message, ":schema", _log))
 	{
-	  	sendErrorReply("Errors during message validation, please consult the Hyperion Log for more information.");
+	  	sendErrorReply("Errors during message validation, please consult the Hyperion Log.");
 		return;
 	}
 
@@ -269,12 +269,8 @@ void JsonProcessor::handleCreateEffectCommand(const QJsonObject& message, const 
 						}
 					} else
 					{
-						newFileName.setFile(effectArray[0].toString() + QDir::separator() + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
-
-						while(newFileName.exists())
-						{
-							newFileName.setFile(effectArray[0].toString() + QDir::separator() + newFileName.baseName() + QString::number(qrand() % ((10) - 0) + 0) + QString(".json"));
-						}
+						QString f = FileUtils::convertPath(effectArray[0].toString() + "/" + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
+						newFileName.setFile(f);
 					}
 
 					if(!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))

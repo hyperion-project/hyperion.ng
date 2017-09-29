@@ -7,7 +7,7 @@
 		{
 			"type" : "array",
 			"title" : "edt_conf_effp_paths_title",
-			"default" : ["../custom-effects"],
+			"default" : ["$ROOT/custom-effects"],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_effp_paths_itemtitle"
