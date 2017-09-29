@@ -84,7 +84,7 @@ void JsonProcessor::handleMessage(const QString& messageString, const QString pe
 	// check basic message
 	if(!JsonUtils::validate(ident, message, ":schema", _log))
 	{
-	  	sendErrorReply("Errors during message validation, please consult the Hyperion Log.");
+		sendErrorReply("Errors during message validation, please consult the Hyperion Log.");
 		return;
 	}
 
