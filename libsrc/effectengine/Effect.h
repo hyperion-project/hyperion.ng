@@ -56,6 +56,7 @@ private:
 	static PyMethodDef effectMethods[];
 	static PyObject* wrapSetColor              (PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
+	static PyObject* wrapGetImage              (PyObject *self, PyObject *args);
 	static PyObject* wrapAbort                 (PyObject *self, PyObject *args);
 	static PyObject* wrapImageShow             (PyObject *self, PyObject *args);
 	static PyObject* wrapImageLinearGradient   (PyObject *self, PyObject *args);
