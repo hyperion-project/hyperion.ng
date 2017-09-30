@@ -18,20 +18,34 @@
 			"maxItems": 3,
 			"propertyOrder" : 1
 		},
+		"background-color": {
+			"type": "array",
+			"title":"edt_eff_color",
+			"format":"colorpicker",
+			"default": [0,0,0],
+			"items" : {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 255
+			},
+			"minItems": 3,
+			"maxItems": 3,
+			"propertyOrder" : 2
+		},
 		"rotation-time": {
 			"type": "number",
 			"title":"edt_eff_rotationtime",
 			"default": 12.0,
 			"minimum" : 0.1,
 			"append" : "edt_append_s",
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		},
 		"percentage": {
 			"type": "integer",
 			"title":"edt_eff_length",
 			"default": 10,
 			"append" : "edt_append_percent",
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": false
