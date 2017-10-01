@@ -7,6 +7,7 @@
 		"image": {
 			"type": "string",
 			"title":"edt_eff_image",
+			"format" : "file",
 			"default": "",
 			"propertyOrder" : 1
 		},
