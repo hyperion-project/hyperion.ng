@@ -116,8 +116,8 @@ namespace JsonUtils {
 					return false;
 				}
 			}
-			//else if (attributeValue.isObject())
-			//	obj.insert(attribute, resolveRefs(attributeValue.toObject(), obj, log));
+			else if (attributeValue.isObject())
+				obj.insert(attribute, resolveRefs(attributeValue.toObject(), obj, log));
 			else
 			{
 				qDebug() <<"ADD ATTR:VALUE"<<attribute<<attributeValue;

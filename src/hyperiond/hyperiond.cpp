@@ -153,10 +153,8 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	try
 	{
 		//QJsonObject obj;
-		//JsonUtils::readSchema(configFile, obj, _log);
+		//JsonUtils::readSchema(schemaFile, obj, _log);
 		schemaJson = QJsonFactory::readSchema(schemaFile);
-		//qDebug()<<"::::: NEW OBJECT ::::"<<obj;
-		//qDebug()<<"::::: OLD OBJECT ::::::"<<schemaJson;
 	}
 	catch(const std::runtime_error& error)
 	{
@@ -169,24 +167,28 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	if(!JsonUtils::readFile(configFile, _qconfig, _log))
 		throw std::runtime_error("Failed to load config!");
 
-
+	// validate config with schema and correct it if required
 	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
+
+	// errors in schema syntax, abort
+	if (!validate.second)
+	{
+		foreach (auto & schemaError, schemaChecker.getMessages())
+			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
+
+		throw std::runtime_error("ERROR: Hyperion schema has errors!");
+	}
+	// errors in configuration, correct it!
 	if (!validate.first)
 	{
-		Warning(_log,"Error(s) have been found in the configuration file. Automatic correction has been applied");
-
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction has been applied");
 		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
+
+		foreach (auto & schemaError, schemaChecker.getMessages())
+			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 
 		if (!JsonUtils::write(configFile, _qconfig, _log))
 			throw std::runtime_error("ERROR: Can't save configuration file, aborting");
-	}
-	if (!validate.second) //Error in Schema
-	{
-		QStringList schemaErrors = schemaChecker.getMessages();
-		foreach (auto & schemaError, schemaErrors)
-			std::cout << schemaError.toStdString() << std::endl;
-
-		throw std::runtime_error("ERROR: Hyperion schema has errors!");
 	}
 }
 

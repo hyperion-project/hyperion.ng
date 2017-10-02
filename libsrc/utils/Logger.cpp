@@ -24,7 +24,7 @@ Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 	{
 		LoggerMap = new std::map<QString,Logger*>;
 	}
-	
+
 	if ( LoggerMap->find(name) == LoggerMap->end() )
 	{
 		log = new Logger(name,minLevel);
@@ -44,7 +44,7 @@ void Logger::deleteInstance(QString name)
 {
 	if (LoggerMap == nullptr)
 		return;
-	
+
 	if ( name.isEmpty() )
 	{
 		std::map<QString,Logger*>::iterator it;
@@ -99,7 +99,7 @@ Logger::Logger ( QString name, LogLevel minLevel )
     const char* _appname_char = getprogname();
 #endif
 	_appname = QString(_appname_char).toLower();
-	
+
 
 	loggerCount++;
 
@@ -111,7 +111,7 @@ Logger::Logger ( QString name, LogLevel minLevel )
 
 Logger::~Logger()
 {
-	Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
+	//Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
 	loggerCount--;
 	if ( loggerCount == 0 )
 		closelog();

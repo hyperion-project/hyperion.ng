@@ -258,6 +258,12 @@ int main(int argc, char** argv)
 	if (configFiles.size() > 0)
 	{
 		// use argument config file
+		// check if file has a path and ends with .json
+		if(configFiles[0].contains("/"))
+			throw std::runtime_error("Don't provide a path to config file, just a config name is allowed!");
+		if(!configFiles[0].endsWith(".json"))
+			configFiles[0].append(".json");
+
 		configFiles.prepend(cPath+"/"+configFiles[0]);
 	}
 	else

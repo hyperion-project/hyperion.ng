@@ -1,5 +1,6 @@
 // Python include
 #include <Python.h>
+#include <frameobject.h>
 
 // stl includes
 #include <iostream>
@@ -101,7 +102,7 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 
 	// disable the black border detector for effects
 	_imageProcessor->enableBlackBorderDetector(false);
-	
+
 	// init effect image for image based effects, size is based on led layout
 	_image.fill(Qt::black);
 	_painter = new QPainter(&_image);
@@ -194,7 +195,7 @@ void Effect::effectFinished()
 }
 
 PyObject *Effect::json2python(const QJsonValue &jsonData) const
-{	
+{
 	switch (jsonData.type())
 	{
 		case QJsonValue::Null:
@@ -453,7 +454,7 @@ PyObject* Effect::wrapImageShow(PyObject *self, PyObject *args)
 			binaryImage.append((char) qBlue(scanline[j]));
 		}
 	}
-	
+
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
 	std::vector<ColorRgb> v = effect->_colors.toStdVector();
 	effect->_imageProcessor->process(image, v);
@@ -513,7 +514,7 @@ PyObject* Effect::wrapImageLinearGradient(PyObject *self, PyObject *args)
 
 				gradient.setSpread(static_cast<QGradient::Spread>(spread));
 				effect->_painter->fillRect(myQRect, gradient);
-				
+
 				return Py_BuildValue("");
 			}
 			else
@@ -580,7 +581,7 @@ PyObject* Effect::wrapImageConicalGradient(PyObject *self, PyObject *args)
 				}
 
 				effect->_painter->fillRect(myQRect, gradient);
-				
+
 				return Py_BuildValue("");
 			}
 			else
@@ -616,7 +617,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	if ( argCount == 12 && PyArg_ParseTuple(args, "iiiiiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread) )
 	{
 		argsOK      = true;
-	}	
+	}
 	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread) )
 	{
 		argsOK      = true;
@@ -635,7 +636,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 		focalY      = centerY;
 		focalRadius = radius;
 	}
-		
+
 	if (argsOK)
 	{
 		if (PyByteArray_Check(bytearray))
@@ -661,7 +662,7 @@ PyObject* Effect::wrapImageRadialGradient(PyObject *self, PyObject *args)
 
 				gradient.setSpread(static_cast<QGradient::Spread>(spread));
 				effect->_painter->fillRect(myQRect, gradient);
-				
+
 				return Py_BuildValue("");
 			}
 			else
@@ -742,7 +743,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
 	PyObject * bytearray = nullptr;
-	
+
 	QString brush;
 	int argCount = PyTuple_Size(args);
 	int radius, centerX, centerY;
@@ -804,7 +805,7 @@ PyObject* Effect::wrapImageDrawPie(PyObject *self, PyObject *args)
 						));
 					}
 					painter->setBrush(gradient);
-				
+
 					return Py_BuildValue("");
 				}
 				else
@@ -908,7 +909,7 @@ PyObject* Effect::wrapImageDrawLine(PyObject *self, PyObject *args)
 		painter->setPen(newPen);
 		painter->drawLine(startX, startY, endX, endY);
 		painter->setPen(oldPen);
-	
+
 		return Py_BuildValue("");
 	}
 	return nullptr;
@@ -943,7 +944,7 @@ PyObject* Effect::wrapImageDrawPoint(PyObject *self, PyObject *args)
 		painter->setPen(newPen);
 		painter->drawPoint(x, y);
 		painter->setPen(oldPen);
-	
+
 		return Py_BuildValue("");
 	}
 	return nullptr;
@@ -983,7 +984,7 @@ PyObject* Effect::wrapImageDrawRect(PyObject *self, PyObject *args)
 		painter->setPen(newPen);
 		painter->drawRect(startX, startY, width, height);
 		painter->setPen(oldPen);
-	
+
 		return Py_BuildValue("");
 	}
 	return nullptr;
@@ -1028,7 +1029,7 @@ PyObject* Effect::wrapImageSave(PyObject *self, PyObject *args)
 	QImage img(effect->_image.copy());
 	effect->_imageStack.append(img);
 
-	return Py_BuildValue("i", effect->_imageStack.size()-1);	
+	return Py_BuildValue("i", effect->_imageStack.size()-1);
 }
 
 PyObject* Effect::wrapImageMinSize(PyObject *self, PyObject *args)
@@ -1045,7 +1046,7 @@ PyObject* Effect::wrapImageMinSize(PyObject *self, PyObject *args)
 		if (width<w || height<h)
 		{
 			delete effect->_painter;
-			
+
 			effect->_image = effect->_image.scaled(qMax(width,w),qMax(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 			effect->_imageSize = effect->_image.size();
 			effect->_painter = new QPainter(&(effect->_image));
@@ -1070,10 +1071,10 @@ PyObject* Effect::wrapImageHeight(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
-	
+
 	int argCount = PyTuple_Size(args);
 	int angle;
-	
+
 	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
 	{
 		angle = qMax(qMin(angle,360),0);
@@ -1086,16 +1087,16 @@ PyObject* Effect::wrapImageCRotate(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageCOffset(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
-	
+
 	int offsetX = 0;
 	int offsetY = 0;
 	int argCount = PyTuple_Size(args);
-	
+
 	if ( argCount == 2 )
 	{
 		PyArg_ParseTuple(args, "ii", &offsetX, &offsetY );
 	}
-	
+
 	effect->_painter->translate(QPoint(offsetX,offsetY));
 	return Py_BuildValue("");
 }
@@ -1103,10 +1104,10 @@ PyObject* Effect::wrapImageCOffset(PyObject *self, PyObject *args)
 PyObject* Effect::wrapImageCShear(PyObject *self, PyObject *args)
 {
 	Effect * effect = getEffect();
-	
+
 	int sh,sv;
 	int argCount = PyTuple_Size(args);
-	
+
 	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &sh, &sv ))
 	{
 		effect->_painter->shear(sh,sv);
