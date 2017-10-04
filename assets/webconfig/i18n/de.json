@@ -416,6 +416,7 @@
 	"edt_conf_enum_linear" : "Linear",
 	"edt_conf_enum_PAL" : "PAL",
 	"edt_conf_enum_NTSC" : "NTSC",
+	"edt_conf_enum_SECAM" : "SECAM",
 	"edt_conf_enum_logsilent" : "Stille",
 	"edt_conf_enum_logwarn" : "Warnung",
 	"edt_conf_enum_logverbose" : "Ausführlich",

@@ -90,7 +90,7 @@ bool V4L2Grabber::init()
 	{
 		getV4Ldevices();
 		QString v4lDevices_str;
-		
+
 		// show list only once
 		if ( ! QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/") )
 		{
@@ -153,7 +153,7 @@ bool V4L2Grabber::init()
 			ErrorIf( !_deviceAutoDiscoverEnabled, _log, "V4l2 init failed (%s)", e.what());
 		}
 	}
-	
+
 	return _initialized;
 }
 
@@ -161,7 +161,7 @@ void V4L2Grabber::getV4Ldevices()
 {
 	QDirIterator it("/sys/class/video4linux/", QDirIterator::NoIteratorFlags);
 	while(it.hasNext())
-	{ 
+	{
 		//_v4lDevices
 		QString dev = it.next();
 		if (it.fileName().startsWith("video"))
@@ -456,6 +456,15 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	case VIDEOSTANDARD_NTSC:
 	{
 		v4l2_std_id std_id = V4L2_STD_NTSC;
+		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+		{
+			throw_errno_exception("VIDIOC_S_STD");
+		}
+	}
+		break;
+	case VIDEOSTANDARD_SECAM:
+	{
+		v4l2_std_id std_id = V4L2_STD_SECAM;
 		if (-1 == xioctl(VIDIOC_S_STD, &std_id))
 		{
 			throw_errno_exception("VIDIOC_S_STD");
@@ -768,7 +777,7 @@ int V4L2Grabber::read_frame()
 		emit readError(e.what());
 		rc = false;
 	}
-	
+
 	return rc ? 1 : 0;
 }
 
@@ -810,7 +819,7 @@ void V4L2Grabber::process_image(const uint8_t * data)
 		unsigned xMax     = image.width()  * _x_frac_max;
 		unsigned yMax     = image.height() * _y_frac_max;
 
-		
+
 		for (unsigned x = xOffset; noSignal && x < xMax; ++x)
 		{
 			for (unsigned y = yOffset; noSignal && y < yMax; ++y)
