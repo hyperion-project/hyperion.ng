@@ -277,8 +277,16 @@ void EffectEngine::readEffects()
 
 	for(auto p : paths)
 	{
-		efxPathList << p.toString();
+		QString str = p.toString();
+
+		if(str.startsWith("$HOME"))
+		{
+			str.remove(0, 5);
+			str = QDir::homePath()+str;
+		}
+		efxPathList << str;
 	}
+
 	for(auto efx : disabledEfx)
 	{
 		disableList << efx.toString();
@@ -326,7 +334,7 @@ void EffectEngine::readEffects()
 
 			// collect effect schemas
 			efxCount = 0;
-			directory = path + "schema/";
+			directory = path.endsWith("/") ? (path + "schema/") : (path + "/schema/");
 			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			for (const QString & pyname : pynames)
 			{

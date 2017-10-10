@@ -1,6 +1,7 @@
-// This is a example config (hyperion.config.json) with comments, in any case you need to create your own one with HyperCon!
-// location of all configs: /etc/hyperion
+// This is a example config (hyperion.config.json) with comments, we provide a UI for your Browser to configure Hyperion
+// location of all configs: ~/.hyperion/config/hyperion_main.json
 // Webpage: https://www.hyperion-project.org
+// Documentation: https://docs.hyperion-project.org
 
 
 {
@@ -20,8 +21,7 @@
 
 	/// Device configuration contains the following fields:
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
-	/// * 'type'       : The type of the device or leds (known types for now are
-	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
+	/// * 'type'       : The type of the device. Read more here: https://docs.hyperion-project.org/en/user/led-hardware/intro
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
@@ -314,23 +314,22 @@
 	/// Configuration of the Hyperion webserver
 	///  * enable        : enable or disable the webserver (true/false)
 	///  * document_root : path to hyperion webapp files (webconfig developer only)
-	///  * port          : the port where hyperion webapp is accasible
+	///  * port          : the port where hyperion webapp is accessible
 	"webConfig" :
 	{
 		"enable"        : true,
 		"document_root" : "/path/to/files",
-		"port"          : 8099
+		"port"          : 8090
 	},
 
-	/// The configuration of the effect engine, contains the following items:
-	///  * paths : An array with absolute/relative location(s) of directories with effects
-	///  * disable : An array with effect names that shouldn't be loaded
-	"effects" :
+	/// The configuration of the effect engine, contains the following items: 
+	///  * paths : An array with absolute/relative location(s) of directories with effects. "$HOME" is a keyword for the path to current user home directory.
+	///  * disable : An array with effect names that shouldn't be loaded 
+	"effects" : 
 	{
 		"paths" :
 		[
-			"/storage/hyperion/effects",
-			"/usr/share/hyperion/effects"
+			"$HOME/.hyperion/custom-effects"
 		],
 		"disable" :
 		[
@@ -338,6 +337,23 @@
 			"X-Mas"
 		]
 	},
+	
+	/// Instances that should be started to configure a second/third led device with the same source independent of the main instance:
+	/// Note that you need to forward from your main instance to the new created one to reuse the source
+	/// Min/Max length of instName is 4/20!
+	///  * enabled: Enables or disables the instance
+	///  * instName : Pretty name of the instance, also used as new instance name
+	"instances" :
+	[
+		{
+			"enabled": true,
+			"instName": "My PhilipsHue"
+		},
+		{
+			"enabled": false,
+			"instName": "My AtmoOrb"
+		}
+	],
 
 	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.
 	"ledConfig" :

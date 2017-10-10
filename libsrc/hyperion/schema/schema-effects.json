@@ -6,8 +6,9 @@
 		"paths" :
 		{
 			"type" : "array",
+			"uniqueItems": true,
 			"title" : "edt_conf_effp_paths_title",
-			"default" : ["../custom-effects"],
+			"default" : ["$HOME/.hyperion/custom-effects"],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_effp_paths_itemtitle"
@@ -18,6 +19,7 @@
 		"disable" :
 		{
 			"type" : "array",
+			"uniqueItems": true,
 			"title" : "edt_conf_effp_disable_title",
 			"default" : [""],
 			"items" : {

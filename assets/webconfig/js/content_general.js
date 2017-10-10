@@ -4,14 +4,30 @@ $(document).ready( function() {
 	var importedConf;
 	var confName;
 	var conf_editor = null;
+	var conf_editor_inst = null;
+
 
 	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
 	if(showOptHelp)
 	{
-		$('#conf_cont').append(createHelpTable(schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
+		// general
+		$('#conf_cont').append(createRow('conf_cont_gen'))
+		$('#conf_cont_gen').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+		$('#conf_cont_gen').append(createHelpTable(schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
+
+		// instances
+		$('#conf_cont').append(createRow('conf_cont_inst'))
+		$('#conf_cont_inst').append(createOptPanel('fa-wrench', $.i18n("edt_conf_inst_heading_title"), 'editor_container_inst', 'btn_submit_inst'));
+		$('#conf_cont_inst').append(createHelpTable(schema.instances.items.properties, $.i18n("edt_conf_inst_heading_title")));
 	}
 	else
-		$('#conf_imp').appendTo('#conf_cont');
+	{
+		$('#conf_cont').addClass('row');
+		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+		$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_inst_heading_title"), 'editor_container_inst', 'btn_submit_inst'));
+	}
+
+  $('#conf_imp').appendTo('#conf_cont');
 
 	conf_editor = createJsonEditor('editor_container', {
 		general: schema.general
@@ -23,6 +39,19 @@ $(document).ready( function() {
 
 	$('#btn_submit').off().on('click',function() {
 		requestWriteConfig(conf_editor.getValue());
+	});
+
+	// instances
+	conf_editor_inst = createJsonEditor('editor_container_inst', {
+		instances: schema.instances
+	}, true, true);
+
+	conf_editor_inst.on('change',function() {
+		conf_editor_inst.validate().length ? $('#btn_submit_inst').attr('disabled', true) : $('#btn_submit_inst').attr('disabled', false);
+	});
+
+	$('#btn_submit_inst').off().on('click',function() {
+		requestWriteConfig(conf_editor_inst.getValue());
 	});
 
 	//import
@@ -103,7 +132,10 @@ $(document).ready( function() {
 
 	//create introduction
 	if(showOptHelp)
+	{
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
+		createHint("intro", $.i18n('conf_general_instances_intro'), "editor_container_inst");
+	}
 
 	removeOverlay();
 });

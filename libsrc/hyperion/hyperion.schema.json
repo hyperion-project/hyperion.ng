@@ -75,6 +75,10 @@
 		{
 			"$ref": "schema-effects.json"
 		},
+		"instances" :
+		{
+			"$ref": "schema-instances.json"
+		},
 		"ledConfig":
 		{
 			"$ref": "schema-ledConfig.json"

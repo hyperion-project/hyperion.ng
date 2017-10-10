@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 2.8.12)
+
+FILE ( GLOB Hyperiond-starter_SOURCES "*.h" "*.cpp" )
+
+add_executable(hyperiond-starter
+	${Hyperiond-starter_SOURCES}
+)
+
+target_link_libraries(hyperiond-starter
+	hyperion
+	hyperion-utils
+	Qt5::Core
+	Qt5::Network
+)
+
+install ( TARGETS hyperiond-starter DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+
+if(CMAKE_HOST_UNIX)
+	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond-starter\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond-starter\" )" COMPONENT  "${PLATFORM}" )
+	install(FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond-starter DESTINATION "bin" RENAME hyperiond-starter COMPONENT "${PLATFORM}" )
+	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond-starter )" COMPONENT "${PLATFORM}" )
+endif(CMAKE_HOST_UNIX)
