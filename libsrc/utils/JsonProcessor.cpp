@@ -96,7 +96,7 @@ void JsonProcessor::handleMessage(const QString& messageString, const QString pe
 		return;
 	}
 
-	int tan = message["tan"].toInt(0);
+	int tan = message["tan"].toInt();
 	// switch over all possible commands and handle them
 	if      (command == "color")          handleColorCommand         (message, command, tan);
 	else if (command == "image")          handleImageCommand         (message, command, tan);
