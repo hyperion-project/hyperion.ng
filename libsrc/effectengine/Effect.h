@@ -19,18 +19,18 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
+	Effect(int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
 	virtual ~Effect();
 
 	virtual void run();
 
 	int getPriority() const;
-	
+
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
-	
+
 	int getTimeout() const {return _timeout; }
-	
+
 	QJsonObject getArgs() const { return _args; }
 
 	bool isAbortRequested() const;
@@ -42,12 +42,7 @@ public slots:
 	void abort();
 
 signals:
-	void effectFinished(Effect * effect);
-
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components componentconst, QString origin, unsigned smoothCfg);
-
-private slots:
-	void effectFinished();
 
 private:
 	PyObject * json2python(const QJsonValue & jsonData) const;
@@ -88,8 +83,6 @@ private:
 
 	void addImage();
 
-	PyThreadState * _mainThreadState;
-
 	const int _priority;
 
 	const int _timeout;
@@ -111,12 +104,12 @@ private:
 
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
-	
-	
+
+	Logger* _log;
+
 	QString         _origin;
 	QSize           _imageSize;
 	QImage          _image;
 	QPainter*       _painter;
 	QVector<QImage> _imageStack;
 };
-	

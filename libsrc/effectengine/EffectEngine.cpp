@@ -280,9 +280,9 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args, origin, smoothCfg);
+    Effect * effect = new Effect(priority, timeout, script, name, args, origin, smoothCfg);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), Qt::QueuedConnection);
-	connect(effect, SIGNAL(effectFinished(Effect*)), this, SLOT(effectFinished(Effect*)));
+	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
 	_activeEffects.push_back(effect);
 
 	// start the effect
@@ -314,8 +314,9 @@ void EffectEngine::allChannelsCleared()
 	}
 }
 
-void EffectEngine::effectFinished(Effect *effect)
+void EffectEngine::effectFinished()
 {
+	Effect* effect = qobject_cast<Effect*>(sender());
 	if (!effect->isAbortRequested())
 	{
 		// effect stopped by itself. Clear the channel

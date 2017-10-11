@@ -1,6 +1,5 @@
 // Python include
 #include <Python.h>
-#include <frameobject.h>
 
 // stl includes
 #include <iostream>
@@ -79,9 +78,8 @@ void Effect::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin, unsigned smoothCfg)
+Effect::Effect(int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin, unsigned smoothCfg)
 	: QThread()
-	, _mainThreadState(mainThreadState)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _script(script)
@@ -100,6 +98,8 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	_colors.resize(_imageProcessor->getLedCount());
 	_colors.fill(ColorRgb::BLACK);
 
+	_log = Logger::getInstance("EFFECTENGINE");
+
 	// disable the black border detector for effects
 	_imageProcessor->enableBlackBorderDetector(false);
 
@@ -107,8 +107,6 @@ Effect::Effect(PyThreadState * mainThreadState, int priority, int timeout, const
 	_image.fill(Qt::black);
 	_painter = new QPainter(&_image);
 
-	// connect the finished signal
-	connect(this, SIGNAL(finished()), this, SLOT(effectFinished()));
 	Q_INIT_RESOURCE(EffectEngine);
 }
 
@@ -121,7 +119,7 @@ Effect::~Effect()
 void Effect::run()
 {
 	// switch to the main thread state and acquire the GIL
-	PyEval_RestoreThread(_mainThreadState);
+	PyEval_AcquireLock();
 
 	// Initialize a new thread state
 	_interpreterThreadState = Py_NewInterpreter();
@@ -159,13 +157,109 @@ void Effect::run()
 	}
 	else
 	{
-		Error(Logger::getInstance("EFFECTENGINE"), "Unable to open script file %s.", QSTRING_CSTR(_script));
+		Error(_log, "Unable to open script file %s.", QSTRING_CSTR(_script));
 	}
 	file.close();
 
 	if (!python_code.isEmpty())
 	{
-		PyRun_SimpleString(python_code.constData());
+		PyObject *main_module = PyImport_ImportModule("__main__"); // New Reference
+		PyObject *main_dict = PyModule_GetDict(main_module); // Borrowed reference
+		Py_INCREF(main_dict); // Incref "main_dict" to use it in PyRun_String(), because PyModule_GetDict() has decref "main_dict"
+		Py_DECREF(main_module); // // release "main_module" when done
+		PyObject *result = PyRun_String(python_code.constData(), Py_file_input, main_dict, main_dict); // New Reference
+
+		if (!result)
+		{
+			if (PyErr_Occurred()) // Nothing needs to be done for a borrowed reference
+			{
+				Error(_log,"###### PYTHON EXCEPTION ######");
+				Error(_log,"## In effect '%s'", QSTRING_CSTR(_name));
+				/* Objects all initialized to NULL for Py_XDECREF */
+				PyObject *errorType = NULL, *errorValue = NULL, *errorTraceback = NULL;
+
+				PyErr_Fetch(&errorType, &errorValue, &errorTraceback); // New Reference or NULL
+				PyErr_NormalizeException(&errorType, &errorValue, &errorTraceback);
+
+				// Extract exception message from "errorValue"
+				if(errorValue)
+				{
+					QString message;
+					if(PyObject_HasAttrString(errorValue, "__class__"))
+					{
+						PyObject *classPtr = PyObject_GetAttrString(errorValue, "__class__"); // New Reference
+						PyObject *class_name = NULL; /* Object "class_name" initialized to NULL for Py_XDECREF */
+						class_name = PyObject_GetAttrString(classPtr, "__name__"); // New Reference or NULL
+
+						if(class_name && PyString_Check(class_name))
+							message.append(PyString_AsString(class_name));
+
+						Py_DECREF(classPtr); // release "classPtr" when done
+						Py_XDECREF(class_name); // Use Py_XDECREF() to ignore NULL references
+					}
+
+					// Object "class_name" initialized to NULL for Py_XDECREF
+					PyObject *valueString = NULL;
+					valueString = PyObject_Str(errorValue); // New Reference or NULL
+
+					if(valueString && PyString_Check(valueString))
+					{
+						if(!message.isEmpty())
+							message.append(": ");
+
+						message.append(PyString_AsString(valueString));
+					}
+					Py_XDECREF(valueString); // Use Py_XDECREF() to ignore NULL references
+
+					Error(_log, "## %s", QSTRING_CSTR(message));
+				}
+
+				// Extract exception message from "errorTraceback"
+				if(errorTraceback)
+				{
+					// Object "tracebackList" initialized to NULL for Py_XDECREF
+					PyObject *tracebackModule = NULL, *methodName = NULL, *tracebackList = NULL;
+					QString tracebackMsg;
+
+					tracebackModule = PyImport_ImportModule("traceback"); // New Reference or NULL
+					methodName = PyString_FromString("format_exception"); // New Reference or NULL
+					tracebackList = PyObject_CallMethodObjArgs(tracebackModule, methodName, errorType, errorValue, errorTraceback, NULL); // New Reference or NULL
+
+					if(tracebackList)
+					{
+						PyObject* iterator = PyObject_GetIter(tracebackList); // New Reference
+
+						PyObject* item;
+						while( (item = PyIter_Next(iterator)) ) // New Reference
+						{
+							Error(_log, "## %s",QSTRING_CSTR(QString(PyString_AsString(item)).trimmed()));
+							Py_DECREF(item); // release "item" when done
+						}
+						Py_DECREF(iterator);  // release "iterator" when done
+					}
+
+					// Use Py_XDECREF() to ignore NULL references
+					Py_XDECREF(tracebackModule);
+					Py_XDECREF(methodName);
+					Py_XDECREF(tracebackList);
+
+					// Give the exception back to python and print it to stderr in case anyone else wants it.
+					Py_XINCREF(errorType);
+					Py_XINCREF(errorValue);
+					Py_XINCREF(errorTraceback);
+
+					PyErr_Restore(errorType, errorValue, errorTraceback);
+					//PyErr_PrintEx(0); // Remove this line to switch off stderr output
+				}
+				Error(_log,"###### EXCEPTION END ######");
+			}
+		}
+		else
+		{
+			Py_DECREF(result);  // release "result" when done
+		}
+
+		Py_DECREF(main_dict);  // release "main_dict" when done
 	}
 
 	// Clean up the thread state
@@ -187,11 +281,6 @@ bool Effect::isAbortRequested() const
 void Effect::abort()
 {
 	_abortRequested = true;
-}
-
-void Effect::effectFinished()
-{
-	emit effectFinished(this);
 }
 
 PyObject *Effect::json2python(const QJsonValue &jsonData) const

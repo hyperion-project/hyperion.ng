@@ -121,7 +121,7 @@ $(document).ready( function() {
 	});
 
 	$('#btn_edit').off().on('click', function(){
-		var name = $("#effectsdellist").val();
+		var name = $("#effectsdellist").val().replace("ext_","");
 
 		if(name.startsWith("int_"))
 		{	name = name.split("_").pop();
