@@ -758,9 +758,14 @@ void JsonProcessor::handleConfigCommand(const QJsonObject& message, const QStrin
 {
 	QString subcommand = message["subcommand"].toString("");
 	QString full_command = command + "-" + subcommand;
+
 	if (subcommand == "getschema")
 	{
 		handleSchemaGetCommand(message, full_command, tan);
+	}
+	else if (subcommand == "setconfig")
+	{
+		handleConfigSetCommand(message, full_command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
@@ -775,6 +780,67 @@ void JsonProcessor::handleConfigCommand(const QJsonObject& message, const QStrin
 	else
 	{
 		sendErrorReply("unknown or missing subcommand", full_command, tan);
+	}
+}
+
+void JsonProcessor::handleConfigSetCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	if(message.size() > 0)
+	{
+		if (message.contains("config"))
+		{
+			QJsonObject hyperionConfigJsonObj = message["config"].toObject();
+			try
+			{
+				Q_INIT_RESOURCE(resource);
+
+				QJsonObject schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
+
+				QJsonSchemaChecker schemaChecker;
+				schemaChecker.setSchema(schemaJson);
+
+				QPair<bool, bool> validate = schemaChecker.validate(hyperionConfigJsonObj);
+
+				if (validate.first && validate.second)
+				{
+					QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj);
+				}
+				else if (!validate.first && validate.second)
+				{
+					Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+					
+					QStringList schemaErrors = schemaChecker.getMessages();
+					for (auto & schemaError : schemaErrors)
+						Info(_log, QSTRING_CSTR(schemaError));
+
+					hyperionConfigJsonObj = schemaChecker.getAutoCorrectedConfig(hyperionConfigJsonObj);
+
+					if (!QJsonFactory::writeJson(_hyperion->getConfigFileName(), hyperionConfigJsonObj))
+						throw std::runtime_error("ERROR: can not save configuration file, aborting");
+				}
+				else //Error in Schema
+				{
+					QString errorMsg = "ERROR: Json validation failed: \n";
+					QStringList schemaErrors = schemaChecker.getMessages();
+					for (auto & schemaError: schemaErrors)
+					{
+						Error(_log, "config write validation: %s", QSTRING_CSTR(schemaError));
+						errorMsg += schemaError + "\n";
+					}
+
+					throw std::runtime_error(errorMsg.toStdString());
+				}
+				sendSuccessReply(command, tan);
+			}
+			catch(const std::runtime_error& validate_error)
+			{
+				sendErrorReply("Error while validating json: " + QString(validate_error.what()), command, tan);
+			}
+		}
+	}
+	else
+	{
+		sendErrorReply("Error while parsing json: Message size " + QString(message.size()), command, tan);
 	}
 }
 

@@ -37,15 +37,13 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 		_request = request;
 		_reply   = reply;
 		cmd_cfg_jsonserver();
-		cmd_cfg_get();
-		cmd_cfg_set();
+// 		cmd_cfg_set();
 		cmd_runscript();
 		throw 1;
 	}
 	catch(int e)
 	{
-		if (e != 0)
-			throw 1;
+		if (e != 0) throw 1;
 	}
 }
 
@@ -68,6 +66,7 @@ void CgiHandler::cmd_cfg_jsonserver()
 	}
 }
 
+<<<<<<< HEAD
 
 void CgiHandler::cmd_cfg_get()
 {
@@ -170,6 +169,8 @@ void CgiHandler::cmd_cfg_set()
 	}
 }
 
+=======
+>>>>>>> master
 void CgiHandler::cmd_runscript()
 {
 	if ( _args.at(0) == "run" )

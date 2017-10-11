@@ -102,7 +102,7 @@
 	///  * enable               : Enable or disable the v4lgrabber (true/false)
 	///  * device               : V4L2 Device to use [default="/dev/video0"]
 	///  * input                : V4L2 input to use [default=0]
-	///  * standard             : Video standard (no-change/PAL/NTSC) [default="no-change"]
+	///  * standard             : Video standard (PAL/NTSC/SECAM) [default="PAL"]
 	///  * width                : V4L2 width to set [default=-1]
 	///  * height               : V4L2 height to set [default=-1]
 	///  * frameDecimation      : Frame decimation factor [default=2]

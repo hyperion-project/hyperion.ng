@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 		Parser parser("V4L capture application for Hyperion");
 
 		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use [default: %1]", "auto");
-		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC or no-change. [default: %1]", "no-change");
+		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32 or no-change. [default: %1]", "no-change");
 		IntOption          & argInput               = parser.add<IntOption>    (0x0, "input", "Input channel (optional)", "-1");
 		IntOption          & argWidth               = parser.add<IntOption>    (0x0, "width", "Try to set the width of the video input [default: %1]", "-1");
@@ -92,6 +92,7 @@ int main(int argc, char** argv)
 
 		argVideoStandard.addSwitch("pal", VIDEOSTANDARD_PAL);
 		argVideoStandard.addSwitch("ntsc", VIDEOSTANDARD_NTSC);
+		argVideoStandard.addSwitch("secam", VIDEOSTANDARD_SECAM);
 		argVideoStandard.addSwitch("no-change", VIDEOSTANDARD_NO_CHANGE);
 
 		argPixelFormat.addSwitch("yuyv", PIXELFORMAT_YUYV);
