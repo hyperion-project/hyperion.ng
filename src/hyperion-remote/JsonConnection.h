@@ -6,6 +6,9 @@
 #include <QTcpSocket>
 #include <QJsonObject>
 
+//forward class decl
+class Logger;
+
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
 ///
@@ -61,7 +64,7 @@ public:
 	/// @param effectArgs The arguments of the effect
 	///
 	void createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs);
-	
+
 	///
 	/// Delete a effect configuration file (.json)
 	///
@@ -116,7 +119,7 @@ public:
 	void setSourceAutoSelect();
 
 	///
-	/// Print the current loaded Hyperion configuration file 
+	/// Print the current loaded Hyperion configuration file
 	///
 	QString getConfig(std::string type);
 
@@ -188,10 +191,13 @@ private:
 	///
 	bool parseReply(const QJsonObject & reply);
 
-private:
 	/// Flag for printing all send and received json-messages to the standard out
 	bool _printJson;
 
+	// Logger class
+	Logger* _log;
+
 	/// The TCP-Socket with the connection to the server
 	QTcpSocket _socket;
+
 };

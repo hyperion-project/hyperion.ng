@@ -319,17 +319,18 @@
 	{
 		"enable"        : true,
 		"document_root" : "/path/to/files",
-		"port"          : 8099
+		"port"          : 8090
 	},
 
 	/// The configuration of the effect engine, contains the following items:
-	///  * paths : An array with absolute/relative location(s) of directories with effects
+	///  * paths : An array with absolute location(s) of directories with effects,
+	///            $ROOT is a keyword which will be replaced with the current rootPath that can be specified on startup from the commandline (defaults to your home directory)
 	///  * disable : An array with effect names that shouldn't be loaded
 	"effects" :
 	{
 		"paths" :
 		[
-			"/storage/hyperion/effects",
+			"$ROOT/custom-effects",
 			"/usr/share/hyperion/effects"
 		],
 		"disable" :

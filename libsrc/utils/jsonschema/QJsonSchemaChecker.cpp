@@ -197,6 +197,7 @@ void QJsonSchemaChecker::checkType(const QJsonValue & value, const QJsonValue & 
 		if (_correct == "modify")
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue);
 
+
 		if (_correct == "")
 			setMessage(type + " expected");
 	}
@@ -222,7 +223,10 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 			_error = true;
 
 			if (_correct == "create")
+			{
 				QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue, _ignoreRequired), property);
+				setMessage("Create property: "+property+" with value: "+propertyValue.toObject().find("default").value().toString());
+			}
 
 			if (_correct == "")
 				setMessage("missing member");
@@ -250,7 +254,10 @@ void QJsonSchemaChecker::checkAdditionalProperties(const QJsonObject & value, co
 					_error = true;
 
 					if (_correct == "remove")
+					{
 						QJsonUtils::modify(_autoCorrected, _currentPath);
+						setMessage("Removed property: "+property);
+					}
 
 					if (_correct == "")
 						setMessage("no schema definition");
@@ -280,9 +287,12 @@ void QJsonSchemaChecker::checkMinimum(const QJsonValue & value, const QJsonValue
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+			setMessage("Correct too small value: "+QString::number(value.toDouble())+" to: "+QString::number(defaultValue.toDouble()));
+		}
 
 		if (_correct == "")
 			setMessage("value is too small (minimum=" + QString::number(schema.toDouble()) + ")");
@@ -304,9 +314,12 @@ void QJsonSchemaChecker::checkMaximum(const QJsonValue & value, const QJsonValue
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+			setMessage("Correct too large value: "+QString::number(value.toDouble())+" to: "+QString::number(defaultValue.toDouble()));
+		}
 
 		if (_correct == "")
 			setMessage("value is too large (maximum=" + QString::number(schema.toDouble()) + ")");
@@ -328,10 +341,12 @@ void QJsonSchemaChecker::checkMinLength(const QJsonValue & value, const QJsonVal
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
-
+			setMessage("Correct too short value: "+value.toString()+" to: "+defaultValue.toString());
+		}
 		if (_correct == "")
 			setMessage("value is too short (minLength=" + QString::number(schema.toInt()) + ")");
 	}
@@ -352,10 +367,12 @@ void QJsonSchemaChecker::checkMaxLength(const QJsonValue & value, const QJsonVal
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
-
+			setMessage("Correct too long value: "+value.toString()+" to: "+defaultValue.toString());
+		}
 		if (_correct == "")
 			setMessage("value is too long (maxLength=" + QString::number(schema.toInt()) + ")");
 	}
@@ -375,7 +392,10 @@ void QJsonSchemaChecker::checkItems(const QJsonValue & value, const QJsonObject 
 
 	if (_correct == "remove")
 		if (jArray.isEmpty())
+		{
 			QJsonUtils::modify(_autoCorrected, _currentPath);
+			setMessage("Remove empty array");
+		}
 
 	for(int i = 0; i < jArray.size(); ++i)
 	{
@@ -402,9 +422,12 @@ void QJsonSchemaChecker::checkMinItems(const QJsonValue & value, const QJsonValu
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+			setMessage("Correct minItems: "+QString::number(jArray.size())+" to: "+QString::number(defaultValue.toArray().size()));
+		}
 
 		if (_correct == "")
 			setMessage("array is too small (minimum=" + QString::number(schema.toInt()) + ")");
@@ -427,9 +450,12 @@ void QJsonSchemaChecker::checkMaxItems(const QJsonValue & value, const QJsonValu
 		_error = true;
 
 		if (_correct == "modify")
+		{
 			(defaultValue != QJsonValue::Null) ?
 			QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 			QJsonUtils::modify(_autoCorrected, _currentPath, schema);
+			setMessage("Correct maxItems: "+QString::number(jArray.size())+" to: "+QString::number(defaultValue.toArray().size()));
+		}
 
 		if (_correct == "")
 			setMessage("array is too large (maximum=" + QString::number(schema.toInt()) + ")");
@@ -472,11 +498,11 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue & value, const QJsonV
 		if (removeDuplicates && _correct == "modify")
 		{
 			QJsonArray uniqueItemsArray;
-			
+
 			for(int i = 0; i < jArray.size(); ++i)
 				if (!uniqueItemsArray.contains(jArray[i]))
 					uniqueItemsArray.append(jArray[i]);
-			
+
 			QJsonUtils::modify(_autoCorrected, _currentPath, uniqueItemsArray);
 		}
 	}
@@ -501,9 +527,12 @@ void QJsonSchemaChecker::checkEnum(const QJsonValue & value, const QJsonValue & 
 	_error = true;
 
 	if (_correct == "modify")
+	{
 		(defaultValue != QJsonValue::Null) ?
 		QJsonUtils::modify(_autoCorrected, _currentPath, defaultValue) :
 		QJsonUtils::modify(_autoCorrected, _currentPath, schema.toArray().first());
+		setMessage("Correct unknown enum value: "+value.toString()+" to: "+defaultValue.toString());
+	}
 
 	if (_correct == "")
 	{

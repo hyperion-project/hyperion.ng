@@ -58,7 +58,7 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString configFile, QObject *parent=nullptr);
+	HyperionDaemon(QString configFile, QString rootPath, QObject *parent=nullptr);
 	~HyperionDaemon();
 
 	void loadConfig(const QString & configFile);
@@ -95,11 +95,11 @@ private:
 	X11Wrapper*         _x11Grabber;
 #endif
 	AmlogicWrapper*     _amlGrabber;
-	FramebufferWrapper* _fbGrabber; 
+	FramebufferWrapper* _fbGrabber;
 	OsxWrapper*         _osxGrabber;
 	Hyperion*           _hyperion;
 	Stats*              _stats;
-	
+
 	unsigned            _grabber_width;
 	unsigned            _grabber_height;
 	unsigned            _grabber_frequency;

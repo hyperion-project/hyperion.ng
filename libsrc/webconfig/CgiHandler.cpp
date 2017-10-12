@@ -72,7 +72,7 @@ void CgiHandler::cmd_runscript()
 	{
 		QStringList scriptFilePathList(_args);
 		scriptFilePathList.removeAt(0);
-		
+
 		QString scriptFilePath = scriptFilePathList.join('/');
 		// relative path not allowed
 		if (scriptFilePath.indexOf("..") >=0)

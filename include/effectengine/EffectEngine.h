@@ -57,7 +57,7 @@ public slots:
 	void allChannelsCleared();
 
 private slots:
-	void effectFinished(Effect * effect);
+	void effectFinished();
 
 private:
 	bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
@@ -77,7 +77,7 @@ private:
 	std::list<Effect *> _activeEffects;
 
 	std::list<ActiveEffectDefinition> _availableActiveEffects;
-	
+
 	std::list<EffectSchema> _effectSchemas;
 
 	PyThreadState * _mainThreadState;

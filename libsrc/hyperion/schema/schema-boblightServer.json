@@ -15,7 +15,7 @@
 			"type" : "integer",
 			"required" : true,
 			"title" : "edt_conf_general_port_title",
-			"minimum" : 0,
+			"minimum" : 1024,
 			"maximum" : 65535,
 			"propertyOrder" : 2
 		},

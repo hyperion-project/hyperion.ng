@@ -58,7 +58,7 @@ sudo make install/strip
 # to uninstall (not very well tested, please keep that in mind)
 sudo make uninstall
 # ... or run it from compile directory
-bin/hyperiond myconfig.json
+bin/hyperiond
 # webui is located on localhost:8099
 ```
 
@@ -143,5 +143,3 @@ This will install to ``/home/pi/apps/share/hyperion``
 ### Integrating hyperion into your system
 
 ... ToDo
-
-

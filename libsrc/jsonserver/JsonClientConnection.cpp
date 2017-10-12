@@ -25,7 +25,7 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
 
 	// create a new instance of JsonProcessor
-	_jsonProcessor = new JsonProcessor(_clientAddress.toString());
+	_jsonProcessor = new JsonProcessor(_clientAddress.toString(), _log);
 	// get the callback messages from JsonProcessor and send it to the client
 	connect(_jsonProcessor,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
 }
@@ -65,7 +65,7 @@ void JsonClientConnection::readData()
 
 void JsonClientConnection::handleRawJsonData()
 {
-	_receiveBuffer += _socket->readAll(); 
+	_receiveBuffer += _socket->readAll();
 	// raw socket data, handling as usual
 	int bytes = _receiveBuffer.indexOf('\n') + 1;
 	while(bytes > 0)
@@ -89,7 +89,7 @@ void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
 	char fin_rsv_opcode, mask_length;
 	_socket->getChar(&fin_rsv_opcode);
 	_socket->getChar(&mask_length);
-	
+
 	header->fin    = (fin_rsv_opcode & BHB0_FIN) == BHB0_FIN;
 	header->opCode = fin_rsv_opcode  & BHB0_OPCODE;
 	header->masked = (mask_length & BHB1_MASK) == BHB1_MASK;
@@ -116,7 +116,7 @@ void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
 		}
 		break;
 	}
-	
+
 	// if the data is masked we need to get the key for unmasking
 	if (header->masked)
 	{
@@ -240,7 +240,7 @@ void JsonClientConnection::sendClose(int status, QString reason)
 	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
 	_receiveBuffer.clear();
 	QByteArray sendBuffer;
-	
+
 	sendBuffer.append(136+(status-1000));
 	int length = reason.size();
 	if(length >= 126)
@@ -257,7 +257,7 @@ void JsonClientConnection::sendClose(int status, QString reason)
 	{
 		sendBuffer.append(quint8(length));
 	}
-	
+
 	sendBuffer.append(reason);
 
 	_socket->write(sendBuffer);
@@ -282,7 +282,7 @@ void JsonClientConnection::doWebSocketHandshake()
 	QByteArray hash = QCryptographicHash::hash(value, QCryptographicHash::Sha1).toBase64();
 
 	// prepare an answer
-	QString data 
+	QString data
 	    = QString("HTTP/1.1 101 Switching Protocols\r\n")
 		+ QString("Upgrade: websocket\r\n")
 		+ QString("Connection: Upgrade\r\n")
@@ -304,7 +304,7 @@ void JsonClientConnection::socketClosed()
 QByteArray JsonClientConnection::makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame)
 {
 	QByteArray header;
-	
+
 	if (payloadLength <= 0x7FFFFFFFFFFFFFFFULL)
 	{
 		//FIN, RSV1-3, opcode (RSV-1, RSV-2 and RSV-3 are zero)
@@ -375,9 +375,10 @@ qint64 JsonClientConnection::sendMessage_Websockets(QByteArray &data)
 
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
-		
+
 		QByteArray buf = makeFrameHeader(OPCODE::TEXT, frameSize, isLastFrame);
 		sendMessage_Raw(buf);
+
 		qint64 written = sendMessage_Raw(payload+position,frameSize);
 		if (written > 0)
 		{
@@ -412,11 +413,10 @@ void JsonClientConnection::handleBinaryMessage(QByteArray &data)
 		Error(_log, "data size is not multiple of width");
 		return;
 	}
-	
+
 	Image<ColorRgb> image;
 	image.resize(width, height);
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
 	_hyperion->setImage(priority, image, duration_s*1000);
 }
-

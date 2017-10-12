@@ -120,7 +120,7 @@ void Stats::resolveReply(QNetworkReply *reply)
 
 bool Stats::trigger(bool set)
 {
-	QString path =	QDir::homePath()+"/.hyperion/misc/";
+	QString path =	_hyperion->getRootPath()+"/misc/";
 	QDir dir;
 	QFile file(path + _hyperion->id);
 
