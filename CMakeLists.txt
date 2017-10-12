@@ -65,9 +65,24 @@ endif()
 
 message( STATUS "PLATFORM: ${PLATFORM}")
 
+# Macro to get path of first sub dir of a dir, used for MAC OSX lib/header searching
+MACRO(FIRSTSUBDIR result curdir)
+  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+  SET(dirlist "")
+  FOREACH(child ${children})
+    IF(IS_DIRECTORY ${curdir}/${child})
+      LIST(APPEND dirlist "${curdir}/${child}")
+	  BREAK()
+    ENDIF()
+  ENDFOREACH()
+  SET(${result} ${dirlist})
+ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5" CACHE STRING "path to your QT5 files" )
+	# add specific prefix paths
+	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt5")
+	FIRSTSUBDIR(SUBDIRPY "/usr/local/Cellar/python3")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
