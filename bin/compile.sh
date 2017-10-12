@@ -5,7 +5,7 @@ CFG="${2:-Release}"
 INST="$( [ "${3:-}" = "install" ] && echo true || echo false )"
 
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev  || exit 1
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev  || exit 1
 
 if [ -e /dev/vc-cma -a -e /dev/vc-mem ]
 then
@@ -24,4 +24,3 @@ make -j $(nproc)                 || exit 1
 $INST && sudo make install/strip
 echo "to uninstall (not very well tested, please keep that in mind):"
 echo "   sudo make uninstall"
-

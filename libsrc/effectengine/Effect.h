@@ -1,7 +1,10 @@
 #pragma once
 
 // Python includes
+// collide of qt slots macro
+#undef slots
 #include <Python.h>
+#define slots
 
 // Qt includes
 #include <QThread>
@@ -19,7 +22,7 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
+	Effect(PyThreadState* mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
 	virtual ~Effect();
 
 	virtual void run();
@@ -70,14 +73,12 @@ private:
 	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
 	static Effect * getEffect();
 
-#if PY_MAJOR_VERSION >= 3
 	static struct PyModuleDef moduleDef;
 	static PyObject* PyInit_hyperion();
-#else
-	static void PyInit_hyperion();
-#endif
 
 	void addImage();
+
+	PyThreadState* _mainThreadState;
 
 	const int _priority;
 
@@ -90,8 +91,6 @@ private:
 	const QJsonObject _args;
 
 	int64_t _endTime;
-
-	PyThreadState * _interpreterThreadState;
 
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;

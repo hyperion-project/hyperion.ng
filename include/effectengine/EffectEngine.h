@@ -80,7 +80,7 @@ private:
 
 	std::list<EffectSchema> _effectSchemas;
 
-	PyThreadState * _mainThreadState;
-
 	Logger * _log;
+
+	PyThreadState* _mainThreadState;
 };

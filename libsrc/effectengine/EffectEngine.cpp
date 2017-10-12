@@ -24,9 +24,10 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 	, _effectConfig(jsonEffectConfig)
 	, _availableEffects()
 	, _activeEffects()
-	, _mainThreadState(nullptr)
 	, _log(Logger::getInstance("EFFECTENGINE"))
+	, _mainThreadState(nullptr)
 {
+
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
@@ -280,7 +281,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(priority, timeout, script, name, args, origin, smoothCfg);
+    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args, origin, smoothCfg);
 	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
 	_activeEffects.push_back(effect);

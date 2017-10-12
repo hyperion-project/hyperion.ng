@@ -1,6 +1,3 @@
-// Python include
-#include <Python.h>
-
 // stl includes
 #include <iostream>
 #include <sstream>
@@ -51,7 +48,7 @@ PyMethodDef Effect::effectMethods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
+
 // create the hyperion module
 struct PyModuleDef Effect::moduleDef = {
 	PyModuleDef_HEAD_INIT,
@@ -69,20 +66,15 @@ PyObject* Effect::PyInit_hyperion()
 {
 	return PyModule_Create(&moduleDef);
 }
-#else
-void Effect::PyInit_hyperion()
-{
-	Py_InitModule("hyperion", effectMethods);
-}
-#endif
 
 void Effect::registerHyperionExtensionModule()
 {
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-Effect::Effect(int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin, unsigned smoothCfg)
+Effect::Effect(PyThreadState* mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args, const QString & origin, unsigned smoothCfg)
 	: QThread()
+	, _mainThreadState(mainThreadState)
 	, _priority(priority)
 	, _timeout(timeout)
 	, _script(script)
@@ -90,7 +82,6 @@ Effect::Effect(int priority, int timeout, const QString & script, const QString 
 	, _smoothCfg(smoothCfg)
 	, _args(args)
 	, _endTime(-1)
-	, _interpreterThreadState(nullptr)
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _colors()
 	, _origin(origin)
@@ -120,11 +111,18 @@ Effect::~Effect()
 
 void Effect::run()
 {
-	// switch to the main thread state and acquire the GIL
-	PyEval_AcquireLock();
+	// get global lock
+	PyEval_RestoreThread(_mainThreadState);
 
 	// Initialize a new thread state
-	_interpreterThreadState = Py_NewInterpreter();
+	PyThreadState* tstate = Py_NewInterpreter();
+	if(tstate == nullptr)
+	{
+		PyEval_ReleaseLock();
+		Error(_log, "Failed to get thread state for %s",QSTRING_CSTR(_name));
+		return;
+	}
+	PyThreadState_Swap(tstate);
 
 	// import the buildtin Hyperion module
 	PyObject * module = PyImport_ImportModule("hyperion");
@@ -193,8 +191,8 @@ void Effect::run()
 						PyObject *class_name = NULL; /* Object "class_name" initialized to NULL for Py_XDECREF */
 						class_name = PyObject_GetAttrString(classPtr, "__name__"); // New Reference or NULL
 
-						if(class_name && PyString_Check(class_name))
-							message.append(PyString_AsString(class_name));
+						if(class_name && PyUnicode_Check(class_name))
+							message.append(PyUnicode_AsUTF8(class_name));
 
 						Py_DECREF(classPtr); // release "classPtr" when done
 						Py_XDECREF(class_name); // Use Py_XDECREF() to ignore NULL references
@@ -204,12 +202,12 @@ void Effect::run()
 					PyObject *valueString = NULL;
 					valueString = PyObject_Str(errorValue); // New Reference or NULL
 
-					if(valueString && PyString_Check(valueString))
+					if(valueString && PyUnicode_Check(valueString))
 					{
 						if(!message.isEmpty())
 							message.append(": ");
 
-						message.append(PyString_AsString(valueString));
+						message.append(PyUnicode_AsUTF8(valueString));
 					}
 					Py_XDECREF(valueString); // Use Py_XDECREF() to ignore NULL references
 
@@ -224,7 +222,7 @@ void Effect::run()
 					QString tracebackMsg;
 
 					tracebackModule = PyImport_ImportModule("traceback"); // New Reference or NULL
-					methodName = PyString_FromString("format_exception"); // New Reference or NULL
+					methodName = PyUnicode_FromString("format_exception"); // New Reference or NULL
 					tracebackList = PyObject_CallMethodObjArgs(tracebackModule, methodName, errorType, errorValue, errorTraceback, NULL); // New Reference or NULL
 
 					if(tracebackList)
@@ -234,7 +232,7 @@ void Effect::run()
 						PyObject* item;
 						while( (item = PyIter_Next(iterator)) ) // New Reference
 						{
-							Error(_log, "## %s",QSTRING_CSTR(QString(PyString_AsString(item)).trimmed()));
+							Error(_log, "## %s",QSTRING_CSTR(QString(PyUnicode_AsUTF8(item)).trimmed()));
 							Py_DECREF(item); // release "item" when done
 						}
 						Py_DECREF(iterator);  // release "iterator" when done
@@ -265,8 +263,7 @@ void Effect::run()
 	}
 
 	// Clean up the thread state
-	Py_EndInterpreter(_interpreterThreadState);
-	_interpreterThreadState = nullptr;
+	Py_EndInterpreter(tstate);
 	PyEval_ReleaseLock();
 }
 
@@ -485,12 +482,6 @@ PyObject* Effect::wrapGetImage(PyObject *self, PyObject *args)
 		file = ":/effects/"+file.mid(1);
 
 	QImageReader reader(file);
-	
-	PyObject* prop;
-	static PyObject* imageClass = NULL;
-
-	if (imageClass == NULL)
-		imageClass = PyClass_New(NULL, PyDict_New(), PyString_FromString("ImageClass"));
 
 	if (reader.canRead())
 	{
@@ -502,17 +493,9 @@ PyObject* Effect::wrapGetImage(PyObject *self, PyObject *args)
 			if (reader.canRead())
 			{
 				QImage qimage = reader.read();
-				PyObject* imageDict = PyDict_New();
-				
+
 				int width = qimage.width();
 				int height = qimage.height();
-				
-				prop = Py_BuildValue("i", width);
-				PyDict_SetItemString(imageDict, "imageWidth", prop);
-				Py_XDECREF(prop);
-				prop = Py_BuildValue("i", height);
-				PyDict_SetItemString(imageDict, "imageHeight", prop);
-				Py_XDECREF(prop);
 
 				QByteArray binaryImage;
 				for (int i = 0; i<height; ++i)
@@ -525,12 +508,7 @@ PyObject* Effect::wrapGetImage(PyObject *self, PyObject *args)
 						binaryImage.append((char) qBlue(scanline[j]));
 					}
 				}
-
-				prop = Py_BuildValue("O", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size()));
-				PyDict_SetItemString(imageDict, "imageData", prop);
-				Py_XDECREF(prop);
-
-				PyList_SET_ITEM(result, i, Py_BuildValue("O", PyInstance_NewRaw(imageClass, imageDict)));
+				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size())));
 			}
 			else
 			{
