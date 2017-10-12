@@ -6,6 +6,13 @@
 sudo apt-get update
 sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
+### Ubuntu 14.04 specific
+You need a never version of cmake (minimum 3.0.0). Install it from the ppa or website
+```
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:george-edison55/cmake-3.x
+sudo apt-get update && sudo apt-get upgrade
+```
 
 **on RPI you need the videocore IV headers**
 
