@@ -88,7 +88,6 @@ Effect::Effect(int priority, int timeout, const QString & script, const QString 
 	, _args(args)
 	, _endTime(-1)
 	, _interpreterThreadState(nullptr)
-	, _abortRequested(false)
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _colors()
 	, _origin(origin)
@@ -268,21 +267,6 @@ void Effect::run()
 	PyEval_ReleaseLock();
 }
 
-int Effect::getPriority() const
-{
-	return _priority;
-}
-
-bool Effect::isAbortRequested() const
-{
-	return _abortRequested;
-}
-
-void Effect::abort()
-{
-	_abortRequested = true;
-}
-
 PyObject *Effect::json2python(const QJsonValue &jsonData) const
 {
 	switch (jsonData.type())
@@ -341,7 +325,7 @@ PyObject* Effect::wrapSetColor(PyObject *self, PyObject *args)
 	Effect * effect = getEffect();
 
 	// check if we have aborted already
-	if (effect->_abortRequested)
+	if (effect->isInterruptionRequested())
 	{
 		return Py_BuildValue("");
 	}
@@ -423,7 +407,7 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 	Effect * effect = getEffect();
 
 	// check if we have aborted already
-	if (effect->_abortRequested)
+	if (effect->isInterruptionRequested())
 	{
 		return Py_BuildValue("");
 	}
@@ -488,10 +472,10 @@ PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
 	// Test if the effect has reached it end time
 	if (effect->_timeout > 0 && QDateTime::currentMSecsSinceEpoch() > effect->_endTime)
 	{
-		effect->_abortRequested = true;
+		effect->requestInterruption();
 	}
 
-	return Py_BuildValue("i", effect->_abortRequested ? 1 : 0);
+	return Py_BuildValue("i", effect->isInterruptionRequested() ? 1 : 0);
 }
 
 

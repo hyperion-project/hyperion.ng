@@ -24,7 +24,7 @@ public:
 
 	virtual void run();
 
-	int getPriority() const;
+	int getPriority() const { return _priority; };
 
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
@@ -33,13 +33,8 @@ public:
 
 	QJsonObject getArgs() const { return _args; }
 
-	bool isAbortRequested() const;
-
     /// This function registers the extension module in Python
     static void registerHyperionExtensionModule();
-
-public slots:
-	void abort();
 
 signals:
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components componentconst, QString origin, unsigned smoothCfg);
@@ -96,8 +91,6 @@ private:
 	int64_t _endTime;
 
 	PyThreadState * _interpreterThreadState;
-
-	bool _abortRequested;
 
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;

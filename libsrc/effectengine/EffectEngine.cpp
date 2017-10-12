@@ -298,7 +298,7 @@ void EffectEngine::channelCleared(int priority)
 	{
 		if (effect->getPriority() == priority)
 		{
-			effect->abort();
+			effect->requestInterruption();
 		}
 	}
 }
@@ -309,7 +309,7 @@ void EffectEngine::allChannelsCleared()
 	{
 		if (effect->getPriority() != 254)
 		{
-			effect->abort();
+			effect->requestInterruption();
 		}
 	}
 }
@@ -317,7 +317,7 @@ void EffectEngine::allChannelsCleared()
 void EffectEngine::effectFinished()
 {
 	Effect* effect = qobject_cast<Effect*>(sender());
-	if (!effect->isAbortRequested())
+	if (!effect->isInterruptionRequested())
 	{
 		// effect stopped by itself. Clear the channel
 		_hyperion->clear(effect->getPriority());
