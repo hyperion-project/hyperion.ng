@@ -1,0 +1,10 @@
+{
+	"name" : "Fire",
+	"script" : "gif.py",
+	"args" :
+	{
+		"image" : ":fire.gif",
+		"fps" :25,
+		"reverse" : false
+	}
+}

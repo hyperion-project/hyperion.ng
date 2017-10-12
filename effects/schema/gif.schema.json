@@ -1,0 +1,31 @@
+{
+	"type":"object",
+	"script" : "gif.py",
+	"title":"edt_eff_gif_header",
+	"required":true,
+	"properties":{
+		"image": {
+			"type": "string",
+			"title":"edt_eff_image",
+			"format" : "file",
+			"default": "",
+			"propertyOrder" : 1
+		},
+		"fps": {
+			"type": "integer",
+			"title":"edt_eff_fps",
+			"default": 25,
+			"minimum" : 1,
+			"maximum" : 100,
+			"step" : 1,
+			"propertyOrder" : 2
+		},
+		"reverse": {
+			"type": "boolean",
+			"title":"edt_eff_reversedirection",
+			"default": false,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": false
+}

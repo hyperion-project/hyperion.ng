@@ -14,6 +14,8 @@
 #include <QConicalGradient>
 #include <QRadialGradient>
 #include <QRect>
+#include <QImageReader>
+#include <QResource>
 
 // effect engin eincludes
 #include "Effect.h"
@@ -24,6 +26,7 @@
 PyMethodDef Effect::effectMethods[] = {
 	{"setColor"              , Effect::wrapSetColor              , METH_VARARGS, "Set a new color for the leds."},
 	{"setImage"              , Effect::wrapSetImage              , METH_VARARGS, "Set a new image to process and determine new led colors."},
+	{"getImage"              , Effect::wrapGetImage              , METH_VARARGS, "get image data from file."},
 	{"abort"                 , Effect::wrapAbort                 , METH_NOARGS,  "Check if the effect should abort execution."},
 	{"imageShow"             , Effect::wrapImageShow             , METH_VARARGS,  "set current effect image to hyperion core."},
 	{"imageLinearGradient"   , Effect::wrapImageLinearGradient   , METH_VARARGS,  ""},
@@ -463,6 +466,85 @@ PyObject* Effect::wrapSetImage(PyObject *self, PyObject *args)
 	// error
 	PyErr_SetString(PyExc_RuntimeError, "Unknown error");
 	return nullptr;
+}
+
+PyObject* Effect::wrapGetImage(PyObject *self, PyObject *args)
+{
+	Q_INIT_RESOURCE(EffectEngine);
+
+	char *source;
+	if(!PyArg_ParseTuple(args, "s", &source))
+	{
+		PyErr_SetString(PyExc_TypeError, "String required");
+		return NULL;
+	}
+
+	QString file = QString::fromUtf8(source);
+
+	if (file.mid(0, 1)  == ":")
+		file = ":/effects/"+file.mid(1);
+
+	QImageReader reader(file);
+	
+	PyObject* prop;
+	static PyObject* imageClass = NULL;
+
+	if (imageClass == NULL)
+		imageClass = PyClass_New(NULL, PyDict_New(), PyString_FromString("ImageClass"));
+
+	if (reader.canRead())
+	{
+		PyObject* result = PyList_New(reader.imageCount());
+
+		for (int i = 0; i < reader.imageCount(); ++i)
+		{
+			reader.jumpToImage(i);
+			if (reader.canRead())
+			{
+				QImage qimage = reader.read();
+				PyObject* imageDict = PyDict_New();
+				
+				int width = qimage.width();
+				int height = qimage.height();
+				
+				prop = Py_BuildValue("i", width);
+				PyDict_SetItemString(imageDict, "imageWidth", prop);
+				Py_XDECREF(prop);
+				prop = Py_BuildValue("i", height);
+				PyDict_SetItemString(imageDict, "imageHeight", prop);
+				Py_XDECREF(prop);
+
+				QByteArray binaryImage;
+				for (int i = 0; i<height; ++i)
+				{
+					const QRgb * scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
+					for (int j = 0; j< width; ++j)
+					{
+						binaryImage.append((char) qRed(scanline[j]));
+						binaryImage.append((char) qGreen(scanline[j]));
+						binaryImage.append((char) qBlue(scanline[j]));
+					}
+				}
+
+				prop = Py_BuildValue("O", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size()));
+				PyDict_SetItemString(imageDict, "imageData", prop);
+				Py_XDECREF(prop);
+
+				PyList_SET_ITEM(result, i, Py_BuildValue("O", PyInstance_NewRaw(imageClass, imageDict)));
+			}
+			else
+			{
+				PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
+				return NULL;
+			}
+		}
+		return result;
+	}
+	else
+	{
+		PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
+		return NULL;
+	}
 }
 
 PyObject* Effect::wrapAbort(PyObject *self, PyObject *)
