@@ -21,10 +21,8 @@ CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/Eff
 
 SET(EffectEngine_RESOURCES ${CMAKE_BINARY_DIR}/EffectEngine.qrc)
 
-qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} ) # OPTIONS "-no-compress"
-
 add_library(effectengine
-	${EffectEngine_RESOURCES_RCC}
+	${EffectEngine_RESOURCES}
 	${EffectEngineSOURCES}
 )
 

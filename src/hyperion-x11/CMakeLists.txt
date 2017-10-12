@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-x11)
 
 find_package(Qt5Widgets REQUIRED)
@@ -33,7 +33,6 @@ target_link_libraries(${PROJECT_NAME}
 	x11-grabber
 	${X11_LIBRARIES}
 	${X11_Xrender_LIB}
-	pthread
 	Qt5::Core
 	Qt5::Gui
 	Qt5::Network

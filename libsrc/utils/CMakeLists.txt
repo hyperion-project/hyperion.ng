@@ -11,13 +11,9 @@ endif()
 
 set(Utils_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
 
-qt5_add_resources(Utils_RESOURCES_RCC ${Utils_RESOURCES} OPTIONS "-no-compress")
-
-
 add_library(hyperion-utils
 	${Utils_SOURCES}
 	${Utils_RESOURCES}
-	${Utils_RESOURCES_RCC}
 )
 
 target_link_libraries(hyperion-utils
