@@ -9,6 +9,7 @@ then
 	echo "Install OSX deps"
 	time brew update
 	time brew install qt5 || true
+	time brew install python3 || true
 	time brew install libusb || true
 	time brew install cmake || true
 	time brew install doxygen || true
