@@ -32,9 +32,14 @@ More information can be found on the official Hyperion [Wiki](https://wiki.hyper
 If you need further support please open a topic at the our new forum!
 [Hyperion webpage/forum](https://www.hyperion-project.org).
 
-## Building
+## Requirements
+* Debian 8, Ubuntu 14.04 or higher. Windows is not supported currently.
 
+## Building
 See [Compilehowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).
+
+## Download
+A download isn't available, you need to compile your own version see "Building"
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).

@@ -12,5 +12,5 @@ if imageFile:
 # Start the write data loop
 while not hyperion.abort() and imageList:
 	for image in imageList:
-		hyperion.setImage(image.imageWidth, image.imageHeight, image.imageData)
+		hyperion.setImage(image["imageWidth"], image["imageHeight"], image["imageData"])
 		time.sleep(sleepTime)
