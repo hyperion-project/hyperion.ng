@@ -4,7 +4,7 @@
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev 
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
 
 **on RPI you need the videocore IV headers**
@@ -28,6 +28,7 @@ To install on OS X you either need Homebrew or Macport but Homebrew is the recom
 First you need to install the dependencies:
 ```
 brew install qt5
+brew install python3
 brew install cmake
 brew install libusb
 brew install doxygen
@@ -108,11 +109,11 @@ cmake -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release ..
 
 To generate make files on OS X:
 
-After which you can run cmake with the correct qt5 path:
+Platform should be auto detected and refer to osx, you can also force osx:
 ```
-export QVER=$(find  /usr/local/Cellar/qt5 -type d -name "5.*" | sort -n  | head -n1)
-cmake -DCMAKE_PREFIX_PATH=$QVER  -DCMAKE_BUILD_TYPE=Release ..
+cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
 ```
+
 ### Run make to build Hyperion
 The `-j $(nproc)` specifies the amount of CPU cores to use.
 ```bash
