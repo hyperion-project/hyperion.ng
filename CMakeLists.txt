@@ -81,7 +81,7 @@ ENDMACRO()
 if ( "${PLATFORM}" MATCHES "osx" )
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt5")
-	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt")
+	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
 	message("####CMAKE PREFIX PATH### ${CMAKE_PREFIX_PATH}")
