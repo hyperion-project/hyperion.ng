@@ -261,6 +261,26 @@ void Effect::run()
 
 		Py_DECREF(main_dict);  // release "main_dict" when done
 	}
+	// stop sub threads if needed
+	for (PyThreadState* s = tstate->interp->tstate_head, *old = nullptr; s;)
+	{
+		if (s == tstate)
+		{
+			s = s->next;
+			continue;
+		}
+		if (old != s)
+		{
+			Debug(_log,"ID %s: Waiting on thread %u", QSTRING_CSTR(_name), s->thread_id);
+			old = s;
+		}
+
+		Py_BEGIN_ALLOW_THREADS;
+		msleep(100);
+		Py_END_ALLOW_THREADS;
+
+		s = tstate->interp->tstate_head;
+	}
 
 	// Clean up the thread state
 	Py_EndInterpreter(tstate);
