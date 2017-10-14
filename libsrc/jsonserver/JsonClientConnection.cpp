@@ -101,7 +101,7 @@ void JsonClientConnection::getWsFrameHeader(WebSocketHeader* header)
 		case payload_size_code_16bit:
 		{
 			QByteArray buf = _socket->read(2);
-			header->payloadLength = ((buf.at(2) << 8) & 0xFF00) | (buf.at(3) & 0xFF);
+			header->payloadLength = ((buf.at(0) << 8) & 0xFF00) | (buf.at(1) & 0xFF);
 		}
 		break;
 
