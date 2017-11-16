@@ -11,6 +11,7 @@
 	"general_speech_en" : "English",
 	"general_speech_es" : "Spanish",
 	"general_speech_it" : "Italian",
+	"general_speech_cs" : "Czech",
 	"general_access_default" : "Default",
 	"general_access_advanced" : "Advanced",
 	"general_access_expert" : "Expert",
