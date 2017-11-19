@@ -4,7 +4,6 @@
 #include "QtHttpReply.h"
 #include "QtHttpClientWrapper.h"
 
-#include <QDebug>
 #include <QUrlQuery>
 
 const QString & QtHttpServer::HTTP_VERSION = QStringLiteral ("HTTP/1.1");

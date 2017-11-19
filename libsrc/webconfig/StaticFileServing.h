@@ -12,8 +12,6 @@
 
 #include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
-#include <utils/JsonProcessor.h>
-
 
 class StaticFileServing : public QObject {
     Q_OBJECT
@@ -35,7 +33,6 @@ private:
 	QMimeDatabase * _mimeDb;
 	CgiHandler      _cgi;
 	Logger        * _log;
-	JsonProcessor * _jsonProcessor;
 
 	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage);
 

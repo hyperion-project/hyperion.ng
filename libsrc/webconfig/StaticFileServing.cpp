@@ -34,7 +34,6 @@ StaticFileServing::StaticFileServing (Hyperion *hyperion, QString baseUrl, quint
 	connect (_server, &QtHttpServer::requestNeedsReply, this, &StaticFileServing::onRequestNeedsReply);
 
 	_server->start (port);
-
 }
 
 StaticFileServing::~StaticFileServing ()
@@ -60,14 +59,10 @@ void StaticFileServing::onServerStarted (quint16 port)
 		txtRecord
 		);
 	Debug(_log, "Web Config mDNS responder started");
-
-	// json-rpc for http
-	_jsonProcessor = new JsonProcessor(QString("HTTP-API"), _log, true);
 }
 
 void StaticFileServing::onServerStopped () {
 	Info(_log, "stopped %s", _server->getServerName().toStdString().c_str());
-	delete _jsonProcessor;
 }
 
 void StaticFileServing::onServerError (QString msg)
@@ -113,50 +108,30 @@ void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::Sta
 void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpReply * reply)
 {
 	QString command = request->getCommand ();
-	if (command == QStringLiteral ("GET") || command == QStringLiteral ("POST"))
+	if (command == QStringLiteral ("GET"))
 	{
 		QString path = request->getUrl ().path ();
 		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
 
 		// special uri handling for server commands
-		if ( ! uri_parts.empty() )
+		if ( ! uri_parts.empty() && uri_parts.at(0) == "cgi" )
 		{
-			if(uri_parts.at(0) == "cgi")
+			uri_parts.removeAt(0);
+			try
 			{
-				uri_parts.removeAt(0);
-				try
-				{
-					_cgi.exec(uri_parts, request, reply);
-				}
-				catch(int err)
-				{
-					Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
-				}
-				catch(std::exception &e)
-				{
-					Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
-				}
-				return;
+				_cgi.exec(uri_parts, request, reply);
 			}
-			else if ( uri_parts.at(0) == "json-rpc" )
+			catch(int err)
 			{
-				QMetaObject::Connection m_connection;
-				QByteArray data = request->getRawData();
-				QtHttpRequest::ClientInfo info = request->getClientInfo();
-
-				m_connection = QObject::connect(_jsonProcessor, &JsonProcessor::callbackMessage,
-					[reply](QJsonObject result) {
-						QJsonDocument doc(result);
-						reply->addHeader ("Content-Type", "application/json");
-						reply->appendRawData (doc.toJson());
-				});
-
-				_jsonProcessor->handleMessage(data,info.clientAddress.toString());
-				QObject::disconnect( m_connection );
-				return;
+				Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
+				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
 			}
+			catch(std::exception &e)
+			{
+				Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
+				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+			}
+			return;
 		}
 		Q_INIT_RESOURCE(WebConfig);
 

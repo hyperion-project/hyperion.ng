@@ -57,21 +57,23 @@ uint16_t JsonServer::getPort() const
 
 void JsonServer::newConnection()
 {
-	QTcpSocket * socket = _server.nextPendingConnection();
-
-	if (socket != nullptr)
+	while(_server.hasPendingConnections())
 	{
-		Debug(_log, "New connection from: %s ",socket->localAddress().toString().toStdString().c_str());
-		JsonClientConnection * connection = new JsonClientConnection(socket);
-		_openConnections.insert(connection);
+		if (QTcpSocket * socket = _server.nextPendingConnection())
+		{
+			Debug(_log, "New connection from: %s ",socket->localAddress().toString().toStdString().c_str());
+			JsonClientConnection * connection = new JsonClientConnection(socket);
+			_openConnections.insert(connection);
 
-		// register slot for cleaning up after the connection closed
-		connect(connection, SIGNAL(connectionClosed(JsonClientConnection*)), this, SLOT(closedConnection(JsonClientConnection*)));
+			// register slot for cleaning up after the connection closed
+			connect(connection, &JsonClientConnection::connectionClosed, this, &JsonServer::closedConnection);
+		}
 	}
 }
 
-void JsonServer::closedConnection(JsonClientConnection *connection)
+void JsonServer::closedConnection(void)
 {
+	JsonClientConnection* connection = qobject_cast<JsonClientConnection*>(sender());
 	Debug(_log, "Connection closed");
 	_openConnections.remove(connection);
 

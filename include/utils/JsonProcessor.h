@@ -46,18 +46,17 @@ public:
 	///
 	/// @param peerAddress provide the Address of the peer
 	/// @param log         The Logger class of the creator
+	/// @param parent      Parent QObject
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonProcessor(QString peerAddress, Logger* log, bool noListener = false);
-	~JsonProcessor();
+	JsonProcessor(QString peerAddress, Logger* log, QObject* parent, bool noListener = false);
 
 	///
 	/// Handle an incoming JSON message
 	///
 	/// @param message the incoming message as string
-	/// @param peerAddress overwrite peerAddress of constructor
 	///
-	void handleMessage(const QString & message, const QString peerAddress = NULL);
+	void handleMessage(const QString & message);
 
 	///
 	/// send a forced serverinfo to a client
