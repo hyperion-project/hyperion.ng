@@ -32,6 +32,11 @@ public:
     static const QByteArray & SetCookie;
     static const QByteArray & TransferEncoding;
     static const QByteArray & ContentDisposition;
+	// Websocket specific headers
+	static const QByteArray & Upgrade;
+	static const QByteArray & SecWebSocketKey;
+	static const QByteArray & SecWebSocketProtocol;
+	static const QByteArray & SecWebSocketVersion;
 };
 
 #endif // QTHTTPHEADER_H

@@ -35,8 +35,8 @@ using namespace hyperion;
 
 std::map<hyperion::Components, bool> JsonProcessor::_componentsPrevState;
 
-JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, bool noListener)
-	: QObject()
+JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, QObject* parent, bool noListener)
+	: QObject(parent)
 	, _peerAddress(peerAddress)
 	, _log(log)
 	, _hyperion(Hyperion::getInstance())
@@ -61,16 +61,8 @@ JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, bool noListener)
 	_image_stream_mutex.unlock();
 }
 
-JsonProcessor::~JsonProcessor()
+void JsonProcessor::handleMessage(const QString& messageString)
 {
-
-}
-
-void JsonProcessor::handleMessage(const QString& messageString, const QString peerAddress)
-{
-	if(!peerAddress.isNull())
-		_peerAddress = peerAddress;
-
 	const QString ident = "JsonRpc@"+_peerAddress;
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 	QJsonObject message;
@@ -808,7 +800,7 @@ void JsonProcessor::handleConfigSetCommand(const QJsonObject& message, const QSt
 				else if (!validate.first && validate.second)
 				{
 					Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
-					
+
 					QStringList schemaErrors = schemaChecker.getMessages();
 					for (auto & schemaError : schemaErrors)
 						Info(_log, QSTRING_CSTR(schemaError));

@@ -4,6 +4,8 @@
 #include "QtHttpReply.h"
 #include "QtHttpServer.h"
 #include "QtHttpHeader.h"
+#include "WebSocketClient.h"
+#include "WebJsonRpc.h"
 
 #include <QCryptographicHash>
 #include <QTcpSocket>
@@ -109,7 +111,18 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
             }
             switch (m_parsingStatus) { // handle parsing status end/error
                 case RequestParsed: { // a valid request has ben fully parsed
-                    // add  post data to request
+					// Catch websocket header "Upgrade"
+					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade) == "websocket")
+					{
+						if(m_websocketClient == Q_NULLPTR)
+						{
+							// disconnect this slot from socket for further requests
+							disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
+							m_websocketClient = new WebSocketClient(m_currentRequest, m_sockClient, this);
+						}
+						break;
+					}
+					// add  post data to request and catch /jsonrpc subroute url
                     if ( m_currentRequest->getCommand() == "POST")
                     {
                         QtHttpPostData  postData;
@@ -126,12 +139,27 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
                             postData.insert(QString::fromUtf8(keyValue.at(0)),value);
                         }
                         m_currentRequest->setPostData(postData);
+
+						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
+						QString path = m_currentRequest->getUrl ().path ();
+						QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
+						if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
+						{
+							if(m_webJsonRpc == Q_NULLPTR)
+							{
+								m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, this);
+							}
+							m_webJsonRpc->handleMessage(m_currentRequest);
+							break;
+						}
                     }
+
                     QtHttpReply reply (m_serverHandle);
                     connect (&reply, &QtHttpReply::requestSendHeaders,
                              this, &QtHttpClientWrapper::onReplySendHeadersRequested);
                     connect (&reply, &QtHttpReply::requestSendData,
                              this, &QtHttpClientWrapper::onReplySendDataRequested);
+
                     emit m_serverHandle->requestNeedsReply (m_currentRequest, &reply); // allow app to handle request
                     m_parsingStatus = sendReplyToClient (&reply);
                     break;
@@ -201,8 +229,16 @@ void QtHttpClientWrapper::onReplySendDataRequested (void) {
     }
 }
 
+void QtHttpClientWrapper::sendToClientWithReply(QtHttpReply * reply) {
+	connect (reply, &QtHttpReply::requestSendHeaders,
+			 this, &QtHttpClientWrapper::onReplySendHeadersRequested);
+	connect (reply, &QtHttpReply::requestSendData,
+			 this, &QtHttpClientWrapper::onReplySendDataRequested);
+	m_parsingStatus = sendReplyToClient (reply);
+}
+
 QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHttpReply * reply) {
-    if (reply != Q_NULLPTR) {
+	if (reply != Q_NULLPTR) {
         if (!reply->useChunked ()) {
             //reply->appendRawData (CRLF);
             // send all headers and all data in one shot
