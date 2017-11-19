@@ -31,6 +31,7 @@ public:
     };
 
     QString getGuid (void);
+	/// @brief Wrapper for sendReplyToClient(), handles m_parsingStatus and signal connect
 	void sendToClientWithReply (QtHttpReply * reply);
 
 private slots:

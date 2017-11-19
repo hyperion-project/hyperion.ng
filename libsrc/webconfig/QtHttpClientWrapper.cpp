@@ -143,7 +143,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
 						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
 						QString path = m_currentRequest->getUrl ().path ();
 						QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
-						if ( ! uri_parts.empty() && uri_parts.at(0) == "jsonrpc" )
+						if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
 						{
 							if(m_webJsonRpc == Q_NULLPTR)
 							{

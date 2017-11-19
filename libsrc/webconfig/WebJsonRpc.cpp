@@ -26,12 +26,13 @@ void WebJsonRpc::handleMessage(QtHttpRequest* request)
 
 void WebJsonRpc::handleCallback(QJsonObject obj)
 {
+	// guard against wrong callbacks; TODO: Remove when JsonProcessor is more solid
 	if(!_unlocked) return;
+	_unlocked = false;
 	// construct reply with headers timestamp and server name
 	QtHttpReply reply(_server);
 	QJsonDocument doc(obj);
 	reply.addHeader ("Content-Type", "application/json");
 	reply.appendRawData (doc.toJson());
 	_wrapper->sendToClientWithReply(&reply);
-	_unlocked = false;
 }
