@@ -1,8 +1,5 @@
 #pragma once
 
-// system includes
-#include <cstdint>
-
 // Qt includes
 #include <QTcpServer>
 #include <QSet>
@@ -45,9 +42,8 @@ private slots:
 
 	///
 	/// Slot which is called when a client closes a connection
-	/// @param connection The Connection object which is being closed
 	///
-	void closedConnection(JsonClientConnection * connection);
+	void closedConnection(void);
 
 	/// forward message to all json slaves
 	void forwardJsonMessage(const QJsonObject &message);

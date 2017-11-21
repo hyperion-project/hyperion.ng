@@ -15,7 +15,7 @@ SET ( CPACK_DEBIAN_PACKAGE_MAINTAINER "Hyperion Team")
 SET ( CPACK_DEBIAN_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst" )
 SET ( CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.hyperion-project.org" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.2.0), libqt5network5 (>= 5.2.0), libqt5gui5 (>= 5.2.0), libqt5serialport5 (>= 5.2.0), libavahi-core7 (>= 0.6.31), libavahi-compat-libdnssd1 (>= 0.6.31), libusb-1.0-0, libpython2.7, libc6" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.2.0), libqt5network5 (>= 5.2.0), libqt5gui5 (>= 5.2.0), libqt5serialport5 (>= 5.2.0), libavahi-core7 (>= 0.6.31), libavahi-compat-libdnssd1 (>= 0.6.31), libusb-1.0-0, libpython3.4, libc6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 SET ( CPACK_RPM_PACKAGE_NAME "Hyperion" )

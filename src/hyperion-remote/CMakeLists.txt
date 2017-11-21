@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-remote)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	effectengine
 	commandline
+	hyperion-utils
 	Qt5::Gui
 	Qt5::Core
 	Qt5::Network)

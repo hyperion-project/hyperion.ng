@@ -1,0 +1,10 @@
+{
+	"name" : "Lights",
+	"script" : "gif.py",
+	"args" :
+	{
+		"image" : ":lights.gif",
+		"fps" :25,
+		"reverse" : false
+	}
+}

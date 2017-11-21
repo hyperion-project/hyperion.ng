@@ -77,7 +77,18 @@ public:
 	///
 	void freeObjects(bool emitCloseSignal=false);
 
-	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile);
+	///
+	/// @brief creates a new Hyperion instance, usually called from the Hyperion Daemon
+	/// @param[in] qjsonConfig   The configuration file
+	/// @param[in] rootPath      Root path of all hyperion userdata
+	/// @return                  Hyperion instance pointer
+	///
+	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile, const QString rootPath);
+
+	///
+	/// @brief Get a pointer of this Hyperion instance
+	/// @return                  Hyperion instance pointer
+	///
 	static Hyperion* getInstance();
 
 	///
@@ -186,9 +197,11 @@ public:
 	/// gets the methode how image is maped to leds
 	int getLedMappingType() { return _ledMAppingType; };
 
-	int getConfigVersionId() { return _configVersionId; };
-
+	/// get the configuration
 	QJsonObject getConfig() { return _qjsonConfig; };
+
+	/// get the root path for all hyperion user data files
+	QString getRootPath() { return _rootPath; };
 
 	/// unique id per instance
 	QString id;
@@ -362,7 +375,7 @@ private:
 	///
 	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const QJsonObject& qjsonConfig, const QString configFile);
+	Hyperion(const QJsonObject& qjsonConfig, const QString configFile, const QString rootPath);
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -396,6 +409,9 @@ private:
 	/// the name of config file
 	QString _configFile;
 
+	/// root path for all hyperion user data files
+	QString _rootPath;
+
 	/// The timer for handling priority channel timeouts
 	QTimer _timer;
 	QTimer _timerBonjourResolver;
@@ -425,8 +441,6 @@ private:
 	QSize _ledGridSize;
 
 	int _ledMAppingType;
-
-	int _configVersionId;
 
 	hyperion::Components   _prevCompId;
 	BonjourServiceBrowser  _bonjourBrowser;

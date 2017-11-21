@@ -166,12 +166,12 @@
 	{
 		"enable"        : true,
 		"document_root" : "",
-		"port"          : 8099
+		"port"          : 8090
 	},
 
 	"effects" :
 	{
-		"paths" : ["../custom-effects"],
+		"paths" : ["$ROOT/custom-effects"],
 		"disable": [""]
 	},
 

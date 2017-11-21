@@ -6,6 +6,9 @@
 #include <QTcpSocket>
 #include <QJsonObject>
 
+//forward class decl
+class Logger;
+
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
 ///
@@ -188,10 +191,13 @@ private:
 	///
 	bool parseReply(const QJsonObject & reply);
 
-private:
 	/// Flag for printing all send and received json-messages to the standard out
 	bool _printJson;
 
+	// Logger class
+	Logger* _log;
+
 	/// The TCP-Socket with the connection to the server
 	QTcpSocket _socket;
+
 };

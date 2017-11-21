@@ -13,11 +13,9 @@ ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/WebConfig.qrc.in ${CMAKE_BINARY_DIR}/WebConfig.qrc )
 SET(WebConfig_RESOURCES ${CMAKE_BINARY_DIR}/WebConfig.qrc)
 
-qt5_add_resources(WebConfig_RESOURCES_RCC ${WebConfig_RESOURCES} ) #OPTIONS "-no-compress"
-
 add_library(webconfig
 	${WebConfig_SOURCES}
-	${WebConfig_RESOURCES_RCC}
+	${WebConfig_RESOURCES}
 )
 
 target_link_libraries(webconfig

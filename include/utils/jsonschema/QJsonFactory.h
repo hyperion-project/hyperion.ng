@@ -25,7 +25,7 @@ public:
 		// create the validator
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schemaTree);
-		
+
 		QStringList messages = schemaChecker.getMessages();
 
 		if (!schemaChecker.validate(configTree).first)
@@ -40,7 +40,7 @@ public:
 		json = configTree;
 		return 0;
 	}
-	
+
 	static QJsonObject readConfig(const QString& path)
 	{
 		QFile file(path);
@@ -54,7 +54,7 @@ public:
 		//Allow Comments in Config
 		QString config = QString(file.readAll());
 		config.remove(QRegularExpression("([^:]?\\/\\/.*)"));
-		
+
 		QJsonDocument doc = QJsonDocument::fromJson(config.toUtf8(), &error);
 		file.close();
 
@@ -94,7 +94,7 @@ public:
 		QByteArray schema = schemaData.readAll();
 		QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
 		schemaData.close();
-		
+
 		if (error.error != QJsonParseError::NoError)
 		{
 			// report to the user the failure and their locations in the document.

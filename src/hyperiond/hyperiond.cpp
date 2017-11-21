@@ -20,6 +20,7 @@
 
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/Components.h>
+#include <utils/JsonUtils.h>
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
@@ -33,7 +34,9 @@
 
 #include "hyperiond.h"
 
-HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
+#include <QDebug>
+
+HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MAIN"))
 	, _jsonServer(nullptr)
@@ -72,7 +75,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, QObject *parent)
 		WarningIf(_qconfig.contains("logger"), Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
 	}
 
-	_hyperion = Hyperion::initInstance(_qconfig, configFile);
+	_hyperion = Hyperion::initInstance(_qconfig, configFile, rootPath);
 
 	Info(_log, "Hyperion initialized");
 }
@@ -140,11 +143,12 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	Q_INIT_RESOURCE(resource);
 
 	// read the json schema from the resource
-
 	QString schemaFile = ":/hyperion-schema";
 	QJsonObject schemaJson;
 	try
 	{
+		//QJsonObject obj;
+		//JsonUtils::readSchema(schemaFile, obj, _log);
 		schemaJson = QJsonFactory::readSchema(schemaFile);
 	}
 	catch(const std::runtime_error& error)
@@ -155,25 +159,31 @@ void HyperionDaemon::loadConfig(const QString & configFile)
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
 
-	_qconfig = QJsonFactory::readConfig(configFile);
+	if(!JsonUtils::readFile(configFile, _qconfig, _log))
+		throw std::runtime_error("Failed to load config!");
+
+	// validate config with schema and correct it if required
 	QPair<bool, bool> validate = schemaChecker.validate(_qconfig);
 
-	if (!validate.first && validate.second)
+	// errors in schema syntax, abort
+	if (!validate.second)
 	{
-		Warning(_log,"Errors have been found in the configuration file. Automatic correction is applied");
+		foreach (auto & schemaError, schemaChecker.getMessages())
+			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
 
+		throw std::runtime_error("ERROR: Hyperion schema has errors!");
+	}
+	// errors in configuration, correct it!
+	if (!validate.first)
+	{
+		Warning(_log,"Errors have been found in the configuration file. Automatic correction has been applied");
 		_qconfig = schemaChecker.getAutoCorrectedConfig(_qconfig);
 
-		if (!QJsonFactory::writeJson(configFile, _qconfig))
-			throw std::runtime_error("ERROR: can not save configuration file, aborting ");
-	}
-	else if (validate.first && !validate.second) //Error in Schema
-	{
-		QStringList schemaErrors = schemaChecker.getMessages();
-		foreach (auto & schemaError, schemaErrors)
-			std::cout << schemaError.toStdString() << std::endl;
+		foreach (auto & schemaError, schemaChecker.getMessages())
+			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 
-		throw std::runtime_error("ERROR: Json validation failed");
+		if (!JsonUtils::write(configFile, _qconfig, _log))
+			throw std::runtime_error("ERROR: Can't save configuration file, aborting");
 	}
 }
 

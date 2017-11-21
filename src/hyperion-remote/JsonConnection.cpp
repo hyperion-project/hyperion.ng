@@ -14,8 +14,12 @@
 // hyperion-remote includes
 #include "JsonConnection.h"
 
+// util includes
+#include <utils/JsonUtils.h>
+
 JsonConnection::JsonConnection(const QString & address, bool printJson)
 	: _printJson(printJson)
+	, _log(Logger::getInstance("REMOTE"))
 	, _socket()
 {
 	QStringList parts = address.split(":");
@@ -62,7 +66,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 		rgbValue.append(color.blue());
 	}
 	command["color"] = rgbValue;
-	
+
 	if (duration > 0)
 	{
 		command["duration"] = duration;
@@ -125,37 +129,20 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	command["origin"] = QString("hyperion-remote");
 	command["priority"] = priority;
 	effect["name"] = effectName;
-	
+
 	if (effectArgs.size() > 0)
 	{
-		QJsonParseError error;
-		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
-		
-		if (error.error != QJsonParseError::NoError)
+		QJsonObject effObj;
+		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log))
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
-			
-			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
-			{
-				++errorColumn;
-				if(effectArgs.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
-			}
-			
-			std::stringstream sstream;
-			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error("Error in effect arguments, abort");
 		}
-		
-		effect["args"] = doc.object();
+
+		effect["args"] = effObj;
 	}
-	
+
 	command["effect"] = effect;
-	
+
 	if (duration > 0)
 	{
 		command["duration"] = duration;
@@ -177,33 +164,16 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	effect["command"] = QString("create-effect");
 	effect["name"] = effectName;
 	effect["script"] = effectScript;
-	
+
 	if (effectArgs.size() > 0)
 	{
-		QJsonParseError error;
-		QJsonDocument doc = QJsonDocument::fromJson(effectArgs.toUtf8() ,&error);
-		
-		if (error.error != QJsonParseError::NoError)
+		QJsonObject effObj;
+		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log))
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
-			
-			for( int i=0, count=qMin( error.offset,effectArgs.size()); i<count; ++i )
-			{
-				++errorColumn;
-				if(effectArgs.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
-			}
-			
-			std::stringstream sstream;
-			sstream << "Error in effect arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error("Error in effect arguments, abort");
 		}
-		
-		effect["args"] = doc.object();
+
+		effect["args"] = effObj;
 	}
 
 	// send command message
@@ -221,7 +191,7 @@ void JsonConnection::deleteEffect(const QString &effectName)
 	QJsonObject effect;
 	effect["command"] = QString("delete-effect");
 	effect["name"] = effectName;
-	
+
 	// send command message
 	QJsonObject reply = sendMessage(effect);
 
@@ -380,7 +350,7 @@ QString JsonConnection::getConfig(std::string type)
 		{
 			throw std::runtime_error("No configuration file available in result");
 		}
-		
+
 		QJsonDocument doc(reply["result"].toObject());
 		QString result(doc.toJson(QJsonDocument::Indented));
 		return result;
@@ -395,36 +365,22 @@ void JsonConnection::setConfig(const QString &jsonString)
 	QJsonObject command;
 	command["command"] = QString("config");
 	command["subcommand"] = QString("setconfig");
-	
-	
+
+
 	if (jsonString.size() > 0)
 	{
-		QJsonParseError error;
-		QJsonDocument doc = QJsonDocument::fromJson(jsonString.toUtf8() ,&error);
-		
-		if (error.error != QJsonParseError::NoError)
+		QJsonObject configObj;
+		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log))
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
-			
-			for( int i=0, count=qMin( error.offset,jsonString.size()); i<count; ++i )
-			{
-				++errorColumn;
-				if(jsonString.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
-			}
-			
-			std::stringstream sstream;
-			sstream << "Error in configset arguments: " << error.errorString().toStdString() << " at Line: " << errorLine << ", Column: " << errorColumn;
-			throw std::runtime_error(sstream.str());
+			throw std::runtime_error("Error in configset arguments, abort");
 		}
-		
-		command["config"] = doc.object();
+
+		command["config"] = configObj;
 	}
-	
+
+
+
+
 	// send command message
 	QJsonObject reply = sendMessage(command);
 
@@ -460,7 +416,7 @@ void JsonConnection::setAdjustment(
 	{
 		adjust["id"] = adjustmentId;
 	}
-	
+
 	if (redAdjustment.isValid())
 	{
 		QJsonArray red;

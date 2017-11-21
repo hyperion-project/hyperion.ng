@@ -6,6 +6,7 @@
 enum VideoStandard {
 	VIDEOSTANDARD_PAL,
 	VIDEOSTANDARD_NTSC,
+	VIDEOSTANDARD_SECAM,
 	VIDEOSTANDARD_NO_CHANGE
 };
 
@@ -21,6 +22,10 @@ inline VideoStandard parseVideoStandard(QString videoStandard)
 	else if (videoStandard == "ntsc")
 	{
 		return VIDEOSTANDARD_NTSC;
+	}
+	else if (videoStandard == "secam")
+	{
+		return VIDEOSTANDARD_SECAM;
 	}
 
 	// return the default NO_CHANGE

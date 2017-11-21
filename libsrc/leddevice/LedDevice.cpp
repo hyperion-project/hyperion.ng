@@ -8,6 +8,7 @@
 #include <QDateTime>
 
 #include "hyperion/Hyperion.h"
+#include <utils/JsonUtils.h>
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
 QString LedDevice::_activeDevice = "";
@@ -91,7 +92,6 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(LedDeviceSchemas);
-	QJsonParseError error;
 
 	// read the json schema from the resource
 	QDir d(":/leddevices/");
@@ -100,40 +100,22 @@ QJsonObject LedDevice::getLedDeviceSchemas()
 
 	for(QString &item : l)
 	{
-		QFile schemaData(QString(":/leddevices/")+item);
+		QString schemaPath(QString(":/leddevices/")+item);
 		QString devName = item.remove("schema-");
 
-		if (!schemaData.open(QIODevice::ReadOnly))
+		QString data;
+		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LedDevice")))
 		{
-			Error(Logger::getInstance("LedDevice"), "Schema not found: %s", QSTRING_CSTR(item));
 			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
 		}
 
-		QByteArray schema = schemaData.readAll();
-		QJsonDocument doc = QJsonDocument::fromJson(schema, &error);
-		schemaData.close();
-
-		if (error.error != QJsonParseError::NoError)
+		QJsonObject schema;
+		if(!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LedDevice")))
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
-
-			for( int i=0, count=qMin( error.offset,schema.size()); i<count; ++i )
-			{
-				++errorColumn;
-				if(schema.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
-			}
-
-			QString errorMsg = error.errorString() + " at Line: " + QString::number(errorLine) + ", Column: " + QString::number(errorColumn);
-			Error(Logger::getInstance("LedDevice"), "LedDevice JSON schema error in %s (%s)", QSTRING_CSTR(item), QSTRING_CSTR(errorMsg));
-			throw std::runtime_error("ERROR: Json schema wrong: " + errorMsg.toStdString());
+			throw std::runtime_error("ERROR: Json schema wrong of file: " + item.toStdString());
 		}
 
-		schemaJson = doc.object();
+		schemaJson = schema;
 		schemaJson["title"] = QString("edt_dev_spec_header_title");
 
 		result[devName] = schemaJson;

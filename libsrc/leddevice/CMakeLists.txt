@@ -15,7 +15,7 @@ include_directories(
 	dev_tinker
 )
 
-FILE ( GLOB Leddevice_SOURCES 
+FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_HEADER_DIR}/*.h"
 	"${CURRENT_SOURCE_DIR}/*.h"
 	"${CURRENT_SOURCE_DIR}/*.cpp"
@@ -51,12 +51,9 @@ endif()
 
 set(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
 
-qt5_add_resources(LedDevice_RESOURCES_RCC ${LedDevice_RESOURCES} OPTIONS "-no-compress")
-
-SET( Leddevice_SOURCES 	
+SET( Leddevice_SOURCES
 	${Leddevice_SOURCES}
 	${LedDevice_RESOURCES}
-	${LedDevice_RESOURCES_RCC}
 	${Leddevice_USB_HID_SOURCES}
 	${Leddevice_TINKER_SOURCES}
 	${Leddevice_SPI_SOURCES}
@@ -101,4 +98,3 @@ if (ENABLE_USB_HID)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
 	endif()
 endif()
- 

@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0.0)
 
 PROJECT(hyperion)
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
+# auto prepare .qrc files
+set(CMAKE_AUTORCC ON)
 
 IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
@@ -65,9 +67,24 @@ endif()
 
 message( STATUS "PLATFORM: ${PLATFORM}")
 
+# Macro to get path of first sub dir of a dir, used for MAC OSX lib/header searching
+MACRO(FIRSTSUBDIR result curdir)
+  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+  SET(dirlist "")
+  FOREACH(child ${children})
+    IF(IS_DIRECTORY ${curdir}/${child})
+      LIST(APPEND dirlist "${curdir}/${child}")
+	  #BREAK()
+    ENDIF()
+  ENDFOREACH()
+  SET(${result} ${dirlist})
+ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5" CACHE STRING "path to your QT5 files" )
+	# add specific prefix paths
+	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt5")
+	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
@@ -230,7 +247,7 @@ endif ()
 
 # add QT5 dependency
 SET(QT_MIN_VERSION "5.2.0")
-find_package(Qt5 COMPONENTS Core Gui Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Network SerialPort REQUIRED)
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )

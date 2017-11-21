@@ -1,5 +1,4 @@
-find_package(PythonLibs 2.7 REQUIRED)
-message( STATUS "PYTHON VERSIONS FOUND: ${PYTHONLIBS_VERSION_STRING}" )
+find_package(PythonLibs 3.4 REQUIRED)
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.
@@ -21,10 +20,8 @@ CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/EffectEngine.qrc.in ${CMAKE_BINARY_DIR}/Eff
 
 SET(EffectEngine_RESOURCES ${CMAKE_BINARY_DIR}/EffectEngine.qrc)
 
-qt5_add_resources(EffectEngine_RESOURCES_RCC ${EffectEngine_RESOURCES} ) # OPTIONS "-no-compress"
-
 add_library(effectengine
-	${EffectEngine_RESOURCES_RCC}
+	${EffectEngine_RESOURCES}
 	${EffectEngineSOURCES}
 )
 

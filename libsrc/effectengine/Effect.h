@@ -1,7 +1,10 @@
 #pragma once
 
 // Python includes
+// collide of qt slots macro
+#undef slots
 #include <Python.h>
+#define slots
 
 // Qt includes
 #include <QThread>
@@ -19,35 +22,25 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
-	Effect(PyThreadState * mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
+	Effect(PyThreadState* mainThreadState, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject(), const QString & origin="System", unsigned smoothCfg=0);
 	virtual ~Effect();
 
 	virtual void run();
 
-	int getPriority() const;
-	
+	int getPriority() const { return _priority; };
+
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
-	
-	int getTimeout() const {return _timeout; }
-	
-	QJsonObject getArgs() const { return _args; }
 
-	bool isAbortRequested() const;
+	int getTimeout() const {return _timeout; }
+
+	QJsonObject getArgs() const { return _args; }
 
     /// This function registers the extension module in Python
     static void registerHyperionExtensionModule();
 
-public slots:
-	void abort();
-
 signals:
-	void effectFinished(Effect * effect);
-
 	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects, hyperion::Components componentconst, QString origin, unsigned smoothCfg);
-
-private slots:
-	void effectFinished();
 
 private:
 	PyObject * json2python(const QJsonValue & jsonData) const;
@@ -56,6 +49,7 @@ private:
 	static PyMethodDef effectMethods[];
 	static PyObject* wrapSetColor              (PyObject *self, PyObject *args);
 	static PyObject* wrapSetImage              (PyObject *self, PyObject *args);
+	static PyObject* wrapGetImage              (PyObject *self, PyObject *args);
 	static PyObject* wrapAbort                 (PyObject *self, PyObject *args);
 	static PyObject* wrapImageShow             (PyObject *self, PyObject *args);
 	static PyObject* wrapImageLinearGradient   (PyObject *self, PyObject *args);
@@ -79,16 +73,12 @@ private:
 	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
 	static Effect * getEffect();
 
-#if PY_MAJOR_VERSION >= 3
 	static struct PyModuleDef moduleDef;
 	static PyObject* PyInit_hyperion();
-#else
-	static void PyInit_hyperion();
-#endif
 
 	void addImage();
 
-	PyThreadState * _mainThreadState;
+	PyThreadState* _mainThreadState;
 
 	const int _priority;
 
@@ -102,21 +92,17 @@ private:
 
 	int64_t _endTime;
 
-	PyThreadState * _interpreterThreadState;
-
-	bool _abortRequested;
-
 	/// The processor for translating images to led-values
 	ImageProcessor * _imageProcessor;
 
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
-	
-	
+
+	Logger* _log;
+
 	QString         _origin;
 	QSize           _imageSize;
 	QImage          _image;
 	QPainter*       _painter;
 	QVector<QImage> _imageStack;
 };
-	

@@ -22,6 +22,8 @@
 /// - addtionalProperties
 /// - minItems
 /// - maxItems
+/// - minLength
+/// - maxLength
 
 class QJsonSchemaChecker
 {
@@ -39,7 +41,7 @@ public:
 	/// @brief Validate a JSON structure
 	/// @param value The JSON value to check
 	/// @param ignoreRequired Ignore the "required" keyword in hyperion schema. Default is false
-	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors 
+	/// @return The first boolean is true when the arguments is valid according to the schema. The second is true when the schema contains no errors
 	/// @return TODO: Check the Schema in SetSchema() function and remove the QPair result
 	///
 	QPair<bool, bool> validate(const QJsonObject & value, bool ignoreRequired = false);
@@ -84,7 +86,7 @@ private:
 	/// @param[in] schema The specified type (as json-value)
 	///
 	void checkType(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
-	
+
 	///
 	/// Checks is required properties of an json-object exist and if all properties are of the
 	/// correct format. If this is not the case _error is set to true and an error-message is added
@@ -127,7 +129,7 @@ private:
 	/// Checks if the given value is hugher than the specified value. If this is the
 	/// case _error is set to true and an error-message is added to the message-queue.
 	///
-	/// @param value The given value 
+	/// @param value The given value
 	/// @param schema The minimum size specification (as json-value)
 	///
 	void checkMinLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
@@ -136,7 +138,7 @@ private:
 	/// Checks if the given value is smaller than the specified value. If this is the
 	/// case _error is set to true and an error-message is added to the message-queue.
 	///
-	/// @param value The given value 
+	/// @param value The given value
 	/// @param schema The maximum size specification (as json-value)
 	///
 	void checkMaxLength(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);

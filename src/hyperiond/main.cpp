@@ -92,7 +92,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 		// if x11, then test if xserver is available
 		#ifdef ENABLE_X11
 		Display* dpy = XOpenDisplay(NULL);
-		if (dpy != NULL) 
+		if (dpy != NULL)
 		{
 			XCloseDisplay(dpy);
 			isGuiApp = true;
@@ -140,6 +140,7 @@ int main(int argc, char** argv)
 	parser.addHelpOption();
 
 	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
+	Option        & rootPathOption      = parser.add<Option>       (0x0, "rootPath", "Overwrite root path for all hyperion user files, defaults to home directory of current user");
 	IntOption     &  parentOption       = parser.add<IntOption>    ('p', "parent", "pid of parent hyperiond"); // 2^22 is the max for Linux
 	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
@@ -207,7 +208,7 @@ int main(int argc, char** argv)
 				{
 					QFile::remove(destFileName);
 				}
-				
+
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
 				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
@@ -227,21 +228,48 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	// handle default config file
-	if (configFiles.size() == 0)
+	// handle rootPath for user data, default path is home directory + /.hyperion
+	QString rootPath = QDir::homePath() + "/.hyperion";
+	if (parser.isSet(rootPathOption))
 	{
-		QString hyperiond_path   = QDir::homePath();
-		QString hyperiond_config = hyperiond_path+"/.hyperion.config.json";
-		QFileInfo hyperiond_pathinfo(hyperiond_path);
-
-		if ( ! hyperiond_pathinfo.isWritable() && ! QFile::exists(hyperiond_config) )
+		QDir rDir(rootPathOption.value(parser));
+		if(!rDir.mkpath(rootPathOption.value(parser)))
 		{
-			QFileInfo hyperiond_fileinfo(argv[0]);
-			hyperiond_config = hyperiond_fileinfo.absolutePath()+"/hyperion.config.json";
+			Error(log, "Can't create root path '%s', falling back to home directory", QSTRING_CSTR(rDir.absolutePath()));
 		}
+		else
+		{
+			rootPath = rDir.absolutePath();
+		}
+	}
+	// create /.hyperion folder for default path, check if the directory is read/writeable
+	// Note: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
+	QDir mDir(rootPath);
+	QFileInfo mFi(rootPath);
+	if(!mDir.mkpath(rootPath) || !mFi.isWritable() || !mDir.isReadable())
+	{
+		throw std::runtime_error("The specified root path can't be created or isn't read/writeable. Please setup the permissions correctly!");
+	}
 
-		configFiles.append(hyperiond_config);
-		Info(log, "No config file given. Standard config file used: %s", QSTRING_CSTR(configFiles[0]));
+	// determine name of config file, defaults to hyperion_main.json
+	// create config folder
+	QString cPath(rootPath+"/config");
+	QDir().mkpath(rootPath+"/config");
+	if (configFiles.size() > 0)
+	{
+		// use argument config file
+		// check if file has a path and ends with .json
+		if(configFiles[0].contains("/"))
+			throw std::runtime_error("Don't provide a path to config file, just a config name is allowed!");
+		if(!configFiles[0].endsWith(".json"))
+			configFiles[0].append(".json");
+
+		configFiles.prepend(cPath+"/"+configFiles[0]);
+	}
+	else
+	{
+		// use default config file
+		configFiles.append(cPath+"/hyperion_main.json");
 	}
 
 	bool exportDefaultConfig = false;
@@ -257,7 +285,7 @@ int main(int argc, char** argv)
 	{
 		exportDefaultConfig = true;
 		exportConfigFileTarget = configFiles[0];
-		Warning(log, "Your configuration file does not exist. hyperion writes default config");
+		Warning(log, "Create new config file (%s)",QSTRING_CSTR(configFiles[0]));
 	}
 
 	if (exportDefaultConfig)
@@ -277,11 +305,6 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if (configFiles.size() > 1)
-	{
-		Warning(log, "You provided more than one config file. Hyperion will use only the first one");
-	}
-
     int parentPid = parser.value(parentOption).toInt();
 	if (parentPid > 0 )
 	{
@@ -295,7 +318,7 @@ int main(int argc, char** argv)
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[0], qApp);
+		hyperiond = new HyperionDaemon(configFiles[0], rootPath, qApp);
 		hyperiond->run();
 	}
 	catch (std::exception& e)

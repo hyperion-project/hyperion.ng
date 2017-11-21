@@ -13,7 +13,6 @@
 ### END INIT INFO
 
 DAEMON=hyperiond
-DAEMONOPTS="/etc/hyperion/hyperion.config.json"
 DAEMON_PATH="/usr/bin"
 
 NAME=$DAEMON
@@ -29,7 +28,7 @@ start)
         else
                 printf "%-50s" "Starting $NAME..."
                 cd $DAEMON_PATH
-                PID=`$DAEMON $DAEMONOPTS > /dev/null 2>&1 & echo $!`
+                PID=`$DAEMON > /dev/null 2>&1 & echo $!`
                 #echo "Saving PID" $PID " to " $PIDFILE
                 if [ -z $PID ]; then
                     printf "%s\n" "Fail"

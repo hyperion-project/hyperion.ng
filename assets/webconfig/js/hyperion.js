@@ -65,73 +65,71 @@ function initWebSocket()
 	{
 		if (websocket == null)
 		{
-			$.ajax({ url: "/cgi/cfg_jsonserver" }).done(function(data) {
-				jsonPort = data.substr(1);
-				websocket = new WebSocket('ws://'+document.location.hostname+data);
+			jsonPort = (document.location.port == '') ? '80' : document.location.port;
+			websocket = new WebSocket('ws://'+document.location.hostname+":"+document.location.port);
+			console.log(jsonPort)
+			websocket.onopen = function (event) {
+				$(hyperion).trigger({type:"open"});
 
-				websocket.onopen = function (event) {
-					$(hyperion).trigger({type:"open"});
+				$(hyperion).on("cmd-serverinfo", function(event) {
+					watchdog = 0;
+				});
+			};
 
-					$(hyperion).on("cmd-serverinfo", function(event) {
-						watchdog = 0;
-					});
-				};
+			websocket.onclose = function (event) {
+				// See http://tools.ietf.org/html/rfc6455#section-7.4.1
+				var reason;
+				switch(event.code)
+				{
+					case 1000: reason = "Normal closure, meaning that the purpose for which the connection was established has been fulfilled."; break;
+					case 1001: reason = "An endpoint is \"going away\", such as a server going down or a browser having navigated away from a page."; break;
+					case 1002: reason = "An endpoint is terminating the connection due to a protocol error"; break;
+					case 1003: reason = "An endpoint is terminating the connection because it has received a type of data it cannot accept (e.g., an endpoint that understands only text data MAY send this if it receives a binary message)."; break;
+					case 1004: reason = "Reserved. The specific meaning might be defined in the future."; break;
+					case 1005: reason = "No status code was actually present."; break;
+					case 1006: reason = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"; break;
+					case 1007: reason = "An endpoint is terminating the connection because it has received data within a message that was not consistent with the type of the message (e.g., non-UTF-8 [http://tools.ietf.org/html/rfc3629] data within a text message)."; break;
+					case 1008: reason = "An endpoint is terminating the connection because it has received a message that \"violates its policy\". This reason is given either if there is no other sutible reason, or if there is a need to hide specific details about the policy."; break;
+					case 1009: reason = "An endpoint is terminating the connection because it has received a message that is too big for it to process."; break;
+					case 1010: reason = "An endpoint (client) is terminating the connection because it has expected the server to negotiate one or more extension, but the server didn't return them in the response message of the WebSocket handshake. <br /> Specifically, the extensions that are needed are: " + event.reason; break;
+					case 1011: reason = "A server is terminating the connection because it encountered an unexpected condition that prevented it from fulfilling the request."; break;
+					case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
+					default: reason = "Unknown reason";
+				}
+				console.log("[websocket::onclose] "+reason)
+				$(hyperion).trigger({type:"close", reason:reason});
+				watchdog = 10;
+				connectionLostDetection();
+			};
 
-				websocket.onclose = function (event) {
-					// See http://tools.ietf.org/html/rfc6455#section-7.4.1
-					var reason;
-					switch(event.code)
+			websocket.onmessage = function (event) {
+				try
+				{
+					response = JSON.parse(event.data);
+					success = response.success;
+					cmd = response.command;
+					if (success)
 					{
-						case 1000: reason = "Normal closure, meaning that the purpose for which the connection was established has been fulfilled."; break;
-						case 1001: reason = "An endpoint is \"going away\", such as a server going down or a browser having navigated away from a page."; break;
-						case 1002: reason = "An endpoint is terminating the connection due to a protocol error"; break;
-						case 1003: reason = "An endpoint is terminating the connection because it has received a type of data it cannot accept (e.g., an endpoint that understands only text data MAY send this if it receives a binary message)."; break;
-						case 1004: reason = "Reserved. The specific meaning might be defined in the future."; break;
-						case 1005: reason = "No status code was actually present."; break;
-						case 1006: reason = "The connection was closed abnormally, e.g., without sending or receiving a Close control frame"; break;
-						case 1007: reason = "An endpoint is terminating the connection because it has received data within a message that was not consistent with the type of the message (e.g., non-UTF-8 [http://tools.ietf.org/html/rfc3629] data within a text message)."; break;
-						case 1008: reason = "An endpoint is terminating the connection because it has received a message that \"violates its policy\". This reason is given either if there is no other sutible reason, or if there is a need to hide specific details about the policy."; break;
-						case 1009: reason = "An endpoint is terminating the connection because it has received a message that is too big for it to process."; break;
-						case 1010: reason = "An endpoint (client) is terminating the connection because it has expected the server to negotiate one or more extension, but the server didn't return them in the response message of the WebSocket handshake. <br /> Specifically, the extensions that are needed are: " + event.reason; break;
-						case 1011: reason = "A server is terminating the connection because it encountered an unexpected condition that prevented it from fulfilling the request."; break;
-						case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
-						default: reason = "Unknown reason";
+						$(hyperion).trigger({type:"cmd-"+cmd, response:response});
 					}
-					console.log("[websocket::onclose] "+reason)
-					$(hyperion).trigger({type:"close", reason:reason});
-					watchdog = 10;
-					connectionLostDetection();
-				};
-
-				websocket.onmessage = function (event) {
-					try
+					else
 					{
-						response = JSON.parse(event.data);
-						success = response.success;
-						cmd = response.command;
-						if (success)
-						{
-							$(hyperion).trigger({type:"cmd-"+cmd, response:response});
-						}
-						else
-						{
-							error = response.hasOwnProperty("error")? response.error : "unknown";
-							$(hyperion).trigger({type:"error",reason:error});
-							console.log("[websocket::onmessage] "+error)
-						}
+						error = response.hasOwnProperty("error")? response.error : "unknown";
+						$(hyperion).trigger({type:"error",reason:error});
+						console.log("[websocket::onmessage] "+error)
 					}
-					catch(exception_error)
-					{
-						$(hyperion).trigger({type:"error",reason:exception_error});
-						console.log("[websocket::onmessage] "+exception_error)
-					}
-				};
+				}
+				catch(exception_error)
+				{
+					$(hyperion).trigger({type:"error",reason:exception_error});
+					console.log("[websocket::onmessage] "+exception_error)
+				}
+			};
 
-				websocket.onerror = function (error) {
-					$(hyperion).trigger({type:"error",reason:error});
-					console.log("[websocket::onerror] "+error)
-				};
-			});
+			websocket.onerror = function (error) {
+				$(hyperion).trigger({type:"error",reason:error});
+				console.log("[websocket::onerror] "+error)
+			};
 		}
 	}
 	else
@@ -274,7 +272,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs)
 
 function requestTestEffect(effectName,effectPy,effectArgs)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"}');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"');
 }
 
 function requestDeleteEffect(effectName)
