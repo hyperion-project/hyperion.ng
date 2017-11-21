@@ -41,7 +41,6 @@
 
 #include <utils/Logger.h>
 
-#include <kodivideochecker/KODIVideoChecker.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
 #include <boblightserver/BoblightServer.h>
@@ -65,7 +64,6 @@ public:
 	void run();
 
 	void startInitialEffect();
-	void createKODIVideoChecker();
 	void startNetworkServices();
 
 	// grabber creators
@@ -84,7 +82,6 @@ private:
 
 	Logger*             _log;
 	QJsonObject         _qconfig;
-	KODIVideoChecker*   _kodiVideoChecker;
 	JsonServer*         _jsonServer;
 	ProtoServer*        _protoServer;
 	BoblightServer*     _boblightServer;

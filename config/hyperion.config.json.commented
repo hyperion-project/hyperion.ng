@@ -108,7 +108,6 @@
 	///  * frameDecimation      : Frame decimation factor [default=2]
 	///  * sizeDecimation       : Size decimation factor [default=8]
 	///  * priority             : Hyperion priority channel [default=900]
-	///  * useKodiChecker       : Enable/disable V4L2 according kodichecker sate if set to true [default=false]
 	///  * cropLeft             : Cropping from the left [default=0]
 	///  * cropRight            : Cropping from the right [default=0]
 	///  * cropTop              : Cropping from the top [default=0]
@@ -133,7 +132,6 @@
 			"frameDecimation" : 2,
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
-			"useKodiChecker" : false,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
 			"cropTop"     : 0,
@@ -201,31 +199,6 @@
 		"mode"               : "default"
 	},
 
-	/// The configuration of the Kodi connection used to enable and disable the frame-grabber. Contains the following fields:
-	///  * enable            : enable/disable Kodi-Checker
-	///  * kodiAddress       : The IP address of the Kodi-host
-	///  * kodiTcpPort       : The TCP-port of the Kodi-server
-	///  * grabVideo         : Flag indicating that the frame-grabber is on(true) during video playback
-	///  * grabPictures      : Flag indicating that the frame-grabber is on(true) during picture show
-	///  * grabAudio         : Flag indicating that the frame-grabber is on(true) during audio playback
-	///  * grabMenu          : Flag indicating that the frame-grabber is on(true) at the Kodi menu
-	///  * grabPause         : Flag indicating that the frame-grabber is on(true) at player state "pause"
-	///  * grabScreensaver   : Flag indicating that the frame-grabber is on(true) when Kodi is on screensaver
-	///  * enable3DDetection : Flag indicating that the frame-grabber should switch to a 3D compatible modus if a 3D video is playing
-	"kodiVideoChecker" :
-	{
-		"enable"            : true,
-		"kodiAddress"       : "127.0.0.1",
-		"kodiTcpPort"       : 9090,
-		"grabVideo"         : true,
-		"grabPictures"      : true,
-		"grabAudio"         : true,
-		"grabMenu"          : false,
-		"grabPause"         : false,
-		"grabScreensaver"   : false,
-		"enable3DDetection" : false
-	},
-
 	/// foregroundEffect sets a "booteffect" or "bootcolor" during startup for a given period in ms (duration_ms)
 	///  * enable      : if true, foreground effect is enabled
 	///  * type        : choose between "color" or "effect"
@@ -242,7 +215,7 @@
 		"duration_ms" : 3000
 	},
 
-	/// backgroundEffect sets a background effect or color. It is used when all capture devices are stopped (with the help of the kodiVideChecker or manual via remote). Could be also selected via priorities selection.
+	/// backgroundEffect sets a background effect or color. It is used when all capture devices are stopped (manual via remote). Could be also selected via priorities selection.
 	///  * enable : if true, background effect is enabled
 	///  * type   : choose between "color" or "effect"
 	///  * color  : if type is color, a color is used (RGB) (example: [255,134,0])

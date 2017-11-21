@@ -27,14 +27,13 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 	_image.resize(width, height);
 	_processor->setSize(width, height);
-	
+
 	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, _processor->blackBorderDetectorEnabled());
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
-	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _processor, SLOT(setLedMappingType(int))); 
+	connect(_hyperion, SIGNAL(imageToLedsMappingChanged(int)), _processor, SLOT(setLedMappingType(int)));
 	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
-	connect(_hyperion, SIGNAL(grabbingMode(GrabbingMode)), this, SLOT(setGrabbingMode(GrabbingMode)));
 	connect(_hyperion, SIGNAL(videoMode(VideoMode)), this, SLOT(setVideoMode(VideoMode)));
 	connect(this, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(actionWrapper()));
@@ -104,18 +103,6 @@ void GrabberWrapper::componentStateChanged(const hyperion::Components component,
 	}
 }
 
-void GrabberWrapper::setGrabbingMode(const GrabbingMode mode)
-{
-	if (mode == GRABBINGMODE_OFF)
-	{
-		stop();
-	}
-	else
-	{
-		start();
-	}
-}
-
 void GrabberWrapper::setColors(const std::vector<ColorRgb> &ledColors, const int timeout_ms)
 {
 	_hyperion->setColors(_priority, ledColors, timeout_ms, true, _grabberComponentId);
@@ -171,4 +158,3 @@ void GrabberWrapper::setImageProcessorEnabled(bool enable)
 {
 	_imageProcessorEnabled = enable;
 }
-

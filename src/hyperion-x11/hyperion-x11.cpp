@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
 					argSizeDecimation.getInt(parser), // horizontal decimation
 					argSizeDecimation.getInt(parser)); // vertical decimation
-	
+
 	if (!x11Wrapper.displayInit())
 	  return -1;
 
@@ -83,9 +83,8 @@ int main(int argc, char ** argv)
 
 			// Connect the screen capturing to the proto processing
 			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
-			
-			// Connect the KODI Video Checker to the proto processing
-			QObject::connect(&protoWrapper, SIGNAL(setGrabbingMode(GrabbingMode)), &x11Wrapper, SLOT(setGrabbingMode(GrabbingMode)));
+
+			// Connect the vodeMode to the proto processing
 			QObject::connect(&protoWrapper, SIGNAL(setVideoMode(VideoMode)), &x11Wrapper, SLOT(setVideoMode(VideoMode)));
 
 			// Start the capturing

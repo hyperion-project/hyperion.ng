@@ -39,7 +39,6 @@
 HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MAIN"))
-	, _kodiVideoChecker(nullptr)
 	, _jsonServer(nullptr)
 	, _protoServer(nullptr)
 	, _boblightServer(nullptr)
@@ -99,7 +98,6 @@ void HyperionDaemon::freeObjects()
 	{
 		delete grabber;
 	}
-	delete _kodiVideoChecker;
 	delete _jsonServer;
 	delete _protoServer;
 	delete _boblightServer;
@@ -111,7 +109,6 @@ void HyperionDaemon::freeObjects()
 	_dispmanx       = nullptr;
 	_fbGrabber      = nullptr;
 	_osxGrabber     = nullptr;
-	_kodiVideoChecker = nullptr;
 	_jsonServer     = nullptr;
 	_protoServer    = nullptr;
 	_boblightServer = nullptr;
@@ -121,8 +118,6 @@ void HyperionDaemon::freeObjects()
 
 void HyperionDaemon::run()
 {
-	createKODIVideoChecker();
-
 	// ---- network services -----
 	startNetworkServices();
 
@@ -266,39 +261,8 @@ void HyperionDaemon::startInitialEffect()
 	#undef BGCONFIG_ARRAY
 }
 
-
-// create KODI video checker if the _configuration is present
-void HyperionDaemon::createKODIVideoChecker()
-{
-	bool kodiCheckerConfigured = _qconfig.contains("kodiVideoChecker");
-
-	const QJsonObject & videoCheckerConfig = _qconfig["kodiVideoChecker"].toObject();
-	_kodiVideoChecker = KODIVideoChecker::initInstance(
-		videoCheckerConfig["kodiAddress"].toString("127.0.0.1"),
-		videoCheckerConfig["kodiTcpPort"].toInt(9090),
-		videoCheckerConfig["grabVideo"].toBool(true),
-		videoCheckerConfig["grabPictures"].toBool(true),
-		videoCheckerConfig["grabAudio"].toBool(true),
-		videoCheckerConfig["grabMenu"].toBool(false),
-		videoCheckerConfig["grabPause"].toBool(true),
-		videoCheckerConfig["grabScreensaver"].toBool(false),
-		videoCheckerConfig["enable3DDetection"].toBool(true));
-	Debug(_log, "KODI checker created ");
-
-	if( kodiCheckerConfigured && videoCheckerConfig["enable"].toBool(true))
-	{
-		_kodiVideoChecker->start();
-	}
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_KODICHECKER, _kodiVideoChecker->componentState());
-	QObject::connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), _kodiVideoChecker, SLOT(componentStateChanged(hyperion::Components,bool)));
-	QObject::connect(_kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _hyperion, SLOT(setVideoMode(VideoMode)));
-	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _hyperion, SLOT(setGrabbingMode(GrabbingMode)));
-}
-
 void HyperionDaemon::startNetworkServices()
 {
-	KODIVideoChecker* kodiVideoChecker = KODIVideoChecker::getInstance();
-
 	// Create Stats
 	_stats = new Stats();
 
@@ -324,11 +288,7 @@ void HyperionDaemon::startNetworkServices()
 	}
 
 	_protoServer = new ProtoServer(protoPort);
-	if (kodiVideoChecker != nullptr)
-	{
-		QObject::connect(kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _protoServer, SIGNAL(grabbingMode(GrabbingMode)));
-		QObject::connect(kodiVideoChecker, SIGNAL(videoMode(VideoMode)), _protoServer, SIGNAL(videoMode(VideoMode)));
-	}
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _protoServer, SLOT(setVideoMode(VideoMode))); 
 	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
 	// Create Boblight server if configuration is present
@@ -473,7 +433,6 @@ void HyperionDaemon::createGrabberDispmanx()
 	_dispmanx = new DispmanxWrapper(_grabber_width, _grabber_height, _grabber_frequency, _grabber_priority);
 	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
-	QObject::connect(_kodiVideoChecker, SIGNAL(grabbingMode(GrabbingMode)), _dispmanx, SLOT(setGrabbingMode(GrabbingMode)));
 	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _dispmanx, SLOT(setVideoMode(VideoMode)));
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _protoServer, SLOT(sendImageToProtoSlaves(int, const Image<ColorRgb>&, const int)) );
 	QObject::connect(_dispmanx, SIGNAL(emitImage(int, const Image<ColorRgb>&, const int)), _hyperion, SLOT(setImage(int, const Image<ColorRgb>&, const int)) );
@@ -590,8 +549,7 @@ void HyperionDaemon::createGrabberV4L2()
 				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0,
-				grabberConfig["priority"].toInt(890),
-				grabberConfig["useKodiChecker"].toBool(false));
+				grabberConfig["priority"].toInt(890));
 			grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),

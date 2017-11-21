@@ -6,7 +6,6 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/VideoMode.h>
-#include <utils/GrabbingMode.h>
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
 
@@ -26,7 +25,7 @@ public:
 	virtual void setVideoMode(VideoMode mode);
 
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
-	
+
 	/// gets resulting height of image
 	virtual const int getImageWidth() { return _width; };
 
@@ -39,13 +38,13 @@ protected:
 	ImageResampler _imageResampler;
 
 	bool _useImageResampler;
-	
+
 	/// the selected VideoMode
 	VideoMode    _videoMode;
 
 	/// With of the captured snapshot [pixels]
 	int _width;
-	
+
 	/// Height of the captured snapshot [pixels]
 	int _height;
 

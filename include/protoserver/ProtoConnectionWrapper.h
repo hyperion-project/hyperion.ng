@@ -4,7 +4,6 @@
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/GrabbingMode.h>
 #include <utils/VideoMode.h>
 
 // hyperion proto includes
@@ -18,12 +17,11 @@ class ProtoConnectionWrapper : public QObject
 public:
 	ProtoConnectionWrapper(const QString &address, int priority, int duration_ms, bool skipProtoReply);
 	virtual ~ProtoConnectionWrapper();
-	
-signals:	
+
+signals:
 	///
-	/// Forwarding KODI Video Checker Message
+	/// Forwarding new videoMode
 	///
-	void setGrabbingMode(const GrabbingMode mode);
 	void setVideoMode(const VideoMode videoMode);
 
 public slots:

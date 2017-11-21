@@ -96,14 +96,6 @@
 				"required" : true,
 				"propertyOrder" : 9
 			},
-			"useKodiChecker" :
-			{
-				"type" : "boolean",
-				"title" : "edt_conf_v4l2_useKodiChecker_title",
-				"default" : false,
-				"required" : true,
-				"propertyOrder" : 10
-			},
 			"cropLeft" :
 			{
 				"type" : "integer",
