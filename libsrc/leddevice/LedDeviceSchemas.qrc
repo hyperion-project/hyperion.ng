@@ -30,5 +30,6 @@
 		<file alias="schema-ws2801">schemas/schema-ws2801.json</file>
 		<file alias="schema-ws2812spi">schemas/schema-ws2812spi.json</file>
 		<file alias="schema-ws281x">schemas/schema-ws281x.json</file>
+		<file alias="schema-karate">schemas/schema-karate.json</file>
 	</qresource>
 </RCC>
