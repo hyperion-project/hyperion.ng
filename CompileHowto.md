@@ -7,7 +7,7 @@ sudo apt-get update
 sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
 ### Ubuntu 14.04 specific
-You need a never version of cmake (minimum 3.0.0). Install it from the ppa or website
+You need a newer version of cmake (minimum 3.0.0). Install it from the ppa or website
 ```
 sudo apt-get install software-properties-common
 sudo add-apt-repository ppa:george-edison55/cmake-3.x
@@ -19,7 +19,11 @@ sudo apt-get update && sudo apt-get upgrade
 ```
 sudo apt-get install libraspberrypi-dev
 ```
-
+**OSMC**
+libraspberrypi-dev is not available, use this instead
+```
+sudo apt-get install rbp-userland-dev-osmc
+```
 
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
