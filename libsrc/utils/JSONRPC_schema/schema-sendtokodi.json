@@ -1,0 +1,36 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":
+	{
+		"command":
+		{
+			"type" : "string",
+			"required" : true,
+			"enum" : ["sendtokodi"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"kodirequest":
+		{
+			"type": "object",
+			"required": true,
+			"properties":
+			{
+				"address":
+				{
+					"type" : "string",
+					"required": true
+				},
+				"request":
+				{
+					"type": "object",
+					"required": true
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

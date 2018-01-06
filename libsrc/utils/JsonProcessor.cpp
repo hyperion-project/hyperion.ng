@@ -17,7 +17,9 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QIODevice>
-#include <QDateTime>
+#include <QNetworkAccessManager>
+#include <QUrl>
+#include <QNetworkRequest>
 
 // hyperion includes
 #include <hyperion/ImageProcessorFactory.h>
@@ -107,6 +109,7 @@ void JsonProcessor::handleMessage(const QString& messageString)
 	else if (command == "logging")        handleLoggingCommand       (message, command, tan);
 	else if (command == "processing")     handleProcessingCommand    (message, command, tan);
 	else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
+	else if (command == "sendtokodi")     handleSendToKodiCommand    (message, command, tan);
 	else                                  handleNotImplemented       ();
 }
 
@@ -1054,6 +1057,46 @@ void JsonProcessor::handleVideoModeCommand(const QJsonObject& message, const QSt
 	_hyperion->setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
 
 	sendSuccessReply(command, tan);
+}
+
+void JsonProcessor::handleSendToKodiCommand(const QJsonObject& message, const QString &command, const int tan)
+{
+	const QJsonObject & kodirequest = message["kodirequest"].toObject();
+	QString addrStr = kodirequest["address"].toString();
+	QJsonObject requestObj = kodirequest["request"].toObject();
+
+	QUrl url = QUrl("http://" + addrStr + "/jsonrpc");
+	// create post data
+	QJsonDocument doc(requestObj);
+	QByteArray postData = doc.toJson();
+
+	// Call the webservice
+	QNetworkAccessManager *networkManager = new QNetworkAccessManager(this);
+	QNetworkRequest networkRequest(url);
+	networkRequest.setHeader(QNetworkRequest::ContentTypeHeader,"application/json");
+	connect(networkManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(kodiRequestFinished(QNetworkReply*)));
+
+	networkManager->post(networkRequest,postData);
+}
+
+void JsonProcessor::kodiRequestFinished(QNetworkReply *reply)
+{
+	reply->deleteLater();
+	QJsonObject callback;
+	//don't use standard error handling here
+	callback["success"] = true;
+	callback["command"] = "kodiResponse";
+
+	if(reply->error() == QNetworkReply::NoError)
+	{
+		callback["kodiResponse"] = reply->readAll().toStdString().c_str();
+	}
+	else
+	{
+		callback["error"] = reply->errorString();;
+	}
+
+	emit callbackMessage(callback);
 }
 
 void JsonProcessor::handleNotImplemented()

@@ -18,5 +18,6 @@
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
+        <file alias="schema-sendtokodi">JSONRPC_schema/schema-sendtokodi.json</file>
     </qresource>
 </RCC>
