@@ -416,6 +416,7 @@
 	"edt_conf_enum_PAL" : "PAL",
 	"edt_conf_enum_NTSC" : "NTSC",
 	"edt_conf_enum_SECAM" : "SECAM",
+	"edt_conf_enum_NOCHANGE" : "NO-CHANGE",
 	"edt_conf_enum_logsilent" : "Silent",
 	"edt_conf_enum_logwarn" : "Warning",
 	"edt_conf_enum_logverbose" : "Verbose",

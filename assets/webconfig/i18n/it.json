@@ -364,6 +364,8 @@
     "edt_conf_enum_linear": "Lineare",
     "edt_conf_enum_PAL": "PAL",
     "edt_conf_enum_NTSC": "NTSC",
+    "edt_conf_enum_SECAM": "SECAM",
+    "edt_conf_enum_NOCHANGE" : "NO-CHANGE",
     "edt_conf_enum_logsilent": "Silenzioso",
     "edt_conf_enum_logwarn": "Avvertimento",
     "edt_conf_enum_logverbose": "Verboso",
@@ -750,7 +752,6 @@
     "edt_eff_smooth_custom": "Abilita sfumatura",
     "edt_eff_smooth_time_ms": "Durata sfumatura",
     "edt_eff_smooth_updateFrequency": "Frequenza di aggiornamento sfumatura",
-    "edt_conf_enum_SECAM": "SECAM",
     "general_speech_it": "Italiano",
     "general_speech_cs": "Czech"
 }

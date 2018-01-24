@@ -364,6 +364,8 @@
     "edt_conf_enum_linear": "Linearní",
     "edt_conf_enum_PAL": "PAL",
     "edt_conf_enum_NTSC": "NTSC",
+    "edt_conf_enum_SECAM": "SECAM",
+    "edt_conf_enum_NOCHANGE" : "NO-CHANGE",
     "edt_conf_enum_logsilent": "Tichý",
     "edt_conf_enum_logwarn": "Varování",
     "edt_conf_enum_logverbose": "Podrobný",
@@ -750,7 +752,6 @@
     "edt_eff_smooth_custom": "Povolit vyhlazení",
     "edt_eff_smooth_time_ms": "Doba vyhlazení",
     "edt_eff_smooth_updateFrequency": "Vyrovnávací frekvence aktualizace",
-    "edt_conf_enum_SECAM": "SECAM",
     "general_speech_it": "Italština",
     "general_speech_cs": "Czech"
 }
