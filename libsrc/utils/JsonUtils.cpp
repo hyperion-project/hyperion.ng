@@ -40,11 +40,8 @@ namespace JsonUtils {
 	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
 	{
 		//remove Comments in data
-		//old version removes "http://xxx" too
-		//cleanData.remove(QRegularExpression("([^:]?\\/\\/.*)"));
-		//https://stackoverflow.com/questions/5989315/regex-for-match-replacing-javascript-comments-both-multiline-and-inline/16291758#16291758
 		QString cleanData = data;
-		cleanData.remove(QRegularExpression("(/\\s/\\/\\|$//)[\\w\\s\\W\\S.]*"));
+		cleanData.remove(QRegularExpression("([^:]?\\/\\/.*)"));
 
 		QJsonParseError error;
 		QJsonDocument doc = QJsonDocument::fromJson(cleanData.toUtf8(), &error);

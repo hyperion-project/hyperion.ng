@@ -22,8 +22,6 @@ var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
 var wSess = [];
-var kodiResponse;
-var withKodi = false;
 
 function initRestart()
 {
@@ -310,9 +308,4 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
 	else
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
-}
-
-function requestSendToKodi(address, request)
-{
-	sendToHyperion("sendtokodi", "", '"kodirequest":{"address":"'+address+'","request":'+request+'}');
 }

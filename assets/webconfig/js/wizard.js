@@ -167,6 +167,7 @@
 	var colorLength;
 	var cobj;
 	var step = 0;
+	var withKodi = false;
 	var profile = 0;
 	var websAddress;
 	var imgAddress;
@@ -204,7 +205,24 @@
 		else if (type == "rotate")
 			command = '{"jsonrpc":"2.0","method":"Player.Rotate","params":{"playerid": 2},"id":"1"}';
 
-		requestSendToKodi(kodiAddress, command);
+		$.ajax({
+			url: 'http://' + kodiAddress + '/jsonrpc',
+			dataType: 'jsonp',
+			crossDomain: true,
+			jsonpCallback: 'jsonCallback',
+			type: 'POST',
+			timeout: 2000,
+			data: 'request=' + encodeURIComponent( command )
+		})
+		.done( function( data, textStatus, jqXHR ) {
+			if ( jqXHR.status == 200 && data['result'] == 'OK' && type == "msg")
+				cb("success");
+		})
+		// Older Versions Of Kodi/XBMC Tend To Fail Due To CORS But Typically If A '200' Is Returned Then It Has Worked!
+		.fail( function( jqXHR, textStatus ) {
+			if ( jqXHR.status != 200 && type == "msg")
+				cb("error")
+		});
 	}
 
 	function performAction()
@@ -410,7 +428,20 @@
 		$('#wiz_cc_kodiip').off().on('change',function() {
 			kodiAddress = $(this).val();
 			setStorage("kodiAddress", kodiAddress);
-			sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'))
+			sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function(cb){
+				if(cb == "error")
+				{
+					$('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodidiscon')+'</p><p>'+$.i18n('wiz_cc_kodidisconlink')+' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">'+$.i18n('wiz_cc_link')+'</p>');
+					withKodi = false;
+				}
+				else
+				{
+					$('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodicon')+'</p>');
+					withKodi = true;
+				}
+
+				$('#btn_wiz_cont').attr('disabled', false);
+			});
 		});
 
 		//listen for continue

@@ -9,7 +9,7 @@ $(document).ready( function() {
 	$(hyperion).on("cmd-serverinfo",function(event){
 		serverInfo = event.response.info;
 		$(hyperion).trigger("ready");
-
+		
 		if (serverInfo.hyperion.config_modified)
 			$("#hyperion_reload_notify").fadeIn("fast");
 		else
@@ -42,10 +42,10 @@ $(document).ready( function() {
 			{
 				if(sess[i].type == "_hyperiond-http._tcp.")
 				{
-					wSess.push(sess[i]);
+					wSess.push(sess[i]);  
 				}
 			}
-
+			
 			if (wSess.length > 1)
 				$('#btn_instanceswitch').toggle(true);
 			else
@@ -60,38 +60,19 @@ $(document).ready( function() {
 
 		currentVersion = sysInfo.hyperion.version;
 	});
-
+	
 	$(hyperion).one("cmd-config-getschema", function(event) {
 		serverSchema = event.response.result;
 		requestServerConfig();
-
+		
 		schema = serverSchema.properties;
 	});
 
 	$(hyperion).one("cmd-config-getconfig", function(event) {
 		serverConfig = event.response.result;
 		requestSysInfo();
-
+		
 		showOptHelp = serverConfig.general.showOptHelp;
-	});
-
-	$(hyperion).on("cmd-kodiResponse",function(event){
-
-		if (event.response.hasOwnProperty("error")){
-			$('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodidiscon')+'</p><p>'+$.i18n('wiz_cc_kodidisconlink')+' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">'+$.i18n('wiz_cc_link')+'</p>');
-			$('#btn_wiz_cont').attr('disabled', true);
-			withKodi = false;
-			showInfoDialog("error","connection error", event.response.error);
-		}else {
-			kodiResponse = 	JSON.parse(event.response.kodiResponse);
-			if (kodiResponse.result == "OK") {
-				$('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodicon')+'</p>');
-				$('#btn_wiz_cont').attr('disabled', false);
-				withKodi = true;
-			}else{
-				showInfoDialog("warning","request to kodi not successfull", JSON.stringify(kodiResponse));
-			}
-		}
 	});
 
 	$(hyperion).on("error",function(event){
@@ -101,15 +82,15 @@ $(document).ready( function() {
 	$(hyperion).on("open",function(event){
 		requestServerConfigSchema();
 	});
-
+	
 	$(hyperion).one("ready", function(event) {
 		loadContent();
 	});
-
+	
 	$("#btn_hyperion_reload").on("click", function(){
 		initRestart();
 	});
-
+	
 	$(".mnava").bind('click.menu', function(e){
 		loadContent(e);
 		window.scrollTo(0, 0);
@@ -124,3 +105,4 @@ $(function(){
 		$(this).toggleClass('active inactive');
 	});
 });
+

@@ -11,7 +11,6 @@
 #include <QJsonObject>
 #include <QMutex>
 #include <QString>
-#include <QNetworkReply>
 
 // createEffect helper
 struct find_schema: std::unary_function<EffectSchema, bool>
@@ -73,9 +72,6 @@ public slots:
 
 	/// process and push new log messages from logger (if enabled)
 	void incommingLogMessage(Logger::T_LOG_MESSAGE);
-
-	/// handle reply for requests to kodi
-	void kodiRequestFinished(QNetworkReply *reply);
 
 signals:
 	///
@@ -259,12 +255,6 @@ private:
 	/// @param message the incoming message
 	///
 	void handleVideoModeCommand(const QJsonObject & message, const QString &command, const int tan);
-
-    /// Handle an incoming JSON SendToKodi message
-	///
-	/// @param message the incoming message
-	///
-	void handleSendToKodiCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type
