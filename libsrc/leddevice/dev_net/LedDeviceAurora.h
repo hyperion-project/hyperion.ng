@@ -1,8 +1,4 @@
 #pragma once
-// STL includes
-#include <string>
-#include <cmath>
-#include <fstream>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>

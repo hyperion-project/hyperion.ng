@@ -1,21 +1,14 @@
 
 // Local-Hyperion includes
 #include "LedDeviceAurora.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
 #include <assert.h>
 // qt includes
 #include <QtCore/qmath.h>
 #include <QEventLoop>
 #include <QNetworkReply>
+
+#define ll ss
 
 struct addrinfo vints, *serverinfo, *pt;
 //char udpbuffer[1024];
@@ -50,10 +43,6 @@ bool LedDeviceAurora::init(const QJsonObject &deviceConfig) {
 	
 	QJsonObject json = doc.object();
 
-	//Debug
-	//Json::FastWriter fastWriter;
-	//std::cout << fastWriter.write(json);
-
 	panelCount = json["numPanels"].toInt();
 	std::cout << panelCount << std::endl;
 	QJsonObject positionDataJson = doc.object()["positionData"].toObject();
@@ -75,28 +64,32 @@ bool LedDeviceAurora::init(const QJsonObject &deviceConfig) {
 	// Set Aurora to UDP Mode
 	QByteArray modeResponse = changeMode(hostname, key, "effects");
 	QJsonDocument configDoc = QJsonDocument::fromJson(modeResponse, &error);
+
+	//Debug
+	//QString strConf(configDoc.toJson(QJsonDocument::Compact));
+	//std::cout << strConf.toUtf8().constData() << std::endl;
+
 	if (error.error != QJsonParseError::NoError)
 	{
 		throw std::runtime_error("Could not change mode");
 	}
-	QJsonObject configJson = doc.object();
 
 	// Get UDP port
-	port = configJson["streamControlPort"].toString();
+	port = QString::number(configDoc.object()["streamControlPort"].toInt());
 
 	std::cout << "hostname " << hostname.toStdString() << " port " << port.toStdString() << std::endl;
-	/*
+	
 	int rv;
 
 	memset(&vints, 0, sizeof vints);
 	vints.ai_family = AF_UNSPEC;
 	vints.ai_socktype = SOCK_DGRAM;
 
-	if ((rv = getaddrinfo(hostname.c_str() , port.c_str(), &vints, &serverinfo)) != 0) {
+	if ((rv = getaddrinfo(hostname.toUtf8().constData() , port.toUtf8().constData(), &vints, &serverinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		assert(rv==0);
 	}
-
+	
 	// loop through all the results and make a socket
 	for(pt = serverinfo; pt != NULL; pt = pt->ai_next) {
 		if ((sockfp = socket(pt->ai_family, pt->ai_socktype,
@@ -111,7 +104,7 @@ bool LedDeviceAurora::init(const QJsonObject &deviceConfig) {
 	if (pt == NULL) {
 		fprintf(stderr, "talker: failed to create socket\n");
 		assert(pt!=NULL);
-	}*/
+	}
 	std::cout << "Started successfully ";
 	return true;
 }
