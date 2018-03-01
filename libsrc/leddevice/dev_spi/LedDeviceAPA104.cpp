@@ -7,8 +7,8 @@ From the data sheet:
 
 T0H,	 0 code, high level time,	  350ns ±150ns
 T0L,	 0 code, low level time,	 1360ns ±150ns
-T1H,	 1 code, high level time,	  360ns ±150ns
-T1L,	 1 code, low level time,	   45ns ±150ns
+T1H,	 1 code, high level time,	 1360ns ±150ns
+T1L,	 1 code, low level time,	  350ns ±150ns
 WT,	 Wait for the processing time,	 NA
 Trst,	 Reset code,low level time,	 24µs 
 
