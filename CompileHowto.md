@@ -71,7 +71,7 @@ sudo make install/strip
 sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond
-# webui is located on localhost:8099
+# webui is located on localhost:8090
 ```
 
 
