@@ -36,7 +36,7 @@ bool X11Wrapper::displayInit()
 
 void X11Wrapper::capture()
 {
-	_grabber.grabFrame(_screenshot, true);
+	_grabber.grabFrame(_screenshot, false);
 	emit sig_screenshot(_screenshot);
 }
 
