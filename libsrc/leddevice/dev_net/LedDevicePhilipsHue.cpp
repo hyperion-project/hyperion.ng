@@ -36,9 +36,10 @@ CiColor CiColor::rgbToCiColor(float red, float green, float blue, CiColorTriangl
 	{
 		cy = 0.0f;
 	}
-	// Brightness is simply Y in the XYZ space.
+	// RGB to HSV Convertion for Brightness Value, not XYZ Space.
+	float bri = qMax(qMax(r, g), b);
 	CiColor xy =
-	{ cx, cy, Y };
+	{ cx, cy, bri };
 	// Check if the given XY value is within the color reach of our lamps.
 	if (!isPointInLampsReach(xy, colorSpace))
 	{
