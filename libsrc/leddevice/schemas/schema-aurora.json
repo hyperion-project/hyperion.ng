@@ -1,0 +1,23 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_targetIp_title",
+			"propertyOrder" : 1
+		},
+		"key": {
+			"type": "string",
+			"title":"edt_dev_auth_key_title",
+			"propertyOrder" : 2
+		},
+		"colorOrder": {
+			"type": "string",
+			"title":"edt_dev_color_order_title",
+			"default": "rgb",
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties": true
+}
