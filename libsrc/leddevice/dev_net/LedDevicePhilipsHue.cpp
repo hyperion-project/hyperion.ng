@@ -212,7 +212,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 { "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-{ "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014" };
+{ "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014", "LCT015", "LCT016", "LCT024" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values)
 	: log(log)
@@ -249,7 +249,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	{
 		Debug(log, "Recognized model id %s of light ID %d as gamut A", modelId.toStdString().c_str(), id);
 		colorSpace.red =
-		{	0.703f, 0.296f};
+		{	0.704f, 0.296f};
 		colorSpace.green =
 		{	0.2151f, 0.7106f};
 		colorSpace.blue =
@@ -261,7 +261,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 		colorSpace.red =
 		{	0.675f, 0.322f};
 		colorSpace.green =
-		{	0.4091f, 0.518f};
+		{	0.409f, 0.518f};
 		colorSpace.blue =
 		{	0.167f, 0.04f};
 	}
@@ -269,11 +269,11 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	{
 		Debug(log, "Recognized model id %s of light ID %d as gamut C", modelId.toStdString().c_str(), id);
 		colorSpace.red =
-		{	0.675f, 0.322f};
+		{	0.6915f, 0.3083f};
 		colorSpace.green =
-		{	0.2151f, 0.7106f};
+		{	0.17f, 0.7f};
 		colorSpace.blue =
-		{	0.167f, 0.04f};
+		{	0.1532f, 0.0475f};
 	}
 	else
 	{
