@@ -288,7 +288,7 @@ void HyperionDaemon::startNetworkServices()
 	}
 
 	_protoServer = new ProtoServer(protoPort);
-	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _protoServer, SLOT(setVideoMode(VideoMode))); 
+	QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _protoServer, SIGNAL(videoMode(VideoMode))); 
 	Info(_log, "Proto server created and started on port %d", _protoServer->getPort());
 
 	// Create Boblight server if configuration is present
