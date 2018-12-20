@@ -176,6 +176,9 @@ table label{margin:0}
 .checklist{list-style-type:none;padding-left:0px}
 .checklist li::before{content: "\f00c";font: normal normal normal 14px/1 FontAwesome;margin-right:5px;color:green;font-size:19px}
 
+/* bgwhite */
+.bg-w{background-color: white;}
+
 /*Modal icons*/
 [class*="modal-icon"]{
 	padding:30px;
