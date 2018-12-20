@@ -64,6 +64,12 @@ void QtHttpServer::start (quint16 port) {
 void QtHttpServer::stop (void) {
     if (m_sockServer->isListening ()) {
         m_sockServer->close ();
+		// disconnect clients
+		const QList<QTcpSocket*> socks = m_socksClientsHash.keys();
+		for(auto sock : socks)
+		{
+			sock->close();
+		}
         emit stopped ();
     }
 }
