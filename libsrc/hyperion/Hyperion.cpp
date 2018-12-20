@@ -840,6 +840,9 @@ void Hyperion::update()
 	_ledBuffer.reserve(_hwLedCount);
 	_ledBuffer = priorityInfo.ledColors;
 
+	// emit rawLedColors before transform
+	emit rawLedColors(_ledBuffer);
+
 	if (priorityInfo.componentId != _prevCompId)
 	{
 		bool backlightEnabled = (priorityInfo.componentId != hyperion::COMP_COLOR && priorityInfo.componentId != hyperion::COMP_EFFECT);
