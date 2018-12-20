@@ -70,6 +70,7 @@ $(document).ready( function() {
 		});
 	});
 
+	// disable or enable control elements
 	$("#name-input").on('change keyup', function(event) {
 		effectName = $(this).val();
 		if ($(this).val() == '') {
@@ -81,6 +82,7 @@ $(document).ready( function() {
         }
     });
 
+	// Save Effect
 	$('#btn_write').off().on('click',function() {
 		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
 		$(hyperion).one("cmd-create-effect", function(event) {
@@ -93,21 +95,25 @@ $(document).ready( function() {
 
 	});
 
+	// Start test
 	$('#btn_start_test').off().on('click',function() {
 		triggerTestEffect();
 	});
 
+	// Stop test
 	$('#btn_stop_test').off().on('click',function() {
 		requestPriorityClear();
 		testrun = false;
 	});
 
+	// Continuous test
 	$('#btn_cont_test').off().on('click',function() {
 		toggleClass('#btn_cont_test', "btn-success", "btn-danger");
 	});
 
+	// Delete Effect
 	$('#btn_delete').off().on('click',function() {
-		var name = $("#effectsdellist").val();
+		var name = $("#effectsdellist").val().split("_")[1];
 		requestDeleteEffect(name);
 		$(hyperion).one("cmd-delete-effect", function(event) {
 			if (event.response.success)
@@ -115,11 +121,13 @@ $(document).ready( function() {
 		});
 	});
 
+	// disable or enable Delete Effect Button
 	$('#effectsdellist').off().on('change', function(){
 		$(this).val() == null ? $('#btn_edit, #btn_delete').prop('disabled',true) : "";
 		$(this).val().startsWith("int_") ? $('#btn_delete').prop('disabled',true) : $('#btn_delete').prop('disabled',false);
 	});
 
+	// Load Effect
 	$('#btn_edit').off().on('click', function(){
 		var name = $("#effectsdellist").val().replace("ext_","");
 
