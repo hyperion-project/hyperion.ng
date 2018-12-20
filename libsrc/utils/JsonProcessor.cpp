@@ -14,9 +14,9 @@
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
-#include <QFileInfo>
-#include <QDir>
-#include <QIODevice>
+ #include <QFileInfo>	
+ #include <QDir>	
+ #include <QIODevice>
 #include <QDateTime>
 
 // hyperion includes
@@ -43,6 +43,7 @@ JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, QObject* parent, 
 	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
+	, _led_stream_timeout(0)
 {
 	// notify hyperion about a jsonMessageForward
 	connect(this, &JsonProcessor::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
@@ -55,10 +56,8 @@ JsonProcessor::JsonProcessor(QString peerAddress, Logger* log, QObject* parent, 
 		connect(_hyperion, &Hyperion::sendServerInfo, this, &JsonProcessor::forceServerInfo);
 	}
 
-	// led color stream update timer
-	_timer_ledcolors.setSingleShot(false);
-	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 	_image_stream_mutex.unlock();
+	_led_stream_mutex.unlock();
 }
 
 void JsonProcessor::handleMessage(const QString& messageString)
@@ -980,11 +979,13 @@ void JsonProcessor::handleLedColorsCommand(const QJsonObject& message, const QSt
 		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
 		_streaming_leds_reply["tan"]     = tan;
-		_timer_ledcolors.start(125);
+		connect(_hyperion, &Hyperion::rawLedColors, this, &JsonProcessor::streamLedcolorsUpdate, Qt::UniqueConnection);
+		_ledcolorsLedsActive = true;
 	}
 	else if (subcommand == "ledstream-stop")
 	{
-		_timer_ledcolors.stop();
+		disconnect(_hyperion, &Hyperion::rawLedColors, this, &JsonProcessor::streamLedcolorsUpdate);
+ 		_ledcolorsLedsActive = false;
 	}
 	else if (subcommand == "imagestream-start")
 	{
@@ -1095,27 +1096,32 @@ void JsonProcessor::sendErrorReply(const QString &error, const QString &command,
 }
 
 
-void JsonProcessor::streamLedcolorsUpdate()
+void JsonProcessor::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 {
-	QJsonObject result;
-	QJsonArray leds;
-
-	const PriorityMuxer::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
-	for(auto color = priorityInfo.ledColors.begin(); color != priorityInfo.ledColors.end(); ++color)
+	if ( (_led_stream_timeout+50) < QDateTime::currentMSecsSinceEpoch() && _led_stream_mutex.tryLock(0) )
 	{
-		QJsonObject item;
-		item["index"] = int(color - priorityInfo.ledColors.begin());
-		item["red"]   = color->red;
-		item["green"] = color->green;
-		item["blue"]  = color->blue;
-		leds.append(item);
+		_led_stream_timeout = QDateTime::currentMSecsSinceEpoch();
+		QJsonObject result;
+		QJsonArray leds;
+
+		for(auto color = ledColors.begin(); color != ledColors.end(); ++color)
+		{
+			QJsonObject item;
+			item["index"] = int(color - ledColors.begin());
+			item["red"]   = color->red;
+			item["green"] = color->green;
+			item["blue"]  = color->blue;
+			leds.append(item);
+		}
+
+		result["leds"] = leds;
+		_streaming_leds_reply["result"] = result;
+
+		// send the result
+		emit callbackMessage(_streaming_leds_reply);
+
+		_led_stream_mutex.unlock();
 	}
-
-	result["leds"] = leds;
-	_streaming_leds_reply["result"] = result;
-
-	// send the result
-	emit callbackMessage(_streaming_leds_reply);
 }
 
 void JsonProcessor::setImage(int priority, const Image<ColorRgb> & image, int duration_ms)
