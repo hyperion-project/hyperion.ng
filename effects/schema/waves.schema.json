@@ -1,0 +1,121 @@
+{
+	"type":"object",
+	"script" : "waves.py",
+	"title":"edt_eff_waves_header",
+	"required":true,
+	"properties":{
+		"reverse": {
+			"type": "boolean",
+			"title":"edt_eff_reversedirection",
+			"default": false,
+			"propertyOrder" : 1
+		},
+		"reverse_time": {
+			"type": "integer",
+			"title":"edt_eff_reverseRandomTime",
+			"default": 0,
+			"minimum": 0,
+			"append" : "edt_append_s",
+			"propertyOrder" : 2
+		},
+		"rotation_time": {
+			"type": "integer",
+			"title":"edt_eff_rotationtime",
+			"default": 50,
+			"minimum": 1,
+			"append" : "edt_append_s",
+			"propertyOrder" : 2
+		},
+		"random-center": {
+			"type": "boolean",
+			"title":"edt_eff_randomCenter",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"center_x": {
+			"type": "number",
+			"title":"edt_eff_centerx",
+			"default": -0.15,
+			"minimum" : -3.0,
+			"maximum" : 4.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"random-center": false
+				}
+			},
+			"propertyOrder" : 4
+		},
+		"center_y": {
+			"type": "number",
+			"title":"edt_eff_centery",
+			"default": -0.15,
+			"minimum" : -3.0,
+			"maximum" : 4.0,
+			"step" : 0.1,
+			"options": {
+				"dependencies": {
+					"random-center": false
+				}
+			},
+			"propertyOrder" : 5
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom",
+			"default" : true,
+			"propertyOrder" : 6
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 7
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"colors": {
+			"type": "array",
+			"title":"edt_eff_customColor",
+			"items" : {
+				"type": "array",
+				"title" : "edt_eff_color",
+				"format":"colorpicker",
+				"default" : [255,0,0],
+				"items":{
+					"type":"integer",
+					"minimum": 0,
+					"maximum": 255
+				},
+				"minItems": 3,
+				"maxItems": 3
+			},
+			"minItems": 6,
+			"propertyOrder" : 9
+		}
+	},
+	"additionalProperties": false
+}
