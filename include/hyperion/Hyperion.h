@@ -354,6 +354,11 @@ signals:
 	/// Signal emitted when a 3D movie is detected
 	void videoMode(VideoMode mode);
 
+	///
+	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
+	///
+	void rawLedColors(const std::vector<ColorRgb>& ledValues);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -416,7 +421,7 @@ private:
 	QTimer _timer;
 	QTimer _timerBonjourResolver;
 
-	/// buffer for leds
+	/// buffer for leds  (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
 
 	/// Logger instance
