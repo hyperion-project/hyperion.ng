@@ -7,7 +7,6 @@
 #include <hyperion/Hyperion.h>
 
 // qt includess
-#include <QTimer>
 #include <QJsonObject>
 #include <QMutex>
 #include <QString>
@@ -64,8 +63,11 @@ public:
 	void forceServerInfo();
 
 public slots:
-	/// _timer_ledcolors requests ledcolor updates (if enabled)
-	void streamLedcolorsUpdate();
+	///
+	/// @brief is called whenever the current Hyperion instance pushes new led raw values (if enabled)
+ 	/// @param ledColors  The current ledColors
+ 	///
+	void streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors);
 
 	/// push images whenever hyperion emits (if enabled)
 	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
@@ -107,22 +109,25 @@ private:
 	/// returns if hyperion is on or off
 	inline bool hyperionIsActive() { return JsonProcessor::_componentsPrevState.empty(); };
 
-	/// timer for ledcolors streaming
-	QTimer _timer_ledcolors;
-
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
 	QJsonObject _streaming_image_reply;
 	QJsonObject _streaming_logging_reply;
+	bool _ledcolorsLedsActive = false;
 
 	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
 
 	/// mutex to determine state of image streaming
 	QMutex _image_stream_mutex;
+	/// mutex to determine state of led color streaming
+	QMutex _led_stream_mutex;
 
 	/// timeout for live video refresh
 	volatile qint64 _image_stream_timeout;
+
+	/// timeout for led color refresh
+	volatile qint64 _led_stream_timeout;
 
 	///
 	/// Handle an incoming JSON Color message
