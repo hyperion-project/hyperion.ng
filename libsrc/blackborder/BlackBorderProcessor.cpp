@@ -1,31 +1,104 @@
 #include <iostream>
 
-#include <utils/Logger.h>
+#include <hyperion/Hyperion.h>
 
 // Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
-
 using namespace hyperion;
 
-BlackBorderProcessor::BlackBorderProcessor(const QJsonObject &blackborderConfig)
-	: _enabled(blackborderConfig["enable"].toBool(true))
-	, _unknownSwitchCnt(blackborderConfig["unknownFrameCnt"].toInt(600))
-	, _borderSwitchCnt(blackborderConfig["borderFrameCnt"].toInt(50))
-	, _maxInconsistentCnt(blackborderConfig["maxInconsistentCnt"].toInt(10))
-	, _blurRemoveCnt(blackborderConfig["blurRemoveCnt"].toInt(1))
-	, _detectionMode(blackborderConfig["mode"].toString("default"))
-	, _detector(blackborderConfig["threshold"].toDouble(5.0)/100)
+BlackBorderProcessor::BlackBorderProcessor(Hyperion* hyperion, QObject* parent)
+	: QObject(parent)
+	, _hyperion(hyperion)
+	, _enabled(false)
+	, _unknownSwitchCnt(600)
+	, _borderSwitchCnt(50)
+	, _maxInconsistentCnt(10)
+	, _blurRemoveCnt(1)
+	, _detectionMode("default")
+	, _detector(nullptr)
 	, _currentBorder({true, -1, -1})
 	, _previousDetectedBorder({true, -1, -1})
 	, _consistentCnt(0)
 	, _inconsistentCnt(10)
+	, _oldThreshold(-0.1)
+	, _hardDisabled(false)
+	, _userEnabled(false)
 {
-	if (_enabled)
+	// init
+	handleSettingsUpdate(settings::BLACKBORDER, _hyperion->getSetting(settings::BLACKBORDER));
+
+	// listen for settings updates
+	connect(_hyperion, &Hyperion::settingsChanged, this, &BlackBorderProcessor::handleSettingsUpdate);
+
+	// listen for component state changes
+	connect(_hyperion, &Hyperion::componentStateChanged, this, &BlackBorderProcessor::componentStateChanged);
+}
+
+BlackBorderProcessor::~BlackBorderProcessor()
+{
+	delete _detector;
+}
+
+void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+{
+	if(type == settings::BLACKBORDER)
 	{
-		Debug(Logger::getInstance("BLACKBORDER"), "mode: %s", QSTRING_CSTR(_detectionMode));
+		const QJsonObject& obj = config.object();
+		_unknownSwitchCnt = obj["unknownFrameCnt"].toInt(600);
+		_borderSwitchCnt = obj["borderFrameCnt"].toInt(50);
+		_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
+		_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
+		_detectionMode = obj["mode"].toString("default");
+
+		if(_oldThreshold != obj["threshold"].toDouble(5.0/100))
+		{
+			_oldThreshold = obj["threshold"].toDouble(5.0/100);
+			if(_detector != nullptr) delete _detector;
+			_detector = new BlackBorderDetector(obj["threshold"].toDouble(5.0/100));
+		}
+
+		Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+
+		// eval the comp state
+		componentStateChanged(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));
 	}
 }
+
+void BlackBorderProcessor::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if(component == hyperion::COMP_BLACKBORDER)
+	{
+		_userEnabled = enable;
+		if(enable)
+		{
+			// eg effects and probably other components don't want a BB, mimik a wrong comp state to the comp register
+			if(!_hardDisabled)
+				_enabled = enable;
+		}
+		else
+		{
+			_enabled = enable;
+		}
+
+		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, enable);
+	}
+}
+
+void BlackBorderProcessor::setHardDisable(const bool& disable) {
+
+	if (disable)
+	{
+		_enabled = false;
+	}
+	else
+	{
+		// the user has the last word to enable
+		if(_userEnabled)
+			_enabled = true;
+	}
+	_hardDisabled = disable;
+};
 
 BlackBorder BlackBorderProcessor::getCurrentBorder() const
 {

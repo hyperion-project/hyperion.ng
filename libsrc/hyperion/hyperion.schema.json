@@ -71,6 +71,10 @@
 		{
 			"$ref": "schema-effects.json"
 		},
+		"instCapture":
+		{
+			"$ref": "schema-instCapture.json"
+		},
 		"ledConfig":
 		{
 			"$ref": "schema-ledConfig.json"

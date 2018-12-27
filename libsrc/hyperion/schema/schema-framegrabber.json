@@ -3,13 +3,6 @@
 	"title" : "edt_conf_fg_heading_title",
 	"properties" :
 	{
-		"enable" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_general_enable_title",
-			"default" : true,
-			"propertyOrder" : 1
-		},
 		"type" :
 		{
 			"type" : "string",
@@ -44,15 +37,6 @@
 			"default" : 10,
 			"append" : "edt_append_hz",
 			"propertyOrder" : 4
-		},
-		"priority" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_general_priority_title",
-			"minimum" : 100,
-			"maximum" : 254,
-			"default" : 250,
-			"propertyOrder" : 5
 		},
 		"cropLeft" :
 		{
@@ -90,42 +74,28 @@
 			"append" : "edt_append_pixel",
 			"propertyOrder" : 9
 		},
-		"useXGetImage" :
+		"pixelDecimation" :
 		{
-			"type" : "boolean",
-			"title" : "edt_conf_fg_useXGetImage_title",
-			"default" : false,
+			"type" : "integer",
+			"title" : "edt_conf_fg_pixelDecimation_title",
+			"minimum" : 1,
+			"maximum" : 30,
+			"default" : 8,
 			"propertyOrder" : 10
-		},
-		"horizontalPixelDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_horizontalPixelDecimation_title",
-			"minimum" : 0,
-			"default" : 8,
-			"propertyOrder" : 11
-		},
-		"verticalPixelDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_verticalPixelDecimation_title",
-			"minimum" : 0,
-			"default" : 8,
-			"propertyOrder" : 12
 		},
 		"device" :
 		{
 			"type" : "string",
 			"title" : "edt_conf_fg_device_title",
 			"default" : "/dev/fb0",
-			"propertyOrder" : 13
+			"propertyOrder" : 11
 		},
 		"display" :
 		{
 			"type" : "integer",
 			"title" : "edt_conf_fg_display_title",
 			"minimum" : 0,
-			"propertyOrder" : 14
+			"propertyOrder" : 12
 		}
 	},
 	"additionalProperties" : false

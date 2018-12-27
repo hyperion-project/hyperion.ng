@@ -30,8 +30,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 
 #include <QtCore/QSocketNotifier>
+#include <QHostInfo>
 
 #include <utils/Logger.h>
+#include <HyperionConfig.h>
+#include <hyperion/Hyperion.h>
+
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)
@@ -48,6 +52,19 @@ BonjourServiceRegister::~BonjourServiceRegister()
 	}
 }
 
+void BonjourServiceRegister::registerService(const QString& service, const int& port)
+{
+	// zeroconf $configname@$hostname:port
+	QString prettyName = Hyperion::getInstance()->getQJsonConfig()["general"].toObject()["name"].toString();
+	registerService(
+		BonjourRecord(prettyName+"@"+QHostInfo::localHostName()+ ":" + QString::number(port),
+			service,
+			QString()
+		),
+	port
+	);
+}
+
 void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt)
 {
 	if (dnssref)
@@ -61,21 +78,24 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 		bigEndianPort =  0 | ((servicePort & 0x00ff) << 8) | ((servicePort & 0xff00) >> 8);
 	}
 #endif
-
+	// base txtRec
+	std::vector<std::pair<std::string, std::string> > txtBase = {{"id",Hyperion::getInstance()->getId().toStdString()},{"version",HYPERION_VERSION}};
     // create txt record
     TXTRecordRef txtRec;
     TXTRecordCreate(&txtRec,0,NULL);
 
-    // add txt records
-    if(!txt.empty())
+	if(!txt.empty())
     {
-        for(std::vector<std::pair<std::string, std::string> >::const_iterator it = txt.begin(); it != txt.end(); ++it)
-        {
-            //Debug(Logger::getInstance("BonJour"), "TXTRecord: key:%s, value:%s",it->first.c_str(),it->second.c_str());
-            uint8_t txtLen = (uint8_t)strlen(it->second.c_str());
-            TXTRecordSetValue(&txtRec, it->first.c_str(), txtLen, it->second.c_str());
-        }
+		txtBase.insert(txtBase.end(), txt.begin(), txt.end());
+	}
+    // add txt records
+    for(std::vector<std::pair<std::string, std::string> >::const_iterator it = txtBase.begin(); it != txtBase.end(); ++it)
+    {
+        //Debug(Logger::getInstance("BonJour"), "TXTRecord: key:%s, value:%s",it->first.c_str(),it->second.c_str());
+        uint8_t txtLen = (uint8_t)strlen(it->second.c_str());
+        TXTRecordSetValue(&txtRec, it->first.c_str(), txtLen, it->second.c_str());
     }
+
 
 	DNSServiceErrorType err = DNSServiceRegister(&dnssref, 0, 0, record.serviceName.toUtf8().constData(),
 	                                            record.registeredType.toUtf8().constData(),

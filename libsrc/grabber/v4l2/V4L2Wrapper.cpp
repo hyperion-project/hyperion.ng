@@ -2,45 +2,29 @@
 
 #include <grabber/V4L2Wrapper.h>
 
-#include <hyperion/ImageProcessorFactory.h>
+// qt
+#include <QTimer>
 
 V4L2Wrapper::V4L2Wrapper(const QString &device,
 		int input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
-		unsigned width,
-		unsigned height,
-		int frameDecimation,
-		int pixelDecimation,
-		double redSignalThreshold,
-		double greenSignalThreshold,
-		double blueSignalThreshold,
-		const int priority)
-	: GrabberWrapper("V4L2:"+device, &_grabber, width, height, 8, priority, hyperion::COMP_V4L)
+		int pixelDecimation )
+	: GrabberWrapper("V4L2:"+device, &_grabber, 0, 0, 10)
 	, _grabber(device,
 			input,
 			videoStandard,
 			pixelFormat,
-			width,
-			height,
-			frameDecimation,
-			pixelDecimation,
 			pixelDecimation)
 {
-	// set the signal detection threshold of the grabber
-	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 	_ggrabber = &_grabber;
 
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
-	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
-	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// Handle the image in the captured thread using a direct connection
 	QObject::connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
 	QObject::connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
-
-	_timer.setInterval(500);
 }
 
 bool V4L2Wrapper::start()
@@ -52,6 +36,11 @@ void V4L2Wrapper::stop()
 {
 	_grabber.stop();
 	GrabberWrapper::stop();
+}
+
+void V4L2Wrapper::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold)
+{
+	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 }
 
 void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -66,11 +55,7 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
-	emit emitImage(_priority, image, _timeout_ms);
-
-	// process the new image
-	_processor->process(image, _ledColors);
-	setColors(_ledColors, _timeout_ms);
+	emit systemImage(image);
 }
 
 void V4L2Wrapper::readError(const char* err)
@@ -79,21 +64,9 @@ void V4L2Wrapper::readError(const char* err)
 	stop();
 }
 
-void V4L2Wrapper::checkSources()
-{
-	if ( _hyperion->isCurrentPriority(_priority))
-	{
-		_grabber.start();
-	}
-	else
-	{
-		_grabber.stop();
-	}
-}
-
 void V4L2Wrapper::action()
 {
-	checkSources();
+
 }
 
 void V4L2Wrapper::setSignalDetectionEnable(bool enable)

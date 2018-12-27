@@ -55,13 +55,19 @@ public:
 	///
 	virtual int open();
 
+	///
+	/// @brief Get color order of device
+	/// @return The color order
+	///
+	const QString & getColorOrder() { return _colorOrder; };
+
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 	static const LedDeviceRegistry& getDeviceMap();
-	static void setActiveDevice(QString dev);
-	static QString activeDevice() { return _activeDevice; }
+	void setActiveDevice(QString dev);
+	const QString & getActiveDevice() { return _activeDevice; };
 	static QJsonObject getLedDeviceSchemas();
-	static void setLedCount(int ledCount);
-	static int  getLedCount() { return _ledCount; }
+	void setLedCount(int ledCount);
+	int  getLedCount() { return _ledCount; }
 
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
@@ -95,12 +101,12 @@ protected:
 
 	bool _deviceReady;
 
-	static QString _activeDevice;
+	QString _activeDevice;
 	static LedDeviceRegistry _ledDeviceMap;
 
-	static int _ledCount;
-	static int _ledRGBCount;
-	static int _ledRGBWCount;
+	int _ledCount;
+	int _ledRGBCount;
+	int _ledRGBWCount;
 
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
@@ -116,4 +122,5 @@ private:
 	std::vector<ColorRgb> _ledValues;
 	bool   _componentRegistered;
 	bool   _enabled;
+	QString _colorOrder;
 };

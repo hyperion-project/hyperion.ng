@@ -275,7 +275,8 @@ void JsonConnection::clearAll()
 
 	// create command
 	QJsonObject command;
-	command["command"] = QString("clearall");
+	command["command"] = QString("clear");
+	command["priority"] = -1;
 
 	// send command message
 	QJsonObject reply = sendMessage(command);

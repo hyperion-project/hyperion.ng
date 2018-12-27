@@ -29,7 +29,7 @@ target_link_libraries(${PROJECT_NAME}
 	blackborder
 	commandline
 	hyperion-utils
-	protoserver
+	protoclient
 	x11-grabber
 	${X11_LIBRARIES}
 	${X11_Xrender_LIB}

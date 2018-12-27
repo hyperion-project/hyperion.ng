@@ -24,7 +24,6 @@
 
 #include <utils/Logger.h>
 #include <utils/FileUtils.h>
-#include <webconfig/WebConfig.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
 
@@ -319,7 +318,6 @@ int main(int argc, char** argv)
 	try
 	{
 		hyperiond = new HyperionDaemon(configFiles[0], rootPath, qApp);
-		hyperiond->run();
 	}
 	catch (std::exception& e)
 	{
@@ -327,16 +325,14 @@ int main(int argc, char** argv)
 	}
 
 	int rc = 1;
-	WebConfig* webConfig = nullptr;
 	try
 	{
-		webConfig = new WebConfig(qApp);
 		// run the application
 		if (isGuiApp)
 		{
 			Info(log, "start systray");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperiond, webConfig->getPort());
+			SysTray tray(hyperiond, hyperiond->getWebServerPort());
 			tray.hide();
 			rc = (qobject_cast<QApplication *>(app.data()))->exec();
 		}
@@ -352,7 +348,6 @@ int main(int argc, char** argv)
 	}
 
 	// delete components
-	delete webConfig;
 	delete hyperiond;
 	Logger::deleteInstance();
 

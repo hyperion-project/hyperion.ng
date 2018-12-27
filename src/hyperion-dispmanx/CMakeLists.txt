@@ -34,7 +34,7 @@ target_link_libraries( ${PROJECT_NAME}
 	commandline
 	blackborder
 	hyperion-utils
-	protoserver
+	protoclient
 	dispmanx-grabber
 	${Dispmanx_LIBRARIES}
 	Qt5::Core

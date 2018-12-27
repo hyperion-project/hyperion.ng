@@ -4,16 +4,22 @@
 #include <cstdint>
 
 // Qt includes
-#include <QUdpSocket>
 #include <QSet>
 #include <QHostAddress>
+#include <QJsonDocument>
 
 // Hyperion includes
-#include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
+// settings
+#include <utils/settings.h>
+
+class Hyperion;
 class UDPClientConnection;
+class BonjourServiceRegister;
+class QUdpSocket;
+class NetOrigin;
 
 ///
 /// This class creates a UDP server which accepts connections from boblight clients.
@@ -28,26 +34,25 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared);
+	UDPListener(const QJsonDocument& config);
 	~UDPListener();
 
 	///
 	/// @return the port number on which this UDP listens for incoming connections
 	///
 	uint16_t getPort() const;
-	
+
 	///
 	/// @return true if server is active (bind to a port)
 	///
 	bool active() { return _isActive; };
-	bool componentState() { return active(); };
 
 public slots:
 	///
 	/// bind server to network
 	///
 	void start();
-	
+
 	///
 	/// close server
 	///
@@ -55,8 +60,12 @@ public slots:
 
 	void componentStateChanged(const hyperion::Components component, bool enable);
 
-signals:
-	void statusChanged(bool isActive);
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 private slots:
 	///
@@ -83,12 +92,18 @@ private:
 
 	/// Logger instance
 	Logger * _log;
-	
+
+	/// Bonjour Service Register
+	BonjourServiceRegister* _bonjourService = nullptr;
+
 	/// state of connection
 	bool _isActive;
-	
+
 	/// address to bind
 	QHostAddress              _listenAddress;
-	quint16                   _listenPort;
+	uint16_t                  _listenPort;
 	QAbstractSocket::BindFlag _bondage;
+
+	/// Check Network Origin
+	NetOrigin* _netOrigin;
 };

@@ -9,27 +9,56 @@
 
 using namespace hyperion;
 
-ImageProcessor::ImageProcessor(const LedString& ledString, const QJsonObject & blackborderConfig)
-	: QObject()
+// global transform method
+int ImageProcessor::mappingTypeToInt(QString mappingType)
+{
+	if (mappingType == "unicolor_mean" )
+		return 1;
+
+	return 0;
+}
+// global transform method
+QString ImageProcessor::mappingTypeToStr(int mappingType)
+{
+	if (mappingType == 1 )
+		return "unicolor_mean";
+
+	return "multicolor_mean";
+}
+
+ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
+	: QObject(hyperion)
 	, _log(Logger::getInstance("BLACKBORDER"))
 	, _ledString(ledString)
-	, _borderProcessor(new BlackBorderProcessor(blackborderConfig) )
+	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
 	, _imageToLeds(nullptr)
 	, _mappingType(0)
+	, _userMappingType(0)
+	, _hardMappingType(0)
+	, _hyperion(hyperion)
 {
-// this is when we want to change the mapping for all input sources
-// 	connect(Hyperion::getInstance(), SIGNAL(imageToLedsMappingChanged(int)), this, SLOT(setLedMappingType(int))); 
+	// init
+	handleSettingsUpdate(settings::COLOR, _hyperion->getSetting(settings::COLOR));
+	// listen for changes in color - ledmapping
+	connect(_hyperion, &Hyperion::settingsChanged, this, &ImageProcessor::handleSettingsUpdate);
 }
 
 ImageProcessor::~ImageProcessor()
 {
 	delete _imageToLeds;
-	delete _borderProcessor;
 }
 
-unsigned ImageProcessor::getLedCount() const
+void ImageProcessor::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
-	return _ledString.leds().size();
+	if(type == settings::COLOR)
+	{
+		const QJsonObject& obj = config.object();
+		int newType = mappingTypeToInt(obj["imageToLedMappingType"].toString());
+		if(_userMappingType != newType)
+		{
+			setLedMappingType(newType);
+		}
+	}
 }
 
 void ImageProcessor::setSize(const unsigned width, const unsigned height)
@@ -47,9 +76,24 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 	_imageToLeds = (width>0 && height>0) ? (new ImageToLedsMap(width, height, 0, 0, _ledString.leds())) : nullptr;
 }
 
-void ImageProcessor::enableBlackBorderDetector(bool enable)
+void ImageProcessor::setLedString(const LedString& ledString)
 {
-	_borderProcessor->setEnabled(enable);
+	_ledString = ledString;
+
+	// get current width/height
+	const unsigned width = _imageToLeds->width();
+	const unsigned height = _imageToLeds->height();
+
+	// Clean up the old buffer and mapping
+	delete _imageToLeds;
+
+	// Construct a new buffer and mapping
+	_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
+}
+
+void ImageProcessor::setBlackbarDetectDisable(bool enable)
+{
+	_borderProcessor->setHardDisable(enable);
 }
 
 bool ImageProcessor::blackBorderDetectorEnabled()
@@ -59,29 +103,23 @@ bool ImageProcessor::blackBorderDetectorEnabled()
 
 void ImageProcessor::setLedMappingType(int mapType)
 {
-	Debug(_log, "set led mapping to type %d", mapType);
-	_mappingType = mapType;
+	// if the _hardMappingType is >-1 we aren't allowed to overwrite it
+	_userMappingType = mapType;
+	Debug(_log, "set user led mapping to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
+	if(_hardMappingType == -1)
+	{
+		_mappingType = mapType;
+	}
 }
 
-int ImageProcessor::ledMappingType()
+void ImageProcessor::setHardLedMappingType(int mapType)
 {
-	return _mappingType;
-}
-
-int ImageProcessor::mappingTypeToInt(QString mappingType)
-{
-	if (mappingType == "unicolor_mean" )
-		return 1;
-
-	return 0;
-}
-
-QString ImageProcessor::mappingTypeToStr(int mappingType)
-{
-	if (mappingType == 1 )
-		return "unicolor_mean";
-
-	return "multicolor_mean";
+	// force the maptype, if set to -1 we use the last requested _userMappingType
+	_hardMappingType = mapType;
+	if(mapType == -1)
+		_mappingType = _userMappingType;
+	else
+		_mappingType = mapType;
 }
 
 bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &hscanEnd, double &vscanBegin, double &vscanEnd) const
@@ -97,4 +135,3 @@ bool ImageProcessor::getScanParameters(size_t led, double &hscanBegin, double &h
 
 	return false;
 }
-

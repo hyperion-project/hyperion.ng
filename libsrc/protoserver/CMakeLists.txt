@@ -7,24 +7,42 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
 	${PROTOBUF_INCLUDE_DIRS}
 )
-FILE ( GLOB ProtoServer_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
 set(ProtoServer_PROTOS ${CURRENT_SOURCE_DIR}/message.proto )
 
 protobuf_generate_cpp(ProtoServer_PROTO_SRCS ProtoServer_PROTO_HDRS ${ProtoServer_PROTOS} )
 
-add_library(protoserver
-	${ProtoServer_SOURCES}
-	${ProtoServer_PROTOS}
+### Split protoclient from protoserver as protoserver relates to HyperionDaemon and standalone capture binarys can't link to it
+
+add_library(protoclient
+	${CURRENT_HEADER_DIR}/ProtoConnection.h
+	${CURRENT_SOURCE_DIR}/ProtoConnection.cpp
+	${CURRENT_HEADER_DIR}/ProtoConnectionWrapper.h
+	${CURRENT_SOURCE_DIR}/ProtoConnectionWrapper.cpp
+	${CURRENT_SOURCE_DIR}/ProtoClientConnection.h
+	${CURRENT_SOURCE_DIR}/ProtoClientConnection.cpp
 	${ProtoServer_PROTO_SRCS}
 	${ProtoServer_PROTO_HDRS}
 )
+
+add_library(protoserver
+	${CURRENT_HEADER_DIR}/ProtoServer.h
+	${CURRENT_SOURCE_DIR}/ProtoServer.cpp
+)
+
 # disable warnings for auto generatet proto files, we can't change the files ....
 SET_SOURCE_FILES_PROPERTIES ( ${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS -w )
+
+target_link_libraries(protoclient
+	hyperion
+	hyperion-utils
+	protobuf
+	Qt5::Gui
+)
 
 target_link_libraries(protoserver
 	hyperion
 	hyperion-utils
-	protobuf
+	protoclient
 	Qt5::Gui
 )

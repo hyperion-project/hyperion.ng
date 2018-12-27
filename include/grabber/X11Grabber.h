@@ -17,12 +17,12 @@ class X11Grabber : public Grabber
 {
 public:
 
-	X11Grabber(bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation);
+	X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
 
 	virtual ~X11Grabber();
 
 	bool Setup();
-	
+
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
 	/// provided image should have the same dimensions as the configured values (_width and
@@ -32,15 +32,34 @@ public:
 	/// height)
 	///
 	virtual int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
-	
+
 	///
 	/// update dimension according current screen
 	int updateScreenDimensions(bool force=false);
 
 	virtual void setVideoMode(VideoMode mode);
 
+	///
+	/// @brief Apply new width/height values, overwrite Grabber.h implementation as X11 doesn't use width/height, just pixelDecimation to calc dimensions
+	///
+	virtual void setWidthHeight(int width, int height);
+
+	///
+	/// @brief Apply new pixelDecimation
+	///
+	virtual void setPixelDecimation(int pixelDecimation);
+
+	///
+	/// Set the crop values
+	/// @param  cropLeft    Left pixel crop
+	/// @param  cropRight   Right pixel crop
+	/// @param  cropTop     Top pixel crop
+	/// @param  cropBottom  Bottom pixel crop
+	///
+	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+
 private:
-	bool _useXGetImage, _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
+	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
 
 	XImage* _xImage;
 	XShmSegmentInfo _shminfo;
@@ -49,17 +68,16 @@ private:
 	Display* _x11Display;
 	Window _window;
 	XWindowAttributes _windowAttr;
-	
+
 	Pixmap _pixmap;
 	XRenderPictFormat* _srcFormat;
 	XRenderPictFormat* _dstFormat;
 	XRenderPictureAttributes _pictAttr;
 	Picture _srcPicture;
 	Picture _dstPicture;
-	
+
 	XTransform _transform;
-	int _horizontalDecimation;
-	int _verticalDecimation;
+	int _pixelDecimation;
 
 	unsigned _screenWidth;
 	unsigned _screenHeight;
@@ -67,7 +85,7 @@ private:
 	unsigned _src_y;
 
 	Image<ColorRgb> _image;
-	
+
 	void freeResources();
 	void setupResources();
 };

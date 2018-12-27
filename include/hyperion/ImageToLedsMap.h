@@ -7,6 +7,7 @@
 
 // hyperion-utils includes
 #include <utils/Image.h>
+#include <utils/Logger.h>
 
 // hyperion includes
 #include <hyperion/LedString.h>
@@ -58,7 +59,7 @@ namespace hyperion
 
 		const unsigned horizontalBorder() const { return _horizontalBorder; };
 		const unsigned verticalBorder() const { return _verticalBorder; };
-		
+
 		///
 		/// Determines the mean-color for each led using the mapping the image given
 		/// at construction.
@@ -86,7 +87,12 @@ namespace hyperion
 		void getMeanLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of leds
-			assert(_colorsMap.size() == ledColors.size());
+			//assert(_colorsMap.size() == ledColors.size());
+			if(_colorsMap.size() != ledColors.size())
+			{
+				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				return;
+			}
 
 			// Iterate each led and compute the mean
 			auto led = ledColors.begin();
@@ -96,7 +102,7 @@ namespace hyperion
 				*led = color;
 			}
 		}
-		
+
 		///
 		/// Determines the mean-color for each led using the mapping the image given
 		/// at construction.
@@ -124,7 +130,13 @@ namespace hyperion
 		void getUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of leds
-			assert(_colorsMap.size() == ledColors.size());
+			// assert(_colorsMap.size() == ledColors.size());
+			if(_colorsMap.size() != ledColors.size())
+			{
+				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				return;
+			}
+
 
 			// calculate uni color
 			const ColorRgb color = calcMeanColor(image);
@@ -136,11 +148,11 @@ namespace hyperion
 		const unsigned _width;
 		/// The height of the indexed image
 		const unsigned _height;
-		
+
 		const unsigned _horizontalBorder;
-		
+
 		const unsigned _verticalBorder;
-		
+
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<unsigned>> _colorsMap;
 

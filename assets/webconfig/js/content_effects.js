@@ -121,7 +121,10 @@ $(document).ready( function() {
 	}
 
 	//interval update
-	$(hyperion).on("cmd-serverinfo",updateEffectlist);
+	$(hyperion).on("cmd-effects-update", function(event){
+		serverInfo.effects = event.response.data.effects
+		updateEffectlist();
+	});
 
 	removeOverlay();
 });

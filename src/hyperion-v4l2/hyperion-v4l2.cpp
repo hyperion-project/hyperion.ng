@@ -60,8 +60,6 @@ int main(int argc, char** argv)
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32 or no-change. [default: %1]", "no-change");
 		IntOption          & argInput               = parser.add<IntOption>    (0x0, "input", "Input channel (optional)", "-1");
-		IntOption          & argWidth               = parser.add<IntOption>    (0x0, "width", "Try to set the width of the video input [default: %1]", "-1");
-		IntOption          & argHeight              = parser.add<IntOption>    (0x0, "height", "Try to set the height of the video input [default: %1]", "-1");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropLeft            = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
@@ -69,7 +67,6 @@ int main(int argc, char** argv)
 		IntOption          & argCropTop             = parser.add<IntOption>    (0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 		IntOption          & argCropBottom          = parser.add<IntOption>    (0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
 		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "1");
-		IntOption          & argFrameDecimation     = parser.add<IntOption>    ('f', "frame-decimator", "Decimation factor for the video frames [default=%1]", "1");
 		BooleanOption      & argScreenshot          = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
 
 		BooleanOption      & argSignalDetection     = parser.add<BooleanOption>('s', "signal-detection-disabled", "disable signal detection");
@@ -115,10 +112,6 @@ int main(int argc, char** argv)
 					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
-					argWidth.getInt(parser),
-					argHeight.getInt(parser),
-					std::max(1, argFrameDecimation.getInt(parser)),
-					std::max(1, argSizeDecimation.getInt(parser)),
 					std::max(1, argSizeDecimation.getInt(parser)));
 
 		// set signal detection

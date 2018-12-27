@@ -7,23 +7,25 @@
 // QT includes
 #include <QMap>
 #include <QObject>
-#include <QTimer>
 #include <QMap>
 #include <QVector>
 
 // Utils includes
 #include <utils/ColorRgb.h>
+#include <utils/Image.h>
 #include <utils/Components.h>
 
 // global defines
 #define SMOOTHING_MODE_DEFAULT 0
 #define SMOOTHING_MODE_PAUSE   1
 
+class QTimer;
+class Logger;
 
 ///
-/// The PriorityMuxer handles the priority channels. Led values input is written to the priority map
+/// The PriorityMuxer handles the priority channels. Led values input/ images are written to the priority map
 /// and the muxer keeps track of all active priorities. The current priority can be queried and per
-/// priority the led colors.
+/// priority the led colors. Handles also manual/auto selection mode, provides a lot of signals to hook into priority related events
 ///
 class PriorityMuxer : public QObject
 {
@@ -36,17 +38,20 @@ public:
 	{
 		/// The priority of this channel
 		int priority;
-
 		/// The absolute timeout of the channel
 		int64_t timeoutTime_ms;
 		/// The colors for each led of the channel
 		std::vector<ColorRgb> ledColors;
+		/// The raw Image (size should be preprocessed!)
+		Image<ColorRgb> image;
 		/// The component
 		hyperion::Components componentId;
 		/// Who set it
 		QString origin;
-		/// id fo smoothing config
+		/// id of smoothing config
 		unsigned smooth_cfg;
+		/// specific owner description
+		QString owner;
 	};
 
 	/// The lowest possible priority, which is used when no priority channels are active
@@ -64,6 +69,38 @@ public:
 	/// Destructor
 	///
 	~PriorityMuxer();
+
+	///
+	/// @brief Start/Stop the PriorityMuxer update timer; On disabled no priority and timeout updates will be performend
+	/// @param  enable  The new state
+	///
+	void setEnable(const bool& enable);
+
+	/// @brief Enable or disable auto source selection
+	/// @param   enable   True if it should be enabled else false
+	/// @param   update   True to update _currentPriority - INTERNAL usage.
+	/// @return           True if changed has been applied, false if the state is unchanged
+	///
+	bool setSourceAutoSelectEnabled(const bool& enabel, const bool& update = true);
+
+	///
+	/// @brief Get the state of source auto selection
+	/// @return  True if enabled, else false
+	///
+	bool isSourceAutoSelectEnabled() const { return _sourceAutoSelectEnabled; };
+
+	///
+	/// @brief  Overwrite current lowest piority with manual selection; On success disables aito selection
+	/// @param   priority  The
+	/// @return            True on success, false if priority not found
+	///
+	bool setPriority(const uint8_t priority);
+
+	///
+	/// @brief Update all ledColos with min length of >= 1 to fit the new led length
+	/// @param[in] ledCount   The count of leds
+	///
+	void updateLedColorsLength(const int& ledCount);
 
 	///
 	/// Returns the current priority
@@ -87,62 +124,121 @@ public:
 	QList<int> getPriorities() const;
 
 	///
-	/// Returns the information of a specified priority channel
+	/// Returns the information of a specified priority channel.
+	/// If a priority is no longer available the _lowestPriorityInfo (255) is returned
 	///
 	/// @param priority The priority channel
 	///
 	/// @return The information for the specified priority channel
 	///
-	/// @throws std::runtime_error if the priority channel does not exist
-	///
-	const InputInfo& getInputInfo(const int priority) const;
+	const InputInfo getInputInfo(const int priority) const;
 
 	///
-	/// Sets/Updates the data for a priority channel
+	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
+	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
+	/// @param[in] priority    The priority of the channel
+	/// @param[in] component   The component of the channel
+	/// @param[in] origin      Who set the channel (CustomString@IP)
+	/// @param[in] owner       Speicifc owner string, might be empty
+	/// @param[in] smooth_cfg  The smooth id to use
 	///
-	/// @param[in] priority The priority of the channel
-	/// @param[in] ledColors The led colors of the priority channel
-	/// @param[in] timeoutTime_ms The absolute timeout time of the channel
-	/// @param[in] component The component of the channel
-	/// @param[in] origin Who set the channel
-	///
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int64_t timeoutTime_ms=-1, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smooth_cfg=SMOOTHING_MODE_DEFAULT);
+	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = SMOOTHING_MODE_DEFAULT);
 
 	///
-	/// Clears the specified priority channel
+	/// @brief   Update the current color of a priority (prev registered with registerInput())
+	/// @param  priority    The priority to update
+	/// @param  ledColors   The colors
+	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
+	/// @return             True on success, false when priority is not found
+	///
+	const bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
+
+	///
+	/// @brief   Update the current image of a priority (prev registered with registerInput())
+	/// @param  priority    The priority to update
+	/// @param  image       The new image
+	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
+	/// @return             True on success, false when priority is not found
+	///
+	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
+
+	///
+	/// Clears the specified priority channel and update _currentPriority on success
 	///
 	/// @param[in] priority  The priority of the channel to clear
+	/// @return              True if priority has been cleared else false (not found)
 	///
-	void clearInput(const int priority);
+	const bool clearInput(const uint8_t priority);
 
 	///
 	/// Clears all priority channels
 	///
 	void clearAll(bool forceClearAll=false);
 
+signals:
+	///
+	/// @brief Signal which emits when a effect or color with timeout > -1 is running, once per second
+	///
+	void timeRunner();
+
+	///
+	/// @brief A priority has been added (registerInput()) or deleted, method clear or timeout clear
+	/// @param priority  The priority which has changed
+	/// @param state     If true it was added else it was removed!
+	///
+	void priorityChanged(const quint8& priority, const bool& state);
+
+	///
+	/// @brief Emits whenever the visible priority has changed
+	/// @param  priority  The new visible prioritiy
+	///
+	void visiblePriorityChanged(const quint8& priority);
+
+	///
+	/// @brief Emits whenever a priority changes active state
+	/// @param  priority  The priority who changed the active state
+	/// @param  state     The new state, state true = active else false
+	///
+	void activeStateChanged(const quint8& priority, const bool& state);
+
+	///
+	/// @brief Emits whenever the auto selection state has been changed
+	/// @param  state  The new state of auto selection; True enabled else false
+	///
+	void autoSelectChanged(const bool& state);
+
+	///
+	/// @brief Emits whenever something changes which influences the priorities listing
+	///        Emits also in 1s interval when a COLOR or EFFECT is running with a timeout > -1
+	///
+	void prioritiesChanged(void);
+
+	///
+	/// internal used signal to resolve treading issues with timer
+	///
+	void signalTimeTrigger();
+
+private slots:
+	///
+	/// Slot which is called to adapt to 1s interval for signal timeRunner() / prioritiesChanged()
+	///
+	void timeTrigger();
+
 	///
 	/// Updates the current time. Channels with a configured time out will be checked and cleared if
 	/// required.
 	///
-	/// @param[in] now The current time
-	///
-	void setCurrentTime(const int64_t& now);
-
-signals:
-	///
-	/// Signal which is called, when a effect or color with timeout is running, once per second
-	///
-	void timerunner();
-
-private slots:
-	///
-	/// Slots which is called to adapt to 1s interval for signal timerunner()
-	///
-	void emitReq();
+	void setCurrentTime(void);
 
 private:
+	/// Logger instance
+	Logger* _log;
+
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;
+
+	/// The manual select priority set with setPriority
+	int _manualSelectedPriority;
 
 	/// The mapping from priority channel to led-information
 	QMap<int, InputInfo> _activeInputs;
@@ -150,6 +246,12 @@ private:
 	/// The information of the lowest priority channel
 	InputInfo _lowestPriorityInfo;
 
-	QTimer _timer;
-	QTimer _blockTimer;
+	// Reflect the state of auto select
+	bool _sourceAutoSelectEnabled;
+
+	// Timer to update Muxer times independent
+	QTimer* _updateTimer;
+
+	QTimer* _timer;
+	QTimer* _blockTimer;
 };

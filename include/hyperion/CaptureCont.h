@@ -1,0 +1,62 @@
+#pragma once
+
+#include <utils/Logger.h>
+#include <utils/settings.h>
+#include <utils/Components.h>
+#include <utils/Image.h>
+
+class Hyperion;
+
+///
+/// @brief Capture Control class which is a interface to the HyperionDaemon native capture classes.
+/// It controls the instance based enable/disable of capture feeds and PriorityMuxer registrations
+///
+class CaptureCont : public QObject
+{
+	Q_OBJECT
+public:
+	CaptureCont(Hyperion* hyperion);
+	~CaptureCont();
+
+	void setSystemCaptureEnable(const bool& enable);
+	void setV4LCaptureEnable(const bool& enable);
+
+private slots:
+	///
+	/// @brief Handle component state change of V4L and SystemCapture
+	/// @param component  The component from enum
+	/// @param enable     The new state
+	///
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
+	///
+	/// @brief forward system image
+	/// @param image  The image
+	///
+	void handleSystemImage(const Image<ColorRgb>& image);
+
+	///
+	/// @brief forward v4l image
+	/// @param image  The image
+	///
+	void handleV4lImage(const Image<ColorRgb> & image);
+
+private:
+	/// Hyperion instance
+	Hyperion* _hyperion;
+
+	/// Reflect state of System capture and prio
+	bool _systemCaptEnabled;
+	quint8 _systemCaptPrio;
+
+	/// Reflect state of v4l capture and prio
+	bool _v4lCaptEnabled;
+	quint8 _v4lCaptPrio;
+};

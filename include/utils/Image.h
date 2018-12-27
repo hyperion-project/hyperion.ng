@@ -71,6 +71,38 @@ public:
 		memcpy(_pixels, other._pixels, other._width * other._height * sizeof(Pixel_T));
 	}
 
+	// Define assignment operator in terms of the copy constructor
+	// More to read: https://stackoverflow.com/questions/255612/dynamically-allocating-an-array-of-objects?answertab=active#tab-top
+	Image& operator=(Image rhs)
+	{
+		rhs.swap(*this);
+		return *this;
+	}
+
+	void swap(Image& s) noexcept
+	{
+		using std::swap;
+		swap(this->_width, s._width);
+		swap(this->_height, s._height);
+		swap(this->_pixels, s._pixels);
+		swap(this->_endOfPixels, s._endOfPixels);
+	}
+
+	// C++11
+	Image(Image&& src) noexcept
+		: _width(0)
+		, _height(0)
+		, _pixels(NULL)
+		, _endOfPixels(NULL)
+	{
+		src.swap(*this);
+	}
+	Image& operator=(Image&& src) noexcept
+	{
+		src.swap(*this);
+		return *this;
+	}
+
 	///
 	/// Destructor
 	///

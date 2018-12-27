@@ -7,7 +7,7 @@
 #include "grabber/DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height)
-	: Grabber("DISPMANXGRABBER", width, height)
+	: Grabber("DISPMANXGRABBER", 0, 0)
 	, _vc_display(0)
 	, _vc_resource(0)
 	, _vc_flags(0)
@@ -20,46 +20,58 @@ DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned 
 	// Initiase BCM
 	bcm_host_init();
 
-	{
-		// Check if the display can be opened and display the current resolution
-		// Open the connection to the display
-		_vc_display = vc_dispmanx_display_open(0);
-		assert(_vc_display > 0);
+	// Check if the display can be opened and display the current resolution
+	// Open the connection to the display
+	_vc_display = vc_dispmanx_display_open(0);
+	assert(_vc_display > 0);
 
-		// Obtain the display information
-		DISPMANX_MODEINFO_T vc_info;
-		int result = vc_dispmanx_display_get_info(_vc_display, &vc_info);
-		// Keep compiler happy in 'release' mode
-		(void)result;
-		assert(result == 0);
-		Info(_log, "Display opened with resolution: %dx%d", vc_info.width, vc_info.height);
+	// Obtain the display information
+	DISPMANX_MODEINFO_T vc_info;
+	int result = vc_dispmanx_display_get_info(_vc_display, &vc_info);
+	// Keep compiler happy in 'release' mode
+	(void)result;
+	assert(result == 0);
+	Info(_log, "Display opened with resolution: %dx%d", vc_info.width, vc_info.height);
 
-		// Close the displaye
-		vc_dispmanx_display_close(_vc_display);
-	}
+	// Close the displaye
+	vc_dispmanx_display_close(_vc_display);
 
-	// Create the resources for capturing image
-	uint32_t vc_nativeImageHandle;
-	_vc_resource = vc_dispmanx_resource_create(
-			VC_IMAGE_RGBA32,
-			width,
-			height,
-			&vc_nativeImageHandle);
-	assert(_vc_resource);
-
-	// Define the capture rectangle with the same size
-	vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
+	// init the resource and capture rectangle
+	setWidthHeight(width, height);
 }
 
 DispmanxFrameGrabber::~DispmanxFrameGrabber()
 {
-	delete[] _captureBuffer;
-
-	// Clean up resources
-	vc_dispmanx_resource_delete(_vc_resource);
+	freeResources();
 
 	// De-init BCM
 	bcm_host_deinit();
+}
+
+void DispmanxFrameGrabber::freeResources()
+{
+	delete[] _captureBuffer;
+	// Clean up resources
+	vc_dispmanx_resource_delete(_vc_resource);
+}
+
+void DispmanxFrameGrabber::setWidthHeight(int width, int height)
+{
+	if(_width != width || _height != height)
+	{
+		freeResources();
+		// Create the resources for capturing image
+		uint32_t vc_nativeImageHandle;
+		_vc_resource = vc_dispmanx_resource_create(
+				VC_IMAGE_RGBA32,
+				width,
+				height,
+				&vc_nativeImageHandle);
+		assert(_vc_resource);
+
+		// Define the capture rectangle with the same size
+		vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
+	}
 }
 
 void DispmanxFrameGrabber::setFlags(const int vc_flags)
@@ -143,8 +155,8 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	unsigned capturePitch = (_rectangle.width * sizeof(ColorRgba) + 63) & (~63);
 
 	// grab to temp buffer if image pitch isn't valid or if we are cropping
-	if (imagePitch != capturePitch 
-	    || (unsigned)_rectangle.width != imageWidth 
+	if (imagePitch != capturePitch
+	    || (unsigned)_rectangle.width != imageWidth
 	    || (unsigned)_rectangle.height != imageHeight)
 	{
 		// check if we need to resize the capture buffer

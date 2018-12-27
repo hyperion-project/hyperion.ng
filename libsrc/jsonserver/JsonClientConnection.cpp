@@ -1,7 +1,10 @@
 // project includes
 #include "JsonClientConnection.h"
-#include <utils/JsonProcessor.h>
+#include <api/JsonAPI.h>
+
+// qt inc
 #include <QTcpSocket>
+#include <QHostAddress>
 
 JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 	: QObject()
@@ -11,10 +14,10 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket)
 {
 	connect(_socket, &QTcpSocket::disconnected, this, &JsonClientConnection::disconnected);
 	connect(_socket, &QTcpSocket::readyRead, this, &JsonClientConnection::readRequest);
-	// create a new instance of JsonProcessor
-	_jsonProcessor = new JsonProcessor(socket->peerAddress().toString(), _log, this);
-	// get the callback messages from JsonProcessor and send it to the client
-	connect(_jsonProcessor,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
+	// create a new instance of JsonAPI
+	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, this);
+	// get the callback messages from JsonAPI and send it to the client
+	connect(_jsonAPI,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
 }
 
 void JsonClientConnection::readRequest()
@@ -31,7 +34,7 @@ void JsonClientConnection::readRequest()
 		_receiveBuffer = _receiveBuffer.mid(bytes);
 
 		// handle message
-		_jsonProcessor->handleMessage(message);
+		_jsonAPI->handleMessage(message);
 
 		// try too look up '\n' again
 		bytes = _receiveBuffer.indexOf('\n') + 1;

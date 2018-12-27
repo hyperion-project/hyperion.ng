@@ -19,8 +19,6 @@
 #include "message.pb.h"
 #include "protoserver/ProtoConnection.h"
 
-class ImageProcessor;
-
 ///
 /// The Connection object created by a ProtoServer when a new connection is establshed
 ///
@@ -128,9 +126,6 @@ private:
 	/// The TCP-Socket that is connected tot the Proto-client
 	QTcpSocket * _socket;
 
-	/// The processor for translating images to led-values
-	ImageProcessor * _imageProcessor;
-
 	/// Link to Hyperion for writing led-values to a priority channel
 	Hyperion * _hyperion;
 
@@ -138,8 +133,6 @@ private:
 	QByteArray _receiveBuffer;
 
 	int _priority;
-
-	QString _priorityChannelName;
 
 	/// address of client
 	QString _clientAddress;

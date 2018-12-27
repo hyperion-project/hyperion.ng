@@ -1,4 +1,7 @@
 
+find_package(PythonLibs 3.4 REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+
 add_executable(hyperiond
 	hyperiond.h
 	systray.h
@@ -15,8 +18,10 @@ target_link_libraries(hyperiond
 		boblightserver
 		udplistener
 		protoserver
-		webconfig
+		webserver
 		bonjour
+		python
+		${PYTHON_LIBRARIES}
 )
 
 if (ENABLE_DISPMANX)

@@ -1,43 +1,44 @@
 // system includes
 #include <stdexcept>
 
+// qt incl
+#include <QTcpServer>
+
 // project includes
+#include <hyperion/Hyperion.h>
 #include <hyperion/MessageForwarder.h>
 #include <protoserver/ProtoServer.h>
 #include "protoserver/ProtoConnection.h"
 #include "ProtoClientConnection.h"
+#include <bonjour/bonjourserviceregister.h>
+#include <hyperion/ComponentRegister.h>
 
-ProtoServer::ProtoServer(uint16_t port)
+ProtoServer::ProtoServer(const QJsonDocument& config)
 	: QObject()
 	, _hyperion(Hyperion::getInstance())
-	, _server()
+	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _log(Logger::getInstance("PROTOSERVER"))
-	, _forwarder_enabled(true)
+	, _componentRegister( & _hyperion->getComponentRegister())
 {
+	Debug(_log,"Instance created");
+	connect( _server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	handleSettingsUpdate(settings::PROTOSERVER, config);
 
-	MessageForwarder * forwarder = _hyperion->getForwarder();
-	QStringList slaves = forwarder->getProtoSlaves();
+	QStringList slaves = _hyperion->getForwarder()->getProtoSlaves();
 
-	for (int i = 0; i < slaves.size(); ++i) {
-		if ( QString("127.0.0.1:%1").arg(port) == slaves.at(i) ) {
-			throw std::runtime_error("PROTOSERVER ERROR: Loop between proto server and forwarder detected. Fix your config!");
-		}
-
-		ProtoConnection* p = new ProtoConnection(slaves.at(i).toLocal8Bit().constData());
+	for (const auto& entry : slaves)
+	{
+		ProtoConnection* p = new ProtoConnection(entry.toLocal8Bit().constData());
 		p->setSkipReply(true);
 		_proxy_connections << p;
 	}
 
-	if (!_server.listen(QHostAddress::Any, port))
-	{
-		throw std::runtime_error("PROTOSERVER ERROR: Could not bind to port");
-	}
+	// listen for component changes
+	connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &ProtoServer::componentStateChanged);
 
-	// Set trigger for incoming connections
-	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
-	connect( _hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
-
+	// get inital forwarder state
+	componentStateChanged(hyperion::COMP_FORWARDER, _componentRegister->isComponentEnabled(hyperion::COMP_FORWARDER));
 }
 
 ProtoServer::~ProtoServer()
@@ -50,27 +51,70 @@ ProtoServer::~ProtoServer()
 		delete _proxy_connections.takeFirst();
 }
 
+void ProtoServer::start()
+{
+	if(_server->isListening())
+		return;
+
+	if (!_server->listen(QHostAddress::Any, _port))
+	{
+		Error(_log,"Could not bind to port '%d', please use an available port",_port);
+		return;
+	}
+	Info(_log, "Started on port %d", _port);
+
+	if(_serviceRegister == nullptr)
+	{
+		_serviceRegister = new BonjourServiceRegister();
+		_serviceRegister->registerService("_hyperiond-proto._tcp", _port);
+	}
+}
+
+void ProtoServer::stop()
+{
+	if(!_server->isListening())
+		return;
+
+	_server->close();
+	Info(_log, "Stopped");
+}
+
+void ProtoServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+{
+	if(type == settings::PROTOSERVER)
+	{
+		QJsonObject obj = config.object();
+		if(obj["port"].toInt() != _port)
+		{
+			_port = obj["port"].toInt();
+			stop();
+			start();
+		}
+	}
+}
+
 uint16_t ProtoServer::getPort() const
 {
-	return _server.serverPort();
+	return _port;
 }
 
 void ProtoServer::newConnection()
 {
-	QTcpSocket * socket = _server.nextPendingConnection();
-
-	if (socket != nullptr)
+	while(_server->hasPendingConnections())
 	{
-		Debug(_log, "New connection");
-		ProtoClientConnection * connection = new ProtoClientConnection(socket);
-		_openConnections.insert(connection);
+		if(QTcpSocket * socket = _server->nextPendingConnection())
+		{
+			Debug(_log, "New connection");
+			ProtoClientConnection * connection = new ProtoClientConnection(socket);
+			_openConnections.insert(connection);
 
-		// register slot for cleaning up after the connection closed
-		connect(connection, SIGNAL(connectionClosed(ProtoClientConnection*)), this, SLOT(closedConnection(ProtoClientConnection*)));
-		connect(connection, SIGNAL(newMessage(const proto::HyperionRequest*)), this, SLOT(newMessage(const proto::HyperionRequest*)));
+			// register slot for cleaning up after the connection closed
+			connect(connection, SIGNAL(connectionClosed(ProtoClientConnection*)), this, SLOT(closedConnection(ProtoClientConnection*)));
+			connect(connection, SIGNAL(newMessage(const proto::HyperionRequest*)), this, SLOT(newMessage(const proto::HyperionRequest*)));
 
-		// register forward signal for video mode
-		connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
+			// register forward signal for video mode
+			connect(this, SIGNAL(videoMode(VideoMode)), connection, SLOT(setVideoMode(VideoMode)));
+		}
 	}
 }
 
@@ -93,12 +137,7 @@ void ProtoServer::componentStateChanged(const hyperion::Components component, bo
 {
 	if (component == hyperion::COMP_FORWARDER)
 	{
-		if (_forwarder_enabled != enable)
-		{
-			_forwarder_enabled = enable;
-			Info(_log, "forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled") );
-		}
-		_hyperion->getComponentRegister().componentStateChanged(component, _forwarder_enabled);
+		_forwarder_enabled = enable;
 	}
 }
 

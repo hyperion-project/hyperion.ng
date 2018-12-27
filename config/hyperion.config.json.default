@@ -26,7 +26,6 @@
 			{
 				"id"   : "default",
 				"leds" : "*",
-				"black"   : [0,0,0],
 				"white"   : [255,255,255],
 				"red"     : [255,0,0],
 				"green"   : [0,255,0],
@@ -58,15 +57,10 @@
 	"grabberV4L2" :
 	[
 		{
-			"enable"   : false,
 			"device"   : "auto",
 			"input"    : 0,
-			"standard" : "PAL",
-			"width"    : 0,
-			"height"   : 0,
-			"frameDecimation" : 2,
+			"standard" : "NO_CHANGE",
 			"sizeDecimation"  : 8,
-			"priority"    : 240,
 			"cropLeft"    : 0,
 			"cropRight"   : 0,
 			"cropTop"     : 0,
@@ -84,15 +78,11 @@
 
 	"framegrabber" :
 	{
-		"enable"					: true,
 		"type"						: "auto",
 		"width"						: 80,
 		"height"					: 45,
 		"frequency_Hz"				: 10,
-		"priority"					: 250,
-		"useXGetImage"				: false,
-		"horizontalPixelDecimation"	: 8,
-		"verticalPixelDecimation"	: 8,
+		"pixelDecimation"       	: 8,
 		"cropLeft"					: 0,
 		"cropRight"					: 0,
 		"cropTop"					: 0,
@@ -173,6 +163,13 @@
 	{
 		"paths" : ["$ROOT/custom-effects"],
 		"disable": [""]
+	},
+
+	"instCapture" : {
+		"systemEnable" : true,
+		"systemPriority" : 250,
+		"v4lEnable" : false,
+		"v4lPriority" : 240
 	},
 
 	"ledConfig" :

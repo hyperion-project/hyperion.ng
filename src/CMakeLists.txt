@@ -25,4 +25,3 @@ endif()
 if(ENABLE_OSX)
 	add_subdirectory(hyperion-osx)
 endif()
-

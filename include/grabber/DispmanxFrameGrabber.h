@@ -40,14 +40,23 @@ public:
 	///
 	int grabFrame(Image<ColorRgb> & image);
 
+	///
+	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
+	virtual void setWidthHeight(int width, int height);
+
 private:
-		///
+	///
 	/// Updates the frame-grab flags as used by the VC library for frame grabbing
 	///
 	/// @param vc_flags  The snapshot grabbing mask
 	///
 	void setFlags(const int vc_flags);
-	
+
+	///
+	/// @brief free _vc_resource and captureBuffer
+	///
+	void freeResources();
+
 	/// Handle to the display that is being captured
 	DISPMANX_DISPLAY_HANDLE_T _vc_display;
 

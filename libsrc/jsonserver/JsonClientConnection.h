@@ -3,11 +3,12 @@
 // Qt includes
 #include <QString>
 #include <QByteArray>
+#include <QJsonObject>
 
 // util includes
 #include <utils/Logger.h>
 
-class JsonProcessor;
+class JsonAPI;
 class QTcpSocket;
 
 ///
@@ -40,8 +41,8 @@ private slots:
 
 private:
 	QTcpSocket* _socket;
-	/// new instance of JsonProcessor
-	JsonProcessor * _jsonProcessor;
+	/// new instance of JsonAPI
+	JsonAPI * _jsonAPI;
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;

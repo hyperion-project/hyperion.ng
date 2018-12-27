@@ -27,6 +27,7 @@ add_library(effectengine
 
 target_link_libraries(effectengine
 	hyperion
+	python
 	Qt5::Core
 	Qt5::Gui
 	${PYTHON_LIBRARIES}

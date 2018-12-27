@@ -16,7 +16,8 @@
 
 // effect engine includes
 #include <effectengine/EffectEngine.h>
-#include "Effect.h"
+#include <effectengine/Effect.h>
+#include <effectengine/EffectModule.h>
 #include "HyperionConfig.h"
 
 EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig)
@@ -25,11 +26,11 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 	, _availableEffects()
 	, _activeEffects()
 	, _log(Logger::getInstance("EFFECTENGINE"))
-	, _mainThreadState(nullptr)
 {
 
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
@@ -38,21 +39,10 @@ EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectCo
 
 	// read all effects
 	readEffects();
-
-	// initialize the python interpreter
-	Debug(_log, "Initializing Python interpreter");
-    Effect::registerHyperionExtensionModule();
-	Py_InitializeEx(0);
-	PyEval_InitThreads(); // Create the GIL
-	_mainThreadState = PyEval_SaveThread();
 }
 
 EffectEngine::~EffectEngine()
 {
-	// clean up the Python interpreter
-	Debug(_log, "Cleaning up Python interpreter");
-	PyEval_RestoreThread(_mainThreadState);
-	Py_Finalize();
 }
 
 const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
@@ -71,6 +61,33 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	}
 
 	return _availableActiveEffects;
+}
+
+void EffectEngine::cacheRunningEffects()
+{
+	_cachedActiveEffects.clear();
+
+	for (Effect * effect : _activeEffects)
+	{
+		ActiveEffectDefinition activeEffectDefinition;
+		activeEffectDefinition.script    = effect->getScript();
+		activeEffectDefinition.name      = effect->getName();
+		activeEffectDefinition.priority  = effect->getPriority();
+		activeEffectDefinition.timeout   = effect->getTimeout();
+		activeEffectDefinition.args      = effect->getArgs();
+		_cachedActiveEffects.push_back(activeEffectDefinition);
+		channelCleared(effect->getPriority());
+	}
+}
+
+void EffectEngine::startCachedEffects()
+{
+	for (const auto & def : _cachedActiveEffects)
+	{
+		// the smooth cfg AND origin are ignored for this start!
+		runEffect(def.name, def.args, def.priority, def.timeout, def.script);
+	}
+	_cachedActiveEffects.clear();
 }
 
 bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effectConfigFile, EffectDefinition & effectDefinition)
@@ -241,6 +258,8 @@ void EffectEngine::readEffects()
 	}
 
 	ErrorIf(_availableEffects.size()==0, _log, "no effects found, check your effect directories");
+
+	emit effectListUpdated();
 }
 
 int EffectEngine::runEffect(const QString &effectName, int priority, int timeout, const QString &origin)
@@ -266,7 +285,7 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 		if (effectDefinition == nullptr)
 		{
 			// no such effect
-			Error(_log, "effect %s not found",  QSTRING_CSTR(effectName));
+			Error(_log, "Effect %s not found",  QSTRING_CSTR(effectName));
 			return -1;
 		}
 
@@ -281,13 +300,14 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_mainThreadState, priority, timeout, script, name, args, origin, smoothCfg);
-	connect(effect, SIGNAL(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), _hyperion, SLOT(setColors(int,std::vector<ColorRgb>,int,bool,hyperion::Components,const QString,unsigned)), Qt::QueuedConnection);
+    Effect * effect = new Effect(_hyperion, priority, timeout, script, name, args);
+	connect(effect, &Effect::setInput, _hyperion, &Hyperion::setInput, Qt::QueuedConnection);
+	connect(effect, &Effect::setInputImage, _hyperion, &Hyperion::setInputImage, Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerPriority(name, priority);
+	_hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
 	effect->start();
 
 	return 0;
@@ -299,7 +319,7 @@ void EffectEngine::channelCleared(int priority)
 	{
 		if (effect->getPriority() == priority)
 		{
-			effect->requestInterruption();
+			effect->setInteruptionFlag();
 		}
 	}
 }
@@ -310,7 +330,7 @@ void EffectEngine::allChannelsCleared()
 	{
 		if (effect->getPriority() != 254)
 		{
-			effect->requestInterruption();
+			effect->setInteruptionFlag();
 		}
 	}
 }
@@ -318,7 +338,7 @@ void EffectEngine::allChannelsCleared()
 void EffectEngine::effectFinished()
 {
 	Effect* effect = qobject_cast<Effect*>(sender());
-	if (!effect->isInterruptionRequested())
+	if (!effect->hasInteruptionFlag())
 	{
 		// effect stopped by itself. Clear the channel
 		_hyperion->clear(effect->getPriority());
@@ -336,5 +356,4 @@ void EffectEngine::effectFinished()
 
 	// cleanup the effect
 	effect->deleteLater();
-	_hyperion->unRegisterPriority(effect->getName());
 }

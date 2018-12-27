@@ -171,7 +171,10 @@ $(document).ready( function() {
 	updateDelEffectlist();
 
 	//interval update
-	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
+	$(hyperion).on("cmd-effects-update", function(event){
+		serverInfo.effects = event.response.data.effects
+		updateDelEffectlist();
+	});
 
 	removeOverlay();
 });

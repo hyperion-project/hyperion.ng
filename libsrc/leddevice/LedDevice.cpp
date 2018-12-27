@@ -11,14 +11,10 @@
 #include <utils/JsonUtils.h>
 
 LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
-QString LedDevice::_activeDevice = "";
-int LedDevice::_ledCount    = 0;
-int LedDevice::_ledRGBCount = 0;
-int LedDevice::_ledRGBWCount= 0;
 
 LedDevice::LedDevice()
 	: QObject()
-	, _log(Logger::getInstance("LedDevice"))
+	, _log(Logger::getInstance("LEDDEVICE"))
 	, _ledBuffer(0)
 	, _deviceReady(true)
 	, _refresh_timer()
@@ -77,6 +73,10 @@ void LedDevice::setActiveDevice(QString dev)
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
+	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
+	_activeDevice = deviceConfig["type"].toString("file").toLower();
+	setLedCount(deviceConfig["currentLedCount"].toInt(1)); // property injected to reflect real led count
+
 	_latchTime_ms = deviceConfig["latchTime"].toInt(_latchTime_ms);
 	_refresh_timer.setInterval( deviceConfig["rewriteTime"].toInt( _refresh_timer_interval) );
 	if (_refresh_timer.interval() <= (signed)_latchTime_ms )

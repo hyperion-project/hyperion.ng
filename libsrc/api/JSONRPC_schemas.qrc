@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="schema">JSONRPC_schema/schema.json</file>
+        <file alias="schema-color">JSONRPC_schema/schema-color.json</file>
+        <file alias="schema-image">JSONRPC_schema/schema-image.json</file>
+        <file alias="schema-serverinfo">JSONRPC_schema/schema-serverinfo.json</file>
+        <file alias="schema-sysinfo">JSONRPC_schema/schema-sysinfo.json</file>
+        <file alias="schema-clear">JSONRPC_schema/schema-clear.json</file>
+        <file alias="schema-adjustment">JSONRPC_schema/schema-adjustment.json</file>
+        <file alias="schema-effect">JSONRPC_schema/schema-effect.json</file>
+        <file alias="schema-create-effect">JSONRPC_schema/schema-create-effect.json</file>
+        <file alias="schema-delete-effect">JSONRPC_schema/schema-delete-effect.json</file>
+        <file alias="schema-sourceselect">JSONRPC_schema/schema-sourceselect.json</file>
+        <file alias="schema-config">JSONRPC_schema/schema-config.json</file>
+        <file alias="schema-componentstate">JSONRPC_schema/schema-componentstate.json</file>
+        <file alias="schema-ledcolors">JSONRPC_schema/schema-ledcolors.json</file>
+        <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
+        <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
+        <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
+    </qresource>
+</RCC>

@@ -1,10 +1,10 @@
 // Hyperion includes
 #include <utils/Logger.h>
-#include "MultiColorAdjustment.h"
+#include <hyperion/MultiColorAdjustment.h>
 
 MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
-	, _log(Logger::getInstance("ColorAdjust"))
+	, _log(Logger::getInstance("ADJUSTMENT"))
 {
 }
 
@@ -23,10 +23,20 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 	_adjustment.push_back(adjustment);
 }
 
-void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, const unsigned endLed)
+void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, unsigned endLed)
 {
-	Q_ASSERT(startLed <= endLed);
-	Q_ASSERT(endLed < _ledAdjustments.size());
+	// abort
+	if(startLed >= endLed)
+	{
+		Error(_log,"startLed >= endLed -> %d >= %d", startLed, endLed);
+		return;
+	}
+	// catch wrong values
+	if(endLed > _ledAdjustments.size())
+	{
+		Warning(_log,"The color calibration 'LED index' field has leds specified which aren't part of your led layout");
+		endLed = _ledAdjustments.size();
+	}
 
 	// Get the identified adjustment (don't care if is nullptr)
 	ColorAdjustment * adjustment = getAdjustment(id);
@@ -38,17 +48,18 @@ void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned
 
 bool MultiColorAdjustment::verifyAdjustments() const
 {
+	bool ok = true;
 	for (unsigned iLed=0; iLed<_ledAdjustments.size(); ++iLed)
 	{
 		ColorAdjustment * adjustment = _ledAdjustments[iLed];
 
 		if (adjustment == nullptr)
 		{
-			Error(_log, "No adjustment set for %d", iLed);
-			return false;
+			Warning(_log, "No calibration set for led %d", iLed);
+			ok = false;
 		}
 	}
-	return true;
+	return ok;
 }
 
 const QStringList & MultiColorAdjustment::getAdjustmentIds()
@@ -96,7 +107,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t ogreen = color.green;
 		uint8_t oblue  = color.blue;
 		uint8_t B_RGB, B_CMY, B_W;
-		
+
 		adjustment->_rgbTransform.transform(ored,ogreen,oblue);
 		adjustment->_rgbTransform.getBrightnessComponents(B_RGB, B_CMY, B_W);
 
@@ -104,7 +115,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint32_t rng  = (uint32_t) (ored)    *(255-ogreen);
 		uint32_t nrg  = (uint32_t) (255-ored)*(ogreen);
 		uint32_t rg   = (uint32_t) (ored)    *(ogreen);
-		
+
 		uint8_t black   = nrng*(255-oblue)/65025;
 		uint8_t red     = rng *(255-oblue)/65025;
 		uint8_t green   = nrg *(255-oblue)/65025;
@@ -113,7 +124,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t magenta = rng *(oblue)    /65025;
 		uint8_t yellow  = rg  *(255-oblue)/65025;
 		uint8_t white   = rg  *(oblue)    /65025;
-		
+
 		uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB;
 		uint8_t CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
 

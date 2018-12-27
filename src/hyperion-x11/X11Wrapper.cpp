@@ -2,9 +2,9 @@
 // Hyperion-X11 includes
 #include "X11Wrapper.h"
 
-X11Wrapper::X11Wrapper(int grabInterval, bool useXGetImage, int cropLeft, int cropRight, int cropTop, int cropBottom, int horizontalPixelDecimation, int verticalPixelDecimation) :
+X11Wrapper::X11Wrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation) :
 	_timer(this),
-	_grabber(useXGetImage, cropLeft, cropRight, cropTop, cropBottom, horizontalPixelDecimation, verticalPixelDecimation)
+	_grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation)
 {
 	_timer.setSingleShot(false);
 	_timer.setInterval(grabInterval);
@@ -36,7 +36,7 @@ bool X11Wrapper::displayInit()
 
 void X11Wrapper::capture()
 {
-	_grabber.grabFrame(_screenshot, false);
+	_grabber.grabFrame(_screenshot, true);
 	emit sig_screenshot(_screenshot);
 }
 

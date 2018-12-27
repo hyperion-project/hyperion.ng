@@ -12,7 +12,7 @@
 #include <hyperion/Grabber.h>
 
 ///
-/// The OsxFrameGrabber is used for creating snapshots of the display (screenshots) 
+/// The OsxFrameGrabber is used for creating snapshots of the display (screenshots)
 ///
 class OsxFrameGrabber : public Grabber
 {
@@ -37,10 +37,15 @@ public:
 	///
 	int grabFrame(Image<ColorRgb> & image);
 
-private:	
+	///
+	/// @brief Overwrite Grabber.h implementation
+	///
+	virtual void setDisplayIndex(int index);
+
+private:
 	/// display
-	const unsigned _screenIndex;
-	
+	unsigned _screenIndex;
+
 	/// Reference to the captured diaplay
 	CGDirectDisplayID _display;
 };

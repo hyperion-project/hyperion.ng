@@ -8,12 +8,10 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QTimer>
 #include <QSize>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QTimer>
 #include <QFileSystemWatcher>
 
 // hyperion-utils includes
@@ -27,7 +25,6 @@
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
 #include <hyperion/ColorAdjustment.h>
-#include <hyperion/MessageForwarder.h>
 #include <hyperion/ComponentRegister.h>
 
 // Effect engine includes
@@ -35,17 +32,23 @@
 #include <effectengine/ActiveEffectDefinition.h>
 #include <effectengine/EffectSchema.h>
 
-// bonjour includes
-#include <bonjour/bonjourservicebrowser.h>
-#include <bonjour/bonjourserviceresolver.h>
+// settings utils
+#include <utils/settings.h>
 
 // Forward class declaration
+class QTimer;
+
+class HyperionDaemon;
+class ImageProcessor;
+class MessageForwarder;
 class LedDevice;
 class LinearColorSmoothing;
-class RgbTransform;
 class EffectEngine;
-class RgbChannelAdjustment;
 class MultiColorAdjustment;
+class ColorAdjustment;
+class SettingsManager;
+class BGEffectHandler;
+class CaptureCont;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -57,8 +60,6 @@ class Hyperion : public QObject
 public:
 	///  Type definition of the info structure used by the priority muxer
 	typedef PriorityMuxer::InputInfo InputInfo;
-	typedef QMap<QString,int> PriorityRegister;
-	typedef QMap<QString,BonjourRecord>  BonjourRegister;
 	///
 	/// RGB-Color channel enumeration
 	///
@@ -79,23 +80,54 @@ public:
 
 	///
 	/// @brief creates a new Hyperion instance, usually called from the Hyperion Daemon
-	/// @param[in] qjsonConfig   The configuration file
+	/// @param[in] daemon        The Hyperion daemon parent
+	/// @param[in] instance      The instance id
 	/// @param[in] rootPath      Root path of all hyperion userdata
 	/// @return                  Hyperion instance pointer
 	///
-	static Hyperion* initInstance(const QJsonObject& qjsonConfig, const QString configFile, const QString rootPath);
+	static Hyperion* initInstance(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath);
 
 	///
 	/// @brief Get a pointer of this Hyperion instance
-	/// @return                  Hyperion instance pointer
+	/// @return    Hyperion instance pointer
 	///
 	static Hyperion* getInstance();
+
+	///
+	/// @brief Get a pointer to the effect engine
+	/// @return     EffectEngine instance pointer
+	///
+	EffectEngine* getEffectEngineInstance() { return _effectEngine; };
+
+	///
+	/// @brief Get a pointer to the priorityMuxer instance
+	/// @return      PriorityMuxer instance pointer
+	///
+	PriorityMuxer* getMuxerInstance() { return &_muxer; };
+
+	///
+	/// @brief Get a setting by settings::type from SettingsManager
+	/// @param type  The settingsType from enum
+	/// @return      Data Document
+	///
+	QJsonDocument getSetting(const settings::type& type);
+
+	///
+	/// @brief Save a complete json config
+	/// @param config  The entire config object
+	/// @param correct If true will correct json against schema before save
+	/// @return        True on success else false
+	///
+	bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
 	/// Returns the number of attached leds
 	///
 	unsigned getLedCount() const;
 
+	///
+	/// @brief Return the size of led grid
+	///
 	QSize getLedGridSize() const { return _ledGridSize; };
 
 	///
@@ -124,11 +156,9 @@ public:
 	///
 	/// @param[in] priority  The priority channel
 	///
-	/// @return The information of the given
+	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
-	/// @throw std::runtime_error when the priority channel does not exist
-	///
-	const InputInfo& getPriorityInfo(const int priority) const;
+	const InputInfo getPriorityInfo(const int priority) const;
 
 	/// Reload the list of available effects
 	void reloadEffects();
@@ -145,27 +175,29 @@ public:
 	/// @return The list of available effect schema files
 	const std::list<EffectSchema> &getEffectSchemas();
 
-	/// gets the current json config object
+	/// gets the current json config object from SettingsManager
 	/// @return json config
-	const QJsonObject& getQJsonConfig() { return _qjsonConfig; };
+	const QJsonObject& getQJsonConfig();
+
+	/// get path+filename of configfile
+	/// @return the current config path+filename
+	QString getConfigFilePath() { return _configFile; };
 
 	/// get filename of configfile
 	/// @return the current config filename
-	QString getConfigFileName() { return _configFile; };
+	QString getConfigFileName() const;
 
-	/// register a input source to a priority channel
-	/// @param name uniq name of input source
-	/// @param origin External setter
-	/// @param priority priority channel
-	void registerPriority(const QString &name, const int priority);
+	///
+	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
+	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
+	/// @param[in] priority    The priority of the channel
+	/// @param[in] component   The component of the channel
+	/// @param[in] origin      Who set the channel (CustomString@IP)
+	/// @param[in] owner       Speicifc owner string, might be empty
+	/// @param[in] smooth_cfg  The smooth id to use
+	///
+	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
 
-	/// unregister a input source to a priority channel
-	/// @param name uniq name of input source
-	void unRegisterPriority(const QString &name);
-
-	/// gets current priority register
-	/// @return the priority register
-	const PriorityRegister& getPriorityRegister() { return _priorityRegister; }
 
 	/// enable/disable automatic/priorized source selection
 	/// @param enabled the state
@@ -178,12 +210,18 @@ public:
 
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
-	bool sourceAutoSelectEnabled() { return _sourceAutoSelectEnabled; };
+	bool sourceAutoSelectEnabled();
 
 	///
-	/// Enable/Disable components during runtime
+	/// @brief Get the last untransformed/unadjusted led colors
+	/// @return   The _rawLedBuffer leds
 	///
-	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	const std::vector<ColorRgb>& getRawLedBuffer() { return _rawLedBuffer; };
+
+	///
+	/// @brief Enable/Disable components during runtime, called from external API (requests)
+	///
+	/// @param component The component from enum
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const hyperion::Components component, const bool state);
@@ -195,54 +233,63 @@ public:
 	bool configWriteable() { return _configWrite; };
 
 	/// gets the methode how image is maped to leds
-	int getLedMappingType() { return _ledMAppingType; };
-
-	/// get the configuration
-	QJsonObject getConfig() { return _qjsonConfig; };
+	const int & getLedMappingType();
 
 	/// get the root path for all hyperion user data files
-	QString getRootPath() { return _rootPath; };
+	const QString &getRootPath() { return _rootPath; };
 
-	/// unique id per instance
-	QString id;
+	/// get unique id per instance
+	const QString &getId(){ return _id; };
+	/// set unique id
+	void setId(QString id){ _id = id; };
 
 	int getLatchTime() const;
 
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
-	VideoMode getCurrentVideoMode() { return _videoMode; };
+	const VideoMode & getCurrentVideoMode();
+
+	///
+	/// @brief Get the current active led device
+	/// @return The device nam
+	/// e
+	const QString & getActiveDevice();
 
 public slots:
 	///
+	/// @brief   Update the current color of a priority (prev registered with registerInput())
+	///  		 DO NOT use this together with setInputImage() at the same time!
+	/// @param  priority     The priority to update
+	/// @param  ledColors    The colors
+	/// @param  timeout_ms   The new timeout (defaults to -1 endless)
+	/// @param  clearEffect  Should be true when NOT called from an effect
+	/// @return              True on success, false when priority is not found
+	///
+	const bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
+
+	///
+	/// @brief   Update the current image of a priority (prev registered with registerInput())
+	/// 		 DO NOT use this together with setInput() at the same time!
+	/// @param  priority     The priority to update
+	/// @param  image        The new image
+	/// @param  timeout_ms   The new timeout (defaults to -1 endless)
+	/// @param  clearEffect  Should be true when NOT called from an effect
+	/// @return              True on success, false when priority is not found
+	///
+	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
+
+	///
 	/// Writes a single color to all the leds for the given time and priority
+	/// Registers comp color or provided type against muxer
+	/// Should be never used to update leds continuous
 	///
 	/// @param[in] priority The priority of the written color
 	/// @param[in] ledColor The color to write to the leds
+	/// @param[in] origin   The setter
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	///
-	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms, bool clearEffects = true);
-
-	///
-	/// Writes the given colors to all leds for the given time and priority
-	///
-	/// @param[in] priority The priority of the written colors
-	/// @param[in] ledColors The colors to write to the leds
-	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
-	/// @param[in] component The current component
-	/// @param[in] origin Who set it
-	/// @param[in] smoothCfg smoothing config id
-	///
-	void setColors(int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, bool clearEffects = true, hyperion::Components component=hyperion::COMP_INVALID, const QString origin="System", unsigned smoothCfg=SMOOTHING_MODE_DEFAULT);
-
-	///
-	/// Writes the given colors to all leds for the given time and priority
-	///
-	/// @param[in] priority The priority of the written colors
-	/// @param[in] ledColors The colors to write to the leds
-	/// @param[in] timeout_ms The time the leds are set to the given colors [ms]
-	///
-	void setImage(int priority, const Image<ColorRgb> & image, int duration_ms);
+	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// Returns the list with unique adjustment identifiers
@@ -270,8 +317,9 @@ public slots:
 	/// lower priority channel (or off if no more channels are set)
 	///
 	/// @param[in] priority  The priority channel
+	/// @return              True on success else false (not found)
 	///
-	void clear(int priority);
+	const bool clear(int priority);
 
 	///
 	/// Clears all priority channels. This will switch the leds off until a new priority is written.
@@ -292,43 +340,17 @@ public slots:
 	int setEffect(const QString & effectName, const QJsonObject & args, int priority,
 				  int timeout = -1, const QString & pythonScript = "", const QString & origin="System");
 
-	/// sets the methode how image is maped to leds
-	void setLedMappingType(int mappingType);
-
-	///
-	Hyperion::BonjourRegister getHyperionSessions();
-
-	/// Slot which is called, when state of hyperion has been changed
-	void hyperionStateChanged();
+	/// sets the methode how image is maped to leds at ImageProcessor
+	void setLedMappingType(const int& mappingType);
 
 	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	void setVideoMode(VideoMode mode);
+	void setVideoMode(const VideoMode& mode);
 
 public:
 	static Hyperion *_hyperion;
-
-	static ColorOrder createColorOrder(const QJsonObject & deviceConfig);
-	/**
-	 * Construct the 'led-string' with the integration area definition per led and the color
-	 * ordering of the RGB channels
-	 * @param ledsConfig   The configuration of the led areas
-	 * @param deviceOrder  The default RGB channel ordering
-	 * @return The constructed ledstring
-	 */
-	static LedString createLedString(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
-	static LedString createLedStringClone(const QJsonValue & ledsConfig, const ColorOrder deviceOrder);
-
-	static MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorAdjustmentConfig);
-	static ColorAdjustment * createColorAdjustment(const QJsonObject & adjustmentConfig);
-	static RgbTransform * createRgbTransform(const QJsonObject& colorConfig);
-	static RgbChannelAdjustment * createRgbChannelAdjustment(const QJsonObject & colorConfig, const QString channelName, const int defaultR, const int defaultG, const int defaultB);
-
-	static LinearColorSmoothing * createColorSmoothing(const QJsonObject & smoothingConfig, LedDevice* leddevice);
-	static MessageForwarder * createMessageForwarder(const QJsonObject & forwarderConfig);
-	static QSize getLedLayoutGridSize(const QJsonValue& ledsConfig);
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -339,25 +361,67 @@ signals:
 	/// This signal will not be emitted when a priority channel time out
 	void allChannelsCleared();
 
+	///
+	/// @brief Emits whenever a user request a component state change, it's up the component to listen
+	/// 	   and update the component state at the componentRegister
+	/// @param component  The component from enum
+	/// @param enabled    The new state of the component
+	///
 	void componentStateChanged(const hyperion::Components component, bool enabled);
 
-	void imageToLedsMappingChanged(int mappingType);
-	void emitImage(int priority, const Image<ColorRgb> & image, const int timeout_ms);
+	///
+	/// @brief Emits whenever the imageToLedsMapping has changed
+	/// @param mappingType The new mapping type
+	///
+	void imageToLedsMappingChanged(const int& mappingType);
+
+	///
+	/// @brief Emits whenever the visible priority delivers a image which is applied in update()
+	/// 	   priorities with ledColors won't emit this signal
+	/// @param  image  The current image
+	///
+	void currentImage(const Image<ColorRgb> & image);
+
 	void closing();
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
 
-	/// Signal which is emitted, after the hyperionStateChanged has been processed with a emit count blocker (250ms interval)
-	void sendServerInfo();
-
-	/// Signal emitted when a 3D movie is detected
-	void videoMode(VideoMode mode);
+	///
+	/// @brief Is emitted from clients who request a videoMode change
+	///
+	void videoMode(const VideoMode& mode);
 
 	///
-	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
+	/// @brief A new videoMode was requested (called from Daemon!)
 	///
-	void rawLedColors(const std::vector<ColorRgb>& ledValues);
+	void newVideoMode(const VideoMode& mode);
+
+	///
+	/// @brief Emits whenever a config part changed. SIGNAL PIPE helper for SettingsManager -> HyperionDaemon
+	/// @param type   The settings type from enum
+	/// @param data   The data as QJsonDocument
+	///
+	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+
+	///
+	/// @brief Emits whenever the adjustments have been updated
+	///
+	void adjustmentChanged();
+
+	///
+	/// @brief Signal pipe from EffectEngine to external, emits when effect list has been updated
+	///
+	void effectListUpdated();
+
+	///
+	/// @brief systemImage from the parent HyperionDaemon SystemCapture
+	///
+	void systemImage(const Image<ColorRgb>& image);
+	///
+	/// @brief v4lImage from the parent HyperionDaemon V4lCapture
+	///
+	void v4lImage(const Image<ColorRgb> & image);
 
 private slots:
 	///
@@ -366,12 +430,22 @@ private slots:
 	///
 	void update();
 
-	void currentBonjourRecordsChanged(const QList<BonjourRecord> &list);
-	void bonjourRecordResolved(const QHostInfo &hostInfo, int port);
-	void bonjourResolve();
-
 	/// check for configWriteable and modified changes, called by _fsWatcher or fallback _cTimer
 	void checkConfigState(QString cfile = NULL);
+
+	///
+	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
+	///	@param comp   The component
+	///	@param state  The new state of the component
+	///
+	void updatedComponentState(const hyperion::Components comp, const bool state);
+
+	///
+	///	@brief Apply settings updates for LEDS and COLOR
+	///	@param type   The type from enum
+	///	@param config The configuration
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 private:
 
@@ -380,13 +454,25 @@ private:
 	///
 	/// @param[in] qjsonConfig The Json configuration
 	///
-	Hyperion(const QJsonObject& qjsonConfig, const QString configFile, const QString rootPath);
+	Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath);
+
+	/// The parent Hyperion Daemon
+	HyperionDaemon* _daemon;
+
+	/// Settings manager of this instance
+	SettingsManager* _settingsManager;
+
+	/// Register that holds component states
+	ComponentRegister _componentRegister;
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
 	/// specifiation of cloned leds
 	LedString _ledStringClone;
+
+	/// Image Processor
+	ImageProcessor* _imageProcessor;
 
 	std::vector<ColorOrder> _ledStringColorOrder;
 
@@ -408,21 +494,14 @@ private:
 	// proto and json Message forwarder
 	MessageForwarder * _messageForwarder;
 
-	// json configuration
-	const QJsonObject& _qjsonConfig;
-
 	/// the name of config file
 	QString _configFile;
 
 	/// root path for all hyperion user data files
 	QString _rootPath;
 
-	/// The timer for handling priority channel timeouts
-	QTimer _timer;
-	QTimer _timerBonjourResolver;
-
-	/// buffer for leds  (with adjustment)
-	std::vector<ColorRgb> _ledBuffer;
+	/// unique id per instance
+	QString _id;
 
 	/// Logger instance
 	Logger * _log;
@@ -430,32 +509,16 @@ private:
 	/// count of hardware leds
 	unsigned _hwLedCount;
 
-	ComponentRegister _componentRegister;
-
-	/// register of input sources and it's prio channel
-	PriorityRegister _priorityRegister;
-
-	/// flag indicates state for autoselection of input source
-	bool _sourceAutoSelectEnabled;
-
-	/// holds the current priority channel that is manualy selected
-	int _currentSourcePriority;
-
 	QByteArray _configHash;
 
 	QSize _ledGridSize;
 
-	int _ledMAppingType;
-
+	/// Store the previous compID for smarter update()
 	hyperion::Components   _prevCompId;
-	BonjourServiceBrowser  _bonjourBrowser;
-	BonjourServiceResolver _bonjourResolver;
-	BonjourRegister        _hyperionSessions;
-	QString                _bonjourCurrentServiceToResolve;
 
 	/// Observe filesystem changes (_configFile), if failed use Timer
 	QFileSystemWatcher _fsWatcher;
-	QTimer _cTimer;
+	QTimer* _cTimer;
 
 	/// holds the prev states of configWriteable and modified
 	bool _prevConfigMod = false;
@@ -465,9 +528,16 @@ private:
 	bool _configMod = false;
 	bool _configWrite = true;
 
-	/// timers to handle severinfo blocking
-	QTimer _fsi_timer;
-	QTimer _fsi_blockTimer;
+	/// Background effect instance, kept active to react on setting changes
+	BGEffectHandler* _BGEffectHandler;
+	/// Capture control for Daemon native capture
+	CaptureCont* _captureCont;
 
-	VideoMode _videoMode;
+	// lock Hyperion::update() for exec
+	bool _lockUpdate = false;
+
+	/// buffer for leds (with adjustment)
+	std::vector<ColorRgb> _ledBuffer;
+	/// buffer for leds (without adjustment)
+	std::vector<ColorRgb> _rawLedBuffer;
 };

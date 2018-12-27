@@ -15,8 +15,8 @@
 #include <QHostInfo>
 
 // hyperion util includes
-#include "hyperion/ImageProcessorFactory.h"
-#include "hyperion/ImageProcessor.h"
+//#include "hyperion/ImageProcessorFactory.h"
+//#include "hyperion/ImageProcessor.h"
 #include "utils/ColorRgb.h"
 #include "HyperionConfig.h"
 
@@ -27,7 +27,7 @@ BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
-	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
+	//, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
 	, _hyperion(Hyperion::getInstance())
 	, _receiveBuffer()
 	, _priority(priority)
@@ -167,7 +167,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
 							{
-								_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
+								_hyperion->setInput(_priority, _ledColors);
 							}
 
 							return;
@@ -205,7 +205,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			// send current color values to hyperion
 			if (_priority < 255)
 			{
-				_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
+				_hyperion->setInput(_priority, _ledColors);
 			}
 			return;
 		}
@@ -227,11 +227,11 @@ void BoblightClientConnection::sendLightMessage()
 	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
 	sendMessage(QByteArray(buffer, n));
 
-	double h0, h1, v0, v1;
+	//double h0, h1, v0, v1;
 	for (unsigned i = 0; i < _hyperion->getLedCount(); ++i)
 	{
-		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
-		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
-		sendMessage(QByteArray(buffer, n));
+		//_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
+		//n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
+		//sendMessage(QByteArray(buffer, n));
 	}
 }

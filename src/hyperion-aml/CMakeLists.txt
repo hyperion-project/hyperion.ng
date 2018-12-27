@@ -27,7 +27,7 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	blackborder
 	hyperion-utils
-	protoserver
+	protoclient
 	amlogic-grabber
 	framebuffer-grabber
 	Qt5::Core

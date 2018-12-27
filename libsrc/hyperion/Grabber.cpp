@@ -13,7 +13,6 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _cropBottom(0)
 	, _enabled(true)
 	, _log(Logger::getInstance(grabberName))
-
 {
 	setVideoMode(VIDEO_2D);
 	setCropping(cropLeft, cropRight, cropTop, cropBottom);
@@ -44,7 +43,7 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		if (cropLeft + cropRight >= (unsigned)_width || cropTop + cropBottom >= (unsigned)_height)
 		{
-			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d", cropLeft, cropRight, cropTop, cropBottom);
+			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, higher than height/width %d/%d", cropLeft, cropRight, cropTop, cropBottom, _height, _width);
 			return;
 		}
 	}
@@ -67,4 +66,20 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
+}
+
+void Grabber::setWidthHeight(int width, int height)
+{
+	// eval changes with crop
+	if (width>0 && height>0)
+	{
+		if (_cropLeft + _cropRight >= width || _cropTop + _cropBottom >= height)
+		{
+			Error(_log, "Rejecting invalid width/height values as it collides with image cropping: width: %d, height: %d", width, height);
+			return;
+		}
+		_width = width;
+		_height = height;
+	}
+
 }

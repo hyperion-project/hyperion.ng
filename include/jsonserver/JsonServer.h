@@ -1,14 +1,20 @@
 #pragma once
 
 // Qt includes
-#include <QTcpServer>
 #include <QSet>
 
 // Hyperion includes
-#include <hyperion/Hyperion.h>
+#include <utils/Components.h>
 #include <utils/Logger.h>
+#include <utils/settings.h>
 
+class Hyperion;
+class QTcpServer;
+class QTcpSocket;
 class JsonClientConnection;
+class BonjourServiceRegister;
+class ComponentRegister;
+class NetOrigin;
 
 ///
 /// This class creates a TCP server which accepts connections wich can then send
@@ -22,10 +28,9 @@ class JsonServer : public QObject
 public:
 	///
 	/// JsonServer constructor
-	/// @param hyperion Hyperion instance
-	/// @param port port number on which to start listening for connections
+	/// @param The configuration
 	///
-	JsonServer(uint16_t port = 19444);
+	JsonServer(const QJsonDocument& config);
 	~JsonServer();
 
 	///
@@ -59,9 +64,16 @@ public slots:
 	///
 	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
 
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
 private:
 	/// The TCP server object
-	QTcpServer _server;
+	QTcpServer * _server;
 
 	/// Link to Hyperion to get config state emiter
 	Hyperion * _hyperion;
@@ -72,6 +84,16 @@ private:
 	/// the logger instance
 	Logger * _log;
 
-	/// Flag if forwarder is enabled
-	bool _forwarder_enabled = true;
+	/// Component Register pointer
+	ComponentRegister* _componentRegister;
+
+	NetOrigin* _netOrigin;
+
+	/// port
+	uint16_t _port = 0;
+
+	BonjourServiceRegister * _serviceRegister = nullptr;
+
+	void start();
+	void stop();
 };

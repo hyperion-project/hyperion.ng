@@ -1,6 +1,6 @@
 $(document).ready( function() {
 	performTranslation();
-	
+
 	function newsCont(t,e,l)
 	{
 		var h = '<div style="padding-left:9px;border-left:6px solid #0088cc;">';
@@ -10,7 +10,7 @@ $(document).ready( function() {
 		h += '</div><hr/>';
 		$('#dash_news').append(h);
 	}
-	
+
 	function createNews(d)
 	{
 		for(var i = 0; i<d.length; i++)
@@ -21,11 +21,11 @@ $(document).ready( function() {
 			title = d[i].title.rendered;
 			excerpt = d[i].excerpt.rendered;
 			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
-			
+
 			newsCont(title,excerpt,link);
 		}
 	}
-	
+
 	function getNews()
 	{
 		var h = '<span style="color:red;font-weight:bold">'+$.i18n('dashboard_newsbox_noconn')+'</span>';
@@ -45,30 +45,31 @@ $(document).ready( function() {
 				$('#dash_news').html(h);
 		});
 	}
-	
+
 	//getNews();
-	
+
 	function updateComponents()
 	{
-		var components = serverInfo.components;
+		var components = comps;
 		components_html = "";
 		for ( idx=0; idx<components.length;idx++)
 		{
-			components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
+			if(components[idx].name != "ALL")
+				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
 		}
 		$("#tab_components").html(components_html);
-		
+
 		//info
-		$('#dash_statush').html(serverInfo.hyperion.off? '<span style="color:red">'+$.i18n('general_btn_off')+'</span>':'<span style="color:green">'+$.i18n('general_btn_on')+'</span>');
-		$('#btn_hsc').html(serverInfo.hyperion.off? '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>' : '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>');
+		$('#dash_statush').html(serverInfo.hyperion.enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
+		$('#btn_hsc').html(serverInfo.hyperion.enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>');
 	}
-	
+
 	// add more info
 	$('#dash_leddevice').html(serverInfo.ledDevices.active);
 	$('#dash_currv').html(currentVersion);
 	$('#dash_instance').html(serverConfig.general.name);
 	$('#dash_ports').html(jsonPort+' | '+serverConfig.protoServer.port);
-	
+
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 		parsedUpdateJSON = JSON.parse(data);
 		latestVersion = parsedUpdateJSON[0].versionnr;
@@ -76,13 +77,13 @@ $(document).ready( function() {
 		var cleanCurrentVersion = currentVersion.replace(/\./g, '');
 
 	//	$('#dash_latev').html(latestVersion);
-		
+
 	//	if ( cleanCurrentVersion < cleanLatestVersion )
 	//		$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
 	//	else
 			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 	});
-	
+
 	//determine platform
 	var grabbers = serverInfo.grabbers.available;
 	var html = "";
@@ -97,16 +98,16 @@ $(document).ready( function() {
 		html += 'Amlogic';
 	else
 		html += 'Framebuffer';
-	
-	$('#dash_platform').html(html); 
-	
-	
+
+	$('#dash_platform').html(html);
+
+
 	//interval update
 	updateComponents();
-	$(hyperion).on("cmd-serverinfo",updateComponents);
-	
+	$(hyperion).on("components-updated",updateComponents);
+
 	if(showOptHelp)
 		createHintH("intro", $.i18n('dashboard_label_intro'), "dash_intro");
-	
+
 	removeOverlay();
 });

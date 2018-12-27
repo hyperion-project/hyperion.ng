@@ -4,23 +4,29 @@
 #include <cstdint>
 
 // Qt includes
-#include <QTcpServer>
 #include <QSet>
 #include <QList>
 #include <QStringList>
-
-// Hyperion includes
-#include <hyperion/Hyperion.h>
+#include <QJsonDocument>
 
 // hyperion includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
+
+// settings
+#include <utils/settings.h>
 
 // forward decl
 class ProtoClientConnection;
 class ProtoConnection;
+class QTcpServer;
+class Hyperion;
+class BonjourServiceRegister;
+class ComponentRegister;
+class NetOrigin;
 
 namespace proto {
 class HyperionRequest;
@@ -38,10 +44,9 @@ class ProtoServer : public QObject
 public:
 	///
 	/// ProtoServer constructor
-	/// @param hyperion Hyperion instance
-	/// @param port port number on which to start listening for connections
+	/// @param config the configuration
 	///
-	ProtoServer(uint16_t port = 19445);
+	ProtoServer(const QJsonDocument& config);
 	~ProtoServer();
 
 	///
@@ -52,6 +57,13 @@ public:
 public slots:
 	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
 	void componentStateChanged(const hyperion::Components component, bool enable);
+
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 signals:
 	///
@@ -78,7 +90,7 @@ private:
 	Hyperion * _hyperion;
 
 	/// The TCP server object
-	QTcpServer _server;
+	QTcpServer * _server;
 
 	/// List with open connections
 	QSet<ProtoClientConnection *> _openConnections;
@@ -90,6 +102,22 @@ private:
 	/// Logger instance
 	Logger * _log;
 
+	/// Component Register
+	ComponentRegister* _componentRegister;
+
+	/// Network Origin Check
+	NetOrigin* _netOrigin;
+
+	/// Service register
+	BonjourServiceRegister * _serviceRegister = nullptr;
+
 	/// flag if forwarder is enabled
 	bool _forwarder_enabled;
+
+	uint16_t _port = 0;
+
+	/// Start server
+	void start();
+	/// Stop server
+	void stop();
 };

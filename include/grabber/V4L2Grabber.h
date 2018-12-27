@@ -24,12 +24,9 @@ class V4L2Grabber : public Grabber
 public:
 	V4L2Grabber(const QString & device,
 			int input,
-			VideoStandard videoStandard, PixelFormat pixelFormat,
-			unsigned width,
-			unsigned height,
-			int frameDecimation,
-			int horizontalPixelDecimation,
-			int verticalPixelDecimation
+			VideoStandard videoStandard,
+			PixelFormat pixelFormat,
+			int pixelDecimation
 	);
 	virtual ~V4L2Grabber();
 
@@ -37,21 +34,46 @@ public:
 	bool getSignalDetectionEnabled();
 
 	int grabFrame(Image<ColorRgb> &);
-		
-public slots:
-	void setSignalThreshold(
+
+	///
+	/// @brief  overwrite Grabber.h implementation, as v4l doesn't use width/height
+	///
+	virtual void setWidthHeight(){};
+
+	///
+	/// @brief  set new PixelDecimation value to ImageResampler
+	/// @param  pixelDecimation  The new pixelDecimation value
+	///
+	virtual void setPixelDecimation(int pixelDecimation);
+
+	///
+	/// @brief  overwrite Grabber.h implementation
+	///
+	virtual void setSignalThreshold(
 					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
-					int noSignalCounterThreshold);
+					int noSignalCounterThreshold = 50);
 
-	void setSignalDetectionOffset(
+	///
+	/// @brief  overwrite Grabber.h implementation
+	///
+	virtual void setSignalDetectionOffset(
 					double verticalMin,
 					double horizontalMin,
 					double verticalMax,
 					double horizontalMax);
+	///
+	/// @brief  overwrite Grabber.h implementation
+	///
+	virtual void setSignalDetectionEnable(bool enable);
 
-	void setSignalDetectionEnable(bool enable);
+	///
+	/// @brief overwrite Grabber.h implementation
+	/// 
+	virtual void setInputVideoStandard(int input, VideoStandard videoStandard);
+
+public slots:
 
 	bool start();
 
@@ -66,7 +88,7 @@ private slots:
 
 private:
 	void getV4Ldevices();
-	
+
 	bool init();
 	void uninit();
 
@@ -120,9 +142,9 @@ private:
 	std::vector<buffer> _buffers;
 
 	PixelFormat _pixelFormat;
+	int         _pixelDecimation;
 	int         _lineLength;
 	int         _frameByteSize;
-	int         _frameDecimation;
 
 	// signal detection
 	int      _noSignalCounterThreshold;
@@ -134,7 +156,6 @@ private:
 	double   _y_frac_min;
 	double   _x_frac_max;
 	double   _y_frac_max;
-	int      _currentFrame;
 
 	QSocketNotifier * _streamNotifier;
 

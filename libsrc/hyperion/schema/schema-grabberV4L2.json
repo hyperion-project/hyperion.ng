@@ -11,14 +11,6 @@
 		"title" : "edt_conf_v4l2_heading_title",
 		"properties" :
 		{
-			"enable" :
-			{
-				"type" : "boolean",
-				"title" : "edt_conf_general_enable_title",
-				"default" : false,
-				"required" : true,
-				"propertyOrder" : 1
-			},
 			"device" :
 			{
 				"type" : "string",
@@ -40,61 +32,23 @@
 			{
 				"type" : "string",
 				"title" : "edt_conf_v4l2_standard_title",
-				"enum" : ["PAL","NTSC","SECAM"],
-				"default" : "PAL",
+				"enum" : ["PAL","NTSC","SECAM","NO_CHANGE"],
+				"default" : "NO_CHANGE",
 				"options" : {
-					"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"]
+					"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM", "edt_conf_enum_NO_CHANGE"]
 				},
 				"required" : true,
 				"propertyOrder" : 4
 			},
-			"width" :
-			{
-				"type" : "integer",
-				"title" : "edt_conf_v4l2_width_title",
-				"minimum" : 0,
-				"default" : 0,
-				"append" : "edt_append_pixel",
-				"required" : true,
-				"propertyOrder" : 5
-			},
-			"height" :
-			{
-				"type" : "integer",
-				"title" : "edt_conf_v4l2_height_title",
-				"minimum" : 0,
-				"default" : 0,
-				"append" : "edt_append_pixel",
-				"required" : true,
-				"propertyOrder" : 6
-			},
-			"frameDecimation" :
-			{
-				"type" : "integer",
-				"title" : "edt_conf_v4l2_frameDecimation_title",
-				"minimum" : 0,
-				"default" : 2,
-				"required" : true,
-				"propertyOrder" : 7
-			},
 			"sizeDecimation" :
 			{
 				"type" : "integer",
-				"title" : "Size decimation",
-				"minimum" : 0,
+				"title" : "edt_conf_v4l2_sizeDecimation_title",
+				"minimum" : 1,
+				"maximum" : 30,
 				"default" : 6,
 				"required" : true,
 				"propertyOrder" : 8
-			},
-			"priority" :
-			{
-				"type" : "integer",
-				"minimum" : 100,
-				"maximum" : 253,
-				"title" : "edt_conf_general_priority_title",
-				"default" : 240,
-				"required" : true,
-				"propertyOrder" : 9
 			},
 			"cropLeft" :
 			{

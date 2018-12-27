@@ -33,7 +33,6 @@ int main(int argc, char ** argv)
 		Parser parser("X11 capture application for Hyperion");
 
 		IntOption           & argFps             = parser.add<IntOption>    ('f', "framerate", "Capture frame rate [default: %1]", "10");
-		BooleanOption       & argXGetImage       = parser.add<BooleanOption>('x', "xgetimage", "Use XGetImage instead of XRender");
 		IntOption           & argCropWidth       = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption           & argCropHeight      = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption           & argCropLeft        = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
@@ -59,13 +58,11 @@ int main(int argc, char ** argv)
 		// Create the X11 grabbing stuff
 		X11Wrapper x11Wrapper(
 					1000 / argFps.getInt(parser),
-					parser.isSet(argXGetImage),
 					parser.isSet(argCropLeft) ? argCropLeft.getInt(parser) : argCropWidth.getInt(parser),
 					parser.isSet(argCropRight) ? argCropRight.getInt(parser) : argCropWidth.getInt(parser),
 					parser.isSet(argCropTop) ? argCropTop.getInt(parser) : argCropHeight.getInt(parser),
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
-					argSizeDecimation.getInt(parser), // horizontal decimation
-					argSizeDecimation.getInt(parser)); // vertical decimation
+					argSizeDecimation.getInt(parser)); // pixel decimation
 
 	if (!x11Wrapper.displayInit())
 	  return -1;
