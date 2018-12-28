@@ -47,6 +47,9 @@
 // CaptureControl (Daemon capture)
 #include <hyperion/CaptureCont.h>
 
+// Boblight
+#include <boblightserver/BoblightServer.h>
+
 Hyperion* Hyperion::_hyperion = nullptr;
 
 Hyperion* Hyperion::initInstance( HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath)
@@ -122,7 +125,7 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	const QJsonObject color = getSetting(settings::COLOR).object();
 
 	// initialize leddevices
-	const QJsonObject ledDevice = getSetting(settings::DEVICE).object();
+	QJsonObject ledDevice = getSetting(settings::DEVICE).object();
 	ledDevice["currentLedCount"] = int(_hwLedCount); // Inject led count info
 
 	_device       = LedDeviceFactory::construct(ledDevice);
@@ -159,6 +162,11 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 
 	// if there is no startup / background eff and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a prioritiy change)
 	update();
+
+	// boblight, can't live in global scope as it depends on layout
+
+	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
+	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 }
 
 Hyperion::~Hyperion()
@@ -178,6 +186,7 @@ void Hyperion::freeObjects(bool emitCloseSignal)
 	}
 
 	// delete components on exit of hyperion core
+	delete _boblightServer;
 	delete _captureCont;
 	delete _effectEngine;
 	//delete _deviceSmooth;
@@ -249,7 +258,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	else if(type == settings::DEVICE)
 	{
 		_lockUpdate = true;
-		const QJsonObject dev = config.object();
+		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
 		_hwLedCount = qMax(unsigned(dev["hardwareLedCount"].toInt(getLedCount())), getLedCount());
@@ -281,7 +290,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 			_deviceSmooth->startTimerDelayed();
 		_lockUpdate = false;
 	}
-	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer
+	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
 	update();
 }
 
@@ -419,6 +428,11 @@ const bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& im
 		return true;
 	}
 	return false;
+}
+
+const bool Hyperion::setInputInactive(const quint8& priority)
+{
+	return _muxer.setInputInactive(priority);
 }
 
 void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, const QString& origin, bool clearEffects)
@@ -602,7 +616,7 @@ void Hyperion::update()
 		// disable the black border detector for effects and ledmapping to 0
 		if(compChanged)
 		{
-			_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT || _prevCompId == hyperion::COMP_GRABBER));
+			_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT));
 			_imageProcessor->setHardLedMappingType((_prevCompId == hyperion::COMP_EFFECT) ? 0 : -1);
 		}
 		_imageProcessor->process(image, _ledBuffer);

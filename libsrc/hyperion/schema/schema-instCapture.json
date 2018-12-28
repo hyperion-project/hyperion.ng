@@ -8,7 +8,7 @@
 		{
 			"type" : "boolean",
 			"required" : true,
-			"title" : "edt_conf_instC_systemEnable",
+			"title" : "edt_conf_instC_systemEnable_title",
 			"default" : true,
 			"propertyOrder" : 1
 		},
@@ -26,7 +26,7 @@
 		{
 			"type" : "boolean",
 			"required" : true,
-			"title" : "edt_conf_instC_v4lEnable",
+			"title" : "edt_conf_instC_v4lEnable_title",
 			"default" : false,
 			"propertyOrder" : 3
 		},

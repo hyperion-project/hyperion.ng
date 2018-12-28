@@ -47,6 +47,8 @@ public:
     void registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt = std::vector<std::pair<std::string, std::string>>());
     inline BonjourRecord registeredRecord() const {return finalRecord; }
 
+	const quint16 & getPort() { return _port; };
+
 signals:
     void error(DNSServiceErrorType error);
     void serviceRegistered(const BonjourRecord &record);
@@ -62,6 +64,9 @@ private:
     DNSServiceRef dnssref;
     QSocketNotifier *bonjourSocket;
     BonjourRecord finalRecord;
+
+	// current port
+	quint16 _port = 0;
 };
 
 #endif // BONJOURSERVICEREGISTER_H

@@ -16,6 +16,9 @@
 // hyperion util includes
 #include "utils/ColorRgb.h"
 
+// Hyperion includes
+#include <hyperion/Hyperion.h>
+
 // project includes
 #include "ProtoClientConnection.h"
 
@@ -198,7 +201,7 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 	int priority = message.priority();
 
 	// clear priority
-	_hyperion->clear(priority);
+	//_hyperion->clear(priority);
 	// send reply
 	sendSuccessReply();
 }
@@ -206,7 +209,7 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 void ProtoClientConnection::handleClearallCommand()
 {
 	// clear priority
-	_hyperion->clearall();
+	//_hyperion->clearall();
 
 	// send reply
 	sendSuccessReply();

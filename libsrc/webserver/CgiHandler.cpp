@@ -13,11 +13,9 @@
 #include <utils/Process.h>
 #include <utils/jsonschema/QJsonFactory.h>
 
-CgiHandler::CgiHandler (Hyperion * hyperion, QObject * parent)
+CgiHandler::CgiHandler (QObject * parent)
 	: QObject(parent)
-	, _hyperion(hyperion)
 	, _args(QStringList())
-	, _hyperionConfig(_hyperion->getQJsonConfig())
 	, _baseUrl()
 	, _log(Logger::getInstance("WEBSERVER"))
 {
@@ -57,11 +55,6 @@ void CgiHandler::cmd_cfg_jsonserver()
 	if ( _args.at(0) == "cfg_jsonserver" )
 	{
 		quint16 jsonPort = 19444;
-		if (_hyperionConfig.contains("jsonServer"))
-		{
-			const QJsonObject jsonConfig = _hyperionConfig["jsonServer"].toObject();
-			jsonPort = jsonConfig["port"].toInt(jsonPort);
-		}
 
 		// send result as reply
 		_reply->addHeader ("Content-Type", "text/plain" );

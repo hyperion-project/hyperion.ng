@@ -5,7 +5,6 @@
 #include <QString>
 #include <QStringList>
 
-#include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
 
 #include "QtHttpReply.h"
@@ -15,7 +14,7 @@ class CgiHandler : public QObject {
 	Q_OBJECT
 
 public:
-	CgiHandler (Hyperion * hyperion, QObject * parent = NULL);
+	CgiHandler (QObject * parent = NULL);
 	virtual ~CgiHandler (void);
 
 	void setBaseUrl(const QString& url);
@@ -26,11 +25,9 @@ public:
 	void cmd_runscript ();
 
 private:
-	Hyperion*           _hyperion;
 	QtHttpReply *       _reply;
 	QtHttpRequest *     _request;
 	QStringList         _args;
-	const QJsonObject & _hyperionConfig;
 	QString             _baseUrl;
 	Logger *            _log;
 };

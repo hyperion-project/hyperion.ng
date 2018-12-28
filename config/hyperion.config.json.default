@@ -12,6 +12,7 @@
 	"device" :
 	{
 		"type"       : "file",
+		"hardwareLedCount" : 1,
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
@@ -58,7 +59,6 @@
 	[
 		{
 			"device"   : "auto",
-			"input"    : 0,
 			"standard" : "NO_CHANGE",
 			"sizeDecimation"  : 8,
 			"cropLeft"    : 0,
@@ -135,6 +135,13 @@
 		"port" : 19445
 	},
 
+	"flatbufServer" :
+	{
+		"enable" : true,
+		"port" : 19400,
+		"timeout" : 5
+	},
+
 	"boblightServer" :
 	{
 		"enable"   : false,
@@ -154,7 +161,6 @@
 
 	"webConfig" :
 	{
-		"enable"        : true,
 		"document_root" : "",
 		"port"          : 8090
 	},

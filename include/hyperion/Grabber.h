@@ -36,7 +36,7 @@ public:
 	///
 	/// @brief Apply new width/height values, on errors (collide with cropping) reject the values
 	///
-	virtual void setWidthHeight(int width, int height);
+	virtual bool setWidthHeight(int width, int height);
 
 	///
 	/// @brief Apply new pixelDecimation (used from x11)
@@ -66,9 +66,9 @@ public:
 	virtual void setSignalDetectionEnable(bool enable) {};
 
 	///
-	/// @brief Apply input and videoStanded (used from v4l)
+	/// @brief Apply device and videoStanded (used from v4l)
 	///
-	virtual void setInputVideoStandard(int input, VideoStandard videoStandard) {};
+	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard) {};
 
 	///
 	/// @brief Apply display index (used from x11)

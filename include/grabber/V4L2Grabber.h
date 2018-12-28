@@ -14,6 +14,8 @@
 #include <hyperion/Grabber.h>
 #include <grabber/VideoStandard.h>
 
+class QTimer;
+
 /// Capture class for V4L2 devices
 ///
 /// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
@@ -23,7 +25,6 @@ class V4L2Grabber : public Grabber
 
 public:
 	V4L2Grabber(const QString & device,
-			int input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation
@@ -71,7 +72,7 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	/// 
-	virtual void setInputVideoStandard(int input, VideoStandard videoStandard);
+	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 public slots:
 
@@ -85,6 +86,11 @@ signals:
 
 private slots:
 	int read_frame();
+
+	///
+	/// @brief Is called whenever the _readFrameAdaptTimer emits to unlock read_frame() through _readFrame bool
+	///
+	void unlockReadFrame() { _readFrame = true; };
 
 private:
 	void getV4Ldevices();
@@ -161,4 +167,6 @@ private:
 
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
+	QTimer* _readFrameAdaptTimer;
+	bool _readFrame = false;
 };

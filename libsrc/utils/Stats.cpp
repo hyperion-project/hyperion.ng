@@ -13,11 +13,15 @@
 #include <QDir>
 #include <QDateTime>
 
-Stats::Stats()
+Stats* Stats::instance = nullptr;
+
+Stats::Stats(const QJsonObject& config)
 	: QObject()
 	, _log(Logger::getInstance("STATS"))
 	, _hyperion(Hyperion::getInstance())
 {
+	Stats::instance = this;
+
 	// generate hash
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
@@ -38,8 +42,31 @@ Stats::Stats()
 		return;
 	}
 
+	// prep data
+	handleDataUpdate(config);
+
+	// QNetworkRequest Header
+	_req.setRawHeader("Content-Type", "application/json");
+   	_req.setRawHeader("Authorization", "Basic SHlwZXJpb25YbDQ5MlZrcXA6ZDQxZDhjZDk4ZjAwYjIw");
+
+	connect(&_mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(resolveReply(QNetworkReply*)));
+
+	// 7 days interval
+	QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
+	timer->start(604800000);
+
+	// delay initial check
+	QTimer::singleShot(60000, this, SLOT(initialExec()));
+}
+
+Stats::~Stats()
+{
+}
+
+void Stats::handleDataUpdate(const QJsonObject& config)
+{
 	// prepare content
-	QJsonObject config = _hyperion->getQJsonConfig();
 	SysInfo::HyperionSysInfo data = SysInfo::get();
 
 	QJsonObject system;
@@ -63,25 +90,6 @@ Stats::Stats()
 
 	QJsonDocument doc(system);
 	_ba = doc.toJson();
-
-	// QNetworkRequest Header
-	_req.setRawHeader("Content-Type", "application/json");
-   	_req.setRawHeader("Authorization", "Basic SHlwZXJpb25YbDQ5MlZrcXA6ZDQxZDhjZDk4ZjAwYjIw");
-
-	connect(&_mgr, SIGNAL(finished(QNetworkReply*)), this, SLOT(resolveReply(QNetworkReply*)));
-
-	// 7 days interval
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
-	timer->start(604800000);
-
-	//delay initial check
-	QTimer::singleShot(60000, this, SLOT(initialExec()));
-}
-
-Stats::~Stats()
-{
-
 }
 
 void Stats::initialExec()

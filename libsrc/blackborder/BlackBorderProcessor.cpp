@@ -50,12 +50,16 @@ void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, cons
 		_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
 		_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
 		_detectionMode = obj["mode"].toString("default");
+		const double newThreshold = obj["threshold"].toDouble(5.0)/100.0;
 
-		if(_oldThreshold != obj["threshold"].toDouble(5.0/100))
+		if(_oldThreshold != newThreshold)
 		{
-			_oldThreshold = obj["threshold"].toDouble(5.0/100);
-			if(_detector != nullptr) delete _detector;
-			_detector = new BlackBorderDetector(obj["threshold"].toDouble(5.0/100));
+			_oldThreshold = newThreshold;
+
+			if(_detector != nullptr)
+				delete _detector;
+
+			_detector = new BlackBorderDetector(newThreshold);
 		}
 
 		Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));

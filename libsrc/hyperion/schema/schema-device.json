@@ -2,18 +2,21 @@
 	"type" : "object",
 	"title" : "edt_dev_general_heading_title",
 	"required" : true,
-	"defaultProperties": ["ledCount","colorOrder","rewriteTime","minimumWriteTime"],
+	"defaultProperties": ["hardwareLedCount","colorOrder","rewriteTime"],
 	"properties" :
 	{
 		"type" :
 		{
-			"type" : "string"
+			"type" : "string",
+			"propertyOrder" : 1
 		},
-		"ledCount" :
+		"hardwareLedCount" :
 		{
 			"type" : "integer",
-			"minimum" : 0,
-			"title" : "edt_dev_general_ledCount_title",
+			"title" : "edt_dev_general_hardwareLedCount_title",
+			"minimum" : 1,
+			"default" : 1,
+			"access" : "expert",
 			"propertyOrder" : 2
 		},
 		"colorOrder" :

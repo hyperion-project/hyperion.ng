@@ -31,7 +31,7 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(const QJsonDocument& config);
+	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
 	~BoblightServer();
 
 	///

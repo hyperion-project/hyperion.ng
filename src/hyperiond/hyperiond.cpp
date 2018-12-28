@@ -14,6 +14,7 @@
 #include <QPair>
 #include <cstdint>
 #include <limits>
+#include <QThread>
 
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
@@ -21,12 +22,14 @@
 #include <hyperion/Hyperion.h>
 #include <jsonserver/JsonServer.h>
 #include <protoserver/ProtoServer.h>
-#include <boblightserver/BoblightServer.h>
 #include <udplistener/UDPListener.h>
 #include <webserver/WebServer.h>
 #include <utils/Stats.h>
 #include <HyperionConfig.h> // Required to determine the cmake options
 #include "hyperiond.h"
+
+// FlatBufferServer
+#include <flatbufserver/FlatBufferServer.h>
 
 // bonjour browser
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -39,7 +42,7 @@
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent)
+HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
@@ -47,7 +50,6 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
 	, _protoServer(nullptr)
-	, _boblightServer(nullptr)
 	, _udpListener(nullptr)
 	, _v4l2Grabbers()
 	, _dispmanx(nullptr)
@@ -61,23 +63,19 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 {
 	HyperionDaemon::daemon = this;
 
+	// Register metas for thread queued connection
+	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
+	qRegisterMetaType<hyperion::Components>("hyperion::Components");
+	qRegisterMetaType<settings::type>("settings::type");
+
 	// init settings
 	_settingsManager = new SettingsManager(0,configFile);
 
-	const QJsonObject& logConfig = _settingsManager->getSetting(settings::LOGGER).object();
-	if (Logger::getLogLevel() == Logger::WARNING)
-	{
-		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
-		if (level == "silent")       Logger::setLogLevel(Logger::OFF);
-		else if (level == "warn")    Logger::setLogLevel(Logger::WARNING);
-		else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
-		else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
-	}
-	else
-	{
-		Warning(Logger::getInstance("LOGGER"), "Logger settings overridden by command line argument");
-	}
+	// set inital log lvl if the loglvl wasn't overwritten by arg
+	if(!logLvlOverwrite)
+		handleSettingsUpdate(settings::LOGGER, _settingsManager->getSetting(settings::LOGGER));
 
+	// spawn all Hyperion instances before network services
 	_hyperion = Hyperion::initInstance(this, 0, configFile, rootPath);
 
 	Info(_log, "Hyperion initialized");
@@ -141,7 +139,8 @@ void HyperionDaemon::freeObjects()
 	delete _webserver;
 	delete _jsonServer;
 	delete _protoServer;
-	delete _boblightServer;
+	_flatBufferServer->thread()->quit();
+	_flatBufferServer->thread()->wait(1000);
 	delete _udpListener;
 
 	delete _bonjourBrowserWrapper;
@@ -164,15 +163,14 @@ void HyperionDaemon::freeObjects()
 	_webserver      = nullptr;
 	_jsonServer     = nullptr;
 	_protoServer    = nullptr;
-	_boblightServer = nullptr;
 	_udpListener    = nullptr;
 	_stats          = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
 {
-	// Create Stats before network services
-	_stats = new Stats();
+	// Create Stats
+	_stats = new Stats(_settingsManager->getSettings());
 
 	// Create Json server
 	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
@@ -181,11 +179,17 @@ void HyperionDaemon::startNetworkServices()
 	// Create Proto server
 	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
-	//QObject::connect(_hyperion, SIGNAL(videoMode(VideoMode)), _protoServer, SLOT(setVideoMode(VideoMode)));
 
-	// boblight server
-	_boblightServer = new BoblightServer(getSetting(settings::BOBLSERVER));
-	connect(this, &HyperionDaemon::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
+	// Create FlatBuffer server & move to Thread
+	_flatBufferServer = new FlatBufferServer(getSetting(settings::FLATBUFSERVER));
+	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
+	QThread* fbThread = new QThread(this);
+
+	_flatBufferServer->moveToThread(fbThread);
+	connect( fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer );
+	connect( fbThread, &QThread::finished, _flatBufferServer, &QObject::deleteLater );
+	connect( fbThread, &QThread::finished, fbThread, &QObject::deleteLater );
+	fbThread->start();
 
 	// Create UDP listener
 	_udpListener = new UDPListener(getSetting(settings::UDPLISTENER));
@@ -198,6 +202,17 @@ void HyperionDaemon::startNetworkServices()
 
 void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
+	if(type == settings::LOGGER)
+	{
+		const QJsonObject & logConfig = config.object();
+
+		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
+		if (level == "silent")       Logger::setLogLevel(Logger::OFF);
+		else if (level == "warn")    Logger::setLogLevel(Logger::WARNING);
+		else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
+		else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
+	}
+
 	if(type == settings::SYSTEMCAPTURE)
 	{
 		const QJsonObject & grabberConfig = config.object();
@@ -249,7 +264,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 		else if (type == "amlogic" && _amlGrabber == nullptr)      createGrabberAmlogic();
 		else if (type == "osx" && _osxGrabber == nullptr)          createGrabberOsx(grabberConfig);
 		else if (type == "x11" && _x11Grabber == nullptr)          createGrabberX11(grabberConfig);
-		else { Warning( _log, "unknown framegrabber type '%s'", QSTRING_CSTR(type)); }
 	}
 	else if(type == settings::V4L2)
 	{
@@ -268,7 +282,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			#ifdef ENABLE_V4L2
 			V4L2Wrapper* grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
-				grabberConfig["input"].toInt(0),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8) );
@@ -294,10 +307,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			connect(this, &HyperionDaemon::videoMode, grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
 
-			if (grabber->start())
-			{
-				Info(_log, "V4L2 grabber started");
-			}
 			_v4l2Grabbers.push_back(grabber);
 			#endif
 		}

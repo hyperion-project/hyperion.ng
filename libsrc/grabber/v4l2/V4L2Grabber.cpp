@@ -18,29 +18,29 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QTimer>
 
 #include "grabber/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 V4L2Grabber::V4L2Grabber(const QString & device
-		, int input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
 		)
 	: Grabber("V4L2:"+device)
-	, _deviceName(device)
-	, _input(input)
+	, _deviceName()
+	, _input(-1)
 	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _pixelFormat(pixelFormat)
-	, _pixelDecimation(pixelDecimation)
+	, _pixelDecimation(-1)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
-	, _noSignalCounterThreshold(50)
+	, _noSignalCounterThreshold(40)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
 	, _noSignalDetected(false)
@@ -52,12 +52,17 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _streamNotifier(nullptr)
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
-
+	, _readFrameAdaptTimer(new QTimer(this))
 {
-	//_imageResampler.setHorizontalPixelDecimation(pixelDecimation);
-	//_imageResampler.setVerticalPixelDecimation(pixelDecimation);
+	// setup stream notify locker with 10hz
+	connect(_readFrameAdaptTimer, &QTimer::timeout, this, &V4L2Grabber::unlockReadFrame);
+	_readFrameAdaptTimer->setInterval(100);
 
+	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
+
+	// init
+	setDeviceVideoStandard(device, videoStandard);
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -67,17 +72,18 @@ V4L2Grabber::~V4L2Grabber()
 
 void V4L2Grabber::uninit()
 {
-	Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
 	// stop if the grabber was not stopped
 	if (_initialized)
 	{
+		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
+
+		_readFrameAdaptTimer->stop();
 		stop();
 		uninit_device();
 		close_device();
 		_initialized = false;
 	}
 }
-
 
 bool V4L2Grabber::init()
 {
@@ -133,10 +139,15 @@ bool V4L2Grabber::init()
 		bool opened = false;
 		try
 		{
-			open_device();
-			opened = true;
-			init_device(_videoStandard, _input);
-			_initialized = true;
+			// do not init with unknown device
+			if(_deviceName != "unknown")
+			{
+				open_device();
+				opened = true;
+				init_device(_videoStandard, _input);
+				_initialized = true;
+				_readFrameAdaptTimer->start();
+			}
 		}
 		catch(std::exception& e)
 		{
@@ -529,12 +540,12 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		break;
 	}
 
+// TODO Does never accept own sizes? use always _imageResampler instead
+/*
+
 	// calc the size based on pixelDecimation
 	fmt.fmt.pix.width = fmt.fmt.pix.width / _pixelDecimation;
 	fmt.fmt.pix.height = fmt.fmt.pix.height / _pixelDecimation;
-
-	// set the line length
-	_lineLength = fmt.fmt.pix.bytesperline;
 
 	// set the settings
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
@@ -550,6 +561,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		throw_errno_exception("VIDIOC_G_FMT");
 		return;
 	}
+*/
+	// set the line length
+	_lineLength = fmt.fmt.pix.bytesperline;
 
 	// store width & height
 	_width = fmt.fmt.pix.width;
@@ -701,6 +715,10 @@ void V4L2Grabber::stop_capturing()
 
 int V4L2Grabber::read_frame()
 {
+	// read_frame() is called with 25Hz, adapt to 10Hz. In the end it's up to the stream notifier if we get calls or not
+	if(!_readFrame) return -1;
+	_readFrame = false;
+
 	bool rc = false;
 
 	try
@@ -933,18 +951,30 @@ void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 {
 	if(_pixelDecimation != pixelDecimation)
 	{
+		_pixelDecimation = pixelDecimation;
 		uninit();
-		init();
+		// start if init is a success
+		if(init())
+			start();
+		_imageResampler.setHorizontalPixelDecimation(pixelDecimation);
+		_imageResampler.setVerticalPixelDecimation(pixelDecimation);
 	}
 }
 
-void V4L2Grabber::setInputVideoStandard(int input, VideoStandard videoStandard)
+void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
 {
-	if(_input != input || _videoStandard != videoStandard)
+	if(_deviceName != device || _videoStandard != videoStandard)
 	{
-		_input = input;
-		_videoStandard = videoStandard;
+		// extract input of device
+		QChar input = device.at(device.size() - 1);
+		_input = input.isNumber() ? input.digitValue() : -1;
+
 		uninit();
-		init();
+		_deviceName = device;
+		_videoStandard = videoStandard;
+
+		// start if init is a success
+		if(init())
+			start();
 	}
 }

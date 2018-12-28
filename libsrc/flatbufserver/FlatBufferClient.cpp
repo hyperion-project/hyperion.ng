@@ -29,7 +29,6 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObje
 
 void FlatBufferClient::readyRead()
 {
-	qDebug()<<"readyRead";
 	_timeoutTimer->start();
 
 	_receiveBuffer += _socket->readAll();
@@ -37,7 +36,6 @@ void FlatBufferClient::readyRead()
 	// check if we can read a header
 	while(_receiveBuffer.size() >= 4)
 	{
-
 		uint32_t messageSize =
 			((_receiveBuffer[0]<<24) & 0xFF000000) |
 			((_receiveBuffer[1]<<16) & 0x00FF0000) |
@@ -47,10 +45,11 @@ void FlatBufferClient::readyRead()
 		// check if we can read a complete message
 		if((uint32_t) _receiveBuffer.size() < messageSize + 4) return;
 
-		// remove header + msg from buffer
-		const QByteArray& msg = _receiveBuffer.remove(0, messageSize + 4);
+		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
+		const QByteArray msg = _receiveBuffer.right(messageSize);
+		_receiveBuffer.remove(0, messageSize + 4);
 
-		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.mid(3, messageSize).constData());
+		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
 		if (flatbuf::VerifyHyperionRequestBuffer(verifier))
@@ -59,7 +58,6 @@ void FlatBufferClient::readyRead()
 			handleMessage(message);
 			continue;
 		}
-		qDebug()<<"Unable to pasrse msg";
 		sendErrorReply("Unable to parse message");
 	}
 		//emit newMessage(msgData,messageSize);

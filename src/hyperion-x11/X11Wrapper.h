@@ -50,4 +50,7 @@ private:
 	X11Grabber _grabber;
 
 	Image<ColorRgb>  _screenshot;
+
+	// prevent cont dimension updates
+	bool _inited = false;
 };

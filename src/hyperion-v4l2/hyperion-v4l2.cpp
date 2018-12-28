@@ -56,10 +56,9 @@ int main(int argc, char** argv)
 		// create the option parser and initialize all parameters
 		Parser parser("V4L capture application for Hyperion");
 
-		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use [default: %1]", "auto");
+		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32 or no-change. [default: %1]", "no-change");
-		IntOption          & argInput               = parser.add<IntOption>    (0x0, "input", "Input channel (optional)", "-1");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropLeft            = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
@@ -109,7 +108,6 @@ int main(int argc, char** argv)
 		// initialize the grabber
 		V4L2Grabber grabber(
 					argDevice.value(parser),
-					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
 					std::max(1, argSizeDecimation.getInt(parser)));

@@ -6,7 +6,6 @@
 // qt incl
 #include <QJsonObject>
 
-class SettingsTable;
 class Hyperion;
 
 ///
@@ -63,8 +62,6 @@ private:
 	Hyperion* _hyperion;
 	/// Logger instance
 	Logger* _log;
-	/// instance of database table interface
-	SettingsTable* _sTable;
 	/// the schema
 	static QJsonObject schemaJson;
 	/// the current config of this instance

@@ -1,5 +1,5 @@
 
-find_package(PythonLibs 3.4 REQUIRED)
+find_package(PythonLibs 3.5 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 
 add_executable(hyperiond
@@ -15,9 +15,9 @@ target_link_libraries(hyperiond
 		hyperion
 		effectengine
 		jsonserver
-		boblightserver
 		udplistener
 		protoserver
+		flatbufserver
 		webserver
 		bonjour
 		python

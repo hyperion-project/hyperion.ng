@@ -42,7 +42,7 @@ public:
 
 	///
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
-	virtual void setWidthHeight(int width, int height);
+	virtual bool setWidthHeight(int width, int height);
 
 private:
 	///

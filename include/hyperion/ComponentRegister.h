@@ -33,9 +33,9 @@ public:
 	///
 	/// @brief  Check if a component is currently enabled
 	/// @param  comp   The component from enum
-	/// @return        True if component is running else false
+	/// @return        True if component is running else false. Not found is -1
 	///
-	bool isComponentEnabled(const hyperion::Components& comp) const;
+	int isComponentEnabled(const hyperion::Components& comp) const;
 
 	/// contains all components and their state
 	std::map<hyperion::Components, bool> getRegister() { return _componentStates; };

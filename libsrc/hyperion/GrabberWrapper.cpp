@@ -3,19 +3,14 @@
 #include <hyperion/Grabber.h>
 #include <HyperionConfig.h>
 
-//forwarder
-#include <hyperion/MessageForwarder.h>
-
 // qt
 #include <QTimer>
 
 GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz)
 	: _grabberName(grabberName)
-	, _hyperion(Hyperion::getInstance())
 	, _timer(new QTimer(this))
 	, _updateInterval_ms(1000/updateRate_Hz)
 	, _log(Logger::getInstance(grabberName))
-	, _forward(true)
 	, _ggrabber(ggrabber)
 	, _image(0,0)
 {
@@ -23,8 +18,6 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 	_timer->setInterval(_updateInterval_ms);
 
 	_image.resize(width, height);
-
-	_forward = _hyperion->getForwarder()->protoForwardingEnabled();
 
 	connect(_timer, &QTimer::timeout, this, &GrabberWrapper::action);
 }
@@ -105,7 +98,7 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 		else
 			obj = config.object();
 
-		if(type == settings::SYSTEMCAPTURE)
+		if(type == settings::SYSTEMCAPTURE  && !_grabberName.startsWith("V4L"))
 		{
 			// width/height
 			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
@@ -138,7 +131,8 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 			}
 		}
 
-		if(type == settings::V4L2)
+		// v4l instances only!
+		if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
 		{
 			// pixel decimation for v4l
 			_ggrabber->setPixelDecimation(obj["sizeDecimation"].toInt(8));
@@ -160,8 +154,8 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 				obj["redSignalThreshold"].toDouble(0.0)/100.0,
 				obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 				obj["blueSignalThreshold"].toDouble(0.0)/100.0);
-			_ggrabber->setInputVideoStandard(
-				obj["input"].toInt(0),
+			_ggrabber->setDeviceVideoStandard(
+				obj["device"].toString("auto"),
 				parseVideoStandard(obj["standard"].toString("no-change")));
 
 		}

@@ -1,4 +1,4 @@
-find_package(PythonLibs 3.4 REQUIRED)
+find_package(PythonLibs 3.5 REQUIRED)
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.

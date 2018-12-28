@@ -240,6 +240,12 @@ const bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb
 	return true;
 }
 
+const bool PriorityMuxer::setInputInactive(const quint8& priority)
+{
+	Image<ColorRgb> image;
+	return setInputImage(priority, image, -100);
+}
+
 const bool PriorityMuxer::clearInput(const uint8_t priority)
 {
 	if (priority < PriorityMuxer::LOWEST_PRIORITY && _activeInputs.remove(priority))

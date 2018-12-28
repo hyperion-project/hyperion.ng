@@ -3,7 +3,7 @@
 	"required" : true,
 	"title" : "edt_conf_v4l2_heading_title",
 	"minItems": 1,
-	"maxItems": 2,
+	"maxItems": 1,
 	"items":
 	{
 		"type" : "object",
@@ -16,17 +16,9 @@
 				"type" : "string",
 				"title" : "edt_conf_v4l2_device_title",
 				"default" : "auto",
+				"minLength" : 4,
 				"required" : true,
-				"propertyOrder" : 2
-			},
-			"input" :
-			{
-				"type" : "integer",
-				"title" : "edt_conf_v4l2_input_title",
-				"minimum" : 0,
-				"default" : 0,
-				"required" : true,
-				"propertyOrder" : 3
+				"propertyOrder" : 1
 			},
 			"standard" :
 			{
@@ -38,7 +30,7 @@
 					"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM", "edt_conf_enum_NO_CHANGE"]
 				},
 				"required" : true,
-				"propertyOrder" : 4
+				"propertyOrder" : 2
 			},
 			"sizeDecimation" :
 			{
@@ -48,7 +40,7 @@
 				"maximum" : 30,
 				"default" : 6,
 				"required" : true,
-				"propertyOrder" : 8
+				"propertyOrder" : 3
 			},
 			"cropLeft" :
 			{
@@ -58,7 +50,7 @@
 				"default" : 0,
 				"append" : "edt_append_pixel",
 				"required" : true,
-				"propertyOrder" : 11
+				"propertyOrder" : 4
 			},
 			"cropRight" :
 			{
@@ -68,7 +60,7 @@
 				"default" : 0,
 				"append" : "edt_append_pixel",
 				"required" : true,
-				"propertyOrder" : 12
+				"propertyOrder" : 5
 			},
 			"cropTop" :
 			{
@@ -78,7 +70,7 @@
 				"default" : 0,
 				"append" : "edt_append_pixel",
 				"required" : true,
-				"propertyOrder" : 13
+				"propertyOrder" : 6
 			},
 			"cropBottom" :
 			{
@@ -88,7 +80,7 @@
 				"default" : 0,
 				"append" : "edt_append_pixel",
 				"required" : true,
-				"propertyOrder" : 14
+				"propertyOrder" : 7
 			},
 			"signalDetection" :
 			{
@@ -96,7 +88,7 @@
 				"title" : "edt_conf_v4l2_signalDetection_title",
 				"default" : false,
 				"required" : true,
-				"propertyOrder" : 15
+				"propertyOrder" : 8
 			},
 			"redSignalThreshold" :
 			{
@@ -112,7 +104,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 16
+				"propertyOrder" : 9
 			},
 			"greenSignalThreshold" :
 			{
@@ -128,7 +120,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 17
+				"propertyOrder" : 10
 			},
 			"blueSignalThreshold" :
 			{
@@ -144,7 +136,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 18
+				"propertyOrder" : 11
 			},
 			"sDVOffsetMin" :
 			{
@@ -160,7 +152,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 19
+				"propertyOrder" : 12
 			},
 			"sDVOffsetMax" :
 			{
@@ -176,7 +168,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 20
+				"propertyOrder" : 13
 			},
 			"sDHOffsetMin" :
 			{
@@ -192,7 +184,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 21
+				"propertyOrder" : 14
 			},
 			"sDHOffsetMax" :
 			{
@@ -208,7 +200,7 @@
 					}
 				},
 				"required" : true,
-				"propertyOrder" : 22
+				"propertyOrder" : 15
 			}
 		},
 	"additionalProperties" : false

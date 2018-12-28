@@ -11,15 +11,13 @@
 // Hyperion includes
 #include <utils/Logger.h>
 #include <utils/Components.h>
+#include <utils/ColorRgb.h>
 
 // settings
 #include <utils/settings.h>
 
-class Hyperion;
-class UDPClientConnection;
 class BonjourServiceRegister;
 class QUdpSocket;
-class NetOrigin;
 
 ///
 /// This class creates a UDP server which accepts connections from boblight clients.
@@ -67,6 +65,22 @@ public slots:
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
+signals:
+	///
+	/// @brief forward register data to HyperionDaemon
+	///
+	void registerGlobalInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
+
+	///
+	/// @brief forward led data to HyperionDaemon
+	///
+	const bool setGlobalInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
+
+	///
+	/// @brief forward clear to HyperionDaemon
+	///
+	void clearGlobalPriority(const int& _priority, const hyperion::Components& component);
+
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection
@@ -75,14 +89,9 @@ private slots:
 	void processTheDatagram(const QByteArray * datagram, const QHostAddress * sender);
 
 private:
-	/// Hyperion instance
-	Hyperion * _hyperion;
 
 	/// The UDP server object
 	QUdpSocket * _server;
-
-	/// List with open connections
-	QSet<UDPClientConnection *> _openConnections;
 
 	/// hyperion priority
 	int _priority;
@@ -94,7 +103,7 @@ private:
 	Logger * _log;
 
 	/// Bonjour Service Register
-	BonjourServiceRegister* _bonjourService = nullptr;
+	BonjourServiceRegister* _serviceRegister = nullptr;
 
 	/// state of connection
 	bool _isActive;
@@ -103,7 +112,4 @@ private:
 	QHostAddress              _listenAddress;
 	uint16_t                  _listenPort;
 	QAbstractSocket::BindFlag _bondage;
-
-	/// Check Network Origin
-	NetOrigin* _netOrigin;
 };

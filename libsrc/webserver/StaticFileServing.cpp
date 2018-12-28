@@ -10,11 +10,10 @@
 #include <QResource>
 #include <exception>
 
-StaticFileServing::StaticFileServing (Hyperion *hyperion, QObject * parent)
+StaticFileServing::StaticFileServing (QObject * parent)
 	:  QObject   (parent)
-	, _hyperion(hyperion)
 	, _baseUrl ()
-	, _cgi(hyperion, this)
+	, _cgi(this)
 	, _log(Logger::getInstance("WEBSERVER"))
 {
 	Q_INIT_RESOURCE(WebConfig);

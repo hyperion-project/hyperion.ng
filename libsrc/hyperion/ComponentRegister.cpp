@@ -55,9 +55,9 @@ bool ComponentRegister::setHyperionEnable(const bool& state)
 	return false;
 }
 
-bool ComponentRegister::isComponentEnabled(const hyperion::Components& comp) const
+int ComponentRegister::isComponentEnabled(const hyperion::Components& comp) const
 {
-	return _componentStates.at(comp);
+	return (_componentStates.count(comp)) ? _componentStates.at(comp) : -1;
 }
 
 void ComponentRegister::componentStateChanged(const hyperion::Components comp, const bool activated)

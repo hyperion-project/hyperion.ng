@@ -34,8 +34,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/Logger.h>
 #include <HyperionConfig.h>
-#include <hyperion/Hyperion.h>
-
+#include <utils/Stats.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)
@@ -54,10 +53,11 @@ BonjourServiceRegister::~BonjourServiceRegister()
 
 void BonjourServiceRegister::registerService(const QString& service, const int& port)
 {
+	_port = port;
 	// zeroconf $configname@$hostname:port
-	QString prettyName = Hyperion::getInstance()->getQJsonConfig()["general"].toObject()["name"].toString();
+	// TODO add name of the main instance
 	registerService(
-		BonjourRecord(prettyName+"@"+QHostInfo::localHostName()+ ":" + QString::number(port),
+		BonjourRecord(QHostInfo::localHostName()+ ":" + QString::number(port),
 			service,
 			QString()
 		),

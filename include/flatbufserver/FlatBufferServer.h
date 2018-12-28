@@ -9,7 +9,6 @@
 
 class QTcpServer;
 class FlatBufferClient;
-class NetOrigin;
 
 ///
 /// @brief A TcpServer to receive images of different formats with Google Flatbuffer
@@ -57,7 +56,6 @@ private:
 
 private:
 	QTcpServer* _server;
-	NetOrigin* _netOrigin;
 	Logger* _log;
 	int _timeout;
 	quint16 _port;

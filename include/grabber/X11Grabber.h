@@ -42,7 +42,7 @@ public:
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as X11 doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	virtual void setWidthHeight(int width, int height);
+	virtual bool setWidthHeight(int width, int height) { return true; };
 
 	///
 	/// @brief Apply new pixelDecimation

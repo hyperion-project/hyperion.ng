@@ -1,0 +1,40 @@
+#!/bin/sh
+
+echo "---Hyperion ambient light prerm ---"
+
+# search for users in system, returns first entry
+FOUND_USR=`who | grep -o '^\w*\b'` || "root"
+
+# stop running daemon before we delete it
+HYPERION_RUNNING=false
+pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true
+
+if grep -m1 systemd /proc/1/comm > /dev/null
+then
+	echo "--> stop init deamon: systemd"
+	# systemd
+	$HYPERION_RUNNING && systemctl stop hyperiond"@${FOUND_USR}" 2> /dev/null
+	# disable user specific symlink
+	echo "--> Disable service and remove entry"
+	systemctl -q disable hyperiond"@${FOUND_USR}"
+	rm -v /etc/systemd/system/hyperiond@.service 2>/dev/null
+
+elif [ -e /sbin/initctl ]
+then
+	echo "--> stop init deamon: upstart"
+	# upstart
+	$HYPERION_RUNNING && initctl stop hyperiond
+	echo "--> Remove upstart service"
+	rm -v /etc/init/hyperion* 2>/dev/null
+	initctl reload-configuration
+
+else
+	echo "--> stop init deamon: sysV"
+	# sysV
+	$HYPERION_RUNNING && service hyperiond stop 2>/dev/null
+	echo "--> Remove sysV service"
+	update-rc.d -f hyperion remove
+	rm /etc/init.d/hyperion* 2>/dev/null
+fi
+
+return 0

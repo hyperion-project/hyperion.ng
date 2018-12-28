@@ -9,15 +9,14 @@
 #include <QStringList>
 #include <QString>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
 //Utils includes
 #include <utils/VideoMode.h>
 
 // proto includes
 #include "message.pb.h"
 #include "protoserver/ProtoConnection.h"
+
+class Hyperion;
 
 ///
 /// The Connection object created by a ProtoServer when a new connection is establshed

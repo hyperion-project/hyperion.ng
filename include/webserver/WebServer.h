@@ -5,13 +5,13 @@
 #include <QString>
 #include <QJsonDocument>
 
-// hyperion / utils
-#include <hyperion/Hyperion.h>
+// utils include
 #include <utils/Logger.h>
 
 // settings
 #include <utils/settings.h>
 
+class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
 
@@ -42,7 +42,6 @@ public slots:
 
 private:
 	Logger*              _log;
-	Hyperion*            _hyperion;
 	QString              _baseUrl;
 	quint16              _port;
 	StaticFileServing*   _staticFileServing;
@@ -50,6 +49,8 @@ private:
 
 	const QString        WEBSERVER_DEFAULT_PATH = ":/webconfig";
 	const quint16        WEBSERVER_DEFAULT_PORT = 8090;
+
+	BonjourServiceRegister * _serviceRegister = nullptr;
 };
 
 #endif // WEBSERVER_H

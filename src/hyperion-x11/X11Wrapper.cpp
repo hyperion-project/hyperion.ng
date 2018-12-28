@@ -36,8 +36,9 @@ bool X11Wrapper::displayInit()
 
 void X11Wrapper::capture()
 {
-	_grabber.grabFrame(_screenshot, true);
+	_grabber.grabFrame(_screenshot, !_inited);
 	emit sig_screenshot(_screenshot);
+	_inited = true;
 }
 
 void X11Wrapper::setVideoMode(const VideoMode mode)

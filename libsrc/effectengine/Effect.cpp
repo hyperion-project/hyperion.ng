@@ -81,7 +81,7 @@ void Effect::run()
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _hyperion->getLedCount()));
 
 	// add minimumWriteTime variable to the interpreter
-	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", Hyperion::getInstance()->getLatchTime()));
+	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", _hyperion->getLatchTime()));
 
 	// add a args variable to the interpreter
 	PyObject_SetAttrString(module, "args", EffectModule::json2python(_args));

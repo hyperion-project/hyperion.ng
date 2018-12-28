@@ -1,6 +1,10 @@
 #pragma once
 
+// utils includes
 #include <utils/Logger.h>
+
+// qt includes
+#include <QJsonObject>
 
 class QtHttpServer;
 class QtHttpRequest;

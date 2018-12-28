@@ -173,7 +173,7 @@ function sendToHyperion(command, subcommand, msg)
 // also used for watchdog
 function requestServerInfo()
 {
-	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update"]');
+	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update"]');
 }
 
 function requestSysInfo()

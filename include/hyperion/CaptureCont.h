@@ -6,6 +6,7 @@
 #include <utils/Image.h>
 
 class Hyperion;
+class QTimer;
 
 ///
 /// @brief Capture Control class which is a interface to the HyperionDaemon native capture classes.
@@ -48,6 +49,11 @@ private slots:
 	///
 	void handleV4lImage(const Image<ColorRgb> & image);
 
+	///
+	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
+	///
+	void setV4lInactive();
+
 private:
 	/// Hyperion instance
 	Hyperion* _hyperion;
@@ -59,4 +65,5 @@ private:
 	/// Reflect state of v4l capture and prio
 	bool _v4lCaptEnabled;
 	quint8 _v4lCaptPrio;
+	QTimer* _v4lInactiveTimer;
 };

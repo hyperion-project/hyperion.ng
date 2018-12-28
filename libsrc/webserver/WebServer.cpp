@@ -1,17 +1,21 @@
 #include "webserver/WebServer.h"
 #include "StaticFileServing.h"
-#include "QtHttpServer.h"
 
-// bonjour
+// qt includes
+#include "QtHttpServer.h"
+#include <QFileInfo>
+#include <QJsonObject>
+
+// bonjour includes
 #include <bonjour/bonjourserviceregister.h>
 #include <bonjour/bonjourrecord.h>
 
-#include <QFileInfo>
+// utils includes
+#include <utils/NetUtils.h>
 
 WebServer::WebServer(const QJsonDocument& config, QObject * parent)
 	:  QObject(parent)
 	, _log(Logger::getInstance("WEBSERVER"))
-	, _hyperion(Hyperion::getInstance())
 	, _server(new QtHttpServer (this))
 {
 	_server->setServerName (QStringLiteral ("Hyperion Webserver"));
@@ -21,7 +25,7 @@ WebServer::WebServer(const QJsonDocument& config, QObject * parent)
 	connect (_server, &QtHttpServer::error,   this, &WebServer::onServerError);
 
 	// create StaticFileServing
-	_staticFileServing = new StaticFileServing (_hyperion, this);
+	_staticFileServing = new StaticFileServing (this);
 	connect(_server, &QtHttpServer::requestNeedsReply, _staticFileServing, &StaticFileServing::onRequestNeedsReply);
 
 	Debug(_log, "Instance created");
@@ -38,8 +42,17 @@ void WebServer::onServerStarted (quint16 port)
 {
 	Info(_log, "Started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
 
-	BonjourServiceRegister *bonjourRegister_http = new BonjourServiceRegister();
-	bonjourRegister_http->registerService("_hyperiond-http._tcp", port);
+	if(_serviceRegister == nullptr)
+	{
+		_serviceRegister = new BonjourServiceRegister(this);
+		_serviceRegister->registerService("_hyperiond-http._tcp", port);
+	}
+	else if( _serviceRegister->getPort() != port)
+	{
+		delete _serviceRegister;
+		_serviceRegister = new BonjourServiceRegister(this);
+		_serviceRegister->registerService("_hyperiond-http._tcp", port);
+	}
 }
 
 void WebServer::onServerStopped () {
@@ -57,9 +70,7 @@ void WebServer::handleSettingsUpdate(const settings::type& type, const QJsonDocu
 	{
 		const QJsonObject& obj = config.object();
 
-		bool webconfigEnable = obj["enable"].toBool(true);
 		_baseUrl = obj["document_root"].toString(WEBSERVER_DEFAULT_PATH);
-
 
 		if ( (_baseUrl != ":/webconfig") && !_baseUrl.trimmed().isEmpty())
 		{
@@ -81,10 +92,10 @@ void WebServer::handleSettingsUpdate(const settings::type& type, const QJsonDocu
 			_port = obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
 			stop();
 		}
-		if ( webconfigEnable )
-		{
-			start();
-		}
+
+		// eval if the port is available, will be incremented if not
+		NetUtils::portAvailable(_port, _log);
+		start();
 	}
 }
 

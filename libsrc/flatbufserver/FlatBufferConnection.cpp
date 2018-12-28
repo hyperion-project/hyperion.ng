@@ -7,16 +7,15 @@
 // protoserver includes
 #include <flatbufserver/FlatBufferConnection.h>
 
-FlatBufferConnection::FlatBufferConnection(const QString & address) :
-	_socket(),
-	_skipReply(false),
-	_prevSocketState(QAbstractSocket::UnconnectedState),
-	_log(Logger::getInstance("FLATBUFCONNECTION"))
-	{
+FlatBufferConnection::FlatBufferConnection(const QString & address)
+	: _socket()
+	, _prevSocketState(QAbstractSocket::UnconnectedState)
+	, _log(Logger::getInstance("FLATBUFCONNECTION"))
+{
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
 	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Wrong address: Unable to parse address (%1)").arg(address).toStdString());
+		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse address (%1)").arg(address).toStdString());
 	}
 	_host = parts[0];
 
@@ -24,19 +23,17 @@ FlatBufferConnection::FlatBufferConnection(const QString & address) :
 	_port = parts[1].toUShort(&ok);
 	if (!ok)
 	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Wrong port: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
+		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
 	}
 
-	// try to connect to host
+	// init connect
 	Info(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
 	connectToHost();
 
 	// start the connection timer
 	_timer.setInterval(5000);
-	_timer.setSingleShot(false);
 
-	connect(&_timer,SIGNAL(timeout()), this, SLOT(connectToHost()));
-	connect(&_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect(&_timer, &QTimer::timeout, this, &FlatBufferConnection::connectToHost);
 	_timer.start();
 }
 
@@ -48,48 +45,43 @@ FlatBufferConnection::~FlatBufferConnection()
 
 void FlatBufferConnection::readData()
 {
-	qint64 bytesAvail;
-	while((bytesAvail = _socket.bytesAvailable()))
+	_receiveBuffer += _socket.readAll();
+
+	// check if we can read a header
+	while(_receiveBuffer.size() >= 4)
 	{
-		// ignore until we get 4 bytes.
-		if (bytesAvail < 4) {
+		uint32_t messageSize =
+			((_receiveBuffer[0]<<24) & 0xFF000000) |
+			((_receiveBuffer[1]<<16) & 0x00FF0000) |
+			((_receiveBuffer[2]<< 8) & 0x0000FF00) |
+			((_receiveBuffer[3]    ) & 0x000000FF);
+
+		// check if we can read a complete message
+		if((uint32_t) _receiveBuffer.size() < messageSize + 4) return;
+
+		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
+		const QByteArray msg = _receiveBuffer.right(messageSize);
+		_receiveBuffer.remove(0, messageSize + 4);
+
+		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
+		flatbuffers::Verifier verifier(msgData, messageSize);
+
+		if (flatbuf::VerifyHyperionReplyBuffer(verifier))
+		{
+			auto message = flatbuf::GetHyperionReply(msgData);
+			parseReply(message);
 			continue;
 		}
-
-		char sizeBuf[4];
-		 _socket.read(sizeBuf, sizeof(sizeBuf));
-
-		uint32_t messageSize =
-			((sizeBuf[0]<<24) & 0xFF000000) |
-			((sizeBuf[1]<<16) & 0x00FF0000) |
-			((sizeBuf[2]<< 8) & 0x0000FF00) |
-			((sizeBuf[3]    ) & 0x000000FF);
-
-		QByteArray buffer;
-		while((uint32_t)buffer.size() < messageSize)
-		{
-			_socket.waitForReadyRead();
-			buffer.append(_socket.read(messageSize - buffer.size()));
-		}
-
-		const uint8_t* replyData = reinterpret_cast<const uint8_t*>(buffer.constData());
-		flatbuffers::Verifier verifier(replyData, messageSize);
-
-		if (!flatbuf::VerifyHyperionReplyBuffer(verifier))
-		{
-			Error(_log, "Error while reading data from host");
-			return;
-		}
-
-		auto reply = flatbuf::GetHyperionReply(replyData);
-
-		parseReply(reply);
+		Error(_log, "Unable to parse reply");
 	}
 }
 
-void FlatBufferConnection::setSkipReply(bool skip)
+void FlatBufferConnection::setSkipReply(const bool& skip)
 {
-	_skipReply = skip;
+	if(skip)
+		disconnect(&_socket, &QTcpSocket::readyRead, 0, 0);
+	else
+		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
 }
 
 void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int duration)
@@ -191,24 +183,22 @@ bool FlatBufferConnection::parseReply(const flatbuf::HyperionReply *reply)
 	{
 		case flatbuf::Type_REPLY:
 		{
-			if (!_skipReply)
+			if (!reply->success())
 			{
-				if (!reply->success())
+				if (flatbuffers::IsFieldPresent(reply, flatbuf::HyperionReply::VT_ERROR))
 				{
-					if (flatbuffers::IsFieldPresent(reply, flatbuf::HyperionReply::VT_ERROR))
-					{
-						throw std::runtime_error("PROTOCONNECTION ERROR: " + reply->error()->str());
-					}
-					else
-					{
-						throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
-					}
+					throw std::runtime_error("PROTOCONNECTION ERROR: " + reply->error()->str());
 				}
 				else
 				{
-					success = true;
+					throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
 				}
 			}
+			else
+			{
+				success = true;
+			}
+
 			break;
 		}
 		case flatbuf::Type_VIDEO:

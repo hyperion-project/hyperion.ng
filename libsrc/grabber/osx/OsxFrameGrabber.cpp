@@ -82,7 +82,14 @@ void OsxFrameGrabber::setDisplayIndex(int index)
 		}
 
 		image = CGDisplayCreateImage(_display);
-		assert(image != NULL);
+		if(image == NULL)
+		{
+			Error(_log, "Failed to open main display, disable capture interface");
+			setEnabled(false);
+			return;
+		}
+		else
+			setEnabled(true);
 
 		Info(_log, "Display opened with resolution: %dx%d@%dbit", CGImageGetWidth(image), CGImageGetHeight(image), CGImageGetBitsPerPixel(image));
 

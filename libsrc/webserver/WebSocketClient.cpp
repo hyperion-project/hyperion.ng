@@ -1,13 +1,18 @@
 #include "WebSocketClient.h"
-#include "QtHttpRequest.h"
-#include "QtHttpHeader.h"
 
+// hyperion includes
 #include <hyperion/Hyperion.h>
+
+// JsonAPI includes
 #include <api/JsonAPI.h>
 
+// qt includes
+#include "QtHttpRequest.h"
+#include "QtHttpHeader.h"
 #include <QTcpSocket>
 #include <QtEndian>
 #include <QCryptographicHash>
+#include <QJsonObject>
 
 WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, QObject* parent)
 	: QObject(parent)

@@ -49,6 +49,7 @@ class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
 class CaptureCont;
+class BoblightServer;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -105,6 +106,8 @@ public:
 	///
 	PriorityMuxer* getMuxerInstance() { return &_muxer; };
 
+	ImageProcessor* getImageProcessor() { return _imageProcessor; };
+
 	///
 	/// @brief Get a setting by settings::type from SettingsManager
 	/// @param type  The settingsType from enum
@@ -145,7 +148,7 @@ public:
 	bool isCurrentPriority(const int priority) const;
 
 	///
-	/// Returns a list of active priorities
+	/// Returns a list of all registered priorities
 	///
 	/// @return The list with priorities
 	///
@@ -278,6 +281,13 @@ public slots:
 	/// @return              True on success, false when priority is not found
 	///
 	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
+
+	///
+	/// @brief Set the given priority to inactive
+	/// @param priority  The priority
+	/// @return True on success false if not found
+	///
+	const bool setInputInactive(const quint8& priority);
 
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -540,4 +550,7 @@ private:
 	std::vector<ColorRgb> _ledBuffer;
 	/// buffer for leds (without adjustment)
 	std::vector<ColorRgb> _rawLedBuffer;
+
+	/// Boblight instance
+	BoblightServer* _boblightServer;
 };

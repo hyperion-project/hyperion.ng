@@ -5,9 +5,12 @@
 #include <QTcpSocket>
 #include <QLocale>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
+// utils includes
 #include <utils/Logger.h>
+#include <utils/ColorRgb.h>
+
+class ImageProcessor;
+class Hyperion;
 
 ///
 /// The Connection object created by \a BoblightServer when a new connection is establshed
@@ -22,7 +25,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	BoblightClientConnection(QTcpSocket * socket, const int priority);
+	BoblightClientConnection(Hyperion* hyperion, QTcpSocket * socket, const int priority);
 
 	///
 	/// Destructor
@@ -73,6 +76,9 @@ private:
 
 	/// The TCP-Socket that is connected tot the boblight-client
 	QTcpSocket * _socket;
+
+	/// The processor for translating images to led-values
+	ImageProcessor * _imageProcessor;
 
 	/// Link to Hyperion for writing led-values to a priority channel
 	Hyperion * _hyperion;

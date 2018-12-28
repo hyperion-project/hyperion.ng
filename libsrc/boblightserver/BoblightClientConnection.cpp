@@ -15,23 +15,22 @@
 #include <QHostInfo>
 
 // hyperion util includes
-//#include "hyperion/ImageProcessorFactory.h"
-//#include "hyperion/ImageProcessor.h"
-#include "utils/ColorRgb.h"
+#include <hyperion/ImageProcessor.h>
 #include "HyperionConfig.h"
+#include <hyperion/Hyperion.h>
 
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority)
+BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, const int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
-	//, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
-	, _hyperion(Hyperion::getInstance())
+	, _imageProcessor(hyperion->getImageProcessor())
+	, _hyperion(hyperion)
 	, _receiveBuffer()
 	, _priority(priority)
-	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
+	, _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
 	, _log(Logger::getInstance("BOBLIGHT"))
 	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
@@ -227,11 +226,11 @@ void BoblightClientConnection::sendLightMessage()
 	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
 	sendMessage(QByteArray(buffer, n));
 
-	//double h0, h1, v0, v1;
+	double h0, h1, v0, v1;
 	for (unsigned i = 0; i < _hyperion->getLedCount(); ++i)
 	{
-		//_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
-		//n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
-		//sendMessage(QByteArray(buffer, n));
+		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
+		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
+		sendMessage(QByteArray(buffer, n));
 	}
 }

@@ -110,6 +110,7 @@ bool X11Grabber::Setup()
 
 	bool result = (updateScreenDimensions(true) >=0);
 	ErrorIf(!result, _log, "X11 Grabber start failed");
+	setEnabled(result);
 	return result;
 }
 
@@ -276,11 +277,6 @@ void X11Grabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
 	updateScreenDimensions(true);
-}
-
-void X11Grabber::setWidthHeight(int width, int height)
-{
-	// empty overwrite
 }
 
 void X11Grabber::setPixelDecimation(int pixelDecimation)

@@ -19,7 +19,7 @@
 #include "hyperion_request_generated.h"
 
 ///
-/// Connection class to setup an connection to the hyperion server and execute commands. Used from standalone capture binaries (x11/dispamnx/...)
+/// Connection class to setup an connection to the hyperion server and execute commands.
 ///
 class FlatBufferConnection : public QObject
 {
@@ -40,7 +40,7 @@ public:
 	~FlatBufferConnection();
 
 	/// Do not read reply messages from Hyperion if set to true
-	void setSkipReply(bool skip);
+	void setSkipReply(const bool& skip);
 
 	///
 	/// Set all leds to the specified color
@@ -116,8 +116,8 @@ private:
 	/// Host port
 	uint16_t _port;
 
-	/// Skip receiving reply messages from Hyperion if set
-	bool _skipReply;
+	/// buffer for reply
+	QByteArray _receiveBuffer;
 
 	QTimer _timer;
 	QAbstractSocket::SocketState  _prevSocketState;

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <QObject>
+#include <QJsonObject>
+#include <QJsonArray>
 #include <QString>
 #include <QStringList>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
-#include <hyperion/Hyperion.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/VideoMode.h>
@@ -98,9 +99,6 @@ protected:
 
 	QString _grabberName;
 
-	/// Pointer to Hyperion for writing led values
-	Hyperion * _hyperion;
-
 	/// The timer for generating events with the specified update rate
 	QTimer* _timer;
 
@@ -109,9 +107,6 @@ protected:
 
 	/// The Logger instance
 	Logger * _log;
-
-	// forwarding enabled
-	bool _forward;
 
 	Grabber *_ggrabber;
 

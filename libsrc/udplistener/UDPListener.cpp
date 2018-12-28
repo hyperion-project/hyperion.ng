@@ -1,24 +1,21 @@
 // project includes
 #include <udplistener/UDPListener.h>
 
-// hyperion includes
-#include <hyperion/Hyperion.h>
+// bonjour includes
 #include <bonjour/bonjourserviceregister.h>
 
-// hyperion util includes
-#include "utils/ColorRgb.h"
+// hyperion includes
 #include "HyperionConfig.h"
 
 // qt includes
 #include <QUdpSocket>
+#include <QJsonObject>
 
 using namespace hyperion;
 
 UDPListener::UDPListener(const QJsonDocument& config) :
 	QObject(),
-	_hyperion(Hyperion::getInstance()),
 	_server(new QUdpSocket(this)),
-	_openConnections(),
 	_priority(0),
 	_timeout(0),
 	_log(Logger::getInstance("UDPLISTENER")),
@@ -26,10 +23,6 @@ UDPListener::UDPListener(const QJsonDocument& config) :
 	_listenPort(0)
 {
 	Debug(_log, "Instance created");
-	// listen for comp changes
-	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
-	// Set trigger for incoming connections
-	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 
 	// init
 	handleSettingsUpdate(settings::UDPLISTENER, config);
@@ -40,7 +33,6 @@ UDPListener::~UDPListener()
 	// clear the current channel
 	stop();
 	delete _server;
-	_hyperion->clear(_priority);
 }
 
 
@@ -67,12 +59,17 @@ void UDPListener::start()
 			WarningIf( ! joinGroupOK, _log, "Multicast failed");
 		}
 		_isActive = true;
-		_hyperion->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
 
-		if(_bonjourService == nullptr)
+		if(_serviceRegister == nullptr)
 		{
-			_bonjourService = new BonjourServiceRegister();
-			_bonjourService->registerService("_hyperiond-udp._udp", _listenPort);
+			_serviceRegister = new BonjourServiceRegister(this);
+			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
+		}
+		else if( _serviceRegister->getPort() != _listenPort)
+		{
+			delete _serviceRegister;
+			_serviceRegister = new BonjourServiceRegister(this);
+			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
 		}
 	}
 }
@@ -85,8 +82,7 @@ void UDPListener::stop()
 	_server->close();
 	_isActive = false;
 	Info(_log, "Stopped");
-	_hyperion->clear(_priority);
-	_hyperion->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
+	emit clearGlobalPriority(_priority, hyperion::COMP_UDPLISTENER);
 }
 
 void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
@@ -124,20 +120,19 @@ void UDPListener::readPendingDatagrams()
 void UDPListener::processTheDatagram(const QByteArray * datagram, const QHostAddress * sender)
 {
 	int packetLedCount = datagram->size()/3;
-	int hyperionLedCount = Hyperion::getInstance()->getLedCount();
-	DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
+	//DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
 
-	std::vector<ColorRgb> _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK);
+	std::vector<ColorRgb> _ledColors(packetLedCount, ColorRgb::BLACK);
 
-	for (int ledIndex=0; ledIndex < qMin(packetLedCount, hyperionLedCount); ledIndex++) {
+	for (int ledIndex=0; ledIndex < packetLedCount; ledIndex++) {
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red   = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);
 		rgb.blue  = datagram->at(ledIndex*3+2);
 	}
 	// TODO provide a setInput with origin arg to overwrite senders smarter
-	_hyperion->registerInput(_priority, hyperion::COMP_UDPLISTENER, QString("UDPListener@%1").arg(sender->toString()));
-	_hyperion->setInput(_priority, _ledColors, _timeout);
+	emit registerGlobalInput(_priority, hyperion::COMP_UDPLISTENER, QString("UDPListener@%1").arg(sender->toString()));
+	emit setGlobalInput(_priority, _ledColors, _timeout);
 }
 
 void UDPListener::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)

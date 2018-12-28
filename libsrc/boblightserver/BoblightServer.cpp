@@ -12,9 +12,9 @@
 
 using namespace hyperion;
 
-BoblightServer::BoblightServer(const QJsonDocument& config)
+BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	: QObject()
-	, _hyperion(Hyperion::getInstance())
+	, _hyperion(hyperion)
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _priority(0)
@@ -96,7 +96,7 @@ void BoblightServer::newConnection()
 	{
 		Info(_log, "new connection");
 		_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(socket->peerAddress().toString()));
-		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority);
+		BoblightClientConnection * connection = new BoblightClientConnection(_hyperion, socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed

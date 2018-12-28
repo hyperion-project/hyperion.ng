@@ -9,7 +9,6 @@ class V4L2Wrapper : public GrabberWrapper
 
 public:
 	V4L2Wrapper(const QString & device,
-			int input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation );

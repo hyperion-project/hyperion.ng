@@ -163,6 +163,13 @@ public:
 	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
 
 	///
+	/// @brief Set the given priority to inactive
+	/// @param priority  The priority
+	/// @return True on success false if not found
+	///
+	const bool setInputInactive(const quint8& priority);
+
+	///
 	/// Clears the specified priority channel and update _currentPriority on success
 	///
 	/// @param[in] priority  The priority of the channel to clear

@@ -317,7 +317,7 @@ int main(int argc, char** argv)
 	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(configFiles[0], rootPath, qApp);
+		hyperiond = new HyperionDaemon(configFiles[0], rootPath, qApp, bool(logLevelCheck));
 	}
 	catch (std::exception& e)
 	{

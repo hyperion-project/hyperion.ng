@@ -20,14 +20,14 @@
 
 	/// Device configuration contains the following fields:
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
-	/// * 'type'       : The type of the device or leds (known types for now are
-	///  APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
+	/// * 'type'       : The type of the device
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
 	"device" :
 	{
 		"type"       : "file",
+		"hardwareLedCount" : 1,
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
 		"colorOrder" : "rgb",
@@ -98,8 +98,7 @@
 	},
 
 	/// Configuration for the embedded V4L2 grabber
-	///  * device               : V4L2 Device to use [default="/dev/video0"]
-	///  * input                : V4L2 input to use [default=0]
+	///  * device               : V4L2 Device to use [default="auto"] (Auto detection)
 	///  * standard             : Video standard (PAL/NTSC/SECAM/NO_CHANGE) [default="NO_CHANGE"]
 	///  * sizeDecimation       : Size decimation factor [default=8]
 	///  * cropLeft             : Cropping from the left [default=0]
@@ -118,7 +117,6 @@
 	[
 		{
 			"device"   : "auto",
-			"input"    : 0,
 			"standard" : "NO_CHANGE",
 			"sizeDecimation"  : 8,
 			"priority"    : 240,
@@ -233,11 +231,20 @@
 		"port" : 19444
 	},
 
-	/// The configuration of the Proto server which enables the protobuffer remote interface
+	/// The configuration of the Protobuffer server which enables the Protobuffer remote interface
 	///  * port : Port at which the protobuffer server is started
 	"protoServer" :
 	{
 		"port" : 19445
+	},
+
+	/// The configuration of the Flatbuffer server which enables the Flatbuffer remote interface
+	///  * port : Port at which the flatbuffer server is started
+	"flatbufServer" :
+	{
+		"enable" : true,
+		"port" : 19400,
+		"timeout" : 5
 	},
 
 	/// The configuration of the boblight server which enables the boblight remote interface
@@ -269,12 +276,10 @@
 	},
 
 	/// Configuration of the Hyperion webserver
-	///  * enable        : enable or disable the webserver (true/false)
 	///  * document_root : path to hyperion webapp files (webconfig developer only)
 	///  * port          : the port where hyperion webapp is accasible
 	"webConfig" :
 	{
-		"enable"        : true,
 		"document_root" : "/path/to/files",
 		"port"          : 8090
 	},

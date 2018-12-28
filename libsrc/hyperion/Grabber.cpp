@@ -24,12 +24,13 @@ Grabber::~Grabber()
 
 void Grabber::setEnabled(bool enable)
 {
+	Info(_log,"Capture interface is now %s", enable ? "enabled" : "disabled");
 	_enabled = enable;
 }
 
 void Grabber::setVideoMode(VideoMode mode)
 {
-	Debug(_log,"setvideomode %d", mode);
+	Debug(_log,"Set videomode to %d", mode);
 	_videoMode = mode;
 	if ( _useImageResampler )
 	{
@@ -68,18 +69,20 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	}
 }
 
-void Grabber::setWidthHeight(int width, int height)
+bool Grabber::setWidthHeight(int width, int height)
 {
 	// eval changes with crop
-	if (width>0 && height>0)
+	if ( (width>0 && height>0) && (_width != width || _height != height) )
 	{
 		if (_cropLeft + _cropRight >= width || _cropTop + _cropBottom >= height)
 		{
 			Error(_log, "Rejecting invalid width/height values as it collides with image cropping: width: %d, height: %d", width, height);
-			return;
+			return false;
 		}
+		Debug(_log, "Set new width: %d, height: %d for capture", width, height);
 		_width = width;
 		_height = height;
+		return true;
 	}
-
+	return false;
 }

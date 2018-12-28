@@ -17,6 +17,7 @@ target_link_libraries(hyperion
 	hyperion-utils
 	leddevice
 	bonjour
+	boblightserver
 	effectengine
 	${QT_LIBRARIES}
 )

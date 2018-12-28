@@ -133,8 +133,6 @@ SettingsManager::~SettingsManager()
 
 const QJsonDocument SettingsManager::getSetting(const settings::type& type)
 {
-	//return _sTable->getSettingsRecord(settings::typeToString(type));
-
 	QString key = settings::typeToString(type);
 	if(_qconfig[key].isObject())
 		return QJsonDocument(_qconfig[key].toObject());
@@ -166,6 +164,23 @@ const bool SettingsManager::saveSettings(QJsonObject config, const bool& correct
 	{
 		if(!JsonUtils::write(_hyperion->getConfigFilePath(), config, _log))
 			return false;
+	}
+
+	// compare old data with new data to emit/save changes accordingly
+	for(const auto key : config.keys())
+	{
+		QString newData, oldData;
+
+		_qconfig[key].isObject()
+		? oldData = QString(QJsonDocument(_qconfig[key].toObject()).toJson(QJsonDocument::Compact))
+		: oldData = QString(QJsonDocument(_qconfig[key].toArray()).toJson(QJsonDocument::Compact));
+
+		config[key].isObject()
+		? newData = QString(QJsonDocument(config[key].toObject()).toJson(QJsonDocument::Compact))
+		: newData = QString(QJsonDocument(config[key].toArray()).toJson(QJsonDocument::Compact));
+
+		if(oldData != newData)
+			emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(newData.toLocal8Bit()));
 	}
 
 	// store the current state

@@ -1,18 +1,25 @@
 #include <hyperion/CaptureCont.h>
 
 #include <hyperion/Hyperion.h>
+#include <QTimer>
 
 CaptureCont::CaptureCont(Hyperion* hyperion)
 	: QObject()
 	, _hyperion(hyperion)
 	, _systemCaptEnabled(false)
 	, _v4lCaptEnabled(false)
+	, _v4lInactiveTimer(new QTimer(this))
 {
 	// settings changes
 	connect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
 
 	// comp changes
 	connect(_hyperion, &Hyperion::componentStateChanged, this, &CaptureCont::componentStateChanged);
+
+	// inactive timer v4l
+	connect(_v4lInactiveTimer, &QTimer::timeout, this, &CaptureCont::setV4lInactive);
+	_v4lInactiveTimer->setSingleShot(true);
+	_v4lInactiveTimer->setInterval(1000);
 
 	// init
 	handleSettingsUpdate(settings::INSTCAPTURE, _hyperion->getSetting(settings::INSTCAPTURE));
@@ -25,6 +32,7 @@ CaptureCont::~CaptureCont()
 
 void CaptureCont::handleV4lImage(const Image<ColorRgb> & image)
 {
+	_v4lInactiveTimer->start();
 	_hyperion->setInputImage(_v4lCaptPrio, image);
 }
 
@@ -40,7 +48,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 	{
 		if(enable)
 		{
-			_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER, "System", "DoNotKnow");
+			_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER);
 			connect(_hyperion, &Hyperion::systemImage, this, &CaptureCont::handleSystemImage);
 		}
 		else
@@ -59,13 +67,14 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 	{
 		if(enable)
 		{
-			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L, "System", "DoNotKnow");
+			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L);
 			connect(_hyperion, &Hyperion::v4lImage, this, &CaptureCont::handleV4lImage);
 		}
 		else
 		{
 			disconnect(_hyperion, &Hyperion::v4lImage, this, &CaptureCont::handleV4lImage);
 			_hyperion->clear(_v4lCaptPrio);
+			_v4lInactiveTimer->stop();
 		}
 		_v4lCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, enable);
@@ -103,4 +112,9 @@ void CaptureCont::componentStateChanged(const hyperion::Components component, bo
 	{
 		setV4LCaptureEnable(enable);
 	}
+}
+
+void CaptureCont::setV4lInactive()
+{
+	_hyperion->setInputInactive(_v4lCaptPrio);
 }

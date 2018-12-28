@@ -25,8 +25,6 @@ class ProtoConnection;
 class QTcpServer;
 class Hyperion;
 class BonjourServiceRegister;
-class ComponentRegister;
-class NetOrigin;
 
 namespace proto {
 class HyperionRequest;
@@ -55,8 +53,6 @@ public:
 	uint16_t getPort() const;
 
 public slots:
-	void sendImageToProtoSlaves(int priority, const Image<ColorRgb> & image, int duration_ms);
-	void componentStateChanged(const hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
@@ -64,12 +60,6 @@ public slots:
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
-
-signals:
-	///
-	/// Forwarding videoMode
-	///
-	void videoMode(const VideoMode VideoMode);
 
 private slots:
 	///
@@ -83,8 +73,6 @@ private slots:
 	///
 	void closedConnection(ProtoClientConnection * connection);
 
-	void newMessage(const proto::HyperionRequest * message);
-
 private:
 	/// Hyperion instance
 	Hyperion * _hyperion;
@@ -94,25 +82,12 @@ private:
 
 	/// List with open connections
 	QSet<ProtoClientConnection *> _openConnections;
-	QStringList _forwardClients;
-
-	/// Hyperion proto connection object for forwarding
-	QList<ProtoConnection*> _proxy_connections;
 
 	/// Logger instance
 	Logger * _log;
 
-	/// Component Register
-	ComponentRegister* _componentRegister;
-
-	/// Network Origin Check
-	NetOrigin* _netOrigin;
-
 	/// Service register
 	BonjourServiceRegister * _serviceRegister = nullptr;
-
-	/// flag if forwarder is enabled
-	bool _forwarder_enabled;
 
 	uint16_t _port = 0;
 

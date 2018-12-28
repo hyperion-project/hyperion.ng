@@ -228,7 +228,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 		}
 		_currentConfigId = cfg;
 		//DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
-		InfoIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
+		DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
 
 		return true;
 	}
