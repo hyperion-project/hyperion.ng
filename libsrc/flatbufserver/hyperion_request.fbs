@@ -1,0 +1,35 @@
+namespace flatbuf;
+
+enum Command : int {
+  COLOR = 0,
+  IMAGE = 1,
+  CLEAR = 2,
+  CLEARALL = 3,
+}
+
+table HyperionRequest {
+  command:Command;
+  colorRequest:flatbuf.ColorRequest;
+  imageRequest:flatbuf.ImageRequest;
+  clearRequest:flatbuf.ClearRequest;
+}
+
+table ColorRequest {
+  priority:int;
+  RgbColor:int;
+  duration:int;
+}
+
+table ImageRequest {
+  priority:int;
+  imagewidth:int;
+  imageheight:int;
+  imagedata:[ubyte];
+  duration:int;
+}
+
+table ClearRequest {
+  priority:int;
+}
+
+root_type HyperionRequest;
