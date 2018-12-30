@@ -130,11 +130,6 @@
 		"port" : 19444
 	},
 
-	"protoServer" :
-	{
-		"port" : 19445
-	},
-
 	"flatbufServer" :
 	{
 		"enable" : true,

@@ -231,13 +231,6 @@
 		"port" : 19444
 	},
 
-	/// The configuration of the Protobuffer server which enables the Protobuffer remote interface
-	///  * port : Port at which the protobuffer server is started
-	"protoServer" :
-	{
-		"port" : 19445
-	},
-
 	/// The configuration of the Flatbuffer server which enables the Flatbuffer remote interface
 	///  * port : Port at which the flatbuffer server is started
 	"flatbufServer" :
