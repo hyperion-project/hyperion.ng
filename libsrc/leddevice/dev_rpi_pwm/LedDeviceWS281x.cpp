@@ -20,9 +20,10 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
 
-	QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off");
+	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+	Debug( _log, "rgbw : %d", deviceConfig["rgbw"].toBool(false) );
 	if (_whiteAlgorithm == RGBW::INVALID)
 	{
 		Error(_log, "unknown whiteAlgorithm %s", QSTRING_CSTR(whiteAlgorithm));
@@ -40,7 +41,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
 	_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
 	_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
-	_led_string.channel[_channel].strip_type = ((deviceConfig["rgbw"].toInt(0) == 1) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
+	_led_string.channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
 	_led_string.channel[_channel].brightness = 255;
 
 	_led_string.channel[!_channel].gpionum = 0;
@@ -49,6 +50,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	_led_string.channel[!_channel].brightness = 0;
 	_led_string.channel[!_channel].strip_type = WS2811_STRIP_RGB;
 
+	Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
 
 	if (ws2811_init(&_led_string) < 0)
 	{
