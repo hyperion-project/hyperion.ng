@@ -153,8 +153,8 @@ $(document).ready(function() {
 				case "UDPLISTENER":
 					owner = $.i18n('general_comp_UDPLISTENER');
 					break;
-				case "PROTOSERVER":
-					owner = "Proto";
+				case "FLATBUFSERVER":
+					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;
 			}
 

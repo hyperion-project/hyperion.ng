@@ -15,7 +15,7 @@ if (BUILD_HYPERION_DOC)
 		message(STATUS "Doxygen build started")
 
 		# Define all static (i.e. not generated) documentation files
-		set(StaticDocumentationFileshyperion-footer.html)
+		set(StaticDocumentationFiles hyperion-footer.html)
 
 		# Loop over all static documentation files
 		foreach(StaticDocumentationFile ${StaticDocumentationFiles})

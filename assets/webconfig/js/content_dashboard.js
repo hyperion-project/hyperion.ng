@@ -60,15 +60,24 @@ $(document).ready( function() {
 		$("#tab_components").html(components_html);
 
 		//info
-		$('#dash_statush').html(serverInfo.hyperion.enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
-		$('#btn_hsc').html(serverInfo.hyperion.enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>');
+		hyperion_enabled = true;
+
+		components.forEach( function(obj) {
+			if (obj.name == "ALL")
+			{
+				hyperion_enabled = obj.enabled
+			}
+		});
+
+		$('#dash_statush').html(hyperion_enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
+		$('#btn_hsc').html(hyperion_enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>');
 	}
 
 	// add more info
 	$('#dash_leddevice').html(serverInfo.ledDevices.active);
 	$('#dash_currv').html(currentVersion);
 	$('#dash_instance').html(serverConfig.general.name);
-	$('#dash_ports').html(jsonPort+' | '+serverConfig.protoServer.port);
+	$('#dash_ports').html(serverConfig.flatbufServer.port);
 
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 		parsedUpdateJSON = JSON.parse(data);
