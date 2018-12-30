@@ -21,7 +21,6 @@ enum Components
 	COMP_COLOR,
 	COMP_IMAGE,
 	COMP_EFFECT,
-	COMP_PROTOSERVER,
 	COMP_LEDDEVICE,
 	COMP_FLATBUFSERVER
 };
@@ -41,7 +40,6 @@ inline const char* componentToString(Components c)
 		case COMP_COLOR:         return "Solid color";
 		case COMP_EFFECT:        return "Effect";
 		case COMP_IMAGE:         return "Image";
-		case COMP_PROTOSERVER:   return "Proto Server";
 		case COMP_LEDDEVICE:     return "LED device";
 		case COMP_FLATBUFSERVER:  return "Image Receiver";
 		default:                 return "";
@@ -63,7 +61,6 @@ inline const char* componentToIdString(Components c)
 		case COMP_COLOR:         return "COLOR";
 		case COMP_EFFECT:        return "EFFECT";
 		case COMP_IMAGE:         return "IMAGE";
-		case COMP_PROTOSERVER:   return "PROTOSERVER";
 		case COMP_LEDDEVICE:     return "LEDDEVICE";
 		case COMP_FLATBUFSERVER: return "FLATBUFSERVER";
 		default:                 return "";
@@ -84,7 +81,6 @@ inline  Components stringToComponent(QString component)
 	if (component == "COLOR")         return COMP_COLOR;
 	if (component == "EFFECT")        return COMP_EFFECT;
 	if (component == "IMAGE")         return COMP_IMAGE;
-	if (component == "PROTOSERVER")   return COMP_PROTOSERVER;
 	if (component == "LEDDEVICE")     return COMP_LEDDEVICE;
 	if (component == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
 	return COMP_INVALID;

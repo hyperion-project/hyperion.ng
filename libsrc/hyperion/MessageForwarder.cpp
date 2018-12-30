@@ -98,7 +98,7 @@ void MessageForwarder::addProtoSlave(QString slave)
 	}
 
 	// verify loop with protoserver
-	const QJsonObject& obj = _hyperion->getSetting(settings::PROTOSERVER).object();
+	const QJsonObject& obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
 	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 	{
 		Error(_log, "Loop between ProtoServer and Forwarder! (%s)",QSTRING_CSTR(slave));

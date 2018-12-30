@@ -14,6 +14,9 @@ BonjourBrowserWrapper::BonjourBrowserWrapper(QObject * parent)
 	, _bonjourResolver(new BonjourServiceResolver(this))
 	, _timerBonjourResolver( new QTimer(this))
 {
+	// register meta
+	qRegisterMetaType<QMap<QString,BonjourRecord>>("QMap<QString,BonjourRecord>");
+
 	BonjourBrowserWrapper::instance = this;
 	connect(_bonjourResolver, &BonjourServiceResolver::bonjourRecordResolved, this, &BonjourBrowserWrapper::bonjourRecordResolved);
 

@@ -240,7 +240,7 @@ public:
 	///
 	/// get size of buffer
 	//
-	ssize_t size()
+	ssize_t size() const
 	{
 		return  _width * _height * sizeof(Pixel_T);
 	}

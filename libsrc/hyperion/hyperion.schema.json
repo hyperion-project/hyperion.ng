@@ -51,10 +51,6 @@
 		{
 			"$ref": "schema-jsonServer.json"
 		},
-		"protoServer" :
-		{
-			"$ref": "schema-protoServer.json"
-		},
 		"flatbufServer":
 		{
 			"$ref": "schema-flatbufServer.json"

@@ -32,6 +32,14 @@ void StaticFileServing::setBaseUrl(const QString& url)
 	_cgi.setBaseUrl(url);
 }
 
+void StaticFileServing::setSSDPDescription(const QString& desc)
+{
+	if(desc.isEmpty())
+		_ssdpDescription.clear();
+	else
+		_ssdpDescription = desc.toLocal8Bit();
+}
+
 void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage)
 {
 	reply->setStatusCode(code);
@@ -76,24 +84,33 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
 
 		// special uri handling for server commands
-		if ( ! uri_parts.empty() && uri_parts.at(0) == "cgi" )
+		if ( ! uri_parts.empty() )
 		{
-			uri_parts.removeAt(0);
-			try
+			if(uri_parts.at(0) == "cgi")
 			{
-				_cgi.exec(uri_parts, request, reply);
+				uri_parts.removeAt(0);
+				try
+				{
+					_cgi.exec(uri_parts, request, reply);
+				}
+				catch(int err)
+				{
+					Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
+					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+				}
+				catch(std::exception &e)
+				{
+					Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
+					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+				}
+				return;
 			}
-			catch(int err)
+			else if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
 			{
-				Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
-				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+				reply->addHeader ("Content-Type", "text/xml");
+				reply->appendRawData (_ssdpDescription);
+				return;
 			}
-			catch(std::exception &e)
-			{
-				Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
-				printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
-			}
-			return;
 		}
 
 		QFileInfo info(_baseUrl % "/" % path);

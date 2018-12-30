@@ -1,35 +1,37 @@
-namespace flatbuf;
+namespace hyperionnet;
 
-enum Command : int {
-  COLOR = 0,
-  IMAGE = 1,
-  CLEAR = 2,
-  CLEARALL = 3,
-}
-
-table HyperionRequest {
-  command:Command;
-  colorRequest:flatbuf.ColorRequest;
-  imageRequest:flatbuf.ImageRequest;
-  clearRequest:flatbuf.ClearRequest;
-}
-
-table ColorRequest {
-  priority:int;
-  RgbColor:int;
-  duration:int;
-}
-
-table ImageRequest {
-  priority:int;
-  imagewidth:int;
-  imageheight:int;
-  imagedata:[ubyte];
-  duration:int;
-}
-
-table ClearRequest {
+// A priority value of -1 clears all priorities
+table Register {
+  origin:string (required);
   priority:int;
 }
 
-root_type HyperionRequest;
+table RawImage {
+  data:[ubyte];
+  width:int = -1;
+  height:int = -1;
+}
+
+union ImageType {RawImage}
+
+table Image {
+  data:ImageType (required);
+  duration:int = -1;
+}
+
+table Clear {
+  priority:int;
+}
+
+table Color {
+  data:int = -1;
+  duration:int = -1;
+}
+
+union Command {Color, Image, Clear, Register}
+
+table Request {
+  command:Command (required);
+}
+
+root_type Request;

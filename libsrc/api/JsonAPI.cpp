@@ -51,6 +51,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 {
 	// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
+
 	// notify hyperion about a jsonMessageForward
 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 
@@ -59,7 +60,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 	_image_stream_mutex.unlock();
 }
 
-void JsonAPI::handleMessage(const QString& messageString, const QString& httpAuthHeader)
+void JsonAPI::handleMessage(const QString& messageString)
 {
 	const QString ident = "JsonRpc@"+_peerAddress;
 	Q_INIT_RESOURCE(JSONRPC_schemas);
@@ -859,7 +860,8 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 	{
 		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
-		_streaming_leds_reply["tan"]     = tan;
+		_streaming_leds_reply["tan"]  = tan;
+		_timer_ledcolors.setInterval(125);
 		_timer_ledcolors.start(125);
 	}
 	else if (subcommand == "ledstream-stop")
@@ -870,7 +872,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 	{
 		_streaming_image_reply["success"] = true;
 		_streaming_image_reply["command"] = command+"-imagestream-update";
-		_streaming_image_reply["tan"]     = tan;
+		_streaming_image_reply["tan"]  = tan;
 		connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
 	}
 	else if (subcommand == "imagestream-stop")

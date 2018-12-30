@@ -12,15 +12,17 @@
 // grabber includes
 #include "grabber/V4L2Grabber.h"
 
-// proto includes
-#include "protoserver/ProtoConnection.h"
-#include "protoserver/ProtoConnectionWrapper.h"
+// flatbuf includes
+#include <flatbufserver/FlatBufferConnection.h>
 
 // hyperion-v4l2 includes
 #include "ScreenshotHandler.h"
 
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
 
 using namespace commandline;
 
@@ -54,7 +56,7 @@ int main(int argc, char** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("V4L capture application for Hyperion");
+		Parser parser("V4L capture application for Hyperion.  Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
@@ -188,8 +190,28 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
-			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			// server searching by ssdp
+			QString address;
+			if(parser.isSet(argAddress))
+			{
+				address = argAddress.value(parser);
+			}
+			else
+			{
+				SSDPDiscover discover;
+				address = discover.getFirstService(STY_FLATBUFSERVER);
+				if(address.isEmpty())
+				{
+					address = argAddress.value(parser);
+				}
+			}
+
+			// Create the Flatbuf-connection
+			FlatBufferConnection flatbuf("V4L2 Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
+
+			// Connect the screen capturing to flatbuf connection processing
+			QObject::connect(&grabber, SIGNAL(newFrame(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
+
 			if (grabber.start())
 				QCoreApplication::exec();
 			grabber.stop();

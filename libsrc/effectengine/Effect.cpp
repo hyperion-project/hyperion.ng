@@ -58,6 +58,9 @@ Effect::~Effect()
 
 void Effect::run()
 {
+	// we probably need to wait until mainThreadState is available
+	while(mainThreadState == nullptr){};
+
 	// get global lock
 	PyEval_RestoreThread(mainThreadState);
 

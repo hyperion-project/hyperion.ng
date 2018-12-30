@@ -58,6 +58,7 @@ void FlatBufferServer::newConnection()
 	{
 		if(QTcpSocket* socket = _server->nextPendingConnection())
 		{
+
 			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
 			FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
 			// internal

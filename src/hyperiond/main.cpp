@@ -332,7 +332,7 @@ int main(int argc, char** argv)
 		{
 			Info(log, "start systray");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperiond, hyperiond->getWebServerPort());
+			SysTray tray(hyperiond);
 			tray.hide();
 			rc = (qobject_cast<QApplication *>(app.data()))->exec();
 		}

@@ -4,9 +4,12 @@
 #include <QImage>
 
 #include <commandline/Parser.h>
-#include "protoserver/ProtoConnectionWrapper.h"
+#include <flatbufserver/FlatBufferConnection.h>
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
+
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
 
 using namespace commandline;
 
@@ -30,7 +33,7 @@ int main(int argc, char ** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("X11 capture application for Hyperion");
+		Parser parser("X11 capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 		IntOption           & argFps             = parser.add<IntOption>    ('f', "framerate", "Capture frame rate [default: %1]", "10");
 		IntOption           & argCropWidth       = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
@@ -62,7 +65,7 @@ int main(int argc, char ** argv)
 					parser.isSet(argCropRight) ? argCropRight.getInt(parser) : argCropWidth.getInt(parser),
 					parser.isSet(argCropTop) ? argCropTop.getInt(parser) : argCropHeight.getInt(parser),
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
-					argSizeDecimation.getInt(parser)); // pixel decimation
+					argSizeDecimation.getInt(parser)); // decimation
 
 	if (!x11Wrapper.displayInit())
 	  return -1;
@@ -75,14 +78,26 @@ int main(int argc, char ** argv)
 		}
 		else
 		{
-			// Create the Proto-connection with hyperiond
-			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
+			// server searching by ssdp
+			QString address;
+			if(parser.isSet(argAddress))
+			{
+				address = argAddress.value(parser);
+			}
+			else
+			{
+				SSDPDiscover discover;
+				address = discover.getFirstService(STY_FLATBUFSERVER);
+				if(address.isEmpty())
+				{
+					address = argAddress.value(parser);
+				}
+			}
+			// Create the Flatbuf-connection
+			FlatBufferConnection flatbuf("X11 Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
 
-			// Connect the screen capturing to the proto processing
-			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
-
-			// Connect the vodeMode to the proto processing
-			QObject::connect(&protoWrapper, SIGNAL(setVideoMode(VideoMode)), &x11Wrapper, SLOT(setVideoMode(VideoMode)));
+			// Connect the screen capturing to flatbuf connection processing
+			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
 			// Start the capturing
 			x11Wrapper.start();

@@ -7,10 +7,13 @@
 // protoserver includes
 #include <flatbufserver/FlatBufferConnection.h>
 
-FlatBufferConnection::FlatBufferConnection(const QString & address)
+FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply)
 	: _socket()
+	, _origin(origin)
+	, _priority(priority)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONNECTION"))
+	, _registered(false)
 {
 	QStringList parts = address.split(":");
 	if (parts.size() != 2)
@@ -25,6 +28,9 @@ FlatBufferConnection::FlatBufferConnection(const QString & address)
 	{
 		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
 	}
+
+	if(!skipReply)
+		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
 
 	// init connect
 	Info(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
@@ -66,10 +72,9 @@ void FlatBufferConnection::readData()
 		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
-		if (flatbuf::VerifyHyperionReplyBuffer(verifier))
+		if (hyperionnet::VerifyReplyBuffer(verifier))
 		{
-			auto message = flatbuf::GetHyperionReply(msgData);
-			parseReply(message);
+			parseReply(hyperionnet::GetReply(msgData));
 			continue;
 		}
 		Error(_log, "Unable to parse reply");
@@ -84,28 +89,39 @@ void FlatBufferConnection::setSkipReply(const bool& skip)
 		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
 }
 
-void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int duration)
+void FlatBufferConnection::setRegister(const QString& origin, int priority)
 {
-	auto colorReq = flatbuf::CreateColorRequest(_builder, priority, (color.red << 16) | (color.green << 8) | color.blue, duration);
-	auto req = flatbuf::CreateHyperionRequest(_builder,flatbuf::Command_COLOR, colorReq);
+	auto registerReq = hyperionnet::CreateRegister(_builder, _builder.CreateString(QSTRING_CSTR(origin)), priority);
+	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Register, registerReq.Union());
 
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
 }
 
-void FlatBufferConnection::setImage(const Image<ColorRgb> &image, int priority, int duration)
+void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int duration)
 {
-	/* #TODO #BROKEN auto imgData = _builder.CreateVector<flatbuffers::Offset<uint8_t>>(image.memptr(), image.width() * image.height() * 3);
-	auto imgReq = flatbuf::CreateImageRequest(_builder, priority, image.width(), image.height(), imgData, duration);
-	auto req = flatbuf::CreateHyperionRequest(_builder,flatbuf::Command_IMAGE,0,imgReq);
+	auto colorReq = hyperionnet::CreateColor(_builder, (color.red << 16) | (color.green << 8) | color.blue, duration);
+	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Color, colorReq.Union());
+
 	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());*/
+	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
+}
+
+void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
+{
+	auto imgData = _builder.CreateVector(reinterpret_cast<const uint8_t*>(image.memptr()), image.size());
+	auto rawImg = hyperionnet::CreateRawImage(_builder, imgData, image.width(), image.height());
+	auto imageReq = hyperionnet::CreateImage(_builder, hyperionnet::ImageType_RawImage, rawImg.Union(), -1);
+	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Image,imageReq.Union());
+
+	_builder.Finish(req);
+	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
 }
 
 void FlatBufferConnection::clear(int priority)
 {
-	auto clearReq = flatbuf::CreateClearRequest(_builder, priority);
-	auto req = flatbuf::CreateHyperionRequest(_builder,flatbuf::Command_CLEAR,0,0,clearReq);
+	auto clearReq = hyperionnet::CreateClear(_builder, priority);
+	auto req = hyperionnet::CreateRequest(_builder,hyperionnet::Command_Clear, clearReq.Union());
 
 	_builder.Finish(req);
 	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
@@ -113,11 +129,7 @@ void FlatBufferConnection::clear(int priority)
 
 void FlatBufferConnection::clearAll()
 {
-	auto req = flatbuf::CreateHyperionRequest(_builder,flatbuf::Command_CLEARALL);
-
-	// send command message
-	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
+	clear(-1);
 }
 
 void FlatBufferConnection::connectToHost()
@@ -135,26 +147,30 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 	// print out connection message only when state is changed
 	if (_socket.state() != _prevSocketState )
 	{
-	  switch (_socket.state() )
-	  {
-		case QAbstractSocket::UnconnectedState:
-		  Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-		  break;
-
-		case QAbstractSocket::ConnectedState:
-		  Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-		  break;
-
-		default:
-		  Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-		  break;
+		switch (_socket.state() )
+		{
+			case QAbstractSocket::UnconnectedState:
+				Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				break;
+			case QAbstractSocket::ConnectedState:
+				Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				_registered = false;
+				break;
+			default:
+				Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				break;
 	  }
 	  _prevSocketState = _socket.state();
 	}
 
 
 	if (_socket.state() != QAbstractSocket::ConnectedState)
+		return;
+
+	if(!_registered)
 	{
+		_registered = true;
+		setRegister(_origin, _priority);
 		return;
 	}
 
@@ -168,46 +184,22 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 	int count = 0;
 	count += _socket.write(reinterpret_cast<const char *>(header), 4);
 	count += _socket.write(reinterpret_cast<const char *>(buffer), size);
-	if (!_socket.waitForBytesWritten())
-	{
-		Error(_log, "Error while writing data to host");
-		return;
-	}
+	_socket.flush();
+	_builder.Clear();
 }
 
-bool FlatBufferConnection::parseReply(const flatbuf::HyperionReply *reply)
+bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 {
-	bool success = false;
-
-	switch (reply->type())
+	if (!reply->error())
 	{
-		case flatbuf::Type_REPLY:
-		{
-			if (!reply->success())
-			{
-				if (flatbuffers::IsFieldPresent(reply, flatbuf::HyperionReply::VT_ERROR))
-				{
-					throw std::runtime_error("PROTOCONNECTION ERROR: " + reply->error()->str());
-				}
-				else
-				{
-					throw std::runtime_error("PROTOCONNECTION ERROR: No error info");
-				}
-			}
-			else
-			{
-				success = true;
-			}
-
-			break;
+		// no error set must be a success or video
+		const auto videoMode = reply->video();
+		if (videoMode != -1) {
+			// We got a video reply.
+			emit setVideoMode(static_cast<VideoMode>(videoMode));
 		}
-		case flatbuf::Type_VIDEO:
-		{
-			VideoMode vMode = (VideoMode)reply->video();
-			emit setVideoMode(vMode);
-			break;
-		}
+			return true;
 	}
 
-	return success;
+	return false;
 }

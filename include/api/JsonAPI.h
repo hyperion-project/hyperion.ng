@@ -56,7 +56,7 @@ public:
 	///
 	/// @param message the incoming message as string
 	///
-	void handleMessage(const QString & message, const QString& httpAuthHeader = "");
+	void handleMessage(const QString & message);
 
 public slots:
 	/// _timer_ledcolors requests ledcolor updates (if enabled)

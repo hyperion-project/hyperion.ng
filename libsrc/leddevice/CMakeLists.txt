@@ -77,6 +77,7 @@ ENDFOREACH()
 add_library(leddevice ${CMAKE_BINARY_DIR}/LedDevice_headers.h ${Leddevice_SOURCES} )
 
 target_link_libraries(leddevice
+	hyperion
 	hyperion-utils
 	${CMAKE_THREAD_LIBS_INIT}
 	Qt5::Network

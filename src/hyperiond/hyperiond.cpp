@@ -21,7 +21,6 @@
 
 #include <hyperion/Hyperion.h>
 #include <jsonserver/JsonServer.h>
-#include <protoserver/ProtoServer.h>
 #include <udplistener/UDPListener.h>
 #include <webserver/WebServer.h>
 #include <utils/Stats.h>
@@ -33,6 +32,9 @@
 
 // bonjour browser
 #include <bonjour/bonjourbrowserwrapper.h>
+
+// ssdp
+#include <ssdp/SSDPHandler.h>
 
 // settings
 #include <hyperion/SettingsManager.h>
@@ -49,7 +51,6 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _pyInit(new PythonInit())
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
-	, _protoServer(nullptr)
 	, _udpListener(nullptr)
 	, _v4l2Grabbers()
 	, _dispmanx(nullptr)
@@ -59,6 +60,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _osxGrabber(nullptr)
 	, _hyperion(nullptr)
 	, _stats(nullptr)
+	, _ssdp(nullptr)
 	, _currVideoMode(VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -67,6 +69,8 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 	qRegisterMetaType<settings::type>("settings::type");
+	qRegisterMetaType<VideoMode>("VideoMode");
+	qRegisterMetaType<QMap<quint8,QJsonObject>>("QMap<quint8,QJsonObject>");
 
 	// init settings
 	_settingsManager = new SettingsManager(0,configFile);
@@ -113,11 +117,6 @@ HyperionDaemon::~HyperionDaemon()
 	delete _pyInit;
 }
 
-quint16 HyperionDaemon::getWebServerPort()
-{
-	return _webserver->getPort();
-}
-
 void HyperionDaemon::setVideoMode(const VideoMode& mode)
 {
 	if(_currVideoMode != mode)
@@ -135,19 +134,22 @@ const QJsonDocument HyperionDaemon::getSetting(const settings::type &type)
 void HyperionDaemon::freeObjects()
 {
 	_hyperion->clearall(true);
-	// destroy network first as a client might want to access pointers
-	delete _webserver;
+	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
-	delete _protoServer;
 	_flatBufferServer->thread()->quit();
 	_flatBufferServer->thread()->wait(1000);
+	//ssdp before webserver
+	_ssdp->thread()->quit();
+	_ssdp->thread()->wait(1000);
+	_webserver->thread()->quit();
+	_webserver->thread()->wait(1000);
 	delete _udpListener;
-
 	delete _bonjourBrowserWrapper;
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
+	
 	for(V4L2Wrapper* grabber : _v4l2Grabbers)
 	{
 		delete grabber;
@@ -162,7 +164,6 @@ void HyperionDaemon::freeObjects()
 	_osxGrabber     = nullptr;
 	_webserver      = nullptr;
 	_jsonServer     = nullptr;
-	_protoServer    = nullptr;
 	_udpListener    = nullptr;
 	_stats          = nullptr;
 }
@@ -176,28 +177,40 @@ void HyperionDaemon::startNetworkServices()
 	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
 	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
 
-	// Create Proto server
-	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
-	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
-
-	// Create FlatBuffer server & move to Thread
+	// Create FlatBuffer server in thread
 	_flatBufferServer = new FlatBufferServer(getSetting(settings::FLATBUFSERVER));
-	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	QThread* fbThread = new QThread(this);
-
 	_flatBufferServer->moveToThread(fbThread);
 	connect( fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer );
 	connect( fbThread, &QThread::finished, _flatBufferServer, &QObject::deleteLater );
 	connect( fbThread, &QThread::finished, fbThread, &QObject::deleteLater );
+	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
 	// Create UDP listener
 	_udpListener = new UDPListener(getSetting(settings::UDPLISTENER));
 	connect(this, &HyperionDaemon::settingsChanged, _udpListener, &UDPListener::handleSettingsUpdate);
 
-	// Create Webserver
+	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER));
+	QThread* wsThread = new QThread(this);
+	_webserver->moveToThread(wsThread);
+	connect( wsThread, &QThread::started, _webserver, &WebServer::initServer );
+	connect( wsThread, &QThread::finished, _webserver, &QObject::deleteLater );
+	connect( wsThread, &QThread::finished, wsThread, &QObject::deleteLater );
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
+	wsThread->start();
+
+	// create SSDPHandler in thread
+	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt());
+	QThread* ssdpThread = new QThread(this);
+	_ssdp->moveToThread(ssdpThread);
+	connect( ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer );
+	connect( ssdpThread, &QThread::finished, _ssdp, &QObject::deleteLater );
+	connect( ssdpThread, &QThread::finished, ssdpThread, &QObject::deleteLater );
+	connect( _webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
+	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
+	ssdpThread->start();
 }
 
 void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)

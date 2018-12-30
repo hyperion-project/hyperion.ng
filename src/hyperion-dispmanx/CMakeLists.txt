@@ -10,9 +10,9 @@ ELSE()
 ENDIF()
 
 include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
+	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
 	${BCM_INCLUDE_DIRS}
-	${PROTOBUF_INCLUDE_DIRS}
+	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
 set(Hyperion_Dispmanx_HEADERS
@@ -34,9 +34,11 @@ target_link_libraries( ${PROJECT_NAME}
 	commandline
 	blackborder
 	hyperion-utils
-	protoclient
+	flatbufserver
+	flatbuffers
 	dispmanx-grabber
 	${Dispmanx_LIBRARIES}
+	ssdp
 	Qt5::Core
 	Qt5::Gui
 	Qt5::Network

@@ -1,15 +1,8 @@
-namespace flatbuf;
+namespace hyperionnet;
 
-enum Type : int {
-  REPLY = 0,
-  VIDEO = 1,
-}
-
-table HyperionReply {
-  type:Type;
-  success:bool;
+table Reply {
   error:string;
-  video:int;
+  video:int = -1;
 }
 
-root_type HyperionReply;
+root_type Reply;

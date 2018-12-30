@@ -49,13 +49,13 @@
 class Hyperion;
 class SysTray;
 class JsonServer;
-class ProtoServer;
 class UDPListener;
 class Stats;
 class BonjourBrowserWrapper;
 class WebServer;
 class SettingsManager;
 class PythonInit;
+class SSDPHandler;
 class FlatBufferServer;
 
 class HyperionDaemon : public QObject
@@ -68,7 +68,11 @@ public:
 	HyperionDaemon(QString configFile, QString rootPath, QObject *parent, const bool& logLvlOverwrite );
 	~HyperionDaemon();
 
-	quint16 getWebServerPort();
+	///
+	/// @brief Get webserver pointer (systray)
+	///
+	WebServer* getWebServerInstance() { return _webserver; };
+
 	///
 	/// @brief Get the current videoMode
 	///
@@ -134,7 +138,6 @@ private:
 	PythonInit*            _pyInit;
 	WebServer*             _webserver;
 	JsonServer*            _jsonServer;
-	ProtoServer*           _protoServer;
 	UDPListener*           _udpListener;
 	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
 	DispmanxWrapper*       _dispmanx;
@@ -144,6 +147,7 @@ private:
 	OsxWrapper*            _osxGrabber;
 	Hyperion*              _hyperion;
 	Stats*                 _stats;
+	SSDPHandler*           _ssdp;
 	FlatBufferServer* _flatBufferServer;
 
 	unsigned            _grabber_width;

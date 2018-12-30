@@ -4,9 +4,12 @@
 #include <QCoreApplication>
 #include <QImage>
 
-#include <protoserver/ProtoConnectionWrapper.h>
+#include <flatbufserver/FlatBufferConnection.h>
 #include "FramebufferWrapper.h"
 #include <commandline/Parser.h>
+
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
 
 using namespace commandline;
 
@@ -25,7 +28,7 @@ int main(int argc, char ** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("FrameBuffer capture application for Hyperion");
+		Parser parser("FrameBuffer capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 		Option        & argDevice     = parser.add<Option>       ('d', "device",     "Set the video device [default: %1]", "/dev/video0");
 		IntOption     & argFps        = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10");
@@ -56,11 +59,26 @@ int main(int argc, char ** argv)
 		}
 		else
 		{
-			// Create the Proto-connection with hyperiond
-			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
+			// server searching by ssdp
+			QString address;
+			if(parser.isSet(argAddress))
+			{
+				address = argAddress.value(parser);
+			}
+			else
+			{
+				SSDPDiscover discover;
+				address = discover.getFirstService(STY_FLATBUFSERVER);
+				if(address.isEmpty())
+				{
+					address = argAddress.value(parser);
+				}
+			}
+			// Create the Flabuf-connection
+			FlatBufferConnection flatbuf("Framebuffer Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
 
-			// Connect the screen capturing to the proto processing
-			QObject::connect(&fbWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			// Connect the screen capturing to flatbuf connection processing
+			QObject::connect(&fbWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
 			// Start the capturing
 			fbWrapper.start();

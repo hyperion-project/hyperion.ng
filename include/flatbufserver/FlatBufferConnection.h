@@ -28,23 +28,29 @@ class FlatBufferConnection : public QObject
 
 public:
 	///
-	/// Constructor
-	///
+	/// @brief Constructor
 	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
+	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString & address);
+	FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply);
 
 	///
-	/// Destructor
+	/// @brief Destructor
 	///
 	~FlatBufferConnection();
 
-	/// Do not read reply messages from Hyperion if set to true
+	/// @brief Do not read reply messages from Hyperion if set to true
 	void setSkipReply(const bool& skip);
 
 	///
-	/// Set all leds to the specified color
+	/// @brief Register a new priority with given origin
+	/// @param origin  The user friendly origin string
+	/// @param priority The priority to register
 	///
+	void setRegister(const QString& origin, int priority);
+
+	///
+	/// @brief Set all leds to the specified color
 	/// @param color The color
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
@@ -52,63 +58,62 @@ public:
 	void setColor(const ColorRgb & color, int priority, int duration = 1);
 
 	///
-	/// Set the leds according to the given image (assume the image is stretched to the display size)
-	///
-	/// @param image The image
-	/// @param priority The priority
-	/// @param duration The duration in milliseconds
-	///
-	void setImage(const Image<ColorRgb> & image, int priority, int duration = -1);
-
-	///
-	/// Clear the given priority channel
-	///
+	/// @brief Clear the given priority channel
 	/// @param priority The priority
 	///
 	void clear(int priority);
 
 	///
-	/// Clear all priority channels
+	/// @brief Clear all priority channels
 	///
 	void clearAll();
 
 	///
-	/// Send a command message and receive its reply
-	///
+	/// @brief Send a command message and receive its reply
 	/// @param message The message to send
 	///
 	void sendMessage(const uint8_t* buffer, uint32_t size);
 
+public slots:
+	///
+	/// @brief Set the leds according to the given image
+	/// @param image The image
+	///
+	void setImage(const Image<ColorRgb> &image);
+
 private slots:
-	/// Try to connect to the Hyperion host
+	///
+	/// @brief Try to connect to the Hyperion host
+	///
 	void connectToHost();
 
 	///
-	/// Slot called when new data has arrived
+	/// @brief Slot called when new data has arrived
 	///
 	void readData();
 
 signals:
 
 	///
-	/// emits when a new videoMode was requested from flatbuf client
+	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
 	void setVideoMode(const VideoMode videoMode);
 
 private:
 
 	///
-	/// Parse a reply message
-	///
+	/// @brief Parse a reply message
 	/// @param reply The received reply
-	///
 	/// @return true if the reply indicates success
 	///
-	bool parseReply(const flatbuf::HyperionReply * reply);
+	bool parseReply(const hyperionnet::Reply *reply);
 
 private:
 	/// The TCP-Socket with the connection to the server
 	QTcpSocket _socket;
+
+	QString _origin;
+	int _priority;
 
 	/// Host address
 	QString _host;
@@ -124,4 +129,6 @@ private:
 
 	Logger * _log;
 	flatbuffers::FlatBufferBuilder _builder;
+
+	bool _registered;
 };

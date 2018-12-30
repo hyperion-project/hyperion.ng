@@ -24,8 +24,8 @@ public:
 public slots:
 	///
 	/// @brief Handle settings update
-	///	@param type   The type from enum
-	///	@param config The configuration
+	/// @param type   The type from enum
+	/// @param config The configuration
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 

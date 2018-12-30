@@ -4,6 +4,7 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QTimer>
+#include <QRgb>
 
 #include <hyperion/Hyperion.h>
 #include <QDebug>
@@ -11,7 +12,7 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObje
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
-	, _clientAddress(socket->peerAddress().toString())
+	, _clientAddress("@"+socket->peerAddress().toString())
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
@@ -49,12 +50,12 @@ void FlatBufferClient::readyRead()
 		const QByteArray msg = _receiveBuffer.right(messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
 
-		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
+		const auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
-		if (flatbuf::VerifyHyperionRequestBuffer(verifier))
+		if (hyperionnet::VerifyRequestBuffer(verifier))
 		{
-			auto message = flatbuf::GetHyperionRequest(msgData);
+			auto message = hyperionnet::GetRequest(msgData);
 			handleMessage(message);
 			continue;
 		}
@@ -83,79 +84,92 @@ void FlatBufferClient::disconnected()
 	emit clientDisconnected();
 }
 
-void FlatBufferClient::handleMessage(const flatbuf::HyperionRequest * message)
+void FlatBufferClient::handleMessage(const hyperionnet::Request * req)
 {
-	switch (message->command())
-	{
-	case flatbuf::Command_COLOR:
-		qDebug()<<"handle colorReuest";
-		if (!flatbuffers::IsFieldPresent(message, flatbuf::HyperionRequest::VT_COLORREQUEST))
-		{
-			sendErrorReply("Received COLOR command without ColorRequest");
-			break;
-		}
-		//handleColorCommand(message->colorRequest());
-		break;
-	case flatbuf::Command_IMAGE:
-		qDebug()<<"handle imageReuest";
-		if (!flatbuffers::IsFieldPresent(message, flatbuf::HyperionRequest::VT_IMAGEREQUEST))
-		{
-			sendErrorReply("Received IMAGE command without ImageRequest");
-			break;
-		}
-		handleImageCommand(message->imageRequest());
-		break;
-	case flatbuf::Command_CLEAR:
-		if (!flatbuffers::IsFieldPresent(message, flatbuf::HyperionRequest::VT_CLEARREQUEST))
-		{
-			sendErrorReply("Received CLEAR command without ClearRequest");
-			break;
-		}
-		//handleClearCommand(message->clearRequest());
-		break;
-	case flatbuf::Command_CLEARALL:
-		//handleClearallCommand();
-		break;
-	default:
-		qDebug()<<"handleNotImplemented";
-		handleNotImplemented();
+	const void* reqPtr;
+	if ((reqPtr = req->command_as_Color()) != nullptr) {
+		handleColorCommand(static_cast<const hyperionnet::Color*>(reqPtr));
+	} else if ((reqPtr = req->command_as_Image()) != nullptr) {
+		handleImageCommand(static_cast<const hyperionnet::Image*>(reqPtr));
+	} else if ((reqPtr = req->command_as_Clear()) != nullptr) {
+		handleClearCommand(static_cast<const hyperionnet::Clear*>(reqPtr));
+	} else if ((reqPtr = req->command_as_Register()) != nullptr) {
+		handleRegisterCommand(static_cast<const hyperionnet::Register*>(reqPtr));
+	} else {
+		sendErrorReply("Received invalid packet.");
 	}
 }
 
-void FlatBufferClient::handleImageCommand(const flatbuf::ImageRequest *message)
+void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 {
 	// extract parameters
-	int priority = message->priority();
-	int duration = message->duration();
-	int width = message->imagewidth();
-	int height = message->imageheight();
-	const auto & imageData = message->imagedata();
+	const int32_t rgbData = colorReq->data();
+	ColorRgb color;
+	color.red = qRed(rgbData);
+	color.green = qGreen(rgbData);
+	color.blue = qBlue(rgbData);
 
-	// make sure the prio is registered before setInput()
-	if(priority != _priority)
-	{
-		_hyperion->clear(_priority);
-		_hyperion->registerInput(priority, hyperion::COMP_FLATBUFSERVER, "proto@"+_clientAddress);
-		_priority = priority;
-	}
-
-	// check consistency of the size of the received data
-	if ((int) imageData->size() != width*height*3)
-	{
-		sendErrorReply("Size of image data does not match with the width and height");
-		return;
-	}
-
-	// create ImageRgb
-	Image<ColorRgb> image(width, height);
-	memcpy(image.memptr(), imageData->data(), imageData->size());
-
-	_hyperion->setInputImage(_priority, image, duration);
+	// set output
+	_hyperion->setColor(_priority, color, colorReq->duration());
 
 	// send reply
 	sendSuccessReply();
 }
 
+void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq)
+{
+	_priority = regReq->priority();
+	_hyperion->registerInput(_priority, hyperion::COMP_FLATBUFSERVER, regReq->origin()->c_str()+_clientAddress);
+}
+
+void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
+{
+	// extract parameters
+	int duration = image->duration();
+
+	const void* reqPtr;
+	if ((reqPtr = image->data_as_RawImage()) != nullptr)
+	{
+		const auto *img = static_cast<const hyperionnet::RawImage*>(reqPtr);
+		const auto & imageData = img->data();
+		const int width = img->width();
+		const int height = img->height();
+
+		if ((int) imageData->size() != width*height*3)
+		{
+			sendErrorReply("Size of image data does not match with the width and height");
+			return;
+		}
+
+		Image<ColorRgb> image(width, height);
+		memmove(image.memptr(), imageData->data(), imageData->size());
+		_hyperion->setInputImage(_priority, image, duration);
+	}
+
+	// send reply
+	sendSuccessReply();
+}
+
+
+void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
+{
+	// extract parameters
+	const int priority = clear->priority();
+
+	if (priority == -1) {
+		_hyperion->clearall();
+	}
+	else {
+		// Check if we are clearing ourselves.
+		if (priority == _priority) {
+			_priority = -1;
+		}
+
+		_hyperion->clear(priority);
+	}
+
+	sendSuccessReply();
+}
 
 void FlatBufferClient::handleNotImplemented()
 {
@@ -175,7 +189,7 @@ void FlatBufferClient::sendMessage()
 
 void FlatBufferClient::sendSuccessReply()
 {
-	auto reply = flatbuf::CreateHyperionReplyDirect(_builder, flatbuf::Type_REPLY, true);
+	auto reply = hyperionnet::CreateReplyDirect(_builder);
 	_builder.Finish(reply);
 
 	// send reply
@@ -185,7 +199,7 @@ void FlatBufferClient::sendSuccessReply()
 void FlatBufferClient::sendErrorReply(const std::string &error)
 {
 	// create reply
-	auto reply = flatbuf::CreateHyperionReplyDirect(_builder, flatbuf::Type_REPLY, false, error.c_str());
+	auto reply = hyperionnet::CreateReplyDirect(_builder, error.c_str());
 	_builder.Finish(reply);
 
 	// send reply

@@ -23,8 +23,6 @@ LinearColorSmoothing::LinearColorSmoothing( LedDevice * ledDevice, const QJsonDo
 	, _pause(false)
 	, _currentConfigId(0)
 {
-	Debug(_log, "Instance created");
-
 	// set initial state to true, as LedDevice::enabled() is true by default
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, true);
 

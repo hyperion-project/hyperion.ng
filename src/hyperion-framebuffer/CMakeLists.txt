@@ -4,8 +4,8 @@ project(hyperion-framebuffer)
 find_package(Qt5Widgets REQUIRED)
 
 include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
-	${PROTOBUF_INCLUDE_DIRS}
+	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
+	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
 set(Hyperion_FB_HEADERS
@@ -27,8 +27,10 @@ target_link_libraries( ${PROJECT_NAME}
 	commandline
 	blackborder
 	hyperion-utils
-	protoclient
+	flatbufserver
+	flatbuffers
 	framebuffer-grabber
+	ssdp
 	Qt5::Core
 	Qt5::Gui
 	Qt5::Network

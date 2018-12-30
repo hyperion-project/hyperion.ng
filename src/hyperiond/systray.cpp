@@ -10,23 +10,28 @@
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
+#include <webserver/WebServer.h>
 
 #include "hyperiond.h"
 #include "systray.h"
 
-SysTray::SysTray(HyperionDaemon *hyperiond, quint16 webPort)
+SysTray::SysTray(HyperionDaemon *hyperiond)
 	: QWidget()
 	, _colorDlg(this)
 	, _hyperiond(hyperiond)
-	, _webPort(webPort)
+	, _hyperion(nullptr)
+	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resource);
+
+	// webserver port
+	WebServer* webserver = _hyperiond->getWebServerInstance();
+	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
+
 	_hyperion = Hyperion::getInstance();
 	createTrayIcon();
 
-	connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-		this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
- 
+	connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
  	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
 	QIcon icon(":/hyperion-icon.png");
 	_trayIcon->setIcon(icon);

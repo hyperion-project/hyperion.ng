@@ -22,8 +22,6 @@ UDPListener::UDPListener(const QJsonDocument& config) :
 	_isActive(false),
 	_listenPort(0)
 {
-	Debug(_log, "Instance created");
-
 	// init
 	handleSettingsUpdate(settings::UDPLISTENER, config);
 }

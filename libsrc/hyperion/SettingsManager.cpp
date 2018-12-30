@@ -20,11 +20,11 @@ SettingsManager::SettingsManager(Hyperion* hyperion, const quint8& instance, con
 	: _hyperion(hyperion)
 	, _log(Logger::getInstance("SettingsManager"))
 {
-	Q_INIT_RESOURCE(resource);
 	connect(this, &SettingsManager::settingsChanged, _hyperion, &Hyperion::settingsChanged);
 	// get schema
 	if(schemaJson.isEmpty())
 	{
+		Q_INIT_RESOURCE(resource);
 		try
 		{
 			schemaJson = QJsonFactory::readSchema(":/hyperion-schema");

@@ -16,10 +16,10 @@ target_link_libraries(hyperiond
 		effectengine
 		jsonserver
 		udplistener
-		protoserver
 		flatbufserver
 		webserver
 		bonjour
+		ssdp
 		python
 		${PYTHON_LIBRARIES}
 )
