@@ -342,6 +342,7 @@
 	"wiz_cc_btn_stop" : "Stoppe Video",
 	"wiz_cc_summary" : "Im folgenden eine Zusammenfassung deiner Einstellungen. Während du ein Video abspielst, kannst du hier weiter ausprobieren. Wenn du fertig bist, klicke auf speichern.",
 	"edt_dev_enum_subtract_minimum" : "Subtrahiere minimum",
+	"edt_dev_enum_sub_min_cool_adjust" : "Minimale Anpassung: cool",
 	"edt_dev_enum_sub_min_warm_adjust" : "Minimale Anpassung: warm",
 	"edt_dev_enum_white_off" : "Weiß ist aus",
 	"edt_dev_general_heading_title" : "Allgemeine Einstellungen",
