@@ -95,9 +95,7 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 {
 	if (!_raw2ledAdjustment->verifyAdjustments())
-	{
 		Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
-	}
 
 	// handle hwLedCount
 	_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
@@ -107,6 +105,7 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	{
 		_ledStringColorOrder.push_back(led.colorOrder);
 	}
+
 	for (Led& led : _ledStringClone.leds())
 	{
 		_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
@@ -135,7 +134,7 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	getComponentRegister().componentStateChanged(hyperion::COMP_LEDDEVICE, _device->componentState());
 
 	// create the effect engine and pipe the updateEmit; must be initialized after smoothing!
-	_effectEngine = new EffectEngine(this,getSetting(settings::EFFECTS).object());
+	_effectEngine = new EffectEngine(this);
 	connect(_effectEngine, &EffectEngine::effectListUpdated, this, &Hyperion::effectListUpdated);
 
 	// setup config state checks and initial shot
@@ -178,7 +177,6 @@ void Hyperion::freeObjects(bool emitCloseSignal)
 {
 	// switch off all leds
 	clearall(true);
-	_device->switchOff();
 
 	if (emitCloseSignal)
 	{
@@ -507,9 +505,14 @@ const Hyperion::InputInfo Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
-void Hyperion::reloadEffects()
+const bool Hyperion::saveEffect(const QJsonObject& obj, QString& resultMsg)
 {
-	_effectEngine->readEffects();
+	return _effectEngine->saveEffect(obj, resultMsg);
+}
+
+const bool Hyperion::deleteEffect(const QString& effectName, QString& resultMsg)
+{
+	return _effectEngine->deleteEffect(effectName, resultMsg);
 }
 
 const std::list<EffectDefinition> & Hyperion::getEffects() const
@@ -625,12 +628,14 @@ void Hyperion::update()
 	{
 		_ledBuffer = priorityInfo.ledColors;
 	}
-	// copy rawLedColors before adjustments
-	_rawLedBuffer = _ledBuffer;
+
+	// emit rawLedColors before transform
+	emit rawLedColors(_ledBuffer);
 
 	// apply adjustments
 	if(compChanged)
 		_raw2ledAdjustment->setBacklightEnabled((_prevCompId != hyperion::COMP_COLOR && _prevCompId != hyperion::COMP_EFFECT));
+
 	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
 	// insert cloned leds into buffer

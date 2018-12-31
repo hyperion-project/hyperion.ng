@@ -276,6 +276,9 @@ if (ENABLE_TESTS)
 	add_subdirectory(test)
 endif ()
 
+# Add resources directory
+add_subdirectory(resources)
+
 # Add the doxygen generation directory
 add_subdirectory(doc)
 

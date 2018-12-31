@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 		IntOption           & argCropRight       = parser.add<IntOption>    (0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
 		IntOption           & argCropTop         = parser.add<IntOption>    (0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 		IntOption           & argCropBottom      = parser.add<IntOption>    (0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
-		IntOption           & argSizeDecimation  = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "8");
+		IntOption           & argSizeDecimation  = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "8", 1);
 		BooleanOption       & argScreenshot      = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
 		Option              & argAddress         = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
 		IntOption           & argPriority        = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");

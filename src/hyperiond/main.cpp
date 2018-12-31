@@ -104,6 +104,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	{
 		QApplication* app = new QApplication(argc, argv);
 		app->setApplicationDisplayName("Hyperion");
+		app->setWindowIcon(QIcon(":/hyperion-icon-32px.png"));
 		return  app;
 	}
 

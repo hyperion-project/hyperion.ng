@@ -1,4 +1,3 @@
-
 find_package(PythonLibs 3.5 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 
@@ -21,6 +20,7 @@ target_link_libraries(hyperiond
 		bonjour
 		ssdp
 		python
+		resources
 		${PYTHON_LIBRARIES}
 )
 
@@ -60,6 +60,7 @@ qt5_use_modules(hyperiond Core Gui Network Widgets)
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )
 install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "share/hyperion/effects" COMPONENT  "${PLATFORM}" )
+install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "share/hyperion/icons" COMPONENT "${PLATFORM}" )
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT  "${PLATFORM}" )

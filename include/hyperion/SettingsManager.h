@@ -9,7 +9,7 @@
 class Hyperion;
 
 ///
-/// @brief Manage the settings read write from/to database, on settings changed will emit a signal to update components accordingly
+/// @brief Manage the settings read write from/to config file, on settings changed will emit a signal to update components accordingly
 ///
 class SettingsManager : public QObject
 {
@@ -37,7 +37,7 @@ public:
 	const bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
-	/// @brief get a single setting json from database
+	/// @brief get a single setting json from config
 	/// @param  type   The settings::type from enum
 	/// @return        The requested json data as QJsonDocument
 	///
@@ -51,7 +51,7 @@ public:
 
 signals:
 	///
-	/// @brief Emits whenever a config part changed. Comparison of database and new data to prevent false positive
+	/// @brief Emits whenever a config part changed.
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
@@ -60,10 +60,13 @@ signals:
 private:
 	/// Hyperion instance
 	Hyperion* _hyperion;
+
 	/// Logger instance
 	Logger* _log;
+
 	/// the schema
 	static QJsonObject schemaJson;
+
 	/// the current config of this instance
 	QJsonObject _qconfig;
 };

@@ -163,8 +163,21 @@ public:
 	///
 	const InputInfo getPriorityInfo(const int priority) const;
 
-	/// Reload the list of available effects
-	void reloadEffects();
+	///
+	/// @brief Save an effect
+	/// @param       obj       The effect args
+	/// @param[out] resultMsg  The feedback message
+	/// @return True on success else false
+	///
+	const bool saveEffect(const QJsonObject& obj, QString& resultMsg);
+
+	///
+	/// @brief Delete an effect by name.
+	/// @param[in]  effectName  The effect name to delete
+	/// @param[out] resultMsg   The message on error
+	/// @return True on success else false
+	///
+	const bool deleteEffect(const QString& effectName, QString& resultMsg);
 
 	/// Get the list of available effects
 	/// @return The list of available effects
@@ -214,12 +227,6 @@ public:
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
 	bool sourceAutoSelectEnabled();
-
-	///
-	/// @brief Get the last untransformed/unadjusted led colors
-	/// @return   The _rawLedBuffer leds
-	///
-	const std::vector<ColorRgb>& getRawLedBuffer() { return _rawLedBuffer; };
 
 	///
 	/// @brief Enable/Disable components during runtime, called from external API (requests)
@@ -433,6 +440,11 @@ signals:
 	///
 	void v4lImage(const Image<ColorRgb> & image);
 
+	///
+	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
+	///
+	void rawLedColors(const std::vector<ColorRgb>& ledValues);
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
@@ -548,8 +560,6 @@ private:
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
-	/// buffer for leds (without adjustment)
-	std::vector<ColorRgb> _rawLedBuffer;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;

@@ -7,32 +7,9 @@
 #include <hyperion/Hyperion.h>
 
 // qt includess
-#include <QTimer>
 #include <QJsonObject>
 #include <QMutex>
 #include <QString>
-
-// createEffect helper
-struct find_schema: std::unary_function<EffectSchema, bool>
-{
-	QString pyFile;
-	find_schema(QString pyFile):pyFile(pyFile) { }
-	bool operator()(EffectSchema const& schema) const
-	{
-		return schema.pyFile == pyFile;
-	}
-};
-
-// deleteEffect helper
-struct find_effect: std::unary_function<EffectDefinition, bool>
-{
-	QString effectName;
-	find_effect(QString effectName) :effectName(effectName) { }
-	bool operator()(EffectDefinition const& effectDefinition) const
-	{
-		return effectDefinition.name == effectName;
-	}
-};
 
 class JsonCB;
 
@@ -59,8 +36,11 @@ public:
 	void handleMessage(const QString & message);
 
 public slots:
-	/// _timer_ledcolors requests ledcolor updates (if enabled)
-	void streamLedcolorsUpdate();
+	///
+	/// @brief is called whenever the current Hyperion instance pushes new led raw values (if enabled)
+	/// @param ledColors  The current ledColors
+	///
+	void streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors);
 
 	/// push images whenever hyperion emits (if enabled)
 	void setImage(const Image<ColorRgb> & image);
@@ -80,11 +60,9 @@ signals:
 	void forwardJsonMessage(QJsonObject);
 
 private:
-
-	// The JsonCB instance which handles data subscription/notifications
-	JsonCB* _jsonCB;
 	// true if further callbacks are forbidden (http)
 	bool _noListener;
+
     /// The peer address of the client
     QString _peerAddress;
 
@@ -94,8 +72,8 @@ private:
 	/// Hyperion instance
 	Hyperion* _hyperion;
 
-	/// timer for ledcolors streaming
-	QTimer _timer_ledcolors;
+	// The JsonCB instance which handles data subscription/notifications
+	JsonCB* _jsonCB;
 
 	// streaming buffers
 	QJsonObject _streaming_leds_reply;
@@ -108,8 +86,14 @@ private:
 	/// mutex to determine state of image streaming
 	QMutex _image_stream_mutex;
 
+	/// mutex to determine state of image streaming
+	QMutex _led_stream_mutex;
+
 	/// timeout for live video refresh
 	volatile qint64 _image_stream_timeout;
+
+	/// timeout for led color refresh
+	volatile qint64 _led_stream_timeout;
 
 	///
 	/// Handle an incoming JSON Color message

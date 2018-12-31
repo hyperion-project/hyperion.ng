@@ -227,8 +227,8 @@ void WebSocketClient::sendClose(int status, QString reason)
 
 void WebSocketClient::handleBinaryMessage(QByteArray &data)
 {
-	uint8_t  priority   = data.at(0);
-	unsigned duration_s = data.at(1);
+	//uint8_t  priority   = data.at(0);
+	//unsigned duration_s = data.at(1);
 	unsigned imgSize    = data.size() - 4;
 	unsigned width      = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
 	unsigned height     =  imgSize / width;
@@ -244,7 +244,7 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
 	//_hyperion->registerInput();
-	_hyperion->setInputImage(priority, image, duration_s*1000);
+	//_hyperion->setInputImage(priority, image, duration_s*1000);
 }
 
 qint64 WebSocketClient::sendMessage(QJsonObject obj)

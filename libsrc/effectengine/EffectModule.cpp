@@ -1,3 +1,4 @@
+#include <cmath>
 
 #include <effectengine/Effect.h>
 #include <effectengine/EffectModule.h>
@@ -44,10 +45,9 @@ PyObject *EffectModule::json2python(const QJsonValue &jsonData)
 			return Py_BuildValue("");
 		case QJsonValue::Double:
 		{
-			if (std::rint(jsonData.toDouble()) != jsonData.toDouble())
-			{
+			if (std::round(jsonData.toDouble()) != jsonData.toDouble())
 				return Py_BuildValue("d", jsonData.toDouble());
-			}
+
 			return Py_BuildValue("i", jsonData.toInt());
 		}
 		case QJsonValue::Bool:

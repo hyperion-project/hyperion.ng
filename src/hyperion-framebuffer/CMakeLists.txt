@@ -23,9 +23,7 @@ add_executable( ${PROJECT_NAME}
 )
 
 target_link_libraries( ${PROJECT_NAME}
-	effectengine
 	commandline
-	blackborder
 	hyperion-utils
 	flatbufserver
 	flatbuffers

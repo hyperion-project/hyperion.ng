@@ -156,7 +156,9 @@ private:
 	unsigned            _grabber_cropLeft;
 	unsigned            _grabber_cropRight;
 	unsigned            _grabber_cropTop;
-    unsigned            _grabber_cropBottom;
+	unsigned            _grabber_cropBottom;
+
+	QString _prevType;
 
 	VideoMode _currVideoMode;
 	SettingsManager*  _settingsManager;

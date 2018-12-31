@@ -13,12 +13,11 @@
 
 
 WebServer::WebServer(const QJsonDocument& config, QObject * parent)
-	:  QObject(parent)
+	: QObject(parent)
 	, _config(config)
 	, _log(Logger::getInstance("WEBSERVER"))
 	, _server()
 {
-
 }
 
 WebServer::~WebServer()

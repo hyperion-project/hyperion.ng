@@ -12,9 +12,9 @@
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
-#include <QFileInfo>
-#include <QDir>
-#include <QIODevice>
+// #include <QFileInfo>
+// #include <QDir>
+// #include <QIODevice>
 #include <QDateTime>
 
 // hyperion includes
@@ -41,13 +41,14 @@ using namespace hyperion;
 
 JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListener)
 	: QObject(parent)
-	, _jsonCB(new JsonCB(this))
 	, _noListener(noListener)
 	, _peerAddress(peerAddress)
 	, _log(log)
 	, _hyperion(Hyperion::getInstance())
+	, _jsonCB(new JsonCB(this))
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
+	, _led_stream_timeout(0)
 {
 	// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
@@ -55,9 +56,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 	// notify hyperion about a jsonMessageForward
 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 
-	// led color stream update timer
-	connect(&_timer_ledcolors, SIGNAL(timeout()), this, SLOT(streamLedcolorsUpdate()));
 	_image_stream_mutex.unlock();
+	_led_stream_mutex.unlock();
 }
 
 void JsonAPI::handleMessage(const QString& messageString)
@@ -207,105 +207,20 @@ void JsonAPI::handleEffectCommand(const QJsonObject& message, const QString& com
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject& message, const QString &command, const int tan)
 {
-	if (!message["args"].toObject().isEmpty())
-	{
-		QString scriptName;
-		(message["script"].toString().mid(0, 1)  == ":" )
-			? scriptName = ":/effects//" + message["script"].toString().mid(1)
-			: scriptName = message["script"].toString();
-
-		std::list<EffectSchema> effectsSchemas = _hyperion->getEffectSchemas();
-		std::list<EffectSchema>::iterator it = std::find_if(effectsSchemas.begin(), effectsSchemas.end(), find_schema(scriptName));
-
-		if (it != effectsSchemas.end())
-		{
-			if(!JsonUtils::validate("JsonRpc@"+_peerAddress, message["args"].toObject(), it->schemaFile, _log))
-			{
-				sendErrorReply("Error during arg validation against schema, please consult the Hyperion Log", command, tan);
-				return;
-			}
-
-			QJsonObject effectJson;
-			QJsonArray effectArray;
-			effectArray = _hyperion->getQJsonConfig()["effects"].toObject()["paths"].toArray();
-
-			if (effectArray.size() > 0)
-			{
-				if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
-				{
-					sendErrorReply("Can't save new effect. Effect name is empty or begins with a dot.", command, tan);
-					return;
-				}
-
-				effectJson["name"] = message["name"].toString();
-				effectJson["script"] = message["script"].toString();
-				effectJson["args"] = message["args"].toObject();
-
-				std::list<EffectDefinition> availableEffects = _hyperion->getEffects();
-				std::list<EffectDefinition>::iterator iter = std::find_if(availableEffects.begin(), availableEffects.end(), find_effect(message["name"].toString()));
-
-				QFileInfo newFileName;
-				if (iter != availableEffects.end())
-				{
-					newFileName.setFile(iter->file);
-					if (newFileName.absoluteFilePath().mid(0, 1)  == ":")
-					{
-						sendErrorReply("The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effekt.", command, tan);
-						return;
-					}
-				} else
-				{
-					QString f = FileUtils::convertPath(effectArray[0].toString() + "/" + message["name"].toString().replace(QString(" "), QString("")) + QString(".json"));
-					newFileName.setFile(f);
-				}
-
-				if(!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
-				{
-					sendErrorReply("Error while saving effect, please check the Hyperion Log", command, tan);
-					return;
-				}
-
-				Info(_log, "Reload effect list");
-				_hyperion->reloadEffects();
-				sendSuccessReply(command, tan);
-			} else
-			{
-				sendErrorReply("Can't save new effect. Effect path empty", command, tan);
-				return;
-			}
-		} else
-			sendErrorReply("Missing schema file for Python script " + message["script"].toString(), command, tan);
-	} else
-		sendErrorReply("Missing or empty Object 'args'", command, tan);
+	QString resultMsg;
+	if(_hyperion->saveEffect(message, resultMsg))
+		sendSuccessReply(command, tan);
+	else
+		sendErrorReply(resultMsg, command, tan);
 }
 
 void JsonAPI::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, const int tan)
 {
-	QString effectName = message["name"].toString();
-	std::list<EffectDefinition> effectsDefinition = _hyperion->getEffects();
-	std::list<EffectDefinition>::iterator it = std::find_if(effectsDefinition.begin(), effectsDefinition.end(), find_effect(effectName));
-
-	if (it != effectsDefinition.end())
-	{
-		QFileInfo effectConfigurationFile(it->file);
-		if (effectConfigurationFile.absoluteFilePath().mid(0, 1)  != ":" )
-		{
-			if (effectConfigurationFile.exists())
-			{
-				bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
-				if (result)
-				{
-					Info(_log, "Reload effect list");
-					_hyperion->reloadEffects();
-					sendSuccessReply(command, tan);
-				} else
-					sendErrorReply("Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions", command, tan);
-			} else
-				sendErrorReply("Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath(), command, tan);
-		} else
-			sendErrorReply("Can't delete internal effect: " + message["name"].toString(), command, tan);
-	} else
-		sendErrorReply("Effect " + message["name"].toString() + " not found", command, tan);
+	QString resultMsg;
+	if(_hyperion->deleteEffect(message["name"].toString(), resultMsg))
+		sendSuccessReply(command, tan);
+	else
+		sendErrorReply(resultMsg, command, tan);
 }
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, const int tan)
@@ -358,10 +273,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
-		if (int(priorityInfo.timeoutTime_ms - now) > -1 )
-		{
+		if (priorityInfo.timeoutTime_ms > 0 )
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
-		}
+
 		// owner has optional informations to the component
 		if(!priorityInfo.owner.isEmpty())
 			item["owner"] = priorityInfo.owner;
@@ -861,12 +775,11 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
 		_streaming_leds_reply["tan"]  = tan;
-		_timer_ledcolors.setInterval(125);
-		_timer_ledcolors.start(125);
+		connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
 	}
 	else if (subcommand == "ledstream-stop")
 	{
-		_timer_ledcolors.stop();
+		disconnect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate);
 	}
 	else if (subcommand == "imagestream-start")
 	{
@@ -984,32 +897,37 @@ void JsonAPI::sendErrorReply(const QString &error, const QString &command, const
 }
 
 
-void JsonAPI::streamLedcolorsUpdate()
+void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 {
-	QJsonObject result;
-	QJsonArray leds;
-
-	const std::vector<ColorRgb> & ledColors = _hyperion->getRawLedBuffer();
-	for(auto color = ledColors.begin(); color != ledColors.end(); ++color)
+	if ( (_led_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() && _led_stream_mutex.tryLock(0) )
 	{
-		QJsonObject item;
-		item["index"] = int(color - ledColors.begin());
-		item["red"]   = color->red;
-		item["green"] = color->green;
-		item["blue"]  = color->blue;
-		leds.append(item);
+		_led_stream_timeout = QDateTime::currentMSecsSinceEpoch();
+		QJsonObject result;
+		QJsonArray leds;
+
+		for(auto color = ledColors.begin(); color != ledColors.end(); ++color)
+		{
+			QJsonObject item;
+			item["index"] = int(color - ledColors.begin());
+			item["red"]   = color->red;
+			item["green"] = color->green;
+			item["blue"]  = color->blue;
+			leds.append(item);
+		}
+
+		result["leds"] = leds;
+		_streaming_leds_reply["result"] = result;
+
+		// send the result
+		emit callbackMessage(_streaming_leds_reply);
+
+		_led_stream_mutex.unlock();
 	}
-
-	result["leds"] = leds;
-	_streaming_leds_reply["result"] = result;
-
-	// send the result
-	emit callbackMessage(_streaming_leds_reply);
 }
 
 void JsonAPI::setImage(const Image<ColorRgb> & image)
 {
-	if ( (_image_stream_timeout+250) < QDateTime::currentMSecsSinceEpoch() && _image_stream_mutex.tryLock(0) )
+	if ( (_image_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() && _image_stream_mutex.tryLock(0) )
 	{
 		_image_stream_timeout = QDateTime::currentMSecsSinceEpoch();
 

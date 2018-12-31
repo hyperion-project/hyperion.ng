@@ -17,30 +17,43 @@
 #include <effectengine/EffectSchema.h>
 #include <utils/Logger.h>
 
-// pre-declarioation
+// pre-declaration
 class Effect;
+class EffectFileHandler;
 
 class EffectEngine : public QObject
 {
 	Q_OBJECT
 
 public:
-	EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig);
+	EffectEngine(Hyperion * hyperion);
 	virtual ~EffectEngine();
 
-	void readEffects();
-
-	const std::list<EffectDefinition> & getEffects() const
-	{
-		return _availableEffects;
-	};
+	const std::list<EffectDefinition> & getEffects() const { return _availableEffects; };
 
 	const std::list<ActiveEffectDefinition> & getActiveEffects();
 
-	const std::list<EffectSchema> & getEffectSchemas()
-	{
-		return _effectSchemas;
-	};
+	///
+	/// Get available schemas from EffectFileHandler
+	/// @return all schemas
+	///
+	const std::list<EffectSchema> & getEffectSchemas();
+
+	///
+	/// @brief Save an effect with EffectFileHandler
+	/// @param       obj       The effect args
+	/// @param[out] resultMsg  The feedback message
+	/// @return True on success else false
+	///
+	const bool saveEffect(const QJsonObject& obj, QString& resultMsg);
+
+	///
+	/// @brief Delete an effect by name.
+	/// @param[in]  effectName  The effect name to delete
+	/// @param[out] resultMsg   The message on error
+	/// @return True on success else false
+	///
+	const bool deleteEffect(const QString& effectName, QString& resultMsg);
 
 	///
 	/// @brief Get all init data of the running effects and stop them
@@ -72,18 +85,17 @@ public slots:
 private slots:
 	void effectFinished();
 
+	///
+	/// @brief is called whenever the EffectFileHandler emits updated effect list
+	///
+	void handleUpdatedEffectList();
+
 private:
-	bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
-
-	bool loadEffectSchema(const QString & path, const QString & effectSchemaFile, EffectSchema &effectSchema);
-
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1, const QString & origin="System", unsigned smoothCfg=0);
 
 private:
 	Hyperion * _hyperion;
-
-	QJsonObject _effectConfig;
 
 	std::list<EffectDefinition> _availableEffects;
 
@@ -93,7 +105,8 @@ private:
 
 	std::list<ActiveEffectDefinition> _cachedActiveEffects;
 
-	std::list<EffectSchema> _effectSchemas;
-
 	Logger * _log;
+
+	// The global effect file handler
+	EffectFileHandler* _effectFileHandler;
 };

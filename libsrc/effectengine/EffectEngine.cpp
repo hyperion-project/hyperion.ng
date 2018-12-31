@@ -18,31 +18,44 @@
 #include <effectengine/EffectEngine.h>
 #include <effectengine/Effect.h>
 #include <effectengine/EffectModule.h>
+#include <effectengine/EffectFileHandler.h>
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion, const QJsonObject & jsonEffectConfig)
+EffectEngine::EffectEngine(Hyperion * hyperion)
 	: _hyperion(hyperion)
-	, _effectConfig(jsonEffectConfig)
 	, _availableEffects()
 	, _activeEffects()
 	, _log(Logger::getInstance("EFFECTENGINE"))
+	, _effectFileHandler(EffectFileHandler::getInstance())
 {
 
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
-	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
 	connect(_hyperion, SIGNAL(channelCleared(int)), this, SLOT(channelCleared(int)));
 	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
 
-	// read all effects
-	readEffects();
+	// get notifications about refreshed effect list
+	connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
+
+	// register smooth cfgs and fill available effects
+	handleUpdatedEffectList();
 }
 
 EffectEngine::~EffectEngine()
 {
+}
+
+const bool EffectEngine::saveEffect(const QJsonObject& obj, QString& resultMsg)
+{
+	return _effectFileHandler->saveEffect(obj, resultMsg);
+}
+
+const bool EffectEngine::deleteEffect(const QString& effectName, QString& resultMsg)
+{
+	return _effectFileHandler->deleteEffect(effectName, resultMsg);
 }
 
 const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
@@ -61,6 +74,11 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 	}
 
 	return _availableActiveEffects;
+}
+
+const std::list<EffectSchema> & EffectEngine::getEffectSchemas()
+{
+	return _effectFileHandler->getEffectSchemas();
 }
 
 void EffectEngine::cacheRunningEffects()
@@ -90,175 +108,26 @@ void EffectEngine::startCachedEffects()
 	_cachedActiveEffects.clear();
 }
 
-bool EffectEngine::loadEffectDefinition(const QString &path, const QString &effectConfigFile, EffectDefinition & effectDefinition)
+void EffectEngine::handleUpdatedEffectList()
 {
-	QString fileName = path + QDir::separator() + effectConfigFile;
-
-	// Read and parse the effect json config file
-	QJsonObject configEffect;
-	if(!JsonUtils::readFile(fileName, configEffect, _log))
-		return false;
-
-	Q_INIT_RESOURCE(EffectEngine);
-	// validate effect config with effect schema(path)
-	if(!JsonUtils::validate(fileName, configEffect, ":effect-schema", _log))
-		return false;
-
-	// setup the definition
-	effectDefinition.file = fileName;
-	QJsonObject config = configEffect;
-	QString scriptName = config["script"].toString();
-	effectDefinition.name = config["name"].toString();
-	if (scriptName.isEmpty())
-		return false;
-
-	QFile fileInfo(scriptName);
-
-	if (scriptName.mid(0, 1)  == ":" )
-	{
-		(!fileInfo.exists())
-		? effectDefinition.script = ":/effects/"+scriptName.mid(1)
-		: effectDefinition.script = scriptName;
-	} else
-	{
-		(!fileInfo.exists())
-		? effectDefinition.script = path + QDir::separator() + scriptName
-		: effectDefinition.script = scriptName;
-	}
-
-	effectDefinition.args = config["args"].toObject();
-	effectDefinition.smoothCfg = SMOOTHING_MODE_PAUSE;
-	if (effectDefinition.args["smoothing-custom-settings"].toBool())
-	{
-		effectDefinition.smoothCfg = _hyperion->addSmoothingConfig(
-			effectDefinition.args["smoothing-time_ms"].toInt(),
-			effectDefinition.args["smoothing-updateFrequency"].toDouble(),
-			0 );
-	}
-	else
-	{
-		effectDefinition.smoothCfg = _hyperion->addSmoothingConfig(true);
-	}
-	return true;
-}
-
-bool EffectEngine::loadEffectSchema(const QString &path, const QString &effectSchemaFile, EffectSchema & effectSchema)
-{
-	QString fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
-
-	// Read and parse the effect schema file
-	QJsonObject schemaEffect;
-	if(!JsonUtils::readFile(fileName, schemaEffect, _log))
-		return false;
-
-	// setup the definition
-	QString scriptName = schemaEffect["script"].toString();
-	effectSchema.schemaFile = fileName;
-	fileName = path + QDir::separator() + scriptName;
-	QFile pyFile(fileName);
-
-	if (scriptName.isEmpty() || !pyFile.open(QIODevice::ReadOnly))
-	{
-		fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
-		Error( _log, "Python script '%s' in effect schema '%s' could not be loaded", QSTRING_CSTR(scriptName), QSTRING_CSTR(fileName));
-		return false;
-	}
-
-	pyFile.close();
-
-	effectSchema.pyFile = (scriptName.mid(0, 1)  == ":" ) ? ":/effects/"+scriptName.mid(1) : path + QDir::separator() + scriptName;
-	effectSchema.pySchema = schemaEffect;
-
-	return true;
-}
-
-void EffectEngine::readEffects()
-{
-	// clear all lists
 	_availableEffects.clear();
-	_effectSchemas.clear();
 
-	// read all effects
-	const QJsonArray & paths       = _effectConfig["paths"].toArray();
-	const QJsonArray & disabledEfx = _effectConfig["disable"].toArray();
-
-	QStringList efxPathList;
-	efxPathList << ":/effects/";
-	QStringList disableList;
-
-	for(auto p : paths)
+	for (auto def : _effectFileHandler->getEffects())
 	{
-		efxPathList << p.toString().replace("$ROOT",_hyperion->getRootPath());
-	}
-	for(auto efx : disabledEfx)
-	{
-		disableList << efx.toString();
-	}
-
-	QMap<QString, EffectDefinition> availableEffects;
-	for (const QString & path : efxPathList )
-	{
-		QDir directory(path);
-		if (!directory.exists())
+		// add smoothing configs to Hyperion
+		if (def.args["smoothing-custom-settings"].toBool())
 		{
-			if(directory.mkpath(path))
-			{
-				Warning(_log, "New Effect path \"%s\" created successfull", QSTRING_CSTR(path) );
-			}
-			else
-			{
-				Warning(_log, "Failed to create Effect path \"%s\", please check permissions", QSTRING_CSTR(path) );
-			}
+			def.smoothCfg = _hyperion->addSmoothingConfig(
+				def.args["smoothing-time_ms"].toInt(),
+				def.args["smoothing-updateFrequency"].toDouble(),
+				0 );
 		}
 		else
 		{
-			int efxCount = 0;
-			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString & filename : filenames)
-			{
-				EffectDefinition def;
-				if (loadEffectDefinition(path, filename, def))
-				{
-					InfoIf(availableEffects.find(def.name) != availableEffects.end(), _log,
-						"effect overload effect '%s' is now taken from '%s'", QSTRING_CSTR(def.name), QSTRING_CSTR(path) );
-
-					if ( disableList.contains(def.name) )
-					{
-						Info(_log, "effect '%s' not loaded, because it is disabled in hyperion config", QSTRING_CSTR(def.name));
-					}
-					else
-					{
-						availableEffects[def.name] = def;
-						efxCount++;
-					}
-				}
-			}
-			Info(_log, "%d effects loaded from directory %s", efxCount, QSTRING_CSTR(path));
-
-			// collect effect schemas
-			efxCount = 0;
-			directory = path.endsWith("/") ? (path + "schema/") : (path + "/schema/");
-			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString & pyname : pynames)
-			{
-				EffectSchema pyEffect;
-				if (loadEffectSchema(path, pyname, pyEffect))
-				{
-					_effectSchemas.push_back(pyEffect);
-					efxCount++;
-				}
-			}
-			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR((path + "schema/")));
+			def.smoothCfg = _hyperion->addSmoothingConfig(true);
 		}
+		_availableEffects.push_back(def);
 	}
-
-	for(auto item : availableEffects)
-	{
-		_availableEffects.push_back(item);
-	}
-
-	ErrorIf(_availableEffects.size()==0, _log, "no effects found, check your effect directories");
-
 	emit effectListUpdated();
 }
 

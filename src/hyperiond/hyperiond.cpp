@@ -6,7 +6,6 @@
 #include <QResource>
 #include <QLocale>
 #include <QFile>
-#include <QHostAddress>
 #include <QString>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -41,6 +40,9 @@
 
 // Init Python
 #include <python/PythonInit.h>
+
+// EffectFileHandler
+#include <effectengine/EffectFileHandler.h>
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
@@ -78,6 +80,10 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if(!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, _settingsManager->getSetting(settings::LOGGER));
+
+	// init EffectFileHandler
+	EffectFileHandler* efh = new EffectFileHandler(rootPath, _settingsManager->getSetting(settings::EFFECTS), this);
+	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
 
 	// spawn all Hyperion instances before network services
 	_hyperion = Hyperion::initInstance(this, 0, configFile, rootPath);
@@ -201,7 +207,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
-	// create SSDPHandler in thread
+	// create ssdp server in thread
 	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt());
 	QThread* ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
@@ -268,15 +274,72 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			{
 				type = "framebuffer";
 			}
-			Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 		}
 
-		if (type == "") { Info( _log, "screen capture device disabled"); }
-		else if (type == "framebuffer" && _fbGrabber == nullptr)   createGrabberFramebuffer(grabberConfig);
-		else if (type == "dispmanx" && _dispmanx == nullptr)       createGrabberDispmanx();
-		else if (type == "amlogic" && _amlGrabber == nullptr)      createGrabberAmlogic();
-		else if (type == "osx" && _osxGrabber == nullptr)          createGrabberOsx(grabberConfig);
-		else if (type == "x11" && _x11Grabber == nullptr)          createGrabberX11(grabberConfig);
+		if(_prevType != type)
+		{
+			Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
+
+			// stop all capture interfaces
+			#ifdef ENABLE_FB
+			if(_fbGrabber != nullptr)  _fbGrabber->stop();
+			#endif
+			#ifdef ENABLE_DISPMANX
+			if(_dispmanx != nullptr)   _dispmanx->stop();
+			#endif
+			#ifdef ENABLE_AMLOGIC
+			if(_amlGrabber != nullptr) _amlGrabber->stop();
+			#endif
+			#ifdef ENABLE_OSX
+			if(_osxGrabber != nullptr) _osxGrabber->stop();
+			#endif
+			#ifdef ENABLE_X11
+			if(_x11Grabber != nullptr) _x11Grabber->stop();
+			#endif
+
+			// create/start capture interface
+			if(type == "framebuffer")
+			{
+				if(_fbGrabber == nullptr)
+					createGrabberFramebuffer(grabberConfig);
+				#ifdef ENABLE_FB
+				_fbGrabber->start();
+				#endif
+			}
+			else if(type == "dispmanx")
+			{
+				if(_dispmanx == nullptr)
+					createGrabberDispmanx();
+				#ifdef ENABLE_DISPMANX
+				_dispmanx->start();
+				#endif
+			}
+			else if(type == "amlogic")
+			{
+				if(_amlGrabber == nullptr)
+					createGrabberAmlogic();
+				#ifdef ENABLE_AMLOGIC
+				_amlGrabber->start();
+				#endif
+			}
+			else if(type == "osx")
+			{
+				if(_osxGrabber == nullptr)
+					createGrabberOsx(grabberConfig);
+				#ifdef ENABLE_OSX
+				_osxGrabber->start();
+				#endif
+			}
+			else if(type == "x11")
+			{
+				if(_x11Grabber == nullptr)
+					createGrabberX11(grabberConfig);
+				#ifdef ENABLE_X11
+				_x11Grabber->start();
+				#endif
+			}
+			_prevType = type;
+		}
 	}
 	else if(type == settings::V4L2)
 	{
@@ -341,7 +404,7 @@ void HyperionDaemon::createGrabberDispmanx()
 
 	_dispmanx->start();
 
-	Info(_log, "DISPMANX frame grabber created and started");
+	Info(_log, "DISPMANX frame grabber created");
 #else
 	Error( _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -360,7 +423,7 @@ void HyperionDaemon::createGrabberAmlogic()
 	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber, &AmlogicWrapper::handleSettingsUpdate);
 
 	_amlGrabber->start();
-	Info(_log, "AMLOGIC grabber created and started");
+	Info(_log, "AMLOGIC grabber created");
 #else
 	Error( _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -381,7 +444,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
 
 	_x11Grabber->start();
-	Info(_log, "X11 grabber created and started");
+	Info(_log, "X11 grabber created");
 #else
 	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -402,7 +465,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber, &FramebufferWrapper::handleSettingsUpdate);
 
 	_fbGrabber->start();
-	Info(_log, "Framebuffer grabber created and started");
+	Info(_log, "Framebuffer grabber created");
 #else
 	Error(_log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -423,7 +486,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber, &OsxWrapper::handleSettingsUpdate);
 
 	_osxGrabber->start();
-	Info(_log, "OSX grabber created and started");
+	Info(_log, "OSX grabber created");
 #else
 	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
 #endif

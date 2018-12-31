@@ -1,6 +1,5 @@
 <RCC>
 	<qresource prefix="/">
-		<file alias="hyperion-icon.png">hyperion-icon_32px.png</file>
 		<file alias="hyperion-schema">hyperion.schema.json</file>
 		<file alias="hyperion_default.config">../../config/hyperion.config.json.default</file>
 		<file alias="schema-general.json">schema/schema-general.json</file>

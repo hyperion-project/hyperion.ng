@@ -7,7 +7,7 @@
  */
 
 #ifndef _WIN32
-	#define _BSD_SOURCE // for usleep from unistd.h
+	#define _DEFAULT_SOURCE // for usleep from unistd.h
 #endif
 
 #include <errno.h>

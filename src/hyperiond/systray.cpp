@@ -22,7 +22,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperion(nullptr)
 	, _webPort(8090)
 {
-	Q_INIT_RESOURCE(resource);
+	Q_INIT_RESOURCE(resources);
 
 	// webserver port
 	WebServer* webserver = _hyperiond->getWebServerInstance();
@@ -33,7 +33,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 
 	connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
  	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
-	QIcon icon(":/hyperion-icon.png");
+	QIcon icon(":/hyperion-icon-32px.png");
 	_trayIcon->setIcon(icon);
 	_trayIcon->show();
 	setWindowIcon(icon);

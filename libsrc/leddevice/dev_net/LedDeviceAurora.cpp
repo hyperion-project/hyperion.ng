@@ -171,7 +171,7 @@ int LedDeviceAurora::write(const std::vector<ColorRgb> & ledValues)
 	udpbuffer[i++] = panelCount;
 	for (const ColorRgb& color : ledValues)
 	{
-		if (i<udpBufferSize) {
+		if ((unsigned)i < udpBufferSize) {
 			udpbuffer[i++] = panelIds[panelCounter++ % panelCount];
 			udpbuffer[i++] = 1; // No of Frames
 			udpbuffer[i++] = color.red;
@@ -180,7 +180,7 @@ int LedDeviceAurora::write(const std::vector<ColorRgb> & ledValues)
 			udpbuffer[i++] = 0; // W not set manually
 			udpbuffer[i++] = 1; // currently fixed at value 1 which corresponds to 100ms
 		}
-		if(panelCounter > panelCount) {
+		if((unsigned)panelCounter > panelCount) {
 			break;
 		}
 		//printf ("c.red %d sz c.red %d\n", color.red, sizeof(color.red));
