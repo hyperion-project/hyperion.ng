@@ -98,16 +98,6 @@ signals:
 	void settingsChanged(const settings::type& type, const QJsonDocument& data);
 
 	///
-	/// @brief PIPE SystemCapture images from SystemCapture over HyperionDaemon to Hyperion class
-	///
-	void systemImage(const Image<ColorRgb>&  image);
-
-	///
-	/// @brief PIPE v4lCapture images from v4lCapture over HyperionDaemon to Hyperion class
-	///
-	void v4lImage(const Image<ColorRgb> & image);
-
-	///
 	/// @brief After eval of setVideoMode this signal emits with a new one on change
 	///
 	void videoMode(const VideoMode& mode);

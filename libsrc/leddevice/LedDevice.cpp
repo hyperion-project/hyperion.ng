@@ -10,10 +10,9 @@
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
 
-LedDeviceRegistry LedDevice::_ledDeviceMap = LedDeviceRegistry();
-
-LedDevice::LedDevice()
-	: QObject()
+LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
+	: QObject(parent)
+	, _devConfig(config)
 	, _log(Logger::getInstance("LEDDEVICE"))
 	, _ledBuffer(0)
 	, _deviceReady(true)
@@ -24,13 +23,14 @@ LedDevice::LedDevice()
 	, _componentRegistered(false)
 	, _enabled(true)
 {
-	LedDevice::getLedDeviceSchemas();
-	qRegisterMetaType<hyperion::Components>("hyperion::Components");
-
 	// setup timer
-	_refresh_timer.setSingleShot(false);
 	_refresh_timer.setInterval(0);
 	connect(&_refresh_timer, SIGNAL(timeout()), this, SLOT(rewriteLeds()));
+}
+
+LedDevice::~LedDevice()
+{
+
 }
 
 // dummy implemention
@@ -55,17 +55,6 @@ void LedDevice::setEnable(bool enable)
 	_enabled = enable;
 }
 
-int LedDevice::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)
-{
-	_ledDeviceMap.emplace(name,funcPtr);
-	return 0;
-}
-
-const LedDeviceRegistry& LedDevice::getDeviceMap()
-{
-	return _ledDeviceMap;
-}
-
 void LedDevice::setActiveDevice(QString dev)
 {
 	_activeDevice = dev;
@@ -86,42 +75,6 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 	}
 
 	return true;
-}
-
-QJsonObject LedDevice::getLedDeviceSchemas()
-{
-	// make sure the resources are loaded (they may be left out after static linking)
-	Q_INIT_RESOURCE(LedDeviceSchemas);
-
-	// read the json schema from the resource
-	QDir d(":/leddevices/");
-	QStringList l = d.entryList();
-	QJsonObject result, schemaJson;
-
-	for(QString &item : l)
-	{
-		QString schemaPath(QString(":/leddevices/")+item);
-		QString devName = item.remove("schema-");
-
-		QString data;
-		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LedDevice")))
-		{
-			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
-		}
-
-		QJsonObject schema;
-		if(!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LedDevice")))
-		{
-			throw std::runtime_error("ERROR: Json schema wrong of file: " + item.toStdString());
-		}
-
-		schemaJson = schema;
-		schemaJson["title"] = QString("edt_dev_spec_header_title");
-
-		result[devName] = schemaJson;
-	}
-
-	return result;
 }
 
 int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)

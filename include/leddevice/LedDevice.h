@@ -34,11 +34,8 @@ class LedDevice : public QObject
 	Q_OBJECT
 
 public:
-	LedDevice();
-	///
-	/// Empty virtual destructor for pure virtual base class
-	///
-	virtual ~LedDevice() {}
+	LedDevice(const QJsonObject& config = QJsonObject(), QObject* parent = nullptr);
+	virtual ~LedDevice();
 
 	/// Switch the leds off (led hardware disable)
 	virtual int switchOff();
@@ -49,31 +46,36 @@ public:
 	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// Opens and configures the output device
-	///
-	/// @return Zero on succes else negative
-	///
-	virtual int open();
-
-	///
 	/// @brief Get color order of device
 	/// @return The color order
 	///
 	const QString & getColorOrder() { return _colorOrder; };
 
-	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
-	static const LedDeviceRegistry& getDeviceMap();
 	void setActiveDevice(QString dev);
 	const QString & getActiveDevice() { return _activeDevice; };
-	static QJsonObject getLedDeviceSchemas();
 	void setLedCount(int ledCount);
 	int  getLedCount() { return _ledCount; }
 
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
-	int getLatchTime() { return _latchTime_ms; };
+	const int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
+
+public slots:
+	///
+	/// Is called on thread start, all construction tasks and init should run here
+	///
+	virtual void start() { _deviceReady = open(); };
+
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 
 signals:
 	///
@@ -83,15 +85,17 @@ signals:
 	void enableStateChanged(bool newState);
 
 protected:
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 	virtual bool init(const QJsonObject &deviceConfig);
+
+	///
+	/// Opens and configures the output device
+	///
+	/// @return Zero on succes else negative
+	///
+	virtual int open();
+
+	// Helper to pipe device config from constructor to start()
+	QJsonObject _devConfig;
 
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
@@ -102,7 +106,6 @@ protected:
 	bool _deviceReady;
 
 	QString _activeDevice;
-	static LedDeviceRegistry _ledDeviceMap;
 
 	int _ledCount;
 	int _ledRGBCount;

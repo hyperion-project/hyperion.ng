@@ -14,7 +14,7 @@
 #include <utils/settings.h>
 
 class Grabber;
-class DispmanxFrameGrabber;
+class GlobalSignals;
 class QTimer;
 
 ///
@@ -59,7 +59,6 @@ public:
 		}
 		return false;
 	}
-
 
 public slots:
 	///

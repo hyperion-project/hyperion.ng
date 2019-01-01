@@ -5,7 +5,7 @@
 #include <QMap>
 
 // QT includes
-#include <QObject>
+//#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QSize>
@@ -37,11 +37,9 @@
 
 // Forward class declaration
 class QTimer;
-
 class HyperionDaemon;
 class ImageProcessor;
 class MessageForwarder;
-class LedDevice;
 class LinearColorSmoothing;
 class EffectEngine;
 class MultiColorAdjustment;
@@ -50,6 +48,7 @@ class SettingsManager;
 class BGEffectHandler;
 class CaptureCont;
 class BoblightServer;
+class LedDeviceWrapper;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -227,6 +226,13 @@ public:
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
 	bool sourceAutoSelectEnabled();
+
+	///
+	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
+	/// @param[in] component The component from enum
+	/// @param[in] state The state of the component [true | false]
+	///
+	void setNewComponentState(const hyperion::Components& component, const bool& state);
 
 	///
 	/// @brief Enable/Disable components during runtime, called from external API (requests)
@@ -432,13 +438,9 @@ signals:
 	void effectListUpdated();
 
 	///
-	/// @brief systemImage from the parent HyperionDaemon SystemCapture
+	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice
 	///
-	void systemImage(const Image<ColorRgb>& image);
-	///
-	/// @brief v4lImage from the parent HyperionDaemon V4lCapture
-	///
-	void v4lImage(const Image<ColorRgb> & image);
+	void ledDeviceData(const std::vector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
@@ -504,8 +506,8 @@ private:
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
 
-	/// The actual LedDevice
-	LedDevice * _device;
+	/// The actual LedDeviceWrapper
+	LedDeviceWrapper* _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
 	LinearColorSmoothing * _deviceSmooth;
@@ -513,7 +515,7 @@ private:
 	/// Effect engine
 	EffectEngine * _effectEngine;
 
-	// proto and json Message forwarder
+	// Message forwarder
 	MessageForwarder * _messageForwarder;
 
 	/// the name of config file

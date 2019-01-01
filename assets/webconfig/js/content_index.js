@@ -1,5 +1,4 @@
 $(document).ready( function() {
-	var uiLock = false;
 
 	loadContentTo("#container_connection_lost","connection_lost");
 	loadContentTo("#container_restart","restart");
@@ -7,41 +6,25 @@ $(document).ready( function() {
 
 	$(hyperion).on("cmd-serverinfo",function(event){
 		serverInfo = event.response.info;
-		// protect components from serverinfo updates
-		if(!compsInited)
-		{
-			comps = event.response.info.components
-			compsInited = true;
-		}
+		// comps
+		comps = event.response.info.components
 
-		if(!priosInited)
-		{
-			priosInited = true;
-		}
 		$(hyperion).trigger("ready");
 
-		if (serverInfo.hyperion.config_modified)
-			$("#hyperion_reload_notify").fadeIn("fast");
-		else
-			$("#hyperion_reload_notify").fadeOut("fast");
+		comps.forEach( function(obj) {
+			if (obj.name == "ALL")
+			{
+				if(obj.enabled)
+					$("#hyperion_disabled_notify").fadeOut("fast");
+				else
+					$("#hyperion_disabled_notify").fadeIn("fast");
+			}
+		});
 
 		if (serverInfo.hyperion.enabled)
 			$("#hyperion_disabled_notify").fadeOut("fast");
 		else
 			$("#hyperion_disabled_notify").fadeIn("fast");
-
-		if (!serverInfo.hyperion.config_writeable)
-		{
-			showInfoDialog('uilock',$.i18n('InfoDialog_nowrite_title'),$.i18n('InfoDialog_nowrite_text'));
-			$('#wrapper').toggle(false);
-			uiLock = true;
-		}
-		else if (uiLock)
-		{
-			$("#modal_dialog").modal('hide');
-			$('#wrapper').toggle(true);
-			uiLock = false;
-		}
 
 		updateSessions();
 	}); // end cmd-serverinfo
@@ -51,21 +34,21 @@ $(document).ready( function() {
 		updateSessions();
 	});
 
-	$(hyperion).one("cmd-sysinfo", function(event) {
+	$(hyperion).on("cmd-sysinfo", function(event) {
 		requestServerInfo();
 		sysInfo = event.response.info;
 
 		currentVersion = sysInfo.hyperion.version;
 	});
 
-	$(hyperion).one("cmd-config-getschema", function(event) {
+	$(hyperion).on("cmd-config-getschema", function(event) {
 		serverSchema = event.response.info;
 		requestServerConfig();
 
 		schema = serverSchema.properties;
 	});
 
-	$(hyperion).one("cmd-config-getconfig", function(event) {
+	$(hyperion).on("cmd-config-getconfig", function(event) {
 		serverConfig = event.response.info;
 		requestSysInfo();
 
@@ -80,7 +63,7 @@ $(document).ready( function() {
 		requestServerConfigSchema();
 	});
 
-	$(hyperion).one("ready", function(event) {
+	$(hyperion).on("ready", function(event) {
 		loadContent();
 	});
 
@@ -98,7 +81,7 @@ $(document).ready( function() {
 		// notfication in index
 		if (obj.name == "ALL")
 		{
-			if(obj.enable)
+			if(obj.enabled)
 				$("#hyperion_disabled_notify").fadeOut("fast");
 			else
 				$("#hyperion_disabled_notify").fadeIn("fast");
@@ -115,10 +98,6 @@ $(document).ready( function() {
 
 	$(hyperion).on("cmd-effects-update", function(event){
 		serverInfo.effects = event.response.data.effects
-	});
-
-	$("#btn_hyperion_reload").on("click", function(){
-		initRestart();
 	});
 
 	$(".mnava").bind('click.menu', function(e){

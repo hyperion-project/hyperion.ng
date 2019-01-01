@@ -25,14 +25,8 @@ var wSess = [];
 var plugins_installed = {};
 var plugins_available = {};
 
-//comps serverinfo lock
+//comps serverinfo
 comps = [];
-compsInited = false;
-
-// prios serverinfo lock
-priosInited = false;
-// token list
-tokenList = {}
 
 function initRestart()
 {

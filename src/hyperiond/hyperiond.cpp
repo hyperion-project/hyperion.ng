@@ -90,14 +90,13 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 
 	Info(_log, "Hyperion initialized");
 
-	connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects()));
+	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); for app restart refactor required
+
 	// listen for setting changes
 	connect(_hyperion, &Hyperion::settingsChanged, this, &HyperionDaemon::settingsChanged);
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
-	// forward system and v4l images to Hyperion
-	connect(this, &HyperionDaemon::systemImage, _hyperion, &Hyperion::systemImage);
-	connect(this, &HyperionDaemon::v4lImage, _hyperion, &Hyperion::v4lImage);
+
 	// forward videoModes from Hyperion to Daemon evaluation
 	connect(_hyperion, &Hyperion::videoMode, this, &HyperionDaemon::setVideoMode);
 	// forward videoMode changes from Daemon to Hyperion
@@ -107,6 +106,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
 		Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 	#endif
+
 	// init system capture (framegrabber)
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 	// init v4l2 capture
@@ -379,7 +379,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			Debug(_log, "V4L2 grabber created");
 
 			// connect to HyperionDaemon signal
-			connect(grabber, &V4L2Wrapper::systemImage, this, &HyperionDaemon::v4lImage);
 			connect(this, &HyperionDaemon::videoMode, grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
 
@@ -399,7 +398,6 @@ void HyperionDaemon::createGrabberDispmanx()
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
-	connect(_dispmanx, &DispmanxWrapper::systemImage, this, &HyperionDaemon::systemImage);
 	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
 
 	_dispmanx->start();
@@ -419,7 +417,6 @@ void HyperionDaemon::createGrabberAmlogic()
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _amlGrabber, &AmlogicWrapper::setVideoMode);
-	connect(_amlGrabber, &AmlogicWrapper::systemImage, this, &HyperionDaemon::systemImage);
 	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber, &AmlogicWrapper::handleSettingsUpdate);
 
 	_amlGrabber->start();
@@ -440,7 +437,6 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _x11Grabber, &X11Wrapper::setVideoMode);
-	connect(_x11Grabber, &X11Wrapper::systemImage, this, &HyperionDaemon::systemImage);
 	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
 
 	_x11Grabber->start();
@@ -461,7 +457,6 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
-	connect(_fbGrabber, &FramebufferWrapper::systemImage, this, &HyperionDaemon::systemImage);
 	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber, &FramebufferWrapper::handleSettingsUpdate);
 
 	_fbGrabber->start();
@@ -482,7 +477,6 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);
-	connect(_osxGrabber, &OsxWrapper::systemImage, this, &HyperionDaemon::systemImage);
 	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber, &OsxWrapper::handleSettingsUpdate);
 
 	_osxGrabber->start();

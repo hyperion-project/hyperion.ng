@@ -91,7 +91,7 @@ function getHashtag()
 	}
 }
 
-function loadContent(event)
+function loadContent(event, forceRefresh)
 {
 	var tag;
 
@@ -104,7 +104,7 @@ function loadContent(event)
 	else
 		tag = getHashtag();
 
-	if(prevTag != tag)
+	if(forceRefresh || prevTag != tag)
 	{
 		prevTag = tag;
 		$("#page-content").off();

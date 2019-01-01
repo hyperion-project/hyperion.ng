@@ -203,6 +203,14 @@ $(document).ready(function() {
 	function updateComponents()
 	{
 		components = comps;
+		var hyperionEnabled = true;
+		components.forEach( function(obj) {
+			if (obj.name == "ALL")
+			{
+				hyperionEnabled = obj.enabled
+			}
+		});
+
 		// create buttons
 		$('#componentsbutton').html("");
 		for ( idx=0; idx<components.length;idx++)
@@ -214,7 +222,7 @@ $(document).ready(function() {
 			enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 			comp_name    = components[idx].name;
 			comp_btn_id  = "comp_btn_"+comp_name;
-			comp_goff	 = serverInfo.hyperion.enabled? "enabled" : "disabled";
+			comp_goff	 = hyperionEnabled? "enabled" : "disabled";
 
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)

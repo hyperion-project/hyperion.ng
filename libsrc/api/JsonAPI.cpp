@@ -22,7 +22,7 @@
 #include <utils/SysInfo.h>
 #include <HyperionConfig.h>
 #include <utils/ColorSys.h>
-#include <leddevice/LedDevice.h>
+#include <leddevice/LedDeviceWrapper.h>
 #include <hyperion/GrabberWrapper.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
@@ -50,6 +50,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 	, _image_stream_timeout(0)
 	, _led_stream_timeout(0)
 {
+	Q_INIT_RESOURCE(JSONRPC_schemas);
+
 	// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
 
@@ -63,7 +65,6 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 void JsonAPI::handleMessage(const QString& messageString)
 {
 	const QString ident = "JsonRpc@"+_peerAddress;
-	Q_INIT_RESOURCE(JSONRPC_schemas);
 	QJsonObject message;
 	// parse the message
 	if(!JsonUtils::parse(ident, messageString, message, _log))
@@ -408,7 +409,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	QJsonObject ledDevices;
 	ledDevices["active"] = _hyperion->getActiveDevice();
 	QJsonArray availableLedDevices;
-	for (auto dev: LedDevice::getDeviceMap())
+	for (auto dev: LedDeviceWrapper::getDeviceMap())
 	{
 		availableLedDevices.append(dev.first);
 	}
@@ -696,7 +697,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& message, const QString& 
 
 	// collect all LED Devices
 	properties = schemaJson["properties"].toObject();
-	alldevices = LedDevice::getLedDeviceSchemas();
+	alldevices = LedDeviceWrapper::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
 
 	// collect all available effect schemas

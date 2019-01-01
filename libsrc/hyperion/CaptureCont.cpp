@@ -1,6 +1,12 @@
 #include <hyperion/CaptureCont.h>
 
+// hyperion includes
 #include <hyperion/Hyperion.h>
+
+// utils includes
+#include <utils/GlobalSignals.h>
+
+// qt includes
 #include <QTimer>
 
 CaptureCont::CaptureCont(Hyperion* hyperion)
@@ -56,11 +62,11 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 		if(enable)
 		{
 			_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER);
-			connect(_hyperion, &Hyperion::systemImage, this, &CaptureCont::handleSystemImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &CaptureCont::handleSystemImage);
 		}
 		else
 		{
-			disconnect(_hyperion, &Hyperion::systemImage, this, &CaptureCont::handleSystemImage);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, 0, 0);
 			_hyperion->clear(_systemCaptPrio);
 		}
 		_systemCaptEnabled = enable;
@@ -75,11 +81,11 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		if(enable)
 		{
 			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L);
-			connect(_hyperion, &Hyperion::v4lImage, this, &CaptureCont::handleV4lImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, &CaptureCont::handleV4lImage);
 		}
 		else
 		{
-			disconnect(_hyperion, &Hyperion::v4lImage, this, &CaptureCont::handleV4lImage);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, 0, 0);
 			_hyperion->clear(_v4lCaptPrio);
 			_v4lInactiveTimer->stop();
 		}

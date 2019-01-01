@@ -28,11 +28,10 @@ class LinearColorSmoothing : public LedDevice
 
 public:
 	/// Constructor
-	/// @param LedDevice the led device
 	/// @param config    The configuration document smoothing
 	/// @param hyperion  The hyperion parent instance
 	///
-	LinearColorSmoothing(LedDevice *ledDevice, const QJsonDocument& config, Hyperion* hyperion);
+	LinearColorSmoothing(const QJsonDocument& config, Hyperion* hyperion);
 
 	/// Destructor
 	virtual ~LinearColorSmoothing();
@@ -71,12 +70,6 @@ public:
 	///
 	bool selectConfig(unsigned cfg, const bool& force = false);
 
-	///
-	/// @ Helper methods to start the timer with delay (see delayStartSmooth())
-	///
-	void startTimerDelayed();
-	void stopTimer();
-
 public slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
@@ -88,9 +81,6 @@ public slots:
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
-
-	/// Delay timer slot to workaround the leddevice reconstruction segfault (dangling pointer)
-	void delayStartTimer();
 
 	///
 	/// @brief Handle component state changes
@@ -106,9 +96,6 @@ private:
 	 * @param ledColors The colors to queue
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
-
-	/// The led device
-	LedDevice * _ledDevice;
 
 	/// Logger instance
 	Logger* _log;
