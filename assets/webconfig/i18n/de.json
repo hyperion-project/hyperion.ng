@@ -285,6 +285,7 @@
 	"InfoDialog_nowrite_text" : "Hyperion hat keinen Schreibzugriff auf die aktuell geladene Konfiguration. Bitte korrigiere die Dateizugriffsrechte um fortzufahren.",
 	"InfoDialog_nowrite_foottext" : "Die Webkonfiguration wird automatisch wieder freigegeben, sobald das Problem behoben wurde!",
 	"infoDialog_wizrgb_text" : "Deine RGB Byte Reihenfolge ist bereits richtig eingestellt.",
+	"infoDialog_writeimage_error_text": "Die ausgewählte Datei \"$1\" ist keine Bilddatei oder ist beschädigt! Bitte wähle eine andere Bilddatei aus.",
 	"infoDialog_writeconf_error_text" : "Das speichern der Konfiguration ist fehlgeschlagen.",
 	"infoDialog_import_jsonerror_text" : "Die ausgewählte Konfigurations-Datei \"$1\" ist keine .json Datei oder ist beschädigt! Fehlermeldung: ($2)",
 	"infoDialog_import_hyperror_text" : "Die ausgewählte Konfigurations-Datei \"$1\" kann nicht importiert werden. Sie ist nicht kompatibel mit Hyperion 2.0 und höher!",

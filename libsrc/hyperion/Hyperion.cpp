@@ -529,9 +529,9 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout, co
 	return _effectEngine->runEffect(effectName, priority, timeout, origin);
 }
 
-int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString & pythonScript, const QString & origin)
+int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, const QString &imageData)
 {
-	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin);
+	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin, 0, imageData);
 }
 
 void Hyperion::setLedMappingType(const int& mappingType)

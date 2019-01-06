@@ -1,4 +1,18 @@
-# Install the required tools and dependencies
+# With Docker
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compilation for Raspberry Pi (Raspbian stretch)
+
+To compile Hyperion for Ubuntu 16.04 (x64) or higher just execute the following command
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
+```
+To compile Hyperion for Raspberry Pi
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t cross-qemu-rpistretch
+```
+The compiled binaries and packages will be available at the deploy folder next to the script
+Note: call the script with `./docker-compile.sh -h` for more options
+
+# The usual way
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
 
@@ -60,12 +74,12 @@ sudo make install/strip
 sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond
-# webui is located on localhost:8099
+# webui is located on localhost:8090 or 8091
 ```
 
 
 ### Download
- Create hyperion directory and checkout the code from github
+ Creates hyperion directory and checkout the code from github
 
 You might want to add `--depth 1` to the `git` command if you only want to compile the current source and have no need for the entire git repository
 
@@ -74,7 +88,7 @@ export HYPERION_DIR="hyperion"
 git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 ```
 
-**Note:** If you forget the --recursive in above statement or you are updating an existing clone you need to clone the protobuf submodule by runnning the follwing two statements:
+**Note:** If you forget the --recursive in above statement or you are updating an existing clone you need to clone the flatbuffers submodule by runnning the follwing two statements:
 ```
 git submodule init
 git submodule update

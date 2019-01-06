@@ -316,8 +316,6 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 	$('#'+container).off();
 	$('#'+container).html("");
 
-	//JSONEditor.plugins.selectize.enable = true;
-
 	if (typeof arrayre === 'undefined')
 		arrayre = true;
 

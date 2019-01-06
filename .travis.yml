@@ -5,11 +5,20 @@ cache:
 notifications:
     email: false
 language: cpp
+services:
+    - docker
 matrix:
   include:
     - os: linux
       dist: trusty
-      sudo: required
+      env:
+          - DOCKER_TAG=ubuntu1604
+          - DOCKER_NAME="Ubuntu 16.04"
+    - os: linux
+      dist: trusty
+      env:
+          - DOCKER_TAG=cross-qemu-rpistretch
+          - DOCKER_NAME="Raspberry Pi"
     - os: osx
       osx_image: xcode7.3
       env:
@@ -18,6 +27,5 @@ before_install:
     - ./.travis/travis_install.sh
 script:
     - ./.travis/travis_build.sh
-    - ./test/testrunner.sh
 after_success:
     - ./.travis/travis_deploy.sh

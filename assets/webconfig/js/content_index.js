@@ -41,7 +41,7 @@ $(document).ready( function() {
 		currentVersion = sysInfo.hyperion.version;
 	});
 
-	$(hyperion).on("cmd-config-getschema", function(event) {
+	$(hyperion).one("cmd-config-getschema", function(event) {
 		serverSchema = event.response.info;
 		requestServerConfig();
 
@@ -63,7 +63,7 @@ $(document).ready( function() {
 		requestServerConfigSchema();
 	});
 
-	$(hyperion).on("ready", function(event) {
+	$(hyperion).one("ready", function(event) {
 		loadContent();
 	});
 

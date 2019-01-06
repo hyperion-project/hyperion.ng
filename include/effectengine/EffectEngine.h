@@ -74,7 +74,15 @@ public slots:
 	int runEffect(const QString &effectName, int priority, int timeout = -1, const QString &origin="System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, const QJsonObject & args, int priority, int timeout = -1, const QString &pythonScript = "", const QString &origin = "System", unsigned smoothCfg=0);
+	int runEffect(const QString &effectName
+				, const QJsonObject &args
+				, int priority
+				, int timeout = -1
+				, const QString &pythonScript = ""
+				, const QString &origin = "System"
+				, unsigned smoothCfg=0
+				, const QString &imageData = ""
+	);
 
 	/// Clear any effect running on the provided channel
 	void channelCleared(int priority);
@@ -92,7 +100,15 @@ private slots:
 
 private:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffectScript(const QString &script, const QString &name, const QJsonObject & args, int priority, int timeout = -1, const QString & origin="System", unsigned smoothCfg=0);
+	int runEffectScript(const QString &script
+				,const QString &name
+				, const QJsonObject &args
+				, int priority
+				, int timeout = -1
+				, const QString &origin="System"
+				, unsigned smoothCfg=0
+				, const QString &imageData = ""
+	);
 
 private:
 	Hyperion * _hyperion;

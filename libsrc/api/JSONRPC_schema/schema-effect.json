@@ -44,6 +44,10 @@
 		"pythonScript" : {
 			"type" : "string",
 			"required" : false
+		},
+		"imageData" : {
+			"type" : "string",
+			"required" : false
 		}
 	},
 	"additionalProperties": false

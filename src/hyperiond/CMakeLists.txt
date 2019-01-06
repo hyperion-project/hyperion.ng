@@ -1,4 +1,4 @@
-find_package(PythonLibs 3.5 REQUIRED)
+find_package(PythonLibs 3.4 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 
 add_executable(hyperiond
@@ -55,7 +55,9 @@ if (ENABLE_X11)
 	target_link_libraries(hyperiond	x11-grabber	)
 endif ()
 
-qt5_use_modules(hyperiond Core Gui Network Widgets)
+if (ENABLE_QT)
+	target_link_libraries(hyperiond	qt-grabber	)
+endif ()
 
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )

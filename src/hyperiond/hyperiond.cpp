@@ -60,6 +60,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _amlGrabber(nullptr)
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
+	, _qtGrabber(nullptr)
 	, _hyperion(nullptr)
 	, _stats(nullptr)
 	, _ssdp(nullptr)
@@ -155,7 +156,8 @@ void HyperionDaemon::freeObjects()
 	delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
-	
+	delete _qtGrabber;
+
 	for(V4L2Wrapper* grabber : _v4l2Grabbers)
 	{
 		delete grabber;
@@ -168,6 +170,7 @@ void HyperionDaemon::freeObjects()
 	_dispmanx       = nullptr;
 	_fbGrabber      = nullptr;
 	_osxGrabber     = nullptr;
+	_qtGrabber      = nullptr;
 	_webserver      = nullptr;
 	_jsonServer     = nullptr;
 	_udpListener    = nullptr;
@@ -269,10 +272,10 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			{
 				type = "x11";
 			}
-			// framebuffer -> if nothing other applies
+			// qt -> if nothing other applies
 			else
 			{
-				type = "framebuffer";
+				type = "qt";
 			}
 		}
 
@@ -295,6 +298,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			#endif
 			#ifdef ENABLE_X11
 			if(_x11Grabber != nullptr) _x11Grabber->stop();
+			#endif
+			#ifdef ENABLE_QT
+			if(_qtGrabber != nullptr) _qtGrabber->stop();
 			#endif
 
 			// create/start capture interface
@@ -337,6 +343,19 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 				#ifdef ENABLE_X11
 				_x11Grabber->start();
 				#endif
+			}
+			else if(type == "qt")
+			{
+				if(_qtGrabber == nullptr)
+					createGrabberQt(grabberConfig);
+				#ifdef ENABLE_QT
+				_qtGrabber->start();
+				#endif
+			}
+			else
+			{
+				Error(_log,"Unknown platform capture type: %s", QSTRING_CSTR(type));
+				return;
 			}
 			_prevType = type;
 		}
@@ -446,6 +465,24 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 #endif
 }
 
+void HyperionDaemon::createGrabberQt(const QJsonObject & grabberConfig)
+{
+#ifdef ENABLE_QT
+	_qtGrabber = new QtWrapper(
+				_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
+				grabberConfig["pixelDecimation"].toInt(8),
+				grabberConfig["display"].toInt(0),
+				_grabber_frequency );
+
+	// connect to HyperionDaemon signal
+	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _qtGrabber, &QtWrapper::handleSettingsUpdate);
+
+	Info(_log, "Qt grabber created");
+#else
+	Error(_log, "The Qt grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
 
 void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 {

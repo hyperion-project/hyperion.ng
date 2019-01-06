@@ -25,7 +25,7 @@
 //impl
 PyThreadState* mainThreadState;
 
-Effect::Effect(Hyperion* hyperion, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args)
+Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
 	, _hyperion(hyperion)
 	, _priority(priority)
@@ -33,6 +33,7 @@ Effect::Effect(Hyperion* hyperion, int priority, int timeout, const QString & sc
 	, _script(script)
 	, _name(name)
 	, _args(args)
+	, _imageData(imageData)
 	, _endTime(-1)
 	, _colors()
 	, _imageSize(hyperion->getLedGridSize())

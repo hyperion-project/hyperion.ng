@@ -12,9 +12,6 @@
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
-// #include <QFileInfo>
-// #include <QDir>
-// #include <QIODevice>
 #include <QDateTime>
 
 // hyperion includes
@@ -180,7 +177,7 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleEffectCommand(const QJsonObject& message, const QString& command, const int tan)
+void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &command, const int tan)
 {
 	emit forwardJsonMessage(message);
 
@@ -191,16 +188,12 @@ void JsonAPI::handleEffectCommand(const QJsonObject& message, const QString& com
 	QString origin = message["origin"].toString() + "@"+_peerAddress;
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
+	const QString & data = message["imageData"].toString("").toUtf8();
 
 	// set output
-	if (effect.contains("args"))
-	{
-		_hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript, origin);
-	}
-	else
-	{
-		_hyperion->setEffect(effectName, priority, duration, origin);
-	}
+	 (effect.contains("args"))
+		? _hyperion->setEffect(effectName, effect["args"].toObject(), priority, duration, pythonScript, origin, data)
+		: _hyperion->setEffect(effectName, priority, duration, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);

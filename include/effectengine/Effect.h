@@ -28,7 +28,14 @@ class Effect : public QThread
 public:
 	friend class EffectModule;
 
-	Effect(Hyperion* hyperion, int priority, int timeout, const QString & script, const QString & name, const QJsonObject & args = QJsonObject());
+	Effect(Hyperion *hyperion
+				, int priority
+				, int timeout
+				, const QString &script
+				, const QString &name
+				, const QJsonObject &args = QJsonObject()
+				, const QString &imageData = ""
+	);
 	virtual ~Effect();
 
 	virtual void run();
@@ -55,14 +62,14 @@ public:
 	QJsonObject getArgs() const { return _args; }
 
 signals:
-	void setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms, const bool& clearEffect);
-	void setInputImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms, const bool& clearEffect);
+	void setInput(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, const bool &clearEffect);
+	void setInputImage(const int priority, const Image<ColorRgb> &image, const int timeout_ms, const bool &clearEffect);
 
 private:
 
 	void addImage();
 
-	Hyperion* _hyperion;
+	Hyperion *_hyperion;
 
 	const int _priority;
 
@@ -72,18 +79,19 @@ private:
 	const QString _name;
 
 	const QJsonObject _args;
+	const QString _imageData;
 
 	int64_t _endTime;
 
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
 
-	Logger* _log;
+	Logger *_log;
 	// Reflects whenever this effects should interupt (timeout or external request)
 	bool _interupt = false;
 
 	QSize           _imageSize;
 	QImage          _image;
-	QPainter*       _painter;
+	QPainter       *_painter;
 	QVector<QImage> _imageStack;
 };

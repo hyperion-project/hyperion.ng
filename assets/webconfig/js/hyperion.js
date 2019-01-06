@@ -270,15 +270,15 @@ function requestWriteConfig(config, full)
 	sendToHyperion("config","setconfig", '"config":'+JSON.stringify(serverConfig));
 }
 
-function requestWriteEffect(effectName,effectPy,effectArgs)
+function requestWriteEffect(effectName,effectPy,effectArgs,data)
 {
 	var cutArgs = effectArgs.slice(1, -1);
-	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs);
+	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+',"imageData":"'+data+'"');
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs)
+function requestTestEffect(effectName,effectPy,effectArgs,data)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
 }
 
 function requestDeleteEffect(effectName)

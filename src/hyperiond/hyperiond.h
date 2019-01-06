@@ -39,6 +39,12 @@
 	typedef QObject X11Wrapper;
 #endif
 
+#ifdef ENABLE_QT
+	#include <grabber/QtWrapper.h>
+#else
+	typedef QObject QtWrapper;
+#endif
+
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/VideoMode.h>
@@ -122,6 +128,7 @@ private:
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
+	void createGrabberQt(const QJsonObject & grabberConfig);
 
 	Logger*                _log;
 	BonjourBrowserWrapper* _bonjourBrowserWrapper;
@@ -135,6 +142,7 @@ private:
 	AmlogicWrapper*        _amlGrabber;
 	FramebufferWrapper*    _fbGrabber;
 	OsxWrapper*            _osxGrabber;
+	QtWrapper*             _qtGrabber;
 	Hyperion*              _hyperion;
 	Stats*                 _stats;
 	SSDPHandler*           _ssdp;

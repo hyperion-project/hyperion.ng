@@ -136,7 +136,7 @@
 	],
 
 	///  The configuration for the frame-grabber, contains the following items:
-	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer) [auto]
+	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer|qt) [auto]
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
@@ -155,8 +155,11 @@
 		"width"        : 96,
 		"height"       : 96,
 
-		// valid for x11
+		// valid for x11|qt
 		"pixelDecimation"           : 8,
+
+		// valid for qt
+		"display" 0,
 
 		// valid for framebuffer
 		"device"     : "/dev/fb0"

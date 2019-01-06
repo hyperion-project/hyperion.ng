@@ -18,6 +18,9 @@
 // Define to enable the x11 grabber
 #cmakedefine ENABLE_X11
 
+// Define to enable the qt grabber
+#cmakedefine ENABLE_QT
+
 // Define to enable the spi-device
 #cmakedefine ENABLE_SPIDEV
 
@@ -42,5 +45,3 @@
 #define HYPERION_VERSION       "${HYPERION_VERSION_MAJOR}.${HYPERION_VERSION_MINOR}.${HYPERION_VERSION_PATCH}"
 
 #define HYPERION_JSON_VERSION "1.0.0"
-
-

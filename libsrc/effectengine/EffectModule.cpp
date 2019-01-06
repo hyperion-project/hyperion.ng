@@ -11,6 +11,7 @@
 #include <QJsonArray>
 #include <QDateTime>
 #include <QImageReader>
+#include <QBuffer>
 
 // create the hyperion module
 struct PyModuleDef EffectModule::moduleDef = {
@@ -257,25 +258,42 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 {
-	Q_INIT_RESOURCE(EffectEngine);
+	Effect *effect = getEffect();
 
-	char *source;
-	if(!PyArg_ParseTuple(args, "s", &source))
+	QString file;
+	QBuffer buffer;
+	QImageReader reader;
+
+	if (effect->_imageData.isEmpty())
 	{
-		PyErr_SetString(PyExc_TypeError, "String required");
-		return NULL;
+		Q_INIT_RESOURCE(EffectEngine);
+
+		char *source;
+		if(!PyArg_ParseTuple(args, "s", &source))
+		{
+			PyErr_SetString(PyExc_TypeError, "String required");
+			return NULL;
+		}
+
+		file = QString::fromUtf8(source);
+
+		if (file.mid(0, 1)  == ":")
+			file = ":/effects/"+file.mid(1);
+
+		reader.setDecideFormatFromContent(true);
+		reader.setFileName(file);
 	}
-
-	QString file = QString::fromUtf8(source);
-
-	if (file.mid(0, 1)  == ":")
-		file = ":/effects/"+file.mid(1);
-
-	QImageReader reader(file);
+	else
+	{
+		buffer.setData(QByteArray::fromBase64(effect->_imageData.toUtf8()));
+		buffer.open(QBuffer::ReadOnly);
+		reader.setDecideFormatFromContent(true);
+		reader.setDevice(&buffer);
+	}
 
 	if (reader.canRead())
 	{
-		PyObject* result = PyList_New(reader.imageCount());
+		PyObject *result = PyList_New(reader.imageCount());
 
 		for (int i = 0; i < reader.imageCount(); ++i)
 		{
@@ -290,7 +308,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 				QByteArray binaryImage;
 				for (int i = 0; i<height; ++i)
 				{
-					const QRgb * scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
+					const QRgb *scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
 					for (int j = 0; j< width; ++j)
 					{
 						binaryImage.append((char) qRed(scanline[j]));

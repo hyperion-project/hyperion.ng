@@ -136,14 +136,14 @@ int EffectEngine::runEffect(const QString &effectName, int priority, int timeout
 	return runEffect(effectName, QJsonObject(), priority, timeout, "", origin);
 }
 
-int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg)
+int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
 	Info( _log, "run effect %s on channel %d", QSTRING_CSTR(effectName), priority);
 
 	if (pythonScript.isEmpty())
 	{
-		const EffectDefinition * effectDefinition = nullptr;
-		for (const EffectDefinition & e : _availableEffects)
+		const EffectDefinition *effectDefinition = nullptr;
+		for (const EffectDefinition &e : _availableEffects)
 		{
 			if (e.name == effectName)
 			{
@@ -160,16 +160,16 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 
 		return runEffectScript(effectDefinition->script, effectName, (args.isEmpty() ? effectDefinition->args : args), priority, timeout, origin, effectDefinition->smoothCfg);
 	}
-	return runEffectScript(pythonScript, effectName, args, priority, timeout, origin, smoothCfg);
+	return runEffectScript(pythonScript, effectName, args, priority, timeout, origin, smoothCfg, imageData);
 }
 
-int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout, const QString & origin, unsigned smoothCfg)
+int EffectEngine::runEffectScript(const QString &script, const QString &name, const QJsonObject &args, int priority, int timeout, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
 	// clear current effect on the channel
 	channelCleared(priority);
 
 	// create the effect
-    Effect * effect = new Effect(_hyperion, priority, timeout, script, name, args);
+    Effect *effect = new Effect(_hyperion, priority, timeout, script, name, args, imageData);
 	connect(effect, &Effect::setInput, _hyperion, &Hyperion::setInput, Qt::QueuedConnection);
 	connect(effect, &Effect::setInputImage, _hyperion, &Hyperion::setInputImage, Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);

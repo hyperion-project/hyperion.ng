@@ -285,6 +285,7 @@
 	"InfoDialog_nowrite_text" : "Hyperion can't write to your current loaded configuration file. Please repair the file permissions to proceed.",
 	"InfoDialog_nowrite_foottext" : "The WebUI will be unlocked automatically after you solved the problem!",
 	"infoDialog_wizrgb_text" : "Your RGB Byte Order is already well adjusted.",
+	"infoDialog_writeimage_error_text": "The selected file \"$1\" is no image file or it's corrupted! Please select another image file.",
 	"infoDialog_writeconf_error_text" : "Saving your configuration failed.",
 	"infoDialog_import_jsonerror_text" : "The selected configuration file \"$1\" is no .json file or it's corrupted. Error message: ($2)",
 	"infoDialog_import_hyperror_text" : "The selected configuration file \"$1\" can't be imported. It's not compatible with Hyperion 2.0 and higher!",

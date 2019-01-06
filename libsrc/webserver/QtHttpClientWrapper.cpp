@@ -23,6 +23,8 @@ QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, QtHttpServer * pare
     , m_sockClient     (sock)
     , m_currentRequest (Q_NULLPTR)
     , m_serverHandle   (parent)
+    , m_websocketClient(nullptr)
+    , m_webJsonRpc     (nullptr)
 {
     connect (m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }

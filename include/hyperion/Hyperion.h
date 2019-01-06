@@ -360,8 +360,14 @@ public slots:
 	/// @param args arguments of the effect script
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, const QJsonObject & args, int priority,
-				  int timeout = -1, const QString & pythonScript = "", const QString & origin="System");
+	int setEffect(const QString &effectName
+				, const QJsonObject &args
+				, int priority
+				, int timeout = -1
+				, const QString &pythonScript = ""
+				, const QString &origin="System"
+				, const QString &imageData = ""
+	);
 
 	/// sets the methode how image is maped to leds at ImageProcessor
 	void setLedMappingType(const int& mappingType);

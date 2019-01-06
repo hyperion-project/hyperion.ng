@@ -50,8 +50,8 @@ private:
     QTcpSocket    *   m_sockClient;
     QtHttpRequest *   m_currentRequest;
     QtHttpServer  *   m_serverHandle;
-	WebSocketClient * m_websocketClient = nullptr;
-	WebJsonRpc *      m_webJsonRpc = nullptr;
+	WebSocketClient * m_websocketClient;
+	WebJsonRpc *      m_webJsonRpc;
 };
 
 #endif // QTHTTPCLIENTWRAPPER_H

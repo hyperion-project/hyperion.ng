@@ -4,4 +4,4 @@
 	branch = master
 [submodule "dependencies/external/flatbuffers"]
 	path = dependencies/external/flatbuffers
-	url = git://github.com/google/flatbuffers.git
+	url = https://github.com/google/flatbuffers

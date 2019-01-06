@@ -168,7 +168,9 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const std::vector<unsigned> & colors) const
 		{
-			if (colors.size() == 0)
+			const auto colorVecSize = colors.size();
+
+			if (colorVecSize == 0)
 			{
 				return ColorRgb::BLACK;
 			}
@@ -177,18 +179,20 @@ namespace hyperion
 			uint_fast16_t cummRed   = 0;
 			uint_fast16_t cummGreen = 0;
 			uint_fast16_t cummBlue  = 0;
+			const auto& imgData = image.memptr();
+
 			for (const unsigned colorOffset : colors)
 			{
-				const Pixel_T& pixel = image.memptr()[colorOffset];
+				const auto& pixel = imgData[colorOffset];
 				cummRed   += pixel.red;
 				cummGreen += pixel.green;
 				cummBlue  += pixel.blue;
 			}
 
 			// Compute the average of each color channel
-			const uint8_t avgRed   = uint8_t(cummRed/colors.size());
-			const uint8_t avgGreen = uint8_t(cummGreen/colors.size());
-			const uint8_t avgBlue  = uint8_t(cummBlue/colors.size());
+			const uint8_t avgRed   = uint8_t(cummRed/colorVecSize);
+			const uint8_t avgGreen = uint8_t(cummGreen/colorVecSize);
+			const uint8_t avgBlue  = uint8_t(cummBlue/colorVecSize);
 
 			// Return the computed color
 			return {avgRed, avgGreen, avgBlue};
@@ -211,9 +215,11 @@ namespace hyperion
 			uint_fast16_t cummBlue  = 0;
 			const unsigned imageSize = image.width() * image.height();
 
+			const auto& imgData = image.memptr();
+
 			for (unsigned idx=0; idx<imageSize; idx++)
 			{
-				const Pixel_T& pixel = image.memptr()[idx];
+				const auto& pixel = imgData[idx];
 				cummRed   += pixel.red;
 				cummGreen += pixel.green;
 				cummBlue  += pixel.blue;

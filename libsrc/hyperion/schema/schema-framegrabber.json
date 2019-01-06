@@ -7,7 +7,7 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_fg_type_title",
-			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer"],
+			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer","qt"],
 			"default" : "auto",
 			"propertyOrder" : 2
 		},

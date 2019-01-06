@@ -10,7 +10,7 @@ $(document).ready(function() {
 	var canvas_height;
 	var canvas_width;
 	var twoDPaths = [];
-	var toggleLeds = false;
+	var toggleLeds, toggleLedsNum = false;
 
 	/// add prototype for simple canvas clear() method
 	CanvasRenderingContext2D.prototype.clear = function(){
@@ -148,9 +148,17 @@ $(document).ready(function() {
 			// can be used as fallback when Path2D is not available
 			//roundRect(ledsCanvasNodeCtx, led.hscan.minimum * canvas_width, led.vscan.minimum * canvas_height, (led.hscan.maximum-led.hscan.minimum) * canvas_width, (led.vscan.maximum-led.vscan.minimum) * canvas_height, 4, true, colors[idx])
 			//ledsCanvasNodeCtx.fillRect(led.hscan.minimum * canvas_width, led.vscan.minimum * canvas_height, (led.hscan.maximum-led.hscan.minimum) * canvas_width, (led.vscan.maximum-led.vscan.minimum) * canvas_height);
+			
 			ledsCanvasNodeCtx.fillStyle = (useColor) ?  "rgba("+colors[idx].red+","+colors[idx].green+","+colors[idx].blue+",0.9)"  : "hsl("+(idx*360/leds.length)+",100%,50%)";
 			ledsCanvasNodeCtx.fill(twoDPaths[idx]);
 			ledsCanvasNodeCtx.stroke(twoDPaths[idx]);
+
+			if(toggleLedsNum)
+			{
+				ledsCanvasNodeCtx.fillStyle = "blue";
+				ledsCanvasNodeCtx.textAlign = "center";
+				ledsCanvasNodeCtx.fillText(idx, (led.hscan.minimum * canvas_width) + ( ((led.hscan.maximum-led.hscan.minimum) * canvas_width) / 2), (led.vscan.minimum * canvas_height) + ( ((led.vscan.maximum-led.vscan.minimum) * canvas_height) / 2));
+			}
 		}
 	}
 
@@ -173,12 +181,11 @@ $(document).ready(function() {
 		resetImage()
 	}
 
-	// -----------------------FIX THIS-------------------------
 	// ------------------------------------------------------------------
-	// $('#leds_toggle_num').off().on("click", function() {
-	//	$('.led_num').toggle();
-	//	toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
-	//});
+	$('#leds_toggle_num').off().on("click", function() {
+		toggleLedsNum = !toggleLedsNum
+		toggleClass('#leds_toggle_num', "btn-danger", "btn-success");
+	});
 	// ------------------------------------------------------------------
 
 	$('#leds_toggle').off().on("click", function() {

@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QMap>
+#include <QByteArray>
 
 // createEffect helper
 struct find_schema: std::unary_function<EffectSchema, bool>
@@ -69,7 +70,15 @@ const bool EffectFileHandler::deleteEffect(const QString& effectName, QString& r
 		{
 			if (effectConfigurationFile.exists())
 			{
+				if ( (it->script == ":/effects/gif.py") && !it->args.value("image").toString("").isEmpty())
+				{
+					QFileInfo effectImageFile(effectConfigurationFile.absolutePath() + "/" + it->args.value("image").toString());
+						if (effectImageFile.exists())
+							QFile::remove(effectImageFile.absoluteFilePath());
+				}
+
 				bool result = QFile::remove(effectConfigurationFile.absoluteFilePath());
+
 				if (result)
 				{
 					updateEffects();
@@ -139,6 +148,17 @@ const bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& re
 					// TODO global special keyword handling
 					QString f = effectArray[0].toString().replace("$ROOT",_rootPath) + "/" + message["name"].toString().replace(QString(" "), QString("")) + QString(".json");
 					newFileName.setFile(f);
+				}
+
+				//TODO check if filename exist
+				if (!message["imageData"].toString("").isEmpty() && !message["args"].toObject().value("image").toString("").isEmpty())
+				{
+					QFileInfo imageFileName(effectArray[0].toString().replace("$ROOT",_rootPath) + "/" + message["args"].toObject().value("image").toString());
+					if(!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
+					{
+						resultMsg = "Error while saving image file '" + message["args"].toObject().value("image").toString() + ", please check the Hyperion Log";
+						return false;
+					}
 				}
 
 				if(!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
