@@ -952,10 +952,6 @@ void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 	if(_pixelDecimation != pixelDecimation)
 	{
 		_pixelDecimation = pixelDecimation;
-		uninit();
-		// start if init is a success
-		if(init())
-			start();
 		_imageResampler.setHorizontalPixelDecimation(pixelDecimation);
 		_imageResampler.setVerticalPixelDecimation(pixelDecimation);
 	}

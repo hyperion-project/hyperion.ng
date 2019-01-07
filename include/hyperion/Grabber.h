@@ -35,6 +35,7 @@ public:
 
 	///
 	/// @brief Apply new width/height values, on errors (collide with cropping) reject the values
+	/// @return True on success else false
 	///
 	virtual bool setWidthHeight(int width, int height);
 

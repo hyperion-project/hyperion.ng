@@ -2,6 +2,7 @@
 #include <csignal>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifndef __APPLE__
 /* prctl is Linux only */
@@ -177,7 +178,7 @@ int main(int argc, char** argv)
 
 	if (logLevelCheck > 1)
 	{
-		Error(log, "aborting, because options --silent --verbose --debug can't used together");
+		Error(log, "aborting, because options --silent --verbose --debug can't be used together");
 		return 0;
 	}
 

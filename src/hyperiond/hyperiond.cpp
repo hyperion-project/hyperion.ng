@@ -419,8 +419,6 @@ void HyperionDaemon::createGrabberDispmanx()
 	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
 
-	_dispmanx->start();
-
 	Info(_log, "DISPMANX frame grabber created");
 #else
 	Error( _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
@@ -438,7 +436,6 @@ void HyperionDaemon::createGrabberAmlogic()
 	connect(this, &HyperionDaemon::videoMode, _amlGrabber, &AmlogicWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber, &AmlogicWrapper::handleSettingsUpdate);
 
-	_amlGrabber->start();
 	Info(_log, "AMLOGIC grabber created");
 #else
 	Error( _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
@@ -458,7 +455,6 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::videoMode, _x11Grabber, &X11Wrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
 
-	_x11Grabber->start();
 	Info(_log, "X11 grabber created");
 #else
 	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
@@ -496,7 +492,6 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber, &FramebufferWrapper::handleSettingsUpdate);
 
-	_fbGrabber->start();
 	Info(_log, "Framebuffer grabber created");
 #else
 	Error(_log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
@@ -516,7 +511,6 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
 	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber, &OsxWrapper::handleSettingsUpdate);
 
-	_osxGrabber->start();
 	Info(_log, "OSX grabber created");
 #else
 	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");

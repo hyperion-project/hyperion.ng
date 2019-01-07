@@ -25,7 +25,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	Q_INIT_RESOURCE(resources);
 
 	// webserver port
-	WebServer* webserver = _hyperiond->getWebServerInstance();
+	WebServer* webserver = hyperiond->getWebServerInstance();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
 
 	_hyperion = Hyperion::getInstance();
