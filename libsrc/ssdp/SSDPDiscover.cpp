@@ -88,7 +88,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 			//Info(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			if(type == STY_WEBSERVER)
 			{
-				Info(_log, "Found Hyperion server at: %s:%s", QSTRING_CSTR(url.host()), url.port());
+				Info(_log, "Found Hyperion server at: %s:%d", QSTRING_CSTR(url.host()), url.port());
 
 				return url.host()+":"+QString::number(url.port());
 			}

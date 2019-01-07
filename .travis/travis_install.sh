@@ -7,12 +7,12 @@
 if [[ $TRAVIS_OS_NAME == 'osx' || $TRAVIS_OS_NAME == 'darwin' ]]
 then
 	echo "Install OSX deps"
-	time brew update
-	time brew install qt5 || true
-	time brew install python3 || true
-	time brew install libusb || true
-	time brew install cmake || true
-	time brew install doxygen || true
+	brew update
+	brew install qt5 || true
+	brew upgrade python3 || true
+	brew upgrade libusb || true
+	brew upgrade cmake || true
+	brew install doxygen || true
 
 # install linux deps for hyperion compile
 elif [[ $TRAVIS_OS_NAME == 'linux' ]]
