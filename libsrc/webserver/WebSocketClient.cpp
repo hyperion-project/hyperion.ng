@@ -115,14 +115,14 @@ void WebSocketClient::handleWebSocketFrame(void)
 			if (_wsh.fin)
 			{
 				_onContinuation = false;
-				if (_wsh.opCode == OPCODE::TEXT)
-				{
+//				if (_wsh.opCode == OPCODE::TEXT)
+//				{
 					_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
-				}
-				else
-				{
-					handleBinaryMessage(_wsReceiveBuffer);
-				}
+//				}
+//				else
+//				{
+//					handleBinaryMessage(_wsReceiveBuffer);
+//				}
 				_wsReceiveBuffer.clear();
 			}
 		}
