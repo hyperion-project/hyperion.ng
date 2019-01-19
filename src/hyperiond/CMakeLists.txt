@@ -52,17 +52,21 @@ if (ENABLE_AMLOGIC)
 endif ()
 
 if (ENABLE_X11)
-	target_link_libraries(hyperiond	x11-grabber	)
+	target_link_libraries(hyperiond	x11-grabber)
 endif ()
 
 if (ENABLE_QT)
-	target_link_libraries(hyperiond	qt-grabber	)
+	target_link_libraries(hyperiond	qt-grabber)
 endif ()
 
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )
 install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "share/hyperion/effects" COMPONENT  "${PLATFORM}" )
 install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "share/hyperion/icons" COMPONENT "${PLATFORM}" )
+
+# Desktop file for hyperiond
+install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
+install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT  "${PLATFORM}" )

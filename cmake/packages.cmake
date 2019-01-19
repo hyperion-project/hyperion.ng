@@ -1,15 +1,28 @@
 # cmake file for generating distribution packages
 
+# default packages to build
 IF (APPLE)
 	SET ( CPACK_GENERATOR "TGZ" "Bundle")
 ELSEIF (UNIX)
-	SET ( CPACK_GENERATOR "DEB" "TGZ" "STGZ") # "RPM"
+	SET ( CPACK_GENERATOR "TGZ" "STGZ")
 ELSEIF (WIN32)
-	SET ( CPACK_GENERATOR "ZIP" "NSIS")
+	SET ( CPACK_GENERATOR "ZIP")
+ENDIF()
+
+# Determine packages by found generator executables
+find_package(RpmBuilder)
+find_package(DebBuilder)
+IF(RPM_BUILDER_FOUND)
+	message("CPACK: Found RPM builder")
+	SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "RPM")
+ENDIF()
+IF(DEB_BUILDER_FOUND)
+	message("CPACK: Found DEB builder")
+	SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "DEB")
 ENDIF()
 
 # Apply to all packages, some of these can be overwritten with generator specific content
-# https://cmake.org/cmake/help/v3.0/module/CPack.html
+# https://cmake.org/cmake/help/v3.5/module/CPack.html
 
 SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
@@ -27,18 +40,22 @@ SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
-# .deb files for dpkg
+# .deb files for apt
 
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
 SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.5.0), libqt5network5 (>= 5.5.0), libqt5gui5 (>= 5.5.0), libqt5serialport5 (>= 5.5.0), libqt5sql5 (>= 5.5.0), libqt5sql5-sqlite (>= 5.5.0), libavahi-core7 (>= 0.6.31), libavahi-compat-libdnssd1 (>= 0.6.31), libusb-1.0-0, libpython3.5, libc6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
+https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
-SET ( CPACK_RPM_PACKAGE_LICENSE "unknown")
-SET ( CPACK_RPM_PACKAGE_GROUP "unknown")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "libqt5core5a >= 5.5.0, libqt5network5 >= 5.5.0, libqt5gui5 >= 5.5.0, libqt5serialport5 >= 5.5.0, libqt5sql5 >= 5.5.0, libqt5sql5-sqlite >= 5.5.0, libavahi-core7 >= 0.6.31, libavahi-compat-libdnssd1 >= 0.6.31, libusb-1.0-0, libpython3.5, libc6")
+SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
+SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
+SET ( CPACK_RPM_PACKAGE_REQUIRES "qt5-qtbase >= 5.5.0, qt5-qtbase-gui >= 5.5.0, qt5-qtserialport >= 5.5.0, avahi-libs >= 0.6.31, avahi-compat-libdns_sd >= 0.6.31, libusbx, python35 >= 3.5.0")
+# Notes: This is a dependency list for Fedora 27, different .rpm OSes use different names for their deps
+SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
+SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
 
 # OSX "Bundle" generator TODO Add more osx generators
 # https://cmake.org/cmake/help/v3.10/module/CPackBundle.html

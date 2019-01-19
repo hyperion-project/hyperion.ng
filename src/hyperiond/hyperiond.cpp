@@ -371,10 +371,10 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 		const QJsonArray & v4lArray = config.array();
 		for ( signed idx=0; idx<v4lArray.size(); idx++)
 		{
+			#ifdef ENABLE_V4L2
+
 			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();
 
-
-			#ifdef ENABLE_V4L2
 			V4L2Wrapper* grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),

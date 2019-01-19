@@ -91,6 +91,15 @@ ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 
+# install desktop icons
+echo "---> Install Hyperion desktop icons"
+mkdir /usr/share/pixmaps/hyperion 2>/dev/null
+cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
+desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+
+# cleanup desktop icons
+rm -r /usr/share/hyperion/desktop 2>/dev/null
+
 #Check, if dtparam=spi=on is in place
 if [ $CPU_RPI -eq 1 ]; then
 	BOOT_DIR="/boot"

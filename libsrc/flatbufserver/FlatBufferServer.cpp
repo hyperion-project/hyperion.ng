@@ -97,7 +97,7 @@ void FlatBufferServer::stopServer()
 	if(_server->isListening())
 	{
 		// close client connections
-		for(auto client : _openConnections)
+		for(const auto& client : _openConnections)
 		{
 			client->forceClose();
 		}

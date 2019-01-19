@@ -9,7 +9,7 @@ Environment=LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 ExecStart=./hyperiond /storage/.config/hyperion/hyperion.config.json
 TimeoutStopSec=5
 KillMode=mixed
-Restart=always
+Restart=on-failure
 RestartSec=2
 
 [Install]
