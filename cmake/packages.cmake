@@ -47,7 +47,7 @@ SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.5.0), libqt5network5 (>= 
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
-https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
+# https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
