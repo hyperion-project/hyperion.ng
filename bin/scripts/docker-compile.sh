@@ -82,7 +82,7 @@ mkdir $SCRIPT_PATH/deploy >/dev/null 2>&1
 # get Hyperion source, cleanup previous folder
 echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
 sudo rm -fr $SCRIPT_PATH/hyperion >/dev/null 2>&1
-git clone --recursive --depth 1 -q -b rework $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
 
 # start compilation
 # Remove container after stop
