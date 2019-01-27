@@ -1,18 +1,16 @@
 #pragma once
 
 #include <utils/Logger.h>
-#include "WebSocketUtils.h"
+#include "webserver/WebSocketUtils.h"
+#include <QJsonObject>
 
 class QTcpSocket;
-
-class QtHttpRequest;
-class Hyperion;
 class JsonAPI;
 
 class WebSocketClient : public QObject {
 	Q_OBJECT
 public:
-	WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, QObject* parent);
+	WebSocketClient(QByteArray socketKey, QTcpSocket* sock, QObject* parent);
 
 	struct WebSocketHeader
 	{
@@ -25,13 +23,13 @@ public:
 
 private:
 	QTcpSocket* _socket;
+	QByteArray _secWebSocketKey;
 	Logger* _log;
-	Hyperion* _hyperion;
 	JsonAPI* _jsonAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);
 	void sendClose(int status, QString reason = "");
-	void handleBinaryMessage(QByteArray &data);
+//	void handleBinaryMessage(QByteArray &data);
 	qint64 sendMessage_Raw(const char* data, quint64 size);
 	qint64 sendMessage_Raw(QByteArray &data);
 	QByteArray makeFrameHeader(quint8 opCode, quint64 payloadLength, bool lastFrame);

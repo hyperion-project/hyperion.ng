@@ -6,6 +6,7 @@
         <file alias="schema-serverinfo">JSONRPC_schema/schema-serverinfo.json</file>
         <file alias="schema-sysinfo">JSONRPC_schema/schema-sysinfo.json</file>
         <file alias="schema-clear">JSONRPC_schema/schema-clear.json</file>
+        <file alias="schema-clearall">JSONRPC_schema/schema-clearall.json</file>
         <file alias="schema-adjustment">JSONRPC_schema/schema-adjustment.json</file>
         <file alias="schema-effect">JSONRPC_schema/schema-effect.json</file>
         <file alias="schema-create-effect">JSONRPC_schema/schema-create-effect.json</file>
@@ -17,5 +18,9 @@
         <file alias="schema-logging">JSONRPC_schema/schema-logging.json</file>
         <file alias="schema-processing">JSONRPC_schema/schema-processing.json</file>
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
+        <!-- The following schemas are derecated but used to ensure backward compatibility with hyperion Classic remote control-->
+        <file alias="schema-transform">JSONRPC_schema/schema-hyperion-classic.json</file>
+        <file alias="schema-correction">JSONRPC_schema/schema-hyperion-classic.json</file>
+        <file alias="schema-temperature">JSONRPC_schema/schema-hyperion-classic.json</file>
     </qresource>
 </RCC>

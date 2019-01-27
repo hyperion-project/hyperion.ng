@@ -10,9 +10,10 @@
 
 class JsonAPI;
 class QTcpSocket;
+class WebSocketClient;
 
 ///
-/// The Connection object created by \a JsonServer when a new connection is establshed
+/// The Connection object created by \a JsonServer when a new connection is established
 ///
 class JsonClientConnection : public QObject
 {
@@ -41,6 +42,7 @@ private slots:
 
 private:
 	QTcpSocket* _socket;
+	WebSocketClient* _websocketClient;
 	/// new instance of JsonAPI
 	JsonAPI * _jsonAPI;
 

@@ -4,8 +4,8 @@
 #include "QtHttpReply.h"
 #include "QtHttpServer.h"
 #include "QtHttpHeader.h"
-#include "WebSocketClient.h"
 #include "WebJsonRpc.h"
+#include "webserver/WebSocketClient.h"
 
 #include <QCryptographicHash>
 #include <QTcpSocket>
@@ -120,7 +120,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
 						{
 							// disconnect this slot from socket for further requests
 							disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
-							m_websocketClient = new WebSocketClient(m_currentRequest, m_sockClient, this);
+							m_websocketClient = new WebSocketClient(m_currentRequest->getHeader(QtHttpHeader::SecWebSocketKey), m_sockClient, this);
 						}
 						break;
 					}

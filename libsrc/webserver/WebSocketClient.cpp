@@ -1,4 +1,4 @@
-#include "WebSocketClient.h"
+#include "webserver/WebSocketClient.h"
 
 // hyperion includes
 #include <hyperion/Hyperion.h>
@@ -7,25 +7,23 @@
 #include <api/JsonAPI.h>
 
 // qt includes
-#include "QtHttpRequest.h"
-#include "QtHttpHeader.h"
 #include <QTcpSocket>
 #include <QtEndian>
 #include <QCryptographicHash>
 #include <QJsonObject>
+#include <QHostAddress>
 
-WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, QObject* parent)
+
+WebSocketClient::WebSocketClient(QByteArray socketKey, QTcpSocket* sock, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
+	, _secWebSocketKey(socketKey)
 	, _log(Logger::getInstance("WEBSOCKET"))
-	, _hyperion(Hyperion::getInstance())
 {
 	// connect socket; disconnect handled from QtHttpServer
 	connect(_socket, &QTcpSocket::readyRead , this, &WebSocketClient::handleWebSocketFrame);
 
-	// QtHttpRequest contains all headers for handshake
-	QByteArray secWebSocketKey = request->getHeader(QtHttpHeader::SecWebSocketKey);
-	const QString client = request->getClientInfo().clientAddress.toString();
+	const QString client = sock->peerAddress().toString();
 
 	// Json processor
 	_jsonAPI = new JsonAPI(client, _log, this);
@@ -34,8 +32,8 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, QObje
 	Debug(_log, "New connection from %s", QSTRING_CSTR(client));
 
 	// do handshake
-	secWebSocketKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-	QByteArray hash = QCryptographicHash::hash(secWebSocketKey, QCryptographicHash::Sha1).toBase64();
+	_secWebSocketKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+	QByteArray hash = QCryptographicHash::hash(_secWebSocketKey, QCryptographicHash::Sha1).toBase64();
 
 	QString data
 		= QString("HTTP/1.1 101 Switching Protocols\r\n")
@@ -225,6 +223,7 @@ void WebSocketClient::sendClose(int status, QString reason)
 	_socket->close();
 }
 
+/*
 void WebSocketClient::handleBinaryMessage(QByteArray &data)
 {
 	//uint8_t  priority   = data.at(0);
@@ -243,9 +242,10 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	image.resize(width, height);
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
-	//_hyperion->registerInput();
-	//_hyperion->setInputImage(priority, image, duration_s*1000);
+	_hyperion->registerInput();
+	_hyperion->setInputImage(priority, image, duration_s*1000);
 }
+*/
 
 qint64 WebSocketClient::sendMessage(QJsonObject obj)
 {

@@ -1,0 +1,15 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["clearall"]
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

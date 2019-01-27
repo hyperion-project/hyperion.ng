@@ -13,6 +13,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDateTime>
+#include <QHostInfo>
 
 // hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -104,6 +105,14 @@ void JsonAPI::handleMessage(const QString& messageString)
 	else if (command == "logging")        handleLoggingCommand       (message, command, tan);
 	else if (command == "processing")     handleProcessingCommand    (message, command, tan);
 	else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
+
+	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
+	else if (command == "clearall")       handleClearallCommand(message, command, tan);
+	else if (command == "transform" || command == "correction" || command == "temperature")
+		sendErrorReply("The command " + command + "is deprecated, please use the Hyperion Web Interface to configure");
+	// END
+
+	// handle not implemented commands
 	else                                  handleNotImplemented       ();
 }
 
@@ -114,7 +123,7 @@ void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& comm
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString origin = message["origin"].toString() + "@"+_peerAddress;
+	QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
 
 	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
@@ -185,7 +194,7 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
 	QString pythonScript = message["pythonScript"].toString();
-	QString origin = message["origin"].toString() + "@"+_peerAddress;
+	QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 	const QString & data = message["imageData"].toString("").toUtf8();
@@ -462,6 +471,46 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		sessions.append(item);
 	}
 	info["sessions"] = sessions;
+
+	// BEGIN | The following entries are derecated but used to ensure backward compatibility with hyperion Classic remote control
+	// TODO Output the real transformation information instead of default
+
+		// host name
+		info["hostname"] = QHostInfo::localHostName();
+
+		// transform information (default values)
+		QJsonArray transformArray;
+		for (const QString& transformId : _hyperion->getAdjustmentIds())
+		{
+			QJsonObject transform;
+			QJsonArray blacklevel, whitelevel, gamma, threshold;
+
+			transform["id"] = transformId;
+			transform["saturationGain"] = 1.0;
+			transform["valueGain"]      = 1.0;
+			transform["saturationLGain"] = 1.0;
+			transform["luminanceGain"]   = 1.0;
+			transform["luminanceMinimum"]   = 0.0;
+
+			for (int i = 0; i < 3; i++ )
+			{
+				blacklevel.append(0.0);
+				whitelevel.append(1.0);
+				gamma.append(2.50);
+				threshold.append(0.0);
+			}
+
+			transform.insert("blacklevel", blacklevel);
+			transform.insert("whitelevel", whitelevel);
+			transform.insert("gamma", gamma);
+			transform.insert("threshold", threshold);
+
+			transformArray.append(transform);
+		}
+
+		info["transform"] = transformArray;
+
+	// END
 
 	sendSuccessDataReply(QJsonDocument(info), command, tan);
 
@@ -845,6 +894,16 @@ void JsonAPI::handleVideoModeCommand(const QJsonObject& message, const QString &
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& command, const int tan)
+{
+	emit forwardJsonMessage(message);
+
+	// clear priority
+	_hyperion->clearall();
+
+	// send reply
+	sendSuccessReply(command, tan);
+}
 
 void JsonAPI::handleNotImplemented()
 {

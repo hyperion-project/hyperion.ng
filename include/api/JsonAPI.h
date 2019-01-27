@@ -215,6 +215,13 @@ private:
 	void handleVideoModeCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
+	/// Handle an incoming JSON Clearall message
+	///
+	/// @param message the incoming message
+	///
+	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
 	/// Handle an incoming JSON message of unknown type
 	///
 	void handleNotImplemented();

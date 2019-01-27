@@ -208,7 +208,7 @@ public:
 	/// @param[in] priority    The priority of the channel
 	/// @param[in] component   The component of the channel
 	/// @param[in] origin      Who set the channel (CustomString@IP)
-	/// @param[in] owner       Speicifc owner string, might be empty
+	/// @param[in] owner       Specific owner string, might be empty
 	/// @param[in] smooth_cfg  The smooth id to use
 	///
 	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
