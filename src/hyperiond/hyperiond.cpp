@@ -171,6 +171,8 @@ void HyperionDaemon::freeObjects()
 	_fbGrabber      = nullptr;
 	_osxGrabber     = nullptr;
 	_qtGrabber      = nullptr;
+	_flatBufferServer = nullptr;
+	_ssdp = nullptr;
 	_webserver      = nullptr;
 	_jsonServer     = nullptr;
 	_udpListener    = nullptr;

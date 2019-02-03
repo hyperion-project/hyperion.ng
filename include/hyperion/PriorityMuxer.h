@@ -107,7 +107,7 @@ public:
 	///
 	/// @return The current priority
 	///
-	int getCurrentPriority() const;
+	int getCurrentPriority() const { return _currentPriority; }
 
 	///
 	/// Returns the state (enabled/disabled) of a specific priority channel
@@ -197,7 +197,7 @@ signals:
 
 	///
 	/// @brief Emits whenever the visible priority has changed
-	/// @param  priority  The new visible prioritiy
+	/// @param  priority  The new visible priority
 	///
 	void visiblePriorityChanged(const quint8& priority);
 

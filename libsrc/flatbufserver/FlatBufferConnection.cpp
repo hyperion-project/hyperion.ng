@@ -151,6 +151,7 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		{
 			case QAbstractSocket::UnconnectedState:
 				Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				_registered = false;
 				break;
 			case QAbstractSocket::ConnectedState:
 				Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
@@ -158,6 +159,7 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 				break;
 			default:
 				Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				_registered = false;
 				break;
 	  }
 	  _prevSocketState = _socket.state();

@@ -50,7 +50,6 @@ $(document).ready( function() {
 
 		fileReader.onload = function () {
 			imageData = this.result.split(',')[1];
-			console.log(imageData);
 			cbs.success(file.name);
 		};
 

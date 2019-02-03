@@ -92,7 +92,8 @@ bool V4L2Grabber::init()
 			{
 				v4lDevices_str += "\t"+ dev.first + "\t" + dev.second + "\n";
 			}
-			Info(_log, "available V4L2 devices:\n%s", QSTRING_CSTR(v4lDevices_str));
+			if (!v4lDevices_str.isEmpty())
+				Info(_log, "available V4L2 devices:\n%s", QSTRING_CSTR(v4lDevices_str));
 		}
 
 		if ( _deviceName == "auto" )

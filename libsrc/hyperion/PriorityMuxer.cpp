@@ -108,11 +108,6 @@ void PriorityMuxer::updateLedColorsLength(const int& ledCount)
 	}
 }
 
-int PriorityMuxer::getCurrentPriority() const
-{
-	return _currentPriority;
-}
-
 QList<int> PriorityMuxer::getPriorities() const
 {
 	return _activeInputs.keys();
@@ -299,7 +294,7 @@ void PriorityMuxer::setCurrentTime(void)
 		else
 		{
 			// timeoutTime of -100 is awaiting data (inactive); skip
-			if(infoIt->timeoutTime_ms >= -1)
+			if(infoIt->timeoutTime_ms >= -100)
 				newPriority = qMin(newPriority, infoIt->priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255

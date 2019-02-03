@@ -7,7 +7,6 @@
 #include <QRgb>
 
 #include <hyperion/Hyperion.h>
-#include <QDebug>
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
@@ -61,14 +60,6 @@ void FlatBufferClient::readyRead()
 		}
 		sendErrorReply("Unable to parse message");
 	}
-		//emit newMessage(msgData,messageSize);
-
-
-	// Emit this to send a new priority register event to all Hyperion instances,
-	// emit registerGlobalInput(_priority, hyperion::COMP_FLATBUFSERVER, QString("%1@%2").arg("PLACE_ORIGIN_STRING_FROM_SENDER_HERE",_socket->peerAddress()));
-
-	// Emit this to send the image data event to all Hyperion instances
-	// emit setGlobalInput(_priority, _image, _timeout);
 }
 
 void FlatBufferClient::forceClose()
@@ -78,9 +69,9 @@ void FlatBufferClient::forceClose()
 
 void FlatBufferClient::disconnected()
 {
-	qDebug()<<"Socket Closed";
-	//emit clearGlobalPriority(_priority, hyperion::COMP_FLATBUFSERVER);
+	Debug(_log, "Socket Closed");
     _socket->deleteLater();
+	_hyperion->clear(_priority);
 	emit clientDisconnected();
 }
 

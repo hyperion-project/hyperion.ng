@@ -27,6 +27,11 @@ FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_SOURCE_DIR}/dev_other/*.cpp"
 )
 
+if ( ENABLE_OSX )
+	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.h")
+	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.cpp")
+endif()
+
 if ( ENABLE_USB_HID )
 	find_package(libusb-1.0 REQUIRED)
 	include_directories(

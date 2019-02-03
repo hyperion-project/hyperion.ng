@@ -18,25 +18,26 @@
 #include <utils/ColorRgb.h>
 #include <utils/settings.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
+#include <utils/Image.h>
 
+// Hyperion includes
+#include <hyperion/PriorityMuxer.h>
+
+// Forward declaration
 class Hyperion;
+class QTcpSocket;
+class FlatBufferConnection;
 
 class MessageForwarder : public QObject
 {
 	Q_OBJECT
 public:
-
-	MessageForwarder(Hyperion* hyperion, const QJsonDocument & config);
+	MessageForwarder(Hyperion* hyperion);
 	~MessageForwarder();
 
 	void addJsonSlave(QString slave);
 	void addProtoSlave(QString slave);
-
-	bool protoForwardingEnabled();
-	bool jsonForwardingEnabled();
-	bool forwardingEnabled() { return jsonForwardingEnabled() || protoForwardingEnabled(); };
-	QStringList getProtoSlaves() const { return _protoSlaves; };
-	QStringList getJsonSlaves() const { return _jsonSlaves; };
 
 private slots:
 	///
@@ -44,11 +45,59 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(const settings::type &type, const QJsonDocument &config);
+
+	///
+	/// @brief Handle component state change MessageForwarder
+	/// @param component  The component from enum
+	/// @param enable     The new state
+	///
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
+	///
+	/// @brief Handle priority updates from Priority Muxer
+	/// @param  priority  The new visible priority
+	///
+	void handlePriorityChanges(const quint8 &priority);
+
+	///
+	/// @brief Forward message to all json slaves
+	/// @param message The JSON message to send
+	///
+	void forwardJsonMessage(const QJsonObject &message);
+
+	///
+	/// @brief Forward image to all proto slaves
+	/// @param image The PROTO image to send
+	///
+	void forwardProtoMessage(const Image<ColorRgb> &image);
+
+	///
+	/// @brief Forward message to a single json slave
+	/// @param message The JSON message to send
+	/// @param socket The TCP-Socket with the connection to the slave
+	///
+	void sendJsonMessage(const QJsonObject &message, QTcpSocket *socket);
 
 private:
-	Hyperion* _hyperion;
-	Logger*   _log;
-	QStringList   _protoSlaves;
+	/// Hyperion instance
+	Hyperion *_hyperion;
+
+	/// Logger instance
+	Logger   *_log;
+
+	/// Muxer instance
+	PriorityMuxer *_muxer;
+
+	// JSON connection for forwarding
 	QStringList   _jsonSlaves;
+
+	/// Proto connection for forwarding
+	QStringList _protoSlaves;
+	QList<FlatBufferConnection*> _forwardClients;
+
+	/// Flag if forwarder is enabled
+	bool _forwarder_enabled = true;
+
+	const int _priority;
 };

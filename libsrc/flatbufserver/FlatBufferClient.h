@@ -45,11 +45,6 @@ signals:
 	const bool setGlobalInputImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms = -1);
 
 	///
-	/// @brief forward clear to HyperionDaemon
-	///
-	void clearGlobalPriority(const int& priority, const hyperion::Components& component);
-
-	///
 	/// @brief Emits whenever the client disconnected
 	///
 	void clientDisconnected();

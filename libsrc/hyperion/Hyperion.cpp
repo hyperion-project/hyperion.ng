@@ -68,11 +68,6 @@ Hyperion* Hyperion::getInstance()
 	return Hyperion::_hyperion;
 }
 
-MessageForwarder * Hyperion::getForwarder()
-{
-	return _messageForwarder;
-}
-
 Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath)
 	: _daemon(daemon)
 	, _settingsManager(new SettingsManager(this, instance, configFile))
@@ -83,7 +78,7 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	, _muxer(_ledString.leds().size())
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
 	, _effectEngine(nullptr)
-	, _messageForwarder(new MessageForwarder(this, getSetting(settings::NETFORWARD)))
+	, _messageForwarder(new MessageForwarder(this))
 	, _configFile(configFile)
 	, _rootPath(rootPath)
 	, _log(Logger::getInstance("HYPERION"))
@@ -408,9 +403,7 @@ const bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& im
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer.getCurrentPriority())
-		{
 			update();
-		}
 
 		return true;
 	}

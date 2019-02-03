@@ -49,17 +49,9 @@ private slots:
 	void closedConnection(void);
 
 public slots:
-
-	///
-	/// forward message to a single json slaves
-	///
-	/// @param message The JSON message to send
-	///
-	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
-
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-	/// @param type   settingyType from enum
+	/// @param type   settings type from enum
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);

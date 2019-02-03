@@ -587,6 +587,9 @@ function createHelpTable(list, phead){
 	{
 		if(list[key].access != 'system')
 		{
+			// break one iteration (in the loop), if the schema has the entry hidden=true
+			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
+				continue;
 			var text = list[key].title.replace('title', 'expl');
 			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
@@ -595,7 +598,9 @@ function createHelpTable(list, phead){
 				var ilist = sortProperties(list[key].items.properties);
 				for (ikey in ilist)
 				{
-
+					// break one iteration (in the loop), if the schema has the entry hidden=true
+					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
+						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}

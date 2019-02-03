@@ -76,11 +76,6 @@ signals:
 	///
 	const bool setGlobalInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
 
-	///
-	/// @brief forward clear to HyperionDaemon
-	///
-	void clearGlobalPriority(const int& _priority, const hyperion::Components& component);
-
 private slots:
 	///
 	/// Slot which is called when a client tries to create a new connection

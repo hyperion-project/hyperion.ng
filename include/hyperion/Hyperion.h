@@ -326,12 +326,6 @@ public slots:
 	///
 	ColorAdjustment * getAdjustment(const QString& id);
 
-	///
-	/// Returns  MessageForwarder Object
-	/// @return instance of message forwarder object
-	///
-	MessageForwarder * getForwarder();
-
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
 
@@ -345,7 +339,7 @@ public slots:
 	const bool clear(int priority);
 
 	///
-	/// Clears all priority channels. This will switch the leds off until a new priority is written.
+	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
 	///
 	void clearall(bool forceClearAll=false);
 
@@ -415,6 +409,9 @@ signals:
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
+
+	/// Signal which is emitted, when a new proto image should be forwarded
+	void forwardProtoMessage(Image<ColorRgb>);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change

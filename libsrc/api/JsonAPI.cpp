@@ -14,6 +14,7 @@
 #include <QByteArray>
 #include <QDateTime>
 #include <QHostInfo>
+#include <QMutexLocker>
 
 // hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -55,9 +56,6 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 
 	// notify hyperion about a jsonMessageForward
 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
-
-	_image_stream_mutex.unlock();
-	_led_stream_mutex.unlock();
 }
 
 void JsonAPI::handleMessage(const QString& messageString)
@@ -475,10 +473,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	// BEGIN | The following entries are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	// TODO Output the real transformation information instead of default
 
-		// host name
+		// HOST NAME
 		info["hostname"] = QHostInfo::localHostName();
 
-		// transform information (default values)
+		// TRANSFORM INFORMATION (DEFAULT VALUES)
 		QJsonArray transformArray;
 		for (const QString& transformId : _hyperion->getAdjustmentIds())
 		{
@@ -507,8 +505,65 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 			transformArray.append(transform);
 		}
-
 		info["transform"] = transformArray;
+
+		// ACTIVE EFFECT INFO
+		QJsonArray activeEffects;
+		const std::list<ActiveEffectDefinition> & activeEffectsDefinitions = _hyperion->getActiveEffects();
+		for (const ActiveEffectDefinition & activeEffectDefinition : activeEffectsDefinitions)
+		{
+			if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY -1)
+			{
+				QJsonObject activeEffect;
+				activeEffect["script"] = activeEffectDefinition.script;
+				activeEffect["name"] = activeEffectDefinition.name;
+				activeEffect["priority"] = activeEffectDefinition.priority;
+				activeEffect["timeout"] = activeEffectDefinition.timeout;
+				activeEffect["args"] = activeEffectDefinition.args;
+				activeEffects.append(activeEffect);
+			}
+		}
+		info["activeEffects"] = activeEffects;
+
+		// ACTIVE STATIC LED COLOR
+		QJsonArray activeLedColors;
+		const Hyperion::InputInfo & priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+		if(priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
+		{
+			QJsonObject LEDcolor;
+			// check if LED Color not Black (0,0,0)
+			if ((priorityInfo.ledColors.begin()->red +
+			priorityInfo.ledColors.begin()->green +
+			priorityInfo.ledColors.begin()->blue != 0))
+			{
+				QJsonObject LEDcolor;
+
+				// add RGB Value to Array
+				QJsonArray RGBValue;
+				RGBValue.append(priorityInfo.ledColors.begin()->red);
+				RGBValue.append(priorityInfo.ledColors.begin()->green);
+				RGBValue.append(priorityInfo.ledColors.begin()->blue);
+				LEDcolor.insert("RGB Value", RGBValue);
+
+				uint16_t Hue;
+				float Saturation, Luminace;
+
+				// add HSL Value to Array
+				QJsonArray HSLValue;
+				ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
+						priorityInfo.ledColors.begin()->green,
+						priorityInfo.ledColors.begin()->blue,
+						Hue, Saturation, Luminace);
+
+				HSLValue.append(Hue);
+				HSLValue.append(Saturation);
+				HSLValue.append(Luminace);
+				LEDcolor.insert("HSL Value", HSLValue);
+
+				activeLedColors.append(LEDcolor);
+			}
+		}
+		info["activeLedColor"] = activeLedColors;
 
 	// END
 
@@ -952,7 +1007,8 @@ void JsonAPI::sendErrorReply(const QString &error, const QString &command, const
 
 void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 {
-	if ( (_led_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() && _led_stream_mutex.tryLock(0) )
+	QMutexLocker lock(&_led_stream_mutex);
+	if ( (_led_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() )
 	{
 		_led_stream_timeout = QDateTime::currentMSecsSinceEpoch();
 		QJsonObject result;
@@ -973,14 +1029,13 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 
 		// send the result
 		emit callbackMessage(_streaming_leds_reply);
-
-		_led_stream_mutex.unlock();
 	}
 }
 
 void JsonAPI::setImage(const Image<ColorRgb> & image)
 {
-	if ( (_image_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() && _image_stream_mutex.tryLock(0) )
+	QMutexLocker lock(&_image_stream_mutex);
+	if ( (_image_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() )
 	{
 		_image_stream_timeout = QDateTime::currentMSecsSinceEpoch();
 
@@ -994,8 +1049,6 @@ void JsonAPI::setImage(const Image<ColorRgb> & image)
 		result["image"] = "data:image/jpg;base64,"+QString(ba.toBase64());
 		_streaming_image_reply["result"] = result;
 		emit callbackMessage(_streaming_image_reply);
-
-		_image_stream_mutex.unlock();
 	}
 }
 

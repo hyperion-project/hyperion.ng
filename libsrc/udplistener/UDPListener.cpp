@@ -80,7 +80,7 @@ void UDPListener::stop()
 	_server->close();
 	_isActive = false;
 	Info(_log, "Stopped");
-	emit clearGlobalPriority(_priority, hyperion::COMP_UDPLISTENER);
+//	emit clearGlobalPriority(_priority, hyperion::COMP_UDPLISTENER);
 }
 
 void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
