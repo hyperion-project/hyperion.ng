@@ -562,7 +562,7 @@
 	"edt_conf_fw_json_expl" : "One json target per line. Contains IP:PORT (Example: 127.0.0.1:19446)",
 	"edt_conf_fw_json_itemtitle" : "Json target",
 	"edt_conf_fw_proto_title" : "List of proto clients",
-	"edt_conf_fw_proto_expl" : "One proto target per line. Contains IP:PORT (Example: 127.0.0.1:19447)",
+	"edt_conf_fw_proto_expl" : "One proto target per line. Contains IP:PORT (Example: 127.0.0.1:19401)",
 	"edt_conf_fw_proto_itemtitle" : "Proto target",
 	"edt_conf_js_heading_title" : "JSON Server",
 	"edt_conf_fbs_heading_title" : "Flatbuffers Server",

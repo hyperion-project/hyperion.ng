@@ -111,6 +111,12 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 {
 	_priority = regReq->priority();
 	_hyperion->registerInput(_priority, hyperion::COMP_FLATBUFSERVER, regReq->origin()->c_str()+_clientAddress);
+
+	auto reply = hyperionnet::CreateReplyDirect(_builder, nullptr, -1, (_priority ? _priority : -1));
+	_builder.Finish(reply);
+
+	// send reply
+	sendMessage();
 }
 
 void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)

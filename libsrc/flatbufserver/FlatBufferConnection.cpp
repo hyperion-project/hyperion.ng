@@ -95,7 +95,19 @@ void FlatBufferConnection::setRegister(const QString& origin, int priority)
 	auto req = hyperionnet::CreateRequest(_builder, hyperionnet::Command_Register, registerReq.Union());
 
 	_builder.Finish(req);
-	sendMessage(_builder.GetBufferPointer(), _builder.GetSize());
+	uint32_t size = _builder.GetSize();
+	const uint8_t header[] = {
+		uint8_t((size >> 24) & 0xFF),
+		uint8_t((size >> 16) & 0xFF),
+		uint8_t((size >>  8) & 0xFF),
+		uint8_t((size	  ) & 0xFF)};
+
+	// write message
+	int count = 0;
+	count += _socket.write(reinterpret_cast<const char *>(header), 4);
+	count += _socket.write(reinterpret_cast<const char *>(_builder.GetBufferPointer()), size);
+	_socket.flush();
+	_builder.Clear();
 }
 
 void FlatBufferConnection::setColor(const ColorRgb & color, int priority, int duration)
@@ -136,10 +148,7 @@ void FlatBufferConnection::connectToHost()
 {
 	// try connection only when
 	if (_socket.state() == QAbstractSocket::UnconnectedState)
-	{
 	   _socket.connectToHost(_host, _port);
-	   //_socket.waitForConnected(1000);
-	}
 }
 
 void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
@@ -147,19 +156,17 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 	// print out connection message only when state is changed
 	if (_socket.state() != _prevSocketState )
 	{
+		_registered = false;
 		switch (_socket.state() )
 		{
 			case QAbstractSocket::UnconnectedState:
 				Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-				_registered = false;
 				break;
 			case QAbstractSocket::ConnectedState:
 				Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-				_registered = false;
 				break;
 			default:
 				Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
-				_registered = false;
 				break;
 	  }
 	  _prevSocketState = _socket.state();
@@ -171,7 +178,6 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 
 	if(!_registered)
 	{
-		_registered = true;
 		setRegister(_origin, _priority);
 		return;
 	}
@@ -194,14 +200,22 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 {
 	if (!reply->error())
 	{
-		// no error set must be a success or video
+		// no error set must be a success or registered or video
 		const auto videoMode = reply->video();
+		const auto registered = reply->registered();
 		if (videoMode != -1) {
 			// We got a video reply.
 			emit setVideoMode(static_cast<VideoMode>(videoMode));
-		}
 			return true;
-	}
+		}
 
+		 // We got a registered reply.
+		if (registered != -1 && registered != _priority)
+			_registered = false;
+		else
+			_registered = true;
+
+		return true;
+	}
 	return false;
 }

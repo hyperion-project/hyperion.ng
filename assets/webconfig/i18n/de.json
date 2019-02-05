@@ -561,7 +561,7 @@
 	"edt_conf_fw_json_expl" : "Ein Json Ziel pro Zeile. Bestehend aus IP:PORT (Beispiel: 127.0.0.1:19446)",
 	"edt_conf_fw_json_itemtitle" : "Json Ziel",
 	"edt_conf_fw_proto_title" : "Liste von Proto zielen",
-	"edt_conf_fw_proto_expl" : "Ein Proto Ziel pro Zeile. Bestehend aus IP:PORT (Beispiel: 127.0.0.1:19447)",
+	"edt_conf_fw_proto_expl" : "Ein Proto Ziel pro Zeile. Bestehend aus IP:PORT (Beispiel: 127.0.0.1:19401)",
 	"edt_conf_fw_proto_itemtitle" : "Proto Ziel",
 	"edt_conf_js_heading_title" : "JSON Server",
 	"edt_conf_fbs_heading_title" : "Flatbuffers Server",

@@ -98,7 +98,7 @@ void MessageForwarder::componentStateChanged(const hyperion::Components componen
 	{
 		_forwarder_enabled = enable;
 		handleSettingsUpdate(settings::NETFORWARD, _hyperion->getSetting(settings::NETFORWARD));
-		Info(_log, "Message Forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled"));
+		Info(_log, "Forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled"));
 		_hyperion->getComponentRegister().componentStateChanged(component, _forwarder_enabled);
 	}
 }
@@ -187,7 +187,7 @@ void MessageForwarder::addProtoSlave(QString slave)
 	if (_forwarder_enabled)
 	{
 		_protoSlaves << slave;
-		FlatBufferConnection* flatbuf = new FlatBufferConnection("Message Forwarder", slave.toLocal8Bit().constData(), _priority, true);
+		FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
 		_forwardClients << flatbuf;
 	}
 }
@@ -215,10 +215,7 @@ void MessageForwarder::forwardProtoMessage(const Image<ColorRgb> &image)
 	if (_forwarder_enabled)
 	{
 		for (int i=0; i < _forwardClients.size(); i++)
-		{
-			_forwardClients.at(i)->setRegister("Message Forwarder", _priority);
 			_forwardClients.at(i)->setImage(image);
-		}
 	}
 }
 
