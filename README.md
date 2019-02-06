@@ -1,6 +1,8 @@
 HYPERION
 ========
 
+[![Build Status](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
+
 This is a pre alpha development repository for the next major version of hyperion
 
 --------
