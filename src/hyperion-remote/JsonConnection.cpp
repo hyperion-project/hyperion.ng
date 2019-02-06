@@ -275,7 +275,8 @@ void JsonConnection::clearAll()
 
 	// create command
 	QJsonObject command;
-	command["command"] = QString("clearall");
+	command["command"] = QString("clear");
+	command["priority"] = -1;
 
 	// send command message
 	QJsonObject reply = sendMessage(command);
@@ -586,7 +587,9 @@ QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 	QJsonDocument reply = QJsonDocument::fromJson(serializedReply ,&error);
 	if (error.error != QJsonParseError::NoError)
 	{
-		throw std::runtime_error("Error while parsing reply: invalid json");
+		throw std::runtime_error(
+			std::string("Error while parsing json reply: ") 
+			+ error.errorString().toStdString() );
 	}
 
 	return reply.object();

@@ -1,0 +1,54 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["effect"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer",
+			"minimum" : 1,
+			"maximum" : 253,
+			"required": true
+		},
+		"duration": {
+			"type": "integer",
+			"required": false
+		},
+		"origin": {
+			"type": "string",
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required": false
+		},
+		"effect": {
+			"type": "object",
+			"required": true,
+			"properties" :{
+				"name" : {
+					"type" : "string",
+					"required" : true
+				},
+				"args" : {
+					"type" : "object",
+					"required" : false
+				}
+			},
+			"additionalProperties": false
+		},
+		"pythonScript" : {
+			"type" : "string",
+			"required" : false
+		},
+		"imageData" : {
+			"type" : "string",
+			"required" : false
+		}
+	},
+	"additionalProperties": false
+}

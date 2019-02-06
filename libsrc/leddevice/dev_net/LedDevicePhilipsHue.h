@@ -139,7 +139,7 @@ class PhilipsHueLight
 {
 private:
 	Logger* log;
-	PhilipsHueBridge& bridge;
+	PhilipsHueBridge* bridge;
 	/// light id
 	unsigned int id;
 	bool on;
@@ -172,7 +172,7 @@ public:
 	/// @param bridge the bridge
 	/// @param id the light id
 	///
-	PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values);
+	PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned int id, QJsonObject values);
 	~PhilipsHueLight();
 
 	///
@@ -227,6 +227,10 @@ public:
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+public slots:
+	/// thread start
+	virtual void start();
+
 private slots:
 	/// creates new PhilipsHueLight(s) based on user lightid with bridge feedback
 	///
@@ -249,7 +253,7 @@ protected:
 
 private:
 	/// bridge class
-	PhilipsHueBridge bridge;
+	PhilipsHueBridge* _bridge;
 
 	///
 	bool switchOffOnBlack;

@@ -5,9 +5,9 @@ find_package(Qt5Widgets REQUIRED)
 find_package(X11 REQUIRED)
 
 include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/protoserver
+	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
 	${X11_INCLUDES}
-	${PROTOBUF_INCLUDE_DIRS}
+	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
 set(Hyperion_X11_HEADERS
@@ -25,12 +25,12 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	effectengine
-	blackborder
 	commandline
 	hyperion-utils
-	protoserver
+	flatbufserver
+	flatbuffers
 	x11-grabber
+	ssdp
 	${X11_LIBRARIES}
 	${X11_Xrender_LIB}
 	Qt5::Core

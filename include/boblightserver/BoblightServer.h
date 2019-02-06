@@ -4,15 +4,19 @@
 #include <cstdint>
 
 // Qt includes
-#include <QTcpServer>
 #include <QSet>
+#include <QJsonDocument>
 
 // Hyperion includes
-#include <hyperion/Hyperion.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
+// settings
+#include <utils/settings.h>
+
 class BoblightClientConnection;
+class Hyperion;
+class QTcpServer;
 
 ///
 /// This class creates a TCP server which accepts connections from boblight clients.
@@ -27,25 +31,24 @@ public:
 	/// @param hyperion Hyperion instance
 	/// @param port port number on which to start listening for connections
 	///
-	BoblightServer(const int priority, uint16_t port = 19333);
+	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
 	~BoblightServer();
 
 	///
 	/// @return the port number on which this TCP listens for incoming connections
 	///
 	uint16_t getPort() const;
-	
+
 	/// @return true if server is active (bind to a port)
 	///
-	bool active() { return _isActive; };
-	bool componentState() { return active(); };
+	bool active();
 
 public slots:
 	///
 	/// bind server to network
 	///
 	void start();
-	
+
 	///
 	/// close server
 	///
@@ -53,8 +56,12 @@ public slots:
 
 	void componentStateChanged(const hyperion::Components component, bool enable);
 
-signals:
-	void statusChanged(bool isActive);
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 private slots:
 	///
@@ -73,19 +80,17 @@ private:
 	Hyperion * _hyperion;
 
 	/// The TCP server object
-	QTcpServer _server;
+	QTcpServer * _server;
 
 	/// List with open connections
 	QSet<BoblightClientConnection *> _openConnections;
 
 	/// hyperion priority
-	const int _priority;
+	int _priority;
 
 	/// Logger instance
 	Logger * _log;
 
-	/// state of connection
-	bool _isActive;
-
+	// current port
 	uint16_t  _port;
 };

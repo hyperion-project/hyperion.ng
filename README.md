@@ -32,7 +32,7 @@ If you need further support please open a topic at the our new forum!
 [Hyperion webpage/forum](https://www.hyperion-project.org).
 
 ## Requirements
-* Debian 8, Ubuntu 14.04 or higher. Windows is not supported currently.
+* Debian 9, Ubuntu 16.04 or higher. Windows is not supported currently.
 
 ## Building
 See [Compilehowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).

@@ -1,0 +1,37 @@
+namespace hyperionnet;
+
+// A priority value of -1 clears all priorities
+table Register {
+  origin:string (required);
+  priority:int;
+}
+
+table RawImage {
+  data:[ubyte];
+  width:int = -1;
+  height:int = -1;
+}
+
+union ImageType {RawImage}
+
+table Image {
+  data:ImageType (required);
+  duration:int = -1;
+}
+
+table Clear {
+  priority:int;
+}
+
+table Color {
+  data:int = -1;
+  duration:int = -1;
+}
+
+union Command {Color, Image, Clear, Register}
+
+table Request {
+  command:Command (required);
+}
+
+root_type Request;

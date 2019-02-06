@@ -1,0 +1,9 @@
+namespace hyperionnet;
+
+table Reply {
+  error:string;
+  video:int = -1;
+  registered:int = -1;
+}
+
+root_type Reply;

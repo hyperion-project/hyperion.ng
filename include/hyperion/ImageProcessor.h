@@ -6,13 +6,17 @@
 #include <utils/Image.h>
 
 // Hyperion includes
-#include <hyperion/ImageProcessorFactory.h>
 #include <hyperion/LedString.h>
 #include <hyperion/ImageToLedsMap.h>
 #include <utils/Logger.h>
 
+// settings
+#include <utils/settings.h>
+
 // Black border includes
 #include <blackborder/BlackBorderProcessor.h>
+
+class Hyperion;
 
 ///
 /// The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is
@@ -24,13 +28,15 @@ class ImageProcessor : public QObject
 	Q_OBJECT
 
 public:
+	///
+	/// Constructs an image-processor for translating an image to led-color values based on the
+	/// given led-string specification
+	///	@param[in] ledString    LedString data
+	/// @param[in] hyperion     Hyperion instance pointer
+	///
+	ImageProcessor(const LedString& ledString, Hyperion* hyperion);
 
 	~ImageProcessor();
-
-	///
-	/// Returns the number of attached leds
-	///
-	unsigned getLedCount() const;
 
 	///
 	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
@@ -42,20 +48,39 @@ public:
 	///
 	void setSize(const unsigned width, const unsigned height);
 
+	///
+	/// @brief Update the led string (eg on settings change)
+	///
+	void setLedString(const LedString& ledString);
+
 	/// Returns starte of black border detector
 	bool blackBorderDetectorEnabled();
 
-	/// Returns starte of black border detector
-	int ledMappingType();
+	/// Returns the current _userMappingType, this may not be the current applied type!
+	const int & getUserLedMappingType() { return _userMappingType; };
+
+	/// Returns the current _mappingType
+	const int & ledMappingType() { return _mappingType; };
 
 	static int mappingTypeToInt(QString mappingType);
 	static QString mappingTypeToStr(int mappingType);
 
-public slots:
-	/// Enable or disable the black border detector
-	void enableBlackBorderDetector(bool enable);
+	///
+	/// @brief Set the Hyperion::update() requestes led mapping type. This type is used in favour of type set with setLedMappingType.
+	/// 	   If you don't want to force a mapType set this to -1 (user choice will be set)
+	/// @param  mapType   The new mapping type
+	///
+	void setHardLedMappingType(int mapType);
 
-	/// Enable or disable the black border detector
+public slots:
+	/// Enable or disable the black border detector based on component
+	void setBlackbarDetectDisable(bool enable);
+
+	///
+	/// @brief Set the user requested led mapping.
+	/// 	   The type set with setHardLedMappingType() will be used in favour to respect comp specific settings
+	/// @param  mapType   The new mapping type
+	///
 	void setLedMappingType(int mapType);
 
 public:
@@ -101,7 +126,7 @@ public:
 		}
 		else
 		{
-			Warning(_log, "ImageProcessor::process called without image size 0");
+			Warning(_log, "ImageProcessor::process called with image size 0");
 		}
 
 		// return the computed colors
@@ -134,7 +159,7 @@ public:
 		}
 		else
 		{
-			Warning(_log, "ImageProcessor::process called without image size 0");
+			Warning(_log, "Called with image size 0");
 		}
 	}
 
@@ -150,18 +175,6 @@ public:
 	bool getScanParameters(size_t led, double & hscanBegin, double & hscanEnd, double & vscanBegin, double & vscanEnd) const;
 
 private:
-	/// Friend declaration of the factory for creating ImageProcessor's
-	friend class ImageProcessorFactory;
-
-	///
-	/// Constructs an image-processor for translating an image to led-color values based on the
-	/// given led-string specification
-	///
-	/// @param[in] ledString  The led-string specification
-	/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
-	///
-	ImageProcessor(const LedString &ledString, const QJsonObject &blackborderConfig);
-
 	///
 	/// Performs black-border detection (if enabled) on the given image
 	///
@@ -172,7 +185,7 @@ private:
 	{
 		if (!_borderProcessor->enabled() && ( _imageToLeds->horizontalBorder()!=0 || _imageToLeds->verticalBorder()!=0 ))
 		{
-			Debug(Logger::getInstance("BLACKBORDER"), "disabled, reset border");
+			Debug(_log, "Reset border");
 			_borderProcessor->process(image);
 			delete _imageToLeds;
 			_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), 0, 0, _ledString.leds());
@@ -180,8 +193,6 @@ private:
 
 		if(_borderProcessor->enabled() && _borderProcessor->process(image))
 		{
-			//Debug(Logger::getInstance("BLACKBORDER"), "BORDER SWITCH REQUIRED!!");
-
 			const hyperion::BlackBorder border = _borderProcessor->getCurrentBorder();
 
 			// Clean up the old mapping
@@ -203,10 +214,13 @@ private:
 		}
 	}
 
+private slots:
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
 private:
 	Logger * _log;
 	/// The Led-string specification
-	const LedString _ledString;
+	LedString _ledString;
 
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;
@@ -216,4 +230,11 @@ private:
 
 	/// Type of image 2 led mapping
 	int _mappingType;
+	/// Type of last requested user type
+	int _userMappingType;
+	/// Type of last requested hard type
+	int _hardMappingType;
+
+	/// Hyperion instance pointer
+	Hyperion* _hyperion;
 };

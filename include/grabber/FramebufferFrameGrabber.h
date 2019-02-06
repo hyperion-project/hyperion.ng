@@ -5,7 +5,7 @@
 #include <hyperion/Grabber.h>
 
 ///
-/// The FramebufferFrameGrabber is used for creating snapshots of the display (screenshots) 
+/// The FramebufferFrameGrabber is used for creating snapshots of the display (screenshots)
 ///
 class FramebufferFrameGrabber : public Grabber
 {
@@ -30,13 +30,18 @@ public:
 	///
 	int grabFrame(Image<ColorRgb> & image);
 
+	///
+	/// @brief Overwrite Grabber.h implememtation
+	///
+	virtual void setDevicePath(const QString& path);
+
 private:
 	/// Framebuffer file descriptor
 	int _fbfd;
 
 	/// Pointer to framebuffer
 	unsigned char * _fbp;
-	
+
 	/// Framebuffer device e.g. /dev/fb0
-	const QString _fbDevice;
+	QString _fbDevice;
 };

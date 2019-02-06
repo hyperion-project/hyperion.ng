@@ -473,7 +473,7 @@ $(document).ready(function() {
 	devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
 	devRPiPWM = ['ws281x'];
 	devRPiGPIO = ['piblaster'];
-	devNET = ['atmoorb', 'fadecandy', 'philipshue', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw'];
+	devNET = ['atmoorb', 'fadecandy', 'philipshue', 'aurora', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw'];
 	devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 	
 	var optArr = [[]];

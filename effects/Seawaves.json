@@ -1,0 +1,47 @@
+{
+    "args": {
+        "center_x": 1.25,
+        "center_y": -0.25,
+        "colors": [
+            [
+                8,
+                0,
+                255
+            ],
+            [
+                0,
+                161,
+                255
+            ],
+            [
+                0,
+                222,
+                255
+            ],
+            [
+                0,
+                153,
+                255
+            ],
+            [
+                38,
+                0,
+                255
+            ],
+            [
+                0,
+                199,
+                255
+            ]
+        ],
+        "random-center": false,
+        "reverse": false,
+        "reverse_time": 0,
+        "rotation_time": 60,
+        "smoothing-custom-settings": true,
+        "smoothing-time_ms": 200,
+        "smoothing-updateFrequency": 25
+    },
+    "name": "Sea waves",
+    "script": "waves.py"
+}

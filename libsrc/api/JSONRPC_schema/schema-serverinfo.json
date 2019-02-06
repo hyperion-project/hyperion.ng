@@ -1,0 +1,18 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["serverinfo"]
+		},
+		"subscribe" : {
+			"type" : "array"
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

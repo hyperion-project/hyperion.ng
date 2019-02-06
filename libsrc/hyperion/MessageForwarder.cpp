@@ -1,56 +1,264 @@
 // STL includes
 #include <stdexcept>
 
+// project includes
 #include <hyperion/MessageForwarder.h>
 
+// hyperion includes
+#include <hyperion/Hyperion.h>
 
-MessageForwarder::MessageForwarder()
+// utils includes
+#include <utils/Logger.h>
+
+// qt includes
+#include <QTcpServer>
+#include <QTcpSocket>
+
+#include <flatbufserver/FlatBufferConnection.h>
+
+MessageForwarder::MessageForwarder(Hyperion *hyperion)
+	: QObject()
+	, _hyperion(hyperion)
+	, _log(Logger::getInstance("NETFORWARDER"))
+	, _muxer(_hyperion->getMuxerInstance())
+	, _forwarder_enabled(true)
+	, _priority(140)
 {
+	// get settings updates
+	connect(_hyperion, &Hyperion::settingsChanged, this, &MessageForwarder::handleSettingsUpdate);
+
+	// component changes
+	connect(_hyperion, &Hyperion::componentStateChanged, this, &MessageForwarder::componentStateChanged);
+
+	// connect with Muxer visible priority changes
+	connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
+
+	// init
+	handleSettingsUpdate(settings::NETFORWARD, _hyperion->getSetting(settings::NETFORWARD));
 }
 
 MessageForwarder::~MessageForwarder()
 {
+	while (!_forwardClients.isEmpty())
+		delete _forwardClients.takeFirst();
 }
 
+void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJsonDocument &config)
+{
+	if(type == settings::NETFORWARD)
+	{
+		// clear the current targets
+		_jsonSlaves.clear();
+		_protoSlaves.clear();
+		while (!_forwardClients.isEmpty())
+			delete _forwardClients.takeFirst();
+
+		// build new one
+		const QJsonObject &obj = config.object();
+		if ( !obj["json"].isNull() )
+		{
+			const QJsonArray & addr = obj["json"].toArray();
+			for (const auto& entry : addr)
+			{
+				addJsonSlave(entry.toString());
+			}
+		}
+
+		if ( !obj["proto"].isNull() )
+		{
+			const QJsonArray & addr = obj["proto"].toArray();
+			for (const auto& entry : addr)
+			{
+				addProtoSlave(entry.toString());
+			}
+		}
+
+		if (!_jsonSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
+		{
+			InfoIf(obj["enable"].toBool(true), _log, "Forward now to json targets '%s'", QSTRING_CSTR(_jsonSlaves.join(", ")));
+			connect(_hyperion, &Hyperion::forwardJsonMessage, this, &MessageForwarder::forwardJsonMessage, Qt::UniqueConnection);
+		} else if (_jsonSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
+			disconnect(_hyperion, &Hyperion::forwardJsonMessage, 0, 0);
+
+		if (!_protoSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
+		{
+			InfoIf(obj["enable"].toBool(true), _log, "Forward now to proto targets '%s'", QSTRING_CSTR(_protoSlaves.join(", ")));
+			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+		} else if ( _protoSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
+			disconnect(_hyperion, &Hyperion::forwardProtoMessage, 0, 0);
+
+		// update comp state
+		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
+	}
+}
+
+void MessageForwarder::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
+	{
+		_forwarder_enabled = enable;
+		handleSettingsUpdate(settings::NETFORWARD, _hyperion->getSetting(settings::NETFORWARD));
+		Info(_log, "Forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled"));
+		_hyperion->getComponentRegister().componentStateChanged(component, _forwarder_enabled);
+	}
+}
+
+void MessageForwarder::handlePriorityChanges(const quint8 &priority)
+{
+	const QJsonObject obj = _hyperion->getSetting(settings::NETFORWARD).object();
+	if (priority != 0 && _forwarder_enabled && obj["enable"].toBool())
+	{
+		_protoSlaves.clear();
+		while (!_forwardClients.isEmpty())
+			delete _forwardClients.takeFirst();
+
+		hyperion::Components activePrio = _hyperion->getPriorityInfo(priority).componentId;
+		if (activePrio == hyperion::COMP_GRABBER || activePrio == hyperion::COMP_V4L)
+		{
+			if ( !obj["proto"].isNull() )
+			{
+				const QJsonArray & addr = obj["proto"].toArray();
+				for (const auto& entry : addr)
+				{
+					addProtoSlave(entry.toString());
+				}
+			}
+			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+		}
+		else
+			disconnect(_hyperion, &Hyperion::forwardProtoMessage, 0, 0);
+	}
+}
 
 void MessageForwarder::addJsonSlave(QString slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
-		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: unable to parse address (%1)").arg(slave).toStdString());
+	{
+		Error(_log, "Unable to parse address (%s)",QSTRING_CSTR(slave));
+		return;
+	}
 
 	bool ok;
-	quint16 port = parts[1].toUShort(&ok);
+	parts[1].toUShort(&ok);
 	if (!ok)
-		throw std::runtime_error(QString("HYPERION (forwarder) ERROR: Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
+	{
+		Error(_log, "Unable to parse port number (%s)",QSTRING_CSTR(parts[1]));
+		return;
+	}
 
-	JsonSlaveAddress c;
-	c.addr = QHostAddress(parts[0]);
-	c.port = port;
-	_jsonSlaves << c;
+	// verify loop with jsonserver
+	const QJsonObject &obj = _hyperion->getSetting(settings::JSONSERVER).object();
+	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
+	{
+		Error(_log, "Loop between JsonServer and Forwarder! (%s)",QSTRING_CSTR(slave));
+		return;
+	}
+
+	if (_forwarder_enabled)
+		_jsonSlaves << slave;
 }
 
 void MessageForwarder::addProtoSlave(QString slave)
 {
-	_protoSlaves << slave;
+	QStringList parts = slave.split(":");
+	if (parts.size() != 2)
+	{
+		Error(_log, "Unable to parse address (%s)",QSTRING_CSTR(slave));
+		return;
+	}
+
+	bool ok;
+	parts[1].toUShort(&ok);
+	if (!ok)
+	{
+		Error(_log, "Unable to parse port number (%s)",QSTRING_CSTR(parts[1]));
+		return;
+	}
+
+	// verify loop with protoserver
+	const QJsonObject &obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
+	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
+	{
+		Error(_log, "Loop between ProtoServer and Forwarder! (%s)",QSTRING_CSTR(slave));
+		return;
+	}
+
+	if (_forwarder_enabled)
+	{
+		_protoSlaves << slave;
+		FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
+		_forwardClients << flatbuf;
+	}
 }
 
-QStringList MessageForwarder::getProtoSlaves()
+void MessageForwarder::forwardJsonMessage(const QJsonObject &message)
 {
-	return _protoSlaves;
+	if (_forwarder_enabled)
+	{
+		QTcpSocket client;
+		for (int i=0; i<_jsonSlaves.size(); i++)
+		{
+			QStringList parts = _jsonSlaves.at(i).split(":");
+			client.connectToHost(QHostAddress(parts[0]), parts[1].toUShort());
+			if ( client.waitForConnected(500) )
+			{
+				sendJsonMessage(message,&client);
+				client.close();
+			}
+		}
+	}
 }
 
-QList<MessageForwarder::JsonSlaveAddress> MessageForwarder::getJsonSlaves()
+void MessageForwarder::forwardProtoMessage(const Image<ColorRgb> &image)
 {
-	return _jsonSlaves;
+	if (_forwarder_enabled)
+	{
+		for (int i=0; i < _forwardClients.size(); i++)
+			_forwardClients.at(i)->setImage(image);
+	}
 }
 
-bool MessageForwarder::protoForwardingEnabled()
+void MessageForwarder::sendJsonMessage(const QJsonObject &message, QTcpSocket *socket)
 {
-	return ! _protoSlaves.empty();
-}
+	// for hyperion classic compatibility
+	QJsonObject jsonMessage = message;
+	if (jsonMessage.contains("tan") && jsonMessage["tan"].isNull())
+		jsonMessage["tan"] = 100;
 
-bool MessageForwarder::jsonForwardingEnabled()
-{
-	return ! _jsonSlaves.empty();
+	// serialize message
+	QJsonDocument writer(jsonMessage);
+	QByteArray serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
+
+	// write message
+	socket->write(serializedMessage);
+	if (!socket->waitForBytesWritten())
+	{
+		Debug(_log, "Error while writing data to host");
+		return;
+	}
+
+	// read reply data
+	QByteArray serializedReply;
+	while (!serializedReply.contains('\n'))
+	{
+		// receive reply
+		if (!socket->waitForReadyRead())
+		{
+			Debug(_log, "Error while writing data from host");
+			return;
+		}
+
+		serializedReply += socket->readAll();
+	}
+
+	// parse reply data
+	QJsonParseError error;
+	QJsonDocument reply = QJsonDocument::fromJson(serializedReply ,&error);
+
+	if (error.error != QJsonParseError::NoError)
+	{
+		Error(_log, "Error while parsing reply: invalid json");
+		return;
+	}
 }

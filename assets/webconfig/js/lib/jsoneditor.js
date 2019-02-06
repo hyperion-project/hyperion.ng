@@ -5982,24 +5982,8 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
     if(!this.preview_value) return;
 
     var self = this;
-
-    var mime = this.preview_value.match(/^data:([^;,]+)[;,]/);
-    if(mime) mime = mime[1];
-    if(!mime) mime = 'unknown';
-
     var file = this.uploader.files[0];
 
-    this.preview.innerHTML = '<strong>Type:</strong> '+mime+', <strong>Size:</strong> '+file.size+' bytes';
-    if(mime.substr(0,5)==="image") {
-      this.preview.innerHTML += '<br>';
-      var img = document.createElement('img');
-      img.style.maxWidth = '100%';
-      img.style.maxHeight = '100px';
-      img.src = this.preview_value;
-      this.preview.appendChild(img);
-    }
-
-    this.preview.innerHTML += '<br>';
     var uploadButton = this.getButton('Upload', 'upload', 'Upload');
     this.preview.appendChild(uploadButton);
     uploadButton.addEventListener('click',function(event) {
@@ -6036,6 +6020,11 @@ JSONEditor.defaults.editors.upload = JSONEditor.AbstractEditor.extend({
         }
       });
     });
+
+    if(this.jsoneditor.options.auto_upload || this.schema.options.auto_upload) {
+      uploadButton.dispatchEvent(new MouseEvent('click'));
+      this.preview.removeChild(uploadButton);
+    }
   },
   enable: function() {
     if(this.uploader) this.uploader.disabled = false;
@@ -6825,10 +6814,7 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   },
   getButton: function(text, icon, title) {
     var el = this._super(text, icon, title);
-	if(icon.className.includes("fa-times"))
-		el.className += 'btn btn-sm btn-danger';
-	else
-		el.className += 'btn btn-sm btn-primary';
+    el.className += 'btn btn-default';
     return el;
   },
   getTable: function() {

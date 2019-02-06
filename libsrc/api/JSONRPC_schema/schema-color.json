@@ -1,0 +1,39 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["color"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"priority": {
+			"type": "integer",
+			"minimum" : 1,
+			"maximum" : 253,
+			"required": true
+		},
+		"duration": {
+			"type": "integer",
+			"required": false
+		},
+		"origin": {
+			"type": "string",
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required": false
+		},
+		"color": {
+			"type": "array",
+			"required": true,
+			"items" :{
+				"type" : "integer"
+			},
+			"minItems": 3
+		}
+	},
+	"additionalProperties": false
+}

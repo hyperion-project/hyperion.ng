@@ -9,11 +9,8 @@ if ( NOT ENABLE_PROFILER )
 	LIST ( REMOVE_ITEM Utils_SOURCES ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp )
 endif()
 
-set(Utils_RESOURCES ${CURRENT_SOURCE_DIR}/JSONRPC_schemas.qrc )
-
 add_library(hyperion-utils
 	${Utils_SOURCES}
-	${Utils_RESOURCES}
 )
 
 target_link_libraries(hyperion-utils

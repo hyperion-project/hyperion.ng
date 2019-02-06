@@ -1,4 +1,18 @@
-# Install the required tools and dependencies
+# With Docker
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compilation for Raspberry Pi (Raspbian stretch)
+
+To compile Hyperion for Ubuntu 16.04 (x64) or higher just execute the following command
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
+```
+To compile Hyperion for Raspberry Pi
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t cross-qemu-rpistretch
+```
+The compiled binaries and packages will be available at the deploy folder next to the script
+Note: call the script with `./docker-compile.sh -h` for more options
+
+# The usual way
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
 
@@ -6,24 +20,13 @@
 sudo apt-get update
 sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 ```
-### Ubuntu 14.04 specific
-You need a newer version of cmake (minimum 3.0.0). Install it from the ppa or website
-```
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:george-edison55/cmake-3.x
-sudo apt-get update && sudo apt-get upgrade
-```
 
 **on RPI you need the videocore IV headers**
 
 ```
 sudo apt-get install libraspberrypi-dev
 ```
-**OSMC**
-libraspberrypi-dev is not available, use this instead
-```
-sudo apt-get install rbp-userland-dev-osmc
-```
+
 
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
@@ -71,24 +74,16 @@ sudo make install/strip
 sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond
-# webui is located on localhost:8090
+# webui is located on localhost:8090 or 8091
 ```
 
 
 ### Download
- Create hyperion directory and checkout the code from github
-
-You might want to add `--depth 1` to the `git` command if you only want to compile the current source and have no need for the entire git repository
+ Creates hyperion directory and checkout the code from github
 
 ```
 export HYPERION_DIR="hyperion"
-git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
-```
-
-**Note:** If you forget the --recursive in above statement or you are updating an existing clone you need to clone the protobuf submodule by runnning the follwing two statements:
-```
-git submodule init
-git submodule update
+git clone --recursive --depth 1 https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 ```
 
 ### Preparations
@@ -110,7 +105,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 
 *Developers on x86* linux should use:
 ```
-cmake -DPLATFORM=x86-dev -DCMAKE_BUILD_TYPE=Release ..
+cmake -DPLATFORM=x11-dev -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 To use framebuffer instead of dispmanx (for example on the *cubox-i*):

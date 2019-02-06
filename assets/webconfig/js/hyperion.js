@@ -22,6 +22,11 @@ var loggingHandlerInstalled = false;
 var watchdog = 0;
 var debugMessagesActive = true;
 var wSess = [];
+var plugins_installed = {};
+var plugins_available = {};
+
+//comps serverinfo
+comps = [];
 
 function initRestart()
 {
@@ -59,6 +64,7 @@ function connectionLostDetection(type)
 setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
+
 function initWebSocket()
 {
 	if ("WebSocket" in window)
@@ -66,8 +72,8 @@ function initWebSocket()
 		if (websocket == null)
 		{
 			jsonPort = (document.location.port == '') ? '80' : document.location.port;
-			websocket = new WebSocket('ws://'+document.location.hostname+":"+document.location.port);
-			console.log(jsonPort)
+			websocket = new WebSocket('ws://'+document.location.hostname+":"+jsonPort);
+
 			websocket.onopen = function (event) {
 				$(hyperion).trigger({type:"open"});
 
@@ -108,7 +114,7 @@ function initWebSocket()
 					response = JSON.parse(event.data);
 					success = response.success;
 					cmd = response.command;
-					if (success)
+					if (success || typeof(success) == "undefined")
 					{
 						$(hyperion).trigger({type:"cmd-"+cmd, response:response});
 					}
@@ -161,7 +167,7 @@ function sendToHyperion(command, subcommand, msg)
 // also used for watchdog
 function requestServerInfo()
 {
-	sendToHyperion("serverinfo");
+	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update"]');
 }
 
 function requestSysInfo()
@@ -218,7 +224,7 @@ function requestPriorityClear(prio)
 
 function requestClearAll()
 {
-	sendToHyperion("clearall");
+	requestPriorityClear(-1)
 }
 
 function requestPlayEffect(effectName, duration)
@@ -264,15 +270,15 @@ function requestWriteConfig(config, full)
 	sendToHyperion("config","setconfig", '"config":'+JSON.stringify(serverConfig));
 }
 
-function requestWriteEffect(effectName,effectPy,effectArgs)
+function requestWriteEffect(effectName,effectPy,effectArgs,data)
 {
 	var cutArgs = effectArgs.slice(1, -1);
-	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs);
+	sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+',"imageData":"'+data+'"');
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs)
+function requestTestEffect(effectName,effectPy,effectArgs,data)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'"');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
 }
 
 function requestDeleteEffect(effectName)

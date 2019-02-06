@@ -26,7 +26,7 @@ namespace JsonUtils{
 	bool readSchema(const QString& path, QJsonObject& obj, Logger* log);
 
 	///
-	/// @brief parse a json QString and get the result on success
+	/// @brief parse a json QString and get a QJsonObject. Overloaded funtion
 	/// @param[in]  path     The file path/name just used for log messages
 	/// @param[in]  data     Data to parse
 	/// @param[out] obj      Retuns the parsed QJsonObject
@@ -34,6 +34,26 @@ namespace JsonUtils{
 	/// @return              true on success else false
 	///
 	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log);
+
+	///
+	/// @brief parse a json QString and get a QJsonArray. Overloaded function
+	/// @param[in]  path     The file path/name just used for log messages
+	/// @param[in]  data     Data to parse
+	/// @param[out] arr      Retuns the parsed QJsonArray
+	/// @param[in]  log      The logger of the caller to print errors
+	/// @return              true on success else false
+	///
+	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log);
+
+	///
+	/// @brief parse a json QString and get a QJsonDocument
+	/// @param[in]  path     The file path/name just used for log messages
+	/// @param[in]  data     Data to parse
+	/// @param[out] doc      Retuns the parsed QJsonDocument
+	/// @param[in]  log      The logger of the caller to print errors
+	/// @return              true on success else false
+	///
+	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log);
 
 	///
 	/// @brief Validate json data against a schema
@@ -44,6 +64,16 @@ namespace JsonUtils{
 	/// @return               true on success else false
 	///
 	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log);
+
+	///
+	/// @brief Validate json data against a schema
+	/// @param[in]   file     The path/name of json file just used for log messages
+	/// @param[in]   json     The json data
+	/// @param[in]   schema   The schema object
+	/// @param[in]   log      The logger of the caller to print errors
+	/// @return               true on success else false
+	///
+	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log);
 
 	///
 	/// @brief Write json data to file

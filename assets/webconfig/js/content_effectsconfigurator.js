@@ -2,6 +2,7 @@ $(document).ready( function() {
 	performTranslation();
 	var oldDelList = [];
 	var effectName = "";
+	var imageData = "";
 	var effects_editor = null;
 	var effectPy = "";
 	var testrun;
@@ -31,9 +32,29 @@ $(document).ready( function() {
 	function triggerTestEffect() {
 		testrun = true;
 		var args = effects_editor.getEditor('root.args');
-		requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()));
+		requestTestEffect(effectName, ":/effects/" + effectPy.slice(1), JSON.stringify(args.getValue()), imageData);
 	};
 
+	// Specify upload handler for image files
+	JSONEditor.defaults.options.upload = function(type, file, cbs) {
+		var fileReader = new FileReader();
+
+		//check file
+		if (!file.type.startsWith('image')) {
+			imageData = "";
+			cbs.failure('File upload error');
+			// TODO clear file dialog.
+			showInfoDialog('error', "", $.i18n('infoDialog_writeimage_error_text', file.name));
+			return;
+		}
+
+		fileReader.onload = function () {
+			imageData = this.result.split(',')[1];
+			cbs.success(file.name);
+		};
+
+		fileReader.readAsDataURL(file);
+	};
 
 	$("#effectslist").off().on("change", function(event) {
 		if(effects_editor != null)
@@ -48,6 +69,7 @@ $(document).ready( function() {
 
 				effectPy = ':';
 				effectPy += effects[idx].schemaContent.script;
+				imageData = "";
 				$("#name-input").trigger("change");
 
 				$("#eff_desc").html(createEffHint($.i18n(effects[idx].schemaContent.title),$.i18n(effects[idx].schemaContent.title+'_desc')));
@@ -70,6 +92,7 @@ $(document).ready( function() {
 		});
 	});
 
+	// disable or enable control elements
 	$("#name-input").on('change keyup', function(event) {
 		effectName = $(this).val();
 		if ($(this).val() == '') {
@@ -81,8 +104,9 @@ $(document).ready( function() {
         }
     });
 
+	// Save Effect
 	$('#btn_write').off().on('click',function() {
-		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()));
+		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()),imageData);
 		$(hyperion).one("cmd-create-effect", function(event) {
 			if (event.response.success)
 				showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
@@ -93,21 +117,25 @@ $(document).ready( function() {
 
 	});
 
+	// Start test
 	$('#btn_start_test').off().on('click',function() {
 		triggerTestEffect();
 	});
 
+	// Stop test
 	$('#btn_stop_test').off().on('click',function() {
 		requestPriorityClear();
 		testrun = false;
 	});
 
+	// Continuous test
 	$('#btn_cont_test').off().on('click',function() {
 		toggleClass('#btn_cont_test', "btn-success", "btn-danger");
 	});
 
+	// Delete Effect
 	$('#btn_delete').off().on('click',function() {
-		var name = $("#effectsdellist").val();
+		var name = $("#effectsdellist").val().split("_")[1];
 		requestDeleteEffect(name);
 		$(hyperion).one("cmd-delete-effect", function(event) {
 			if (event.response.success)
@@ -115,11 +143,13 @@ $(document).ready( function() {
 		});
 	});
 
+	// disable or enable Delete Effect Button
 	$('#effectsdellist').off().on('change', function(){
 		$(this).val() == null ? $('#btn_edit, #btn_delete').prop('disabled',true) : "";
 		$(this).val().startsWith("int_") ? $('#btn_delete').prop('disabled',true) : $('#btn_delete').prop('disabled',false);
 	});
 
+	// Load Effect
 	$('#btn_edit').off().on('click', function(){
 		var name = $("#effectsdellist").val().replace("ext_","");
 
@@ -155,15 +185,18 @@ $(document).ready( function() {
 	//create basic effect list
 	var effects = serverSchema.properties.effectSchemas.internal
 	for(var idx=0; idx<effects.length; idx++)
-		{
-			$("#effectslist").append(createSelOpt(effects[idx].schemaContent.script, $.i18n(effects[idx].schemaContent.title)));
-		}
+	{
+		$("#effectslist").append(createSelOpt(effects[idx].schemaContent.script, $.i18n(effects[idx].schemaContent.title)));
+	}
 	$("#effectslist").trigger("change");
 
 	updateDelEffectlist();
 
 	//interval update
-	$(hyperion).on("cmd-serverinfo",updateDelEffectlist);
+	$(hyperion).on("cmd-effects-update", function(event){
+		serverInfo.effects = event.response.data.effects
+		updateDelEffectlist();
+	});
 
 	removeOverlay();
 });

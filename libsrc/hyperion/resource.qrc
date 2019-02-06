@@ -1,6 +1,5 @@
 <RCC>
 	<qresource prefix="/">
-		<file alias="hyperion-icon.png">hyperion-icon_32px.png</file>
 		<file alias="hyperion-schema">hyperion.schema.json</file>
 		<file alias="hyperion_default.config">../../config/hyperion.config.json.default</file>
 		<file alias="schema-general.json">schema/schema-general.json</file>
@@ -15,12 +14,13 @@
 		<file alias="schema-backgroundEffect.json">schema/schema-backgroundEffect.json</file>
 		<file alias="schema-forwarder.json">schema/schema-forwarder.json</file>
 		<file alias="schema-jsonServer.json">schema/schema-jsonServer.json</file>
-		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
+		<file alias="schema-flatbufServer.json">schema/schema-flatbufServer.json</file>
 		<file alias="schema-boblightServer.json">schema/schema-boblightServer.json</file>
 		<file alias="schema-udpListener.json">schema/schema-udpListener.json</file>
 		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
 		<file alias="schema-effects.json">schema/schema-effects.json</file>
 		<file alias="schema-ledConfig.json">schema/schema-ledConfig.json</file>
 		<file alias="schema-leds.json">schema/schema-leds.json</file>
+		<file alias="schema-instCapture.json">schema/schema-instCapture.json</file>
 	</qresource>
 </RCC>

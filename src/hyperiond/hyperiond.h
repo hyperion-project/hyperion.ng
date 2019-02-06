@@ -39,16 +39,30 @@
 	typedef QObject X11Wrapper;
 #endif
 
+#ifdef ENABLE_QT
+	#include <grabber/QtWrapper.h>
+#else
+	typedef QObject QtWrapper;
+#endif
+
 #include <utils/Logger.h>
+#include <utils/Image.h>
+#include <utils/VideoMode.h>
 
-#include <jsonserver/JsonServer.h>
-#include <protoserver/ProtoServer.h>
-#include <boblightserver/BoblightServer.h>
-#include <udplistener/UDPListener.h>
-#include <utils/Stats.h>
+// settings management
+#include <utils/settings.h>
 
-
+class Hyperion;
 class SysTray;
+class JsonServer;
+class UDPListener;
+class Stats;
+class BonjourBrowserWrapper;
+class WebServer;
+class SettingsManager;
+class PythonInit;
+class SSDPHandler;
+class FlatBufferServer;
 
 class HyperionDaemon : public QObject
 {
@@ -57,21 +71,56 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString configFile, QString rootPath, QObject *parent=nullptr);
+	HyperionDaemon(QString configFile, QString rootPath, QObject *parent, const bool& logLvlOverwrite );
 	~HyperionDaemon();
 
-	void loadConfig(const QString & configFile);
-	void run();
+	///
+	/// @brief Get webserver pointer (systray)
+	///
+	WebServer* getWebServerInstance() { return _webserver; };
 
-	void startInitialEffect();
+	///
+	/// @brief Get the current videoMode
+	///
+	const VideoMode & getVideoMode() { return _currVideoMode; };
+
+	///
+	/// @brief get the settings
+	///
+	const QJsonDocument getSetting(const settings::type& type);
+
 	void startNetworkServices();
 
-	// grabber creators
-	void createGrabberV4L2();
-	void createSystemFrameGrabber();
+	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* daemon;
 
 public slots:
 	void freeObjects();
+
+signals:
+	///
+	/// @brief PIPE settings events from Hyperion class to HyperionDaemon components
+	///
+	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+
+	///
+	/// @brief After eval of setVideoMode this signal emits with a new one on change
+	///
+	void videoMode(const VideoMode& mode);
+
+private slots:
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
+	///
+	/// @brief Listen for videoMode changes and emit videoMode in case of a change, update _currVideoMode
+	/// @param mode  The requested video mode
+	///
+	void setVideoMode(const VideoMode& mode);
 
 private:
 	void createGrabberDispmanx();
@@ -79,30 +128,36 @@ private:
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
+	void createGrabberQt(const QJsonObject & grabberConfig);
 
-	Logger*             _log;
-	QJsonObject         _qconfig;
-	JsonServer*         _jsonServer;
-	ProtoServer*        _protoServer;
-	BoblightServer*     _boblightServer;
-	UDPListener*        _udpListener;
+	Logger*                _log;
+	BonjourBrowserWrapper* _bonjourBrowserWrapper;
+	PythonInit*            _pyInit;
+	WebServer*             _webserver;
+	JsonServer*            _jsonServer;
+	UDPListener*           _udpListener;
 	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
-	DispmanxWrapper*    _dispmanx;
-#ifdef ENABLE_X11
-	X11Wrapper*         _x11Grabber;
-#endif
-	AmlogicWrapper*     _amlGrabber;
-	FramebufferWrapper* _fbGrabber;
-	OsxWrapper*         _osxGrabber;
-	Hyperion*           _hyperion;
-	Stats*              _stats;
+	DispmanxWrapper*       _dispmanx;
+	X11Wrapper*            _x11Grabber;
+	AmlogicWrapper*        _amlGrabber;
+	FramebufferWrapper*    _fbGrabber;
+	OsxWrapper*            _osxGrabber;
+	QtWrapper*             _qtGrabber;
+	Hyperion*              _hyperion;
+	Stats*                 _stats;
+	SSDPHandler*           _ssdp;
+	FlatBufferServer* _flatBufferServer;
 
 	unsigned            _grabber_width;
 	unsigned            _grabber_height;
 	unsigned            _grabber_frequency;
-	int                 _grabber_priority;
 	unsigned            _grabber_cropLeft;
 	unsigned            _grabber_cropRight;
 	unsigned            _grabber_cropTop;
-    unsigned            _grabber_cropBottom;
+	unsigned            _grabber_cropBottom;
+
+	QString _prevType;
+
+	VideoMode _currVideoMode;
+	SettingsManager*  _settingsManager;
 };

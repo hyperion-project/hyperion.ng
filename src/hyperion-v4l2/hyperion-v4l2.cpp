@@ -12,15 +12,17 @@
 // grabber includes
 #include "grabber/V4L2Grabber.h"
 
-// proto includes
-#include "protoserver/ProtoConnection.h"
-#include "protoserver/ProtoConnectionWrapper.h"
+// flatbuf includes
+#include <flatbufserver/FlatBufferConnection.h>
 
 // hyperion-v4l2 includes
 #include "ScreenshotHandler.h"
 
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
 
 using namespace commandline;
 
@@ -54,22 +56,18 @@ int main(int argc, char** argv)
 	try
 	{
 		// create the option parser and initialize all parameters
-		Parser parser("V4L capture application for Hyperion");
+		Parser parser("V4L capture application for Hyperion.  Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
-		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use [default: %1]", "auto");
+		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32 or no-change. [default: %1]", "no-change");
-		IntOption          & argInput               = parser.add<IntOption>    (0x0, "input", "Input channel (optional)", "-1");
-		IntOption          & argWidth               = parser.add<IntOption>    (0x0, "width", "Try to set the width of the video input [default: %1]", "-1");
-		IntOption          & argHeight              = parser.add<IntOption>    (0x0, "height", "Try to set the height of the video input [default: %1]", "-1");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropLeft            = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
 		IntOption          & argCropRight           = parser.add<IntOption>    (0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
 		IntOption          & argCropTop             = parser.add<IntOption>    (0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 		IntOption          & argCropBottom          = parser.add<IntOption>    (0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
-		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "1");
-		IntOption          & argFrameDecimation     = parser.add<IntOption>    ('f', "frame-decimator", "Decimation factor for the video frames [default=%1]", "1");
+		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "6", 1);
 		BooleanOption      & argScreenshot          = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
 
 		BooleanOption      & argSignalDetection     = parser.add<BooleanOption>('s', "signal-detection-disabled", "disable signal detection");
@@ -85,7 +83,7 @@ int main(int argc, char** argv)
 
 		BooleanOption      & arg3DSBS               = parser.add<BooleanOption>(0x0, "3DSBS", "Interpret the incoming video stream as 3D side-by-side");
 		BooleanOption      & arg3DTAB               = parser.add<BooleanOption>(0x0, "3DTAB", "Interpret the incoming video stream as 3D top-and-bottom");
-		Option             & argAddress             = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
+		Option             & argAddress             = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19400");
 		IntOption          & argPriority            = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption      & argHelp                = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
@@ -112,13 +110,8 @@ int main(int argc, char** argv)
 		// initialize the grabber
 		V4L2Grabber grabber(
 					argDevice.value(parser),
-					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
-					argWidth.getInt(parser),
-					argHeight.getInt(parser),
-					std::max(1, argFrameDecimation.getInt(parser)),
-					std::max(1, argSizeDecimation.getInt(parser)),
 					std::max(1, argSizeDecimation.getInt(parser)));
 
 		// set signal detection
@@ -197,8 +190,28 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			ProtoConnectionWrapper protoWrapper(argAddress.value(parser), argPriority.getInt(parser), 1000, parser.isSet(argSkipReply));
-			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &protoWrapper, SLOT(receiveImage(Image<ColorRgb>)));
+			// server searching by ssdp
+			QString address;
+			if(parser.isSet(argAddress))
+			{
+				address = argAddress.value(parser);
+			}
+			else
+			{
+				SSDPDiscover discover;
+				address = discover.getFirstService(STY_FLATBUFSERVER);
+				if(address.isEmpty())
+				{
+					address = argAddress.value(parser);
+				}
+			}
+
+			// Create the Flatbuf-connection
+			FlatBufferConnection flatbuf("V4L2 Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
+
+			// Connect the screen capturing to flatbuf connection processing
+			QObject::connect(&grabber, SIGNAL(newFrame(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
+
 			if (grabber.start())
 				QCoreApplication::exec();
 			grabber.stop();

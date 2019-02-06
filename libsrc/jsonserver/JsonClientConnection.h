@@ -3,15 +3,17 @@
 // Qt includes
 #include <QString>
 #include <QByteArray>
+#include <QJsonObject>
 
 // util includes
 #include <utils/Logger.h>
 
-class JsonProcessor;
+class JsonAPI;
 class QTcpSocket;
+class WebSocketClient;
 
 ///
-/// The Connection object created by \a JsonServer when a new connection is establshed
+/// The Connection object created by \a JsonServer when a new connection is established
 ///
 class JsonClientConnection : public QObject
 {
@@ -40,8 +42,9 @@ private slots:
 
 private:
 	QTcpSocket* _socket;
-	/// new instance of JsonProcessor
-	JsonProcessor * _jsonProcessor;
+	WebSocketClient* _websocketClient;
+	/// new instance of JsonAPI
+	JsonAPI * _jsonAPI;
 
 	/// The buffer used for reading data from the socket
 	QByteArray _receiveBuffer;
