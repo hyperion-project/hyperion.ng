@@ -66,6 +66,8 @@
 	"dashboard_alert_message_confedit" : "Your Hyperion configuration has been modified. To apply it, restart Hyperion.",
 	"dashboard_alert_message_disabled_t" : "Hyperion disabled",
 	"dashboard_alert_message_disabled" : "Hyperion is currently disabled! To use it again, enable it at the dashboard.",
+	"dashboard_alert_message_confsave_success_t" : "Configuration saved",
+	"dashboard_alert_message_confsave_success" : "Your Hyperion configuration has been saved successfully. Your changes are now active.",
 	"main_menu_dashboard_token" : "Dashboard",
 	"main_menu_configuration_token" : "Configuration",
 	"main_menu_general_conf_token" : "General",

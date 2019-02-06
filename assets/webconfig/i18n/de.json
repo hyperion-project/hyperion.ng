@@ -66,6 +66,8 @@
 	"dashboard_alert_message_confedit" : "Deine Hyperion Konfiguration wurde verändert. Um die Änderungen anzuwenden, starte Hyperion neu.",
 	"dashboard_alert_message_disabled_t" : "Hyperion deaktiviert",
 	"dashboard_alert_message_disabled" : "Hyperion ist momentan deaktiviert! Um Hyperion zu nutzen, musst du es zuerst wieder im Dashboard aktivieren.",
+	"dashboard_alert_message_confsave_success_t" : "Konfiguration gespeichert",
+	"dashboard_alert_message_confsave_success" : "Deine Hyperion Konfiguration wurde erfolgreich gespeichert. Deine Änderungen sind somit übernommen.",
 	"main_menu_dashboard_token" : "Dashboard",
 	"main_menu_configuration_token" : "Konfiguration",
 	"main_menu_general_conf_token" : "Allgemein",
