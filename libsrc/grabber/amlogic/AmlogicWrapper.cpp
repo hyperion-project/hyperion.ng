@@ -1,7 +1,7 @@
 #include <grabber/AmlogicWrapper.h>
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority)
-	: GrabberWrapper("AmLogic", &_grabber, grabWidth, grabHeight, updateRate_Hz, priority, hyperion::COMP_GRABBER)
+AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz)
+	: GrabberWrapper("AmLogic", &_grabber, grabWidth, grabHeight, updateRate_Hz)
 	, _grabber(grabWidth, grabHeight)
 {}
 

@@ -3,14 +3,6 @@
 	"title" : "edt_conf_webc_heading_title",
 	"properties" :
 	{
-		"enable" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_general_enable_title",
-			"default" : true,
-			"access" : "expert",
-			"propertyOrder" : 1
-		},
 		"document_root" :
 		{
 			"type" : "string",

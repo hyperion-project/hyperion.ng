@@ -51,9 +51,9 @@
 		{
 			"$ref": "schema-jsonServer.json"
 		},
-		"protoServer" :
+		"flatbufServer":
 		{
-			"$ref": "schema-protoServer.json"
+			"$ref": "schema-flatbufServer.json"
 		},
 		"boblightServer" :
 		{
@@ -70,6 +70,10 @@
 		"effects" :
 		{
 			"$ref": "schema-effects.json"
+		},
+		"instCapture":
+		{
+			"$ref": "schema-instCapture.json"
 		},
 		"ledConfig":
 		{

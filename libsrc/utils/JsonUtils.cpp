@@ -9,8 +9,6 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
-#include <QDebug>
-
 namespace JsonUtils {
 
 	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
@@ -39,12 +37,32 @@ namespace JsonUtils {
 
 	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
 	{
+		QJsonDocument doc;
+		if(!parse(path, data, doc, log))
+			return false;
+
+		obj = doc.object();
+		return true;
+	}
+
+	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+	{
+		QJsonDocument doc;
+		if(!parse(path, data, doc, log))
+			return false;
+
+		arr = doc.array();
+		return true;
+	}
+
+	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
+	{
 		//remove Comments in data
 		QString cleanData = data;
-		cleanData.remove(QRegularExpression("([^:]?\\/\\/.*)"));
+		//cleanData .remove(QRegularExpression("([^:]?\\/\\/.*)"));
 
 		QJsonParseError error;
-		QJsonDocument doc = QJsonDocument::fromJson(cleanData.toUtf8(), &error);
+		doc = QJsonDocument::fromJson(cleanData.toUtf8(), &error);
 
 		if (error.error != QJsonParseError::NoError)
 		{
@@ -63,7 +81,6 @@ namespace JsonUtils {
 			Error(log,"Failed to parse json data from %s: Error: %s at Line: %i, Column: %i", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn);
 			return false;
 		}
-		obj = doc.object();
 		return true;
 	}
 
@@ -74,6 +91,14 @@ namespace JsonUtils {
 		if(!readFile(schemaPath, schema, log))
 			return false;
 
+		if(!validate(file, json, schema, log))
+			return false;
+		return true;
+
+	}
+
+	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log)
+	{
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schema);
 		if (!schemaChecker.validate(json).first)
@@ -120,7 +145,7 @@ namespace JsonUtils {
 				obj.insert(attribute, resolveRefs(attributeValue.toObject(), obj, log));
 			else
 			{
-				qDebug() <<"ADD ATTR:VALUE"<<attribute<<attributeValue;
+				//qDebug() <<"ADD ATTR:VALUE"<<attribute<<attributeValue;
 				obj.insert(attribute, attributeValue);
 			}
 		}

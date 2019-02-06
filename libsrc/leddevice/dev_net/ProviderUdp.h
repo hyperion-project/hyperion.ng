@@ -1,10 +1,13 @@
 #pragma once
 
-#include <QUdpSocket>
-
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
+
+// qt
+#include <QHostAddress>
+
+class QUdpSocket;
 
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.

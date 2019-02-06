@@ -1,0 +1,5 @@
+<RCC>
+	<qresource prefix="/">
+		${HYPERION_RES}
+	</qresource>
+</RCC>

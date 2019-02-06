@@ -1,0 +1,34 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["create-effect"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"name" :
+		{
+			"type" : "string",
+			"required" : true
+		},
+		"script" :
+		{
+			"type" : "string",
+			"required" : true
+		},
+		"args" :
+		{
+			"type" : "object",
+			"required" : true
+		},
+		"imageData" : {
+			"type" : "string",
+			"required" : false
+		}
+	},
+	"additionalProperties": false
+}

@@ -5,20 +5,31 @@
 #include <boblightserver/BoblightServer.h>
 #include "BoblightClientConnection.h"
 
+// hyperion includes
+#include <hyperion/Hyperion.h>
+// qt incl
+#include <QTcpServer>
+
 using namespace hyperion;
 
-BoblightServer::BoblightServer(const int priority, uint16_t port)
+BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	: QObject()
-	, _hyperion(Hyperion::getInstance())
-	, _server()
+	, _hyperion(hyperion)
+	, _server(new QTcpServer(this))
 	, _openConnections()
-	, _priority(priority)
+	, _priority(0)
 	, _log(Logger::getInstance("BOBLIGHT"))
-	, _isActive(false)
-	, _port(port)
+	, _port(0)
 {
-	// Set trigger for incoming connections
-	connect(&_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	Debug(_log, "Instance created");
+
+	// listen for component change
+	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	// listen new connection signal from server
+	connect(_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+
+	// init
+	handleSettingsUpdate(settings::BOBLSERVER, config);
 }
 
 BoblightServer::~BoblightServer()
@@ -28,64 +39,64 @@ BoblightServer::~BoblightServer()
 
 void BoblightServer::start()
 {
-	if ( active() )
+	if ( _server->isListening() )
 		return;
-		
-	if (!_server.listen(QHostAddress::Any, _port))
+
+	if (!_server->listen(QHostAddress::Any, _port))
 	{
-		throw std::runtime_error("BOBLIGHT ERROR: server could not bind to port");
+		Error(_log, "Could not bind to port '%d', please use an available port", _port);
+		return;
 	}
-	Info(_log, "Boblight server started on port %d", _port);
+	Info(_log, "Started on port %d", _port);
 
-	_isActive = true;
-	emit statusChanged(_isActive);
-
-	_hyperion->registerPriority("Boblight", _priority);
+	_hyperion->getComponentRegister().componentStateChanged(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 void BoblightServer::stop()
 {
-	if ( ! active() )
+	if ( ! _server->isListening() )
 		return;
-		
+
 	foreach (BoblightClientConnection * connection, _openConnections) {
 		delete connection;
 	}
-	_server.close();
-	_isActive = false;
-	emit statusChanged(_isActive);
+	_server->close();
 
-	_hyperion->unRegisterPriority("Boblight");
+	Info(_log, "Stopped");
+	_hyperion->getComponentRegister().componentStateChanged(COMP_BOBLIGHTSERVER, _server->isListening());
+}
 
+bool BoblightServer::active()
+{
+	return _server->isListening();
 }
 
 void BoblightServer::componentStateChanged(const hyperion::Components component, bool enable)
 {
 	if (component == COMP_BOBLIGHTSERVER)
 	{
-		if (_isActive != enable)
+		if (_server->isListening() != enable)
 		{
 			if (enable) start();
 			else        stop();
-			Info(_log, "change state to %s", (_isActive ? "enabled" : "disabled") );
 		}
-		_hyperion->getComponentRegister().componentStateChanged(component, _isActive);
 	}
 }
 
 uint16_t BoblightServer::getPort() const
 {
-	return _server.serverPort();
+	return _server->serverPort();
 }
 
 void BoblightServer::newConnection()
 {
-	QTcpSocket * socket = _server.nextPendingConnection();
+	QTcpSocket * socket = _server->nextPendingConnection();
 
 	if (socket != nullptr)
 	{
 		Info(_log, "new connection");
-		BoblightClientConnection * connection = new BoblightClientConnection(socket, _priority);
+		_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(socket->peerAddress().toString()));
+		BoblightClientConnection * connection = new BoblightClientConnection(_hyperion, socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
@@ -100,4 +111,17 @@ void BoblightServer::closedConnection(BoblightClientConnection *connection)
 
 	// schedule to delete the connection object
 	connection->deleteLater();
+}
+
+void BoblightServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+{
+	if(type == settings::BOBLSERVER)
+	{
+		QJsonObject obj = config.object();
+		_port = obj["port"].toInt();
+		_priority = obj["priority"].toInt();
+		stop();
+		if(obj["enable"].toBool())
+			start();
+	}
 }

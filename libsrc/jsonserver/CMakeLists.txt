@@ -8,6 +8,7 @@ FILE ( GLOB JsonServer_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DI
 add_library(jsonserver ${JsonServer_SOURCES} )
 
 target_link_libraries(jsonserver
+	hyperion-api
 	hyperion
 	Qt5::Network
 	Qt5::Gui

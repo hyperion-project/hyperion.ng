@@ -20,7 +20,7 @@ public:
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	///
-	FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority);
+	FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	///
 	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.

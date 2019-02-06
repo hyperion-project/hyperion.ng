@@ -34,11 +34,8 @@ class LedDevice : public QObject
 	Q_OBJECT
 
 public:
-	LedDevice();
-	///
-	/// Empty virtual destructor for pure virtual base class
-	///
-	virtual ~LedDevice() {}
+	LedDevice(const QJsonObject& config = QJsonObject(), QObject* parent = nullptr);
+	virtual ~LedDevice();
 
 	/// Switch the leds off (led hardware disable)
 	virtual int switchOff();
@@ -49,25 +46,36 @@ public:
 	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// Opens and configures the output device
+	/// @brief Get color order of device
+	/// @return The color order
 	///
-	/// @return Zero on succes else negative
-	///
-	virtual int open();
+	const QString & getColorOrder() { return _colorOrder; };
 
-	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
-	static const LedDeviceRegistry& getDeviceMap();
-	static void setActiveDevice(QString dev);
-	static QString activeDevice() { return _activeDevice; }
-	static QJsonObject getLedDeviceSchemas();
-	static void setLedCount(int ledCount);
-	static int  getLedCount() { return _ledCount; }
+	void setActiveDevice(QString dev);
+	const QString & getActiveDevice() { return _activeDevice; };
+	void setLedCount(int ledCount);
+	int  getLedCount() { return _ledCount; }
 
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
-	int getLatchTime() { return _latchTime_ms; };
+	const int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
+
+public slots:
+	///
+	/// Is called on thread start, all construction tasks and init should run here
+	///
+	virtual void start() { _deviceReady = open(); };
+
+	///
+	/// Writes the RGB-Color values to the leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 
 signals:
 	///
@@ -77,15 +85,17 @@ signals:
 	void enableStateChanged(bool newState);
 
 protected:
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 	virtual bool init(const QJsonObject &deviceConfig);
+
+	///
+	/// Opens and configures the output device
+	///
+	/// @return Zero on succes else negative
+	///
+	virtual int open();
+
+	// Helper to pipe device config from constructor to start()
+	QJsonObject _devConfig;
 
 	/// The common Logger instance for all LedDevices
 	Logger * _log;
@@ -95,12 +105,11 @@ protected:
 
 	bool _deviceReady;
 
-	static QString _activeDevice;
-	static LedDeviceRegistry _ledDeviceMap;
+	QString _activeDevice;
 
-	static int _ledCount;
-	static int _ledRGBCount;
-	static int _ledRGBWCount;
+	int _ledCount;
+	int _ledRGBCount;
+	int _ledRGBWCount;
 
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
@@ -116,4 +125,5 @@ private:
 	std::vector<ColorRgb> _ledValues;
 	bool   _componentRegistered;
 	bool   _enabled;
+	QString _colorOrder;
 };

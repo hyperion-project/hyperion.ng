@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 namespace Process {
-	
+
 void restartHyperion(bool asNewProcess)
 {
 	Logger* log = Logger::getInstance("Process");
@@ -19,8 +19,8 @@ void restartHyperion(bool asNewProcess)
 		<< "      *******************************************" << std::endl
 		<< "      *      hyperion will restart now          *" << std::endl
 		<< "      *******************************************" << std::endl << std::endl;
-		
-	
+
+
 	QStringList qargs = QCoreApplication::arguments();
 	int size = qargs.size();
 	char *args[size+1];
@@ -43,7 +43,7 @@ QByteArray command_exec(QString cmd, QByteArray data)
 	QString result = "";
 
 	std::shared_ptr<FILE> pipe(popen(cmd.toLocal8Bit().constData(), "r"), pclose);
-	if (pipe) 
+	if (pipe)
 	{
 		while (!feof(pipe.get()))
 		{

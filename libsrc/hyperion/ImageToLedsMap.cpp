@@ -47,19 +47,24 @@ ImageToLedsMap::ImageToLedsMap(
 		minX_idx = qMin(minX_idx, xOffset + actualWidth - 1);
 		if (minX_idx == maxX_idx)
 		{
-			maxX_idx = minX_idx + 1;
+			maxX_idx++;
 		}
 		minY_idx = qMin(minY_idx, yOffset + actualHeight - 1);
 		if (minY_idx == maxY_idx)
 		{
-			maxY_idx = minY_idx + 1;
+			maxY_idx++;
 		}
 
 		// Add all the indices in the above defined rectangle to the indices for this led
+		const auto maxYLedCount = qMin(maxY_idx, yOffset+actualHeight);
+		const auto maxXLedCount = qMin(maxX_idx, xOffset+actualWidth);
+
 		std::vector<unsigned> ledColors;
-		for (unsigned y = minY_idx; y<maxY_idx && y<(yOffset+actualHeight); ++y)
+		ledColors.reserve(maxXLedCount*maxYLedCount);
+
+		for (unsigned y = minY_idx; y < maxYLedCount; ++y)
 		{
-			for (unsigned x = minX_idx; x<maxX_idx && x<(xOffset+actualWidth); ++x)
+			for (unsigned x = minX_idx; x < maxXLedCount; ++x)
 			{
 				ledColors.push_back(y*width + x);
 			}

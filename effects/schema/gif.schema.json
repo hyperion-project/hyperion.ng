@@ -3,11 +3,16 @@
 	"script" : "gif.py",
 	"title":"edt_eff_gif_header",
 	"required":true,
-	"properties":{
+	"properties": {
 		"image": {
 			"type": "string",
 			"title":"edt_eff_image",
-			"format" : "file",
+			"format" : "url",
+			"options" :
+			{
+				"upload" : true,
+				"auto_upload" : true
+			},
 			"default": "",
 			"propertyOrder" : 1
 		},

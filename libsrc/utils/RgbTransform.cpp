@@ -144,8 +144,8 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 {
 	// apply gamma
 	red   = _mappingR[red];
-	green = _mappingR[green];
-	blue  = _mappingR[blue];
+	green = _mappingG[green];
+	blue  = _mappingB[blue];
 
 	// apply brightnesss
 	int rgbSum = red+green+blue;

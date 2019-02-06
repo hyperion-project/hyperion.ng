@@ -1,0 +1,8 @@
+{
+	"name" : "Waves with Color",
+	"script" : "waves.py",
+	"args" :
+	{
+		"reverse" : false
+	}
+}

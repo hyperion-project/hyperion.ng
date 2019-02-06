@@ -1,0 +1,37 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_fbs_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"required" : true,
+			"title" : "edt_conf_general_enable_title",
+			"default" : true,
+			"propertyOrder" : 1
+		},
+		"port" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_general_port_title",
+			"minimum" : 1024,
+			"maximum" : 65535,
+			"default" : 19400,
+			"propertyOrder" : 2
+		},
+		"timeout" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_fbs_timeout_title",
+			"append" : "edt_append_s",
+			"minimum" : 1,
+			"default" : 5,
+			"propertyOrder" : 3
+		}
+	},
+	"additionalProperties" : false
+}

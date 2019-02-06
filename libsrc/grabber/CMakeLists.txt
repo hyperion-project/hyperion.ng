@@ -21,3 +21,7 @@ endif (ENABLE_V4L2)
 if (ENABLE_X11)
 	add_subdirectory(x11)
 endif()
+
+if (ENABLE_QT)
+	add_subdirectory(qt)
+endif()

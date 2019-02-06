@@ -1,13 +1,14 @@
 [Unit]
-Description=Hyperion ambient light systemd service
+Description=Hyperion ambient light systemd service  for user %i
 After=network.target
 
 [Service]
 ExecStart=/usr/bin/hyperiond
 WorkingDirectory=/usr/share/hyperion/bin
+User=%i
 TimeoutStopSec=5
 KillMode=mixed
-Restart=always
+Restart=on-failure
 RestartSec=2
 
 [Install]

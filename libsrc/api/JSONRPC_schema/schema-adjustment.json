@@ -1,0 +1,143 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["adjustment"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"adjustment": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"id" : {
+					"type" : "string",
+					"required" : false
+				},
+				"red": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"green": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"blue": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"yellow": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"magenta": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"cyan": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"white": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 255
+					},
+					"minItems": 3,
+					"maxItems": 3
+				},
+				"gammaRed": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.1,
+					"maximum" : 5.0
+				},
+				"gammaGreen": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.1,
+					"maximum" : 5.0
+				},
+				"gammaBlue": {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.1,
+					"maximum" : 5.0
+				},
+				"backlightThreshold" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 100
+				},
+				"backlightColored" : {
+					"type" : "boolean",
+					"required" : false
+				},
+				"brightness" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 100
+				},
+				"brightnessCompensation" : {
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 0,
+					"maximum" : 100
+				}
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}

@@ -15,23 +15,22 @@
 #include <QHostInfo>
 
 // hyperion util includes
-#include "hyperion/ImageProcessorFactory.h"
-#include "hyperion/ImageProcessor.h"
-#include "utils/ColorRgb.h"
+#include <hyperion/ImageProcessor.h>
 #include "HyperionConfig.h"
+#include <hyperion/Hyperion.h>
 
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(QTcpSocket *socket, const int priority)
+BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, const int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
-	, _imageProcessor(ImageProcessorFactory::getInstance().newImageProcessor())
-	, _hyperion(Hyperion::getInstance())
+	, _imageProcessor(hyperion->getImageProcessor())
+	, _hyperion(hyperion)
 	, _receiveBuffer()
 	, _priority(priority)
-	, _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK)
+	, _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
 	, _log(Logger::getInstance("BOBLIGHT"))
 	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
@@ -167,7 +166,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
 							{
-								_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
+								_hyperion->setInput(_priority, _ledColors);
 							}
 
 							return;
@@ -205,7 +204,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			// send current color values to hyperion
 			if (_priority < 255)
 			{
-				_hyperion->setColors(_priority, _ledColors, -1, true, hyperion::COMP_BOBLIGHTSERVER, _clientAddress);
+				_hyperion->setInput(_priority, _ledColors);
 			}
 			return;
 		}
