@@ -36,9 +36,10 @@ CiColor CiColor::rgbToCiColor(float red, float green, float blue, CiColorTriangl
 	{
 		cy = 0.0f;
 	}
-	// Brightness is simply Y in the XYZ space.
+	// RGB to HSV/B Conversion after gamma correction use V for brightness, not Y from XYZ Space.
+	float bri = fmax(fmax(r, g), b);
 	CiColor xy =
-	{ cx, cy, Y };
+	{ cx, cy, bri };
 	// Check if the given XY value is within the color reach of our lamps.
 	if (!isPointInLampsReach(xy, colorSpace))
 	{
@@ -201,7 +202,7 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 
 void PhilipsHueBridge::post(QString route, QString content)
 {
-	Debug(log, "Post %s: %s", QSTRING_CSTR(QString("http://IP/api/USR/%1").arg(route)), QSTRING_CSTR(content));
+	//Debug(log, "Post %s: %s", QSTRING_CSTR(QString("http://IP/api/USR/%1").arg(route)), QSTRING_CSTR(content));
 
 	QNetworkRequest request(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route));
 	manager.put(request, content.toLatin1());
@@ -212,9 +213,9 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 { "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-{ "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014" };
+{ "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014", "LCT015", "LCT016", "LCT024" };
 
-PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned int id, QJsonObject values)
+PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned int id, QJsonObject values)
 	: log(log)
 	, bridge(bridge)
 	, id(id)
@@ -249,7 +250,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	{
 		Debug(log, "Recognized model id %s of light ID %d as gamut A", modelId.toStdString().c_str(), id);
 		colorSpace.red =
-		{	0.703f, 0.296f};
+		{	0.704f, 0.296f};
 		colorSpace.green =
 		{	0.2151f, 0.7106f};
 		colorSpace.blue =
@@ -261,7 +262,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 		colorSpace.red =
 		{	0.675f, 0.322f};
 		colorSpace.green =
-		{	0.4091f, 0.518f};
+		{	0.409f, 0.518f};
 		colorSpace.blue =
 		{	0.167f, 0.04f};
 	}
@@ -269,11 +270,11 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge& bridge, unsigned
 	{
 		Debug(log, "Recognized model id %s of light ID %d as gamut C", modelId.toStdString().c_str(), id);
 		colorSpace.red =
-		{	0.675f, 0.322f};
+		{	0.6915f, 0.3083f};
 		colorSpace.green =
-		{	0.2151f, 0.7106f};
+		{	0.17f, 0.7f};
 		colorSpace.blue =
-		{	0.167f, 0.04f};
+		{	0.1532f, 0.0475f};
 	}
 	else
 	{
@@ -297,7 +298,7 @@ PhilipsHueLight::~PhilipsHueLight()
 
 void PhilipsHueLight::set(QString state)
 {
-	bridge.post(QString("lights/%1/state").arg(id), state);
+	bridge->post(QString("lights/%1/state").arg(id), state);
 }
 
 void PhilipsHueLight::setOn(bool on)
@@ -345,18 +346,25 @@ LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 }
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
-	: LedDevice()
-	, bridge(_log, deviceConfig["output"].toString(), deviceConfig["username"].toString())
+	: LedDevice(deviceConfig)
+	, _bridge(nullptr)
 {
-	_deviceReady = init(deviceConfig);
 
-	connect(&bridge, &PhilipsHueBridge::newLights, this, &LedDevicePhilipsHue::newLights);
-	connect(this, &LedDevice::enableStateChanged, this, &LedDevicePhilipsHue::stateChanged);
 }
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 	switchOff();
+	delete _bridge;
+}
+
+void LedDevicePhilipsHue::start()
+{
+	_bridge = new PhilipsHueBridge(_log, _devConfig["output"].toString(), _devConfig["username"].toString());
+	_deviceReady = init(_devConfig);
+
+	connect(_bridge, &PhilipsHueBridge::newLights, this, &LedDevicePhilipsHue::newLights);
+	connect(this, &LedDevice::enableStateChanged, this, &LedDevicePhilipsHue::stateChanged);
 }
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
@@ -374,7 +382,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 			lightIds.push_back(i.toInt());
 		}
 		// get light info from bridge
-		bridge.bConnect();
+		_bridge->bConnect();
 
 		// adapt latchTime to count of user lightIds (bridge 10Hz max overall)
 		newDC.insert("latchTime",QJsonValue(100*(int)lightIds.size()));
@@ -399,7 +407,7 @@ void LedDevicePhilipsHue::newLights(QMap<quint16, QJsonObject> map)
 		{
 			if (map.contains(id))
 			{
-				lights.push_back(PhilipsHueLight(_log, bridge, id, map.value(id)));
+				lights.push_back(PhilipsHueLight(_log, _bridge, id, map.value(id)));
 			}
 			else
 			{
@@ -427,7 +435,6 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 	{
 		// Get color.
 		ColorRgb color = ledValues.at(idx);
-
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
 		CiColor xy = CiColor::rgbToCiColor(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f,
 				light.getColorSpace());
@@ -453,7 +460,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 void LedDevicePhilipsHue::stateChanged(bool newState)
 {
 	if(newState)
-		bridge.bConnect();
+		_bridge->bConnect();
 	else
 		lights.clear();
 }

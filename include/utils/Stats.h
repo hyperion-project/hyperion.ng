@@ -16,6 +16,14 @@ class Stats : public QObject
 
 public:
 	Stats();
+	static Stats* getInstance() { return instance; };
+	static Stats* instance;
+
+	void handleDataUpdate(const QJsonObject& config);
+
+private:
+	friend class HyperionDaemon;
+	Stats(const QJsonObject& config);
 	~Stats();
 
 private:

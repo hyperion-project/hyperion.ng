@@ -6,6 +6,7 @@ install_file()
 	dest="$2"
 
 	if [ ! -e "$dest" ]
+	then
 		cp "$src" "${dest}"
 		return 1
 	else
@@ -15,10 +16,7 @@ install_file()
 }
 
 
-echo "--- hyperion ambient light postinstall ---"
-echo "- install configuration template"
-mkdir -p /etc/hyperion
-mkdir -p /usr/share/hyperion/custom-effects
+echo "---Hyperion ambient light postinstall ---"
 
 #check system
 CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
@@ -27,42 +25,54 @@ CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
 #Check for a bootloader as Berryboot
 BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
 
-#get current system ip + add default port
-address=$(ip -o -4 a | awk '$2 == "eth0" { gsub(/\/.*/, "", $4); print $4 }')":8099"
+#get current system ip
+NET_IP=`hostname -I | cut -d " " -f1`
 
-#check if hyperion is running
-HYPERION_RUNNING=false
-pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true
+# search for users in system, returns first entry
+FOUND_USR=`who | grep -o '^\w*\b'` || "root"
+
+# determine if we should use a service
+ENABLE_SERVICE=0
+STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
+
+if [ $CPU_RPI -eq 1 ]; then
+	ENABLE_SERVICE=1
+	STARTUP_MSG="echo ---> Hyperion has been installed as service, it will start on each system startup"
+fi
 
 start_msg=""
 restart_msg=""
-SERVICE_POSTFIX=""
 
 if grep -m1 systemd /proc/1/comm > /dev/null
 then
-	echo "--> init deamon: systemd"
+	echo "---> init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperiond 2> /dev/null
-	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond.service && systemctl -q enable hyperiond.service
-	start_msg="--> systemctl start hyperiond"
-	systemctl start hyperiond
+	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond@.service
+	# service registration just on Raspberry Pi, probably need to ask the user how we should use the service. TODO service start in user login scope eg for x11?!
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		systemctl enable hyperiond"@${FOUND_USR}".service
+		start_msg="--> systemctl start hyperiond for user ${FOUND_USR}"
+		systemctl start hyperiond"@${FOUND_USR}"
+	fi
 
 elif [ -e /sbin/initctl ]
 then
-	echo "--> init deamon: upstart"
+	echo "---> init deamon: upstart"
 	# upstart
-	$HYPERION_RUNNING && initctl stop hyperiond
-	install_file /usr/share/hyperion/service/hyperiond.initctl /etc/init/hyperion.conf && initctl reload-configuration
-	start_msg="--> initctl start hyperiond"
-	initctl start hyperiond
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		install_file /usr/share/hyperion/service/hyperiond.initctl /etc/init/hyperion.conf && initctl reload-configuration
+		start_msg="--> initctl start hyperiond"
+		initctl start hyperiond
+	fi
 
 else
-	echo "--> init deamon: sysV"
+	echo "---> init deamon: sysV"
 	# sysV
-	$HYPERION_RUNNING && service hyperiond stop 2>/dev/null
-	install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperiond && chmod +x /etc/init.d/hyperiond && update-rc.d hyperiond defaults 98 02
-	start_msg="--> service hyperiond start"
-	service hyperiond start
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperiond && chmod +x /etc/init.d/hyperiond && update-rc.d hyperiond defaults 98 02
+		start_msg="---> service hyperiond start"
+		service hyperiond start
+	fi
 fi
 
 #cleanup
@@ -79,7 +89,16 @@ ln -fs $BINSP/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
 ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
 ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
+ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 
+# install desktop icons
+echo "---> Install Hyperion desktop icons"
+mkdir /usr/share/pixmaps/hyperion 2>/dev/null
+cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
+desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+
+# cleanup desktop icons
+rm -r /usr/share/hyperion/desktop 2>/dev/null
 
 #Check, if dtparam=spi=on is in place
 if [ $CPU_RPI -eq 1 ]; then
@@ -100,9 +119,14 @@ if [ $CPU_RPI -eq 1 ]; then
 	fi
 fi
 
+echo ${start_msg}
+
 echo "-----------------------------------------------------------------------------"
-echo "--> Hyperion has been installed/updated!"
-echo "--> For configuration, visit with your browser: ${address}"
+echo "---> Hyperion has been installed/updated!"
+echo "---> "
+$STARTUP_MSG
+echo "---> For configuration, visit with your browser: ${NET_IP}:8090"
+echo "---> or if already used by another service try: ${NET_IP}:8091"
 $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
@@ -110,28 +134,14 @@ echo "Wiki: wiki.hyperion-project.org"
 echo "Forum: forum.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
-# try to open the browser for desktops. TODO: add headless detection(?)
-if	[ $CPU_X32X64 -eq 1]
-echo "--> Will open browser with target: ${address}"
-	if [[ -e /usr/bin/xdg-open ]]
-		then
-		xdg-open http://"$address"
-	elif [[ -e /usr/bin/x-www-browser ]]
-		then
-		x-www-browser http://"$address"
-	elif [[ -e /usr/bin/www-browser ]]
-		then
-		www-browser http://"$address"
-	fi
-fi
-
 
 if [ -e /opt/hyperion/ ]
 then
 	echo
 	echo "---------------------------------------------------------------------------------"
-	echo "- It seemd that you have an older version of hyperion installed in /opt/hyerion -"
-	echo "- please remove it and check your config to avoid problems                      -"
+	echo "- It seemd that you have an older version of hyperion installed in /opt/hyperion -"
+	echo "- please remove it to avoid problems                                            -"
 	echo "---------------------------------------------------------------------------------"
 fi
 
+exit 0

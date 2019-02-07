@@ -1,10 +1,10 @@
 {
     "@metadata": {
         "authors": [
-            "brindosch"
+            "brindosch, paulchen-panther"
         ],
 		"project" : "Hyperion WebUI string docu",
-		"last-updated": "2016-11-30"
+		"last-updated": "2019-01-02"
     },
 	"edt_msg_error_notset" : " When a property is not set",
 	"edt_msg_error_notempty" : "When a string must not be empty",
@@ -40,8 +40,14 @@
 	"edt_msg_button_add_row_title" : "Title on Add Row buttons. $1 = This key takes one variable: The title of object to add",
 	"edt_msg_button_move_down_title" : "Title on Move Down buttons",
 	"edt_msg_button_move_up_title" : "Title on Move Up buttons",
-	"edt_msg_button_delete_row_titlet" : "Title on Delete Row buttons. $1 = This key takes one variable: The title of object to delete",
+	"edt_msg_button_delete_row_title" : "Title on Delete Row buttons. $1 = This key takes one variable: The title of object to delete",
 	"edt_msg_button_delete_row_title_short" : "Title on Delete Row buttons, short version (no parameter with the object title)",
 	"edt_msg_button_collapse" : "Title on Collapse buttons",
-	"edt_msg_button_expand" : "Title on Expand buttons"
+	"edt_msg_button_expand" : "Title on Expand buttons",
+	"edt_msg_error_date" : "When a date is in incorrect format. $1 = This key takes one variable: The valid format",
+	"edt_msg_error_time" : "When a time is in incorrect format. $1 = This key takes one variable: The valid format",
+	"edt_msg_error_datetime_local" : "When a datetime-local is in incorrect format. $1 = This key takes one variable: The valid format",
+	"edt_msg_error_invalid_epoch" : "When a integer date is less than 1 January 1970",
+	"edt_msg_flatpickr_toggle_button" : "Title on Flatpickr toggle buttons",
+	"edt_msg_flatpickr_clear_button" : "Title on Flatpickr clear buttons"
 }

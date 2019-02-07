@@ -13,17 +13,21 @@
 #include <QDir>
 #include <QDateTime>
 
-Stats::Stats()
+Stats* Stats::instance = nullptr;
+
+Stats::Stats(const QJsonObject& config)
 	: QObject()
 	, _log(Logger::getInstance("STATS"))
 	, _hyperion(Hyperion::getInstance())
 {
+	Stats::instance = this;
+
 	// generate hash
 	foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
 	{
 		if (!(interface.flags() & QNetworkInterface::IsLoopBack))
 		{
-			_hyperion->id = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit().append(_hyperion->getConfigFileName().toLocal8Bit()),QCryptographicHash::Sha1).toHex());
+			_hyperion->setId(QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit().append(_hyperion->getConfigFileName().toLocal8Bit()),QCryptographicHash::Sha1).toHex()));
 			_hash = QString(QCryptographicHash::hash(interface.hardwareAddress().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 			break;
 		}
@@ -34,35 +38,12 @@ Stats::Stats()
 	{
 		Warning(_log, "No interface found, abort");
 		// fallback id
-		_hyperion->id = QString(QCryptographicHash::hash(_hyperion->getConfigFileName().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
+		_hyperion->setId(QString(QCryptographicHash::hash(_hyperion->getConfigFileName().toLocal8Bit(),QCryptographicHash::Sha1).toHex()));
 		return;
 	}
 
-	// prepare content
-	QJsonObject config = _hyperion->getConfig();
-	SysInfo::HyperionSysInfo data = SysInfo::get();
-
-	QJsonObject system;
-	system["kType"    ] = data.kernelType;
-	system["arch"       ] = data.architecture;
-	system["pType"      ] = data.productType;
-	system["pVersion"   ] = data.productVersion;
-	system["pName"      ] = data.prettyName;
-	system["version"    ] = QString(HYPERION_VERSION);
-	system["device"     ] = LedDevice::activeDevice();
-	system["id"         ] = _hyperion->id;
-	system["hw_id"      ] = _hash;
-	system["ledCount"   ] = QString::number(Hyperion::getInstance()->getLedCount());
-	system["comp_sm"    ] = config["smoothing"].toObject().take("enable");
-	system["comp_bb"    ] = config["blackborderdetector"].toObject().take("enable");
-	system["comp_fw"    ] = config["forwarder"].toObject().take("enable");
-	system["comp_udpl"  ] = config["udpListener"].toObject().take("enable");
-	system["comp_bobl"  ] = config["boblightServer"].toObject().take("enable");
-	system["comp_pc"    ] = config["framegrabber"].toObject().take("enable");
-	system["comp_uc"    ] = config["grabberV4L2"].toArray().at(0).toObject().take("enable");
-
-	QJsonDocument doc(system);
-	_ba = doc.toJson();
+	// prep data
+	handleDataUpdate(config);
 
 	// QNetworkRequest Header
 	_req.setRawHeader("Content-Type", "application/json");
@@ -75,13 +56,40 @@ Stats::Stats()
 	connect(timer, SIGNAL(timeout()), this, SLOT(sendHTTP()));
 	timer->start(604800000);
 
-	//delay initial check
+	// delay initial check
 	QTimer::singleShot(60000, this, SLOT(initialExec()));
 }
 
 Stats::~Stats()
 {
+}
 
+void Stats::handleDataUpdate(const QJsonObject& config)
+{
+	// prepare content
+	SysInfo::HyperionSysInfo data = SysInfo::get();
+
+	QJsonObject system;
+	system["kType"    ] = data.kernelType;
+	system["arch"       ] = data.architecture;
+	system["pType"      ] = data.productType;
+	system["pVersion"   ] = data.productVersion;
+	system["pName"      ] = data.prettyName;
+	system["version"    ] = QString(HYPERION_VERSION);
+	system["device"     ] = Hyperion::getInstance()->getActiveDevice();
+	system["id"         ] = _hyperion->getId();
+	system["hw_id"      ] = _hash;
+	system["ledCount"   ] = QString::number(Hyperion::getInstance()->getLedCount());
+	system["comp_sm"    ] = config["smoothing"].toObject().take("enable");
+	system["comp_bb"    ] = config["blackborderdetector"].toObject().take("enable");
+	system["comp_fw"    ] = config["forwarder"].toObject().take("enable");
+	system["comp_udpl"  ] = config["udpListener"].toObject().take("enable");
+	system["comp_bobl"  ] = config["boblightServer"].toObject().take("enable");
+	system["comp_pc"    ] = config["framegrabber"].toObject().take("enable");
+	system["comp_uc"    ] = config["grabberV4L2"].toArray().at(0).toObject().take("enable");
+
+	QJsonDocument doc(system);
+	_ba = doc.toJson();
 }
 
 void Stats::initialExec()
@@ -100,7 +108,7 @@ void Stats::sendHTTP()
 
 void Stats::sendHTTPp()
 {
-	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hyperion->id));
+	_req.setUrl(QUrl("https://api.hyperion-project.org/api/stats/"+_hyperion->getId()));
 	_mgr.put(_req,_ba);
 }
 
@@ -122,7 +130,7 @@ bool Stats::trigger(bool set)
 {
 	QString path =	_hyperion->getRootPath()+"/misc/";
 	QDir dir;
-	QFile file(path + _hyperion->id);
+	QFile file(path + _hyperion->getId());
 
 	if(set && file.open(QIODevice::ReadWrite) )
 	{

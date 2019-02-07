@@ -5,12 +5,18 @@
 
 
 // Qt includes
-#include <QTimer>
 #include <QVector>
 
 // hyperion incluse
 #include <leddevice/LedDevice.h>
 #include <utils/Components.h>
+
+// settings
+#include <utils/settings.h>
+
+class QTimer;
+class Logger;
+class Hyperion;
 
 /// Linear Smooting class
 ///
@@ -22,11 +28,10 @@ class LinearColorSmoothing : public LedDevice
 
 public:
 	/// Constructor
-	/// @param LedDevice the led device
-	/// @param LedUpdatFrequency The frequency at which the leds will be updated (Hz)
-	/// @param settingTime The time after which the updated led values have been fully applied (sec)
-	/// @param updateDelay The number of frames to delay outgoing led updates
-	LinearColorSmoothing(LedDevice *ledDevice, double ledUpdateFrequency, int settlingTime, unsigned updateDelay, bool continuousOutput);
+	/// @param config    The configuration document smoothing
+	/// @param hyperion  The hyperion parent instance
+	///
+	LinearColorSmoothing(const QJsonDocument& config, Hyperion* hyperion);
 
 	/// Destructor
 	virtual ~LinearColorSmoothing();
@@ -46,12 +51,43 @@ public:
 	bool pause() { return _pause; } ;
 	bool enabled() { return LedDevice::enabled() && !_pause; };
 
+	///
+	/// @brief Add a new smoothing cfg which can be used with selectConfig()
+	/// @param   settlingTime_ms       The buffer time
+	/// @param   ledUpdateFrequency_hz The frequency of update
+	/// @param   updateDelay           The delay
+	///
+	/// @return The index of the cfg which can be passed to selectConfig()
+	///
 	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
-	bool selectConfig(unsigned cfg);
+
+	///
+	/// @brief select a smoothing cfg given by cfg index from addConfig()
+	/// @param   cfg     The index to use
+	/// @param   force   Overwrite in any case the current values (used for cfg 0 settings udpate)
+	///
+	/// @return  On success return else false (and falls back to cfg 0)
+	///
+	bool selectConfig(unsigned cfg, const bool& force = false);
+
+public slots:
+	///
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settingyType from enum
+	/// @param config configuration object
+	///
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
+
+	///
+	/// @brief Handle component state changes
+	/// @param component   The component
+	/// @param state       The requested state
+	///
+	void componentStateChange(const hyperion::Components component, const bool state);
 
 private:
 	/**
@@ -61,8 +97,11 @@ private:
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
 
-	/// The led device
-	LedDevice * _ledDevice;
+	/// Logger instance
+	Logger* _log;
+
+	/// Hyperion instance
+	Hyperion* _hyperion;
 
 	/// The interval at which to update the leds (msec)
 	int64_t _updateInterval;
@@ -71,7 +110,7 @@ private:
 	int64_t _settlingTime;
 
 	/// The Qt timer object
-	QTimer _timer;
+	QTimer * _timer;
 
 	/// The timestamp at which the target data should be fully applied
 	int64_t _targetTime;
@@ -92,7 +131,7 @@ private:
 
 	/// Prevent sending data to device when no intput data is sent
 	bool _writeToLedsEnable;
-	
+
 	/// Flag for dis/enable continuous output to led device regardless there is new data or not
 	bool _continuousOutput;
 
@@ -107,8 +146,8 @@ private:
 		unsigned outputDelay;
 	};
 
-	/// config list
+	/// smooth config list
 	QVector<SMOOTHING_CFG> _cfgList;
-	
+
 	unsigned _currentConfigId;
 };

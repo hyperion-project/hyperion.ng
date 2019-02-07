@@ -7,7 +7,7 @@ function removeOverlay()
 
 function reload()
 {
-	location.reload();	
+	location.reload();
 }
 
 function storageComp()
@@ -48,6 +48,27 @@ function debugMessage(msg)
 	}
 }
 
+function updateSessions()
+{
+	var sess = serverInfo.sessions;
+	if (sess.length)
+	{
+		wSess = [];
+		for(var i = 0; i<sess.length; i++)
+		{
+			if(sess[i].type == "_hyperiond-http._tcp.")
+			{
+				wSess.push(sess[i]);
+			}
+		}
+
+		if (wSess.length > 1)
+			$('#btn_instanceswitch').toggle(true);
+		else
+			$('#btn_instanceswitch').toggle(false);
+	}
+}
+
 function validateDuration(d)
 {
 	if(typeof d === "undefined" || d < 0)
@@ -70,12 +91,12 @@ function getHashtag()
 	}
 }
 
-function loadContent(event)
+function loadContent(event, forceRefresh)
 {
 	var tag;
-	
+
 	if(typeof event != "undefined")
-	{	
+	{
 		tag = event.currentTarget.hash;
 		tag = tag.substr(tag.indexOf("#") + 1);
 		setStorage('lasthashtag', tag, true);
@@ -83,7 +104,7 @@ function loadContent(event)
 	else
 		tag = getHashtag();
 
-	if(prevTag != tag)
+	if(forceRefresh || prevTag != tag)
 	{
 		prevTag = tag;
 		$("#page-content").off();
@@ -130,7 +151,7 @@ function setClassByBool(obj,enable,class1,class2)
 }
 
 function showInfoDialog(type,header,message)
-{	
+{
 	if (type=="success"){
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
 		if(header == "")
@@ -143,12 +164,12 @@ function showInfoDialog(type,header,message)
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type=="error"){	
+	else if (type=="error"){
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
-	}	
+	}
 	else if (type == "select"){
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
@@ -178,10 +199,10 @@ function showInfoDialog(type,header,message)
 	
 	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 	$('#id_body').append(message);
-	
+
 	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
-	
+
 	$("#modal_dialog").modal({
 		backdrop : "static",
 		keyboard: false,
@@ -193,14 +214,14 @@ function createHintH(type, text, container)
 {
 	if(type = "intro")
 		tclass = "introd";
-		
+
 	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
 }
 
 function createHint(type, text, container, buttonid, buttontxt)
 {
 	var fe, tclass;
-	
+
 	if(type == "intro")
 	{
 		fe = '';
@@ -212,21 +233,21 @@ function createHint(type, text, container, buttonid, buttontxt)
 		tclass = "info-hint";
 	}
 	else if(type == "wizard")
-	{	
+	{
 		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-magic"></i></div><div style="text-align:center;font-size:13px">Information</div>';
 		tclass = "wizard-hint";
 	}
 	else if(type == "warning")
-	{	
+	{
 		fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
 		tclass = "warning-hint";
 	}
-	
+
 	if(buttonid)
 		buttonid = '<p><button id="'+buttonid+'" class="btn btn-wizard" style="margin-top:15px;">'+text+'</button></p>';
 	else
 		buttonid = "";
-	
+
 	if(type == "intro")
 		$('#'+container).prepend('<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>'+$.i18n("conf_helptable_expl")+'</h4>'+text+'</div>');
 	else if(type == "wizard")
@@ -247,8 +268,8 @@ function valValue(id,value,min,max)
 {
 	if(typeof max === 'undefined' || max == "")
 		max = 999999;
-	
-	if(Number(value) > Number(max))	
+
+	if(Number(value) > Number(max))
 	{
 		$('#'+id).val(max);
 		showInfoDialog("warning","",$.i18n('edt_msg_error_maximum_incl',max));
@@ -260,7 +281,7 @@ function valValue(id,value,min,max)
 		showInfoDialog("warning","",$.i18n('edt_msg_error_minimum_incl',min));
 		return min;
 	}
-	return value;		
+	return value;
 }
 
 function readImg(input,cb)
@@ -294,12 +315,10 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 {
 	$('#'+container).off();
 	$('#'+container).html("");
-	
-	//JSONEditor.plugins.selectize.enable = true;
-	
+
 	if (typeof arrayre === 'undefined')
 		arrayre = true;
-	
+
 	var editor = new JSONEditor(document.getElementById(container),
 	{
 		theme: 'bootstrap3',
@@ -338,18 +357,18 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 }
 
 function buildWL(link,linkt,cl)
-{	
+{
 	var baseLink = "https://docs.hyperion-project.org/";
 	var lang;
-	
+
 	if(typeof linkt == "undefined")
 		linkt = "Placeholder";
-	
+
 	if(storedLang == "de" || navigator.locale == "de")
 		lang = "de";
 	else
 		lang = "en";
-	
+
 	if(cl === true)
 	{
 		linkt = $.i18n(linkt);
@@ -366,7 +385,7 @@ function rgbToHex(rgb)
 		return "#" +
 		("0" + parseInt(rgb[0],10).toString(16)).slice(-2) +
 		("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-		("0" + parseInt(rgb[2],10).toString(16)).slice(-2);    
+		("0" + parseInt(rgb[2],10).toString(16)).slice(-2);
 	}
 	else
 		debugMessage('rgbToHex: Given rgb is no array or has wrong length');
@@ -381,6 +400,57 @@ function hexToRgb(hex) {
     } : null;
 }
 
+/*
+	Show a notification
+	@param type     Valid types are "info","success","warning","danger"
+	@param message  The message to show
+	@param title     A title (optional)
+ */
+function showNotification(type, message, title="")
+{
+	if(title == "")
+	{
+		switch(type)
+		{
+			case "info":
+			title = $.i18n('infoDialog_general_info_title');
+			break;
+			case "success":
+			title = $.i18n('infoDialog_general_success_title');
+			break;
+			case "warning":
+			title = $.i18n('infoDialog_general_warning_title');
+			break;
+			case "danger":
+			title = $.i18n('infoDialog_general_error_title');
+			break;
+		}
+	}
+
+	$.notify({
+		// options
+		title: title,
+		message: message
+	},{
+		// settings
+		type: type,
+		animate: {
+			enter: 'animated fadeInRight',
+			exit: 'animated fadeOutRight'
+		},
+		mouse_over : 'pause',
+		template: '<div data-notify="container" class="bg-w col-xs-11 col-sm-3 bs-callout bs-callout-{0}" role="alert">' +
+		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
+		'<span data-notify="icon"></span> ' +
+		'<h4 data-notify="title">{1}</h4> ' +
+		'<span data-notify="message">{2}</span>' +
+		'<div class="progress" data-notify="progressbar">' +
+			'<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
+		'</div>' +
+		'<a href="{3}" target="{4}" data-notify="url"></a>' +
+		'</div>'
+	});
+}
 
 function createCP(id, color, cb)
 {
@@ -388,7 +458,7 @@ function createCP(id, color, cb)
 		color = rgbToHex(color);
 	else if(color == "undefined")
 		color = "#AA3399";
-	
+
 	if(color.startsWith("#"))
 	{
 		$('#'+id).colorpicker({
@@ -425,7 +495,7 @@ function createTable(hid, bid, cont, bless, tclass)
 	var table = document.createElement('table');
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
-	
+
 	table.className = "table";
 	if(bless === true)
 		table.className += " borderless";
@@ -438,30 +508,30 @@ function createTable(hid, bid, cont, bless, tclass)
 	if(hid != "")
 		table.appendChild(thead);
 	table.appendChild(tbody);
-	
+
 	$('#'+cont).append(table);
 }
 
 // Creates a table row <tr>
 // @param array list :innerHTML content for <td>/<th>
 // @param bool head  :if null or false it's body
-// @param bool align :if null or false no alignment 
+// @param bool align :if null or false no alignment
 //
 // @return : <tr> with <td> or <th> as child(s)
 function createTableRow(list, head, align)
 {
 	var row = document.createElement('tr');
-	
+
 	for(var i = 0; i < list.length; i++)
 	{
 		if(head === true)
 			var el = document.createElement('th');
 		else
 			var el = document.createElement('td');
-		
+
 		if(align)
 			el.style.verticalAlign = "middle";
-		
+
 		el.innerHTML = list[i];
 		row.appendChild(el);
 	}
@@ -483,7 +553,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 	pfooter.className = "btn btn-primary";
 	pfooter.setAttribute("id", footerid);
 	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
-	
+
 	return createPanel(phead, "", pfooter, "panel-default", bodyid);
 }
 
@@ -506,30 +576,35 @@ function createHelpTable(list, phead){
 	var thead = document.createElement('thead');
 	var tbody = document.createElement('tbody');
 	list = sortProperties(list);
-	
+
 	phead = '<i class="fa fa-fw fa-info-circle"></i>'+phead+' '+$.i18n("conf_helptable_expl");
-	
+
 	table.className = 'table table-hover borderless';
-	
+
 	thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
-	
+
 	for (key in list)
 	{
 		if(list[key].access != 'system')
 		{
+			// break one iteration (in the loop), if the schema has the entry hidden=true
+			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
+				continue;
 			var text = list[key].title.replace('title', 'expl');
 			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
-			
+
 			if(list[key].items && list[key].items.properties)
 			{
 				var ilist = sortProperties(list[key].items.properties);
 				for (ikey in ilist)
 				{
-					
+					// break one iteration (in the loop), if the schema has the entry hidden=true
+					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
+						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}
-			}	
+			}
 		}
 	}
 	table.appendChild(thead);
@@ -544,42 +619,42 @@ function createPanel(head, body, footer, type, bodyid){
 	var phead = document.createElement('div');
 	var pbody = document.createElement('div');
 	var pfooter = document.createElement('div');
-	
+
 	cont.className = "col-lg-6";
-	
+
 	if(typeof type == 'undefined')
 		type = 'panel-default';
-	
+
 	p.className = 'panel '+type;
 	phead.className = 'panel-heading';
 	pbody.className = 'panel-body';
 	pfooter.className = 'panel-footer';
-	
+
 	phead.innerHTML = head;
-	
+
 	if(typeof bodyid != 'undefined')
 	{
 		pfooter.style.textAlign = 'right';
 		pbody.setAttribute("id", bodyid)
 	}
-	
+
 	if(typeof body != 'undefined' && body != "")
 		pbody.appendChild(body);
-	
+
 	if(typeof footer != 'undefined')
 		pfooter.appendChild(footer);
-	
+
 	p.appendChild(phead);
 	p.appendChild(pbody);
-	
+
 	if(typeof footer != 'undefined')
 	{
 		pfooter.style.textAlign = "right";
 		p.appendChild(pfooter);
 	}
-	
+
 	cont.appendChild(p);
-	
+
 	return cont;
 }
 
@@ -589,12 +664,12 @@ function createSelGroup(group)
 	el.setAttribute('label', group);
 	return el;
 }
-		
+
 function createSelOpt(opt, title)
 {
 	var el = document.createElement('option');
 	el.setAttribute('value', opt);
-	if (typeof title == 'undefined')	
+	if (typeof title == 'undefined')
 		el.innerHTML = opt;
 	else
 		el.innerHTML = title;

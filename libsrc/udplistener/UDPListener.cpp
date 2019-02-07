@@ -1,33 +1,29 @@
 // project includes
 #include <udplistener/UDPListener.h>
 
-// hyperion util includes
-#include "hyperion/ImageProcessorFactory.h"
-#include "hyperion/ImageProcessor.h"
-#include "utils/ColorRgb.h"
+// bonjour includes
+#include <bonjour/bonjourserviceregister.h>
+
+// hyperion includes
 #include "HyperionConfig.h"
+
+// qt includes
+#include <QUdpSocket>
+#include <QJsonObject>
 
 using namespace hyperion;
 
-UDPListener::UDPListener(const int priority, const int timeout, const QString& address, quint16 listenPort, bool shared) :
+UDPListener::UDPListener(const QJsonDocument& config) :
 	QObject(),
-	_hyperion(Hyperion::getInstance()),
-	_server(),
-	_openConnections(),
-	_priority(priority),
-	_timeout(timeout),
+	_server(new QUdpSocket(this)),
+	_priority(0),
+	_timeout(0),
 	_log(Logger::getInstance("UDPLISTENER")),
 	_isActive(false),
-	_listenPort(listenPort),
-	_bondage(shared ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform)
+	_listenPort(0)
 {
-	_server = new QUdpSocket(this);
-	_listenAddress = address.isEmpty()? QHostAddress::AnyIPv4 : QHostAddress(address);
-
-	// Set trigger for incoming connections
-	connect(_server, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
-
-	_hyperion->registerPriority("UDPLISTENER", _priority);
+	// init
+	handleSettingsUpdate(settings::UDPLISTENER, config);
 }
 
 UDPListener::~UDPListener()
@@ -35,7 +31,6 @@ UDPListener::~UDPListener()
 	// clear the current channel
 	stop();
 	delete _server;
-	_hyperion->clear(_priority);
 }
 
 
@@ -51,7 +46,7 @@ void UDPListener::start()
 
 	if (!_server->bind(_listenAddress, _listenPort, _bondage))
 	{
-		Warning(_log, "Could not bind to %s:%d", _listenAddress.toString().toStdString().c_str(), _listenPort);
+		Error(_log, "Could not bind to %s:%d", _listenAddress.toString().toStdString().c_str(), _listenPort);
 	}
 	else
 	{
@@ -62,7 +57,18 @@ void UDPListener::start()
 			WarningIf( ! joinGroupOK, _log, "Multicast failed");
 		}
 		_isActive = true;
-		emit statusChanged(_isActive);
+
+		if(_serviceRegister == nullptr)
+		{
+			_serviceRegister = new BonjourServiceRegister(this);
+			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
+		}
+		else if( _serviceRegister->getPort() != _listenPort)
+		{
+			delete _serviceRegister;
+			_serviceRegister = new BonjourServiceRegister(this);
+			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
+		}
 	}
 }
 
@@ -73,7 +79,8 @@ void UDPListener::stop()
 
 	_server->close();
 	_isActive = false;
-	emit statusChanged(_isActive);
+	Info(_log, "Stopped");
+//	emit clearGlobalPriority(_priority, hyperion::COMP_UDPLISTENER);
 }
 
 void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
@@ -84,9 +91,7 @@ void UDPListener::componentStateChanged(const hyperion::Components component, bo
 		{
 			if (enable) start();
 			else        stop();
-			Info(_log, "change state to %s", (enable ? "enabled" : "disabled") );
 		}
-		_hyperion->getComponentRegister().componentStateChanged(component, enable);
 	}
 }
 
@@ -105,9 +110,7 @@ void UDPListener::readPendingDatagrams()
 		quint16 senderPort;
 
 		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-
 		processTheDatagram(&datagram, &sender);
-
 	}
 }
 
@@ -115,20 +118,36 @@ void UDPListener::readPendingDatagrams()
 void UDPListener::processTheDatagram(const QByteArray * datagram, const QHostAddress * sender)
 {
 	int packetLedCount = datagram->size()/3;
-	int hyperionLedCount = Hyperion::getInstance()->getLedCount();
-	DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
+	//DebugIf( (packetLedCount != hyperionLedCount), _log, "packetLedCount (%d) != hyperionLedCount (%d)", packetLedCount, hyperionLedCount);
 
-	std::vector<ColorRgb> _ledColors(Hyperion::getInstance()->getLedCount(), ColorRgb::BLACK);
+	std::vector<ColorRgb> _ledColors(packetLedCount, ColorRgb::BLACK);
 
-	for (int ledIndex=0; ledIndex < qMin(packetLedCount, hyperionLedCount); ledIndex++) {
+	for (int ledIndex=0; ledIndex < packetLedCount; ledIndex++) {
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red   = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);
 		rgb.blue  = datagram->at(ledIndex*3+2);
 	}
-
-	_hyperion->setColors(_priority, _ledColors, _timeout, -1, hyperion::COMP_UDPLISTENER, sender->toString());
+	// TODO provide a setInput with origin arg to overwrite senders smarter
+	emit registerGlobalInput(_priority, hyperion::COMP_UDPLISTENER, QString("UDPListener@%1").arg(sender->toString()));
+	emit setGlobalInput(_priority, _ledColors, _timeout);
 }
 
+void UDPListener::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+{
+	if(type == settings::UDPLISTENER)
+	{
+		QJsonObject obj = config.object();
+		// if we change the prio we need to make sure the old one is cleared before we apply the new one!
+		stop();
 
-
+		QString addr = obj["address"].toString("");
+		_priority = obj["priority"].toInt();
+		_listenPort = obj["port"].toInt();
+		_listenAddress = addr.isEmpty()? QHostAddress::AnyIPv4 : QHostAddress(addr);
+		_bondage = (obj["shared"].toBool(false)) ? QAbstractSocket::ShareAddress : QAbstractSocket::DefaultForPlatform;
+		_timeout = obj["timeout"].toInt(10000);
+		if(obj["enable"].toBool())
+			start();
+	}
+}

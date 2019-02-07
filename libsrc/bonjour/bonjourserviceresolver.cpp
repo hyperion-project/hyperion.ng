@@ -117,6 +117,6 @@ void BonjourServiceResolver::bonjourResolveReply(DNSServiceRef sdRef, DNSService
 
 void BonjourServiceResolver::finishConnect(const QHostInfo &hostInfo)
 {
-	emit bonjourRecordResolved(hostInfo, bonjourPort);	
+	emit bonjourRecordResolved(hostInfo, bonjourPort);
 	QMetaObject::invokeMethod(this, "cleanupResolve", Qt::QueuedConnection);
 }

@@ -7,4 +7,7 @@ FILE ( GLOB Blackborder_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_D
 
 add_library(blackborder	${Blackborder_SOURCES} )
 
-target_link_libraries(blackborder hyperion-utils )
+target_link_libraries(blackborder
+ 	hyperion-utils
+	hyperion
+)

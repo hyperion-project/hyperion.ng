@@ -1,0 +1,12 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"title" : "This schema is used to ensure backward compatibility with hyperion classic",
+			"type" : "string",
+			"required" : false
+		}
+	},
+	"additionalProperties": true
+}

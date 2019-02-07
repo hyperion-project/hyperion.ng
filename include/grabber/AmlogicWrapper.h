@@ -18,9 +18,8 @@ public:
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
-	/// @param[in] hyperion  The instance of Hyperion used to write the led values
 	///
-	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority);
+	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.

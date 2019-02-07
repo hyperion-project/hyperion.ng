@@ -21,7 +21,7 @@ ProviderUdp::ProviderUdp()
 	, _defaultHost("127.0.0.1")
 {
 	_latchTime_ms = 1;
-	_udpSocket = new QUdpSocket();
+	_udpSocket = new QUdpSocket(this);
 }
 
 ProviderUdp::~ProviderUdp()
@@ -34,7 +34,7 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	LedDevice::init(deviceConfig);
 
 	QString host = deviceConfig["host"].toString(_defaultHost);
-	
+
 	if (_address.setAddress(host) )
 	{
 		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
@@ -57,9 +57,9 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	{
 		throw std::runtime_error("invalid target port");
 	}
-	
+
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
-	
+
 	return true;
 }
 

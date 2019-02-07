@@ -4,10 +4,8 @@
 #include <utils/jsonschema/QJsonFactory.h>
 
 // Hyperion includes
-#include <hyperion/Hyperion.h>
+#include <utils/hyperion.h>
 #include <hyperion/ImageToLedsMap.h>
-
-using namespace hyperion;
 
 int main()
 {
@@ -23,12 +21,12 @@ int main()
 		return -1;
 	}
 
-	const LedString ledString = Hyperion::createLedString(config["leds"], Hyperion::createColorOrder(config["device"].toObject()));
+	const LedString ledString = hyperion::createLedString(config["leds"].toArray(), hyperion::createColorOrder(config["device"].toObject()));
 
 	const ColorRgb testColor = {64, 123, 12};
 
 	Image<ColorRgb> image(64, 64, testColor);
-	ImageToLedsMap map(64, 64, 0, 0, ledString.leds());
+	hyperion::ImageToLedsMap map(64, 64, 0, 0, ledString.leds());
 
 	std::vector<ColorRgb> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);

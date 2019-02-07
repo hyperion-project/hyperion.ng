@@ -1,14 +1,18 @@
 #pragma once
 
 // Qt includes
-#include <QTcpServer>
 #include <QSet>
 
 // Hyperion includes
-#include <hyperion/Hyperion.h>
+#include <utils/Components.h>
 #include <utils/Logger.h>
+#include <utils/settings.h>
 
+class QTcpServer;
+class QTcpSocket;
 class JsonClientConnection;
+class BonjourServiceRegister;
+class NetOrigin;
 
 ///
 /// This class creates a TCP server which accepts connections wich can then send
@@ -22,10 +26,9 @@ class JsonServer : public QObject
 public:
 	///
 	/// JsonServer constructor
-	/// @param hyperion Hyperion instance
-	/// @param port port number on which to start listening for connections
+	/// @param The configuration
 	///
-	JsonServer(uint16_t port = 19444);
+	JsonServer(const QJsonDocument& config);
 	~JsonServer();
 
 	///
@@ -45,26 +48,17 @@ private slots:
 	///
 	void closedConnection(void);
 
-	/// forward message to all json slaves
-	void forwardJsonMessage(const QJsonObject &message);
-
 public slots:
-	/// process current forwarder state
-	void componentStateChanged(const hyperion::Components component, bool enable);
-
 	///
-	/// forward message to a single json slaves
+	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
+	/// @param type   settings type from enum
+	/// @param config configuration object
 	///
-	/// @param message The JSON message to send
-	///
-	void sendMessage(const QJsonObject & message, QTcpSocket * socket);
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
 private:
 	/// The TCP server object
-	QTcpServer _server;
-
-	/// Link to Hyperion to get config state emiter
-	Hyperion * _hyperion;
+	QTcpServer * _server;
 
 	/// List with open connections
 	QSet<JsonClientConnection *> _openConnections;
@@ -72,6 +66,13 @@ private:
 	/// the logger instance
 	Logger * _log;
 
-	/// Flag if forwarder is enabled
-	bool _forwarder_enabled = true;
+	NetOrigin* _netOrigin;
+
+	/// port
+	uint16_t _port = 0;
+
+	BonjourServiceRegister * _serviceRegister = nullptr;
+
+	void start();
+	void stop();
 };

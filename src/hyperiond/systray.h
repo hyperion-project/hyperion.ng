@@ -15,7 +15,7 @@ class SysTray : public QWidget
 	Q_OBJECT
 
 public:
-	SysTray(HyperionDaemon *hyperiond, quint16 webPort);
+	SysTray(HyperionDaemon *hyperiond);
 	~SysTray();
 
 
@@ -29,6 +29,11 @@ public slots:
 
 private slots:
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
+
+	///
+	/// @brief is called whenever the webserver changes the port
+	///
+	void webserverPortChanged(const quint16& port) { _webPort = port; };
 
 private:
 	void createTrayIcon();
@@ -44,7 +49,7 @@ private:
 	QMenu           *_trayIconMenu;
 	QMenu           *_trayIconEfxMenu;
 	QColorDialog     _colorDlg;
-	HyperionDaemon  *_hyperiond;	
-	quint16          _webPort;
+	HyperionDaemon  *_hyperiond;
 	Hyperion        *_hyperion;
+	quint16          _webPort;
 };

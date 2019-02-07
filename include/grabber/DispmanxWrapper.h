@@ -7,8 +7,7 @@
 
 ///
 /// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain ImageRgb's from the
-/// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
-/// attached Hyperion.
+/// displayed content. This ImageRgb is forwarded to all Hyperion instances via HyperionDaemon
 ///
 class DispmanxWrapper: public GrabberWrapper
 {
@@ -20,9 +19,8 @@ public:
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
-	/// @param[in] hyperion  The instance of Hyperion used to write the led values
 	///
-	DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const int priority);
+	DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.

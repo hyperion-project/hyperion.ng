@@ -46,22 +46,6 @@
 						"default" : "*",
 						"propertyOrder" : 2
 					},
-					"black" :
-					{
-						"type" : "array",
-						"title" : "edt_conf_color_black_title",
-						"format" : "colorpicker",
-						"required" : true,
-						"default": [0,0,0],
-						"items" : {
-							"type" : "integer",
-							"minimum" : 0,
-							"maximum" : 255
-						},
-						"minItems" : 3,
-						"maxItems" : 3,
-						"propertyOrder" : 3
-					},
 					"white" :
 					{
 						"type" : "array",

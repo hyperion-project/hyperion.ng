@@ -14,6 +14,11 @@ QString getBaseName( QString sourceFile);
 QString getDirName( QString sourceFile);
 
 	///
+	/// @brief remove directory recursive given by path
+	/// @param[in]   path     Path to directory
+	bool removeDir(const QString& path, Logger* log);
+
+	///
 	/// @brief check if the file exists
 	/// @param[in]   path     The file path to check
 	/// @param[in]   log      The logger of the caller to print errors
@@ -45,9 +50,10 @@ QString getDirName( QString sourceFile);
 	/// @brief delete a file by given path
 	/// @param[in]   path     The file path to delete
 	/// @param[in]   log      The logger of the caller to print errors
+	/// @param[in]   ignError Ignore errors during file delete (no log output)
 	/// @return               true on success else false
 	///
-	bool removeFile(const QString& path, Logger* log);
+	bool removeFile(const QString& path, Logger* log, bool ignError=false);
 
 	///
 	/// @brief Convert a path that may contain special placeholders

@@ -1,6 +1,7 @@
 #include <utils/FileUtils.h>
 
 // qt incl
+#include <QDir>
 #include <QFileInfo>
 #include <QDebug>
 
@@ -19,6 +20,17 @@ namespace FileUtils {
 	{
 		QFileInfo fi( sourceFile );
 		return fi.path();
+	}
+
+	bool removeDir(const QString& path, Logger* log)
+	{
+		//QDir dir(path);
+		if(!QDir(path).removeRecursively())
+		{
+			Error(log, "Failed to remove directory: %s", QSTRING_CSTR(path));
+			return false;
+		}
+		return true;
 	}
 
 	bool fileExists(const QString& path, Logger* log, bool ignError)
@@ -71,17 +83,18 @@ namespace FileUtils {
 		return true;
 	}
 
-	bool removeFile(const QString& path, Logger* log)
+	bool removeFile(const QString& path, Logger* log, bool ignError)
 	{
 		QFile file(path);
 		if(!file.remove())
 		{
-			resolveFileError(file,log);
+			if(!ignError)
+				resolveFileError(file,log);
 			return false;
 		}
 		return true;
 	}
-	
+
  	QString convertPath(const QString path)
  	{
 		QString p = path;

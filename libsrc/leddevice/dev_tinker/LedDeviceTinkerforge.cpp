@@ -40,7 +40,7 @@ bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 	_uid      = deviceConfig["uid"].toString();
 	_interval = deviceConfig["rate"].toInt();
 
-	if ((unsigned)_ledCount > MAX_NUM_LEDS) 
+	if ((unsigned)_ledCount > MAX_NUM_LEDS)
 	{
 		Error(_log,"Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
 		return -1;
@@ -68,7 +68,7 @@ int LedDeviceTinkerforge::open()
 	if (_ipConnection != nullptr)
 	{
 		Error(_log, "Attempt to open existing connection; close before opening");
-		return -1;
+		return 0;
 	}
 
 	// Initialise a new connection
@@ -76,10 +76,10 @@ int LedDeviceTinkerforge::open()
 	ipcon_create(_ipConnection);
 
 	int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
-	if (connectionStatus < 0) 
+	if (connectionStatus < 0)
 	{
-		Warning(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
-		return -1;
+		Error(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
+		return 0;
 	}
 
 	// Create the 'LedStrip'
@@ -87,17 +87,20 @@ int LedDeviceTinkerforge::open()
 	led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
 
 	int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
-	if (frameStatus < 0) 
+	if (frameStatus < 0)
 	{
 		Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
-		return -1;
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 {
+	if(!_deviceReady)
+		return 0;
+
 	auto redIt   = _redChannel.begin();
 	auto greenIt = _greenChannel.begin();
 	auto blueIt  = _blueChannel.begin();
@@ -115,7 +118,7 @@ int LedDeviceTinkerforge::write(const std::vector<ColorRgb> &ledValues)
 	return transferLedData(_ledStrip, 0, _colorChannelSize, _redChannel.data(), _greenChannel.data(), _blueChannel.data());
 }
 
-int LedDeviceTinkerforge::transferLedData(LEDStrip *ledStrip, unsigned index, unsigned length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel) 
+int LedDeviceTinkerforge::transferLedData(LEDStrip *ledStrip, unsigned index, unsigned length, uint8_t *redChannel, uint8_t *greenChannel, uint8_t *blueChannel)
 {
 	if (length == 0 || index >= length || length > MAX_NUM_LEDS)
 	{

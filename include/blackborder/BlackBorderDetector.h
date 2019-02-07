@@ -89,10 +89,9 @@ namespace hyperion
 			// find first X pixel of the image
 			for (int x = 0; x < width33percent; ++x)
 			{
-				const Pixel_T & color1 = image( (width - x), yCenter); // right side center line check
-				const Pixel_T & color2 = image(x, height33percent);
-				const Pixel_T & color3 = image(x, height66percent);
-				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
+				if (!isBlack(image((width - x), yCenter))
+					|| !isBlack(image(x, height33percent))
+				 	|| !isBlack(image(x, height66percent)))
 				{
 					firstNonBlackXPixelIndex = x;
 					break;
@@ -102,10 +101,9 @@ namespace hyperion
 			// find first Y pixel of the image
 			for (int y = 0; y < height33percent; ++y)
 			{
-				const Pixel_T & color1 = image(xCenter, (height - y)); // bottom center line check
-				const Pixel_T & color2 = image(width33percent, y );
-				const Pixel_T & color3 = image(width66percent, y);
-				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
+				if (!isBlack(image(xCenter, (height - y)))
+					|| !isBlack(image(width33percent, y)) 
+					|| !isBlack(image(width66percent, y)))
 				{
 					firstNonBlackYPixelIndex = y;
 					break;
@@ -203,10 +201,9 @@ namespace hyperion
 			int x;
 			for (x = 0; x < width33percent; ++x)
 			{
-				const Pixel_T & color1 = image( (width - x), yCenter); // right side center line check
-				const Pixel_T & color2 = image(x, height33percent);
-				const Pixel_T & color3 = image(x, height66percent);
-				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3))
+				if (!isBlack(image((width - x), yCenter)) 
+					|| !isBlack(image(x, height33percent))
+					|| !isBlack(image(x, height66percent)))
 				{
 					firstNonBlackXPixelIndex = x;
 					break;
@@ -216,13 +213,13 @@ namespace hyperion
 			// find first Y pixel of the image
 			for (int y = 0; y < height33percent; ++y)
 			{
-				const Pixel_T & color1 = image(x, y );// left side top check
-				const Pixel_T & color2 = image(x, (height - y)); // left side bottom check
-				const Pixel_T & color3 = image( (width - x), y); // right side top check
-				const Pixel_T & color4 = image( (width - x), (height - y)); // right side bottom check
-				if (!isBlack(color1) || !isBlack(color2) || !isBlack(color3) || !isBlack(color4))
+				// left side top + left side bottom + right side top  +  right side bottom
+				if (!isBlack(image(x, y)) 
+					|| !isBlack(image(x, (height - y)))
+					|| !isBlack(image((width - x), y)) 
+					|| !isBlack(image((width - x), (height - y))))
 				{
-//						std::cout << "y " << y << " lt " << int(isBlack(color1)) << " lb " << int(isBlack(color2)) << " rt " << int(isBlack(color3)) << " rb " << int(isBlack(color4)) << std::endl;
+//					std::cout << "y " << y << " lt " << int(isBlack(color1)) << " lb " << int(isBlack(color2)) << " rt " << int(isBlack(color3)) << " rb " << int(isBlack(color4)) << std::endl;
 					firstNonBlackYPixelIndex = y;
 					break;
 				}
