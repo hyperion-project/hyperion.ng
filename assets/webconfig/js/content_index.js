@@ -54,6 +54,12 @@ $(document).ready( function() {
 
 		showOptHelp = serverConfig.general.showOptHelp;
 	});
+	
+	$(hyperion).on("cmd-config-setconfig", function(event) {
+        if (event.response.success === true) {
+            $('#hyperion_config_write_success_notify').fadeIn().delay(5000).fadeOut();
+        }
+    });
 
 	$(hyperion).on("error",function(event){
 		showInfoDialog("error","Error", event.reason);
