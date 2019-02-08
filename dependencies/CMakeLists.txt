@@ -12,7 +12,7 @@ endif()
 set(USE_SYSTEM_FLATBUFFERS_LIBS ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS} CACHE BOOL "use flatbuffers library from system")
 
 if (USE_SYSTEM_FLATBUFFERS_LIBS)
-	find_package(flatbuffers REQUIRED)
+	find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc REQUIRED)
 	include_directories(${FLATBUFFERS_INCLUDE_DIRS})
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
@@ -47,6 +47,5 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
     COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
 			--gen-object-api
 			-o "${OUTPUT_DIR}"
-			"${SRC_FBS}"
-    DEPENDS flatc)
+			"${SRC_FBS}")
 endfunction()
