@@ -41,33 +41,31 @@ void ImageResampler::setVideoMode(VideoMode mode)
 
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
-	int cropLeft   = _cropLeft;
 	int cropRight  = _cropRight;
-	int cropTop    = _cropTop;
 	int cropBottom = _cropBottom;
 
 	// handle 3D mode
 	switch (_videoMode)
 	{
 	case VIDEO_3DSBS:
-		cropRight = width/2;
+		cropRight = width >> 1;
 		break;
 	case VIDEO_3DTAB:
-		cropBottom = height/2;
+		cropBottom = width >> 1;
 		break;
 	default:
 		break;
 	}
 
 	// calculate the output size
-	int outputWidth = (width - cropLeft - cropRight - _horizontalDecimation/2 + _horizontalDecimation - 1) / _horizontalDecimation;
-	int outputHeight = (height - cropTop - cropBottom - _verticalDecimation/2 + _verticalDecimation - 1) / _verticalDecimation;
+	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
+	int outputHeight = (height - _cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
 	if ((outputImage.height() != unsigned(outputHeight)) && (outputImage.width() != unsigned(outputWidth)))
 		outputImage.resize(outputWidth, outputHeight);
 
-	for (int yDest = 0, ySource = cropTop + _verticalDecimation/2; yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
+	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
-		for (int xDest = 0, xSource = cropLeft + _horizontalDecimation/2; xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
+		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
 			ColorRgb & rgb = outputImage(xDest, yDest);
 			
@@ -75,7 +73,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 			{
 				case PIXELFORMAT_UYVY:
 				{
-					int index = lineLength * ySource + xSource * 2;
+					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index+1];
 					uint8_t u = ((xSource&1) == 0) ? data[index  ] : data[index-2];
 					uint8_t v = ((xSource&1) == 0) ? data[index+2] : data[index  ];
@@ -84,7 +82,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 				case PIXELFORMAT_YUYV:
 				{
-					int index = lineLength * ySource + xSource * 2;
+					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index];
 					uint8_t u = ((xSource&1) == 0) ? data[index+1] : data[index-1];
 					uint8_t v = ((xSource&1) == 0) ? data[index+3] : data[index+1];
@@ -93,7 +91,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 				case PIXELFORMAT_BGR16:
 				{
-					int index = lineLength * ySource + xSource * 2;
+					int index = lineLength * ySource + (xSource << 1);
 					rgb.blue  = (data[index] & 0x1f) << 3;
 					rgb.green = (((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2;
 					rgb.red   = (data[index+1] & 0xF8);
@@ -101,7 +99,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 				case PIXELFORMAT_BGR24:
 				{
-					int index = lineLength * ySource + xSource * 3;
+					int index = lineLength * ySource + (xSource << 1) + xSource;
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];
@@ -109,7 +107,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 				case PIXELFORMAT_RGB32:
 				{
-					int index = lineLength * ySource + xSource * 4;
+					int index = lineLength * ySource + (xSource << 2);
 					rgb.red   = data[index  ];
 					rgb.green = data[index+1];
 					rgb.blue  = data[index+2];
@@ -117,7 +115,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 				case PIXELFORMAT_BGR32:
 				{
-					int index = lineLength * ySource + xSource * 4;
+					int index = lineLength * ySource + (xSource << 2);
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];

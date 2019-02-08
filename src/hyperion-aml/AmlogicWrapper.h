@@ -9,7 +9,7 @@ class AmlogicWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const unsigned ge2d_mode, const QString device);
 
 	const Image<ColorRgb> & getScreenshot();
 
