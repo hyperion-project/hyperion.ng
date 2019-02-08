@@ -21,7 +21,7 @@ LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
-	QString whiteAlgorithm = deviceConfig["white_algorithm"].toString("white_off");
+	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 
 	if (_whiteAlgorithm == RGBW::INVALID)

@@ -294,6 +294,7 @@
     "wiz_cc_btn_stop": "Parar vídeo",
     "wiz_cc_summary": "Una conclusión de su configuración. Durante la reproducción de vídeo, puede cambiar o probar valores de nuevo. Si está hecho, haga clic en guardar.",
     "edt_dev_enum_subtract_minimum": "Restar mínimo",
+    "edt_dev_enum_sub_min_cool_adjust": "Min. Ajuste fresco",
     "edt_dev_enum_sub_min_warm_adjust": "Min. Ajuste caliente",
     "edt_dev_enum_white_off": "Blanco apagado",
     "edt_dev_general_heading_title": "Configuración general",
