@@ -155,6 +155,8 @@ private:
 	unsigned            _grabber_cropRight;
 	unsigned            _grabber_cropTop;
 	unsigned            _grabber_cropBottom;
+	int                 _grabber_ge2d_mode;
+	QString             _grabber_device;
 
 	QString _prevType;
 
