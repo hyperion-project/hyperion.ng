@@ -22,6 +22,8 @@ target_link_libraries(hyperiond
 		python
 		resources
 		${PYTHON_LIBRARIES}
+		Qt5::Core
+		pcre16 dl z
 )
 
 if (ENABLE_DISPMANX)
