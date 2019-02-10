@@ -294,6 +294,7 @@
     "wiz_cc_btn_stop": "Interrompi video",
     "wiz_cc_summary": "Conclusione delle tue impostazioni. Durante la riproduzione video puoi cambiare nuovamente i valori. Se hai finito clicca su salva.",
     "edt_dev_enum_subtract_minimum": "Sottrai minimo",
+    "edt_dev_enum_sub_min_cool_adjust": "Regolazione freddo min",
     "edt_dev_enum_sub_min_warm_adjust": "Regolazione calore min",
     "edt_dev_enum_white_off": "Bianco off",
     "edt_dev_general_heading_title": "Impostazioni Generali",

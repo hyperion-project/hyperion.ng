@@ -23,10 +23,10 @@
 		"whiteAlgorithm": {
 			"type": "string",
 			"title":"edt_dev_spec_whiteLedAlgor_title",
-			"enum" : ["subtract_minimum","sub_min_warm_adjust","white_off"],
+			"enum" : ["subtract_minimum","sub_min_cool_adjust","sub_min_warm_adjust","white_off"],
 			"default": "subtract_minimum",
 			"options" : {
-				"enum_titles" : ["edt_dev_enum_subtract_minimum", "edt_dev_enum_sub_min_warm_adjust", "edt_dev_enum_white_off"]
+				"enum_titles" : ["edt_dev_enum_subtract_minimum", "edt_dev_enum_sub_min_cool_adjust","edt_dev_enum_sub_min_warm_adjust", "edt_dev_enum_white_off"]
 			},
 			"propertyOrder" : 4
 		},
