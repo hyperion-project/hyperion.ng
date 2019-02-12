@@ -12,7 +12,11 @@ endif()
 set(USE_SYSTEM_FLATBUFFERS_LIBS ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS} CACHE BOOL "use flatbuffers library from system")
 
 if (USE_SYSTEM_FLATBUFFERS_LIBS)
-	find_package(flatbuffers REQUIRED)
+	if (ENABLE_AMLOGIC)
+		find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc REQUIRED)
+	else ()
+		find_package(flatbuffers REQUIRED)
+	endif()
 	include_directories(${FLATBUFFERS_INCLUDE_DIRS})
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
@@ -41,12 +45,21 @@ message(STATUS "Using flatbuffers compiler: " ${FLATBUFFERS_FLATC_EXECUTABLE})
 
 
 function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
-  string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
-  add_custom_command(
-    OUTPUT ${GEN_HEADER}
-    COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-			--gen-object-api
-			-o "${OUTPUT_DIR}"
-			"${SRC_FBS}"
-    DEPENDS flatc)
+	string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+	if (ENABLE_AMLOGIC)
+		add_custom_command(
+			OUTPUT ${GEN_HEADER}
+			COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
+					--gen-object-api
+					-o "${OUTPUT_DIR}"
+					"${SRC_FBS}")
+	else()
+		add_custom_command(
+			OUTPUT ${GEN_HEADER}
+			COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
+					--gen-object-api
+					-o "${OUTPUT_DIR}"
+					"${SRC_FBS}"
+			DEPENDS flatc)
+	endif()
 endfunction()

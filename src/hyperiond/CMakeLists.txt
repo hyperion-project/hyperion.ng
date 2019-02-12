@@ -24,6 +24,13 @@ target_link_libraries(hyperiond
 		${PYTHON_LIBRARIES}
 )
 
+if (ENABLE_AMLOGIC)
+	target_link_libraries(hyperiond
+		Qt5::Core
+		pcre16 dl z
+	)
+endif()
+
 if (ENABLE_DISPMANX)
 	IF ( "${PLATFORM}" MATCHES rpi)
 		find_package(BCM REQUIRED)
