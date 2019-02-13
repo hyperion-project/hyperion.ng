@@ -34,7 +34,11 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bonjourrecord.h"
 class QSocketNotifier;
 
+#ifndef PLATFORM_AMLOGIC
 #include <dns_sd.h>
+#else
+#include <avahi-compat-libdns_sd/dns_sd.h>
+#endif
 
 class BonjourServiceRegister : public QObject
 {
