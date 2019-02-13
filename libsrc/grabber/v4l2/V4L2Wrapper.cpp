@@ -76,3 +76,8 @@ bool V4L2Wrapper::getSignalDetectionEnable()
 {
 	return _grabber.getSignalDetectionEnabled();
 }
+
+void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+{
+	_grabber.setDeviceVideoStandard(device, videoStandard);
+}

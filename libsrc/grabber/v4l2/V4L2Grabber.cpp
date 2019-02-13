@@ -54,9 +54,6 @@ V4L2Grabber::V4L2Grabber(const QString & device
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
-
-	// init
-	setDeviceVideoStandard(device, videoStandard);
 }
 
 V4L2Grabber::~V4L2Grabber()
