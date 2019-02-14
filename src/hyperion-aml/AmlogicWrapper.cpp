@@ -2,9 +2,9 @@
 // Hyperion-AmLogic includes
 #include "AmlogicWrapper.h"
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz) :
+AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const unsigned ge2d_mode, const QString device) :
 	_timer(this),
-	_grabber(grabWidth, grabHeight)
+	_grabber(grabWidth, grabHeight, ge2d_mode, device)
 {
 	_timer.setSingleShot(false);
 	_timer.setInterval(updateRate_Hz);
