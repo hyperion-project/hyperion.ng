@@ -34,11 +34,13 @@ jobs:
         env:
             - DOCKER_TAG=armv6hf
             - DOCKER_NAME=""Debian Stretch (Raspberry Pi v1 & ZERO)"
+            - PLATFORM="rpi"
       - <<: *linux
         name: "ARMv7hf (Raspberry Pi 2 & 3)"
         env:
             - DOCKER_TAG=armv7hf
             - DOCKER_NAME="Debian Stretch (Raspberry Pi 2 & 3)"
+            - PLATFORM="rpi"
       - <<: *linux
         name: "ARMv8 (Generic AARCH64)"
         env:
