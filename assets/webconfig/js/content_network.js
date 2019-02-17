@@ -21,6 +21,11 @@ $(document).ready( function() {
 		$('#conf_cont_flatbuf').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
 		$('#conf_cont_flatbuf').append(createHelpTable(schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title")));
 
+		//protoserver
+		$('#conf_cont').append(createRow('conf_cont_proto'))
+		$('#conf_cont_proto').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
+		$('#conf_cont_proto').append(createHelpTable(schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title")));
+
 		//boblight
 		$('#conf_cont').append(createRow('conf_cont_bobl'))
 		$('#conf_cont_bobl').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
@@ -44,6 +49,7 @@ $(document).ready( function() {
 		$('#conf_cont').addClass('row');
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
+		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_udpl_heading_title"), 'editor_container_udplistener', 'btn_submit_udplistener'));
 		if(storedAccess != 'default')
@@ -74,6 +80,19 @@ $(document).ready( function() {
 
 	$('#btn_submit_fbserver').off().on('click',function() {
 		requestWriteConfig(conf_editor_fbs.getValue());
+	});
+
+	//protobuffer
+	conf_editor_proto = createJsonEditor('editor_container_protoserver', {
+		protoServer        : schema.protoServer
+	}, true, true);
+
+	conf_editor_proto.on('change',function() {
+		conf_editor_proto.validate().length ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
+	});
+
+	$('#btn_submit_protoserver').off().on('click',function() {
+		requestWriteConfig(conf_editor_proto.getValue());
 	});
 
 	//boblight
@@ -123,6 +142,7 @@ $(document).ready( function() {
 	{
 		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
+		createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
 		createHint("intro", $.i18n('conf_network_bobl_intro'), "editor_container_boblightserver");
 		createHint("intro", $.i18n('conf_network_udpl_intro'), "editor_container_udplistener");
 		createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");

@@ -247,6 +247,15 @@
 		"timeout" : 5
 	},
 
+	/// The configuration of the Protobuffer server which enables the Protobuffer remote interface
+	///  * port : Port at which the protobuffer server is started
+	"protoServer" :
+	{
+		"enable" : true,
+		"port" : 19445,
+		"timeout" : 5
+	},
+
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started

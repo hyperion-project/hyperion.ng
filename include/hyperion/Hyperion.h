@@ -411,7 +411,7 @@ signals:
 	void forwardJsonMessage(QJsonObject);
 
 	/// Signal which is emitted, when a new proto image should be forwarded
-	void forwardProtoMessage(Image<ColorRgb>);
+	void forwardProtoMessage(const QString, const Image<ColorRgb>);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change

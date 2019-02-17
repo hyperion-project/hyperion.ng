@@ -210,7 +210,7 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject &message)
 	}
 }
 
-void MessageForwarder::forwardProtoMessage(const Image<ColorRgb> &image)
+void MessageForwarder::forwardProtoMessage(const QString& name, const Image<ColorRgb> &image)
 {
 	if (_forwarder_enabled)
 	{

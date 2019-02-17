@@ -77,7 +77,7 @@ $(document).ready( function() {
 	$('#dash_leddevice').html(serverInfo.ledDevices.active);
 	$('#dash_currv').html(currentVersion);
 	$('#dash_instance').html(serverConfig.general.name);
-	$('#dash_ports').html(serverConfig.flatbufServer.port);
+	$('#dash_ports').html(serverConfig.flatbufServer.port+' | '+serverConfig.protoServer.port);
 
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 		parsedUpdateJSON = JSON.parse(data);

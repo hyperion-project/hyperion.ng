@@ -54,7 +54,7 @@ public:
 		int ret = grabber.grabFrame(_image);
 		if (ret >= 0)
 		{
-			emit systemImage(_image);
+			emit systemImage(_grabberName, _image);
 			return true;
 		}
 		return false;
@@ -92,7 +92,7 @@ signals:
 	///
 	/// @brief Emit the final processed image
 	///
-	void systemImage(const Image<ColorRgb>& image);
+	void systemImage(const QString& name, const Image<ColorRgb>& image);
 
 protected:
 

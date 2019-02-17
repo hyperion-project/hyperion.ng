@@ -84,7 +84,6 @@ private slots:
 	void processTheDatagram(const QByteArray * datagram, const QHostAddress * sender);
 
 private:
-
 	/// The UDP server object
 	QUdpSocket * _server;
 

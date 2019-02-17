@@ -140,6 +140,13 @@
 		"timeout" : 5
 	},
 
+	"protoServer" :
+	{
+		"enable" : true,
+		"port" : 19445,
+		"timeout" : 5
+	},
+
 	"boblightServer" :
 	{
 		"enable"   : false,

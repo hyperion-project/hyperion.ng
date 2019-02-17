@@ -29,13 +29,15 @@ public:
 signals:
 	///
 	/// @brief PIPE SystemCapture images from GrabberWrapper to Hyperion class
+	/// @param name   The name of the platform capture that is currently active
 	/// @param image  The prepared image
 	///
-	void setSystemImage(const Image<ColorRgb>&  image);
+	void setSystemImage(const QString& name, const Image<ColorRgb>&  image);
 
 	///
 	/// @brief PIPE v4lCapture images from v4lCapture over HyperionDaemon to Hyperion class
+	/// @param name   The name of the v4l capture (path) that is currently active
 	/// @param image  The prepared image
 	///
-	void setV4lImage(const Image<ColorRgb> & image);
+	void setV4lImage(const QString& name, const Image<ColorRgb> & image);
 };

@@ -17,6 +17,7 @@ target_link_libraries(hyperiond
 		jsonserver
 		udplistener
 		flatbufserver
+		protoserver
 		webserver
 		bonjour
 		ssdp
