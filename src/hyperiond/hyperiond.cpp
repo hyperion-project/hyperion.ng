@@ -427,12 +427,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
 
 			if (enableV4l)
-			{
 				v4lEnableCount++;
-
-				// init
-				grabber->setDeviceVideoStandard(grabberConfig["device"].toString("auto"), parseVideoStandard(grabberConfig["standard"].toString("no-change")));				
-			}
 
 			_v4l2Grabbers.push_back(grabber);
 			#endif
