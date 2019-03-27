@@ -18,10 +18,8 @@ public:
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
-	/// @param[in] ge2d_mode use single or combine ge2d ioctl call
-	/// @param[in] device amlogic grabber device
 	///
-	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz, const unsigned ge2d_mode, const QString device);
+	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.
