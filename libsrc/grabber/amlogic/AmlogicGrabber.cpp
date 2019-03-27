@@ -109,6 +109,8 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 			_lastError = 0;
 		}
 		_fbGrabber.grabFrame(image);
+
+		usleep(50 * 1000);
 	}
 
 	return 0;
@@ -129,11 +131,11 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 
 		long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 		long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
+		long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
 
-		if (r1<0 || r2<0 || _height==0 || _width==0)
+		if (r1<0 || r2<0 || r3<0 || _height==0 || _width==0)
 		{
-			ErrorIf(_lastError != 2,_log,"Failed to configure capture size (%d - %s)", errno, strerror(errno));
-			closeDev(_captureDev);
+			ErrorIf(_lastError != 2,_log,"Failed to configure capture device (%d - %s)", errno, strerror(errno));
 			_lastError = 2;
 			return -1;
 		}
@@ -145,7 +147,6 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	if (bytesRead < 0)
 	{
 		ErrorIf(_lastError != 3, _log,"Read of device failed: %d - %s", errno, strerror(errno));
-		closeDev(_captureDev);
 		_lastError = 3;
 		return -1;
 	}
@@ -153,7 +154,6 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	{
 		// Read of snapshot failed
 		ErrorIf(_lastError != 4, _log,"Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
-		closeDev(_captureDev);
 		_lastError = 4;
 		return -1;
 	}
