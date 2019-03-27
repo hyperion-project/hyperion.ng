@@ -162,11 +162,7 @@
 		"display" 0,
 
 		// valid for framebuffer
-		"device"     : "/dev/fb0",
-
-		// valid for amlogic
-		"amlogic_grabber" : "amvideocap0",
-		"ge2d_mode"       : 1
+		"device"     : "/dev/fb0"
 	},
 
 	/// The black border configuration, contains the following items:

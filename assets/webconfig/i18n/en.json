@@ -536,8 +536,6 @@
 	"edt_conf_fg_pixelDecimation_expl" : "Reduce picture size (factor) based on original size. A factor of 1 means no change",
 	"edt_conf_fg_device_title" : "Device",
 	"edt_conf_fg_display_title" : "Display",
-	"edt_conf_fg_amlogic_grabber_title" : "Amlogic Grabber Device",
-	"edt_conf_fg_ge2d_mode_title" : "Amlogic ge2d Grabber Modus",
 	"edt_conf_fg_display_expl" : "Select which desktop should be captured (multi monitor setup)",
 	"edt_conf_bb_heading_title" : "Blackbar detector",
 	"edt_conf_bb_threshold_title" : "Threshold",

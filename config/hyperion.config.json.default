@@ -88,9 +88,7 @@
 		"cropRight"					: 0,
 		"cropTop"					: 0,
 		"cropBottom"				: 0,
-		"device"					: "/dev/fb0",
-		"amlogic_grabber"			: "amvideocap0",
-		"ge2d_mode"					: 1
+		"device"					: "/dev/fb0"
 	},
 
 	"blackborderdetector" :

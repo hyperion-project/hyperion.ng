@@ -40,10 +40,8 @@ int main(int argc, char ** argv)
 		IntOption     & argFps        = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10", 1, 25);
 		IntOption     & argWidth      = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160, 4096);
 		IntOption     & argHeight     = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160, 4096);
-		BooleanOption & argScreenshot = parser.add<BooleanOption>(0x0, "screenshot",   "Take a single screenshot, save it to file and quit");
-		IntOption     & argge2d_mode  = parser.add<IntOption>    (0x0, "ge2d-mode",  "ge2d ioctl mode, 0 single ioctl, 1 combined ioctl [default: %1]", "0");
-		Option        & argDevice     = parser.add<Option>       (0x0, "device",     "The Amlogic device to use  [default: %1]", "amvideocap0");
-		Option        & argAddress    = parser.add<Option>       ('a', "address",    "Set the address of the hyperion server [default: %1]", "127.0.0.1:19400");
+		BooleanOption & argScreenshot = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
+		Option        & argAddress    = parser.add<Option>       ('a', "address",    "Set the address of the hyperion server [default: %1]", "127.0.0.1:19445");
 		IntOption     & argPriority   = parser.add<IntOption>    ('p', "priority",   "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption & argSkipReply  = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption & argHelp       = parser.add<BooleanOption>('h', "help",       "Show this help message and exit");
@@ -57,7 +55,7 @@ int main(int argc, char ** argv)
 			parser.showHelp(0);
 		}
 
-		AmlogicWrapper amlWrapper(argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser), argge2d_mode.getInt(parser), argDevice.value(parser));
+		AmlogicWrapper amlWrapper(argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{

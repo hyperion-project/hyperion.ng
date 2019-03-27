@@ -535,8 +535,6 @@
 	"edt_conf_fg_pixelDecimation_expl" : "Bildverkleinerung (Faktor) ausgehend von der original Größe. 1 für unveränderte/originale Größe.",
 	"edt_conf_fg_device_title" : "Device",
 	"edt_conf_fg_display_title" : "Display",
-	"edt_conf_fg_amlogic_grabber_title" : "Amlogic Grabber Device",
-	"edt_conf_fg_ge2d_mode_title" : "Amlogic ge2d Grabber Modus",
 	"edt_conf_fg_display_expl" : "Gebe an von welchem Desktop aufgenommen werden soll. (Multi Monitor Setup)",
 	"edt_conf_bb_heading_title" : "Schwarze Balken Erkennung",
 	"edt_conf_bb_threshold_title" : "Schwelle",
