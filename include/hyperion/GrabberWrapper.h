@@ -24,7 +24,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz);
+	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz = 0);
 
 	virtual ~GrabberWrapper();
 

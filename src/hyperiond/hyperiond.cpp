@@ -446,7 +446,7 @@ void HyperionDaemon::createGrabberDispmanx()
 void HyperionDaemon::createGrabberAmlogic()
 {
 #ifdef ENABLE_AMLOGIC
-	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height, _grabber_frequency);
+	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height);
 	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
