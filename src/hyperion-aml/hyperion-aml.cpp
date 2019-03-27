@@ -37,7 +37,6 @@ int main(int argc, char ** argv)
 		// create the option parser and initialize all parser
 		Parser parser("AmLogic capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
-		IntOption     & argFps        = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10", 1, 25);
 		IntOption     & argWidth      = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160, 4096);
 		IntOption     & argHeight     = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160, 4096);
 		BooleanOption & argScreenshot = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
@@ -55,7 +54,7 @@ int main(int argc, char ** argv)
 			parser.showHelp(0);
 		}
 
-		AmlogicWrapper amlWrapper(argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
+		AmlogicWrapper amlWrapper(argWidth.getInt(parser), argHeight.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{
