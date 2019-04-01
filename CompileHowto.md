@@ -27,7 +27,7 @@ sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev
 sudo apt-get install libraspberrypi-dev
 ```
 
-**if you have a problem when execute make -j $(nproc), execute this command**
+**OSMC on Raspberry Pi**
 ```
 sudo apt-get install rbp-userland-dev-osmc
 ```
