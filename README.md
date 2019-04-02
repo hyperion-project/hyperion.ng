@@ -1,7 +1,7 @@
-HYPERION
-========
+# HYPERION
 
 [![Build Status](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
+[![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE)
 
 This is a pre alpha development repository for the next major version of hyperion
 
@@ -16,6 +16,7 @@ If you want to use hyperion as 'normal user', please use [current stable version
 Besides of that ....  Feel free to join us! We are looking always for people who wants to participate.
 
 --------
+## About
 
 Hyperion is an opensource 'AmbiLight' implementation with support for many LED devices and video grabbers.
 
