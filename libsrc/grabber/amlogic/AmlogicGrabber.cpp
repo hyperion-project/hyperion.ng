@@ -117,7 +117,11 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 		}
 		else if (_device == "amvideocap0")
 		{
-			grabFrame_amvideocap(image);
+			if (grabFrame_amvideocap(image) < 0)
+			{
+				closeDev(_videoDev);
+				closeDev(_captureDev);
+			}
 		}
 	}
 	else
@@ -130,8 +134,6 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 		}
 		_fbGrabber.grabFrame(image);
 	}
-
-	closeDev(_videoDev);
 
 	return 0;
 }
@@ -176,6 +178,7 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 		// Read of snapshot failed
 		ErrorIf(_lastError != 4, _log,"Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
 		closeDev(_captureDev);
+		_lastError = 4;
 		return -1;
 	}
 
