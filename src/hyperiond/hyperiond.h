@@ -63,6 +63,7 @@ class SettingsManager;
 class PythonInit;
 class SSDPHandler;
 class FlatBufferServer;
+class ProtoServer;
 
 class HyperionDaemon : public QObject
 {
@@ -130,33 +131,34 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
 
-	Logger*                _log;
-	BonjourBrowserWrapper* _bonjourBrowserWrapper;
-	PythonInit*            _pyInit;
-	WebServer*             _webserver;
-	JsonServer*            _jsonServer;
-	UDPListener*           _udpListener;
+	Logger*                    _log;
+	BonjourBrowserWrapper*     _bonjourBrowserWrapper;
+	PythonInit*                _pyInit;
+	WebServer*                 _webserver;
+	JsonServer*                _jsonServer;
+	UDPListener*               _udpListener;
 	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
-	DispmanxWrapper*       _dispmanx;
-	X11Wrapper*            _x11Grabber;
-	AmlogicWrapper*        _amlGrabber;
-	FramebufferWrapper*    _fbGrabber;
-	OsxWrapper*            _osxGrabber;
-	QtWrapper*             _qtGrabber;
-	Hyperion*              _hyperion;
-	Stats*                 _stats;
-	SSDPHandler*           _ssdp;
-	FlatBufferServer* _flatBufferServer;
+	DispmanxWrapper*           _dispmanx;
+	X11Wrapper*                _x11Grabber;
+	AmlogicWrapper*            _amlGrabber;
+	FramebufferWrapper*        _fbGrabber;
+	OsxWrapper*                _osxGrabber;
+	QtWrapper*                 _qtGrabber;
+	Hyperion*                  _hyperion;
+	Stats*                     _stats;
+	SSDPHandler*               _ssdp;
+	FlatBufferServer*          _flatBufferServer;
+	ProtoServer*               _protoServer;
 
-	unsigned            _grabber_width;
-	unsigned            _grabber_height;
-	unsigned            _grabber_frequency;
-	unsigned            _grabber_cropLeft;
-	unsigned            _grabber_cropRight;
-	unsigned            _grabber_cropTop;
-	unsigned            _grabber_cropBottom;
-	int                 _grabber_ge2d_mode;
-	QString             _grabber_device;
+	unsigned                   _grabber_width;
+	unsigned                   _grabber_height;
+	unsigned                   _grabber_frequency;
+	unsigned                   _grabber_cropLeft;
+	unsigned                   _grabber_cropRight;
+	unsigned                   _grabber_cropTop;
+	unsigned                   _grabber_cropBottom;
+	int                        _grabber_ge2d_mode;
+	QString                    _grabber_device;
 
 	QString _prevType;
 

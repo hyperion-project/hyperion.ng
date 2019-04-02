@@ -5,6 +5,7 @@
 #include <bonjour/bonjourserviceregister.h>
 
 // hyperion includes
+#include <hyperion/Hyperion.h>
 #include "HyperionConfig.h"
 
 // qt includes
@@ -22,6 +23,9 @@ UDPListener::UDPListener(const QJsonDocument& config) :
 	_isActive(false),
 	_listenPort(0)
 {
+	// listen for component change
+	connect(Hyperion::getInstance(), &Hyperion::componentStateChanged, this, &UDPListener::componentStateChanged);
+
 	// init
 	handleSettingsUpdate(settings::UDPLISTENER, config);
 }
@@ -70,6 +74,8 @@ void UDPListener::start()
 			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
 		}
 	}
+
+	Hyperion::getInstance()->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
 }
 
 void UDPListener::stop()
@@ -80,7 +86,7 @@ void UDPListener::stop()
 	_server->close();
 	_isActive = false;
 	Info(_log, "Stopped");
-//	emit clearGlobalPriority(_priority, hyperion::COMP_UDPLISTENER);
+	Hyperion::getInstance()->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
 }
 
 void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)

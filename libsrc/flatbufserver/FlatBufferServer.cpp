@@ -62,8 +62,6 @@ void FlatBufferServer::newConnection()
 			FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
 			// internal
 			connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
-			// forward data
-			//connect(clientThread, &FlatBufferClient::);
 			_openConnections.append(client);
 		}
 	}

@@ -3,7 +3,9 @@
 # for executing in non travis environment
 [ -z "$TRAVIS_OS_NAME" ] && TRAVIS_OS_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 
-PLATFORM=x86
+if [ -z "${PLATFORM}" ]; then
+    PLATFORM=x86
+fi
 BUILD_TYPE=Debug
 PACKAGES=""
 
@@ -23,10 +25,11 @@ echo "compile jobs: ${JOBS:=4}"
 [ -n "${TRAVIS_TAG:-}" ] && BUILD_TYPE=Release
 
 # Determine package creation; True for cron and tag builds
+# Commented because tests are currently broken
 [ "${TRAVIS_EVENT_TYPE:-}" == 'cron' ] || [ -n "${TRAVIS_TAG:-}" ] && PACKAGES=package
 
 # Determie -dev appends to platform;
-[ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
+# [ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
 
 # Build the package on osx
 if [[ "$TRAVIS_OS_NAME" == 'osx' || "$TRAVIS_OS_NAME" == 'darwin' ]]
@@ -48,10 +51,10 @@ then
 	docker run --rm \
 		-v "${TRAVIS_BUILD_DIR}/deploy:/deploy" \
 		-v "${TRAVIS_BUILD_DIR}:/source:ro" \
-		hyperionorg/hyperion-ci:$DOCKER_TAG \
+		hyperionproject/hyperion-ci:$DOCKER_TAG \
 		/bin/bash -c "mkdir build && cp -r /source/. /build &&
 		cd /build && mkdir build && cd build &&
-		cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
+		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
 		make -j $(nproc) ${PACKAGES} || exit 3 &&
 		echo '---> Copy binaries and packages to host folder: ${TRAVIS_BUILD_DIR}/deploy' &&
 		cp -v /build/build/bin/h* /deploy/ 2>/dev/null || : &&

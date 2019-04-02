@@ -31,7 +31,7 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-    explicit FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent = nullptr);
+	explicit FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent = nullptr);
 
 signals:
 	///
@@ -59,12 +59,12 @@ private slots:
 	///
 	/// @brief Is called whenever the socket got new data to read
 	///
-    void readyRead();
+	void readyRead();
 
 	///
 	/// @brief Is called when the socket closed the connection, also requests thread exit
 	///
-    void disconnected();
+	void disconnected();
 
 private:
 	///

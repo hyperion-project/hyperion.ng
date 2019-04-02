@@ -156,9 +156,12 @@ $(document).ready(function() {
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;
+				case "PROTOSERVER":
+					owner = $.i18n('general_comp_PROTOSERVER');
+					break;
 			}
 
-			if(duration && compId != "GRABBER" && compId != "PROTOSERVER")
+			if(duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
 				owner += '<br/><span style="font-size:80%; color:grey;">'+$.i18n('remote_input_duration')+' '+duration.toFixed(0)+$.i18n('edt_append_s')+'</span>';
 
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';

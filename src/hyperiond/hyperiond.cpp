@@ -26,8 +26,11 @@
 #include <HyperionConfig.h> // Required to determine the cmake options
 #include "hyperiond.h"
 
-// FlatBufferServer
+// Flatbuffer Server
 #include <flatbufserver/FlatBufferServer.h>
+
+// Protobuffer Server
+#include <protoserver/ProtoServer.h>
 
 // bonjour browser
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -145,6 +148,8 @@ void HyperionDaemon::freeObjects()
 	delete _jsonServer;
 	_flatBufferServer->thread()->quit();
 	_flatBufferServer->thread()->wait(1000);
+	_protoServer->thread()->quit();
+	_protoServer->thread()->wait(1000);
 	//ssdp before webserver
 	_ssdp->thread()->quit();
 	_ssdp->thread()->wait(1000);
@@ -166,17 +171,18 @@ void HyperionDaemon::freeObjects()
 
 	_v4l2Grabbers.clear();
 	_bonjourBrowserWrapper = nullptr;
-	_amlGrabber     = nullptr;
-	_dispmanx       = nullptr;
-	_fbGrabber      = nullptr;
-	_osxGrabber     = nullptr;
-	_qtGrabber      = nullptr;
-	_flatBufferServer = nullptr;
-	_ssdp = nullptr;
-	_webserver      = nullptr;
-	_jsonServer     = nullptr;
-	_udpListener    = nullptr;
-	_stats          = nullptr;
+	_amlGrabber            = nullptr;
+	_dispmanx              = nullptr;
+	_fbGrabber             = nullptr;
+	_osxGrabber            = nullptr;
+	_qtGrabber             = nullptr;
+	_flatBufferServer      = nullptr;
+	_protoServer           = nullptr;
+	_ssdp                  = nullptr;
+	_webserver             = nullptr;
+	_jsonServer            = nullptr;
+	_udpListener           = nullptr;
+	_stats                 = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -197,6 +203,16 @@ void HyperionDaemon::startNetworkServices()
 	connect( fbThread, &QThread::finished, fbThread, &QObject::deleteLater );
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
+
+	// Create Proto server in thread
+	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
+	QThread* pThread = new QThread(this);
+	_protoServer->moveToThread(pThread);
+	connect( pThread, &QThread::started, _protoServer, &ProtoServer::initServer );
+	connect( pThread, &QThread::finished, _protoServer, &QObject::deleteLater );
+	connect( pThread, &QThread::finished, pThread, &QObject::deleteLater );
+	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
+	pThread->start();
 
 	// Create UDP listener
 	_udpListener = new UDPListener(getSetting(settings::UDPLISTENER));
@@ -411,12 +427,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
 
 			if (enableV4l)
-			{
 				v4lEnableCount++;
-
-				// init
-				grabber->setDeviceVideoStandard(grabberConfig["device"].toString("auto"), parseVideoStandard(grabberConfig["standard"].toString("no-change")));				
-			}
 
 			_v4l2Grabbers.push_back(grabber);
 			#endif
