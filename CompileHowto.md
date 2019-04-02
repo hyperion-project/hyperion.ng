@@ -35,6 +35,10 @@ sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev
 sudo apt-get install libraspberrypi-dev
 ```
 
+**OSMC on Raspberry Pi**
+```
+sudo apt-get install rbp-userland-dev-osmc
+```
 
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
