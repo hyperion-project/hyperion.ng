@@ -32,6 +32,6 @@
 		<file alias="schema-apa104">schemas/schema-apa104.json</file>
 		<file alias="schema-ws281x">schemas/schema-ws281x.json</file>
 		<file alias="schema-karate">schemas/schema-karate.json</file>
-		<file alias="schema-aurora">schemas/schema-aurora.json</file>
+		<file alias="schema-nanoleaf">schemas/schema-nanoleaf.json</file>
 	</qresource>
 </RCC>
