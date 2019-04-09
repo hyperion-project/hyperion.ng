@@ -15,6 +15,7 @@ notifications:
 language: cpp
 
 before_install:
+    - chmod +x /.travis/travis_install.sh
     - ./.travis/travis_install.sh
 
 jobs:
