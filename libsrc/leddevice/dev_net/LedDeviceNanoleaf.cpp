@@ -102,8 +102,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
     if ( _hostname.isEmpty() )
         //Discover Nanoleaf device
         if ( !discoverNanoleafDevice() ) {
-            Error(_log, "No target IP defined nor Nanoleaf device discovered");
-            return false;
+            throw std::runtime_error("No target IP defined nor Nanoleaf device discovered");
         }
 
     //Get Nanoleaf device details and configuration
