@@ -41,10 +41,31 @@ using namespace commandline;
 
 void signal_handler(const int signum)
 {
+	/// Hyperion instance
+	Hyperion* _hyperion = Hyperion::getInstance();
+
 	if(signum == SIGCHLD)
 	{
 		// only quit when a registered child process is gone
 		// currently this feature is not active ...
+		return;
+	}
+	else if (signum == SIGUSR1)
+	{
+		if (_hyperion != nullptr)
+		{
+			_hyperion->setComponentState(hyperion::COMP_SMOOTHING, false);
+			_hyperion->setComponentState(hyperion::COMP_LEDDEVICE, false);
+		}
+		return;
+	}
+	else if (signum == SIGUSR2)
+	{
+		if (_hyperion != nullptr)
+		{
+			_hyperion->setComponentState(hyperion::COMP_LEDDEVICE, true);
+			_hyperion->setComponentState(hyperion::COMP_SMOOTHING, true);
+		}
 		return;
 	}
 	QCoreApplication::quit();
@@ -132,6 +153,8 @@ int main(int argc, char** argv)
 	signal(SIGABRT, signal_handler);
 	signal(SIGCHLD, signal_handler);
 	signal(SIGPIPE, signal_handler);
+	signal(SIGUSR1, signal_handler);
+	signal(SIGUSR2, signal_handler);
 
 	// force the locale
 	setlocale(LC_ALL, "C");

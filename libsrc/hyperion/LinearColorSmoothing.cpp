@@ -98,6 +98,8 @@ int LinearColorSmoothing::switchOff()
 		_outputQueue.pop_front();
 	}
 
+	emit _hyperion->ledDeviceData(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK));
+
 	return 0;
 }
 
