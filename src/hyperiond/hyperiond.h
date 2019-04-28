@@ -137,7 +137,7 @@ private:
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
 	UDPListener*               _udpListener;
-	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
+	V4L2Wrapper*               _v4l2Grabbers;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	AmlogicWrapper*            _amlGrabber;

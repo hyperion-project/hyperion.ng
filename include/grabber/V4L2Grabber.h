@@ -13,6 +13,13 @@
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
 #include <grabber/VideoStandard.h>
+#include <utils/Components.h>
+
+#ifdef HAVE_JPEG
+	#include <QImage>
+	#include <jpeglib.h>
+	#include <csetjmp>
+#endif
 
 /// Capture class for V4L2 devices
 ///
@@ -78,6 +85,8 @@ public slots:
 
 	void stop();
 
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
 signals:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);
@@ -111,7 +120,7 @@ private:
 
 	bool process_image(const void *p, int size);
 
-	void process_image(const uint8_t *p);
+	void process_image(const uint8_t *p, int size);
 
 	int xioctl(int request, void *arg);
 
@@ -120,16 +129,40 @@ private:
 	void throw_errno_exception(const QString &error);
 
 private:
-	enum io_method {
+	enum io_method
+	{
 			IO_METHOD_READ,
 			IO_METHOD_MMAP,
 			IO_METHOD_USERPTR
 	};
 
-	struct buffer {
+	struct buffer
+	{
 			void   *start;
 			size_t  length;
 	};
+
+#ifdef HAVE_JPEG
+	struct errorManager
+	{
+		jpeg_error_mgr pub;
+		jmp_buf setjmp_buffer;
+	};
+
+	static void errorHandler(j_common_ptr cInfo)
+	{
+		errorManager* mgr = reinterpret_cast<errorManager*>(cInfo->err);
+		longjmp(mgr->setjmp_buffer, 1);
+	}
+
+	static void outputHandler(j_common_ptr cInfo)
+	{
+		// Suppress fprintf warnings.
+	}
+
+	jpeg_decompress_struct* _decompress;
+	errorManager* _error;
+#endif
 
 private:
 	QString _deviceName;
@@ -156,7 +189,7 @@ private:
 	double   _x_frac_max;
 	double   _y_frac_max;
 
-	QSocketNotifier * _streamNotifier;
+	QSocketNotifier *_streamNotifier;
 
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;

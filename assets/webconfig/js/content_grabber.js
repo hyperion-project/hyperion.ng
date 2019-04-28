@@ -27,7 +27,7 @@ $(document).ready( function() {
 		//v4l
 		$('#conf_cont').append(createRow('conf_cont_v4l'))
 		$('#conf_cont_v4l').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
-		$('#conf_cont_v4l').append(createHelpTable(schema.grabberV4L2.items.properties, $.i18n("edt_conf_v4l2_heading_title")));
+		$('#conf_cont_v4l').append(createHelpTable(schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
 	}
 	else
 	{

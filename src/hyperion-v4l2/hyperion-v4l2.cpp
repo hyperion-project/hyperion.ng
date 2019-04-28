@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
 		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
-		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32 or no-change. [default: %1]", "no-change");
+		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropLeft            = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
@@ -96,6 +96,9 @@ int main(int argc, char** argv)
 		argPixelFormat.addSwitch("yuyv", PIXELFORMAT_YUYV);
 		argPixelFormat.addSwitch("uyvy", PIXELFORMAT_UYVY);
 		argPixelFormat.addSwitch("rgb32", PIXELFORMAT_RGB32);
+#ifdef HAVE_JPEG
+		argPixelFormat.addSwitch("mjpeg", PIXELFORMAT_MJPEG);
+#endif
 		argPixelFormat.addSwitch("no-change", PIXELFORMAT_NO_CHANGE);
 
 		// parse all options
@@ -212,9 +215,11 @@ int main(int argc, char** argv)
 			// Connect the screen capturing to flatbuf connection processing
 			QObject::connect(&grabber, SIGNAL(newFrame(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
-			if (grabber.start())
-				QCoreApplication::exec();
-			grabber.stop();
+			// Start the capturing
+			grabber.start();
+			
+			// Start the application
+			app.exec();
 		}
 	}
 	catch (const std::runtime_error & e)
