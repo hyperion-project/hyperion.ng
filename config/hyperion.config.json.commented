@@ -114,26 +114,24 @@
 	///  * sDHOffsetMax   		: area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
 	///  * sDVOffsetMax			: area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
-	[
-		{
-			"device"   : "auto",
-			"standard" : "NO_CHANGE",
-			"sizeDecimation"  : 8,
-			"priority"    : 240,
-			"cropLeft"    : 0,
-			"cropRight"   : 0,
-			"cropTop"     : 0,
-			"cropBottom"  : 0,
-			"redSignalThreshold"   : 5,
-			"greenSignalThreshold" : 5,
-			"blueSignalThreshold"  : 5,
-			"signalDetection"      : false,
-			"sDVOffsetMin"   : 0.25,
-			"sDHOffsetMin" : 0.25,
-			"sDVOffsetMax"   : 0.75,
-			"sDHOffsetMax" : 0.75
-		}
-	],
+	{
+		"device"   : "auto",
+		"standard" : "NO_CHANGE",
+		"sizeDecimation"  : 8,
+		"priority"    : 240,
+		"cropLeft"    : 0,
+		"cropRight"   : 0,
+		"cropTop"     : 0,
+		"cropBottom"  : 0,
+		"redSignalThreshold"   : 5,
+		"greenSignalThreshold" : 5,
+		"blueSignalThreshold"  : 5,
+		"signalDetection"      : false,
+		"sDVOffsetMin"   : 0.25,
+		"sDHOffsetMin" : 0.25,
+		"sDVOffsetMax"   : 0.75,
+		"sDHOffsetMax" : 0.75
+	},
 
 	///  The configuration for the frame-grabber, contains the following items:
 	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer|qt) [auto]

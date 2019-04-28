@@ -268,6 +268,18 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
+# Add jpeg library
+if (ENABLE_V4L2)
+	find_package(JPEG)
+	if (JPEG_FOUND)
+		add_definitions(-DHAVE_JPEG)
+		message( STATUS "Using JPEG library: ${JPEG_LIBRARIES}")
+		include_directories(${JPEG_INCLUDE_DIR})
+	else()
+		message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
+	endif()
+endif()
+
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
 #if(NOT APPLE)
 #	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)

@@ -57,7 +57,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
 	, _udpListener(nullptr)
-	, _v4l2Grabbers()
+	, _v4l2Grabbers(nullptr)
 	, _dispmanx(nullptr)
 	, _x11Grabber(nullptr)
 	, _amlGrabber(nullptr)
@@ -162,14 +162,10 @@ void HyperionDaemon::freeObjects()
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
-
-	for(V4L2Wrapper* grabber : _v4l2Grabbers)
-	{
-		delete grabber;
-	}
+	delete _v4l2Grabbers;
 	delete _stats;
 
-	_v4l2Grabbers.clear();
+	_v4l2Grabbers          = nullptr;
 	_bonjourBrowserWrapper = nullptr;
 	_amlGrabber            = nullptr;
 	_dispmanx              = nullptr;
@@ -386,19 +382,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 	}
 	else if(type == settings::V4L2)
 	{
-		// stop
-		if(_v4l2Grabbers.size()>0)
-			return;
 
-		unsigned v4lEnableCount = 0;
-
-		const QJsonArray & v4lArray = config.array();
-		for ( signed idx=0; idx<v4lArray.size(); idx++)
-		{
-			#ifdef ENABLE_V4L2
-
-			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();
-			bool enableV4l = grabberConfig["enable"].toBool(true);
+#ifdef ENABLE_V4L2
+			const QJsonObject & grabberConfig = config.object();
 
 			V4L2Wrapper* grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
@@ -425,15 +411,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
-
-			if (enableV4l)
-				v4lEnableCount++;
-
-			_v4l2Grabbers.push_back(grabber);
-			#endif
-		}
-
-		ErrorIf( (v4lEnableCount>0 && _v4l2Grabbers.size()==0), _log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+#else
+		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+#endif
 	}
 }
 
@@ -449,7 +429,7 @@ void HyperionDaemon::createGrabberDispmanx()
 
 	Info(_log, "DISPMANX frame grabber created");
 #else
-	Error( _log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
+	Error(_log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 
@@ -466,7 +446,7 @@ void HyperionDaemon::createGrabberAmlogic()
 
 	Info(_log, "AMLOGIC grabber created");
 #else
-	Error( _log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
+	Error(_log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 

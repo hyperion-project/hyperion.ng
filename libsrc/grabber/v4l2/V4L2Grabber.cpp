@@ -16,10 +16,14 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 
+#include <hyperion/Hyperion.h>
+
 #include <QDirIterator>
 #include <QFileInfo>
 
 #include "grabber/V4L2Grabber.h"
+
+using namespace hyperion;
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -55,6 +59,10 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
 
+	// listen for component change for build-in grabber only
+	if (Hyperion::_hyperion)
+		connect(Hyperion::getInstance(), &Hyperion::componentStateChanged, this, &V4L2Grabber::componentStateChanged);
+
 	// init
 	setDeviceVideoStandard(device, videoStandard);
 }
@@ -70,11 +78,7 @@ void V4L2Grabber::uninit()
 	if (_initialized)
 	{
 		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
-
 		stop();
-		uninit_device();
-		close_device();
-		_initialized = false;
 	}
 }
 
@@ -233,6 +237,9 @@ void V4L2Grabber::stop()
 	{
 		stop_capturing();
 		_streamNotifier->setEnabled(false);
+		uninit_device();
+		close_device();
+		_initialized = false;
 		Info(_log, "Stopped");
 	}
 }
@@ -518,74 +525,109 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set the requested pixel format
 	switch (_pixelFormat)
 	{
-	case PIXELFORMAT_UYVY:
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+		case PIXELFORMAT_UYVY:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 		break;
-	case PIXELFORMAT_YUYV:
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+		case PIXELFORMAT_YUYV:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		break;
-	case PIXELFORMAT_RGB32:
-		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+		case PIXELFORMAT_RGB32:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
-	case PIXELFORMAT_NO_CHANGE:
-	default:
-		// No change to device settings
+#ifdef HAVE_JPEG
+		case PIXELFORMAT_MJPEG:
+		{
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+			fmt.fmt.pix.field       = V4L2_FIELD_ANY;
+		}
+		break;
+#endif
+		case PIXELFORMAT_NO_CHANGE:
+		default:
+			// No change to device settings
 		break;
 	}
 
-// TODO Does never accept own sizes? use always _imageResampler instead
-/*
-
-	// calc the size based on pixelDecimation
-	fmt.fmt.pix.width = fmt.fmt.pix.width / _pixelDecimation;
-	fmt.fmt.pix.height = fmt.fmt.pix.height / _pixelDecimation;
-
 	// set the settings
+	fmt.fmt.pix.width = _width;
+	fmt.fmt.pix.height = _height;
+
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
 		throw_errno_exception("VIDIOC_S_FMT");
 		return;
 	}
 
-	// get the format settings again
-	// (the size may not have been accepted without an error)
-	if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
-	{
-		throw_errno_exception("VIDIOC_G_FMT");
-		return;
-	}
-*/
-	// set the line length
-	_lineLength = fmt.fmt.pix.bytesperline;
-
-	// store width & height
+	// initialize current width and height
 	_width = fmt.fmt.pix.width;
 	_height = fmt.fmt.pix.height;
 
 	// display the used width and height
 	Debug(_log, "width=%d height=%d", _width, _height );
 
+	// Trying to set frame rate
+	struct v4l2_streamparm streamparms;
+	CLEAR(streamparms);
+	streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if (-1 == xioctl(VIDIOC_G_PARM, &streamparms))
+	{
+		throw_errno_exception("VIDIOC_G_PARM");
+		// continue
+	}
+	else
+	{
+		// Check the capability flag is set to V4L2_CAP_TIMEPERFRAME
+		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
+		{
+			// Driver supports the feature. Set required framerate
+			streamparms.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
+			streamparms.parm.capture.timeperframe.numerator = 1;
+			streamparms.parm.capture.timeperframe.denominator = 30;
+			if(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
+			{
+				throw_errno_exception("VIDIOC_S_PARM");
+				return;
+			}
+		}
+	}
+
+	// set the line length
+	_lineLength = fmt.fmt.pix.bytesperline;
 
 	// check pixel format and frame size
 	switch (fmt.fmt.pix.pixelformat)
 	{
-	case V4L2_PIX_FMT_UYVY:
-		_pixelFormat = PIXELFORMAT_UYVY;
-		_frameByteSize = _width * _height * 2;
-		Debug(_log, "Pixel format=UYVY");
+		case V4L2_PIX_FMT_UYVY:
+		{
+			_pixelFormat = PIXELFORMAT_UYVY;
+			_frameByteSize = _width * _height * 2;
+			Debug(_log, "Pixel format=UYVY");
+		}
 		break;
-	case V4L2_PIX_FMT_YUYV:
-		_pixelFormat = PIXELFORMAT_YUYV;
-		_frameByteSize = _width * _height * 2;
-		Debug(_log, "Pixel format=YUYV");
+		case V4L2_PIX_FMT_YUYV:
+		{
+			_pixelFormat = PIXELFORMAT_YUYV;
+			_frameByteSize = _width * _height * 2;
+			Debug(_log, "Pixel format=YUYV");
+		}
 		break;
-	case V4L2_PIX_FMT_RGB32:
-		_pixelFormat = PIXELFORMAT_RGB32;
-		_frameByteSize = _width * _height * 4;
-		Debug(_log, "Pixel format=RGB32");
+		case V4L2_PIX_FMT_RGB32:
+		{
+			_pixelFormat = PIXELFORMAT_RGB32;
+			_frameByteSize = _width * _height * 4;
+			Debug(_log, "Pixel format=RGB32");
+		}
 		break;
-	default:
-		throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
+#ifdef HAVE_JPEG
+		case V4L2_PIX_FMT_MJPEG:
+		{
+			_pixelFormat = PIXELFORMAT_MJPEG;
+			Debug(_log, "Pixel format=MJPEG");
+		}
+		break;
+#endif
+		default:
+			throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
 		return;
 	}
 
@@ -714,107 +756,108 @@ int V4L2Grabber::read_frame()
 	{
 	struct v4l2_buffer buf;
 
-	switch (_ioMethod) {
-	case IO_METHOD_READ:
-		int size;
-		if ((size = read(_fileDescriptor, _buffers[0].start, _buffers[0].length)) == -1)
-		{
-			switch (errno)
+	switch (_ioMethod)
+	{
+		case IO_METHOD_READ:
+			int size;
+			if ((size = read(_fileDescriptor, _buffers[0].start, _buffers[0].length)) == -1)
 			{
-			case EAGAIN:
-				return 0;
+				switch (errno)
+				{
+				case EAGAIN:
+					return 0;
 
-			case EIO:
-				/* Could ignore EIO, see spec. */
+				case EIO:
+					/* Could ignore EIO, see spec. */
 
-				/* fall through */
+					/* fall through */
 
-			default:
-				throw_errno_exception("read");
+				default:
+					throw_errno_exception("read");
+					return 0;
+				}
+			}
+
+			rc = process_image(_buffers[0].start, size);
+			break;
+
+		case IO_METHOD_MMAP:
+			CLEAR(buf);
+
+			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			buf.memory = V4L2_MEMORY_MMAP;
+
+			if (-1 == xioctl(VIDIOC_DQBUF, &buf))
+			{
+				switch (errno)
+				{
+				case EAGAIN:
+					return 0;
+
+				case EIO:
+					/* Could ignore EIO, see spec. */
+
+					/* fall through */
+
+				default:
+					throw_errno_exception("VIDIOC_DQBUF");
+					return 0;
+				}
+			}
+
+			assert(buf.index < _buffers.size());
+
+			rc = process_image(_buffers[buf.index].start, buf.bytesused);
+
+			if (-1 == xioctl(VIDIOC_QBUF, &buf))
+			{
+				throw_errno_exception("VIDIOC_QBUF");
 				return 0;
 			}
-		}
 
-		rc = process_image(_buffers[0].start, size);
-		break;
+			break;
 
-	case IO_METHOD_MMAP:
-		CLEAR(buf);
+		case IO_METHOD_USERPTR:
+			CLEAR(buf);
 
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_MMAP;
+			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			buf.memory = V4L2_MEMORY_USERPTR;
 
-		if (-1 == xioctl(VIDIOC_DQBUF, &buf))
-		{
-			switch (errno)
+			if (-1 == xioctl(VIDIOC_DQBUF, &buf))
 			{
-			case EAGAIN:
-				return 0;
+				switch (errno)
+				{
+				case EAGAIN:
+					return 0;
 
-			case EIO:
-				/* Could ignore EIO, see spec. */
+				case EIO:
+					/* Could ignore EIO, see spec. */
 
-				/* fall through */
+					/* fall through */
 
-			default:
-				throw_errno_exception("VIDIOC_DQBUF");
+				default:
+					throw_errno_exception("VIDIOC_DQBUF");
+					return 0;
+				}
+			}
+
+			for (size_t i = 0; i < _buffers.size(); ++i)
+			{
+				if (buf.m.userptr == (unsigned long)_buffers[i].start && buf.length == _buffers[i].length)
+				{
+					break;
+				}
+			}
+
+			rc = process_image((void *)buf.m.userptr, buf.bytesused);
+
+			if (-1 == xioctl(VIDIOC_QBUF, &buf))
+			{
+				throw_errno_exception("VIDIOC_QBUF");
 				return 0;
 			}
+			break;
 		}
-
-		assert(buf.index < _buffers.size());
-
-		rc = process_image(_buffers[buf.index].start, buf.bytesused);
-
-		if (-1 == xioctl(VIDIOC_QBUF, &buf))
-		{
-			throw_errno_exception("VIDIOC_QBUF");
-			return 0;
-		}
-
-		break;
-
-	case IO_METHOD_USERPTR:
-		CLEAR(buf);
-
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory = V4L2_MEMORY_USERPTR;
-
-		if (-1 == xioctl(VIDIOC_DQBUF, &buf))
-		{
-			switch (errno)
-			{
-			case EAGAIN:
-				return 0;
-
-			case EIO:
-				/* Could ignore EIO, see spec. */
-
-				/* fall through */
-
-			default:
-				throw_errno_exception("VIDIOC_DQBUF");
-				return 0;
-			}
-		}
-
-		for (size_t i = 0; i < _buffers.size(); ++i)
-		{
-			if (buf.m.userptr == (unsigned long)_buffers[i].start && buf.length == _buffers[i].length)
-			{
-				break;
-			}
-		}
-
-		rc = process_image((void *)buf.m.userptr, buf.bytesused);
-
-		if (-1 == xioctl(VIDIOC_QBUF, &buf))
-		{
-			throw_errno_exception("VIDIOC_QBUF");
-			return 0;
-		}
-		break;
-	}
 	}
 	catch (std::exception& e)
 	{
@@ -828,23 +871,101 @@ int V4L2Grabber::read_frame()
 bool V4L2Grabber::process_image(const void *p, int size)
 {
 	// We do want a new frame...
+#ifdef HAVE_JPEG
+	if (size != _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
+#else
 	if (size != _frameByteSize)
+#endif
 	{
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 	}
 	else
 	{
-		process_image(reinterpret_cast<const uint8_t *>(p));
+		process_image(reinterpret_cast<const uint8_t *>(p), size);
 		return true;
 	}
 
 	return false;
 }
 
-void V4L2Grabber::process_image(const uint8_t * data)
+void V4L2Grabber::process_image(const uint8_t * data, int size)
 {
-	Image<ColorRgb> image(0, 0);
-	_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+	Image<ColorRgb> image(_width, _height);
+
+#ifdef HAVE_JPEG
+	if (_pixelFormat == PIXELFORMAT_MJPEG)
+	{
+		_decompress = new jpeg_decompress_struct;
+		_error = new errorManager;
+
+		_decompress->err = jpeg_std_error(&_error->pub);
+		_error->pub.error_exit = &errorHandler;
+		_error->pub.output_message = &outputHandler;
+
+		jpeg_create_decompress(_decompress);
+
+		if (setjmp(_error->setjmp_buffer))
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			return;
+		}
+
+		jpeg_mem_src(_decompress, const_cast<uint8_t*>(data), size);
+
+		if (jpeg_read_header(_decompress, (bool) TRUE) != JPEG_HEADER_OK)
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			return;
+		}
+
+		jpeg_start_decompress(_decompress);
+
+		QImage imageFrame = QImage(_decompress->output_width, _decompress->output_height, QImage::Format_RGB888);
+
+		int y = 0;
+		while (_decompress->output_scanline < _decompress->output_height)
+		{
+			uchar *row = imageFrame.scanLine(_decompress->output_scanline);
+			jpeg_read_scanlines(_decompress, &row, 1);
+			y++;
+		}
+
+		jpeg_finish_decompress(_decompress);
+		jpeg_destroy_decompress(_decompress);
+		delete _decompress;
+		delete _error;
+
+		if (imageFrame.isNull())
+			return;
+
+		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
+		imageFrame = imageFrame.copy(rect);
+		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
+
+		if ((image.width() != unsigned(imageFrame.width())) && (image.height() != unsigned(imageFrame.height())))
+			image.resize(imageFrame.width(), imageFrame.height());
+
+		for (int y=0; y<imageFrame.height(); ++y)
+		{
+			for (int x=0; x<imageFrame.width(); ++x)
+			{
+				const QRgb inPixel = imageFrame.pixel(x,y);
+				ColorRgb & outPixel = image(x,y);
+				outPixel.red   = (inPixel & 0xff0000) >> 16;
+				outPixel.green = (inPixel & 0xff00) >>  8;
+				outPixel.blue  = (inPixel & 0xff);
+			}
+		}
+	}
+	else
+#endif
+		_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 
 	if (_signalDetectionEnabled)
 	{
@@ -961,5 +1082,21 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 		// start if init is a success
 		if(init())
 			start();
+	}
+}
+
+void V4L2Grabber::componentStateChanged(const hyperion::Components component, bool enable)
+{
+	if (component == COMP_V4L)
+	{
+		if (_initialized != enable)
+		{
+			if (enable)
+			{
+				if(init()) start();
+			}
+			else
+				uninit();
+		}
 	}
 }
