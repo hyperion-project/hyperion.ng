@@ -17,6 +17,7 @@
 
 #ifdef HAVE_JPEG
 	#include <QImage>
+	#include <QColor>
 	#include <jpeglib.h>
 	#include <csetjmp>
 #endif

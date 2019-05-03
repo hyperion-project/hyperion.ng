@@ -57,7 +57,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
 	, _udpListener(nullptr)
-	, _v4l2Grabbers(nullptr)
+	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
 	, _x11Grabber(nullptr)
 	, _amlGrabber(nullptr)
@@ -83,10 +83,10 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if(!logLvlOverwrite)
-		handleSettingsUpdate(settings::LOGGER, _settingsManager->getSetting(settings::LOGGER));
+		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 
 	// init EffectFileHandler
-	EffectFileHandler* efh = new EffectFileHandler(rootPath, _settingsManager->getSetting(settings::EFFECTS), this);
+	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
 	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
 
 	// spawn all Hyperion instances before network services
@@ -94,7 +94,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 
 	Info(_log, "Hyperion initialized");
 
-	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); for app restart refactor required
+	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); // TODO for app restart, refactor required
 
 	// listen for setting changes
 	connect(_hyperion, &Hyperion::settingsChanged, this, &HyperionDaemon::settingsChanged);
@@ -111,10 +111,17 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 		Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
-	// init system capture (framegrabber)
+	// get power state of system/v4l2 capture
+	const QJsonObject & grabberConfig = getSetting(settings::INSTCAPTURE).object();
+
+	// init system capture (framegrabber) and update power state
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-	// init v4l2 capture
+	_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberConfig["systemEnable"].toBool(true));
+
+	// init v4l2 capture  and update power state
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
+	_hyperion->setComponentState(hyperion::COMP_V4L, grabberConfig["v4lEnable"].toBool(true));
+
 	// ---- network services -----
 	startNetworkServices();
 }
@@ -162,10 +169,10 @@ void HyperionDaemon::freeObjects()
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
-	delete _v4l2Grabbers;
+	delete _v4l2Grabber;
 	delete _stats;
 
-	_v4l2Grabbers          = nullptr;
+	_v4l2Grabber           = nullptr;
 	_bonjourBrowserWrapper = nullptr;
 	_amlGrabber            = nullptr;
 	_dispmanx              = nullptr;
@@ -384,24 +391,27 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 	{
 
 #ifdef ENABLE_V4L2
+			if(_v4l2Grabber != nullptr)
+				return;
+
 			const QJsonObject & grabberConfig = config.object();
 
-			V4L2Wrapper* grabber = new V4L2Wrapper(
+			_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8) );
-			grabber->setSignalThreshold(
+			_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0);
-			grabber->setCropping(
+			_v4l2Grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
-			grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
-			grabber->setSignalDetectionOffset(
+			_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
+			_v4l2Grabber->setSignalDetectionOffset(
 				grabberConfig["sDHOffsetMin"].toDouble(0.25),
 				grabberConfig["sDVOffsetMin"].toDouble(0.25),
 				grabberConfig["sDHOffsetMax"].toDouble(0.75),
@@ -409,8 +419,8 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			Debug(_log, "V4L2 grabber created");
 
 			// connect to HyperionDaemon signal
-			connect(this, &HyperionDaemon::videoMode, grabber, &V4L2Wrapper::setVideoMode);
-			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
+			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
+			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif

@@ -924,7 +924,28 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 			return;
 		}
 
-		jpeg_start_decompress(_decompress);
+		_decompress->scale_num = 1;
+		_decompress->scale_denom = 1;
+		_decompress->out_color_space = JCS_RGB;
+		_decompress->dct_method = JDCT_IFAST;
+
+		if (!jpeg_start_decompress(_decompress))
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			return;
+		}
+
+		if (_decompress->out_color_components != 3)
+		{
+			jpeg_abort_decompress(_decompress);
+			jpeg_destroy_decompress(_decompress);
+			delete _decompress;
+			delete _error;
+			return;
+		}
 
 		QImage imageFrame = QImage(_decompress->output_width, _decompress->output_height, QImage::Format_RGB888);
 
@@ -948,20 +969,18 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 		imageFrame = imageFrame.copy(rect);
 		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
 
-		if ((image.width() != unsigned(imageFrame.width())) && (image.height() != unsigned(imageFrame.height())))
+		if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
 			image.resize(imageFrame.width(), imageFrame.height());
 
 		for (int y=0; y<imageFrame.height(); ++y)
-		{
 			for (int x=0; x<imageFrame.width(); ++x)
 			{
-				const QRgb inPixel = imageFrame.pixel(x,y);
+				QColor inPixel(imageFrame.pixel(x,y));
 				ColorRgb & outPixel = image(x,y);
-				outPixel.red   = (inPixel & 0xff0000) >> 16;
-				outPixel.green = (inPixel & 0xff00) >>  8;
-				outPixel.blue  = (inPixel & 0xff);
+				outPixel.red   = inPixel.red();
+				outPixel.green = inPixel.green();
+				outPixel.blue  = inPixel.blue();
 			}
-		}
 	}
 	else
 #endif
@@ -1045,7 +1064,7 @@ void V4L2Grabber::throw_errno_exception(const QString & error)
 
 void V4L2Grabber::setSignalDetectionEnable(bool enable)
 {
-	if(_signalDetectionEnabled != enable)
+	if (_signalDetectionEnabled != enable)
 	{
 		_signalDetectionEnabled = enable;
 		Info(_log, "Signal detection is now %s", enable ? "enabled" : "disabled");
@@ -1059,7 +1078,7 @@ bool V4L2Grabber::getSignalDetectionEnabled()
 
 void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 {
-	if(_pixelDecimation != pixelDecimation)
+	if (_pixelDecimation != pixelDecimation)
 	{
 		_pixelDecimation = pixelDecimation;
 		_imageResampler.setHorizontalPixelDecimation(pixelDecimation);
@@ -1069,7 +1088,7 @@ void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 
 void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
 {
-	if(_deviceName != device || _videoStandard != videoStandard)
+	if (_deviceName != device || _videoStandard != videoStandard)
 	{
 		// extract input of device
 		QChar input = device.at(device.size() - 1);
@@ -1079,9 +1098,9 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 		_deviceName = device;
 		_videoStandard = videoStandard;
 
-		// start if init is a success
-		if(init())
-			start();
+// 		// start if init is a success
+// 		if(init())
+// 			start();
 	}
 }
 
@@ -1092,11 +1111,9 @@ void V4L2Grabber::componentStateChanged(const hyperion::Components component, bo
 		if (_initialized != enable)
 		{
 			if (enable)
-			{
-				if(init()) start();
-			}
+				start();
 			else
-				uninit();
+				stop();
 		}
 	}
 }
