@@ -37,8 +37,12 @@ public:
 	);
 	virtual ~V4L2Grabber();
 
-	QRectF getSignalDetectionOffset();
-	bool getSignalDetectionEnabled();
+	QRectF getSignalDetectionOffset()
+	{
+		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
+	}
+
+	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
 
 	int grabFrame(Image<ColorRgb> &);
 
@@ -125,9 +129,15 @@ private:
 
 	int xioctl(int request, void *arg);
 
-	void throw_exception(const QString &error);
+	void throw_exception(const QString & error)
+	{
+		Error(_log, "Throws error: %s", QSTRING_CSTR(error));
+	}
 
-	void throw_errno_exception(const QString &error);
+	void throw_errno_exception(const QString & error)
+	{
+		Error(_log, "Throws error nr: %s", QSTRING_CSTR(QString(error + " error code " + QString::number(errno) + ", " + strerror(errno))));
+	}
 
 private:
 	enum io_method
