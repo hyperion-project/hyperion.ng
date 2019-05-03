@@ -26,14 +26,6 @@
 
 using namespace commandline;
 
-// save the image as screenshot
-void saveScreenshot(QString filename, const Image<ColorRgb> & image)
-{
-	// store as PNG
-	QImage pngImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
-	pngImage.save(filename);
-}
-
 int main(int argc, char** argv)
 {
 	Logger *log = Logger::getInstance("V4L2GRABBER");

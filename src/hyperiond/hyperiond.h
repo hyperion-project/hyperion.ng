@@ -137,7 +137,7 @@ private:
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
 	UDPListener*               _udpListener;
-	V4L2Wrapper*               _v4l2Grabbers;
+	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	AmlogicWrapper*            _amlGrabber;

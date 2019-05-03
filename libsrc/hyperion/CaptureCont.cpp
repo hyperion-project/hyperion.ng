@@ -82,6 +82,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 		}
 		_systemCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, enable);
+		_hyperion->setComponentState(hyperion::COMP_GRABBER, enable);
 	}
 }
 
@@ -103,6 +104,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		}
 		_v4lCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, enable);
+		_hyperion->setComponentState(hyperion::COMP_V4L, enable);
 	}
 }
 
