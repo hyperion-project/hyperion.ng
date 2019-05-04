@@ -1,10 +1,21 @@
-# HYPERION
+<p align="center">
+    <img src="./assets/webconfig/img/hyperion/hyperionlogo.png">
+</p>
 
-[![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?down_color=red&down_message=offline&up_color=green&up_message=online)](https://www.hyperion-project.org)
-[![Build Status](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/context:cpp)
-[![Language alert: C/C++](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts)
-[![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE)
+<p align="center">
+    <a href="https://www.hyperion-project.org" alt="Forum">
+      <img src="https://img.shields.io/website/https/hyperion-project.org.svg?down_color=red&down_message=offline&up_color=green&up_message=online" /></a>
+    <a href="https://github.com/hyperion-project/hyperion.ng/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/hyperion-project/hyperion.ng.svg" /></a>
+    <a href="https://travis-ci.org/hyperion-project/hyperion.ng" alt="Travis-CI">
+        <img src="https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master" /></a>
+    <a href="https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/">
+        <img src="https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg"
+            alt="Total alerts"/></a>
+    <a href="https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg"
+            alt="GitHub license"></a>
+</p>
 
 This is a pre alpha development repository for the next major version of hyperion
 
