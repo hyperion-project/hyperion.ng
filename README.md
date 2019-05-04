@@ -17,7 +17,7 @@
             alt="GitHub license"></a>
 </p>
 
-This is a pre alpha development repository for the next major version of hyperion
+<p align="center">This is a pre alpha development repository for the next major version of hyperion</p>
 
 --------
 ## **Important notice!**
