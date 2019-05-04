@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./assets/webconfig/img/hyperion/hyperionlogo.png">
+    <img src="./assets/webconfig/img/hyperion/hyperionlogo.png" height="130">
 </p>
 
 <p align="center">
