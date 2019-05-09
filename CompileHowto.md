@@ -161,4 +161,4 @@ This will install to ``/home/pi/apps/share/hyperion``
 
 ### Integrating hyperion into your system
 
-... ToDo
+... ToDo.
