@@ -26,7 +26,7 @@ echo "compile jobs: ${JOBS:=4}"
 
 # Determine package creation; True for cron and tag builds
 # Commented because tests are currently broken
-[ "${TRAVIS_EVENT_TYPE:-}" == 'cron' ] || [ -n "${TRAVIS_TAG:-}" ] && PACKAGES=package
+# [ "${TRAVIS_EVENT_TYPE:-}" == 'cron' ] || [ -n "${TRAVIS_TAG:-}" ] && PACKAGES=package
 
 # Determie -dev appends to platform;
 # [ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
