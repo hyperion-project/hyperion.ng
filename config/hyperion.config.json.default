@@ -147,7 +147,7 @@
 	{
 		"enable"   : false,
 		"port"     : 19333,
-		"priority" : 201
+		"priority" : 128
 	},
 
 	"udpListener" :
