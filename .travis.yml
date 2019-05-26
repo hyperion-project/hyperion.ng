@@ -1,6 +1,6 @@
 linux: &linux
     os: linux
-    dist: trusty
+    dist: xenial
     services:
         - docker
 osx: &osx
