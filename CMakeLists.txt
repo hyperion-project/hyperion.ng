@@ -247,6 +247,9 @@ else()
     message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 endif()
 
+# Use GNU gold linker if available
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+
 # setup -rpath to search for shared libs in BINARY/../libs folder
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
