@@ -23,8 +23,6 @@
 
 #include "grabber/V4L2Grabber.h"
 
-using namespace hyperion;
-
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 V4L2Grabber::V4L2Grabber(const QString & device
@@ -140,10 +138,12 @@ bool V4L2Grabber::init()
 			// do not init with unknown device
 			if(_deviceName != "unknown")
 			{
-				open_device();
-				opened = true;
-				init_device(_videoStandard, _input);
-				_initialized = true;
+				if (open_device())
+				{
+					opened = true;
+					init_device(_videoStandard, _input);
+					_initialized = true;
+				}
 			}
 		}
 		catch(std::exception& e)
@@ -239,20 +239,20 @@ void V4L2Grabber::stop()
 	}
 }
 
-void V4L2Grabber::open_device()
+bool V4L2Grabber::open_device()
 {
 	struct stat st;
 
 	if (-1 == stat(QSTRING_CSTR(_deviceName), &st))
 	{
 		throw_errno_exception("Cannot identify '" + _deviceName + "'");
-		return;
+		return false;
 	}
 
 	if (!S_ISCHR(st.st_mode))
 	{
 		throw_exception("'" + _deviceName + "' is no device");
-		return;
+		return false;
 	}
 
 	_fileDescriptor = open(QSTRING_CSTR(_deviceName), O_RDWR | O_NONBLOCK, 0);
@@ -260,13 +260,14 @@ void V4L2Grabber::open_device()
 	if (-1 == _fileDescriptor)
 	{
 		throw_errno_exception("Cannot open '" + _deviceName + "'");
-		return;
+		return false;
 	}
 
 	// create the notifier for when a new frame is available
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
 	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
+	return true;
 }
 
 void V4L2Grabber::close_device()
@@ -1006,7 +1007,7 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 		delete _decompress;
 		delete _error;
 
-		if (imageFrame.isNull())
+		if (imageFrame.isNull() || _error->pub.num_warnings > 0)
 			return;
 
 		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
@@ -1132,9 +1133,9 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 	}
 }
 
-void V4L2Grabber::componentStateChanged(const Components component, bool enable)
+void V4L2Grabber::componentStateChanged(const hyperion::Components component, bool enable)
 {
-	if (component == COMP_V4L)
+	if (component == hyperion::COMP_V4L)
 	{
 		if (_initialized != enable)
 		{

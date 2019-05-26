@@ -5,12 +5,14 @@
 	"items":
 	{
 		"type":"object",
+		"required" : true,
 		"properties":
 		{
 			"index":
 			{
 				"type":"integer",
-				"required":true
+				"required":true,
+				"default" : 0
 			},
 			"clone":
 			{
@@ -19,6 +21,7 @@
 			"hscan":
 			{
 				"type":"object",
+				"required" : true,
 				"properties":
 				{
 					"minimum":
@@ -26,14 +29,16 @@
 						"type":"number",
 						"minimum" : 0,
 						"maximum" : 1,
-						"required":true
+						"required":true,
+						"default" : 0
 					},
 					"maximum":
 					{
 						"type":"number",
 						"minimum" : 0,
 						"maximum" : 1,
-						"required":true
+						"required":true,
+						"default" : 0.1
 					}
 				},
 				"additionalProperties" : false
@@ -41,6 +46,7 @@
 			"vscan":
 			{
 				"type":"object",
+				"required" : true,
 				"properties":
 				{
 					"minimum":
@@ -48,14 +54,16 @@
 						"type":"number",
 						"minimum" : 0,
 						"maximum" : 1,
-						"required":true
+						"required":true,
+						"default" : 0
 					},
 					"maximum":
 					{
 						"type":"number",
 						"minimum" : 0,
 						"maximum" : 1,
-						"required":true
+						"required":true,
+						"default" : 0.1
 					}
 				},
 				"additionalProperties" : false
@@ -63,7 +71,10 @@
 			"colorOrder":
 			{
 				"type": "string",
-				"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"]
+				"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
+				"options" : {
+					"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
+				}
 			}
 		},
 		"additionalProperties" : false

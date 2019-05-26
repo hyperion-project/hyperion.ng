@@ -105,7 +105,7 @@ private:
 	bool init();
 	void uninit();
 
-	void open_device();
+	bool open_device();
 
 	void close_device();
 
