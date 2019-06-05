@@ -80,10 +80,10 @@ typedef struct {
 			#define STATIC_ASSERT(condition, message) \
 				_Static_assert(condition, message)
 		#else
-			#define STATIC_ASSERT(condition, message) // FIXME
+			#define STATIC_ASSERT(condition, message)
 		#endif
 	#else
-		#define STATIC_ASSERT(condition, message) // FIXME
+		#define STATIC_ASSERT(condition, message)
 	#endif
 
 	STATIC_ASSERT(sizeof(PacketHeader) == 8, "PacketHeader has invalid size");
@@ -1055,7 +1055,7 @@ static void ipcon_dispatch_meta(IPConnectionPrivate *ipcon_p, Meta *meta) {
 			mutex_unlock(&ipcon_p->socket_mutex);
 		}
 
-		// FIXME: wait a moment here, otherwise the next connect
+		// NOTE: wait a moment here, otherwise the next connect
 		// attempt will succeed, even if there is no open server
 		// socket. the first receive will then fail directly
 		thread_sleep(100);
@@ -1146,11 +1146,11 @@ static void ipcon_callback_loop(void *opaque) {
 
 	while (true) {
 		if (queue_get(&callback->queue, &kind, &data, &length) < 0) {
-			// FIXME: what to do here? try again? exit?
+			// NOTE: what to do here? try again? exit?
 			break;
 		}
 
-		// FIXME: cannot lock callback mutex here because this can
+		// NOTE: cannot lock callback mutex here because this can
 		//        deadlock due to an ordering problem with the socket mutex
 		//mutex_lock(&callback->mutex);
 
@@ -1219,7 +1219,7 @@ static void ipcon_disconnect_probe_loop(void *opaque) {
 	while (event_wait(&ipcon_p->disconnect_probe_event,
 	                  IPCON_DISCONNECT_PROBE_INTERVAL) < 0) {
 		if (ipcon_p->disconnect_probe_flag) {
-			// FIXME: this might block
+			// TODO: this might block
 			if (socket_send(ipcon_p->socket, &disconnect_probe,
 			                disconnect_probe.length) < 0) {
 				ipcon_handle_disconnect_by_peer(ipcon_p, IPCON_DISCONNECT_REASON_ERROR,
@@ -1509,7 +1509,7 @@ static void ipcon_disconnect_unlocked(IPConnectionPrivate *ipcon_p) {
 	// thread to avoid timeout exceptions due to callback functions
 	// trying to call getters
 	if (!thread_is_current(&ipcon_p->callback->thread)) {
-		// FIXME: cannot lock callback mutex here because this can
+		// NOTE: cannot lock callback mutex here because this can
 		//        deadlock due to an ordering problem with the socket mutex
 		//mutex_lock(&ipcon->callback->mutex);
 
@@ -1608,7 +1608,7 @@ void ipcon_create(IPConnection *ipcon) {
 void ipcon_destroy(IPConnection *ipcon) {
 	IPConnectionPrivate *ipcon_p = ipcon->p;
 
-	ipcon_disconnect(ipcon); // FIXME: disable disconnected callback before?
+	ipcon_disconnect(ipcon); // NOTE: disable disconnected callback before?
 
 	mutex_destroy(&ipcon_p->sequence_number_mutex);
 

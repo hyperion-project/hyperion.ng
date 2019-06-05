@@ -4,13 +4,13 @@
 	var conf_editor = null;
 	
 	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_webc_heading_title"), 'editor_container', 'btn_submit'));
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
-		$('#conf_cont').append(createHelpTable(schema.webConfig.properties, $.i18n("edt_conf_webc_heading_title")));
+		$('#conf_cont').append(createHelpTable(window.schema.webConfig.properties, $.i18n("edt_conf_webc_heading_title")));
 	}
 	
 	conf_editor = createJsonEditor('editor_container', {
-		webConfig : schema.webConfig
+		webConfig : window.schema.webConfig
 	}, true, true);
 
 	conf_editor.on('change',function() {
@@ -21,7 +21,7 @@
 		requestWriteConfig(conf_editor.getValue());
 	});
 
-	if(showOptHelp)
+	if(window.showOptHelp)
 		createHint("intro", $.i18n('conf_webconfig_label_intro'), "editor_container");
 	
 	removeOverlay();

@@ -12,22 +12,22 @@ $(document).ready( function() {
 		}
 	}
 
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		//fg
-		$('#conf_cont').append(createRow('conf_cont_instCapt'))
+		$('#conf_cont').append(createRow('conf_cont_instCapt'));
 		$('#conf_cont_instCapt').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt'));
-		$('#conf_cont_instCapt').append(createHelpTable(schema.instCapture.properties, $.i18n("edt_conf_instCapture_heading_title")));
+		$('#conf_cont_instCapt').append(createHelpTable(window.schema.instCapture.properties, $.i18n("edt_conf_instCapture_heading_title")));
 
 		//fg
-		$('#conf_cont').append(createRow('conf_cont_fg'))
+		$('#conf_cont').append(createRow('conf_cont_fg'));
 		$('#conf_cont_fg').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
-		$('#conf_cont_fg').append(createHelpTable(schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
+		$('#conf_cont_fg').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
 
 		//v4l
-		$('#conf_cont').append(createRow('conf_cont_v4l'))
+		$('#conf_cont').append(createRow('conf_cont_v4l'));
 		$('#conf_cont_v4l').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
-		$('#conf_cont_v4l').append(createHelpTable(schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
+		$('#conf_cont_v4l').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
 	}
 	else
 	{
@@ -38,7 +38,7 @@ $(document).ready( function() {
 	}
 	//instCapt
 	conf_editor_instCapt = createJsonEditor('editor_container_instCapt', {
-		instCapture: schema.instCapture
+		instCapture: window.schema.instCapture
 	}, true, true);
 
 	conf_editor_instCapt.on('change',function() {
@@ -52,7 +52,7 @@ $(document).ready( function() {
 
 	//fg
 	conf_editor_fg = createJsonEditor('editor_container_fg', {
-		framegrabber: schema.framegrabber
+		framegrabber: window.schema.framegrabber
 	}, true, true);
 
 	conf_editor_fg.on('change',function() {
@@ -65,7 +65,7 @@ $(document).ready( function() {
 
 	//vl4
 	conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
-		grabberV4L2 : schema.grabberV4L2
+		grabberV4L2 : window.schema.grabberV4L2
 	}, true, true);
 
 	conf_editor_v4l2.on('change',function() {
@@ -77,7 +77,7 @@ $(document).ready( function() {
 	});
 
 	//create introduction
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
 		createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
@@ -85,7 +85,7 @@ $(document).ready( function() {
 
 	//hide specific options
 	conf_editor_fg.on('ready',function() {
-		var grabbers = serverInfo.grabbers.available;
+		var grabbers = window.serverInfo.grabbers.available;
 
 		if(grabbers.indexOf('dispmanx') > -1)
 			hideEl(["device","pixelDecimation"]);

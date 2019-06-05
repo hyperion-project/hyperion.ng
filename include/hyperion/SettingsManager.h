@@ -34,7 +34,7 @@ public:
 	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	const bool saveSettings(QJsonObject config, const bool& correct = false);
+	bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
 	/// @brief get a single setting json from config

@@ -10,15 +10,15 @@ $(document).ready(function() {
 	var reportUrl = 'https://report.hyperion-project.org/#';
 	
 	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
-		$('#conf_cont').append(createHelpTable(schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
+		$('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
 		createHintH("intro", $.i18n('conf_logging_label_intro'), "log_head");
 	}
 	$("#log_upl_pol").append('<span style="color:grey;font-size:80%">'+$.i18n("conf_logging_uplpolicy")+' '+buildWL("user/support#report_privacy_policy",$.i18n("conf_logging_contpolicy")));
 	
 	conf_editor = createJsonEditor('editor_container', {
-		logger : schema.logger
+		logger : window.schema.logger
 	}, true, true);
 	
 	conf_editor.on('change',function() {
@@ -61,11 +61,11 @@ $(document).ready(function() {
 	function uploadLog()
 	{
 		var log = "";
-		var config = JSON.stringify(serverConfig, null).replace(/"/g, '\"');
-		var prios = serverInfo.priorities;
-		var comps = serverInfo.components;
-		var sys = sysInfo.system;
-		var shy = sysInfo.hyperion;
+		var config = JSON.stringify(window.serverConfig, null).replace(/"/g, '\\"');
+		var prios = window.serverInfo.priorities;
+		var comps = window.serverInfo.components;
+		var sys = window.sysInfo.system;
+		var shy = window.sysInfo.hyperion;
 		var info;
 		
 		//create log
@@ -78,8 +78,8 @@ $(document).ready(function() {
 		info += 'Version:     '+shy.version+'\n';
 		info += 'UI Lang:     '+storedLang+' (BrowserL: '+navigator.language+')\n';
 		info += 'UI Access:   '+storedAccess+'\n';
-		info += 'Log lvl:     '+serverConfig.logger.level+'\n';
-		info += 'Avail Capt:  '+serverInfo.grabbers.available+'\n\n';
+		info += 'Log lvl:     '+window.serverConfig.logger.level+'\n';
+		info += 'Avail Capt:  '+window.serverInfo.grabbers.available+'\n\n';
 		info += 'Distribution:'+sys.prettyName+'\n';
 		info += 'Arch:        '+sys.architecture+'\n';
 		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
@@ -96,10 +96,10 @@ $(document).ready(function() {
 				info += '         ';
 			info += ' ('+prios[i].component+') Owner: '+prios[i].owner+'\n';
 		}
-		info += '\npriorities_autoselect: '+serverInfo.priorities_autoselect+'\n\n';
+		info += '\npriorities_autoselect: '+window.serverInfo.priorities_autoselect+'\n\n';
 		
 		//create comps
-		info += '### COMPONENTS ### \n'
+		info += '### COMPONENTS ### \n';
 		for(var i = 0; i<comps.length; i++)
 		{
 			info += comps[i].enabled+' - '+comps[i].name+'\n';
@@ -109,7 +109,7 @@ $(document).ready(function() {
 		info = JSON.stringify(info);
 		log = JSON.stringify(log);
 		config = JSON.stringify(config);
-		var title = 'Hyperion '+currentVersion+' Report ('+serverConfig.general.name+' ('+serverInfo.ledDevices.active+'))';
+		var title = 'Hyperion '+window.currentVersion+' Report ('+window.serverConfig.general.name+' ('+window.serverInfo.ledDevices.active+'))';
 
 		$.ajax({
 			url: 'https://api.hyperion-project.org/report.php',
@@ -140,15 +140,15 @@ $(document).ready(function() {
 		});
 	}
 
-	if (!loggingHandlerInstalled)
+	if (!window.loggingHandlerInstalled)
 	{
-		loggingHandlerInstalled = true;
-		$(hyperion).on("cmd-logging-update",function(event){
+		window.loggingHandlerInstalled = true;
+		$(window.hyperion).on("cmd-logging-update",function(event){
 			
-			if ($("#logmessages").length == 0 && loggingStreamActive)
+			if ($("#logmessages").length == 0 && window.loggingStreamActive)
 			{
 				requestLoggingStop();
-				loggingStreamActive = false;
+				window.loggingStreamActive = false;
 			}
 			
 			messages = (event.response.result.messages);
@@ -163,13 +163,13 @@ $(document).ready(function() {
 			}
 			for(var idx=0; idx<messages.length; idx++)
 			{
-				app_name = messages[idx].appName;
-				logger_name = messages[idx].loggerName;
-				function_ = messages[idx].function;
-				line = messages[idx].line;
-				file_name = messages[idx].fileName;
-				msg = messages[idx].message;
-				level_string = messages[idx].levelString;
+				var app_name = messages[idx].appName;
+				var logger_name = messages[idx].loggerName;
+				var function_ = messages[idx].function;
+				var line = messages[idx].line;
+				var file_name = messages[idx].fileName;
+				var msg = messages[idx].message;
+				var level_string = messages[idx].levelString;
 				
 				var debug = "";
 				

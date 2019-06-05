@@ -53,7 +53,7 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	}
 
 	_port = deviceConfig["port"].toInt(_port);
-	if ( _port<=0 || _port > 65535)
+	if ( (_port <= 0) || (_port > 65535) )
 	{
 		throw std::runtime_error("invalid target port");
 	}

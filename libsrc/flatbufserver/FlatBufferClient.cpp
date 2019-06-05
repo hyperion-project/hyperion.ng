@@ -138,9 +138,9 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 			return;
 		}
 
-		Image<ColorRgb> image(width, height);
-		memmove(image.memptr(), imageData->data(), imageData->size());
-		_hyperion->setInputImage(_priority, image, duration);
+		Image<ColorRgb> imageDest(width, height);
+		memmove(imageDest.memptr(), imageData->data(), imageData->size());
+		_hyperion->setInputImage(_priority, imageDest, duration);
 	}
 
 	// send reply

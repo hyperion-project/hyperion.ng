@@ -56,7 +56,6 @@ class Hyperion;
 class SysTray;
 class JsonServer;
 class UDPListener;
-class Stats;
 class BonjourBrowserWrapper;
 class WebServer;
 class SettingsManager;
@@ -145,7 +144,6 @@ private:
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
 	Hyperion*                  _hyperion;
-	Stats*                     _stats;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;

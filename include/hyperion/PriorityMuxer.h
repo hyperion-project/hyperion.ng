@@ -151,7 +151,7 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	const bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
+	bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -160,14 +160,14 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
+	bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
 
 	///
 	/// @brief Set the given priority to inactive
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	const bool setInputInactive(const quint8& priority);
+	bool setInputInactive(const quint8& priority);
 
 	///
 	/// Clears the specified priority channel and update _currentPriority on success
@@ -175,7 +175,7 @@ public:
 	/// @param[in] priority  The priority of the channel to clear
 	/// @return              True if priority has been cleared else false (not found)
 	///
-	const bool clearInput(const uint8_t priority);
+	bool clearInput(const uint8_t priority);
 
 	///
 	/// Clears all priority channels

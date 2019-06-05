@@ -3,7 +3,7 @@ $(document).ready(function() {
 
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
-	var mappingList = serverSchema.properties.color.properties.imageToLedMappingType.enum;
+	var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
 	var duration = 0;
 	var rgb = {r:255,g:0,b:0};
 
@@ -14,7 +14,7 @@ $(document).ready(function() {
 
 
 	//create introduction
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		createHint("intro", $.i18n('remote_color_intro', $.i18n('remote_losthint')), "color_intro");
 		createHint("intro", $.i18n('remote_input_intro', $.i18n('remote_losthint')), "sstcont");
@@ -25,16 +25,16 @@ $(document).ready(function() {
 	}
 
 	//color adjustment
-	var sColor = sortProperties(serverSchema.properties.color.properties.channelAdjustment.items.properties)
-	var values = serverInfo.adjustment[0]
+	var sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);
+	var values = window.serverInfo.adjustment[0];
 
-	for(key in sColor)
+	for(var key in sColor)
 	{
 		if(sColor[key].key != "id" && sColor[key].key != "leds")
 		{
 			var title = '<label for="cr_'+sColor[key].key+'">'+$.i18n(sColor[key].title)+'</label>';
 			var property;
-			var value = values[sColor[key].key]
+			var value = values[sColor[key].key];
 
 			if(sColor[key].type == "array")
 			{
@@ -71,11 +71,11 @@ $(document).ready(function() {
 
 	function sendEffect()
 	{
-		efx = $("#effect_select").val();
+		var efx = $("#effect_select").val();
 		if(efx != "__none__")
 		{
 			requestPriorityClear();
-			$(hyperion).one("cmd-clear", function(event) {
+			$(window.hyperion).one("cmd-clear", function(event) {
 				setTimeout(function() {requestPlayEffect(efx,duration)}, 100);
 			});
 		}
@@ -89,8 +89,7 @@ $(document).ready(function() {
 	function updateInputSelect()
 	{
 		$('.sstbody').html("");
-		var data = "";
-		var prios = serverInfo.priorities
+		var prios = window.serverInfo.priorities;
 		var i;
 		var clearAll = false;
 
@@ -172,9 +171,9 @@ $(document).ready(function() {
 			if(btn_type != 'default')
 				$('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
 		}
-		var btn_auto_color = (serverInfo.priorities_autoselect? "btn-success" : "btn-danger");
-		var btn_auto_state = (serverInfo.priorities_autoselect? "disabled" : "enabled");
-		var btn_auto_text = (serverInfo.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
+		var btn_auto_color = (window.serverInfo.priorities_autoselect? "btn-success" : "btn-danger");
+		var btn_auto_state = (window.serverInfo.priorities_autoselect? "disabled" : "enabled");
+		var btn_auto_text = (window.serverInfo.priorities_autoselect? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
 		var btn_call_state = (clearAll? "enabled" : "disabled");
 		$('#auto_btn').html('<button id="srcBtn'+i+'" type="button" '+btn_auto_state+' class="btn '+btn_auto_color+'" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">'+$.i18n('remote_input_label_autoselect')+' ('+btn_auto_text+')</button>');
 		$('#auto_btn').append('<button type="button" '+btn_call_state+' class="btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">'+$.i18n('remote_input_clearall')+'</button>');
@@ -189,15 +188,15 @@ $(document).ready(function() {
 
 	function updateLedMapping()
 	{
-		mapping = serverInfo.imageToLedMappingType;
+		var mapping = window.serverInfo.imageToLedMappingType;
 
 		$('#mappingsbutton').html("");
 		for(var ix = 0; ix < mappingList.length; ix++)
 		{
 			if(mapping == mappingList[ix])
-				btn_style = 'btn-success';
+				var btn_style = 'btn-success';
 			else
-				btn_style = 'btn-primary';
+				var btn_style = 'btn-primary';
 
 			$('#mappingsbutton').append('<button type="button" id="lmBtn_'+mappingList[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestMappingType(\''+mappingList[ix]+'\');">'+$.i18n('remote_maptype_label_'+mappingList[ix])+'</button><br/>');
 		}
@@ -205,7 +204,7 @@ $(document).ready(function() {
 
 	function updateComponents()
 	{
-		components = comps;
+		var components = window.comps;
 		var hyperionEnabled = true;
 		components.forEach( function(obj) {
 			if (obj.name == "ALL")
@@ -216,21 +215,21 @@ $(document).ready(function() {
 
 		// create buttons
 		$('#componentsbutton').html("");
-		for ( idx=0; idx<components.length;idx++)
+		for (var idx=0; idx<components.length;idx++)
 		{
 			if(components[idx].name == "ALL")
-				continue
+				continue;
 
-			enable_style = (components[idx].enabled? "btn-success" : "btn-danger");
-			enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
-			comp_name    = components[idx].name;
-			comp_btn_id  = "comp_btn_"+comp_name;
-			comp_goff	 = hyperionEnabled? "enabled" : "disabled";
+			var enable_style = (components[idx].enabled? "btn-success" : "btn-danger");
+			var enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
+			var comp_name    = components[idx].name;
+			var comp_btn_id  = "comp_btn_"+comp_name;
+			var comp_goff	 = hyperionEnabled? "enabled" : "disabled";
 
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)
 			{
-				d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
+				var d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
 					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
 					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
 				$('#componentsbutton').append(d);
@@ -246,14 +245,14 @@ $(document).ready(function() {
 
 	function updateEffectlist()
 	{
-		var newEffects = serverInfo.effects;
+		var newEffects = window.serverInfo.effects;
 		if (newEffects.length != oldEffects.length)
 		{
 			$('#effect_select').html('<option value="__none__"></option>');
 			var usrEffArr = [];
 			var sysEffArr = [];
 
-			for(i = 0; i < newEffects.length; i++) {
+			for(var i = 0; i < newEffects.length; i++) {
 				var effectName = newEffects[i].name;
 				if(!/^\:/.test(newEffects[i].file)){
 					usrEffArr.push(effectName);
@@ -270,16 +269,16 @@ $(document).ready(function() {
 
 	function updateVideoMode()
 	{
-		videoModes = ["2D","3DSBS","3DTAB"];
-		currVideoMode = serverInfo.videomode;
+		var videoModes = ["2D","3DSBS","3DTAB"];
+		var currVideoMode = window.serverInfo.videomode;
 
 		$('#videomodebtns').html("");
 		for(var ix = 0; ix < videoModes.length; ix++)
 		{
 			if(currVideoMode == videoModes[ix])
-				btn_style = 'btn-success';
+				var btn_style = 'btn-success';
 			else
-				btn_style = 'btn-primary';
+				var btn_style = 'btn-primary';
 			$('#videomodebtns').append('<button type="button" id="vModeBtn_'+videoModes[ix]+'" class="btn '+btn_style+'" style="margin:3px;min-width:200px" onclick="requestVideoMode(\''+videoModes[ix]+'\');">'+$.i18n('remote_videoMode_'+videoModes[ix])+'</button><br/>');
 		}
 	}
@@ -339,25 +338,25 @@ $(document).ready(function() {
 	updateEffectlist();
 
 	// interval updates
-	$(hyperion).on("components-updated",updateComponents);
+	$(window.hyperion).on("components-updated",updateComponents);
 
-	$(hyperion).on("cmd-priorities-update", function(event){
-		serverInfo.priorities = event.response.data.priorities
-		serverInfo.priorities_autoselect = event.response.data.priorities_autoselect
+	$(window.hyperion).on("cmd-priorities-update", function(event){
+		window.serverInfo.priorities = event.response.data.priorities
+		window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect
 		updateInputSelect()
 	});
-	$(hyperion).on("cmd-imageToLedMapping-update", function(event){
-		serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType
+	$(window.hyperion).on("cmd-imageToLedMapping-update", function(event){
+		window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType
 		updateLedMapping()
 	});
 
-	$(hyperion).on("cmd-videomode-update", function(event){
-		serverInfo.videomode = event.response.data.videomode
+	$(window.hyperion).on("cmd-videomode-update", function(event){
+		window.serverInfo.videomode = event.response.data.videomode
 		updateVideoMode()
 	});
 
-	$(hyperion).on("cmd-effects-update", function(event){
-		serverInfo.effects = event.response.data.effects
+	$(window.hyperion).on("cmd-effects-update", function(event){
+		window.serverInfo.effects = event.response.data.effects
 		updateEffectlist();
 	});
 

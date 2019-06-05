@@ -22,7 +22,6 @@
 #include <jsonserver/JsonServer.h>
 #include <udplistener/UDPListener.h>
 #include <webserver/WebServer.h>
-#include <utils/Stats.h>
 #include <HyperionConfig.h> // Required to determine the cmake options
 #include "hyperiond.h"
 
@@ -65,7 +64,6 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _osxGrabber(nullptr)
 	, _qtGrabber(nullptr)
 	, _hyperion(nullptr)
-	, _stats(nullptr)
 	, _ssdp(nullptr)
 	, _currVideoMode(VIDEO_2D)
 {
@@ -170,7 +168,6 @@ void HyperionDaemon::freeObjects()
 	delete _osxGrabber;
 	delete _qtGrabber;
 	delete _v4l2Grabber;
-	delete _stats;
 
 	_v4l2Grabber           = nullptr;
 	_bonjourBrowserWrapper = nullptr;
@@ -185,14 +182,10 @@ void HyperionDaemon::freeObjects()
 	_webserver             = nullptr;
 	_jsonServer            = nullptr;
 	_udpListener           = nullptr;
-	_stats                 = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
 {
-	// Create Stats
-	_stats = new Stats(_settingsManager->getSettings());
-
 	// Create Json server
 	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
 	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
@@ -243,9 +236,9 @@ void HyperionDaemon::startNetworkServices()
 	ssdpThread->start();
 }
 
-void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, const QJsonDocument& config)
 {
-	if(type == settings::LOGGER)
+	if(settingsType == settings::LOGGER)
 	{
 		const QJsonObject & logConfig = config.object();
 
@@ -256,7 +249,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 		else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
 	}
 
-	if(type == settings::SYSTEMCAPTURE)
+	if(settingsType == settings::SYSTEMCAPTURE)
 	{
 		const QJsonObject & grabberConfig = config.object();
 
@@ -387,7 +380,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			_prevType = type;
 		}
 	}
-	else if(type == settings::V4L2)
+	else if(settingsType == settings::V4L2)
 	{
 
 #ifdef ENABLE_V4L2

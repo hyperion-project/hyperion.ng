@@ -1,4 +1,4 @@
-import hyperion, time, colorsys, random
+import hyperion, time
 
 # get options from args
 sleepTime  = float(hyperion.args.get('speed', 1.5)) * 0.005

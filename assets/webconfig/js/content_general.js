@@ -6,15 +6,15 @@ $(document).ready( function() {
 	var conf_editor = null;
 
 	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
-		$('#conf_cont').append(createHelpTable(schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
+		$('#conf_cont').append(createHelpTable(window.schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
 	}
 	else
 		$('#conf_imp').appendTo('#conf_cont');
 
 	conf_editor = createJsonEditor('editor_container', {
-		general: schema.general
+		general: window.schema.general
 	}, true, true);
 
 	conf_editor.on('change',function() {
@@ -88,7 +88,7 @@ $(document).ready( function() {
 
 	//export
 	$('#btn_export_conf').off().on('click', function(){
-		var name = serverConfig.general.name;
+		var name = window.serverConfig.general.name;
 
 		var d = new Date();
 		var month = d.getMonth()+1;
@@ -98,11 +98,11 @@ $(document).ready( function() {
 			(month<10 ? '0' : '') + month + '.' +
 			(day<10 ? '0' : '') + day;
 
-		download(JSON.stringify(serverConfig, null, "\t"), 'Hyperion-'+currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
+		download(JSON.stringify(window.serverConfig, null, "\t"), 'Hyperion-'+window.currentVersion+'-Backup ('+name+') '+timestamp+'.json', "application/json");
 	});
 
 	//create introduction
-	if(showOptHelp)
+	if(window.showOptHelp)
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
 
 	removeOverlay();

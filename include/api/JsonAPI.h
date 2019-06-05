@@ -46,7 +46,7 @@ public slots:
 	void setImage(const Image<ColorRgb> & image);
 
 	/// process and push new log messages from logger (if enabled)
-	void incommingLogMessage(Logger::T_LOG_MESSAGE);
+	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 
 signals:
 	///

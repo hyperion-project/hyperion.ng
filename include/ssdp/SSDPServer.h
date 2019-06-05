@@ -28,7 +28,7 @@ public:
 	/// @brief Start SSDP
 	/// @return false if already running or bind failure
 	///
-	const bool start();
+	bool start();
 
 	///
 	/// @brief Stop SSDP
