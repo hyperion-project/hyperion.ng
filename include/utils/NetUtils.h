@@ -11,7 +11,7 @@ namespace NetUtils {
 	/// @param         log   The logger of the caller to print
 	/// @return        True on success else false
 	///
-	static const bool portAvailable(quint16& port, Logger* log)
+	static bool portAvailable(quint16& port, Logger* log)
 	{
 		const quint16 prevPort = port;
 		QTcpServer server;

@@ -11,6 +11,13 @@ IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
 ENDIF()
 
+# Configure CCache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
@@ -201,9 +208,6 @@ IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
 
-
-# Createt the configuration file
-
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -213,7 +217,6 @@ find_package(GitVersion)
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
-
 
 # Define the global output path of binaries
 SET(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
@@ -264,7 +267,6 @@ message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
-
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)

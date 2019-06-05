@@ -1,4 +1,4 @@
-import os, hyperion, time
+import hyperion, time
 
 # Get the parameters
 imageFile = hyperion.args.get('image')

@@ -54,7 +54,7 @@ void X11Grabber::setupResources()
 	if(_XShmAvailable)
 	{
 		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, NULL, &_shminfo, _width, _height);
-		_shminfo.shmid = shmget(IPC_PRIVATE, _xImage->bytes_per_line * _xImage->height, IPC_CREAT|0777);
+		_shminfo.shmid = shmget(IPC_PRIVATE, (size_t) _xImage->bytes_per_line * _xImage->height, IPC_CREAT|0777);
 		_xImage->data = (char*)shmat(_shminfo.shmid,0,0);
 		_shminfo.shmaddr = _xImage->data;
 		_shminfo.readOnly = False;

@@ -1,4 +1,4 @@
-import hyperion, time, math, random
+import hyperion, time, random
 
 # Convert x/y (0.0 - 1.0) point to proper int values based on Hyperion image width/height
 # Or get a random value

@@ -58,7 +58,7 @@ public:
 
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
-	const int getLatchTime() { return _latchTime_ms; };
+	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
 

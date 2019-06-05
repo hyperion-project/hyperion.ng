@@ -1,58 +1,58 @@
 $(document).ready( function() {
 	performTranslation();
 
-	function newsCont(t,e,l)
-	{
-		var h = '<div style="padding-left:9px;border-left:6px solid #0088cc;">';
-		h += '<h4 style="font-weight:bold;font-size:17px">'+t+'</h4>';
-		h += e;
-		h += '<a href="'+l+'" class="" target="_blank"><i class="fa fa-fw fa-newspaper-o"></i>'+$.i18n('dashboard_newsbox_readmore')+'</a>';
-		h += '</div><hr/>';
-		$('#dash_news').append(h);
-	}
+// 	function newsCont(t,e,l)
+// 	{
+// 		var h = '<div style="padding-left:9px;border-left:6px solid #0088cc;">';
+// 		h += '<h4 style="font-weight:bold;font-size:17px">'+t+'</h4>';
+// 		h += e;
+// 		h += '<a href="'+l+'" class="" target="_blank"><i class="fa fa-fw fa-newspaper-o"></i>'+$.i18n('dashboard_newsbox_readmore')+'</a>';
+// 		h += '</div><hr/>';
+// 		$('#dash_news').append(h);
+// 	}
 
-	function createNews(d)
-	{
-		for(var i = 0; i<d.length; i++)
-		{
-			if(i > 5)
-				break;
+// 	function createNews(d)
+// 	{
+// 		for(var i = 0; i<d.length; i++)
+// 		{
+// 			if(i > 5)
+// 				break;
+//
+// 			var title = d[i].title.rendered;
+// 			var excerpt = d[i].excerpt.rendered;
+// 			var link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
+//
+// 			newsCont(title,excerpt,link);
+// 		}
+// 	}
 
-			title = d[i].title.rendered;
-			excerpt = d[i].excerpt.rendered;
-			link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
+// 	function getNews()
+// 	{
+// 		var h = '<span style="color:red;font-weight:bold">'+$.i18n('dashboard_newsbox_noconn')+'</span>';
+// 		$.ajax({
+// 			url: 'https://hyperion-project.org/wp-json/wp/v2/posts?_embed',
+// 			dataType: 'json',
+// 			type: 'GET',
+// 			timeout: 2000
+// 		})
+// 		.done( function( data, textStatus, jqXHR ) {
+// 			if(jqXHR.status == 200)
+// 				createNews(data);
+// 			else
+// 				$('#dash_news').html(h);
+// 		})
+// 		.fail( function( jqXHR, textStatus ) {
+// 				$('#dash_news').html(h);
+// 		});
+// 	}
 
-			newsCont(title,excerpt,link);
-		}
-	}
-
-	function getNews()
-	{
-		var h = '<span style="color:red;font-weight:bold">'+$.i18n('dashboard_newsbox_noconn')+'</span>';
-		$.ajax({
-			url: 'https://hyperion-project.org/wp-json/wp/v2/posts?_embed',
-			dataType: 'json',
-			type: 'GET',
-			timeout: 2000
-		})
-		.done( function( data, textStatus, jqXHR ) {
-			if(jqXHR.status == 200)
-				createNews(data);
-			else
-				$('#dash_news').html(h);
-		})
-		.fail( function( jqXHR, textStatus ) {
-				$('#dash_news').html(h);
-		});
-	}
-
-	//getNews();
+//	getNews();
 
 	function updateComponents()
 	{
-		var components = comps;
-		components_html = "";
-		for ( idx=0; idx<components.length;idx++)
+		var components = window.comps;
+		var components_html = "";
+		for ( var idx=0; idx<components.length;idx++)
 		{
 			if(components[idx].name != "ALL")
 				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
@@ -60,7 +60,7 @@ $(document).ready( function() {
 		$("#tab_components").html(components_html);
 
 		//info
-		hyperion_enabled = true;
+		var hyperion_enabled = true;
 
 		components.forEach( function(obj) {
 			if (obj.name == "ALL")
@@ -74,27 +74,28 @@ $(document).ready( function() {
 	}
 
 	// add more info
-	$('#dash_leddevice').html(serverInfo.ledDevices.active);
-	$('#dash_currv').html(currentVersion);
-	$('#dash_instance').html(serverConfig.general.name);
-	$('#dash_ports').html(serverConfig.flatbufServer.port+' | '+serverConfig.protoServer.port);
+	$('#dash_leddevice').html(window.serverInfo.ledDevices.active);
+	$('#dash_currv').html(window.currentVersion);
+	$('#dash_instance').html(window.serverConfig.general.name);
+	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
 
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
-		parsedUpdateJSON = JSON.parse(data);
-		latestVersion = parsedUpdateJSON[0].versionnr;
-		var cleanLatestVersion = latestVersion.replace(/\./g, '');
-		var cleanCurrentVersion = currentVersion.replace(/\./g, '');
+		window.parsedUpdateJSON = JSON.parse(data);
+		window.latestVersion = window.parsedUpdateJSON[0].versionnr;
+	//	var cleanLatestVersion = window.latestVersion.replace(/\./g, '');
+	//	var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
 
-	//	$('#dash_latev').html(latestVersion);
+		$('#dash_latev').html(window.currentVersion);
+	//	$('#dash_latev').html(window.latestVersion);
 
 	//	if ( cleanCurrentVersion < cleanLatestVersion )
-	//		$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', latestVersion)+'</div>');
+	//		$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion)+'</div>');
 	//	else
 			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 	});
 
 	//determine platform
-	var grabbers = serverInfo.grabbers.available;
+	var grabbers = window.serverInfo.grabbers.available;
 	var html = "";
 
 	if(grabbers.indexOf('dispmanx') > -1)
@@ -113,9 +114,9 @@ $(document).ready( function() {
 
 	//interval update
 	updateComponents();
-	$(hyperion).on("components-updated",updateComponents);
+	$(window.hyperion).on("components-updated",updateComponents);
 
-	if(showOptHelp)
+	if(window.showOptHelp)
 		createHintH("intro", $.i18n('dashboard_label_intro'), "dash_intro");
 
 	removeOverlay();
