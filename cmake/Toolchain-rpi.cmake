@@ -7,7 +7,7 @@ SET(PIROOT ${DEVROOT}/rootfs)
 SET(PITOOLCHAIN ${DEVROOT}/tools)
 
 SET(TOOLROOT ${PITOOLCHAIN}/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf )
-SET(QT_BIN_PATH ${CROSSROOT}/Qt5/Qt5.7.1/5.7/gcc_64/bin)
+SET(QT_BIN_PATH ${CROSSROOT}/Qt5/5.7/gcc_64/bin)
 
 # specify the cross compiler 
 SET(CMAKE_C_COMPILER   ${TOOLROOT}/bin/arm-linux-gnueabihf-gcc)

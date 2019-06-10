@@ -28,9 +28,6 @@ make_release()
 CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake"
 CMAKE_FLATC_FLAG="-DIMPORT_FLATC=../build-x86x64/flatc_export.cmake"
 
-export CFLAGS=-m32
-export CXXFLAGS=-m32
-
 make_release x86x64  x86
 #make_release x32     x86   -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-x32.cmake" ${CMAKE_PROTOC_FLAG} ${CMAKE_FLATC_FLAG}
 make_release rpi     rpi   -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-rpi.cmake"  ${CMAKE_PROTOC_FLAG} ${CMAKE_FLATC_FLAG}

@@ -1,12 +1,10 @@
 #!/bin/bash
-#Updated: 5 Mai 2019, by Lordgrey
-#Just use a clean Raspbian Stretch Lite and Ubunut 18/19 and run this script
+#Use a clean Raspbian Stretch Lite and Ubunut 18/19 and run this script
 ##############
 #ON TARGET
 #--------------
-sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev aptitude show qt5-default rsync
+#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev aptitude show qt5-default rsync
 #############
-
 #ON HOST
 #---------
 sudo apt-get update
@@ -40,9 +38,10 @@ mkdir -p "$RASCROSS_DIR/firmware"
 git clone --depth 1 https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
 ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$ROOTFS_DIR/opt"
 
+mkdir -p "$TOOLCHAIN_DIR"
 cd $TOOLCHAIN_DIR
-wget -c hhttps://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
-tar -xvzf gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
+wget -c https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
+tar -xvf gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
 
 ##### End of RPi specific ######
 
@@ -52,10 +51,9 @@ mkdir -p "$QT5_DIR"
 cd "$QT5_DIR"
 
 wget -c http://download.qt.io/archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
-chmod +x "$QT5_DIR/*.run"
-qt-opensource-linux-x64-5.7.1.run
+chmod +x $QT5_DIR/*.run
 
-#Display absolute installation directory
+#Display absolute installation directory to be used in Qt5 installer
 echo $HOME/crosscompile/Qt5
 
 ./qt-opensource-linux-x64-5.7.1.run
