@@ -15,7 +15,7 @@ notifications:
 language: cpp
 
 before_install:
-    - ./.travis/travis_install.sh
+    - ./.ci/ci_install.sh
 
 jobs:
   include:
@@ -54,7 +54,7 @@ jobs:
           - HOMEBREW_CACHE=$HOME/brew-cache
 
 script:
-    - ./.travis/travis_build.sh
+    - ./.ci/ci_build.sh
 after_success:
-    - ./.travis/travis_deploy.sh
+    - ./.ci/ci_deploy.sh
 

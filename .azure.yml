@@ -1,0 +1,48 @@
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      AMD64 (x64):
+        dockerTag: 'amd64'
+        dockerName: 'Debian Stretch (AMD64)'
+      i386 (x86):
+        dockerTag: 'i386'
+        dockerName: 'Debian Stretch (i386)'
+      ARMv6hf (Raspberry Pi v1 & ZERO):
+        dockerTag: 'armv6hf'
+        dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
+        platform: 'rpi'
+      ARMv7hf (Raspberry Pi 2 & 3):
+        dockerTag: 'armv7hf'
+        dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
+        platform: 'rpi'
+      ARMv8 (Generic AARCH64):
+        dockerTag: 'aarch64'
+        dockerName: 'ARMv8 (Generic AARCH64)'
+        platform: 'amlogic'
+  steps:
+  - checkout: self
+    submodules: recursive
+  - bash: ./.ci/ci_build.sh
+    displayName: 'Build $(dockerName)'
+    env:
+      DOCKER_TAG: $(dockerTag)
+      DOCKER_NAME: $(dockerName)
+      PLATFORM: $(platform)
+  - bash: ./.ci/ci_deploy.sh
+    displayName: 'Upload $(dockerName)'
+
+- job: macOS
+  pool:
+    vmImage: 'macOS-10.13'
+  steps:
+  - checkout: self
+    submodules: recursive
+  - bash: ./.ci/ci_install.sh
+    displayName: 'Install dependencies'
+  - bash: ./.ci/ci_build.sh
+    displayName: 'Build macOS 10.13'
+  - bash: ./.ci/ci_deploy.sh
+    displayName: 'Upload macOS 10.13'
