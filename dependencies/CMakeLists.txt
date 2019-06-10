@@ -41,11 +41,13 @@ else ()
 	set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIRS} PARENT_SCOPE)
 
 	# define the flatc executable at the parent scope
-	#get_property(FLATBUFFERS_FLATC_EXECUTABLE TARGET flatc PROPERTY LOCATION)
+	get_property(FLATBUFFERS_FLATC_EXECUTABLE TARGET flatc PROPERTY LOCATION)
 
-	#Workaround, set flatc comiplier directory hard, as cmake definitions of flatc do not cater for crosscompile correctly.
-	#Includ of flatc_export.cmake detects that flatc target is defined aand returns before using the definitions written by export
-	set ( FLATBUFFERS_FLATC_EXECUTABLE "${CMAKE_BINARY_DIR}/../build-x86x64/bin/flatc")
+	IF ( CMAKE_CROSSCOMPILING )
+		#Workaround, set flatc comiplier directory hard, as cmake definitions of flatc do not cater for crosscompile correctly.
+		#Includ of flatc_export.cmake detects that flatc target is defined aand returns before using the definitions written by export
+		set ( FLATBUFFERS_FLATC_EXECUTABLE "${CMAKE_BINARY_DIR}/../build-x86x64/bin/flatc")
+	ENDIF()
 
 	set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
 
