@@ -12,6 +12,7 @@ SET(QT_BIN_PATH ${CROSSROOT}/Qt5/5.7/gcc_64/bin)
 # specify the cross compiler 
 SET(CMAKE_C_COMPILER   ${TOOLROOT}/bin/arm-linux-gnueabihf-gcc)
 SET(CMAKE_CXX_COMPILER ${TOOLROOT}/bin/arm-linux-gnueabihf-g++)
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf" ) 
 
 SET(CMAKE_SYSROOT ${PIROOT})
 SET(CMAKE_FIND_ROOT_PATH ${PIROOT})

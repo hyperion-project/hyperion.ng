@@ -12,6 +12,7 @@ SET(TOOLROOT ${CUBIXCROSS_DIR}/gcc-linaro-arm-linux-gnueabihf-4.8-2013.10_linux/
 SET(CMAKE_C_COMPILER   ${TOOLROOT}/bin/arm-linux-gnueabihf-gcc)
 SET(CMAKE_CXX_COMPILER ${TOOLROOT}/bin/arm-linux-gnueabihf-g++)
 SET(CUBIX_FLAGS "-march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf" ) 
 
 SET(CMAKE_SYSROOT ${CUBIXROOT})
 SET(CMAKE_FIND_ROOT_PATH ${CUBIXROOT})
