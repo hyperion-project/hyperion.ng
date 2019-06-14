@@ -26,7 +26,7 @@ Note: call the script with `./docker-compile.sh -h` for more options
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev
 ```
 
 **on RPI you need the videocore IV headers**

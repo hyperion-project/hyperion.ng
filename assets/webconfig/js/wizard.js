@@ -1,11 +1,11 @@
 
 	//clear priority and other tasks if people reload the page or lost connection while a wizard was active
-	$(hyperion).one("ready", function(event) {
+	$(window.hyperion).one("ready", function(event) {
 		if(getStorage("wizardactive") === 'true')
 		{
 			requestPriorityClear();
 			setStorage("wizardactive", false);
-			if(getStorage("kodiAddress" != null))
+			if(getStorage("kodiAddress") != null)
 			{
 				kodiAddress = getStorage("kodiAddress");
 				sendToKodi("stop");
@@ -58,7 +58,7 @@
 		$('#wizp2_body').append('<div class="form-group"><label>'+$.i18n('wiz_rgb_switchevery')+'</label><div class="input-group" style="width:100px"><select id="wiz_switchtime_select" class="form-control"></select><div class="input-group-addon">'+$.i18n('edt_append_s')+'</div></div></div>');
 		$('#wizp2_body').append('<canvas id="wiz_canv_color" width="100" height="100" style="border-radius:60px;background-color:red; display:block; margin: 10px 0;border:4px solid grey;"></canvas><label>'+$.i18n('wiz_rgb_q')+'</label>');
 		$('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>'+$.i18n('wiz_rgb_qrend')+'</label></td><td class="itd"><select id="wiz_r_select" class="form-control wselect"></select></td></tr><tr><td class="ltd"><label>'+$.i18n('wiz_rgb_qgend')+'</label></td><td class="itd"><select id="wiz_g_select" class="form-control wselect"></select></td></tr></tbody></table>');
-		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_ok')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>')
+		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_ok')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 
 		//open modal
 		$("#wizard_modal").modal({
@@ -84,7 +84,7 @@
 		});
 
 		$('.wselect').change(function () {
-			var rgb_order = serverConfig.device.colorOrder.split("");
+			var rgb_order = window.serverConfig.device.colorOrder.split("");
 			var redS = $("#wiz_r_select").val();
 			var greenS = $("#wiz_g_select").val();
 			var blueS = rgb_order.toString().replace(/,/g,"").replace(redS, "").replace(greenS,"");
@@ -127,7 +127,7 @@
 					$('#btn_wiz_save').toggle(true);
 					$('#btn_wiz_checkok').toggle(false);
 				}
-				new_rgb_order = rgb_order
+				new_rgb_order = rgb_order;
 			}
 			else
 				$('#btn_wiz_save').attr('disabled',true);
@@ -153,8 +153,8 @@
 
 		$('#btn_wiz_save').off().on('click',function() {
 			resetWizard();
-			serverConfig.device.colorOrder = new_rgb_order;
-			requestWriteConfig({"device" : serverConfig.device});
+			window.serverConfig.device.colorOrder = new_rgb_order;
+			requestWriteConfig({"device" : window.serverConfig.device});
 		});
 	}
 
@@ -232,10 +232,10 @@
 		{
 			$('#wiz_cc_desc').html($.i18n('wiz_cc_chooseid'));
 			updateWEditor(["id"]);
-			$('#btn_wiz_back').attr("disabled", true)
+			$('#btn_wiz_back').attr("disabled", true);
 		}
 		else
-			$('#btn_wiz_back').attr("disabled", false)
+			$('#btn_wiz_back').attr("disabled", false);
 
 		if(step == 2)
 		{
@@ -415,7 +415,7 @@
 		$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('wiz_cc_title')+'</h4><p>'+$.i18n('wiz_cc_intro1')+'</p><label>'+$.i18n('wiz_cc_kwebs')+'</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="'+kodiAddress+'" value="'+kodiAddress+'" /><span id="kodi_status"></span><span id="multi_cali"></span>');
 		$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 		$('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
-		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>'+$.i18n('general_btn_back')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_next">'+$.i18n('general_btn_next')+'<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>')
+		$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>'+$.i18n('general_btn_back')+'</button><button type="button" class="btn btn-primary" id="btn_wiz_next">'+$.i18n('general_btn_next')+'<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 
 		//open modal
 		$("#wizard_modal").modal({
@@ -450,10 +450,10 @@
 			$('#wizp2').toggle(true);
 		});
 
-		$('#wiz_cc_kodiip').trigger("change")
-		colorLength = serverConfig.color.channelAdjustment;
-		cobj = schema.color.properties.channelAdjustment.items.properties;
-		websAddress = document.location.hostname+':'+serverConfig.webConfig.port;
+		$('#wiz_cc_kodiip').trigger("change");
+		colorLength = window.serverConfig.color.channelAdjustment;
+		cobj = window.schema.color.properties.channelAdjustment.items.properties;
+		websAddress = document.location.hostname+':'+window.serverConfig.webConfig.port;
 		imgAddress = 'http://'+websAddress+'/img/cc/';
 		setStorage("wizardactive", true);
 
@@ -471,7 +471,7 @@
 
 		//prepare editor
 		wiz_editor = createJsonEditor('editor_container_wiz', {
-			color : schema.color
+			color : window.schema.color
 		}, true, true);
 
 		$('#editor_container_wiz h4').toggle(false);
@@ -716,7 +716,7 @@
 
 			//create hue led config
 			var incC = 0;
-			for(key in lightIDs)
+			for(var key in lightIDs)
 			{
 				if($('#hue_'+key).val() != "disabled")
 				{
@@ -726,10 +726,10 @@
 				}
 			}
 
-			serverConfig.leds = hueLedConfig;
+			window.serverConfig.leds = hueLedConfig;
 
 			//Adjust gamma, brightness and compensation
-			var c = serverConfig.color.channelAdjustment[0];
+			var c = window.serverConfig.color.channelAdjustment[0];
 			c.gammaBlue = 1.0;
 			c.gammaRed = 1.0;
 			c.gammaGreen = 1.0;
@@ -737,7 +737,7 @@
 			c.brightnessCompensation = 0;
 
 			//device config
-			var d = serverConfig.device;
+			var d = window.serverConfig.device;
 			d.output = $('#ip').val();
 			d.lightIds = finalLightIds;
 			d.username = $('#user').val();
@@ -746,9 +746,9 @@
 			d.switchOffOnBlack = true;
 
 			//smoothing off
-			serverConfig.smoothing.enable = false;
+			window.serverConfig.smoothing.enable = false;
 
-			requestWriteConfig(serverConfig, true);
+			requestWriteConfig(window.serverConfig, true);
 			resetWizard();
 		});
 
@@ -822,7 +822,7 @@
 
 					$('.hue_sel_watch').bind("change", function(){
 						var cC = 0;
-						for(key in lightIDs)
+						for(var key in lightIDs)
 						{
 							if($('#hue_'+key).val() != "disabled")
 							{

@@ -1,4 +1,4 @@
-import hyperion, time, colorsys
+import hyperion, time
 from random import randint
 
 #get args

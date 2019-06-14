@@ -33,7 +33,7 @@ public:
 	/// @param[out] resultMsg  The feedback message
 	/// @return True on success else false
 	///
-	const bool saveEffect(const QJsonObject& obj, QString& resultMsg);
+	bool saveEffect(const QJsonObject& obj, QString& resultMsg);
 
 	///
 	/// @brief Delete an effect by name.
@@ -41,7 +41,7 @@ public:
 	/// @param[out] resultMsg   The message on error
 	/// @return True on success else false
 	///
-	const bool deleteEffect(const QString& effectName, QString& resultMsg);
+	bool deleteEffect(const QString& effectName, QString& resultMsg);
 
 public slots:
 	///

@@ -32,7 +32,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 GrabberWrapper::~GrabberWrapper()
 {
-	stop();
+	GrabberWrapper::stop(); // TODO Is this right????????
 	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
@@ -104,11 +104,7 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 	if(type == settings::V4L2 || type == settings::SYSTEMCAPTURE)
 	{
 		// extract settings
-		QJsonObject obj;
-		if(config.isArray() && !config.isEmpty())
-			obj = config.array().at(0).toObject();
-		else
-			obj = config.object();
+		const QJsonObject& obj = config.object();
 
 		if(type == settings::SYSTEMCAPTURE  && !_grabberName.startsWith("V4L"))
 		{
@@ -172,5 +168,4 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 
 		}
 	}
-
 }

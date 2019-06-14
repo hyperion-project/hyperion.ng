@@ -56,7 +56,6 @@ class Hyperion;
 class SysTray;
 class JsonServer;
 class UDPListener;
-class Stats;
 class BonjourBrowserWrapper;
 class WebServer;
 class SettingsManager;
@@ -137,7 +136,7 @@ private:
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
 	UDPListener*               _udpListener;
-	std::vector<V4L2Wrapper*>  _v4l2Grabbers;
+	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	AmlogicWrapper*            _amlGrabber;
@@ -145,7 +144,6 @@ private:
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
 	Hyperion*                  _hyperion;
-	Stats*                     _stats;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;

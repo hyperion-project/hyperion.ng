@@ -11,6 +11,13 @@ IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
 ENDIF()
 
+# Configure CCache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
@@ -201,9 +208,6 @@ IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
 
-
-# Createt the configuration file
-
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -213,7 +217,6 @@ find_package(GitVersion)
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
-
 
 # Define the global output path of binaries
 SET(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
@@ -246,6 +249,9 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
     message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 endif()
+
+# Use GNU gold linker if available
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 
 # setup -rpath to search for shared libs in BINARY/../libs folder
 if (UNIX AND NOT APPLE)
@@ -280,11 +286,27 @@ IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
 
-
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
+
+# Add jpeg library
+if (ENABLE_V4L2)
+	find_package(JPEG)
+	if (JPEG_FOUND)
+		add_definitions(-DHAVE_JPEG)
+		message( STATUS "Using JPEG library: ${JPEG_LIBRARIES}")
+		include_directories(${JPEG_INCLUDE_DIR})
+	else()
+		message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
+	endif()
+endif()
+
+# TODO[TvdZ]: This linking directory should only be added if we are cross compiling
+#if(NOT APPLE)
+#	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
+#endif()
 
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")

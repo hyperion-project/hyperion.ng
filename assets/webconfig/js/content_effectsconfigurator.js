@@ -7,11 +7,11 @@ $(document).ready( function() {
 	var effectPy = "";
 	var testrun;
 
-	if(showOptHelp)
+	if(window.showOptHelp)
 		createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
 
 	function updateDelEffectlist(){
-		var newDelList = serverInfo.effects;
+		var newDelList = window.serverInfo.effects;
 		if(newDelList.length != oldDelList.length)
 		{
 			$('#effectsdellist').html("");
@@ -107,7 +107,7 @@ $(document).ready( function() {
 	// Save Effect
 	$('#btn_write').off().on('click',function() {
 		requestWriteEffect(effectName,effectPy,JSON.stringify(effects_editor.getValue()),imageData);
-		$(hyperion).one("cmd-create-effect", function(event) {
+		$(window.hyperion).one("cmd-create-effect", function(event) {
 			if (event.response.success)
 				showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
 		});
@@ -137,7 +137,7 @@ $(document).ready( function() {
 	$('#btn_delete').off().on('click',function() {
 		var name = $("#effectsdellist").val().split("_")[1];
 		requestDeleteEffect(name);
-		$(hyperion).one("cmd-delete-effect", function(event) {
+		$(window.hyperion).one("cmd-delete-effect", function(event) {
 			if (event.response.success)
 				showInfoDialog('success', "", $.i18n('infoDialog_effconf_deleted_text', name));
 		});
@@ -163,15 +163,15 @@ $(document).ready( function() {
 			$("#name-input").val(name);
 		}
 
-		var efx = serverInfo.effects;
+		var efx = window.serverInfo.effects;
 		for(var i = 0; i<efx.length; i++)
 		{
 			if(efx[i].name == name)
 			{
-				var py = efx[i].script.split("/").pop()
+				var py = efx[i].script.split("/").pop();
 				$("#effectslist").val(py).trigger("change");
 
-				for(key in efx[i].args)
+				for(var key in efx[i].args)
 				{
 					var ed = effects_editor.getEditor('root.args.'+[key]);
 					if(ed)
@@ -183,7 +183,7 @@ $(document).ready( function() {
 	});
 
 	//create basic effect list
-	var effects = serverSchema.properties.effectSchemas.internal
+	var effects = window.serverSchema.properties.effectSchemas.internal;
 	for(var idx=0; idx<effects.length; idx++)
 	{
 		$("#effectslist").append(createSelOpt(effects[idx].schemaContent.script, $.i18n(effects[idx].schemaContent.title)));
@@ -193,8 +193,8 @@ $(document).ready( function() {
 	updateDelEffectlist();
 
 	//interval update
-	$(hyperion).on("cmd-effects-update", function(event){
-		serverInfo.effects = event.response.data.effects
+	$(window.hyperion).on("cmd-effects-update", function(event){
+		window.serverInfo.effects = event.response.data.effects
 		updateDelEffectlist();
 	});
 
