@@ -42,7 +42,7 @@ function setStorage(item, value, session)
 
 function debugMessage(msg)
 {
-	if (debugMessagesActive)
+	if (window.debugMessagesActive)
 	{
 		console.log(msg);
 	}
@@ -50,19 +50,19 @@ function debugMessage(msg)
 
 function updateSessions()
 {
-	var sess = serverInfo.sessions;
+	var sess = window.serverInfo.sessions;
 	if (sess.length)
 	{
-		wSess = [];
+		window.wSess = [];
 		for(var i = 0; i<sess.length; i++)
 		{
 			if(sess[i].type == "_hyperiond-http._tcp.")
 			{
-				wSess.push(sess[i]);
+				window.wSess.push(sess[i]);
 			}
 		}
 
-		if (wSess.length > 1)
+		if (window.wSess.length > 1)
 			$('#btn_instanceswitch').toggle(true);
 		else
 			$('#btn_instanceswitch').toggle(false);
@@ -72,7 +72,7 @@ function updateSessions()
 function validateDuration(d)
 {
 	if(typeof d === "undefined" || d < 0)
-		return d = 0;
+		return 0;
 	else
 		return d *= 1000;
 }
@@ -110,8 +110,10 @@ function loadContent(event, forceRefresh)
 		$("#page-content").off();
 		$("#page-content").load("/content/"+tag+".html", function(response,status,xhr){
 			if(status == "error")
+			{
 				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
 				removeOverlay();
+			}
 		});
 	}
 }
@@ -212,7 +214,8 @@ function showInfoDialog(type,header,message)
 
 function createHintH(type, text, container)
 {
-	if(type = "intro")
+	type = String(type);
+	if(type == "intro")
 		tclass = "introd";
 
 	$('#'+container).prepend('<div class="'+tclass+'"><h4 style="font-size:16px">'+text+'</h4><hr/></div>');
@@ -349,7 +352,7 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( serverConfig[key] );
+			editor.getEditor("root."+key).setValue( window.serverConfig[key] );
 		}
 	}
 
@@ -476,8 +479,8 @@ function createCP(id, color, cb)
 			}
 		});
 		$('#'+id).colorpicker().on('changeColor', function(e) {
-			rgb = e.color.toRGB();
-			hex = e.color.toHex();
+			var rgb = e.color.toRGB();
+			var hex = e.color.toHex();
 			cb(rgb,hex,e);
 		});
 	}
@@ -549,7 +552,7 @@ function createRow(id)
 function createOptPanel(phicon, phead, bodyid, footerid)
 {
 	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
-	pfooter = document.createElement('button');
+	var pfooter = document.createElement('button');
 	pfooter.className = "btn btn-primary";
 	pfooter.setAttribute("id", footerid);
 	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
@@ -559,7 +562,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 
 function sortProperties(list)
 {
-	for(key in list)
+	for(var key in list)
 	{
 		list[key].key = key;
 	}
@@ -583,7 +586,7 @@ function createHelpTable(list, phead){
 
 	thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
 
-	for (key in list)
+	for (var key in list)
 	{
 		if(list[key].access != 'system')
 		{
@@ -596,7 +599,7 @@ function createHelpTable(list, phead){
 			if(list[key].items && list[key].items.properties)
 			{
 				var ilist = sortProperties(list[key].items.properties);
-				for (ikey in ilist)
+				for (var ikey in ilist)
 				{
 					// break one iteration (in the loop), if the schema has the entry hidden=true
 					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
@@ -635,7 +638,7 @@ function createPanel(head, body, footer, type, bodyid){
 	if(typeof bodyid != 'undefined')
 	{
 		pfooter.style.textAlign = 'right';
-		pbody.setAttribute("id", bodyid)
+		pbody.setAttribute("id", bodyid);
 	}
 
 	if(typeof body != 'undefined' && body != "")

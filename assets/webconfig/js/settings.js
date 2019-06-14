@@ -1,4 +1,4 @@
-﻿var storedAccess;
+var storedAccess;
 var storedLang;
 var availLang = ['en','de','es','it','cs'];
 var availAccess = ['default','advanced','expert'];
@@ -30,7 +30,7 @@ $(document).ready( function() {
 		storedLang = getStorage("langcode");
 		if (storedLang == null)
 		{
-			setStorage("langcode", 'auto')
+			setStorage("langcode", 'auto');
 			storedLang = 'auto';
 			initTrans(storedLang);
 		}
@@ -119,14 +119,14 @@ $(document).ready( function() {
 	
 	// instance switcher
 	$('#btn_instanceswitch').off().on('click',function() {
-		var lsys = sysInfo.system.hostName+':'+serverConfig.webConfig.port;
+		var lsys = window.sysInfo.system.hostName+':'+window.serverConfig.webConfig.port;
 		showInfoDialog('iswitch', $.i18n('InfoDialog_iswitch_title'), $.i18n('InfoDialog_iswitch_text'));
 		
-		for (var i = 0; i<wSess.length; i++)
+		for (var i = 0; i<window.wSess.length; i++)
 		{
 			
-			if(lsys != wSess[i].host+':'+wSess[i].port)
-				$('#id_select').append(createSelOpt('http://'+wSess[i].address+':'+wSess[i].port, wSess[i].name))
+			if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
+				$('#id_select').append(createSelOpt('http://'+window.wSess[i].address+':'+window.wSess[i].port, window.wSess[i].name))
 		}
 
 		$('#id_btn_saveset').off().on('click',function() {		

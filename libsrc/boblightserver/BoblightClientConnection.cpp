@@ -192,6 +192,9 @@ void BoblightClientConnection::handleMessage(const QString & message)
 					{
 						// clear the current channel
 						_hyperion->clear(_priority);
+
+						// register new priority
+						_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 					}
 
 					_priority = prio;

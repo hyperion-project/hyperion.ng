@@ -4,22 +4,22 @@ $(document).ready( function() {
 	var editor_smoothing = null;
 	var editor_blackborder = null;
 	
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		//color
-		$('#conf_cont').append(createRow('conf_cont_color'))
+		$('#conf_cont').append(createRow('conf_cont_color'));
 		$('#conf_cont_color').append(createOptPanel('fa-photo', $.i18n("edt_conf_color_heading_title"), 'editor_container_color', 'btn_submit_color'));
-		$('#conf_cont_color').append(createHelpTable(schema.color.properties, $.i18n("edt_conf_color_heading_title")));
+		$('#conf_cont_color').append(createHelpTable(window.schema.color.properties, $.i18n("edt_conf_color_heading_title")));
 		
 		//smoothing
-		$('#conf_cont').append(createRow('conf_cont_smoothing'))
+		$('#conf_cont').append(createRow('conf_cont_smoothing'));
 		$('#conf_cont_smoothing').append(createOptPanel('fa-photo', $.i18n("edt_conf_smooth_heading_title"), 'editor_container_smoothing', 'btn_submit_smoothing'));
-		$('#conf_cont_smoothing').append(createHelpTable(schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title")));
+		$('#conf_cont_smoothing').append(createHelpTable(window.schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title")));
 		
 		//blackborder
-		$('#conf_cont').append(createRow('conf_cont_blackborder'))
+		$('#conf_cont').append(createRow('conf_cont_blackborder'));
 		$('#conf_cont_blackborder').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
-		$('#conf_cont_blackborder').append(createHelpTable(schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title")));
+		$('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title")));
 	}
 	else
 	{
@@ -31,7 +31,7 @@ $(document).ready( function() {
 	
 	//color
 	editor_color = createJsonEditor('editor_container_color', {
-		color              : schema.color
+		color              : window.schema.color
 	}, true, true);
 
 	editor_color.on('change',function() {
@@ -44,7 +44,7 @@ $(document).ready( function() {
 	
 	//smoothing
 	editor_smoothing = createJsonEditor('editor_container_smoothing', {
-		smoothing          : schema.smoothing
+		smoothing          : window.schema.smoothing
 	}, true, true);
 
 	editor_smoothing.on('change',function() {
@@ -57,7 +57,7 @@ $(document).ready( function() {
 
 	//blackborder
 	editor_blackborder = createJsonEditor('editor_container_blackborder', {
-		blackborderdetector: schema.blackborderdetector
+		blackborderdetector: window.schema.blackborderdetector
 	}, true, true);
 
 	editor_blackborder.on('change',function() {
@@ -72,7 +72,7 @@ $(document).ready( function() {
 	$('#editor_container_blackborder').append(buildWL("user/moretopics/bbmode","edt_conf_bb_mode_title",true));
 	
 	//create introduction
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		createHint("intro", $.i18n('conf_colors_color_intro'), "editor_container_color");
 		createHint("intro", $.i18n('conf_colors_smoothing_intro'), "editor_container_smoothing");

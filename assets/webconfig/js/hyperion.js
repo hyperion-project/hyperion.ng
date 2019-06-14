@@ -1,44 +1,39 @@
-
-// global vars
-var webPrio = 1;
-var webOrigin = "Web Configuration";
-var showOptHelp;
-var currentVersion;
-var latestVersion;
-var serverInfo = {};
-var parsedUpdateJSON = {};
-var serverSchema = {};
-var serverConfig = {};
-var schema;
-var sysInfo = {};
-var jsonPort = 19444;
-var websocket = null;
-var hyperion = {};
-var wsTan = 1;
-var ledStreamActive  = false;
-var imageStreamActive = false;
-var loggingStreamActive = false;
-var loggingHandlerInstalled = false;
-var watchdog = 0;
-var debugMessagesActive = true;
-var wSess = [];
-var plugins_installed = {};
-var plugins_available = {};
-
-//comps serverinfo
-comps = [];
+// global vars (read and write in window object)
+window.webPrio = 1;
+window.webOrigin = "Web Configuration";
+window.showOptHelp = true;
+window.currentVersion = null;
+window.latestVersion = null;
+window.serverInfo = {};
+window.parsedUpdateJSON = {};
+window.serverSchema = {};
+window.serverConfig = {};
+window.schema = {};
+window.sysInfo = {};
+window.jsonPort = 19444;
+window.websocket = null;
+window.hyperion = {};
+window.wsTan = 1;
+window.ledStreamActive = false;
+window.imageStreamActive = false;
+window.loggingStreamActive = false;
+window.loggingHandlerInstalled = false;
+window.watchdog = 0;
+window.debugMessagesActive = true;
+window.wSess = [];
+window.comps = [];
 
 function initRestart()
 {
-	$(hyperion).off();
+	$(window.hyperion).off();
 	requestServerConfigReload();
-	watchdog = 10;
+	window.watchdog = 10;
 	connectionLostDetection('restart');
 }
 
 function connectionLostDetection(type)
 {
-	if ( watchdog > 2 )
+	if ( window.watchdog > 2 )
 	{
 		var interval_id = window.setInterval("", 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
@@ -57,7 +52,7 @@ function connectionLostDetection(type)
 	}
 	else
 	{
-		$.get( "/cgi/cfg_jsonserver", function() {watchdog=0}).fail(function() {watchdog++;});
+		$.get( "/cgi/cfg_jsonserver", function() {window.watchdog=0}).fail(function() {window.watchdog++;});
 	}
 }
 
@@ -69,20 +64,20 @@ function initWebSocket()
 {
 	if ("WebSocket" in window)
 	{
-		if (websocket == null)
+		if (window.websocket == null)
 		{
-			jsonPort = (document.location.port == '') ? '80' : document.location.port;
-			websocket = new WebSocket('ws://'+document.location.hostname+":"+jsonPort);
+			window.jsonPort = (document.location.port == '') ? '80' : document.location.port;
+			window.websocket = new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
 
-			websocket.onopen = function (event) {
-				$(hyperion).trigger({type:"open"});
+			window.websocket.onopen = function (event) {
+				$(window.hyperion).trigger({type:"open"});
 
-				$(hyperion).on("cmd-serverinfo", function(event) {
-					watchdog = 0;
+				$(window.hyperion).on("cmd-serverinfo", function(event) {
+					window.watchdog = 0;
 				});
 			};
 
-			websocket.onclose = function (event) {
+			window.websocket.onclose = function (event) {
 				// See http://tools.ietf.org/html/rfc6455#section-7.4.1
 				var reason;
 				switch(event.code)
@@ -102,45 +97,44 @@ function initWebSocket()
 					case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
 					default: reason = "Unknown reason";
 				}
-				console.log("[websocket::onclose] "+reason)
-				$(hyperion).trigger({type:"close", reason:reason});
-				watchdog = 10;
+				$(window.hyperion).trigger({type:"close", reason:reason});
+				window.watchdog = 10;
 				connectionLostDetection();
 			};
 
-			websocket.onmessage = function (event) {
+			window.websocket.onmessage = function (event) {
 				try
 				{
-					response = JSON.parse(event.data);
-					success = response.success;
-					cmd = response.command;
+					var response = JSON.parse(event.data);
+					var success = response.success;
+					var cmd = response.command;
 					if (success || typeof(success) == "undefined")
 					{
-						$(hyperion).trigger({type:"cmd-"+cmd, response:response});
+						$(window.hyperion).trigger({type:"cmd-"+cmd, response:response});
 					}
 					else
 					{
-						error = response.hasOwnProperty("error")? response.error : "unknown";
-						$(hyperion).trigger({type:"error",reason:error});
-						console.log("[websocket::onmessage] "+error)
+						var error = response.hasOwnProperty("error")? response.error : "unknown";
+						$(window.hyperion).trigger({type:"error",reason:error});
+						console.log("[window.websocket::onmessage] "+error)
 					}
 				}
 				catch(exception_error)
 				{
-					$(hyperion).trigger({type:"error",reason:exception_error});
-					console.log("[websocket::onmessage] "+exception_error)
+					$(window.hyperion).trigger({type:"error",reason:exception_error});
+					console.log("[window.websocket::onmessage] "+exception_error)
 				}
 			};
 
-			websocket.onerror = function (error) {
-				$(hyperion).trigger({type:"error",reason:error});
-				console.log("[websocket::onerror] "+error)
+			window.websocket.onerror = function (error) {
+				$(window.hyperion).trigger({type:"error",reason:error});
+				console.log("[window.websocket::onerror] "+error)
 			};
 		}
 	}
 	else
 	{
-		$(hyperion).trigger("error");
+		$(window.hyperion).trigger("error");
 		alert("Websocket is not supported by your browser");
 		return;
 	}
@@ -158,7 +152,7 @@ function sendToHyperion(command, subcommand, msg)
 	else
 		msg = "";
 
-	websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+wsTan+subcommand+msg+'}'));
+	window.websocket.send(encode_utf8('{"command":"'+command+'", "tan":'+window.wsTan+subcommand+msg+'}'));
 }
 
 // -----------------------------------------------------------
@@ -192,32 +186,32 @@ function requestServerConfigReload()
 
 function requestLedColorsStart()
 {
-	ledStreamActive=true;
+	window.ledStreamActive=true;
 	sendToHyperion("ledcolors", "ledstream-start");
 }
 
 function requestLedColorsStop()
 {
-	ledStreamActive=false;
+	window.ledStreamActive=false;
 	sendToHyperion("ledcolors", "ledstream-stop");
 }
 
 function requestLedImageStart()
 {
-	imageStreamActive=true;
+	window.imageStreamActive=true;
 	sendToHyperion("ledcolors", "imagestream-start");
 }
 
 function requestLedImageStop()
 {
-	imageStreamActive=false;
+	window.imageStreamActive=false;
 	sendToHyperion("ledcolors", "imagestream-stop");
 }
 
 function requestPriorityClear(prio)
 {
 	if(typeof prio !== 'number')
-		prio = webPrio;
+		prio = window.webPrio;
 
 	sendToHyperion("clear", "", '"priority":'+prio+'');
 }
@@ -229,22 +223,22 @@ function requestClearAll()
 
 function requestPlayEffect(effectName, duration)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
 }
 
 function requestSetColor(r,g,b,duration)
 {
-	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+webOrigin+'"');
+	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
 }
 
 function requestSetImage(data,width,height,duration)
 {
-	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+webPrio+',"duration":'+validateDuration(duration)+'');
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+'');
 }
 
 function requestSetComponentState(comp, state)
 {
-	state_str = state ? "true" : "false";
+	var state_str = state ? "true" : "false";
 	sendToHyperion("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
 }
 
@@ -259,15 +253,15 @@ function requestSetSource(prio)
 function requestWriteConfig(config, full)
 {
 	if(full === true)
-		serverConfig = config;
+		window.serverConfig = config;
 	else
 	{
 		jQuery.each(config, function(i, val) {
-			serverConfig[i] = val;
+			window.serverConfig[i] = val;
 		});
 	}
 
-	sendToHyperion("config","setconfig", '"config":'+JSON.stringify(serverConfig));
+	sendToHyperion("config","setconfig", '"config":'+JSON.stringify(window.serverConfig));
 }
 
 function requestWriteEffect(effectName,effectPy,effectArgs,data)
@@ -278,7 +272,7 @@ function requestWriteEffect(effectName,effectPy,effectArgs,data)
 
 function requestTestEffect(effectName,effectPy,effectArgs,data)
 {
-	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+webPrio+', "origin":"'+webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
+	sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+window.webPrio+', "origin":"'+window.webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
 }
 
 function requestDeleteEffect(effectName)
@@ -288,13 +282,13 @@ function requestDeleteEffect(effectName)
 
 function requestLoggingStart()
 {
-	loggingStreamActive=true;
+	window.loggingStreamActive=true;
 	sendToHyperion("logging", "start");
 }
 
 function requestLoggingStop()
 {
-	loggingStreamActive=false;
+	window.loggingStreamActive=false;
 	sendToHyperion("logging", "stop");
 }
 

@@ -20,7 +20,6 @@ import sys
 import socket
 import serial
 import serial.threaded
-import time
 
 
 class SerialToNet(serial.threaded.Protocol):

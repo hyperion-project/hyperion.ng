@@ -82,6 +82,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 		}
 		_systemCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, enable);
+		_hyperion->setComponentState(hyperion::COMP_GRABBER, enable);
 	}
 }
 
@@ -93,7 +94,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		{
 			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, &CaptureCont::handleV4lImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperion, &Hyperion::forwardProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, _hyperion, &Hyperion::forwardProtoMessage);
 		}
 		else
 		{
@@ -103,6 +104,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		}
 		_v4lCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, enable);
+		_hyperion->setComponentState(hyperion::COMP_V4L, enable);
 	}
 }
 

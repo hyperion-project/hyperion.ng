@@ -8,6 +8,8 @@
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_general_enable_title",
+			"required" : true,
+			"default" : false,
 			"propertyOrder" : 1
 		},
 		"json" :
@@ -15,6 +17,7 @@
 			"type" : "array",
 			"title" : "edt_conf_fw_json_title",
 			"required" : true,
+			"default" : ["127.0.0.1:19446"],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_fw_json_itemtitle"
@@ -25,6 +28,8 @@
 		{
 			"type" : "array",
 			"title" : "edt_conf_fw_proto_title",
+			"required" : true,
+			"default" : ["127.0.0.1:19401"],
 			"items" : {
 				"type": "string",
 				"title" : "edt_conf_fw_proto_itemtitle"

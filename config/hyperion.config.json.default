@@ -57,25 +57,23 @@
 	},
 
 	"grabberV4L2" :
-	[
-		{
-			"device"   : "auto",
-			"standard" : "NO_CHANGE",
-			"sizeDecimation"  : 8,
-			"cropLeft"    : 0,
-			"cropRight"   : 0,
-			"cropTop"     : 0,
-			"cropBottom"  : 0,
-			"redSignalThreshold"   : 5,
-			"greenSignalThreshold" : 5,
-			"blueSignalThreshold"  : 5,
-			"signalDetection"      : false,
-			"sDVOffsetMin"   : 0.25,
-			"sDHOffsetMin" : 0.25,
-			"sDVOffsetMax"   : 0.75,
-			"sDHOffsetMax" : 0.75
-		}
-	],
+	{
+		"device"   : "auto",
+		"standard" : "NO_CHANGE",
+		"sizeDecimation"  : 8,
+		"cropLeft"    : 0,
+		"cropRight"   : 0,
+		"cropTop"     : 0,
+		"cropBottom"  : 0,
+		"redSignalThreshold"   : 5,
+		"greenSignalThreshold" : 5,
+		"blueSignalThreshold"  : 5,
+		"signalDetection"      : false,
+		"sDVOffsetMin"   : 0.25,
+		"sDHOffsetMin" : 0.25,
+		"sDVOffsetMax"   : 0.75,
+		"sDHOffsetMax" : 0.75
+	},
 
 	"framegrabber" :
 	{
@@ -149,7 +147,7 @@
 	{
 		"enable"   : false,
 		"port"     : 19333,
-		"priority" : 201
+		"priority" : 128
 	},
 
 	"udpListener" :

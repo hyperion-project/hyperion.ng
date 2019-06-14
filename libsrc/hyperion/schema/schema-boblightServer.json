@@ -25,7 +25,7 @@
 			"title" : "edt_conf_general_priority_title",
 			"minimum" : 100,
 			"maximum" : 254,
-			"default" : 201,
+			"default" : 128,
 			"propertyOrder" : 3
 		}
 	},
