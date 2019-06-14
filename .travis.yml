@@ -29,24 +29,29 @@ jobs:
         env:
             - DOCKER_TAG=i386
             - DOCKER_NAME="Debian Stretch (i386)"
-      - <<: *linux
-        name: "ARMv6hf (Raspberry Pi v1 & ZERO)"
-        env:
-            - DOCKER_TAG=armv6hf
-            - DOCKER_NAME="Debian Stretch (Raspberry Pi v1 & ZERO)"
-            - PLATFORM="rpi"
-      - <<: *linux
-        name: "ARMv7hf (Raspberry Pi 2 & 3)"
-        env:
-            - DOCKER_TAG=armv7hf
-            - DOCKER_NAME="Debian Stretch (Raspberry Pi 2 & 3)"
-            - PLATFORM="rpi"
-      - <<: *linux
-        name: "ARMv8 (Generic AARCH64)"
-        env:
-            - DOCKER_TAG=aarch64
-            - DOCKER_NAME="ARMv8 (Generic AARCH64)"
-            - PLATFORM="amlogic"
+# ////////////////////////////////////////////////////////////////
+#      NOTE: Temporary disabled because travis timeouts
+# ////////////////////////////////////////////////////////////////
+#      - <<: *linux
+#        name: "ARMv6hf (Raspberry Pi v1 & ZERO)"
+#        env:
+#            - DOCKER_TAG=armv6hf
+#            - DOCKER_NAME="Debian Stretch (Raspberry Pi v1 & ZERO)"
+#            - PLATFORM="rpi"
+#      - <<: *linux
+#        name: "ARMv7hf (Raspberry Pi 2 & 3)"
+#        env:
+#            - DOCKER_TAG=armv7hf
+#            - DOCKER_NAME="Debian Stretch (Raspberry Pi 2 & 3)"
+#            - PLATFORM="rpi"
+#      - <<: *linux
+#        name: "ARMv8 (Generic AARCH64)"
+#        env:
+#            - DOCKER_TAG=aarch64
+#            - DOCKER_NAME="ARMv8 (Generic AARCH64)"
+#            - PLATFORM="amlogic"
+#
+# ////////////////////////////////////////////////////////////////
       - <<: *osx
         osx_image: xcode8.3
         name: "macOS 10.12 (Xcode 8.3.3)"
