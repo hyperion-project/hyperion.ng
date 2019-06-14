@@ -6,6 +6,10 @@ linux: &linux
 osx: &osx
    os: osx
 
+env:
+  global:
+    - MAKEFLAGS='-j 2'
+    
 cache:
     - ccache
     - directories:
