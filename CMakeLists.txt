@@ -261,6 +261,24 @@ if (UNIX AND NOT APPLE)
 endif ()
 
 # add QT5 dependency
+IF ( CMAKE_CROSSCOMPILING )
+
+	file(GLOB QT_BIN ${QT_BIN_PATH})
+
+	set(QT_MOC_EXECUTABLE ${QT_BIN}/moc)
+	add_executable(Qt5::moc IMPORTED)
+	set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
+
+	set(QT_RCC_EXECUTABLE ${QT_BIN}/rcc)
+	add_executable(Qt5::rcc IMPORTED)
+	set_property(TARGET Qt5::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
+
+	message(STATUS "QT_BIN_PATH = ${QT_BIN}")
+	message(STATUS "QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
+	message(STATUS "QT_RCC_EXECUTABLE = ${QT_RCC_EXECUTABLE}")
+
+ENDIF()
+
 SET(QT_MIN_VERSION "5.5.0")
 find_package(Qt5 COMPONENTS Core Gui Network SerialPort REQUIRED)
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
