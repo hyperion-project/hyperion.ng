@@ -31,8 +31,16 @@ jobs:
       DOCKER_TAG: $(dockerTag)
       DOCKER_NAME: $(dockerName)
       PLATFORM: $(platform)
-  - bash: ./.ci/ci_deploy.sh
-    displayName: 'Upload $(dockerName)'
+  - task: CopyFiles@2
+    displayName: 'Copy Files'
+    inputs:
+      contents: '**/deploy/**'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: $(dockerName)'
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: $(dockerTag)
 
 - job: macOS
   pool:
@@ -44,5 +52,13 @@ jobs:
     displayName: 'Install dependencies'
   - bash: ./.ci/ci_build.sh
     displayName: 'Build macOS 10.13'
-  - bash: ./.ci/ci_deploy.sh
-    displayName: 'Upload macOS 10.13'
+  - task: CopyFiles@2
+    displayName: 'Copy Files'
+    inputs:
+      contents: '**/deploy/**'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: macOS 10.13'
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'macOS'

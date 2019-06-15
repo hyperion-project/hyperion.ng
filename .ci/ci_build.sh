@@ -16,7 +16,7 @@ fi
 
 # set environment variables
 BUILD_TYPE="Debug"
-PACKAGES=""
+[ -z "${PACKAGES}" ] && PACKAGES=""
 [ -z "${PLATFORM}" ] && PLATFORM="x11"
 
 # Detect number of processor cores
@@ -50,7 +50,10 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	mkdir ${CI_BUILD_DIR}/deploy || exit 1
 	cd build
 	cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr .. || exit 2
-	make -j ${JOBS} ${PACKAGES} || exit 3
+	make -j ${JOBS} || exit 3
+	if [[ "$PACKAGES" == 'package' ]]; then
+		sudo cpack
+	fi
 	echo "---> Copy binaries and packages to folder: ${CI_BUILD_DIR}/deploy"
 	cp -v ${CI_BUILD_DIR}/build/bin/h* ${CI_BUILD_DIR}/deploy/ 2>/dev/null || : &&
 	cp -v ${CI_BUILD_DIR}/build/Hyperion-* ${CI_BUILD_DIR}/deploy/ 2>/dev/null || : &&
