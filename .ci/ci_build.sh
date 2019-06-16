@@ -49,7 +49,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	mkdir build || exit 1
 	mkdir ${CI_BUILD_DIR}/deploy || exit 1
 	cd build
-	cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr .. || exit 2
+	cmake -DPLATFORM=$PLATFORM -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
 	make -j ${JOBS} || exit 3
 	if [[ "$PACKAGES" == 'package' ]]; then
 		sudo cpack
