@@ -60,6 +60,4 @@ jobs:
 
 script:
     - ./.ci/ci_build.sh
-after_success:
-    - ./.ci/ci_deploy.sh
 
