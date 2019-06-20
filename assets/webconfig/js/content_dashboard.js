@@ -84,21 +84,39 @@ $(document).ready( function() {
 		window.parsedUpdateJSON = JSON.parse(data);
 
 		for(let i=0; i<window.parsedUpdateJSON.length; i++) {
-			if(window.parsedUpdateJSON[i].channel == window.serverConfig.general.versionBranch) {
-				window.latestVersion = window.parsedUpdateJSON[i].versionnr;
+			if(window.parsedUpdateJSON[i].channel == "Stable") {
+				window.latestStableVersion = window.parsedUpdateJSON[i];
 				break;
 			}
-			else window.latestVersion = window.currentVersion;
 		}
 
-		var cleanLatestVersion = window.latestVersion.replace(/\./g, '');
+		for(let i=0; i<window.parsedUpdateJSON.length; i++) {
+			if(window.parsedUpdateJSON[i].channel == "Beta") {
+				window.latestBetaVersion = window.parsedUpdateJSON[i];
+				break;
+			}
+		}
+
+		console.log("Stable"+ window.latestStableVersion.versionnr.replace(/\./g, ''))
+		console.log("Beta"+ window.latestBetaVersion.versionnr.replace(/\./g, ''))
+
+		if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.versionnr.replace(/\./g, '') <= window.latestBetaVersion.versionnr.replace(/\./g, '')) {
+			window.latestVersion = window.latestBetaVersion;
+		}
+		else {
+			window.latestVersion = window.latestStableVersion;
+		}
+
+		console.log(latestVersion)
+
+		var cleanLatestVersion = window.latestVersion.versionnr.replace(/\./g, '');
 		var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
 
 		$('#dash_latev').html(window.currentVersion);
-	  $('#dash_latev').html(window.latestVersion);
+	  $('#dash_latev').html(window.latestVersion.versionnr + ' (' + window.latestVersion.channel + ')');
 
 		if ( cleanCurrentVersion < cleanLatestVersion )
-			$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion)+'</div>');
+			$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.versionnr) + ' (' + window.latestVersion.channel + ')</div>');
 	else
 			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 	});
