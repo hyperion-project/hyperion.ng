@@ -80,6 +80,8 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
+if this get stucked and dmseg says out of memory try:
+make -j 2
 # optional: install into your system
 sudo make install/strip
 # to uninstall (not very well tested, please keep that in mind)
