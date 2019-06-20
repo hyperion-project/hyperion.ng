@@ -6,6 +6,12 @@
 		"channel" : "Stable"
 	},
 	{
+		"versionnr" : "2.0.9",
+		"versiondesc": "Last beta before releasing 2.1.0",
+		"versionchangelog":"https://www.hyperion-project.org/blog/id2",
+		"channel" : "Beta"
+	},
+	{
 		"versionnr" : "2.0.1",
 		"versiondesc": "This is a bugfix release for 2.0.0",
 		"versionchangelog": "https://www.hyperion-project.org/blog/id3",
@@ -18,4 +24,3 @@
 		"channel" : "Stable"
 	}
 ]
-
