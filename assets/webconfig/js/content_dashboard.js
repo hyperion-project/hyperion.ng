@@ -78,19 +78,28 @@ $(document).ready( function() {
 	$('#dash_currv').html(window.currentVersion);
 	$('#dash_instance').html(window.serverConfig.general.name);
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
+	$('#dash_versionbranch').html(window.serverConfig.general.versionBranch);
 
 	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
 		window.parsedUpdateJSON = JSON.parse(data);
-		window.latestVersion = window.parsedUpdateJSON[0].versionnr;
-	//	var cleanLatestVersion = window.latestVersion.replace(/\./g, '');
-	//	var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
+
+		for(let i=0; i<window.parsedUpdateJSON.length; i++) {
+			if(window.parsedUpdateJSON[i].channel == window.serverConfig.general.versionBranch) {
+				window.latestVersion = window.parsedUpdateJSON[i].versionnr;
+				break;
+			}
+			else window.latestVersion = window.currentVersion;
+		}
+
+		var cleanLatestVersion = window.latestVersion.replace(/\./g, '');
+		var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
 
 		$('#dash_latev').html(window.currentVersion);
-	//	$('#dash_latev').html(window.latestVersion);
+	  $('#dash_latev').html(window.latestVersion);
 
-	//	if ( cleanCurrentVersion < cleanLatestVersion )
-	//		$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion)+'</div>');
-	//	else
+		if ( cleanCurrentVersion < cleanLatestVersion )
+			$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion)+'</div>');
+	else
 			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 	});
 
