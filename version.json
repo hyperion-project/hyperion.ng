@@ -1,5 +1,11 @@
 [
 	{
+		"versionnr" : "2.1.1",
+		"versiondesc": "Newest cool beta",
+		"versionchangelog":"https://www.hyperion-project.org/blog/id1",
+		"channel" : "Beta"
+	},
+	{
 		"versionnr" : "2.1.0",
 		"versiondesc": "This version introduces feature x and some small bugfixes at the web configuration",
 		"versionchangelog":"https://www.hyperion-project.org/blog/id1",
