@@ -97,17 +97,12 @@ $(document).ready( function() {
 			}
 		}
 
-		console.log("Stable"+ window.latestStableVersion.versionnr.replace(/\./g, ''))
-		console.log("Beta"+ window.latestBetaVersion.versionnr.replace(/\./g, ''))
-
 		if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.versionnr.replace(/\./g, '') <= window.latestBetaVersion.versionnr.replace(/\./g, '')) {
 			window.latestVersion = window.latestBetaVersion;
 		}
 		else {
 			window.latestVersion = window.latestStableVersion;
 		}
-
-		console.log(latestVersion)
 
 		var cleanLatestVersion = window.latestVersion.versionnr.replace(/\./g, '');
 		var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
