@@ -27,8 +27,8 @@ tar --create --gzip --absolute-names --show-transformed-names --ignore-failed-re
 	--transform "s:$repodir/bin/service/hyperion.initctl.sh:hyperion/services/hyperion.initctl.sh:" \
 	--transform "s://:/:g" \
 	"$builddir/bin/hyperion"* \
-	"$repodir/bin/service/hyperion.init.sh" \
-	"$repodir/bin/service/hyperion.systemd.sh" \
-	"$repodir/bin/service/hyperion.initctl.sh" \
-	"$repodir/config/hyperion.config.json.example"
+	"$repodir/bin/service/hyperion.init" \
+	"$repodir/bin/service/hyperion.systemd" \
+	"$repodir/bin/service/hyperion.initctl" \
+	"$repodir/config/hyperion.config.json.default"
 

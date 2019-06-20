@@ -36,7 +36,7 @@ void SSDPDiscover::searchForService(const QString& st)
 
 const QString SSDPDiscover::getFirstService(const searchType& type, const QString& st, const int& timeout_ms)
 {
-	Info(_log, "Search for Hyperion server...");
+    Info(_log, "Search for Service [%s]", QSTRING_CSTR(st));
 	_searchTarget = st;
 
 	// search
@@ -44,7 +44,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 
 	_udpSocket->waitForReadyRead(timeout_ms);
 
-	while (_udpSocket->hasPendingDatagrams())
+    while (_udpSocket->hasPendingDatagrams())
 	{
 		QByteArray datagram;
 		datagram.resize(_udpSocket->pendingDatagramSize());
@@ -54,6 +54,9 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 		_udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
 
 		QString data(datagram);
+
+        Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+
 		QMap<QString,QString> headers;
 		QString address;
 		// parse request
@@ -88,7 +91,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 			//Info(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			if(type == STY_WEBSERVER)
 			{
-				Info(_log, "Found Hyperion server at: %s:%d", QSTRING_CSTR(url.host()), url.port());
+                Info(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
 
 				return url.host()+":"+QString::number(url.port());
 			}
@@ -101,13 +104,13 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 				}
 				else
 				{
-					Info(_log, "Found Hyperion server at: %s:%s", QSTRING_CSTR(url.host()), QSTRING_CSTR(fbsport));
+                    Info(_log, "Found service [%s] at: %s:%s", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), QSTRING_CSTR(fbsport));
 					return url.host()+":"+fbsport;
 				}
 			}
 		}
 	}
-	Info(_log,"Search timeout, no Hyperion server found");
+    Info(_log,"Search timeout, service [%s] not found", QSTRING_CSTR(st) );
 	return QString();
 }
 
@@ -163,7 +166,7 @@ void SSDPDiscover::sendSearch(const QString& st)
 {
 	const QString msg = UPNP_DISCOVER_MESSAGE.arg(st);
 
-	_udpSocket->writeDatagram(msg.toUtf8(),
+    _udpSocket->writeDatagram(msg.toUtf8(),
 							 QHostAddress(SSDP_ADDR),
 							 SSDP_PORT);
 }

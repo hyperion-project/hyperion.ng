@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QHostInfo>
+#include <QCryptographicHash>
 
 // hyperion include
 #include <hyperion/Hyperion.h>
@@ -161,6 +162,9 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
+
+	// set unique id
+	_id = QString(QCryptographicHash::hash(getConfigFileName().toLocal8Bit(),QCryptographicHash::Sha1).toHex());
 }
 
 Hyperion::~Hyperion()
@@ -376,7 +380,7 @@ void Hyperion::registerInput(const int priority, const hyperion::Components& com
 	_muxer.registerInput(priority, component, origin, owner, smooth_cfg);
 }
 
-const bool Hyperion::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, const bool& clearEffect)
+bool Hyperion::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, const bool& clearEffect)
 {
 	if(_muxer.setInput(priority, ledColors, timeout_ms))
 	{
@@ -393,7 +397,7 @@ const bool Hyperion::setInput(const int priority, const std::vector<ColorRgb>& l
 	return false;
 }
 
-const bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms, const bool& clearEffect)
+bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms, const bool& clearEffect)
 {
 	if(_muxer.setInputImage(priority, image, timeout_ms))
 	{
@@ -410,7 +414,7 @@ const bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& im
 	return false;
 }
 
-const bool Hyperion::setInputInactive(const quint8& priority)
+bool Hyperion::setInputInactive(const quint8& priority)
 {
 	return _muxer.setInputInactive(priority);
 }
@@ -447,7 +451,7 @@ void Hyperion::adjustmentsUpdated()
 	update();
 }
 
-const bool Hyperion::clear(int priority)
+bool Hyperion::clear(int priority)
 {
 	// send clear signal to the effect engine
 	// (outside the check so the effect gets cleared even when the effect is not sending colors)
@@ -487,12 +491,12 @@ const Hyperion::InputInfo Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
-const bool Hyperion::saveEffect(const QJsonObject& obj, QString& resultMsg)
+bool Hyperion::saveEffect(const QJsonObject& obj, QString& resultMsg)
 {
 	return _effectEngine->saveEffect(obj, resultMsg);
 }
 
-const bool Hyperion::deleteEffect(const QString& effectName, QString& resultMsg)
+bool Hyperion::deleteEffect(const QString& effectName, QString& resultMsg)
 {
 	return _effectEngine->deleteEffect(effectName, resultMsg);
 }

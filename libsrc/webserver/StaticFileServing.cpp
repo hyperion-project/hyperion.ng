@@ -23,7 +23,7 @@ StaticFileServing::StaticFileServing (QObject * parent)
 
 StaticFileServing::~StaticFileServing ()
 {
-
+	delete _mimeDb;
 }
 
 void StaticFileServing::setBaseUrl(const QString& url)

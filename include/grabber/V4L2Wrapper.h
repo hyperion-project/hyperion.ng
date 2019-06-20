@@ -24,6 +24,7 @@ public slots:
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
+	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

@@ -29,6 +29,7 @@ enum type  {
 	INSTCAPTURE,
 	NETWORK,
 	FLATBUFSERVER,
+	PROTOSERVER,
 	INVALID
 };
 
@@ -62,6 +63,7 @@ inline QString typeToString(const type& type)
 		case INSTCAPTURE:   return "instCapture";
 		case NETWORK:       return "network";
 		case FLATBUFSERVER: return "flatbufServer";
+		case PROTOSERVER:   return "protoServer";
 		default:            return "invalid";
 	}
 }
@@ -73,7 +75,7 @@ inline QString typeToString(const type& type)
 ///
 inline type stringToType(const QString& type)
 {
-	if (type == "backgroundEffect")     return BGEFFECT;
+	if      (type == "backgroundEffect")     return BGEFFECT;
 	else if (type == "foregroundEffect")     return FGEFFECT;
 	else if (type == "blackborderdetector")  return BLACKBORDER;
 	else if (type == "boblightServer")       return BOBLSERVER;
@@ -94,6 +96,7 @@ inline type stringToType(const QString& type)
 	else if (type == "instCapture")          return INSTCAPTURE;
 	else if (type == "network")              return NETWORK;
 	else if (type == "flatbufServer")        return FLATBUFSERVER;
-	else                                    return INVALID;
+	else if (type == "protoServer")          return PROTOSERVER;
+	else                                     return INVALID;
 }
 };

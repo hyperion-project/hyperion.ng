@@ -52,6 +52,12 @@ void LedDevice::setEnable(bool enable)
 	{
 		switchOff();
 	}
+    else {
+        if ( !_enabled && enable)
+        {
+            switchOn();
+        }
+    }
 	_enabled = enable;
 }
 

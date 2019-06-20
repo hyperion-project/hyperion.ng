@@ -2,29 +2,29 @@ $(document).ready( function() {
 	performTranslation();
 	var oldEffects = [];
 	var effects_editor = null;
-	var confFgEff = serverConfig.foregroundEffect.effect;
-	var confBgEff = serverConfig.backgroundEffect.effect;
+	var confFgEff = window.serverConfig.foregroundEffect.effect;
+	var confBgEff = window.serverConfig.backgroundEffect.effect;
 	var foregroundEffect_editor = null;
 	var backgroundEffect_editor = null;
 
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		//foreground effect
-		$('#conf_cont').append(createRow('conf_cont_fge'))
+		$('#conf_cont').append(createRow('conf_cont_fge'));
 		$('#conf_cont_fge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_fge_heading_title"), 'editor_container_foregroundEffect', 'btn_submit_foregroundEffect'));
-		$('#conf_cont_fge').append(createHelpTable(schema.foregroundEffect.properties, $.i18n("edt_conf_fge_heading_title")));
+		$('#conf_cont_fge').append(createHelpTable(window.schema.foregroundEffect.properties, $.i18n("edt_conf_fge_heading_title")));
 
 		//background effect
-		$('#conf_cont').append(createRow('conf_cont_bge'))
+		$('#conf_cont').append(createRow('conf_cont_bge'));
 		$('#conf_cont_bge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_bge_heading_title"), 'editor_container_backgroundEffect', 'btn_submit_backgroundEffect'));
-		$('#conf_cont_bge').append(createHelpTable(schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));
+		$('#conf_cont_bge').append(createHelpTable(window.schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));
 
 		//effect path
 		if(storedAccess != 'default')
 		{
-			$('#conf_cont').append(createRow('conf_cont_ef'))
+			$('#conf_cont').append(createRow('conf_cont_ef'));
 			$('#conf_cont_ef').append(createOptPanel('fa-spinner', $.i18n("edt_conf_effp_heading_title"), 'editor_container_effects', 'btn_submit_effects'));
-			$('#conf_cont_ef').append(createHelpTable(schema.effects.properties, $.i18n("edt_conf_effp_heading_title")));
+			$('#conf_cont_ef').append(createHelpTable(window.schema.effects.properties, $.i18n("edt_conf_effp_heading_title")));
 		}
 	}
 	else
@@ -39,7 +39,7 @@ $(document).ready( function() {
 	if(storedAccess != 'default')
 	{
 		effects_editor = createJsonEditor('editor_container_effects', {
-			effects            : schema.effects
+			effects            : window.schema.effects
 		}, true, true);
 
 		effects_editor.on('change',function() {
@@ -52,11 +52,11 @@ $(document).ready( function() {
 	}
 
 	foregroundEffect_editor = createJsonEditor('editor_container_foregroundEffect', {
-		foregroundEffect   : schema.foregroundEffect
+		foregroundEffect   : window.schema.foregroundEffect
 	}, true, true);
 
 	backgroundEffect_editor = createJsonEditor('editor_container_backgroundEffect', {
-		backgroundEffect   : schema.backgroundEffect
+		backgroundEffect   : window.schema.backgroundEffect
 	}, true, true);
 
 
@@ -75,19 +75,19 @@ $(document).ready( function() {
 	$('#btn_submit_foregroundEffect').off().on('click',function() {
 		var value = foregroundEffect_editor.getValue();
 		if(typeof value.foregroundEffect.effect == 'undefined')
-			value.foregroundEffect.effect = serverConfig.foregroundEffect.effect;
+			value.foregroundEffect.effect = window.serverConfig.foregroundEffect.effect;
 		requestWriteConfig(value);
 	});
 
 	$('#btn_submit_backgroundEffect').off().on('click',function() {
 		var value = backgroundEffect_editor.getValue();
 		if(typeof value.backgroundEffect.effect == 'undefined')
-			value.backgroundEffect.effect = serverConfig.backgroundEffect.effect;
+			value.backgroundEffect.effect = window.serverConfig.backgroundEffect.effect;
 		requestWriteConfig(value);
 	});
 
 	//create introduction
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		createHint("intro", $.i18n('conf_effect_path_intro'), "editor_container_effects");
 		createHint("intro", $.i18n('conf_effect_fgeff_intro'), "editor_container_foregroundEffect");
@@ -95,14 +95,14 @@ $(document).ready( function() {
 	}
 
 	function updateEffectlist(){
-		var newEffects = serverInfo.effects;
+		var newEffects = window.serverInfo.effects;
 		if (newEffects.length != oldEffects.length)
 		{
 			$('#root_foregroundEffect_effect').html('');
 			var usrEffArr = [];
 			var sysEffArr = [];
 
-			for(i = 0; i < newEffects.length; i++)
+			for(var i = 0; i < newEffects.length; i++)
 			{
 				var effectName = newEffects[i].name;
 				if(!/^\:/.test(newEffects[i].file))
@@ -121,8 +121,8 @@ $(document).ready( function() {
 	}
 
 	//interval update
-	$(hyperion).on("cmd-effects-update", function(event){
-		serverInfo.effects = event.response.data.effects
+	$(window.hyperion).on("cmd-effects-update", function(event){
+		window.serverInfo.effects = event.response.data.effects
 		updateEffectlist();
 	});
 

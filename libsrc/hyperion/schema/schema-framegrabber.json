@@ -8,6 +8,10 @@
 			"type" : "string",
 			"title" : "edt_conf_fg_type_title",
 			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer","qt"],
+			"options":
+			{
+				"enum_titles": ["edt_conf_enum_automatic","DispmanX","AMLogic","X11","Framebuffer","QT"]
+			},
 			"default" : "auto",
 			"propertyOrder" : 2
 		},
@@ -96,6 +100,20 @@
 			"title" : "edt_conf_fg_display_title",
 			"minimum" : 0,
 			"propertyOrder" : 12
+		},
+		"amlogic_grabber" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_fg_amlogic_grabber_title",
+			"default" : "amvideocap0",
+			"propertyOrder" : 13
+		},
+		"ge2d_mode" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_ge2d_mode_title",
+			"default" : 0,
+			"propertyOrder" : 14
 		}
 	},
 	"additionalProperties" : false

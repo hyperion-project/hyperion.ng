@@ -5,3 +5,8 @@
 [submodule "dependencies/external/flatbuffers"]
 	path = dependencies/external/flatbuffers
 	url = https://github.com/google/flatbuffers
+	branch = master
+[submodule "dependencies/external/protobuf"]
+	path = dependencies/external/protobuf
+	url = https://github.com/hyperion-project/protobuf.git
+	branch = master

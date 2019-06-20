@@ -17,9 +17,8 @@ public:
 	///
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
-	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	///
-	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight);
 
 	///
 	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.

@@ -84,12 +84,12 @@ public:
 	///
 	/// @brief get current resulting height of image (after crop)
 	///
-	virtual const int getImageWidth() { return _width; };
+	virtual int getImageWidth() { return _width; };
 
 	///
 	/// @brief get current resulting width of image (after crop)
 	///
-	virtual const int getImageHeight() { return _height; };
+	virtual int getImageHeight() { return _height; };
 
 	///
 	/// @brief Prevent the real capture implementation from capturing if disabled

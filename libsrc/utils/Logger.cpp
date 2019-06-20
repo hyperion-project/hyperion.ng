@@ -164,7 +164,7 @@ LoggerManager::LoggerManager()
 {
 }
 
-void LoggerManager::handleNewLogMessage(Logger::T_LOG_MESSAGE msg)
+void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE &msg)
 {
 	_logMessageBuffer.append(msg);
 	if (_logMessageBuffer.length() > _loggerMaxMsgBufferSize)

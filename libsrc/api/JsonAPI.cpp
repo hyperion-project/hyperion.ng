@@ -25,7 +25,6 @@
 #include <hyperion/GrabberWrapper.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
-#include <utils/Stats.h>
 
 // bonjour wrapper
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -1052,7 +1051,7 @@ void JsonAPI::setImage(const Image<ColorRgb> & image)
 	}
 }
 
-void JsonAPI::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
+void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 {
 	QJsonObject result, message;
 	QJsonArray messageArray;

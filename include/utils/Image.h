@@ -68,7 +68,7 @@ public:
 		_pixels(new Pixel_T[other._width * other._height + 1]),
 		_endOfPixels(_pixels + other._width * other._height)
 	{
-		memcpy(_pixels, other._pixels, other._width * other._height * sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, (long) other._width * other._height * sizeof(Pixel_T));
 	}
 
 	// Define assignment operator in terms of the copy constructor
@@ -242,7 +242,7 @@ public:
 	//
 	ssize_t size() const
 	{
-		return  _width * _height * sizeof(Pixel_T);
+		return  (ssize_t) _width * _height * sizeof(Pixel_T);
 	}
 
 private:

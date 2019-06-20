@@ -58,7 +58,7 @@ void EffectFileHandler::handleSettingsUpdate(const settings::type& type, const Q
 	}
 }
 
-const bool EffectFileHandler::deleteEffect(const QString& effectName, QString& resultMsg)
+bool EffectFileHandler::deleteEffect(const QString& effectName, QString& resultMsg)
 {
 	std::list<EffectDefinition> effectsDefinition = getEffects();
 	std::list<EffectDefinition>::iterator it = std::find_if(effectsDefinition.begin(), effectsDefinition.end(), find_effect(effectName));
@@ -95,7 +95,7 @@ const bool EffectFileHandler::deleteEffect(const QString& effectName, QString& r
 	return false;
 }
 
-const bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMsg)
+bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMsg)
 {
 	if (!message["args"].toObject().isEmpty())
 	{

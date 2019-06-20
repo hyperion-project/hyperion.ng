@@ -11,6 +11,13 @@ IF ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
 ENDIF()
 
+# Configure CCache if available
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
 SET ( HYPERION_VERSION_STABLE OFF )
 SET ( HYPERION_VERSION_MAJOR 2 )
 SET ( HYPERION_VERSION_MINOR 0 )
@@ -24,6 +31,7 @@ SET ( DEFAULT_QT         ON )
 SET ( DEFAULT_WS281XPWM  OFF )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
+SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
 SET ( DEFAULT_TESTS      OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -164,6 +172,9 @@ message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
+SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
+SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
+
 # check all  json files
 FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
 SET( JSON_FILES
@@ -197,9 +208,6 @@ IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
 
-
-# Createt the configuration file
-
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -209,7 +217,6 @@ find_package(GitVersion)
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
 include_directories("${PROJECT_BINARY_DIR}")
-
 
 # Define the global output path of binaries
 SET(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
@@ -233,6 +240,7 @@ CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 if (CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
 endif()
 if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -242,6 +250,9 @@ else()
     message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 endif()
 
+# Use GNU gold linker if available
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+
 # setup -rpath to search for shared libs in BINARY/../libs folder
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -250,6 +261,24 @@ if (UNIX AND NOT APPLE)
 endif ()
 
 # add QT5 dependency
+IF ( CMAKE_CROSSCOMPILING )
+
+	file(GLOB QT_BIN ${QT_BIN_PATH})
+
+	set(QT_MOC_EXECUTABLE ${QT_BIN}/moc)
+	add_executable(Qt5::moc IMPORTED)
+	set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
+
+	set(QT_RCC_EXECUTABLE ${QT_BIN}/rcc)
+	add_executable(Qt5::rcc IMPORTED)
+	set_property(TARGET Qt5::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
+
+	message(STATUS "QT_BIN_PATH = ${QT_BIN}")
+	message(STATUS "QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
+	message(STATUS "QT_RCC_EXECUTABLE = ${QT_RCC_EXECUTABLE}")
+
+ENDIF()
+
 SET(QT_MIN_VERSION "5.5.0")
 find_package(Qt5 COMPONENTS Core Gui Network SerialPort REQUIRED)
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
@@ -257,11 +286,22 @@ IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
 
-
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
+
+# Add jpeg library
+if (ENABLE_V4L2)
+	find_package(JPEG)
+	if (JPEG_FOUND)
+		add_definitions(-DHAVE_JPEG)
+		message( STATUS "Using JPEG library: ${JPEG_LIBRARIES}")
+		include_directories(${JPEG_INCLUDE_DIR})
+	else()
+		message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
+	endif()
+endif()
 
 # TODO[TvdZ]: This linking directory should only be added if we are cross compiling
 #if(NOT APPLE)

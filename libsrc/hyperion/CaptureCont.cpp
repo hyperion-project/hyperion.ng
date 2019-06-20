@@ -13,8 +13,10 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	: QObject()
 	, _hyperion(hyperion)
 	, _systemCaptEnabled(false)
+	, _systemCaptName()
 	, _systemInactiveTimer(new QTimer(this))
 	, _v4lCaptEnabled(false)
+	, _v4lCaptName()
 	, _v4lInactiveTimer(new QTimer(this))
 {
 	// settings changes
@@ -41,14 +43,24 @@ CaptureCont::~CaptureCont()
 {
 }
 
-void CaptureCont::handleV4lImage(const Image<ColorRgb> & image)
+void CaptureCont::handleV4lImage(const QString& name, const Image<ColorRgb> & image)
 {
+	if(_v4lCaptName != name)
+	{
+		_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L, "System", name);
+		_v4lCaptName = name;
+	}
 	_v4lInactiveTimer->start();
 	_hyperion->setInputImage(_v4lCaptPrio, image);
 }
 
-void CaptureCont::handleSystemImage(const Image<ColorRgb>& image)
+void CaptureCont::handleSystemImage(const QString& name, const Image<ColorRgb>& image)
 {
+	if(_systemCaptName != name)
+	{
+		_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER, "System", name);
+		_systemCaptName = name;
+	}
 	_systemInactiveTimer->start();
 	_hyperion->setInputImage(_systemCaptPrio, image);
 }
@@ -70,6 +82,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 		}
 		_systemCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, enable);
+		_hyperion->setComponentState(hyperion::COMP_GRABBER, enable);
 	}
 }
 
@@ -81,7 +94,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		{
 			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, &CaptureCont::handleV4lImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperion, &Hyperion::forwardProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, _hyperion, &Hyperion::forwardProtoMessage);
 		}
 		else
 		{
@@ -91,6 +104,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		}
 		_v4lCaptEnabled = enable;
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, enable);
+		_hyperion->setComponentState(hyperion::COMP_V4L, enable);
 	}
 }
 

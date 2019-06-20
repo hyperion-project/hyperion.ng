@@ -1,3 +1,4 @@
+#pragma once
 
 // QT includes
 #include <QTimer>

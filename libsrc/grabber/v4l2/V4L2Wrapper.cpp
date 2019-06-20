@@ -53,7 +53,7 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
-	emit systemImage(image);
+	emit systemImage(_grabberName, image);
 }
 
 void V4L2Wrapper::readError(const char* err)
@@ -75,4 +75,9 @@ void V4L2Wrapper::setSignalDetectionEnable(bool enable)
 bool V4L2Wrapper::getSignalDetectionEnable()
 {
 	return _grabber.getSignalDetectionEnabled();
+}
+
+void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+{
+	_grabber.setDeviceVideoStandard(device, videoStandard);
 }

@@ -1,7 +1,7 @@
 #include <grabber/AmlogicWrapper.h>
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz)
-	: GrabberWrapper("AmLogic", &_grabber, grabWidth, grabHeight, updateRate_Hz)
+AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight)
+	: GrabberWrapper("AmLogic", &_grabber, grabWidth, grabHeight)
 	, _grabber(grabWidth, grabHeight)
 {}
 

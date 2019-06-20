@@ -101,7 +101,7 @@ void SSDPServer::initServer()
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
 
-const bool SSDPServer::start()
+bool SSDPServer::start()
 {
 	if(!_running && _udpSocket->bind(QHostAddress::AnyIPv4, SSDP_PORT, QAbstractSocket::ShareAddress))
 	{

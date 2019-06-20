@@ -86,7 +86,7 @@ public:
 	QVector<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() { return &_logMessageBuffer; };
 
 public slots:
-	void handleNewLogMessage(Logger::T_LOG_MESSAGE);
+	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);

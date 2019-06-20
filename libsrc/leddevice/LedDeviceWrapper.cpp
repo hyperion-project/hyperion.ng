@@ -20,6 +20,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	: QObject(hyperion)
 	, _hyperion(hyperion)
 	, _ledDevice(nullptr)
+	, _enabled(true)
 {
 	// prepare the device constrcutor map
 	#define REGISTER(className) LedDeviceWrapper::addToDeviceMap(QString(#className).toLower(), LedDevice##className::construct);
@@ -145,4 +146,5 @@ void LedDeviceWrapper::stopDeviceThread()
 	QThread* oldThread = _ledDevice->thread();
 	delete _ledDevice; // fast desctruction
 	oldThread->quit(); // non blocking
+	oldThread->wait();
 }

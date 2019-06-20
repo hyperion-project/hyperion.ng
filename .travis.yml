@@ -1,3 +1,11 @@
+linux: &linux
+    os: linux
+    dist: xenial
+    services:
+        - docker
+osx: &osx
+   os: osx
+
 cache:
     - ccache
     - directories:
@@ -5,27 +13,53 @@ cache:
 notifications:
     email: false
 language: cpp
-services:
-    - docker
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      env:
-          - DOCKER_TAG=ubuntu1604
-          - DOCKER_NAME="Ubuntu 16.04"
-    - os: linux
-      dist: trusty
-      env:
-          - DOCKER_TAG=cross-qemu-rpistretch
-          - DOCKER_NAME="Raspberry Pi"
-    - os: osx
-      osx_image: xcode8.3
-      env:
-        - HOMEBREW_CACHE=$HOME/brew-cache
+
 before_install:
-    - ./.travis/travis_install.sh
+    - ./.ci/ci_install.sh
+
+jobs:
+  include:
+      - <<: *linux
+        name: "AMD64 (x64)"
+        env:
+            - DOCKER_TAG=amd64
+            - DOCKER_NAME="Debian Stretch (AMD64)"
+      - <<: *linux
+        name: "i386 (x86)"
+        env:
+            - DOCKER_TAG=i386
+            - DOCKER_NAME="Debian Stretch (i386)"
+# ////////////////////////////////////////////////////////////////
+#      NOTE: Temporary disabled because travis timeouts
+# ////////////////////////////////////////////////////////////////
+#      - <<: *linux
+#        name: "ARMv6hf (Raspberry Pi v1 & ZERO)"
+#        env:
+#            - DOCKER_TAG=armv6hf
+#            - DOCKER_NAME="Debian Stretch (Raspberry Pi v1 & ZERO)"
+#            - PLATFORM="rpi"
+#      - <<: *linux
+#        name: "ARMv7hf (Raspberry Pi 2 & 3)"
+#        env:
+#            - DOCKER_TAG=armv7hf
+#            - DOCKER_NAME="Debian Stretch (Raspberry Pi 2 & 3)"
+#            - PLATFORM="rpi"
+#      - <<: *linux
+#        name: "ARMv8 (Generic AARCH64)"
+#        env:
+#            - DOCKER_TAG=aarch64
+#            - DOCKER_NAME="ARMv8 (Generic AARCH64)"
+#            - PLATFORM="amlogic"
+#
+# ////////////////////////////////////////////////////////////////
+      - <<: *osx
+        osx_image: xcode8.3
+        name: "macOS 10.12 (Xcode 8.3.3)"
+        env:
+          - HOMEBREW_CACHE=$HOME/brew-cache
+
 script:
-    - ./.travis/travis_build.sh
+    - ./.ci/ci_build.sh
 after_success:
-    - ./.travis/travis_deploy.sh
+    - ./.ci/ci_deploy.sh
+

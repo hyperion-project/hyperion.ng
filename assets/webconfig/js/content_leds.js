@@ -30,19 +30,19 @@ function createLedPreview(leds, origin){
 	
 	$('.st_helper').css("border", "8px solid grey");
 	
-	canvas_height = $('#leds_preview').innerHeight();
-	canvas_width = $('#leds_preview').innerWidth();
+	var canvas_height = $('#leds_preview').innerHeight();
+	var canvas_width = $('#leds_preview').innerWidth();
 
-	leds_html = "";
+	var leds_html = "";
 	for(var idx=0; idx<leds.length; idx++)
 	{
-		led = leds[idx];
-		led_id='ledc_'+[idx];
-		bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
-		pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
+		var led = leds[idx];
+		var led_id='ledc_'+[idx];
+		var bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
+		var pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
 			"top:"+(led.vscan.minimum * canvas_height)+"px;"+
-			"width:"+((led.hscan.maximum-led.hscan.minimum) * canvas_width-1)+"px;"+
-			"height:"+((led.vscan.maximum-led.vscan.minimum) * canvas_height-1)+"px;";
+			"width:"+((led.hscan.maximum-led.hscan.minimum) * (canvas_width-1))+"px;"+
+			"height:"+((led.vscan.maximum-led.vscan.minimum) * (canvas_height-1))+"px;";
 		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+led.index+'"><span id="'+led_id+'_num" class="led_prev_num">'+led.index+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
@@ -87,10 +87,10 @@ function createClassicLeds(){
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
-			hmin = array[i].hscan.minimum;
-			hmax = array[i].hscan.maximum;
-			vmin = array[i].vscan.minimum;
-			vmax = array[i].vscan.maximum;
+			var hmin = array[i].hscan.minimum;
+			var hmax = array[i].hscan.maximum;
+			var vmin = array[i].vscan.minimum;
+			var vmax = array[i].vscan.maximum;
 			finalLedArray[i] = { "index" : i, "hscan": { "maximum" : hmax, "minimum" : hmin }, "vscan": { "maximum": vmax, "minimum": vmin}}
 		}
 		createLedPreview(finalLedArray, 'classic');
@@ -115,9 +115,9 @@ function createClassicLeds(){
 	function valScan(val)
 	{
 		if(val > 1)
-			return val = 1;
+			return 1;
 		if(val < 0)
-			return val = 0;
+			return 0;
 		return val;
 	}
 	
@@ -138,62 +138,65 @@ function createClassicLeds(){
 	}
 	
 	function createTopLeds(){
-		step=(Hmax-Hmin)/ledstop;
+		var step=(Hmax-Hmin)/ledstop;
 		//if(cornerVGap != '0')
 		//	step=(Hmax-Hmin-(cornerHGap*2))/ledstop;
 
-		vmin=Vmin;
-		vmax=vmin+ledsHDepth;
+		var vmin=Vmin;
+		var vmax=vmin+ledsHDepth;
 		for (var i = 0; i<ledstop; i++){
-			hmin = ovl("-",(Hdiff/ledstop*[i])+edgeHGap);
-			hmax = ovl("+",(Hdiff/ledstop*[i])+step+edgeHGap);
+			var hmin = ovl("-",(Hdiff/ledstop*Number([i]))+edgeHGap);
+			var hmax = ovl("+",(Hdiff/ledstop*Number([i]))+step+edgeHGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}	
 	}
 	
 	function createLeftLeds(){
-		step=(Vmax-Vmin)/ledsleft;
+		var step=(Vmax-Vmin)/ledsleft;
 		//if(cornerVGap != '0')
 		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsleft;
 
-		hmin=Hmin;
-		hmax=hmin+ledsVDepth;
+		var hmin=Hmin;
+		var hmax=hmin+ledsVDepth;
 		for (var i = ledsleft-1; i>-1; --i){
-			vmin = ovl("-",(Vdiff/ledsleft*[i])+edgeVGap);
-			vmax = ovl("+",(Vdiff/ledsleft*[i])+step+edgeVGap);
+			var vmin = ovl("-",(Vdiff/ledsleft*Number([i]))+edgeVGap);
+			var vmax = ovl("+",(Vdiff/ledsleft*Number([i]))+step+edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 	
 	function createRightLeds(){
-		step=(Vmax-Vmin)/ledsright;
+		var step=(Vmax-Vmin)/ledsright;
 		//if(cornerVGap != '0')
 		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsright;
 
-		hmax=Hmax;
-		hmin=hmax-ledsVDepth;
+		var hmax=Hmax;
+		var hmin=hmax-ledsVDepth;
 		for (var i = 0; i<ledsright; i++){
-			vmin = ovl("-",(Vdiff/ledsright*[i])+edgeVGap);
-			vmax = ovl("+",(Vdiff/ledsright*[i])+step+edgeVGap);
+			var vmin = ovl("-",(Vdiff/ledsright*Number([i]))+edgeVGap);
+			var vmax = ovl("+",(Vdiff/ledsright*Number([i]))+step+edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);			
 		}
 	}
 	
 	function createBottomLeds(){
-		step=(Hmax-Hmin)/ledsbottom;
+		var step=(Hmax-Hmin)/ledsbottom;
 		//if(cornerVGap != '0')
 		//	step=(Hmax-Hmin-(cornerHGap*2))/ledsbottom;
 		
-		vmax=Vmax;
-		vmin=vmax-ledsHDepth;
+		var vmax=Vmax;
+		var vmin=vmax-ledsHDepth;
 		for (var i = ledsbottom-1; i>-1; i--){
-			hmin = ovl("-",(Hdiff/ledsbottom*[i])+edgeHGap);
-			hmax = ovl("+",(Hdiff/ledsbottom*[i])+step+edgeHGap);
+			var hmin = ovl("-",(Hdiff/ledsbottom*Number([i]))+edgeHGap);
+			var hmax = ovl("+",(Hdiff/ledsbottom*Number([i]))+step+edgeHGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 	
-	createLeftLeds(createBottomLeds(createRightLeds(createTopLeds())));
+	createLeftLeds();
+	createBottomLeds();
+	createRightLeds();
+	createTopLeds();
 
 	//check led gap pos
 	if (ledsgpos+ledsglength > ledArray.length)
@@ -308,17 +311,17 @@ $(document).ready(function() {
 	performTranslation();
 	
 	//add intros
-	if(showOptHelp)
+	if(window.showOptHelp)
 	{
 		createHintH("intro", $.i18n('conf_leds_device_intro'), "leddevice_intro");
 		createHintH("intro", $.i18n('conf_leds_layout_intro'), "layout_intro");
 		$('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l1')+'</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l2')+'</div>');
 	}
 	
-	var slConfig = serverConfig.ledConfig;
+	var slConfig = window.serverConfig.ledConfig;
 	
 	//restore ledConfig
-	for(key in slConfig)
+	for(var key in slConfig)
 	{
 		if(typeof(slConfig[key]) === "boolean")
 			$('#ip_cl_'+key).prop('checked', slConfig[key]);
@@ -329,7 +332,7 @@ $(document).ready(function() {
 	function saveValues()
 	{
 		var ledConfig = {};
-		for(key in slConfig)
+		for(var key in slConfig)
 		{
 			if(typeof(slConfig[key]) === "boolean")
 				ledConfig[key] = $('#ip_cl_'+key).is(':checked');
@@ -370,7 +373,7 @@ $(document).ready(function() {
 	});
 
 	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
-	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan","index"],"properties":{"clone":{"type":"integer"},"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"index":{"type":"integer"},"vscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"}
+	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan","index"],"properties":{"clone":{"type":"integer"},"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"index":{"type":"integer"},"vscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"};
 	//create jsonace editor
 	var aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
 		mode: 'code',
@@ -396,7 +399,7 @@ $(document).ready(function() {
 				$('#leds_custom_save').attr("disabled", true);
 			}
 		}
-	}, serverConfig.leds);
+	}, window.serverConfig.leds);
 	
 	//TODO: HACK! No callback for schema validation - Add it!
 	setInterval(function(){
@@ -405,12 +408,12 @@ $(document).ready(function() {
 			$('#leds_custom_updsim').attr("disabled", true);
 			$('#leds_custom_save').attr("disabled", true);
 		}
-	},1000)
+	},1000);
 	
 	$('.jsoneditor-menu').toggle();
 	
 	// leds to finalLedArray
-	finalLedArray = serverConfig.leds;
+	finalLedArray = window.serverConfig.leds;
 	
 	// cl/ma leds push to textfield
 	$('#btn_cl_generate, #btn_ma_generate').off().on("click", function(e) {
@@ -425,28 +428,28 @@ $(document).ready(function() {
 	
 	// create and update editor
 	$("#leddevices").off().on("change", function() {
-		generalOptions  = serverSchema.properties.device;
-		specificOptions = serverSchema.properties.alldevices[$(this).val()];
+		var generalOptions  = window.serverSchema.properties.device;
+		var specificOptions = window.serverSchema.properties.alldevices[$(this).val()];
 		conf_editor = createJsonEditor('editor_container', {
 			generalOptions : generalOptions,
 			specificOptions : specificOptions,
 		});
 		
-		values_general = {};
-		values_specific = {};
-		isCurrentDevice = (serverInfo.ledDevices.active == $(this).val());
+		var values_general = {};
+		var values_specific = {};
+		var isCurrentDevice = (window.serverInfo.ledDevices.active == $(this).val());
 
-		for(var key in serverConfig.device){
+		for(var key in window.serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
-				values_general[key] = serverConfig.device[key];
+				values_general[key] = window.serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
 		if (isCurrentDevice)
 		{
-			specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
+			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
 			for(var key in specificOptions_val){
-					values_specific[key] = (key in serverConfig.device) ? serverConfig.device[key] : specificOptions_val[key];
+					values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 			};
 
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
@@ -469,12 +472,12 @@ $(document).ready(function() {
 	});
 	
 	// create led device selection
-	ledDevices = serverInfo.ledDevices.available
-	devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
-	devRPiPWM = ['ws281x'];
-	devRPiGPIO = ['piblaster'];
-	devNET = ['atmoorb', 'fadecandy', 'philipshue', 'aurora', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw'];
-	devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
+	var ledDevices = window.serverInfo.ledDevices.available;
+	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
+	var devRPiPWM = ['ws281x'];
+	var devRPiGPIO = ['piblaster'];
+	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'aurora', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw'];
+	var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 	
 	var optArr = [[]];
 	optArr[1]=[];
@@ -483,7 +486,7 @@ $(document).ready(function() {
 	optArr[4]=[];
 	optArr[5]=[];
 	
-	for (idx=0; idx<ledDevices.length; idx++)
+	for (var idx=0; idx<ledDevices.length; idx++)
 	{
 		if($.inArray(ledDevices[idx], devRPiSPI) != -1)
 			optArr[0].push(ledDevices[idx]);
@@ -505,7 +508,7 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(serverInfo.ledDevices.active);
+	$("#leddevices").val(window.serverInfo.ledDevices.active);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview
@@ -559,11 +562,11 @@ $(document).ready(function() {
 	// save led device config
 	$("#btn_submit_controller").off().on("click", function(event) {
 
-		ledDevice = $("#leddevices").val();
-		result = {device:{}};
+		var ledDevice = $("#leddevices").val();
+		var result = {device:{}};
 		
-		general = conf_editor.getEditor("root.generalOptions").getValue();
-		specific = conf_editor.getEditor("root.specificOptions").getValue();
+		var general = conf_editor.getEditor("root.generalOptions").getValue();
+		var specific = conf_editor.getEditor("root.specificOptions").getValue();
 		for(var key in general){
 			result.device[key] = general[key];
 		}
@@ -577,6 +580,3 @@ $(document).ready(function() {
 
 	removeOverlay();
 });
-
-
-

@@ -6,8 +6,6 @@
 #include <hyperion/Grabber.h>
 #include <grabber/FramebufferFrameGrabber.h>
 
-class IonBuffer;
-
 ///
 ///
 class AmlogicGrabber : public Grabber
@@ -43,20 +41,17 @@ private:
 	bool openDev(int &fd, const char* dev);
 
 	int grabFrame_amvideocap(Image<ColorRgb> & image);
-	int grabFrame_ge2d(Image<ColorRgb> & image);
 
 	/** The snapshot/capture device of the amlogic video chip */
 	int             _captureDev;
 	int             _videoDev;
-	int             _ge2dDev;
 
 	Image<ColorBgr> _image_bgr;
-	
+	void*           _image_ptr;
+	ssize_t         _bytesToRead;
+
 	int             _lastError;
 	bool            _videoPlaying;
 	FramebufferFrameGrabber _fbGrabber;
 	int             _grabbingModeNotification;
-	bool            _ge2dAvailable;
-	void*           _ge2dVideoBufferPtr;
-	IonBuffer*      _ge2dIonBuffer;
 };

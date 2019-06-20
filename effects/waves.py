@@ -39,7 +39,7 @@ diag = int(diag*1.3)
 # calc positions
 pos = 0
 step = int(255/len(colors))
-for entry in colors:
+for _ in colors:
 	positions.append(pos)
 	pos += step
 

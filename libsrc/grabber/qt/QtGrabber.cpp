@@ -41,7 +41,7 @@ void QtGrabber::freeResources()
 	}
 }
 
-const bool QtGrabber::setupDisplay()
+bool QtGrabber::setupDisplay()
 {
 	// cleanup last screen
 	freeResources();
@@ -105,7 +105,7 @@ int QtGrabber::grabFrame(Image<ColorRgb> & image)
 	QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
 	QPixmap resizedPixmap = originalPixmap.scaled(_width,_height);
 	QImage img = resizedPixmap.toImage().convertToFormat( QImage::Format_RGB888);
-	memcpy(image.memptr(), img.bits(),_width*_height*3);
+	memcpy(image.memptr(), img.bits(),(size_t) _width*_height*3);
 
 	return 0;
 }

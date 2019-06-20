@@ -57,8 +57,8 @@ namespace hyperion
 		///
 		unsigned height() const;
 
-		const unsigned horizontalBorder() const { return _horizontalBorder; };
-		const unsigned verticalBorder() const { return _verticalBorder; };
+		unsigned horizontalBorder() { return _horizontalBorder; };
+		unsigned verticalBorder() { return _verticalBorder; };
 
 		///
 		/// Determines the mean-color for each led using the mapping the image given
@@ -96,9 +96,9 @@ namespace hyperion
 
 			// Iterate each led and compute the mean
 			auto led = ledColors.begin();
-			for (auto ledColors = _colorsMap.begin(); ledColors != _colorsMap.end(); ++ledColors, ++led)
+			for (auto colors = _colorsMap.begin(); colors != _colorsMap.end(); ++colors, ++led)
 			{
-				const ColorRgb color = calcMeanColor(image, *ledColors);
+				const ColorRgb color = calcMeanColor(image, *colors);
 				*led = color;
 			}
 		}

@@ -114,26 +114,24 @@
 	///  * sDHOffsetMax   		: area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
 	///  * sDVOffsetMax			: area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
-	[
-		{
-			"device"   : "auto",
-			"standard" : "NO_CHANGE",
-			"sizeDecimation"  : 8,
-			"priority"    : 240,
-			"cropLeft"    : 0,
-			"cropRight"   : 0,
-			"cropTop"     : 0,
-			"cropBottom"  : 0,
-			"redSignalThreshold"   : 5,
-			"greenSignalThreshold" : 5,
-			"blueSignalThreshold"  : 5,
-			"signalDetection"      : false,
-			"sDVOffsetMin"   : 0.25,
-			"sDHOffsetMin" : 0.25,
-			"sDVOffsetMax"   : 0.75,
-			"sDHOffsetMax" : 0.75
-		}
-	],
+	{
+		"device"   : "auto",
+		"standard" : "NO_CHANGE",
+		"sizeDecimation"  : 8,
+		"priority"    : 240,
+		"cropLeft"    : 0,
+		"cropRight"   : 0,
+		"cropTop"     : 0,
+		"cropBottom"  : 0,
+		"redSignalThreshold"   : 5,
+		"greenSignalThreshold" : 5,
+		"blueSignalThreshold"  : 5,
+		"signalDetection"      : false,
+		"sDVOffsetMin"   : 0.25,
+		"sDHOffsetMin" : 0.25,
+		"sDVOffsetMax"   : 0.75,
+		"sDHOffsetMax" : 0.75
+	},
 
 	///  The configuration for the frame-grabber, contains the following items:
 	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer|qt) [auto]
@@ -243,15 +241,24 @@
 		"timeout" : 5
 	},
 
+	/// The configuration of the Protobuffer server which enables the Protobuffer remote interface
+	///  * port : Port at which the protobuffer server is started
+	"protoServer" :
+	{
+		"enable" : true,
+		"port" : 19445,
+		"timeout" : 5
+	},
+
 	/// The configuration of the boblight server which enables the boblight remote interface
 	///  * enable   : Enable or disable the boblight server (true/false)
 	///  * port     : Port at which the boblight server is started
-	///  * priority : Priority of the boblight server (Default=201) HINT: lower value result in HIGHER priority!
+	///  * priority : Priority of the boblight server (Default=128) HINT: lower value result in HIGHER priority!
  	"boblightServer" :
  	{
  		"enable"   : false,
  		"port"     : 19333,
- 		"priority" : 201
+ 		"priority" : 128
  	},
 
 	/// The configuration of the udp listener
