@@ -2,7 +2,7 @@
 window.webPrio = 1;
 window.webOrigin = "Web Configuration";
 window.showOptHelp = true;
-window.gitHubReleaseApiUrl = "https://api.github.com/repos/b1rdhous3/hyperion.ng/releases";
+window.gitHubReleaseApiUrl = "https://api.github.com/repos/hyperion-project/hyperion.ng/releases";
 window.currentVersion = null;
 window.latestVersion = null;
 window.latestStableVersion = null;
