@@ -18,7 +18,7 @@
 <script>
 // performTranslation('trans_update');
 performTranslation();
-if(window.gitHubVersionList != null)
+if(Array.isArray(window.gitHubVersionList) && window.gitHubVersionList.length)
 {
 	for (key in window.gitHubVersionList)
 	{

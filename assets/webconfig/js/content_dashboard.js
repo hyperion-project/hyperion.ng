@@ -85,18 +85,9 @@ $(document).ready( function() {
 
 		for(i in releases)
 		{
-			console.log(releases[i].prerelease)
 			if(releases[i].prerelease == true)
 			{
-				//for(j in releases[i].assets)
-				//{
-					//console.log(releases[i].assets[j])
-					//if(releases[i].assets[j].name.indexOf('Beta') > -1)
-					//{
-						window.latestBetaVersion = releases[i];
-						//break;
-					//}
-				//}
+				window.latestBetaVersion = releases[i];
 				break;
 			}
 		}
@@ -104,21 +95,14 @@ $(document).ready( function() {
 		$.get( window.gitHubReleaseApiUrl + "/latest", function( latest ) {
 			window.latestStableVersion = latest;
 
-			console.log(window.latestBetaVersion)
-			console.log(window.latestStableVersion)
-			//debugger;
-			console.log("Stable"+ window.latestStableVersion.tag_name.replace(/\./g, ''))
-			console.log("Beta"+ window.latestBetaVersion.tag_name.replace(/\./g, ''))
-
-
-			if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, '')) {
+			if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, ''))
+			{
 				window.latestVersion = window.latestBetaVersion;
 			}
-			else {
+			else
+			{
 				window.latestVersion = window.latestStableVersion;
 			}
-
-			console.log(latestVersion)
 
 			var cleanLatestVersion = window.latestVersion.tag_name.replace(/\./g, '');
 			var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
