@@ -256,6 +256,7 @@
 	"update_button_changelog" : "Full changelog",
 	"update_label_type" : "Type:",
 	"update_versreminder" : "Your version: $1",
+	"update_error_getting_versions" : "We had trouble to determinate the available Versions.",
 	"about_version" : "Version",
 	"about_build" : "Build",
 	"about_builddate" : "Build date",

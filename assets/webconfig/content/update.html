@@ -4,6 +4,7 @@
 			<h3 class="page-header"><i class="fa fa-download fa-fw"></i><span  data-i18n="main_menu_update_token">Update</span></h3>
 			<div class="introd">
 				<h4  data-i18n="update_label_intro">Overview about all available Hyperion versions. On top you could update or downgrade your version of Hyperion whenever you want. Sorted from newest to oldest</h4>
+				<h4> At the moment the install buttons are not working. Development is still ongoing here. </h4>
 			<hr />
 			</div>
 			<h4 id="update_currver"></h4>
@@ -17,10 +18,23 @@
 <script>
 // performTranslation('trans_update');
 performTranslation();
-
-	for (key in parsedUpdateJSON)
+if(window.gitHubVersionList != null)
+{
+	for (key in window.gitHubVersionList)
 	{
-		$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-default"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+parsedUpdateJSON[key].versionnr+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type')+'</span> '+ parsedUpdateJSON[key].channel +'</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+parsedUpdateJSON[key].versiondesc+'</p><hr><a class="btn btn-primary" href="'+ parsedUpdateJSON[key].versionchangelog +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right"><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
+
+		if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.versionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
+		{
+			continue;
+		}
+
+		$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-'+ (window.gitHubVersionList[key].prerelease == true ? "danger" : "default") +'"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+window.gitHubVersionList[key].tag_name+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type') + '</span> ' + (window.gitHubVersionList[key].prerelease == true ? "Beta" : "Stable") + '</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+window.gitHubVersionList[key].body+'</p><hr><a class="btn btn-primary" href="'+ window.gitHubVersionList[key].html_url +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right" ' + (window.gitHubVersionList[key].tag_name == window.currentVersion ? "disabled":"") + '><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
 	}
 	$('#update_currver').append($.i18n('update_versreminder', currentVersion));
+}
+else
+{
+	$('#versionlist').append($.i18n('update_error_getting_versions'));
+}
+
 </script>

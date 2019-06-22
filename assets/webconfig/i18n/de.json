@@ -256,6 +256,7 @@
 	"update_button_changelog" : "Zeige Änderungsprotokoll",
 	"update_label_type" : "Art:",
 	"update_versreminder" : "Deine Version: $1",
+	"update_error_getting_versions" : "Wir hatten Probleme die verfügbaren Versionen zu ermitteln.",
 	"about_version" : "Version",
 	"about_build" : "Build",
 	"about_builddate" : "Build Datum",

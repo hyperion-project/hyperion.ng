@@ -80,40 +80,57 @@ $(document).ready( function() {
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
 	$('#dash_versionbranch').html(window.serverConfig.general.versionBranch);
 
-	$.get( "https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/version.json", function( data ) {
-		window.parsedUpdateJSON = JSON.parse(data);
+	$.get( window.gitHubReleaseApiUrl, function( releases ) {
+		window.gitHubVersionList = releases;
 
-		for(let i=0; i<window.parsedUpdateJSON.length; i++) {
-			if(window.parsedUpdateJSON[i].channel == "Stable") {
-				window.latestStableVersion = window.parsedUpdateJSON[i];
+		for(i in releases)
+		{
+			console.log(releases[i].prerelease)
+			if(releases[i].prerelease == true)
+			{
+				//for(j in releases[i].assets)
+				//{
+					//console.log(releases[i].assets[j])
+					//if(releases[i].assets[j].name.indexOf('Beta') > -1)
+					//{
+						window.latestBetaVersion = releases[i];
+						//break;
+					//}
+				//}
 				break;
 			}
 		}
 
-		for(let i=0; i<window.parsedUpdateJSON.length; i++) {
-			if(window.parsedUpdateJSON[i].channel == "Beta") {
-				window.latestBetaVersion = window.parsedUpdateJSON[i];
-				break;
+		$.get( window.gitHubReleaseApiUrl + "/latest", function( latest ) {
+			window.latestStableVersion = latest;
+
+			console.log(window.latestBetaVersion)
+			console.log(window.latestStableVersion)
+			//debugger;
+			console.log("Stable"+ window.latestStableVersion.tag_name.replace(/\./g, ''))
+			console.log("Beta"+ window.latestBetaVersion.tag_name.replace(/\./g, ''))
+
+
+			if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, '')) {
+				window.latestVersion = window.latestBetaVersion;
 			}
-		}
+			else {
+				window.latestVersion = window.latestStableVersion;
+			}
 
-		if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.versionnr.replace(/\./g, '') <= window.latestBetaVersion.versionnr.replace(/\./g, '')) {
-			window.latestVersion = window.latestBetaVersion;
-		}
-		else {
-			window.latestVersion = window.latestStableVersion;
-		}
+			console.log(latestVersion)
 
-		var cleanLatestVersion = window.latestVersion.versionnr.replace(/\./g, '');
-		var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
+			var cleanLatestVersion = window.latestVersion.tag_name.replace(/\./g, '');
+			var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
 
-		$('#dash_latev').html(window.currentVersion);
-	  $('#dash_latev').html(window.latestVersion.versionnr + ' (' + window.latestVersion.channel + ')');
+			$('#dash_latev').html(window.currentVersion);
+		  $('#dash_latev').html(window.latestVersion.tag_name + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')');
 
-		if ( cleanCurrentVersion < cleanLatestVersion )
-			$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.versionnr) + ' (' + window.latestVersion.channel + ')</div>');
-	else
-			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+			if ( cleanCurrentVersion < cleanLatestVersion )
+				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')</div>');
+			else
+				$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+		});
 	});
 
 	//determine platform
