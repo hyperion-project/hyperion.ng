@@ -52,7 +52,7 @@ $(document).ready( function() {
 	{
 		var components = window.comps;
 		var components_html = "";
-		for ( var idx=0; idx<components.length;idx++)
+		for (var idx=0; idx<components.length;idx++)
 		{
 			if(components[idx].name != "ALL")
 				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
@@ -83,7 +83,7 @@ $(document).ready( function() {
 	$.get( window.gitHubReleaseApiUrl, function( releases ) {
 		window.gitHubVersionList = releases;
 
-		for(i in releases)
+		for(var i in releases)
 		{
 			if(releases[i].prerelease == true)
 			{
