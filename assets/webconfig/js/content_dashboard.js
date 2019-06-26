@@ -80,17 +80,20 @@ $(document).ready( function() {
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
 	$('#dash_versionbranch').html(window.serverConfig.general.versionBranch);
 
-	getReleases(function(){
-		var cleanLatestVersion = window.latestVersion.tag_name.replace(/\./g, '');
-		var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
+	getReleases(function(callback){
+		if(callback)
+		{
+			var cleanLatestVersion = window.latestVersion.tag_name.replace(/\./g, '');
+			var cleanCurrentVersion = window.currentVersion.replace(/\./g, '');
 
-		$('#dash_latev').html(window.currentVersion);
-		$('#dash_latev').html(window.latestVersion.tag_name + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')');
+			$('#dash_latev').html(window.currentVersion);
+			$('#dash_latev').html(window.latestVersion.tag_name + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')');
 
-		if ( cleanCurrentVersion < cleanLatestVersion )
-			$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')</div>');
-		else
-			$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+			if ( cleanCurrentVersion < cleanLatestVersion )
+				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + ' (' + (window.latestVersion.prerelease == true ? "Beta" : "Stable") + ')</div>');
+			else
+				$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+		}
 	});
 
 
