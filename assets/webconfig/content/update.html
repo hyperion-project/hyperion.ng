@@ -16,25 +16,29 @@
 </div>
 
 <script>
-// performTranslation('trans_update');
-performTranslation();
-if(Array.isArray(window.gitHubVersionList) && window.gitHubVersionList.length)
-{
-	for (key in window.gitHubVersionList)
+$(document).ready( function(error) {
+	performTranslation();
+	getReleases(function (callback){
+
+	if(callback)
 	{
-
-		if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.versionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
+		for (var key in window.gitHubVersionList)
 		{
-			continue;
+
+			if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.versionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
+			{
+				continue;
+			}
+
+			$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-'+ (window.gitHubVersionList[key].prerelease == true ? "danger" : "default") +'"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+window.gitHubVersionList[key].tag_name+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type') + '</span> ' + (window.gitHubVersionList[key].prerelease == true ? "Beta" : "Stable") + '</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+window.gitHubVersionList[key].body+'</p><hr><a class="btn btn-primary" href="'+ window.gitHubVersionList[key].html_url +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right" ' + (window.gitHubVersionList[key].tag_name == window.currentVersion ? "disabled":"") + '><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
 		}
-
-		$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-'+ (window.gitHubVersionList[key].prerelease == true ? "danger" : "default") +'"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+window.gitHubVersionList[key].tag_name+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type') + '</span> ' + (window.gitHubVersionList[key].prerelease == true ? "Beta" : "Stable") + '</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+window.gitHubVersionList[key].body+'</p><hr><a class="btn btn-primary" href="'+ window.gitHubVersionList[key].html_url +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right" ' + (window.gitHubVersionList[key].tag_name == window.currentVersion ? "disabled":"") + '><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
+		$('#update_currver').append($.i18n('update_versreminder', currentVersion));
 	}
-	$('#update_currver').append($.i18n('update_versreminder', currentVersion));
-}
-else
-{
-	$('#versionlist').append($.i18n('update_error_getting_versions'));
-}
-
+	else
+	{
+		$('#versionlist').append($.i18n('update_error_getting_versions'));
+	}
+	});
+	removeOverlay();
+});
 </script>
