@@ -198,7 +198,7 @@ function showInfoDialog(type,header,message)
 		$('#id_body').append(message);
 		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	
+
 	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
 	$('#id_body').append(message);
 
@@ -708,4 +708,52 @@ function performTranslation()
 function encode_utf8(s)
 {
 	return unescape(encodeURIComponent(s));
+}
+
+function getReleases(callback)
+{
+	$.ajax({
+	    url: window.gitHubReleaseApiUrl,
+	    method: 'get',
+	    error: function(XMLHttpRequest, textStatus, errorThrown)
+			{
+					callback(false);
+	    },
+	    success: function(releases)
+			{
+				window.gitHubVersionList = releases;
+
+				for(var i in releases)
+				{
+					if(releases[i].prerelease == true)
+					{
+						window.latestBetaVersion = releases[i];
+						break;
+					}
+				}
+
+				$.ajax({
+			    url: window.gitHubReleaseApiUrl + "/latest",
+			    method: 'get',
+			    error: function(XMLHttpRequest, textStatus, errorThrown)
+					{
+							callback(false);
+			    },
+			    success: function(latest)
+					{
+						window.latestStableVersion = latest;
+
+						if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, ''))
+						{
+							window.latestVersion = window.latestBetaVersion;
+						}
+						else
+						{
+							window.latestVersion = window.latestStableVersion;
+						}
+						callback(true);
+					}
+				});
+			}
+	})
 }

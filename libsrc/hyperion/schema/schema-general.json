@@ -14,13 +14,26 @@
 			"required" : true,
 			"propertyOrder" : 1
 		},
+		"versionBranch" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_gen_versionBranch_title",
+			"enum" : ["Stable", "Beta"],
+			"required" : true,
+			"access" : "expert",
+			"default" : "Stable",
+			"options" : {
+				"enum_titles" : ["Stable", "Beta"]
+			},
+			"propertyOrder" : 2
+		},
 		"showOptHelp" :
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_gen_showOptHelp_title",
 			"default" : true,
 			"required" : true,
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties" : false
