@@ -477,12 +477,6 @@ private slots:
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
-	///
-	/// @brief Handle priority updates from Priority Muxer
-	/// @param  priority  The new visible priority
-	///
-	void handlePriorityChanges(const quint8 &priority);
-
 private:
 
 	///

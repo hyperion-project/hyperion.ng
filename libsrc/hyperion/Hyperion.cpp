@@ -106,9 +106,6 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 		_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
 	}
 
-	// connect Hyperion::handlePriorityChanges with Muxer visible priority changes as muxer updates independent
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChanges);
-
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
 	connect(&_componentRegister, &ComponentRegister::updatedComponentState, this, &Hyperion::updatedComponentState);
 
@@ -565,18 +562,19 @@ const QString & Hyperion::getActiveDevice()
 
 void Hyperion::updatedComponentState(const hyperion::Components comp, const bool state)
 {
-	if(comp == hyperion::COMP_ALL)
+	QMutexLocker lock(&_changes);
+
+	// evaluate comp change
+	if (comp != _prevCompId)
 	{
-		if(state)
-		{
-			// first muxer to update all inputs
-			_muxer.setEnable(state);
-		}
-		else
-		{
-			_muxer.setEnable(state);
-		}
+		_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT));
+		_imageProcessor->setHardLedMappingType((_prevCompId == hyperion::COMP_EFFECT) ? 0 : -1);
+		_prevCompId = comp;
+		_raw2ledAdjustment->setBacklightEnabled((_prevCompId != hyperion::COMP_COLOR && _prevCompId != hyperion::COMP_EFFECT));
 	}
+
+	if(comp == hyperion::COMP_ALL)
+		_muxer.setEnable(state); // first muxer to update all inputs
 }
 
 void Hyperion::update()
@@ -656,22 +654,5 @@ void Hyperion::update()
 
 		if  (! _deviceSmooth->enabled())
 			emit ledDeviceData(_ledBuffer);
-	}
-}
-
-void Hyperion::handlePriorityChanges(const quint8 &priority)
-{
-	QMutexLocker lock(&_changes);
-
-	// Obtain the current priority channel
-	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
-
-	// evaluate comp change
-	if (priorityInfo.componentId != _prevCompId)
-	{
-		_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT));
-		_imageProcessor->setHardLedMappingType((_prevCompId == hyperion::COMP_EFFECT) ? 0 : -1);
-		_prevCompId = priorityInfo.componentId;
-		_raw2ledAdjustment->setBacklightEnabled((_prevCompId != hyperion::COMP_COLOR && _prevCompId != hyperion::COMP_EFFECT));
 	}
 }
