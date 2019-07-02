@@ -40,12 +40,12 @@ namespace hyperion {
 					(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
 				};
 				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Inital foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
+				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
 			}
 			else
 			{
 				int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Inital foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
+				Info(Logger::getInstance("HYPERION"),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
 		}
 		#undef FGCONFIG_ARRAY

@@ -106,8 +106,8 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 		_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
 	}
 
-	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
+	// connect Hyperion::handlePriorityChanges with Muxer visible priority changes as muxer updates independent
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChanges);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
 	connect(&_componentRegister, &ComponentRegister::updatedComponentState, this, &Hyperion::updatedComponentState);
@@ -186,7 +186,6 @@ void Hyperion::freeObjects(bool emitCloseSignal)
 	delete _boblightServer;
 	delete _captureCont;
 	delete _effectEngine;
-	//delete _deviceSmooth;
 	delete _raw2ledAdjustment;
 	delete _messageForwarder;
 	delete _settingsManager;
@@ -209,10 +208,13 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	}
 	else if(type == settings::LEDS)
 	{
+		QMutexLocker lock(&_changes);
+
 		const QJsonArray leds = config.array();
 
-		// lock update()
-		_lockUpdate = true;
+// 		// lock update()
+// 		_lockUpdate = true;
+
 		// stop and cache all running effects, as effects depend heavily on ledlayout
 		_effectEngine->cacheRunningEffects();
 
@@ -249,12 +251,13 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// start cached effects
 		_effectEngine->startCachedEffects();
 
-		// unlock
-		_lockUpdate = false;
+// 		// unlock
+// 		_lockUpdate = false;
 	}
 	else if(type == settings::DEVICE)
 	{
-		_lockUpdate = true;
+		QMutexLocker lock(&_changes);
+// 		_lockUpdate = true;
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
@@ -278,7 +281,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
-		_lockUpdate = false;
+// 		_lockUpdate = false;
 	}
 	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
 	update();
@@ -578,49 +581,24 @@ void Hyperion::updatedComponentState(const hyperion::Components comp, const bool
 
 void Hyperion::update()
 {
-	if(_lockUpdate)
-		return;
-
-	// the ledbuffer resize for hwledcount needs to be reverted
-	if(_hwLedCount > _ledBuffer.size())
-		_ledBuffer.resize(getLedCount());
+	QMutexLocker lock(&_changes);
 
 	// Obtain the current priority channel
 	int priority = _muxer.getCurrentPriority();
 	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
-
-	// eval comp change
-	bool compChanged = false;
-	if (priorityInfo.componentId != _prevCompId)
-	{
-		compChanged = true;
-		_prevCompId = priorityInfo.componentId;
-	}
 
 	// copy image & process OR copy ledColors from muxer
 	Image<ColorRgb> image = priorityInfo.image;
 	if(image.size() > 3)
 	{
 		emit currentImage(image);
-		// disable the black border detector for effects and ledmapping to 0
-		if(compChanged)
-		{
-			_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT));
-			_imageProcessor->setHardLedMappingType((_prevCompId == hyperion::COMP_EFFECT) ? 0 : -1);
-		}
-		_imageProcessor->process(image, _ledBuffer);
+		_ledBuffer = _imageProcessor->process(image);
 	}
 	else
-	{
 		_ledBuffer = priorityInfo.ledColors;
-	}
 
 	// emit rawLedColors before transform
 	emit rawLedColors(_ledBuffer);
-
-	// apply adjustments
-	if(compChanged)
-		_raw2ledAdjustment->setBacklightEnabled((_prevCompId != hyperion::COMP_COLOR && _prevCompId != hyperion::COMP_EFFECT));
 
 	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
 
@@ -660,7 +638,8 @@ void Hyperion::update()
 		}
 		i++;
 	}
-	// fill aditional hw leds with black
+
+	// fill additional hw leds with black
 	if ( _hwLedCount > _ledBuffer.size() )
 	{
 		_ledBuffer.resize(_hwLedCount, ColorRgb::BLACK);
@@ -671,11 +650,28 @@ void Hyperion::update()
 	{
 		_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
 
-		// feed smoothing in pause mode to maintain a smooth transistion back to smoth mode
+		// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			_deviceSmooth->setLedValues(_ledBuffer);
 
 		if  (! _deviceSmooth->enabled())
 			emit ledDeviceData(_ledBuffer);
+	}
+}
+
+void Hyperion::handlePriorityChanges(const quint8 &priority)
+{
+	QMutexLocker lock(&_changes);
+
+	// Obtain the current priority channel
+	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
+
+	// evaluate comp change
+	if (priorityInfo.componentId != _prevCompId)
+	{
+		_imageProcessor->setBlackbarDetectDisable((_prevCompId == hyperion::COMP_EFFECT));
+		_imageProcessor->setHardLedMappingType((_prevCompId == hyperion::COMP_EFFECT) ? 0 : -1);
+		_prevCompId = priorityInfo.componentId;
+		_raw2ledAdjustment->setBacklightEnabled((_prevCompId != hyperion::COMP_COLOR && _prevCompId != hyperion::COMP_EFFECT));
 	}
 }

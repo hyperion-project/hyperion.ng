@@ -5,7 +5,6 @@
 #include <QMap>
 
 // QT includes
-//#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QSize>
@@ -13,6 +12,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QFileSystemWatcher>
+#include <QMutex>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -410,8 +410,11 @@ signals:
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
 
-	/// Signal which is emitted, when a new proto image should be forwarded
-	void forwardProtoMessage(const QString, const Image<ColorRgb>);
+	/// Signal which is emitted, when a new system proto image should be forwarded
+	void forwardSystemProtoMessage(const QString, const Image<ColorRgb>);
+
+	/// Signal which is emitted, when a new V4l proto image should be forwarded
+	void forwardV4lProtoMessage(const QString, const Image<ColorRgb>);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change
@@ -473,6 +476,12 @@ private slots:
 	///	@param config The configuration
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
+	///
+	/// @brief Handle priority updates from Priority Muxer
+	/// @param  priority  The new visible priority
+	///
+	void handlePriorityChanges(const quint8 &priority);
 
 private:
 
@@ -560,12 +569,12 @@ private:
 	/// Capture control for Daemon native capture
 	CaptureCont* _captureCont;
 
-	// lock Hyperion::update() for exec
-	bool _lockUpdate = false;
-
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	/// mutex
+	QMutex _changes;
 };

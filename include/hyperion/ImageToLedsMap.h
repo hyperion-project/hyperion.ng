@@ -61,7 +61,7 @@ namespace hyperion
 		unsigned verticalBorder() { return _verticalBorder; };
 
 		///
-		/// Determines the mean-color for each led using the mapping the image given
+		/// Determines the mean color for each led using the mapping the image given
 		/// at construction.
 		///
 		/// @param[in] image  The image from which to extract the led colors
@@ -104,7 +104,7 @@ namespace hyperion
 		}
 
 		///
-		/// Determines the mean-color for each led using the mapping the image given
+		/// Determines the uni color for each led using the mapping the image given
 		/// at construction.
 		///
 		/// @param[in] image  The image from which to extract the led colors
@@ -120,7 +120,7 @@ namespace hyperion
 		}
 
 		///
-		/// Determines the mean color for each led using the mapping the image given
+		/// Determines the uni color for each led using the mapping the image given
 		/// at construction.
 		///
 		/// @param[in] image  The image from which to extract the led colors

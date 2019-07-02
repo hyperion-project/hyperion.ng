@@ -193,10 +193,10 @@ function createClassicLeds(){
 		}
 	}
 	
-	createLeftLeds();
-	createBottomLeds();
-	createRightLeds();
 	createTopLeds();
+	createRightLeds();
+	createBottomLeds();
+	createLeftLeds();
 
 	//check led gap pos
 	if (ledsgpos+ledsglength > ledArray.length)
@@ -429,6 +429,9 @@ $(document).ready(function() {
 	// create and update editor
 	$("#leddevices").off().on("change", function() {
 		var generalOptions  = window.serverSchema.properties.device;
+
+		// Modified schema enty "hardwareLedCount" in generalOptions to minimum LedCount
+
 		var specificOptions = window.serverSchema.properties.alldevices[$(this).val()];
 		conf_editor = createJsonEditor('editor_container', {
 			generalOptions : generalOptions,

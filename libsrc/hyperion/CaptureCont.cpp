@@ -73,7 +73,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 		{
 			_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, &CaptureCont::handleSystemImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperion, &Hyperion::forwardProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, _hyperion, &Hyperion::forwardSystemProtoMessage);
 		}
 		else
 		{
@@ -94,7 +94,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 		{
 			_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L);
 			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, &CaptureCont::handleV4lImage);
-			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, _hyperion, &Hyperion::forwardProtoMessage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, _hyperion, &Hyperion::forwardV4lProtoMessage);
 		}
 		else
 		{
