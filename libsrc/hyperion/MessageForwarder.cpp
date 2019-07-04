@@ -83,9 +83,12 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 		if (!_protoSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
 		{
 			InfoIf(obj["enable"].toBool(true), _log, "Forward now to proto targets '%s'", QSTRING_CSTR(_protoSlaves.join(", ")));
-			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+// 			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
 		} else if ( _protoSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
-			disconnect(_hyperion, &Hyperion::forwardProtoMessage, 0, 0);
+		{
+			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
+			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
+		}
 
 		// update comp state
 		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
@@ -112,8 +115,8 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 		while (!_forwardClients.isEmpty())
 			delete _forwardClients.takeFirst();
 
-		hyperion::Components activePrio = _hyperion->getPriorityInfo(priority).componentId;
-		if (activePrio == hyperion::COMP_GRABBER || activePrio == hyperion::COMP_V4L)
+		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
+		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
 		{
 			if ( !obj["proto"].isNull() )
 			{
@@ -123,10 +126,33 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 					addProtoSlave(entry.toString());
 				}
 			}
-			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+
+			switch(activeCompId)
+			{
+				case hyperion::COMP_GRABBER:
+				{
+					disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
+					connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+				}
+				break;
+				case hyperion::COMP_V4L:
+				{
+					disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
+					connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+				}
+				break;
+				default:
+				{
+					disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
+					disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
+				}
+			}
 		}
 		else
-			disconnect(_hyperion, &Hyperion::forwardProtoMessage, 0, 0);
+		{
+			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
+			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
+		}
 	}
 }
 

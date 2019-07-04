@@ -30,7 +30,6 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 {
 
 	Q_INIT_RESOURCE(EffectEngine);
-	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback

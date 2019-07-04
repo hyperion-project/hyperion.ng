@@ -56,17 +56,18 @@ public:
 	/// @return true if success
 	bool init(const QJsonObject &deviceConfig);
 
+private:
 	///
 	/// Writes the led color values to the led-device
 	///
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb>& ledValues);
 
-private:
-	QTcpSocket  _client;
-	QString _host;
+protected:
+	QTcpSocket* _client;
+	QString     _host;
 	uint16_t    _port;
 	unsigned    _channel;
 	QByteArray  _opc_data;

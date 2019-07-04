@@ -3,7 +3,6 @@
 // STL includes
 #include <vector>
 
-
 // Qt includes
 #include <QVector>
 

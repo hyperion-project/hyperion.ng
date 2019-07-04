@@ -41,25 +41,26 @@ LedDeviceWrapper::~LedDeviceWrapper()
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 {
 	if(_ledDevice != nullptr)
-	 {
-		 stopDeviceThread();
-	 }
+	{
+		stopDeviceThread();
+	}
 
-	 // create thread and device
-	 QThread* thread = new QThread(this);
-	 _ledDevice = LedDeviceFactory::construct(config);
-	 _ledDevice->moveToThread(thread);
-	 // setup thread management
-	 connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
-	 connect(thread, &QThread::finished, thread, &QObject::deleteLater);
-	 connect(thread, &QThread::finished, _ledDevice, &QObject::deleteLater);
+	// create thread and device
+	QThread* thread = new QThread(this);
+	_ledDevice = LedDeviceFactory::construct(config);
+	_ledDevice->moveToThread(thread);
+	// setup thread management
+	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
+	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+	connect(thread, &QThread::finished, _ledDevice, &QObject::deleteLater);
 
-	 // further signals
-	 connect(this, &LedDeviceWrapper::write, _ledDevice, &LedDevice::write);
-	 connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState);
+	// further signals
+	connect(this, &LedDeviceWrapper::write, _ledDevice, &LedDevice::write);
+	connect(_hyperion->getMuxerInstance(), &PriorityMuxer::visiblePriorityChanged, _ledDevice, &LedDevice::visiblePriorityChanged);
+	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState);
 
-	 // start the thread
-	 thread->start();
+	// start the thread
+	thread->start();
 }
 
 const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
