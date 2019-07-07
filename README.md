@@ -19,6 +19,9 @@
     <a href="https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE">
         <img src="https://img.shields.io/badge/License-MIT-yellow.svg"
             alt="GitHub license"></a>
+    <a href="https://poeditor.com/join/project/Y4F6vHRFjA">
+        <img src="https://img.shields.io/badge/POEditor-translate-green.svg"
+            alt="Join Translation"></a>
 </p>
 
 <p align="center">This is a pre alpha development repository for the next major version of hyperion</p>
