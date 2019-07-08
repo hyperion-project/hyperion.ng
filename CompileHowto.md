@@ -1,24 +1,33 @@
 # With Docker
-If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compilation for Raspberry Pi (Debian Stretch)
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Stretch or higher). To compile Hyperion just execute one of the following commands.
 
-To compile Hyperion for Debain Stretch (x64 architecture) or higher just execute the following command
+The compiled binaries and packages will be available at the deploy folder next to the script
+Note: call the script with `./docker-compile.sh -h` for more options
+
+## Native compiling on Raspberry Pi
+
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t rpi-raspbian
+```
+
+## Cross compiling on X64_86 for:
+
+**X64:**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
 ```
-To compile Hyperion for i386 architecture
+**i386:**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t i386
 ```
-To compile Hyperion for Raspberry Pi v1 & ZERO
+**Raspberry Pi v1 & ZERO**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv6hf
 ```
-To compile Hyperion for Raspberry Pi 2 & 3
+**Raspberry Pi 2 & 3**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv7hf
 ```
-The compiled binaries and packages will be available at the deploy folder next to the script
-Note: call the script with `./docker-compile.sh -h` for more options
 
 # The usual way
 

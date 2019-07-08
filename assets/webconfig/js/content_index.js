@@ -39,6 +39,7 @@ $(document).ready( function() {
 		window.sysInfo = event.response.info;
 
 		window.currentVersion = window.sysInfo.hyperion.version;
+		window.currentChannel = window.sysInfo.hyperion.channel;
 	});
 
 	$(window.hyperion).one("cmd-config-getschema", function(event) {

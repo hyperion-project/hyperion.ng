@@ -78,7 +78,7 @@ $(document).ready( function() {
 	$('#dash_currv').html(window.currentVersion);
 	$('#dash_instance').html(window.serverConfig.general.name);
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
-	$('#dash_versionbranch').html(window.serverConfig.general.versionBranch);
+	$('#dash_versionbranch').html(window.currentChannel);
 
 	getReleases(function(callback){
 		if(callback)

@@ -7,33 +7,36 @@ set(CMAKE_AUTOMOC ON)
 # auto prepare .qrc files
 set(CMAKE_AUTORCC ON)
 
-IF ( POLICY CMP0026 )
+if ( POLICY CMP0026 )
 	CMAKE_POLICY( SET CMP0026 OLD )
-ENDIF()
+endif()
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
+if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+find_package( PythonInterp 3.5 REQUIRED )
+
 # Read version from version.json
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/version.py ${PROJECT_SOURCE_DIR}/version.json
+	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/version.py version.json
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE error_code
 	OUTPUT_VARIABLE RETURN_VERSION
 )
 
 SET( VERSION_REGEX "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9_]+)?" )
-IF( ${RETURN_VERSION} MATCHES ${VERSION_REGEX})
+if ( ${RETURN_VERSION} MATCHES ${VERSION_REGEX} )
 	STRING(REGEX MATCHALL "[0-9]+|-([A-Za-z0-9_]+)" VERSION_PARTS ${RETURN_VERSION} )
 	LIST( GET VERSION_PARTS 0 VERSION_MAJOR )
 	LIST( GET VERSION_PARTS 1 VERSION_MINOR )
 	LIST( GET VERSION_PARTS 2 VERSION_PATCH )
-ELSE( ${RETURN_VERSION} MATCHES ${VERSION_REGEX} )
-	message( FATAL_ERROR "Failed to parse version.json string properly. Expect X.Y.Z.")
-ENDIF()
+else ( ${RETURN_VERSION} MATCHES ${VERSION_REGEX} )
+	message( FATAL_ERROR "Failed to parse version.json string properly. ${error_code}" )
+endif()
 
 SET( HYPERION_VERSION_MAJOR ${VERSION_MAJOR} )
 SET( HYPERION_VERSION_MINOR ${VERSION_MINOR} )
@@ -41,10 +44,15 @@ SET( HYPERION_VERSION_PATCH ${VERSION_PATCH} )
 
 # Read channel from version.json
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/version.py ${PROJECT_SOURCE_DIR}/version.json "channel"
+	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/version.py version.json "channel"
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	RESULT_VARIABLE error_code
 	OUTPUT_VARIABLE RETURN_CHANNEL
 )
+
+if ( error_code )
+	message( FATAL_ERROR "Failed to parse version.json string properly. ${error_code}" )
+endif()
 
 SET ( HYPERION_VERSION_CHANNEL ${RETURN_CHANNEL} )
 
@@ -147,10 +155,9 @@ if ( "${PLATFORM}" MATCHES "-dev" )
 	SET ( DEFAULT_TESTS      ON )
 endif()
 
-# is this necessary?
-# STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
-# STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
-# ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
+STRING( TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
+STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
+ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
@@ -209,7 +216,7 @@ SET( JSON_FILES
 	${HYPERION_SCHEMAS}
 )
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkjson.py ${JSON_FILES}
+	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_JSON_FAILED
 )
@@ -218,7 +225,7 @@ IF ( ${CHECK_JSON_FAILED} )
 ENDIF ()
 
 EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkeffects.py effects effects/schema
+	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkeffects.py effects effects/schema
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	RESULT_VARIABLE CHECK_EFFECTS_FAILED
 )
@@ -226,6 +233,7 @@ IF ( ${CHECK_EFFECTS_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json effect files failed" )
 ENDIF ()
 
+# for python 3 the checkschema.py file must be rewritten
 EXECUTE_PROCESS (
 	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -367,3 +375,4 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
+
