@@ -6,12 +6,10 @@
 {
 	/// general Settings
 	/// * 'name'          : The user friendly name of the hyperion instance (used for network things)
-	/// * 'versionBranch'          : Which branch should be used for hyperion version
 	/// * 'showOptHelp'   : Show option expanations at the webui. Highly recommended for beginners.
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
-		"versionBranch" : "Stable",
 		"showOptHelp" : true
 	},
 	/// set log level: silent warn verbose debug
