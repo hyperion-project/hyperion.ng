@@ -45,7 +45,7 @@ jobs:
 
   # build process
   - bash: ./.ci/ci_build.sh
-    displayName: 'Build $(dockerName)'
+    displayName: 'Build $(dockerName) packages'
     env:
       DOCKER_TAG: $(dockerTag)
       DOCKER_NAME: $(dockerName)
@@ -113,7 +113,9 @@ jobs:
 
   # build process
   - bash: ./.ci/ci_build.sh
-    displayName: 'Build macOS 10.13'
+    displayName: 'Build macOS 10.13 packages'
+    env:
+      PLATFORM: 'osx'
 
   # copy files
   - bash: 'cp -v build/Hyperion.NG-* $(Build.ArtifactStagingDirectory)'

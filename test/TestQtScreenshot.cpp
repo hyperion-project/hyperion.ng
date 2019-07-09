@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QFile>
 #include <QRgb>
+#include <QScreen>
 
 #include <QElapsedTimer>
 
@@ -21,7 +22,8 @@ void createScreenshot(const int cropHorizontal, const int cropVertical, const in
 	const QRect screenSize = QApplication::desktop()->screenGeometry();
 	const int croppedWidth  = screenSize.width()  - 2*cropVertical;
 	const int croppedHeight = screenSize.height() - 2*cropHorizontal;
-	const QPixmap fullSizeScreenshot = QPixmap::grabWindow(QApplication::desktop()->winId(), cropVertical, cropHorizontal, croppedWidth, croppedHeight);
+	QScreen *screen = QApplication::primaryScreen();
+	const QPixmap fullSizeScreenshot = screen->grabWindow(QApplication::desktop()->winId(), cropVertical, cropHorizontal, croppedWidth, croppedHeight);
 
 	// Scale the screenshot to the required size
 	const int width  = fullSizeScreenshot.width()/decimation;

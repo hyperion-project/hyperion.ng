@@ -117,25 +117,25 @@ private:
 	void updateBrightnessComponents();
 
 	/// backlight variables
-	bool   _backLightEnabled;
-	bool   _backlightColored;
-	double _backlightThreshold;
-	double _sumBrightnessLow;
+	bool      _backLightEnabled
+		, _backlightColored;
+	double    _backlightThreshold
+		, _sumBrightnessLow;
 
 	/// gamma variables
-	double _gammaR;
-	double _gammaG;
-	double _gammaB;
+	double    _gammaR
+		, _gammaG
+		, _gammaB;
 	
 	/// The mapping from input color to output color
-	uint8_t _mappingR[256];
-	uint8_t _mappingG[256];
-	uint8_t _mappingB[256];
+	uint8_t   _mappingR[256]
+		, _mappingG[256]
+		, _mappingB[256];
 
 	/// brightness variables
-	uint8_t _brightness;
-	uint8_t _brightnessCompensation;
-	uint8_t _brightness_rgb;
-	uint8_t _brightness_cmy;
-	uint8_t _brightness_w;
+	uint8_t   _brightness
+		, _brightnessCompensation
+		, _brightness_rgb
+		, _brightness_cmy
+		, _brightness_w;
 };

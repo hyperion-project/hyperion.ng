@@ -24,11 +24,13 @@ jobs:
         env:
             - DOCKER_TAG=amd64
             - DOCKER_NAME="Debian Stretch (AMD64)"
+            - PLATFORM="x11"
       - <<: *linux
         name: "i386 (x86)"
         env:
             - DOCKER_TAG=i386
             - DOCKER_NAME="Debian Stretch (i386)"
+            - PLATFORM="x11"
 # ////////////////////////////////////////////////////////////////
 #      NOTE: Temporary disabled because travis timeouts
 # ////////////////////////////////////////////////////////////////
@@ -57,6 +59,7 @@ jobs:
         name: "macOS 10.12 (Xcode 8.3.3)"
         env:
           - HOMEBREW_CACHE=$HOME/brew-cache
+          - PLATFORM="osx"
 
 script:
     - ./.ci/ci_build.sh

@@ -17,25 +17,23 @@ fi
 # set environment variables if not exists
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Debug"
 
-# Determine cmake build type; tag builds are Release, else Debug
+# Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
 if [[ $BUILD_SOURCEBRANCH == *"refs/tags"* ]]; then
 	BUILD_TYPE=Release
+else
+	PLATFORM=${PLATFORM}-dev
 fi
-
-# Determie -dev appends to platform;
-# Commented because tests are currently broken
-# [ "${TRAVIS_EVENT_TYPE:-}" != 'cron' -a -z "${TRAVIS_TAG:-}" ] && PLATFORM=${PLATFORM}-dev
 
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	# compile prepare
 	mkdir build || exit 1
-	mkdir ${CI_BUILD_DIR}/deploy || exit 1
 	cd build
-	cmake -DPLATFORM="osx" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
+	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
 	make -j $(sysctl -n hw.ncpu) package || exit 3
+	cd ${CI_BUILD_DIR} && source /${CI_BUILD_DIR}/test/testrunner.sh || exit 4
 	exit 0;
-	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then
 	echo "Compile Hyperion with DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
 	# take ownership of deploy dir
@@ -52,8 +50,9 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperion.ng/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperion.ng/build/Hyperion.NG-* /deploy/ 2>/dev/null || : &&
+		cd /hyperion.ng && source /hyperion.ng/test/testrunner.sh || exit 4 &&
 		exit 0;
-		exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+		exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 
 	# overwrite file owner to current user
 	sudo chown -fR $(stat -c "%U:%G" ${CI_BUILD_DIR}/deploy) ${CI_BUILD_DIR}/deploy

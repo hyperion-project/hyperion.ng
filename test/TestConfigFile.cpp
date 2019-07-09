@@ -19,7 +19,7 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 	////////////////////////////////////////////////////////////
 
 	QJsonObject schemaJson;
-	
+
 	try
 	{
 		schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
@@ -28,14 +28,14 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 	{
 		throw std::runtime_error(error.what());
 	}
-	
+
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
-	
+
 	////////////////////////////////////////////////////////////
 	// read and validate the configuration file from the command line
 	////////////////////////////////////////////////////////////
-	
+
 	QJsonObject jsonConfig = QJsonFactory::readConfig(configFile);
 
 	if (!correct)
@@ -47,7 +47,7 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 			{
 				qDebug() << "config write validation: " << schemaError;
 			}
-			
+
 			qDebug() << "FAILED";
 			exit(1);
 			return false;
@@ -82,7 +82,8 @@ int main(int argc, char** argv)
 	QString option = argv[1];
 	QString configFile;
 
-    if (option == "--ac" || option == "--ac-ignore-required")
+	if (option == "--ac" || option == "--ac-ignore-required")
+	{
 		if (argc > 2)
 			configFile = argv[2];
 		else
@@ -90,8 +91,8 @@ int main(int argc, char** argv)
 			usage();
 			return 0;
 		}
-	else
-		configFile = argv[1];
+	}
+	else configFile = argv[1];
 
 	qDebug() << "Configuration file selected: " << configFile;
 	qDebug() << "Attemp to load...";
