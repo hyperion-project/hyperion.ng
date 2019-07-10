@@ -250,6 +250,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 		_grabber_cropTop    = grabberConfig["cropTop"].toInt(0);
 		_grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
 
+		_grabber_ge2d_mode  = grabberConfig["ge2d_mode"].toInt(0);
+		_grabber_device     = grabberConfig["amlogic_grabber"].toString("amvideocap0");
+
 		#ifdef ENABLE_OSX
 			QString type = "osx";
 		#else
@@ -265,9 +268,12 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 				type = "dispmanx";
 			}
 			// amlogic -> /dev/amvideo exists
-			else if ( QFile::exists("/dev/amvideo") && ( QFile::exists("/dev/amvideocap0") || QFile::exists("/dev/ge2d") ) )
+			else if ( QFile::exists("/dev/amvideo") )
 			{
 				type = "amlogic";
+
+					if ( !QFile::exists("/dev/" + _grabber_device) )
+						{ Error( _log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device)); }
 			}
 			// x11 -> if DISPLAY is set
 			else if (getenv("DISPLAY") != NULL )
@@ -376,6 +382,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			#ifdef ENABLE_V4L2
 
 			const QJsonObject & grabberConfig = v4lArray.at(idx).toObject();
+			bool enableV4l = grabberConfig["enable"].toBool(true);
 
 			V4L2Wrapper* grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
@@ -402,6 +409,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& type, const QJso
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, grabber, &V4L2Wrapper::handleSettingsUpdate);
+
+			if (enableV4l)
+			{
+				v4lEnableCount++;
+
+				// init
+				grabber->setDeviceVideoStandard(grabberConfig["device"].toString("auto"), parseVideoStandard(grabberConfig["standard"].toString("no-change")));				
+			}
 
 			_v4l2Grabbers.push_back(grabber);
 			#endif
@@ -431,7 +446,7 @@ void HyperionDaemon::createGrabberDispmanx()
 void HyperionDaemon::createGrabberAmlogic()
 {
 #ifdef ENABLE_AMLOGIC
-	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height, _grabber_frequency);
+	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height, _grabber_frequency, _grabber_ge2d_mode, _grabber_device);
 	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
