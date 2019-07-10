@@ -34,7 +34,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/Logger.h>
 #include <HyperionConfig.h>
-#include <utils/Stats.h>
+#include <hyperion/Hyperion.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)

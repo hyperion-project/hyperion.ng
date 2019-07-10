@@ -5,7 +5,6 @@
 #include <QMap>
 
 // QT includes
-//#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QSize>
@@ -13,6 +12,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QFileSystemWatcher>
+#include <QMutex>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -168,7 +168,7 @@ public:
 	/// @param[out] resultMsg  The feedback message
 	/// @return True on success else false
 	///
-	const bool saveEffect(const QJsonObject& obj, QString& resultMsg);
+	bool saveEffect(const QJsonObject& obj, QString& resultMsg);
 
 	///
 	/// @brief Delete an effect by name.
@@ -176,7 +176,7 @@ public:
 	/// @param[out] resultMsg   The message on error
 	/// @return True on success else false
 	///
-	const bool deleteEffect(const QString& effectName, QString& resultMsg);
+	bool deleteEffect(const QString& effectName, QString& resultMsg);
 
 	/// Get the list of available effects
 	/// @return The list of available effects
@@ -282,7 +282,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	const bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
+	bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -293,14 +293,14 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	const bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
+	bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
 
 	///
 	/// @brief Set the given priority to inactive
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	const bool setInputInactive(const quint8& priority);
+	bool setInputInactive(const quint8& priority);
 
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -336,7 +336,7 @@ public slots:
 	/// @param[in] priority  The priority channel
 	/// @return              True on success else false (not found)
 	///
-	const bool clear(int priority);
+	bool clear(int priority);
 
 	///
 	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
@@ -410,8 +410,11 @@ signals:
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
 
-	/// Signal which is emitted, when a new proto image should be forwarded
-	void forwardProtoMessage(Image<ColorRgb>);
+	/// Signal which is emitted, when a new system proto image should be forwarded
+	void forwardSystemProtoMessage(const QString, const Image<ColorRgb>);
+
+	/// Signal which is emitted, when a new V4l proto image should be forwarded
+	void forwardV4lProtoMessage(const QString, const Image<ColorRgb>);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change
@@ -560,12 +563,12 @@ private:
 	/// Capture control for Daemon native capture
 	CaptureCont* _captureCont;
 
-	// lock Hyperion::update() for exec
-	bool _lockUpdate = false;
-
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	/// mutex
+	QMutex _changes;
 };

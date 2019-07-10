@@ -4,10 +4,10 @@
 	"properties":{
 		"output": {
 			"type": "string",
-			"title":"edt_dev_spec_targetIp_title",
+			"title":"edt_dev_spec_targetIpHost_title",
 			"propertyOrder" : 1
 		},
-		"key": {
+		"token": {
 			"type": "string",
 			"title":"edt_dev_auth_key_title",
 			"propertyOrder" : 2

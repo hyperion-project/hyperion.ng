@@ -20,32 +20,32 @@
 	var libh = "";
 	var lang = [];
 	var dcount = 0;
-	
+
 	for(var i = 0; i<availLang.length; i++)
 		lang.push($.i18n('general_speech_'+availLang[i]));
 	for(key in libs)
 		libh += '<a href="'+libs[key]+'" target="_blank">'+key+'</a>, ';
 	libh += "<br/>"+$.i18n("about_credits");
-	
+
 	lang = lang.toString().replace(/,/g,", ");
-	
+
 	var fc = ['<span id="danger_trig">'+$.i18n("about_version")+'<span>',$.i18n("about_build"),$.i18n("about_builddate"),$.i18n("about_translations"),$.i18n("about_resources", $.i18n("general_webui_title"))];
-	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="https://hyperion-project.org/contribute/?pk_campaign=WebUI&pk_kwd=about_contribute" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
+	var sc = [currentVersion,si.build,si.time,'('+availLang.length+')<p>'+lang+'</p><p><a href="https://github.com/hyperion-project/hyperion.ng" target="_blank">'+$.i18n("about_contribute")+'</a></p>',libh];
 
 	createTable("","atb","about_cont");
 	for(var i = 0; i<fc.length; i++)
-		$('.atb').append(createTableRow([fc[i],sc[i]], "atb", false, true));
-		
+		$('.atb').append(createTableRow([fc[i],sc[i]], "atb", false));
+
 	$('#danger_trig').off().on('click',function(){
 		dcount++;
 		if(dcount > 2)
 			$('#danger_act').toggle(true);
 	});
-	
+
 	$('#reset_cache').off().on('click',function(){
 		localStorage.clear();
 	});
-	
+
 	$('#hyp_restart').off().on('click',function(){
 		initRestart();
 	});

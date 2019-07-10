@@ -25,7 +25,6 @@
 #include <hyperion/GrabberWrapper.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
-#include <utils/Stats.h>
 
 // bonjour wrapper
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -249,6 +248,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, c
 	QJsonObject hyperion;
 	hyperion["jsonrpc_version" ] = QString(HYPERION_JSON_VERSION);
 	hyperion["version"         ] = QString(HYPERION_VERSION);
+	hyperion["channel"         ] = QString(HYPERION_VERSION_CHANNEL);
 	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
 	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
 	hyperion["id"              ] = _hyperion->getId();
@@ -1052,7 +1052,7 @@ void JsonAPI::setImage(const Image<ColorRgb> & image)
 	}
 }
 
-void JsonAPI::incommingLogMessage(Logger::T_LOG_MESSAGE msg)
+void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 {
 	QJsonObject result, message;
 	QJsonArray messageArray;

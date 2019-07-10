@@ -10,6 +10,8 @@
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
 
+#include <QDebug>
+
 LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	: QObject(parent)
 	, _devConfig(config)
@@ -43,15 +45,12 @@ void LedDevice::setEnable(bool enable)
 {
 	// emit signal when state changed
 	if (_enabled != enable)
-	{
 		emit enableStateChanged(enable);
-	}
 
 	// set black to leds when they should go off
 	if ( _enabled && !enable)
-	{
 		switchOff();
-	}
+
 	_enabled = enable;
 }
 

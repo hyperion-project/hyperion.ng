@@ -1,0 +1,153 @@
+jobs:
+
+######################
+###### Linux #########
+######################
+
+- job: Linux
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      AMD64 (x64):
+        dockerTag: 'amd64'
+        dockerName: 'Debian Stretch (AMD64)'
+        platform: 'x11'
+      i386 (x86):
+        dockerTag: 'i386'
+        dockerName: 'Debian Stretch (i386)'
+        platform: 'x11'
+      ARMv6hf (Raspberry Pi v1 & ZERO):
+        dockerTag: 'armv6hf'
+        dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
+        platform: 'rpi'
+      ARMv7hf (Raspberry Pi 2 & 3):
+        dockerTag: 'armv7hf'
+        dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
+        platform: 'rpi'
+      ARMv8 (Generic AARCH64):
+        dockerTag: 'aarch64'
+        dockerName: 'ARMv8 (Generic AARCH64)'
+        platform: 'amlogic'
+
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
+
+  # read channel tag in version.json
+  - task: oneLuckiDevJson2Variable@1
+    inputs:
+      jsonFile: 'version.json'
+      shouldPrefixVariables: true
+      variablePrefix: 'json'
+    displayName: 'Read and generate pipeline variables'
+
+  # build process
+  - bash: ./.ci/ci_build.sh
+    displayName: 'Build $(dockerName) packages'
+    env:
+      DOCKER_TAG: $(dockerTag)
+      DOCKER_NAME: $(dockerName)
+      PLATFORM: $(platform)
+
+  # copy files
+  - bash: 'cp -v deploy/Hyperion.NG-* $(Build.ArtifactStagingDirectory)'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Collecting deployable artifacts'
+
+  # publish artifacts
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: $(dockerTag)
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Publish deployables artifacts'
+
+  # set release to pre-release
+  - bash: echo '##vso[task.setvariable variable=preRelease;]true'
+    condition: and(succeeded(), contains(variables['json.channel'], 'beta'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Mark beta as pre-release'
+
+  # create or update github release
+  - task: GithubRelease@0
+    inputs: 
+      gitHubConnection: Hyperion.NG
+      repositoryName: $(Build.Repository.Name)
+      action: edit
+      target: $(Build.SourceVersion)
+      tagSource: manual
+      tag: $(Build.SourceBranchName)
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'
+      addChangeLog: false
+      isPreRelease: $(preRelease)
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: Create/Update GitHub release
+
+######################
+###### macOS #########
+######################
+
+- job: macOS
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'macOS-10.13'
+
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
+
+  # read channel tag in version.json
+  - task: oneLuckiDevJson2Variable@1
+    inputs:
+      jsonFile: 'version.json'
+      shouldPrefixVariables: true
+      variablePrefix: 'json'
+    displayName: 'Read and generate pipeline variables'
+
+  # install dependencies
+  - bash: ./.ci/ci_install.sh
+    displayName: 'Install dependencies'
+
+  # build process
+  - bash: ./.ci/ci_build.sh
+    displayName: 'Build macOS 10.13 packages'
+    env:
+      PLATFORM: 'osx'
+
+  # copy files
+  - bash: 'cp -v build/Hyperion.NG-* $(Build.ArtifactStagingDirectory)'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Collecting deployable artifacts'
+
+  # publish artifacts
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'macos'
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Publish deployables artifacts'
+
+  # set release to pre-release
+  - bash: echo '##vso[task.setvariable variable=preRelease;]true'
+    condition: and(succeeded(), contains(variables['json.channel'], 'beta'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: 'Mark beta as pre-release'
+
+  # create or update github release
+  - task: GithubRelease@0
+    inputs: 
+      gitHubConnection: Hyperion.NG
+      repositoryName: $(Build.Repository.Name)
+      action: edit
+      target: $(Build.SourceVersion)
+      tagSource: manual
+      tag: '$(Build.SourceBranchName)'
+      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assetUploadMode: 'replace'
+      addChangeLog: false
+      isPreRelease: $(preRelease)
+    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    displayName: Create/Update GitHub release

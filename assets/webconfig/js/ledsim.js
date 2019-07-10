@@ -43,14 +43,7 @@ $(document).ready(function() {
 	 * @return {Path2D} The final path
 	 */
 	 function build2DPath(x, y, width, height, radius) {
-	  var useColor = false
-	  if (typeof stroke == 'undefined') {
-	    stroke = true;
-	  }
-	  if (typeof radius === 'undefined') {
-	    radius = 5;
-	  }
-	  if (typeof radius === 'number') {
+	  if (typeof radius == 'number') {
 	    radius = {tl: radius, tr: radius, br: radius, bl: radius};
 	  } else {
 	    var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
@@ -59,7 +52,7 @@ $(document).ready(function() {
 	    }
 	  }
 
-	  var path = new Path2D()
+	  var path = new Path2D();
 
 	  path.moveTo(x + radius.tl, y);
 	  path.lineTo(x + width - radius.tr, y);
@@ -74,10 +67,10 @@ $(document).ready(function() {
 	  return path;
 	}
 
-	$(hyperion).one("ready",function(){
-		leds = serverConfig.leds;
+	$(window.hyperion).one("ready",function(){
+		leds = window.serverConfig.leds;
 
-		if(showOptHelp)
+		if(window.showOptHelp)
 		{
 			createHint('intro', $.i18n('main_ledsim_text'), 'ledsim_text');
 			$('#ledsim_text').css({'margin':'10px 15px 0px 15px'});
@@ -125,7 +118,7 @@ $(document).ready(function() {
 			}
 		});
 		// apply new serverinfos
-		$(hyperion).on("cmd-config-getconfig",function(event){
+		$(window.hyperion).on("cmd-config-getconfig",function(event){
 			leds = event.response.info.leds;
 			updateLedLayout();
 		});
@@ -135,7 +128,7 @@ $(document).ready(function() {
 	{
 		// toggle leds, do not print
 		if(toggleLeds)
-			return
+			return;
 
 		var useColor = false;
 		ledsCanvasNodeCtx.clear();
@@ -169,7 +162,7 @@ $(document).ready(function() {
 		canvas_width = $('#ledsim_dialog').outerWidth()-30;
 
 		$('#leds_canvas').html("");
-		leds_html = '<canvas id="image_preview_canv" width="'+canvas_width+'" height="'+canvas_height+'"  style="position: absolute; left: 0; top: 0; z-index: 99998;"></canvas>';
+		var leds_html = '<canvas id="image_preview_canv" width="'+canvas_width+'" height="'+canvas_height+'"  style="position: absolute; left: 0; top: 0; z-index: 99998;"></canvas>';
 		leds_html += '<canvas id="leds_preview_canv" width="'+canvas_width+'" height="'+canvas_height+'"  style="position: absolute; left: 0; top: 0; z-index: 99999;"></canvas>';
 
 		$('#leds_canvas').html(leds_html);
@@ -178,7 +171,7 @@ $(document).ready(function() {
 		ledsCanvasNodeCtx = document.getElementById("leds_preview_canv").getContext("2d");
 		create2dPaths();
 		printLedsToCanvas();
-		resetImage()
+		resetImage();
 	}
 
 	// ------------------------------------------------------------------
@@ -196,8 +189,8 @@ $(document).ready(function() {
 
 	// ------------------------------------------------------------------
 	$('#leds_toggle_live_video').off().on("click", function() {
-		setClassByBool('#leds_toggle_live_video',imageStreamActive,"btn-success","btn-danger");
-		if ( imageStreamActive )
+		setClassByBool('#leds_toggle_live_video',window.imageStreamActive,"btn-success","btn-danger");
+		if ( window.imageStreamActive )
 		{
 			requestLedImageStop();
 			resetImage();
@@ -209,7 +202,7 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$(hyperion).on("cmd-ledcolors-ledstream-update",function(event){
+	$(window.hyperion).on("cmd-ledcolors-ledstream-update",function(event){
 		if (!modalOpened)
 		{
 			requestLedColorsStop();
@@ -221,14 +214,14 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$(hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+	$(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
 		if (!modalOpened)
 		{
 			requestLedImageStop();
 		}
 		else
 		{
-			imageData = (event.response.result.image);
+			var imageData = (event.response.result.image);
 
 			var image = new Image();
 			image.onload = function() {
@@ -243,12 +236,12 @@ $(document).ready(function() {
 	});
 
 	// ------------------------------------------------------------------
-	$(hyperion).on("cmd-settings-update",function(event){
+	$(window.hyperion).on("cmd-settings-update",function(event){
 		var obj = event.response.data
 		Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
-			serverInfo[val] = obj[val];
+			window.serverInfo[val] = obj[val];
 	  	});
-		leds = serverConfig.leds
+		leds = window.serverConfig.leds
 		updateLedLayout();
 	});
 

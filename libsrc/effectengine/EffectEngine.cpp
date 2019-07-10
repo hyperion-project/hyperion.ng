@@ -30,7 +30,6 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 {
 
 	Q_INIT_RESOURCE(EffectEngine);
-	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
@@ -48,12 +47,12 @@ EffectEngine::~EffectEngine()
 {
 }
 
-const bool EffectEngine::saveEffect(const QJsonObject& obj, QString& resultMsg)
+bool EffectEngine::saveEffect(const QJsonObject& obj, QString& resultMsg)
 {
 	return _effectFileHandler->saveEffect(obj, resultMsg);
 }
 
-const bool EffectEngine::deleteEffect(const QString& effectName, QString& resultMsg)
+bool EffectEngine::deleteEffect(const QString& effectName, QString& resultMsg)
 {
 	return _effectFileHandler->deleteEffect(effectName, resultMsg);
 }

@@ -5,17 +5,17 @@ static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
 static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 
-
 LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
-: LedDevice()
+	: LedDevice()
+	, _client(nullptr)
 {
 	_deviceReady = init(deviceConfig);
+	_client = new QTcpSocket(this);
 }
-
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
-	_client.close();
+	_client->close();
 }
 
 LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
@@ -23,10 +23,9 @@ LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceFadeCandy(deviceConfig);
 }
 
-
 bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 {
-	_client.close();
+	LedDevice::init(deviceConfig);
 
 	if (_ledCount > MAX_NUM_LEDS)
 	{
@@ -67,15 +66,14 @@ bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 
 bool LedDeviceFadeCandy::isConnected()
 {
-	return _client.state() == QAbstractSocket::ConnectedState;
+	return _client->state() == QAbstractSocket::ConnectedState;
 }
-
 
 bool LedDeviceFadeCandy::tryConnect()
 {
-	if (  _client.state() == QAbstractSocket::UnconnectedState ) {
-		_client.connectToHost( _host, _port);
-		if ( _client.waitForConnected(1000) )
+	if (  _client->state() == QAbstractSocket::UnconnectedState ) {
+		_client->connectToHost( _host, _port);
+		if ( _client->waitForConnected(1000) )
 		{
 			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", QSTRING_CSTR(_host), _port, _channel);
 			if (_setFcConfig)
@@ -87,7 +85,6 @@ bool LedDeviceFadeCandy::tryConnect()
 
 	return isConnected();
 }
-
 
 int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 {
@@ -103,11 +100,11 @@ int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 	return ( transferData()<0 ? -1 : 0 );
 }
 
-
 int LedDeviceFadeCandy::transferData()
 {
-	if ( isConnected() || tryConnect() )
-		return _client.write( _opc_data, _opc_data.size() );
+	if (LedDevice::enabled())
+		if ( isConnected() || tryConnect() )
+			return _client->write( _opc_data, _opc_data.size() );
 
 	return -2;
 }
@@ -131,7 +128,7 @@ int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArra
 
 		sysExData += msg;
 
-		return _client.write( sysExData, sysExData.size() );
+		return _client->write( sysExData, sysExData.size() );
 	}
 	return -1;
 }

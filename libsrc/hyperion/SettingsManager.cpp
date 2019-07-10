@@ -41,6 +41,7 @@ SettingsManager::SettingsManager(Hyperion* hyperion, const quint8& instance, con
 
 	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
 	QJsonSchemaChecker schemaCheckerT;
+	schemaCheckerT.setSchema(schemaJson);
 
 	if(!JsonUtils::readFile(configFile, _qconfig, _log))
 		throw std::runtime_error("Failed to load config!");
@@ -96,6 +97,7 @@ SettingsManager::SettingsManager(const quint8& instance, const QString& configFi
 
 	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
 	QJsonSchemaChecker schemaCheckerT;
+	schemaCheckerT.setSchema(schemaJson);
 
 	if(!JsonUtils::readFile(configFile, _qconfig, _log))
 		throw std::runtime_error("Failed to load config!");
@@ -140,7 +142,7 @@ const QJsonDocument SettingsManager::getSetting(const settings::type& type)
 		return QJsonDocument(_qconfig[key].toArray());
 }
 
-const bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
+bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 {
 	// we need to validate data against schema
 	QJsonSchemaChecker schemaChecker;

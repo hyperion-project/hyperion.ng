@@ -58,7 +58,7 @@ public:
 
 	void setEnable(bool enable);
 	bool enabled() { return _enabled; };
-	const int getLatchTime() { return _latchTime_ms; };
+	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
 
@@ -83,6 +83,14 @@ signals:
 	/// @param newState The new state of the device
 	///
 	void enableStateChanged(bool newState);
+
+	///
+	/// PIPER signal for Priority Muxer -> LedDevice
+	///
+	/// @brief Handle priority updates from Priority Muxer
+	/// @param  priority  The new visible priority
+	///
+	void visiblePriorityChanged(const quint8 &priority);
 
 protected:
 	virtual bool init(const QJsonObject &deviceConfig);

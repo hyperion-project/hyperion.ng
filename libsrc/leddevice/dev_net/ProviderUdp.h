@@ -41,7 +41,7 @@ public:
 
 protected:
 	///
-	/// Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the
+	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
 	/// values are latched.
 	///
 	/// @param[in] size The length of the data

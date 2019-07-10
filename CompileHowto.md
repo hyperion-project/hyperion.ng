@@ -1,16 +1,33 @@
 # With Docker
-If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compilation for Raspberry Pi (Raspbian stretch)
+If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Stretch or higher). To compile Hyperion just execute one of the following commands.
 
-To compile Hyperion for Ubuntu 16.04 (x64) or higher just execute the following command
+The compiled binaries and packages will be available at the deploy folder next to the script
+Note: call the script with `./docker-compile.sh -h` for more options
+
+## Native compiling on Raspberry Pi
+
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t rpi-raspbian
+```
+
+## Cross compiling on X64_86 for:
+
+**X64:**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
 ```
-To compile Hyperion for Raspberry Pi
+**i386:**
 ```
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t cross-qemu-rpistretch
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t i386
 ```
-The compiled binaries and packages will be available at the deploy folder next to the script
-Note: call the script with `./docker-compile.sh -h` for more options
+**Raspberry Pi v1 & ZERO**
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv6hf
+```
+**Raspberry Pi 2 & 3**
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv7hf
+```
 
 # The usual way
 
@@ -18,7 +35,7 @@ Note: call the script with `./docker-compile.sh -h` for more options
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev
 ```
 
 **on RPI you need the videocore IV headers**
@@ -27,6 +44,10 @@ sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev
 sudo apt-get install libraspberrypi-dev
 ```
 
+**OSMC on Raspberry Pi**
+```
+sudo apt-get install rbp-userland-dev-osmc
+```
 
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
@@ -68,6 +89,8 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
+if this get stucked and dmseg says out of memory try:
+make -j 2
 # optional: install into your system
 sudo make install/strip
 # to uninstall (not very well tested, please keep that in mind)

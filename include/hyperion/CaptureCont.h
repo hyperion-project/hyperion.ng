@@ -41,13 +41,13 @@ private slots:
 	/// @brief forward system image
 	/// @param image  The image
 	///
-	void handleSystemImage(const Image<ColorRgb>& image);
+	void handleSystemImage(const QString& name, const Image<ColorRgb>& image);
 
 	///
 	/// @brief forward v4l image
 	/// @param image  The image
 	///
-	void handleV4lImage(const Image<ColorRgb> & image);
+	void handleV4lImage(const QString& name, const Image<ColorRgb> & image);
 
 	///
 	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
@@ -66,10 +66,12 @@ private:
 	/// Reflect state of System capture and prio
 	bool _systemCaptEnabled;
 	quint8 _systemCaptPrio;
+	QString _systemCaptName;
 	QTimer* _systemInactiveTimer;
 
 	/// Reflect state of v4l capture and prio
 	bool _v4lCaptEnabled;
 	quint8 _v4lCaptPrio;
+	QString _v4lCaptName;
 	QTimer* _v4lInactiveTimer;
 };

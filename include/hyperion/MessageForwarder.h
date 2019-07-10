@@ -70,7 +70,7 @@ private slots:
 	/// @brief Forward image to all proto slaves
 	/// @param image The PROTO image to send
 	///
-	void forwardProtoMessage(const Image<ColorRgb> &image);
+	void forwardProtoMessage(const QString& name, const Image<ColorRgb> &image);
 
 	///
 	/// @brief Forward message to a single json slave

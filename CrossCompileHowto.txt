@@ -1,38 +1,36 @@
 #!/bin/bash
-#Updated: 18 August 2016, by brindosch
-#Just use a clean Ubunut 14.04 and run this script
+#Use a clean Raspbian Stretch Lite and Ubunut 18/19 and run this script
 ##############
 #ON TARGET
 #--------------
-#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev python-dev rsync
+#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev aptitude show qt5-default rsync
 #############
-
 #ON HOST
 #---------
 sudo apt-get update
 sudo apt-get upgrade
-#TO-DO verify what is really required
-#blacklist: lib32z1 lib32ncurses5 lib32bz2-1.0 zlib1g-dev
-sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
+# !!! TO-DO verify aptitude gcc-multilib
 
-echo 'PATH=$PATH:$HOME/raspberrypi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin' >> .bashrc
+sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
 #---------
 
 
-export TARGET_IP=192.168.0.103
+export TARGET_IP=x.x.x.x
 export TARGET_USER=pi
 
-export RASCROSS_DIR="$HOME/raspberrypi"
+export CROSSROOT="$HOME/crosscompile"
+export RASCROSS_DIR="$CROSSROOT/raspberrypi"
 export ROOTFS_DIR="$RASCROSS_DIR/rootfs"
-export HYPERION_DIR="$HOME/hyperion"
-#export IMX6_DIR="$HOME/hummingboard"
-export TOOLCHAIN_FILE="$HYPERION_DIR/Toolchain-RaspberryPi.cmake"
+export TOOLCHAIN_DIR="$RASCROSS_DIR/tools"
+export QT5_DIR="$CROSSROOT/Qt5"
 
-export NATIVE_BUILD_DIR="$HYPERION_DIR/build"
-export TARGET_BUILD_DIR="$HYPERION_DIR/build-rpi"
+export HYPERION_DIR="$HOME/hyperion.ng"
 
-mkdir -p "$ROOTFS_DIR"
-rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/{lib,usr} "$ROOTFS_DIR"
+mkdir -p "$ROOTFS_DIR/lib"
+mkdir -p "$ROOTFS_DIR/usr"
+rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/lib "$ROOTFS_DIR"
+rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/usr/include "$ROOTFS_DIR/usr"
+rsync -rl --delete-after --copy-unsafe-links $TARGET_USER@$TARGET_IP:/usr/lib "$ROOTFS_DIR/usr"
 
 ######## RPi specific #########
 
@@ -40,41 +38,40 @@ mkdir -p "$RASCROSS_DIR/firmware"
 git clone --depth 1 https://github.com/raspberrypi/firmware.git "$RASCROSS_DIR/firmware"
 ln -s "$RASCROSS_DIR/firmware/hardfp/opt" "$ROOTFS_DIR/opt"
 
-git clone --depth 1 git://github.com/raspberrypi/tools.git "$RASCROSS_DIR/tools"
+mkdir -p "$TOOLCHAIN_DIR"
+cd $TOOLCHAIN_DIR
+wget -c https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
+tar -xvf gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
 
 ##### End of RPi specific ######
 
-######## NOT TESTED ONLY INFOs #########
-######## IMX6 specific #########
-#export IMX6_DIR="$HOME/hummingboard"
-#mkdir -p "$IMX6_Dir"
-#cd "$IMX6_Dir"
-#wget https://launchpad.net/linaro-toolchain-binaries/trunk/2013.10/+download/gcc-linaro-arm-linux-gnueabihf-4.8-2013.10_linux.tar.bz2
-#tar -xvjf gcc-linaro-arm-linux-gnueabihf-4.8-2013.10_linux.tar.bz2
-#cd
-##### End of IMX6 specific ######
-######## NOT TESTED     #########
+######## Qt5 specific #########
+
+mkdir -p "$QT5_DIR"
+cd "$QT5_DIR"
+
+wget -c http://download.qt.io/archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
+chmod +x $QT5_DIR/*.run
+
+#Display absolute installation directory to be used in Qt5 installer
+echo $HOME/crosscompile/Qt5
+
+./qt-opensource-linux-x64-5.7.1.run
+
+#Follow the dialogs and install in absolute directory of $HOME/crosscompile/Qt5 (copy from above)
+
+##### End of Qt5 specific ######
 
 # get the Hyperion sources
 git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 
-# do a native build (to build the flatbuffers compiler for the native platform)
-mkdir -p "$NATIVE_BUILD_DIR"
-cmake -DENABLE_DISPMANX=OFF --build "$NATIVE_BUILD_DIR" "$HYPERION_DIR"
-
-# do the cross build 
-# specify the protoc export file to import the flatbuffers compiler from the native build
-mkdir -p "$TARGET_BUILD_DIR"
-cmake -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" -DIMPORT_PROTOC=$NATIVE_BUILD_DIR/protoc_export.cmake --build "$TARGET_BUILD_DIR" "$HYPERION_DIR"
+# get requried submodules
+cd "$HYPERION_DIR"
+git fetch --recurse-submodules -j2
 
 #compile
-cd "$HYPERION_DIR/bin"
-chmod +x *
-cp "$HYPERION_DIR/bin/create_all_releases.sh" "$HYPERION_DIR"
 cd "$HYPERION_DIR"
-./create_all_releases.sh
+chmod +x "$HYPERION_DIR/bin/"*.sh
+./bin/create_all_releases.sh
 
 ######END
-#------------------------------------------------------------------------------
-#These instructions are based on tvdzwan and on the guide given by:
-#http://airwiki.ws.dei.polimi.it/index.php/Cross-compiling_for_the_RaspberryPi

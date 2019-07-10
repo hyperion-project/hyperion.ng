@@ -157,7 +157,7 @@ void PriorityMuxer::registerInput(const int priority, const hyperion::Components
 	}
 }
 
-const bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
+bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -196,7 +196,7 @@ const bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRg
 	return true;
 }
 
-const bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
+bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -235,13 +235,13 @@ const bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb
 	return true;
 }
 
-const bool PriorityMuxer::setInputInactive(const quint8& priority)
+bool PriorityMuxer::setInputInactive(const quint8& priority)
 {
 	Image<ColorRgb> image;
 	return setInputImage(priority, image, -100);
 }
 
-const bool PriorityMuxer::clearInput(const uint8_t priority)
+bool PriorityMuxer::clearInput(const uint8_t priority)
 {
 	if (priority < PriorityMuxer::LOWEST_PRIORITY && _activeInputs.remove(priority))
 	{
@@ -294,7 +294,7 @@ void PriorityMuxer::setCurrentTime(void)
 		else
 		{
 			// timeoutTime of -100 is awaiting data (inactive); skip
-			if(infoIt->timeoutTime_ms >= -100)
+			if(infoIt->timeoutTime_ms > -100)
 				newPriority = qMin(newPriority, infoIt->priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255

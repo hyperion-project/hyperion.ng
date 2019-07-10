@@ -14,8 +14,8 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _enabled(true)
 	, _log(Logger::getInstance(grabberName))
 {
-	setVideoMode(VIDEO_2D);
-	setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	Grabber::setVideoMode(VIDEO_2D);
+	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
 Grabber::~Grabber()

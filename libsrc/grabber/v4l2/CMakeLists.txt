@@ -10,3 +10,7 @@ target_link_libraries(v4l2-grabber
 	hyperion
 	${QT_LIBRARIES}
 )
+
+if (JPEG_FOUND)
+	target_link_libraries(v4l2-grabber ${JPEG_LIBRARY})
+endif()

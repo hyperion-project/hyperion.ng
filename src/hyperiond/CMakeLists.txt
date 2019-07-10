@@ -1,4 +1,5 @@
 find_package(PythonLibs 3.4 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 
 add_executable(hyperiond
@@ -16,6 +17,7 @@ target_link_libraries(hyperiond
 		jsonserver
 		udplistener
 		flatbufserver
+		protoserver
 		webserver
 		bonjour
 		ssdp
@@ -65,6 +67,8 @@ endif ()
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()
+
+target_link_libraries(hyperiond Qt5::Widgets)
 
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )

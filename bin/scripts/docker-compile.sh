@@ -5,8 +5,8 @@ DOCKER="docker"
 GIT_REPO_URL="https://github.com/hyperion-project/hyperion.ng.git"
 # cmake build type
 BUILD_TYPE="Release"
-# the image tag at hyperionorg/hyperion-ci
-BUILD_TARGET="ubuntu1604"
+# the image tag at hyperionproject/hyperion-ci
+BUILD_TARGET="amd64"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
 # packages string inserted to cmake cmd
@@ -42,8 +42,8 @@ function printHelp {
 echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
-## Without arguments it will compile Hyperion for Ubuntu 16.04 (x64) or higher.
-## Supports Raspberry Pi (armv6) cross compilation (Raspbian Stretch)
+## Without arguments it will compile Hyperion for Debain Stretch (x64) or higher.
+## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch)
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://forum.hyperion-project.org
@@ -51,10 +51,10 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -t ubuntu1604	# The docker tag, one of ubuntu1604 | cross-qemu-rpistretch
+# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
-# More informations to docker tags at: https://hub.docker.com/r/hyperionorg/hyperion-ci/"
+# More informations to docker tags at: https://hub.docker.com/r/hyperionproject/hyperion-ci/"
 }
 
 while getopts t:b:p:h option
@@ -81,8 +81,8 @@ mkdir $SCRIPT_PATH/deploy >/dev/null 2>&1
 
 # get Hyperion source, cleanup previous folder
 echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr $SCRIPT_PATH/hyperion >/dev/null 2>&1
-git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+sudo rm -fr $SCRIPT_PATH/hyperion.ng >/dev/null 2>&1
+git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion.ng || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
 
 # start compilation
 # Remove container after stop
@@ -93,15 +93,15 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo
 echo "---> Startup docker..."
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
-	-v "${SCRIPT_PATH}/hyperion:/source:ro" \
-	hyperionorg/hyperion-ci:$BUILD_TARGET \
-	/bin/bash -c "mkdir build && cp -r /source/. /build &&
-	cd /build && mkdir build && cd build &&
+	-v "${SCRIPT_PATH}/hyperion.ng:/source:ro" \
+	hyperionproject/hyperion-ci:$BUILD_TARGET \
+	/bin/bash -c "mkdir hyperion.ng && cp -r /source/. /hyperion.ng &&
+	cd /hyperion.ng && mkdir build && cd build &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
 	make -j $(nproc) ${PACKAGES} || exit 3 &&
 	echo '---> Copy binaries and packages to host folder: ${SCRIPT_PATH}/deploy' &&
-	cp -v /build/build/bin/h* /deploy/ 2>/dev/null || : &&
-	cp -v /build/build/Hyperion-* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperion.ng/build/bin/h* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperion.ng/build/Hyperion.NG-* /deploy/ 2>/dev/null || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
 

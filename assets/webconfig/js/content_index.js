@@ -4,14 +4,14 @@ $(document).ready( function() {
 	loadContentTo("#container_restart","restart");
 	initWebSocket();
 
-	$(hyperion).on("cmd-serverinfo",function(event){
-		serverInfo = event.response.info;
+	$(window.hyperion).on("cmd-serverinfo",function(event){
+		window.serverInfo = event.response.info;
 		// comps
-		comps = event.response.info.components
+		window.comps = event.response.info.components
 
-		$(hyperion).trigger("ready");
+		$(window.hyperion).trigger("ready");
 
-		comps.forEach( function(obj) {
+		window.comps.forEach( function(obj) {
 			if (obj.name == "ALL")
 			{
 				if(obj.enabled)
@@ -21,7 +21,7 @@ $(document).ready( function() {
 			}
 		});
 
-		if (serverInfo.hyperion.enabled)
+		if (window.serverInfo.hyperion.enabled)
 			$("#hyperion_disabled_notify").fadeOut("fast");
 		else
 			$("#hyperion_disabled_notify").fadeIn("fast");
@@ -29,59 +29,60 @@ $(document).ready( function() {
 		updateSessions();
 	}); // end cmd-serverinfo
 
-	$(hyperion).on("cmd-sessions-update", function(event) {
-		serverInfo.sessions = event.response.data;
+	$(window.hyperion).on("cmd-sessions-update", function(event) {
+		window.serverInfo.sessions = event.response.data;
 		updateSessions();
 	});
 
-	$(hyperion).on("cmd-sysinfo", function(event) {
+	$(window.hyperion).on("cmd-sysinfo", function(event) {
 		requestServerInfo();
-		sysInfo = event.response.info;
+		window.sysInfo = event.response.info;
 
-		currentVersion = sysInfo.hyperion.version;
+		window.currentVersion = window.sysInfo.hyperion.version;
+		window.currentChannel = window.sysInfo.hyperion.channel;
 	});
 
-	$(hyperion).one("cmd-config-getschema", function(event) {
-		serverSchema = event.response.info;
+	$(window.hyperion).one("cmd-config-getschema", function(event) {
+		window.serverSchema = event.response.info;
 		requestServerConfig();
 
-		schema = serverSchema.properties;
+		window.schema = window.serverSchema.properties;
 	});
 
-	$(hyperion).on("cmd-config-getconfig", function(event) {
-		serverConfig = event.response.info;
+	$(window.hyperion).on("cmd-config-getconfig", function(event) {
+		window.serverConfig = event.response.info;
 		requestSysInfo();
 
-		showOptHelp = serverConfig.general.showOptHelp;
+		window.showOptHelp = window.serverConfig.general.showOptHelp;
 	});
 	
-	$(hyperion).on("cmd-config-setconfig", function(event) {
+	$(window.hyperion).on("cmd-config-setconfig", function(event) {
         if (event.response.success === true) {
             $('#hyperion_config_write_success_notify').fadeIn().delay(5000).fadeOut();
         }
     });
 
-	$(hyperion).on("error",function(event){
+	$(window.hyperion).on("error",function(event){
 		showInfoDialog("error","Error", event.reason);
 	});
 
-	$(hyperion).on("open",function(event){
+	$(window.hyperion).on("open",function(event){
 		requestServerConfigSchema();
 	});
 
-	$(hyperion).one("ready", function(event) {
+	$(window.hyperion).one("ready", function(event) {
 		loadContent();
 	});
 
-	$(hyperion).on("cmd-adjustment-update", function(event) {
-		serverInfo.adjustment = event.response.data
+	$(window.hyperion).on("cmd-adjustment-update", function(event) {
+		window.serverInfo.adjustment = event.response.data
 	});
 
-	$(hyperion).on("cmd-videomode-update", function(event) {
-		serverInfo.videomode = event.response.data.videomode
+	$(window.hyperion).on("cmd-videomode-update", function(event) {
+		window.serverInfo.videomode = event.response.data.videomode
 	});
 
-	$(hyperion).on("cmd-components-update", function(event) {
+	$(window.hyperion).on("cmd-components-update", function(event) {
 		let obj = event.response.data
 
 		// notfication in index
@@ -93,17 +94,17 @@ $(document).ready( function() {
 				$("#hyperion_disabled_notify").fadeIn("fast");
 		}
 
-		comps.forEach((entry, index) => {
+		window.comps.forEach((entry, index) => {
 			if (entry.name === obj.name){
-				comps[index] = obj;
+				window.comps[index] = obj;
 			}
 		});
 		// notify the update
-		$(hyperion).trigger("components-updated");
+		$(window.hyperion).trigger("components-updated");
 	});
 
-	$(hyperion).on("cmd-effects-update", function(event){
-		serverInfo.effects = event.response.data.effects
+	$(window.hyperion).on("cmd-effects-update", function(event){
+		window.serverInfo.effects = event.response.data.effects
 	});
 
 	$(".mnava").bind('click.menu', function(e){

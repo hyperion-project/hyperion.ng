@@ -20,6 +20,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	: QObject(hyperion)
 	, _hyperion(hyperion)
 	, _ledDevice(nullptr)
+	, _enabled(true)
 {
 	// prepare the device constrcutor map
 	#define REGISTER(className) LedDeviceWrapper::addToDeviceMap(QString(#className).toLower(), LedDevice##className::construct);
@@ -40,25 +41,26 @@ LedDeviceWrapper::~LedDeviceWrapper()
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 {
 	if(_ledDevice != nullptr)
-	 {
-		 stopDeviceThread();
-	 }
+	{
+		stopDeviceThread();
+	}
 
-	 // create thread and device
-	 QThread* thread = new QThread(this);
-	 _ledDevice = LedDeviceFactory::construct(config);
-	 _ledDevice->moveToThread(thread);
-	 // setup thread management
-	 connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
-	 connect(thread, &QThread::finished, thread, &QObject::deleteLater);
-	 connect(thread, &QThread::finished, _ledDevice, &QObject::deleteLater);
+	// create thread and device
+	QThread* thread = new QThread(this);
+	_ledDevice = LedDeviceFactory::construct(config);
+	_ledDevice->moveToThread(thread);
+	// setup thread management
+	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
+	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
+	connect(thread, &QThread::finished, _ledDevice, &LedDevice::deleteLater);
 
-	 // further signals
-	 connect(this, &LedDeviceWrapper::write, _ledDevice, &LedDevice::write);
-	 connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState);
+	// further signals
+	connect(this, &LedDeviceWrapper::write, _ledDevice, &LedDevice::write, Qt::QueuedConnection);
+	connect(_hyperion->getMuxerInstance(), &PriorityMuxer::visiblePriorityChanged, _ledDevice, &LedDevice::visiblePriorityChanged, Qt::QueuedConnection);
+	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
 
-	 // start the thread
-	 thread->start();
+	// start the thread
+	thread->start();
 }
 
 const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
@@ -141,8 +143,17 @@ void LedDeviceWrapper::handleInternalEnableState(bool newState)
 
 void LedDeviceWrapper::stopDeviceThread()
 {
+	// turns the leds off
 	_ledDevice->switchOff();
+
+	// get current thread
 	QThread* oldThread = _ledDevice->thread();
-	delete _ledDevice; // fast desctruction
-	oldThread->quit(); // non blocking
+	disconnect(oldThread, 0, 0, 0);
+	oldThread->quit();
+	oldThread->wait();
+	delete oldThread;
+
+	disconnect(_ledDevice, 0, 0, 0);
+	delete _ledDevice;
+	_ledDevice = nullptr;
 }

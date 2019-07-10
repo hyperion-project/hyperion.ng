@@ -1,3 +1,5 @@
+#pragma once
+
 // Qt includes
 #include <QObject>
 #include <QRectF>
