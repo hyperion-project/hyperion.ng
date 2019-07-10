@@ -33,7 +33,7 @@
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
 		"colorOrder" : "rgb",
-		"rewriteTime": 0
+		"rewriteTime": 5000
 	},
 
 	/// Color manipulation configuration used to tune the output colors to specific surroundings.

@@ -150,7 +150,7 @@ public:
 			// Check black border detection
 			verifyBorder(image);
 
-			// Determine the mean-colors of each led (using the existing mapping)
+			// Determine the mean or uni colors of each led (using the existing mapping)
 			switch (_mappingType)
 			{
 				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;

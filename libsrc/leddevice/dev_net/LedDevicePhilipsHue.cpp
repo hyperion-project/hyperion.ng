@@ -125,7 +125,7 @@ float CiColor::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2)
 
 PhilipsHueBridge::PhilipsHueBridge(Logger* log, QString host, QString username)
 	: QObject()
-	, log(log)
+	, _log(log)
 	, host(host)
 	, username(username)
 {
@@ -141,12 +141,12 @@ void PhilipsHueBridge::bConnect(void)
 {
 	if(username.isEmpty() || host.isEmpty())
 	{
-		Error(log,"Username or IP Address is empty!");
+		Error(_log,"Username or IP Address is empty!");
 	}
 	else
 	{
 		QString url = QString("http://%1/api/%2").arg(host).arg(username);
-		Debug(log, "Connect to bridge %s", QSTRING_CSTR(url));
+		Debug(_log, "Connect to bridge %s", QSTRING_CSTR(url));
 
 		QNetworkRequest request(url);
 		manager.get(request);
@@ -164,13 +164,13 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 			QJsonDocument doc = QJsonDocument::fromJson(response, &error);
 			if (error.error != QJsonParseError::NoError)
 			{
-				Error(log, "Got invalid response from bridge");
+				Error(_log, "Got invalid response from bridge");
 				return;
 			}
 			// check for authorization
 			if(doc.isArray())
 			{
-				Error(log, "Authorization failed, username invalid");
+				Error(_log, "Authorization failed, username invalid");
 				return;
 			}
 
@@ -178,7 +178,7 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 
 			if(obj.isEmpty())
 			{
-				Error(log, "Bridge has no registered bulbs/stripes");
+				Error(_log, "Bridge has no registered bulbs/stripes");
 				return;
 			}
 
@@ -193,7 +193,7 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 		}
 		else
 		{
-			Error(log,"Network Error: %s", QSTRING_CSTR(reply->errorString()));
+			Error(_log,"Network Error: %s", QSTRING_CSTR(reply->errorString()));
 			bTimer.start();
 		}
 	}
@@ -202,7 +202,7 @@ void PhilipsHueBridge::resolveReply(QNetworkReply* reply)
 
 void PhilipsHueBridge::post(QString route, QString content)
 {
-	//Debug(log, "Post %s: %s", QSTRING_CSTR(QString("http://IP/api/USR/%1").arg(route)), QSTRING_CSTR(content));
+	//Debug(_log, "Post %s: %s", QSTRING_CSTR(QString("http://IP/api/USR/%1").arg(route)), QSTRING_CSTR(content));
 
 	QNetworkRequest request(QString("http://%1/api/%2/%3").arg(host).arg(username).arg(route));
 	manager.put(request, content.toLatin1());
@@ -216,14 +216,14 @@ const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
 { "LLC020", "LST002", "LCT011", "LCT012", "LCT010", "LCT014", "LCT015", "LCT016", "LCT024" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned int id, QJsonObject values)
-	: log(log)
+	: _log(log)
 	, bridge(bridge)
 	, id(id)
 {
 	// Get state object values which are subject to change.
 	if (!values["state"].toObject().contains("on"))
 	{
-		Error(log, "Got invalid state object from light ID %d", id);
+		Error(_log, "Got invalid state object from light ID %d", id);
 	}
 	QJsonObject state;
 	state["on"] = values["state"].toObject()["on"];
@@ -248,7 +248,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned
 	// Find id in the sets and set the appropriate color space.
 	if (GAMUT_A_MODEL_IDS.find(modelId) != GAMUT_A_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s of light ID %d as gamut A", modelId.toStdString().c_str(), id);
+		Debug(_log, "Recognized model id %s of light ID %d as gamut A", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.704f, 0.296f};
 		colorSpace.green =
@@ -258,7 +258,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned
 	}
 	else if (GAMUT_B_MODEL_IDS.find(modelId) != GAMUT_B_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s of light ID %d as gamut B", modelId.toStdString().c_str(), id);
+		Debug(_log, "Recognized model id %s of light ID %d as gamut B", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.675f, 0.322f};
 		colorSpace.green =
@@ -268,7 +268,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned
 	}
 	else if (GAMUT_C_MODEL_IDS.find(modelId) != GAMUT_C_MODEL_IDS.end())
 	{
-		Debug(log, "Recognized model id %s of light ID %d as gamut C", modelId.toStdString().c_str(), id);
+		Debug(_log, "Recognized model id %s of light ID %d as gamut C", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	0.6915f, 0.3083f};
 		colorSpace.green =
@@ -278,7 +278,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned
 	}
 	else
 	{
-		Warning(log, "Did not recognize model id %s of light ID %d", modelId.toStdString().c_str(), id);
+		Warning(_log, "Did not recognize model id %s of light ID %d", modelId.toStdString().c_str(), id);
 		colorSpace.red =
 		{	1.0f, 0.0f};
 		colorSpace.green =
@@ -287,7 +287,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, PhilipsHueBridge* bridge, unsigned
 		{	0.0f, 0.0f};
 	}
 
-	Info(log,"Light ID %d created", id);
+	Info(_log,"Light ID %d created", id);
 }
 
 PhilipsHueLight::~PhilipsHueLight()

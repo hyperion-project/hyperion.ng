@@ -77,6 +77,7 @@
 		"gamma" : {
 			"type" : "number",
 			"title" : "edt_dev_spec_gamma_title",
+			"default": 1.0,
 			"minimum" : 0.1,
 			"maximum": 5.0,
 			"options": {

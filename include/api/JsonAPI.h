@@ -6,7 +6,7 @@
 #include <utils/Components.h>
 #include <hyperion/Hyperion.h>
 
-// qt includess
+// qt includes
 #include <QJsonObject>
 #include <QMutex>
 #include <QString>
@@ -63,8 +63,8 @@ private:
 	// true if further callbacks are forbidden (http)
 	bool _noListener;
 
-    /// The peer address of the client
-    QString _peerAddress;
+	/// The peer address of the client
+	QString _peerAddress;
 
 	/// Log instance
 	Logger* _log;
@@ -86,7 +86,7 @@ private:
 	/// mutex to determine state of image streaming
 	QMutex _image_stream_mutex;
 
-	/// mutex to determine state of image streaming
+	/// mutex to determine state of led streaming
 	QMutex _led_stream_mutex;
 
 	/// timeout for live video refresh

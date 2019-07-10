@@ -15,13 +15,13 @@ class Option: public QCommandLineOption
 public:
 	Option(const QString &name,
 		  const QString &description = QString(),
-		  const QString &valueName = QString::null,
+		  const QString &valueName = QString(),
 		  const QString &defaultValue = QString()
 	);
 
 	Option(const QStringList &names,
 		   const QString &description = QString(),
-		   const QString &valueName = QString::null,
+		   const QString &valueName = QString(),
 		   const QString &defaultValue = QString()
 	);
 
