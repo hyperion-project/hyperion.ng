@@ -2,6 +2,7 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
+		"versionBranch" : "Stable",
 		"showOptHelp" : true
 	},
 	"logger" :

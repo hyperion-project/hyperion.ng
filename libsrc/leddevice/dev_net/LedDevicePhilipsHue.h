@@ -92,7 +92,7 @@ class PhilipsHueBridge : public QObject
 	Q_OBJECT
 
 private:
-	Logger* log;
+	Logger* _log;
 	/// QNetworkAccessManager  for sending requests.
 	QNetworkAccessManager manager;
 	/// Ip address of the bridge
@@ -138,7 +138,7 @@ public:
 class PhilipsHueLight
 {
 private:
-	Logger* log;
+	Logger* _log;
 	PhilipsHueBridge* bridge;
 	/// light id
 	unsigned int id;

@@ -75,10 +75,10 @@ $(document).ready( function() {
 
 	// add more info
 	$('#dash_leddevice').html(window.serverInfo.ledDevices.active);
-	$('#dash_currv').html(window.currentVersion);
+	$('#dash_currv').html(window.currentChannel+' '+window.currentVersion);
 	$('#dash_instance').html(window.serverConfig.general.name);
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
-	$('#dash_versionbranch').html(window.currentChannel);
+	$('#dash_versionbranch').html(window.serverConfig.general.versionBranch);
 
 	getReleases(function(callback){
 		if(callback)
