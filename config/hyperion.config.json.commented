@@ -11,7 +11,7 @@
 	"general" :
 	{
 		"name"       : "MyHyperionConfig",
-		"versionBranch" : "Stable",
+		"watchedVersionBranch" : "Stable",
 		"showOptHelp" : true
 	},
 	/// set log level: silent warn verbose debug

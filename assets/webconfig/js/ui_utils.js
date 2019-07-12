@@ -593,6 +593,8 @@ function createHelpTable(list, phead){
 			// break one iteration (in the loop), if the schema has the entry hidden=true
 			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
 				continue;
+				if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
+					continue;
 			var text = list[key].title.replace('title', 'expl');
 			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
@@ -604,6 +606,8 @@ function createHelpTable(list, phead){
 					// break one iteration (in the loop), if the schema has the entry hidden=true
 					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
 						continue;
+						if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
+							continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}
@@ -743,7 +747,7 @@ function getReleases(callback)
 					{
 						window.latestStableVersion = latest;
 
-						if(window.serverConfig.general.versionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, ''))
+						if(window.serverConfig.general.watchedVersionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, ''))
 						{
 							window.latestVersion = window.latestBetaVersion;
 						}

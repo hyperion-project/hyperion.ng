@@ -14,10 +14,10 @@
 			"required" : true,
 			"propertyOrder" : 1
 		},
-		"versionBranch" :
+		"watchedVersionBranch" :
 		{
 			"type" : "string",
-			"title" : "edt_conf_gen_versionBranch_title",
+			"title" : "edt_conf_gen_watchedVersionBranch_title",
 			"enum" : ["Stable", "Beta"],
 			"required" : true,
 			"access" : "expert",
