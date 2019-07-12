@@ -171,6 +171,9 @@ public:
 	// sets video mode 3D/2D
 	void setVideoMode(QString videoMode);
 
+	// set the specified authorization token
+	void setToken(const QString &token);
+
 
 private:
 	///

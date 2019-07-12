@@ -18,6 +18,7 @@
 
 class BonjourServiceRegister;
 class QUdpSocket;
+class NetOrigin;
 
 ///
 /// This class creates a UDP server which accepts connections from boblight clients.
@@ -106,4 +107,7 @@ private:
 	QHostAddress              _listenAddress;
 	uint16_t                  _listenPort;
 	QAbstractSocket::BindFlag _bondage;
+
+	/// Check Network Origin
+	NetOrigin* _netOrigin;
 };

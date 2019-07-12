@@ -1,6 +1,9 @@
 #include <flatbufserver/FlatBufferServer.h>
 #include "FlatBufferClient.h"
 
+// util
+#include <utils/NetOrigin.h>
+
 // qt
 #include <QJsonObject>
 #include <QTcpServer>
@@ -24,6 +27,7 @@ FlatBufferServer::~FlatBufferServer()
 
 void FlatBufferServer::initServer()
 {
+	_netOrigin = NetOrigin::getInstance();
 	connect(_server, &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
 
 	// apply config
@@ -58,11 +62,16 @@ void FlatBufferServer::newConnection()
 	{
 		if(QTcpSocket* socket = _server->nextPendingConnection())
 		{
-			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
-			// internal
-			connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
-			_openConnections.append(client);
+			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
+			{
+				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
+				// internal
+				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
+				_openConnections.append(client);
+			}
+			else
+				socket->close();
 		}
 	}
 }

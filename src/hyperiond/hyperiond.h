@@ -63,6 +63,8 @@ class PythonInit;
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
+class AuthManager;
+class NetOrigin;
 
 class HyperionDaemon : public QObject
 {
@@ -131,7 +133,9 @@ private:
 	void createGrabberQt(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
+	AuthManager*               _authManager;
 	BonjourBrowserWrapper*     _bonjourBrowserWrapper;
+	NetOrigin*                 _netOrigin;
 	PythonInit*                _pyInit;
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
@@ -158,8 +162,8 @@ private:
 	int                        _grabber_ge2d_mode;
 	QString                    _grabber_device;
 
-	QString _prevType;
+	QString                    _prevType;
 
-	VideoMode _currVideoMode;
-	SettingsManager*  _settingsManager;
+	VideoMode                  _currVideoMode;
+	SettingsManager*           _settingsManager;
 };

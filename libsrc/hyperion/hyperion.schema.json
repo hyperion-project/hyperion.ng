@@ -79,6 +79,10 @@
 		{
 			"$ref": "schema-instCapture.json"
 		},
+		"network":
+		{
+			"$ref": "schema-network.json"
+		},
 		"ledConfig":
 		{
 			"$ref": "schema-ledConfig.json"

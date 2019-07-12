@@ -71,7 +71,7 @@ Hyperion* Hyperion::getInstance()
 
 Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath)
 	: _daemon(daemon)
-	, _settingsManager(new SettingsManager(this, instance, configFile))
+	, _settingsManager(new SettingsManager(instance, configFile, this))
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _ledStringClone(hyperion::createLedStringClone(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
@@ -89,6 +89,9 @@ Hyperion::Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString
 	, _prevCompId(hyperion::COMP_INVALID)
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 {
+	// forward settings changed to Hyperion
+	connect(_settingsManager, &SettingsManager::settingsChanged, this, &Hyperion::settingsChanged);
+
 	if (!_raw2ledAdjustment->verifyAdjustments())
 		Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
 
@@ -209,9 +212,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 
 		const QJsonArray leds = config.array();
 
-// 		// lock update()
-// 		_lockUpdate = true;
-
 		// stop and cache all running effects, as effects depend heavily on ledlayout
 		_effectEngine->cacheRunningEffects();
 
@@ -247,14 +247,10 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 
 		// start cached effects
 		_effectEngine->startCachedEffects();
-
-// 		// unlock
-// 		_lockUpdate = false;
 	}
 	else if(type == settings::DEVICE)
 	{
 		QMutexLocker lock(&_changes);
-// 		_lockUpdate = true;
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
@@ -278,7 +274,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
-// 		_lockUpdate = false;
 	}
 	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
 	update();

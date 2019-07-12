@@ -1,0 +1,54 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_net_heading_title",
+	"required" : true,
+	"properties" :
+	{
+		"internetAccessAPI" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_internetAccessAPI_title",
+			"required" : true,
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"ipWhitelist" :
+		{
+			"type" : "array",
+			"title" : "edt_conf_net_ipWhitelist_title",
+			"required" : true,
+			"items" : {
+				"type": "string",
+				"title" : "edt_conf_net_ip_itemtitle"
+			},
+			"options": {
+				"dependencies": {
+					"internetAccessAPI": false
+				}
+			},
+			"propertyOrder" : 2
+		},
+		"apiAuth" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_apiAuth_title",
+			"required" : true,
+			"default" : true,
+			"propertyOrder" : 3
+		},
+		"localApiAuth" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_localApiAuth_title",
+			"required" : true,
+			"default" : false,
+			"options": {
+				"dependencies": {
+					"apiAuth": true
+				}
+			},
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties" : false
+}

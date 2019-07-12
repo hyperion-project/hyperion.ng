@@ -7,6 +7,7 @@
 #include <QJsonObject>
 
 class Hyperion;
+class SettingsTable;
 
 ///
 /// @brief Manage the settings read write from/to config file, on settings changed will emit a signal to update components accordingly
@@ -17,43 +18,38 @@ class SettingsManager : public QObject
 public:
 	///
 	/// @brief Construct a settings manager and assign a hyperion instance
-	/// @params  hyperion   The parent hyperion instance
-	/// @params  instance   Instance number of Hyperion
+	/// @params instance   Instance number of Hyperion
+	/// @params configFile The config file
+	/// @params hyperion   The parent hyperion instance
 	///
-	SettingsManager(Hyperion* hyperion, const quint8& instance, const QString& configFile);
-
-	///
-	/// @brief Construct a settings manager for HyperionDaemon
-	///
-	SettingsManager(const quint8& instance, const QString& configFile);
-	~SettingsManager();
+	SettingsManager(const quint8& instance, const QString& configFile, Hyperion* hyperion = nullptr);
 
 	///
 	/// @brief Save a complete json config
 	/// @param config  The entire config object
 	/// @param correct If true will correct json against schema before save
-	/// @return        True on success else false
+	/// @return True on success else false
 	///
 	bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
 	/// @brief get a single setting json from config
-	/// @param  type   The settings::type from enum
-	/// @return        The requested json data as QJsonDocument
+	/// @param type   The settings::type from enum
+	/// @return The requested json data as QJsonDocument
 	///
 	const QJsonDocument getSetting(const settings::type& type);
 
 	///
 	/// @brief get the full settings object of this instance (with global settings)
-	/// @return        The requested json
+	/// @return The requested json
 	///
 	const QJsonObject & getSettings() { return _qconfig; };
 
 signals:
 	///
 	/// @brief Emits whenever a config part changed.
-	/// @param type   The settings type from enum
-	/// @param data   The data as QJsonDocument
+	/// @param type The settings type from enum
+	/// @param data The data as QJsonDocument
 	///
 	void settingsChanged(const settings::type& type, const QJsonDocument& data);
 
@@ -63,6 +59,9 @@ private:
 
 	/// Logger instance
 	Logger* _log;
+
+	/// instance of database table interface
+	SettingsTable* _sTable;
 
 	/// the schema
 	static QJsonObject schemaJson;

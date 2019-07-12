@@ -1,9 +1,7 @@
 #pragma once
 
-// utils includes
 #include <utils/Logger.h>
 
-// qt includes
 #include <QJsonObject>
 
 class QtHttpServer;
@@ -14,7 +12,7 @@ class JsonAPI;
 class WebJsonRpc : public QObject {
 	Q_OBJECT
 public:
-	WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, QtHttpClientWrapper* parent);
+	WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, const bool& localConnection, QtHttpClientWrapper* parent);
 
 	void handleMessage(QtHttpRequest* request);
 

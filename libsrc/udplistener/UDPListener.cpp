@@ -8,20 +8,24 @@
 #include <hyperion/Hyperion.h>
 #include "HyperionConfig.h"
 
+// utils includes
+#include <utils/NetOrigin.h>
+
 // qt includes
 #include <QUdpSocket>
 #include <QJsonObject>
 
 using namespace hyperion;
 
-UDPListener::UDPListener(const QJsonDocument& config) :
-	QObject(),
-	_server(new QUdpSocket(this)),
-	_priority(0),
-	_timeout(0),
-	_log(Logger::getInstance("UDPLISTENER")),
-	_isActive(false),
-	_listenPort(0)
+UDPListener::UDPListener(const QJsonDocument& config)
+	: QObject()
+	, _server(new QUdpSocket(this))
+	, _priority(0)
+	, _timeout(0)
+	, _log(Logger::getInstance("UDPLISTENER"))
+	, _isActive(false)
+	, _listenPort(0)
+	, _netOrigin(NetOrigin::getInstance())
 {
 	// listen for component change
 	connect(Hyperion::getInstance(), &Hyperion::componentStateChanged, this, &UDPListener::componentStateChanged);
@@ -116,7 +120,9 @@ void UDPListener::readPendingDatagrams()
 		quint16 senderPort;
 
 		_server->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-		processTheDatagram(&datagram, &sender);
+
+		if(_netOrigin->accessAllowed(sender, _listenAddress))
+			processTheDatagram(&datagram, &sender);
 	}
 }
 

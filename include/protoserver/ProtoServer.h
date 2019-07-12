@@ -9,6 +9,7 @@
 
 class QTcpServer;
 class ProtoClientConnection;
+class NetOrigin;
 
 ///
 /// @brief This class creates a TCP server which accepts connections wich can then send
@@ -58,6 +59,7 @@ private:
 
 private:
 	QTcpServer* _server;
+	NetOrigin* _netOrigin;
 	Logger* _log;
 	int _timeout;
 	quint16 _port;

@@ -9,6 +9,8 @@
 
 class QUdpSocket;
 
+#define MAX_PORT 65535
+
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
 ///
@@ -54,6 +56,6 @@ protected:
 	///
 	QUdpSocket * _udpSocket;
 	QHostAddress _address;
-	quint16      _port;
+	ushort       _port;
 	QString      _defaultHost;
 };

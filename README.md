@@ -4,6 +4,7 @@
 [![Azure-Pipeline](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_apis/build/status/Hyperion.NG?branchName=master)](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_build/latest?definitionId=7&branchName=master)
 [![Travis-CI](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
+[![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
 
 ## About Hyperion
 

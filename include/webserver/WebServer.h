@@ -29,7 +29,7 @@ public:
 	quint16 getPort() { return _port; };
 
 	/// check if server has been inited
-	bool isInited() { return _inited; };
+	const bool isInited() { return _inited; };
 
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients

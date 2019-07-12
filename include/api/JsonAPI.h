@@ -12,6 +12,7 @@
 #include <QString>
 
 class JsonCB;
+class AuthManager;
 
 class JsonAPI : public QObject
 {
@@ -24,16 +25,17 @@ public:
 	/// @param peerAddress provide the Address of the peer
 	/// @param log         The Logger class of the creator
 	/// @param parent      Parent QObject
+	/// @param localConnection True when the sender has origin home network
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
-	JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListener = false);
+	JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, QObject* parent, bool noListener = false);
 
 	///
 	/// Handle an incoming JSON message
 	///
 	/// @param message the incoming message as string
 	///
-	void handleMessage(const QString & message);
+	void handleMessage(const QString & message, const QString& httpAuthHeader = "");
 
 public slots:
 	///
@@ -48,6 +50,24 @@ public slots:
 	/// process and push new log messages from logger (if enabled)
 	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 
+private slots:
+	///
+	/// @brief Handle emits from AuthManager of new request, just _userAuthorized sessions are allowed to handle them
+	/// @param id       The id of the request
+	/// @param  The comment which needs to be accepted
+	///
+	void handlePendingTokenRequest(const QString& id, const QString& comment);
+
+	///
+	/// @brief Handle emits from AuthManager of accepted/denied/timeouts token request, just if QObject matches with this instance we are allowed to send response.
+	/// @param  success If true the request was accepted else false and no token was created
+	/// @param  caller  The origin caller instance who requested this token
+	/// @param  token   The new token that is now valid
+	/// @param  comment The comment that was part of the request
+	/// @param  id      The id that was part of the request
+	///
+	void handleTokenResponse(const bool& success, QObject* caller, const QString& token, const QString& comment, const QString& id);
+
 signals:
 	///
 	/// Signal emits with the reply message provided with handleMessage()
@@ -60,6 +80,16 @@ signals:
 	void forwardJsonMessage(QJsonObject);
 
 private:
+	/// Auth management pointer
+	AuthManager* _authManager;
+
+	/// Reflect auth status of this client
+	bool _authorized;
+	bool _userAuthorized;
+
+	/// Reflect auth required
+	bool _apiAuthRequired;
+
 	// true if further callbacks are forbidden (http)
 	bool _noListener;
 
@@ -213,6 +243,21 @@ private:
 	/// @param message the incoming message
 	///
 	void handleVideoModeCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	/// Handle an incoming JSON plugin message
+	///
+	/// @param message the incoming message
+	///
+	void handleAuthorizeCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
+	/// Handle HTTP on-the-fly token authorization
+	/// @param command  The command
+	/// @param tan      The tan
+	/// @param token    The token to verify
+	/// @return True on succcess else false (pushes failed client feedback)
+	///
+	const bool handleHTTPAuth(const QString& command, const int& tan, const QString& token);
 
 	///
 	/// Handle an incoming JSON Clearall message

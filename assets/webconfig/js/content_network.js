@@ -1,6 +1,7 @@
 $(document).ready( function() {
 	performTranslation();
 
+	var conf_editor_net = null;
 	var conf_editor_json = null;
 	var conf_editor_proto = null;
 	var conf_editor_fbs = null;
@@ -10,6 +11,11 @@ $(document).ready( function() {
 
 	if(window.showOptHelp)
 	{
+		//network
+		$('#conf_cont').append(createRow('conf_cont_net'))
+		$('#conf_cont_net').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net'));
+		$('#conf_cont_net').append(createHelpTable(window.schema.network.properties, $.i18n("edt_conf_net_heading_title")));
+
 		//jsonserver
 		$('#conf_cont').append(createRow('conf_cont_json'))
 		$('#conf_cont_json').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
@@ -46,6 +52,7 @@ $(document).ready( function() {
 	else
 	{
 		$('#conf_cont').addClass('row');
+		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
@@ -54,7 +61,20 @@ $(document).ready( function() {
 		if(storedAccess != 'default')
 			$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
 	}
-	
+
+	// net
+	conf_editor_net = createJsonEditor('editor_container_net', {
+		network         : window.schema.network
+	}, true, true);
+
+	conf_editor_net.on('change',function() {
+		conf_editor_net.validate().length ? $('#btn_submit_net').attr('disabled', true) : $('#btn_submit_net').attr('disabled', false);
+	});
+
+	$('#btn_submit_net').off().on('click',function() {
+		requestWriteConfig(conf_editor_net.getValue());
+	});
+
 	//json
 	conf_editor_json = createJsonEditor('editor_container_jsonserver', {
 		jsonServer         : window.schema.jsonServer
@@ -139,6 +159,7 @@ $(document).ready( function() {
 	//create introduction
 	if(window.showOptHelp)
 	{
+		createHint("intro", $.i18n('conf_network_net_intro'), "editor_container_net");
 		createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
 		createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");

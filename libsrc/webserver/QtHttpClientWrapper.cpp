@@ -4,8 +4,8 @@
 #include "QtHttpReply.h"
 #include "QtHttpServer.h"
 #include "QtHttpHeader.h"
+#include "WebSocketClient.h"
 #include "WebJsonRpc.h"
-#include "webserver/WebSocketClient.h"
 
 #include <QCryptographicHash>
 #include <QTcpSocket>
@@ -16,15 +16,16 @@
 
 const QByteArray & QtHttpClientWrapper::CRLF = QByteArrayLiteral ("\r\n");
 
-QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, QtHttpServer * parent)
-    : QObject          (parent)
-    , m_guid           ("")
-    , m_parsingStatus  (AwaitingRequest)
-    , m_sockClient     (sock)
-    , m_currentRequest (Q_NULLPTR)
-    , m_serverHandle   (parent)
-    , m_websocketClient(nullptr)
-    , m_webJsonRpc     (nullptr)
+QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, const bool& localConnection, QtHttpServer * parent)
+	: QObject          (parent)
+	, m_guid           ("")
+	, m_parsingStatus  (AwaitingRequest)
+	, m_sockClient     (sock)
+	, m_currentRequest (Q_NULLPTR)
+	, m_serverHandle   (parent)
+	, m_localConnection(localConnection)
+	, m_websocketClient(nullptr)
+	, m_webJsonRpc     (nullptr)
 {
     connect (m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }
@@ -120,7 +121,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
 						{
 							// disconnect this slot from socket for further requests
 							disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
-							m_websocketClient = new WebSocketClient(m_currentRequest->getHeader(QtHttpHeader::SecWebSocketKey), m_sockClient, this);
+							m_websocketClient = new WebSocketClient(m_currentRequest, m_sockClient, m_localConnection, this);
 						}
 						break;
 					}
@@ -149,7 +150,7 @@ void QtHttpClientWrapper::onClientDataReceived (void) {
 						{
 							if(m_webJsonRpc == Q_NULLPTR)
 							{
-								m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, this);
+								m_webJsonRpc = new WebJsonRpc(m_currentRequest, m_serverHandle, m_localConnection, this);
 							}
 							m_webJsonRpc->handleMessage(m_currentRequest);
 							break;

@@ -26,6 +26,7 @@ window.watchdog = 0;
 window.debugMessagesActive = true;
 window.wSess = [];
 window.comps = [];
+tokenList = {};
 
 function initRestart()
 {
@@ -162,7 +163,31 @@ function sendToHyperion(command, subcommand, msg)
 // -----------------------------------------------------------
 // wrapped server commands
 
-// also used for watchdog
+function requestAuthorization()
+{
+	sendToHyperion("authorize","login",'"username": "Hyperion", "password": "hyperion"');
+}
+
+function requestToken(comment)
+{
+	sendToHyperion("authorize","createToken",'"comment": "'+comment+'"');
+}
+
+function requestTokenInfo()
+{
+	sendToHyperion("authorize","getTokenList","");
+}
+
+function requestHandleTokenRequest(id, state)
+{
+	sendToHyperion("authorize","answerRequest",'"id":"'+id+'", "accept":'+state);
+}
+
+function requestTokenDelete(id)
+{
+	sendToHyperion("authorize","deleteToken",'"id":"'+id+'"');
+}
+
 function requestServerInfo()
 {
 	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update"]');

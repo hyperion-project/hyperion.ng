@@ -21,9 +21,11 @@ target_link_libraries(hyperiond
 		webserver
 		bonjour
 		ssdp
+		database
 		python
 		resources
 		${PYTHON_LIBRARIES}
+		Qt5::Widgets
 )
 
 if (ENABLE_AMLOGIC)
@@ -67,8 +69,6 @@ endif ()
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()
-
-target_link_libraries(hyperiond Qt5::Widgets)
 
 install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )

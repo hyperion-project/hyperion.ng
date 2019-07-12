@@ -1,39 +1,37 @@
-#include "webserver/WebSocketClient.h"
+#include "WebSocketClient.h"
+#include "QtHttpRequest.h"
+#include "QtHttpHeader.h"
 
-// hyperion includes
 #include <hyperion/Hyperion.h>
-
-// JsonAPI includes
 #include <api/JsonAPI.h>
 
-// qt includes
 #include <QTcpSocket>
 #include <QtEndian>
 #include <QCryptographicHash>
 #include <QJsonObject>
-#include <QHostAddress>
 
-
-WebSocketClient::WebSocketClient(QByteArray socketKey, QTcpSocket* sock, QObject* parent)
+WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const bool& localConnection, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
-	, _secWebSocketKey(socketKey)
 	, _log(Logger::getInstance("WEBSOCKET"))
+//	, _hyperion(Hyperion::getInstance())
 {
 	// connect socket; disconnect handled from QtHttpServer
 	connect(_socket, &QTcpSocket::readyRead , this, &WebSocketClient::handleWebSocketFrame);
 
-	const QString client = sock->peerAddress().toString();
+	// QtHttpRequest contains all headers for handshake
+	QByteArray secWebSocketKey = request->getHeader(QtHttpHeader::SecWebSocketKey);
+	const QString client = request->getClientInfo().clientAddress.toString();
 
 	// Json processor
-	_jsonAPI = new JsonAPI(client, _log, this);
+	_jsonAPI = new JsonAPI(client, _log, localConnection, this);
 	connect(_jsonAPI, &JsonAPI::callbackMessage, this, &WebSocketClient::sendMessage);
 
 	Debug(_log, "New connection from %s", QSTRING_CSTR(client));
 
 	// do handshake
-	_secWebSocketKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-	QByteArray hash = QCryptographicHash::hash(_secWebSocketKey, QCryptographicHash::Sha1).toBase64();
+	secWebSocketKey += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+	QByteArray hash = QCryptographicHash::hash(secWebSocketKey, QCryptographicHash::Sha1).toBase64();
 
 	QString data
 		= QString("HTTP/1.1 101 Switching Protocols\r\n")
@@ -113,14 +111,14 @@ void WebSocketClient::handleWebSocketFrame(void)
 			if (_wsh.fin)
 			{
 				_onContinuation = false;
-//				if (_wsh.opCode == OPCODE::TEXT)
-//				{
+				if (_wsh.opCode == OPCODE::TEXT)
+				{
 					_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
-//				}
-//				else
-//				{
-//					handleBinaryMessage(_wsReceiveBuffer);
-//				}
+				}
+				else
+				{
+					handleBinaryMessage(_wsReceiveBuffer);
+				}
 				_wsReceiveBuffer.clear();
 			}
 		}
@@ -223,7 +221,6 @@ void WebSocketClient::sendClose(int status, QString reason)
 	_socket->close();
 }
 
-/*
 void WebSocketClient::handleBinaryMessage(QByteArray &data)
 {
 	//uint8_t  priority   = data.at(0);
@@ -242,10 +239,9 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	image.resize(width, height);
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
-	_hyperion->registerInput();
-	_hyperion->setInputImage(priority, image, duration_s*1000);
+	//_hyperion->registerInput();
+	//_hyperion->setInputImage(priority, image, duration_s*1000);
 }
-*/
 
 qint64 WebSocketClient::sendMessage(QJsonObject obj)
 {

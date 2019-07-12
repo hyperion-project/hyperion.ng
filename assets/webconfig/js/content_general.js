@@ -25,6 +25,50 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
 
+	// Token handling
+	function buildTokenList()
+	{
+		console.log(tokenList)
+		$('.tktbody').html("");
+		for(var key in tokenList)
+		{
+			var lastUse = (tokenList[key].last_use) ? tokenList[key].last_use : "-";
+			var btn = '<button id="tok'+tokenList[key].id+'" type="button" class="btn btn-danger">'+$.i18n('general_btn_delete')+'</button>';
+			$('.tktbody').append(createTableRow([tokenList[key].comment, lastUse, btn], false, true));
+			$('#tok'+tokenList[key].id).off().on('click', handleDeleteToken);
+		}
+	}
+
+	createTable('tkthead', 'tktbody', 'tktable');
+	$('.tkthead').html(createTableRow([$.i18n('conf_general_tok_cidhead'), $.i18n('conf_general_tok_lastuse'), $.i18n('general_btn_delete')], true, true));
+	buildTokenList();
+
+	function handleDeleteToken(e)
+	{
+		var key = e.currentTarget.id.replace("tok","");
+		requestTokenDelete(key);
+		$('#tok'+key).parent().parent().remove();
+		// rm deleted token id
+		tokenList = tokenList.filter(function( obj ) {
+    		return obj.id !== key;
+		});
+	}
+
+	$('#btn_create_tok').off().on('click',function() {
+		requestToken($('#tok_comment').val())
+		$('#tok_comment').val("")
+		$('#btn_create_tok').attr('disabled', true)
+	});
+	$('#tok_comment').off().on('input',function(e) {
+		(e.currentTarget.value.length >= 10) ? $('#btn_create_tok').attr('disabled', false) : $('#btn_create_tok').attr('disabled', true);
+	});
+	$(window.hyperion).off("cmd-authorize-createToken").on("cmd-authorize-createToken", function(event) {
+		var val = event.response.info;
+		showInfoDialog("newToken",$.i18n('conf_general_tok_diaTitle'),$.i18n('conf_general_tok_diaMsg')+'<br><div style="font-weight:bold">'+val.token+'</div>')
+		tokenList.push(val)
+		buildTokenList()
+	});
+
 	//import
 	function dis_imp_btn(state)
 	{
@@ -104,6 +148,7 @@ $(document).ready( function() {
 	//create introduction
 	if(window.showOptHelp)
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
+		createHint("intro", $.i18n('conf_general_tok_desc'), "tok_desc_cont");
 
 	removeOverlay();
 });

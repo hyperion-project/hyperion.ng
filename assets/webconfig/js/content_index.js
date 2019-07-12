@@ -34,6 +34,11 @@ $(document).ready( function() {
 		updateSessions();
 	});
 
+	$(window.hyperion).one("cmd-authorize-getTokenList", function(event) {
+		tokenList = event.response.info;
+		requestServerInfo();
+	});
+
 	$(window.hyperion).on("cmd-sysinfo", function(event) {
 		requestServerInfo();
 		window.sysInfo = event.response.info;
@@ -45,6 +50,7 @@ $(document).ready( function() {
 	$(window.hyperion).one("cmd-config-getschema", function(event) {
 		window.serverSchema = event.response.info;
 		requestServerConfig();
+		requestTokenInfo();
 
 		window.schema = window.serverSchema.properties;
 	});
@@ -62,12 +68,16 @@ $(document).ready( function() {
         }
     });
 
+	$(window.hyperion).one("cmd-authorize-login", function(event) {
+		requestServerConfigSchema();
+	});
+
 	$(window.hyperion).on("error",function(event){
 		showInfoDialog("error","Error", event.reason);
 	});
 
 	$(window.hyperion).on("open",function(event){
-		requestServerConfigSchema();
+		requestAuthorization();
 	});
 
 	$(window.hyperion).one("ready", function(event) {

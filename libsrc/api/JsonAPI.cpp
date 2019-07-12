@@ -35,10 +35,17 @@
 // api includes
 #include <api/JsonCB.h>
 
+// auth manager
+#include <hyperion/AuthManager.h>
+
 using namespace hyperion;
 
-JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListener)
+JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, QObject* parent, bool noListener)
 	: QObject(parent)
+	, _authManager(AuthManager::getInstance())
+	, _authorized(false)
+	, _userAuthorized(false)
+	, _apiAuthRequired(_authManager->isAuthRequired())
 	, _noListener(noListener)
 	, _peerAddress(peerAddress)
 	, _log(log)
@@ -50,6 +57,14 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
+	// if this is localConnection and network allows unauth locals, set authorized flag
+	if(_apiAuthRequired && localConnection)
+		_authorized = !_authManager->isLocalAuthRequired();
+
+	// setup auth interface
+	connect(_authManager, &AuthManager::newPendingTokenRequest, this, &JsonAPI::handlePendingTokenRequest);
+	connect(_authManager, &AuthManager::tokenResponse, this, &JsonAPI::handleTokenResponse);
+
 	// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
 
@@ -57,7 +72,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, QObject* parent, bool noListe
 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 }
 
-void JsonAPI::handleMessage(const QString& messageString)
+void JsonAPI::handleMessage(const QString& messageString, const QString& httpAuthHeader)
 {
 	const QString ident = "JsonRpc@"+_peerAddress;
 	QJsonObject message;
@@ -84,6 +99,29 @@ void JsonAPI::handleMessage(const QString& messageString)
 	}
 
 	int tan = message["tan"].toInt();
+
+	// client auth before everything else but not for http
+	if (!_noListener && command == "authorize")
+	{
+		handleAuthorizeCommand(message, command, tan);
+		return;
+	}
+
+	// on the fly auth available for http from http Auth header, on failure we return and auth handler sends a failure
+	if(_noListener && _apiAuthRequired && !_authorized)
+	{
+		// extract token from http header
+		QString cToken = httpAuthHeader.mid(5).trimmed();
+		if(!handleHTTPAuth(command, tan, cToken))
+			return;
+	}
+
+	// on strong api auth you need a auth for all cmds
+	if(_apiAuthRequired && !_authorized)
+	{
+		sendErrorReply("No Authorization", command, tan);
+		return;
+	}
 	
 	// switch over all possible commands and handle them
 	if      (command == "color")          handleColorCommand         (message, command, tan);
@@ -104,13 +142,14 @@ void JsonAPI::handleMessage(const QString& messageString)
 	else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
-	else if (command == "clearall")       handleClearallCommand(message, command, tan);
+	else if (command == "clearall")
+		handleClearallCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
 		sendErrorReply("The command " + command + "is deprecated, please use the Hyperion Web Interface to configure");
 	// END
 
 	// handle not implemented commands
-	else                                  handleNotImplemented       ();
+	else handleNotImplemented();
 }
 
 void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& command, const int tan)
@@ -949,6 +988,205 @@ void JsonAPI::handleVideoModeCommand(const QJsonObject& message, const QString &
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString &command, const int tan)
+{
+	const QString& subc = message["subcommand"].toString().trimmed();
+	// catch test if auth is required
+	if(subc == "required")
+	{
+		QJsonObject req;
+		req["required"] = _apiAuthRequired;
+		sendSuccessDataReply(QJsonDocument(req), command+"-"+subc, tan);
+		return;
+	}
+
+	// catch logout
+	if(subc == "logout")
+	{
+		_authorized = false;
+		_userAuthorized = false;
+		sendSuccessReply(command+"-"+subc, tan);
+		return;
+	}
+
+	// token created from ui
+	if(subc == "createToken")
+	{
+		const QString& c = message["comment"].toString().trimmed();
+		// for user authorized sessions
+		if(_userAuthorized)
+		{
+			AuthManager::AuthDefinition def = _authManager->createToken(c);
+			QJsonObject newTok;
+			newTok["comment"] = def.comment;
+			newTok["id"] = def.id;
+			newTok["token"] = def.token;
+
+			sendSuccessDataReply(QJsonDocument(newTok), command+"-"+subc, tan);
+			return;
+		}
+		sendErrorReply("No Authorization",command+"-"+subc, tan);
+		return;
+	}
+
+	// delete token
+	if(subc == "deleteToken")
+	{
+		const QString& did = message["id"].toString().trimmed();
+		// for user authorized sessions
+		if(_userAuthorized)
+		{
+			_authManager->deleteToken(did);
+			sendSuccessReply(command+"-"+subc, tan);
+			return;
+		}
+		sendErrorReply("No Authorization",command+"-"+subc, tan);
+		return;
+	}
+
+	// catch token request
+	if(subc == "requestToken")
+	{
+		const QString& comment = message["comment"].toString().trimmed();
+		const QString& id = message["id"].toString().trimmed();
+		_authManager->setNewTokenRequest(this, comment, id);
+		// client should wait for answer
+		return;
+	}
+
+	// get pending token requests
+	if(subc == "getPendingRequests")
+	{
+		if(_userAuthorized)
+		{
+			QMap<QString, AuthManager::AuthDefinition> map = _authManager->getPendingRequests();
+			QJsonArray arr;
+			for(const auto& entry : map)
+			{
+				QJsonObject obj;
+				obj["comment"] = entry.comment;
+				obj["id"] = entry.id;
+				obj["timeout"] = int(entry.timeoutTime - QDateTime::currentMSecsSinceEpoch());
+				arr.append(obj);
+			}
+			sendSuccessDataReply(QJsonDocument(arr),command+"-"+subc, tan);
+		}
+		else
+			sendErrorReply("No Authorization", command+"-"+subc, tan);
+
+		return;
+	}
+
+	// accept token request
+	if(subc == "answerRequest")
+	{
+		const QString& id = message["id"].toString().trimmed();
+		const bool& accept = message["accept"].toBool(false);
+		if(_userAuthorized)
+		{
+			if(accept)
+				_authManager->acceptTokenRequest(id);
+			else
+				_authManager->denyTokenRequest(id);
+		}
+		else
+			sendErrorReply("No Authorization", command+"-"+subc, tan);
+
+		return;
+	}
+	// deny token request
+	if(subc == "acceptRequest")
+	{
+		const QString& id = message["id"].toString().trimmed();
+		if(_userAuthorized)
+		{
+			_authManager->acceptTokenRequest(id);
+		}
+		else
+			sendErrorReply("No Authorization", command+"-"+subc, tan);
+
+		return;
+	}
+
+	// cath get token list
+	if(subc == "getTokenList")
+	{
+		if(_userAuthorized)
+		{
+			QVector<AuthManager::AuthDefinition> defVect = _authManager->getTokenList();
+			QJsonArray tArr;
+			for(const auto& entry : defVect)
+			{
+				QJsonObject subO;
+				subO["comment"] = entry.comment;
+				subO["id"] = entry.id;
+				subO["last_use"] = entry.lastUse;
+
+				tArr.append(subO);
+			}
+
+			sendSuccessDataReply(QJsonDocument(tArr),command+"-"+subc, tan);
+			return;
+		}
+		sendErrorReply("No Authorization",command+"-"+subc, tan);
+		return;
+	}
+
+	// login
+	if(subc == "login")
+	{
+		// catch token auth
+		const QString& token = message["token"].toString().trimmed();
+
+		if(!token.isEmpty())
+		{
+			if(token.count() >= 36)
+			{
+				if(_authManager->isTokenAuthorized(token))
+				{
+					_authorized = true;
+					sendSuccessReply(command+"-"+subc, tan);
+				}
+				else
+					sendErrorReply("No Authorization", command+"-"+subc, tan);
+			}
+			else
+				sendErrorReply("Token is too short", command+"-"+subc, tan);
+
+			return;
+		}
+
+		// user & password
+		const QString& user = message["username"].toString().trimmed();
+		const QString& password = message["password"].toString().trimmed();
+
+		if(user.count() >= 3 && password.count() >= 8)
+		{
+			if(_authManager->isUserAuthorized(user, password))
+			{
+				_authorized = true;
+				_userAuthorized = true;
+				sendSuccessReply(command+"-"+subc, tan);
+			}
+			else
+				sendErrorReply("No Authorization", command+"-"+subc, tan);
+		}
+		else
+			sendErrorReply("User or password string too short", command+"-"+subc, tan);
+	}
+}
+
+const bool JsonAPI::handleHTTPAuth(const QString& command, const int& tan, const QString& token)
+{
+	if(_authManager->isTokenAuthorized(token))
+	{
+		_authorized = true;
+		return true;
+	}
+	sendErrorReply("No Authorization", command, tan);
+	return false;
+}
+
 void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& command, const int tan)
 {
 	emit forwardJsonMessage(message);
@@ -1092,4 +1330,36 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 
 	// send the result
 	emit callbackMessage(_streaming_logging_reply);
+}
+
+void JsonAPI::handlePendingTokenRequest(const QString& id, const QString& comment)
+{
+	// just user sessions are allowed to react on this, to prevent that token authorized instances authorize new tokens on their own
+	if(_userAuthorized)
+	{
+		QJsonObject obj;
+		obj["command"] = "authorize-event";
+		obj["comment"] = comment;
+		obj["id"] = id;
+
+		emit callbackMessage(obj);
+	}
+}
+
+void JsonAPI::handleTokenResponse(const bool& success, QObject* caller, const QString& token, const QString& comment, const QString& id)
+{
+	// if this is the requester, we send the reply
+	if(this == caller)
+	{
+		const QString cmd = "authorize-requestToken";
+		QJsonObject result;
+		result["token"] = token;
+		result["comment"] = comment;
+		result["id"] = id;
+
+		if(success)
+			sendSuccessDataReply(QJsonDocument(result), cmd);
+		else
+			sendErrorReply("Token request timeout or denied", cmd);
+	}
 }

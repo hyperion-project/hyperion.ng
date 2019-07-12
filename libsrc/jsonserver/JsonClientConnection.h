@@ -10,7 +10,6 @@
 
 class JsonAPI;
 class QTcpSocket;
-class WebSocketClient;
 
 ///
 /// The Connection object created by \a JsonServer when a new connection is established
@@ -24,7 +23,7 @@ public:
 	/// Constructor
 	/// @param socket The Socket object for this connection
 	///
-	JsonClientConnection(QTcpSocket * socket);
+	JsonClientConnection(QTcpSocket * socket, const bool& localConnection);
 
 signals:
 	void connectionClosed();
@@ -42,7 +41,6 @@ private slots:
 
 private:
 	QTcpSocket* _socket;
-	WebSocketClient* _websocketClient;
 	/// new instance of JsonAPI
 	JsonAPI * _jsonAPI;
 

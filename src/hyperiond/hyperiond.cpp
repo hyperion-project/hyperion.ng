@@ -40,6 +40,12 @@
 // settings
 #include <hyperion/SettingsManager.h>
 
+// AuthManager
+#include <hyperion/AuthManager.h>
+
+// NetOrigin checks
+#include <utils/NetOrigin.h>
+
 // Init Python
 #include <python/PythonInit.h>
 
@@ -51,7 +57,9 @@ HyperionDaemon* HyperionDaemon::daemon = nullptr;
 HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
+	, _authManager(new AuthManager(rootPath, this))
 	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
+	, _netOrigin(new NetOrigin(this))
 	, _pyInit(new PythonInit())
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
@@ -87,6 +95,14 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
 	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
+
+	// connect and apply settings for AuthManager
+	connect(this, &HyperionDaemon::settingsChanged, _authManager, &AuthManager::handleSettingsUpdate);
+	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
+
+	// connect and apply settings for NetOrigin
+	connect(this, &HyperionDaemon::settingsChanged, _netOrigin, &NetOrigin::handleSettingsUpdate);
+	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 	// spawn all Hyperion instances before network services
 	_hyperion = Hyperion::initInstance(this, 0, configFile, rootPath);

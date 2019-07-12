@@ -173,11 +173,20 @@
 		"disable": [""]
 	},
 
-	"instCapture" : {
+	"instCapture" :
+	{
 		"systemEnable" : true,
 		"systemPriority" : 250,
 		"v4lEnable" : false,
 		"v4lPriority" : 240
+	},
+
+	"network" :
+	{
+		"internetAccessAPI" : false,
+		"ipWhitelist" : [],
+		"apiAuth" : true,
+		"localApiAuth" : false
 	},
 
 	"ledConfig" :
