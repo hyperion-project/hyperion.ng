@@ -35,7 +35,7 @@ For an example, you can participate in the translation.
 ## Requirements
 Debian 9, Ubuntu 16.04 or higher. Windows is not supported currently.
 
-We provide an macOS Build but we can not support this.
+We provide a macOS Build but we can not support this.
 
 ## Building
 See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).
