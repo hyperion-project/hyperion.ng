@@ -1,10 +1,10 @@
 <div class="container-fluid">
 	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span  data-i18n="main_menu_about_token">About Hyperion</span></h3>
 	<div class="row">
-		<div class="col-lg-6">
+		<div class="col-lg-12">
 			<div id="about_cont"></div>
 		</div>
-		<div id="danger_act"class="col-lg-6" style="display:none">
+		<div id="danger_act"class="col-lg-6" style="display:none;padding-top:20px">
 			<h4>You found a hidden service menu!</h4>
 			<button id="reset_cache" class="btn btn-danger">Reset Browser Cache</button>
 			<button id="hyp_restart" class="btn btn-danger">Force Hyperion Restart</button>
@@ -49,4 +49,6 @@
 	$('#hyp_restart').off().on('click',function(){
 		initRestart();
 	});
+
+	removeOverlay();
 </script>
