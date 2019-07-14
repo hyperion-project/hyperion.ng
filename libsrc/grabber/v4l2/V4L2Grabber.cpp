@@ -17,6 +17,7 @@
 #include <linux/videodev2.h>
 
 #include <hyperion/Hyperion.h>
+#include <hyperion/HyperionIManager.h>
 
 #include <QDirIterator>
 #include <QFileInfo>
@@ -57,9 +58,9 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
 
-	// listen for component change for build-in grabber only
-	if (Hyperion::_hyperion)
-		connect(Hyperion::getInstance(), &Hyperion::componentStateChanged, this, &V4L2Grabber::componentStateChanged);
+	// connect componentStateChange only for build-in grabber
+	if (HyperionIManager::HIMinstance)
+		connect(this, &Grabber::componentStateChanged, this, &V4L2Grabber::componentStateChanged);
 
 	// init
 	setDeviceVideoStandard(device, videoStandard);

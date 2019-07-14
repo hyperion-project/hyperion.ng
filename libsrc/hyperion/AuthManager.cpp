@@ -1,7 +1,8 @@
 #include <hyperion/AuthManager.h>
 
-// util
+// db
 #include <db/AuthTable.h>
+#include <db/MetaTable.h>
 
 // qt
 #include <QJsonObject>
@@ -9,14 +10,18 @@
 
 AuthManager* AuthManager::manager = nullptr;
 
-AuthManager::AuthManager(const QString& rootPath, QObject* parent)
+AuthManager::AuthManager(QObject* parent)
 	: QObject(parent)
-	, _authTable(new AuthTable(rootPath, this))
+	, _authTable(new AuthTable(this))
+	, _metaTable(new MetaTable(this))
 	, _pendingRequests()
 	, _authRequired(true)
 	, _timer(new QTimer(this))
 {
 	AuthManager::manager = this;
+
+	// get uuid
+	_uuid = _metaTable->getUUID();
 
 	// setup timer
 	_timer->setInterval(1000);
@@ -29,12 +34,12 @@ AuthManager::AuthManager(const QString& rootPath, QObject* parent)
 	}
 }
 
-const bool & AuthManager::isAuthRequired()
+bool & AuthManager::isAuthRequired()
 {
 	return _authRequired;
 }
 
-const bool & AuthManager::isLocalAuthRequired()
+bool & AuthManager::isLocalAuthRequired()
 {
 	return _localAuthRequired;
 }
@@ -72,12 +77,12 @@ const QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 	return finalVec;
 }
 
-const bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
+bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
 {
 	return _authTable->isUserAuthorized(user, pw);
 }
 
-const bool AuthManager::isTokenAuthorized(const QString& token)
+bool AuthManager::isTokenAuthorized(const QString& token)
 {
 	return _authTable->tokenExist(token);
 }
@@ -93,7 +98,7 @@ void AuthManager::setNewTokenRequest(QObject* caller, const QString& comment, co
 	}
 }
 
-const bool AuthManager::acceptTokenRequest(const QString& id)
+bool AuthManager::acceptTokenRequest(const QString& id)
 {
 	if(_pendingRequests.contains(id))
 	{
@@ -106,7 +111,7 @@ const bool AuthManager::acceptTokenRequest(const QString& id)
 	return false;
 }
 
-const bool AuthManager::denyTokenRequest(const QString& id)
+bool AuthManager::denyTokenRequest(const QString& id)
 {
 	if(_pendingRequests.contains(id))
 	{
@@ -122,7 +127,7 @@ const QMap<QString, AuthManager::AuthDefinition> AuthManager::getPendingRequests
 	return _pendingRequests;
 }
 
-const bool AuthManager::deleteToken(const QString& id)
+bool AuthManager::deleteToken(const QString& id)
 {
 	if(_authTable->deleteToken(id))
 	{

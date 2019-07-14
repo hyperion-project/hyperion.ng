@@ -11,8 +11,12 @@
 #include <QMutex>
 #include <QString>
 
+// HyperionInstanceManager
+#include <hyperion/HyperionIManager.h>
+
 class JsonCB;
 class AuthManager;
+class HyperionIManager;
 
 class JsonAPI : public QObject
 {
@@ -68,6 +72,14 @@ private slots:
 	///
 	void handleTokenResponse(const bool& success, QObject* caller, const QString& token, const QString& comment, const QString& id);
 
+	///
+	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @param instaneState  A state from enum
+	/// @param instance      The index of instance
+	/// @param name          The name of the instance, just available with H_CREATED
+	///
+	void handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name = QString());
+
 signals:
 	///
 	/// Signal emits with the reply message provided with handleMessage()
@@ -99,6 +111,9 @@ private:
 	/// Log instance
 	Logger* _log;
 
+	/// Hyperion instance manager
+	HyperionIManager* _instanceManager;
+
 	/// Hyperion instance
 	Hyperion* _hyperion;
 
@@ -124,6 +139,14 @@ private:
 
 	/// timeout for led color refresh
 	volatile qint64 _led_stream_timeout;
+
+	///
+	/// @brief Handle the switches of Hyperion instances
+	/// @param instance the instance to switch
+	/// @param forced  indicate if it was a forced switch by system
+	/// @return true on success. false if not found
+	///
+	const bool handleInstanceSwitch(const quint8& instance = 0, const bool& forced = false);
 
 	///
 	/// Handle an incoming JSON Color message
@@ -180,6 +203,13 @@ private:
 	/// @param message the incoming message
 	///
 	void handleClearCommand(const QJsonObject & message, const QString &command, const int tan);
+
+	///
+	/// Handle an incoming JSON Clearall message
+	///
+	/// @param message the incoming message
+	///
+	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON Adjustment message
@@ -259,12 +289,11 @@ private:
 	///
 	const bool handleHTTPAuth(const QString& command, const int& tan, const QString& token);
 
-	///
-	/// Handle an incoming JSON Clearall message
+	/// Handle an incoming JSON instance message
 	///
 	/// @param message the incoming message
 	///
-	void handleClearallCommand(const QJsonObject & message, const QString &command, const int tan);
+	void handleInstanceCommand(const QJsonObject & message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type

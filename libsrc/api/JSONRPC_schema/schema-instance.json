@@ -1,0 +1,29 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["instance"]
+		},
+		"subcommand" : {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["createInstance","deleteInstance","startInstance","stopInstance","saveName","switchTo"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"instance" : {
+			"type" : "integer",
+			"minimum" : 0,
+			"maximum" : 255
+		},
+		"name": {
+			"type": "string",
+			"minLength" : 5
+		}
+	},
+	"additionalProperties": false
+}

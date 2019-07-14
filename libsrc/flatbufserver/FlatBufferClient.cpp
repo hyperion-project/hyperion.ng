@@ -7,6 +7,8 @@
 #include <QRgb>
 
 #include <hyperion/Hyperion.h>
+#include <hyperion/HyperionIManager.h>
+
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
@@ -15,7 +17,7 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObje
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hyperion(Hyperion::getInstance())
+	, _hyperion(HyperionIManager::getInstance()->getHyperionInstance())
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);

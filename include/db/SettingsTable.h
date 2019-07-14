@@ -95,6 +95,16 @@ public:
 		return results["config"].toString();
 	}
 
+	///
+	/// @brief Delete all settings entries associated with this instance, called from InstanceTable of HyperionIManager
+	///
+	inline void deleteInstance() const
+	{
+		VectorPair cond;
+		cond.append(CPair("hyperion_inst",_hyperion_inst));
+		deleteRecord(cond);
+	}
+
 	inline bool isSettingGlobal(const QString& type) const
 	{
 		// list of global settings

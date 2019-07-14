@@ -118,6 +118,49 @@ function loadContent(event, forceRefresh)
 	}
 }
 
+function getInstanceNameByIndex(index)
+{
+	var instData = window.serverInfo.instance
+	for(var key in instData)
+	{
+		if(instData[key].instance == index)
+			return instData[key].friendly_name;
+	}
+	return "unknown"
+}
+
+function updateHyperionInstanceListing()
+{
+	var data = window.serverInfo.instance.filter(entry => entry.running);
+	$('#hyp_inst_listing').html("");
+	for(var key in data)
+	{
+		var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
+
+		var html = '<li id="hyperioninstance_'+data[key].instance+'"> \
+			<a>  \
+				<div>  \
+					<i class="fa fa-circle fa-fw '+currInstMarker+'"></i> \
+					<span>'+data[key].friendly_name+'</span> \
+				</div> \
+			</a> \
+		</li> '
+
+		if(data.length-1 > key)
+			html += '<li class="divider"></li>'
+
+		$('#hyp_inst_listing').append(html);
+
+		$('#hyperioninstance_'+data[key].instance).off().on("click",function(e){
+			var inst = e.currentTarget.id.split("_")[1]
+			requestInstanceSwitch(inst)
+			window.currentHyperionInstance = inst;
+			window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+			updateHyperionInstanceListing()
+		});
+	}
+}
+
 function loadContentTo(containerId, fileName)
 {
 	$(containerId).load("/content/"+fileName+".html");
@@ -189,6 +232,11 @@ function showInfoDialog(type,header,message)
 	else if (type == "import"){
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "delplug"){
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")

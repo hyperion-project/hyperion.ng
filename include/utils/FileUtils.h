@@ -56,12 +56,6 @@ QString getDirName( QString sourceFile);
 	bool removeFile(const QString& path, Logger* log, bool ignError=false);
 
 	///
-	/// @brief Convert a path that may contain special placeholders
-	/// @param[in]   path     The path to convert
-	///
-	QString convertPath(const QString path);
-
-	///
 	/// @brief resolve the file error and print a message
 	/// @param[in]  file     The file which caused the error
 	/// @param[in]  log      The logger of the caller

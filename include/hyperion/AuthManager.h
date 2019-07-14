@@ -7,6 +7,7 @@
 #include <QMap>
 
 class AuthTable;
+class MetaTable;
 class QTimer;
 
 ///
@@ -19,7 +20,7 @@ class AuthManager : public QObject
 private:
 	friend class HyperionDaemon;
 	/// constructor is private, can be called from HyperionDaemon
-	AuthManager(const QString& rootPath, QObject* parent = 0);
+	AuthManager(QObject* parent = 0);
 
 public:
 	struct AuthDefinition{
@@ -32,6 +33,12 @@ public:
 	};
 
 	///
+	/// @brief Get the unique id (imported from removed class 'Stats')
+	/// @return The unique id
+	///
+	const QString & getID() { return _uuid; };
+
+	///
 	/// @brief Get all available token entries
 	///
 	const QVector<AuthDefinition> getTokenList();
@@ -40,13 +47,13 @@ public:
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	const bool & isAuthRequired();
+	bool & isAuthRequired();
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	const bool & isLocalAuthRequired();
+	bool & isLocalAuthRequired();
 
 	///
 	/// @brief Create a new token and skip the usual chain
@@ -61,14 +68,14 @@ public:
 	/// @param  pw    The password
 	/// @return        True if authorized else false
 	///
-	const bool isUserAuthorized(const QString& user, const QString& pw);
+	bool isUserAuthorized(const QString& user, const QString& pw);
 
 	///
 	/// @brief Check if token is authorized
 	/// @param  token  The token
 	/// @return        True if authorized else false
 	///
-	const bool isTokenAuthorized(const QString& token);
+	bool isTokenAuthorized(const QString& token);
 
 	///
 	/// @brief Generate a new pending token request with the provided comment and id as identifier helper
@@ -83,14 +90,14 @@ public:
 	/// @param id      The id of the request
 	/// @return        True on success, false if not found
 	///
-	const bool acceptTokenRequest(const QString& id);
+	bool acceptTokenRequest(const QString& id);
 
 	///
 	/// @brief Deny a token request by id, inform the requester
 	/// @param id      The id of the request
 	/// @return        True on success, false if not found
 	///
-	const bool denyTokenRequest(const QString& id);
+	bool denyTokenRequest(const QString& id);
 
 	///
 	/// @brief Get pending requests
@@ -103,7 +110,7 @@ public:
 	/// @param  id    The token id
 	/// @return        True on success else false (or not found)
 	///
-	const bool deleteToken(const QString& id);
+	bool deleteToken(const QString& id);
 
 	/// Pointer of this instance
 	static AuthManager* manager;
@@ -139,6 +146,12 @@ signals:
 private:
 	/// Database interface for auth table
 	AuthTable* _authTable;
+
+	/// Database interface for meta table
+	MetaTable* _metaTable;
+
+	/// Unique ID (imported from removed class 'Stats')
+	QString _uuid;
 
 	/// All pending requests
 	QMap<QString,AuthDefinition> _pendingRequests;

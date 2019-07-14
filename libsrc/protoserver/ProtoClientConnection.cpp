@@ -10,7 +10,10 @@
 // Hyperion includes
 #include <hyperion/Hyperion.h>
 
+// Hyperion instance manager includes
+#include <hyperion/HyperionIManager.h>
 
+// TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Gabber, Windows Screen grabber etc.)
 
 ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
@@ -20,7 +23,7 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &time
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hyperion(Hyperion::getInstance())
+	, _hyperion(HyperionIManager::getInstance()->getHyperionInstance())
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);

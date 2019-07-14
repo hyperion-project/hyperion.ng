@@ -18,7 +18,6 @@
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 
-#include <hyperion/Hyperion.h>
 #include <jsonserver/JsonServer.h>
 #include <udplistener/UDPListener.h>
 #include <webserver/WebServer.h>
@@ -43,6 +42,9 @@
 // AuthManager
 #include <hyperion/AuthManager.h>
 
+// InstanceManager Hyperion
+#include <hyperion/HyperionIManager.h>
+
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
@@ -54,10 +56,11 @@
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
-	, _authManager(new AuthManager(rootPath, this))
+	, _instanceManager(new HyperionIManager(rootPath, this))
+	, _authManager(new AuthManager(this))
 	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 	, _netOrigin(new NetOrigin(this))
 	, _pyInit(new PythonInit())
@@ -71,7 +74,6 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	, _fbGrabber(nullptr)
 	, _osxGrabber(nullptr)
 	, _qtGrabber(nullptr)
-	, _hyperion(nullptr)
 	, _ssdp(nullptr)
 	, _currVideoMode(VIDEO_2D)
 {
@@ -86,7 +88,7 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// init settings
-	_settingsManager = new SettingsManager(0,configFile);
+	_settingsManager = new SettingsManager(0,this);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if(!logLvlOverwrite)
@@ -104,38 +106,33 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 	connect(this, &HyperionDaemon::settingsChanged, _netOrigin, &NetOrigin::handleSettingsUpdate);
 	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
-	// spawn all Hyperion instances before network services
-	_hyperion = Hyperion::initInstance(this, 0, configFile, rootPath);
-
-	Info(_log, "Hyperion initialized");
+	// spawn all Hyperion instances (non blocking)
+	_instanceManager->startAll();
 
 	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); // TODO for app restart, refactor required
 
-	// listen for setting changes
-	connect(_hyperion, &Hyperion::settingsChanged, this, &HyperionDaemon::settingsChanged);
+	// pipe settings changes and component state changes from HyperionIManager to Daemon
+	connect(_instanceManager, &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
+	connect(_instanceManager, &HyperionIManager::componentStateChanged, this, &HyperionDaemon::componentStateChanged);
+
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
 
-	// forward videoModes from Hyperion to Daemon evaluation
-	connect(_hyperion, &Hyperion::videoMode, this, &HyperionDaemon::setVideoMode);
-	// forward videoMode changes from Daemon to Hyperion
-	connect(this, &HyperionDaemon::videoMode, _hyperion, &Hyperion::newVideoMode);
+	// forward videoModes from HyperionIManager to Daemon evaluation
+	connect(_instanceManager, &HyperionIManager::requestVideoMode, this, &HyperionDaemon::setVideoMode);
+	// return videoMode changes from Daemon to HyperionIManager
+	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 	// ---- grabber -----
 	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
 		Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 	#endif
 
-	// get power state of system/v4l2 capture
-	const QJsonObject & grabberConfig = getSetting(settings::INSTCAPTURE).object();
-
-	// init system capture (framegrabber) and update power state
+	// init system capture (framegrabber)
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-	_hyperion->setComponentState(hyperion::COMP_GRABBER, grabberConfig["systemEnable"].toBool(true));
 
-	// init v4l2 capture  and update power state
+	// init v4l2 capture
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
-	_hyperion->setComponentState(hyperion::COMP_V4L, grabberConfig["v4lEnable"].toBool(true));
 
 	// ---- network services -----
 	startNetworkServices();
@@ -144,7 +141,6 @@ HyperionDaemon::HyperionDaemon(QString configFile, const QString rootPath, QObje
 HyperionDaemon::~HyperionDaemon()
 {
 	freeObjects();
-	delete _hyperion;
 	delete _settingsManager;
 	delete _pyInit;
 }
@@ -165,7 +161,6 @@ const QJsonDocument HyperionDaemon::getSetting(const settings::type &type)
 
 void HyperionDaemon::freeObjects()
 {
-	_hyperion->clearall(true);
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
 	_flatBufferServer->thread()->quit();
@@ -178,6 +173,10 @@ void HyperionDaemon::freeObjects()
 	_webserver->thread()->quit();
 	_webserver->thread()->wait(1000);
 	delete _udpListener;
+
+	// stop Hyperions (non blocking)
+	_instanceManager->stopAll();
+
 	delete _bonjourBrowserWrapper;
 	delete _amlGrabber;
 	delete _dispmanx;
@@ -224,12 +223,13 @@ void HyperionDaemon::startNetworkServices()
 	connect( pThread, &QThread::started, _protoServer, &ProtoServer::initServer );
 	connect( pThread, &QThread::finished, _protoServer, &QObject::deleteLater );
 	connect( pThread, &QThread::finished, pThread, &QObject::deleteLater );
-	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
+	connect( this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate );
 	pThread->start();
 
 	// Create UDP listener
 	_udpListener = new UDPListener(getSetting(settings::UDPLISTENER));
 	connect(this, &HyperionDaemon::settingsChanged, _udpListener, &UDPListener::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::componentStateChanged, _udpListener, &UDPListener::updatedComponentState);
 
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER));
@@ -241,7 +241,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
-	// create ssdp server in thread
+	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt());
 	QThread* ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
@@ -431,6 +431,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
+			connect(this, &HyperionDaemon::componentStateChanged, _v4l2Grabber, &V4L2Wrapper::componentStateChanged);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif

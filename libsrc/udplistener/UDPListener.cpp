@@ -6,6 +6,7 @@
 
 // hyperion includes
 #include <hyperion/Hyperion.h>
+#include <hyperion/HyperionIManager.h>
 #include "HyperionConfig.h"
 
 // utils includes
@@ -27,9 +28,6 @@ UDPListener::UDPListener(const QJsonDocument& config)
 	, _listenPort(0)
 	, _netOrigin(NetOrigin::getInstance())
 {
-	// listen for component change
-	connect(Hyperion::getInstance(), &Hyperion::componentStateChanged, this, &UDPListener::componentStateChanged);
-
 	// init
 	handleSettingsUpdate(settings::UDPLISTENER, config);
 }
@@ -41,14 +39,14 @@ UDPListener::~UDPListener()
 	delete _server;
 }
 
-
 void UDPListener::start()
 {
 	if ( active() )
 		return;
 
 	QHostAddress mcastGroup;
-	if (_listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4"))) {
+	if (_listenAddress.isInSubnet(QHostAddress::parseSubnet("224.0.0.0/4")))
+	{
 		mcastGroup = _listenAddress;
 	}
 
@@ -59,7 +57,8 @@ void UDPListener::start()
 	else
 	{
 		Info(_log, "Started, listening on %s:%d", _listenAddress.toString().toStdString().c_str(), _listenPort);
-		if (!mcastGroup.isNull()) {
+		if (!mcastGroup.isNull())
+		{
 			bool joinGroupOK = _server->joinMulticastGroup(_listenAddress);
 			InfoIf   (   joinGroupOK, _log, "Multicast enabled");
 			WarningIf( ! joinGroupOK, _log, "Multicast failed");
@@ -78,8 +77,6 @@ void UDPListener::start()
 			_serviceRegister->registerService("_hyperiond-udp._udp", _listenPort);
 		}
 	}
-
-	Hyperion::getInstance()->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
 }
 
 void UDPListener::stop()
@@ -90,10 +87,9 @@ void UDPListener::stop()
 	_server->close();
 	_isActive = false;
 	Info(_log, "Stopped");
-	Hyperion::getInstance()->getComponentRegister().componentStateChanged(COMP_UDPLISTENER, _isActive);
 }
 
-void UDPListener::componentStateChanged(const hyperion::Components component, bool enable)
+void UDPListener::updatedComponentState(const hyperion::Components component, bool enable)
 {
 	if (component == COMP_UDPLISTENER)
 	{
@@ -110,10 +106,10 @@ uint16_t UDPListener::getPort() const
 	return _server->localPort();
 }
 
-
 void UDPListener::readPendingDatagrams()
 {
-	while (_server->hasPendingDatagrams()) {
+	while (_server->hasPendingDatagrams())
+	{
 		QByteArray datagram;
 		datagram.resize(_server->pendingDatagramSize());
 		QHostAddress sender;
@@ -126,7 +122,6 @@ void UDPListener::readPendingDatagrams()
 	}
 }
 
-
 void UDPListener::processTheDatagram(const QByteArray * datagram, const QHostAddress * sender)
 {
 	int packetLedCount = datagram->size()/3;
@@ -134,7 +129,8 @@ void UDPListener::processTheDatagram(const QByteArray * datagram, const QHostAdd
 
 	std::vector<ColorRgb> _ledColors(packetLedCount, ColorRgb::BLACK);
 
-	for (int ledIndex=0; ledIndex < packetLedCount; ledIndex++) {
+	for (int ledIndex=0; ledIndex < packetLedCount; ledIndex++)
+	{
 		ColorRgb & rgb =  _ledColors[ledIndex];
 		rgb.red   = datagram->at(ledIndex*3+0);
 		rgb.green = datagram->at(ledIndex*3+1);

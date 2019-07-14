@@ -224,7 +224,7 @@ $(document).ready(function() {
 			var enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 			var comp_name    = components[idx].name;
 			var comp_btn_id  = "comp_btn_"+comp_name;
-			var comp_goff	 = hyperionEnabled? "enabled" : "disabled";
+			var comp_goff    = hyperionEnabled? "enabled" : "disabled";
 
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)

@@ -28,7 +28,6 @@ $(document).ready( function() {
 	// Token handling
 	function buildTokenList()
 	{
-		console.log(tokenList)
 		$('.tktbody').html("");
 		for(var key in tokenList)
 		{
@@ -67,6 +66,59 @@ $(document).ready( function() {
 		showInfoDialog("newToken",$.i18n('conf_general_tok_diaTitle'),$.i18n('conf_general_tok_diaMsg')+'<br><div style="font-weight:bold">'+val.token+'</div>')
 		tokenList.push(val)
 		buildTokenList()
+	});
+
+	// Instance handling
+	function handleInstanceStartStop(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		var start = (e.currentTarget.className == "btn btn-danger")
+		requestInstanceStartStop(inst, start)
+	}
+
+	function handleInstanceDelete(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		showInfoDialog('delplug',$.i18n('conf_general_inst_delreq_h'),$.i18n('conf_general_inst_delreq_t',getInstanceNameByIndex(inst)));
+		$("#id_btn_yes").off().on('click', function(){
+			requestInstanceDelete(inst)
+		});
+	}
+
+	function buildInstanceList()
+	{
+		var inst = serverInfo.instance
+		$('.itbody').html("");
+		for(var key in inst)
+		{
+			var startBtnColor = inst[key].running ? "success" : "danger";
+			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
+			var startBtn = "-"
+			var delBtn = "-";
+			if(inst[key].instance > 0)
+			{
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-danger">'+$.i18n('general_btn_delete')+'</button>';
+				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'">'+startBtnText+'</button>';
+			}
+			$('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, delBtn], false, true));
+			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
+			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
+		}
+	}
+
+	createTable('ithead', 'itbody', 'itable');
+	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), $.i18n('conf_general_inst_actionhead'), $.i18n('general_btn_delete')], true, true));
+	buildInstanceList();
+
+	$('#inst_name').off().on('input',function(e) {
+		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
+	});
+	$('#btn_create_inst').off().on('click',function(e) {
+		requestInstanceCreate($('#inst_name').val());
+	});
+
+	$(hyperion).off("instance-updated").on("instance-updated", function(event) {
+		buildInstanceList()
 	});
 
 	//import
@@ -149,6 +201,7 @@ $(document).ready( function() {
 	if(window.showOptHelp)
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
 		createHint("intro", $.i18n('conf_general_tok_desc'), "tok_desc_cont");
+		createHint("intro", $.i18n('conf_general_inst_desc'), "inst_desc_cont");
 
 	removeOverlay();
 });

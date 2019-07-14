@@ -4,6 +4,7 @@
 #include "SSDPDescription.h"
 #include <hyperion/Hyperion.h>
 #include <HyperionConfig.h>
+#include <hyperion/AuthManager.h>
 
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
@@ -140,5 +141,5 @@ const QString SSDPHandler::buildDesc()
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), Hyperion::getInstance()->getId());
+	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), AuthManager::getInstance()->getID());
 }

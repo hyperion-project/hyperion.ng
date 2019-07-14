@@ -19,6 +19,7 @@
 class BonjourServiceRegister;
 class QUdpSocket;
 class NetOrigin;
+class Hyperion;
 
 ///
 /// This class creates a UDP server which accepts connections from boblight clients.
@@ -57,7 +58,7 @@ public slots:
 	///
 	void stop();
 
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void updatedComponentState(const hyperion::Components component, const bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor

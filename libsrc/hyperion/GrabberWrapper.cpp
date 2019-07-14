@@ -25,7 +25,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 	connect(_timer, &QTimer::timeout, this, &GrabberWrapper::action);
 
 	// connect the image forwarding
-	_grabberName.startsWith("V4L")
+	(_grabberName.startsWith("V4L"))
 		? connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setV4lImage)
 		: connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setSystemImage);
 }

@@ -4,20 +4,6 @@
 			<h3 class="page-header"><i class="fa fa-wrench fa-fw"></i><span  data-i18n="conf_general_label_title">General</span></h3>
 			<div class="row" id="conf_cont"></div>
 			<div class="row">
-				<div class="col-lg-6" id="conf_imp">
-					<div class="panel panel-default">
-						<div class="panel-heading"><i class="fa fa-wrench fa-fw"></i><span data-i18n="conf_general_impexp_title"></span></div>
-						<div class="panel-body">
-							<p data-i18n="conf_general_impexp_l1" style="font-weight:bold"></p>
-							<p data-i18n="conf_general_impexp_l2" style="font-weight:bold"></p>
-							<input type="file" id="select_import_conf" accept=".json">
-						</div>
-						<div class="panel-footer" style="text-align:right">
-							<button type="file" class="btn btn-primary" id="btn_import_conf" data-i18n="conf_general_impexp_impbtn" disabled>Import</button>
-							<button class="btn btn-primary" id="btn_export_conf" data-i18n="conf_general_impexp_expbtn">Export</button>
-						</div>
-					</div>
-				</div>
 				<div class="col-lg-6" id="tok_desc">
 					<div class="panel panel-default">
 						<div class="panel-heading"><i class="fa fa-key fa-fw"></i><span data-i18n="conf_general_tok_title"></span></div>
@@ -36,6 +22,41 @@
 							<div>
 								<button class="btn btn-primary" id="btn_create_tok" data-i18n="conf_general_createToken_btn" disabled>Create New Token</button>
 							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6" id="inst_desc">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-wrench fa-fw"></i><span data-i18n="conf_general_inst_title"></span></div>
+						<div class="panel-body">
+							<div id="inst_desc_cont"></div>
+							<div id="itable"></div>
+							<div style="margin: 30px 0; border-top:1px solid #d0d0d0"></div>
+							<div class="row">
+								<div class="col-lg-6">
+									<p data-i18n="conf_general_inst_name_title" style="font-weight:bold"></p>
+								</div>
+								<div class="col-lg-6">
+									<input class="form-control" id="inst_name" type="text"></input>
+								</div>
+							</div>
+							<div>
+								<button class="btn btn-primary" id="btn_create_inst" data-i18n="conf_general_createInst_btn" disabled>Create New Token</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-6" id="conf_imp">
+					<div class="panel panel-default">
+						<div class="panel-heading"><i class="fa fa-wrench fa-fw"></i><span data-i18n="conf_general_impexp_title"></span></div>
+						<div class="panel-body">
+							<p data-i18n="conf_general_impexp_l1" style="font-weight:bold"></p>
+							<p data-i18n="conf_general_impexp_l2" style="font-weight:bold"></p>
+							<input type="file" id="select_import_conf" accept=".json">
+						</div>
+						<div class="panel-footer" style="text-align:right">
+							<button type="file" class="btn btn-primary" id="btn_import_conf" data-i18n="conf_general_impexp_impbtn" disabled>Import</button>
+							<button class="btn btn-primary" id="btn_export_conf" data-i18n="conf_general_impexp_expbtn">Export</button>
 						</div>
 					</div>
 				</div>

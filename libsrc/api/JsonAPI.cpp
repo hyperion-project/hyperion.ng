@@ -49,8 +49,9 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _noListener(noListener)
 	, _peerAddress(peerAddress)
 	, _log(log)
-	, _hyperion(Hyperion::getInstance())
-	, _jsonCB(new JsonCB(this))
+	, _instanceManager(HyperionIManager::getInstance())
+	, _hyperion(nullptr)
+	, _jsonCB(nullptr)
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
 	, _led_stream_timeout(0)
@@ -65,11 +66,60 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	connect(_authManager, &AuthManager::newPendingTokenRequest, this, &JsonAPI::handlePendingTokenRequest);
 	connect(_authManager, &AuthManager::tokenResponse, this, &JsonAPI::handleTokenResponse);
 
-	// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
-	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
+	// listen for killed instances
+	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
 
-	// notify hyperion about a jsonMessageForward
-	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	// init Hyperion pointer
+	handleInstanceSwitch(0);
+
+// 	// notify hyperion about a jsonMessageForward
+// 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+}
+
+const bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
+{
+	// check if we are already on the requested instance
+	if(_hyperion != nullptr && _hyperion->getInstanceIndex() == inst)
+		return true;
+
+	if(_instanceManager->IsInstanceRunning(inst))
+	{
+		Debug(_log,"Client '%s' switch to Hyperion instance %d", QSTRING_CSTR(_peerAddress), inst);
+		// cut all connections between hyperion / plugins and this
+		if(_hyperion != nullptr)
+			disconnect(_hyperion, 0, this, 0);
+
+		// get new Hyperion pointer
+		_hyperion = _instanceManager->getHyperionInstance(inst);
+
+		// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
+		QStringList cbCmds;
+		if(_jsonCB != nullptr)
+		{
+			cbCmds = _jsonCB->getSubscribedCommands();
+			delete _jsonCB;
+		}
+
+		_jsonCB = new JsonCB(_hyperion, this);
+		connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
+
+		// read subs
+		for(const auto & entry : cbCmds)
+		{
+			_jsonCB->subscribeFor(entry);
+		}
+
+// 		// imageStream last state
+// 		if(_ledcolorsImageActive)
+// 			connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+// 
+// 		//ledColor stream last state
+// 		if(_ledcolorsLedsActive)
+// 			connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
+
+		return true;
+	}
+	return false;
 }
 
 void JsonAPI::handleMessage(const QString& messageString, const QString& httpAuthHeader)
@@ -140,6 +190,7 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 	else if (command == "logging")        handleLoggingCommand       (message, command, tan);
 	else if (command == "processing")     handleProcessingCommand    (message, command, tan);
 	else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
+	else if (command == "instance")       handleInstanceCommand      (message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -290,7 +341,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, c
 	hyperion["channel"         ] = QString(HYPERION_VERSION_CHANNEL);
 	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
 	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
-	hyperion["id"              ] = _hyperion->getId();
+	hyperion["id"              ] = _authManager->getID();
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -485,14 +536,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	info["components"] = component;
 	info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 
-	// Add Hyperion
-	QJsonObject hyperion;
-	hyperion["config_modified" ] = _hyperion->configModified();
-	hyperion["config_writeable"] = _hyperion->configWriteable();
-	hyperion["enabled"] = _hyperion->getComponentRegister().isComponentEnabled(hyperion::COMP_ALL) ? true : false;
-
-	info["hyperion"] = hyperion;
-
 	// add sessions
 	QJsonArray sessions;
 	for (auto session: BonjourBrowserWrapper::getInstance()->getAllServices())
@@ -508,6 +551,19 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		sessions.append(item);
 	}
 	info["sessions"] = sessions;
+
+	// add instance info
+	QJsonArray instanceInfo;
+	for(const auto & entry : _instanceManager->getInstanceData())
+	{
+		QJsonObject obj;
+		obj.insert("friendly_name", entry["friendly_name"].toString());
+		obj.insert("instance", entry["instance"].toInt());
+		//obj.insert("last_use", entry["last_use"].toString());
+		obj.insert("running", entry["running"].toBool());
+		instanceInfo.append(obj);
+	}
+	info["instance"] = instanceInfo;
 
 	// BEGIN | The following entries are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	// TODO Output the real transformation information instead of default
@@ -651,6 +707,17 @@ void JsonAPI::handleClearCommand(const QJsonObject& message, const QString& comm
 		sendErrorReply("Priority 0 is not allowed", command, tan);
 		return;
 	}
+
+	// send reply
+	sendSuccessReply(command, tan);
+}
+
+void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& command, const int tan)
+{
+	emit forwardJsonMessage(message);
+
+	// clear priority
+	_hyperion->clearall();
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -887,8 +954,6 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 	{
 		if(_hyperion->getComponentRegister().setHyperionEnable(compState))
 			sendSuccessReply(command, tan);
-		else
-			sendErrorReply(QString("Hyperion is already %1").arg(compState ? "enabled" : "disabled"), command, tan );
 
 		return;
 	}
@@ -1187,15 +1252,76 @@ const bool JsonAPI::handleHTTPAuth(const QString& command, const int& tan, const
 	return false;
 }
 
-void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& command, const int tan)
+void JsonAPI::handleInstanceCommand(const QJsonObject & message, const QString &command, const int tan)
 {
-	emit forwardJsonMessage(message);
+	const QString & subc = message["subcommand"].toString();
+	const quint8 & inst = message["instance"].toInt();
+	const QString & name = message["name"].toString();
 
-	// clear priority
-	_hyperion->clearall();
+	if(subc == "switchTo")
+	{
+		if(handleInstanceSwitch(inst))
+			sendSuccessReply(command+"-"+subc, tan);
+		else
+			sendErrorReply("Selected Hyperion instance isn't running",command+"-"+subc, tan);
+		return;
+	}
 
-	// send reply
-	sendSuccessReply(command, tan);
+	if(subc == "startInstance")
+	{
+		// silent fail
+		_instanceManager->startInstance(inst);
+		sendSuccessReply(command+"-"+subc, tan);
+		return;
+	}
+
+	if(subc == "stopInstance")
+	{
+		// silent fail
+		_instanceManager->stopInstance(inst);
+		sendSuccessReply(command+"-"+subc, tan);
+		return;
+	}
+
+	if(subc == "deleteInstance")
+	{
+		if(_userAuthorized)
+		{
+			if(_instanceManager->deleteInstance(inst))
+				sendSuccessReply(command+"-"+subc, tan);
+			else
+				sendErrorReply(QString("Failed to delete instance '%1'").arg(inst), command+"-"+subc, tan);
+		}
+		else
+			sendErrorReply("No Authorization",command+"-"+subc, tan);
+		return;
+	}
+
+	// create and save name requires name
+	if(name.isEmpty())
+		sendErrorReply("Name string required for this command",command+"-"+subc, tan);
+
+	if(subc == "createInstance")
+	{
+		if(_userAuthorized)
+		{
+			if(_instanceManager->createInstance(name))
+				sendSuccessReply(command+"-"+subc, tan);
+			else
+				sendErrorReply(QString("The instance name '%1' is already in use").arg(name), command+"-"+subc, tan);
+		}
+		else
+			sendErrorReply("No Authorization",command+"-"+subc, tan);
+		return;
+	}
+
+	if(subc == "saveName")
+	{
+		// silent fail
+		_instanceManager->saveName(inst,name);
+		sendSuccessReply(command+"-"+subc, tan);
+		return;
+	}
 }
 
 void JsonAPI::handleNotImplemented()
@@ -1361,5 +1487,19 @@ void JsonAPI::handleTokenResponse(const bool& success, QObject* caller, const QS
 			sendSuccessDataReply(QJsonDocument(result), cmd);
 		else
 			sendErrorReply("Token request timeout or denied", cmd);
+	}
+}
+
+void JsonAPI::handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name)
+{
+	switch(state){
+		case H_ON_STOP:
+			if(_hyperion->getInstanceIndex() == instance)
+			{
+				handleInstanceSwitch();
+			}
+			break;
+		default:
+			break;
 	}
 }

@@ -18,11 +18,10 @@ class SettingsManager : public QObject
 public:
 	///
 	/// @brief Construct a settings manager and assign a hyperion instance
-	/// @params instance   Instance number of Hyperion
-	/// @params configFile The config file
-	/// @params hyperion   The parent hyperion instance
+	/// @params  instance   Instance index of HyperionInstanceManager
+	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(const quint8& instance, const QString& configFile, Hyperion* hyperion = nullptr);
+	SettingsManager(const quint8& instance, QObject* parent = nullptr);
 
 	///
 	/// @brief Save a complete json config

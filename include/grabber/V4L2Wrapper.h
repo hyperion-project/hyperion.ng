@@ -26,6 +26,9 @@ public slots:
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
+signals:
+	void componentStateChanged(const hyperion::Components component, bool enable);
+
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);

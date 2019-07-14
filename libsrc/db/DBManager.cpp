@@ -52,9 +52,7 @@ QSqlDatabase DBManager::getDB() const
 	QSqlDatabase db = QSqlDatabase::database(_dbn);
 
 	if (db.isOpen() && db.isValid())
-	{
 		return db;
-	}
 	else
 	{
 		db = QSqlDatabase::addDatabase("QSQLITE", _dbn);

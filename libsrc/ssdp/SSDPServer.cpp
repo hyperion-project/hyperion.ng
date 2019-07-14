@@ -1,9 +1,13 @@
 #include <ssdp/SSDPServer.h>
 
-// util
+// utils
 #include <utils/SysInfo.h>
-#include <hyperion/Hyperion.h>
+
+// Hyperion
 #include <HyperionConfig.h>
+
+// auth manager
+#include <hyperion/AuthManager.h>
 
 #include <QUdpSocket>
 #include <QDateTime>
@@ -96,7 +100,7 @@ void SSDPServer::initServer()
 	_serverHeader = data.prettyName+"/"+data.productVersion+" UPnP/1.0 Hyperion/"+QString(HYPERION_VERSION);
 
 	// usn uuid
-	_uuid = Hyperion::getInstance()->getId();
+	_uuid = AuthManager::getInstance()->getID();
 
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }

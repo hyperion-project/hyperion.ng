@@ -20,6 +20,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _colorDlg(this)
 	, _hyperiond(hyperiond)
 	, _hyperion(nullptr)
+	, _instanceManager(HyperionIManager::getInstance())
 	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resources);
@@ -28,16 +29,8 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	WebServer* webserver = hyperiond->getWebServerInstance();
 	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
 
-	_hyperion = Hyperion::getInstance();
-	createTrayIcon();
-
-	connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
- 	connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
-	QIcon icon(":/hyperion-icon-32px.png");
-	_trayIcon->setIcon(icon);
-	_trayIcon->show();
-	setWindowIcon(icon);
-	_colorDlg.setOptions(QColorDialog::NoButtons);
+	// instance changes
+	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
 }
 
 SysTray::~SysTray()
@@ -147,4 +140,30 @@ void SysTray::setEffect()
 void SysTray::clearEfxColor()
 {
 	_hyperion->clear(1);
+}
+
+void SysTray::handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name)
+{
+	switch(state){
+		case H_STARTED:
+			if(instance == 0)
+			{
+				_hyperion = _instanceManager->getHyperionInstance(0);
+
+				createTrayIcon();
+				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+
+				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
+				QIcon icon(":/hyperion-icon-32px.png");
+				_trayIcon->setIcon(icon);
+				_trayIcon->show();
+				setWindowIcon(icon);
+				_colorDlg.setOptions(QColorDialog::NoButtons);
+			}
+
+			break;
+		default:
+			break;
+	}
 }

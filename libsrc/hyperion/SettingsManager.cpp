@@ -12,13 +12,10 @@
 // write config to filesystem
 #include <utils/JsonUtils.h>
 
-// hyperion
-#include <hyperion/Hyperion.h>
-
 QJsonObject SettingsManager::schemaJson;
 
-SettingsManager::SettingsManager(const quint8& instance, const QString& configFile, Hyperion* hyperion)
-	: _hyperion(hyperion)
+SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
+	: QObject(parent)
 	, _log(Logger::getInstance("SettingsManager"))
 	, _sTable(new SettingsTable(instance, this))
 {
@@ -40,41 +37,6 @@ SettingsManager::SettingsManager(const quint8& instance, const QString& configFi
 	QJsonObject defaultConfig;
 	if(!JsonUtils::readFile(":/hyperion_default.config", defaultConfig, _log))
 		throw std::runtime_error("Failed to read default config");
-
-// TODO BEGIN - remove when database migration is done
-
-	Info(_log, "Selected configuration file: %s", QSTRING_CSTR(configFile));
-	QJsonSchemaChecker schemaCheckerT;
-	schemaCheckerT.setSchema(schemaJson);
-
-	if(!JsonUtils::readFile(configFile, _qconfig, _log))
-		throw std::runtime_error("Failed to load config!");
-
-	// validate config with schema and correct it if required
-	QPair<bool, bool> validate = schemaCheckerT.validate(_qconfig);
-
-	// errors in schema syntax, abort
-	if (!validate.second)
-	{
-		foreach (auto & schemaError, schemaCheckerT.getMessages())
-			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
-
-		throw std::runtime_error("ERROR: Hyperion schema has syntax errors!");
-	}
-	// errors in configuration, correct it!
-	if (!validate.first)
-	{
-		Warning(_log,"Errors have been found in the configuration file. Automatic correction has been applied");
-		_qconfig = schemaCheckerT.getAutoCorrectedConfig(_qconfig);
-
-		foreach (auto & schemaError, schemaCheckerT.getMessages())
-			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
-
-		if (!JsonUtils::write(configFile, _qconfig, _log))
-			throw std::runtime_error("ERROR: Can't save configuration file, aborting");
-	}
-
-// TODO END - remove when database migration is done
 
 	// transform json to string lists
 	QStringList keyList = defaultConfig.keys();
@@ -161,13 +123,6 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 
 		foreach (auto & schemaError, schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
-	}
-
-	// save data to file
-	if(_hyperion != nullptr)
-	{
-		if(!JsonUtils::write(_hyperion->getConfigFilePath(), config, _log))
-			return false;
 	}
 
 	// store the new config

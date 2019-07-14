@@ -11,7 +11,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QFileSystemWatcher>
 #include <QMutex>
 
 // hyperion-utils includes
@@ -36,7 +35,6 @@
 #include <utils/settings.h>
 
 // Forward class declaration
-class QTimer;
 class HyperionDaemon;
 class ImageProcessor;
 class MessageForwarder;
@@ -71,27 +69,12 @@ public:
 	///
 	/// Destructor; cleans up resources
 	///
-	~Hyperion();
+	virtual ~Hyperion();
 
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
 	void freeObjects(bool emitCloseSignal=false);
-
-	///
-	/// @brief creates a new Hyperion instance, usually called from the Hyperion Daemon
-	/// @param[in] daemon        The Hyperion daemon parent
-	/// @param[in] instance      The instance id
-	/// @param[in] rootPath      Root path of all hyperion userdata
-	/// @return                  Hyperion instance pointer
-	///
-	static Hyperion* initInstance(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath);
-
-	///
-	/// @brief Get a pointer of this Hyperion instance
-	/// @return    Hyperion instance pointer
-	///
-	static Hyperion* getInstance();
 
 	///
 	/// @brief Get a pointer to the effect engine
@@ -121,6 +104,12 @@ public:
 	/// @return        True on success else false
 	///
 	bool saveSettings(QJsonObject config, const bool& correct = false);
+
+	///
+	/// @brief Get instance index of this instance
+	/// @return The index of this instance
+	///
+	const quint8 & getInstanceIndex() { return _instIndex; };
 
 	///
 	/// Returns the number of attached leds
@@ -194,14 +183,6 @@ public:
 	/// @return json config
 	const QJsonObject& getQJsonConfig();
 
-	/// get path+filename of configfile
-	/// @return the current config path+filename
-	QString getConfigFilePath() { return _configFile; };
-
-	/// get filename of configfile
-	/// @return the current config filename
-	QString getConfigFileName() const;
-
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
 	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
@@ -244,20 +225,8 @@ public:
 
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
-	bool configModified() { return _configMod; };
-
-	bool configWriteable() { return _configWrite; };
-
 	/// gets the methode how image is maped to leds
 	const int & getLedMappingType();
-
-	/// get the root path for all hyperion user data files
-	const QString &getRootPath() { return _rootPath; };
-
-	/// get unique id per instance
-	const QString &getId(){ return _id; };
-	/// set unique id
-	void setId(QString id){ _id = id; };
 
 	int getLatchTime() const;
 
@@ -296,13 +265,6 @@ public slots:
 	bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
 
 	///
-	/// @brief Set the given priority to inactive
-	/// @param priority  The priority
-	/// @return True on success false if not found
-	///
-	bool setInputInactive(const quint8& priority);
-
-	///
 	/// Writes a single color to all the leds for the given time and priority
 	/// Registers comp color or provided type against muxer
 	/// Should be never used to update leds continuous
@@ -313,6 +275,13 @@ public slots:
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	///
 	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+
+	///
+	/// @brief Set the given priority to inactive
+	/// @param priority  The priority
+	/// @return True on success false if not found
+	///
+	bool setInputInactive(const quint8& priority);
 
 	///
 	/// Returns the list with unique adjustment identifiers
@@ -372,8 +341,15 @@ public slots:
 	///
 	void setVideoMode(const VideoMode& mode);
 
-public:
-	static Hyperion *_hyperion;
+	///
+	/// @brief Init after thread start
+	///
+	void start();
+
+	///
+	/// @brief Stop the execution of this thread, helper to properly track eventing
+	///
+	void stop();
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -453,15 +429,22 @@ signals:
 	///
 	void rawLedColors(const std::vector<ColorRgb>& ledValues);
 
+	///
+	/// @brief Emits before thread quit is requested
+	///
+	void finished();
+
+	///
+	/// @brief Emits after thread has been started
+	///
+	void started();
+
 private slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
 	///
 	void update();
-
-	/// check for configWriteable and modified changes, called by _fsWatcher or fallback _cTimer
-	void checkConfigState(QString cfile = NULL);
 
 	///
 	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
@@ -477,17 +460,23 @@ private slots:
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
 
+	///
+	/// @brief Apply new videoMode from Daemon to _currVideoMode
+	///
+	void handleNewVideoMode(const VideoMode& mode) { _currVideoMode = mode; };
+
 private:
+	friend class HyperionDaemon;
+	friend class HyperionIManager;
 
 	///
-	/// Constructs the Hyperion instance based on the given Json configuration
+	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
+	/// @param  instance  The instance index
 	///
-	/// @param[in] qjsonConfig The Json configuration
-	///
-	Hyperion(HyperionDaemon* daemon, const quint8& instance, const QString configFile, const QString rootPath);
+	Hyperion(const quint8& instance);
 
-	/// The parent Hyperion Daemon
-	HyperionDaemon* _daemon;
+	/// instance index
+	const quint8 _instIndex;
 
 	/// Settings manager of this instance
 	SettingsManager* _settingsManager;
@@ -521,17 +510,8 @@ private:
 	/// Effect engine
 	EffectEngine * _effectEngine;
 
-	// Message forwarder
-	MessageForwarder * _messageForwarder;
-
-	/// the name of config file
-	QString _configFile;
-
-	/// root path for all hyperion user data files
-	QString _rootPath;
-
-	/// unique id per instance
-	QString _id;
+// 	// Message forwarder
+// 	MessageForwarder * _messageForwarder;
 
 	/// Logger instance
 	Logger * _log;
@@ -539,24 +519,10 @@ private:
 	/// count of hardware leds
 	unsigned _hwLedCount;
 
-	QByteArray _configHash;
-
 	QSize _ledGridSize;
 
 	/// Store the previous compID for smarter update()
 	hyperion::Components   _prevCompId;
-
-	/// Observe filesystem changes (_configFile), if failed use Timer
-	QFileSystemWatcher _fsWatcher;
-	QTimer* _cTimer;
-
-	/// holds the prev states of configWriteable and modified
-	bool _prevConfigMod = false;
-	bool _prevConfigWrite = true;
-
-	/// holds the current states of configWriteable and modified
-	bool _configMod = false;
-	bool _configWrite = true;
 
 	/// Background effect instance, kept active to react on setting changes
 	BGEffectHandler* _BGEffectHandler;
@@ -565,6 +531,8 @@ private:
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
+
+	VideoMode _currVideoMode = VIDEO_2D;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
