@@ -446,10 +446,10 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 		else
 		{
 			light.setOn(true);
+			// Write color if color has been changed.
+			light.setTransitionTime(transitionTime);
+			light.setColor(xy, brightnessFactor);
 		}
-		// Write color if color has been changed.
-		light.setTransitionTime(transitionTime);
-		light.setColor(xy, brightnessFactor);
 
 		idx++;
 	}
