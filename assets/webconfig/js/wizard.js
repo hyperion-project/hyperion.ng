@@ -26,6 +26,7 @@
 		if(withKodi)
 			sendToKodi("stop");
 		step = 0;
+		location.reload();
 	}
 
 	//rgb byte order wizard
@@ -658,7 +659,7 @@
 	function getHueIPs(){
 		$('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
 		$.ajax({
-			url: 'https://www.meethue.com/api/nupnp',
+			url: 'https://discovery.meethue.com',
 			crossDomain: true,
 			type: 'GET',
 			timeout: 3000
@@ -697,7 +698,7 @@
 		}
 
 		$('#retry_bridge').off().on('click', function(){
-			hueIPs[0].internalipaddress = $('#ip').val();
+			hueIPs.push({internalipaddress : $('#ip').val()});
 			hueIPsinc = 0;
 			checkHueBridge(checkBridgeResult);
 		});
