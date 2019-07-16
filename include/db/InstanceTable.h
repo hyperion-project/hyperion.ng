@@ -19,7 +19,7 @@ public:
 	{
 		// Init Hyperion database usage
 		setRootPath(rootPath);
-		setDB("hyperion");
+		setDatabaseName("hyperion");
 
 		// Init instance table
 		setTable("instances");

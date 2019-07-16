@@ -4,10 +4,13 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QThreadStorage>
+#include <QUuid>
 #include <QDir>
 
 // not in header because of linking
 static QString _rootPath;
+static QThreadStorage<QSqlDatabase> _databasePool;
 
 DBManager::DBManager(QObject* parent)
 	: QObject(parent)
@@ -26,22 +29,6 @@ void DBManager::setRootPath(const QString& rootPath)
 	QDir().mkpath(_rootPath+"/db");
 }
 
-void DBManager::setDB(const QString& dbn)
-{
-	_dbn = dbn;
-	// new database connection if not found
-	if(!QSqlDatabase::contains(dbn))
-	{
-		QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE",dbn);
-		db.setDatabaseName(_rootPath+"/db/"+dbn+".db");
-		if(!db.open())
-		{
-			Error(_log, QSTRING_CSTR(db.lastError().text()));
-			throw std::runtime_error("Failed to open database connection!");
-		}
-	}
-}
-
 void DBManager::setTable(const QString& table)
 {
 	_table = table;
@@ -49,17 +36,20 @@ void DBManager::setTable(const QString& table)
 
 QSqlDatabase DBManager::getDB() const
 {
-	QSqlDatabase db = QSqlDatabase::database(_dbn);
-
-	if (db.isOpen() && db.isValid())
-		return db;
+	if(_databasePool.hasLocalData())
+		return _databasePool.localData();
 	else
 	{
-		db = QSqlDatabase::addDatabase("QSQLITE", _dbn);
+		auto db = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());
+		_databasePool.setLocalData(db);
 		db.setDatabaseName(_rootPath+"/db/"+_dbn+".db");
+		if(!db.open())
+		{
+			Error(_log, QSTRING_CSTR(db.lastError().text()));
+			throw std::runtime_error("Failed to open database connection!");
+		}
+		return db;
 	}
-
-	return db;
 }
 
 bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& columns) const

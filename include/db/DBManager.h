@@ -32,7 +32,7 @@ public:
 	/// set root path
 	void setRootPath(const QString& rootPath);
 	/// define the database to work with
-	void setDB(const QString& dbn);
+	void setDatabaseName(const QString& dbn) { _dbn = dbn; };
 	/// set a table to work with
 	void setTable(const QString& table);
 
