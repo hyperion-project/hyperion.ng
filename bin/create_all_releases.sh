@@ -10,23 +10,23 @@ make_release()
 	PLATFORM=$2
 	shift 2
 
-	rm -r build-${RELEASE}
-	mkdir -p build-${RELEASE}
+	rm -r hyperion.ng-${RELEASE}
+	mkdir -p hyperion.ng-${RELEASE}
 	rm -r deploy/${RELEASE}
 	mkdir -p deploy/${RELEASE}
 
-	cd  build-${RELEASE}
+	cd  hyperion.ng-${RELEASE}
 	cmake -DCMAKE_INSTALL_PREFIX=/usr -DPLATFORM=${PLATFORM} $@ -DCMAKE_BUILD_TYPE=Release -Wno-dev .. || exit 1
 	make -j $(nproc)  || exit 1
 	#strip bin/*
 	make package -j $(nproc)
-	mv Hyperion-*.* ../deploy/${RELEASE}
+	mv Hyperion.NG-* ../deploy/${RELEASE}
 	cd ..
 	bin/create_release.sh . ${RELEASE}
 }
 
-CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake"
-CMAKE_FLATC_FLAG="-DIMPORT_FLATC=../build-x86x64/flatc_export.cmake"
+CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../hyperion.ng-x86x64/protoc_export.cmake"
+CMAKE_FLATC_FLAG="-DIMPORT_FLATC=../hyperion.ng-x86x64/flatc_export.cmake"
 
 make_release x86x64  x86
 #make_release x32     x86   -DCMAKE_TOOLCHAIN_FILE="../cmake/Toolchain-x32.cmake" ${CMAKE_PROTOC_FLAG} ${CMAKE_FLATC_FLAG}
