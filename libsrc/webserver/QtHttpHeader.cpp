@@ -30,6 +30,7 @@ const QByteArray & QtHttpHeader::Location             = QByteArrayLiteral ("Loca
 const QByteArray & QtHttpHeader::SetCookie            = QByteArrayLiteral ("Set-Cookie");
 const QByteArray & QtHttpHeader::TransferEncoding     = QByteArrayLiteral ("Transfer-Encoding");
 const QByteArray & QtHttpHeader::ContentDisposition   = QByteArrayLiteral ("Content-Disposition");
+const QByteArray & QtHttpHeader::AccessControlAllow   = QByteArrayLiteral ("Access-Control-Allow-Origin");
 const QByteArray & QtHttpHeader::Upgrade              = QByteArrayLiteral ("Upgrade");
 const QByteArray & QtHttpHeader::SecWebSocketKey      = QByteArrayLiteral ("Sec-WebSocket-Key");
 const QByteArray & QtHttpHeader::SecWebSocketProtocol = QByteArrayLiteral ("Sec-WebSocket-Protocol");

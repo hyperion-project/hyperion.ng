@@ -26,6 +26,8 @@ performTranslation();
 var connectionLost = false;
 var connectionTimer;
 var count = 1;
+var reconnectInterval = 4000;
+var connURL = location.protocol+"//"+location.hostname+":"+window.jsonPort+location.pathname+location.hash;
 
 function tryReconnect()
 {
@@ -34,12 +36,12 @@ function tryReconnect()
 		window.clearInterval(connectionTimer);
 		$('.reconstop').toggle();
 	}
-	
+
 	$('#counter').html(count+'/100');
-	
-	$.ajax({ url: "/" }).done(function(data) {
+
+	$.ajax({ url: connURL }).done(function(data) {
 		window.clearInterval(connectionTimer);
-		window.location.href ="/";
+		window.location.href = connURL;
 	})
 	.fail( function( jqXHR, textStatus ) {
 		count++;
@@ -52,10 +54,13 @@ function connectionLostAction()
 	if(!connectionLost)
 	{
 		connectionLost = true;
-		connectionTimer = window.setInterval(tryReconnect, 4000);
+		// if we changed the webui port we connect faster
+		if(window.fastReconnect){
+			window.fastReconnect = false;
+			reconnectInterval = 2000;
+		}
+		connectionTimer = window.setInterval(tryReconnect, reconnectInterval);
 	}
 }
 
 </script>
-
-

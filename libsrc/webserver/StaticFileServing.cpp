@@ -135,6 +135,7 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			if (file.open (QFile::ReadOnly)) {
 				QByteArray data = file.readAll ();
 				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
+				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
 				reply->appendRawData (data);
 				file.close ();
 			}
