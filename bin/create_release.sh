@@ -7,7 +7,7 @@ fi
 
 repodir="$1"
 buildid="$2"
-builddir=$repodir/hyperion.ng-$buildid
+builddir=$repodir/build-$buildid
 echo build directory = $builddir
 echo repository root directory = $repodir
 if ! [ -d "$builddir" ]; then
