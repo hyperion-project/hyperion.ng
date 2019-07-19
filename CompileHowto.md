@@ -6,8 +6,13 @@ Note: call the script with `./docker-compile.sh -h` for more options
 
 ## Native compiling on Raspberry Pi
 
+**Raspbian Stretch**
 ```
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t rpi-raspbian
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t rpi-raspbian-stretch
+```
+**Raspbian Buster**
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t rpi-raspbian-buster
 ```
 
 ## Cross compiling on X64_86 for:

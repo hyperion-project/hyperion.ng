@@ -43,7 +43,7 @@ echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
 ## Without arguments it will compile Hyperion for Debain Stretch (x64) or higher.
-## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch)
+## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch) and native compilation (Raspbian Stretch/Buster)
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://forum.hyperion-project.org
@@ -51,7 +51,7 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf
+# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf | rpi-raspbian-stretch | rpi-raspbian-buster
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
 # More informations to docker tags at: https://hub.docker.com/r/hyperionproject/hyperion-ci/"
