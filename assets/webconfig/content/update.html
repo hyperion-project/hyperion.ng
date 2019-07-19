@@ -25,7 +25,7 @@ $(document).ready( function(error) {
 		for (var key in window.gitHubVersionList)
 		{
 
-			if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.versionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
+			if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.watchedVersionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
 			{
 				continue;
 			}

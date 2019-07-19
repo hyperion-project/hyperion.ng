@@ -1540,8 +1540,13 @@ JSONEditor.AbstractEditor = Class.extend({
 	var storedAccess = this.access
 	if(this.schema.access){
 		if(this.schema.access == 'system')
-			this.container.style.display = "none";
-		else if(this.schema.access == 'expert' && storedAccess != 'expert'){
+      this.container.style.display = "none";
+      else if(this.schema.access == 'advanced' && storedAccess == 'default')
+      {
+        this.container.style.display = "none";
+      }	
+    else if(this.schema.access == 'expert' && storedAccess != 'expert')
+    {
 			this.container.style.display = "none";
 			//this.disable();
 		}	

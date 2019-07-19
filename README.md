@@ -7,7 +7,7 @@
 
 ## About Hyperion
 
-[Hyperion.NG](https://github.com/hyperion-project/hyperion.ng) is an opensource '[AmbiLight](https://de.wikipedia.org/wiki/Ambilight)' implementation with support for many LED devices and video grabbers. The project is still in a beta development stage (no stable release available).
+[Hyperion.NG](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufactures. It supports many LED devices and video grabbers. The project is still in a beta development stage (no stable release available).
 
 ![Screenshot](doc/screenshot.png)
 
@@ -34,6 +34,8 @@ For an example, you can participate in the translation.
 
 ## Requirements
 Debian 9, Ubuntu 16.04 or higher. Windows is not supported currently.
+
+We provide a macOS Build but we can not support this.
 
 ## Building
 See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).
