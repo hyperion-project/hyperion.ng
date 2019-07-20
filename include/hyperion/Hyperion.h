@@ -439,12 +439,14 @@ signals:
 	///
 	void started();
 
-private slots:
+public slots:
 	///
 	/// Updates the priority muxer with the current time and (re)writes the led color with applied
 	/// transforms.
 	///
 	void update();
+
+private slots:
 
 	///
 	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
