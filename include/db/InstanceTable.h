@@ -37,7 +37,7 @@ public:
 	/// @param[out]  inst  The id that has been assigned
 	/// @return True on success else false
 	///
-	inline const bool createInstance(const QString& name, quint8& inst)
+	inline bool createInstance(const QString& name, quint8& inst)
 	{
 		VectorPair fcond;
 		fcond.append(CPair("friendly_name",name));
@@ -71,7 +71,7 @@ public:
 	/// @param  inst  The id that has been assigned
 	/// @return True on success else false
 	///
-	inline const bool deleteInstance(const quint8& inst)
+	inline bool deleteInstance(const quint8& inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance",inst));
@@ -91,7 +91,7 @@ public:
 	/// @param  name  The new name of the instance
 	/// @return True on success else false (instance not found)
 	///
-	inline const bool saveName(const quint8& inst, const QString& name)
+	inline bool saveName(const quint8& inst, const QString& name)
 	{
 		if(instanceExist(inst))
 		{
@@ -136,7 +136,7 @@ public:
 	/// @param[in]  user   The user id
 	/// @return     true on success else false
 	///
-	inline const bool instanceExist(const quint8& inst)
+	inline bool instanceExist(const quint8& inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance",inst));
@@ -191,7 +191,7 @@ public:
 	/// @param inst  The instance to get
 	/// @return True when enabled else false
 	///
-	inline const bool isEnabled(const quint8& inst)
+	inline bool isEnabled(const quint8& inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance", inst));

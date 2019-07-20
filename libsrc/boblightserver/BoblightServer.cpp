@@ -7,8 +7,12 @@
 
 // hyperion includes
 #include <hyperion/Hyperion.h>
+
 // qt incl
 #include <QTcpServer>
+
+// netUtil
+#include <utils/NetUtils.h>
 
 using namespace hyperion;
 
@@ -42,11 +46,9 @@ void BoblightServer::start()
 	if ( _server->isListening() )
 		return;
 
-	if (!_server->listen(QHostAddress::Any, _port))
-	{
-		Error(_log, "Could not bind to port '%d', please use an available port", _port);
-		return;
-	}
+	if (NetUtils::portAvailable(_port, _log))
+		_server->listen(QHostAddress::Any, _port);
+
 	Info(_log, "Started on port %d", _port);
 
 	_hyperion->getComponentRegister().componentStateChanged(COMP_BOBLIGHTSERVER, _server->isListening());

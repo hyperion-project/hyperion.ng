@@ -48,7 +48,6 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
 	_updateTimer->setInterval(250);
 	_updateTimer->start();
-	InputInfo ninfo;
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -279,7 +278,9 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 void PriorityMuxer::setCurrentTime(void)
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
-	int newPriority = PriorityMuxer::LOWEST_PRIORITY;
+	int newPriority;
+	_activeInputs.contains(140) ? newPriority = 140 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
+	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{

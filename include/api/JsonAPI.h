@@ -146,7 +146,7 @@ private:
 	/// @param forced  indicate if it was a forced switch by system
 	/// @return true on success. false if not found
 	///
-	const bool handleInstanceSwitch(const quint8& instance = 0, const bool& forced = false);
+	bool handleInstanceSwitch(const quint8& instance = 0, const bool& forced = false);
 
 	///
 	/// Handle an incoming JSON Color message
@@ -287,7 +287,7 @@ private:
 	/// @param token    The token to verify
 	/// @return True on succcess else false (pushes failed client feedback)
 	///
-	const bool handleHTTPAuth(const QString& command, const int& tan, const QString& token);
+	bool handleHTTPAuth(const QString& command, const int& tan, const QString& token);
 
 	/// Handle an incoming JSON instance message
 	///

@@ -72,11 +72,11 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	// init Hyperion pointer
 	handleInstanceSwitch(0);
 
-// 	// notify hyperion about a jsonMessageForward
-// 	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	// notify hyperion about a jsonMessageForward
+	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 }
 
-const bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
+bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
 {
 	// check if we are already on the requested instance
 	if(_hyperion != nullptr && _hyperion->getInstanceIndex() == inst)
@@ -1241,7 +1241,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	}
 }
 
-const bool JsonAPI::handleHTTPAuth(const QString& command, const int& tan, const QString& token)
+bool JsonAPI::handleHTTPAuth(const QString& command, const int& tan, const QString& token)
 {
 	if(_authManager->isTokenAuthorized(token))
 	{

@@ -35,7 +35,7 @@ JsonCB::JsonCB(Hyperion* hyperion, QObject* parent)
 	, _prioMuxer(_hyperion->getMuxerInstance())
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "instance-update";
+	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type)
@@ -91,6 +91,13 @@ bool JsonCB::subscribeFor(const QString& type)
 		_subscribedCommands << type;
 		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
 	}
+
+	if(type == "leds-update")
+	{
+		_subscribedCommands << type;
+		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
+	}
+
 
 	if(type == "instance-update")
 	{
@@ -316,6 +323,16 @@ void JsonCB::handleSettingsChange(const settings::type& type, const QJsonDocumen
 		dat[typeToString(type)] = data.array();
 
 	doCallback("settings-update", QVariant(dat));
+}
+
+void JsonCB::handleLedsConfigChange(const settings::type& type, const QJsonDocument& data)
+{
+	if(type == settings::LEDS)
+	{
+		QJsonObject dat;
+		dat[typeToString(type)] = data.array();
+		doCallback("leds-update", QVariant(dat));
+	}
 }
 
 void JsonCB::handleInstanceChange()

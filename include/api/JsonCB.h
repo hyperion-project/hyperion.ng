@@ -95,6 +95,13 @@ private slots:
 	void handleSettingsChange(const settings::type& type, const QJsonDocument& data);
 
 	///
+	/// @brief Handle led config specific updates (required for led color streaming with positional display)
+	/// @param type   The settings type from enum
+	/// @param data   The data as QJsonDocument
+	///
+	void handleLedsConfigChange(const settings::type& type, const QJsonDocument& data);
+
+	///
 	/// @brief Handle Hyperion instance manager change
 	///
 	void handleInstanceChange();

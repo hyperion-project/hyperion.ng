@@ -50,7 +50,7 @@ Hyperion::Hyperion(const quint8& instance)
 	, _muxer(_ledString.leds().size())
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
 	, _effectEngine(nullptr)
-// 	, _messageForwarder(new MessageForwarder(this))
+	, _messageForwarder(nullptr)
 	, _log(Logger::getInstance("HYPERION"))
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
@@ -116,6 +116,10 @@ void Hyperion::start()
 	_deviceSmooth = new LinearColorSmoothing(getSetting(settings::SMOOTHING), this);
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth, &LinearColorSmoothing::handleSettingsUpdate);
 
+	// create the message forwarder only on main instance
+	if (_instIndex == 0)
+		_messageForwarder = new MessageForwarder(this);
+
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = new EffectEngine(this);
 	connect(_effectEngine, &EffectEngine::effectListUpdated, this, &Hyperion::effectListUpdated);
@@ -162,7 +166,7 @@ void Hyperion::freeObjects(bool emitCloseSignal)
 	delete _captureCont;
 	delete _effectEngine;
 	delete _raw2ledAdjustment;
-// 	delete _messageForwarder;
+	delete _messageForwarder;
 	delete _settingsManager;
 	delete _ledDeviceWrapper;
 }

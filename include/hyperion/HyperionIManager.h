@@ -57,7 +57,7 @@ public:
 	/// @param block     If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	const bool startInstance(const quint8& inst, const bool& block = false);
+	bool startInstance(const quint8& inst, const bool& block = false);
 
 	///
 	/// @brief Stop a Hyperion instance
@@ -65,7 +65,7 @@ public:
 	/// @param block     If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	const bool stopInstance(const quint8& inst, const bool& block = false);
+	bool stopInstance(const quint8& inst, const bool& block = false);
 
 	///
 	/// @brief Create a new Hyperion instance entry in db
@@ -73,14 +73,14 @@ public:
 	/// @param start     If true it will be started after creation (async)
 	/// @return Return true on success false if name is already in use or a db error occurred
 	///
-	const bool createInstance(const QString& name, const bool& start = false);
+	bool createInstance(const QString& name, const bool& start = false);
 
 	///
 	/// @brief Delete Hyperion instance entry in db. Cleanup also all associated table data for this instance
 	/// @param inst  The instance index
 	/// @return Return true on success, false if not found or not allowed
 	///
-	const bool deleteInstance(const quint8& inst);
+	bool deleteInstance(const quint8& inst);
 
 	///
 	/// @brief Assign a new name to the given instance
@@ -88,7 +88,7 @@ public:
 	/// @param name  The instance name index
 	/// @return Return true on success, false if not found
 	///
-	const bool saveName(const quint8& inst, const QString& name);
+	bool saveName(const quint8& inst, const QString& name);
 
 signals:
 	///
@@ -166,7 +166,7 @@ private:
 	/// @brief check if a instance is allowed for management. Instance 0 represents the root instance
 	/// @apram inst The instance to check
 	///
-	const bool isInstAllowed(const quint8& inst) { return (inst > 0); };
+	bool isInstAllowed(const quint8& inst) { return (inst > 0); };
 
 private:
 	Logger* _log;

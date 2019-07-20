@@ -57,7 +57,7 @@ void HyperionIManager::stopAll()
 	}
 }
 
-const bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
+bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 {
 	if(_instanceTable->instanceExist(inst))
 	{
@@ -102,7 +102,7 @@ const bool HyperionIManager::startInstance(const quint8& inst, const bool& block
 	return false;
 }
 
-const bool HyperionIManager::stopInstance(const quint8& inst, const bool& block)
+bool HyperionIManager::stopInstance(const quint8& inst, const bool& block)
 {
 	// inst 0 can't be stopped
 	if(!isInstAllowed(inst))
@@ -133,7 +133,7 @@ const bool HyperionIManager::stopInstance(const quint8& inst, const bool& block)
 	return false;
 }
 
-const bool HyperionIManager::createInstance(const QString& name, const bool& start)
+bool HyperionIManager::createInstance(const QString& name, const bool& start)
 {
 	quint8 inst;
 	if(_instanceTable->createInstance(name, inst))
@@ -149,7 +149,7 @@ const bool HyperionIManager::createInstance(const QString& name, const bool& sta
 	return false;
 }
 
-const bool HyperionIManager::deleteInstance(const quint8& inst)
+bool HyperionIManager::deleteInstance(const quint8& inst)
 {
 	// inst 0 can't be deleted
 	if(!isInstAllowed(inst))
@@ -169,7 +169,7 @@ const bool HyperionIManager::deleteInstance(const quint8& inst)
 	return false;
 }
 
-const bool HyperionIManager::saveName(const quint8& inst, const QString& name)
+bool HyperionIManager::saveName(const quint8& inst, const QString& name)
 {
 	if(_instanceTable->saveName(inst, name))
 	{

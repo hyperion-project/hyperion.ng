@@ -510,8 +510,8 @@ private:
 	/// Effect engine
 	EffectEngine * _effectEngine;
 
-// 	// Message forwarder
-// 	MessageForwarder * _messageForwarder;
+	// Message forwarder
+	MessageForwarder * _messageForwarder;
 
 	/// Logger instance
 	Logger * _log;

@@ -49,7 +49,7 @@ public:
 
     quint16 getServerPort    (void) const;
     QString getErrorString   (void) const;
-	const bool isListening() { return m_sockServer->isListening(); };
+	bool isListening() { return m_sockServer->isListening(); };
 
 public slots:
     void start           (quint16 port = 0);

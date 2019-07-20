@@ -4,7 +4,7 @@
 // Qt includes
 #include <QRgb>
 
-// protoserver includes
+// flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
 
 FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply)
