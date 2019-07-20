@@ -565,6 +565,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 	}
 	info["instance"] = instanceInfo;
 
+	// add leds configs
+	info["leds"] = _hyperion->getSetting(settings::LEDS).array();
+
 	// BEGIN | The following entries are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	// TODO Output the real transformation information instead of default
 
@@ -683,7 +686,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		}
 		for(const auto & entry : subsArr)
 		{
-			if(entry == "settings-update")
+			// config callbacks just if auth is set
+			if(entry == "settings-update" && !_authorized)
 				continue;
 
 			if(!_jsonCB->subscribeFor(entry.toString()))
@@ -989,6 +993,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 		_streaming_image_reply["command"] = command+"-imagestream-update";
 		_streaming_image_reply["tan"]  = tan;
 		connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+		_hyperion->update();
 	}
 	else if (subcommand == "imagestream-stop")
 	{
@@ -996,7 +1001,6 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 	}
 	else
 	{
-		sendErrorReply("unknown subcommand \""+subcommand+"\"",command,tan);
 		return;
 	}
 
@@ -1032,7 +1036,6 @@ void JsonAPI::handleLoggingCommand(const QJsonObject& message, const QString &co
 	}
 	else
 	{
-		sendErrorReply("unknown subcommand",command,tan);
 		return;
 	}
 
@@ -1142,7 +1145,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 		return;
 	}
 
-	// accept token request
+	// accept/deny token request
 	if(subc == "answerRequest")
 	{
 		const QString& id = message["id"].toString().trimmed();

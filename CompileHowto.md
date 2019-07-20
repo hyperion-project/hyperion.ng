@@ -1,7 +1,7 @@
 # With Docker
 If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Stretch or higher). To compile Hyperion just execute one of the following commands.
 
-The compiled binaries and packages will be available at the deploy folder next to the script
+The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
 Note: call the script with `./docker-compile.sh -h` for more options
 
 ## Native compiling on Raspberry Pi
