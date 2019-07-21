@@ -14,7 +14,6 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const
 	: QObject(parent)
 	, _socket(sock)
 	, _log(Logger::getInstance("WEBSOCKET"))
-//	, _hyperion(Hyperion::getInstance())
 {
 	// connect socket; disconnect handled from QtHttpServer
 	connect(_socket, &QTcpSocket::readyRead , this, &WebSocketClient::handleWebSocketFrame);
@@ -45,107 +44,113 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const
 
 void WebSocketClient::handleWebSocketFrame(void)
 {
-	// we are on no continious reading from socket from call before
-	if (!_notEnoughData)
+	while (_socket->bytesAvailable())
 	{
-		getWsFrameHeader(&_wsh);
-	}
-
-	if(_socket->bytesAvailable() < (qint64)_wsh.payloadLength)
-	{
-		//printf("not enough data %llu %llu\n", _socket->bytesAvailable(),  _wsh.payloadLength);
-		_notEnoughData=true;
-		return;
-	}
-	_notEnoughData = false;
-
-	QByteArray buf = _socket->read(_wsh.payloadLength);
-	//printf("opcode %x payload bytes %llu avail: %llu\n", _wsh.opCode, _wsh.payloadLength, _socket->bytesAvailable());
-
-	if (OPCODE::invalid((OPCODE::value)_wsh.opCode))
-	{
-		sendClose(CLOSECODE::INV_TYPE, "invalid opcode");
-		return;
-	}
-
-	// check the type of data frame
-	bool isContinuation=false;
-	switch (_wsh.opCode)
-	{
-		case OPCODE::CONTINUATION:
-			isContinuation = true;
-			// no break here, just jump over to opcode text
-
-		case OPCODE::BINARY:
-		case OPCODE::TEXT:
+		// we are on no continious reading from socket from call before
+		if (!_notEnoughData)
 		{
-			// check for protocal violations
-			if (_onContinuation && !isContinuation)
-			{
-				sendClose(CLOSECODE::VIOLATION, "protocol violation, somebody sends frames in between continued frames");
-				return;
-			}
+			getWsFrameHeader(&_wsh);
+		}
 
-			if (!_wsh.masked && _wsh.opCode == OPCODE::TEXT)
-			{
-				sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked text frames not allowed");
-				return;
-			}
+		if(_socket->bytesAvailable() < (qint64)_wsh.payloadLength)
+		{
+			//printf("not enough data %llu %llu\n", _socket->bytesAvailable(),  _wsh.payloadLength);
+			_notEnoughData=true;
+			return;
+		}
+		_notEnoughData = false;
 
-			// unmask data
-			for (int i=0; i < buf.size(); i++)
-			{
-				buf[i] = buf[i] ^ _wsh.key[i % 4];
-			}
+		QByteArray buf = _socket->read(_wsh.payloadLength);
+		//printf("opcode %x payload bytes %llu avail: %llu\n", _wsh.opCode, _wsh.payloadLength, _socket->bytesAvailable());
 
-			_onContinuation = !_wsh.fin || isContinuation;
+		if (OPCODE::invalid((OPCODE::value)_wsh.opCode))
+		{
+			sendClose(CLOSECODE::INV_TYPE, "invalid opcode");
+			return;
+		}
 
-			// frame contains text, extract it, append data if this is a continuation
-			if (_wsh.fin && ! isContinuation) // one frame
-			{
-				_wsReceiveBuffer.clear();
-			}
-			_wsReceiveBuffer.append(buf);
+		// check the type of data frame
+		bool isContinuation=false;
 
-			// this is the final frame, decode and handle data
-			if (_wsh.fin)
+		switch (_wsh.opCode)
+		{
+			case OPCODE::CONTINUATION:
+				isContinuation = true;
+				// no break here, just jump over to opcode text
+
+			case OPCODE::BINARY:
+			case OPCODE::TEXT:
 			{
-				_onContinuation = false;
+				// check for protocol violations
+				if (_onContinuation && !isContinuation)
+				{
+					sendClose(CLOSECODE::VIOLATION, "protocol violation, somebody sends frames in between continued frames");
+					return;
+				}
+
+				if (!_wsh.masked && _wsh.opCode == OPCODE::TEXT)
+				{
+					sendClose(CLOSECODE::VIOLATION, "protocol violation, unmasked text frames not allowed");
+					return;
+				}
+
+				// unmask data
+				for (int i=0; i < buf.size(); i++)
+				{
+					buf[i] = buf[i] ^ _wsh.key[i % 4];
+				}
+
+				_onContinuation = !_wsh.fin || isContinuation;
+
+				// frame contains text, extract it, append data if this is a continuation
+				if (_wsh.fin && ! isContinuation) // one frame
+				{
+					_wsReceiveBuffer.clear();
+				}
+				_wsReceiveBuffer.append(buf);
+
+				// this is the final frame, decode and handle data
+				if (_wsh.fin)
+				{
+					_onContinuation = false;
 				if (_wsh.opCode == OPCODE::TEXT)
 				{
-					_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
+
+						_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
 				}
 				else
 				{
 					handleBinaryMessage(_wsReceiveBuffer);
 				}
-				_wsReceiveBuffer.clear();
+					_wsReceiveBuffer.clear();
+					
+				}
 			}
+			break;
+
+			case OPCODE::CLOSE:
+				{
+					sendClose(CLOSECODE::NORMAL);
+				}
+				break;
+
+			case OPCODE::PING:
+				{
+					// ping received, send pong
+					quint8 pong[] = {OPCODE::PONG, 0};
+					_socket->write((const char*)pong, 2);
+					_socket->flush();
+				}
+				break;
+
+			case OPCODE::PONG:
+				{
+					Error(_log, "pong received, protocol violation!");
+				}
+
+			default:
+				Warning(_log, "strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
 		}
-		break;
-
-		case OPCODE::CLOSE:
-			{
-				sendClose(CLOSECODE::NORMAL);
-			}
-			break;
-
-		case OPCODE::PING:
-			{
-				// ping received, send pong
-				quint8 pong[] = {OPCODE::PONG, 0};
-				_socket->write((const char*)pong, 2);
-				_socket->flush();
-			}
-			break;
-
-		case OPCODE::PONG:
-			{
-				Error(_log, "pong received, protocol violation!");
-			}
-
-		default:
-			Warning(_log, "strange %d\n%s\n",  _wsh.opCode, QSTRING_CSTR(QString(buf)));
 	}
 }
 
@@ -221,6 +226,7 @@ void WebSocketClient::sendClose(int status, QString reason)
 	_socket->close();
 }
 
+
 void WebSocketClient::handleBinaryMessage(QByteArray &data)
 {
 	//uint8_t  priority   = data.at(0);
@@ -242,6 +248,7 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	//_hyperion->registerInput();
 	//_hyperion->setInputImage(priority, image, duration_s*1000);
 }
+
 
 qint64 WebSocketClient::sendMessage(QJsonObject obj)
 {

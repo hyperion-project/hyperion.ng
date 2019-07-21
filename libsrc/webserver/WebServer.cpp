@@ -63,7 +63,8 @@ void WebServer::onServerStarted (quint16 port)
 	emit stateChange(true);
 }
 
-void WebServer::onServerStopped () {
+void WebServer::onServerStopped ()
+{
 	Info(_log, "Stopped %s", _server->getServerName().toStdString().c_str());
 	emit stateChange(false);
 }

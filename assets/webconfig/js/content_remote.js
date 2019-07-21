@@ -298,7 +298,7 @@ $(document).ready(function() {
 
 	createCP('cp2', cpcolor, function(rgbT,hex){
 		rgb = rgbT;
-		sendColor()
+		sendColor();
 		setStorage('rmcpcolor', hex);
 	});
 

@@ -180,8 +180,6 @@ void LinearColorSmoothing::componentStateChange(const hyperion::Components compo
 
 void LinearColorSmoothing::setEnable(bool enable)
 {
-	LedDevice::setEnable(enable);
-
 	if (!enable)
 	{
 		_timer->stop();

@@ -17,7 +17,7 @@ public:
 	struct WebSocketHeader
 	{
 		bool          fin;
-		quint8 opCode;
+		quint8        opCode;
 		bool          masked;
 		quint64       payloadLength;
 		char          key[4];
