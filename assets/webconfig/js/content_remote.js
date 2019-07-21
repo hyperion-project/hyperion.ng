@@ -300,6 +300,7 @@ $(document).ready(function() {
 		rgb = rgbT;
 		sendColor();
 		setStorage('rmcpcolor', hex);
+		updateInputSelect();
 	});
 
 	$("#reset_color").off().on("click", function(){

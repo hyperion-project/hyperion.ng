@@ -37,7 +37,7 @@ public:
 	/// @param inst  The instance to check
 	/// @return  True when running else false
 	///
-	const bool IsInstanceRunning(const quint8& inst) { return _runningInstances.contains(inst); };
+	bool IsInstanceRunning(const quint8& inst) { return _runningInstances.contains(inst); };
 
 	///
 	/// @brief Get a Hyperion instance by index

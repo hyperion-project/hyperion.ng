@@ -210,35 +210,13 @@ void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& comm
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
+	const QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
 
-	std::vector<ColorRgb> colorData(_hyperion->getLedCount());
 	const QJsonArray & jsonColor = message["color"].toArray();
-	unsigned int i = 0;
-	for (; i < unsigned(jsonColor.size()/3) && i < _hyperion->getLedCount(); ++i)
-	{
-		colorData[i].red = uint8_t(jsonColor.at(3u*i).toInt());
-		colorData[i].green = uint8_t(jsonColor.at(3u*i+1u).toInt());
-		colorData[i].blue = uint8_t(jsonColor.at(3u*i+2u).toInt());
-	}
+	const ColorRgb color = {uint8_t(jsonColor.at(0).toInt()),uint8_t(jsonColor.at(1).toInt()),uint8_t(jsonColor.at(2).toInt())};
 
-	// copy full blocks of led colors
-	unsigned size = i;
-	while (i + size < _hyperion->getLedCount())
-	{
-		memcpy(&(colorData[i]), colorData.data(), size * sizeof(ColorRgb));
-		i += size;
-	}
-
-	// copy remaining block of led colors
-	if (i < _hyperion->getLedCount())
-	{
-		memcpy(&(colorData[i]), colorData.data(), (_hyperion->getLedCount()-i) * sizeof(ColorRgb));
-	}
-
-	// register and set color
-	_hyperion->registerInput(priority, hyperion::COMP_COLOR, origin);
-	_hyperion->setInput(priority, colorData, duration);
+	// set color
+	_hyperion->setColor(priority, color, duration, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);

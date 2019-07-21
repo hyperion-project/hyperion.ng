@@ -155,8 +155,8 @@ bool HyperionIManager::deleteInstance(const quint8& inst)
 	if(!isInstAllowed(inst))
 		return false;
 
-	// stop it if required as blocking
-	stopInstance(inst, true);
+	// stop it if required as blocking and wait
+	if (stopInstance(inst, true));
 
 	if(_instanceTable->deleteInstance(inst))
 	{
