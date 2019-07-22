@@ -264,6 +264,7 @@
 	"about_resources" : "$1 libraries",
 	"about_contribute" : "Develop Hyperion further with us!",
 	"about_credits" : "Credits to all these developers!",
+	"about_3rd_party_licenses": "View 3rd party licenses",
 	"info_conlost_label_title" : "Lost connection to Hyperion service!",
 	"info_conlost_label_reason" : "Possible reasons:",
 	"info_conlost_label_reason1" : "- Bad WLAN connection",
