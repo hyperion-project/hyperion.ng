@@ -6,7 +6,6 @@ $(document).ready( function() {
 	var conf_editor_proto = null;
 	var conf_editor_fbs = null;
 	var conf_editor_bobl = null;
-	var conf_editor_udpl = null;
 	var conf_editor_forw = null;
 
 	if(window.showOptHelp)
@@ -36,11 +35,6 @@ $(document).ready( function() {
 		$('#conf_cont_bobl').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
 		$('#conf_cont_bobl').append(createHelpTable(window.schema.boblightServer.properties, $.i18n("edt_conf_bobls_heading_title")));
 
-		//udplistener
-		$('#conf_cont').append(createRow('conf_cont_udpl'))
-		$('#conf_cont_udpl').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_udpl_heading_title"), 'editor_container_udplistener', 'btn_submit_udplistener'));
-		$('#conf_cont_udpl').append(createHelpTable(window.schema.udpListener.properties, $.i18n("edt_conf_udpl_heading_title")));
-
 		//forwarder
 		if(storedAccess != 'default')
 		{
@@ -57,8 +51,6 @@ $(document).ready( function() {
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
 		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
-		$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_udpl_heading_title"), 'editor_container_udplistener', 'btn_submit_udplistener'));
-		if(storedAccess != 'default')
 			$('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
 	}
 
@@ -127,19 +119,6 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor_bobl.getValue());
 	});
 
-	//udplistener
-	conf_editor_udpl = createJsonEditor('editor_container_udplistener', {
-		udpListener        : window.schema.udpListener
-	}, true, true);
-
-	conf_editor_udpl.on('change',function() {
-		conf_editor_udpl.validate().length ? $('#btn_submit_udplistener').attr('disabled', true) : $('#btn_submit_udplistener').attr('disabled', false);
-	});
-
-	$('#btn_submit_udplistener').off().on('click',function() {
-		requestWriteConfig(conf_editor_udpl.getValue());
-	});
-
 	if(storedAccess != 'default')
 	{
 		//forwarder
@@ -164,7 +143,6 @@ $(document).ready( function() {
 		createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
 		createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
 		createHint("intro", $.i18n('conf_network_bobl_intro'), "editor_container_boblightserver");
-		createHint("intro", $.i18n('conf_network_udpl_intro'), "editor_container_udplistener");
 		createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");
 	}
 

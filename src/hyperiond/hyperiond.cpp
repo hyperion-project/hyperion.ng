@@ -18,8 +18,10 @@
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 
+// bonjour browser
+#include <bonjour/bonjourbrowserwrapper.h>
+
 #include <jsonserver/JsonServer.h>
-#include <udplistener/UDPListener.h>
 #include <webserver/WebServer.h>
 #include <HyperionConfig.h> // Required to determine the cmake options
 #include "hyperiond.h"
@@ -29,9 +31,6 @@
 
 // Protobuffer Server
 #include <protoserver/ProtoServer.h>
-
-// bonjour browser
-#include <bonjour/bonjourbrowserwrapper.h>
 
 // ssdp
 #include <ssdp/SSDPHandler.h>
@@ -66,7 +65,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	, _pyInit(new PythonInit())
 	, _webserver(nullptr)
 	, _jsonServer(nullptr)
-	, _udpListener(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
 	, _x11Grabber(nullptr)
@@ -172,7 +170,6 @@ void HyperionDaemon::freeObjects()
 	_ssdp->thread()->wait(1000);
 	_webserver->thread()->quit();
 	_webserver->thread()->wait(1000);
-	delete _udpListener;
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
@@ -197,7 +194,6 @@ void HyperionDaemon::freeObjects()
 	_ssdp                  = nullptr;
 	_webserver             = nullptr;
 	_jsonServer            = nullptr;
-	_udpListener           = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -225,11 +221,6 @@ void HyperionDaemon::startNetworkServices()
 	connect( pThread, &QThread::finished, pThread, &QObject::deleteLater );
 	connect( this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate );
 	pThread->start();
-
-	// Create UDP listener
-	_udpListener = new UDPListener(getSetting(settings::UDPLISTENER));
-	connect(this, &HyperionDaemon::settingsChanged, _udpListener, &UDPListener::handleSettingsUpdate);
-	connect(this, &HyperionDaemon::componentStateChanged, _udpListener, &UDPListener::updatedComponentState);
 
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER));

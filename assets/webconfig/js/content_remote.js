@@ -149,9 +149,6 @@ $(document).ready(function() {
 				case "BOBLIGHTSERVER":
 					owner = $.i18n('general_comp_BOBLIGHTSERVER');
 					break;
-				case "UDPLISTENER":
-					owner = $.i18n('general_comp_UDPLISTENER');
-					break;
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
 					break;

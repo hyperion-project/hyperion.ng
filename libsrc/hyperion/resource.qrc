@@ -17,7 +17,6 @@
 		<file alias="schema-flatbufServer.json">schema/schema-flatbufServer.json</file>
 		<file alias="schema-protoServer.json">schema/schema-protoServer.json</file>
 		<file alias="schema-boblightServer.json">schema/schema-boblightServer.json</file>
-		<file alias="schema-udpListener.json">schema/schema-udpListener.json</file>
 		<file alias="schema-webConfig.json">schema/schema-webConfig.json</file>
 		<file alias="schema-effects.json">schema/schema-effects.json</file>
 		<file alias="schema-ledConfig.json">schema/schema-ledConfig.json</file>

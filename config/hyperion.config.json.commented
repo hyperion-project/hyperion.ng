@@ -263,23 +263,6 @@
  		"priority" : 128
  	},
 
-	/// The configuration of the udp listener
-	///  * enable   : Enable or disable the udp listener (true/false)
-	///  * address  : The listener address, pre configured is multicast which listen also to unicast ip addresses at the same time. If emtpy, multicast is disabled and it also accepts unicast from all IPs
-	///  * port     : Port at which the udp listener starts
-	///  * priority : Priority of the udp listener server (Default=200)
-	///  * timeout  : The timeout sets the timelimit for a "soft" off of the udp listener, if no packages are received (for example to switch to a gabber or InitialEffect - background-effect)
-	///  * shared   : If true, the udp listener is shared across all hyperion instances (if using more than one (forwarder))
-	"udpListener" :
-	{
-		"enable"   : false,
-		"address"  : "239.255.28.01",
-		"port"     : 2801,
-		"priority" : 200,
-		"timeout"  : 10000,
-		"shared"   : false
-	},
-
 	/// Configuration of the Hyperion webserver
 	///  * document_root : path to hyperion webapp files (webconfig developer only)
 	///  * port          : the port where hyperion webapp is accasible

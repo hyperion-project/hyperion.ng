@@ -55,7 +55,6 @@
 class HyperionIManager;
 class SysTray;
 class JsonServer;
-class UDPListener;
 class BonjourBrowserWrapper;
 class WebServer;
 class SettingsManager;
@@ -153,7 +152,6 @@ private:
 	PythonInit*                _pyInit;
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
-	UDPListener*               _udpListener;
 	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;

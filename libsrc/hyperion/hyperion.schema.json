@@ -63,10 +63,6 @@
 		{
 			"$ref": "schema-boblightServer.json"
 		},
-		"udpListener" :
-		{
-			"$ref": "schema-udpListener.json"
-		},
 		"webConfig" :
 		{
 			"$ref": "schema-webConfig.json"
