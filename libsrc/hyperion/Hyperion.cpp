@@ -148,7 +148,7 @@ void Hyperion::start()
 void Hyperion::stop()
 {
 	emit finished();
-	thread()->quit();
+	thread()->wait();
 }
 
 void Hyperion::freeObjects(bool emitCloseSignal)

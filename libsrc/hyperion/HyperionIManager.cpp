@@ -71,6 +71,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 			connect(hyperionThread, &QThread::finished, hyperionThread, &QObject::deleteLater);
 			connect(hyperion, &Hyperion::started, HyperionIManager::getInstance(), &HyperionIManager::handleStarted);
 			connect(hyperion, &Hyperion::finished, HyperionIManager::getInstance(), &HyperionIManager::handleFinished);
+			connect(hyperion, &Hyperion::finished, hyperionThread, &QThread::quit, Qt::DirectConnection);
 
 			// setup further connections
 			// from Hyperion
