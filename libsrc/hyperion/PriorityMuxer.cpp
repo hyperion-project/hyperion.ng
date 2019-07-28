@@ -43,6 +43,7 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	// forward timeRunner signal to prioritiesChanged signal & threading workaround
 	connect(this, &PriorityMuxer::timeRunner, this, &PriorityMuxer::prioritiesChanged);
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
+	connect(this, &PriorityMuxer::activeStateChanged, this, &PriorityMuxer::prioritiesChanged);
 
 	// start muxer timer
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
