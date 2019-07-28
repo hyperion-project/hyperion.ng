@@ -41,7 +41,14 @@ function tryReconnect()
 
 	$.ajax({ url: connURL }).done(function(data) {
 		window.clearInterval(connectionTimer);
-		window.location.href = connURL;
+		if(reconnectInterval <= 2000){
+			let url = connURL;
+			if (window.connURL.includes("#"))
+				url = window.connURL.slice(0,window.connURL.indexOf("#"));
+			window.location.replace(url);
+		} else {
+			window.location.reload();
+		}
 	})
 	.fail( function( jqXHR, textStatus ) {
 		count++;
