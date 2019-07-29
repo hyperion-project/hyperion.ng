@@ -114,6 +114,7 @@ function loadContent(event, forceRefresh)
 				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
 				removeOverlay();
 			}
+			updateUiOnInstance(window.currentHyperionInstance);
 		});
 	}
 }
@@ -158,6 +159,22 @@ function updateHyperionInstanceListing()
 			window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
 			updateHyperionInstanceListing()
 		});
+	}
+}
+
+function updateUiOnInstance(inst)
+{
+	if(inst != 0)
+	{
+		var currentURL = $(location).attr("href");
+		if(currentURL.indexOf('#conf_network') != -1 || currentURL.indexOf('#update') != -1 || currentURL.indexOf('#conf_webconfig') != -1 || currentURL.indexOf('#conf_grabber') != -1 || currentURL.indexOf('#conf_logging') != -1)
+			$("#hyperion_global_setting_notify").fadeIn("fast");
+		else
+			$("#hyperion_global_setting_notify").attr("style", "display:none");
+	}
+	else
+	{
+		$("#hyperion_global_setting_notify").fadeOut("fast");
 	}
 }
 
