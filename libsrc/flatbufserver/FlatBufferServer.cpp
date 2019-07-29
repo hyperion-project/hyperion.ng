@@ -3,6 +3,7 @@
 
 // util
 #include <utils/NetOrigin.h>
+#include <utils/GlobalSignals.h>
 
 // qt
 #include <QJsonObject>
@@ -68,6 +69,12 @@ void FlatBufferServer::newConnection()
 				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
 				// internal
 				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
+				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+				connect(client, &FlatBufferClient::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+				connect(client, &FlatBufferClient::clearAllGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearAllGlobalInput);
+				connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+				connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
 				_openConnections.append(client);
 			}
 			else

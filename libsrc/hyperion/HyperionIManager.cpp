@@ -69,17 +69,17 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 			// setup thread management
 			connect(hyperionThread, &QThread::started, hyperion, &Hyperion::start);
 			connect(hyperionThread, &QThread::finished, hyperionThread, &QObject::deleteLater);
-			connect(hyperion, &Hyperion::started, HyperionIManager::getInstance(), &HyperionIManager::handleStarted);
-			connect(hyperion, &Hyperion::finished, HyperionIManager::getInstance(), &HyperionIManager::handleFinished);
+			connect(hyperion, &Hyperion::started, this, &HyperionIManager::handleStarted);
+			connect(hyperion, &Hyperion::finished, this, &HyperionIManager::handleFinished);
 			connect(hyperion, &Hyperion::finished, hyperionThread, &QThread::quit, Qt::DirectConnection);
 
 			// setup further connections
 			// from Hyperion
-			connect(hyperion, &Hyperion::settingsChanged, HyperionIManager::getInstance(), &HyperionIManager::settingsChanged);
-			connect(hyperion, &Hyperion::videoMode, HyperionIManager::getInstance(), &HyperionIManager::requestVideoMode);
-			connect(hyperion, &Hyperion::componentStateChanged, HyperionIManager::getInstance(), &HyperionIManager::componentStateChanged);
+			connect(hyperion, &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
+			connect(hyperion, &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
+			connect(hyperion, &Hyperion::componentStateChanged, this, &HyperionIManager::componentStateChanged);
 			// to Hyperion
-			connect(HyperionIManager::getInstance(), &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
+			connect(this, &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
 
 			// add to queue and start
 			_startQueue << inst;
@@ -103,7 +103,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 	return false;
 }
 
-bool HyperionIManager::stopInstance(const quint8& inst, const bool& block)
+bool HyperionIManager::stopInstance(const quint8& inst)
 {
 	// inst 0 can't be stopped
 	if(!isInstAllowed(inst))
@@ -121,10 +121,6 @@ bool HyperionIManager::stopInstance(const quint8& inst, const bool& block)
 			// update db
 			_instanceTable->setEnable(inst, false);
 
-			if(block)
-			{
-				hyperion->thread()->wait(10000);
-			}
 			return true;
 		}
 		Debug(_log,"Can't stop Hyperion instance index '%d' with name '%s' it's not running'", inst, QSTRING_CSTR(_instanceTable->getNamebyIndex(inst)));
@@ -157,8 +153,7 @@ bool HyperionIManager::deleteInstance(const quint8& inst)
 		return false;
 
 	// stop it if required as blocking and wait
-	if (stopInstance(inst, true))
-		;
+	stopInstance(inst);
 
 	if(_instanceTable->deleteInstance(inst))
 	{

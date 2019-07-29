@@ -3,6 +3,7 @@
 
 // util
 #include <utils/NetOrigin.h>
+#include <utils/GlobalSignals.h>
 
 // qt
 #include <QJsonObject>
@@ -68,6 +69,12 @@ void ProtoServer::newConnection()
 				ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
 				// internal
 				connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+				connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+				connect(client, &ProtoClientConnection::clearAllGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearAllGlobalInput);
+				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
 				_openConnections.append(client);
 			}
 			else

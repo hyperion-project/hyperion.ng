@@ -183,18 +183,6 @@ public:
 	/// @return json config
 	const QJsonObject& getQJsonConfig();
 
-	///
-	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
-	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
-	/// @param[in] priority    The priority of the channel
-	/// @param[in] component   The component of the channel
-	/// @param[in] origin      Who set the channel (CustomString@IP)
-	/// @param[in] owner       Specific owner string, might be empty
-	/// @param[in] smooth_cfg  The smooth id to use
-	///
-	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
-
-
 	/// enable/disable automatic/priorized source selection
 	/// @param enabled the state
 	void setSourceAutoSelectEnabled(bool enabled);
@@ -243,6 +231,17 @@ public:
 
 public slots:
 	///
+	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
+	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
+	/// @param[in] priority    The priority of the channel
+	/// @param[in] component   The component of the channel
+	/// @param[in] origin      Who set the channel (CustomString@IP)
+	/// @param[in] owner       Specific owner string, might be empty
+	/// @param[in] smooth_cfg  The smooth id to use
+	///
+	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
+
+	///
 	/// @brief   Update the current color of a priority (prev registered with registerInput())
 	///  		 DO NOT use this together with setInputImage() at the same time!
 	/// @param  priority     The priority to update
@@ -262,7 +261,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, const bool& clearEffect = true);
+	bool setInputImage(const int priority, const Image<ColorRgb>& image, const int64_t timeout_ms = -1, const bool& clearEffect = true);
 
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -271,10 +270,11 @@ public slots:
 	///
 	/// @param[in] priority The priority of the written color
 	/// @param[in] ledColor The color to write to the leds
-	/// @param[in] origin   The setter
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
+	/// @param[in] origin   The setter
+	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(const int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -305,7 +305,7 @@ public slots:
 	/// @param[in] priority  The priority channel
 	/// @return              True on success else false (not found)
 	///
-	bool clear(int priority);
+	bool clear(const int priority);
 
 	///
 	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.

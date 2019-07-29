@@ -210,7 +210,7 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 		}
 
 		 // We got a registered reply.
-		if (registered != -1 && registered != _priority)
+		if (registered == -1 || registered != _priority)
 			_registered = false;
 		else
 			_registered = true;

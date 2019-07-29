@@ -280,7 +280,6 @@ void PriorityMuxer::setCurrentTime(void)
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int newPriority;
-	_activeInputs.contains(140) ? newPriority = 140 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)

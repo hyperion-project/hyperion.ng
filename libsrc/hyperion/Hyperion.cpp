@@ -17,6 +17,7 @@
 
 // utils
 #include <utils/hyperion.h>
+#include <utils/GlobalSignals.h>
 
 // Leddevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -132,6 +133,13 @@ void Hyperion::start()
 
 	// create the Daemon capture interface
 	_captureCont = new CaptureCont(this);
+
+	// forwards global signals to the corresponding slots
+	connect(GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput, this, &Hyperion::registerInput);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput, this, &Hyperion::clear);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::clearAllGlobalInput, this, &Hyperion::clearall);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor, this, &Hyperion::setColor);
+	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &Hyperion::setInputImage);
 
 	// if there is no startup / background eff and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a prioritiy change)
 	update();
@@ -325,6 +333,12 @@ bool Hyperion::setInput(const int priority, const std::vector<ColorRgb>& ledColo
 
 bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms, const bool& clearEffect)
 {
+	if (!_muxer.hasPriority(priority))
+	{
+		emit GlobalSignals::getInstance()->globalRegRequired(priority);
+		return false;
+	}
+
 	if(_muxer.setInputImage(priority, image, timeout_ms))
 	{
 		// clear effect if this call does not come from an effect
@@ -345,7 +359,7 @@ bool Hyperion::setInputInactive(const quint8& priority)
 	return _muxer.setInputInactive(priority);
 }
 
-void Hyperion::setColor(int priority, const ColorRgb &color, const int timeout_ms, const QString& origin, bool clearEffects)
+void Hyperion::setColor(const int priority, const ColorRgb &color, const int timeout_ms, const QString& origin, bool clearEffects)
 {
 	// clear effect if this call does not come from an effect
 	if(clearEffects)
@@ -379,7 +393,7 @@ void Hyperion::adjustmentsUpdated()
 	update();
 }
 
-bool Hyperion::clear(int priority)
+bool Hyperion::clear(const int priority)
 {
 	// send clear signal to the effect engine
 	// (outside the check so the effect gets cleared even when the effect is not sending colors)
