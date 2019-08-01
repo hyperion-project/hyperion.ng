@@ -44,12 +44,8 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 
 BoblightClientConnection::~BoblightClientConnection()
 {
-	if (_priority < 255)
-	{
-		// clear the current channel
-		_hyperion->clear(_priority);
-		_priority = 255;
-	}
+	// clear the current channel
+	_hyperion->clear(_priority);
 
 	delete _socket;
 }
@@ -83,12 +79,8 @@ void BoblightClientConnection::readData()
 
 void BoblightClientConnection::socketClosed()
 {
-	if (_priority < 255)
-	{
-		// clear the current channel
-		_hyperion->clear(_priority);
-		_priority = 255;
-	}
+	// clear the current channel
+	_hyperion->clear(_priority);
 
 	emit connectionClosed(this);
 }
@@ -164,7 +156,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							rgb.blue = blue;
 
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
-							if ((ledIndex == _ledColors.size() -1) && _priority < 255)
+							if (ledIndex == _ledColors.size() -1)
 							{
 								_hyperion->setInput(_priority, _ledColors);
 							}
@@ -188,14 +180,11 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				int prio = messageParts[2].toInt(&rc);
 				if (rc && prio != _priority)
 				{
-					if (_priority < 255)
-					{
-						// clear the current channel
-						_hyperion->clear(_priority);
+					// clear the current channel
+					_hyperion->clear(_priority);
 
-						// register new priority
-						_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
-					}
+					// register new priority
+					_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 
 					_priority = prio;
 					return;
@@ -205,21 +194,12 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		else if (messageParts[0] == "sync")
 		{
 			// send current color values to hyperion
-			if (_priority < 255)
-			{
-				_hyperion->setInput(_priority, _ledColors);
-			}
+			_hyperion->setInput(_priority, _ledColors);
 			return;
 		}
 	}
 
 	Debug(_log, "unknown boblight message: %s", QSTRING_CSTR(message));
-}
-
-void BoblightClientConnection::sendMessage(const QByteArray & message)
-{
-	//std::cout << "send boblight message: " << message;
-	_socket->write(message);
 }
 
 void BoblightClientConnection::sendLightMessage()
