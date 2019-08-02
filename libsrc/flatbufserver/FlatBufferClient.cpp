@@ -6,9 +6,6 @@
 #include <QTimer>
 #include <QRgb>
 
-#include <hyperion/Hyperion.h>
-#include <hyperion/HyperionIManager.h>
-
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
@@ -72,7 +69,9 @@ void FlatBufferClient::disconnected()
 {
 	Debug(_log, "Socket Closed");
 	_socket->deleteLater();
-	emit clearGlobalInput(_priority);
+	if (_priority != 0 && _priority >= 100 && _priority < 200)
+		emit clearGlobalInput(_priority);
+
 	emit clientDisconnected();
 }
 
@@ -122,6 +121,13 @@ void FlatBufferClient::registationRequired(const int priority)
 
 void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq)
 {
+	if (regReq->priority() < 100 || regReq->priority() >= 200)
+	{
+		// Warning(_log, "Register request from client %s contains invalid priority %d. Valid rage is between 100 and 199.", QSTRING_CSTR(_clientAddress), regReq->priority());
+		sendErrorReply("The priority " + std::to_string(regReq->priority()) + " is not in the priority range between 100 and 199.");
+		return;
+	}
+
 	_priority = regReq->priority();
 	emit registerGlobalInput(_priority, hyperion::COMP_FLATBUFSERVER, regReq->origin()->c_str()+_clientAddress);
 

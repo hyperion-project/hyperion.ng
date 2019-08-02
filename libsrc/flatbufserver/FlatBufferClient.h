@@ -12,10 +12,9 @@
 
 class QTcpSocket;
 class QTimer;
-class Hyperion;
 
 namespace flatbuf {
-class HyperionRequest;
+	class HyperionRequest;
 }
 
 ///

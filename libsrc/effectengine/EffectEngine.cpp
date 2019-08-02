@@ -168,10 +168,11 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-    Effect *effect = new Effect(_hyperion, priority, timeout, script, name, args, imageData);
+	Effect *effect = new Effect(_hyperion, priority, timeout, script, name, args, imageData);
 	connect(effect, &Effect::setInput, _hyperion, &Hyperion::setInput, Qt::QueuedConnection);
 	connect(effect, &Effect::setInputImage, _hyperion, &Hyperion::setInputImage, Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
+	connect(_hyperion, &Hyperion::finished, effect, &Effect::setInteruptionFlag, Qt::DirectConnection);
 	_activeEffects.push_back(effect);
 
 	// start the effect

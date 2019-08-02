@@ -7,12 +7,6 @@
 #include <QTimer>
 #include <QRgb>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
-// Hyperion instance manager includes
-#include <hyperion/HyperionIManager.h>
-
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Gabber, Windows Screen grabber etc.)
 
 ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent)
@@ -130,6 +124,12 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	color.green = qGreen(message.rgbcolor());
 	color.blue = qBlue(message.rgbcolor());
 
+	if (priority < 100 || priority >= 200)
+	{
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		return;
+	}
+
 	// make sure the prio is registered before setColor()
 	if(priority != _priority)
 	{
@@ -153,6 +153,12 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	int width = message.imagewidth();
 	int height = message.imageheight();
 	const std::string & imageData = message.imagedata();
+
+	if (priority < 100 || priority >= 200)
+	{
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		return;
+	}
 
 	// make sure the prio is registered before setInput()
 	if(priority != _priority)

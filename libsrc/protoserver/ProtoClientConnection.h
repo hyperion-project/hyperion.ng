@@ -11,10 +11,9 @@
 
 class QTcpSocket;
 class QTimer;
-class Hyperion;
 
 namespace proto {
-class HyperionRequest;
+	class HyperionRequest;
 }
 
 ///

@@ -217,5 +217,8 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 
 		return true;
 	}
+	else
+		throw std::runtime_error(reply->error()->str());
+
 	return false;
 }

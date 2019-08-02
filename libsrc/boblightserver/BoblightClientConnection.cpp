@@ -44,8 +44,9 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 
 BoblightClientConnection::~BoblightClientConnection()
 {
-	// clear the current channel
-	_hyperion->clear(_priority);
+	 // clear the current channel
+	if (_priority != 0 && _priority >= 128 && _priority < 254)
+		_hyperion->clear(_priority);
 
 	delete _socket;
 }
@@ -79,8 +80,9 @@ void BoblightClientConnection::readData()
 
 void BoblightClientConnection::socketClosed()
 {
-	// clear the current channel
-	_hyperion->clear(_priority);
+	 // clear the current channel
+	if (_priority != 0 && _priority >= 128 && _priority < 254)
+		_hyperion->clear(_priority);
 
 	emit connectionClosed(this);
 }
@@ -155,6 +157,9 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							rgb.green = green;
 							rgb.blue = blue;
 
+							if (_priority == 0 || _priority < 128 || _priority >= 254)
+								return;
+
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if (ledIndex == _ledColors.size() -1)
 							{
@@ -180,21 +185,35 @@ void BoblightClientConnection::handleMessage(const QString & message)
 				int prio = messageParts[2].toInt(&rc);
 				if (rc && prio != _priority)
 				{
-					// clear the current channel
-					_hyperion->clear(_priority);
+					if (_priority != 0 && _hyperion->getPriorityInfo(_priority).componentId == hyperion::COMP_BOBLIGHTSERVER)
+						_hyperion->clear(_priority);
 
-					// register new priority
-					_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
+					if (prio < 128 || prio >= 254)
+					{
+						_priority = 128;
+						while (_hyperion->getActivePriorities().contains(_priority))
+						{
+							_priority += 1;
+						}
 
-					_priority = prio;
+						Warning(_log, "The priority %i is not in the priority range between 128 and 253. Priority %i is used instead.", prio, _priority);
+					}
+					else
+					{
+						// register new priority
+						_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
+						_priority = prio;
+					}
+
 					return;
 				}
 			}
 		}
 		else if (messageParts[0] == "sync")
 		{
-			// send current color values to hyperion
-			_hyperion->setInput(_priority, _ledColors);
+			if (_priority != 0 && _priority >= 128 && _priority < 254)
+				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
+
 			return;
 		}
 	}
