@@ -172,7 +172,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	connect(effect, &Effect::setInput, _hyperion, &Hyperion::setInput, Qt::QueuedConnection);
 	connect(effect, &Effect::setInputImage, _hyperion, &Hyperion::setInputImage, Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
-	connect(_hyperion, &Hyperion::finished, effect, &Effect::setInteruptionFlag, Qt::DirectConnection);
+	connect(_hyperion, &Hyperion::finished, effect, &Effect::requestInterruption, Qt::DirectConnection);
 	_activeEffects.push_back(effect);
 
 	// start the effect
@@ -186,9 +186,9 @@ void EffectEngine::channelCleared(int priority)
 {
 	for (Effect * effect : _activeEffects)
 	{
-		if (effect->getPriority() == priority)
+		if (effect->getPriority() == priority && !effect->isInterruptionRequested())
 		{
-			effect->setInteruptionFlag();
+			effect->requestInterruption();
 		}
 	}
 }
@@ -197,9 +197,9 @@ void EffectEngine::allChannelsCleared()
 {
 	for (Effect * effect : _activeEffects)
 	{
-		if (effect->getPriority() != 254)
+		if (effect->getPriority() != 254 && !effect->isInterruptionRequested())
 		{
-			effect->setInteruptionFlag();
+			effect->requestInterruption();
 		}
 	}
 }
@@ -207,7 +207,7 @@ void EffectEngine::allChannelsCleared()
 void EffectEngine::effectFinished()
 {
 	Effect* effect = qobject_cast<Effect*>(sender());
-	if (!effect->hasInteruptionFlag())
+	if (!effect->isInterruptionRequested())
 	{
 		// effect stopped by itself. Clear the channel
 		_hyperion->clear(effect->getPriority());

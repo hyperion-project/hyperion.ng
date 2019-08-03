@@ -79,7 +79,7 @@ void Effect::run()
 	PyObject * module = PyImport_ImportModule("hyperion");
 
 	// add a capsule containing 'this' to the module to be able to retrieve the effect from the callback function
-	PyObject_SetAttrString(module, "__effectObj", PyCapsule_New(this, nullptr, nullptr));
+	PyModule_AddObject(module, "__effectObj", PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr));
 
 	// add ledCount variable to the interpreter
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _hyperion->getLedCount()));

@@ -49,5 +49,4 @@ public:
 	static PyObject* wrapImageCOffset          (PyObject *self, PyObject *args);
 	static PyObject* wrapImageCShear           (PyObject *self, PyObject *args);
 	static PyObject* wrapImageResetT           (PyObject *self, PyObject *args);
-	static Effect  * getEffect();
 };

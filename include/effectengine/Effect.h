@@ -46,13 +46,13 @@ public:
 	/// @brief Set manual interuption to true,
 	///        Note: DO NOT USE QThread::interuption!
 	///
-	void setInteruptionFlag() { _interupt = true; };
+	void requestInterruption() { _interupt = true; };
 
 	///
 	/// @brief Check if the interuption flag has been set
 	/// @return    The flag state
 	///
-	bool hasInteruptionFlag() { return _interupt; };
+	bool isInterruptionRequested() { return _interupt; };
 
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
