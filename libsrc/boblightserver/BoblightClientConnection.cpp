@@ -196,7 +196,10 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							_priority += 1;
 						}
 
+						// warn against invalid priority
 						Warning(_log, "The priority %i is not in the priority range between 128 and 253. Priority %i is used instead.", prio, _priority);
+						// register new priority (previously modified)
+						_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 					}
 					else
 					{
