@@ -4,13 +4,26 @@
 	"required" : true,
 	"properties" :
 	{
+		"apiAuth" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_apiAuth_title",
+			"required" : true,
+			"default" : true,
+			"propertyOrder" : 1
+		},
 		"internetAccessAPI" :
 		{
 			"type" : "boolean",
 			"title" : "edt_conf_net_internetAccessAPI_title",
 			"required" : true,
 			"default" : false,
-			"propertyOrder" : 1
+			"options": {
+				"dependencies": {
+					"apiAuth": true
+				}
+			},
+			"propertyOrder" : 2
 		},
 		"ipWhitelist" :
 		{
@@ -26,14 +39,6 @@
 					"internetAccessAPI": false
 				}
 			},
-			"propertyOrder" : 2
-		},
-		"apiAuth" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_net_apiAuth_title",
-			"required" : true,
-			"default" : true,
 			"propertyOrder" : 3
 		},
 		"localApiAuth" :
