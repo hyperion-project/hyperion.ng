@@ -196,6 +196,10 @@ table label{margin:0}
 	background-color:#d1322e;
 }
 
+.modal-icon-edit{
+	background-color:#3579b6;
+}
+
 .overlay {
 	background-image: url('/img/hyperion/hyperionwhitelogo.png');
 	background-repeat: no-repeat;

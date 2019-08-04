@@ -25,7 +25,7 @@ public:
 		setTable("instances");
 		createTable(QStringList()<<"instance INTEGER"<<"friendly_name TEXT"<<"enabled INTEGER DEFAULT 0"<<"last_use TEXT");
 
-		// create the first Hyperion instance index 0
+		// start/create the first Hyperion instance index 0
 		createInstance();
 
 	};
@@ -93,14 +93,21 @@ public:
 	///
 	inline bool saveName(const quint8& inst, const QString& name)
 	{
-		if(instanceExist(inst))
-		{
-			VectorPair cond;
-			cond.append(CPair("instance",inst));
-			QVariantMap data;
-			data["friendly_name"] = name;
+		VectorPair fcond;
+		fcond.append(CPair("friendly_name",name));
 
-			return updateRecord(cond, data);
+		// check duplicate
+		if(!recordExists(fcond))
+		{
+			if(instanceExist(inst))
+			{
+				VectorPair cond;
+				cond.append(CPair("instance",inst));
+				QVariantMap data;
+				data["friendly_name"] = name;
+
+				return updateRecord(cond, data);
+			}
 		}
 		return false;
 	}
@@ -207,13 +214,18 @@ private:
 	///
 	inline void createInstance()
 	{
-		QVariantMap data;
-		data["friendly_name"] = "First LED Hardware instance";
-		VectorPair cond;
-		cond.append(CPair("instance", 0));
-		if(createRecord(cond, data))
+		if(instanceExist(0))
 			setEnable(0, true);
 		else
-			throw std::runtime_error("Failed to create Hyperion root instance in db! This should never be the case...");
+		{
+			QVariantMap data;
+			data["friendly_name"] = "First LED Hardware instance";
+			VectorPair cond;
+			cond.append(CPair("instance", 0));
+			if(createRecord(cond, data))
+				setEnable(0, true);
+			else
+				throw std::runtime_error("Failed to create Hyperion root instance in db! This should never be the case...");
+		}
 	}
 };

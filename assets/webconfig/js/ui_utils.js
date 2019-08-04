@@ -214,53 +214,69 @@ function setClassByBool(obj,enable,class1,class2)
 
 function showInfoDialog(type,header,message)
 {
-	if (type=="success"){
+	if (type=="success")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type=="warning"){
+	else if (type=="warning")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type=="error"){
+	else if (type=="error")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type == "select"){
+	else if (type == "select")
+	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "iswitch"){
+	else if (type == "iswitch")
+	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "uilock"){
+	else if (type == "uilock")
+	{
 		$('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
 	}
-	else if (type == "import"){
+	else if (type == "import")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "delplug"){
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+	else if (type == "delInst")
+	{
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
 		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "renInst")
+	{
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
+		$('#id_body').append('<h4>'+header+'</h4>');
+		$('#id_body').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
+		$('#id_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss="modal" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_checklist_title')+'</h4>');
-		$('#id_body').append(message);
+		$('#id_body').append(header);
 		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
 	else if (type == "newToken")
@@ -275,8 +291,11 @@ function showInfoDialog(type,header,message)
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
 	}
 
-	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
-	$('#id_body').append(message);
+	if(type != "renInst")
+	{
+		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
+		$('#id_body').append(message);
+	}
 
 	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
@@ -669,8 +688,8 @@ function createHelpTable(list, phead){
 			// break one iteration (in the loop), if the schema has the entry hidden=true
 			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
 				continue;
-				if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
-					continue;
+			if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
+				continue;
 			var text = list[key].title.replace('title', 'expl');
 			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
@@ -682,8 +701,8 @@ function createHelpTable(list, phead){
 					// break one iteration (in the loop), if the schema has the entry hidden=true
 					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
 						continue;
-						if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
-							continue;
+					if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
+						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}

@@ -190,6 +190,11 @@ function requestTokenDelete(id)
 	sendToHyperion("authorize","deleteToken",'"id":"'+id+'"');
 }
 
+function requestInstanceRename(inst, name)
+{
+	sendToHyperion("instance", "saveName",'"instance": '+inst+', "name": "'+name+'"');
+}
+
 function requestInstanceStartStop(inst, start)
 {
 	if(start)

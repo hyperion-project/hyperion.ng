@@ -25,9 +25,21 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
 
-	
-
 	// Instance handling
+	function handleInstanceRename(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
+
+		$("#id_btn_ok").off().on('click', function(){
+			requestInstanceRename(inst, $('#renInst_name').val())
+		});
+
+		$('#renInst_name').off().on('input',function(e) {
+			(e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+		});
+	}
+
 	function handleInstanceStartStop(e)
 	{
 		var inst = e.currentTarget.id.split("_")[1];
@@ -38,7 +50,7 @@ $(document).ready( function() {
 	function handleInstanceDelete(e)
 	{
 		var inst = e.currentTarget.id.split("_")[1];
-		showInfoDialog('delplug',$.i18n('conf_general_inst_delreq_h'),$.i18n('conf_general_inst_delreq_t',getInstanceNameByIndex(inst)));
+		showInfoDialog('delInst',$.i18n('conf_general_inst_delreq_h'),$.i18n('conf_general_inst_delreq_t',getInstanceNameByIndex(inst)));
 		$("#id_btn_yes").off().on('click', function(){
 			requestInstanceDelete(inst)
 		});
@@ -51,29 +63,35 @@ $(document).ready( function() {
 		for(var key in inst)
 		{
 			var startBtnColor = inst[key].running ? "success" : "danger";
+			var startBtnIcon = inst[key].running ? "stop" : "play";
 			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
-			var startBtn = "-"
-			var delBtn = "-";
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-pencil"> '+$.i18n('general_btn_rename')+'</i></button>';
+			var startBtn = ""
+			var delBtn = "";
 			if(inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-danger">'+$.i18n('general_btn_delete')+'</button>';
-				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'">'+startBtnText+'</button>';
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-remove"> '+$.i18n('general_btn_delete')+'</i></button>';
+				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-'+startBtnIcon+'"> '+startBtnText+'</i></button>';
 			}
-			$('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, delBtn], false, true));
+			$('.itbody').append(createTableRow([inst[key].friendly_name, renameBtn, startBtn, delBtn], false, true));
+			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
 			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
 			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
 		}
 	}
 
 	createTable('ithead', 'itbody', 'itable');
-	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), $.i18n('conf_general_inst_actionhead'), $.i18n('general_btn_delete')], true, true));
+	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
 	buildInstanceList();
 
 	$('#inst_name').off().on('input',function(e) {
 		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
 	});
+
 	$('#btn_create_inst').off().on('click',function(e) {
 		requestInstanceCreate($('#inst_name').val());
+		$('#inst_name').val("");
+		$('#btn_create_inst').attr('disabled', true)
 	});
 
 	$(hyperion).off("instance-updated").on("instance-updated", function(event) {

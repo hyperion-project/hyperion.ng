@@ -1298,9 +1298,16 @@ void JsonAPI::handleInstanceCommand(const QJsonObject & message, const QString &
 
 	if(subc == "saveName")
 	{
-		// silent fail
-		_instanceManager->saveName(inst,name);
-		sendSuccessReply(command+"-"+subc, tan);
+		if(_userAuthorized)
+		{
+			// silent fail
+			if(_instanceManager->saveName(inst,name))
+				sendSuccessReply(command+"-"+subc, tan);
+			else
+				sendErrorReply(QString("The instance name '%1' is already in use").arg(name), command+"-"+subc, tan);
+		}
+		else
+			sendErrorReply("No Authorization",command+"-"+subc, tan);
 		return;
 	}
 }
