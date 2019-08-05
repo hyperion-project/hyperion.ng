@@ -266,11 +266,11 @@ function showInfoDialog(type,header,message)
 	}
 	else if (type == "renInst")
 	{
-		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
-		$('#id_body').append('<h4>'+header+'</h4>');
-		$('#id_body').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
-		$('#id_footer').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss="modal" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
-		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
+		$('#id_body_rename').append('<h4>'+header+'</h4>');
+		$('#id_body_rename').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
@@ -300,10 +300,16 @@ function showInfoDialog(type,header,message)
 	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
-	$("#modal_dialog").modal({
+
+	$(type == "renInst" ? "#modal_dialog_rename" : "#modal_dialog").modal({
 		backdrop : "static",
 		keyboard: false,
 		show: true
+	});
+
+	$(document).on('click', '[data-dismiss-modal]', function () {
+		var target = $(this).attr('data-dismiss-modal');
+		$(target).modal('hide');
 	});
 }
 
