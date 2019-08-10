@@ -3,7 +3,7 @@
 echo "---Hyperion ambient light preinst ---"
 
 # search for users in system, returns first entry
-FOUND_USR=`whoami` || "root"
+FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
 # stop running daemon before we install
 if pgrep hyperiond > /dev/null 2>&1
