@@ -29,7 +29,7 @@ BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
 NET_IP=`hostname -I | cut -d " " -f1`
 
 # search for users in system, returns first entry
-FOUND_USR=`who | grep -o '^\w*\b'` || "root"
+FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
 # determine if we should use a service
 ENABLE_SERVICE=0
