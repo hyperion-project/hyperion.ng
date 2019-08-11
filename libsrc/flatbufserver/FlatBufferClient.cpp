@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QRgb>
 
-#include <hyperion/Hyperion.h>
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
@@ -15,7 +14,6 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObje
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hyperion(Hyperion::getInstance())
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);
@@ -70,8 +68,10 @@ void FlatBufferClient::forceClose()
 void FlatBufferClient::disconnected()
 {
 	Debug(_log, "Socket Closed");
-    _socket->deleteLater();
-	_hyperion->clear(_priority);
+	_socket->deleteLater();
+	if (_priority != 0 && _priority >= 100 && _priority < 200)
+		emit clearGlobalInput(_priority);
+
 	emit clientDisconnected();
 }
 
@@ -101,16 +101,35 @@ void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 	color.blue = qBlue(rgbData);
 
 	// set output
-	_hyperion->setColor(_priority, color, colorReq->duration());
+	emit setGlobalInputColor(_priority, color, colorReq->duration());
 
 	// send reply
 	sendSuccessReply();
 }
 
+void FlatBufferClient::registationRequired(const int priority)
+{
+	if (_priority == priority)
+	{
+		auto reply = hyperionnet::CreateReplyDirect(_builder, nullptr, -1, -1);
+		_builder.Finish(reply);
+
+		// send reply
+		sendMessage();
+	}
+}
+
 void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq)
 {
+	if (regReq->priority() < 100 || regReq->priority() >= 200)
+	{
+		// Warning(_log, "Register request from client %s contains invalid priority %d. Valid rage is between 100 and 199.", QSTRING_CSTR(_clientAddress), regReq->priority());
+		sendErrorReply("The priority " + std::to_string(regReq->priority()) + " is not in the priority range between 100 and 199.");
+		return;
+	}
+
 	_priority = regReq->priority();
-	_hyperion->registerInput(_priority, hyperion::COMP_FLATBUFSERVER, regReq->origin()->c_str()+_clientAddress);
+	emit registerGlobalInput(_priority, hyperion::COMP_FLATBUFSERVER, regReq->origin()->c_str()+_clientAddress);
 
 	auto reply = hyperionnet::CreateReplyDirect(_builder, nullptr, -1, (_priority ? _priority : -1));
 	_builder.Finish(reply);
@@ -140,7 +159,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 
 		Image<ColorRgb> imageDest(width, height);
 		memmove(imageDest.memptr(), imageData->data(), imageData->size());
-		_hyperion->setInputImage(_priority, imageDest, duration);
+		emit setGlobalInputImage(_priority, imageDest, duration);
 	}
 
 	// send reply
@@ -154,7 +173,7 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 	const int priority = clear->priority();
 
 	if (priority == -1) {
-		_hyperion->clearall();
+		emit clearAllGlobalInput();
 	}
 	else {
 		// Check if we are clearing ourselves.
@@ -162,7 +181,7 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 			_priority = -1;
 		}
 
-		_hyperion->clear(priority);
+		emit clearGlobalInput(priority);
 	}
 
 	sendSuccessReply();

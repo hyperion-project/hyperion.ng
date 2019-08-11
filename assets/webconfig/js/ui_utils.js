@@ -114,7 +114,67 @@ function loadContent(event, forceRefresh)
 				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
 				removeOverlay();
 			}
+			updateUiOnInstance(window.currentHyperionInstance);
 		});
+	}
+}
+
+function getInstanceNameByIndex(index)
+{
+	var instData = window.serverInfo.instance
+	for(var key in instData)
+	{
+		if(instData[key].instance == index)
+			return instData[key].friendly_name;
+	}
+	return "unknown"
+}
+
+function updateHyperionInstanceListing()
+{
+	var data = window.serverInfo.instance.filter(entry => entry.running);
+	$('#hyp_inst_listing').html("");
+	for(var key in data)
+	{
+		var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
+
+		var html = '<li id="hyperioninstance_'+data[key].instance+'"> \
+			<a>  \
+				<div>  \
+					<i class="fa fa-circle fa-fw '+currInstMarker+'"></i> \
+					<span>'+data[key].friendly_name+'</span> \
+				</div> \
+			</a> \
+		</li> '
+
+		if(data.length-1 > key)
+			html += '<li class="divider"></li>'
+
+		$('#hyp_inst_listing').append(html);
+
+		$('#hyperioninstance_'+data[key].instance).off().on("click",function(e){
+			var inst = e.currentTarget.id.split("_")[1]
+			requestInstanceSwitch(inst)
+			window.currentHyperionInstance = inst;
+			window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+			updateHyperionInstanceListing()
+		});
+	}
+}
+
+function updateUiOnInstance(inst)
+{
+	if(inst != 0)
+	{
+		var currentURL = $(location).attr("href");
+		if(currentURL.indexOf('#conf_network') != -1 || currentURL.indexOf('#update') != -1 || currentURL.indexOf('#conf_webconfig') != -1 || currentURL.indexOf('#conf_grabber') != -1 || currentURL.indexOf('#conf_logging') != -1)
+			$("#hyperion_global_setting_notify").fadeIn("fast");
+		else
+			$("#hyperion_global_setting_notify").attr("style", "display:none");
+	}
+	else
+	{
+		$("#hyperion_global_setting_notify").fadeOut("fast");
 	}
 }
 
@@ -154,61 +214,102 @@ function setClassByBool(obj,enable,class1,class2)
 
 function showInfoDialog(type,header,message)
 {
-	if (type=="success"){
+	if (type=="success")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_success_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-success" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type=="warning"){
+	else if (type=="warning")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_warning_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type=="error"){
+	else if (type=="error")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
 		if(header == "")
 			$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_general_error_title')+'</h4>');
 		$('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
-	else if (type == "select"){
+	else if (type == "select")
+	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saveandreload')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "iswitch"){
+	else if (type == "iswitch")
+	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>'+$.i18n('general_btn_iswitch')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
-	else if (type == "uilock"){
+	else if (type == "uilock")
+	{
 		$('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_footer').html('<b>'+$.i18n('InfoDialog_nowrite_foottext')+'</b>');
 	}
-	else if (type == "import"){
+	else if (type == "import")
+	{
 		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
 		$('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_saverestart')+'</button>');
 		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "delInst")
+	{
+		$('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
+		$('#id_footer').html('<button type="button" id="id_btn_yes" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-trash"></i>'+$.i18n('general_btn_yes')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
+	else if (type == "renInst")
+	{
+		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-pencil modal-icon-edit"><br>');
+		$('#id_body_rename').append('<h4>'+header+'</h4>');
+		$('#id_body_rename').append('<input class="form-control" id="renInst_name" type="text" value="'+message+'">');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
 	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
 		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n('infoDialog_checklist_title')+'</h4>');
-		$('#id_body').append(message);
+		$('#id_body').append(header);
 		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
 	}
+	else if (type == "newToken")
+	{
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">'+$.i18n('general_btn_ok')+'</button>');
+	}
+	else if (type == "grantToken")
+	{
+		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+		$('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal" id="tok_grant_acc">'+$.i18n('general_btn_grantAccess')+'</button>');
+		$('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal" id="tok_deny_acc">'+$.i18n('general_btn_denyAccess')+'</button>');
+	}
 
-	$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
-	$('#id_body').append(message);
+	if(type != "renInst")
+	{
+		$('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">'+header+'</h4>');
+		$('#id_body').append(message);
+	}
 
 	if(type == "select" || type == "iswitch")
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
-	$("#modal_dialog").modal({
+
+	$(type == "renInst" ? "#modal_dialog_rename" : "#modal_dialog").modal({
 		backdrop : "static",
 		keyboard: false,
 		show: true
+	});
+
+	$(document).on('click', '[data-dismiss-modal]', function () {
+		var target = $(this).attr('data-dismiss-modal');
+		$(target).modal('hide');
 	});
 }
 
@@ -593,8 +694,8 @@ function createHelpTable(list, phead){
 			// break one iteration (in the loop), if the schema has the entry hidden=true
 			if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
 				continue;
-				if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
-					continue;
+			if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
+				continue;
 			var text = list[key].title.replace('title', 'expl');
 			tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
@@ -606,8 +707,8 @@ function createHelpTable(list, phead){
 					// break one iteration (in the loop), if the schema has the entry hidden=true
 					if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
 						continue;
-						if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
-							continue;
+					if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
+						continue;
 					var itext = ilist[ikey].title.replace('title', 'expl');
 					tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
 				}

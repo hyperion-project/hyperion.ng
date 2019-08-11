@@ -25,7 +25,10 @@ window.loggingHandlerInstalled = false;
 window.watchdog = 0;
 window.debugMessagesActive = true;
 window.wSess = [];
+window.currentHyperionInstance = 0;
+window.currentHyperionInstanceName = "?";
 window.comps = [];
+tokenList = {};
 
 function initRestart()
 {
@@ -162,10 +165,62 @@ function sendToHyperion(command, subcommand, msg)
 // -----------------------------------------------------------
 // wrapped server commands
 
-// also used for watchdog
+function requestAuthorization()
+{
+	sendToHyperion("authorize","login",'"username": "Hyperion", "password": "hyperion"');
+}
+
+function requestToken(comment)
+{
+	sendToHyperion("authorize","createToken",'"comment": "'+comment+'"');
+}
+
+function requestTokenInfo()
+{
+	sendToHyperion("authorize","getTokenList","");
+}
+
+function requestHandleTokenRequest(id, state)
+{
+	sendToHyperion("authorize","answerRequest",'"id":"'+id+'", "accept":'+state);
+}
+
+function requestTokenDelete(id)
+{
+	sendToHyperion("authorize","deleteToken",'"id":"'+id+'"');
+}
+
+function requestInstanceRename(inst, name)
+{
+	sendToHyperion("instance", "saveName",'"instance": '+inst+', "name": "'+name+'"');
+}
+
+function requestInstanceStartStop(inst, start)
+{
+	if(start)
+		sendToHyperion("instance","startInstance",'"instance": '+inst);
+	else
+		sendToHyperion("instance","stopInstance",'"instance": '+inst);
+}
+
+function requestInstanceDelete(inst)
+{
+	sendToHyperion("instance","deleteInstance",'"instance": '+inst);
+}
+
+function requestInstanceCreate(name)
+{
+	sendToHyperion("instance","createInstance",'"name": "'+name+'"');
+}
+
+function requestInstanceSwitch(inst)
+{
+	sendToHyperion("instance","switchTo",'"instance": '+inst);
+}
+
 function requestServerInfo()
 {
-	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update"]');
+	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
 }
 
 function requestSysInfo()

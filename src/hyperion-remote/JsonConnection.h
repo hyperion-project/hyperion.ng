@@ -101,7 +101,7 @@ public:
 	///
 	/// Enable/Disable components during runtime
 	///
-	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER]
+	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const QString & component, const bool state);
@@ -170,6 +170,9 @@ public:
 
 	// sets video mode 3D/2D
 	void setVideoMode(QString videoMode);
+
+	// set the specified authorization token
+	void setToken(const QString &token);
 
 
 private:

@@ -55,7 +55,6 @@ void CgiHandler::cmd_cfg_jsonserver()
 	if ( _args.at(0) == "cfg_jsonserver" )
 	{
 		quint16 jsonPort = 19444;
-
 		// send result as reply
 		_reply->addHeader ("Content-Type", "text/plain" );
 		_reply->appendRawData (QByteArrayLiteral(":") % QString::number(jsonPort).toUtf8() );

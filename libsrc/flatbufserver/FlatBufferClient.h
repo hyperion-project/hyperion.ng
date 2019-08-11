@@ -12,10 +12,9 @@
 
 class QTcpSocket;
 class QTimer;
-class Hyperion;
 
 namespace flatbuf {
-class HyperionRequest;
+	class HyperionRequest;
 }
 
 ///
@@ -37,12 +36,27 @@ signals:
 	///
 	/// @brief forward register data to HyperionDaemon
 	///
-	void registerGlobalInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerGlobalInput(const int priority, const hyperion::Components& component, const QString& origin = "FlatBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
+
+	///
+	/// @brief Forward clear command to HyperionDaemon
+	///
+	void clearGlobalInput(const int priority);
+
+	///
+	/// @brief Forward clearAll command to HyperionDaemon
+	///
+	void clearAllGlobalInput(bool forceClearAll=false);
 
 	///
 	/// @brief forward prepared image to HyperionDaemon
 	///
-	const bool setGlobalInputImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms = -1);
+	const bool setGlobalInputImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms, const bool& clearEffect = false);
+
+	///
+	/// @brief Forward requested color
+	///
+	void setGlobalInputColor(const int priority, const ColorRgb &ledColor, const int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emits whenever the client disconnected
@@ -50,6 +64,11 @@ signals:
 	void clientDisconnected();
 
 public slots:
+	///
+	/// @brief Requests a registration from the client
+	///
+	void registationRequired(const int priority);
+
 	///
 	/// @brief close the socket and call disconnected()
 	///
@@ -125,7 +144,6 @@ private:
 	QTimer *_timeoutTimer;
 	int _timeout;
 	int _priority;
-	Hyperion* _hyperion;
 
 	QByteArray _receiveBuffer;
 

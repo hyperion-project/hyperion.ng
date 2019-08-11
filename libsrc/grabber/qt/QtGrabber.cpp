@@ -96,6 +96,7 @@ void QtGrabber::geometryChanged(const QRect &geo)
 
 int QtGrabber::grabFrame(Image<ColorRgb> & image)
 {
+	if (!_enabled) return 0;
 	if(_screen == nullptr)
 	{
 		// reinit, this will disable capture on failure

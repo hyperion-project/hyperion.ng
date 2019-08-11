@@ -25,6 +25,79 @@ $(document).ready( function() {
 		requestWriteConfig(conf_editor.getValue());
 	});
 
+	// Instance handling
+	function handleInstanceRename(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
+
+		$("#id_btn_ok").off().on('click', function(){
+			requestInstanceRename(inst, $('#renInst_name').val())
+		});
+
+		$('#renInst_name').off().on('input',function(e) {
+			(e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+		});
+	}
+
+	function handleInstanceStartStop(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		var start = (e.currentTarget.className == "btn btn-danger")
+		requestInstanceStartStop(inst, start)
+	}
+
+	function handleInstanceDelete(e)
+	{
+		var inst = e.currentTarget.id.split("_")[1];
+		showInfoDialog('delInst',$.i18n('conf_general_inst_delreq_h'),$.i18n('conf_general_inst_delreq_t',getInstanceNameByIndex(inst)));
+		$("#id_btn_yes").off().on('click', function(){
+			requestInstanceDelete(inst)
+		});
+	}
+
+	function buildInstanceList()
+	{
+		var inst = serverInfo.instance
+		$('.itbody').html("");
+		for(var key in inst)
+		{
+			var startBtnColor = inst[key].running ? "success" : "danger";
+			var startBtnIcon = inst[key].running ? "stop" : "play";
+			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-pencil"> '+$.i18n('general_btn_rename')+'</i></button>';
+			var startBtn = ""
+			var delBtn = "";
+			if(inst[key].instance > 0)
+			{
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-remove"> '+$.i18n('general_btn_delete')+'</i></button>';
+				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-'+startBtnIcon+'"> '+startBtnText+'</i></button>';
+			}
+			$('.itbody').append(createTableRow([inst[key].friendly_name, renameBtn, startBtn, delBtn], false, true));
+			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
+			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
+			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
+		}
+	}
+
+	createTable('ithead', 'itbody', 'itable');
+	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
+	buildInstanceList();
+
+	$('#inst_name').off().on('input',function(e) {
+		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
+	});
+
+	$('#btn_create_inst').off().on('click',function(e) {
+		requestInstanceCreate($('#inst_name').val());
+		$('#inst_name').val("");
+		$('#btn_create_inst').attr('disabled', true)
+	});
+
+	$(hyperion).off("instance-updated").on("instance-updated", function(event) {
+		buildInstanceList()
+	});
+
 	//import
 	function dis_imp_btn(state)
 	{
@@ -104,6 +177,8 @@ $(document).ready( function() {
 	//create introduction
 	if(window.showOptHelp)
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
+		createHint("intro", $.i18n('conf_general_tok_desc'), "tok_desc_cont");
+		createHint("intro", $.i18n('conf_general_inst_desc'), "inst_desc_cont");
 
 	removeOverlay();
 });

@@ -23,7 +23,7 @@ class JsonCB : public QObject
 	Q_OBJECT
 
 public:
-	JsonCB(QObject* parent);
+	JsonCB(Hyperion* hyperion, QObject* parent);
 
 	///
 	/// @brief Subscribe to future data updates given by cmd
@@ -93,6 +93,18 @@ private slots:
 	/// @param data   The data as QJsonDocument
 	///
 	void handleSettingsChange(const settings::type& type, const QJsonDocument& data);
+
+	///
+	/// @brief Handle led config specific updates (required for led color streaming with positional display)
+	/// @param type   The settings type from enum
+	/// @param data   The data as QJsonDocument
+	///
+	void handleLedsConfigChange(const settings::type& type, const QJsonDocument& data);
+
+	///
+	/// @brief Handle Hyperion instance manager change
+	///
+	void handleInstanceChange();
 
 private:
 	/// pointer of Hyperion instance

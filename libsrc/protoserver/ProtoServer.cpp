@@ -1,6 +1,10 @@
 #include <protoserver/ProtoServer.h>
 #include "ProtoClientConnection.h"
 
+// util
+#include <utils/NetOrigin.h>
+#include <utils/GlobalSignals.h>
+
 // qt
 #include <QJsonObject>
 #include <QTcpServer>
@@ -24,6 +28,7 @@ ProtoServer::~ProtoServer()
 
 void ProtoServer::initServer()
 {
+	_netOrigin = NetOrigin::getInstance();
 	connect(_server, &QTcpServer::newConnection, this, &ProtoServer::newConnection);
 
 	// apply config
@@ -58,11 +63,22 @@ void ProtoServer::newConnection()
 	{
 		if(QTcpSocket * socket = _server->nextPendingConnection())
 		{
-			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
-			// internal
-			connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-			_openConnections.append(client);
+			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
+			{
+				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+				ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
+				// internal
+				connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+				connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+				connect(client, &ProtoClientConnection::clearAllGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearAllGlobalInput);
+				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
+				_openConnections.append(client);
+			}
+			else
+				socket->close();
 		}
 	}
 }

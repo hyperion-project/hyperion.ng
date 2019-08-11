@@ -151,16 +151,6 @@
 		"priority" : 128
 	},
 
-	"udpListener" :
-	{
-		"enable"   : false,
-		"address"  : "239.255.28.01",
-		"port"     : 2801,
-		"priority" : 200,
-		"timeout"  : 10000,
-		"shared"   : false
-	},
-
 	"webConfig" :
 	{
 		"document_root" : "",
@@ -173,11 +163,20 @@
 		"disable": [""]
 	},
 
-	"instCapture" : {
+	"instCapture" :
+	{
 		"systemEnable" : true,
 		"systemPriority" : 250,
 		"v4lEnable" : false,
 		"v4lPriority" : 240
+	},
+
+	"network" :
+	{
+		"internetAccessAPI" : false,
+		"ipWhitelist" : [],
+		"apiAuth" : true,
+		"localApiAuth" : false
 	},
 
 	"ledConfig" :

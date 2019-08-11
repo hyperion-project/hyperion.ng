@@ -4,7 +4,7 @@
 // Qt includes
 #include <QRgb>
 
-// protoserver includes
+// flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
 
 FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply)
@@ -210,12 +210,15 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 		}
 
 		 // We got a registered reply.
-		if (registered != -1 && registered != _priority)
+		if (registered == -1 || registered != _priority)
 			_registered = false;
 		else
 			_registered = true;
 
 		return true;
 	}
+	else
+		throw std::runtime_error(reply->error()->str());
+
 	return false;
 }

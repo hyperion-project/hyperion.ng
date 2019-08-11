@@ -4,8 +4,10 @@
 /**
  * WebSocket Opcodes are 4 bits. See RFC6455 section 5.2.
  */
-namespace OPCODE {
-	enum value {
+namespace OPCODE
+{
+	enum value
+	{
 		CONTINUATION = 0x0,
 		TEXT = 0x1,
 		BINARY = 0x2,
@@ -29,7 +31,8 @@ namespace OPCODE {
 	 * @param v The opcode to test.
 	 * @return Whether or not the opcode is reserved.
 	 */
-	inline bool reserved(value v) {
+	inline bool reserved(value v)
+	{
 		return (v >= RSV3 && v <= RSV7) || (v >= CONTROL_RSVB && v <= CONTROL_RSVF);
 	}
 
@@ -40,7 +43,8 @@ namespace OPCODE {
 	 * @param v The opcode to test.
 	 * @return Whether or not the opcode is invalid.
 	 */
-	inline bool invalid(value v) {
+	inline bool invalid(value v)
+	{
 		return (v > 0xF || v < 0);
 	}
 
@@ -49,13 +53,16 @@ namespace OPCODE {
 	 * @param v The opcode to test.
 	 * @return Whether or not the opcode is a control opcode.
 	*/
-	inline bool is_control(value v) {
+	inline bool is_control(value v)
+	{
 		return v >= 0x8;
 	}
 }
 
-namespace CLOSECODE {
-	enum value {
+namespace CLOSECODE
+{
+	enum value
+	{
 		NORMAL    = 1000,
 		AWAY      = 1001,
 		TERM      = 1002,

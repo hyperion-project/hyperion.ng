@@ -1,17 +1,17 @@
 #pragma once
 
+// qt includes
 #include <QObject>
 #include <QString>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QTimer>
 
-// STL incldues
+// STL includes
 #include <vector>
 #include <map>
 #include <algorithm>
-
-#include <QTimer>
 
 // Utility includes
 #include <utils/ColorRgb.h>

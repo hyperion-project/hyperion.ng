@@ -1,7 +1,7 @@
 # With Docker
 If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Stretch or higher). To compile Hyperion just execute one of the following commands.
 
-The compiled binaries and packages will be available at the deploy folder next to the script
+The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
 Note: call the script with `./docker-compile.sh -h` for more options
 
 ## Native compiling on Raspberry Pi
@@ -40,7 +40,7 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libqt5sql5-sqlite
 ```
 
 **on RPI you need the videocore IV headers**

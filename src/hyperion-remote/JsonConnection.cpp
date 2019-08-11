@@ -543,6 +543,25 @@ void JsonConnection::setVideoMode(QString videoMode)
 	parseReply(reply);
 }
 
+void JsonConnection::setToken(const QString &token)
+{
+	// create command
+	QJsonObject command;
+	command["command"] = QString("authorize");
+	command["subcommand"] = QString("login");
+
+	if (token.size() < 36)
+		throw std::runtime_error("The given token length is too short.");
+
+	command["token"] = token;
+
+	// send command message
+	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 {
 	// serialize message

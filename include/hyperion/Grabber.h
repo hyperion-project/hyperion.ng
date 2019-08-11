@@ -9,6 +9,7 @@
 #include <grabber/VideoStandard.h>
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
+#include <utils/Components.h>
 
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
@@ -95,6 +96,12 @@ public:
 	/// @brief Prevent the real capture implementation from capturing if disabled
 	///
 	void setEnabled(bool enable);
+
+signals:
+	///
+	/// @brief PIPE component state changes from HyperionDaemon to V4L2Grabber
+	///
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 protected:
 	ImageResampler _imageResampler;

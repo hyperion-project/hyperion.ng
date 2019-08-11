@@ -63,10 +63,6 @@
 		{
 			"$ref": "schema-boblightServer.json"
 		},
-		"udpListener" :
-		{
-			"$ref": "schema-udpListener.json"
-		},
 		"webConfig" :
 		{
 			"$ref": "schema-webConfig.json"
@@ -78,6 +74,10 @@
 		"instCapture":
 		{
 			"$ref": "schema-instCapture.json"
+		},
+		"network":
+		{
+			"$ref": "schema-network.json"
 		},
 		"ledConfig":
 		{

@@ -34,7 +34,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utils/Logger.h>
 #include <HyperionConfig.h>
-#include <hyperion/Hyperion.h>
+#include <hyperion/AuthManager.h>
 
 BonjourServiceRegister::BonjourServiceRegister(QObject *parent)
     : QObject(parent), dnssref(0), bonjourSocket(0)
@@ -79,7 +79,7 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 	}
 #endif
 	// base txtRec
-	std::vector<std::pair<std::string, std::string> > txtBase = {{"id",Hyperion::getInstance()->getId().toStdString()},{"version",HYPERION_VERSION}};
+	std::vector<std::pair<std::string, std::string> > txtBase = {{"id",AuthManager::getInstance()->getID().toStdString()},{"version",HYPERION_VERSION}};
     // create txt record
     TXTRecordRef txtRec;
     TXTRecordCreate(&txtRec,0,NULL);

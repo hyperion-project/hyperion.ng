@@ -63,7 +63,7 @@ public:
 	///
 	/// @brief select a smoothing cfg given by cfg index from addConfig()
 	/// @param   cfg     The index to use
-	/// @param   force   Overwrite in any case the current values (used for cfg 0 settings udpate)
+	/// @param   force   Overwrite in any case the current values (used for cfg 0 settings update)
 	///
 	/// @return  On success return else false (and falls back to cfg 0)
 	///

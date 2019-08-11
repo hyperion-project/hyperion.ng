@@ -3,13 +3,23 @@
 
 // hyperion
 #include <hyperion/Hyperion.h>
+
+// HyperionIManager
+#include <hyperion/HyperionIManager.h>
 // components
+
 #include <hyperion/ComponentRegister.h>
 // bonjour wrapper
+
 #include <bonjour/bonjourbrowserwrapper.h>
 // priorityMuxer
+
 #include <hyperion/PriorityMuxer.h>
+
+// utils
 #include <utils/ColorSys.h>
+
+// qt
 #include <QDateTime>
 
 // Image to led map helper
@@ -17,15 +27,15 @@
 
 using namespace hyperion;
 
-JsonCB::JsonCB(QObject* parent)
+JsonCB::JsonCB(Hyperion* hyperion, QObject* parent)
 	: QObject(parent)
-	, _hyperion(Hyperion::getInstance())
+	, _hyperion(hyperion)
 	, _componentRegister(& _hyperion->getComponentRegister())
 	, _bonjour(BonjourBrowserWrapper::getInstance())
 	, _prioMuxer(_hyperion->getMuxerInstance())
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update";
+	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type)
@@ -80,6 +90,19 @@ bool JsonCB::subscribeFor(const QString& type)
 	{
 		_subscribedCommands << type;
 		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
+	}
+
+	if(type == "leds-update")
+	{
+		_subscribedCommands << type;
+		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
+	}
+
+
+	if(type == "instance-update")
+	{
+		_subscribedCommands << type;
+		connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
 	}
 
 	return true;
@@ -300,4 +323,30 @@ void JsonCB::handleSettingsChange(const settings::type& type, const QJsonDocumen
 		dat[typeToString(type)] = data.array();
 
 	doCallback("settings-update", QVariant(dat));
+}
+
+void JsonCB::handleLedsConfigChange(const settings::type& type, const QJsonDocument& data)
+{
+	if(type == settings::LEDS)
+	{
+		QJsonObject dat;
+		dat[typeToString(type)] = data.array();
+		doCallback("leds-update", QVariant(dat));
+	}
+}
+
+void JsonCB::handleInstanceChange()
+{
+	QJsonArray arr;
+
+	for(const auto & entry : HyperionIManager::getInstance()->getInstanceData())
+	{
+		QJsonObject obj;
+		obj.insert("friendly_name", entry["friendly_name"].toString());
+		obj.insert("instance", entry["instance"].toInt());
+		//obj.insert("last_use", entry["last_use"].toString());
+		obj.insert("running", entry["running"].toBool());
+		arr.append(obj);
+	}
+	doCallback("instance-update", QVariant(arr));
 }

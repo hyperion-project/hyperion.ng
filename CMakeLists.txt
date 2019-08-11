@@ -311,7 +311,7 @@ IF ( CMAKE_CROSSCOMPILING )
 ENDIF()
 
 SET(QT_MIN_VERSION "5.5.0")
-find_package(Qt5 COMPONENTS Core Gui Network SerialPort REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql REQUIRED)
 message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
 IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
@@ -353,9 +353,6 @@ endif ()
 
 # Add resources directory
 add_subdirectory(resources)
-
-# Add the doxygen generation directory
-add_subdirectory(doc)
 
 # remove generated files on make cleaan too
 LIST( APPEND GENERATED_QRC

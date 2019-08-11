@@ -59,47 +59,51 @@ int main(int argc, char * argv[])
 		// create the option parser and initialize all parameters
 		Parser parser("Application to send a command to hyperion using the Json interface");
 
-		Option          & argAddress     = parser.add<Option>       ('a', "address"   , "Set the address of the hyperion server [default: %1]", "localhost:19444");
-		IntOption       & argPriority    = parser.add<IntOption>    ('p', "priority"  , "Use to the provided priority channel (suggested 2-99) [default: %1]", "50");
-		IntOption       & argDuration    = parser.add<IntOption>    ('d', "duration"  , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
-		ColorsOption    & argColor       = parser.add<ColorsOption> ('c', "color"     , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
-		ImageOption     & argImage       = parser.add<ImageOption>  ('i', "image"     , "Set the leds to the colors according to the given image file");
-		Option          & argEffect      = parser.add<Option>       ('e', "effect"    , "Enable the effect with the given name");
-		Option          & argEffectFile  = parser.add<Option>       (0x0, "effectFile", "Arguments to use in combination with --createEffect");
-		Option          & argEffectArgs  = parser.add<Option>       (0x0, "effectArgs", "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
-		Option          & argCreateEffect= parser.add<Option>       (0x0, "createEffect","Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
-		Option          & argDeleteEffect= parser.add<Option>       (0x0, "deleteEffect","Delete a custom created Json Effect configuration file.");
-		BooleanOption   & argServerInfo  = parser.add<BooleanOption>('l', "list"      , "List server info and active effects with priority and duration");
-		BooleanOption   & argSysInfo     = parser.add<BooleanOption>('s', "sysinfo"   , "show system info");
-		BooleanOption   & argClear       = parser.add<BooleanOption>('x', "clear"     , "Clear data for the priority channel provided by the -p option");
-		BooleanOption   & argClearAll    = parser.add<BooleanOption>(0x0, "clearall"  , "Clear data for all active priority channels");
-		Option          & argEnableComponent  = parser.add<Option>  ('E', "enable"    , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
-		Option          & argDisableComponent = parser.add<Option>  ('D', "disable"    , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, UDPLISTENER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
-		Option          & argId           = parser.add<Option>      ('q', "qualifier" , "Identifier(qualifier) of the adjustment to set");
-		IntOption       & argBrightness   = parser.add<IntOption>   ('L', "brightness" , "Set the brightness gain of the leds");
-		IntOption       & argBrightnessC  = parser.add<IntOption>   (0x0, "brightnessCompensation" , "Set the brightness compensation");
-		IntOption       & argBacklightThreshold= parser.add<IntOption> ('n', "backlightThreshold" , "threshold for activating backlight (minimum brightness)");
-		IntOption       & argBacklightColored  = parser.add<IntOption>    (0x0, "backlightColored" , "0 = white backlight; 1 =  colored backlight");
-		DoubleOption    & argGamma       = parser.add<DoubleOption>  ('g', "gamma"     , "Set the overall gamma of the leds");
-		BooleanOption   & argPrint       = parser.add<BooleanOption>(0x0, "print"     , "Print the json input and output messages on stdout");
-		BooleanOption   & argHelp        = parser.add<BooleanOption>('h', "help"      , "Show this help message and exit");
-		ColorOption     & argRAdjust     = parser.add<ColorOption>  ('R', "redAdjustment" , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argGAdjust     = parser.add<ColorOption>  ('G', "greenAdjustment", "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argBAdjust     = parser.add<ColorOption>  ('B', "blueAdjustment", "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argCAdjust     = parser.add<ColorOption>  ('C', "cyanAdjustment" , "Set the adjustment of the cyan color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argMAdjust     = parser.add<ColorOption>  ('M', "magentaAdjustment", "Set the adjustment of the magenta color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argYAdjust     = parser.add<ColorOption>  ('Y', "yellowAdjustment", "Set the adjustment of the yellow color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argWAdjust     = parser.add<ColorOption>  ('W', "whiteAdjustment", "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
-		ColorOption     & argbAdjust     = parser.add<ColorOption>  ('b', "blackAdjustment", "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
-		Option          & argMapping     = parser.add<Option>       ('m', "ledMapping"   , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
-		Option          & argVideoMode   = parser.add<Option>       ('V', "videoMode"   , "Set the video mode valid values: 2D, 3DSBS, 3DTAB");
-		IntOption       & argSource      = parser.add<IntOption>    (0x0, "sourceSelect"  , "Set current active priority channel and deactivate auto source switching");
-		BooleanOption   & argSourceAuto  = parser.add<BooleanOption>(0x0, "sourceAutoSelect", "Enables auto source, if disabled prio by manual selecting input source");
-		BooleanOption   & argOff         = parser.add<BooleanOption>(0x0, "off", "deactivates hyperion");
-		BooleanOption   & argOn          = parser.add<BooleanOption>(0x0, "on", "activates hyperion");
-		BooleanOption   & argConfigGet   = parser.add<BooleanOption>(0x0, "configGet"  , "Print the current loaded Hyperion configuration file");
-		BooleanOption   & argSchemaGet   = parser.add<BooleanOption>(0x0, "schemaGet"  , "Print the json schema for Hyperion configuration");
-		Option          & argConfigSet   = parser.add<Option>       (0x0, "configSet", "Write to the actual loaded configuration file. Should be a Json object string.");
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "localhost:19444");
+		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
+		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
+		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
+		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
+		ImageOption     & argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the leds to the colors according to the given image file");
+		Option          & argEffect             = parser.add<Option>       ('e', "effect"                 , "Enable the effect with the given name");
+		Option          & argEffectFile         = parser.add<Option>       (0x0, "effectFile"             , "Arguments to use in combination with --createEffect");
+		Option          & argEffectArgs         = parser.add<Option>       (0x0, "effectArgs"             , "Arguments to use in combination with the specified effect. Should be a Json object string.", "");
+		Option          & argCreateEffect       = parser.add<Option>       (0x0, "createEffect"           , "Write a new Json Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
+		Option          & argDeleteEffect       = parser.add<Option>       (0x0, "deleteEffect"           , "Delete a custom created Json Effect configuration file.");
+		BooleanOption   & argServerInfo         = parser.add<BooleanOption>('l', "list"                   , "List server info and active effects with priority and duration");
+		BooleanOption   & argSysInfo            = parser.add<BooleanOption>('s', "sysinfo"                , "show system info");
+		BooleanOption   & argClear              = parser.add<BooleanOption>('x', "clear"                  , "Clear data for the priority channel provided by the -p option");
+		BooleanOption   & argClearAll           = parser.add<BooleanOption>(0x0, "clearall"               , "Clear data for all active priority channels");
+		Option          & argEnableComponent    = parser.add<Option>       ('E', "enable"                 , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argDisableComponent   = parser.add<Option>       ('D', "disable"                , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argId                 = parser.add<Option>       ('q', "qualifier"              , "Identifier(qualifier) of the adjustment to set");
+		IntOption       & argBrightness         = parser.add<IntOption>    ('L', "brightness"             , "Set the brightness gain of the leds");
+		IntOption       & argBrightnessC        = parser.add<IntOption>    (0x0, "brightnessCompensation" , "Set the brightness compensation");
+		IntOption       & argBacklightThreshold = parser.add<IntOption>    ('n', "backlightThreshold"     , "threshold for activating backlight (minimum brightness)");
+		IntOption       & argBacklightColored   = parser.add<IntOption>    (0x0, "backlightColored"       , "0 = white backlight; 1 =  colored backlight");
+		DoubleOption    & argGamma              = parser.add<DoubleOption> ('g', "gamma"                  , "Set the overall gamma of the leds");
+		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print"                  , "Print the json input and output messages on stdout");
+		BooleanOption   & argHelp               = parser.add<BooleanOption>('h', "help"                   , "Show this help message and exit");
+		ColorOption     & argRAdjust            = parser.add<ColorOption>  ('R', "redAdjustment"          , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argGAdjust            = parser.add<ColorOption>  ('G', "greenAdjustment"        , "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argBAdjust            = parser.add<ColorOption>  ('B', "blueAdjustment"         , "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argCAdjust            = parser.add<ColorOption>  ('C', "cyanAdjustment"         , "Set the adjustment of the cyan color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argMAdjust            = parser.add<ColorOption>  ('M', "magentaAdjustment"      , "Set the adjustment of the magenta color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argYAdjust            = parser.add<ColorOption>  ('Y', "yellowAdjustment"       , "Set the adjustment of the yellow color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argWAdjust            = parser.add<ColorOption>  ('W', "whiteAdjustment"        , "Set the adjustment of the white color (requires colors in hex format as RRGGBB)");
+		ColorOption     & argbAdjust            = parser.add<ColorOption>  ('b', "blackAdjustment"        , "Set the adjustment of the black color (requires colors in hex format as RRGGBB)");
+		Option          & argMapping            = parser.add<Option>       ('m', "ledMapping"             , "Set the methode for image to led mapping valid values: multicolor_mean, unicolor_mean");
+		Option          & argVideoMode          = parser.add<Option>       ('V', "videoMode"              , "Set the video mode valid values: 2D, 3DSBS, 3DTAB");
+		IntOption       & argSource             = parser.add<IntOption>    (0x0, "sourceSelect"           , "Set current active priority channel and deactivate auto source switching");
+		BooleanOption   & argSourceAuto         = parser.add<BooleanOption>(0x0, "sourceAutoSelect"       , "Enables auto source, if disabled prio by manual selecting input source");
+		BooleanOption   & argOff                = parser.add<BooleanOption>(0x0, "off"                    , "Deactivates hyperion");
+		BooleanOption   & argOn                 = parser.add<BooleanOption>(0x0, "on"                     , "Activates hyperion");
+		BooleanOption   & argConfigGet          = parser.add<BooleanOption>(0x0, "configGet"              , "Print the current loaded Hyperion configuration file");
+		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the json schema for Hyperion configuration");
+		Option          & argConfigSet          = parser.add<Option>       (0x0, "configSet"              , "Write to the actual loaded configuration file. Should be a Json object string.");
 
 		// parse all _options
 		parser.process(app);
@@ -156,6 +160,10 @@ int main(int argc, char * argv[])
 
 		// create the connection to the hyperion server
 		JsonConnection connection(argAddress.value(parser), parser.isSet(argPrint));
+
+		// authorization token specified. Use it first
+		if (parser.isSet(argToken))
+			connection.setToken(argToken.value(parser));
 
 		// now execute the given command
 		if (parser.isSet(argColor))

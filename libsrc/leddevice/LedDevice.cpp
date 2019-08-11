@@ -10,8 +10,6 @@
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
 
-#include <QDebug>
-
 LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	: QObject(parent)
 	, _devConfig(config)

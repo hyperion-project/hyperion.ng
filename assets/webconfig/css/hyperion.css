@@ -10,11 +10,11 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 	padding-bottom:50px;
 }
 body{
-    overflow-y: scroll; 
+    overflow-y: scroll;
 }
 .btn{margin: 2px 0;}
 /*
-#page-wrapper a[target=_blank]::after { 
+#page-wrapper a[target=_blank]::after {
     content:"\f08e";
 	position:relative;
 	font:normal normal normal 10px/1 FontAwesome;
@@ -109,7 +109,7 @@ table label{margin:0}
 .colorpicker-2x .colorpicker-saturation {width: 200px;height: 200px;}
 .colorpicker-2x .colorpicker-hue,.colorpicker-2x .colorpicker-alpha {width: 30px;height: 200px;}
 .colorpicker-2x .colorpicker-color,.colorpicker-2x .colorpicker-color div {height: 30px;}
-	
+
 /*Hint*/
 .info-hint{
 	background-color:rgb(236,236,236);
@@ -123,7 +123,7 @@ table label{margin:0}
 	box-shadow: 1px 1px 1px 0px rgba(0,0,0,0.25);
 	font-size:97%;
 }
-	
+
 /*Support page*/
 .unlink,.unlink:hover{color:#333;text-decoration:none;}
 .support-container ul{padding-left:0px;list-style-type: none;}
@@ -194,6 +194,10 @@ table label{margin:0}
 }
 .modal-icon-error{
 	background-color:#d1322e;
+}
+
+.modal-icon-edit{
+	background-color:#3579b6;
 }
 
 .overlay {

@@ -13,11 +13,12 @@
 
 
 WebServer::WebServer(const QJsonDocument& config, QObject * parent)
-	: QObject(parent)
+	:  QObject(parent)
 	, _config(config)
 	, _log(Logger::getInstance("WEBSERVER"))
 	, _server()
 {
+
 }
 
 WebServer::~WebServer()
@@ -62,7 +63,8 @@ void WebServer::onServerStarted (quint16 port)
 	emit stateChange(true);
 }
 
-void WebServer::onServerStopped () {
+void WebServer::onServerStopped ()
+{
 	Info(_log, "Stopped %s", _server->getServerName().toStdString().c_str());
 	emit stateChange(false);
 }

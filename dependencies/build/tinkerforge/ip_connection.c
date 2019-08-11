@@ -80,10 +80,10 @@ typedef struct {
 			#define STATIC_ASSERT(condition, message) \
 				_Static_assert(condition, message)
 		#else
-			#define STATIC_ASSERT(condition, message) // FIXME
+			#define STATIC_ASSERT(condition, message)
 		#endif
 	#else
-		#define STATIC_ASSERT(condition, message) // FIXME
+		#define STATIC_ASSERT(condition, message)
 	#endif
 
 	STATIC_ASSERT(sizeof(PacketHeader) == 8, "PacketHeader has invalid size");

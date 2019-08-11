@@ -46,16 +46,15 @@
 #endif
 
 #include <utils/Logger.h>
-#include <utils/Image.h>
 #include <utils/VideoMode.h>
 
 // settings management
 #include <utils/settings.h>
+#include <utils/Components.h>
 
-class Hyperion;
+class HyperionIManager;
 class SysTray;
 class JsonServer;
-class UDPListener;
 class BonjourBrowserWrapper;
 class WebServer;
 class SettingsManager;
@@ -63,6 +62,8 @@ class PythonInit;
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
+class AuthManager;
+class NetOrigin;
 
 class HyperionDaemon : public QObject
 {
@@ -71,7 +72,7 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString configFile, QString rootPath, QObject *parent, const bool& logLvlOverwrite );
+	HyperionDaemon(QString rootPath, QObject *parent, const bool& logLvlOverwrite );
 	~HyperionDaemon();
 
 	///
@@ -98,15 +99,28 @@ public slots:
 	void freeObjects();
 
 signals:
+	///////////////////////////////////////
+	/// FROM HYPERIONDAEMON TO HYPERION ///
+	///////////////////////////////////////
+
+	///
+	/// @brief After eval of setVideoMode this signal emits with a new one on change
+	///
+	void videoMode(const VideoMode& mode);
+
+	///////////////////////////////////////
+	/// FROM HYPERION TO HYPERIONDAEMON ///
+	///////////////////////////////////////
+
 	///
 	/// @brief PIPE settings events from Hyperion class to HyperionDaemon components
 	///
 	void settingsChanged(const settings::type& type, const QJsonDocument& data);
 
 	///
-	/// @brief After eval of setVideoMode this signal emits with a new one on change
+	/// @brief PIPE component state changes events from Hyperion class to HyperionDaemon components
 	///
-	void videoMode(const VideoMode& mode);
+	void componentStateChanged(const hyperion::Components component, bool enable);
 
 private slots:
 	///
@@ -131,11 +145,13 @@ private:
 	void createGrabberQt(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
+	HyperionIManager*          _instanceManager;
+	AuthManager*               _authManager;
 	BonjourBrowserWrapper*     _bonjourBrowserWrapper;
+	NetOrigin*                 _netOrigin;
 	PythonInit*                _pyInit;
 	WebServer*                 _webserver;
 	JsonServer*                _jsonServer;
-	UDPListener*               _udpListener;
 	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
@@ -143,7 +159,6 @@ private:
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
-	Hyperion*                  _hyperion;
 	SSDPHandler*               _ssdp;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
@@ -158,8 +173,8 @@ private:
 	int                        _grabber_ge2d_mode;
 	QString                    _grabber_device;
 
-	QString _prevType;
+	QString                    _prevType;
 
-	VideoMode _currVideoMode;
-	SettingsManager*  _settingsManager;
+	VideoMode                  _currVideoMode;
+	SettingsManager*           _settingsManager;
 };

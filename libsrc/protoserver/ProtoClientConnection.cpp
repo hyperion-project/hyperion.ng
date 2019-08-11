@@ -7,10 +7,7 @@
 #include <QTimer>
 #include <QRgb>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
-
+// TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Gabber, Windows Screen grabber etc.)
 
 ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent)
 	: QObject(parent)
@@ -20,7 +17,6 @@ ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &time
 	, _timeoutTimer(new QTimer(this))
 	, _timeout(timeout * 1000)
 	, _priority()
-	, _hyperion(Hyperion::getInstance())
 {
 	// timer setup
 	_timeoutTimer->setSingleShot(true);
@@ -77,8 +73,8 @@ void ProtoClientConnection::forceClose()
 void ProtoClientConnection::disconnected()
 {
 	Debug(_log, "Socket Closed");
-    _socket->deleteLater();
-	_hyperion->clear(_priority);
+	_socket->deleteLater();
+	emit clearGlobalInput(_priority);
 	emit clientDisconnected();
 }
 
@@ -128,16 +124,22 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	color.green = qGreen(message.rgbcolor());
 	color.blue = qBlue(message.rgbcolor());
 
+	if (priority < 100 || priority >= 200)
+	{
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		return;
+	}
+
 	// make sure the prio is registered before setColor()
 	if(priority != _priority)
 	{
-		_hyperion->clear(_priority);
-		_hyperion->registerInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
+		emit clearGlobalInput(_priority);
+		emit registerGlobalInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
 		_priority = priority;
 	}
 
 	// set output
-	_hyperion->setColor(_priority, color, duration);
+	emit setGlobalInputColor(_priority, color, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -152,11 +154,17 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	int height = message.imageheight();
 	const std::string & imageData = message.imagedata();
 
+	if (priority < 100 || priority >= 200)
+	{
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		return;
+	}
+
 	// make sure the prio is registered before setInput()
 	if(priority != _priority)
 	{
-		_hyperion->clear(_priority);
-		_hyperion->registerInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
+		emit clearGlobalInput(_priority);
+		emit registerGlobalInput(priority, hyperion::COMP_PROTOSERVER, "Proto@"+_clientAddress);
 		_priority = priority;
 	}
 
@@ -171,7 +179,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), imageData.c_str(), imageData.size());
 
-	_hyperion->setInputImage(_priority, image, duration);
+	emit setGlobalInputImage(_priority, image, duration);
 
 	// send reply
 	sendSuccessReply();
@@ -184,15 +192,15 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 	int priority = message.priority();
 
 	// clear priority
-	_hyperion->clear(priority);
+	emit clearGlobalInput(priority);
 	// send reply
 	sendSuccessReply();
 }
 
 void ProtoClientConnection::handleClearallCommand()
 {
-	// clear priority
-	_hyperion->clearall();
+	// clear all priority
+	emit clearAllGlobalInput();
 
 	// send reply
 	sendSuccessReply();

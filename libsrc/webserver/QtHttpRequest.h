@@ -14,45 +14,50 @@ class QtHttpClientWrapper;
 
 using QtHttpPostData = QMap<QString,QByteArray>;
 
-class QtHttpRequest : public QObject {
-    Q_OBJECT
+class QtHttpRequest : public QObject
+{
+	Q_OBJECT
 
 public:
-    explicit QtHttpRequest (QtHttpClientWrapper * client, QtHttpServer * parent);
+	explicit QtHttpRequest (QtHttpClientWrapper * client, QtHttpServer * parent);
 
-    struct ClientInfo {
-        QHostAddress serverAddress;
-        QHostAddress clientAddress;
-    };
+	struct ClientInfo
+	{
+		QHostAddress serverAddress;
+		QHostAddress clientAddress;
+	};
 
-    int                   getRawDataSize (void) const;
-    QUrl                  getUrl         (void) const;
-    QString               getCommand     (void) const;
-    QByteArray            getRawData     (void) const;
-    QList<QByteArray>     getHeadersList (void) const;
-    QtHttpClientWrapper * getClient      (void) const;
+	int                   getRawDataSize (void) const { return m_data.size ();        };
+	QUrl                  getUrl         (void) const { return m_url;                 };
+	QString               getCommand     (void) const { return m_command;             };
+	QByteArray            getRawData     (void) const { return m_data;                };
+	QList<QByteArray>     getHeadersList (void) const { return m_headersHash.keys (); };
+	QtHttpClientWrapper * getClient      (void) const { return m_clientHandle;        };
+	QtHttpPostData        getPostData    (void) const { return m_postData;            };
+	ClientInfo            getClientInfo  (void) const { return m_clientInfo;          };
 
-    QByteArray getHeader (const QByteArray & header) const;
-    QtHttpPostData       getPostData    (void) const;
-
-    ClientInfo getClientInfo (void) const;
+	QByteArray            getHeader      (const QByteArray & header) const
+	{
+		return m_headersHash.value (header, QByteArray ());
+	};
 
 public slots:
-    void setUrl        (const QUrl & url);
-    void setCommand    (const QString & command);
-    void setClientInfo (const QHostAddress & server, const QHostAddress & client);
-    void addHeader     (const QByteArray & header, const QByteArray & value);
-    void appendRawData (const QByteArray & data);
-    void setPostData   (const QtHttpPostData & data);
+	void setUrl        (const QUrl & url)            { m_url = url;          };
+	void setCommand    (const QString & command)     { m_command = command;  };
+	void appendRawData (const QByteArray & data)     { m_data.append (data); };
+	void setPostData   (const QtHttpPostData & data) { m_postData = data;    };
+
+	void setClientInfo (const QHostAddress & server, const QHostAddress & client);
+	void addHeader     (const QByteArray & header, const QByteArray & value);
 
 private:
-    QUrl                          m_url;
-    QString                       m_command;
-    QByteArray                    m_data;
-    QtHttpServer *                m_serverHandle;
-    QtHttpClientWrapper *         m_clientHandle;
-    QHash<QByteArray, QByteArray> m_headersHash;
-    ClientInfo                    m_clientInfo;
+	QUrl                          m_url;
+	QString                       m_command;
+	QByteArray                    m_data;
+	QtHttpServer *                m_serverHandle;
+	QtHttpClientWrapper *         m_clientHandle;
+	QHash<QByteArray, QByteArray> m_headersHash;
+	ClientInfo                    m_clientInfo;
 	QtHttpPostData                m_postData;
 };
 

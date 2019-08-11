@@ -22,9 +22,9 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	, _activeInputs()
 	, _lowestPriorityInfo()
 	, _sourceAutoSelectEnabled(true)
-	, _updateTimer(new QTimer(this))
-	, _timer(new QTimer(this))
-	, _blockTimer(new QTimer(this))
+	, _updateTimer(new QTimer())
+	, _timer(new QTimer())
+	, _blockTimer(new QTimer())
 {
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
@@ -43,12 +43,12 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	// forward timeRunner signal to prioritiesChanged signal & threading workaround
 	connect(this, &PriorityMuxer::timeRunner, this, &PriorityMuxer::prioritiesChanged);
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
+	connect(this, &PriorityMuxer::activeStateChanged, this, &PriorityMuxer::prioritiesChanged);
 
 	// start muxer timer
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
 	_updateTimer->setInterval(250);
 	_updateTimer->start();
-	InputInfo ninfo;
 }
 
 PriorityMuxer::~PriorityMuxer()
@@ -279,7 +279,8 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 void PriorityMuxer::setCurrentTime(void)
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
-	int newPriority = PriorityMuxer::LOWEST_PRIORITY;
+	int newPriority;
+	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{

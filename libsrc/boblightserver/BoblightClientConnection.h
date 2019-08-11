@@ -63,7 +63,7 @@ private:
 	///
 	/// @param message The boblight message to send
 	///
-	void sendMessage(const QByteArray &message);
+	void sendMessage(const QByteArray &message) { _socket->write(message); };
 
 	///
 	/// Send a lights message the to connected client

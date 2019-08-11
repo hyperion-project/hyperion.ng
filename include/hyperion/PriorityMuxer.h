@@ -182,6 +182,11 @@ public:
 	///
 	void clearAll(bool forceClearAll=false);
 
+	///
+	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continous single color pushes)
+	///
+	void queuePush(void){ emit timeRunner(); };
+
 signals:
 	///
 	/// @brief Signal which emits when a effect or color with timeout > -1 is running, once per second

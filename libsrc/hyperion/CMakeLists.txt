@@ -25,5 +25,6 @@ target_link_libraries(hyperion
 	bonjour
 	boblightserver
 	effectengine
+	database
 	${QT_LIBRARIES}
 )

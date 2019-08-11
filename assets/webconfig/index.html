@@ -93,11 +93,20 @@
 			<!-- /.navbar-header -->
 
 			<ul class="nav navbar-top-links navbar-right">
+				<li class="dropdown" id="btn_hypinstanceswitch" style="display:none">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						<i class="fa fa-exchange fa-fw"></i> <i class="fa fa-caret-down"></i>
+					</a>
+					<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts">
+					</ul>
+				</li>
+			<!--
 				<li class="dropdown" id="btn_instanceswitch" style="display:none">
 					<a>
 						<i class="fa fa-exchange fa-fw"></i>
 					</a>
 				</li>
+			-->
 				<li class="dropdown" id="btn_open_ledsim">
 					<a>
 						<i class="fa fa-television fa-fw"></i>
@@ -192,17 +201,16 @@
 
 		<!-- Page Content -->
 		<div id="page-wrapper" style="padding-top:10px; overflow: hidden;">
-		<div id="hyperion_reload_notify" style="display:none;padding:0 10px;margin:0">
-			<div class="bs-callout bs-callout-warning">
-				<h4 data-i18n="dashboard_alert_message_confedit_t"></h4>
-				<span data-i18n="dashboard_alert_message_confedit"></span>
-				<p><button id="btn_hyperion_reload" class="btn btn-warning btn-sm" style="margin-top:10px" data-i18n="general_btn_restarthyperion"></button></p>
-			</div>
-		</div>
 		<div id="hyperion_config_write_success_notify" style="display:none;padding:0 10px;margin:0">
 			<div class="bs-callout bs-callout-success">
 				<h4 data-i18n="dashboard_alert_message_confsave_success_t"></h4>
 				<span data-i18n="dashboard_alert_message_confsave_success"></span>
+			</div>
+		</div>
+		<div id="hyperion_global_setting_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-warning">
+				<h4 data-i18n="dashboard_message_global_setting_t"></h4>
+				<span data-i18n="dashboard_message_global_setting"></span>
 			</div>
 		</div>
 		<div id="hyperion_disabled_notify" style="display:none;padding:0 10px;margin:0">
@@ -228,6 +236,18 @@
 				<div class="modal-content">
 					<div id="id_body" class="modal-body"></div>
 					<div id="id_footer" class="modal-footer" style="text-align:center"></div>
+				</div>
+			</center>
+		</div>
+	</div>
+
+	<!-- renameDialog -->
+	<div id="modal_dialog_rename" class="modal fade" role="dialog" style="z-index:9999">
+		<div class="modal-dialog">
+			<center>
+				<div class="modal-content">
+					<div id="id_body_rename" class="modal-body"></div>
+					<div id="id_footer_rename" class="modal-footer" style="text-align:center"></div>
 				</div>
 			</center>
 		</div>

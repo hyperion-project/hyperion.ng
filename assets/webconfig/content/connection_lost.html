@@ -27,7 +27,7 @@ var connectionLost = false;
 var connectionTimer;
 var count = 1;
 var reconnectInterval = 4000;
-var connURL = location.protocol+"//"+location.hostname+":"+window.jsonPort+location.pathname+location.hash;
+var connURL = window.location.protocol+"//"+window.location.hostname+":"+window.jsonPort+window.location.pathname+window.location.hash;
 
 function tryReconnect()
 {
@@ -41,7 +41,14 @@ function tryReconnect()
 
 	$.ajax({ url: connURL }).done(function(data) {
 		window.clearInterval(connectionTimer);
-		window.location.href = connURL;
+		if(reconnectInterval <= 2000){
+			let url = connURL;
+			if (window.connURL.includes("#"))
+				url = window.connURL.slice(0,window.connURL.indexOf("#"));
+			window.location.replace(url);
+		} else {
+			window.location.reload();
+		}
 	})
 	.fail( function( jqXHR, textStatus ) {
 		count++;
@@ -55,7 +62,7 @@ function connectionLostAction()
 	{
 		connectionLost = true;
 		// if we changed the webui port we connect faster
-		if(window.fastReconnect){
+		if(window.fastReconnect) {
 			window.fastReconnect = false;
 			reconnectInterval = 2000;
 		}

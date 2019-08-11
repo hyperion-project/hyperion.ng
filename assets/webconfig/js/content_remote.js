@@ -90,10 +90,9 @@ $(document).ready(function() {
 	{
 		$('.sstbody').html("");
 		var prios = window.serverInfo.priorities;
-		var i;
 		var clearAll = false;
 
-		for(i = 0; i < prios.length; i++)
+		for(var i = 0; i < prios.length; i++)
 		{
 			var origin   = prios[i].origin ? prios[i].origin : "System";
 			origin = origin.split("@");
@@ -148,9 +147,6 @@ $(document).ready(function() {
 					break;
 				case "BOBLIGHTSERVER":
 					owner = $.i18n('general_comp_BOBLIGHTSERVER');
-					break;
-				case "UDPLISTENER":
-					owner = $.i18n('general_comp_UDPLISTENER');
 					break;
 				case "FLATBUFSERVER":
 					owner = $.i18n('general_comp_FLATBUFSERVER');
@@ -224,7 +220,7 @@ $(document).ready(function() {
 			var enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
 			var comp_name    = components[idx].name;
 			var comp_btn_id  = "comp_btn_"+comp_name;
-			var comp_goff	 = hyperionEnabled? "enabled" : "disabled";
+			var comp_goff    = hyperionEnabled? "enabled" : "disabled";
 
 			// create btn if not there
 			if ($("#"+comp_btn_id).length == 0)
@@ -298,8 +294,9 @@ $(document).ready(function() {
 
 	createCP('cp2', cpcolor, function(rgbT,hex){
 		rgb = rgbT;
-		sendColor()
+		sendColor();
 		setStorage('rmcpcolor', hex);
+		updateInputSelect();
 	});
 
 	$("#reset_color").off().on("click", function(){
@@ -341,22 +338,22 @@ $(document).ready(function() {
 	$(window.hyperion).on("components-updated",updateComponents);
 
 	$(window.hyperion).on("cmd-priorities-update", function(event){
-		window.serverInfo.priorities = event.response.data.priorities
-		window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect
-		updateInputSelect()
+		window.serverInfo.priorities = event.response.data.priorities;
+		window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;
+		updateInputSelect();
 	});
 	$(window.hyperion).on("cmd-imageToLedMapping-update", function(event){
-		window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType
-		updateLedMapping()
+		window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType;
+		updateLedMapping();
 	});
 
 	$(window.hyperion).on("cmd-videomode-update", function(event){
-		window.serverInfo.videomode = event.response.data.videomode
-		updateVideoMode()
+		window.serverInfo.videomode = event.response.data.videomode;
+		updateVideoMode();
 	});
 
 	$(window.hyperion).on("cmd-effects-update", function(event){
-		window.serverInfo.effects = event.response.data.effects
+		window.serverInfo.effects = event.response.data.effects;
 		updateEffectlist();
 	});
 
