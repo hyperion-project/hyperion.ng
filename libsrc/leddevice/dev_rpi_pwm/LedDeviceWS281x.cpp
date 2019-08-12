@@ -36,6 +36,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 		throw std::runtime_error("WS281x: invalid PWM channel; must be 0 or 1.");
 	}
 
+	memset(&_led_string, 0, sizeof(_led_string));
 	_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
 	_led_string.dmanum = deviceConfig["dma"].toInt(5);
 	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
