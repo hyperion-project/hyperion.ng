@@ -126,7 +126,8 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 
 	if (priority < 100 || priority >= 200)
 	{
-		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 100 and 199.");
+		Error(_log, "The priority %d is not in the proto-connection range between 100 and 199.", priority);
 		return;
 	}
 
@@ -156,7 +157,8 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 
 	if (priority < 100 || priority >= 200)
 	{
-		sendErrorReply("The priority " + std::to_string(priority) + " is not in the priority range between 100 and 199.");
+		sendErrorReply("The priority " + std::to_string(priority) + " is not in the valid priority range between 100 and 199.");
+		Error(_log, "The priority %d is not in the proto-connection range between 100 and 199.", priority);
 		return;
 	}
 
