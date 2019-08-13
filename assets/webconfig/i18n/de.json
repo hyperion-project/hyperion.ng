@@ -113,6 +113,7 @@
 	"conf_general_inst_renreq_t" : "Gib in das untere Feld deinen neuen Instanznamen ein.",
 	"conf_general_inst_delreq_h" : "LED Hardware Instanz löschen",
 	"conf_general_inst_delreq_t" : "Bist du Dir sicher, das du die Instanz \"$1\" löschen möchtest? Alle Einstellungen zu dieser Instanz gehen verloren.",
+	"conf_general_inst_chars_needed" : "weitere Zeichen benötigt",
 	"conf_helptable_option": "Option",
 	"conf_helptable_expl": "Erklärung",
 	"conf_effect_path_intro": "Hier kannst du Ordner angeben, die beim Laden von Effekten berücksichtig werden sollen. Zusätzlich können Effekte anhand ihres Namens deaktiviert werden um sie aus Listen zu löschen.",

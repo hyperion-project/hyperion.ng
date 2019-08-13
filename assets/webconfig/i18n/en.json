@@ -112,6 +112,7 @@
 	"conf_general_inst_renreq_t" : "Enter a new name for your instance in the field below.",
 	"conf_general_inst_delreq_h" : "Delete LED Hardware instance",
 	"conf_general_inst_delreq_t" : "Are you sure that you want to delete instance \"$1\"? All settings will be deleted too.",
+	"conf_general_inst_chars_needed" : "more characters needed",
 	"conf_helptable_option" : "Option",
 	"conf_helptable_expl" : "Explanation",
 	"conf_effect_path_intro" : "Load effects from the defined paths. Additional you can disable single effects by name to hide them from all effect lists.",
