@@ -199,7 +199,14 @@ void JsonConnection::deleteEffect(const QString &effectName)
 	parseReply(reply);
 }
 
-QString JsonConnection::getServerInfo()
+QString JsonConnection::getServerInfoString()
+{
+	QJsonDocument doc(getServerInfo());
+	QString info(doc.toJson(QJsonDocument::Indented));
+	return info;
+}
+
+QJsonObject JsonConnection::getServerInfo()
 {
 	qDebug() << "Get server info";
 
@@ -218,12 +225,10 @@ QString JsonConnection::getServerInfo()
 			throw std::runtime_error("No info available in result");
 		}
 
-		QJsonDocument doc(reply["info"].toObject());
-		QString info(doc.toJson(QJsonDocument::Indented));
-		return info;
+		return reply["info"].toObject();
 	}
 
-	return QString();
+	return QJsonObject();
 }
 
 QString JsonConnection::getSysInfo()
@@ -562,6 +567,21 @@ void JsonConnection::setToken(const QString &token)
 	parseReply(reply);
 }
 
+void JsonConnection::setInstance(const int &instance)
+{
+	// create command
+	QJsonObject command;
+	command["command"] = QString("instance");
+	command["subcommand"] = QString("switchTo");
+	command["instance"] = instance;
+
+	// send command message
+	QJsonObject reply = sendMessage(command);
+
+	// parse reply message
+	parseReply(reply);
+}
+
 QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 {
 	// serialize message
@@ -607,7 +627,7 @@ QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 	if (error.error != QJsonParseError::NoError)
 	{
 		throw std::runtime_error(
-			std::string("Error while parsing json reply: ") 
+			std::string("Error while parsing json reply: ")
 			+ error.errorString().toStdString() );
 	}
 

@@ -39,6 +39,19 @@ void showHelp(Option & option){
 	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
 }
 
+int getInstaneIdbyName(const QJsonObject & reply, const QString name){
+	if(reply.contains("instance")){
+		QJsonArray list = reply.value("instance").toArray();
+
+		for (const auto & entry : list)	{
+			const QJsonObject obj = entry.toObject();
+			if(obj["friendly_name"] == name && obj["running"].toBool())
+				return obj["instance"].toInt();
+		}
+	}
+	return 0;
+}
+
 int main(int argc, char * argv[])
 {
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
@@ -64,6 +77,7 @@ int main(int argc, char * argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "localhost:19444");
 		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
+		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By befault it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
 		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the leds should be switched on in milliseconds [default: infinity]");
 		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all leds to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
@@ -165,6 +179,14 @@ int main(int argc, char * argv[])
 		if (parser.isSet(argToken))
 			connection.setToken(argToken.value(parser));
 
+		// If a specific Hyperion instance is given, set it
+		if (parser.isSet(argInstance))
+		{
+			QJsonObject reply = connection.getServerInfo();
+			int val = getInstaneIdbyName(reply, argInstance.value(parser));
+			connection.setInstance(val);
+		}
+
 		// now execute the given command
 		if (parser.isSet(argColor))
 		{
@@ -189,7 +211,7 @@ int main(int argc, char * argv[])
 		}
 		else if (parser.isSet(argServerInfo))
 		{
-			std::cout << "Server info:\n" << connection.getServerInfo().toStdString() << std::endl;
+			std::cout << "Server info:\n" << connection.getServerInfoString().toStdString() << std::endl;
 		}
 		else if (parser.isSet(argSysInfo))
 		{
