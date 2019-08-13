@@ -49,6 +49,7 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString name){
 				return obj["instance"].toInt();
 		}
 	}
+	std::cout << "Can't find a running instance with name '" << name.toStdString()<< "' at this Hyperion server, will use first instance" << std::endl;
 	return 0;
 }
 
