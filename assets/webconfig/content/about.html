@@ -62,6 +62,9 @@
 				document.getElementById('3rdpartylicenses').textContent = text;
 			});
 		}
+	})
+	.catch(function(rejected) {
+		document.getElementById('3rdpartylicenses').textContent = $.i18n("about_3rd_party_licenses_error");
 	});
 
 	removeOverlay();

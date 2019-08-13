@@ -87,7 +87,7 @@ $(document).ready( function() {
 	$('#inst_name').off().on('input',function(e) {
 		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
 		if(5-e.currentTarget.value.length >= 1 && 5-e.currentTarget.value.length <= 4)
-			$('#inst_chars_needed').html(5-e.currentTarget.value.length + " " + $.i18n('conf_general_inst_chars_needed'))
+			$('#inst_chars_needed').html(5-e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
 		else
 		$('#inst_chars_needed').html("<br />")
 	});
