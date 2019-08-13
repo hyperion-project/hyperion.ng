@@ -288,7 +288,7 @@
 	"about_contribute" : "Develop Hyperion further with us!",
 	"about_credits" : "Credits to all these developers!",
 	"about_3rd_party_licenses": "3rd party licenses",
-	"about_3rd_party_licenses_error": "We had trouble collecting 3rd party licenses information from web. Please consult our GitHub Repository for these informations.",
+	"about_3rd_party_licenses_error": "We had trouble collecting 3rd party licenses information from web. <br />Please follow this link to the GitHub Resource.",
 	"info_conlost_label_title" : "Lost connection to Hyperion service!",
 	"info_conlost_label_reason" : "Possible reasons:",
 	"info_conlost_label_reason1" : "- Bad WLAN connection",

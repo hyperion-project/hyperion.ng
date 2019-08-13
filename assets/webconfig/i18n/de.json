@@ -289,7 +289,7 @@
 	"about_contribute": "Entwickel Hyperion mit uns weiter!",
 	"about_credits": "Einen Dank an alle Entwickler!",
 	"about_3rd_party_licenses": "Drittanbieter Lizenzen",
-	"about_3rd_party_licenses_error": "Wir hatten Probleme beim Laden der Drittanbieter Lizenzen aus dem Internet. Du findest diese in unserem GitHub Repository.",
+	"about_3rd_party_licenses_error": "Wir hatten Probleme beim Laden der Drittanbieter Lizenzen aus dem Internet. <br />Klicke hier um die Datei auf GitHub aufzurufen.",
 	"info_conlost_label_title": "Verbindung zum Hyperion Service unterbrochen!",
 	"info_conlost_label_reason": "Mögliche Ursachen:",
 	"info_conlost_label_reason1": "- Schlechte WLAN Verbindung",

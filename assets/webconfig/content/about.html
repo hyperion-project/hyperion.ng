@@ -50,21 +50,22 @@
 		initRestart();
 	});
 
-	fetch('https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES')
+	var url = 'https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES';
+	fetch(url)
 	.then(function(response) {
 		if(!response.ok)
 		{
-			document.getElementById('3rdpartylicenses').textContent = $.i18n("about_3rd_party_licenses_error");
+			$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
 		}
 		else
 		{
 			response.text().then(function(text) {
-				document.getElementById('3rdpartylicenses').textContent = text;
+				$("#3rdpartylicenses").text(text);
 			});
 		}
 	})
 	.catch(function(rejected) {
-		document.getElementById('3rdpartylicenses').textContent = $.i18n("about_3rd_party_licenses_error");
+		$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
 	});
 
 	removeOverlay();
