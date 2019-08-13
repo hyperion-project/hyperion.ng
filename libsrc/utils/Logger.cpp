@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <syslog.h>
+
 #include <QFileInfo>
 #include <time.h>
 
@@ -15,6 +16,9 @@ static unsigned int loggerId            = 0;
 std::map<QString,Logger*> *Logger::LoggerMap = nullptr;
 Logger::LogLevel Logger::GLOBAL_MIN_LOG_LEVEL = Logger::UNSET;
 LoggerManager* LoggerManager::_instance = nullptr;
+int _repeatCount = 0;
+Logger::T_LOG_MESSAGE _repeatMessage;
+const int _maxRepeatCountSize = 200;
 
 Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 {
@@ -30,7 +34,7 @@ Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 		log = new Logger(name,minLevel);
 		LoggerMap->insert(std::pair<QString,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
 		//LoggerMap->emplace(name,log);  // not compat with older linux distro's e.g. wheezy
-		connect(log, SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), LoggerManager::getInstance(), SLOT(handleNewLogMessage(Logger::T_LOG_MESSAGE)));
+		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
 	}
 	else
 	{
@@ -100,7 +104,6 @@ Logger::Logger ( QString name, LogLevel minLevel )
 #endif
 	_appname = QString(_appname_char).toLower();
 
-
 	loggerCount++;
 
 	if (_syslogEnabled && loggerCount == 1 )
@@ -117,7 +120,6 @@ Logger::~Logger()
 		closelog();
 }
 
-
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
 	if ( (GLOBAL_MIN_LOG_LEVEL == Logger::UNSET && level < _minLevel) // no global level, use level from logger
@@ -131,32 +133,65 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	vsnprintf (msg, max_msg_length, fmt, args);
 	va_end (args);
 
-	Logger::T_LOG_MESSAGE logMsg;
-
-	logMsg.appName     = _appname;
-	logMsg.loggerName  = _name;
-	logMsg.function    = QString(func);
-	logMsg.line        = line;
-	logMsg.fileName    = FileUtils::getBaseName(sourceFile);
-	time(&(logMsg.utime));
-	logMsg.message     = QString(msg);
-	logMsg.level       = level;
-	logMsg.levelString = LogLevelStrings[level];
-
-	emit newLogMessage(logMsg);
-
-	QString location;
-	if ( level == Logger::DEBUG )
+	auto repeatedSummary = [=]
 	{
-		location = "<" + logMsg.fileName + ":" + QString::number(line)+":"+ logMsg.function + "()> ";
+		Logger::T_LOG_MESSAGE repMsg = _repeatMessage;
+		repMsg.message = "Previous line repeats " + QString::number(_repeatCount) + " times";
+
+		emit newLogMessage(repMsg);
+
+		std::cout << QString("[" + repMsg.appName + " " + repMsg.loggerName + "] <" + LogLevelStrings[repMsg.level] + "> " + repMsg.message).toStdString() << std::endl;
+
+		if ( _syslogEnabled && repMsg.level >= Logger::WARNING )
+			syslog (LogLevelSysLog[repMsg.level], "Previous line repeats %d times", _repeatCount);
+
+		_repeatCount = 0;
+	};
+
+	if (_repeatMessage.loggerName == _name
+		&& _repeatMessage.function == QString(func)
+		&& _repeatMessage.line == line
+		&& _repeatMessage.message == QString(msg))
+	{
+		if (_repeatCount >= _maxRepeatCountSize)
+			repeatedSummary();
+		else
+			_repeatCount++;
+
+		return;
 	}
+	else
+	{
+		if (_repeatCount) repeatedSummary();
 
-	std::cout << QString("[" + _appname + " " + _name + "] <" + LogLevelStrings[level] + "> " + location + msg).toStdString() << std::endl;
+		Logger::T_LOG_MESSAGE logMsg;
 
-	if ( _syslogEnabled && level >= Logger::WARNING )
-		syslog (LogLevelSysLog[level], "%s", msg);
+		logMsg.appName     = _appname;
+		logMsg.loggerName  = _name;
+		logMsg.function    = QString(func);
+		logMsg.line        = line;
+		logMsg.fileName    = FileUtils::getBaseName(sourceFile);
+		time(&(logMsg.utime));
+		logMsg.message     = QString(msg);
+		logMsg.level       = level;
+		logMsg.levelString = LogLevelStrings[level];
+
+		emit newLogMessage(logMsg);
+
+		QString location;
+		if ( level == Logger::DEBUG )
+		{
+			location = "<" + logMsg.fileName + ":" + QString::number(line)+":"+ logMsg.function + "()> ";
+		}
+
+		std::cout << QString("[" + _appname + " " + _name + "] <" + LogLevelStrings[level] + "> " + location + msg).toStdString() << std::endl;
+
+		if ( _syslogEnabled && level >= Logger::WARNING )
+			syslog (LogLevelSysLog[level], "%s", msg);
+
+		_repeatMessage = logMsg;
+	}
 }
-
 
 LoggerManager::LoggerManager()
 	: QObject()
