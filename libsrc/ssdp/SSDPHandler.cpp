@@ -19,6 +19,11 @@ SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObje
 	setFlatBufPort(_flatbufPort);
 }
 
+SSDPHandler::~SSDPHandler()
+{
+	sendAnnounceList(false);
+}
+
 void SSDPHandler::initServer()
 {
 	_uuid = AuthManager::getInstance()->getID();

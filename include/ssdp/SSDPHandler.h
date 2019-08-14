@@ -20,6 +20,7 @@ class SSDPHandler : public SSDPServer{
 	Q_OBJECT
 public:
 	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObject * parent = nullptr);
+	~SSDPHandler();
 
 public slots:
 	///
