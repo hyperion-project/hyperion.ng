@@ -142,7 +142,7 @@ public:
 // 		fprintf(stderr, "ion phys_addr=%lu\n", physicalAddress);
 	}
 
-	virtual ~IonBuffer()
+	virtual ~IonBuffer() noexcept(false)
 	{
 		ion_handle_data ionHandleData = { 0 };
 		ionHandleData.handle = handle;
