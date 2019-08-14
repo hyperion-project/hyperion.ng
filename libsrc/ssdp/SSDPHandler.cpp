@@ -21,6 +21,14 @@ SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObje
 
 void SSDPHandler::initServer()
 {
+	_uuid = AuthManager::getInstance()->getID();
+	SSDPServer::setUuid(_uuid);
+
+	// announce targets
+	_deviceList.push_back("upnp:rootdevice");
+	_deviceList.push_back("uuid:"+_uuid);
+	_deviceList.push_back("urn:hyperion-project.org:device:basic:1");
+
 	// prep server
 	SSDPServer::initServer();
 
@@ -65,15 +73,12 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 		_webserver->setSSDPDescription(buildDesc());
 		setDescriptionAddress(getDescAddress());
 		if(start())
-		{
-			sendAlive("upnp:rootdevice");
-			sendAlive("urn:schemas-upnp-org:device:basic:1");
-			sendAlive("urn:hyperion-project.org:device:basic:1");
-		}
+			sendAnnounceList(true);
 	}
 	else
 	{
 		_webserver->setSSDPDescription("");
+		sendAnnounceList(false);
 		stop();
 	}
 }
@@ -87,17 +92,13 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration 
 		if(_localAddress != localAddress)
 		{
 			// revoke old ip
-			sendByeBye("upnp:rootdevice");
-			sendByeBye("urn:schemas-upnp-org:device:basic:1");
-			sendByeBye("urn:hyperion-project.org:device:basic:1");
+			sendAnnounceList(false);
 
 			// update desc & notify new ip
 			_localAddress = localAddress;
 			_webserver->setSSDPDescription(buildDesc());
 			setDescriptionAddress(getDescAddress());
-			sendAlive("upnp:rootdevice");
-			sendAlive("urn:schemas-upnp-org:device:basic:1");
-			sendAlive("urn:hyperion-project.org:device:basic:1");
+			sendAnnounceList(true);
 		}
 	}
 }
@@ -141,5 +142,11 @@ const QString SSDPHandler::buildDesc()
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), AuthManager::getInstance()->getID());
+	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
+}
+
+void SSDPHandler::sendAnnounceList(const bool alive){
+	for(const auto & entry : _deviceList){
+		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
+	}
 }
