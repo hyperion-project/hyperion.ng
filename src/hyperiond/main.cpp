@@ -334,26 +334,32 @@ int main(int argc, char** argv)
 			rootPath = rDir.absolutePath();
 		}
 	}
-	// create /.hyperion folder for default path, check if the directory is read/writeable
-	// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
-	QDir mDir(rootPath);
-	QFileInfo mFi(rootPath);
-	if(!mDir.mkpath(rootPath) || !mFi.isWritable() || !mDir.isReadable())
-		throw std::runtime_error("The specified root path can't be created or isn't read/writeable. Please setup the permissions correctly!");
-
-	HyperionDaemon* hyperiond = nullptr;
-	try
-	{
-		hyperiond = new HyperionDaemon(rootPath, qApp, bool(logLevelCheck));
-	}
-	catch (std::exception& e)
-	{
-		Error(log, "Hyperion Daemon aborted:\n  %s", e.what());
-	}
 
 	int rc = 1;
+
 	try
 	{
+
+		// create /.hyperion folder for default path, check if the directory is read/writeable
+		// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
+		QDir mDir(rootPath);
+		QFileInfo mFi(rootPath);
+		if(!mDir.mkpath(rootPath) || !mFi.isWritable() || !mDir.isReadable())
+		{
+			throw std::runtime_error("The specified root path can't be created or isn't read/writeable. Please setup the permissions correctly!");
+		}
+
+		HyperionDaemon* hyperiond = nullptr;
+		try
+		{
+			hyperiond = new HyperionDaemon(rootPath, qApp, bool(logLevelCheck));
+		}
+		catch (std::exception& e)
+		{
+			Error(log, "Hyperion Daemon aborted: %s", e.what());
+			throw;
+		}
+
 		// run the application
 		if (isGuiApp)
 		{
@@ -368,15 +374,14 @@ int main(int argc, char** argv)
 			rc = app->exec();
 		}
 		Info(log, "Application closed with code %d", rc);
+		delete hyperiond;
 	}
 	catch (std::exception& e)
 	{
-		Error(log, "Hyperion aborted:\n  %s", e.what());
+		Error(log, "Hyperion aborted: %s", e.what());
 	}
 
 	// delete components
-	delete hyperiond;
 	Logger::deleteInstance();
-
 	return rc;
 }
