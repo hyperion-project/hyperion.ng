@@ -6,9 +6,6 @@
 // Hyperion
 #include <HyperionConfig.h>
 
-// auth manager
-#include <hyperion/AuthManager.h>
-
 #include <QUdpSocket>
 #include <QDateTime>
 
@@ -99,9 +96,6 @@ void SSDPServer::initServer()
 	// create SERVER String
 	_serverHeader = data.prettyName+"/"+data.productVersion+" UPnP/1.0 Hyperion/"+QString(HYPERION_VERSION);
 
-	// usn uuid
-	_uuid = AuthManager::getInstance()->getID();
-
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
 
@@ -120,10 +114,6 @@ void SSDPServer::stop()
 {
 	if(_running)
 	{
-		// send BYEBYE Msg
-		sendByeBye("upnp:rootdevice");
-		sendByeBye("urn:schemas-upnp-org:device:basic:1");
-		sendByeBye("urn:hyperion-project.org:device:basic:1");
 		_udpSocket->close();
 		_running = false;
 	}
@@ -202,11 +192,13 @@ void SSDPServer::sendByeBye(const QString& st)
 
 void SSDPServer::sendAlive(const QString& st)
 {
+	const QString tempUSN = (st == "upnp:rootdevice ") ? _uuid+"::"+st  : _uuid;
+
 	QString message = UPNP_ALIVE_MESSAGE.arg(SSDP_MAX_AGE
 		, _descAddress
 		, st
 		, _serverHeader
-		, _uuid+"::"+st
+		, tempUSN
 		, _fbsPort);
 
 	// we repeat 3 times

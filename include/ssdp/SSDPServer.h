@@ -68,6 +68,12 @@ public:
 	void setDescriptionAddress(const QString& addr) { _descAddress = addr; };
 
 	///
+	/// @brief Set uuid
+	/// @param uuid  The uuid
+	///
+	void setUuid(const QString& uuid) { _uuid = uuid; };
+
+	///
 	/// @brief set new flatbuffer server port
 	///
 	void setFlatBufPort(const quint16& port) { _fbsPort = QString::number(port); };

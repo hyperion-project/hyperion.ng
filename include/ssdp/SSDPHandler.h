@@ -20,6 +20,7 @@ class SSDPHandler : public SSDPServer{
 	Q_OBJECT
 public:
 	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObject * parent = nullptr);
+	~SSDPHandler();
 
 public slots:
 	///
@@ -29,6 +30,7 @@ public slots:
 
 	///
 	/// @brief get state changes from webserver
+	/// @param newState true for started and false for stopped
 	///
 	void handleWebServerStateChange(const bool newState);
 
@@ -61,6 +63,12 @@ private:
 	///
 	const QString getLocalAddress();
 
+	///
+	/// @brief Send alive/byebye message based on _deviceList
+	/// @param alive When true send alive, else byebye
+	///
+	void sendAnnounceList(const bool alive);
+
 private slots:
 	///
 	/// @brief Handle the mSeach request from SSDPServer
@@ -71,6 +79,10 @@ private slots:
 	///
 	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port);
 
+	///
+	/// @brief Handle changes in the network configuration
+	/// @param conig New config
+	///
 	void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
 
 private:
@@ -78,4 +90,7 @@ private:
 	QString    _localAddress;
 	QNetworkConfigurationManager* _NCA;
 	quint16 _flatbufPort;
+	QString _uuid;
+	/// Targets for announcement
+	std::vector<QString> _deviceList;
 };
