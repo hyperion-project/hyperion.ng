@@ -19,6 +19,11 @@ PythonInit::PythonInit()
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");
 	Py_InitializeEx(0);
+	if ( !Py_IsInitialized() )
+	{
+		throw std::runtime_error("Initializing Python failed!");
+	}
+
 	PyEval_InitThreads(); // Create the GIL
 	mainThreadState = PyEval_SaveThread();
 }
