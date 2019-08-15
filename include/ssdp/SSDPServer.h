@@ -78,6 +78,21 @@ public:
 	///
 	void setFlatBufPort(const quint16& port) { _fbsPort = QString::number(port); };
 
+	///
+	/// @brief Get current flatbuffer server port
+	///
+	quint16 getFlatBufPort() { return _fbsPort.toInt(); };
+
+	///
+	/// @brief set new jsonserver server port
+	///
+	void setJsonServerPort(const quint16& port) { _jssPort = QString::number(port); };
+
+	///
+	/// @brief get new jsonserver server port
+	///
+	quint16 getJsonServerPort() { return _jssPort.toInt(); };
+
 signals:
 	///
 	/// @brief Emits whenever a new SSDP search "man : ssdp:discover" is received along with the service type
@@ -95,6 +110,7 @@ private:
 	QString _serverHeader;
 	QString _uuid;
 	QString _fbsPort;
+	QString _jssPort;
 	QString _descAddress;
 	bool    _running;
 

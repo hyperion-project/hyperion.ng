@@ -240,10 +240,10 @@ int main(int argc, char** argv)
 	parser.addHelpOption();
 
 	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
-	Option        & rootPathOption      = parser.add<Option>       (0x0, "rootPath", "Overwrite root path for all hyperion user files, defaults to home directory of current user");
-	BooleanOption &  silentOption       = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
+	Option        & userDataOption      = parser.add<Option>       (0x0, "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
+	BooleanOption & silentOption        = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
-	BooleanOption &   debugOption       = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	BooleanOption & debugOption         = parser.add<BooleanOption>('d', "debug", "Show debug messages");
 	parser.add<BooleanOption>(0x0, "desktop", "show systray on desktop");
 	parser.add<BooleanOption>(0x0, "service", "force hyperion to start as console service");
 	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
@@ -320,25 +320,25 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	// handle rootPath for user data, default path is home directory + /.hyperion
-	QString rootPath = QDir::homePath() + "/.hyperion";
-	if (parser.isSet(rootPathOption))
-	{
-		QDir rDir(rootPathOption.value(parser));
-		if(!rDir.mkpath(rootPathOption.value(parser)))
-		{
-			Error(log, "Can't create root path '%s', falling back to home directory", QSTRING_CSTR(rDir.absolutePath()));
-		}
-		else
-		{
-			rootPath = rDir.absolutePath();
-		}
-	}
+	// handle and create userDataPath for user data, default path is home directory + /.hyperion
+	// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
+	QString userDataPath(userDataOption.value(parser));
+	QDir mDir(userDataPath);
+	QFileInfo mFi(userDataPath);
+	if(!mDir.mkpath(userDataPath) || !mFi.isWritable() || !mDir.isReadable())
+		throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
 
-	int rc = 1;
+	Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
 
+	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
+		hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
+	}
+	catch (std::exception& e)
+	{
+		Error(log, "Hyperion Daemon aborted:\n  %s", e.what());
+	}
 
 		// create /.hyperion folder for default path, check if the directory is read/writeable
 		// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime

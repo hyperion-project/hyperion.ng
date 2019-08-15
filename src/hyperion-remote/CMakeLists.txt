@@ -25,6 +25,7 @@ target_link_libraries(${PROJECT_NAME}
 	effectengine
 	commandline
 	hyperion-utils
+	ssdp
 	Qt5::Gui
 	Qt5::Core
 	Qt5::Network)

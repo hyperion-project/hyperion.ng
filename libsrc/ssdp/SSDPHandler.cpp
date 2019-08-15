@@ -9,14 +9,14 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
-SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
 	, _NCA(nullptr)
 {
-	_flatbufPort = flatBufPort;
-	setFlatBufPort(_flatbufPort);
+	setFlatBufPort(flatBufPort);
+	setJsonServerPort(jsonServerPort);
 }
 
 SSDPHandler::~SSDPHandler()
@@ -62,10 +62,18 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 	if(type == settings::FLATBUFSERVER)
 	{
 		const QJsonObject& obj = config.object();
-		if(obj["port"].toInt() != _flatbufPort)
+		if(obj["port"].toInt() != SSDPServer::getFlatBufPort())
 		{
-			_flatbufPort = obj["port"].toInt();
-			setFlatBufPort(_flatbufPort);
+			SSDPServer::setFlatBufPort(obj["port"].toInt());
+		}
+	}
+
+	if(type == settings::JSONSERVER)
+	{
+		const QJsonObject& obj = config.object();
+		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
+		{
+			SSDPServer::setJsonServerPort(obj["port"].toInt());
 		}
 	}
 }

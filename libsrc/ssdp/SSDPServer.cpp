@@ -27,6 +27,7 @@ static const QString UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
                                           "SERVER: %4\r\n"
                                           "USN: uuid:%5\r\n"
 										  "HYPERION-FBS-PORT: %6\r\n"
+										  "HYPERION-JSS-PORT: %7\r\n"
                                           "\r\n";
 
 // Implement ssdp:update as per spec 1.1, section 1.2.4
@@ -70,6 +71,7 @@ static const QString UPNP_MSEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n"
                                              "ST: %5\r\n"
                                              "USN: uuid:%6\r\n"
 											 "HYPERION-FBS-PORT: %7\r\n"
+											 "HYPERION-JSS-PORT: %8\r\n"
                                              "\r\n";
 
 SSDPServer::SSDPServer(QObject * parent)
@@ -169,7 +171,8 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 		, _serverHeader
 		, st
 		, _uuid
-		, _fbsPort );
+		, _fbsPort
+		, _jssPort );
 
 	_udpSocket->writeDatagram(message.toUtf8(),
 								 QHostAddress(senderIp),
@@ -199,7 +202,8 @@ void SSDPServer::sendAlive(const QString& st)
 		, st
 		, _serverHeader
 		, tempUSN
-		, _fbsPort);
+		, _fbsPort
+		, _jssPort );
 
 	// we repeat 3 times
 	quint8 rep = 0;
