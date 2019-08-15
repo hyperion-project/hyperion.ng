@@ -320,39 +320,24 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	// handle and create userDataPath for user data, default path is home directory + /.hyperion
-	// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
-	QString userDataPath(userDataOption.value(parser));
-	QDir mDir(userDataPath);
-	QFileInfo mFi(userDataPath);
-	if(!mDir.mkpath(userDataPath) || !mFi.isWritable() || !mDir.isReadable())
-		throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
+	int rc = 1;
 
-	Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
-
-	HyperionDaemon* hyperiond = nullptr;
 	try
 	{
-		hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
-	}
-	catch (std::exception& e)
-	{
-		Error(log, "Hyperion Daemon aborted:\n  %s", e.what());
-	}
-
-		// create /.hyperion folder for default path, check if the directory is read/writeable
+		// handle and create userDataPath for user data, default path is home directory + /.hyperion
 		// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
-		QDir mDir(rootPath);
-		QFileInfo mFi(rootPath);
-		if(!mDir.mkpath(rootPath) || !mFi.isWritable() || !mDir.isReadable())
-		{
-			throw std::runtime_error("The specified root path can't be created or isn't read/writeable. Please setup the permissions correctly!");
-		}
+		QString userDataPath(userDataOption.value(parser));
+		QDir mDir(userDataPath);
+		QFileInfo mFi(userDataPath);
+		if(!mDir.mkpath(userDataPath) || !mFi.isWritable() || !mDir.isReadable())
+			throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
+
+		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
 
 		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(rootPath, qApp, bool(logLevelCheck));
+			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
 		}
 		catch (std::exception& e)
 		{
