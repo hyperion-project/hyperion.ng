@@ -496,8 +496,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 	// set the video standard if needed and supported
 	v4l2_std_id std_id;
-
-	if (0 == xioctl(VIDIOC_QUERYSTD, &std_id))
+	if (-1 != xioctl(VIDIOC_ENUMSTD, &std_id))
 	{
 		switch (videoStandard)
 		{
@@ -507,7 +506,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
 				{
 					throw_errno_exception("VIDIOC_S_STD");
-					return;
+					break;
 				}
 			}
 			break;
@@ -518,7 +517,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
 				{
 					throw_errno_exception("VIDIOC_S_STD");
-					return;
+					break;
 				}
 			}
 			break;
@@ -529,7 +528,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
 				{
 					throw_errno_exception("VIDIOC_S_STD");
-					return;
+					break;
 				}
 			}
 			break;
@@ -540,7 +539,6 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				break;
 		}
 	}
-
 
 	// get the current settings
 	struct v4l2_format fmt;
@@ -582,9 +580,45 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 	}
 
+	// get maximum video devices resolution
+	__u32 max_width = 0, max_height = 0;
+	struct v4l2_fmtdesc fmtdesc;
+	CLEAR(fmtdesc);
+	fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	fmtdesc.index = 0;
+	while (xioctl(VIDIOC_ENUM_FMT, &fmtdesc) >= 0)
+	{
+		v4l2_frmsizeenum frmsizeenum;
+		CLEAR(frmsizeenum);
+		frmsizeenum.pixel_format = fmtdesc.pixelformat;
+		frmsizeenum.index = 0;
+		while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+		{
+			switch (frmsizeenum.type)
+			{
+				case V4L2_FRMSIZE_TYPE_DISCRETE:
+				{
+					max_width = std::max(max_width, frmsizeenum.discrete.width);
+					max_height = std::max(max_height, frmsizeenum.discrete.height);
+				}
+				break;
+				case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+				case V4L2_FRMSIZE_TYPE_STEPWISE:
+				{
+					max_width = std::max(max_width, frmsizeenum.stepwise.max_width);
+					max_height = std::max(max_height, frmsizeenum.stepwise.max_height);
+				}
+			}
+
+			frmsizeenum.index++;
+		}
+
+		fmtdesc.index++;
+	}
+
 	// set the settings
-	fmt.fmt.pix.width = _width;
-	fmt.fmt.pix.height = _height;
+	fmt.fmt.pix.width = max_width;
+	fmt.fmt.pix.height = max_height;
 
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
@@ -597,7 +631,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	_height = fmt.fmt.pix.height;
 
 	// display the used width and height
-	Debug(_log, "width=%d height=%d", _width, _height );
+	Debug(_log, "Set resolution to width=%d height=%d", _width, _height );
 
 	// Trying to set frame rate
 	struct v4l2_streamparm streamparms;
