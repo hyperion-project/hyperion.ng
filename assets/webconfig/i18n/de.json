@@ -76,6 +76,7 @@
 	"dashboard_alert_message_confsave_success" : "Deine Hyperion Konfiguration wurde erfolgreich gespeichert. Deine Änderungen sind somit übernommen.",
 	"dashboard_message_global_setting_t": "Instanzunabhängige Einstellung",
 	"dashboard_message_global_setting": "Die Einstellungen auf dieser Seite sind instanzunabhängig. Änderungen werden global übernommen.",
+	"dashboard_active_instance": "Ausgewählte Instanz: ",
 	"main_menu_dashboard_token": "Dashboard",
 	"main_menu_configuration_token": "Konfiguration",
 	"main_menu_general_conf_token": "Allgemein",

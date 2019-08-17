@@ -95,7 +95,7 @@ function loadContent(event, forceRefresh)
 {
 	var tag;
 
-	var lastSelectedInstance = getStorage("lastSelectedInstance",false);
+	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 	if(lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
 		instanceSwitch(lastSelectedInstance);
 
@@ -172,10 +172,14 @@ function updateUiOnInstance(inst)
 			$("#hyperion_global_setting_notify").fadeIn("fast");
 		else
 			$("#hyperion_global_setting_notify").attr("style", "display:none");
+
+		$("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + window.serverInfo.instance[inst].friendly_name);
+		$("#dashboard_active_instance").removeAttr("style");
 	}
 	else
 	{
 		$("#hyperion_global_setting_notify").fadeOut("fast");
+		$("#dashboard_active_instance").attr("style", "display:none");
 	}
 }
 

@@ -75,6 +75,7 @@
 	"dashboard_alert_message_confsave_success" : "Your Hyperion configuration has been saved successfully. Your changes are now active.",
 	"dashboard_message_global_setting_t": "Instance independent setting",
 	"dashboard_message_global_setting": "The settings on this page are not depending on a specific instance. Changes will be stored globally for all instances.",
+	"dashboard_active_instance": "Selected instance: ",
 	"main_menu_dashboard_token" : "Dashboard",
 	"main_menu_configuration_token" : "Configuration",
 	"main_menu_general_conf_token" : "General",
