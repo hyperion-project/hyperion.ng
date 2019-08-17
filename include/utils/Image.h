@@ -245,6 +245,17 @@ public:
 		return  (ssize_t) _width * _height * sizeof(Pixel_T);
 	}
 
+	/// Clear the image
+	//
+	void clear()
+	{
+		_width = 1;
+		_height = 1;
+		_pixels = new Pixel_T[2];
+		_endOfPixels = _pixels + 1;
+		memset(_pixels, 0, _width * _height * sizeof(Pixel_T));
+	}
+
 private:
 
 	///
