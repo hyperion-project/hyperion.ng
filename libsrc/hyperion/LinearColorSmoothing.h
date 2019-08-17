@@ -88,6 +88,20 @@ private slots:
 	///
 	void componentStateChange(const hyperion::Components component, const bool state);
 
+	///
+	/// @brief Handle modifyTimerHelper slot, can be removed with signal
+	/// @param enable The new state of the Timer
+	///
+	void handleModifyTimerHelper(const bool& enable);
+
+signals:
+	///
+	/// @brief Start the timer until we fixed the proper thread usage against Hyperion class
+	/// @param enable If true start the timer, else stop it
+	///
+	void modifyTimerHelper(const bool& enable);
+
+
 private:
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
