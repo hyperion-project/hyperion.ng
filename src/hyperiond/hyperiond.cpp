@@ -233,7 +233,7 @@ void HyperionDaemon::startNetworkServices()
 	wsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt());
+	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt());
 	QThread* ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
 	connect( ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer );

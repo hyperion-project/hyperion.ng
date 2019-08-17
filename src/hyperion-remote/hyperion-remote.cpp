@@ -12,6 +12,9 @@
 // hyperion-remote include
 #include "JsonConnection.h"
 
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
+
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
 
@@ -76,7 +79,7 @@ int main(int argc, char * argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "localhost:19444");
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "127.0.0.1:19444");
 		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By befault it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
@@ -173,8 +176,20 @@ int main(int argc, char * argv[])
 			return 1;
 		}
 
+		// server searching by ssdp
+		QString address = argAddress.value(parser);
+		if(argAddress.value(parser) == "127.0.0.1:19444")
+		{
+			SSDPDiscover discover;
+			address = discover.getFirstService(STY_JSONSERVER);
+			if(address.isEmpty())
+			{
+				address = argAddress.value(parser);
+			}
+		}
+
 		// create the connection to the hyperion server
-		JsonConnection connection(argAddress.value(parser), parser.isSet(argPrint));
+		JsonConnection connection(address, parser.isSet(argPrint));
 
 		// authorization token specified. Use it first
 		if (parser.isSet(argToken))

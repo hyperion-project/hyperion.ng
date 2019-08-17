@@ -7,7 +7,8 @@ class QUdpSocket;
 
 enum searchType{
 	STY_WEBSERVER,
-	STY_FLATBUFSERVER
+	STY_FLATBUFSERVER,
+	STY_JSONSERVER
 };
 
 ///

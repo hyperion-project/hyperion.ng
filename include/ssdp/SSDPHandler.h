@@ -19,7 +19,7 @@ class QNetworkConfigurationManager;
 class SSDPHandler : public SSDPServer{
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, QObject * parent = nullptr);
+	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent = nullptr);
 	~SSDPHandler();
 
 public slots:
@@ -89,7 +89,6 @@ private:
 	WebServer* _webserver;
 	QString    _localAddress;
 	QNetworkConfigurationManager* _NCA;
-	quint16 _flatbufPort;
 	QString _uuid;
 	/// Targets for announcement
 	std::vector<QString> _deviceList;
