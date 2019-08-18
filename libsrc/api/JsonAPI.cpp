@@ -210,7 +210,7 @@ void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& comm
 	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	const QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
+	const QString origin = message["origin"].toString("JsonRpc") + "@"+_peerAddress;
 
 	const QJsonArray & jsonColor = message["color"].toArray();
 	const ColorRgb color = {uint8_t(jsonColor.at(0).toInt()),uint8_t(jsonColor.at(1).toInt()),uint8_t(jsonColor.at(2).toInt())};
@@ -228,6 +228,7 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 
 	// extract parameters
 	int priority = message["priority"].toInt();
+	const QString origin = message["origin"].toString("JsonRpc") + "@"+_peerAddress;
 	int duration = message["duration"].toInt(-1);
 	int width = message["imagewidth"].toInt();
 	int height = message["imageheight"].toInt();
@@ -244,7 +245,7 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), data.data(), data.size());
 
-	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, "JsonRpc@"+_peerAddress);
+	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, origin);
 	_hyperion->setInputImage(priority, image, duration);
 
 	// send reply
@@ -259,7 +260,7 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
 	QString pythonScript = message["pythonScript"].toString();
-	QString origin = message["origin"].toString("Empty") + "@"+_peerAddress;
+	QString origin = message["origin"].toString("JsonRpc") + "@"+_peerAddress;
 	const QJsonObject & effect = message["effect"].toObject();
 	const QString & effectName = effect["name"].toString();
 	const QString & data = message["imageData"].toString("").toUtf8();
