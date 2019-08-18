@@ -173,7 +173,7 @@ function updateUiOnInstance(inst)
 		else
 			$("#hyperion_global_setting_notify").attr("style", "display:none");
 
-		$("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + window.serverInfo.instance[inst].friendly_name);
+		$("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + ': ' + window.serverInfo.instance[inst].friendly_name);
 		$("#dashboard_active_instance").removeAttr("style");
 	}
 	else
