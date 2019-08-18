@@ -60,7 +60,7 @@
 		else
 		{
 			response.text().then(function(text) {
-				$("#3rdpartylicenses").text(text);
+				$("#3rdpartylicenses").html('<code>'+text+'</code>');
 			});
 		}
 	})
