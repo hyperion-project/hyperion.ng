@@ -22,7 +22,6 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	, _pause(false)
 	, _currentConfigId(0)
 {
-	connect(this, &LinearColorSmoothing::modifyTimerHelper, this, &LinearColorSmoothing::handleModifyTimerHelper, Qt::QueuedConnection);
 	// set initial state to true, as LedDevice::enabled() is true by default
 	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, true);
 
@@ -73,7 +72,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
-		emit modifyTimerHelper(true);
+		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 	}
 	else
 	{
@@ -183,7 +182,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 {
 	if (!enable)
 	{
-		emit modifyTimerHelper(false);
+		QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 		_previousValues.clear();
 	}
 	// update comp register
@@ -219,11 +218,9 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 
 		if (_cfgList[cfg].updateInterval != _updateInterval)
 		{
-			emit modifyTimerHelper(false);
+			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 			_updateInterval = _cfgList[cfg].updateInterval;
-			_timer->setInterval(_updateInterval);
-			emit modifyTimerHelper(true);
-			//emit modifyTimerHelper(true, -1);
+			QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 		}
 		_currentConfigId = cfg;
 		//DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
@@ -235,9 +232,4 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 	// reset to default
 	_currentConfigId = 0;
 	return false;
-}
-
-void LinearColorSmoothing::handleModifyTimerHelper(const bool& enable)
-{
-	enable ? _timer->start() : _timer->stop();
 }
