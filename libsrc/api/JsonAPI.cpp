@@ -1024,6 +1024,10 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
 		_streaming_leds_reply["tan"]  = tan;
 		connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
+
+		const std::vector<ColorRgb> lastColor = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority()).ledColors;
+		if (!lastColor.empty())
+			QMetaObject::invokeMethod(this, "streamLedcolorsUpdate", Qt::QueuedConnection, Q_ARG(const std::vector<ColorRgb>&, lastColor));
 	}
 	else if (subcommand == "ledstream-stop")
 	{
@@ -1035,6 +1039,11 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 		_streaming_image_reply["command"] = command+"-imagestream-update";
 		_streaming_image_reply["tan"]  = tan;
 		connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+
+		const Image<ColorRgb> lastImage = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority()).image;
+		if(lastImage.size() > 3)
+			QMetaObject::invokeMethod(this, "setImage", Qt::QueuedConnection, Q_ARG(const Image<ColorRgb>&, lastImage));
+
 		_hyperion->update();
 	}
 	else if (subcommand == "imagestream-stop")
