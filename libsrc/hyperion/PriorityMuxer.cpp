@@ -268,7 +268,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 		for(auto key : _activeInputs.keys())
 		{
 			const InputInfo info = getInputInfo(key);
-			if ((info.componentId == hyperion::COMP_COLOR || info.componentId == hyperion::COMP_EFFECT) && key < PriorityMuxer::LOWEST_PRIORITY-1)
+			if ((info.componentId == hyperion::COMP_COLOR || info.componentId == hyperion::COMP_EFFECT || info.componentId == hyperion::COMP_IMAGE) && key < PriorityMuxer::LOWEST_PRIORITY-1)
 			{
 				clearInput(key);
 			}
