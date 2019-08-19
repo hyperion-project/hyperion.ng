@@ -6,6 +6,8 @@ $(document).ready(function() {
 	var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
 	var duration = 0;
 	var rgb = {r:255,g:0,b:0};
+	var lastImgData = "";
+	var lastFileName= "";
 
 	//create html
 	createTable('ssthead', 'sstbody', 'sstcont');
@@ -115,7 +117,7 @@ $(document).ready(function() {
 
 			if(priority > 254)
 				continue;
-			if(priority < 254 && (compId == "EFFECT" || compId == "COLOR") )
+			if(priority < 254 && (compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") )
 				clearAll = true;
 
 			if (visible)
@@ -139,6 +141,9 @@ $(document).ready(function() {
 				case "COLOR":
 					owner = $.i18n('remote_color_label_color')+'  '+'<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb('+value+'); display:inline-block" title="RGB: ('+value+')"></div>';
 					break;
+				case "IMAGE":
+					owner = $.i18n('remote_effects_label_picture')+' '+owner;
+					break;
 				case  "GRABBER":
 					owner = $.i18n('general_comp_GRABBER')+': ('+owner+')';
 					break;
@@ -161,7 +166,7 @@ $(document).ready(function() {
 
 			var btn = '<button id="srcBtn'+i+'" type="button" '+btn_state+' class="btn btn-'+btn_type+' btn_input_selection" onclick="requestSetSource('+priority+');">'+btn_text+'</button>';
 
-			if((compId == "EFFECT" || compId == "COLOR") && priority < 254)
+			if((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
 				btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear('+priority+');"><i class="fa fa-close"></button>';
 
 			if(btn_type != 'default')
@@ -320,10 +325,20 @@ $(document).ready(function() {
 			sendEffect();
 	});
 
+	$("#remote_input_repimg").off().on("click", function(){
+		if(lastImgData != "")
+			requestSetImage(lastImgData, duration, lastFileName);
+	});
+
 	$("#remote_input_img").change(function(){
-		readImg(this, function(src,width,height){
-			console.log(src,width,height)
-			requestSetImage(src,width,height,duration)
+		readImg(this, function(src,fileName){
+			lastFileName = fileName;
+			if(src.includes(","))
+				lastImgData = src.split(",")[1];
+			else
+				lastImgData = src;
+
+			requestSetImage(lastImgData, duration, lastFileName);
 		});
 	});
 

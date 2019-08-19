@@ -215,6 +215,7 @@
 	"remote_color_button_reset": "Farbe/Effekt zurücksetzen",
 	"remote_color_label_color": "Farbe:",
 	"remote_effects_label_effects": "Effekt:",
+	"remote_effects_label_picture" : "Bild:",
 	"remote_adjustment_label": "Farbanpassung",
 	"remote_adjustment_intro": "Verändere live Farbe/Helligkeit/Kompensation. $1",
 	"remote_videoMode_label": "Video Modus",

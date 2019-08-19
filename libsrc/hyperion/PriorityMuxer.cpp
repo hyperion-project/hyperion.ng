@@ -299,7 +299,7 @@ void PriorityMuxer::setCurrentTime(void)
 				newPriority = qMin(newPriority, infoIt->priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
-			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > 0 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR))
+			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > 0 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR  || infoIt->componentId == hyperion::COMP_IMAGE))
 				emit signalTimeTrigger(); // as signal to prevent Threading issues
 
 			++infoIt;

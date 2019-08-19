@@ -123,19 +123,19 @@ function initWebSocket()
 					{
 						var error = response.hasOwnProperty("error")? response.error : "unknown";
 						$(window.hyperion).trigger({type:"error",reason:error});
-						console.log("[window.websocket::onmessage] "+error)
+						console.log("[window.websocket::onmessage] ",error)
 					}
 				}
 				catch(exception_error)
 				{
 					$(window.hyperion).trigger({type:"error",reason:exception_error});
-					console.log("[window.websocket::onmessage] "+exception_error)
+					console.log("[window.websocket::onmessage] ",exception_error)
 				}
 			};
 
 			window.websocket.onerror = function (error) {
 				$(window.hyperion).trigger({type:"error",reason:error});
-				console.log("[window.websocket::onerror] "+error)
+				console.log("[window.websocket::onerror] ",error)
 			};
 		}
 	}
@@ -290,9 +290,9 @@ function requestSetColor(r,g,b,duration)
 	sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
 }
 
-function requestSetImage(data,width,height,duration)
+function requestSetImage(data,duration,name)
 {
-	sendToHyperion("image", "",  '"imagedata":"'+data+'", "imagewidth":'+width+',"imageheight":'+height+', "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+'');
+	sendToHyperion("image", "",  '"imagedata":"'+data+'", "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+', "format":"auto", "origin":"'+window.webOrigin+'", "name":"'+name+'"');
 }
 
 function requestSetComponentState(comp, state)

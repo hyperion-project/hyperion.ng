@@ -214,6 +214,7 @@
 	"remote_color_button_reset" : "Reset Color/Effect",
 	"remote_color_label_color" : "Color:",
 	"remote_effects_label_effects" : "Effect:",
+	"remote_effects_label_picture" : "Picture:",
 	"remote_adjustment_label" : "Color adjustment",
 	"remote_adjustment_intro" : "Modifiy color/brightness/compensation during runtime. $1",
 	"remote_videoMode_label" : "Video mode",
