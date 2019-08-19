@@ -235,7 +235,6 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 	int scale = message["scale"].toInt(-1);
 	QString format = message["format"].toString();
 	QString imgName = message["name"].toString("");
-	QString origin = message["origin"].toString("JsonRpc");
 	QByteArray data = QByteArray::fromBase64(QByteArray(message["imagedata"].toString().toUtf8()));
 
 	// truncate name length
@@ -309,7 +308,7 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), data.data(), data.size());
 
-	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, origin);
+	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, origin, imgName);
 	_hyperion->setInputImage(priority, image, duration);
 
 	// send reply
