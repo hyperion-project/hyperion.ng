@@ -32,8 +32,14 @@ $(document).ready( function() {
 	  try {
 		var stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
 		videoElem.srcObject = stream;
+
 		// get the active track of the stream
 		const track = stream.getVideoTracks()[0];
+
+		// listen for track ending, fires when user aborts through browser
+		track.onended = function(event) {
+		  stopCapture();
+	  	};
 
 		// wait for video ready
 		videoElem.addEventListener('loadedmetadata', (e) => {
@@ -42,10 +48,10 @@ $(document).ready( function() {
 		  ), 500);
 		});
 	  } catch(err) {
-		streamActive = false;
+		stopCapture();
 		console.error("Error: " + err);
 	  }
-	}
+  	}
 
 	function onCapabilitiesReady(settings) {
 		// extract real width/height
@@ -64,10 +70,13 @@ $(document).ready( function() {
 		$("#btn_streamer_icon").removeClass("text-danger");
 
 		updateScrTimer(true);
-		let tracks = videoElem.srcObject.getTracks();
+		// sometimes it's null on abort
+		if(videoElem.srcObject){
+			let tracks = videoElem.srcObject.getTracks();
 
-		tracks.forEach(track => track.stop());
-		videoElem.srcObject = null;
+			tracks.forEach(track => track.stop());
+			videoElem.srcObject = null;
+		}
 	}
 
 	function takePicture(){
@@ -77,7 +86,7 @@ $(document).ready( function() {
 		context.drawImage(videoElem, 0, 0, streamImageWidth, streamImageHeight);
 
 		var data = canvasElem.toDataURL('image/png').split(",")[1];
-		requestSetImage(data, 3, "Streaming");
+		requestSetImage(data, 2, "Streaming");
 	}
 
 	// start or update screenshot timer
