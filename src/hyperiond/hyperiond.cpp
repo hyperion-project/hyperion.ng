@@ -64,6 +64,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	, _netOrigin(new NetOrigin(this))
 	, _pyInit(new PythonInit())
 	, _webserver(nullptr)
+	, _sslWebserver(nullptr)
 	, _jsonServer(nullptr)
 	, _v4l2Grabber(nullptr)
 	, _dispmanx(nullptr)
@@ -170,6 +171,8 @@ void HyperionDaemon::freeObjects()
 	_ssdp->thread()->wait(1000);
 	_webserver->thread()->quit();
 	_webserver->thread()->wait(1000);
+	_sslWebserver->thread()->quit();
+	_sslWebserver->thread()->wait(1000);
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
@@ -193,6 +196,7 @@ void HyperionDaemon::freeObjects()
 	_protoServer           = nullptr;
 	_ssdp                  = nullptr;
 	_webserver             = nullptr;
+	_sslWebserver          = nullptr;
 	_jsonServer            = nullptr;
 }
 
@@ -223,7 +227,7 @@ void HyperionDaemon::startNetworkServices()
 	pThread->start();
 
 	// Create Webserver in thread
-	_webserver = new WebServer(getSetting(settings::WEBSERVER));
+	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
 	QThread* wsThread = new QThread(this);
 	_webserver->moveToThread(wsThread);
 	connect( wsThread, &QThread::started, _webserver, &WebServer::initServer );
@@ -231,6 +235,16 @@ void HyperionDaemon::startNetworkServices()
 	connect( wsThread, &QThread::finished, wsThread, &QObject::deleteLater );
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
+
+	// Create SSL Webserver in thread
+	_sslWebserver = new WebServer(getSetting(settings::WEBSERVER), true);
+	QThread* sslWsThread = new QThread(this);
+	_sslWebserver->moveToThread(sslWsThread);
+	connect( sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer );
+	connect( sslWsThread, &QThread::finished, _sslWebserver, &QObject::deleteLater );
+	connect( sslWsThread, &QThread::finished, sslWsThread, &QObject::deleteLater );
+	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
+	sslWsThread->start();
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt());

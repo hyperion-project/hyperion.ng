@@ -154,7 +154,11 @@
 	"webConfig" :
 	{
 		"document_root" : "",
-		"port"          : 8090
+		"port"          : 8090,
+		"sslPort"		: 8092,
+		"crtPath"		: "",
+		"keyPath"		: "",
+		"keyPassPhrase"	: ""
 	},
 
 	"effects" :

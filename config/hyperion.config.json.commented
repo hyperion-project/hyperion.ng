@@ -266,10 +266,18 @@
 	/// Configuration of the Hyperion webserver
 	///  * document_root : path to hyperion webapp files (webconfig developer only)
 	///  * port          : the port where hyperion webapp is accasible
+	///  * sslPort       : the secure (HTTPS) port of the hyperion webapp
+	///  * crtPath       : the path to a certificate file to allow HTTPS connections. Should be in PEM format
+	///  * keyPath       : the path to a private key file to allow HTTPS connections. Should be in PEM format and RSA encrypted
+	///  * keyPassPhrase : optional: If the key file requires a password add it here
 	"webConfig" :
 	{
 		"document_root" : "/path/to/files",
-		"port"          : 8090
+		"port"          : 8090,
+		"sslPort"		: 8092,
+		"crtPath"		: "/path/to/mycert.crt",
+		"keyPath"		: "/path/to/mykey.key",
+		"keyPassPhrase"	: ""
 	},
 
 	/// The configuration of the effect engine, contains the following items:
