@@ -306,7 +306,9 @@ $(document).ready(function() {
 
 	$("#reset_color").off().on("click", function(){
 		requestPriorityClear();
+		lastImgData = "";
 		$("#effect_select").val("__none__");
+		$("#remote_input_img").val("");
 	});
 
 	$("#remote_duration").off().on("change", function(){
