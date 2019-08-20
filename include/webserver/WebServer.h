@@ -15,6 +15,19 @@ class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
 
+/*
+OPENSSL command that generated the embedded key and cert file
+
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout hyperion.key -out hyperion.crt -extensions san -config \
+  <(echo "[req]";
+    echo distinguished_name=req;
+    echo "[san]";
+    echo subjectAltName=DNS:hyperion-project.org,IP:127.0.0.1
+    ) \
+  -subj /CN=hyperion-project.org
+*/
+
 class WebServer : public QObject {
 	Q_OBJECT
 
