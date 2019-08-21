@@ -25,6 +25,19 @@
 			},
 			"propertyOrder" : 2
 		},
+		"restirctedInternetAccessAPI" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_restirctedInternetAccessAPI_title",
+			"required" : true,
+			"default" : false,
+			"options": {
+				"dependencies": {
+					"internetAccessAPI": true
+				}
+			},
+			"propertyOrder" : 3
+		},
 		"ipWhitelist" :
 		{
 			"type" : "array",
@@ -36,10 +49,10 @@
 			},
 			"options": {
 				"dependencies": {
-					"internetAccessAPI": false
+					"restirctedInternetAccessAPI": true
 				}
 			},
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"localApiAuth" :
 		{
@@ -52,7 +65,7 @@
 					"apiAuth": true
 				}
 			},
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : false

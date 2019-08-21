@@ -95,6 +95,10 @@ function loadContent(event, forceRefresh)
 {
 	var tag;
 
+	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+	if(lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
+		instanceSwitch(lastSelectedInstance);
+
 	if(typeof event != "undefined")
 	{
 		tag = event.currentTarget.hash;
@@ -154,10 +158,7 @@ function updateHyperionInstanceListing()
 
 		$('#hyperioninstance_'+data[key].instance).off().on("click",function(e){
 			var inst = e.currentTarget.id.split("_")[1]
-			requestInstanceSwitch(inst)
-			window.currentHyperionInstance = inst;
-			window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
-			updateHyperionInstanceListing()
+			instanceSwitch(inst)
 		});
 	}
 }
@@ -171,11 +172,24 @@ function updateUiOnInstance(inst)
 			$("#hyperion_global_setting_notify").fadeIn("fast");
 		else
 			$("#hyperion_global_setting_notify").attr("style", "display:none");
+
+		$("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + ': ' + window.serverInfo.instance[inst].friendly_name);
+		$("#dashboard_active_instance").removeAttr("style");
 	}
 	else
 	{
 		$("#hyperion_global_setting_notify").fadeOut("fast");
+		$("#dashboard_active_instance").attr("style", "display:none");
 	}
+}
+
+function instanceSwitch(inst)
+{
+	requestInstanceSwitch(inst)
+	window.currentHyperionInstance = inst;
+	window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+	setStorage('lastSelectedInstance', inst, false)
+	updateHyperionInstanceListing()
 }
 
 function loadContentTo(containerId, fileName)
