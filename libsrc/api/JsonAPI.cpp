@@ -112,7 +112,7 @@ bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
 // 		// imageStream last state
 // 		if(_ledcolorsImageActive)
 // 			connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
-// 
+//
 // 		//ledColor stream last state
 // 		if(_ledcolorsLedsActive)
 // 			connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
@@ -172,7 +172,7 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 		sendErrorReply("No Authorization", command, tan);
 		return;
 	}
-	
+
 	// switch over all possible commands and handle them
 	if      (command == "color")          handleColorCommand         (message, command, tan);
 	else if (command == "image")          handleImageCommand         (message, command, tan);
@@ -232,20 +232,83 @@ void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& comm
 	int duration = message["duration"].toInt(-1);
 	int width = message["imagewidth"].toInt();
 	int height = message["imageheight"].toInt();
+	int scale = message["scale"].toInt(-1);
+	QString format = message["format"].toString();
+	QString imgName = message["name"].toString("");
 	QByteArray data = QByteArray::fromBase64(QByteArray(message["imagedata"].toString().toUtf8()));
 
-	// check consistency of the size of the received data
-	if (data.size() != width*height*3)
+	// truncate name length
+	imgName.truncate(16);
+
+	if(format == "auto")
 	{
-		sendErrorReply("Size of image data does not match with the width and height", command, tan);
-		return;
+		QImage img = QImage::fromData(data);
+		if(img.isNull())
+		{
+			sendErrorReply("Failed to parse picture, the file might be corrupted", command, tan);
+			return;
+		}
+
+		// check for requested scale
+		if(scale > 24)
+		{
+			if(img.height() > scale)
+			{
+				img = img.scaledToHeight(scale);
+			}
+			if(img.width() > scale)
+			{
+				img = img.scaledToWidth(scale);
+			}
+		}
+
+		// check if we need to force a scale
+		if(img.width() > 2000 || img.height() > 2000)
+		{
+			scale = 2000;
+			if(img.height() > scale)
+			{
+				img = img.scaledToHeight(scale);
+			}
+			if(img.width() > scale)
+			{
+				img = img.scaledToWidth(scale);
+			}
+		}
+
+		width = img.width();
+		height = img.height();
+
+		// extract image
+		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+		data.clear();
+		data.reserve(img.width() * img.height() * 3);
+		for (int i = 0; i < img.height(); ++i)
+		{
+			const QRgb * scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));
+			for (int j = 0; j < img.width(); ++j)
+			{
+				data.append((char) qRed(scanline[j]));
+				data.append((char) qGreen(scanline[j]));
+				data.append((char) qBlue(scanline[j]));
+			}
+		}
+	}
+	else
+	{
+		// check consistency of the size of the received data
+		if (data.size() != width*height*3)
+		{
+			sendErrorReply("Size of image data does not match with the width and height", command, tan);
+			return;
+		}
 	}
 
-	// create ImageRgb
+	// copy image
 	Image<ColorRgb> image(width, height);
 	memcpy(image.memptr(), data.data(), data.size());
 
-	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, origin);
+	_hyperion->registerInput(priority, hyperion::COMP_IMAGE, origin, imgName);
 	_hyperion->setInputImage(priority, image, duration);
 
 	// send reply

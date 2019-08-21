@@ -392,11 +392,11 @@ function readImg(input,cb)
 {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
+		// inject fileName property
+		reader.fileName = input.files[0].name
 
         reader.onload = function (e) {
-			var i = new Image();
-			i.src = e.target.result;
-			cb(i.src,i.width,i.height);
+			cb(e.target.result, e.target.fileName);
         }
         reader.readAsDataURL(input.files[0]);
     }
