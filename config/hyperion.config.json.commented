@@ -334,21 +334,18 @@
 	///  The configuration for each individual led. This contains the specification of the area
 	///  averaged of an input image for each led to determine its color. Each item in the list
 	///  contains the following fields:
-	///  * index: The index of the led. This determines its location in the string of leds; zero
-	///           being the first led.
 	///  * hscan: The fractional part of the image along the horizontal used for the averaging
 	///           (minimum and maximum inclusive)
 	///  * vscan: The fractional part of the image along the vertical used for the averaging
 	///           (minimum and maximum inclusive)
 
-    "leds":
+	"leds":
 	[
 		{
 			"hscan": {
 				"maximum": 0.125,
 				"minimum": 0
 			},
-			"index": 0,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -359,7 +356,6 @@
 				"maximum": 0.25,
 				"minimum": 0.125
 			},
-			"index": 1,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -370,7 +366,6 @@
 				"maximum": 0.375,
 				"minimum": 0.25
 			},
-			"index": 2,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -381,7 +376,6 @@
 				"maximum": 0.5,
 				"minimum": 0.375
 			},
-			"index": 3,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -392,7 +386,6 @@
 				"maximum": 0.625,
 				"minimum": 0.5
 			},
-			"index": 4,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -403,7 +396,6 @@
 				"maximum": 0.75,
 				"minimum": 0.625
 			},
-			"index": 5,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -414,7 +406,6 @@
 				"maximum": 0.875,
 				"minimum": 0.75
 			},
-			"index": 6,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -425,7 +416,6 @@
 				"maximum": 1,
 				"minimum": 0.875
 			},
-			"index": 7,
 			"vscan": {
 				"maximum": 0.08,
 				"minimum": 0
@@ -436,7 +426,6 @@
 				"maximum": 1,
 				"minimum": 0.95
 			},
-			"index": 8,
 			"vscan": {
 				"maximum": 0.2,
 				"minimum": 0
@@ -447,7 +436,6 @@
 				"maximum": 1,
 				"minimum": 0.95
 			},
-			"index": 9,
 			"vscan": {
 				"maximum": 0.4,
 				"minimum": 0.2
@@ -458,7 +446,6 @@
 				"maximum": 1,
 				"minimum": 0.95
 			},
-			"index": 10,
 			"vscan": {
 				"maximum": 0.6,
 				"minimum": 0.4
@@ -469,7 +456,6 @@
 				"maximum": 1,
 				"minimum": 0.95
 			},
-			"index": 11,
 			"vscan": {
 				"maximum": 0.8,
 				"minimum": 0.6
@@ -480,7 +466,6 @@
 				"maximum": 1,
 				"minimum": 0.95
 			},
-			"index": 12,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.8
@@ -491,7 +476,6 @@
 				"maximum": 1,
 				"minimum": 0.875
 			},
-			"index": 13,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -502,7 +486,6 @@
 				"maximum": 0.875,
 				"minimum": 0.75
 			},
-			"index": 14,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -513,7 +496,6 @@
 				"maximum": 0.75,
 				"minimum": 0.625
 			},
-			"index": 15,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -524,7 +506,6 @@
 				"maximum": 0.625,
 				"minimum": 0.5
 			},
-			"index": 16,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -535,7 +516,6 @@
 				"maximum": 0.5,
 				"minimum": 0.375
 			},
-			"index": 17,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -546,7 +526,6 @@
 				"maximum": 0.375,
 				"minimum": 0.25
 			},
-			"index": 18,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -557,7 +536,6 @@
 				"maximum": 0.25,
 				"minimum": 0.125
 			},
-			"index": 19,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -568,7 +546,6 @@
 				"maximum": 0.125,
 				"minimum": 0
 			},
-			"index": 20,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.92
@@ -579,7 +556,6 @@
 				"maximum": 0.05,
 				"minimum": 0
 			},
-			"index": 21,
 			"vscan": {
 				"maximum": 1,
 				"minimum": 0.8
@@ -590,7 +566,6 @@
 				"maximum": 0.05,
 				"minimum": 0
 			},
-			"index": 22,
 			"vscan": {
 				"maximum": 0.8,
 				"minimum": 0.6
@@ -601,7 +576,6 @@
 				"maximum": 0.05,
 				"minimum": 0
 			},
-			"index": 23,
 			"vscan": {
 				"maximum": 0.6,
 				"minimum": 0.4
@@ -612,7 +586,6 @@
 				"maximum": 0.05,
 				"minimum": 0
 			},
-			"index": 24,
 			"vscan": {
 				"maximum": 0.4,
 				"minimum": 0.2
@@ -623,7 +596,6 @@
 				"maximum": 0.05,
 				"minimum": 0
 			},
-			"index": 25,
 			"vscan": {
 				"maximum": 0.2,
 				"minimum": 0

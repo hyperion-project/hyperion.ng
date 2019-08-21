@@ -8,16 +8,6 @@
 		"required" : true,
 		"properties":
 		{
-			"index":
-			{
-				"type":"integer",
-				"required":true,
-				"default" : 0
-			},
-			"clone":
-			{
-				"type":"integer"
-			},
 			"hscan":
 			{
 				"type":"object",
