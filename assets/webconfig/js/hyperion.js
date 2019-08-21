@@ -74,7 +74,7 @@ function initWebSocket()
 		if (window.websocket == null)
 		{
 			window.jsonPort = (document.location.port == '') ? '80' : document.location.port;
-			window.websocket = new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
+			window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
 
 			window.websocket.onopen = function (event) {
 				$(window.hyperion).trigger({type:"open"});
