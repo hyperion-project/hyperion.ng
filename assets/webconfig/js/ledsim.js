@@ -137,7 +137,7 @@ $(document).ready(function() {
 			useColor = true;
 
 		// check size of ledcolors with leds length
-		if(colors && colors.length*3 < leds.length)
+		if(colors && colors.length/3 < leds.length)
 			return;
 
 		for(var idx=0; idx<leds.length; idx++)
