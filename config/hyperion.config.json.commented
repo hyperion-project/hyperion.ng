@@ -309,6 +309,7 @@
 	"network" :
 	{
 		"internetAccessAPI" : false,
+		"restirctedInternetAccessAPI" : false,
 		"ipWhitelist" : [],
 		"apiAuth" : true,
 		"localApiAuth" : false
