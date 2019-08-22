@@ -1433,7 +1433,6 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 		for(auto color = ledColors.begin(); color != ledColors.end(); ++color)
 		{
 			QJsonObject item;
-			item["index"] = int(color - ledColors.begin());
 			item["red"]   = color->red;
 			item["green"] = color->green;
 			item["blue"]  = color->blue;

@@ -519,11 +519,11 @@
 	var hueIPs = [];
 	var hueIPsinc = 0;
 	var lightIDs = null;
-	var huePosTop =    {hscan: {maximum: 0.85,minimum: 0.15},index: 0,vscan: {maximum: 0.2,minimum: 0}};
-	var huePosBottom = {hscan: {maximum: 0.85,minimum: 0.15},index: 2,vscan: {maximum: 1,minimum: 0.8}};
-	var huePosLeft =   {hscan: {maximum: 0.15,minimum: 0},index: 1,vscan: {maximum: 0.85,minimum: 0.15}};
-	var huePosRight =  {hscan: {maximum: 1,minimum: 0.85},index: 3,vscan: {maximum: 0.85,minimum: 0.15}};
-	var huePosEntire = {hscan: {maximum: 1.0,minimum: 0.0},index: 0,vscan: {maximum: 1.0,minimum: 0.0}};
+	var huePosTop =    {hscan: {maximum: 0.85,minimum: 0.15},vscan: {maximum: 0.2,minimum: 0}};
+	var huePosBottom = {hscan: {maximum: 0.85,minimum: 0.15},vscan: {maximum: 1,minimum: 0.8}};
+	var huePosLeft =   {hscan: {maximum: 0.15,minimum: 0},vscan: {maximum: 0.85,minimum: 0.15}};
+	var huePosRight =  {hscan: {maximum: 1,minimum: 0.85},vscan: {maximum: 0.85,minimum: 0.15}};
+	var huePosEntire = {hscan: {maximum: 1.0,minimum: 0.0},vscan: {maximum: 1.0,minimum: 0.0}};
 
 	function startWizardPhilipsHue()
 	{
@@ -621,7 +621,7 @@
 		}
 	};
 
-	function assignHuePos(id, pos, inc)
+	function assignHuePos(id, pos)
 	{
 		var i = null;
 
@@ -636,7 +636,6 @@
 		else
 			i = huePosEntire;
 
-		i.index = inc;
 		return i;
 	}
 
@@ -716,14 +715,12 @@
 			var finalLightIds = [];
 
 			//create hue led config
-			var incC = 0;
 			for(var key in lightIDs)
 			{
 				if($('#hue_'+key).val() != "disabled")
 				{
-					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val(), incC));
+					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val()));
 					finalLightIds.push(parseInt(key));
-					incC++;
 				}
 			}
 
