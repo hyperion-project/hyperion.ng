@@ -131,9 +131,14 @@ $(document).ready(function() {
 			return;
 
 		var useColor = false;
+		var cPos = 0;
 		ledsCanvasNodeCtx.clear();
 		if(typeof colors != "undefined")
 			useColor = true;
+
+		// check size of ledcolors with leds length
+		if(colors && colors.length*3 < leds.length)
+			return;
 
 		for(var idx=0; idx<leds.length; idx++)
 		{
@@ -142,7 +147,7 @@ $(document).ready(function() {
 			//roundRect(ledsCanvasNodeCtx, led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height, 4, true, colors[idx])
 			//ledsCanvasNodeCtx.fillRect(led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height);
 
-			ledsCanvasNodeCtx.fillStyle = (useColor) ?  "rgba("+colors[idx].red+","+colors[idx].green+","+colors[idx].blue+",0.9)"  : "hsl("+(idx*360/leds.length)+",100%,50%)";
+			ledsCanvasNodeCtx.fillStyle = (useColor) ?  "rgba("+colors[cPos]+","+colors[cPos+1]+","+colors[cPos+2]+",0.9)"  : "hsl("+(idx*360/leds.length)+",100%,50%)";
 			ledsCanvasNodeCtx.fill(twoDPaths[idx]);
 			ledsCanvasNodeCtx.stroke(twoDPaths[idx]);
 
@@ -152,6 +157,9 @@ $(document).ready(function() {
 				ledsCanvasNodeCtx.textAlign = "center";
 				ledsCanvasNodeCtx.fillText(idx, (led.h.min * canvas_width) + ( ((led.h.max-led.h.min) * canvas_width) / 2), (led.v.min * canvas_height) + ( ((led.v.max-led.v.min) * canvas_height) / 2));
 			}
+
+			// increment colorsPosition
+			cPos += 3;
 		}
 	}
 
