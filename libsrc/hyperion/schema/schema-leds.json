@@ -14,7 +14,7 @@
 				"required" : true,
 				"properties":
 				{
-					"minimum":
+					"min":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -22,7 +22,7 @@
 						"required":true,
 						"default" : 0
 					},
-					"maximum":
+					"max":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -39,7 +39,7 @@
 				"required" : true,
 				"properties":
 				{
-					"minimum":
+					"min":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -47,7 +47,7 @@
 						"required":true,
 						"default" : 0
 					},
-					"maximum":
+					"max":
 					{
 						"type":"number",
 						"minimum" : 0,

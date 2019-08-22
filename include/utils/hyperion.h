@@ -200,10 +200,10 @@ namespace hyperion {
 
 			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
 			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
-			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
-			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
-			led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
+			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
+			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
+			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
+			led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
 			// Fix if the user swapped min and max
 			if (led.minX_frac > led.maxX_frac)
 			{
@@ -230,10 +230,10 @@ namespace hyperion {
 		{
 			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
 			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
-			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
-			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
-			double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
+			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
+			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
+			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
+			double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
 			// Fix if the user swapped min and max
 			if (minX_frac > maxX_frac)
 			{

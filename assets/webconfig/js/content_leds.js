@@ -39,10 +39,10 @@ function createLedPreview(leds, origin){
 		var led = leds[idx];
 		var led_id='ledc_'+[idx];
 		var bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
-		var pos = "left:"+(led.hscan.minimum * canvas_width)+"px;"+
-			"top:"+(led.vscan.minimum * canvas_height)+"px;"+
-			"width:"+((led.hscan.maximum-led.hscan.minimum) * (canvas_width-1))+"px;"+
-			"height:"+((led.vscan.maximum-led.vscan.minimum) * (canvas_height-1))+"px;";
+		var pos = "left:"+(led.hscan.min * canvas_width)+"px;"+
+			"top:"+(led.vscan.min * canvas_height)+"px;"+
+			"width:"+((led.hscan.max-led.hscan.min) * (canvas_width-1))+"px;"+
+			"height:"+((led.vscan.max-led.vscan.min) * (canvas_height-1))+"px;";
 		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
@@ -87,11 +87,11 @@ function createClassicLeds(){
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
-			var hmin = array[i].hscan.minimum;
-			var hmax = array[i].hscan.maximum;
-			var vmin = array[i].vscan.minimum;
-			var vmax = array[i].vscan.maximum;
-			finalLedArray[i] = { "hscan": { "maximum" : hmax, "minimum" : hmin }, "vscan": { "maximum": vmax, "minimum": vmin}}
+			var hmin = array[i].hscan.min;
+			var hmax = array[i].hscan.max;
+			var vmin = array[i].vscan.min;
+			var vmax = array[i].vscan.max;
+			finalLedArray[i] = { "hscan": { "max" : hmax, "min" : hmin }, "vscan": { "max": vmax, "min": vmin}}
 		}
 		createLedPreview(finalLedArray, 'classic');
 	}
@@ -134,7 +134,7 @@ function createClassicLeds(){
 		hmax = round(hmax);
 		vmin = round(vmin);
 		vmax = round(vmax);
-		ledArray.push( { "hscan" : { "minimum" : hmin, "maximum" : hmax }, "vscan": { "minimum": vmin, "maximum": vmax }} );
+		ledArray.push( { "hscan" : { "min" : hmin, "max" : hmax }, "vscan": { "min": vmin, "max": vmax }} );
 	}
 
 	function createTopLeds(){
@@ -265,12 +265,12 @@ function createMatrixLeds(){
 
 		leds.push({
 			hscan: {
-				minimum: hscanMin,
-				maximum: hscanMax
+				min: hscanMin,
+				max: hscanMax
 			},
 			vscan: {
-				minimum: vscanMin,
-				maximum: vscanMax
+				min: vscanMin,
+				max: vscanMax
 			}
 		})
 	}
@@ -369,7 +369,7 @@ $(document).ready(function() {
 	});
 
 	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
-	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan"],"properties":{"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"vscan":{"additionalProperties":false,"properties":{"maximum":{"maximum":1,"minimum":0,"type":"number"},"minimum":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"};
+	var ledschema = {"items":{"additionalProperties":false,"required":["hscan","vscan"],"properties":{"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"hscan":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"vscan":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"};
 	//create jsonace editor
 	var aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
 		mode: 'code',
