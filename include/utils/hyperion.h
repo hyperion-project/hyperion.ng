@@ -198,8 +198,8 @@ namespace hyperion {
 			const QJsonObject& index = ledConfigArray[i].toObject();
 			Led led;
 
-			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
-			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
 			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
 			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
 			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
@@ -228,8 +228,8 @@ namespace hyperion {
 
 		for (signed i = 0; i < ledConfigArray.size(); ++i)
 		{
-			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
-			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
 			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
 			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
 			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));

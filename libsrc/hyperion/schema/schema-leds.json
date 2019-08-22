@@ -8,7 +8,7 @@
 		"required" : true,
 		"properties":
 		{
-			"hscan":
+			"h":
 			{
 				"type":"object",
 				"required" : true,
@@ -33,7 +33,7 @@
 				},
 				"additionalProperties" : false
 			},
-			"vscan":
+			"v":
 			{
 				"type":"object",
 				"required" : true,

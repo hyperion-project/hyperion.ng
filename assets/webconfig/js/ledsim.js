@@ -22,7 +22,7 @@ $(document).ready(function() {
 		for(var idx=0; idx<leds.length; idx++)
 		{
 			var led = leds[idx];
-			twoDPaths.push( build2DPath(led.hscan.min * canvas_width, led.vscan.min * canvas_height, (led.hscan.max-led.hscan.min) * canvas_width, (led.vscan.max-led.vscan.min) * canvas_height, 5) );
+			twoDPaths.push( build2DPath(led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height, 5) );
 		}
 	}
 
@@ -139,8 +139,8 @@ $(document).ready(function() {
 		{
 			var led = leds[idx];
 			// can be used as fallback when Path2D is not available
-			//roundRect(ledsCanvasNodeCtx, led.hscan.min * canvas_width, led.vscan.min * canvas_height, (led.hscan.max-led.hscan.min) * canvas_width, (led.vscan.max-led.vscan.min) * canvas_height, 4, true, colors[idx])
-			//ledsCanvasNodeCtx.fillRect(led.hscan.min * canvas_width, led.vscan.min * canvas_height, (led.hscan.max-led.hscan.min) * canvas_width, (led.vscan.max-led.vscan.min) * canvas_height);
+			//roundRect(ledsCanvasNodeCtx, led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height, 4, true, colors[idx])
+			//ledsCanvasNodeCtx.fillRect(led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height);
 
 			ledsCanvasNodeCtx.fillStyle = (useColor) ?  "rgba("+colors[idx].red+","+colors[idx].green+","+colors[idx].blue+",0.9)"  : "hsl("+(idx*360/leds.length)+",100%,50%)";
 			ledsCanvasNodeCtx.fill(twoDPaths[idx]);
@@ -150,7 +150,7 @@ $(document).ready(function() {
 			{
 				ledsCanvasNodeCtx.fillStyle = "blue";
 				ledsCanvasNodeCtx.textAlign = "center";
-				ledsCanvasNodeCtx.fillText(idx, (led.hscan.min * canvas_width) + ( ((led.hscan.max-led.hscan.min) * canvas_width) / 2), (led.vscan.min * canvas_height) + ( ((led.vscan.max-led.vscan.min) * canvas_height) / 2));
+				ledsCanvasNodeCtx.fillText(idx, (led.h.min * canvas_width) + ( ((led.h.max-led.h.min) * canvas_width) / 2), (led.v.min * canvas_height) + ( ((led.v.max-led.v.min) * canvas_height) / 2));
 			}
 		}
 	}

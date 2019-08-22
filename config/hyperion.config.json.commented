@@ -334,269 +334,269 @@
 	///  The configuration for each individual led. This contains the specification of the area
 	///  averaged of an input image for each led to determine its color. Each item in the list
 	///  contains the following fields:
-	///  * hscan: The fractional part of the image along the horizontal used for the averaging
+	///  * h: The fractional part of the image along the horizontal used for the averaging
 	///           (min and max inclusive)
-	///  * vscan: The fractional part of the image along the vertical used for the averaging
+	///  * v: The fractional part of the image along the vertical used for the averaging
 	///           (min and max inclusive)
 
 	"leds":
 	[
 		{
-			"hscan": {
+			"h": {
 				"max": 0.125,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.25,
 				"min": 0.125
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.375,
 				"min": 0.25
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.5,
 				"min": 0.375
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.625,
 				"min": 0.5
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.75,
 				"min": 0.625
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.875,
 				"min": 0.75
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.875
 			},
-			"vscan": {
+			"v": {
 				"max": 0.08,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.95
 			},
-			"vscan": {
+			"v": {
 				"max": 0.2,
 				"min": 0
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.95
 			},
-			"vscan": {
+			"v": {
 				"max": 0.4,
 				"min": 0.2
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.95
 			},
-			"vscan": {
+			"v": {
 				"max": 0.6,
 				"min": 0.4
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.95
 			},
-			"vscan": {
+			"v": {
 				"max": 0.8,
 				"min": 0.6
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.95
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.8
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 1,
 				"min": 0.875
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.875,
 				"min": 0.75
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.75,
 				"min": 0.625
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.625,
 				"min": 0.5
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.5,
 				"min": 0.375
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.375,
 				"min": 0.25
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.25,
 				"min": 0.125
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.125,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.05,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 1,
 				"min": 0.8
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.05,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 0.8,
 				"min": 0.6
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.05,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 0.6,
 				"min": 0.4
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.05,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 0.4,
 				"min": 0.2
 			}
 		},
 		{
-			"hscan": {
+			"h": {
 				"max": 0.05,
 				"min": 0
 			},
-			"vscan": {
+			"v": {
 				"max": 0.2,
 				"min": 0
 			}

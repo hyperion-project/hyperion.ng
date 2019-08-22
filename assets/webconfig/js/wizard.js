@@ -519,11 +519,11 @@
 	var hueIPs = [];
 	var hueIPsinc = 0;
 	var lightIDs = null;
-	var huePosTop =    {hscan: {max: 0.85, min: 0.15},vscan: {max: 0.2, min: 0}};
-	var huePosBottom = {hscan: {max: 0.85, min: 0.15},vscan: {max: 1, min: 0.8}};
-	var huePosLeft =   {hscan: {max: 0.15, min: 0},vscan: {max: 0.85, min: 0.15}};
-	var huePosRight =  {hscan: {max: 1, min: 0.85},vscan: {max: 0.85, min: 0.15}};
-	var huePosEntire = {hscan: {max: 1.0, min: 0.0},vscan: {max: 1.0, min: 0.0}};
+	var huePosTop =    {h: {max: 0.85, min: 0.15}, v: {max: 0.2, min: 0}};
+	var huePosBottom = {h: {max: 0.85, min: 0.15}, v: {max: 1, min: 0.8}};
+	var huePosLeft =   {h: {max: 0.15, min: 0},    v: {max: 0.85, min: 0.15}};
+	var huePosRight =  {h: {max: 1, min: 0.85},    v: {max: 0.85, min: 0.15}};
+	var huePosEntire = {h: {max: 1.0, min: 0.0},   v: {max: 1.0, min: 0.0}};
 
 	function startWizardPhilipsHue()
 	{
