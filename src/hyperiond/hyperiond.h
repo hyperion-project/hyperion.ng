@@ -72,7 +72,7 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, const bool& logLvlOverwrite );
+	HyperionDaemon(QString rootPath, QObject *parent, const bool& logLvlOverwrite, const bool& resetPassword);
 	~HyperionDaemon();
 
 	///

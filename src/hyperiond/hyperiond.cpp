@@ -55,7 +55,7 @@
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool& logLvlOverwrite, const bool& resetPassword)
 	: QObject(parent)
 	, _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(new HyperionIManager(rootPath, this))
@@ -92,6 +92,15 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if(!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
+
+	// reset password if requested from cmd
+	if(resetPassword){
+		if(_authManager->resetHyperionUser()){
+			Info(_log, "Password successfully resetted")
+		} else {
+			Error(_log, "Failed to reset password")
+		}
+	}
 
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);

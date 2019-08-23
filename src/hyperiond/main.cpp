@@ -239,14 +239,15 @@ int main(int argc, char** argv)
 	Parser parser("Hyperion Daemon");
 	parser.addHelpOption();
 
-	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
-	Option        & userDataOption      = parser.add<Option>       (0x0, "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
-	BooleanOption & silentOption        = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
-	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
-	BooleanOption & debugOption         = parser.add<BooleanOption>('d', "debug", "Show debug messages");
-	parser.add<BooleanOption>(0x0, "desktop", "show systray on desktop");
-	parser.add<BooleanOption>(0x0, "service", "force hyperion to start as console service");
-	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
+	BooleanOption & versionOption       = parser.add<BooleanOption> (0x0, "version", "Show version information");
+	Option        & userDataOption      = parser.add<Option>        (0x0, "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
+	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
+	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
+	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
+                                          parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
+	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
+	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
 
 	parser.process(*qApp);
 
@@ -337,7 +338,7 @@ int main(int argc, char** argv)
 		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
+			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck), parser.isSet(resetPassword));
 		}
 		catch (std::exception& e)
 		{

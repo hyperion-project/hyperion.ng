@@ -306,13 +306,21 @@
 		"v4lPriority" : 240
 	},
 
+	/// The configuration of the network security restrictions, contains the following items:
+	///  * internetAccessAPI           : When true allows connection from internet to the API. When false it blocks all outside connections
+	///  * restirctedInternetAccessAPI : webui voodoo only - ignore it
+	///  * ipWhitelist                 : Whitelist ip addresses from the internet to allow access to the API
+	///  * apiAuth                     : When true the API requires authentication through tokens to use the API. Read also "localApiAuth"
+	///  * localApiAuth                : When false connections from the local network don't require an API authentification.
+	///  * localAdminApiAuth           : When false connections from the local network don't require an authentification for administration access.
 	"network" :
 	{
 		"internetAccessAPI" : false,
 		"restirctedInternetAccessAPI" : false,
 		"ipWhitelist" : [],
 		"apiAuth" : true,
-		"localApiAuth" : false
+		"localApiAuth" : false,
+		"localAdminAuth": false
 	},
 
 	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.

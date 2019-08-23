@@ -47,13 +47,25 @@ public:
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	bool & isAuthRequired();
+	const bool & isAuthRequired() { return _authRequired; };
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	bool & isLocalAuthRequired();
+	const bool & isLocalAuthRequired() { return _localAuthRequired; };
+
+	///
+	/// @brief Check if authorization is required for local network connections for admin access
+	/// @return       True if authorization required else false
+	///
+	const bool & isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
+
+	///
+	/// @brief Reset Hyperion user
+	/// @return        True on success else false
+	///
+	bool resetHyperionUser();
 
 	///
 	/// @brief Create a new token and skip the usual chain
@@ -76,6 +88,15 @@ public:
 	/// @return        True if authorized else false
 	///
 	bool isTokenAuthorized(const QString& token);
+
+	///
+	/// @brief Change password of user
+	/// @param  user  The username
+	/// @param  pw    The CURRENT password
+	/// @param  newPw The new password
+	/// @return        True on success else false
+	///
+	bool updateUserPassword(const QString& user, const QString& pw, const QString& newPw);
 
 	///
 	/// @brief Generate a new pending token request with the provided comment and id as identifier helper
@@ -161,6 +182,9 @@ private:
 
 	/// Reflect state of local auth
 	bool _localAuthRequired;
+
+	/// Reflect state of local admin auth
+	bool _localAdminAuthRequired;
 
 	/// Timer for counting against pendingRequest timeouts
 	QTimer* _timer;

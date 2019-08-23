@@ -167,7 +167,7 @@ function sendToHyperion(command, subcommand, msg)
 
 function requestAuthorization()
 {
-	sendToHyperion("authorize","login",'"username": "Hyperion", "password": "hyperion"');
+	sendToHyperion("authorize","login",'"password": "hyperion"');
 }
 
 function requestToken(comment)

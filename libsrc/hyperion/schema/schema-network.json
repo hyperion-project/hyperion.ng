@@ -66,6 +66,14 @@
 				}
 			},
 			"propertyOrder" : 5
+		},
+		"localAdminAuth" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_net_localAdminAuth_title",
+			"required" : true,
+			"default" : false,
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : false

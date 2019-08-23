@@ -34,16 +34,6 @@ AuthManager::AuthManager(QObject* parent)
 	}
 }
 
-bool & AuthManager::isAuthRequired()
-{
-	return _authRequired;
-}
-
-bool & AuthManager::isLocalAuthRequired()
-{
-	return _localAuthRequired;
-}
-
 const AuthManager::AuthDefinition AuthManager::createToken(const QString& comment)
 {
 	const QString token = QUuid::createUuid().toString().mid(1, 36);
@@ -85,6 +75,19 @@ bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
 bool AuthManager::isTokenAuthorized(const QString& token)
 {
 	return _authTable->tokenExist(token);
+}
+
+bool AuthManager::updateUserPassword(const QString& user, const QString& pw, const QString& newPw)
+{
+	if(isUserAuthorized(user, pw))
+		return _authTable->updateUserPassword(user, newPw);
+
+	return false;
+}
+
+bool AuthManager::resetHyperionUser()
+{
+	return _authTable->resetHyperionUser();
 }
 
 void AuthManager::setNewTokenRequest(QObject* caller, const QString& comment, const QString& id)
@@ -144,6 +147,7 @@ void AuthManager::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		const QJsonObject& obj = config.object();
 		_authRequired = obj["apiAuth"].toBool(true);
 		_localAuthRequired = obj["localApiAuth"].toBool(false);
+		_localAdminAuthRequired = obj["localAdminAuth"].toBool(false);
 	}
 }
 

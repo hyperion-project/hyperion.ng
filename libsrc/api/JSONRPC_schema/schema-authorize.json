@@ -10,16 +10,16 @@
 		"subcommand" : {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["requestToken","createToken","deleteToken","getTokenList","logout","login","required","answerRequest","getPendingRequests"]
+			"enum" : ["requestToken","createToken","deleteToken","getTokenList","logout","login","required","adminRequired","newPasswordRequired","newPassword","answerRequest","getPendingRequests"]
 		},
 		"tan" : {
 			"type" : "integer"
 		},
-		"username": {
-			"type": "string",
-			"minLength" : 3
-		},
 		"password": {
+			"type": "string",
+			"minLength" : 8
+		},
+		"newPassword": {
 			"type": "string",
 			"minLength" : 8
 		},

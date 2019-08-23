@@ -76,6 +76,36 @@ public:
 	}
 
 	///
+	/// @brief update password of given user. The user should be tested (isUserAuthorized) to verify this change
+	/// @param user   The user name
+	/// @param newPw  The new password to set
+	/// @return       True on success else false
+	///
+	inline bool updateUserPassword(const QString& user, const QString& newPw)
+	{
+		QVariantMap map;
+		map["password"] = calcPasswordHashOfUser(user, newPw);
+
+		VectorPair cond;
+		cond.append(CPair("user", user));
+		return updateRecord(cond, map);
+	}
+
+	///
+	/// @brief Reset password of Hyperion user !DANGER! Used in Hyperion main.cpp
+	/// @return       True on success else false
+	///
+	inline bool resetHyperionUser()
+	{
+		QVariantMap map;
+		map["password"] = calcPasswordHashOfUser("Hyperion", "hyperion");
+
+		VectorPair cond;
+		cond.append(CPair("user", "Hyperion"));
+		return updateRecord(cond, map);
+	}
+
+	///
 	/// @brief Update 'last_use' column entry for the corresponding user
 	/// @param[in]  user   The user to search for
 	///
