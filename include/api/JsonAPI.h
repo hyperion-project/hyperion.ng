@@ -2,22 +2,17 @@
 
 // hyperion includes
 #include <utils/Logger.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/Components.h>
 #include <hyperion/Hyperion.h>
+#include <hyperion/HyperionIManager.h>
 
 // qt includes
 #include <QJsonObject>
-#include <QMutex>
 #include <QString>
-#include <QTimer>
 
-// HyperionInstanceManager
-#include <hyperion/HyperionIManager.h>
-
+class QTimer;
 class JsonCB;
 class AuthManager;
-class HyperionIManager;
 
 class JsonAPI : public QObject
 {

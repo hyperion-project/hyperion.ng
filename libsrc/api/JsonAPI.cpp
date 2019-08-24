@@ -12,17 +12,16 @@
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
-#include <QDateTime>
-#include <QHostInfo>
-#include <QMutexLocker>
+#include <QTimer>
 
 // hyperion includes
-#include <utils/jsonschema/QJsonFactory.h>
-#include <utils/SysInfo.h>
-#include <HyperionConfig.h>
-#include <utils/ColorSys.h>
 #include <leddevice/LedDeviceWrapper.h>
 #include <hyperion/GrabberWrapper.h>
+#include <utils/jsonschema/QJsonFactory.h>
+#include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <HyperionConfig.h>
+#include <utils/SysInfo.h>
+#include <utils/ColorSys.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
