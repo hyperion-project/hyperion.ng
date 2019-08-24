@@ -53,8 +53,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _hyperion(nullptr)
 	, _jsonCB(nullptr)
 	, _streaming_logging_activated(false)
-	, _imageStreamTimer(new QTimer())
-	, _ledStreamTimer(new QTimer())
+	, _imageStreamTimer(new QTimer(this))
+	, _ledStreamTimer(new QTimer(this))
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
