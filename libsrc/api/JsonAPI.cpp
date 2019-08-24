@@ -1041,13 +1041,13 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 
 			// start the timer
 			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				QMetaObject::invokeMethod(_ledStreamTimer, "start", Qt::QueuedConnection, Q_ARG(int, streaming_interval));
+				_ledStreamTimer->start(streaming_interval);
 		}, Qt::UniqueConnection);
 	}
 	else if (subcommand == "ledstream-stop")
 	{
 		disconnect(_hyperion, &Hyperion::rawLedColors, this, 0);
-		QMetaObject::invokeMethod(_ledStreamTimer, "stop", Qt::QueuedConnection);
+		_ledStreamTimer->stop();
 		disconnect(_ledStreamConnection);
 	}
 	else if (subcommand == "imagestream-start")
@@ -1070,7 +1070,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 
 			// start timer
 			if (!_imageStreamTimer->isActive() || _imageStreamTimer->interval() != streaming_interval)
-				QMetaObject::invokeMethod(_imageStreamTimer, "start", Qt::QueuedConnection, Q_ARG(int, streaming_interval));
+				_imageStreamTimer->start(streaming_interval);
 		}, Qt::UniqueConnection);
 
 		_hyperion->update();
@@ -1078,7 +1078,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 	else if (subcommand == "imagestream-stop")
 	{
 		disconnect(_hyperion, &Hyperion::currentImage, this, 0);
-		QMetaObject::invokeMethod(_imageStreamTimer, "stop", Qt::QueuedConnection);
+		_imageStreamTimer->stop();
 		disconnect(_imageStreamConnection);
 	}
 	else
