@@ -19,7 +19,9 @@
 			"type" : "bool"
 		},
 		"interval": {
-			"type" : "integer"
+			"type" : "integer",
+			"required" : false,
+			"minimum": 50
 		}
 	},
 

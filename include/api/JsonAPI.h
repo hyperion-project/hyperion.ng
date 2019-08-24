@@ -2,21 +2,17 @@
 
 // hyperion includes
 #include <utils/Logger.h>
-#include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/Components.h>
 #include <hyperion/Hyperion.h>
+#include <hyperion/HyperionIManager.h>
 
 // qt includes
 #include <QJsonObject>
-#include <QMutex>
 #include <QString>
 
-// HyperionInstanceManager
-#include <hyperion/HyperionIManager.h>
-
+class QTimer;
 class JsonCB;
 class AuthManager;
-class HyperionIManager;
 
 class JsonAPI : public QObject
 {
@@ -43,15 +39,20 @@ public:
 
 public slots:
 	///
-	/// @brief is called whenever the current Hyperion instance pushes new led raw values (if enabled)
-	/// @param ledColors  The current ledColors
+	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
+	/// @param ledColors  The current led colors
 	///
 	void streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors);
 
-	/// push images whenever hyperion emits (if enabled)
+	///
+	/// @brief Push images whenever hyperion emits (if enabled)
+	/// @param image  The current image
+	///
 	void setImage(const Image<ColorRgb> & image);
 
-	/// process and push new log messages from logger (if enabled)
+	///
+	/// @brief Process and push new log messages from logger (if enabled)
+	///
 	void incommingLogMessage(const Logger::T_LOG_MESSAGE&);
 
 private slots:
@@ -128,17 +129,23 @@ private:
 	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
 
-	/// mutex to determine state of image streaming
-	QMutex _image_stream_mutex;
+	/// timer for live video refresh
+	QTimer* _imageStreamTimer;
 
-	/// mutex to determine state of led streaming
-	QMutex _led_stream_mutex;
+	/// image stream connection handle
+	QMetaObject::Connection _imageStreamConnection;
 
-	/// timeout for live video refresh
-	volatile qint64 _image_stream_timeout;
+	/// the current streaming image
+	Image<ColorRgb> _currentImage;
 
-	/// timeout for led color refresh
-	volatile qint64 _led_stream_timeout;
+	/// timer for led color refresh
+	QTimer* _ledStreamTimer;
+
+	/// led stream connection handle
+	QMetaObject::Connection _ledStreamConnection;
+
+	/// the current streaming led values
+	std::vector<ColorRgb> _currentLedValues;
 
 	///
 	/// @brief Handle the switches of Hyperion instances

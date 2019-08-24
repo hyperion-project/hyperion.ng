@@ -368,6 +368,9 @@ void Hyperion::setColor(const int priority, const ColorRgb &color, const int tim
 	// create led vector from single color
 	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
 
+	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
+		clear(priority);
+
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
