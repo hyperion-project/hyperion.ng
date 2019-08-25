@@ -16,9 +16,14 @@ class AuthTable : public DBManager
 
 public:
 	/// construct wrapper with auth table
-	AuthTable(QObject* parent = nullptr)
+	AuthTable(const QString& rootPath = "", QObject* parent = nullptr)
 		: DBManager(parent)
 	{
+		if(!rootPath.isEmpty()){
+			// Init Hyperion database usage
+			setRootPath(rootPath);
+			setDatabaseName("hyperion");
+		}
 		// init Auth table
 		setTable("auth");
 		// create table columns

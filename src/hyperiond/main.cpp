@@ -28,6 +28,7 @@
 #include <utils/FileUtils.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
+#include <../../include/db/AuthTable.h>
 
 #ifdef ENABLE_X11
 #include <X11/Xlib.h>
@@ -335,10 +336,25 @@ int main(int argc, char** argv)
 
 		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
 
+		// reset Password without spawning daemon
+		if(parser.isSet(resetPassword))
+		{
+			AuthTable* table = new AuthTable(userDataPath);
+			if(table->resetHyperionUser()){
+				Info(log,"Password reset successfull");
+				delete table;
+				exit(0);
+			} else {
+				Error(log,"Failed to reset password!");
+				delete table;
+				exit(1);
+			}
+		}
+
 		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck), parser.isSet(resetPassword));
+			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
 		}
 		catch (std::exception& e)
 		{

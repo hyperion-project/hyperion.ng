@@ -12,7 +12,7 @@ AuthManager* AuthManager::manager = nullptr;
 
 AuthManager::AuthManager(QObject* parent)
 	: QObject(parent)
-	, _authTable(new AuthTable(this))
+	, _authTable(new AuthTable("",this))
 	, _metaTable(new MetaTable(this))
 	, _pendingRequests()
 	, _authRequired(true)
