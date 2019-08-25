@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 	parser.addHelpOption();
 
 	BooleanOption & versionOption       = parser.add<BooleanOption> (0x0, "version", "Show version information");
-	Option        & userDataOption      = parser.add<Option>        (0x0, "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
+	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
 	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
 	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
