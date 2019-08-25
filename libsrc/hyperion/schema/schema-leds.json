@@ -8,23 +8,13 @@
 		"required" : true,
 		"properties":
 		{
-			"index":
-			{
-				"type":"integer",
-				"required":true,
-				"default" : 0
-			},
-			"clone":
-			{
-				"type":"integer"
-			},
-			"hscan":
+			"h":
 			{
 				"type":"object",
 				"required" : true,
 				"properties":
 				{
-					"minimum":
+					"min":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -32,7 +22,7 @@
 						"required":true,
 						"default" : 0
 					},
-					"maximum":
+					"max":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -43,13 +33,13 @@
 				},
 				"additionalProperties" : false
 			},
-			"vscan":
+			"v":
 			{
 				"type":"object",
 				"required" : true,
 				"properties":
 				{
-					"minimum":
+					"min":
 					{
 						"type":"number",
 						"minimum" : 0,
@@ -57,7 +47,7 @@
 						"required":true,
 						"default" : 0
 					},
-					"maximum":
+					"max":
 					{
 						"type":"number",
 						"minimum" : 0,

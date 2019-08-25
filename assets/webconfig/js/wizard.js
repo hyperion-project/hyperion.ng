@@ -518,11 +518,11 @@ $('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
 var hueIPs = [];
 var hueIPsinc = 0;
 var lightIDs = null;
-var huePosTop =    {hscan: {maximum: 0.85,minimum: 0.15},index: 0,vscan: {maximum: 0.2,minimum: 0}};
-var huePosBottom = {hscan: {maximum: 0.85,minimum: 0.15},index: 2,vscan: {maximum: 1,minimum: 0.8}};
-var huePosLeft =   {hscan: {maximum: 0.15,minimum: 0},index: 1,vscan: {maximum: 0.85,minimum: 0.15}};
-var huePosRight =  {hscan: {maximum: 1,minimum: 0.85},index: 3,vscan: {maximum: 0.85,minimum: 0.15}};
-var huePosEntire = {hscan: {maximum: 1.0,minimum: 0.0},index: 0,vscan: {maximum: 1.0,minimum: 0.0}};
+var huePosTop =    {h: {max: 0.85, min: 0.15}, v: {max: 0.2, min: 0}};
+var huePosBottom = {h: {max: 0.85, min: 0.15}, v: {max: 1, min: 0.8}};
+var huePosLeft =   {h: {max: 0.15, min: 0},    v: {max: 0.85, min: 0.15}};
+var huePosRight =  {h: {max: 1, min: 0.85},    v: {max: 0.85, min: 0.15}};
+var huePosEntire = {h: {max: 1.0, min: 0.0},   v: {max: 1.0, min: 0.0}};
 
 function startWizardPhilipsHue()
 {
@@ -620,9 +620,9 @@ function checkBridgeResult(reply){
 	}
 };
 
-function assignHuePos(id, pos, inc)
-{
-	var i = null;
+	function assignHuePos(id, pos)
+	{
+		var i = null;
 
 	if(pos == "top")
 		i = huePosTop;
@@ -635,9 +635,8 @@ function assignHuePos(id, pos, inc)
 	else
 		i = huePosEntire;
 
-	i.index = inc;
-	return i;
-}
+		return i;
+	}
 
 function identHueId(id, off)
 {
@@ -706,23 +705,14 @@ function beginWizardHue()
 		checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
 	});
 
-	$('#wiz_hue_create_user').off().on('click',function() {
-		createHueUser();
-	});
-
-	$('#btn_wiz_save').off().on("click", function(){
-		var hueLedConfig = [];
-		var finalLightIds = [];
-
-		//create hue led config
-		var incC = 0;
-		for(var key in lightIDs)
-		{
-			if($('#hue_'+key).val() != "disabled")
+			//create hue led config
+			for(var key in lightIDs)
 			{
-				hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val(), incC));
-				finalLightIds.push(parseInt(key));
-				incC++;
+				if($('#hue_'+key).val() != "disabled")
+				{
+					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val()));
+					finalLightIds.push(parseInt(key));
+				}
 			}
 		}
 
@@ -774,17 +764,17 @@ function createHueUser()
 
 				connectionRetries--;
 				$("#connectionTime").html(connectionRetries);
-				if(connectionRetries == 0) 
+				if(connectionRetries == 0)
 				{
 					abortConnection(UserInterval);
 				}
 				else
 				{
-					if (typeof r[0].error != 'undefined') 
+					if (typeof r[0].error != 'undefined')
 					{
 						console.log(connectionRetries+": link not pressed");
 					}
-					if (typeof r[0].success != 'undefined') 
+					if (typeof r[0].success != 'undefined')
 					{
 						$('#wizp1').toggle(false);
 						$('#wizp2').toggle(true);
