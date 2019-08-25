@@ -72,7 +72,7 @@
 			"type" : "boolean",
 			"title" : "edt_conf_net_localAdminAuth_title",
 			"required" : true,
-			"default" : false,
+			"default" : true,
 			"propertyOrder" : 5
 		}
 	},

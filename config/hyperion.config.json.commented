@@ -320,7 +320,7 @@
 		"ipWhitelist" : [],
 		"apiAuth" : true,
 		"localApiAuth" : false,
-		"localAdminAuth": false
+		"localAdminAuth": true
 	},
 
 	/// Recreate and save led layouts made with web config. These values are just helpers for ui, not for Hyperion.

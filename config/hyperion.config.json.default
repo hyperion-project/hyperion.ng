@@ -182,7 +182,7 @@
 		"ipWhitelist" : [],
 		"apiAuth" : true,
 		"localApiAuth" : false,
-		"localAdminAuth": false
+		"localAdminAuth": true
 	},
 
 	"ledConfig" :
