@@ -1,5 +1,6 @@
 
 #include <list>
+#include <unistd.h>
 
 #include <QPixmap>
 #include <QWindow>
@@ -128,7 +129,31 @@ void SysTray::closeEvent(QCloseEvent *event)
 
 void SysTray::settings()
 {
+	// Hide error messages when opening webbrowser
+
+	int out_pipe[2];
+	int saved_stdout;
+	int saved_stderr;
+
+	// saving stdout and stderr file descriptor
+	saved_stdout = ::dup( STDOUT_FILENO );
+	saved_stderr = ::dup( STDERR_FILENO );
+
+	if(::pipe(out_pipe) == 0)
+	{
+		// redirecting stdout to pipe
+		::dup2(out_pipe[1], STDOUT_FILENO);
+		::close(out_pipe[1]);
+		// redirecting stderr to stdout
+		::dup2(STDOUT_FILENO, STDERR_FILENO);
+	}
+
 	QDesktopServices::openUrl(QUrl("http://localhost:"+QString::number(_webPort)+"/", QUrl::TolerantMode));
+
+	// restoring stdout
+	::dup2(saved_stdout, STDOUT_FILENO);
+	// restoring stderr
+	::dup2(saved_stderr, STDERR_FILENO);
 }
 
 void SysTray::setEffect()

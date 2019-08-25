@@ -12,17 +12,16 @@
 #include <QImage>
 #include <QBuffer>
 #include <QByteArray>
-#include <QDateTime>
-#include <QHostInfo>
-#include <QMutexLocker>
+#include <QTimer>
 
 // hyperion includes
-#include <utils/jsonschema/QJsonFactory.h>
-#include <utils/SysInfo.h>
-#include <HyperionConfig.h>
-#include <utils/ColorSys.h>
 #include <leddevice/LedDeviceWrapper.h>
 #include <hyperion/GrabberWrapper.h>
+#include <utils/jsonschema/QJsonFactory.h>
+#include <utils/jsonschema/QJsonSchemaChecker.h>
+#include <HyperionConfig.h>
+#include <utils/SysInfo.h>
+#include <utils/ColorSys.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
@@ -53,8 +52,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _hyperion(nullptr)
 	, _jsonCB(nullptr)
 	, _streaming_logging_activated(false)
-	, _image_stream_timeout(0)
-	, _led_stream_timeout(0)
+	, _imageStreamTimer(new QTimer(this))
+	, _ledStreamTimer(new QTimer(this))
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
@@ -1018,28 +1017,68 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString &
 	// create result
 	QString subcommand = message["subcommand"].toString("");
 
+	// max 20 Hz (50ms) interval for streaming (default: 10 Hz (100ms))
+	qint64 streaming_interval = qMax(message["interval"].toInt(100), 50);
+
 	if (subcommand == "ledstream-start")
 	{
 		_streaming_leds_reply["success"] = true;
 		_streaming_leds_reply["command"] = command+"-ledstream-update";
 		_streaming_leds_reply["tan"]  = tan;
-		connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
+
+		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb>& ledValues)
+		{
+			_currentLedValues = ledValues;
+
+			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
+			// see: https://bugreports.qt.io/browse/QTBUG-52438
+			if (!_ledStreamConnection)
+				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]()
+				{
+					emit streamLedcolorsUpdate(_currentLedValues);
+				}, Qt::UniqueConnection);
+
+			// start the timer
+			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
+				_ledStreamTimer->start(streaming_interval);
+		}, Qt::UniqueConnection);
 	}
 	else if (subcommand == "ledstream-stop")
 	{
-		disconnect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate);
+		disconnect(_hyperion, &Hyperion::rawLedColors, this, 0);
+		_ledStreamTimer->stop();
+		disconnect(_ledStreamConnection);
 	}
 	else if (subcommand == "imagestream-start")
 	{
 		_streaming_image_reply["success"] = true;
 		_streaming_image_reply["command"] = command+"-imagestream-update";
 		_streaming_image_reply["tan"]  = tan;
-		connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
+
+		connect(_hyperion, &Hyperion::currentImage, this, [=](const Image<ColorRgb>& image)
+		{
+			_currentImage = image;
+
+			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
+			// see: https://bugreports.qt.io/browse/QTBUG-52438
+			if (!_imageStreamConnection)
+				_imageStreamConnection = connect(_imageStreamTimer, &QTimer::timeout, this, [=]()
+				{
+					emit setImage(_currentImage);
+				}, Qt::UniqueConnection);
+
+			// start timer
+			if (!_imageStreamTimer->isActive() || _imageStreamTimer->interval() != streaming_interval)
+				_imageStreamTimer->start(streaming_interval);
+		}, Qt::UniqueConnection);
+
 		_hyperion->update();
 	}
 	else if (subcommand == "imagestream-stop")
 	{
-		disconnect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage);
+		disconnect(_hyperion, &Hyperion::currentImage, this, 0);
+		_imageStreamTimer->stop();
+		disconnect(_imageStreamConnection);
 	}
 	else
 	{
@@ -1420,47 +1459,35 @@ void JsonAPI::sendErrorReply(const QString &error, const QString &command, const
 	emit callbackMessage(reply);
 }
 
-
 void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 {
-	QMutexLocker lock(&_led_stream_mutex);
-	if ( (_led_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() )
+	QJsonObject result;
+	QJsonArray leds;
+
+	for(const auto & color : ledColors)
 	{
-		_led_stream_timeout = QDateTime::currentMSecsSinceEpoch();
-		QJsonObject result;
-		QJsonArray leds;
-
-		for(auto color = ledColors.begin(); color != ledColors.end(); ++color)
-		{
-			leds << QJsonValue(color->red) << QJsonValue(color->green) << QJsonValue(color->blue);
-		}
-
-		result["leds"] = leds;
-		_streaming_leds_reply["result"] = result;
-
-		// send the result
-		emit callbackMessage(_streaming_leds_reply);
+		leds << QJsonValue(color.red) << QJsonValue(color.green) << QJsonValue(color.blue);
 	}
+
+	result["leds"] = leds;
+	_streaming_leds_reply["result"] = result;
+
+	// send the result
+	emit callbackMessage(_streaming_leds_reply);
 }
 
 void JsonAPI::setImage(const Image<ColorRgb> & image)
 {
-	QMutexLocker lock(&_image_stream_mutex);
-	if ( (_image_stream_timeout+100) < QDateTime::currentMSecsSinceEpoch() )
-	{
-		_image_stream_timeout = QDateTime::currentMSecsSinceEpoch();
+	QImage jpgImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
+	QByteArray ba;
+	QBuffer buffer(&ba);
+	buffer.open(QIODevice::WriteOnly);
+	jpgImage.save(&buffer, "jpg");
 
-		QImage jpgImage((const uint8_t *) image.memptr(), image.width(), image.height(), 3*image.width(), QImage::Format_RGB888);
-		QByteArray ba;
-		QBuffer buffer(&ba);
-		buffer.open(QIODevice::WriteOnly);
-		jpgImage.save(&buffer, "jpg");
-
-		QJsonObject result;
-		result["image"] = "data:image/jpg;base64,"+QString(ba.toBase64());
-		_streaming_image_reply["result"] = result;
-		emit callbackMessage(_streaming_image_reply);
-	}
+	QJsonObject result;
+	result["image"] = "data:image/jpg;base64,"+QString(ba.toBase64());
+	_streaming_image_reply["result"] = result;
+	emit callbackMessage(_streaming_image_reply);
 }
 
 void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
