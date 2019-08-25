@@ -88,9 +88,6 @@ inline ColorOrder stringToColorOrder(const QString & order)
 ///
 struct Led
 {
-	///  The index of the led
-	unsigned index;
-
 	///  The minimum vertical scan line included for this leds color
 	double minX_frac;
 	///  The maximum vertical scan line included for this leds color
@@ -99,8 +96,6 @@ struct Led
 	double minY_frac;
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
-	/// id to clone
-	int clone;
 	/// the color order
 	ColorOrder colorOrder;
 };
