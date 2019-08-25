@@ -165,6 +165,22 @@ function sendToHyperion(command, subcommand, msg)
 // -----------------------------------------------------------
 // wrapped server commands
 
+// Test if admin requires authentication
+function requestRequiresAdminAuth()
+{
+	sendToHyperion("authorize","adminRequired");
+}
+// Test if the default password needs to be changed
+function requestRequiresDefaultPasswortChange()
+{
+	sendToHyperion("authorize","newPasswordRequired");
+}
+// Change password
+function requestChangePassword(oldPw, newPW)
+{
+	sendToHyperion("authorize","newPassword",'"password": "'+oldPw+'", "newPassword":"'+newPw+'"');
+}
+
 function requestAuthorization()
 {
 	sendToHyperion("authorize","login",'"password": "hyperion"');
