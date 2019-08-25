@@ -15,11 +15,24 @@ class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
 
+/*
+OPENSSL command that generated the embedded key and cert file
+
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout hyperion.key -out hyperion.crt -extensions san -config \
+  <(echo "[req]";
+    echo distinguished_name=req;
+    echo "[san]";
+    echo subjectAltName=DNS:hyperion-project.org,IP:127.0.0.1
+    ) \
+  -subj /CN=hyperion-project.org
+*/
+
 class WebServer : public QObject {
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, QObject * parent = 0);
+	WebServer (const QJsonDocument& config, const bool& useSsl, QObject * parent = 0);
 
 	virtual ~WebServer (void);
 
@@ -67,6 +80,7 @@ public slots:
 
 private:
 	QJsonDocument        _config;
+	bool				 _useSsl;
 	Logger*              _log;
 	QString              _baseUrl;
 	quint16              _port;
@@ -74,8 +88,10 @@ private:
 	QtHttpServer*        _server;
 	bool                 _inited = false;
 
-	const QString        WEBSERVER_DEFAULT_PATH = ":/webconfig";
-	const quint16        WEBSERVER_DEFAULT_PORT = 8090;
+	const QString        WEBSERVER_DEFAULT_PATH	    = ":/webconfig";
+	const QString        WEBSERVER_DEFAULT_CRT_PATH = ":/hyperion.crt";
+	const QString        WEBSERVER_DEFAULT_KEY_PATH = ":/hyperion.key";
+	quint16              WEBSERVER_DEFAULT_PORT     = 8090;
 
 	BonjourServiceRegister * _serviceRegister = nullptr;
 };

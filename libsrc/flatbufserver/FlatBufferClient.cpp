@@ -123,7 +123,7 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 {
 	if (regReq->priority() < 100 || regReq->priority() >= 200)
 	{
-		// Warning(_log, "Register request from client %s contains invalid priority %d. Valid rage is between 100 and 199.", QSTRING_CSTR(_clientAddress), regReq->priority());
+		Error(_log, "Register request from client %s contains invalid priority %d. Valid priority for Flatbuffer connections is between 100 and 199.", QSTRING_CSTR(_clientAddress), regReq->priority());
 		sendErrorReply("The priority " + std::to_string(regReq->priority()) + " is not in the priority range between 100 and 199.");
 		return;
 	}

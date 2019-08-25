@@ -65,13 +65,13 @@ $(document).ready( function() {
 			var startBtnColor = inst[key].running ? "success" : "danger";
 			var startBtnIcon = inst[key].running ? "stop" : "play";
 			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
-			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-pencil"> '+$.i18n('general_btn_rename')+'</i></button>';
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-fw fa-pencil"></i>'+$.i18n('general_btn_rename')+'</button>';
 			var startBtn = ""
 			var delBtn = "";
 			if(inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-remove"> '+$.i18n('general_btn_delete')+'</i></button>';
-				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-'+startBtnIcon+'"> '+startBtnText+'</i></button>';
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-fw fa-remove"></i>'+$.i18n('general_btn_delete')+'</button>';
+				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-fw fa-'+startBtnIcon+'"></i>'+startBtnText+'</button>';
 			}
 			$('.itbody').append(createTableRow([inst[key].friendly_name, renameBtn, startBtn, delBtn], false, true));
 			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
@@ -86,6 +86,10 @@ $(document).ready( function() {
 
 	$('#inst_name').off().on('input',function(e) {
 		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
+		if(5-e.currentTarget.value.length >= 1 && 5-e.currentTarget.value.length <= 4)
+			$('#inst_chars_needed').html(5-e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
+		else
+		$('#inst_chars_needed').html("<br />")
 	});
 
 	$('#btn_create_inst').off().on('click',function(e) {

@@ -81,4 +81,3 @@ $(document).ready( function() {
 	
 	removeOverlay();
 });
-

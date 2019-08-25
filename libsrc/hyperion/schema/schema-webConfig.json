@@ -17,8 +17,41 @@
 			"minimum" : 80,
 			"maximum" : 65535,
 			"default" : 8090,
-			"access" : "expert",
 			"propertyOrder" : 3
+		},
+		"sslPort" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_webc_sslport_title",
+			"required" : true,
+			"minimum" : 80,
+			"maximum" : 65535,
+			"default" : 8092,
+			"propertyOrder" : 4
+		},
+		"crtPath" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_webc_crtPath_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 5
+		},
+		"keyPath" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_webc_keyPath_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 6
+		},
+		"keyPassPhrase" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_webc_keyPassPhrase_title",
+			"required" : true,
+			"default" : "",
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties" : false

@@ -12,9 +12,10 @@
 #include <utils/NetUtils.h>
 
 
-WebServer::WebServer(const QJsonDocument& config, QObject * parent)
+WebServer::WebServer(const QJsonDocument& config, const bool& useSsl, QObject * parent)
 	:  QObject(parent)
 	, _config(config)
+	, _useSsl(useSsl)
 	, _log(Logger::getInstance("WEBSERVER"))
 	, _server()
 {
@@ -30,6 +31,12 @@ void WebServer::initServer()
 {
 	_server = new QtHttpServer (this);
 	_server->setServerName (QStringLiteral ("Hyperion Webserver"));
+
+	if(_useSsl)
+	{
+		_server->setUseSecure();
+		WEBSERVER_DEFAULT_PORT = 8092;
+	}
 
 	connect (_server, &QtHttpServer::started, this, &WebServer::onServerStarted);
 	connect (_server, &QtHttpServer::stopped, this, &WebServer::onServerStopped);
@@ -98,15 +105,89 @@ void WebServer::handleSettingsUpdate(const settings::type& type, const QJsonDocu
 		Debug(_log, "Set document root to: %s", _baseUrl.toUtf8().constData());
 		_staticFileServing->setBaseUrl(_baseUrl);
 
-		if(_port != obj["port"].toInt(WEBSERVER_DEFAULT_PORT))
+		// ssl different port
+		quint16 newPort = _useSsl ? obj["sslPort"].toInt(WEBSERVER_DEFAULT_PORT) : obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
+		if(_port != newPort)
 		{
-			_port = obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
+			_port = newPort;
 			stop();
 		}
 
 		// eval if the port is available, will be incremented if not
 		if(!_server->isListening())
 			NetUtils::portAvailable(_port, _log);
+
+		// on ssl we want .key .cert and probably key password
+		if(_useSsl)
+		{
+			QString keyPath = obj["keyPath"].toString(WEBSERVER_DEFAULT_KEY_PATH);
+			QString crtPath = obj["crtPath"].toString(WEBSERVER_DEFAULT_CRT_PATH);
+
+			QSslKey currKey = _server->getPrivateKey();
+			QList<QSslCertificate> currCerts = _server->getCertificates();
+
+			// check keyPath
+			if ( (keyPath != WEBSERVER_DEFAULT_KEY_PATH) && !keyPath.trimmed().isEmpty())
+			{
+				QFileInfo kinfo(keyPath);
+				if (!kinfo.exists())
+				{
+					Error(_log, "No SSL key found at '%s' falling back to internal", keyPath.toUtf8().constData());
+					keyPath = WEBSERVER_DEFAULT_KEY_PATH;
+				}
+			}
+			else
+				keyPath = WEBSERVER_DEFAULT_KEY_PATH;
+
+			// check crtPath
+			if ( (crtPath != WEBSERVER_DEFAULT_CRT_PATH) && !crtPath.trimmed().isEmpty())
+			{
+				QFileInfo cinfo(crtPath);
+				if (!cinfo.exists())
+				{
+					Error(_log, "No SSL certificate found at '%s' falling back to internal", crtPath.toUtf8().constData());
+					crtPath = WEBSERVER_DEFAULT_CRT_PATH;
+				}
+			}
+			else
+				crtPath = WEBSERVER_DEFAULT_CRT_PATH;
+
+			// load and verify crt
+			QFile cfile(crtPath);
+			cfile.open(QIODevice::ReadOnly);
+			QList<QSslCertificate> validList;
+			QList<QSslCertificate> cList =  QSslCertificate::fromDevice(&cfile, QSsl::Pem);
+			cfile.close();
+
+			// Filter for valid certs
+			for(const auto & entry : cList){
+				if(!entry.isNull() && QDateTime::currentDateTime().daysTo(entry.expiryDate()) > 0)
+					validList.append(entry);
+				else
+					Error(_log, "The provided SSL certificate is invalid/not supported/reached expiry date ('%s')", crtPath.toUtf8().constData());
+			}
+
+			if(!validList.isEmpty()){
+				Debug(_log,"Setup SSL certificate");
+				_server->setCertificates(validList);
+			} else {
+				Error(_log, "No valid SSL certificate has been found ('%s')", crtPath.toUtf8().constData());
+			}
+
+			// load and verify key
+			QFile kfile(keyPath);
+			kfile.open(QIODevice::ReadOnly);
+			// The key should be RSA enrcrypted and PEM format, optional the passPhrase
+			QSslKey key(&kfile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, obj["keyPassPhrase"].toString().toUtf8());
+			kfile.close();
+
+			if(key.isNull()){
+				Error(_log, "The provided SSL key is invalid or not supported use RSA encrypt and PEM format ('%s')", keyPath.toUtf8().constData());
+			} else {
+				Debug(_log,"Setup private SSL key");
+				_server->setPrivateKey(key);
+			}
+		}
 
 		start();
 		emit portChanged(_port);

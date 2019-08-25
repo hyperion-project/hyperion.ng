@@ -59,6 +59,8 @@ public slots:
 	void setServerName   (const QString & serverName)           { m_serverName = serverName; };
 	void setPrivateKey   (const QSslKey & key)                  { m_sslKey = key; };
 	void setCertificates (const QList<QSslCertificate> & certs) { m_sslCerts = certs; };
+	QSslKey getPrivateKey()                  					{ return m_sslKey; };
+	QList<QSslCertificate> getCertificates() 					{ return m_sslCerts; };
 
 signals:
 	void started            (quint16 port);

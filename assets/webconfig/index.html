@@ -93,6 +93,16 @@
 			<!-- /.navbar-header -->
 
 			<ul class="nav navbar-top-links navbar-right">
+				<!-- Browser built in capture stream - streamer.js -->
+				<li class="dropdown" id="btn_streamer" style="display:none">
+						<!-- Hidden helpers -->
+						<canvas style="display:none" id="streamcanvas"></canvas>
+						<video style="display:none" id="streamvideo" autoplay></video>
+					<a>
+						<i id="btn_streamer_icon" class="fa fa-video-camera fa-fw"></i>
+					</a>
+				</li>
+				<!-- instance switcher -->
 				<li class="dropdown" id="btn_hypinstanceswitch" style="display:none">
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 						<i class="fa fa-exchange fa-fw"></i> <i class="fa fa-caret-down"></i>
@@ -201,6 +211,11 @@
 
 		<!-- Page Content -->
 		<div id="page-wrapper" style="padding-top:10px; overflow: hidden;">
+		<div id="dashboard_active_instance" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-success">
+				<h4 id="dashboard_active_instance_friendly_name"></h4>
+			</div>
+		</div>
 		<div id="hyperion_config_write_success_notify" style="display:none;padding:0 10px;margin:0">
 			<div class="bs-callout bs-callout-success">
 				<h4 data-i18n="dashboard_alert_message_confsave_success_t"></h4>
@@ -311,6 +326,7 @@
 
 	<script src="js/content_index.js"></script>
 	<script src="js/settings.js"></script>
+	<script src="js/streamer.js"></script>
 	<script src="js/wizard.js"></script>
 
 	<!--gijgo dialog-->

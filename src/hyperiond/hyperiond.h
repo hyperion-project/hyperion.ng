@@ -151,6 +151,7 @@ private:
 	NetOrigin*                 _netOrigin;
 	PythonInit*                _pyInit;
 	WebServer*                 _webserver;
+	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;

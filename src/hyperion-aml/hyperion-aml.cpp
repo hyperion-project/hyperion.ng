@@ -65,12 +65,8 @@ int main(int argc, char ** argv)
 		else
 		{
 			// server searching by ssdp
-			QString address;
-			if(parser.isSet(argAddress))
-			{
-				address = argAddress.value(parser);
-			}
-			else
+			QString address = argAddress.value(parser);
+			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
 				address = discover.getFirstService(STY_FLATBUFSERVER);
@@ -79,6 +75,7 @@ int main(int argc, char ** argv)
 					address = argAddress.value(parser);
 				}
 			}
+
 			// Create the Flabuf-connection
 			FlatBufferConnection flatbuf("AML Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
 

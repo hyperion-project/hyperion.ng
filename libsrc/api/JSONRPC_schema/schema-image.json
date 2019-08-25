@@ -18,7 +18,9 @@
 		},
 		"origin": {
 			"type": "string",
-			"required": true
+			"minLength" : 4,
+			"maxLength" : 20,
+			"required": false
 		},
 		"duration": {
 			"type": "integer",
@@ -26,17 +28,27 @@
 		},
 		"imagewidth": {
 			"type" : "integer",
-			"required": true,
 			"minimum": 0
 		},
 		"imageheight": {
 			"type" : "integer",
-			"required": true,
 			"minimum": 0
 		},
 		"imagedata": {
 			"type": "string",
 			"required": true
+		},
+		"format": {
+			"type": "string",
+			"enum" : ["auto"]
+		},
+		"scale": {
+			"type": "integer",
+			"minimum" : 25,
+			"maximum" : 2000
+		},
+		"name": {
+			"type": "string"
 		}
 	},
 	"additionalProperties": false

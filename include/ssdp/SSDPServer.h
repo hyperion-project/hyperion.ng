@@ -68,9 +68,30 @@ public:
 	void setDescriptionAddress(const QString& addr) { _descAddress = addr; };
 
 	///
+	/// @brief Set uuid
+	/// @param uuid  The uuid
+	///
+	void setUuid(const QString& uuid) { _uuid = uuid; };
+
+	///
 	/// @brief set new flatbuffer server port
 	///
 	void setFlatBufPort(const quint16& port) { _fbsPort = QString::number(port); };
+
+	///
+	/// @brief Get current flatbuffer server port
+	///
+	quint16 getFlatBufPort() { return _fbsPort.toInt(); };
+
+	///
+	/// @brief set new jsonserver server port
+	///
+	void setJsonServerPort(const quint16& port) { _jssPort = QString::number(port); };
+
+	///
+	/// @brief get new jsonserver server port
+	///
+	quint16 getJsonServerPort() { return _jssPort.toInt(); };
 
 signals:
 	///
@@ -89,6 +110,7 @@ private:
 	QString _serverHeader;
 	QString _uuid;
 	QString _fbsPort;
+	QString _jssPort;
 	QString _descAddress;
 	bool    _running;
 

@@ -45,6 +45,7 @@
 		'crh-cyrl': [ 'ru' ],
 		csb: [ 'pl' ],
 		cv: [ 'ru' ],
+		'de-DE': [ 'de' ],
 		'de-at': [ 'de' ],
 		'de-ch': [ 'de' ],
 		'de-formal': [ 'de' ],

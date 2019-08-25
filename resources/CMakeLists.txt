@@ -5,7 +5,7 @@
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/resources)
 
 # catch all files
-FILE ( GLOB Hyperion_RESFILES "${CURRENT_SOURCE_DIR}/icons/*" )
+FILE ( GLOB Hyperion_RESFILES "${CURRENT_SOURCE_DIR}/icons/*" "${CURRENT_SOURCE_DIR}/ssl/*" )
 
 # fill resources.qrc with RESFILES
 FOREACH( f ${Hyperion_RESFILES} )

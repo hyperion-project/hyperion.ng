@@ -185,7 +185,7 @@ $(document).ready( function() {
 	$('#tok_comment').off().on('input',function(e) {
 		(e.currentTarget.value.length >= 10) ? $('#btn_create_tok').attr('disabled', false) : $('#btn_create_tok').attr('disabled', true);
 		if(10-e.currentTarget.value.length >= 1 && 10-e.currentTarget.value.length <= 9)
-			$('#tok_chars_needed').html(10-e.currentTarget.value.length + " " + $.i18n('conf_network_tok_chars_needed'))
+			$('#tok_chars_needed').html(10-e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
 		else
 		$('#tok_chars_needed').html("<br />")
 	});

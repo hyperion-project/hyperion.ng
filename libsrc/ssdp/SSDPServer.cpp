@@ -6,9 +6,6 @@
 // Hyperion
 #include <HyperionConfig.h>
 
-// auth manager
-#include <hyperion/AuthManager.h>
-
 #include <QUdpSocket>
 #include <QDateTime>
 
@@ -30,6 +27,7 @@ static const QString UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
                                           "SERVER: %4\r\n"
                                           "USN: uuid:%5\r\n"
 										  "HYPERION-FBS-PORT: %6\r\n"
+										  "HYPERION-JSS-PORT: %7\r\n"
                                           "\r\n";
 
 // Implement ssdp:update as per spec 1.1, section 1.2.4
@@ -73,6 +71,7 @@ static const QString UPNP_MSEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n"
                                              "ST: %5\r\n"
                                              "USN: uuid:%6\r\n"
 											 "HYPERION-FBS-PORT: %7\r\n"
+											 "HYPERION-JSS-PORT: %8\r\n"
                                              "\r\n";
 
 SSDPServer::SSDPServer(QObject * parent)
@@ -99,9 +98,6 @@ void SSDPServer::initServer()
 	// create SERVER String
 	_serverHeader = data.prettyName+"/"+data.productVersion+" UPnP/1.0 Hyperion/"+QString(HYPERION_VERSION);
 
-	// usn uuid
-	_uuid = AuthManager::getInstance()->getID();
-
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
 
@@ -120,10 +116,6 @@ void SSDPServer::stop()
 {
 	if(_running)
 	{
-		// send BYEBYE Msg
-		sendByeBye("upnp:rootdevice");
-		sendByeBye("urn:schemas-upnp-org:device:basic:1");
-		sendByeBye("urn:hyperion-project.org:device:basic:1");
 		_udpSocket->close();
 		_running = false;
 	}
@@ -179,7 +171,8 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 		, _serverHeader
 		, st
 		, _uuid
-		, _fbsPort );
+		, _fbsPort
+		, _jssPort );
 
 	_udpSocket->writeDatagram(message.toUtf8(),
 								 QHostAddress(senderIp),
@@ -202,12 +195,15 @@ void SSDPServer::sendByeBye(const QString& st)
 
 void SSDPServer::sendAlive(const QString& st)
 {
+	const QString tempUSN = (st == "upnp:rootdevice ") ? _uuid+"::"+st  : _uuid;
+
 	QString message = UPNP_ALIVE_MESSAGE.arg(SSDP_MAX_AGE
 		, _descAddress
 		, st
 		, _serverHeader
-		, _uuid+"::"+st
-		, _fbsPort);
+		, tempUSN
+		, _fbsPort
+		, _jssPort );
 
 	// we repeat 3 times
 	quint8 rep = 0;

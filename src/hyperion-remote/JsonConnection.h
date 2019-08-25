@@ -73,11 +73,18 @@ public:
 	void deleteEffect(const QString &effectName);
 
 	///
-	/// Retrieve a list of all occupied priority channels
+	/// Retrieve entire serverinfo as String
 	///
 	/// @return String with the server info
 	///
-	QString getServerInfo();
+	QString getServerInfoString();
+
+	///
+	/// Get the entire serverinfo
+	///
+	/// @return QJsonObject with the server info
+	///
+	QJsonObject getServerInfo();
 
 	///
 	/// Retrieve system info
@@ -173,6 +180,12 @@ public:
 
 	// set the specified authorization token
 	void setToken(const QString &token);
+
+	///
+	/// Send a json message with a specific instance id
+	/// @param instance The instance id
+	///
+	void setInstance(const int &instance);
 
 
 private:

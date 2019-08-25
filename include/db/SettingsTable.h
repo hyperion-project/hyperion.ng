@@ -114,7 +114,7 @@ public:
 		// capture
 		<< "framegrabber" << "grabberV4L2"
 		// other
-		<< "logger";
+		<< "logger" << "general";
 
 		return list.contains(type);
 	}

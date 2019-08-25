@@ -72,7 +72,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
-		_timer->start();
+		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 	}
 	else
 	{
@@ -182,7 +182,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 {
 	if (!enable)
 	{
-		_timer->stop();
+		QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 		_previousValues.clear();
 	}
 	// update comp register
@@ -218,10 +218,9 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 
 		if (_cfgList[cfg].updateInterval != _updateInterval)
 		{
-			_timer->stop();
+			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 			_updateInterval = _cfgList[cfg].updateInterval;
-			_timer->setInterval(_updateInterval);
-			_timer->start();
+			QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 		}
 		_currentConfigId = cfg;
 		//DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );

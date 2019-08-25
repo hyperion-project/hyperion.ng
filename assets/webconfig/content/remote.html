@@ -43,9 +43,12 @@
 									<span class="input-group-addon" id="remote_input_reseff" title="Repeat Effect" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
 								</td>
 							</tr>
-							<tr style="display:none">
-								<td style="vertical-align:middle"><label for="remote_input_img" >Picture:</label></td>
-								<td><input id="remote_input_img" type="file" accept="image/*" /></td>
+							<tr>
+								<td style="vertical-align:middle"><label for="remote_input_img" data-i18n="remote_effects_label_picture" >Picture:</label></td>
+								<td class="input-group custom-file">
+										<input class="form-control" id="remote_input_img" type="file" accept="image/*" />
+										<span class="input-group-addon" id="remote_input_repimg" title="Repeat Image" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
+								</td>
 							</tr>
 							<tr>
 								<td style="vertical-align:middle"><label for="remote_duration" data-i18n="remote_input_duration"></label></td>
