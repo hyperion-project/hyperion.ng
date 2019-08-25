@@ -108,6 +108,19 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 					return url.host()+":"+fbsport;
 				}
 			}
+			else if(type == STY_JSONSERVER)
+			{
+				const QString jssport = headers.value("hyperion-jss-port");
+				if(jssport.isEmpty())
+				{
+					continue;
+				}
+				else
+				{
+					Info(_log, "Found service at: %s:%s", QSTRING_CSTR(url.host()), QSTRING_CSTR(jssport));
+					return url.host()+":"+jssport;
+				}
+			}
 		}
 	}
     Info(_log,"Search timeout, service [%s] not found", QSTRING_CSTR(st) );
