@@ -235,6 +235,12 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		{
 			_ledString = hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
 			_imageProcessor->setLedString(_ledString);
+
+			_ledStringColorOrder.clear();
+			for (Led& led : _ledString.leds())
+			{
+				_ledStringColorOrder.push_back(led.colorOrder);
+			}
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
