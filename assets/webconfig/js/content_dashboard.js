@@ -74,7 +74,7 @@ $(document).ready( function() {
 	}
 
 	// add more info
-	$('#dash_leddevice').html(window.serverInfo.ledDevices.active);
+	$('#dash_leddevice').html(window.serverConfig.device.type);
 	$('#dash_currv').html(window.currentChannel+' '+window.currentVersion);
 	$('#dash_instance').html(window.currentHyperionInstanceName);
 	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);

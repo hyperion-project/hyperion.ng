@@ -436,7 +436,7 @@ $(document).ready(function() {
 
 		var values_general = {};
 		var values_specific = {};
-		var isCurrentDevice = (window.serverInfo.ledDevices.active == $(this).val());
+		var isCurrentDevice = (window.serverConfig.device.type == $(this).val());
 
 		for(var key in window.serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
@@ -507,7 +507,7 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(window.serverInfo.ledDevices.active);
+	$("#leddevices").val(window.serverConfig.device.type);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview
