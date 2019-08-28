@@ -705,16 +705,20 @@ function beginWizardHue()
 		checkHueBridge(checkUserResult,$('#user').val() ? $('#user').val() : "newdeveloper");
 	});
 
-			//create hue led config
-			for(var key in lightIDs)
+	$('#btn_wiz_save').off().on("click", function(){
+		var hueLedConfig = [];
+		var finalLightIds = [];
+
+		//create hue led config
+		for(var key in lightIDs)
+		{
+			if($('#hue_'+key).val() != "disabled")
 			{
-				if($('#hue_'+key).val() != "disabled")
-				{
-					hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val()));
-					finalLightIds.push(parseInt(key));
-				}
+				hueLedConfig.push(assignHuePos(key, $('#hue_'+key).val()));
+				finalLightIds.push(parseInt(key));
 			}
 		}
+
 
 		window.serverConfig.leds = hueLedConfig;
 
