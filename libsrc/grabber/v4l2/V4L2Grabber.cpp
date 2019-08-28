@@ -617,8 +617,16 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// set the settings
-	fmt.fmt.pix.width = max_width;
-	fmt.fmt.pix.height = max_height;
+	if (max_width != 0 || max_height != 0)
+	{
+		fmt.fmt.pix.width = max_width;
+		fmt.fmt.pix.height = max_height;
+	}
+	else
+	{
+		fmt.fmt.pix.width = _width;
+		fmt.fmt.pix.height = _height;
+	}
 
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
