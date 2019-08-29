@@ -81,6 +81,52 @@ public:
 	}
 
 	///
+	/// @brief Test if a user token is authorized for access.
+	/// @param usr   The user name
+	/// @param token The token
+	/// @return       True on success else false
+	///
+	inline bool isUserTokenAuthorized(const QString& usr, const QString& token)
+	{
+		if(getUserToken(usr) == token.toUtf8())
+		{
+			updateUserUsed(usr);
+			return true;
+		}
+		return false;
+	}
+
+	///
+	/// @brief Update token of a user. It's an alternate login path which is replaced on startup. This token is NOT hashed(!)
+	/// @param user   The user name
+	/// @return       True on success else false
+	///
+	inline bool setUserToken(const QString& user)
+	{
+		QVariantMap map;
+		map["token"] = QCryptographicHash::hash(QUuid::createUuid().toByteArray(), QCryptographicHash::Sha512).toHex();
+
+		VectorPair cond;
+		cond.append(CPair("user", user));
+		return updateRecord(cond, map);
+	}
+
+	///
+	/// @brief Get token of a user. This token is NOT hashed(!)
+	/// @param user   The user name
+	/// @return       The token
+	///
+	inline const QByteArray getUserToken(const QString& user)
+	{
+		QVariantMap results;
+		VectorPair cond;
+		cond.append(CPair("user", user));
+		getRecord(cond, results, QStringList()<<"token");
+
+		return results["token"].toByteArray();
+	}
+
+	///
 	/// @brief update password of given user. The user should be tested (isUserAuthorized) to verify this change
 	/// @param user   The user name
 	/// @param newPw  The new password to set

@@ -62,6 +62,19 @@ public:
 	const bool & isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
 
 	///
+	/// @brief Check if Hyperion user has default password
+	/// @return       True if so, else false
+	///
+	const bool hasHyperionDefaultPw() { return isUserAuthorized("Hyperion","hyperion"); };
+
+	///
+	/// @brief Get the current valid token for user. Make sure this call is allowed!
+	/// @param For the defined user
+	/// @return       The token
+	///
+	const QString getUserToken(const QString & usr = "Hyperion");
+
+	///
 	/// @brief Reset Hyperion user
 	/// @return        True on success else false
 	///
@@ -88,6 +101,14 @@ public:
 	/// @return        True if authorized else false
 	///
 	bool isTokenAuthorized(const QString& token);
+
+	///
+	/// @brief Check if token is authorized
+	/// @param  usr    The username
+	/// @param  token  The token
+	/// @return        True if authorized else false
+	///
+	bool isUserTokenAuthorized(const QString& usr, const QString& token);
 
 	///
 	/// @brief Change password of user

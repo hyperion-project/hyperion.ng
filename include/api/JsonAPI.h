@@ -91,6 +91,11 @@ signals:
 	///
 	void forwardJsonMessage(QJsonObject);
 
+	///
+	/// @brief The API might decide to block connections for security reasons, this emitter should close the socket
+	///
+	void forceClose();
+
 private:
 	/// Auth management pointer
 	AuthManager* _authManager;

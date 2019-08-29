@@ -58,6 +58,12 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
+	// For security we block external connections if default PW is set
+	if(!localConnection && _authManager->hasHyperionDefaultPw())
+	{
+		emit forceClose();
+	}
+
 	// if this is localConnection and network allows unauth locals, set authorized flag
 	if(_apiAuthRequired && localConnection)
 		_authorized = !_authManager->isLocalAuthRequired();
@@ -1127,7 +1133,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	if(subc == "newPasswordRequired")
 	{
 		QJsonObject req;
-		req["newPasswordRequired"] = _authManager->isUserAuthorized("Hyperion", "hyperion");
+		req["newPasswordRequired"] = _authManager->hasHyperionDefaultPw();
 		sendSuccessDataReply(QJsonDocument(req), command+"-"+subc, tan);
 		return;
 	}
@@ -1287,12 +1293,27 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// login
 	if(subc == "login")
 	{
-		// catch token auth
 		const QString& token = message["token"].toString().trimmed();
 
+		// catch token
 		if(!token.isEmpty())
 		{
-			if(token.count() >= 36)
+			// userToken is longer
+			if(token.count() > 36)
+			{
+				if(_authManager->isUserTokenAuthorized("Hyperion",token))
+				{
+					_authorized = true;
+					_userAuthorized = true;
+					sendSuccessReply(command+"-"+subc, tan);
+				}
+				else
+					sendErrorReply("No Authorization", command+"-"+subc, tan);
+
+				return;
+			}
+			// usual app token is 36
+			if(token.count() == 36)
 			{
 				if(_authManager->isTokenAuthorized(token))
 				{
@@ -1317,7 +1338,10 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 			{
 				_authorized = true;
 				_userAuthorized = true;
-				sendSuccessReply(command+"-"+subc, tan);
+				// Return the current valid Hyperion user token
+				QJsonObject obj;
+				obj["token"] = _authManager->getUserToken();
+				sendSuccessDataReply(QJsonDocument(obj),command+"-"+subc, tan);
 			}
 			else
 				sendErrorReply("No Authorization", command+"-"+subc, tan);

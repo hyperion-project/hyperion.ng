@@ -32,6 +32,9 @@ AuthManager::AuthManager(QObject* parent)
 	{
 		_authTable->createUser("Hyperion","hyperion");
 	}
+
+	// update Hyperion user token on startup
+	_authTable->setUserToken("Hyperion");
 }
 
 const AuthManager::AuthDefinition AuthManager::createToken(const QString& comment)
@@ -67,6 +70,11 @@ const QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 	return finalVec;
 }
 
+const QString AuthManager::getUserToken(const QString & usr)
+{
+	return QString(_authTable->getUserToken("Hyperion"));
+}
+
 bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
 {
 	return _authTable->isUserAuthorized(user, pw);
@@ -75,6 +83,11 @@ bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
 bool AuthManager::isTokenAuthorized(const QString& token)
 {
 	return _authTable->tokenExist(token);
+}
+
+bool AuthManager::isUserTokenAuthorized(const QString& usr, const QString& token)
+{
+	return _authTable->isUserTokenAuthorized(usr, token);
 }
 
 bool AuthManager::updateUserPassword(const QString& user, const QString& pw, const QString& newPw)
