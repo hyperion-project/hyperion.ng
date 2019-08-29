@@ -46,7 +46,6 @@ Hyperion::Hyperion(const quint8& instance)
 	, _settingsManager(new SettingsManager(instance, this))
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
-	, _ledStringClone(hyperion::createLedStringClone(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
 	, _muxer(_ledString.leds().size())
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
@@ -86,10 +85,6 @@ void Hyperion::start()
 	for (Led& led : _ledString.leds())
 	{
 		_ledStringColorOrder.push_back(led.colorOrder);
-	}
-	for (Led& led : _ledStringClone.leds())
-	{
-		_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
 	}
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
@@ -202,9 +197,8 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// stop and cache all running effects, as effects depend heavily on ledlayout
 		_effectEngine->cacheRunningEffects();
 
-		// ledstring, clone, img processor, muxer, ledGridSize (eff engine image based effects), _ledBuffer and ByteOrder of ledstring
+		// ledstring, img processor, muxer, ledGridSize (eff engine image based effects), _ledBuffer and ByteOrder of ledstring
 		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
-		_ledStringClone = hyperion::createLedStringClone(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
 		_imageProcessor->setLedString(_ledString);
 		_muxer.updateLedColorsLength(_ledString.leds().size());
 		_ledGridSize = hyperion::getLedLayoutGridSize(leds);
@@ -216,10 +210,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		for (Led& led : _ledString.leds())
 		{
 			_ledStringColorOrder.push_back(led.colorOrder);
-		}
-		for (Led& led : _ledStringClone.leds())
-		{
-			_ledStringColorOrder.insert(_ledStringColorOrder.begin() + led.index, led.colorOrder);
 		}
 
 		// handle hwLedCount update
@@ -244,7 +234,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
 		{
 			_ledString = hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
-			_ledStringClone = hyperion::createLedStringClone(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
 			_imageProcessor->setLedString(_ledString);
 		}
 
@@ -367,6 +356,9 @@ void Hyperion::setColor(const int priority, const ColorRgb &color, const int tim
 
 	// create led vector from single color
 	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
+
+	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
+		clear(priority);
 
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
@@ -538,12 +530,6 @@ void Hyperion::update()
 	emit rawLedColors(_ledBuffer);
 
 	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
-
-	// insert cloned leds into buffer
-	for (Led& led : _ledStringClone.leds())
-	{
-		_ledBuffer.insert(_ledBuffer.begin() + led.index, _ledBuffer.at(led.clone));
-	}
 
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)

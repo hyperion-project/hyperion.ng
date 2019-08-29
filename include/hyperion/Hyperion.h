@@ -489,9 +489,6 @@ private:
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
-	/// specifiation of cloned leds
-	LedString _ledStringClone;
-
 	/// Image Processor
 	ImageProcessor* _imageProcessor;
 

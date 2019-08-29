@@ -192,86 +192,32 @@ namespace hyperion {
 	{
 		LedString ledString;
 		const QString deviceOrderStr = colorOrderToString(deviceOrder);
-		int maxLedId = ledConfigArray.size();
 
 		for (signed i = 0; i < ledConfigArray.size(); ++i)
 		{
 			const QJsonObject& index = ledConfigArray[i].toObject();
-
 			Led led;
-			led.index = index["index"].toInt();
-			led.clone = index["clone"].toInt(-1);
-			if ( led.clone < -1 || led.clone >= maxLedId )
+
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
+			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
+			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
+			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
+			led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
+			// Fix if the user swapped min and max
+			if (led.minX_frac > led.maxX_frac)
 			{
-				//Warning(_log, "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
-				led.clone = -1;
+				std::swap(led.minX_frac, led.maxX_frac);
+			}
+			if (led.minY_frac > led.maxY_frac)
+			{
+				std::swap(led.minY_frac, led.maxY_frac);
 			}
 
-			if ( led.clone < 0 )
-			{
-				const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
-				const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-				led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
-				led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
-				led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
-				led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
-				// Fix if the user swapped min and max
-				if (led.minX_frac > led.maxX_frac)
-				{
-					std::swap(led.minX_frac, led.maxX_frac);
-				}
-				if (led.minY_frac > led.maxY_frac)
-				{
-					std::swap(led.minY_frac, led.maxY_frac);
-				}
-
-				// Get the order of the rgb channels for this led (default is device order)
-				led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
-				ledString.leds().push_back(led);
-			}
+			// Get the order of the rgb channels for this led (default is device order)
+			led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
+			ledString.leds().push_back(led);
 		}
-
-		// Make sure the leds are sorted (on their indices)
-		std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
-		return ledString;
-	}
-
-	LedString createLedStringClone(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
-	{
-		LedString ledString;
-		const QString deviceOrderStr = colorOrderToString(deviceOrder);
-		int maxLedId = ledConfigArray.size();
-
-		for (signed i = 0; i < ledConfigArray.size(); ++i)
-		{
-			const QJsonObject& index = ledConfigArray[i].toObject();
-
-			Led led;
-			led.index = index["index"].toInt();
-			led.clone = index["clone"].toInt(-1);
-			if ( led.clone < -1 || led.clone >= maxLedId )
-			{
-				//Warning(_log, "LED %d: clone index of %d is out of range, clone ignored", led.index, led.clone);
-				led.clone = -1;
-			}
-
-			if ( led.clone >= 0 )
-			{
-				//Debug(_log, "LED %d: clone from led %d", led.index, led.clone);
-				led.minX_frac = 0;
-				led.maxX_frac = 0;
-				led.minY_frac = 0;
-				led.maxY_frac = 0;
-				// Get the order of the rgb channels for this led (default is device order)
-				led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
-
-				ledString.leds().push_back(led);
-			}
-
-		}
-
-		// Make sure the leds are sorted (on their indices)
-		std::sort(ledString.leds().begin(), ledString.leds().end(), [](const Led& lhs, const Led& rhs){ return lhs.index < rhs.index; });
 		return ledString;
 	}
 
@@ -282,30 +228,26 @@ namespace hyperion {
 
 		for (signed i = 0; i < ledConfigArray.size(); ++i)
 		{
-			const QJsonObject& index = ledConfigArray[i].toObject();
-
-			if (index["clone"].toInt(-1) < 0 )
+			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
+			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
+			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
+			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
+			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
+			double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
+			// Fix if the user swapped min and max
+			if (minX_frac > maxX_frac)
 			{
-				const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["hscan"].toObject();
-				const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["vscan"].toObject();
-				double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["minimum"].toDouble()));
-				double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["maximum"].toDouble()));
-				double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["minimum"].toDouble()));
-				double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["maximum"].toDouble()));
-				// Fix if the user swapped min and max
-				if (minX_frac > maxX_frac)
-				{
-					std::swap(minX_frac, maxX_frac);
-				}
-				if (minY_frac > maxY_frac)
-				{
-					std::swap(minY_frac, maxY_frac);
-				}
-
-				// calculate mid point and make grid calculation
-				midPointsX.push_back( int(1000.0*(minX_frac + maxX_frac) / 2.0) );
-				midPointsY.push_back( int(1000.0*(minY_frac + maxY_frac) / 2.0) );
+				std::swap(minX_frac, maxX_frac);
 			}
+			if (minY_frac > maxY_frac)
+			{
+				std::swap(minY_frac, maxY_frac);
+			}
+
+			// calculate mid point and make grid calculation
+			midPointsX.push_back( int(1000.0*(minX_frac + maxX_frac) / 2.0) );
+			midPointsY.push_back( int(1000.0*(minY_frac + maxY_frac) / 2.0) );
+
 		}
 
 		// remove duplicates
@@ -315,7 +257,7 @@ namespace hyperion {
 		midPointsY.erase(std::unique(midPointsY.begin(), midPointsY.end()), midPointsY.end());
 
 		QSize gridSize( midPointsX.size(), midPointsY.size() );
-		//Debug(_log, "led layout grid: %dx%d", gridSize.width(), gridSize.height());
+		//Debug(_log, "LED layout grid size: %dx%d", gridSize.width(), gridSize.height());
 
 		return gridSize;
 	}

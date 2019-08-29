@@ -204,289 +204,263 @@
     "leds":
 	[
 		{
-			"hscan": {
-				"maximum": 0.125,
-				"minimum": 0
+			"h": {
+				"max": 0.125,
+				"min": 0
 			},
-			"index": 0,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.25,
-				"minimum": 0.125
+			"h": {
+				"max": 0.25,
+				"min": 0.125
 			},
-			"index": 1,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.375,
-				"minimum": 0.25
+			"h": {
+				"max": 0.375,
+				"min": 0.25
 			},
-			"index": 2,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.5,
-				"minimum": 0.375
+			"h": {
+				"max": 0.5,
+				"min": 0.375
 			},
-			"index": 3,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.625,
-				"minimum": 0.5
+			"h": {
+				"max": 0.625,
+				"min": 0.5
 			},
-			"index": 4,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.75,
-				"minimum": 0.625
+			"h": {
+				"max": 0.75,
+				"min": 0.625
 			},
-			"index": 5,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.875,
-				"minimum": 0.75
+			"h": {
+				"max": 0.875,
+				"min": 0.75
 			},
-			"index": 6,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.875
+			"h": {
+				"max": 1,
+				"min": 0.875
 			},
-			"index": 7,
-			"vscan": {
-				"maximum": 0.08,
-				"minimum": 0
+			"v": {
+				"max": 0.08,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.95
+			"h": {
+				"max": 1,
+				"min": 0.95
 			},
-			"index": 8,
-			"vscan": {
-				"maximum": 0.2,
-				"minimum": 0
+			"v": {
+				"max": 0.2,
+				"min": 0
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.95
+			"h": {
+				"max": 1,
+				"min": 0.95
 			},
-			"index": 9,
-			"vscan": {
-				"maximum": 0.4,
-				"minimum": 0.2
+			"v": {
+				"max": 0.4,
+				"min": 0.2
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.95
+			"h": {
+				"max": 1,
+				"min": 0.95
 			},
-			"index": 10,
-			"vscan": {
-				"maximum": 0.6,
-				"minimum": 0.4
+			"v": {
+				"max": 0.6,
+				"min": 0.4
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.95
+			"h": {
+				"max": 1,
+				"min": 0.95
 			},
-			"index": 11,
-			"vscan": {
-				"maximum": 0.8,
-				"minimum": 0.6
+			"v": {
+				"max": 0.8,
+				"min": 0.6
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.95
+			"h": {
+				"max": 1,
+				"min": 0.95
 			},
-			"index": 12,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.8
+			"v": {
+				"max": 1,
+				"min": 0.8
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 1,
-				"minimum": 0.875
+			"h": {
+				"max": 1,
+				"min": 0.875
 			},
-			"index": 13,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.875,
-				"minimum": 0.75
+			"h": {
+				"max": 0.875,
+				"min": 0.75
 			},
-			"index": 14,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.75,
-				"minimum": 0.625
+			"h": {
+				"max": 0.75,
+				"min": 0.625
 			},
-			"index": 15,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.625,
-				"minimum": 0.5
+			"h": {
+				"max": 0.625,
+				"min": 0.5
 			},
-			"index": 16,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.5,
-				"minimum": 0.375
+			"h": {
+				"max": 0.5,
+				"min": 0.375
 			},
-			"index": 17,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.375,
-				"minimum": 0.25
+			"h": {
+				"max": 0.375,
+				"min": 0.25
 			},
-			"index": 18,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.25,
-				"minimum": 0.125
+			"h": {
+				"max": 0.25,
+				"min": 0.125
 			},
-			"index": 19,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.125,
-				"minimum": 0
+			"h": {
+				"max": 0.125,
+				"min": 0
 			},
-			"index": 20,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.92
+			"v": {
+				"max": 1,
+				"min": 0.92
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.05,
-				"minimum": 0
+			"h": {
+				"max": 0.05,
+				"min": 0
 			},
-			"index": 21,
-			"vscan": {
-				"maximum": 1,
-				"minimum": 0.8
+			"v": {
+				"max": 1,
+				"min": 0.8
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.05,
-				"minimum": 0
+			"h": {
+				"max": 0.05,
+				"min": 0
 			},
-			"index": 22,
-			"vscan": {
-				"maximum": 0.8,
-				"minimum": 0.6
+			"v": {
+				"max": 0.8,
+				"min": 0.6
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.05,
-				"minimum": 0
+			"h": {
+				"max": 0.05,
+				"min": 0
 			},
-			"index": 23,
-			"vscan": {
-				"maximum": 0.6,
-				"minimum": 0.4
+			"v": {
+				"max": 0.6,
+				"min": 0.4
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.05,
-				"minimum": 0
+			"h": {
+				"max": 0.05,
+				"min": 0
 			},
-			"index": 24,
-			"vscan": {
-				"maximum": 0.4,
-				"minimum": 0.2
+			"v": {
+				"max": 0.4,
+				"min": 0.2
 			}
 		},
 		{
-			"hscan": {
-				"maximum": 0.05,
-				"minimum": 0
+			"h": {
+				"max": 0.05,
+				"min": 0
 			},
-			"index": 25,
-			"vscan": {
-				"maximum": 0.2,
-				"minimum": 0
+			"v": {
+				"max": 0.2,
+				"min": 0
 			}
 		}
 	]

@@ -185,6 +185,7 @@ bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.ledColors      = ledColors;
+	input.image.clear();
 
 	// emit active change
 	if(activeChange)
@@ -224,6 +225,7 @@ bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& ima
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.image          = image;
+	input.ledColors.clear();
 
 	// emit active change
 	if(activeChange)
