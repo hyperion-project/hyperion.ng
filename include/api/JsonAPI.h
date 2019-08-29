@@ -316,4 +316,9 @@ private:
 	/// @param error String describing the error
 	///
 	void sendErrorReply(const QString & error, const QString &command="", const int tan=0);
+
+	///
+	/// @brief Kill all signal/slot connections to stop possible data emitter
+	///
+	void stopDataConnections(void);
 };

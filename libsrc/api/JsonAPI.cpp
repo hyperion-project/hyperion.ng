@@ -51,7 +51,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _log(log)
 	, _instanceManager(HyperionIManager::getInstance())
 	, _hyperion(nullptr)
-	, _jsonCB(nullptr)
+	, _jsonCB(new JsonCB(this))
 	, _streaming_logging_activated(false)
 	, _image_stream_timeout(0)
 	, _led_stream_timeout(0)
@@ -77,6 +77,9 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	// listen for killed instances
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
 
+	// pipe callbacks from subscriptions to parent
+	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
+
 	// init Hyperion pointer
 	handleInstanceSwitch(0);
 
@@ -100,30 +103,8 @@ bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
 		// get new Hyperion pointer
 		_hyperion = _instanceManager->getHyperionInstance(inst);
 
-		// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
-		QStringList cbCmds;
-		if(_jsonCB != nullptr)
-		{
-			cbCmds = _jsonCB->getSubscribedCommands();
-			delete _jsonCB;
-		}
-
-		_jsonCB = new JsonCB(_hyperion, this);
-		connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
-
-		// read subs
-		for(const auto & entry : cbCmds)
-		{
-			_jsonCB->subscribeFor(entry);
-		}
-
-// 		// imageStream last state
-// 		if(_ledcolorsImageActive)
-// 			connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
-//
-// 		//ledColor stream last state
-// 		if(_ledcolorsLedsActive)
-// 			connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
+		// the JsonCB creates json messages you can subscribe to e.g. data change events
+		_jsonCB->setSubscriptionsTo(_hyperion);
 
 		return true;
 	}
@@ -1156,6 +1137,8 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	{
 		_authorized = false;
 		_userAuthorized = false;
+		// disconnect all kind of data callbacks
+		stopDataConnections();
 		sendSuccessReply(command+"-"+subc, tan);
 		return;
 	}
@@ -1612,4 +1595,11 @@ void JsonAPI::handleInstanceStateChange(const instanceState& state, const quint8
 		default:
 			break;
 	}
+}
+
+void JsonAPI::stopDataConnections(void)
+{
+	LoggerManager::getInstance()->disconnect();
+	_jsonCB->resetSubscriptions();
+
 }
