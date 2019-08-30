@@ -112,6 +112,24 @@ $(document).ready( function() {
 		$('#id_select').trigger('change');
 	});
 
+	//Change Password
+	$('#btn_changePassword').off().on('click',function() {
+		showInfoDialog('changePassword', $.i18n('InfoDialog_changePassword_title'));		
+
+		$('#id_btn_ok').off().on('click',function() {
+			var oldPw = $('#oldPw').val();
+			var newPw = $('#newPw').val();
+		
+			requestChangePassword(oldPw, newPw)
+		});
+	});
+
+	//Lock Ui
+	$('#btn_lock_ui').off().on('click',function() {
+		removeStorage('loginToken', true);
+		location.replace('/');
+	});
+
 	//hide menu elements
 	if (storedAccess != 'expert')
 		$('#load_webconfig').toggle(false);

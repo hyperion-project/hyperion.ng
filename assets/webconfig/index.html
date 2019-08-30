@@ -92,7 +92,7 @@
 			</div>
 			<!-- /.navbar-header -->
 
-			<ul class="nav navbar-top-links navbar-right">
+			<ul class="nav navbar-top-links navbar-right" id="top-navbar">
 				<!-- Browser built in capture stream - streamer.js -->
 				<li class="dropdown" id="btn_streamer" style="display:none">
 						<!-- Hidden helpers -->
@@ -170,7 +170,22 @@
 								</div>
 							</a>
 						</li>
+						<li class="divider"></li>
+						<li id="btn_changePassword">
+							<a>
+								<div>
+									<i class="fa fa-key fa-fw"></i>
+									<span data-i18n="InfoDialog_changePassword_title"></span>
+								</div>
+							</a>
+						</li>
 					</ul>
+				</li>
+				<!-- /.lock-ui -->
+				<li class="dropdown" id="btn_lock_ui" style="display:none">
+					<a>
+						<i class="fa fa-lock fa-fw"></i>
+					</a>
 				</li>
 			</ul>
 			<!-- /.navbar-top-left -->
@@ -226,6 +241,12 @@
 			<div class="bs-callout bs-callout-warning">
 				<h4 data-i18n="dashboard_message_global_setting_t"></h4>
 				<span data-i18n="dashboard_message_global_setting"></span>
+			</div>
+		</div>
+		<div id="hyperion_default_password_notify" style="display:none;padding:0 10px;margin:0">
+			<div class="bs-callout bs-callout-warning">
+				<h4 data-i18n="dashboard_message_default_password_t"></h4>
+				<span data-i18n="dashboard_message_default_password"></span>
 			</div>
 		</div>
 		<div id="hyperion_disabled_notify" style="display:none;padding:0 10px;margin:0">

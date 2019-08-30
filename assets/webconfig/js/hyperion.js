@@ -28,6 +28,7 @@ window.wSess = [];
 window.currentHyperionInstance = 0;
 window.currentHyperionInstanceName = "?";
 window.comps = [];
+window.defaultPasswordIsSet = null;
 tokenList = {};
 
 function initRestart()
@@ -176,14 +177,19 @@ function requestRequiresDefaultPasswortChange()
 	sendToHyperion("authorize","newPasswordRequired");
 }
 // Change password
-function requestChangePassword(oldPw, newPW)
+function requestChangePassword(oldPw, newPw)
 {
 	sendToHyperion("authorize","newPassword",'"password": "'+oldPw+'", "newPassword":"'+newPw+'"');
 }
 
-function requestAuthorization()
+function requestAuthorization(password)
 {
-	sendToHyperion("authorize","login",'"password": "hyperion"');
+	sendToHyperion("authorize","login",'"password": "' + password + '"');
+}
+
+function requestTokenAuthorization(token)
+{
+	sendToHyperion("authorize","login",'"token": "' + token + '"');
 }
 
 function requestToken(comment)
