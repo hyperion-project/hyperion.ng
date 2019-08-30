@@ -71,11 +71,12 @@ void JsonAPI::initialize(void)
 		_authorized = !_authManager->isLocalAuthRequired();
 
 	// admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
-	// authorization is also granted for api based on admin result. Pro: Admin should have full access.
 	if(_localConnection)
 	{
 		_userAuthorized = !_authManager->isLocalAdminAuthRequired();
-		_authorized = _userAuthorized;
+		// just in positive direction
+		if(_userAuthorized)
+			_authorized = true;
 	}
 
 	// setup auth interface
