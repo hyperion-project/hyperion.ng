@@ -616,6 +616,8 @@
 	"edt_conf_net_apiAuth_expl":"Zwinge alle Anwendungen welche die Hyperion API nutzen sich zu authentifizieren. Aktivieren für höhere Sicherheit, da nun jede neue Anwendung einmalig von dir bestätigt werden muss.",
 	"edt_conf_net_localApiAuth_title" : "Lokale API Authentifizierung",
 	"edt_conf_net_localApiAuth_expl" : "Wenn aktiviert, müssen Verbindungen aus dem Heimnetzwerk mit einem Token authentifiziert werden.",
+	"edt_conf_net_localAdminAuth_title":"Lokale Admin Authentifizierung",
+	"edt_conf_net_localAdminAuth_expl":"Wenn aktiviert, muss der Administrationszugriff aus dem Heimnetzwerk mit einem Passwort authentifiziert werden.",
 	"edt_conf_net_restirctedInternetAccessAPI_title" : "Auf IP's beschränken",
 	"edt_conf_net_restirctedInternetAccessAPI_expl": "Den Zugriff auf die API durch das Internet auf bestimmte IP's beschränken",
 	"edt_conf_js_heading_title": "JSON Server",
