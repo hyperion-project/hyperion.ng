@@ -37,6 +37,11 @@ public:
 	///
 	void handleMessage(const QString & message, const QString& httpAuthHeader = "");
 
+	///
+	/// @brief Initialization steps
+	///
+	void initialize(void);
+
 public slots:
 	///
 	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
@@ -116,6 +121,9 @@ private:
 
 	/// Log instance
 	Logger* _log;
+
+	/// Is this a local connection
+	bool _localConnection;
 
 	/// Hyperion instance manager
 	HyperionIManager* _instanceManager;

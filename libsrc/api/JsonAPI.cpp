@@ -48,6 +48,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _noListener(noListener)
 	, _peerAddress(peerAddress)
 	, _log(log)
+	, _localConnection(localConnection)
 	, _instanceManager(HyperionIManager::getInstance())
 	, _hyperion(nullptr)
 	, _jsonCB(new JsonCB(this))
@@ -56,20 +57,22 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _ledStreamTimer(new QTimer(this))
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+}
 
+void JsonAPI::initialize(void)
+{
 	// For security we block external connections if default PW is set
-	if(!localConnection && _authManager->hasHyperionDefaultPw())
+	if(!_localConnection && _authManager->hasHyperionDefaultPw())
 	{
 		emit forceClose();
 	}
-
 	// if this is localConnection and network allows unauth locals, set authorized flag
-	if(_apiAuthRequired && localConnection)
+	if(_apiAuthRequired && _localConnection)
 		_authorized = !_authManager->isLocalAuthRequired();
 
 	// admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
 	// authorization is also granted for api based on admin result. Pro: Admin should have full access.
-	if(localConnection)
+	if(_localConnection)
 	{
 		_userAuthorized = !_authManager->isLocalAdminAuthRequired();
 		_authorized = _userAuthorized;
@@ -1646,6 +1649,9 @@ void JsonAPI::handleInstanceStateChange(const instanceState& state, const quint8
 void JsonAPI::stopDataConnections(void)
 {
 	LoggerManager::getInstance()->disconnect();
+	_streaming_logging_activated = false;
 	_jsonCB->resetSubscriptions();
+	_imageStreamTimer->stop();
+	_ledStreamTimer->stop();
 
 }

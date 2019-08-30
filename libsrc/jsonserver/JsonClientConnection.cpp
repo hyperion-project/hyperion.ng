@@ -17,7 +17,10 @@ JsonClientConnection::JsonClientConnection(QTcpSocket *socket, const bool& local
 	// create a new instance of JsonAPI
 	_jsonAPI = new JsonAPI(socket->peerAddress().toString(), _log, localConnection, this);
 	// get the callback messages from JsonAPI and send it to the client
-	connect(_jsonAPI,SIGNAL(callbackMessage(QJsonObject)),this,SLOT(sendMessage(QJsonObject)));
+	connect(_jsonAPI, &JsonAPI::callbackMessage, this , &JsonClientConnection::sendMessage);
+	connect(_jsonAPI, &JsonAPI::forceClose, this , [&](){ _socket->close(); } );
+
+	_jsonAPI->initialize();
 }
 
 void JsonClientConnection::readRequest()

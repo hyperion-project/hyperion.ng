@@ -300,8 +300,8 @@ void QtHttpClientWrapper::onReplySendDataRequested (void)
 
 void QtHttpClientWrapper::sendToClientWithReply(QtHttpReply * reply)
 {
-	connect (reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested);
-	connect (reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested);
+	connect (reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+	connect (reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
 	m_parsingStatus = sendReplyToClient (reply);
 }
 
@@ -339,4 +339,20 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 	}
 
 	return AwaitingRequest;
+}
+
+void QtHttpClientWrapper::closeConnection()
+{
+	// probably filter for request to follow http spec
+	if(m_currentRequest != Q_NULLPTR)
+	{
+		QtHttpReply reply(m_serverHandle);
+		reply.setStatusCode(QtHttpReply::StatusCode::Forbidden);
+
+		connect (&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+		connect (&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
+		m_parsingStatus = sendReplyToClient(&reply);
+	}
+	m_sockClient->close ();
 }
