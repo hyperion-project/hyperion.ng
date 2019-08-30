@@ -111,6 +111,18 @@ public:
 	bool isUserTokenAuthorized(const QString& usr, const QString& token);
 
 	///
+	/// @brief Check if user auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
+	///
+	bool isUserAuthBlocked(){ return (_userAuthAttempts.length() >= 10); };
+
+	///
+	/// @brief Check if token auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
+	///
+	bool isTokenAuthBlocked(){ return (_tokenAuthAttempts.length() >= 25); };
+
+	///
 	/// @brief Change password of user
 	/// @param  user  The username
 	/// @param  pw    The CURRENT password
@@ -186,6 +198,12 @@ signals:
 	void tokenResponse(const bool& success, QObject* caller, const QString& token, const QString& comment, const QString& id);
 
 private:
+	///
+	/// @brief Increment counter for token/user auth
+	/// @param user If true we increment USER auth instead of token
+	///
+	void setAuthBlock(const bool& user = false);
+
 	/// Database interface for auth table
 	AuthTable* _authTable;
 
@@ -210,9 +228,23 @@ private:
 	/// Timer for counting against pendingRequest timeouts
 	QTimer* _timer;
 
+	// Timer which cleans up the block counter
+	QTimer* _authBlockTimer;
+
+	// Contains timestamps of failed user login attempts
+	QVector<uint64_t> _userAuthAttempts;
+
+	// Contains timestamps of failed token login attempts
+	QVector<uint64_t> _tokenAuthAttempts;
+
 private slots:
 	///
 	/// @brief Check timeout of pending requests
 	///
 	void checkTimeout();
+
+	///
+	/// @brief Check if there are timeouts for failed login attempts
+	///
+	void checkAuthBlockTimeout();
 };
