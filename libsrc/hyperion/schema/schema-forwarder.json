@@ -24,15 +24,15 @@
 			},
 			"propertyOrder" : 2
 		},
-		"proto" :
+		"flat" :
 		{
 			"type" : "array",
-			"title" : "edt_conf_fw_proto_title",
+			"title" : "edt_conf_fw_flat_title",
 			"required" : true,
 			"default" : ["127.0.0.1:19401"],
 			"items" : {
 				"type": "string",
-				"title" : "edt_conf_fw_proto_itemtitle"
+				"title" : "edt_conf_fw_flat_itemtitle"
 			},
 			"propertyOrder" : 3
 		}

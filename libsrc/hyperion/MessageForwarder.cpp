@@ -49,7 +49,7 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 	{
 		// clear the current targets
 		_jsonSlaves.clear();
-		_protoSlaves.clear();
+		_flatSlaves.clear();
 		while (!_forwardClients.isEmpty())
 			delete _forwardClients.takeFirst();
 
@@ -64,12 +64,12 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 			}
 		}
 
-		if ( !obj["proto"].isNull() )
+		if ( !obj["flat"].isNull() )
 		{
-			const QJsonArray & addr = obj["proto"].toArray();
+			const QJsonArray & addr = obj["flat"].toArray();
 			for (const auto& entry : addr)
 			{
-				addProtoSlave(entry.toString());
+				addFlatbufferSlave(entry.toString());
 			}
 		}
 
@@ -80,11 +80,11 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 		} else if (_jsonSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
 			disconnect(_hyperion, &Hyperion::forwardJsonMessage, 0, 0);
 
-		if (!_protoSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
+		if (!_flatSlaves.isEmpty() && obj["enable"].toBool() && _forwarder_enabled)
 		{
-			InfoIf(obj["enable"].toBool(true), _log, "Forward now to proto targets '%s'", QSTRING_CSTR(_protoSlaves.join(", ")));
-// 			connect(_hyperion, &Hyperion::forwardProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
-		} else if ( _protoSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
+			InfoIf(obj["enable"].toBool(true), _log, "Forward now to flatbuffer targets '%s'", QSTRING_CSTR(_flatSlaves.join(", ")));
+		}
+		else if ( _flatSlaves.isEmpty() || ! obj["enable"].toBool() || !_forwarder_enabled)
 		{
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
@@ -111,7 +111,7 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 	const QJsonObject obj = _hyperion->getSetting(settings::NETFORWARD).object();
 	if (priority != 0 && _forwarder_enabled && obj["enable"].toBool())
 	{
-		_protoSlaves.clear();
+		_flatSlaves.clear();
 		while (!_forwardClients.isEmpty())
 			delete _forwardClients.takeFirst();
 
@@ -123,7 +123,7 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 				const QJsonArray & addr = obj["proto"].toArray();
 				for (const auto& entry : addr)
 				{
-					addProtoSlave(entry.toString());
+					addFlatbufferSlave(entry.toString());
 				}
 			}
 
@@ -132,13 +132,13 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 				case hyperion::COMP_GRABBER:
 				{
 					disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, 0, 0);
-					connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+					connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 				}
 				break;
 				case hyperion::COMP_V4L:
 				{
 					disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, 0, 0);
-					connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardProtoMessage, Qt::UniqueConnection);
+					connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 				}
 				break;
 				default:
@@ -185,7 +185,7 @@ void MessageForwarder::addJsonSlave(QString slave)
 		_jsonSlaves << slave;
 }
 
-void MessageForwarder::addProtoSlave(QString slave)
+void MessageForwarder::addFlatbufferSlave(QString slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
@@ -206,13 +206,13 @@ void MessageForwarder::addProtoSlave(QString slave)
 	const QJsonObject &obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
 	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 	{
-		Error(_log, "Loop between ProtoServer and Forwarder! (%s)",QSTRING_CSTR(slave));
+		Error(_log, "Loop between Flatbuffer Server and Forwarder! (%s)",QSTRING_CSTR(slave));
 		return;
 	}
 
 	if (_forwarder_enabled)
 	{
-		_protoSlaves << slave;
+		_flatSlaves << slave;
 		FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", slave.toLocal8Bit().constData(), _priority, false);
 		_forwardClients << flatbuf;
 	}
@@ -236,7 +236,7 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject &message)
 	}
 }
 
-void MessageForwarder::forwardProtoMessage(const QString& name, const Image<ColorRgb> &image)
+void MessageForwarder::forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image)
 {
 	if (_forwarder_enabled)
 	{
