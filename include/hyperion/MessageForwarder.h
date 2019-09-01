@@ -37,7 +37,7 @@ public:
 	~MessageForwarder();
 
 	void addJsonSlave(QString slave);
-	void addProtoSlave(QString slave);
+	void addFlatbufferSlave(QString slave);
 
 private slots:
 	///
@@ -67,10 +67,10 @@ private slots:
 	void forwardJsonMessage(const QJsonObject &message);
 
 	///
-	/// @brief Forward image to all proto slaves
-	/// @param image The PROTO image to send
+	/// @brief Forward image to all flatbuffer slaves
+	/// @param image The flatbuffer image to send
 	///
-	void forwardProtoMessage(const QString& name, const Image<ColorRgb> &image);
+	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
 
 	///
 	/// @brief Forward message to a single json slave
@@ -93,7 +93,7 @@ private:
 	QStringList   _jsonSlaves;
 
 	/// Proto connection for forwarding
-	QStringList _protoSlaves;
+	QStringList _flatSlaves;
 	QList<FlatBufferConnection*> _forwardClients;
 
 	/// Flag if forwarder is enabled
