@@ -348,11 +348,6 @@ $(document).ready(function() {
 		$('#texfield_panel').toggle(false);
 		$('#previewcreator').toggle(false);
 	}
-	else
-	{
-		$('#btn_ma_save').toggle(false);
-		$('#btn_cl_save').toggle(false);
-	}
 
 	//Wiki link
 	$('#leds_wl').append('<p style="font-weight:bold">'+$.i18n('general_wiki_moreto',$.i18n('conf_leds_nav_label_ledlayout'))+buildWL("user/moretopics/ledarea","Wiki")+'</p>');
