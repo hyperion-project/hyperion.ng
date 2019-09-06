@@ -142,6 +142,10 @@ $(document).ready( function() {
 
 		if(!isInData)
 		{
+			//Delete Storage information about the last used but now stopped instance
+			if (getStorage('lastSelectedInstance', false))
+				removeStorage('lastSelectedInstance', false)
+
 			currentHyperionInstance = 0;
 			currentHyperionInstanceName = getInstanceNameByIndex(0);
 			requestServerConfig();
