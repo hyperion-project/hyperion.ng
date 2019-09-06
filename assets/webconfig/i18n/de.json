@@ -160,7 +160,6 @@
 	"conf_leds_layout_cl_reversdir": "Richtung umkehren",
 	"conf_leds_layout_cl_hleddepth": "Horizontale LED Tiefe",
 	"conf_leds_layout_cl_vleddepth": "Vertikale LED Tiefe",
-	"conf_leds_layout_cl_generate": "Generiere LED Konfiguration",
 	"conf_leds_layout_cl_edgegap": "Rahmenabstand",
 	"conf_leds_layout_cl_cornergap": "Eckabstand",
 	"conf_leds_layout_cl_overlap": "Überlappung",
