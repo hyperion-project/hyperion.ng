@@ -40,6 +40,17 @@ function setStorage(item, value, session)
 	}
 }
 
+function removeStorage(item, session)
+{
+	if(storageComp())
+	{
+		if(session === true)
+			sessionStorage.removeItem(item);
+		else
+			localStorage.removeItem(item);
+	}
+}
+
 function debugMessage(msg)
 {
 	if (window.debugMessagesActive)

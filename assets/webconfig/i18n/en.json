@@ -159,7 +159,6 @@
 	"conf_leds_layout_cl_reversdir" : "Reverse direction",
 	"conf_leds_layout_cl_hleddepth" : "Horizontal LED depth",
 	"conf_leds_layout_cl_vleddepth" : "Vertical LED depth",
-	"conf_leds_layout_cl_generate" : "Generate LED configuration",
 	"conf_leds_layout_cl_edgegap" : "Edge Gap",
 	"conf_leds_layout_cl_cornergap" : "Corner Gap",
 	"conf_leds_layout_cl_overlap" : "Overlap",

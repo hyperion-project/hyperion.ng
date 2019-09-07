@@ -538,7 +538,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 	// get available led devices
 	QJsonObject ledDevices;
-	ledDevices["active"] = _hyperion->getActiveDevice();
 	QJsonArray availableLedDevices;
 	for (auto dev: LedDeviceWrapper::getDeviceMap())
 	{

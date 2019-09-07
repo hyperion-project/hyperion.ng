@@ -2,6 +2,7 @@
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
 var conf_editor = null;
+var aceEdt = null;
 
 function round(number) {
 	var factor = Math.pow(10, 4);
@@ -52,6 +53,9 @@ function createLedPreview(leds, origin){
 
 	if($('#leds_prev_toggle_num').hasClass('btn-success'))
 		$('.led_prev_num').css("display", "inline");
+
+	// update ace Editor content
+	aceEdt.set(finalLedArray);
 
 }
 
@@ -343,15 +347,8 @@ $(document).ready(function() {
 	// check access level and adjust ui
 	if(storedAccess == "default")
 	{
-		$('#btn_ma_generate').toggle(false);
-		$('#btn_cl_generate').toggle(false);
 		$('#texfield_panel').toggle(false);
 		$('#previewcreator').toggle(false);
-	}
-	else
-	{
-		$('#btn_ma_save').toggle(false);
-		$('#btn_cl_save').toggle(false);
 	}
 
 	//Wiki link
@@ -371,7 +368,7 @@ $(document).ready(function() {
 	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
 	var ledschema = {"items":{"additionalProperties":false,"required":["h","v"],"properties":{"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"h":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"v":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"};
 	//create jsonace editor
-	var aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
+	aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
 		mode: 'code',
 		schema: ledschema,
 		onChange: function(){
@@ -411,17 +408,6 @@ $(document).ready(function() {
 	// leds to finalLedArray
 	finalLedArray = window.serverConfig.leds;
 
-	// cl/ma leds push to textfield
-	$('#btn_cl_generate, #btn_ma_generate').off().on("click", function(e) {
-		if(e.currentTarget.id == "btn_cl_generate")
-			$('#collapse1').collapse('hide');
-		else
-			$('#collapse2').collapse('hide');
-
-		aceEdt.set(finalLedArray);
-		$('#collapse4').collapse('show');
-	});
-
 	// create and update editor
 	$("#leddevices").off().on("change", function() {
 		var generalOptions  = window.serverSchema.properties.device;
@@ -436,7 +422,7 @@ $(document).ready(function() {
 
 		var values_general = {};
 		var values_specific = {};
-		var isCurrentDevice = (window.serverInfo.ledDevices.active == $(this).val());
+		var isCurrentDevice = (window.serverConfig.device.type == $(this).val());
 
 		for(var key in window.serverConfig.device){
 			if (key != "type" && key in generalOptions.properties)
@@ -507,7 +493,7 @@ $(document).ready(function() {
 	$("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
 	$("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 	$("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
-	$("#leddevices").val(window.serverInfo.ledDevices.active);
+	$("#leddevices").val(window.serverConfig.device.type);
 	$("#leddevices").trigger("change");
 
 	// validate textfield and update preview
