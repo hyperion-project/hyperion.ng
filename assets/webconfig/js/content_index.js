@@ -251,3 +251,8 @@ $(function(){
 		$(this).toggleClass('active inactive');
 	});
 });
+
+// hotfix body padding when bs modals overlap
+$(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
+    $('body').css('padding-right','0');
+});
