@@ -3,7 +3,7 @@
 ##############
 #ON TARGET
 #--------------
-#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev aptitude show qt5-default rsync
+#sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libqt5sql5-sqlite aptitude show qt5-default rsync
 #############
 #ON HOST
 #---------
@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get upgrade
 # !!! TO-DO verify aptitude gcc-multilib
 
-sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev
+sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libqt5sql5-sqlite
 #---------
 
 
