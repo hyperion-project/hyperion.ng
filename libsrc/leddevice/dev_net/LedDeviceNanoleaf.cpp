@@ -177,22 +177,12 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
         }
     }
 
+	// Set UDP streaming port
+	_port = STREAM_CONTROL_DEFAULT_PORT;
+	_defaultHost = _hostname;
+
     switchOn();
 
-    // Set Nanoleaf to External Control (UDP) mode
-    Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
-    QJsonDocument responseDoc = changeToExternalControlMode();
-
-    // Set UDP streaming port
-    _port = STREAM_CONTROL_DEFAULT_PORT;
-
-    // Resolve port for Ligh Panels
-    QJsonObject jsonStreamControllInfo = responseDoc.object();
-    if ( ! jsonStreamControllInfo.isEmpty() ) {
-        _port = jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt();
-    }
-
-    _defaultHost = _hostname;
     ProviderUdp::init(deviceConfig);
 
     Debug(_log, "Started successfully" );
@@ -477,6 +467,16 @@ QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const {
 
 int LedDeviceNanoleaf::switchOn() {
     Debug(_log, "switchOn()");
+
+	// Set Nanoleaf to External Control (UDP) mode
+	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
+	QJsonDocument responseDoc = changeToExternalControlMode();
+	// Resolve port for Ligh Panels
+	QJsonObject jsonStreamControllInfo = responseDoc.object();
+	if ( ! jsonStreamControllInfo.isEmpty() ) {
+		_port = jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt();
+	}
+
     //Switch on Nanoleaf device
     QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
     putJson(url, this->getOnOffRequest(true) );
