@@ -315,7 +315,7 @@
 	"infoDialog_effconf_created_text": "Der Effekt \"$1\" wurde erfolgreich erstellt!",
 	"InfoDialog_lang_title": "Spracheinstellung",
 	"InfoDialog_lang_text": "Sollte dir die Vorauswahl der automatischen Spracherkennung nicht gefallen, kannst du die Sprache hier manuell festlegen.",
-	"InfoDialog_changePassword_title" : "Change Password",
+	"InfoDialog_changePassword_title" : "Ändere Passwort",
 	"InfoDialog_changePassword_success" : "Passwort erfolgreich gespeichert!",
 	"InfoDialog_access_title": "Einstellungsstufe",
 	"InfoDialog_access_text": "Je höher die Stufe je mehr Einstellungen und Funktionen stehen zur Verfügung. Empfohlen ist \"Standard\".",

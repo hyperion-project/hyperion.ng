@@ -72,7 +72,7 @@ $(document).ready( function() {
 
 		window.showOptHelp = window.serverConfig.general.showOptHelp;
 	});
-	
+
 	$(window.hyperion).on("cmd-config-setconfig", function(event) {
         if (event.response.success === true) {
             $('#hyperion_config_write_success_notify').fadeIn().delay(5000).fadeOut();
@@ -82,14 +82,14 @@ $(document).ready( function() {
 	$(window.hyperion).one("cmd-authorize-login", function(event) {
 		$("#main-nav").removeAttr('style')
 		$("#top-navbar").removeAttr('style')
-			
+
 		if(window.defaultPasswordIsSet === true)
 			$('#hyperion_default_password_notify').fadeIn().delay(10000).fadeOut();
 		else
 			//if logged on and pw != default show option to lock ui
 			$("#btn_lock_ui").removeAttr('style')
 
-					
+
 		if (event.response.hasOwnProperty('info'))
 			setStorage("loginToken", event.response.info.token, true);
 
@@ -97,8 +97,11 @@ $(document).ready( function() {
 	});
 
 	$(window.hyperion).on("cmd-authorize-newPassword", function(event) {
-        if (event.response.success === true) 
+        if (event.response.success === true){
 			showInfoDialog("success",$.i18n('InfoDialog_changePassword_success'));
+			// not necessarily true, but better than nothing
+			window.defaultPasswordIsSet = false;
+		}
     });
 
 	$(window.hyperion).one("cmd-authorize-newPasswordRequired", function(event) {
@@ -107,7 +110,7 @@ $(document).ready( function() {
 		if (event.response.info.newPasswordRequired == true)
 		{
 			window.defaultPasswordIsSet = true;
-			
+
 			if(loginToken)
 				requestTokenAuthorization(loginToken)
 			else
@@ -121,22 +124,22 @@ $(document).ready( function() {
 			if(loginToken)
 				requestTokenAuthorization(loginToken)
 			else
-				loadContentTo("#page-content", "login")	
-			
+				loadContentTo("#page-content", "login")
+
 		}
 	});
 
 	$(window.hyperion).one("cmd-authorize-adminRequired", function(event) {
-		//Check if a admin login is required. 
+		//Check if a admin login is required.
 		//If yes: check if default pw is set. If no: go ahead to get server config and render page
-		if (event.response.info.adminRequired === true) 
+		if (event.response.info.adminRequired === true)
 			requestRequiresDefaultPasswortChange();
 		else
 			requestServerConfigSchema();
 	});
 
 	$(window.hyperion).on("error",function(event){
-		//If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired. 
+		//If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
 		//e.g.: hyperiond was started new in the meantime)
 		if (event.reason == "No Authorization" && getStorage("loginToken", true))
 		{
