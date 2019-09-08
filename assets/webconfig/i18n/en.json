@@ -428,6 +428,7 @@
 	"edt_dev_spec_maximumLedCount_title" : "Maximum LED count",
 	"edt_dev_spec_gpioNumber_title" : "GPIO number",
 	"edt_dev_spec_dmaNumber_title" : "DMA channel",
+	"edt_dev_spec_pwmChannel_title": "PWM channel",
 	"edt_dev_spec_gpioMap_title" : "GPIO mapping",
 	"edt_dev_spec_PBFiFo_title" : "Pi-Blaster FiFo",
 	"edt_dev_spec_gpioBcm_title" : "GPIO Pin",
