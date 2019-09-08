@@ -1413,8 +1413,11 @@ void JsonAPI::handleInstanceCommand(const QJsonObject & message, const QString &
 
 	if(subc == "switchTo")
 	{
-		if(handleInstanceSwitch(inst))
-			sendSuccessReply(command+"-"+subc, tan);
+		if(handleInstanceSwitch(inst)){
+			QJsonObject obj;
+			obj["instance"] = inst;
+			sendSuccessDataReply(QJsonDocument(obj),command+"-"+subc, tan);
+		}
 		else
 			sendErrorReply("Selected Hyperion instance isn't running",command+"-"+subc, tan);
 		return;
