@@ -4,9 +4,15 @@
 if [ -n "${TRAVIS-}" ]; then
 	# Travis-CI
 	CI_NAME="$(echo "$TRAVIS_OS_NAME" | tr '[:upper:]' '[:lower:]')"
+	CI_BUILD_DIR="$TRAVIS_BUILD_DIR"
 elif [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	# Azure Pipelines
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
+	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"
+elif [ "$HOME" != "" ]; then
+	# GitHub Actions
+	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	CI_BUILD_DIR="$GITHUB_WORKSPACE"
 else
 	# for executing in non ci environment
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
