@@ -1,0 +1,80 @@
+name: GitHub Actions
+on: [push, pull_request]
+
+jobs:
+  Linux:
+    name: ${{ matrix.dockerName }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerTag: [ amd64, i386, armv6hf, armv7hf, aarch64 ]
+        include:
+          - dockerTag: amd64
+            dockerName: Debian Stretch (AMD64)
+            platform: x11
+          - dockerTag: i386
+            dockerName: Debian Stretch (i386)
+            platform: x11
+          - dockerTag: armv6hf
+            dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
+            platform: rpi
+          - dockerTag: armv7hf
+            dockerName: Debian Stretch (Raspberry Pi 2 & 3)
+            platform: rpi
+          - dockerTag: aarch64
+            dockerName: Debian Stretch (Generic AARCH64)
+            platform: amlogic
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      # build process
+      - name: Build packages
+        env:
+          DOCKER_TAG: ${{ matrix.dockerTag }}
+          DOCKER_NAME: ${{ matrix.dockerName }}
+          PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: ./.ci/ci_build.sh
+
+      # create/update github release (replacement for Microsoft Azure after the beta phase)
+
+#      - name: Create/Update GitHub release
+#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
+#        uses: docker://softprops/action-gh-release
+#        with:
+#          files: deploy/Hyperion.NG-*
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macOS:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      # install dependencies
+      - name: Install dependencies
+        shell: bash
+        run: ./.ci/ci_install.sh
+
+      # build process
+      - name: Build packages
+        env:
+          PLATFORM: osx
+        shell: bash
+        run: ./.ci/ci_build.sh
+
+      # create/update github release (replacement for Microsoft Azure after the beta phase)
+
+#      - name: Create/Update GitHub release
+#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
+#        uses: docker://softprops/action-gh-release
+#        with:
+#          files: deploy/Hyperion.NG-*
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

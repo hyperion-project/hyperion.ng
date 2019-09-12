@@ -9,6 +9,10 @@ elif [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	# Azure Pipelines
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"
+elif [ "$HOME" != "" ]; then
+	# GitHub Actions
+	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+	CI_BUILD_DIR="$GITHUB_WORKSPACE"
 else
 	# for executing in non ci environment
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -18,7 +22,7 @@ fi
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Debug"
 
 # Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
-if [[ $BUILD_SOURCEBRANCH == *"refs/tags"* ]]; then
+if [[ $BUILD_SOURCEBRANCH == *"refs/tags"* || $GITHUB_REF == *"refs/tags"* ]]; then
 	BUILD_TYPE=Release
 else
 	PLATFORM=${PLATFORM}-dev
