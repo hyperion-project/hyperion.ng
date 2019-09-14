@@ -83,7 +83,7 @@ private:
     QString _deviceFirmwareVersion;
     ushort _extControlVersion;
     /// The number of panels with leds
-    int _panelLedCount;
+	uint _panelLedCount;
     /// Array of the pannel ids.
     std::vector<uint> _panelIds;
 
