@@ -20,17 +20,25 @@
 			"default": 5,
 			"propertyOrder" : 3
 		},
+		"pwmchannel": {
+			"type": "integer",
+			"title":"edt_dev_spec_pwmChannel_title",
+			"default": 0,
+			"minimum": 0,
+			"maximum": 1,
+			"propertyOrder" : 4
+		},
 		"invert": {
 			"type": "boolean",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"rgbw": {
 			"type": "boolean",
 			"title":"edt_dev_spec_useRgbwProtocol_title",
 			"default": false,
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"whiteAlgorithm": {
 			"type": "string",
@@ -40,7 +48,7 @@
 			"options" : {
 				"enum_titles" : ["edt_dev_enum_subtract_minimum", "edt_dev_enum_sub_min_cool_adjust","edt_dev_enum_sub_min_warm_adjust", "edt_dev_enum_white_off"]
 			},
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"latchTime": {
 			"type": "integer",
@@ -50,7 +58,7 @@
 			"minimum": 1,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		}
 	},
 	"additionalProperties": true

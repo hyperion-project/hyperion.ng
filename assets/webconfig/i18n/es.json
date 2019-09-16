@@ -633,6 +633,7 @@
     "wiz_hue_ident": "Identificar",
     "edt_dev_spec_ledType_title": "Tipo de LED",
     "edt_dev_spec_dmaNumber_title": "Canal DMA",
+    "edt_dev_spec_pwmChannel_title": "Canal PWM",
     "effectsconfigurator_editdeleff": "Eliminar/Cargar Efecto",
     "effectsconfigurator_button_editeffect": "Cargar Efecto",
     "edt_conf_v4l2_sDVOffsetMin_title": "Detección de señal VMin",
