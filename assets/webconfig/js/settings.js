@@ -18,6 +18,10 @@ function changePassword(){
 
 		requestChangePassword(oldPw, newPw)
 	});
+
+	$('#newPw, #oldPw').off().on('input',function(e) {
+		($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+	});
 }
 
 $(document).ready( function() {

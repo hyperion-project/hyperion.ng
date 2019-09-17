@@ -303,7 +303,7 @@ function showInfoDialog(type,header,message)
 		$('#id_body_rename').append('<h4>'+header+'</h4>');
 		$('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
 		$('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
-		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
 	else if (type == "checklist")
