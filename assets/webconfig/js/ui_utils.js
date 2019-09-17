@@ -543,8 +543,9 @@ function hexToRgb(hex) {
 	@param type     Valid types are "info","success","warning","danger"
 	@param message  The message to show
 	@param title     A title (optional)
+	@param addhtml   Add custom html to the notification end
  */
-function showNotification(type, message, title="")
+function showNotification(type, message, title="", addhtml="")
 {
 	if(title == "")
 	{
@@ -573,15 +574,19 @@ function showNotification(type, message, title="")
 		// settings
 		type: type,
 		animate: {
-			enter: 'animated fadeInRight',
-			exit: 'animated fadeOutRight'
+			enter: 'animated fadeInDown',
+			exit: 'animated fadeOutUp'
+		},
+		placement:{
+			align:'center'
 		},
 		mouse_over : 'pause',
-		template: '<div data-notify="container" class="bg-w col-xs-11 col-sm-3 bs-callout bs-callout-{0}" role="alert">' +
+		template: '<div data-notify="container" class="bg-w col-md-6 bs-callout bs-callout-{0}" role="alert">' +
 		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
 		'<span data-notify="icon"></span> ' +
 		'<h4 data-notify="title">{1}</h4> ' +
 		'<span data-notify="message">{2}</span>' +
+		addhtml+
 		'<div class="progress" data-notify="progressbar">' +
 			'<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
 		'</div>' +

@@ -75,7 +75,7 @@ $(document).ready( function() {
 
 	$(window.hyperion).on("cmd-config-setconfig", function(event) {
         if (event.response.success === true) {
-            $('#hyperion_config_write_success_notify').fadeIn().delay(5000).fadeOut();
+			showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
         }
     });
 
@@ -84,7 +84,7 @@ $(document).ready( function() {
 		$("#top-navbar").removeAttr('style')
 
 		if(window.defaultPasswordIsSet === true)
-			$('#hyperion_default_password_notify').fadeIn().delay(10000).fadeOut();
+			showNotification('warning',  $.i18n('dashboard_message_default_password'),  $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()"> '+$.i18n('InfoDialog_changePassword_title')+'</a>')
 		else
 			//if logged on and pw != default show option to lock ui
 			$("#btn_lock_ui").removeAttr('style')
