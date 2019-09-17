@@ -28,6 +28,7 @@ window.wSess = [];
 window.currentHyperionInstance = 0;
 window.currentHyperionInstanceName = "?";
 window.comps = [];
+window.defaultPasswordIsSet = null;
 tokenList = {};
 
 function initRestart()
@@ -165,9 +166,30 @@ function sendToHyperion(command, subcommand, msg)
 // -----------------------------------------------------------
 // wrapped server commands
 
-function requestAuthorization()
+// Test if admin requires authentication
+function requestRequiresAdminAuth()
 {
-	sendToHyperion("authorize","login",'"username": "Hyperion", "password": "hyperion"');
+	sendToHyperion("authorize","adminRequired");
+}
+// Test if the default password needs to be changed
+function requestRequiresDefaultPasswortChange()
+{
+	sendToHyperion("authorize","newPasswordRequired");
+}
+// Change password
+function requestChangePassword(oldPw, newPw)
+{
+	sendToHyperion("authorize","newPassword",'"password": "'+oldPw+'", "newPassword":"'+newPw+'"');
+}
+
+function requestAuthorization(password)
+{
+	sendToHyperion("authorize","login",'"password": "' + password + '"');
+}
+
+function requestTokenAuthorization(token)
+{
+	sendToHyperion("authorize","login",'"token": "' + token + '"');
 }
 
 function requestToken(comment)

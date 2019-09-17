@@ -47,13 +47,38 @@ public:
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	bool & isAuthRequired();
+	const bool & isAuthRequired() { return _authRequired; };
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	bool & isLocalAuthRequired();
+	const bool & isLocalAuthRequired() { return _localAuthRequired; };
+
+	///
+	/// @brief Check if authorization is required for local network connections for admin access
+	/// @return       True if authorization required else false
+	///
+	const bool & isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
+
+	///
+	/// @brief Check if Hyperion user has default password
+	/// @return       True if so, else false
+	///
+	const bool hasHyperionDefaultPw() { return isUserAuthorized("Hyperion","hyperion"); };
+
+	///
+	/// @brief Get the current valid token for user. Make sure this call is allowed!
+	/// @param For the defined user
+	/// @return       The token
+	///
+	const QString getUserToken(const QString & usr = "Hyperion");
+
+	///
+	/// @brief Reset Hyperion user
+	/// @return        True on success else false
+	///
+	bool resetHyperionUser();
 
 	///
 	/// @brief Create a new token and skip the usual chain
@@ -76,6 +101,35 @@ public:
 	/// @return        True if authorized else false
 	///
 	bool isTokenAuthorized(const QString& token);
+
+	///
+	/// @brief Check if token is authorized
+	/// @param  usr    The username
+	/// @param  token  The token
+	/// @return        True if authorized else false
+	///
+	bool isUserTokenAuthorized(const QString& usr, const QString& token);
+
+	///
+	/// @brief Check if user auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
+	///
+	bool isUserAuthBlocked(){ return (_userAuthAttempts.length() >= 10); };
+
+	///
+	/// @brief Check if token auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
+	///
+	bool isTokenAuthBlocked(){ return (_tokenAuthAttempts.length() >= 25); };
+
+	///
+	/// @brief Change password of user
+	/// @param  user  The username
+	/// @param  pw    The CURRENT password
+	/// @param  newPw The new password
+	/// @return        True on success else false
+	///
+	bool updateUserPassword(const QString& user, const QString& pw, const QString& newPw);
 
 	///
 	/// @brief Generate a new pending token request with the provided comment and id as identifier helper
@@ -144,6 +198,12 @@ signals:
 	void tokenResponse(const bool& success, QObject* caller, const QString& token, const QString& comment, const QString& id);
 
 private:
+	///
+	/// @brief Increment counter for token/user auth
+	/// @param user If true we increment USER auth instead of token
+	///
+	void setAuthBlock(const bool& user = false);
+
 	/// Database interface for auth table
 	AuthTable* _authTable;
 
@@ -162,12 +222,29 @@ private:
 	/// Reflect state of local auth
 	bool _localAuthRequired;
 
+	/// Reflect state of local admin auth
+	bool _localAdminAuthRequired;
+
 	/// Timer for counting against pendingRequest timeouts
 	QTimer* _timer;
+
+	// Timer which cleans up the block counter
+	QTimer* _authBlockTimer;
+
+	// Contains timestamps of failed user login attempts
+	QVector<uint64_t> _userAuthAttempts;
+
+	// Contains timestamps of failed token login attempts
+	QVector<uint64_t> _tokenAuthAttempts;
 
 private slots:
 	///
 	/// @brief Check timeout of pending requests
 	///
 	void checkTimeout();
+
+	///
+	/// @brief Check if there are timeouts for failed login attempts
+	///
+	void checkAuthBlockTimeout();
 };

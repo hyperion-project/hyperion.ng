@@ -181,7 +181,8 @@
 		"restirctedInternetAccessAPI" : false,
 		"ipWhitelist" : [],
 		"apiAuth" : true,
-		"localApiAuth" : false
+		"localApiAuth" : false,
+		"localAdminAuth": true
 	},
 
 	"ledConfig" :

@@ -37,6 +37,11 @@ public:
 	///
 	void handleMessage(const QString & message, const QString& httpAuthHeader = "");
 
+	///
+	/// @brief Initialization steps
+	///
+	void initialize(void);
+
 public slots:
 	///
 	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
@@ -92,6 +97,11 @@ signals:
 	///
 	void forwardJsonMessage(QJsonObject);
 
+	///
+	/// @brief The API might decide to block connections for security reasons, this emitter should close the socket
+	///
+	void forceClose();
+
 private:
 	/// Auth management pointer
 	AuthManager* _authManager;
@@ -111,6 +121,9 @@ private:
 
 	/// Log instance
 	Logger* _log;
+
+	/// Is this a local connection
+	bool _localConnection;
 
 	/// Hyperion instance manager
 	HyperionIManager* _instanceManager;
@@ -323,4 +336,9 @@ private:
 	/// @param error String describing the error
 	///
 	void sendErrorReply(const QString & error, const QString &command="", const int tan=0);
+
+	///
+	/// @brief Kill all signal/slot connections to stop possible data emitter
+	///
+	void stopDataConnections(void);
 };

@@ -72,23 +72,88 @@ $(document).ready( function() {
 
 		window.showOptHelp = window.serverConfig.general.showOptHelp;
 	});
-	
+
 	$(window.hyperion).on("cmd-config-setconfig", function(event) {
         if (event.response.success === true) {
-            $('#hyperion_config_write_success_notify').fadeIn().delay(5000).fadeOut();
+			showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
         }
     });
 
 	$(window.hyperion).one("cmd-authorize-login", function(event) {
+		$("#main-nav").removeAttr('style')
+		$("#top-navbar").removeAttr('style')
+
+		if(window.defaultPasswordIsSet === true)
+			showNotification('warning',  $.i18n('dashboard_message_default_password'),  $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()"> '+$.i18n('InfoDialog_changePassword_title')+'</a>')
+		else
+			//if logged on and pw != default show option to lock ui
+			$("#btn_lock_ui").removeAttr('style')
+
+
+		if (event.response.hasOwnProperty('info'))
+			setStorage("loginToken", event.response.info.token, true);
+
 		requestServerConfigSchema();
 	});
 
+	$(window.hyperion).on("cmd-authorize-newPassword", function(event) {
+        if (event.response.success === true){
+			showInfoDialog("success",$.i18n('InfoDialog_changePassword_success'));
+			// not necessarily true, but better than nothing
+			window.defaultPasswordIsSet = false;
+		}
+    });
+
+	$(window.hyperion).one("cmd-authorize-newPasswordRequired", function(event) {
+		var loginToken = getStorage("loginToken", true)
+
+		if (event.response.info.newPasswordRequired == true)
+		{
+			window.defaultPasswordIsSet = true;
+
+			if(loginToken)
+				requestTokenAuthorization(loginToken)
+			else
+				requestAuthorization('hyperion');
+		}
+		else
+		{
+			$("#main-nav").attr('style', 'display:none')
+			$("#top-navbar").attr('style', 'display:none')
+
+			if(loginToken)
+				requestTokenAuthorization(loginToken)
+			else
+				loadContentTo("#page-content", "login")
+
+		}
+	});
+
+	$(window.hyperion).one("cmd-authorize-adminRequired", function(event) {
+		//Check if a admin login is required.
+		//If yes: check if default pw is set. If no: go ahead to get server config and render page
+		if (event.response.info.adminRequired === true)
+			requestRequiresDefaultPasswortChange();
+		else
+			requestServerConfigSchema();
+	});
+
 	$(window.hyperion).on("error",function(event){
-		showInfoDialog("error","Error", event.reason);
+		//If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
+		//e.g.: hyperiond was started new in the meantime)
+		if (event.reason == "No Authorization" && getStorage("loginToken", true))
+		{
+			removeStorage("loginToken", true);
+			requestRequiresAdminAuth();
+		}
+		else
+		{
+			showInfoDialog("error","Error", event.reason);
+		}
 	});
 
 	$(window.hyperion).on("open",function(event){
-		requestAuthorization();
+		requestRequiresAdminAuth();
 	});
 
 	$(window.hyperion).one("ready", function(event) {
@@ -189,4 +254,9 @@ $(function(){
 		sidebar.find('.active').toggleClass('active inactive');
 		$(this).toggleClass('active inactive');
 	});
+});
+
+// hotfix body padding when bs modals overlap
+$(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
+    $('body').css('padding-right','0');
 });

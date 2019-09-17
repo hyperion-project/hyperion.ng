@@ -22,6 +22,7 @@ private:
 	Logger* _log;
 	JsonAPI* _jsonAPI;
 
+	bool _stopHandle = false;
 	bool _unlocked = false;
 
 private slots:

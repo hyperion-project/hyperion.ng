@@ -27,85 +27,136 @@
 
 using namespace hyperion;
 
-JsonCB::JsonCB(Hyperion* hyperion, QObject* parent)
+JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
-	, _hyperion(hyperion)
-	, _componentRegister(& _hyperion->getComponentRegister())
+	, _hyperion(nullptr)
+	, _componentRegister(nullptr)
 	, _bonjour(BonjourBrowserWrapper::getInstance())
-	, _prioMuxer(_hyperion->getMuxerInstance())
+	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
 	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update";
 }
 
-bool JsonCB::subscribeFor(const QString& type)
+bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
 {
 	if(!_availableCommands.contains(type))
 		return false;
 
+	if(unsubscribe)
+		_subscribedCommands.removeAll(type);
+	else
+		_subscribedCommands << type;
+
 	if(type == "components-update")
 	{
-		_subscribedCommands << type;
-		connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState);
+		else
+			connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState, Qt::UniqueConnection);
 	}
 
 	if(type == "sessions-update")
 	{
-		_subscribedCommands << type;
-		connect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange);
+		else
+			connect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange, Qt::UniqueConnection);
 	}
 
 	if(type == "priorities-update")
 	{
-		_subscribedCommands << type;
-		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-		connect(_prioMuxer, &PriorityMuxer::autoSelectChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
+		if(unsubscribe){
+			disconnect(_prioMuxer,0 ,0 ,0);
+		} else {
+			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
+			connect(_prioMuxer, &PriorityMuxer::autoSelectChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
+		}
 	}
 
 	if(type == "imageToLedMapping-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange);
+		else
+			connect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCB::handleImageToLedsMappingChange, Qt::UniqueConnection);
 	}
 
 	if(type == "adjustment-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange);
+		else
+			connect(_hyperion, &Hyperion::adjustmentChanged, this, &JsonCB::handleAdjustmentChange, Qt::UniqueConnection);
 	}
 
 	if(type == "videomode-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange);
+		else
+			connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
 	}
 
 	if(type == "effects-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange);
+		else
+			connect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
 	}
 
 	if(type == "settings-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange);
+		else
+			connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleSettingsChange, Qt::UniqueConnection);
 	}
 
 	if(type == "leds-update")
 	{
-		_subscribedCommands << type;
-		connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange);
+		else
+			connect(_hyperion, &Hyperion::settingsChanged, this, &JsonCB::handleLedsConfigChange, Qt::UniqueConnection);
 	}
 
 
 	if(type == "instance-update")
 	{
-		_subscribedCommands << type;
-		connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
+		if(unsubscribe)
+			disconnect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange);
+		else
+			connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
 	}
 
 	return true;
+}
+
+void JsonCB::resetSubscriptions(void){
+	for(const auto & entry : getSubscribedCommands()){
+		subscribeFor(entry, true);
+	}
+}
+
+void JsonCB::setSubscriptionsTo(Hyperion* hyperion){
+	// get current subs
+	QStringList currSubs(getSubscribedCommands());
+
+	// stop subs
+	resetSubscriptions();
+
+	// update pointer
+	_hyperion = hyperion;
+	_componentRegister = &_hyperion->getComponentRegister();
+	_prioMuxer = _hyperion->getMuxerInstance();
+
+	// re-apply subs
+	for(const auto & entry : currSubs)
+	{
+		subscribeFor(entry);
+	}
 }
 
 void JsonCB::doCallback(const QString& cmd, const QVariant& data)

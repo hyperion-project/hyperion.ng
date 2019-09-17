@@ -23,25 +23,38 @@ class JsonCB : public QObject
 	Q_OBJECT
 
 public:
-	JsonCB(Hyperion* hyperion, QObject* parent);
+	JsonCB(QObject* parent);
 
 	///
 	/// @brief Subscribe to future data updates given by cmd
-	/// @param cmd   The cmd which will be subscribed for
+	/// @param cmd          The cmd which will be subscribed for
+	/// @param unsubscribe  Revert subscription
 	/// @return      True on success, false if not found
 	///
-	bool subscribeFor(const QString& cmd);
+	bool subscribeFor(const QString& cmd, const bool & unsubscribe = false);
 
 	///
 	/// @brief Get all possible commands to subscribe for
 	/// @return  The list of commands
 	///
 	QStringList getCommands() { return _availableCommands; };
+
 	///
 	/// @brief Get all subscribed commands
 	/// @return  The list of commands
 	///
 	QStringList getSubscribedCommands() { return _subscribedCommands; };
+
+	///
+	/// @brief Reset subscriptions, disconnect all signals
+	///
+	void resetSubscriptions(void);
+
+	///
+	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
+	///
+	void setSubscriptionsTo(Hyperion* hyperion);
+
 signals:
 	///
 	/// @brief Emits whenever a new json mesage callback is ready to send
