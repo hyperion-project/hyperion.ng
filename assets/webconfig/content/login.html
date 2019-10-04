@@ -1,0 +1,35 @@
+<div class="container" style="margin:20px auto;max-width:500px;">
+	<center>
+		<div>
+			<div class="panel panel-danger">
+				<div class="panel-heading">
+					<h3 class="panel-title">Login</h3>
+				</div>
+				<div class="panel-body">
+					<form>
+						<div class="form-group">
+							<input name="password" class="form-control" type="password" id="password" placeholder="Password" autocomplete="off"/>
+							<input name="show_pw" type="checkbox" id="show_pw"/><label for="show_pw">Show/Hide Password</label>
+						</div>
+						<div class="form-group">
+							<button type="submit" class="btn btn-sm btn-success" id="btn_password" onclick="requestAuthorization(document.getElementById('password').value); return false;" disabled><i class="fa fa-fw fa-unlock"></i>Login</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</center>
+</div>
+
+<script>
+removeOverlay();
+
+$('#password').off().on('input',function(e) {
+	if(e.currentTarget.value.length >= 8)
+		$('#btn_password').removeAttr('disabled');
+});
+
+$('#show_pw').off().on('change',function(e) {
+	(e.currentTarget.checked ? $('#password').attr('type', 'text') : $('#password').attr('type', 'password'))
+});
+</script>

@@ -12,13 +12,15 @@ AuthManager* AuthManager::manager = nullptr;
 
 AuthManager::AuthManager(QObject* parent)
 	: QObject(parent)
-	, _authTable(new AuthTable(this))
+	, _authTable(new AuthTable("",this))
 	, _metaTable(new MetaTable(this))
 	, _pendingRequests()
 	, _authRequired(true)
 	, _timer(new QTimer(this))
+	, _authBlockTimer(new QTimer(this))
 {
 	AuthManager::manager = this;
+
 
 	// get uuid
 	_uuid = _metaTable->getUUID();
@@ -27,21 +29,18 @@ AuthManager::AuthManager(QObject* parent)
 	_timer->setInterval(1000);
 	connect(_timer, &QTimer::timeout, this, &AuthManager::checkTimeout);
 
+	// setup authBlockTimer
+	_authBlockTimer->setInterval(60000);
+	connect(_authBlockTimer, &QTimer::timeout, this, &AuthManager::checkAuthBlockTimeout);
+
 	// init with default user and password
 	if(!_authTable->userExist("Hyperion"))
 	{
 		_authTable->createUser("Hyperion","hyperion");
 	}
-}
 
-bool & AuthManager::isAuthRequired()
-{
-	return _authRequired;
-}
-
-bool & AuthManager::isLocalAuthRequired()
-{
-	return _localAuthRequired;
+	// update Hyperion user token on startup
+	_authTable->setUserToken("Hyperion");
 }
 
 const AuthManager::AuthDefinition AuthManager::createToken(const QString& comment)
@@ -77,14 +76,69 @@ const QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 	return finalVec;
 }
 
+const QString AuthManager::getUserToken(const QString & usr)
+{
+	return QString(_authTable->getUserToken(usr));
+}
+
+void AuthManager::setAuthBlock(const bool& user)
+{
+	// current timestamp +10 minutes
+	if(user)
+		_userAuthAttempts.append(QDateTime::currentMSecsSinceEpoch()+600000);
+	else
+		_tokenAuthAttempts.append(QDateTime::currentMSecsSinceEpoch()+600000);
+
+	QMetaObject::invokeMethod(_authBlockTimer, "start", Qt::QueuedConnection);
+}
+
 bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
 {
-	return _authTable->isUserAuthorized(user, pw);
+	if(isUserAuthBlocked())
+		return false;
+
+	if(!_authTable->isUserAuthorized(user, pw)){
+		setAuthBlock(true);
+		return false;
+	}
+	return true;
 }
 
 bool AuthManager::isTokenAuthorized(const QString& token)
 {
-	return _authTable->tokenExist(token);
+	if(isTokenAuthBlocked())
+		return false;
+
+	if(!_authTable->tokenExist(token)){
+		setAuthBlock();
+		return false;
+	}
+	return true;
+}
+
+bool AuthManager::isUserTokenAuthorized(const QString& usr, const QString& token)
+{
+	if(isUserAuthBlocked())
+		return false;
+
+	if(!_authTable->isUserTokenAuthorized(usr, token)){
+		setAuthBlock(true);
+		return false;
+	}
+	return true;
+}
+
+bool AuthManager::updateUserPassword(const QString& user, const QString& pw, const QString& newPw)
+{
+	if(isUserAuthorized(user, pw))
+		return _authTable->updateUserPassword(user, newPw);
+
+	return false;
+}
+
+bool AuthManager::resetHyperionUser()
+{
+	return _authTable->resetHyperionUser();
 }
 
 void AuthManager::setNewTokenRequest(QObject* caller, const QString& comment, const QString& id)
@@ -144,6 +198,7 @@ void AuthManager::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		const QJsonObject& obj = config.object();
 		_authRequired = obj["apiAuth"].toBool(true);
 		_localAuthRequired = obj["localApiAuth"].toBool(false);
+		_localAdminAuthRequired = obj["localAdminAuth"].toBool(false);
 	}
 }
 
@@ -166,4 +221,26 @@ void AuthManager::checkTimeout()
 	// abort if empty
 	if(_pendingRequests.isEmpty())
 		_timer->stop();
+}
+
+void AuthManager::checkAuthBlockTimeout(){
+	// handle user auth block
+	for (auto it = _userAuthAttempts.begin(); it != _userAuthAttempts.end(); it++) {
+		// after 10 minutes, we remove the entry
+		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch()) {
+			_userAuthAttempts.erase(it--);
+		}
+	}
+
+	// handle token auth block
+	for (auto it = _tokenAuthAttempts.begin(); it != _tokenAuthAttempts.end(); it++) {
+		// after 10 minutes, we remove the entry
+		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch()) {
+			_tokenAuthAttempts.erase(it--);
+		}
+	}
+
+	// if the lists are empty we stop
+	if(_userAuthAttempts.empty() && _tokenAuthAttempts.empty())
+		_authBlockTimer->stop();
 }

@@ -28,6 +28,7 @@
 #include <utils/FileUtils.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
+#include <../../include/db/AuthTable.h>
 
 #ifdef ENABLE_X11
 #include <X11/Xlib.h>
@@ -239,14 +240,15 @@ int main(int argc, char** argv)
 	Parser parser("Hyperion Daemon");
 	parser.addHelpOption();
 
-	BooleanOption & versionOption       = parser.add<BooleanOption>(0x0, "version", "Show version information");
-	Option        & userDataOption      = parser.add<Option>       (0x0, "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
-	BooleanOption & silentOption        = parser.add<BooleanOption>('s', "silent", "do not print any outputs");
-	BooleanOption & verboseOption       = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
-	BooleanOption & debugOption         = parser.add<BooleanOption>('d', "debug", "Show debug messages");
-	parser.add<BooleanOption>(0x0, "desktop", "show systray on desktop");
-	parser.add<BooleanOption>(0x0, "service", "force hyperion to start as console service");
-	Option        & exportEfxOption     = parser.add<Option>       (0x0, "export-effects", "export effects to given path");
+	BooleanOption & versionOption       = parser.add<BooleanOption> (0x0, "version", "Show version information");
+	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
+	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
+	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
+	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
+	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
+                                          parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
+	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
+	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
 
 	parser.process(*qApp);
 
@@ -333,6 +335,21 @@ int main(int argc, char** argv)
 			throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
 
 		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
+
+		// reset Password without spawning daemon
+		if(parser.isSet(resetPassword))
+		{
+			AuthTable* table = new AuthTable(userDataPath);
+			if(table->resetHyperionUser()){
+				Info(log,"Password reset successfull");
+				delete table;
+				exit(0);
+			} else {
+				Error(log,"Failed to reset password!");
+				delete table;
+				exit(1);
+			}
+		}
 
 		HyperionDaemon* hyperiond = nullptr;
 		try

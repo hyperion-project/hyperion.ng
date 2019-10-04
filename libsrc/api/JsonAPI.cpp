@@ -48,18 +48,36 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 	, _noListener(noListener)
 	, _peerAddress(peerAddress)
 	, _log(log)
+	, _localConnection(localConnection)
 	, _instanceManager(HyperionIManager::getInstance())
 	, _hyperion(nullptr)
-	, _jsonCB(nullptr)
+	, _jsonCB(new JsonCB(this))
 	, _streaming_logging_activated(false)
 	, _imageStreamTimer(new QTimer(this))
 	, _ledStreamTimer(new QTimer(this))
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+}
 
+void JsonAPI::initialize(void)
+{
+	// For security we block external connections if default PW is set
+	if(!_localConnection && _authManager->hasHyperionDefaultPw())
+	{
+		emit forceClose();
+	}
 	// if this is localConnection and network allows unauth locals, set authorized flag
-	if(_apiAuthRequired && localConnection)
+	if(_apiAuthRequired && _localConnection)
 		_authorized = !_authManager->isLocalAuthRequired();
+
+	// admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
+	if(_localConnection)
+	{
+		_userAuthorized = !_authManager->isLocalAdminAuthRequired();
+		// just in positive direction
+		if(_userAuthorized)
+			_authorized = true;
+	}
 
 	// setup auth interface
 	connect(_authManager, &AuthManager::newPendingTokenRequest, this, &JsonAPI::handlePendingTokenRequest);
@@ -67,6 +85,9 @@ JsonAPI::JsonAPI(QString peerAddress, Logger* log, const bool& localConnection, 
 
 	// listen for killed instances
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
+
+	// pipe callbacks from subscriptions to parent
+	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
 
 	// init Hyperion pointer
 	handleInstanceSwitch(0);
@@ -91,30 +112,8 @@ bool JsonAPI::handleInstanceSwitch(const quint8& inst, const bool& forced)
 		// get new Hyperion pointer
 		_hyperion = _instanceManager->getHyperionInstance(inst);
 
-		// the JsonCB creates json messages you can subscribe to e.g. data change events; forward them to the parent client
-		QStringList cbCmds;
-		if(_jsonCB != nullptr)
-		{
-			cbCmds = _jsonCB->getSubscribedCommands();
-			delete _jsonCB;
-		}
-
-		_jsonCB = new JsonCB(_hyperion, this);
-		connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
-
-		// read subs
-		for(const auto & entry : cbCmds)
-		{
-			_jsonCB->subscribeFor(entry);
-		}
-
-// 		// imageStream last state
-// 		if(_ledcolorsImageActive)
-// 			connect(_hyperion, &Hyperion::currentImage, this, &JsonAPI::setImage, Qt::UniqueConnection);
-//
-// 		//ledColor stream last state
-// 		if(_ledcolorsLedsActive)
-// 			connect(_hyperion, &Hyperion::rawLedColors, this, &JsonAPI::streamLedcolorsUpdate, Qt::UniqueConnection);
+		// the JsonCB creates json messages you can subscribe to e.g. data change events
+		_jsonCB->setSubscriptionsTo(_hyperion);
 
 		return true;
 	}
@@ -727,7 +726,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 		for(const auto & entry : subsArr)
 		{
 			// config callbacks just if auth is set
-			if(entry == "settings-update" && !_authorized)
+			if(entry == "settings-update" && !_userAuthorized)
 				continue;
 
 			if(!_jsonCB->subscribeFor(entry.toString()))
@@ -887,17 +886,28 @@ void JsonAPI::handleConfigCommand(const QJsonObject& message, const QString& com
 	}
 	else if (subcommand == "setconfig")
 	{
-		handleConfigSetCommand(message, full_command, tan);
+		if(_userAuthorized)
+			handleConfigSetCommand(message, full_command, tan);
+		else
+			sendErrorReply("No Authorization",command, tan);
 	}
 	else if (subcommand == "getconfig")
 	{
-		sendSuccessDataReply(QJsonDocument(_hyperion->getQJsonConfig()), full_command, tan);
+		if(_userAuthorized)
+			sendSuccessDataReply(QJsonDocument(_hyperion->getQJsonConfig()), full_command, tan);
+		else
+			sendErrorReply("No Authorization",command, tan);
 	}
 	else if (subcommand == "reload")
 	{
-		_hyperion->freeObjects(true);
-		Process::restartHyperion();
-		sendErrorReply("failed to restart hyperion", full_command, tan);
+		if(_userAuthorized)
+		{
+			_hyperion->freeObjects(true);
+			Process::restartHyperion();
+			sendErrorReply("failed to restart hyperion", full_command, tan);
+		}
+		else
+			sendErrorReply("No Authorization",command, tan);
 	}
 	else
 	{
@@ -1139,11 +1149,33 @@ void JsonAPI::handleVideoModeCommand(const QJsonObject& message, const QString &
 void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString &command, const int tan)
 {
 	const QString& subc = message["subcommand"].toString().trimmed();
+	const QString& id = message["id"].toString().trimmed();
+	const QString& password = message["password"].toString().trimmed();
+	const QString& newPassword = message["newPassword"].toString().trimmed();
+
 	// catch test if auth is required
 	if(subc == "required")
 	{
 		QJsonObject req;
-		req["required"] = _apiAuthRequired;
+		req["required"] = !_authorized;
+		sendSuccessDataReply(QJsonDocument(req), command+"-"+subc, tan);
+		return;
+	}
+
+	// catch test if admin auth is required
+	if(subc == "adminRequired")
+	{
+		QJsonObject req;
+		req["adminRequired"] = !_userAuthorized;
+		sendSuccessDataReply(QJsonDocument(req), command+"-"+subc, tan);
+		return;
+	}
+
+	// default hyperion password is a security risk, replace it asap
+	if(subc == "newPasswordRequired")
+	{
+		QJsonObject req;
+		req["newPasswordRequired"] = _authManager->hasHyperionDefaultPw();
 		sendSuccessDataReply(QJsonDocument(req), command+"-"+subc, tan);
 		return;
 	}
@@ -1153,7 +1185,27 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	{
 		_authorized = false;
 		_userAuthorized = false;
+		// disconnect all kind of data callbacks
+		stopDataConnections();
 		sendSuccessReply(command+"-"+subc, tan);
+		return;
+	}
+
+	// change password
+	if(subc == "newPassword")
+	{
+		// use password, newPassword
+		if(_userAuthorized)
+		{
+			if(_authManager->updateUserPassword("Hyperion", password, newPassword))
+			{
+				sendSuccessReply(command+"-"+subc, tan);
+				return;
+			}
+			sendErrorReply("Failed to update user password",command+"-"+subc, tan);
+			return;
+		}
+		sendErrorReply("No Authorization",command+"-"+subc, tan);
 		return;
 	}
 
@@ -1180,11 +1232,11 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// delete token
 	if(subc == "deleteToken")
 	{
-		const QString& did = message["id"].toString().trimmed();
+		// use id
 		// for user authorized sessions
 		if(_userAuthorized)
 		{
-			_authManager->deleteToken(did);
+			_authManager->deleteToken(id);
 			sendSuccessReply(command+"-"+subc, tan);
 			return;
 		}
@@ -1195,8 +1247,8 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// catch token request
 	if(subc == "requestToken")
 	{
+		// use id
 		const QString& comment = message["comment"].toString().trimmed();
-		const QString& id = message["id"].toString().trimmed();
 		_authManager->setNewTokenRequest(this, comment, id);
 		// client should wait for answer
 		return;
@@ -1228,7 +1280,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// accept/deny token request
 	if(subc == "answerRequest")
 	{
-		const QString& id = message["id"].toString().trimmed();
+		// use id
 		const bool& accept = message["accept"].toBool(false);
 		if(_userAuthorized)
 		{
@@ -1245,7 +1297,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// deny token request
 	if(subc == "acceptRequest")
 	{
-		const QString& id = message["id"].toString().trimmed();
+		// use id
 		if(_userAuthorized)
 		{
 			_authManager->acceptTokenRequest(id);
@@ -1256,7 +1308,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 		return;
 	}
 
-	// cath get token list
+	// catch get token list
 	if(subc == "getTokenList")
 	{
 		if(_userAuthorized)
@@ -1283,12 +1335,27 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 	// login
 	if(subc == "login")
 	{
-		// catch token auth
 		const QString& token = message["token"].toString().trimmed();
 
+		// catch token
 		if(!token.isEmpty())
 		{
-			if(token.count() >= 36)
+			// userToken is longer
+			if(token.count() > 36)
+			{
+				if(_authManager->isUserTokenAuthorized("Hyperion",token))
+				{
+					_authorized = true;
+					_userAuthorized = true;
+					sendSuccessReply(command+"-"+subc, tan);
+				}
+				else
+					sendErrorReply("No Authorization", command+"-"+subc, tan);
+
+				return;
+			}
+			// usual app token is 36
+			if(token.count() == 36)
 			{
 				if(_authManager->isTokenAuthorized(token))
 				{
@@ -1304,23 +1371,25 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject & message, const QString 
 			return;
 		}
 
-		// user & password
-		const QString& user = message["username"].toString().trimmed();
-		const QString& password = message["password"].toString().trimmed();
+		// password
+		// use password
 
-		if(user.count() >= 3 && password.count() >= 8)
+		if(password.count() >= 8)
 		{
-			if(_authManager->isUserAuthorized(user, password))
+			if(_authManager->isUserAuthorized("Hyperion", password))
 			{
 				_authorized = true;
 				_userAuthorized = true;
-				sendSuccessReply(command+"-"+subc, tan);
+				// Return the current valid Hyperion user token
+				QJsonObject obj;
+				obj["token"] = _authManager->getUserToken();
+				sendSuccessDataReply(QJsonDocument(obj),command+"-"+subc, tan);
 			}
 			else
 				sendErrorReply("No Authorization", command+"-"+subc, tan);
 		}
 		else
-			sendErrorReply("User or password string too short", command+"-"+subc, tan);
+			sendErrorReply("Password string too short", command+"-"+subc, tan);
 	}
 }
 
@@ -1343,8 +1412,11 @@ void JsonAPI::handleInstanceCommand(const QJsonObject & message, const QString &
 
 	if(subc == "switchTo")
 	{
-		if(handleInstanceSwitch(inst))
-			sendSuccessReply(command+"-"+subc, tan);
+		if(handleInstanceSwitch(inst)){
+			QJsonObject obj;
+			obj["instance"] = inst;
+			sendSuccessDataReply(QJsonDocument(obj),command+"-"+subc, tan);
+		}
 		else
 			sendErrorReply("Selected Hyperion instance isn't running",command+"-"+subc, tan);
 		return;
@@ -1575,4 +1647,14 @@ void JsonAPI::handleInstanceStateChange(const instanceState& state, const quint8
 		default:
 			break;
 	}
+}
+
+void JsonAPI::stopDataConnections(void)
+{
+	LoggerManager::getInstance()->disconnect();
+	_streaming_logging_activated = false;
+	_jsonCB->resetSubscriptions();
+	_imageStreamTimer->stop();
+	_ledStreamTimer->stop();
+
 }

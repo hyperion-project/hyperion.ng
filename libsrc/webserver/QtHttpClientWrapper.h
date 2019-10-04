@@ -34,6 +34,11 @@ public:
 	/// @brief Wrapper for sendReplyToClient(), handles m_parsingStatus and signal connect
 	void sendToClientWithReply (QtHttpReply * reply);
 
+	///
+	/// @brief close a connection with FORBIDDEN header (used from JsonAPI over HTTP)
+	///
+	void closeConnection();
+
 private slots:
 	void onClientDataReceived (void);
 

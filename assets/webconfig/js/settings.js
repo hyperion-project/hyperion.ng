@@ -4,6 +4,26 @@ var availLang = ['en','de','es','it','cs'];
 var availAccess = ['default','advanced','expert'];
 //$.i18n.debug = true;
 
+//Change Password
+function changePassword(){
+	showInfoDialog('changePassword', $.i18n('InfoDialog_changePassword_title'));
+
+	// fill default pw if default is set
+	if(window.defaultPasswordIsSet)
+		$('#oldPw').val('hyperion')
+
+	$('#id_btn_ok').off().on('click',function() {
+		var oldPw = $('#oldPw').val();
+		var newPw = $('#newPw').val();
+
+		requestChangePassword(oldPw, newPw)
+	});
+
+	$('#newPw, #oldPw').off().on('input',function(e) {
+		($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+	});
+}
+
 $(document).ready( function() {
 
 	//i18n
@@ -110,6 +130,17 @@ $(document).ready( function() {
 		});
 
 		$('#id_select').trigger('change');
+	});
+
+	// change pw btn
+	$('#btn_changePassword').off().on('click',function() {
+		changePassword();
+	});
+
+	//Lock Ui
+	$('#btn_lock_ui').off().on('click',function() {
+		removeStorage('loginToken', true);
+		location.replace('/');
 	});
 
 	//hide menu elements

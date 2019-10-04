@@ -297,6 +297,15 @@ function showInfoDialog(type,header,message)
 		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
 		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	}
+	else if (type == "changePassword")
+	{
+		$('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
+		$('#id_body_rename').append('<h4>'+header+'</h4>');
+		$('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
+		$('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
+		$('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_ok')+'</button>');
+		$('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+	}
 	else if (type == "checklist")
 	{
 		$('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
@@ -326,7 +335,7 @@ function showInfoDialog(type,header,message)
 		$('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
 
-	$(type == "renInst" ? "#modal_dialog_rename" : "#modal_dialog").modal({
+	$(type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog").modal({
 		backdrop : "static",
 		keyboard: false,
 		show: true
@@ -534,8 +543,9 @@ function hexToRgb(hex) {
 	@param type     Valid types are "info","success","warning","danger"
 	@param message  The message to show
 	@param title     A title (optional)
+	@param addhtml   Add custom html to the notification end
  */
-function showNotification(type, message, title="")
+function showNotification(type, message, title="", addhtml="")
 {
 	if(title == "")
 	{
@@ -564,15 +574,19 @@ function showNotification(type, message, title="")
 		// settings
 		type: type,
 		animate: {
-			enter: 'animated fadeInRight',
-			exit: 'animated fadeOutRight'
+			enter: 'animated fadeInDown',
+			exit: 'animated fadeOutUp'
+		},
+		placement:{
+			align:'center'
 		},
 		mouse_over : 'pause',
-		template: '<div data-notify="container" class="bg-w col-xs-11 col-sm-3 bs-callout bs-callout-{0}" role="alert">' +
+		template: '<div data-notify="container" class="bg-w col-md-6 bs-callout bs-callout-{0}" role="alert">' +
 		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
 		'<span data-notify="icon"></span> ' +
 		'<h4 data-notify="title">{1}</h4> ' +
 		'<span data-notify="message">{2}</span>' +
+		addhtml+
 		'<div class="progress" data-notify="progressbar">' +
 			'<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
 		'</div>' +
