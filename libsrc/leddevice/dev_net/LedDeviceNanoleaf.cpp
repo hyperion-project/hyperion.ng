@@ -89,7 +89,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 
 	uint configuredLedCount = static_cast<uint>(this->getLedCount());
     Debug(_log, "ActiveDevice : %s", QSTRING_CSTR( this->getActiveDevice() ));
-    Debug(_log, "LedCount     : %d", configuredLedCount);
+	Debug(_log, "LedCount     : %u", configuredLedCount);
     Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
     Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
@@ -128,7 +128,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
     QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
     QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
-    int panelNum = jsonLayout[PANEL_NUM].toInt();
+	uint panelNum = static_cast<uint>(jsonLayout[PANEL_NUM].toInt());
     QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
 
 	std::map<uint, std::map<uint, uint>> panelMap;
@@ -137,10 +137,10 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
     foreach (const QJsonValue & value, positionData) {
         QJsonObject panelObj = value.toObject();
 
-		unsigned int panelId = static_cast<uint>(panelObj[PANEL_ID].toInt());
-		unsigned int panelX  = static_cast<uint>(panelObj[PANEL_POS_X].toInt());
-		unsigned int panelY  = static_cast<uint>(panelObj[PANEL_POS_Y].toInt());
-		unsigned int panelshapeType = static_cast<uint>(panelObj[PANEL_SHAPE_TYPE].toInt());
+		uint panelId = static_cast<uint>(panelObj[PANEL_ID].toInt());
+		uint panelX  = static_cast<uint>(panelObj[PANEL_POS_X].toInt());
+		uint panelY  = static_cast<uint>(panelObj[PANEL_POS_Y].toInt());
+		uint panelshapeType = static_cast<uint>(panelObj[PANEL_SHAPE_TYPE].toInt());
         //int panelOrientation = panelObj[PANEL_ORIENTATION].toInt();
         //std::cout << "Panel [" << panelId << "]" << " (" << panelX << "," << panelY << ") - Type: [" << panelshapeType << "]" << std::endl;
 
@@ -164,8 +164,8 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 	this->_panelLedCount = static_cast<uint>(_panelIds.size());
 
 
-    Debug(_log, "PanelsNum      : %d", panelNum);
-    Debug(_log, "PanelLedCount  : %d", _panelLedCount);
+	Debug(_log, "PanelsNum      : %u", panelNum);
+	Debug(_log, "PanelLedCount  : %u", _panelLedCount);
 
     // Check. if enough panelds were found.
     if (_panelLedCount < configuredLedCount) {
@@ -173,7 +173,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
         throw std::runtime_error ( (QString ("Not enough panels [%1] for configured LEDs [%2] found!").arg(_panelLedCount).arg(configuredLedCount)).toStdString() );
     } else {
 		if ( _panelLedCount > static_cast<uint>(this->getLedCount()) ) {
-            Warning(_log, "Nanoleaf: More panels [%d] than configured LEDs [%d].", _panelLedCount, configuredLedCount );
+			Warning(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
         }
     }
 
@@ -414,7 +414,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
         {
             // Set panels not configed to black;
             color = ColorRgb::BLACK;
-            //printf ("panelCounter [%d] >= panelLedCount [%d]\n", panelCounter, _panelLedCount );
+			//printf ("panelCounter [%u] >= panelLedCount [%u]\n", panelCounter, _panelLedCount );
         }
 
         // Set panelID
@@ -450,7 +450,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
         //std::cout << "[" << panelCounter << "]" << " Color: " << color << std::endl;
     }
 
-	//	printf ("udpBufferSize[%d], Bytes to send [%d]\n", udpBufferSize, i);
+	//	printf ("udpBufferSize[%u], Bytes to send [%u]\n", udpBufferSize, i);
 	//	for ( uint c= 0; c < udpBufferSize;c++ )
 	//	{
 	//		printf ("%x ",  static_cast<uchar>(udpbuffer[c]));
