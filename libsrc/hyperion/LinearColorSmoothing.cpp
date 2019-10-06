@@ -174,12 +174,15 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 
 void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
 {
-	if(component == hyperion::COMP_SMOOTHING)
+	if(component == hyperion::COMP_SMOOTHING || component == hyperion::COMP_LEDDEVICE)
+	{
 		setEnable(state);
+	}
 }
 
 void LinearColorSmoothing::setEnable(bool enable)
 {
+	LedDevice::setEnable(enable);
 	if (!enable)
 	{
 		QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
@@ -224,7 +227,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 		}
 		_currentConfigId = cfg;
 		//DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
-		DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
+		//DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
 
 		return true;
 	}
