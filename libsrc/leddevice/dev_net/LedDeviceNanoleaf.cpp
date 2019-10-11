@@ -8,6 +8,13 @@
 #include <QEventLoop>
 #include <QNetworkReply>
 
+//std includes
+#include <sstream>
+#include <iomanip>
+
+static const bool verbose  = false;
+static const bool verbose3 = false;
+
 // Controller configuration settings
 static const char CONFIG_ADDRESS[] = "output";
 //static const char CONFIG_PORT[] = "port";
@@ -141,8 +148,9 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 		uint panelX  = static_cast<uint>(panelObj[PANEL_POS_X].toInt());
 		uint panelY  = static_cast<uint>(panelObj[PANEL_POS_Y].toInt());
 		uint panelshapeType = static_cast<uint>(panelObj[PANEL_SHAPE_TYPE].toInt());
-		//int panelOrientation = panelObj[PANEL_ORIENTATION].toInt();
-		//std::cout << "Panel [" << panelId << "]" << " (" << panelX << "," << panelY << ") - Type: [" << panelshapeType << "]" << std::endl;
+		//uint panelOrientation = static_cast<uint>(panelObj[PANEL_ORIENTATION].toInt());
+
+		DebugIf(verbose, _log, "Panel [%u] (%u,%u) - Type: [%u]", panelId, panelX, panelY, panelshapeType );
 
 		// Skip Rhythm panels
 		if ( panelshapeType != RHYTM ) {
@@ -157,7 +165,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 		// posY.first is the first key
 		for(auto const &posX : posY->second) {
 			// posX.first is the second key, posX.second is the data
-			//std::cout << "panelMap[" << posY->first << "][" << posX.first << "]=" << posX.second << std::endl;
+			DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX.first, posX.second );
 			_panelIds.push_back(posX.second);
 		}
 	}
@@ -295,10 +303,11 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const
 	QJsonDocument jsonDoc;
 
 	int httpStatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
+	DebugIf(verbose, _log, "Reply.httpStatusCode [%d]", httpStatusCode );
+
 	if(reply->error() ==
 			QNetworkReply::NoError)
 	{
-
 		if ( httpStatusCode != 204 ){
 			QByteArray response = reply->readAll();
 			QJsonParseError error;
@@ -310,8 +319,8 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const
 			}
 			else {
 				//Debug
-				//  QString strJson(jsonDoc.toJson(QJsonDocument::Compact));
-				//  std::cout << strJson.toUtf8().constData() << std::endl;
+				QString strJson(jsonDoc.toJson(QJsonDocument::Compact));
+				DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData() );
 			}
 		}
 	}
@@ -414,7 +423,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		{
 			// Set panels not configed to black;
 			color = ColorRgb::BLACK;
-			//printf ("panelCounter [%u] >= panelLedCount [%u]\n", panelCounter, _panelLedCount );
+			DebugIf(verbose3, _log, "[%u] >= panelLedCount [%u] => Set to BLACK", panelCounter, _panelLedCount );
 		}
 
 		// Set panelID
@@ -446,18 +455,14 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 			udpbuffer[i++] = highByte;
 		}
 		udpbuffer[i++] = lowByte;
+		DebugIf(verbose3, _log, "[%u] Color: {%u,%u,%u}", panelCounter, color.red, color.green, color.blue );
 
-		//std::cout << "[" << panelCounter << "]" << " Color: " << color << std::endl;
 	}
-
-	//	printf ("udpBufferSize[%u], Bytes to send [%u]\n", udpBufferSize, i);
-	//	for ( uint c= 0; c < udpBufferSize;c++ )
-	//	{
-	//		printf ("%x ",  static_cast<uchar>(udpbuffer[c]));
-	//	}
-	//	printf("\n");
+	DebugIf(verbose3, _log, "udpBufferSize[%u], Bytes to send [%u]", udpBufferSize, i);
+	DebugIf(verbose3, _log, "[%s]", uint8_vector_to_hex_string(udpbuffer).c_str() );
 
 	retVal &= writeBytes( i , udpbuffer.data());
+	DebugIf(verbose3, _log, "writeBytes(): [%d]",retVal);
 	return retVal;
 }
 
@@ -496,4 +501,17 @@ int LedDeviceNanoleaf::switchOff() {
 	putJson(url, getOnOffRequest(false) );
 
 	return _deviceReady ? write(std::vector<ColorRgb>(static_cast<uint>(_ledCount), ColorRgb::BLACK )) : -1;
+}
+
+std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const
+{
+	std::stringstream ss;
+	ss << std::hex << std::setfill('0');
+	std::vector<uint8_t>::const_iterator it;
+
+	for (it = buffer.begin(); it != buffer.end(); it++)
+	{
+		ss << " " << std::setw(2) << static_cast<unsigned>(*it);
+	}
+	return ss.str();
 }
