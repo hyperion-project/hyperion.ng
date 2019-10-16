@@ -23,7 +23,10 @@ PythonInit::PythonInit()
 	// set Python module path when exists
 	const wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
 	if(QDir(QString::fromWCharArray(pythonPath)).exists())
+	{
+		Py_NoSiteFlag++;
 		Py_SetPath(pythonPath);
+	}
 	delete pythonPath;
 
 	// init Python
