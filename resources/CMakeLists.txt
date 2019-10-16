@@ -10,7 +10,7 @@ FILE ( GLOB Hyperion_RESFILES "${CURRENT_SOURCE_DIR}/icons/*" "${CURRENT_SOURCE_
 # fill resources.qrc with RESFILES
 FOREACH( f ${Hyperion_RESFILES} )
 	get_filename_component(fname ${f} NAME)
-    SET(HYPERION_RES "${HYPERION_RES}\n\t\t<file alias=\"${fname}\">${f}</file>")
+	SET(HYPERION_RES "${HYPERION_RES}\n\t\t<file alias=\"${fname}\">${f}</file>")
 ENDFOREACH()
 
 # prep file

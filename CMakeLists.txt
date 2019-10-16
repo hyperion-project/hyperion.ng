@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+message( STATUS "CMake Version: ${CMAKE_VERSION}" )
+
 PROJECT(hyperion)
 
 # Instruct CMake to run moc automatically when needed.
@@ -284,11 +286,15 @@ endif()
 # Use GNU gold linker if available
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 
-# setup -rpath to search for shared libs in BINARY/../libs folder
+# Don't create new dynamic tags (RUNPATH)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+
+# setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
 # add QT5 dependency
@@ -368,4 +374,3 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
-
