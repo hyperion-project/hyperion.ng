@@ -42,6 +42,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 
 	if(EXISTS ${TARGET_FILE})
 		include(GetPrerequisites)
+		find_package(OpenSSL)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
@@ -61,6 +62,13 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			endif()
 		endforeach()
+
+		# Append the OpenSSL library to the list
+		if (OPENSSL_FOUND)
+			foreach(openssl_lib ${OPENSSL_LIBRARIES})
+				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
+			endforeach()
+		endif(OPENSSL_FOUND)
 
 		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
 		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
