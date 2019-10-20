@@ -42,7 +42,11 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 
 	if(EXISTS ${TARGET_FILE})
 		include(GetPrerequisites)
-		find_package(OpenSSL)
+
+		if (APPLE)
+			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+		endif(APPLE)
+		find_package(OpenSSL 1.0.0 REQUIRED)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
@@ -66,6 +70,22 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		# Append the OpenSSL library to the list
 		if (OPENSSL_FOUND)
 			foreach(openssl_lib ${OPENSSL_LIBRARIES})
+				get_prerequisites(${openssl_lib} openssl_deps 0 1 "" "")
+
+				foreach(openssl_dep ${openssl_deps})
+					get_filename_component(resolved ${openssl_dep} NAME_WE)
+					list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+					if (${_index} GREATER -1)
+						continue() # Skip system libraries
+					else()
+						gp_resolve_item("${openssl_lib}" "${openssl_dep}" "" "" resolved_file)
+						get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+						gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+						get_filename_component(file_canonical ${resolved_file} REALPATH)
+						gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+					endif()
+				endforeach()
+
 				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
 			endforeach()
 		endif(OPENSSL_FOUND)

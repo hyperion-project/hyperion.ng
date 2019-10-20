@@ -48,13 +48,13 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
 		hyperionproject/hyperion-ci:$DOCKER_TAG \
-		/bin/bash -c "mkdir hyperion.ng && cp -r source/. /hyperion.ng &&
-		cd /hyperion.ng && mkdir build && cd build &&
+		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
+		cd /hyperion && mkdir build && cd build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDOCKER_PLATFORM=${DOCKER_TAG} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
-		cp /hyperion.ng/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperion.ng/build/Hyperion.NG-* /deploy/ 2>/dev/null || : &&
-		cd /hyperion.ng && source /hyperion.ng/test/testrunner.sh || exit 4 &&
+		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
+		cp /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
+		cd /hyperion && source /hyperion/test/testrunner.sh || exit 4 &&
 		exit 0;
 		exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 

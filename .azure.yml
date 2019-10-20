@@ -52,7 +52,7 @@ jobs:
       PLATFORM: $(platform)
 
   # copy files
-  - bash: 'cp -v deploy/Hyperion.NG-* $(Build.ArtifactStagingDirectory)'
+  - bash: 'cp -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
     workingDirectory: '$(Build.SourcesDirectory)'
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     displayName: 'Collecting deployable artifacts'
@@ -118,7 +118,7 @@ jobs:
       PLATFORM: 'osx'
 
   # copy files
-  - bash: 'cp -v build/Hyperion.NG-* $(Build.ArtifactStagingDirectory)'
+  - bash: 'cp -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
     workingDirectory: '$(Build.SourcesDirectory)'
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     displayName: 'Collecting deployable artifacts'

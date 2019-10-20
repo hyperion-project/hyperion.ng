@@ -1,4 +1,4 @@
-![Hyperion.NG](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
+![Hyperion](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
 
 [![Dependencies](https://img.shields.io/librariesio/github/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/tree/master/dependencies/external)
 [![Azure-Pipeline](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_apis/build/status/Hyperion.NG?branchName=master)](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_build/latest?definitionId=7&branchName=master)
@@ -9,7 +9,7 @@
 
 ## About Hyperion
 
-[Hyperion.NG](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufactures. It supports many LED devices and video grabbers. The project is still in a beta development stage (no stable release available).
+[Hyperion](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufactures. It supports many LED devices and video grabbers. The project is still in a beta development stage (no stable release available).
 
 ![Screenshot](doc/screenshot.png)
 

@@ -24,7 +24,7 @@ export ROOTFS_DIR="$RASCROSS_DIR/rootfs"
 export TOOLCHAIN_DIR="$RASCROSS_DIR/tools"
 export QT5_DIR="$CROSSROOT/Qt5"
 
-export HYPERION_DIR="$HOME/hyperion.ng"
+export HYPERION_DIR="$HOME/hyperion"
 
 mkdir -p "$ROOTFS_DIR/lib"
 mkdir -p "$ROOTFS_DIR/usr"
