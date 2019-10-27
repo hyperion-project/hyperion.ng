@@ -81,7 +81,7 @@ public:
 
 	///
 	/// @brief overwrite Grabber.h implementation
-	/// 
+	///
 	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 public slots:
@@ -90,7 +90,7 @@ public slots:
 
 	void stop();
 
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);

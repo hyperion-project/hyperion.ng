@@ -7,7 +7,8 @@ class QUdpSocket;
 ///
 /// @brief The SSDP Server sends and receives (parses) SSDP requests
 ///
-class SSDPServer : public QObject {
+class SSDPServer : public QObject
+{
 	Q_OBJECT
 
 public:
@@ -16,7 +17,7 @@ public:
 	/// @brief Construct the server, listen on default ssdp address/port with multicast
 	/// @param parent  The parent object
 	///
-	SSDPServer(QObject* parent = nullptr);
+	SSDPServer(QObject *parent = nullptr);
 	virtual ~SSDPServer();
 
 	///
@@ -41,42 +42,42 @@ public:
 	/// @param senderIp   Ip address of the sender
 	/// @param senderPort The port of the sender
 	///
-	void sendMSearchResponse(const QString& st, const QString& senderIp, const quint16& senderPort);
+	void sendMSearchResponse(const QString &st, const QString &senderIp, const quint16 &senderPort);
 
 	///
 	/// @brief Send ByeBye notification (on SSDP stop) (repeated 3 times)
 	/// @param st        Search target
 	///
-	void sendByeBye(const QString& st);
+	void sendByeBye(const QString &st);
 
 	///
 	/// @brief Send a NOTIFY msg on SSDP startup to notify our presence (repeated 3 times)
 	/// @param st        The search target
 	///
-	void sendAlive(const QString& st);
+	void sendAlive(const QString &st);
 
 	///
 	/// @brief Send a NOTIFY msg as ssdp:update to notify about changes
 	/// @param st        The search target
 	///
-	void sendUpdate(const QString& st);
+	void sendUpdate(const QString &st);
 
 	///
 	/// @brief Overwrite description address
 	/// @param addr  new address
 	///
-	void setDescriptionAddress(const QString& addr) { _descAddress = addr; };
+	void setDescriptionAddress(const QString &addr) { _descAddress = addr; };
 
 	///
 	/// @brief Set uuid
 	/// @param uuid  The uuid
 	///
-	void setUuid(const QString& uuid) { _uuid = uuid; };
+	void setUuid(const QString &uuid) { _uuid = uuid; };
 
 	///
 	/// @brief set new flatbuffer server port
 	///
-	void setFlatBufPort(const quint16& port) { _fbsPort = QString::number(port); };
+	void setFlatBufPort(const quint16 &port) { _fbsPort = QString::number(port); };
 
 	///
 	/// @brief Get current flatbuffer server port
@@ -86,12 +87,22 @@ public:
 	///
 	/// @brief set new jsonserver server port
 	///
-	void setJsonServerPort(const quint16& port) { _jssPort = QString::number(port); };
+	void setJsonServerPort(const quint16 &port) { _jssPort = QString::number(port); };
 
 	///
 	/// @brief get new jsonserver server port
 	///
 	quint16 getJsonServerPort() { return _jssPort.toInt(); };
+
+	///
+	/// @brief set new hyperion name
+	///
+	void setHyperionName(const QString &name) { _name = name; };
+
+	///
+	/// @brief get hyperion name
+	///
+	QString getHyperionName() { return _name; };
 
 signals:
 	///
@@ -101,20 +112,20 @@ signals:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void msearchRequestReceived(const QString& target, const QString& mx, const QString address, const quint16 & port);
+	void msearchRequestReceived(const QString &target, const QString &mx, const QString address, const quint16 &port);
 
 private:
-	Logger* _log;
-	QUdpSocket* _udpSocket;
+	Logger *_log;
+	QUdpSocket *_udpSocket;
 
 	QString _serverHeader;
 	QString _uuid;
 	QString _fbsPort;
 	QString _jssPort;
+	QString _name;
 	QString _descAddress;
-	bool    _running;
+	bool _running;
 
 private slots:
 	void readPendingDatagrams();
-
 };

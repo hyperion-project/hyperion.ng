@@ -34,6 +34,8 @@ public:
 	static const QByteArray & TransferEncoding;
 	static const QByteArray & ContentDisposition;
 	static const QByteArray & AccessControlAllow;
+	static const QByteArray & ContentSecurityPol;
+	static const QByteArray & XFrameOptions;
 	// Websocket specific headers
 	static const QByteArray & Upgrade;
 	static const QByteArray & SecWebSocketKey;

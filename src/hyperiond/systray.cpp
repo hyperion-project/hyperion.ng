@@ -87,7 +87,7 @@ void SysTray::createTrayIcon()
 		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
 		_trayIconEfxMenu->addAction(efxAction);
 	}
-	
+
 	_trayIconMenu->addAction(settingsAction);
 	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(colorAction);
@@ -102,11 +102,8 @@ void SysTray::createTrayIcon()
 
 void SysTray::setColor(const QColor & color)
 {
-	ColorRgb rgbColor;
-	rgbColor.red   = color.red();
-	rgbColor.green = color.green();
- 	rgbColor.blue  =color.blue();
- 
+	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
+	
  	_hyperion->setColor(1 ,rgbColor, 0);
 }
 

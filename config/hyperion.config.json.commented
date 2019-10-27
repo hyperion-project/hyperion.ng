@@ -298,12 +298,20 @@
 		]
 	},
 
+	/// configuration of the instance specific v4l and platform capture
 	"instCapture" :
 	{
 		"systemEnable" : true,
 		"systemPriority" : 250,
 		"v4lEnable" : false,
 		"v4lPriority" : 240
+	},
+
+	/// Instance specific sync listener
+	"instSync" :
+	{
+		"syncTypes" : ["all"],
+		"compTypes" : ["ALLCO"]
 	},
 
 	/// The configuration of the network security restrictions, contains the following items:
@@ -343,272 +351,171 @@
 	///  The configuration for each individual led. This contains the specification of the area
 	///  averaged of an input image for each led to determine its color. Each item in the list
 	///  contains the following fields:
-	///  * h: The fractional part of the image along the horizontal used for the averaging
-	///           (min and max inclusive)
-	///  * v: The fractional part of the image along the vertical used for the averaging
-	///           (min and max inclusive)
+	///  * hmin:       The fractional part of the image along the horizontal used for the averaging (minimum)
+	///  * hmax:       The fractional part of the image along the horizontal used for the averaging (maximum)
+	///  * vmin:       The fractional part of the image along the vertical used for the averaging (minimum)
+	///  * vmax:       The fractional part of the image along the vertical used for the averaging (maximum)
+	///  * colorOrder: Usually the global colorOrder is set at the device section, you can overwrite it here per led
 
 	"leds":
 	[
 		{
-			"h": {
-				"max": 0.125,
-				"min": 0
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.125,
+			"hmin": 0,
+			"vmax": 0.08,
+			"vmin": 0
+
 		},
 		{
-			"h": {
-				"max": 0.25,
-				"min": 0.125
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.25,
+			"hmin": 0.125,
+			"vmax": 0.08,
+			"vmin": 0
+
 		},
 		{
-			"h": {
-				"max": 0.375,
-				"min": 0.25
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.375,
+			"hmin": 0.25,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 0.5,
-				"min": 0.375
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.5,
+			"hmin": 0.375,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 0.625,
-				"min": 0.5
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.625,
+			"hmin": 0.5,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 0.75,
-				"min": 0.625
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.75,
+			"hmin": 0.625,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 0.875,
-				"min": 0.75
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 0.875,
+			"hmin": 0.75,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.875
-			},
-			"v": {
-				"max": 0.08,
-				"min": 0
-			}
+			"hmax": 1,
+			"hmin": 0.875,
+			"vmax": 0.08,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.95
-			},
-			"v": {
-				"max": 0.2,
-				"min": 0
-			}
+			"hmax": 1,
+			"hmin": 0.95,
+			"vmax": 0.2,
+			"vmin": 0
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.95
-			},
-			"v": {
-				"max": 0.4,
-				"min": 0.2
-			}
+			"hmax": 1,
+			"hmin": 0.95,
+			"vmax": 0.4,
+			"vmin": 0.2
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.95
-			},
-			"v": {
-				"max": 0.6,
-				"min": 0.4
-			}
+			"hmax": 1,
+			"hmin": 0.95,
+			"vmax": 0.6,
+			"vmin": 0.4
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.95
-			},
-			"v": {
-				"max": 0.8,
-				"min": 0.6
-			}
+			"hmax": 1,
+			"hmin": 0.95,
+			"vmax": 0.8,
+			"vmin": 0.6
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.95
-			},
-			"v": {
-				"max": 1,
-				"min": 0.8
-			}
+			"hmax": 1,
+			"hmin": 0.95,
+			"vmax": 1,
+			"vmin": 0.8
 		},
 		{
-			"h": {
-				"max": 1,
-				"min": 0.875
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 1,
+			"hmin": 0.875,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.875,
-				"min": 0.75
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.875,
+			"hmin": 0.75,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.75,
-				"min": 0.625
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.75,
+			"hmin": 0.625,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.625,
-				"min": 0.5
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.625,
+			"hmin": 0.5,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.5,
-				"min": 0.375
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.5,
+			"hmin": 0.375,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.375,
-				"min": 0.25
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.375,
+			"hmin": 0.25,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.25,
-				"min": 0.125
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.25,
+			"hmin": 0.125,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.125,
-				"min": 0
-			},
-			"v": {
-				"max": 1,
-				"min": 0.92
-			}
+			"hmax": 0.125,
+			"hmin": 0,
+			"vmax": 1,
+			"vmin": 0.92
 		},
 		{
-			"h": {
-				"max": 0.05,
-				"min": 0
-			},
-			"v": {
-				"max": 1,
-				"min": 0.8
-			}
+			"hmax": 0.05,
+			"hmin": 0,
+			"vmax": 1,
+			"vmin": 0.8
 		},
 		{
-			"h": {
-				"max": 0.05,
-				"min": 0
-			},
-			"v": {
-				"max": 0.8,
-				"min": 0.6
-			}
+			"hmax": 0.05,
+			"hmin": 0,
+			"vmax": 0.8,
+			"vmin": 0.6
 		},
 		{
-			"h": {
-				"max": 0.05,
-				"min": 0
-			},
-			"v": {
-				"max": 0.6,
-				"min": 0.4
-			}
+			"hmax": 0.05,
+			"hmin": 0,
+			"vmax": 0.6,
+			"vmin": 0.4
 		},
 		{
-			"h": {
-				"max": 0.05,
-				"min": 0
-			},
-			"v": {
-				"max": 0.4,
-				"min": 0.2
-			}
+			"hmax": 0.05,
+			"hmin": 0,
+			"vmax": 0.4,
+			"vmin": 0.2
 		},
 		{
-			"h": {
-				"max": 0.05,
-				"min": 0
-			},
-			"v": {
-				"max": 0.2,
-				"min": 0
-			}
+			"hmax": 0.05,
+			"hmin": 0,
+			"vmax": 0.2,
+			"vmin": 0
 		}
 	]
 }

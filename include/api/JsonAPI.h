@@ -1,7 +1,9 @@
 #pragma once
 
+// parent class
+#include <api/API.h>
+
 // hyperion includes
-#include <utils/Logger.h>
 #include <utils/Components.h>
 #include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
@@ -14,7 +16,7 @@ class QTimer;
 class JsonCB;
 class AuthManager;
 
-class JsonAPI : public QObject
+class JsonAPI : public API
 {
 	Q_OBJECT
 
@@ -62,7 +64,7 @@ public slots:
 
 private slots:
 	///
-	/// @brief Handle emits from AuthManager of new request, just _userAuthorized sessions are allowed to handle them
+	/// @brief Handle emits from AuthManager of new request, just _adminAuthorized sessions are allowed to handle them
 	/// @param id       The id of the request
 	/// @param  The comment which needs to be accepted
 	///
@@ -97,39 +99,12 @@ signals:
 	///
 	void forwardJsonMessage(QJsonObject);
 
-	///
-	/// @brief The API might decide to block connections for security reasons, this emitter should close the socket
-	///
-	void forceClose();
-
 private:
-	/// Auth management pointer
-	AuthManager* _authManager;
-
-	/// Reflect auth status of this client
-	bool _authorized;
-	bool _userAuthorized;
-
-	/// Reflect auth required
-	bool _apiAuthRequired;
-
 	// true if further callbacks are forbidden (http)
 	bool _noListener;
 
 	/// The peer address of the client
 	QString _peerAddress;
-
-	/// Log instance
-	Logger* _log;
-
-	/// Is this a local connection
-	bool _localConnection;
-
-	/// Hyperion instance manager
-	HyperionIManager* _instanceManager;
-
-	/// Hyperion instance
-	Hyperion* _hyperion;
 
 	// The JsonCB instance which handles data subscription/notifications
 	JsonCB* _jsonCB;
@@ -141,15 +116,6 @@ private:
 
 	/// flag to determine state of log streaming
 	bool _streaming_logging_activated;
-
-	/// timer for live video refresh
-	QTimer* _imageStreamTimer;
-
-	/// image stream connection handle
-	QMetaObject::Connection _imageStreamConnection;
-
-	/// the current streaming image
-	Image<ColorRgb> _currentImage;
 
 	/// timer for led color refresh
 	QTimer* _ledStreamTimer;
@@ -299,15 +265,6 @@ private:
 	/// @param message the incoming message
 	///
 	void handleAuthorizeCommand(const QJsonObject & message, const QString &command, const int tan);
-
-	///
-	/// Handle HTTP on-the-fly token authorization
-	/// @param command  The command
-	/// @param tan      The tan
-	/// @param token    The token to verify
-	/// @return True on succcess else false (pushes failed client feedback)
-	///
-	bool handleHTTPAuth(const QString& command, const int& tan, const QString& token);
 
 	/// Handle an incoming JSON instance message
 	///

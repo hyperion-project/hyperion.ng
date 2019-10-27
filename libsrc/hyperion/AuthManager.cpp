@@ -21,7 +21,6 @@ AuthManager::AuthManager(QObject* parent)
 {
 	AuthManager::manager = this;
 
-
 	// get uuid
 	_uuid = _metaTable->getUUID();
 
@@ -78,6 +77,7 @@ const QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 
 const QString AuthManager::getUserToken(const QString & usr)
 {
+	QString tok = _authTable->getUserToken(usr);
 	return QString(_authTable->getUserToken(usr));
 }
 
@@ -89,7 +89,7 @@ void AuthManager::setAuthBlock(const bool& user)
 	else
 		_tokenAuthAttempts.append(QDateTime::currentMSecsSinceEpoch()+600000);
 
-	QMetaObject::invokeMethod(_authBlockTimer, "start", Qt::QueuedConnection);
+	_authBlockTimer->start();
 }
 
 bool AuthManager::isUserAuthorized(const QString& user, const QString& pw)
@@ -145,35 +145,37 @@ void AuthManager::setNewTokenRequest(QObject* caller, const QString& comment, co
 {
 	if(!_pendingRequests.contains(id))
 	{
-		AuthDefinition newDef {id, comment, caller, uint64_t(QDateTime::currentMSecsSinceEpoch()+60000)};
+		AuthDefinition newDef {id, comment, caller, uint64_t(QDateTime::currentMSecsSinceEpoch()+180000)};
 		_pendingRequests[id] = newDef;
 		_timer->start();
 		emit newPendingTokenRequest(id, comment);
 	}
 }
 
-bool AuthManager::acceptTokenRequest(const QString& id)
+void AuthManager::cancelNewTokenRequest(QObject* caller, const QString& comment, const QString& id)
 {
 	if(_pendingRequests.contains(id))
 	{
-		const QString token = QUuid::createUuid().toString().remove("{").remove("}");
-		AuthDefinition def = _pendingRequests.take(id);
-		_authTable->createToken(token, def.comment, id);
-		emit tokenResponse(true, def.caller, token, def.comment, id);
-		return true;
+		AuthDefinition def = _pendingRequests.value(id);
+		if(def.caller == caller)
+			_pendingRequests.remove(id);
 	}
-	return false;
 }
 
-bool AuthManager::denyTokenRequest(const QString& id)
+void AuthManager::handlePendingTokenRequest(const QString& id, const bool& accept)
 {
 	if(_pendingRequests.contains(id))
 	{
 		AuthDefinition def = _pendingRequests.take(id);
-		emit tokenResponse(false, def.caller, QString(), def.comment, id);
-		return true;
+
+		if(accept){
+			const QString token = QUuid::createUuid().toString().remove("{").remove("}");
+			_authTable->createToken(token, def.comment, id);
+			emit tokenResponse(true, def.caller, token, def.comment, id);
+		} else {
+			emit tokenResponse(false, def.caller, QString(), def.comment, id);
+		}
 	}
-	return false;
 }
 
 const QMap<QString, AuthManager::AuthDefinition> AuthManager::getPendingRequests()
@@ -198,7 +200,7 @@ void AuthManager::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		const QJsonObject& obj = config.object();
 		_authRequired = obj["apiAuth"].toBool(true);
 		_localAuthRequired = obj["localApiAuth"].toBool(false);
-		_localAdminAuthRequired = obj["localAdminAuth"].toBool(false);
+		_localAdminAuthRequired = obj["localAdminAuth"].toBool(true);
 	}
 }
 

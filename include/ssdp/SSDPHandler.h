@@ -16,10 +16,11 @@ class QNetworkConfigurationManager;
 /// UPnP 1.0: spec: http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
 ///
 
-class SSDPHandler : public SSDPServer{
+class SSDPHandler : public SSDPServer
+{
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent = nullptr);
+	SSDPHandler(WebServer *webserver, const quint16 &flatBufPort, const quint16 &jsonServerPort, const QString &name, QObject *parent = nullptr);
 	~SSDPHandler();
 
 public slots:
@@ -39,7 +40,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(const settings::type &type, const QJsonDocument &config);
 
 private:
 	///
@@ -77,7 +78,7 @@ private slots:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port);
+	void handleMSearchRequest(const QString &target, const QString &mx, const QString address, const quint16 &port);
 
 	///
 	/// @brief Handle changes in the network configuration
@@ -86,9 +87,9 @@ private slots:
 	void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
 
 private:
-	WebServer* _webserver;
-	QString    _localAddress;
-	QNetworkConfigurationManager* _NCA;
+	WebServer *_webserver;
+	QString _localAddress;
+	QNetworkConfigurationManager *_NCA;
 	QString _uuid;
 	/// Targets for announcement
 	std::vector<QString> _deviceList;

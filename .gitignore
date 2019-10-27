@@ -17,3 +17,5 @@ CMakeCache.txt
 /lib
 .directory
 *.pyc
+/docs/dist
+node_modules

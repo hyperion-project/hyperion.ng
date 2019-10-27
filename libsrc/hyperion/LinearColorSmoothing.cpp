@@ -23,7 +23,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	, _currentConfigId(0)
 {
 	// set initial state to true, as LedDevice::enabled() is true by default
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, true);
+	_hyperion->setNewComponentState(hyperion::COMP_SMOOTHING, true);
 
 	// init cfg 0 (default)
 	_cfgList.append({false, 200, 25, 0});
@@ -34,7 +34,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	_cfgList.append(cfg);
 
 	// listen for comp changes
-	connect(_hyperion, &Hyperion::componentStateChanged, this, &LinearColorSmoothing::componentStateChange);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::compStateChangeRequest);
 	// timer
 	connect(_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
 }
@@ -172,7 +172,7 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	}
 }
 
-void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
+void LinearColorSmoothing::compStateChangeRequest(const hyperion::Components component, const bool state)
 {
 	if(component == hyperion::COMP_SMOOTHING)
 		setEnable(state);
@@ -186,7 +186,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 		_previousValues.clear();
 	}
 	// update comp register
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, enable);
+	_hyperion->setNewComponentState(hyperion::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)

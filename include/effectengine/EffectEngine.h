@@ -41,19 +41,17 @@ public:
 
 	///
 	/// @brief Save an effect with EffectFileHandler
-	/// @param       obj       The effect args
-	/// @param[out] resultMsg  The feedback message
-	/// @return True on success else false
+	/// @param  obj   The effect args
+	/// @return If not empty, it contains the error
 	///
-	bool saveEffect(const QJsonObject& obj, QString& resultMsg);
+	QString saveEffect(const QJsonObject& obj);
 
 	///
 	/// @brief Delete an effect by name.
 	/// @param[in]  effectName  The effect name to delete
-	/// @param[out] resultMsg   The message on error
-	/// @return True on success else false
+	/// @return If not empty, it contains the error
 	///
-	bool deleteEffect(const QString& effectName, QString& resultMsg);
+	QString deleteEffect(const QString& effectName);
 
 	///
 	/// @brief Get all init data of the running effects and stop them

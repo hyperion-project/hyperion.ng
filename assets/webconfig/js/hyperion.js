@@ -202,6 +202,11 @@ function requestTokenInfo()
 	sendToHyperion("authorize","getTokenList","");
 }
 
+function requestGetPendingTokenRequests(id, state)
+{
+	sendToHyperion("authorize","getPendingRequests","");
+}
+
 function requestHandleTokenRequest(id, state)
 {
 	sendToHyperion("authorize","answerRequest",'"id":"'+id+'", "accept":'+state);

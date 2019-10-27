@@ -39,11 +39,6 @@ public:
 	const QString & getID() { return _uuid; };
 
 	///
-	/// @brief Get all available token entries
-	///
-	const QVector<AuthDefinition> getTokenList();
-
-	///
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
@@ -62,30 +57,29 @@ public:
 	const bool & isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
 
 	///
-	/// @brief Check if Hyperion user has default password
-	/// @return       True if so, else false
-	///
-	const bool hasHyperionDefaultPw() { return isUserAuthorized("Hyperion","hyperion"); };
-
-	///
-	/// @brief Get the current valid token for user. Make sure this call is allowed!
-	/// @param For the defined user
-	/// @return       The token
-	///
-	const QString getUserToken(const QString & usr = "Hyperion");
-
-	///
 	/// @brief Reset Hyperion user
 	/// @return        True on success else false
 	///
 	bool resetHyperionUser();
 
 	///
-	/// @brief Create a new token and skip the usual chain
-	/// @param  comment The comment that should be used for
-	/// @return         The new Auth definition
+	/// @brief Check if user auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	const AuthDefinition createToken(const QString& comment);
+	bool isUserAuthBlocked(){ return (_userAuthAttempts.length() >= 10); };
+
+	///
+	/// @brief Check if token auth is temporary blocked due to failed attempts
+	/// @return True on blocked and no further Auth requests will be accepted
+	///
+	bool isTokenAuthBlocked(){ return (_tokenAuthAttempts.length() >= 25); };
+
+	/// Pointer of this instance
+	static AuthManager* manager;
+	/// Get Pointer of this instance
+	static AuthManager* getInstance() { return manager; };
+
+public slots:
 
 	///
 	/// @brief Check if user is authorized
@@ -111,16 +105,18 @@ public:
 	bool isUserTokenAuthorized(const QString& usr, const QString& token);
 
 	///
-	/// @brief Check if user auth is temporary blocked due to failed attempts
-	/// @return True on blocked and no further Auth requests will be accepted
+	/// @brief Create a new token and skip the usual chain
+	/// @param  comment The comment that should be used for
+	/// @return         The new Auth definition
 	///
-	bool isUserAuthBlocked(){ return (_userAuthAttempts.length() >= 10); };
+	const AuthManager::AuthDefinition createToken(const QString& comment);
 
 	///
-	/// @brief Check if token auth is temporary blocked due to failed attempts
-	/// @return True on blocked and no further Auth requests will be accepted
+	/// @brief Delete a token by id
+	/// @param  id    The token id
+	/// @return        True on success else false (or not found)
 	///
-	bool isTokenAuthBlocked(){ return (_tokenAuthAttempts.length() >= 25); };
+	bool deleteToken(const QString& id);
 
 	///
 	/// @brief Change password of user
@@ -140,38 +136,38 @@ public:
 	void setNewTokenRequest(QObject* caller, const QString& comment, const QString& id);
 
 	///
-	/// @brief Accept a token request by id, generate token and inform token caller
-	/// @param id      The id of the request
-	/// @return        True on success, false if not found
+	/// @brief Cancel a pending token request with the provided comment and id as identifier helper
+	/// @param  caller  The QObject of the caller to deliver the reply
+	/// @param  comment The comment as ident helper
+	/// @param  id      The id created by the caller
 	///
-	bool acceptTokenRequest(const QString& id);
+	void cancelNewTokenRequest(QObject* caller, const QString& comment, const QString& id);
 
 	///
-	/// @brief Deny a token request by id, inform the requester
+	/// @brief Handle a token request by id, generate token and inform token caller or deny
 	/// @param id      The id of the request
-	/// @return        True on success, false if not found
+	/// @param accept  The accept or deny the request
 	///
-	bool denyTokenRequest(const QString& id);
+	void handlePendingTokenRequest(const QString& id, const bool& accept);
 
 	///
 	/// @brief Get pending requests
 	/// @return       All pending requests
 	///
-	const QMap<QString, AuthDefinition> getPendingRequests();
+	const QMap<QString, AuthManager::AuthDefinition> getPendingRequests();
 
 	///
-	/// @brief Delete a token by id
-	/// @param  id    The token id
-	/// @return        True on success else false (or not found)
+	/// @brief Get the current valid token for user. Make sure this call is allowed!
+	/// @param For the defined user
+	/// @return       The token
 	///
-	bool deleteToken(const QString& id);
+	const QString getUserToken(const QString & usr = "Hyperion");
 
-	/// Pointer of this instance
-	static AuthManager* manager;
-	/// Get Pointer of this instance
-	static AuthManager* getInstance() { return manager; };
+	///
+	/// @brief Get all available token entries
+	///
+	const QVector<AuthManager::AuthDefinition> getTokenList();
 
-public slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit
 	/// @param type   settings type from enum

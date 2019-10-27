@@ -14,7 +14,6 @@
 #include <utils/settings.h>
 
 class Hyperion;
-class ComponentRegister;
 class BonjourBrowserWrapper;
 class PriorityMuxer;
 
@@ -122,8 +121,6 @@ private slots:
 private:
 	/// pointer of Hyperion instance
 	Hyperion* _hyperion;
-	/// pointer of comp register
-	ComponentRegister* _componentRegister;
 	/// Bonjour instance
 	BonjourBrowserWrapper* _bonjour;
 	/// priority muxer instance

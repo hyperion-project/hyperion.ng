@@ -40,7 +40,7 @@ inline const char* componentToString(Components c)
 		case COMP_EFFECT:        return "Effect";
 		case COMP_IMAGE:         return "Image";
 		case COMP_LEDDEVICE:     return "LED device";
-		case COMP_FLATBUFSERVER: return "Image Receiver";
+		case COMP_FLATBUFSERVER: return "Flatbuffer Server";
 		case COMP_PROTOSERVER:   return "Proto Server";
 		default:                 return "";
 	}

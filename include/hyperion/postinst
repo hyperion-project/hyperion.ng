@@ -1,0 +1,147 @@
+#!/bin/sh
+
+install_file()
+{
+	src="$1"
+	dest="$2"
+
+	if [ ! -e "$dest" ]
+	then
+		cp "$src" "${dest}"
+		return 1
+	else
+		echo "--> Service file already exists, skip creation"
+		return 0
+	fi
+}
+
+
+echo "---Hyperion ambient light postinstall ---"
+
+#check system
+CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
+CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
+
+#Check for a bootloader as Berryboot
+BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
+
+#get current system ip
+NET_IP=`hostname -I | cut -d " " -f1`
+
+# search for users in system, returns first entry
+FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+
+# determine if we should use a service
+ENABLE_SERVICE=0
+STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
+
+if [ $CPU_RPI -eq 1 ]; then
+	ENABLE_SERVICE=1
+	STARTUP_MSG="echo ---> Hyperion has been installed as service, it will start on each system startup"
+fi
+
+start_msg=""
+restart_msg=""
+
+if grep -m1 systemd /proc/1/comm > /dev/null
+then
+	echo "---> init deamon: systemd"
+	# systemd
+	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond@.service
+	# service registration just on Raspberry Pi, probably need to ask the user how we should use the service. TODO service start in user login scope eg for x11?!
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		systemctl enable hyperiond"@${FOUND_USR}".service
+		start_msg="--> systemctl start hyperiond for user ${FOUND_USR}"
+		systemctl start hyperiond"@${FOUND_USR}"
+	fi
+
+elif [ -e /sbin/initctl ]
+then
+	echo "---> init deamon: upstart"
+	# upstart
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		install_file /usr/share/hyperion/service/hyperiond.initctl /etc/init/hyperion.conf && initctl reload-configuration
+		start_msg="--> initctl start hyperiond"
+		initctl start hyperiond
+	fi
+
+else
+	echo "---> init deamon: sysV"
+	# sysV
+	if [ $ENABLE_SERVICE -eq 1 ]; then
+		install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperiond && chmod +x /etc/init.d/hyperiond && update-rc.d hyperiond defaults 98 02
+		start_msg="---> service hyperiond start"
+		service hyperiond start
+	fi
+fi
+
+#cleanup
+rm -r /usr/share/hyperion/service
+
+#link binarys and set exec bit
+BINSP=/usr/share/hyperion/bin
+BINTP=/usr/bin
+chmod +x -R $BINSP
+ln -fs $BINSP/hyperiond $BINTP/hyperiond
+ln -fs $BINSP/hyperion-remote $BINTP/hyperion-remote
+ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
+ln -fs $BINSP/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
+ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
+ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
+ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
+
+# install desktop icons
+echo "---> Install Hyperion desktop icons"
+mkdir /usr/share/pixmaps/hyperion 2>/dev/null
+cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
+desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+
+# cleanup desktop icons
+rm -r /usr/share/hyperion/desktop 2>/dev/null
+
+#Check, if dtparam=spi=on is in place
+if [ $CPU_RPI -eq 1 ]; then
+	BOOT_DIR="/boot"
+	if [ $BOOT_BERRYBOOT -eq 1 ]; then
+		BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
+	fi
+	if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
+		echo '---> Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
+		SPIOK=1 # Not sure if OK, but don't ask to reboot
+	else
+		SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
+		if [ $SPIOK -ne 1 ]; then
+			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
+			sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
+			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to $BOOT_DIR/config.txt"
+		fi
+	fi
+fi
+
+echo ${start_msg}
+
+echo "-----------------------------------------------------------------------------"
+echo "---> Hyperion has been installed/updated!"
+echo "---> "
+$STARTUP_MSG
+echo "---> For configuration, visit with your browser: ${NET_IP}:8090"
+echo "---> or if already used by another service try: ${NET_IP}:8091"
+$REBOOTMESSAGE
+echo "-----------------------------------------------------------------------------"
+echo "Webpage: www.hyperion-project.org"
+echo "Wiki: wiki.hyperion-project.org"
+echo "Forum: forum.hyperion-project.org"
+echo "-----------------------------------------------------------------------------"
+
+
+if [ -e /opt/hyperion/ ]
+then
+	echo
+	echo "---------------------------------------------------------------------------------"
+	echo "- It seemd that you have an older version of hyperion installed in /opt/hyperion -"
+	echo "- please remove it to avoid problems                                            -"
+	echo "---------------------------------------------------------------------------------"
+fi
+
+exit 0

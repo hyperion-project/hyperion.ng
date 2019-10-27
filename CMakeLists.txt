@@ -358,6 +358,7 @@ add_subdirectory(resources)
 LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/EffectEngine.qrc
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
+	${CMAKE_BINARY_DIR}/resources.qrc
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
 )
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
@@ -368,4 +369,3 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
-

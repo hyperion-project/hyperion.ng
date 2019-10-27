@@ -136,6 +136,9 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				QByteArray data = file.readAll ();
 				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
 				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
+				// TODO: enable to protect against side loaded scripts. JQuery uses EVAL(), get rid of JQuery. Inline js is also not allowed
+				// reply->addHeader (QtHttpHeader::ContentSecurityPol, "default-src 'self'"); // connect-src '*' for remote applications
+				reply->addHeader (QtHttpHeader::XFrameOptions, "sameorigin");
 				reply->appendRawData (data);
 				file.close ();
 			}

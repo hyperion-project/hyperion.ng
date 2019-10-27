@@ -47,6 +47,7 @@ class BGEffectHandler;
 class CaptureCont;
 class BoblightServer;
 class LedDeviceWrapper;
+class InstanceSync;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -91,19 +92,11 @@ public:
 	ImageProcessor* getImageProcessor() { return _imageProcessor; };
 
 	///
-	/// @brief Get a setting by settings::type from SettingsManager
+	/// @brief Get a setting by settings::type from ShandleComponentState
 	/// @param type  The settingsType from enum
 	/// @return      Data Document
 	///
 	QJsonDocument getSetting(const settings::type& type);
-
-	///
-	/// @brief Save a complete json config
-	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return        True on success else false
-	///
-	bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
 	/// @brief Get instance index of this instance
@@ -151,22 +144,6 @@ public:
 	///
 	const InputInfo getPriorityInfo(const int priority) const;
 
-	///
-	/// @brief Save an effect
-	/// @param       obj       The effect args
-	/// @param[out] resultMsg  The feedback message
-	/// @return True on success else false
-	///
-	bool saveEffect(const QJsonObject& obj, QString& resultMsg);
-
-	///
-	/// @brief Delete an effect by name.
-	/// @param[in]  effectName  The effect name to delete
-	/// @param[out] resultMsg   The message on error
-	/// @return True on success else false
-	///
-	bool deleteEffect(const QString& effectName, QString& resultMsg);
-
 	/// Get the list of available effects
 	/// @return The list of available effects
 	const std::list<EffectDefinition> &getEffects() const;
@@ -183,34 +160,13 @@ public:
 	/// @return json config
 	const QJsonObject& getQJsonConfig();
 
-	/// enable/disable automatic/priorized source selection
-	/// @param enabled the state
-	void setSourceAutoSelectEnabled(bool enabled);
-
-	/// set current input source to visible
-	/// @param priority the priority channel which should be vidible
-	/// @return true if success, false on error
-	bool setCurrentSourcePriority(int priority );
-
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
 	bool sourceAutoSelectEnabled();
 
+	/// TODO: DEPRECATED!
+	/// use setNewComponentState instead!
 	///
-	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
-	/// @param[in] component The component from enum
-	/// @param[in] state The state of the component [true | false]
-	///
-	void setNewComponentState(const hyperion::Components& component, const bool& state);
-
-	///
-	/// @brief Enable/Disable components during runtime, called from external API (requests)
-	///
-	/// @param component The component from enum
-	/// @param state The state of the component [true | false]
-	///
-	void setComponentState(const hyperion::Components component, const bool state);
-
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
 	/// gets the methode how image is maped to leds
@@ -274,7 +230,20 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(const int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+
+	///
+	/// @brief enable/disable automatic/priorized source selection
+	/// @param state The new state
+	///
+	void setSourceAutoSelect(const bool state);
+
+	///
+	/// @brief set current input source to visible
+	/// @param priority the priority channel which should be vidible
+	/// @return true if success, false on error
+	///
+	bool setVisiblePriority(const int& priority);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -302,15 +271,11 @@ public slots:
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
 	/// lower priority channel (or off if no more channels are set)
 	///
-	/// @param[in] priority  The priority channel
+	/// @param[in] priority      The priority channel (-1 clears all clearable priorities)
+	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(const int priority);
-
-	///
-	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
-	///
-	void clearall(bool forceClearAll=false);
+	bool clear(const int priority, bool forceClearAll=false);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -332,14 +297,59 @@ public slots:
 				, const QString &imageData = ""
 	);
 
-	/// sets the methode how image is maped to leds at ImageProcessor
-	void setLedMappingType(const int& mappingType);
-
 	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
 	void setVideoMode(const VideoMode& mode);
+
+	///
+	/// @brief Sets the Led to Image mapping type of the ImageProcessor
+	/// @param mappingType The type of mapping
+	///
+	void setLedMappingType(const int& mappingType);
+
+	///
+	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
+	/// @param[in] component The component from enum
+	/// @param[in] state The state of the component [true | false]
+	///
+	void setNewComponentState(const hyperion::Components& component, const bool& state);
+
+	///
+	/// @brief Get a list of all contrable components and their current state
+	/// @return list of components
+	///
+	std::map<hyperion::Components, bool> getAllComponents();
+
+	///
+	/// @brief Delete an effect by name.
+	/// @param[in]  effectName  The effect name to delete
+	/// @return If not empty, the string contains error msg
+	///
+	QString deleteEffect(const QString& effectName);
+
+	///
+	/// @brief Save an effect
+	/// @param       obj       The effect args
+	/// @return The feedback message, on success empty
+	///
+	QString saveEffect(const QJsonObject& obj);
+
+	///
+	/// @brief Save a complete json config
+	/// @param config  The entire config object
+	/// @param correct If true will correct json against schema before save
+	/// @return        True on success else false
+	///
+	bool saveSettings(const QJsonObject& config, const bool& correct = false);
+
+	///
+	/// @brief Test if a component is enabled
+	/// @param The component to test
+	/// @return Component state
+	///
+	int isComponentEnabled(const hyperion::Components& comp);
 
 	///
 	/// @brief Init after thread start
@@ -361,12 +371,19 @@ signals:
 	void allChannelsCleared();
 
 	///
-	/// @brief Emits whenever a user request a component state change, it's up the component to listen
+	/// @brief Emits whenever a user request a component state change, it's up the component to follow
 	/// 	   and update the component state at the componentRegister
 	/// @param component  The component from enum
 	/// @param enabled    The new state of the component
 	///
-	void componentStateChanged(const hyperion::Components component, bool enabled);
+	void compStateChangeRequest(const hyperion::Components component, bool enabled);
+
+	///
+	///	@brief Emits whenever a component changed (really) the state, triggered from ComponentRegister only
+	///	@param comp   The component
+	///	@param state  The new state of the component
+	///
+	void updatedComponentState(const hyperion::Components comp, const bool state);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed
@@ -449,11 +466,10 @@ public slots:
 private slots:
 
 	///
-	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
-	///	@param comp   The component
-	///	@param state  The new state of the component
+	///	@brief Handle whenever the visible component changed
+	///	@param comp      The new component
 	///
-	void updatedComponentState(const hyperion::Components comp, const bool state);
+	void handleVisibleComponentChanged(const hyperion::Components& comp);
 
 	///
 	///	@brief Apply settings updates for LEDS and COLOR
@@ -520,9 +536,6 @@ private:
 
 	QSize _ledGridSize;
 
-	/// Store the previous compID for smarter update()
-	hyperion::Components   _prevCompId;
-
 	/// Background effect instance, kept active to react on setting changes
 	BGEffectHandler* _BGEffectHandler;
 	/// Capture control for Daemon native capture
@@ -535,6 +548,9 @@ private:
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	// Instance Sync
+	InstanceSync* _instanceSync;
 
 	/// mutex
 	QMutex _changes;

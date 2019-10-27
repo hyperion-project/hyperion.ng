@@ -6,7 +6,7 @@
 
 ///
 /// @brief Handle the background Effect settings, reacts on runtime to settings changes
-/// 
+///
 class BGEffectHandler : public QObject
 {
 	Q_OBJECT
@@ -46,13 +46,15 @@ private slots:
 				const QJsonValue bgColorConfig = BGEffectConfig["color"];
 				if (bgTypeConfig.contains("color"))
 				{
-					ColorRgb bg_color = {
-						(uint8_t)BGCONFIG_ARRAY.at(0).toInt(0),
-						(uint8_t)BGCONFIG_ARRAY.at(1).toInt(0),
-						(uint8_t)BGCONFIG_ARRAY.at(2).toInt(0)
+					std::vector<ColorRgb> bg_color = {
+						ColorRgb {
+							(uint8_t)BGCONFIG_ARRAY.at(0).toInt(0),
+							(uint8_t)BGCONFIG_ARRAY.at(1).toInt(0),
+							(uint8_t)BGCONFIG_ARRAY.at(2).toInt(0)
+						}
 					};
 					_hyperion->setColor(254, bg_color);
-					Info(Logger::getInstance("HYPERION"),"Inital background color set (%d %d %d)",bg_color.red,bg_color.green,bg_color.blue);
+					Info(Logger::getInstance("HYPERION"),"Inital background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 				}
 				else
 				{

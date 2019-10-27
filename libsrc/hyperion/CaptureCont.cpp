@@ -25,7 +25,7 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	connect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
 
 	// comp changes
-	connect(_hyperion, &Hyperion::componentStateChanged, this, &CaptureCont::componentStateChanged);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::compStateChangeRequest);
 
 	// inactive timer system
 	connect(_systemInactiveTimer, &QTimer::timeout, this, &CaptureCont::setSystemInactive);
@@ -85,8 +85,8 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 			_systemCaptName = "";
 		}
 		_systemCaptEnabled = enable;
-		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_GRABBER, enable);
-		_hyperion->setComponentState(hyperion::COMP_GRABBER, enable);
+		_hyperion->setNewComponentState(hyperion::COMP_GRABBER, enable);
+		emit _hyperion->compStateChangeRequest(hyperion::COMP_GRABBER, enable);
 	}
 }
 
@@ -108,8 +108,8 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 			_v4lCaptName = "";
 		}
 		_v4lCaptEnabled = enable;
-		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_V4L, enable);
-		_hyperion->setComponentState(hyperion::COMP_V4L, enable);
+		_hyperion->setNewComponentState(hyperion::COMP_V4L, enable);
+		emit _hyperion->compStateChangeRequest(hyperion::COMP_V4L, enable);
 	}
 }
 
@@ -134,7 +134,7 @@ void CaptureCont::handleSettingsUpdate(const settings::type& type, const QJsonDo
 	}
 }
 
-void CaptureCont::componentStateChanged(const hyperion::Components component, bool enable)
+void CaptureCont::compStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if(component == hyperion::COMP_GRABBER)
 	{

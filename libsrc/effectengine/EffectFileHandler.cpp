@@ -58,7 +58,7 @@ void EffectFileHandler::handleSettingsUpdate(const settings::type& type, const Q
 	}
 }
 
-bool EffectFileHandler::deleteEffect(const QString& effectName, QString& resultMsg)
+QString EffectFileHandler::deleteEffect(const QString& effectName)
 {
 	std::list<EffectDefinition> effectsDefinition = getEffects();
 	std::list<EffectDefinition>::iterator it = std::find_if(effectsDefinition.begin(), effectsDefinition.end(), find_effect(effectName));
@@ -82,20 +82,18 @@ bool EffectFileHandler::deleteEffect(const QString& effectName, QString& resultM
 				if (result)
 				{
 					updateEffects();
-					return true;
+					return "";
 				} else
-					resultMsg = "Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions";
+					return "Can't delete effect configuration file: " + effectConfigurationFile.absoluteFilePath() + ". Please check permissions";
 			} else
-				resultMsg = "Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath();
+				return "Can't find effect configuration file: " + effectConfigurationFile.absoluteFilePath();
 		} else
-			resultMsg = "Can't delete internal effect: " + effectName;
+			return "Can't delete internal effect: " + effectName;
 	} else
-		resultMsg = "Effect " + effectName + " not found";
-
-	return false;
+		return "Effect " + effectName + " not found";
 }
 
-bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMsg)
+QString EffectFileHandler::saveEffect(const QJsonObject& message)
 {
 	if (!message["args"].toObject().isEmpty())
 	{
@@ -111,8 +109,7 @@ bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMs
 		{
 			if(!JsonUtils::validate("EffectFileHandler", message["args"].toObject(), it->schemaFile, _log))
 			{
-				resultMsg = "Error during arg validation against schema, please consult the Hyperion Log";
-				return false;
+				return "Error during arg validation against schema, please consult the Hyperion Log";
 			}
 
 			QJsonObject effectJson;
@@ -123,8 +120,7 @@ bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMs
 			{
 				if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
 				{
-					resultMsg = "Can't save new effect. Effect name is empty or begins with a dot.";
-					return false;
+					return "Can't save new effect. Effect name is empty or begins with a dot.";
 				}
 
 				effectJson["name"] = message["name"].toString();
@@ -140,8 +136,7 @@ bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMs
 					newFileName.setFile(iter->file);
 					if (newFileName.absoluteFilePath().mid(0, 1)  == ":")
 					{
-						resultMsg = "The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effekt.";
-						return false;
+						return "The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effekt.";
 					}
 				} else
 				{
@@ -156,29 +151,24 @@ bool EffectFileHandler::saveEffect(const QJsonObject& message, QString& resultMs
 					QFileInfo imageFileName(effectArray[0].toString().replace("$ROOT",_rootPath) + "/" + message["args"].toObject().value("image").toString());
 					if(!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
 					{
-						resultMsg = "Error while saving image file '" + message["args"].toObject().value("image").toString() + ", please check the Hyperion Log";
-						return false;
+						return "Error while saving image file '" + message["args"].toObject().value("image").toString() + ", please check the Hyperion Log";
 					}
 				}
 
 				if(!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
 				{
-					resultMsg = "Error while saving effect, please check the Hyperion Log";
-					return false;
+					return "Error while saving effect, please check the Hyperion Log";
 				}
 
 				Info(_log, "Reload effect list");
 				updateEffects();
-				resultMsg = "";
-				return true;
+				return "";
 			} else
-				resultMsg = "Can't save new effect. Effect path empty";
+				return "Can't save new effect. Effect path empty";
 		} else
-			resultMsg = "Missing schema file for Python script " + message["script"].toString();
+			return "Missing schema file for Python script " + message["script"].toString();
 	} else
-		resultMsg = "Missing or empty Object 'args'";
-
-	return false;
+		return "Missing or empty Object 'args'";
 }
 
 void EffectFileHandler::updateEffects()

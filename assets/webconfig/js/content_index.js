@@ -45,6 +45,27 @@ $(document).ready( function() {
 		updateSessions();
 	});
 
+	$(window.hyperion).on("cmd-authorize-event cmd-authorize-getPendingRequests", function(event) {
+		var val = event.response.info;
+		if(Array.isArray(event.response.info)){
+			if(event.response.info.length == 0){
+				return
+			}
+			val = event.response.info[0]
+		}
+
+		showInfoDialog("grantToken",$.i18n('conf_network_tok_grantT'),$.i18n('conf_network_tok_grantMsg')+'<br><span style="font-weight:bold">App: '+val.comment+'</span><br><span style="font-weight:bold">Code: '+val.id+'</span>')
+		$("#tok_grant_acc").off().on('click', function(){
+			tokenList.push(val)
+			// forward event, in case we need to rebuild the list now
+			$(window.hyperion).trigger({type:"build-token-list"});
+			requestHandleTokenRequest(val.id,true)
+		});
+		$("#tok_deny_acc").off().on('click', function(){
+			requestHandleTokenRequest(val.id,false)
+		});
+	});
+
 	$(window.hyperion).one("cmd-authorize-getTokenList", function(event) {
 		tokenList = event.response.info;
 		requestServerInfo();
@@ -62,6 +83,7 @@ $(document).ready( function() {
 		window.serverSchema = event.response.info;
 		requestServerConfig();
 		requestTokenInfo();
+		requestGetPendingTokenRequests()
 
 		window.schema = window.serverSchema.properties;
 	});
@@ -104,13 +126,12 @@ $(document).ready( function() {
 		}
     });
 
-	$(window.hyperion).one("cmd-authorize-newPasswordRequired", function(event) {
+	$(window.hyperion).on("cmd-authorize-newPasswordRequired", function(event) {
 		var loginToken = getStorage("loginToken", true)
 
 		if (event.response.info.newPasswordRequired == true)
 		{
 			window.defaultPasswordIsSet = true;
-
 			if(loginToken)
 				requestTokenAuthorization(loginToken)
 			else
@@ -129,7 +150,7 @@ $(document).ready( function() {
 		}
 	});
 
-	$(window.hyperion).one("cmd-authorize-adminRequired", function(event) {
+	$(window.hyperion).on("cmd-authorize-adminRequired", function(event) {
 		//Check if a admin login is required.
 		//If yes: check if default pw is set. If no: go ahead to get server config and render page
 		if (event.response.info.adminRequired === true)

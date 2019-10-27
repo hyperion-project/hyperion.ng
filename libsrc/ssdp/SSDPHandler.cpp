@@ -9,14 +9,12 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
-SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent)
-	: SSDPServer(parent)
-	, _webserver(webserver)
-	, _localAddress()
-	, _NCA(nullptr)
+SSDPHandler::SSDPHandler(WebServer *webserver, const quint16 &flatBufPort, const quint16 &jsonServerPort, const QString &name, QObject *parent)
+	: SSDPServer(parent), _webserver(webserver), _localAddress(), _NCA(nullptr)
 {
 	setFlatBufPort(flatBufPort);
 	setJsonServerPort(jsonServerPort);
+	setHyperionName(name);
 }
 
 SSDPHandler::~SSDPHandler()
@@ -31,7 +29,7 @@ void SSDPHandler::initServer()
 
 	// announce targets
 	_deviceList.push_back("upnp:rootdevice");
-	_deviceList.push_back("uuid:"+_uuid);
+	_deviceList.push_back("uuid:" + _uuid);
 	_deviceList.push_back("urn:hyperion-project.org:device:basic:1");
 
 	// prep server
@@ -45,47 +43,56 @@ void SSDPHandler::initServer()
 	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
 
 	// get localAddress from interface
-	if(!getLocalAddress().isEmpty())
+	if (!getLocalAddress().isEmpty())
 	{
 		_localAddress = getLocalAddress();
 	}
 
 	// startup if localAddress is found
-	if(!_localAddress.isEmpty() && _webserver->isInited())
+	if (!_localAddress.isEmpty() && _webserver->isInited())
 	{
 		handleWebServerStateChange(true);
 	}
 }
 
-void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void SSDPHandler::handleSettingsUpdate(const settings::type &type, const QJsonDocument &config)
 {
-	if(type == settings::FLATBUFSERVER)
+	if (type == settings::FLATBUFSERVER)
 	{
-		const QJsonObject& obj = config.object();
-		if(obj["port"].toInt() != SSDPServer::getFlatBufPort())
+		const QJsonObject &obj = config.object();
+		if (obj["port"].toInt() != SSDPServer::getFlatBufPort())
 		{
 			SSDPServer::setFlatBufPort(obj["port"].toInt());
 		}
 	}
 
-	if(type == settings::JSONSERVER)
+	if (type == settings::JSONSERVER)
 	{
-		const QJsonObject& obj = config.object();
-		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
+		const QJsonObject &obj = config.object();
+		if (obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
 			SSDPServer::setJsonServerPort(obj["port"].toInt());
+		}
+	}
+
+	if (type == settings::GENERAL)
+	{
+		const QJsonObject &obj = config.object();
+		if (obj["name"].toString() != SSDPServer::getHyperionName())
+		{
+			SSDPServer::setHyperionName(obj["name"].toString());
 		}
 	}
 }
 
 void SSDPHandler::handleWebServerStateChange(const bool newState)
 {
-	if(newState)
+	if (newState)
 	{
 		// refresh info
 		_webserver->setSSDPDescription(buildDesc());
 		setDescriptionAddress(getDescAddress());
-		if(start())
+		if (start())
 			sendAnnounceList(true);
 	}
 	else
@@ -99,10 +106,10 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
 {
 	// get localAddress from interface
-	if(!getLocalAddress().isEmpty())
+	if (!getLocalAddress().isEmpty())
 	{
 		QString localAddress = getLocalAddress();
-		if(_localAddress != localAddress)
+		if (_localAddress != localAddress)
 		{
 			// revoke old ip
 			sendAnnounceList(false);
@@ -119,10 +126,10 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration 
 const QString SSDPHandler::getLocalAddress()
 {
 	// get the first valid IPv4 address. This is probably not that one we actually want to announce
-	for( const auto & address : QNetworkInterface::allAddresses())
+	for (const auto &address : QNetworkInterface::allAddresses())
 	{
 		// is valid when, no loopback, IPv4
-		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol )
+		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
 		{
 			return address.toString();
 		}
@@ -130,23 +137,23 @@ const QString SSDPHandler::getLocalAddress()
 	return QString();
 }
 
-void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port)
+void SSDPHandler::handleMSearchRequest(const QString &target, const QString &mx, const QString address, const quint16 &port)
 {
 	// TODO Response delay according to MX field (sec) random between 0 and MX
 
 	// when searched for all devices / root devices / basic device
-	if(target == "ssdp:all" || target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == "urn:hyperion-project.org:device:basic:1")
+	if (target == "ssdp:all" || target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == "urn:hyperion-project.org:device:basic:1")
 		sendMSearchResponse(target, address, port);
 }
 
 const QString SSDPHandler::getDescAddress()
 {
-	return getBaseAddress()+"description.xml";
+	return getBaseAddress() + "description.xml";
 }
 
 const QString SSDPHandler::getBaseAddress()
 {
-	return "http://"+_localAddress+":"+QString::number(_webserver->getPort())+"/";
+	return "http://" + _localAddress + ":" + QString::number(_webserver->getPort()) + "/";
 }
 
 const QString SSDPHandler::buildDesc()
@@ -158,8 +165,10 @@ const QString SSDPHandler::buildDesc()
 	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
 }
 
-void SSDPHandler::sendAnnounceList(const bool alive){
-	for(const auto & entry : _deviceList){
+void SSDPHandler::sendAnnounceList(const bool alive)
+{
+	for (const auto &entry : _deviceList)
+	{
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
 	}
 }

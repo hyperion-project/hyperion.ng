@@ -22,7 +22,7 @@ $(document).ready(function() {
 		for(var idx=0; idx<leds.length; idx++)
 		{
 			var led = leds[idx];
-			twoDPaths.push( build2DPath(led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height, 5) );
+			twoDPaths.push( build2DPath(led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height, 5) );
 		}
 	}
 
@@ -144,8 +144,8 @@ $(document).ready(function() {
 		{
 			var led = leds[idx];
 			// can be used as fallback when Path2D is not available
-			//roundRect(ledsCanvasNodeCtx, led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height, 4, true, colors[idx])
-			//ledsCanvasNodeCtx.fillRect(led.h.min * canvas_width, led.v.min * canvas_height, (led.h.max-led.h.min) * canvas_width, (led.v.max-led.v.min) * canvas_height);
+			//roundRect(ledsCanvasNodeCtx, led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height, 4, true, colors[idx])
+			//ledsCanvasNodeCtx.fillRect(led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height);
 
 			ledsCanvasNodeCtx.fillStyle = (useColor) ?  "rgba("+colors[cPos]+","+colors[cPos+1]+","+colors[cPos+2]+",0.9)"  : "hsl("+(idx*360/leds.length)+",100%,50%)";
 			ledsCanvasNodeCtx.fill(twoDPaths[idx]);
@@ -155,7 +155,7 @@ $(document).ready(function() {
 			{
 				ledsCanvasNodeCtx.fillStyle = "blue";
 				ledsCanvasNodeCtx.textAlign = "center";
-				ledsCanvasNodeCtx.fillText(idx, (led.h.min * canvas_width) + ( ((led.h.max-led.h.min) * canvas_width) / 2), (led.v.min * canvas_height) + ( ((led.v.max-led.v.min) * canvas_height) / 2));
+				ledsCanvasNodeCtx.fillText(idx, (led.hmin * canvas_width) + ( ((led.hmax-led.hmin) * canvas_width) / 2), (led.vmin * canvas_height) + ( ((led.vmax-led.vmin) * canvas_height) / 2));
 			}
 
 			// increment colorsPosition

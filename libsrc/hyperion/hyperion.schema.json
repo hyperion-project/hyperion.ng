@@ -75,6 +75,10 @@
 		{
 			"$ref": "schema-instCapture.json"
 		},
+		"instSync":
+		{
+			"$ref": "schema-instSync.json"
+		},
 		"network":
 		{
 			"$ref": "schema-network.json"

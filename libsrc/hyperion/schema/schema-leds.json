@@ -8,55 +8,37 @@
 		"required" : true,
 		"properties":
 		{
-			"h":
+			"hmin":
 			{
-				"type":"object",
-				"required" : true,
-				"properties":
-				{
-					"min":
-					{
-						"type":"number",
-						"minimum" : 0,
-						"maximum" : 1,
-						"required":true,
-						"default" : 0
-					},
-					"max":
-					{
-						"type":"number",
-						"minimum" : 0,
-						"maximum" : 1,
-						"required":true,
-						"default" : 0.1
-					}
-				},
-				"additionalProperties" : false
+				"type":"number",
+				"minimum" : 0,
+				"maximum" : 1,
+				"required":true,
+				"default" : 0
 			},
-			"v":
+			"hmax":
 			{
-				"type":"object",
-				"required" : true,
-				"properties":
-				{
-					"min":
-					{
-						"type":"number",
-						"minimum" : 0,
-						"maximum" : 1,
-						"required":true,
-						"default" : 0
-					},
-					"max":
-					{
-						"type":"number",
-						"minimum" : 0,
-						"maximum" : 1,
-						"required":true,
-						"default" : 0.1
-					}
-				},
-				"additionalProperties" : false
+				"type":"number",
+				"minimum" : 0,
+				"maximum" : 1,
+				"required":true,
+				"default" : 0.1
+			},
+			"vmin":
+			{
+				"type":"number",
+				"minimum" : 0,
+				"maximum" : 1,
+				"required":true,
+				"default" : 0
+			},
+			"vmax":
+			{
+				"type":"number",
+				"minimum" : 0,
+				"maximum" : 1,
+				"required":true,
+				"default" : 0.1
 			},
 			"colorOrder":
 			{

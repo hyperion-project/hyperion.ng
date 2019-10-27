@@ -29,6 +29,7 @@ enum type  {
 	NETWORK,
 	FLATBUFSERVER,
 	PROTOSERVER,
+	INSTSYNC,
 	INVALID
 };
 
@@ -62,6 +63,7 @@ inline QString typeToString(const type& type)
 		case NETWORK:       return "network";
 		case FLATBUFSERVER: return "flatbufServer";
 		case PROTOSERVER:   return "protoServer";
+		case INSTSYNC:      return "instSync";
 		default:            return "invalid";
 	}
 }
@@ -94,6 +96,7 @@ inline type stringToType(const QString& type)
 	else if (type == "network")              return NETWORK;
 	else if (type == "flatbufServer")        return FLATBUFSERVER;
 	else if (type == "protoServer")          return PROTOSERVER;
+	else if (type == "instSync")             return INSTSYNC;
 	else                                     return INVALID;
 }
 };

@@ -36,8 +36,9 @@ void DBManager::setTable(const QString& table)
 
 QSqlDatabase DBManager::getDB() const
 {
-	if(_databasePool.hasLocalData())
+	if(_databasePool.hasLocalData()){
 		return _databasePool.localData();
+	}
 	else
 	{
 		auto db = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());

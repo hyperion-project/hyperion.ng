@@ -28,7 +28,7 @@ BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	Debug(_log, "Instance created");
 
 	// listen for component change
-	connect(_hyperion, SIGNAL(componentStateChanged(hyperion::Components,bool)), this, SLOT(componentStateChanged(hyperion::Components,bool)));
+	connect(_hyperion, SIGNAL(compStateChangeRequest(hyperion::Components,bool)), this, SLOT(compStateChangeRequest(hyperion::Components,bool)));
 	// listen new connection signal from server
 	connect(_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 
@@ -51,7 +51,7 @@ void BoblightServer::start()
 
 	Info(_log, "Started on port %d", _port);
 
-	_hyperion->getComponentRegister().componentStateChanged(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 void BoblightServer::stop()
@@ -65,7 +65,7 @@ void BoblightServer::stop()
 	_server->close();
 
 	Info(_log, "Stopped");
-	_hyperion->getComponentRegister().componentStateChanged(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 bool BoblightServer::active()
@@ -73,7 +73,7 @@ bool BoblightServer::active()
 	return _server->isListening();
 }
 
-void BoblightServer::componentStateChanged(const hyperion::Components component, bool enable)
+void BoblightServer::compStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if (component == COMP_BOBLIGHTSERVER)
 	{

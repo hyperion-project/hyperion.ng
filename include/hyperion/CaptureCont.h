@@ -28,7 +28,7 @@ private slots:
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor

@@ -1,0 +1,37 @@
+{
+	"type" : "object",
+	"title" : "edt_conf_instSync_heading_title",
+	"required" : true,
+	"properties" :
+	{
+		"syncTypes": {
+		  "type": "array",
+		  "format": "select",
+		  "default": ["all"],
+		  "uniqueItems": true,
+		  "required": true,
+		  "items": {
+		    "type": "string",
+		    "enum": ["all","effect","color","compstate","ledmapping","videomode", "sourceauto", "visiblesource"]
+		  },
+		  "options" : {
+			  "enum_titles" : ["edt_conf_enum_ALLTYPES", "edt_conf_enum_EFFECT", "edt_conf_enum_COLOR", "edt_conf_enum_COMPSTATE", "edt_conf_enum_LEDMAPPING", "edt_conf_enum_VIDEOMODE", "edt_conf_enum_SOURCEAUTO", "edt_conf_enum_VISIBLESOURCE"]
+		  }
+	  	},
+		"compTypes": {
+		  "type": "array",
+		  "format": "select",
+		  "default": ["ALLCO"],
+		  "uniqueItems": true,
+		  "required": true,
+		  "items": {
+			"type": "string",
+			"enum": ["ALLCO","FLATBUFSERVER","PROTOSERVER"]
+		  },
+		  "options" : {
+			  "enum_titles" : ["edt_conf_enum_ALLCOMPS", "edt_conf_enum_FLATBUFSERVER", "edt_conf_enum_PROTOSERVER"]
+		  }
+		}
+	},
+	"additionalProperties" : false
+}

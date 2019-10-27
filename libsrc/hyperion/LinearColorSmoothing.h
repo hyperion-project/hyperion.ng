@@ -86,7 +86,7 @@ private slots:
 	/// @param component   The component
 	/// @param state       The requested state
 	///
-	void componentStateChange(const hyperion::Components component, const bool state);
+	void compStateChangeRequest(const hyperion::Components component, const bool state);
 
 private:
 	/**

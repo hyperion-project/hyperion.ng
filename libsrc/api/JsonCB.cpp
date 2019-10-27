@@ -6,14 +6,11 @@
 
 // HyperionIManager
 #include <hyperion/HyperionIManager.h>
-// components
 
-#include <hyperion/ComponentRegister.h>
 // bonjour wrapper
-
 #include <bonjour/bonjourbrowserwrapper.h>
-// priorityMuxer
 
+// priorityMuxer
 #include <hyperion/PriorityMuxer.h>
 
 // utils
@@ -30,7 +27,6 @@ using namespace hyperion;
 JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
 	, _hyperion(nullptr)
-	, _componentRegister(nullptr)
 	, _bonjour(BonjourBrowserWrapper::getInstance())
 	, _prioMuxer(nullptr)
 {
@@ -51,9 +47,9 @@ bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
 	if(type == "components-update")
 	{
 		if(unsubscribe)
-			disconnect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState);
+			disconnect(_hyperion, &Hyperion::updatedComponentState, this, &JsonCB::handleComponentState);
 		else
-			connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState, Qt::UniqueConnection);
+			connect(_hyperion, &Hyperion::updatedComponentState, this, &JsonCB::handleComponentState, Qt::UniqueConnection);
 	}
 
 	if(type == "sessions-update")
@@ -149,7 +145,6 @@ void JsonCB::setSubscriptionsTo(Hyperion* hyperion){
 
 	// update pointer
 	_hyperion = hyperion;
-	_componentRegister = &_hyperion->getComponentRegister();
 	_prioMuxer = _hyperion->getMuxerInstance();
 
 	// re-apply subs

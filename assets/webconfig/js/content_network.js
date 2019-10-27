@@ -195,6 +195,9 @@ $(document).ready( function() {
 		tokenList.push(val)
 		buildTokenList()
 	});
+	$(window.hyperion).off("build-token-list").on("build-token-list", function(event) {
+		buildTokenList()
+	});
 
 	//Reorder hardcoded token div after the general token setting div
 	$("#conf_cont_tok").insertAfter("#conf_cont_net");
@@ -213,6 +216,6 @@ $(document).ready( function() {
 	})
 
 	checkApiTokenState(window.serverConfig.network.apiAuth);
-	
+
 	removeOverlay();
 });
