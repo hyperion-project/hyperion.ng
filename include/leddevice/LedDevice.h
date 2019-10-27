@@ -51,8 +51,18 @@ public:
 	///
 	const QString & getColorOrder() { return _colorOrder; };
 
-	void setActiveDevice(QString dev);
-	const QString & getActiveDevice() { return _activeDevice; };
+	///
+	/// @brief Set the current active ledDevice type
+	///
+	/// @param deviceType Device's type
+	///
+	void setActiveDeviceType(QString deviceType);
+
+	///
+	/// @brief Get the current active ledDevice type
+	///
+	const QString & getActiveDeviceType() { return _activeDeviceType; };
+
 	void setLedCount(int ledCount);
 	int  getLedCount() { return _ledCount; }
 
@@ -61,6 +71,21 @@ public:
 	int getLatchTime() { return _latchTime_ms; };
 
 	inline bool componentState() { return enabled(); };
+
+	///
+	/// Set device's switchability propterty.
+	/// A device is switchable (TRUE), if it does not require a continous stream of BLACK
+	///
+	/// @param switchable Switchability of the device
+	///
+	void setSwitchableProperty( bool switchable );
+
+	///
+	/// Get device's switchability propterty.
+	///
+	/// @return Switchability of the device
+	///
+	bool isSwitchable() { return _switchable; }
 
 public slots:
 	///
@@ -113,7 +138,7 @@ protected:
 
 	bool _deviceReady;
 
-	QString _activeDevice;
+	QString _activeDeviceType;
 
 	int _ledCount;
 	int _ledRGBCount;
@@ -134,4 +159,5 @@ private:
 	bool   _componentRegistered;
 	bool   _enabled;
 	QString _colorOrder;
+	bool _switchable;
 };

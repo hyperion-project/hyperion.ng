@@ -12,6 +12,10 @@
 #include <sstream>
 #include <iomanip>
 
+// Device Properties
+static const bool SWITCHABLE  = true;
+
+//
 static const bool verbose  = false;
 static const bool verbose3 = false;
 
@@ -87,6 +91,9 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
+	//Set Device properties
+	this->setSwitchableProperty( SWITCHABLE );
+
 	init(deviceConfig);
 }
 
@@ -95,10 +102,11 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 	LedDevice::init(deviceConfig);
 
 	uint configuredLedCount = static_cast<uint>(this->getLedCount());
-	Debug(_log, "ActiveDevice : %s", QSTRING_CSTR( this->getActiveDevice() ));
+	Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 	Debug(_log, "LedCount     : %u", configuredLedCount);
 	Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 	Debug(_log, "LatchTime    : %d", this->getLatchTime());
+	DebugIf(verbose3, _log, "isSwitchable : %d", this->isSwitchable());
 
 	//Set hostname as per configuration and default port
 	_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();

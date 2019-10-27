@@ -115,9 +115,14 @@ int LedDeviceWrapper::getLatchTime()
 	return _ledDevice->getLatchTime();
 }
 
-const QString & LedDeviceWrapper::getActiveDevice()
+const QString & LedDeviceWrapper::getActiveDeviceType()
 {
-	return _ledDevice->getActiveDevice();
+	return _ledDevice->getActiveDeviceType();
+}
+
+LedDevice * LedDeviceWrapper::getActiveDevice() const
+{
+	return _ledDevice;
 }
 
 const QString & LedDeviceWrapper::getColorOrder()

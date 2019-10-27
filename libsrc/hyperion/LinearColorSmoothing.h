@@ -96,6 +96,13 @@ private:
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
 
+	///
+	/// Smoothing dependend on LedDevice's state and capability (switchable yes/no)
+	///
+	/// @param enable New enablement state of the LedDevice
+	///
+	void setEnableDevice(bool enable);
+
 	/// Logger instance
 	Logger* _log;
 

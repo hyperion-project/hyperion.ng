@@ -50,9 +50,14 @@ public:
 	int getLatchTime();
 
 	///
-	/// @brief Get the current active ledDevice
+	/// @brief Get the current active ledDevice type
 	///
-	const QString & getActiveDevice();
+	const QString & getActiveDeviceType();
+
+	///
+	/// @brief Get pointer to current LedDevice
+	///
+	LedDevice * getActiveDevice() const;
 
 	///
 	/// @brief Return the last enable state

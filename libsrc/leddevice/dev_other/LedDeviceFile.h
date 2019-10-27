@@ -47,4 +47,9 @@ protected:
 
 	/// The outputstream
 	std::ofstream _ofs;
+
+private:
+
+	/// Timestamp for the output record
+	bool _printTimeStamp;
 };

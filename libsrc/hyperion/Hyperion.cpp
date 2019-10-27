@@ -495,7 +495,12 @@ const VideoMode & Hyperion::getCurrentVideoMode()
 	return _currVideoMode;
 }
 
-const QString & Hyperion::getActiveDevice()
+const QString & Hyperion::getActiveDeviceType()
+{
+	return _ledDeviceWrapper->getActiveDeviceType();
+}
+
+LedDevice * Hyperion::getActiveDevice() const
 {
 	return _ledDeviceWrapper->getActiveDevice();
 }
@@ -581,9 +586,32 @@ void Hyperion::update()
 
 		// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
+		{
 			_deviceSmooth->setLedValues(_ledBuffer);
-
+		}
+		// Smoothing is disabled
 		if  (! _deviceSmooth->enabled())
+		{
 			emit ledDeviceData(_ledBuffer);
+		}
+	}
+	else
+	{
+		// LEDDevice is disabled and Smoothing is disabled
+
+		bool switchable = _ledDeviceWrapper->getActiveDevice()->isSwitchable();
+		// If LEDDevice is not switchable, simulate OFF-state providing a continous stream of BLACK
+		if (!switchable)
+		{
+			for (ColorRgb& color : _ledBuffer)
+			{
+				color = ColorRgb::BLACK;
+			}
+			emit ledDeviceData(_ledBuffer);
+		}
+//		else
+//		{
+//			// Device has been switched off
+//		}
 	}
 }
