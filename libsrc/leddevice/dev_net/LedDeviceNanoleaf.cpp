@@ -56,7 +56,7 @@ const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222; //Fixed port for Canvas;
 static const char API_DEFAULT_PORT[] = "16021";
 static const char API_URL_FORMAT[] = "http://%1:%2/api/v1/%3/%4";
 static const char API_ROOT[] = "";
-static const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
+//static const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
 static const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
 static const char API_STATE[] ="state";
 static const char API_PANELLAYOUT[] = "panelLayout";
@@ -240,17 +240,11 @@ QJsonDocument LedDeviceNanoleaf::changeToExternalControlMode() {
 
 	QString url = getUrl(_hostname, _api_port, _auth_token, API_EFFECT );
 	QJsonDocument jsonDoc;
-	// If device model is Light Panels (Aurora)
-	if ( _deviceModel == "NL22") {
-		_extControlVersion = EXTCTRLVER_V1;
-		//Enable UDP Mode v1
-		jsonDoc = putJson(url, API_EXT_MODE_STRING_V1);
-	}
-	else {
-		_extControlVersion = EXTCTRLVER_V2;
-		//Enable UDP Mode v2
-		jsonDoc= putJson(url, API_EXT_MODE_STRING_V2);
-	}
+
+	_extControlVersion = EXTCTRLVER_V2;
+	//Enable UDP Mode v2
+	jsonDoc= putJson(url, API_EXT_MODE_STRING_V2);
+
 	return jsonDoc;
 }
 
@@ -311,7 +305,7 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const
 	QJsonDocument jsonDoc;
 
 	int httpStatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
-	DebugIf(verbose, _log, "Reply.httpStatusCode [%d]", httpStatusCode );
+	Debug(_log, "Reply.httpStatusCode [%d]", httpStatusCode );
 
 	if(reply->error() ==
 			QNetworkReply::NoError)
@@ -375,27 +369,14 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	int retVal = 0;
 	uint udpBufferSize;
 
-	//Light Panels
-	//    nPanels         1B
-	//    nFrames         1B
-	//    panelID         1B
-	//    <R> <G> <B>     3B
-	//    <W>             1B
-	//    tranitionTime   1B
-	//
-	//Canvas
-	//In order to support the much larger number of panels on Canvas, the size of the nPanels,
-	//panelId and tranitionTime fields have been been increased from 1B to 2B.
-	//The nFrames field has been dropped as it was set to 1 in v1 anyway
 	//
 	//    nPanels         2B
 	//    panelID         2B
 	//    <R> <G> <B>     3B
 	//    <W>             1B
 	//    tranitionTime   2B
-
-
-	//udpBufferSize = _panelLedCount * 7 + 1; // Buffersize for LightPanels
+	//
+	// Note: Nanoleaf Light Panels (Aurora) now support External Control V2 (tested with FW 3.2.0)
 
 	udpBufferSize = _panelLedCount * 8 + 2;
 	std::vector<uint8_t> udpbuffer;
@@ -410,9 +391,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	highByte = static_cast<uchar>(_panelLedCount >>8   );
 	lowByte  = static_cast<uchar>(_panelLedCount & 0xFF);
 
-	if ( _extControlVersion == EXTCTRLVER_V2 ) {
-		udpbuffer[i++] = highByte;
-	}
+	udpbuffer[i++] = highByte;
 	udpbuffer[i++] = lowByte;
 
 	ColorRgb color;
@@ -435,15 +414,8 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		}
 
 		// Set panelID
-		if ( _extControlVersion == EXTCTRLVER_V2 ) {
-			udpbuffer[i++] = highByte;
-		}
+		udpbuffer[i++] = highByte;
 		udpbuffer[i++] = lowByte;
-
-		// Set number of frames - V1 only
-		if ( _extControlVersion == EXTCTRLVER_V1 ) {
-			udpbuffer[i++] = 1; // No of Frames
-		}
 
 		// Set panel's color LEDs
 		udpbuffer[i++] = color.red;
@@ -459,14 +431,12 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		highByte = static_cast<uchar>(tranitionTime >>8   );
 		lowByte  = static_cast<uchar>(tranitionTime & 0xFF);
 
-		if ( _extControlVersion == EXTCTRLVER_V2 ) {
-			udpbuffer[i++] = highByte;
-		}
+		udpbuffer[i++] = highByte;
 		udpbuffer[i++] = lowByte;
 		DebugIf(verbose3, _log, "[%u] Color: {%u,%u,%u}", panelCounter, color.red, color.green, color.blue );
 
 	}
-	DebugIf(verbose3, _log, "udpBufferSize[%u], Bytes to send [%u]", udpBufferSize, i);
+	DebugIf(verbose3, _log, "UDP-Address [%s], UDP-Port [%u], udpBufferSize[%u], Bytes to send [%u]", QSTRING_CSTR(_address.toString()), _port, udpBufferSize, i);
 	DebugIf(verbose3, _log, "[%s]", uint8_vector_to_hex_string(udpbuffer).c_str() );
 
 	retVal &= writeBytes( i , udpbuffer.data());
