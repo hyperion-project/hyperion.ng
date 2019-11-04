@@ -7,7 +7,7 @@
 LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
-	init(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 LedDeviceFile::~LedDeviceFile()
@@ -21,21 +21,22 @@ LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 {
+	LedDevice::init(deviceConfig);
+	_refresh_timer_interval = 0;
+	_fileName = deviceConfig["output"].toString("/dev/null");
+	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
+
+	return true;
+}
+
+int LedDeviceFile::open()
+{
 	if ( _ofs.is_open() )
 	{
 		_ofs.close();
 	}
-
-	_refresh_timer_interval = 0;
-	LedDevice::init(deviceConfig);
-
-	QString fileName = deviceConfig["output"].toString("/dev/null");
-	_ofs.open( QSTRING_CSTR(fileName) );
-
-	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
-	this->setSwitchableProperty ( deviceConfig["switchable"].toBool(true) );
-
-	return true;
+	_ofs.open( QSTRING_CSTR(_fileName) );
+	return 0;
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)

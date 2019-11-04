@@ -439,8 +439,6 @@
 	"edt_dev_spec_ledIndex_title" : "LED index",
 	"edt_dev_spec_colorComponent_title" : "Color component",
 	"edt_dev_spec_printTimeStamp_title" : "Add timestamp",
-	"edt_dev_spec_switchable_title" : "Is device switchable (i.e. no BLACK-simulation when off)?",
-	"edt_dev_spec_switchable_expl" : "The device does not require a continous colour feed of BLACK to simulate being off",
 	"edt_conf_general_enable_title" : "Activate",
 	"edt_conf_general_enable_expl" : "If checked, the component is enabled.",
 	"edt_conf_general_priority_title" : "Priority channel",

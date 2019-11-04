@@ -440,8 +440,6 @@
 	"edt_dev_spec_ledIndex_title": "LED index",
 	"edt_dev_spec_colorComponent_title": "Farbkomponente",
 	"edt_dev_spec_printTimeStamp_title" : "Mit Zeitstempel",
-	"edt_dev_spec_switchable_title" : "Ist die LED Hardware schaltbar (d.h. keine SCHWARZ-Simulation, wenn aus)?",
-	"edt_dev_spec_switchable_expl" : "Die LED Hardware benötigt keinen kontinuierlichen Farbstrom in SCHWARZ um ein Ausschalten zu simulieren",
 	"edt_conf_general_enable_title": "Aktiviert",
 	"edt_conf_general_enable_expl": "Wenn aktiviert, ist die Komponente aktiv.",
 	"edt_conf_general_priority_title": "Priorität",
