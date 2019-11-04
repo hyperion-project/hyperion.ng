@@ -72,26 +72,11 @@ public:
 
 	inline bool componentState() { return enabled(); };
 
-	///
-	/// Set device's switchability propterty.
-	/// A device is switchable (TRUE), if it does not require a continous stream of BLACK
-	///
-	/// @param switchable Switchability of the device
-	///
-	void setSwitchableProperty( bool switchable );
-
-	///
-	/// Get device's switchability propterty.
-	///
-	/// @return Switchability of the device
-	///
-	bool isSwitchable() { return _switchable; }
-
 public slots:
 	///
 	/// Is called on thread start, all construction tasks and init should run here
 	///
-	virtual void start() { _deviceReady = open(); };
+	virtual void start() { _deviceReady = (open() == 0 ? true : false);}
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -127,6 +112,14 @@ protected:
 	///
 	virtual int open();
 
+	///
+	/// Writes "BLACK" to the output stream
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int writeBlack();
+
+
 	// Helper to pipe device config from constructor to start()
 	QJsonObject _devConfig;
 
@@ -159,5 +152,4 @@ private:
 	bool   _componentRegistered;
 	bool   _enabled;
 	QString _colorOrder;
-	bool _switchable;
 };

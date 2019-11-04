@@ -174,48 +174,27 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 
 void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
 {
-	if(component == hyperion::COMP_SMOOTHING)
+	if(component == hyperion::COMP_LEDDEVICE)
 	{
 		setEnable(state);
 	}
 
-	if(component == hyperion::COMP_LEDDEVICE)
+	if(component == hyperion::COMP_SMOOTHING)
 	{
-		setEnableDevice(state);
+		setEnable(state);
+		// update comp register
+		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, state);
 	}
-}
 
-void LinearColorSmoothing::setEnableDevice(bool enable)
-{
-	// If LedDevice is disabled
-	if ( !enable )
-	{
-		bool switchable = _hyperion->getActiveDevice()->isSwitchable();
-
-		// If LEDDevice is switchable, clear output queue and stop writing to device
-		if ( switchable )
-		{
-			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
-			_previousValues.clear();
-		}
-		else
-		{
-			// If LEDDevice is not switchable, simulate OFF-state providing a continous stream of BLACK
-			this->switchOff();
-		}
-	}
 }
 
 void LinearColorSmoothing::setEnable(bool enable)
 {
-	LedDevice::setEnable(enable);
 	if (!enable)
 	{
 		QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 		_previousValues.clear();
 	}
-	// update comp register
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)

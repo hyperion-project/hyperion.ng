@@ -500,11 +500,6 @@ const QString & Hyperion::getActiveDeviceType()
 	return _ledDeviceWrapper->getActiveDeviceType();
 }
 
-LedDevice * Hyperion::getActiveDevice() const
-{
-	return _ledDeviceWrapper->getActiveDevice();
-}
-
 void Hyperion::updatedComponentState(const hyperion::Components comp, const bool state)
 {
 	QMutexLocker lock(&_changes);
@@ -597,21 +592,7 @@ void Hyperion::update()
 	}
 	else
 	{
-		// LEDDevice is disabled and Smoothing is disabled
-
-		bool switchable = _ledDeviceWrapper->getActiveDevice()->isSwitchable();
-		// If LEDDevice is not switchable, simulate OFF-state providing a continous stream of BLACK
-		if (!switchable)
-		{
-			for (ColorRgb& color : _ledBuffer)
-			{
-				color = ColorRgb::BLACK;
-			}
-			emit ledDeviceData(_ledBuffer);
-		}
-//		else
-//		{
-//			// Device has been switched off
-//		}
+		// LEDDevice is disabled
+		//Debug(_log, "LEDDevice is disabled - no update required");
 	}
 }

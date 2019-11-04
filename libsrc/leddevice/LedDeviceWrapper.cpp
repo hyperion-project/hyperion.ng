@@ -120,11 +120,6 @@ const QString & LedDeviceWrapper::getActiveDeviceType()
 	return _ledDevice->getActiveDeviceType();
 }
 
-LedDevice * LedDeviceWrapper::getActiveDevice() const
-{
-	return _ledDevice;
-}
-
 const QString & LedDeviceWrapper::getColorOrder()
 {
 	return _ledDevice->getColorOrder();

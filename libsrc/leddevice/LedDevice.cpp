@@ -22,7 +22,6 @@ LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	, _latchTime_ms(0)
 	, _componentRegistered(false)
 	, _enabled(true)
-	, _switchable (false)
 {
 	// setup timer
 	_refresh_timer.setInterval(0);
@@ -109,9 +108,15 @@ int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 	return retval;
 }
 
-int LedDevice::switchOff()
+int LedDevice::writeBlack()
 {
 	return _deviceReady ? write(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK )) : -1;
+}
+
+int LedDevice::switchOff()
+{
+	int rc = writeBlack();
+	return rc;
 }
 
 int LedDevice::switchOn()
@@ -129,10 +134,5 @@ void LedDevice::setLedCount(int ledCount)
 int LedDevice::rewriteLeds()
 {
 	return _enabled ? write(_ledValues) : -1;
-}
-
-void LedDevice::setSwitchableProperty(bool switchable)
-{
-	_switchable = switchable;
 }
 

@@ -55,11 +55,6 @@ public:
 	const QString & getActiveDeviceType();
 
 	///
-	/// @brief Get pointer to current LedDevice
-	///
-	LedDevice * getActiveDevice() const;
-
-	///
 	/// @brief Return the last enable state
 	///
 	const bool & enabled() { return _enabled; };
