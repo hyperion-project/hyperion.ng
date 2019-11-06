@@ -12,9 +12,6 @@
 #include <sstream>
 #include <iomanip>
 
-// Device Properties
-static const bool SWITCHABLE  = true;
-
 //
 static const bool verbose  = false;
 static const bool verbose3 = false;
@@ -91,10 +88,7 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	//Set Device properties
-	this->setSwitchableProperty( SWITCHABLE );
-
-	init(deviceConfig);
+	_deviceReady = init(deviceConfig);
 }
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
@@ -106,7 +100,6 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 	Debug(_log, "LedCount     : %u", configuredLedCount);
 	Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 	Debug(_log, "LatchTime    : %d", this->getLatchTime());
-	DebugIf(verbose3, _log, "isSwitchable : %d", this->isSwitchable());
 
 	//Set hostname as per configuration and default port
 	_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();
@@ -472,13 +465,13 @@ int LedDeviceNanoleaf::switchOff() {
 	Debug(_log, "switchOff()");
 
 	//Set all LEDs to Black
-	LedDevice::switchOff();
+	int rc = writeBlack();
 
 	//Switch off Nanoleaf device physically
 	QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
 	putJson(url, getOnOffRequest(false) );
 
-	return _deviceReady ? write(std::vector<ColorRgb>(static_cast<uint>(_ledCount), ColorRgb::BLACK )) : -1;
+	return rc;
 }
 
 std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const
