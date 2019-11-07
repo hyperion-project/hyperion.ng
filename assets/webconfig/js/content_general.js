@@ -164,6 +164,21 @@ $(document).ready(function () {
 		download(JSON.stringify(window.serverConfig, null, "\t"), 'Hyperion-' + window.currentVersion + '-Backup (' + name + ') ' + timestamp + '.json', "application/json");
 	});
 
+	//instanceSync
+	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_instSync_heading_title"), 'conf_instSync_cont', 'btn_submit_is'));
+
+	conf_instSync_editor = createJsonEditor('conf_instSync_cont', {
+		instSync: window.schema.instSync
+	}, true, true);
+
+	conf_instSync_editor.on('change', function () {
+		conf_instSync_editor.validate().length ? $('#btn_submit_is').attr('disabled', true) : $('#btn_submit_is').attr('disabled', false);
+	});
+
+	$('#btn_submit_is').off().on('click', function () {
+		requestWriteConfig(conf_instSync_editor.getValue());
+	});
+
 	//create introduction
 	if (window.showOptHelp)
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");

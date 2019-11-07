@@ -79,8 +79,8 @@ void JsonAPI::initialize(void)
 	handleInstanceSwitch(0);
 
 	// setup auth interface
-	connect(_authManager, &AuthManager::newPendingTokenRequest, this, &JsonAPI::handlePendingTokenRequest);
-	connect(_authManager, &AuthManager::tokenResponse, this, &JsonAPI::handleTokenResponse);
+	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
+	connect(this, &API::onTokenResponse, this, &JsonAPI::handleTokenResponse);
 
 	// listen for killed instances
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
@@ -517,7 +517,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// add instance info
 	QJsonArray instanceInfo;
-	for (const auto &entry : _instanceManager->getInstanceData())
+	for (const auto &entry : API::getAllInstanceData())
 	{
 		QJsonObject obj;
 		obj.insert("friendly_name", entry["friendly_name"].toString());
@@ -1068,9 +1068,9 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	// catch logout
 	if (subc == "logout")
 	{
-		API::logout();
 		// disconnect all kind of data callbacks
-		stopDataConnections(); // TODO move to API
+		JsonAPI::stopDataConnections(); // TODO move to API
+		API::logout();
 		sendSuccessReply(command + "-" + subc, tan);
 		return;
 	}
@@ -1174,7 +1174,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		return;
 	}
 
-	// catch get token list
+	// get token list
 	if (subc == "getTokenList")
 	{
 		QVector<AuthManager::AuthDefinition> defVect;
@@ -1273,7 +1273,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 	if (subc == "startInstance")
 	{
 		// silent fail
-		_instanceManager->startInstance(inst);
+		API::startInstance(inst);
 		sendSuccessReply(command + "-" + subc, tan);
 		return;
 	}
@@ -1281,22 +1281,18 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 	if (subc == "stopInstance")
 	{
 		// silent fail
-		_instanceManager->stopInstance(inst);
+		API::stopInstance(inst);
 		sendSuccessReply(command + "-" + subc, tan);
 		return;
 	}
 
 	if (subc == "deleteInstance")
 	{
-		if (_adminAuthorized)
-		{
-			if (_instanceManager->deleteInstance(inst))
-				sendSuccessReply(command + "-" + subc, tan);
-			else
-				sendErrorReply(QString("Failed to delete instance '%1'").arg(inst), command + "-" + subc, tan);
-		}
+		QString replyMsg;
+		if (API::deleteInstance(inst, replyMsg))
+			sendSuccessReply(command + "-" + subc, tan);
 		else
-			sendErrorReply("No Authorization", command + "-" + subc, tan);
+			sendErrorReply(replyMsg, command + "-" + subc, tan);
 		return;
 	}
 
@@ -1306,30 +1302,21 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "createInstance")
 	{
-		if (_adminAuthorized)
-		{
-			if (_instanceManager->createInstance(name))
-				sendSuccessReply(command + "-" + subc, tan);
-			else
-				sendErrorReply(QString("The instance name '%1' is already in use").arg(name), command + "-" + subc, tan);
-		}
+		QString replyMsg = API::createInstance(name);
+		if (replyMsg.isEmpty())
+			sendSuccessReply(command + "-" + subc, tan);
 		else
-			sendErrorReply("No Authorization", command + "-" + subc, tan);
+			sendErrorReply(replyMsg, command + "-" + subc, tan);
 		return;
 	}
 
 	if (subc == "saveName")
 	{
-		if (_adminAuthorized)
-		{
-			// silent fail
-			if (_instanceManager->saveName(inst, name))
-				sendSuccessReply(command + "-" + subc, tan);
-			else
-				sendErrorReply(QString("The instance name '%1' is already in use").arg(name), command + "-" + subc, tan);
-		}
+		QString replyMsg = API::setInstanceName(inst, name);
+		if (replyMsg.isEmpty())
+			sendSuccessReply(command + "-" + subc, tan);
 		else
-			sendErrorReply("No Authorization", command + "-" + subc, tan);
+			sendErrorReply(replyMsg, command + "-" + subc, tan);
 		return;
 	}
 }
@@ -1451,35 +1438,27 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	emit callbackMessage(_streaming_logging_reply);
 }
 
-void JsonAPI::handlePendingTokenRequest(const QString &id, const QString &comment)
+void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 {
-	// just user sessions are allowed to react on this, to prevent that token authorized instances authorize new tokens on their own
-	if (_adminAuthorized)
-	{
-		QJsonObject obj;
-		obj["comment"] = comment;
-		obj["id"] = id;
-		obj["timeout"] = 180000;
-		sendSuccessDataReply(QJsonDocument(obj), "authorize-event", 1);
-	}
+	QJsonObject obj;
+	obj["comment"] = comment;
+	obj["id"] = id;
+	obj["timeout"] = 180000;
+	sendSuccessDataReply(QJsonDocument(obj), "authorize-event", 1);
 }
 
-void JsonAPI::handleTokenResponse(const bool &success, QObject *caller, const QString &token, const QString &comment, const QString &id)
+void JsonAPI::handleTokenResponse(const bool &success, const QString &token, const QString &comment, const QString &id)
 {
-	// if this is the requester, we send the reply
-	if (this == caller)
-	{
-		const QString cmd = "authorize-requestToken";
-		QJsonObject result;
-		result["token"] = token;
-		result["comment"] = comment;
-		result["id"] = id;
+	const QString cmd = "authorize-requestToken";
+	QJsonObject result;
+	result["token"] = token;
+	result["comment"] = comment;
+	result["id"] = id;
 
-		if (success)
-			sendSuccessDataReply(QJsonDocument(result), cmd);
-		else
-			sendErrorReply("Token request timeout or denied", cmd);
-	}
+	if (success)
+		sendSuccessDataReply(QJsonDocument(result), cmd);
+	else
+		sendErrorReply("Token request timeout or denied", cmd);
 }
 
 void JsonAPI::handleInstanceStateChange(const instanceState &state, const quint8 &instance, const QString &name)
@@ -1502,5 +1481,8 @@ void JsonAPI::stopDataConnections(void)
 	LoggerManager::getInstance()->disconnect();
 	_streaming_logging_activated = false;
 	_jsonCB->resetSubscriptions();
+	// led stream colors
+	disconnect(_hyperion, &Hyperion::rawLedColors, this, 0);
 	_ledStreamTimer->stop();
+	disconnect(_ledStreamConnection);
 }
