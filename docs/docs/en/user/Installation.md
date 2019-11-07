@@ -6,7 +6,7 @@ Hyperion supports various platforms for installation, as package or as a portabl
 ### Supported Hardware/Software
   * Raspberry Pi (See also [HyperBian](/en/user/HyperBian))
   * Debian 9 | Ubuntu 16.04 or higher
-  * Mac OSX
+  * Mac OS
   * OpenELEC, LibreELEC
 
 **Please note that some arm devices have limited support in terms of direct capturing**

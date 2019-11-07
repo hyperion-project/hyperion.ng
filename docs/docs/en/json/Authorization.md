@@ -78,6 +78,9 @@ Response
     "tan" : 0
 }
 ```
+::: warning
+A Logout will stop all streaming data services and subscriptions
+:::
 
 ### Request a Token
 If you want to get the most comfortable way for your application to authenticate

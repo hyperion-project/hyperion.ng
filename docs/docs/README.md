@@ -7,7 +7,7 @@ sidebar: false
 Welcome in the colorful world of Hyperion. Please choose the documentation you want to view.
 
 <div class="flex flex-center no-decoration">
-  <MainSection title="User" text="Installation, Konfiguration und erweiterte Informationen" to="/en/user" />
+  <MainSection title="User" text="Installation, configuration and advanced informations" to="/en/user" />
   <MainSection title="Effects" text="Learn how to create an effect" to="/en/effects" />
   <MainSection title="JSON API" text="Learn how to interact with the API" to="/en/json" />
 </div>

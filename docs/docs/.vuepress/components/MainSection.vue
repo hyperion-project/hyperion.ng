@@ -29,7 +29,9 @@ export default {
   },
   methods: {
     goTo(val) {
-      if (this.disabled != "") document.location = val;
+      if (this.disabled != "") {
+        document.location.href = val;
+      }
     }
   }
 };

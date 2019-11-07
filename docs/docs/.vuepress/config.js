@@ -93,8 +93,8 @@ module.exports = {
           }
         },
         nav: [
-          { text: 'Home', link: '/de/' },
-          { text: 'Benutzer', link: '/de/user/' }
+          { text: 'Startseite', link: '/de/' }
+          //{ text: 'Benutzer', link: '/de/user/' }
           //{ text: 'Effects', link: '/en/effects/' },
           //{ text: 'Json API', link: '/en/json/' }
           // { text: 'Addons API', link: '/en/addons/' }

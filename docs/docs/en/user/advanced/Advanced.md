@@ -151,6 +151,15 @@ hyperion-remote -e "Rainbow swirl"
 
 # with a duration of 8 seconds instead endless
 hyperion-remote -e "Rainbow swirl" -d 8000
+
+# Target a specific instance
+# ATTENTION: Hyperion instances will synchronize with the Instance Syncing feature by default
+# You can configure the behaviour for each instance
+hyperion-remote -I "My cool instance name"
+# Or
+hyperion-remote --instance "My cool instance name"
+# Example set effect for instance
+hyperion-remote --instance "My cool instance name" -e "Rainbow swirl"
 ```
 
 ::: tip
