@@ -4,6 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#fff",
+    "theme_color": "#2b81a0",
     "description": "All you want to know about Hyperion",
     "icons": [
         {

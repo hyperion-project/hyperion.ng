@@ -8,13 +8,13 @@ module.exports = {
     // PWA
     // ['link', { rel: 'icon', href: '/hyperion-logo-white.png' }], // ???
     ['link', { rel: 'manifest', href: '/manifest.json' }], // ???
-    ['meta', { name: 'theme-color', content: '#027be3' }], // ???
+    ['meta', { name: 'theme-color', content: '#2b81a0' }], // ???
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black' }],
     ['link', { rel: 'apple-touch-icon', href: '/icons/apple-icon-152x152.png' }],
-    ['link', { rel: 'mask-icon', href: '/icons/safari-pinned-tab.svg', color: '#027be3' }],
+    ['link', { rel: 'mask-icon', href: '/icons/safari-pinned-tab.svg', color: '#fff' }],
     ['meta', { name: 'msapplication-TileImage', content: '/icons/ms-icon-144x144.png' }], // probably invert
-    ['meta', { name: 'msapplication-TileColor', content: '#027be3' }] // might not match with icon
+    ['meta', { name: 'msapplication-TileColor', content: '#2b81a0' }] // might not match with icon
   ],
   dest: "./dist",
   title: "Hyperion",
