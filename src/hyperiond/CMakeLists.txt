@@ -30,7 +30,7 @@ target_link_libraries(hyperiond
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
 		Qt5::Core
-		pcre16 dl z
+		pcre16 dl z ${plugin_libs}
 	)
 endif()
 

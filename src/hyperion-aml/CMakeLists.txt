@@ -37,7 +37,7 @@ target_link_libraries(${PROJECT_NAME}
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}
-		pcre16 dl z
+		pcre16 dl z ${plugin_libs}
 	)
 endif()
 

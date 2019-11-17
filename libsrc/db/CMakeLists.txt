@@ -16,3 +16,9 @@ target_link_libraries(database
 	Qt5::Core
 	Qt5::Sql
 )
+
+if (ENABLE_AMLOGIC)
+	target_link_libraries(database
+		${plugin_libs}
+	)
+endif()

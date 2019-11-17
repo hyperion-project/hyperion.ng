@@ -1,3 +1,6 @@
+// Hyperion includes
+#include <HyperionConfig.h>
+
 #include <db/DBManager.h>
 
 #include <QSqlDatabase>
@@ -7,6 +10,11 @@
 #include <QThreadStorage>
 #include <QUuid>
 #include <QDir>
+
+#ifdef ENABLE_AMLOGIC
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
+#endif
 
 // not in header because of linking
 static QString _rootPath;
