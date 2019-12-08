@@ -31,6 +31,8 @@
 #include <effectengine/ActiveEffectDefinition.h>
 #include <effectengine/EffectSchema.h>
 
+#include <leddevice/LedDevice.h>
+
 // settings utils
 #include <utils/settings.h>
 
@@ -227,7 +229,12 @@ public:
 	/// @brief Get the current active led device
 	/// @return The device nam
 	/// e
-	const QString & getActiveDevice();
+	const QString & getActiveDeviceType();
+
+	///
+	/// @brief Get pointer to current LedDevice
+	///
+	LedDevice * getActiveDevice() const;
 
 public slots:
 	///

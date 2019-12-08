@@ -37,6 +37,13 @@ public:
 	
 protected:
 	///
+	/// Opens and configures the output file
+	///
+	/// @return Zero on succes else negative
+	///
+	///
+	virtual int open();
+	///
 	/// Writes the given led-color values to the output stream
 	///
 	/// @param ledValues The color-value per led
@@ -47,4 +54,10 @@ protected:
 
 	/// The outputstream
 	std::ofstream _ofs;
+
+private:
+
+	QString _fileName;
+	/// Timestamp for the output record
+	bool _printTimeStamp;
 };

@@ -51,8 +51,18 @@ public:
 	///
 	const QString & getColorOrder() { return _colorOrder; };
 
-	void setActiveDevice(QString dev);
-	const QString & getActiveDevice() { return _activeDevice; };
+	///
+	/// @brief Set the current active ledDevice type
+	///
+	/// @param deviceType Device's type
+	///
+	void setActiveDeviceType(QString deviceType);
+
+	///
+	/// @brief Get the current active ledDevice type
+	///
+	const QString & getActiveDeviceType() { return _activeDeviceType; };
+
 	void setLedCount(int ledCount);
 	int  getLedCount() { return _ledCount; }
 
@@ -66,7 +76,7 @@ public slots:
 	///
 	/// Is called on thread start, all construction tasks and init should run here
 	///
-	virtual void start() { _deviceReady = open(); };
+	virtual void start() { _deviceReady = (open() == 0 ? true : false);}
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -102,6 +112,14 @@ protected:
 	///
 	virtual int open();
 
+	///
+	/// Writes "BLACK" to the output stream
+	///
+	/// @return Zero on success else negative
+	///
+	virtual int writeBlack();
+
+
 	// Helper to pipe device config from constructor to start()
 	QJsonObject _devConfig;
 
@@ -113,7 +131,7 @@ protected:
 
 	bool _deviceReady;
 
-	QString _activeDevice;
+	QString _activeDeviceType;
 
 	int _ledCount;
 	int _ledRGBCount;
