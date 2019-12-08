@@ -439,6 +439,7 @@
 	"edt_dev_spec_gpioBcm_title": "GPIO Pin",
 	"edt_dev_spec_ledIndex_title": "LED index",
 	"edt_dev_spec_colorComponent_title": "Farbkomponente",
+	"edt_dev_spec_printTimeStamp_title" : "Mit Zeitstempel",
 	"edt_conf_general_enable_title": "Aktiviert",
 	"edt_conf_general_enable_expl": "Wenn aktiviert, ist die Komponente aktiv.",
 	"edt_conf_general_priority_title": "Priorität",
