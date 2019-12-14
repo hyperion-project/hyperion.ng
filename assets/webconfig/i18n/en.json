@@ -658,6 +658,8 @@
 	"edt_eff_gif_header_desc" : "This effect plays .gif files, provide a simple video like loop as effect.",
 	"edt_eff_candle_header" : "Candle",
 	"edt_eff_candle_header_desc" : "Shimmering candles",
+	"edt_eff_ledtest_header" : "Led Test",
+	"edt_eff_ledtest_header_desc" : "Rotating output: Red, Blue, Green, White, Black",
 	"edt_eff_police_header" : "Police",
 	"edt_eff_police_header_desc" : "Lights like a police car in action",
 	"edt_eff_fade_header" : "Fade",
