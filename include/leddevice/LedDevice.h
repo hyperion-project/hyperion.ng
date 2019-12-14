@@ -104,7 +104,7 @@ signals:
 
 protected:
 	virtual bool init(const QJsonObject &deviceConfig);
-
+	void printLedValues(const std::vector<ColorRgb>& ledValues );
 	///
 	/// Opens and configures the output device
 	///

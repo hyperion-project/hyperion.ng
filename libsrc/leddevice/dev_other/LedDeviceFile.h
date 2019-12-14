@@ -60,4 +60,7 @@ private:
 	QString _fileName;
 	/// Timestamp for the output record
 	bool _printTimeStamp;
+	/// Last write/output timestamp
+	std::chrono::system_clock::time_point lastWriteTime = std::chrono::system_clock::now();
+
 };

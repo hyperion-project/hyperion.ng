@@ -136,3 +136,13 @@ int LedDevice::rewriteLeds()
 	return _enabled ? write(_ledValues) : -1;
 }
 
+void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues )
+{
+	std::cout << "LedDevice: LedValues [" << ledValues.size() <<"] [";
+	for (const ColorRgb& color : ledValues)
+	{
+		std::cout << color;
+	}
+	std::cout << "]" << std::endl;
+
+}
