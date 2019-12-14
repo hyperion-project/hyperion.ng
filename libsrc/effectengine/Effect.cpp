@@ -213,7 +213,7 @@ void Effect::run()
 		Py_DECREF(main_dict);  // release "main_dict" when done
 	}
 	// stop sub threads if needed
-	for (PyThreadState* s = tstate->interp->tstate_head, *old = nullptr; s;)
+	for (PyThreadState* s = PyInterpreterState_ThreadHead(tstate->interp), *old = nullptr; s;)
 	{
 		if (s == tstate)
 		{
@@ -230,7 +230,7 @@ void Effect::run()
 		msleep(100);
 		Py_END_ALLOW_THREADS;
 
-		s = tstate->interp->tstate_head;
+		s = PyInterpreterState_ThreadHead(tstate->interp);
 	}
 
 	// Clean up the thread state
