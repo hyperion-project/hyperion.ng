@@ -45,6 +45,7 @@ private slots:
 	int rewriteLeds();
 
 	/// Unblock the device after a connection delay
+	void writeTimeout();
 	void unblockAfterDelay();
 	void error(QSerialPort::SerialPortError error);
 	void bytesWritten(qint64 bytes);
@@ -84,12 +85,14 @@ protected:
 	/// The RS232 serial-device
 	QSerialPort _rs232Port;
 
+	/// A timeout timer for the asynchronous connection
+	QTimer _writeTimeout;
+
 	bool _blockedForDelay;
 	
 	bool _stateChanged;
 
 	qint64 _bytesToWrite;
-	qint64 _bytesWritten;
 	qint64 _frameDropCounter;
 	QSerialPort::SerialPortError _lastError;
 	qint64                       _preOpenDelayTimeOut;
