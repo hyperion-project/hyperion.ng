@@ -22,7 +22,6 @@ LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 {
 	LedDevice::init(deviceConfig);
-	_refresh_timer_interval = 0;
 	_fileName = deviceConfig["output"].toString("/dev/null");
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 

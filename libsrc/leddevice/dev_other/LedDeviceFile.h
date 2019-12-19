@@ -2,6 +2,7 @@
 
 // STL includes
 #include <fstream>
+#include <chrono>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
