@@ -21,21 +21,27 @@ LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 {
-	LedDevice::init(deviceConfig);
+	_deviceReady = LedDevice::init(deviceConfig);
+
 	_fileName = deviceConfig["output"].toString("/dev/null");
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 
-	return true;
+	return _deviceReady;
 }
 
 int LedDeviceFile::open()
 {
-	if ( _ofs.is_open() )
+	int retval = -1;
+	if ( _deviceReady )
 	{
-		_ofs.close();
+		retval = 0;
+		if ( _ofs.is_open() )
+		{
+			_ofs.close();
+		}
+		_ofs.open( QSTRING_CSTR(_fileName) );
 	}
-	_ofs.open( QSTRING_CSTR(_fileName) );
-	return 0;
+	return retval;
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
@@ -57,8 +63,8 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 			<< " | +" << std::setfill('0') << std::setw(4) << elapsedTimeMs.count();
 
 		lastWriteTime = now;
-
 	}
+
 	_ofs << " [";
 	for (const ColorRgb& color : ledValues)
 	{
