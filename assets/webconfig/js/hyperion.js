@@ -240,6 +240,11 @@ function requestInstanceSwitch(inst)
 	sendToHyperion("instance","switchTo",'"instance": '+inst);
 }
 
+function requestPlatformShutdown()
+{
+		sendToHyperion("platform","poweroff","");
+}
+
 function requestServerInfo()
 {
 	sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');

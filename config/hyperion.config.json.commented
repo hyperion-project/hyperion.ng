@@ -336,8 +336,16 @@
 		"reverse"	: false,
 		"hdepth"	: 8,
 		"vdepth"	: 5,
-		"overlap"	: 0,
-		"edgegap"	: 0
+		"overlap"	: 1,
+		"edgegap"	: 16,
+		"ptlh"		: 0,
+		"ptlv"		: 0,
+		"ptrh"		: 100,
+		"ptrv"		: 0,
+		"pblh"		: 0,
+		"pblv"		: 100,
+		"pbrh"		: 100,
+		"pbrv"		: 100		
 	},
 
 	///  The configuration for each individual led. This contains the specification of the area

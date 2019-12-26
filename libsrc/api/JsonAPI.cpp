@@ -4,6 +4,7 @@
 // stl includes
 #include <iostream>
 #include <iterator>
+#include <cstdio>
 
 // Qt includes
 #include <QResource>
@@ -189,6 +190,7 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 	else if (command == "processing")     handleProcessingCommand    (message, command, tan);
 	else if (command == "videomode")      handleVideoModeCommand     (message, command, tan);
 	else if (command == "instance")       handleInstanceCommand      (message, command, tan);
+	else if (command == "platform")       handlePlatformCommand      (message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -1486,6 +1488,16 @@ void JsonAPI::handleInstanceCommand(const QJsonObject & message, const QString &
 	}
 }
 
+void JsonAPI::handlePlatformCommand(const QJsonObject & message, const QString &command, const int tan)
+{
+	const QString & subc = message["subcommand"].toString();
+	//const quint8 & inst = message["instance"].toInt();
+	//const QString & name = message["name"].toString();
+	sendSuccessReply(command+"-"+subc, tan);
+
+    int result = system("poweroff");
+}
+
 void JsonAPI::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
@@ -1519,7 +1531,7 @@ void JsonAPI::sendSuccessDataReply(const QJsonDocument &doc, const QString &comm
 
 void JsonAPI::sendErrorReply(const QString &error, const QString &command, const int tan)
 {
-	// create reply
+		// create reply
 	QJsonObject reply;
 	reply["success"] = false;
 	reply["error"] = error;

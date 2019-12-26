@@ -76,7 +76,8 @@ function createClassicLeds(){
 	var edgeVGap = parseInt($("#ip_cl_edgegap").val())/100/2;
 	//var cornerVGap = parseInt($("#ip_cl_cornergap").val())/100/2;
 	var overlap = $("#ip_cl_overlap").val()/100;
-	//corner values %
+
+	//trapezoid values % -> float
 	var ptblh  = parseInt($("#ip_cl_pblh").val())/100;
 	var ptblv  = parseInt($("#ip_cl_pblv").val())/100;
 	var ptbrh  = parseInt($("#ip_cl_pbrh").val())/100;
@@ -85,7 +86,7 @@ function createClassicLeds(){
 	var pttlv  = parseInt($("#ip_cl_ptlv").val())/100;
 	var pttrh  = parseInt($("#ip_cl_ptrh").val())/100;
 	var pttrv  = parseInt($("#ip_cl_ptrv").val())/100;
-
+	
 	//helper
 	var edgeHGap = edgeVGap/(16/9);
 	//var cornerHGap = cornerVGap/(16/9);
@@ -163,19 +164,6 @@ function createClassicLeds(){
 		}
 	}
 
-	function createLeftLeds(){
-		var steph = (ptblh - pttlh)/ledsleft;
-		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
-			
-		for (var i = ledsleft-1; i>-1; i--){
-			var hmin = pttlh+(steph*Number([i]));
-			var hmax = hmin+ledsVDepth;
-			var vmin = ovl("-",pttlv+(stepv*Number([i]))+edgeVGap);
-			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
-			createLedArray(hmin, hmax, vmin, vmax);
-		}
-	}
-
 	function createRightLeds(){
 		var steph = (ptbrh - pttrh)/ledsright;
 		var stepv = (ptbrv - pttrv - (2*edgeVGap))/ledsright;
@@ -202,6 +190,21 @@ function createClassicLeds(){
 		}
 	}
 
+	function createLeftLeds(){
+		var steph = (ptblh - pttlh)/ledsleft;
+		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
+			
+		for (var i = ledsleft-1; i>-1; i--){
+			var hmin = pttlh+(steph*Number([i]));
+			var hmax = hmin+ledsVDepth;
+			var vmin = ovl("-",pttlv+(stepv*Number([i]))+edgeVGap);
+			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
+			createLedArray(hmin, hmax, vmin, vmax);
+		}
+
+	}
+
+	//rectangle
 	createTopLeds();
 	createRightLeds();
 	createBottomLeds();

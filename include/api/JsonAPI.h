@@ -315,6 +315,12 @@ private:
 	///
 	void handleInstanceCommand(const QJsonObject & message, const QString &command, const int tan);
 
+	/// Handle an incoming JSON instance message
+	///
+	/// @param message the incoming message
+	///
+	void handlePlatformCommand(const QJsonObject & message, const QString &command, const int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
@@ -324,6 +330,7 @@ private:
 	/// Send a standard reply indicating success
 	///
 	void sendSuccessReply(const QString &command="", const int tan=0);
+	void sendSuccessInfoReply(const QString & info,const QString &command="", const int tan=0);
 
 	///
 	/// Send a standard reply indicating success with data
