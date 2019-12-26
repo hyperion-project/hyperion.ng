@@ -46,7 +46,8 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 		if (info.addresses().isEmpty())
 		{
 			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-			throw std::runtime_error("invalid target address");
+			error ("invalid target address");
+			return false;
 		}
 		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
 		_address = info.addresses().first();
@@ -55,7 +56,8 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	_port = deviceConfig["port"].toInt(_port);
 	if ( (_port <= 0) || (_port > MAX_PORT) )
 	{
-		throw std::runtime_error("invalid target port");
+		error ("invalid target port");
+		return false;
 	}
 
 	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
@@ -68,7 +70,10 @@ int ProviderUdp::open()
 	QHostAddress localAddress = QHostAddress::Any;
 	quint16      localPort = 0;
 
+	// TODO: Check, if device can be enabled, if binding fails
 	WarningIf( !_udpSocket->bind(localAddress, localPort), _log, "Could not bind local address: %s", strerror(errno));
+
+	setEnable (true);
 
 	return 0;
 }
