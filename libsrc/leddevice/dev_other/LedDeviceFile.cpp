@@ -7,7 +7,7 @@
 LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
 }
 
 LedDeviceFile::~LedDeviceFile()
@@ -32,14 +32,17 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 int LedDeviceFile::open()
 {
 	int retval = -1;
+	_deviceReady = init(_devConfig);
 	if ( _deviceReady )
 	{
-		retval = 0;
 		if ( _ofs.is_open() )
 		{
 			_ofs.close();
 		}
 		_ofs.open( QSTRING_CSTR(_fileName) );
+
+		retval = 0;
+		setEnable(true);
 	}
 	return retval;
 }
@@ -53,14 +56,14 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 		const auto now = std::chrono::system_clock::now();
 		const auto nowAsTimeT = std::chrono::system_clock::to_time_t(now);
 		const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-		now.time_since_epoch()) % 1000;
+							   now.time_since_epoch()) % 1000;
 
 		const auto elapsedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastWriteTime);
 
 		_ofs
-			<< std::put_time(std::localtime(&nowAsTimeT), "%Y-%m-%d %T")
-			<< '.' << std::setfill('0') << std::setw(3) << nowMs.count()
-			<< " | +" << std::setfill('0') << std::setw(4) << elapsedTimeMs.count();
+				<< std::put_time(std::localtime(&nowAsTimeT), "%Y-%m-%d %T")
+				<< '.' << std::setfill('0') << std::setw(3) << nowMs.count()
+				<< " | +" << std::setfill('0') << std::setw(4) << elapsedTimeMs.count();
 
 		lastWriteTime = now;
 	}

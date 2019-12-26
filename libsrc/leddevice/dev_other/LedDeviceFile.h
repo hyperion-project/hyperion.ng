@@ -38,12 +38,12 @@ public:
 	
 protected:
 	///
-	/// Opens and configures the output file
+	/// Opens and initiatialises the output device
 	///
-	/// @return Zero on succes else negative
-	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
 	///
 	virtual int open();
+
 	///
 	/// Writes the given led-color values to the output stream
 	///
