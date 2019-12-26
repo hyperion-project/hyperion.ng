@@ -9,34 +9,38 @@
 
 using namespace hyperion;
 
+const int64_t  DEFAUL_SETTLINGTIME    = 200;	// settlingtime in ms
+const double   DEFAUL_UPDATEFREQUENCY = 25;	// updatefrequncy in hz
+const int64_t  DEFAUL_UPDATEINTERVALL = static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY); // updateintervall in ms
+const unsigned DEFAUL_OUTPUTDEPLAY    = 0;	// outputdelay in ms
+
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion* hyperion)
-	: LedDevice(QJsonObject(), hyperion)
+	: QObject(hyperion)
 	, _log(Logger::getInstance("SMOOTHING"))
 	, _hyperion(hyperion)
-	, _updateInterval(1000)
-	, _settlingTime(200)
+	, _updateInterval(DEFAUL_UPDATEINTERVALL)
+	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(new QTimer(this))
-	, _outputDelay(0)
+	, _outputDelay(DEFAUL_OUTPUTDEPLAY)
 	, _writeToLedsEnable(true)
 	, _continuousOutput(false)
 	, _pause(false)
 	, _currentConfigId(0)
+	, _enabled(true)
 {
-	// set initial state to true, as LedDevice::enabled() is true by default
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, true);
-
 	// init cfg 0 (default)
-	_cfgList.append({false, 200, 25, 0});
+	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
 	handleSettingsUpdate(settings::SMOOTHING, config);
+	selectConfig(0, true);
 
 	// add pause on cfg 1
-	SMOOTHING_CFG cfg = {true};
+	SMOOTHING_CFG cfg = {true, 0, 0, 0};
 	_cfgList.append(cfg);
 
 	// listen for comp changes
 	connect(_hyperion, &Hyperion::componentStateChanged, this, &LinearColorSmoothing::componentStateChange);
 	// timer
-	connect(_timer, SIGNAL(timeout()), this, SLOT(updateLeds()));
+	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
 
 LinearColorSmoothing::~LinearColorSmoothing()
@@ -48,16 +52,33 @@ void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, cons
 {
 	if(type == settings::SMOOTHING)
 	{
-		QJsonObject obj = config.object();
-		_continuousOutput = obj["continuousOutput"].toBool(true);
-		SMOOTHING_CFG cfg = {false, obj["time_ms"].toInt(200), unsigned(1000.0/obj["updateFrequency"].toDouble(25.0)), unsigned(obj["updateDelay"].toInt(0))};
-		_cfgList[0] = cfg;
-		// if current id is 0, we need to apply the settings (forced)
-		if(!_currentConfigId)
-			selectConfig(0, true);
+		//	std::cout << "LinearColorSmoothing::handleSettingsUpdate" << std::endl;
+		//	std::cout << config.toJson().toStdString() << std::endl;
 
+		QJsonObject obj = config.object();
 		if(enabled() != obj["enable"].toBool(true))
 			setEnable(obj["enable"].toBool(true));
+
+		_continuousOutput = obj["continuousOutput"].toBool(true);
+
+		SMOOTHING_CFG cfg = {false,
+							 static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME)),
+							 static_cast<int64_t>(1000.0/obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY)),
+							 static_cast<unsigned>(obj["updateDelay"].toInt(DEFAUL_OUTPUTDEPLAY))
+							};
+		//Debug( _log, "smoothing cfg_id %d: pause: %d bool, settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames",  _currentConfigId, cfg.pause, cfg.settlingTime, cfg.updateInterval, unsigned(1000.0/cfg.updateInterval), cfg.outputDelay );
+		_cfgList[0] = cfg;
+
+		// if current id is 0, we need to apply the settings (forced)
+		if( _currentConfigId == 0)
+		{
+			//Debug( _log, "_currentConfigId == 0");
+			selectConfig(0, true);
+		}
+		else
+		{
+			//Debug( _log, "_currentConfigId != 0");
+		}
 	}
 }
 
@@ -72,42 +93,43 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
+
+		//Debug( _log, "Start Smoothing timer: settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames", _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
 		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 	}
 	else
 	{
+		//std::cout << "LinearColorSmoothing::write> "; LedDevice::printLedValues ( ledValues );
+
 		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
 		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+
+		//std::cout << "LinearColorSmoothing::write> _targetValues: "; LedDevice::printLedValues ( _targetValues );
 	}
 
 	return 0;
 }
 
-int LinearColorSmoothing::switchOff()
+int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb>& ledValues)
 {
-	// We will keep updating the leds (but with pure-black)
-
-	// Clear the smoothing parameters
-	std::fill(_targetValues.begin(), _targetValues.end(), ColorRgb::BLACK);
-	_targetTime = 0;
-
-	// Erase the output-queue
-	for (unsigned i=0; i<_outputQueue.size(); ++i)
+	int retval = 0;
+	if (!_enabled)
 	{
-		_outputQueue.push_back(_targetValues);
-		_outputQueue.pop_front();
+		return -1;
 	}
-
-	emit _hyperion->ledDeviceData(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK));
-
-	return 0;
+	else
+	{
+		retval = write(ledValues);
+	}
+	return retval;
 }
 
 void LinearColorSmoothing::updateLeds()
 {
 	int64_t now = QDateTime::currentMSecsSinceEpoch();
-	int deltaTime = _targetTime - now;
+	int64_t deltaTime = _targetTime - now;
 
+	//Debug(_log, "elapsed Time [%d], _targetTime [%d] - now [%d], deltaTime [%d]", now -_previousTime, _targetTime, now, deltaTime);
 	if (deltaTime < 0)
 	{
 		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(ColorRgb));
@@ -119,6 +141,9 @@ void LinearColorSmoothing::updateLeds()
 	else
 	{
 		_writeToLedsEnable = true;
+
+		//std::cout << "LinearColorSmoothing::updateLeds> _previousValues: "; LedDevice::printLedValues ( _previousValues );
+
 		float k = 1.0f - 1.0f * deltaTime / (_targetTime - _previousTime);
 
 		int reddif = 0, greendif = 0, bluedif = 0;
@@ -138,18 +163,22 @@ void LinearColorSmoothing::updateLeds()
 		}
 		_previousTime = now;
 
+		//std::cout << "LinearColorSmoothing::updateLeds> _targetValues: "; LedDevice::printLedValues ( _targetValues );
+
 		queueColors(_previousValues);
 	}
 }
 
 void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 {
+	//Debug(_log, "queueColors -  _outputDelay[%d] _outputQueue.size() [%d], _writeToLedsEnable[%d]", _outputDelay, _outputQueue.size(), _writeToLedsEnable);
 	if (_outputDelay == 0)
 	{
 		// No output delay => immediate write
 		if ( _writeToLedsEnable && !_pause)
+		{
 			emit _hyperion->ledDeviceData(ledColors);
-
+		}
 	}
 	else
 	{
@@ -172,29 +201,37 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 	}
 }
 
+void LinearColorSmoothing::clearQueuedColors()
+{
+	QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
+	_previousValues.clear();
+
+	_targetValues.clear();
+}
+
 void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
 {
 	if(component == hyperion::COMP_LEDDEVICE)
 	{
-		setEnable(state);
+		clearQueuedColors();
 	}
 
 	if(component == hyperion::COMP_SMOOTHING)
 	{
 		setEnable(state);
-		// update comp register
-		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, state);
 	}
 
 }
 
 void LinearColorSmoothing::setEnable(bool enable)
 {
-	if (!enable)
+	_enabled = enable;
+	if (!_enabled)
 	{
-		QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
-		_previousValues.clear();
+		clearQueuedColors();
 	}
+	// update comp register
+	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)
@@ -207,17 +244,37 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 	SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay};
 	_cfgList.append(cfg);
 
-	//Debug( _log, "smoothing cfg %d: interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _cfgList.count()-1, cfg.updateInterval, cfg.settlingTime,  cfg.outputDelay );
+	//Debug( _log, "smoothing cfg %d: pause: %d bool, settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames",  _cfgList.count()-1, cfg.pause, cfg.settlingTime, cfg.updateInterval, unsigned(1000.0/cfg.updateInterval), cfg.outputDelay );
 	return _cfgList.count() - 1;
+}
+
+unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+{
+	unsigned updatedCfgID = cfgID;
+	if ( cfgID < static_cast<unsigned>(_cfgList.count()) )
+	{
+		SMOOTHING_CFG cfg = {false, settlingTime_ms, int64_t(1000.0/ledUpdateFrequency_hz), updateDelay};
+		_cfgList[updatedCfgID] = cfg;
+	}
+	else
+	{
+		updatedCfgID = addConfig ( settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
+	}
+//	Debug( _log, "smoothing updatedCfgID %u: settlingTime: %d ms, "
+//				 "interval: %d ms (%u Hz), updateDelay: %u frames",  cfgID, _settlingTime, int64_t(1000.0/ledUpdateFrequency_hz), unsigned(ledUpdateFrequency_hz), updateDelay );
+	return updatedCfgID;
 }
 
 bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 {
 	if (_currentConfigId == cfg && !force)
 	{
+		//Debug( _log, "selectConfig SAME as before, not FORCED - _currentConfigId [%u], force [%d]", cfg, force);
+		//Debug( _log, "current smoothing cfg: %d, settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames",  _currentConfigId, _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
 		return true;
 	}
 
+	//Debug( _log, "selectConfig FORCED - _currentConfigId [%u], force [%d]", cfg, force);
 	if ( cfg < (unsigned)_cfgList.count())
 	{
 		_settlingTime     = _cfgList[cfg].settlingTime;
@@ -226,13 +283,23 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 
 		if (_cfgList[cfg].updateInterval != _updateInterval)
 		{
+
 			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 			_updateInterval = _cfgList[cfg].updateInterval;
-			QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
+			if ( this->enabled() )
+			{
+				//Debug( _log, "_cfgList[cfg].updateInterval != _updateInterval - Restart timer - _updateInterval [%d]", _updateInterval);
+				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
+			}
+			else
+			{
+				//Debug( _log, "Smoothing disabled, do NOT restart timer");
+			}
 		}
 		_currentConfigId = cfg;
-		//DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %d, interval: %d ms, settlingTime: %d ms, updateDelay: %d frames",  _currentConfigId, _updateInterval, _settlingTime,  _outputDelay );
-		//DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
+		// Debug( _log, "current smoothing cfg: %d, settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames",  _currentConfigId, _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
+		//	DebugIf( enabled() && !_pause, _log, "set smoothing cfg: %u settlingTime: %d ms, interval: %d ms,  updateDelay: %u frames",  _currentConfigId, _settlingTime, _updateInterval,  _outputDelay );
+		// DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
 
 		return true;
 	}

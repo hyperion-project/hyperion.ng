@@ -31,7 +31,7 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 			if (dev.first == type)
 			{
 				device = dev.second(deviceConfig);
-				Info(log,"LedDevice '%s' configured.", QSTRING_CSTR(dev.first));
+				Info(log,"LedDevice '%s' found.", QSTRING_CSTR(dev.first));
 				break;
 			}
 		}
