@@ -194,6 +194,64 @@
 			},
 			"required" : true,
 			"propertyOrder" : 15
+		},
+		"grabberFix" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_v4l2_grabberFix_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 16
+		},
+		"gFWidth" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_gFWidth_title",
+			"minimum" : 320,
+			"maximum" : 1980,
+			"default" : 1280,
+			"step" : 10,
+			"options": {
+				"dependencies": {
+					"grabberFix": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 17
+		},
+		"gFHeight" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_gFHeight_title",
+			"minimum" : 240,
+			"maximum" : 1080,
+			"default" : 720,
+			"step" : 10,
+			"options": {
+				"dependencies": {
+					"grabberFix": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 18
+		},
+		"gFVType" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_v4l2_gFVType_title",
+			"enum"  : ["UYVY","YUYV","RGB32"],
+			"options":
+			{
+				"enum_titles": ["UYVY","YUYV","RGB32"]
+			},
+			"default" : "UYVY",
+			"options": {
+				"dependencies": {
+					"grabberFix": true
+				}
+			},
+			"required" : true,
+			"propertyOrder" : 19
 		}
 	},
 	"additionalProperties" : false

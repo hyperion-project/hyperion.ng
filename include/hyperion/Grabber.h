@@ -66,6 +66,11 @@ public:
 	/// @brief Apply SignalDetectionEnable (used from v4l)
 	///
 	virtual void setSignalDetectionEnable(bool enable) {};
+	virtual void setGrabberFixEnable(bool enable) {};
+	virtual void setGrabberFixValues(
+					int width,
+					int height,
+					int vtype) {};
 
 	///
 	/// @brief Apply device and videoStanded (used from v4l)

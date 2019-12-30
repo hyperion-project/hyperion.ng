@@ -54,6 +54,10 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _streamNotifier(nullptr)
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
+	, _grabberFixEnabled(true)
+	, _gf_width(0)
+	, _gf_height(0)
+	, _gf_vtype("JPEG")
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -205,6 +209,14 @@ void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double vertical
 	_y_frac_max = verticalMax;
 
 	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
+}
+void V4L2Grabber::setGrabberFixValues(int width, int height, string vtype)
+{
+	_gf_width = width;
+	_gf_height = height;
+	_gf_vtype = vtype;
+
+	Warning(_log, "Grabber fix set to: %d x %d, %s", _gf_width, _gf_height, _gf_vtype);
 }
 
 bool V4L2Grabber::start()
@@ -614,6 +626,19 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 
 		fmtdesc.index++;
+	}
+	// RPi Camera V1.3 & V2.1 workaround resolution and pixelformat
+	Warning(_log, "vor _grabberFixEnabled");
+	if (_grabberFixEnabled) {
+		Warning(_log, "_grabberFixEnabled");
+		//if (max_width == 2592 || max_width == 3280) {
+			max_width = _gf_width;
+			max_height = _gf_height;
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
+			Warning(_log, "wxh %d x %d", max_width, max_height);
+		//}
+	} else {
+		Warning(_log, "nicht _grabberFixEnabled");
 	}
 
 	// set the settings
@@ -1146,6 +1171,14 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	{
 		_signalDetectionEnabled = enable;
 		Info(_log, "Signal detection is now %s", enable ? "enabled" : "disabled");
+	}
+}
+void V4L2Grabber::setGrabberFixEnable(bool enable)
+{
+	if (_grabberFixEnabled != enable)
+	{
+		_grabberFixEnabled = enable;
+		Info(_log, "Grabber fix is now %s", enable ? "enabled" : "disabled");
 	}
 }
 

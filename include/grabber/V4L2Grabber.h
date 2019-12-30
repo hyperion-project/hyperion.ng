@@ -44,6 +44,8 @@ public:
 
 	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
 
+	bool getGrabberFixEnabled() { return _grabberFixEnabled; }
+
 	int grabFrame(Image<ColorRgb> &);
 
 	///
@@ -78,6 +80,12 @@ public:
 	/// @brief  overwrite Grabber.h implementation
 	///
 	virtual void setSignalDetectionEnable(bool enable);
+
+	virtual void setGrabberFixEnable(bool enable);
+	virtual void setGrabberFixValues(
+					int width,
+					int height,
+					int vtype);
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -204,4 +212,10 @@ private:
 
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
+	// grabberfix
+	bool    _grabberFixEnabled;
+	int		_gf_width;
+	int		_gf_height;
+	int		_gf_vtype;
+
 };

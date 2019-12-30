@@ -431,6 +431,11 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				grabberConfig["sDVOffsetMin"].toDouble(0.25),
 				grabberConfig["sDHOffsetMax"].toDouble(0.75),
 				grabberConfig["sDVOffsetMax"].toDouble(0.75));
+			_v4l2Grabber->setGrabberFixEnable(grabberConfig["grabberFix"].toBool(true));
+			_v4l2Grabber->setGrabberFixValues(
+				grabberConfig["gFWidth"].toInt(0),
+				grabberConfig["gFHeight"].toInt(0),
+				grabberConfig["gFVType"].toString("JPEG"));
 			Debug(_log, "V4L2 grabber created");
 
 			// connect to HyperionDaemon signal

@@ -165,6 +165,10 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 			_ggrabber->setDeviceVideoStandard(
 				obj["device"].toString("auto"),
 				parseVideoStandard(obj["standard"].toString("no-change")));
+			_ggrabber->setGrabberFixValues(
+				obj["gFWidth"].toInt(0),
+				obj["gFHeight"].toInt(0),
+				obj["gFVType"].toString("JPEG"));
 
 		}
 	}
