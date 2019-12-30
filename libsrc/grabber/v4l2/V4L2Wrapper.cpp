@@ -52,7 +52,7 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 {
 	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
 }
-void V4L2Wrapper::setGrabberFixValues(int width, int height, string vtype)
+void V4L2Wrapper::setGrabberFixValues(int width, int height, QString vtype)
 {
 	_grabber.setGrabberFixValues(width, height, vtype);
 }

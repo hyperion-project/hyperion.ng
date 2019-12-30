@@ -210,13 +210,13 @@ void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double vertical
 
 	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
 }
-void V4L2Grabber::setGrabberFixValues(int width, int height, string vtype)
+void V4L2Grabber::setGrabberFixValues(int width, int height, QString vtype)
 {
 	_gf_width = width;
 	_gf_height = height;
 	_gf_vtype = vtype;
 
-	Warning(_log, "Grabber fix set to: %d x %d, %s", _gf_width, _gf_height, _gf_vtype);
+	Warning(_log, "Grabber fix set to: %d x %d, %s", _gf_width, _gf_height, QSTRING_CSTR(_gf_vtype));
 }
 
 bool V4L2Grabber::start()
@@ -628,17 +628,30 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		fmtdesc.index++;
 	}
 	// RPi Camera V1.3 & V2.1 workaround resolution and pixelformat
-	Warning(_log, "vor _grabberFixEnabled");
 	if (_grabberFixEnabled) {
-		Warning(_log, "_grabberFixEnabled");
-		//if (max_width == 2592 || max_width == 3280) {
-			max_width = _gf_width;
-			max_height = _gf_height;
+		max_width = _gf_width;
+		max_height = _gf_height;
+
+		QString pixformat = _gf_vtype.toLower();
+		if (pixformat == "yuyv")
+		{
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
+		}
+		else if (pixformat == "uyvy")
+		{
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-			Warning(_log, "wxh %d x %d", max_width, max_height);
-		//}
-	} else {
-		Warning(_log, "nicht _grabberFixEnabled");
+		}
+		else if (pixformat == "rgb32")
+		{
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+		}
+#ifdef HAVE_JPEG
+		else if (pixformat == "mjpeg")
+		{
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+		}
+#endif
+		Warning(_log, "wxh %d x %d, vtype %s", max_width, max_height, QSTRING_CSTR(pixformat.toUpper()));
 	}
 
 	// set the settings

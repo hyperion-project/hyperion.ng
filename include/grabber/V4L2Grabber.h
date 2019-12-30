@@ -85,7 +85,7 @@ public:
 	virtual void setGrabberFixValues(
 					int width,
 					int height,
-					int vtype);
+					QString vtype);
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -216,6 +216,6 @@ private:
 	bool    _grabberFixEnabled;
 	int		_gf_width;
 	int		_gf_height;
-	int		_gf_vtype;
+	QString		_gf_vtype;
 
 };

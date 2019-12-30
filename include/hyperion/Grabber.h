@@ -70,7 +70,7 @@ public:
 	virtual void setGrabberFixValues(
 					int width,
 					int height,
-					int vtype) {};
+					QString vtype) {};
 
 	///
 	/// @brief Apply device and videoStanded (used from v4l)

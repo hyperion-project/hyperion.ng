@@ -26,7 +26,7 @@ public slots:
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setGrabberFixEnable(bool enable);
-	void setGrabberFixValues(int width, int height, string vtype);
+	void setGrabberFixValues(int width, int height, QString vtype);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 signals:
