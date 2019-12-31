@@ -23,7 +23,7 @@
 				"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM", "edt_conf_enum_NO_CHANGE"]
 			},
 			"required" : true,
-			"propertyOrder" : 2
+			"propertyOrder" : 2"options": {
 		},
 		"sizeDecimation" :
 		{
@@ -242,14 +242,13 @@
 			"enum"  : ["UYVY","YUYV","RGB32"],
 			"options":
 			{
-				"enum_titles": ["UYVY","YUYV","RGB32"]
-			},
-			"default" : "UYVY",
-			"options": {
+				"enum_titles": ["UYVY","YUYV","RGB32"],
 				"dependencies": {
 					"grabberFix": true
 				}
+	
 			},
+			"default" : "UYVY",
 			"required" : true,
 			"propertyOrder" : 19
 		}
