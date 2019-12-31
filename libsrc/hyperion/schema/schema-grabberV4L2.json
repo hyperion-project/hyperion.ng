@@ -23,7 +23,7 @@
 				"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM", "edt_conf_enum_NO_CHANGE"]
 			},
 			"required" : true,
-			"propertyOrder" : 2"options": {
+			"propertyOrder" : 2
 		},
 		"sizeDecimation" :
 		{
