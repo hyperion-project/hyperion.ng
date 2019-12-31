@@ -73,7 +73,11 @@
 		"sDVOffsetMin"   : 0.25,
 		"sDHOffsetMin" : 0.25,
 		"sDVOffsetMax"   : 0.75,
-		"sDHOffsetMax" : 0.75
+		"sDHOffsetMax" : 0.75,
+		"grabberFix" : false,
+		"gFVType" : "UYVY",
+		"gFWidth" : 1280,
+		"gFHeight" : 720
 	},
 
 	"framegrabber" :
