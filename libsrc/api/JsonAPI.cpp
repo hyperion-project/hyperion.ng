@@ -1495,7 +1495,7 @@ void JsonAPI::handlePlatformCommand(const QJsonObject & message, const QString &
 	//const QString & name = message["name"].toString();
 	sendSuccessReply(command+"-"+subc, tan);
 
-    int result = system("poweroff");
+    system("poweroff");
 }
 
 void JsonAPI::handleNotImplemented()
