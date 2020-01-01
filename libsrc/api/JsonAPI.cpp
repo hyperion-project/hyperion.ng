@@ -1494,7 +1494,6 @@ void JsonAPI::handlePlatformCommand(const QJsonObject & message, const QString &
 	//const quint8 & inst = message["instance"].toInt();
 	//const QString & name = message["name"].toString();
 	sendSuccessReply(command+"-"+subc, tan);
-
     system("poweroff");
 }
 
