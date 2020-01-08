@@ -1,3 +1,4 @@
+set(Python_ADDITIONAL_VERSIONS 3.5)
 find_package(PythonLibs 3.5 REQUIRED)
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
