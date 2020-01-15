@@ -20,6 +20,7 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+set(Python_ADDITIONAL_VERSIONS 3.5)
 find_package( PythonInterp 3.5 REQUIRED )
 
 # Read version from version.json

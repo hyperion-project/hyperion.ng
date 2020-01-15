@@ -14,10 +14,10 @@
 
 ProviderRs232::ProviderRs232()
 	: _rs232Port(this)
+	, _writeTimeout(this)
 	, _blockedForDelay(false)
 	, _stateChanged(true)
 	, _bytesToWrite(0)
-	, _bytesWritten(0)
 	, _frameDropCounter(0)
 	, _lastError(QSerialPort::NoError)
 	, _preOpenDelayTimeOut(0)
@@ -27,6 +27,9 @@ ProviderRs232::ProviderRs232()
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
+	_writeTimeout.setInterval(5000);
+	_writeTimeout.setSingleShot(true);
+	connect(&_writeTimeout, SIGNAL(timeout()), this, SLOT(writeTimeout()));
 }
 
 bool ProviderRs232::init(const QJsonObject &deviceConfig)
@@ -61,11 +64,11 @@ QString ProviderRs232::findSerialDevice()
 
 void ProviderRs232::bytesWritten(qint64 bytes)
 {
-	_bytesWritten += bytes;
-	if (_bytesWritten >= _bytesToWrite)
+	_bytesToWrite -= bytes;
+	if (_bytesToWrite <= 0)
 	{
-		_bytesToWrite = 0;
 		_blockedForDelay = false;
+		_writeTimeout.stop();
 	}
 }
 
@@ -132,11 +135,18 @@ ProviderRs232::~ProviderRs232()
 
 void ProviderRs232::closeDevice()
 {
+	_writeTimeout.stop();
+
 	if (_rs232Port.isOpen())
 	{
 		_rs232Port.close();
 		Debug(_log,"Close UART: %s", _deviceName.toLocal8Bit().constData());
 	}
+
+	_stateChanged = true;
+	_bytesToWrite = 0;
+	_blockedForDelay = false;
+	_deviceReady = false;
 }
 
 int ProviderRs232::open()
@@ -225,7 +235,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 			QTimer::singleShot(500, this, SLOT(unblockAfterDelay()));
 			return -1;
 		}
-		QTimer::singleShot(5000, this, SLOT(unblockAfterDelay()));
+		_writeTimeout.start();
 	}
 	else
 	{
@@ -235,6 +245,11 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 	return 0;
 }
 
+void ProviderRs232::writeTimeout()
+{
+	Error(_log, "Timeout on write data to %s", _deviceName.toLocal8Bit().constData());
+	closeDevice();
+}
 
 void ProviderRs232::unblockAfterDelay()
 {

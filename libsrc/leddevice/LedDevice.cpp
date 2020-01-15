@@ -62,15 +62,15 @@ void LedDevice::setEnable(bool enable)
 	_enabled = enable;
 }
 
-void LedDevice::setActiveDevice(QString dev)
+void LedDevice::setActiveDeviceType(QString deviceType)
 {
-	_activeDevice = dev;
+	_activeDeviceType = deviceType;
 }
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
-	_activeDevice = deviceConfig["type"].toString("file").toLower();
+	_activeDeviceType = deviceConfig["type"].toString("file").toLower();
 	setLedCount(deviceConfig["currentLedCount"].toInt(1)); // property injected to reflect real led count
 
 	_latchTime_ms = deviceConfig["latchTime"].toInt(_latchTime_ms);
@@ -108,9 +108,15 @@ int LedDevice::setLedValues(const std::vector<ColorRgb>& ledValues)
 	return retval;
 }
 
-int LedDevice::switchOff()
+int LedDevice::writeBlack()
 {
 	return _deviceReady ? write(std::vector<ColorRgb>(_ledCount, ColorRgb::BLACK )) : -1;
+}
+
+int LedDevice::switchOff()
+{
+	int rc = writeBlack();
+	return rc;
 }
 
 int LedDevice::switchOn()
@@ -129,3 +135,4 @@ int LedDevice::rewriteLeds()
 {
 	return _enabled ? write(_ledValues) : -1;
 }
+

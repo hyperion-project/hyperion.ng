@@ -1,0 +1,10 @@
+{
+	"name" : "Collision",
+	"script" : "collision.py",
+	"args" :
+	{
+		"speed" : 100,
+		"trailLength" : 5,
+		"explodeRadius" : 8
+	}
+}

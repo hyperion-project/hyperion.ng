@@ -145,4 +145,12 @@ private:
     /// @exception runtime_error for network or request errors
     ///
     QJsonDocument handleReply(QNetworkReply* const &reply ) const;
+
+
+	///
+	/// convert vector to hex string
+	///
+	/// @param uint8_t vector
+	/// @return vector as string of hex values
+	std::string uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const;
 };

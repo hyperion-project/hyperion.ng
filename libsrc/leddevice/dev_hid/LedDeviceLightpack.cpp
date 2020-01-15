@@ -231,7 +231,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 				_ledBuffer[0] = CMD_UPDATE_LEDS;
 
 				// return success
-				Debug(_log, "Lightpack device opened: bus=%d address=%d serial=%s version=%s.%s.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
+				Debug(_log, "Lightpack device opened: bus=%d address=%d serial=%s version=%d.%d.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
 				return 0;
 			}
 			catch(int e)

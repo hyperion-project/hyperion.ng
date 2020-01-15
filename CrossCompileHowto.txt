@@ -1,5 +1,5 @@
 #!/bin/bash
-#Use a clean Raspbian Stretch Lite and Ubunut 18/19 and run this script
+#Use a clean Raspbian Stretch Lite and Ubuntu 18/19 and run this script
 ##############
 #ON TARGET
 #--------------

@@ -495,9 +495,9 @@ const VideoMode & Hyperion::getCurrentVideoMode()
 	return _currVideoMode;
 }
 
-const QString & Hyperion::getActiveDevice()
+const QString & Hyperion::getActiveDeviceType()
 {
-	return _ledDeviceWrapper->getActiveDevice();
+	return _ledDeviceWrapper->getActiveDeviceType();
 }
 
 void Hyperion::updatedComponentState(const hyperion::Components comp, const bool state)
@@ -581,9 +581,18 @@ void Hyperion::update()
 
 		// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
 		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
+		{
 			_deviceSmooth->setLedValues(_ledBuffer);
-
+		}
+		// Smoothing is disabled
 		if  (! _deviceSmooth->enabled())
+		{
 			emit ledDeviceData(_ledBuffer);
+		}
+	}
+	else
+	{
+		// LEDDevice is disabled
+		//Debug(_log, "LEDDevice is disabled - no update required");
 	}
 }

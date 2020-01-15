@@ -1,0 +1,40 @@
+{
+	"type":"object",
+	"script" : "collision.py",
+	"title":"edt_eff_collision_header",
+	"required":true,
+	"properties":{
+		"speed": {
+			"type": "number",
+			"title":"edt_eff_speed",
+			"default": 100,
+			"minimum" : 100,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 1
+		},
+		"trailLength" :
+		{
+			"type": "integer",
+			"title":"edt_eff_colorcount",
+			"default": 5,
+			"minimum" : 3,
+			"maximum" : 100,
+			"step" : 1,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 2
+		},
+		"explodeRadius" :
+		{
+			"type": "integer",
+			"title":"edt_eff_explodeRadius",
+			"default": 8,
+			"minimum" : 5,
+			"maximum" : 100,
+			"step" : 1,
+			"append" : "edt_append_pixel",
+			"propertyOrder" : 3
+		}
+
+	},
+	"additionalProperties": false
+}
