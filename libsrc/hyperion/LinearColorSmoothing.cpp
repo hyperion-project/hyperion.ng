@@ -22,7 +22,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(new QTimer(this))
 	, _outputDelay(DEFAUL_OUTPUTDEPLAY)
-	, _writeToLedsEnable(true)
+	, _writeToLedsEnable(false)
 	, _continuousOutput(false)
 	, _pause(false)
 	, _currentConfigId(0)
@@ -177,6 +177,9 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
 		// No output delay => immediate write
 		if ( _writeToLedsEnable && !_pause)
 		{
+//			if ( ledColors.size() == 0 )
+//				qFatal ("No LedValues! - in LinearColorSmoothing::queueColors() - _outputDelay == 0");
+//			else
 			emit _hyperion->ledDeviceData(ledColors);
 		}
 	}
@@ -211,6 +214,7 @@ void LinearColorSmoothing::clearQueuedColors()
 
 void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
 {
+	_writeToLedsEnable = state;
 	if(component == hyperion::COMP_LEDDEVICE)
 	{
 		clearQueuedColors();
@@ -286,7 +290,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
 
 			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 			_updateInterval = _cfgList[cfg].updateInterval;
-			if ( this->enabled() )
+			if ( this->enabled() && this->_writeToLedsEnable )
 			{
 				//Debug( _log, "_cfgList[cfg].updateInterval != _updateInterval - Restart timer - _updateInterval [%d]", _updateInterval);
 				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
