@@ -8,6 +8,7 @@ LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDeviceFile::~LedDeviceFile()

@@ -3,7 +3,8 @@
 LedDeviceAPA102::LedDeviceAPA102(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
@@ -13,7 +14,7 @@ LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 {
-	ProviderSpi::init(deviceConfig);
+	_deviceReady = ProviderSpi::init(deviceConfig);
 
 	const unsigned int startFrameSize = 4;
 	const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), 4);
@@ -25,7 +26,7 @@ bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 	_ledBuffer[2] = 0x00; 
 	_ledBuffer[3] = 0x00; 
 	
-	return true;
+	return _deviceReady;
 }
 
 int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
