@@ -19,12 +19,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceFile(const QJsonObject &deviceConfig);
+	explicit LedDeviceFile(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this test-device
 	///
-	virtual ~LedDeviceFile();
+	virtual ~LedDeviceFile() override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -34,7 +34,8 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
+
 	
 protected:
 	///
@@ -42,7 +43,7 @@ protected:
 	///
 	/// @return Zero on succes (i.e. device is ready and enabled) else negative
 	///
-	virtual int open();
+	virtual int open() override;
 
 	///
 	/// Writes the given led-color values to the output stream
@@ -51,7 +52,7 @@ protected:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 	/// The outputstream
 	std::ofstream _ofs;

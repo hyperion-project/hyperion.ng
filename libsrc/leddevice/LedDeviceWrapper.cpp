@@ -156,12 +156,12 @@ void LedDeviceWrapper::stopDeviceThread()
 
 	// get current thread
 	QThread* oldThread = _ledDevice->thread();
-	disconnect(oldThread, 0, 0, 0);
+	disconnect(oldThread, nullptr, nullptr, nullptr);
 	oldThread->quit();
 	oldThread->wait();
 	delete oldThread;
 
-	disconnect(_ledDevice, 0, 0, 0);
+	disconnect(_ledDevice, nullptr, nullptr, nullptr);
 	delete _ledDevice;
 	_ledDevice = nullptr;
 }

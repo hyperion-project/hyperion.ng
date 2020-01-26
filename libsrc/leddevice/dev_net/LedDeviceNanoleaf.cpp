@@ -90,6 +90,9 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 {
 	_devConfig = deviceConfig;
 	_deviceReady = false;
+	_networkmanager = nullptr;
+	_extControlVersion = EXTCTRLVER_V2;
+	_panelLedCount = 0;
 }
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
@@ -366,8 +369,7 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
 	int httpStatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
 	Debug(_log, "Reply.httpStatusCode [%d]", httpStatusCode );
 
-	if(reply->error() ==
-			QNetworkReply::NoError)
+	if(reply->error() == QNetworkReply::NoError)
 	{
 		if ( httpStatusCode != 204 ){
 			QByteArray response = reply->readAll();
@@ -391,17 +393,17 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
 			QString httpReason = reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString();
 			QString advise;
 			switch ( httpStatusCode ) {
-				case 400:
-					advise = "Check Request Body";
-					break;
-				case 401:
-					advise = "Check Authentication Token (API Key)";
-					break;
-				case 404:
-					advise = "Check Resource given";
-					break;
-				default:
-					break;
+			case 400:
+				advise = "Check Request Body";
+				break;
+			case 401:
+				advise = "Check Authentication Token (API Key)";
+				break;
+			case 404:
+				advise = "Check Resource given";
+				break;
+			default:
+				break;
 			}
 			errorReason = QString ("%1:%2 [%3 %4] - %5").arg(_hostname, _api_port, QString(httpStatusCode) , httpReason, advise);
 		}
@@ -546,7 +548,7 @@ std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<ui
 	ss << std::hex << std::setfill('0');
 	std::vector<uint8_t>::const_iterator it;
 
-	for (it = buffer.begin(); it != buffer.end(); it++)
+	for (it = buffer.begin(); it != buffer.end(); ++it)
 	{
 		ss << " " << std::setw(2) << static_cast<unsigned>(*it);
 	}

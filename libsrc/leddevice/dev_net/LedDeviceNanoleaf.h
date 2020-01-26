@@ -33,21 +33,21 @@ public:
 	///
 	/// @param deviceConfig json config for nanoleaf
 	///
-	LedDeviceNanoleaf(const QJsonObject &deviceConfig);
+	explicit LedDeviceNanoleaf(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
 	///
-	virtual ~LedDeviceNanoleaf();
+	virtual ~LedDeviceNanoleaf() override;
 
 	/// Constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	/// Switch the device on
-	virtual int switchOn();
+	virtual int switchOn() override;
 
 	/// Switch the device off
-	virtual int switchOff();
+	virtual int switchOff() override;
 
 protected:
 
@@ -57,7 +57,7 @@ protected:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 	///
 	/// Initialise Nanoleaf device's configuration and network address details
@@ -65,7 +65,7 @@ protected:
 	/// @param deviceConfig the json device config
 	/// @return True if success
 	///
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// Get Nanoleaf device details and configuration
@@ -79,7 +79,7 @@ protected:
 	///
 	/// @return Zero on succes (i.e. device is ready and enabled) else negative
 	///
-	virtual int open();
+	virtual int open() override;
 
 private:
 	// QNetworkAccessManager object for sending requests.
