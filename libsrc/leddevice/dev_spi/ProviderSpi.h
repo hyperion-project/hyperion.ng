@@ -22,19 +22,19 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+    virtual bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~ProviderSpi();
+    virtual ~ProviderSpi() override;
 
 	///
 	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+    int open() override;
 
 protected:
 	///

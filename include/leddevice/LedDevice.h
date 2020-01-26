@@ -48,7 +48,7 @@ public:
 	///
 	/// @param deviceType Device's type
 	///
-	void setActiveDeviceType(QString deviceType);
+    void setActiveDeviceType(const QString& deviceType);
 
 	///
 	/// @brief Get the current active ledDevice type
@@ -219,7 +219,7 @@ protected slots:
 	///
 	/// @param errorMsg The error message to be logged
 	///
-	virtual void error( const QString errorMsg);
+    virtual void error( const QString& errorMsg);
 
 private:
 

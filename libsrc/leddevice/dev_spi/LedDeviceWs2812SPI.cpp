@@ -1,6 +1,6 @@
 #include "LedDeviceWs2812SPI.h"
 
-/*
+	/*
 From the data sheet:
 
 (TH+TL=1.25μs±600ns)
@@ -34,18 +34,19 @@ Reset time is 300uS = 923 bits = 116 bytes
 
 */
 
-LedDeviceWs2812SPI::LedDeviceWs2812SPI(const QJsonObject &deviceConfig)
+	LedDeviceWs2812SPI::LedDeviceWs2812SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
-	, SPI_BYTES_PER_COLOUR(4)
-	, SPI_FRAME_END_LATCH_BYTES(116)
-	, bitpair_to_byte {
-		0b10001000,
-		0b10001100,
-		0b11001000,
-		0b11001100,
-	}
+	  , SPI_BYTES_PER_COLOUR(4)
+	  , SPI_FRAME_END_LATCH_BYTES(116)
+	  , bitpair_to_byte {
+		  0b10001000,
+		  0b10001100,
+		  0b11001000,
+		  0b11001100,
+		  }
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)
@@ -56,15 +57,15 @@ LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)
 bool LedDeviceWs2812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 2600000;
-	if ( !ProviderSpi::init(deviceConfig) )
+
+	_deviceReady = ProviderSpi::init(deviceConfig);
+	if ( _deviceReady )
 	{
-		return false;
+		WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
+
+		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 	}
-	WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
-
-	_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-
-	return true;
+	return _deviceReady;
 }
 
 int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
@@ -75,8 +76,8 @@ int LedDeviceWs2812SPI::write(const std::vector<ColorRgb> &ledValues)
 	for (const ColorRgb& color : ledValues)
 	{
 		uint32_t colorBits = ((unsigned int)color.red << 16)
-			| ((unsigned int)color.green << 8)
-			| color.blue;
+							 | ((unsigned int)color.green << 8)
+							 | color.blue;
 
 		for (int j=SPI_BYTES_PER_LED - 1; j>=0; j--)
 		{

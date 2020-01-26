@@ -44,7 +44,7 @@ int LedDevice::open()
 	return 0;
 }
 
-void LedDevice::error(const QString errorMsg)
+void LedDevice::error(const QString& errorMsg)
 {
 	_deviceInError = true;
 	_deviceReady = false;
@@ -91,7 +91,7 @@ void LedDevice::setEnable(bool enable)
 	}
 }
 
-void LedDevice::setActiveDeviceType(QString deviceType)
+void LedDevice::setActiveDeviceType(const QString& deviceType)
 {
 	_activeDeviceType = deviceType;
 }

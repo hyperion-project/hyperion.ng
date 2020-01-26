@@ -1,6 +1,6 @@
 #pragma once
 
-// Local hyperion incluse
+// Local hyperion includes
 #include "ProviderSpi.h"
 
 ///
@@ -83,12 +83,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceLpd8806(const QJsonObject &deviceConfig);
+	explicit LedDeviceLpd8806(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	virtual bool init(const QJsonObject &deviceConfig);
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -97,5 +102,5 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 };
