@@ -16,6 +16,7 @@
 	"general_access_advanced" : "Advanced",
 	"general_access_expert" : "Expert",
 	"general_comp_SMOOTHING" : "Smoothing",
+	"general_comp_PREPROCESSING" : "Image PreProcessing",
 	"general_comp_BLACKBORDER" : "Blackbar Detection",
 	"general_comp_FORWARDER" : "Forwarder",
 	"general_comp_BOBLIGHTSERVER" : "Boblight Server",

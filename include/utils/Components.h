@@ -12,6 +12,7 @@ enum Components
 	COMP_INVALID,
 	COMP_ALL,
 	COMP_SMOOTHING,
+	COMP_PREPROCESSING,
 	COMP_BLACKBORDER,
 	COMP_FORWARDER,
 	COMP_BOBLIGHTSERVER,
@@ -31,6 +32,7 @@ inline const char* componentToString(Components c)
 	{
 		case COMP_ALL:           return "Hyperion";
 		case COMP_SMOOTHING:     return "Smoothing";
+		case COMP_PREPROCESSING: return "PreProcessing";
 		case COMP_BLACKBORDER:   return "Blackborder detector";
 		case COMP_FORWARDER:     return "Json/Proto forwarder";
 		case COMP_BOBLIGHTSERVER:return "Boblight server";
@@ -52,6 +54,7 @@ inline const char* componentToIdString(Components c)
 	{
 		case COMP_ALL:           return "ALL";
 		case COMP_SMOOTHING:     return "SMOOTHING";
+		case COMP_PREPROCESSING: return "PREPROCESSING";
 		case COMP_BLACKBORDER:   return "BLACKBORDER";
 		case COMP_FORWARDER:     return "FORWARDER";
 		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
@@ -72,6 +75,7 @@ inline  Components stringToComponent(QString component)
 	component = component.toUpper();
 	if (component == "ALL")           return COMP_ALL;
 	if (component == "SMOOTHING")     return COMP_SMOOTHING;
+	if (component == "PREPROCESSING") return COMP_PREPROCESSING;
 	if (component == "BLACKBORDER")   return COMP_BLACKBORDER;
 	if (component == "FORWARDER")     return COMP_FORWARDER;
 	if (component == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;

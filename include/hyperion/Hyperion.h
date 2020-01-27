@@ -474,6 +474,13 @@ private slots:
 	///
 	void handleNewVideoMode(const VideoMode& mode) { _currVideoMode = mode; };
 
+	///
+	/// @brief Handle new component state request
+	/// @apram component  The comp from enum
+	/// @param state      The new state
+	///
+	void handleComponentState(const hyperion::Components component, const bool state);
+
 private:
 	friend class HyperionDaemon;
 	friend class HyperionIManager;
@@ -483,6 +490,11 @@ private:
 	/// @param  instance  The instance index
 	///
 	Hyperion(const quint8& instance);
+
+	QVector<int> boxesForGauss(float sigma, int n);
+	void boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius);
+	void boxBlurH(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius);
+	void boxBlurT(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -545,4 +557,7 @@ private:
 
 	/// mutex
 	QMutex _changes;
+
+	/// test
+	bool _preProcessing = false;
 };

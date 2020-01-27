@@ -16,6 +16,7 @@
 	"general_access_advanced": "Fortgeschritten",
 	"general_access_expert": "Experte",
 	"general_comp_SMOOTHING": "Glättung",
+	"general_comp_PREPROCESSING" : "Bildvorverarbeitung",
 	"general_comp_BLACKBORDER": "Schwarze Balken Erkennung",
 	"general_comp_FORWARDER": "Weiterleitung",
 	"general_comp_BOBLIGHTSERVER": "Boblight Server",

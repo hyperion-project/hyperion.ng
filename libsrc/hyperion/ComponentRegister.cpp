@@ -11,7 +11,7 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_BOBLIGHTSERVER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_PREPROCESSING << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_BOBLIGHTSERVER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
 	for(auto e : vect)
 	{
 		_componentStates.emplace(e, ((e == COMP_ALL) ? true : false));
