@@ -42,6 +42,13 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
+inline float round( float x )
+{
+	x += 12582912 ; // 3*2^22
+	x -= 12582912 ;
+	return x ;
+}
+
 Hyperion::Hyperion(const quint8& instance)
 	: QObject()
 	, _instIndex(instance)
@@ -522,6 +529,10 @@ void Hyperion::handleComponentState(const hyperion::Components component, const 
 {
 	if (component == hyperion::COMP_PREPROCESSING)
 	{
+		// derive box blur value from desired radius input
+		// radius
+		int radius = 2;
+		_bxs = boxesForGauss(radius, 3);
 		_preProcessing = state;
 		setNewComponentState(hyperion::COMP_PREPROCESSING, state);
 	}
@@ -539,7 +550,7 @@ QVector<int> Hyperion::boxesForGauss(float blurSigma, int boxCount)
 	int wu = wl + 2;
 
 	float mIdeal = (12*blurSigma*blurSigma - boxCount*wl*wl - 4*boxCount*wl - 3*boxCount)/(-4*wl-4);
-	int m = qRound(mIdeal);
+	int m = round(mIdeal);
 
 	QVector<int> sizes(boxCount);
 	for(auto i = 0; i < boxCount; i++)
@@ -550,15 +561,11 @@ QVector<int> Hyperion::boxesForGauss(float blurSigma, int boxCount)
 
 void Hyperion::boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius)
 {
-	targetImage = sourceImage;
-	boxBlurH(targetImage, sourceImage, width, height, boxRadius);
-	boxBlurT(sourceImage, targetImage, width, height, boxRadius);
-}
-
-void Hyperion::boxBlurH(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius)
-{
+	// HORIZONTAL
 	// radius range on either side of a pixel + the pixel itself
 	float accumlatorAverager = 1.f / (boxRadius + boxRadius + 1);
+	ColorRgb* sourceData = targetImage.memptr();
+	ColorRgb* targetData = sourceImage.memptr();
 	for (auto i = 0; i < height; i++)
 	{
 		// pixel index; will traverse the width of the image for each loop
@@ -569,13 +576,13 @@ void Hyperion::boxBlurH(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetIma
 		//pixel index of the furthest reach of the radius
 		int ri = ti + boxRadius;
 		// first pixel values of the row
-		float firstValueR = (float)sourceImage.memptr()[ti].red;
-		float firstValueG = (float)sourceImage.memptr()[ti].green;
-		float firstValueB = (float)sourceImage.memptr()[ti].blue;
+		float firstValueR = sourceData[ti].red;
+		float firstValueG = sourceData[ti].green;
+		float firstValueB = sourceData[ti].blue;
 		// last pixel values in the row
-		float lastValueR = (float)sourceImage.memptr()[ti + width - 1].red;
-		float lastValueG = (float)sourceImage.memptr()[ti + width - 1].green;
-		float lastValueB = (float)sourceImage.memptr()[ti + width - 1].blue;
+		float lastValueR = sourceData[ti + width - 1].red;
+		float lastValueG = sourceData[ti + width - 1].green;
+		float lastValueB = sourceData[ti + width - 1].blue;
 		// create "value accumulators" - we will be calculating the average
 		// of pixels surrounding each one - is faster to add newest value,
 		// remove oldest, and then average. This initial values is for pixels
@@ -587,85 +594,84 @@ void Hyperion::boxBlurH(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetIma
 		// for length of radius, accumulate the total value of all pixels from current pixel index
 		for (auto j = 0; j < boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ti + j].red;
-			valG += (float)sourceImage.memptr()[ti + j].green;
-			valB += (float)sourceImage.memptr()[ti + j].blue;
+			valR += sourceData[ti + j].red;
+			valG += sourceData[ti + j].green;
+			valB += sourceData[ti + j].blue;
 		}
 
 		// for the next "boxRadius" pixels in the row, record pixel value of average
 		// of all pixels within the radius and save
 		for (auto j = 0; j <= boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ri].red - firstValueR;
-			valG += (float)sourceImage.memptr()[ri].green - firstValueG;
-			valB += (float)sourceImage.memptr()[ri].blue - firstValueB;
+			valR += sourceData[ri].red - firstValueR;
+			valG += sourceData[ri].green - firstValueG;
+			valB += sourceData[ri].blue - firstValueB;
 			ri++;
-			targetImage.memptr()[ti++] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			targetData[ti++] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 		}
 
 		// now that we've completely removed the overflow pixels from the value accumulator,
 		// continue on, adding new values, removing old ones, and averaging the acculated value
 		for (auto j = boxRadius + 1; j < width - boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ri].red - (float)sourceImage.memptr()[li].red;
-			valG += (float)sourceImage.memptr()[ri].green - (float)sourceImage.memptr()[li].green;
-			valB += (float)sourceImage.memptr()[ri].blue - (float)sourceImage.memptr()[li].blue;
+			valR += sourceData[ri].red - sourceData[li].red;
+			valG += sourceData[ri].green - sourceData[li].green;
+			valB += sourceData[ri].blue - sourceData[li].blue;
 			ri++;
 			li++;
-			targetImage.memptr()[ti++] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			targetData[ti++] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 		}
 
 		// finish off the row of pixels, duplicating the edge pixel instead of going out of image bounds
 		for (auto j = width - boxRadius; j < width; j++)
 		{
-			valR += lastValueR - (float)sourceImage.memptr()[li].red;
-			valG += lastValueG - (float)sourceImage.memptr()[li].green;
-			valB += lastValueB - (float)sourceImage.memptr()[li].blue;
+			valR += lastValueR - sourceData[li].red;
+			valG += lastValueG - sourceData[li].green;
+			valB += lastValueB - sourceData[li].blue;
 			li++;
-			targetImage.memptr()[ti++] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			targetData[ti++] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 		}
 	}
-}
-void Hyperion::boxBlurT(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius)
-{
-	// this does the same thing as boxBlurH, but vertically
-	float accumlatorAverager = 1.f / (boxRadius + boxRadius + 1);
+
+	// this does the same thing, but VERTICALLY
+	sourceData = sourceImage.memptr();
+	targetData = targetImage.memptr();
 	for (auto i = 0; i < width; i++)
 	{
 		int ti = i, li = ti, ri = ti + boxRadius * width;
-		float firstValueR = (float)sourceImage.memptr()[ti].red;
-		float firstValueG = (float)sourceImage.memptr()[ti].green;
-		float firstValueB = (float)sourceImage.memptr()[ti].blue;
-		float lastValueR = (float)sourceImage.memptr()[ti + width * (height - 1)].red;
-		float lastValueG = (float)sourceImage.memptr()[ti + width * (height - 1)].green;
-		float lastValueB = (float)sourceImage.memptr()[ti + width * (height - 1)].blue;
+		float firstValueR = sourceData[ti].red;
+		float firstValueG = sourceData[ti].green;
+		float firstValueB = sourceData[ti].blue;
+		float lastValueR = sourceData[ti + width * (height - 1)].red;
+		float lastValueG = sourceData[ti + width * (height - 1)].green;
+		float lastValueB = sourceData[ti + width * (height - 1)].blue;
 		float valR = (boxRadius + 1)*firstValueR;
 		float valG = (boxRadius + 1)*firstValueG;
 		float valB = (boxRadius + 1)*firstValueB;
 
 		for (auto j = 0; j < boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ti + j * width].red;
-			valG += (float)sourceImage.memptr()[ti + j * width].green;
-			valB += (float)sourceImage.memptr()[ti + j * width].blue;
+			valR += sourceData[ti + j * width].red;
+			valG += sourceData[ti + j * width].green;
+			valB += sourceData[ti + j * width].blue;
 		}
 
 		for (auto j = 0; j <= boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ri].red - firstValueR;
-			valG += (float)sourceImage.memptr()[ri].green - firstValueG;
-			valB += (float)sourceImage.memptr()[ri].blue - firstValueB;
-			targetImage.memptr()[ti] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			valR += sourceData[ri].red - firstValueR;
+			valG += sourceData[ri].green - firstValueG;
+			valB += sourceData[ri].blue - firstValueB;
+			targetData[ti] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 			ri += width;
 			ti += width;
 		}
 
 		for (auto j = boxRadius + 1; j < height - boxRadius; j++)
 		{
-			valR += (float)sourceImage.memptr()[ri].red - (float)sourceImage.memptr()[li].red;
-			valG += (float)sourceImage.memptr()[ri].green - (float)sourceImage.memptr()[li].green;
-			valB += (float)sourceImage.memptr()[ri].blue - (float)sourceImage.memptr()[li].blue;
-			targetImage.memptr()[ti] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			valR += sourceData[ri].red - (float)sourceImage.memptr()[li].red;
+			valG += sourceData[ri].green - (float)sourceImage.memptr()[li].green;
+			valB += sourceData[ri].blue - (float)sourceImage.memptr()[li].blue;
+			targetData[ti] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 			li += width;
 			ri += width;
 			ti += width;
@@ -673,10 +679,10 @@ void Hyperion::boxBlurT(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetIma
 
 		for (auto j = height - boxRadius; j < height; j++)
 		{
-			valR += lastValueR - (float)sourceImage.memptr()[li].red;
-			valG += lastValueG - (float)sourceImage.memptr()[li].green;
-			valB += lastValueB - (float)sourceImage.memptr()[li].blue;
-			targetImage.memptr()[ti] = ColorRgb{uint8_t(qRound(valR*accumlatorAverager)), uint8_t(qRound(valG*accumlatorAverager)), uint8_t(qRound(valB*accumlatorAverager))};
+			valR += lastValueR - sourceData[li].red;
+			valG += lastValueG - sourceData[li].green;
+			valB += lastValueB - sourceData[li].blue;
+			targetData[ti] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 			li += width;
 			ti += width;
 		}
@@ -702,13 +708,10 @@ void Hyperion::update()
 		{
 			// copy constructor
 			Image<ColorRgb> imageBlurred(image);
-			// radius
-			int radius = 2;
-			//derive box blur value from desired radius input, then run multiple, smaller box blurs
-			QVector<int> bxs = boxesForGauss(radius, 3);
-			boxBlur(image, imageBlurred, image.width(), image.height(), (bxs[0] - 1) / 2);
-			boxBlur(imageBlurred, image, image.width(), image.height(), (bxs[1] - 1) / 2);
-			boxBlur(image, imageBlurred, image.width(), image.height(), (bxs[2] - 1) / 2);
+			// run multiple, smaller box blurs
+			boxBlur(image, imageBlurred, image.width(), image.height(), (_bxs[0] - 1) / 2);
+			boxBlur(imageBlurred, image, image.width(), image.height(), (_bxs[1] - 1) / 2);
+			boxBlur(image, imageBlurred, image.width(), image.height(), (_bxs[2] - 1) / 2);
 		}
 
 		emit currentImage(image);

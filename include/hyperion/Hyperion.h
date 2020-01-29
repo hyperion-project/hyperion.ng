@@ -560,4 +560,5 @@ private:
 
 	/// test
 	bool _preProcessing = false;
+	QVector<int> _bxs;
 };
