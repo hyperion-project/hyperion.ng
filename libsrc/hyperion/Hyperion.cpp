@@ -3,6 +3,7 @@
 #include <exception>
 #include <sstream>
 #include <unistd.h>
+#include <algorithm>
 
 // QT includes
 #include <QString>
@@ -529,10 +530,13 @@ void Hyperion::handleComponentState(const hyperion::Components component, const 
 {
 	if (component == hyperion::COMP_PREPROCESSING)
 	{
-		// derive box blur value from desired radius input
-		// radius
-		int radius = 2;
-		_bxs = boxesForGauss(radius, 3);
+		if (state)
+		{
+			// radius
+			int radius = 3;
+			// derive box blur value from desired radius input
+			_bxs = boxesForGauss(radius, 3);
+		}
 		_preProcessing = state;
 		setNewComponentState(hyperion::COMP_PREPROCESSING, state);
 	}
@@ -561,7 +565,9 @@ QVector<int> Hyperion::boxesForGauss(float blurSigma, int boxCount)
 
 void Hyperion::boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImage, int width, int height, int boxRadius)
 {
-	// HORIZONTAL
+	// boxBlur Horizontal
+	targetImage = sourceImage;
+
 	// radius range on either side of a pixel + the pixel itself
 	float accumlatorAverager = 1.f / (boxRadius + boxRadius + 1);
 	ColorRgb* sourceData = targetImage.memptr();
@@ -633,9 +639,8 @@ void Hyperion::boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImag
 		}
 	}
 
-	// this does the same thing, but VERTICALLY
-	sourceData = sourceImage.memptr();
-	targetData = targetImage.memptr();
+	// this does the same thing, but vertically
+	std::swap(sourceData, targetData);
 	for (auto i = 0; i < width; i++)
 	{
 		int ti = i, li = ti, ri = ti + boxRadius * width;
@@ -668,9 +673,9 @@ void Hyperion::boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImag
 
 		for (auto j = boxRadius + 1; j < height - boxRadius; j++)
 		{
-			valR += sourceData[ri].red - (float)sourceImage.memptr()[li].red;
-			valG += sourceData[ri].green - (float)sourceImage.memptr()[li].green;
-			valB += sourceData[ri].blue - (float)sourceImage.memptr()[li].blue;
+			valR += sourceData[ri].red - sourceData[li].red;
+			valG += sourceData[ri].green - sourceData[li].green;
+			valB += sourceData[ri].blue - sourceData[li].blue;
 			targetData[ti] = ColorRgb{uint8_t(round(valR*accumlatorAverager)), uint8_t(round(valG*accumlatorAverager)), uint8_t(round(valB*accumlatorAverager))};
 			li += width;
 			ri += width;
@@ -706,8 +711,7 @@ void Hyperion::update()
 		// based on algorithm 4 of Ivan Kutskir: http://blog.ivank.net/fastest-gaussian-blur.html
 		if  (_preProcessing)
 		{
-			// copy constructor
-			Image<ColorRgb> imageBlurred(image);
+			Image<ColorRgb> imageBlurred;
 			// run multiple, smaller box blurs
 			boxBlur(image, imageBlurred, image.width(), image.height(), (_bxs[0] - 1) / 2);
 			boxBlur(imageBlurred, image, image.width(), image.height(), (_bxs[1] - 1) / 2);
