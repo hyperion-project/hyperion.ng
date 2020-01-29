@@ -7,6 +7,7 @@
 		<file alias="schema-device.json">schema/schema-device.json</file>
 		<file alias="schema-color.json">schema/schema-color.json</file>
 		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
+		<file alias="schema-preProcessing.json">schema/schema-preProcessing.json</file>
 		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
 		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
 		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>

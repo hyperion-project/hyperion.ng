@@ -124,6 +124,11 @@ void Hyperion::start()
 	_deviceSmooth = new LinearColorSmoothing(getSetting(settings::SMOOTHING), this);
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth, &LinearColorSmoothing::handleSettingsUpdate);
 
+	// preProcessing
+	QJsonObject preProcessing = getSetting(settings::PREPROCESSING).object();
+	_radius = preProcessing["radius"].toInt(3);
+	handleComponentState(hyperion::COMP_PREPROCESSING, preProcessing["enable"].toBool(false));
+
 	// create the message forwarder only on main instance
 	if (_instIndex == 0)
 		_messageForwarder = new MessageForwarder(this);
@@ -258,6 +263,14 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
+	}
+	else if(type == settings::PREPROCESSING)
+	{
+		const QJsonObject preProcessing = config.object();
+
+		_radius = preProcessing["radius"].toInt(3);
+		_preProcessing = preProcessing["enable"].toBool(false);
+		handleComponentState(hyperion::COMP_PREPROCESSING, _preProcessing);
 	}
 
 	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
@@ -532,10 +545,8 @@ void Hyperion::handleComponentState(const hyperion::Components component, const 
 	{
 		if (state)
 		{
-			// radius
-			int radius = 3;
 			// derive box blur value from desired radius input
-			_bxs = boxesForGauss(radius, 3);
+			_bxs = boxesForGauss(_radius, 3);
 		}
 		_preProcessing = state;
 		setNewComponentState(hyperion::COMP_PREPROCESSING, state);
@@ -569,7 +580,7 @@ void Hyperion::boxBlur(Image<ColorRgb>& sourceImage, Image<ColorRgb>& targetImag
 	targetImage = sourceImage;
 
 	// radius range on either side of a pixel + the pixel itself
-	float accumlatorAverager = 1.f / (boxRadius + boxRadius + 1);
+	float accumlatorAverager = 1.f / (boxRadius*2+1);
 	ColorRgb* sourceData = targetImage.memptr();
 	ColorRgb* targetData = sourceImage.memptr();
 	for (auto i = 0; i < height; i++)

@@ -99,6 +99,13 @@
 		"continuousOutput" : true
 	},
 
+	/// pre-Processing
+	"preProcessing" :
+	{
+		"enable"           : false,
+		"radius"           : 3
+	},
+
 	/// Configuration for the embedded V4L2 grabber
 	///  * device               : V4L2 Device to use [default="auto"] (Auto detection)
 	///  * standard             : Video standard (PAL/NTSC/SECAM/NO_CHANGE) [default="NO_CHANGE"]

@@ -23,6 +23,10 @@
 		{
 			"$ref": "schema-smoothing.json"
 		},
+		"preProcessing":
+		{
+			"$ref": "schema-preProcessing.json"
+		},
 		"grabberV4L2" :
 		{
 			"$ref": "schema-grabberV4L2.json"

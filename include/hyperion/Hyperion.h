@@ -558,7 +558,8 @@ private:
 	/// mutex
 	QMutex _changes;
 
-	/// test
+	/// preProcessing
 	bool _preProcessing = false;
+	int _radius = 3;
 	QVector<int> _bxs;
 };

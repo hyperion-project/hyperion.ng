@@ -57,6 +57,12 @@
 		"continuousOutput" : true
 	},
 
+	"preProcessing" :
+	{
+		"enable"           : false,
+		"radius"           : 3
+	},
+
 	"grabberV4L2" :
 	{
 		"device"   : "auto",
