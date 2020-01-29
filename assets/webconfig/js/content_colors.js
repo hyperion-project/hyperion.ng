@@ -56,9 +56,10 @@ $(document).ready( function() {
 	editor_smoothing.on('change',function() {
 		editor_smoothing.validate().length ? $('#btn_submit_smoothing').attr('disabled', true) : $('#btn_submit_smoothing').attr('disabled', false);
 	});
-
+	
 	$('#btn_submit_smoothing').off().on('click',function() {
 		requestWriteConfig(editor_smoothing.getValue());
+	});
 
 	//PreProcessing
 	editor_prepro = createJsonEditor('editor_container_prepro', {
