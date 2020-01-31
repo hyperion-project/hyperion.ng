@@ -1,0 +1,26 @@
+
+{
+	"type" : "object",
+	"title" : "edt_conf_prepro_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"required" : true,
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		},
+		"radius" :
+		{
+			"type" : "integer",
+			"required" : true,
+			"title" : "edt_conf_prepro_radius_title",
+			"minimum" : 1,
+			"default" : 5,
+			"propertyOrder" : 2
+		}
+	},
+	"additionalProperties" : false
+}
