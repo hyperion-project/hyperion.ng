@@ -85,6 +85,11 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceNanoleaf(deviceConfig);
 }
 
+LedDeviceNanoleaf::~LedDeviceNanoleaf()
+{
+	_networkmanager->deleteLater();
+}
+
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
@@ -107,9 +112,9 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 
 	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	bool initOK = LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
-	if ( initOK )
+	if ( isInitOK )
 	{
 		uint configuredLedCount = static_cast<uint>(this->getLedCount());
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
@@ -129,7 +134,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 			//Discover Nanoleaf device
 			if ( !discoverNanoleafDevice() )
 			{
-				this->error("No target IP defined nor Nanoleaf device was discovered");
+				this->setInError("No target IP defined nor Nanoleaf device was discovered");
 				return false;
 			}
 		}
@@ -137,17 +142,17 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		// Set UDP streaming port
 		_devConfig["host"] = _hostname;
 		_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
-		initOK = ProviderUdp::init(_devConfig);
+		isInitOK = ProviderUdp::init(_devConfig);
 
 		Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));
 		Debug(_log, "Port         : %d", _port);
 	}
-	return initOK;
+	return isInitOK;
 }
 
 bool LedDeviceNanoleaf::initLeds()
 {
-	bool initOK = true;
+	bool isInitOK = true;
 
 	//Get Nanoleaf device details and configuration
 	_networkmanager = new QNetworkAccessManager();
@@ -157,7 +162,7 @@ bool LedDeviceNanoleaf::initLeds()
 	QJsonDocument doc = getJson( url );
 	if ( this->isInError() )
 	{
-		return false;
+		isInitOK = false;
 	}
 	else
 	{
@@ -230,8 +235,8 @@ bool LedDeviceNanoleaf::initLeds()
 			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
 								  .arg(_panelLedCount)
 								  .arg(configuredLedCount);
-			this->error(errorReason);
-			return false;
+			this->setInError(errorReason);
+			isInitOK = false;
 		}
 		else
 		{
@@ -241,7 +246,7 @@ bool LedDeviceNanoleaf::initLeds()
 			}
 		}
 	}
-	return initOK;
+	return isInitOK;
 }
 
 int LedDeviceNanoleaf::open()
@@ -377,7 +382,7 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
 			jsonDoc = QJsonDocument::fromJson(response, &error);
 			if (error.error != QJsonParseError::NoError)
 			{
-				this->error ( "Got invalid response" );
+				this->setInError ( "Got invalid response" );
 			}
 			else {
 				//Debug
@@ -410,16 +415,13 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
 		else {
 			errorReason = QString ("%1:%2 - %3").arg(_hostname, _api_port, reply->errorString());
 		}
-		this->error ( errorReason );
+		this->setInError ( errorReason );
 	}
 	// Return response
 	return jsonDoc;
 }
 
-LedDeviceNanoleaf::~LedDeviceNanoleaf()
-{
-	_networkmanager->deleteLater();
-}
+
 
 int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 {

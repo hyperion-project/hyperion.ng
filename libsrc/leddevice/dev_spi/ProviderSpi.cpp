@@ -29,34 +29,27 @@ ProviderSpi::ProviderSpi()
 
 ProviderSpi::~ProviderSpi()
 {
-	if ( _fid > -1 )
-	{
-		if ( ::close(_fid) != 0 )
-		{
-			Error( _log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
-		}
-	}
 }
 
 bool ProviderSpi::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_deviceName    = deviceConfig["output"].toString(_deviceName);
 	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
 	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
 	
-	return _deviceReady;
+	return isInitOK;
 }
 
 int ProviderSpi::open()
 {
 	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
 
-	_deviceReady = init(_devConfig);
-
-	if ( _deviceReady )
+	if ( init(_devConfig) )
 	{
 
 		Debug(_log, "_baudRate_Hz %d,  _latchTime_ns %d", _baudRate_Hz, _latchTime_ms);
@@ -68,7 +61,7 @@ int ProviderSpi::open()
 
 		if (_fid < 0)
 		{
-			Error( _log, "Failed to open device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
+			errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
 			retval = -1;
 		}
 		else
@@ -92,15 +85,39 @@ int ProviderSpi::open()
 					else
 					{
 						// Everything OK -> enable device
-						retval = 0;
+						_deviceReady = true;
 						setEnable(true);
+						retval = 0;
 					}
 				}
 			}
+			if ( retval < 0 )
+			{
+				errortext = QString ("Failed to open device (%1). Error Code: %2").arg(_deviceName, retval);
+			}
+		}
+
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
 		}
 	}
-	
+
 	return retval;
+}
+
+void ProviderSpi::close()
+{
+	LedDevice::close();
+
+	// Device specific closing activites
+	if ( _fid > -1 )
+	{
+		if ( ::close(_fid) != 0 )
+		{
+			Error( _log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
+		}
+	}
 }
 
 int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)

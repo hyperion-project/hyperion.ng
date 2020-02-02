@@ -12,12 +12,15 @@
 LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 	: _fid(nullptr)
 {
+	_devConfig = deviceConfig;
+	_deviceReady = false;
+
 	signal(SIGPIPE,  SIG_IGN);
 
-// initialise the mapping tables
-// -1 is invalid
-// z is also meaningless
-// { "gpio" : 4, "ledindex" : 0, "ledcolor" : "r" },
+	// initialise the mapping tables
+	// -1 is invalid
+	// z is also meaningless
+	// { "gpio" : 4, "ledindex" : 0, "ledcolor" : "r" },
 	#define TABLE_SZ sizeof(_gpio_to_led)/sizeof(_gpio_to_led[0])
 
 	for (unsigned i=0; i <  TABLE_SZ; i++ )
@@ -25,51 +28,48 @@ LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 		_gpio_to_led[i] = -1;
 		_gpio_to_color[i] = 'z';
 	}
-
-	_deviceReady = init(deviceConfig);
 }
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
 {
-	// Close the device (if it is opened)
-	if (_fid != nullptr)
-	{
-		fclose(_fid);
-		_fid = nullptr;
-	}
+
 }
 
 
 bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
-	LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_deviceName    = deviceConfig["output"].toString("/dev/pi-blaster");
-	QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
 
-	if (gpioMapping.isEmpty())
+	if ( isInitOK )
 	{
-		throw std::runtime_error("Piblaster: no gpiomap defined.");
-	}
+		QJsonArray gpioMapping = deviceConfig["gpiomap"].toArray();
 
-	// walk through the json config and populate the mapping tables
-	for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
-	{
-		const QJsonObject value = (*gpioArray).toObject();
-		const int gpio = value["gpio"].toInt(-1);
-		const int ledindex = value["ledindex"].toInt(-1);
-		const std::string ledcolor = value["ledcolor"].toString("z").toStdString();
+		if (gpioMapping.isEmpty())
+		{
+			this->setInError("PiBlaster: no gpiomap defined.");
+			return false;
+		}
 
-		// ignore missing/invalid settings
-		if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
-			_gpio_to_led[gpio] = ledindex;
-			_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
-		} else {
-			Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
+		// walk through the json config and populate the mapping tables
+		for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
+		{
+			const QJsonObject value = (*gpioArray).toObject();
+			const int gpio = value["gpio"].toInt(-1);
+			const int ledindex = value["ledindex"].toInt(-1);
+			const std::string ledcolor = value["ledcolor"].toString("z").toStdString();
+
+			// ignore missing/invalid settings
+			if ( (gpio >= 0) && (gpio < signed(TABLE_SZ)) && (ledindex >= 0) ){
+				_gpio_to_led[gpio] = ledindex;
+				_gpio_to_color[gpio] = ledcolor[0]; // 1st char of string
+			} else {
+				Warning( _log, "IGNORING gpio %d ledindex %d color %c", gpio,ledindex, ledcolor[0]);
+			}
 		}
 	}
-
-	return true;
+	return isInitOK;
 }
 
 LedDevice* LedDevicePiBlaster::construct(const QJsonObject &deviceConfig)
@@ -79,30 +79,61 @@ LedDevice* LedDevicePiBlaster::construct(const QJsonObject &deviceConfig)
 
 int LedDevicePiBlaster::open()
 {
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
+
+	if ( init(_devConfig) )
+	{
+		if (_fid != nullptr)
+		{
+			// The file pointer is already open
+			errortext = QString ("Device (%1) is already open.").arg(_deviceName);
+		}
+		else
+		{
+			if (!QFile::exists(_deviceName))
+			{
+				errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
+
+			}
+			else
+			{
+				_fid = fopen(QSTRING_CSTR(_deviceName), "w");
+				if (_fid == nullptr)
+				{
+					errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
+				}
+				else
+				{
+					Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
+					retval = 0;
+					setEnable(true);
+				}
+			}
+		}
+
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+
+		}
+	}
+	return retval;
+}
+
+void LedDevicePiBlaster::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	// Close the device (if it is opened)
 	if (_fid != nullptr)
 	{
-		// The file pointer is already open
-		Error( _log, "Device (%s) is already open.", QSTRING_CSTR(_deviceName) );
-		return -1;
-	}
+		fclose(_fid);
+		_fid = nullptr;
+	}}
 
-	if (!QFile::exists(_deviceName))
-	{
-		Error( _log, "The device (%s) does not yet exist.",QSTRING_CSTR(_deviceName) );
-		return -1;
-	}
-
-	_fid = fopen(QSTRING_CSTR(_deviceName), "w");
-	if (_fid == nullptr)
-	{
-		Error( _log, "Failed to open device (%s). Error message: %s", QSTRING_CSTR(_deviceName),  strerror(errno) );
-		return -1;
-	}
-
-	Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
-
-	return 0;
-}
 
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {

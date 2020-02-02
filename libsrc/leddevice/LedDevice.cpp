@@ -44,7 +44,7 @@ int LedDevice::open()
 	return 0;
 }
 
-void LedDevice::error(const QString& errorMsg)
+void LedDevice::setInError(const QString& errorMsg)
 {
 	_deviceInError = true;
 	_deviceReady = false;
@@ -145,7 +145,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	int retval = 0;
 	if ( !_deviceReady )
 	{
-		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
+		std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
 		return -1;
 	}
 	else
@@ -153,7 +153,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
 		if (_latchTime_ms == 0 || elapsedTime >= _latchTime_ms)
 		{
-			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTime << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
+			std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTime << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			retval = write(ledValues);
 			_last_write_time = QDateTime::currentMSecsSinceEpoch();
 
@@ -166,7 +166,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			//std::cout << "LedDevice::updateLeds(), Skip write. _latchTime_ms (" << _latchTime_ms << ") ms > elapsedTime (" << elapsedTime << ") ms" << std::endl;
+			std::cout << "LedDevice::updateLeds(), Skip write. _latchTime_ms (" << _latchTime_ms << ") ms > elapsedTime (" << elapsedTime << ") ms" << std::endl;
 			if ( _refresh_enabled )
 			{
 				//Stop timer to allow for next non-refresh update

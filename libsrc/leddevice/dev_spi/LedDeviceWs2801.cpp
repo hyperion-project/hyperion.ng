@@ -14,8 +14,8 @@ LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWs2801::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = ProviderSpi::init(deviceConfig);
-	return _deviceReady;
+	bool isInitOK = ProviderSpi::init(deviceConfig);
+	return isInitOK;
 }
 
 int LedDeviceWs2801::write(const std::vector<ColorRgb> &ledValues)

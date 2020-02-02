@@ -3,13 +3,20 @@
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	_port = 5568;
-	init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpRaw(deviceConfig);
+}
+
+bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
+{
+	_port = RAW_DEFAULT_PORT;
+	bool isInitOK = ProviderUdp::init(deviceConfig);
+	return isInitOK;
 }
 
 int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)

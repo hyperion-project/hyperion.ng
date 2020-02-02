@@ -14,19 +14,46 @@ LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = ProviderSpi::init(deviceConfig);
+	bool isInitOK = ProviderSpi::init(deviceConfig);
 
 	const unsigned clearSize = _ledCount/32+1;
 	unsigned messageLength = _ledRGBCount + clearSize;
 	// Initialise the buffer
 	_ledBuffer.resize(messageLength, 0x00);
 
-	if ( _deviceReady )
+	return isInitOK;
+}
+
+int LedDeviceLpd8806::open()
+{
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
+
+	// General initialisation and configuration of LedDevice
+	if ( init(_devConfig) )
 	{
 		// Perform an initial reset to start accepting data on the first led
-		_deviceReady =  writeBytes(clearSize, _ledBuffer.data());
+
+		const unsigned clearSize = _ledCount/32+1;
+		if ( writeBytes(clearSize, _ledBuffer.data()) < 0 )
+		{
+			errortext = QString ("Failed to do initial write");
+		}
+		else
+		{
+			// Everything is OK -> enable device
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+		// On error/exceptions, set LedDevice in error
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+		}
 	}
-	return _deviceReady;
+	return retval;
 }
 
 int LedDeviceLpd8806::write(const std::vector<ColorRgb> &ledValues)

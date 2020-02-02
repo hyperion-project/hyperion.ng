@@ -27,14 +27,14 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig);
+	explicit LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -42,16 +42,23 @@ public:
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedDeviceHyperionUsbasp();
+	virtual ~LedDeviceHyperionUsbasp() override;
 
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
+protected:
 	///
 	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	int open() override;
 
-protected:
 	///
 	/// Writes the RGB-Color values to the leds.
 	///
@@ -59,7 +66,7 @@ protected:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
+	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 
 	///
 	/// Test if the device is a Hyperion Usbasp device

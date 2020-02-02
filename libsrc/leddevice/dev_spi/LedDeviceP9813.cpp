@@ -14,11 +14,12 @@ LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = ProviderSpi::init(deviceConfig);
-
-	_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
-	
-	return _deviceReady;
+	bool isInitOK = ProviderSpi::init(deviceConfig);
+	if ( isInitOK )
+	{
+		_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+	}
+	return isInitOK;
 }
 
 int LedDeviceP9813::write(const std::vector<ColorRgb> &ledValues)

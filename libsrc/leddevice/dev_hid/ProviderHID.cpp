@@ -10,26 +10,22 @@
 #include "ProviderHID.h"
 
 ProviderHID::ProviderHID()
-	: _useFeature(false)
-	, _deviceHandle(nullptr)
-	, _blockedForDelay(false)
+	:	_VendorId(0)
+	  , _ProductId(0)
+	  , _useFeature(false)
+	  , _deviceHandle(nullptr)
+	  , _delayAfterConnect_ms (0)
+	  , _blockedForDelay(false)
 {
 }
 
 ProviderHID::~ProviderHID()
 {
-	if (_deviceHandle != nullptr)
-	{
-		hid_close(_deviceHandle);
-		_deviceHandle = nullptr;
-	}
-
-	hid_exit();
 }
 
 bool ProviderHID::init(const QJsonObject &deviceConfig)
 {
-	LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(0);
 	auto VendorIdString   = deviceConfig["VID"].toString("0x2341").toStdString();
@@ -39,64 +35,94 @@ bool ProviderHID::init(const QJsonObject &deviceConfig)
 	_VendorId = std::stoul(VendorIdString, nullptr, 16);
 	_ProductId = std::stoul(ProductIdString, nullptr, 16);
 
-	return true;
+	return isInitOK;
 }
 
 int ProviderHID::open()
 {
-	// Initialize the usb context
-	int error = hid_init();
-	if (error != 0)
-	{
-		Error(_log, "Error while initializing the hidapi context");
-		return -1;
-	}
-	Debug(_log,"Hidapi initialized");
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
 
-	// Open the device
-	Info(_log, "Opening device: VID %04hx PID %04hx\n", _VendorId, _ProductId);
-	_deviceHandle = hid_open(_VendorId, _ProductId, nullptr);
-		
-	if (_deviceHandle == nullptr)
+	if ( init(_devConfig) )
 	{
-		// Failed to open the device
-		Error(_log,"Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo.");
-		
-		// http://www.signal11.us/oss/hidapi/
-		/*
-		std::cout << "Showing a list of all available HID devices:" << std::endl;
-		auto devs = hid_enumerate(0x00, 0x00);
-		auto cur_dev = devs;	
-		while (cur_dev) {
-			printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
-				cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-			printf("\n");
-			printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-			printf("  Product:      %ls\n", cur_dev->product_string);
-			printf("\n");
-			cur_dev = cur_dev->next;
+		// Initialize the usb context
+		int error = hid_init();
+		if (error != 0)
+		{
+			//Error(_log, "Error while initializing the hidapi context");
+			errortext = "Error while initializing the hidapi context";
 		}
-		hid_free_enumeration(devs);
-		*/
-		
-		return -1;
-	}
-	else
-	{
-		Info(_log,"Opened HID device successful");
-	}
-	
-	// Wait after device got opened if enabled
-	if (_delayAfterConnect_ms > 0)
-	{
-		_blockedForDelay = true;
-		QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
-		Debug(_log, "Device blocked for %d  ms", _delayAfterConnect_ms);
-	}
+		else
+		{
+			Debug(_log,"Hidapi initialized");
 
-	return 0;
+			// Open the device
+			Info(_log, "Opening device: VID %04hx PID %04hx\n", _VendorId, _ProductId);
+			_deviceHandle = hid_open(_VendorId, _ProductId, nullptr);
+
+			if (_deviceHandle == nullptr)
+			{
+				// Failed to open the device
+				Error(_log,"Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo.");
+				errortext = "Failed to open HID device";
+
+				// http://www.signal11.us/oss/hidapi/
+				/*
+				std::cout << "Showing a list of all available HID devices:" << std::endl;
+				auto devs = hid_enumerate(0x00, 0x00);
+				auto cur_dev = devs;
+				while (cur_dev) {
+					printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
+						cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+					printf("\n");
+					printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+					printf("  Product:      %ls\n", cur_dev->product_string);
+					printf("\n");
+					cur_dev = cur_dev->next;
+				}
+				hid_free_enumeration(devs);
+				*/
+			}
+			else
+			{
+				Info(_log,"Opened HID device successful");
+				// Everything is OK -> enable device
+				_deviceReady = true;
+				setEnable(true);
+				retval = 0;
+			}
+
+			// Wait after device got opened if enabled
+			if (_delayAfterConnect_ms > 0)
+			{
+				_blockedForDelay = true;
+				QTimer::singleShot(_delayAfterConnect_ms, this, SLOT(unblockAfterDelay()));
+				Debug(_log, "Device blocked for %d  ms", _delayAfterConnect_ms);
+			}
+		}
+		// On error/exceptions, set LedDevice in error
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+		}
+	}
+	return retval;
 }
 
+void ProviderHID::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	if (_deviceHandle != nullptr)
+	{
+		hid_close(_deviceHandle);
+		_deviceHandle = nullptr;
+	}
+
+	hid_exit();
+}
 
 int ProviderHID::writeBytes(const unsigned size, const uint8_t * data)
 {

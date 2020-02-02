@@ -5,24 +5,12 @@
 #include <QString>
 #include <QNetworkAccessManager>
 #include <QHostAddress>
-#include <QMap>
 #include <QVector>
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 class QUdpSocket;
-
-class AtmoOrbLight {
-public:
-	unsigned int id;
-
-	///
-	/// Constructs the light.
-	///
-	/// @param id the orb id
-	AtmoOrbLight(unsigned int id);
-};
 
 /**
  * Implementation for the AtmoOrb
@@ -35,51 +23,86 @@ class LedDeviceAtmoOrb : public LedDevice
 {
 	Q_OBJECT
 public:
-	// Last send color map
-	QMap<int, int> lastColorRedMap;
-	QMap<int, int> lastColorGreenMap;
-	QMap<int, int> lastColorBlueMap;
-
-	// Multicast status
-	bool joinedMulticastgroup;
 
 	///
 	/// Constructs specific LedDevice
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceAtmoOrb(const QJsonObject &deviceConfig);
+	explicit LedDeviceAtmoOrb(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 	///
 	/// Destructor of this device
 	///
-	virtual ~LedDeviceAtmoOrb();
+	virtual ~LedDeviceAtmoOrb() override;
 
-	virtual int switchOff();
+protected:
+
+	///
+	/// Initialise device's network details
+	///
+	/// @return True if success
+	bool initNetwork();
+
+	///
+	/// Opens and initiatialises the output device
+	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	///
+	virtual int open() override;
 
 private:
+
 	///
 	/// Sends the given led-color values to the Orbs
 	///
 	/// @param ledValues The color-value per led
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector <ColorRgb> &ledValues);
+	virtual int write(const std::vector <ColorRgb> &ledValues) override;
+
+	///
+	/// Set Orbcolor
+	///
+	/// @param orbId the orb id
+	/// @param color which color to set
+	/// @param commandType which type of command to send (off / smoothing / etc..)
+	///
+	void setColor(int orbId, const ColorRgb &color, int commandType);
+
+	///
+	/// Send Orb command
+	///
+	/// @param bytes the byte array containing command to send over multicast
+	///
+	void sendCommand(const QByteArray &bytes);
 
 	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager *_manager;
+	QNetworkAccessManager *_networkmanager;
+
+	/// QUdpSocket object used to send data over
+	QUdpSocket * _udpSocket;
+
+	/// QHostAddress object of multicast group IP address
+	QHostAddress _groupAddress;
 
 	/// String containing multicast group IP address
 	QString _multicastGroup;
+
+	/// Multicast port to send data to
+	quint16 _multiCastGroupPort;
+
+	// Multicast status
+	bool joinedMulticastgroup;
 
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
@@ -90,34 +113,21 @@ private:
 	// Maximum allowed color difference, will skip Orb (external) smoothing once reached
 	int _skipSmoothingDiff;
 
-	/// Multicast port to send data to
-	int _multiCastGroupPort;
-
 	/// Number of leds in Orb, used to determine buffer size
 	int _numLeds;
 
-	/// QHostAddress object of multicast group IP address
-	QHostAddress _groupAddress;
 
-	/// QUdpSocket object used to send data over
-	QUdpSocket * _udpSocket;
+
 
 	/// Array of the orb ids.
-	QVector<unsigned int> _orbIds;
+	QVector<int> _orbIds;
 
-	///
-	/// Set Orbcolor
-	///
-	/// @param orbId the orb id
-	/// @param color which color to set
-	/// @param commandType which type of command to send (off / smoothing / etc..)
-	///
-	void setColor(unsigned int orbId, const ColorRgb &color, int commandType);
+	// Last send color map
+	QMap<int, int> lastColorRedMap;
+	QMap<int, int> lastColorGreenMap;
+	QMap<int, int> lastColorBlueMap;
 
-	///
-	/// Send Orb command
-	///
-	/// @param bytes the byte array containing command to send over multicast
-	///
-	void sendCommand(const QByteArray &bytes);
+
+
+
 };

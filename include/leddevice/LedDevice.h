@@ -219,7 +219,7 @@ protected slots:
 	///
 	/// @param errorMsg The error message to be logged
 	///
-    virtual void error( const QString& errorMsg);
+    virtual void setInError( const QString& errorMsg);
 
 private:
 

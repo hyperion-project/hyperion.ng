@@ -23,30 +23,60 @@ LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = LedDevice::init(deviceConfig);
+	bool initOK = LedDevice::init(deviceConfig);
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 
-	return _deviceReady;
+	return initOK;
 }
 
 int LedDeviceFile::open()
 {
 	int retval = -1;
-	_deviceReady = init(_devConfig);
-	if ( _deviceReady )
+	QString errortext;
+	_deviceReady = false;
+
+	if ( init(_devConfig) )
 	{
 		if ( _ofs.is_open() )
 		{
 			_ofs.close();
 		}
-		_ofs.open( QSTRING_CSTR(_fileName) );
 
-		retval = 0;
-		setEnable(true);
+		_ofs.open( QSTRING_CSTR(_fileName));
+		if ( _ofs.fail() )
+		{
+			errortext = QString ("Failed to open file (%1). Error message: %2").arg(_fileName, strerror(errno));
+		}
+		else
+		{
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+		}
 	}
 	return retval;
+}
+
+void LedDeviceFile::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	if ( _ofs )
+	{
+		_ofs.close();
+		if ( _ofs.fail() )
+		{
+			Error( _log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_fileName), strerror(errno) );
+		}
+	}
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)

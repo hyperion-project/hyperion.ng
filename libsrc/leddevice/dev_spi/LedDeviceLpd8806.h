@@ -95,6 +95,14 @@ public:
 	/// @return true if success
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
+protected:
+	///
+	/// Opens and initiatialises the output device
+	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	///
+	virtual int open() override;
+
 private:
 	///
 	/// Writes the led color values to the led-device

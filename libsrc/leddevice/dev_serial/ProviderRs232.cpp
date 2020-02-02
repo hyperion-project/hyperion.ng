@@ -27,6 +27,7 @@ ProviderRs232::ProviderRs232()
 	connect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
 	connect(&_rs232Port, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
 	connect(&_rs232Port, SIGNAL(readyRead()), this, SLOT(readyRead()));
+
 	_writeTimeout.setInterval(5000);
 	_writeTimeout.setSingleShot(true);
 	connect(&_writeTimeout, SIGNAL(timeout()), this, SLOT(writeTimeout()));
@@ -36,7 +37,7 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
 	closeDevice();
 
-	LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_deviceName           = deviceConfig["output"].toString("auto");
 	_enableAutoDeviceName = _deviceName == "auto";
@@ -44,7 +45,16 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
 	_preOpenDelay         = deviceConfig["delayBeforeConnect"].toInt(1500);
 
-	return true;
+	return isInitOK;
+}
+
+
+void ProviderRs232::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	closeDevice();
 }
 
 QString ProviderRs232::findSerialDevice()
@@ -56,7 +66,6 @@ QString ProviderRs232::findSerialDevice()
 		{
 			Info(_log, "found serial device: %s", port.systemLocation().toLocal8Bit().constData());
 			return port.systemLocation();
-			break;
 		}
 	}
 	return "";
@@ -122,6 +131,7 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 				_deviceReady = false;
 			}
 			_rs232Port.clearError();
+			this->setInError( "Rs232 SerialPortError, see details in previous log lines!" );
 			closeDevice();
 		}
 	}
@@ -130,7 +140,6 @@ void ProviderRs232::error(QSerialPort::SerialPortError error)
 ProviderRs232::~ProviderRs232()
 {
 	disconnect(&_rs232Port, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(error(QSerialPort::SerialPortError)));
-	closeDevice();
 }
 
 void ProviderRs232::closeDevice()
@@ -151,9 +160,27 @@ void ProviderRs232::closeDevice()
 
 int ProviderRs232::open()
 {
-	return tryOpen(_delayAfterConnect_ms) ? 0 : -1;
-}
+	int retval = -1;
+	_deviceReady = false;
 
+	// General initialisation and configuration of LedDevice
+	if ( init(_devConfig) )
+	{
+		if ( tryOpen(_delayAfterConnect_ms) )
+		{
+			// Everything is OK -> enable device
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+		else
+		{
+			this->setInError( "Error opening device!" );
+		}
+
+	}
+	return retval;
+}
 
 bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 {
@@ -247,16 +274,13 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 
 void ProviderRs232::writeTimeout()
 {
-	Error(_log, "Timeout on write data to %s", _deviceName.toLocal8Bit().constData());
-	closeDevice();
+	//Error(_log, "Timeout on write data to %s", _deviceName.toLocal8Bit().constData());
+	QString errortext = QString ("Timeout on write data to %1").arg(_deviceName);
+	setInError( errortext );
+	close();
 }
 
 void ProviderRs232::unblockAfterDelay()
 {
 	_blockedForDelay = false;
-}
-
-int ProviderRs232::rewriteLeds()
-{
-	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }

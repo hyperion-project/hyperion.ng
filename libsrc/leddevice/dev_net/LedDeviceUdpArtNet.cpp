@@ -7,17 +7,8 @@
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	_deviceReady = init(deviceConfig);
-}
-
-bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
-{
-	_port = 6454;
-	ProviderUdp::init(deviceConfig);
-	_artnet_universe = deviceConfig["universe"].toInt(1);
-	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
-
-	return true;
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
@@ -25,6 +16,16 @@ LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceUdpArtNet(deviceConfig);
 }
 
+bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
+{
+	_port = ARTNET_DEFAULT_PORT;
+	bool isInitOK = ProviderUdp::init(deviceConfig);
+
+	_artnet_universe = deviceConfig["universe"].toInt(1);
+	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
+
+	return isInitOK;
+}
 
 // populates the headers
 void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_sequence, unsigned this_dmxChannelCount)
@@ -90,4 +91,3 @@ The Sequence field is set to 0x00 to disable this feature.
 
 	return retVal;
 }
-

@@ -58,14 +58,14 @@ bool LedDeviceAPA104::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 2235000;
 
-	_deviceReady = ProviderSpi::init(deviceConfig);
-	if ( _deviceReady )
+	bool isInitOK = ProviderSpi::init(deviceConfig);
+	if ( isInitOK )
 	{
 		WarningIf(( _baudRate_Hz < 2000000 || _baudRate_Hz > 2470000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2470000)", _baudRate_Hz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 	}
-	return _deviceReady;
+	return isInitOK;
 }
 
 int LedDeviceAPA104::write(const std::vector<ColorRgb> &ledValues)

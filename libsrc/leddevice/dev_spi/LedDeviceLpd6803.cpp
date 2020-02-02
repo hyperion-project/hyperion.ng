@@ -14,13 +14,14 @@ LedDevice* LedDeviceLpd6803::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd6803::init(const QJsonObject &deviceConfig)
 {
-	_deviceReady = ProviderSpi::init(deviceConfig);
-
-	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
-	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
-
-	return _deviceReady;
+	bool isInitOK = ProviderSpi::init(deviceConfig);
+	if ( isInitOK )
+	{
+		unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
+		// Initialise the buffer
+		_ledBuffer.resize(messageLength, 0x00);
+	}
+	return isInitOK;
 }
 
 int LedDeviceLpd6803::write(const std::vector<ColorRgb> &ledValues)

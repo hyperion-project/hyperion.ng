@@ -9,7 +9,7 @@
 
 class QUdpSocket;
 
-#define MAX_PORT 65535
+const ushort MAX_PORT = 65535;
 
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
@@ -25,23 +25,37 @@ public:
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~ProviderUdp();
+	virtual ~ProviderUdp() override;
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
+
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
+protected:
+
+	///
+	/// Initialise device's network details
+	///
+	/// @return True if success
+	bool initNetwork();
 
 	///
 	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	int open() override;
 
-protected:
 	///
 	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
 	/// values are latched.

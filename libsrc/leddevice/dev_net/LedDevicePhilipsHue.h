@@ -217,7 +217,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePhilipsHue(const QJsonObject &deviceConfig);
+	explicit LedDevicePhilipsHue(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this device
@@ -229,7 +229,7 @@ public:
 
 public slots:
 	/// thread start
-	virtual void start();
+	virtual void start() override;
 
 private slots:
 	/// creates new PhilipsHueLight(s) based on user lightid with bridge feedback
@@ -248,8 +248,8 @@ protected:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
-	bool init(const QJsonObject &deviceConfig);
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	/// bridge class

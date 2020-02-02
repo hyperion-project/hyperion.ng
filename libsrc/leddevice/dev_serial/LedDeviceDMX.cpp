@@ -10,49 +10,55 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	, _dmxLedCount(0)
 	, _dmxChannelCount(0)
 {
-	_deviceReady = init(deviceConfig);
-}
-
-bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
-{
-	ProviderRs232::init(deviceConfig);
-
-	QString dmxString = deviceConfig["dmxdevice"].toString("invalid");
-	if (dmxString == "raw")
-	{
-		_dmxDeviceType = 0;
-		_dmxStart = 1;
-		_dmxSlotsPerLed = 3;
-	}
-	else if (dmxString == "McCrypt")
-	{
-		_dmxDeviceType = 1;
-		_dmxStart = 1;
-		_dmxSlotsPerLed = 4;
-	}
-	else
-	{
-		Error(_log, "unknown dmx device type %s", QSTRING_CSTR(dmxString));
-	}
-
-	Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", QSTRING_CSTR(dmxString), _dmxDeviceType );
-	_rs232Port.setStopBits(QSerialPort::TwoStop);
-	
-	_dmxLedCount  =  qMin(_ledCount, 512/_dmxSlotsPerLed);
-	_dmxChannelCount  = 1 + _dmxSlotsPerLed * _dmxLedCount;
-
-	Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
-	Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
-
-	_ledBuffer.resize(_dmxChannelCount, 0);
-	_ledBuffer[0] = 0x00;	// NULL START code
-
-	return true;
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceDMX(deviceConfig);
+}
+
+bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
+{
+	bool isInitOK = ProviderRs232::init(deviceConfig);
+
+	if ( isInitOK )
+	{
+		QString dmxString = deviceConfig["dmxdevice"].toString("invalid");
+		if (dmxString == "raw")
+		{
+			_dmxDeviceType = 0;
+			_dmxStart = 1;
+			_dmxSlotsPerLed = 3;
+		}
+		else if (dmxString == "McCrypt")
+		{
+			_dmxDeviceType = 1;
+			_dmxStart = 1;
+			_dmxSlotsPerLed = 4;
+		}
+		else
+		{
+			//Error(_log, "unknown dmx device type %s", QSTRING_CSTR(dmxString));
+			QString errortext = QString ("unknown dmx device type: %1").arg(dmxString);
+			this->setInError(errortext);
+			return false;
+		}
+
+		Debug(_log, "_dmxString \"%s\", _dmxDeviceType %d", QSTRING_CSTR(dmxString), _dmxDeviceType );
+		_rs232Port.setStopBits(QSerialPort::TwoStop);
+
+		_dmxLedCount  =  qMin(_ledCount, 512/_dmxSlotsPerLed);
+		_dmxChannelCount  = 1 + _dmxSlotsPerLed * _dmxLedCount;
+
+		Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
+		Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
+
+		_ledBuffer.resize(_dmxChannelCount, 0);
+		_ledBuffer[0] = 0x00;	// NULL START code
+	}
+	return isInitOK;
 }
 
 int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)

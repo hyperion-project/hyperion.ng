@@ -4,7 +4,9 @@
 LedDeviceKarate::LedDeviceKarate(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
+
 	connect(this,SIGNAL(receivedData(QByteArray)),this,SLOT(receivedData(QByteArray)));
 }
 
@@ -15,23 +17,31 @@ LedDevice* LedDeviceKarate::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceKarate::init(const QJsonObject &deviceConfig)
 {
-	ProviderRs232::init(deviceConfig);
+	bool isInitOK = ProviderRs232::init(deviceConfig);
 
-	if (_ledCount != 16)
+	if ( isInitOK )
 	{
-		Error( _log, "%d channels configured. This should always be 16!", _ledCount);
-		return 0;
+		if (_ledCount != 16)
+		{
+			//Error( _log, "%d channels configured. This should always be 16!", _ledCount);
+			QString errortext = QString ("%1 channels configured. This should always be 16!").arg(_ledCount);
+			this->setInError(errortext);
+			isInitOK = false;
+		}
+		else
+		{
+
+			_ledBuffer.resize(4 + _ledCount * 3); // 4-byte header, 3 RGB values
+			_ledBuffer[0] = 0xAA;       // Startbyte
+			_ledBuffer[1] = 0x12;       // Send all Channels in Batch
+			_ledBuffer[2] = 0x00;       // Checksum
+			_ledBuffer[3] = _ledCount * 3;       // Number of Databytes send
+
+			Debug( _log, "Karatelight header for %d leds: 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
+				  _ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3] );
+		}
 	}
-
-	_ledBuffer.resize(4 + _ledCount * 3); // 4-byte header, 3 RGB values
-	_ledBuffer[0] = 0xAA;       // Startbyte
-	_ledBuffer[1] = 0x12;       // Send all Channels in Batch
-	_ledBuffer[2] = 0x00;       // Checksum
-	_ledBuffer[3] = _ledCount * 3;       // Number of Databytes send
-
-	Debug( _log, "Karatelight header for %d leds: 0x%02x 0x%02x 0x%02x 0x%02x", _ledCount,
-		_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3] );
-	return true;
+	return isInitOK;
 }
 
 int LedDeviceKarate::write(const std::vector<ColorRgb> &ledValues)

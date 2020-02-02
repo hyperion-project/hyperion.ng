@@ -36,6 +36,13 @@ public:
 	///
     int open() override;
 
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
 protected:
 	///
 	/// Writes the given bytes/bits to the SPI-device and sleeps the latch time to ensure that the

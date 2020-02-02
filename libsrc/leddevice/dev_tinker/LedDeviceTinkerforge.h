@@ -8,7 +8,6 @@
 // Hyperion-Leddevice includes
 #include <leddevice/LedDevice.h>
 
-
 extern "C" {
 	#include <tinkerforge/ip_connection.h>
 	#include <tinkerforge/bricklet_led_strip.h>
@@ -22,26 +21,27 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceTinkerforge(const QJsonObject &deviceConfig);
+	explicit LedDeviceTinkerforge(const QJsonObject &deviceConfig);
 
-	virtual ~LedDeviceTinkerforge();
+	virtual ~LedDeviceTinkerforge() override;
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
-
+protected:
 	///
 	/// Attempts to open a connection to the master bricklet and the led strip bricklet.
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	virtual int open() override;
 
 private:
 	///
@@ -51,7 +51,7 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 
 	///
 	/// Writes the data to the led strip blicklet 

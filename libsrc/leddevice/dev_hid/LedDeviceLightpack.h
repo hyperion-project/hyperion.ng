@@ -26,14 +26,14 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceLightpack(const QJsonObject &deviceConfig);
+	explicit LedDeviceLightpack(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -41,14 +41,14 @@ public:
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedDeviceLightpack();
+	virtual ~LedDeviceLightpack() override;
 
 	///
 	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	int open() override;
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -65,13 +65,22 @@ public:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int switchOff();
+	virtual int switchOff() override;
 
 	/// Get the serial of the Lightpack
 	const QString & getSerialNumber() const;
 
 	/// Get the number of leds
 	int getLedCount() const;
+
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
+protected:
 
 private:
 	///

@@ -4,17 +4,26 @@
 LedDevicePaintpack::LedDevicePaintpack(const QJsonObject &deviceConfig)
 	: ProviderHID()
 {
-	ProviderHID::init(deviceConfig);
-	_useFeature = false;
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 
-	_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
-	_ledBuffer[0] = 3;
-	_ledBuffer[1] = 0;
+	_useFeature = false;
 }
 
 LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDevicePaintpack(deviceConfig);
+}
+
+bool LedDevicePaintpack::init(const QJsonObject &deviceConfig)
+{
+	bool isInitOK = ProviderHID::init(deviceConfig);
+
+	_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
+	_ledBuffer[0] = 3;
+	_ledBuffer[1] = 0;
+
+	return isInitOK;
 }
 
 int LedDevicePaintpack::write(const std::vector<ColorRgb> & ledValues)
