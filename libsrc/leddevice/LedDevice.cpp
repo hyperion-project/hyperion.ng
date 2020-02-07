@@ -65,30 +65,33 @@ void LedDevice::setEnable(bool enable)
 {
 	if (!_deviceReady && enable)
 	{
-		Error(_log, "Device '%s' cannot be enabled, as it is not ready!", QSTRING_CSTR(_activeDeviceType));
+		Debug(_log, "Device '%s' was not ready! Trying to re-open.", QSTRING_CSTR(_activeDeviceType));
+		if ( open() < 0 )
+		{
+			Error(_log, "Device '%s' cannot be enabled, as it is not ready!", QSTRING_CSTR(_activeDeviceType));
+			return;
+		}
+	}
+
+	// emit signal when state changed
+	if (_enabled != enable)
+	{
+		emit enableStateChanged(enable);
+	}
+	// switch off device when disabled, default: set black to leds when they should go off
+	if ( _enabled && !enable)
+	{
+		switchOff();
 	}
 	else
 	{
-		// emit signal when state changed
-		if (_enabled != enable)
+		// switch on device when enabled
+		if ( !_enabled && enable)
 		{
-			emit enableStateChanged(enable);
+			switchOn();
 		}
-		// switch off device when disabled, default: set black to leds when they should go off
-		if ( _enabled && !enable)
-		{
-			switchOff();
-		}
-		else
-		{
-			// switch on device when enabled
-			if ( !_enabled && enable)
-			{
-				switchOn();
-			}
-		}
-		_enabled = enable;
 	}
+	_enabled = enable;
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)

@@ -113,11 +113,6 @@ public slots:
 	/// @param enable The new state of the device
 	///
 	void setEnable(bool enable);	///
-	/// Initialise a device's configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return True if success
-	///
 
 signals:
 	///
