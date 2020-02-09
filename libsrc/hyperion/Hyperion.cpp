@@ -87,9 +87,8 @@ void Hyperion::start()
 		_ledStringColorOrder.push_back(led.colorOrder);
 	}
 
-	// NOTE: Removed visiblePriorityChanged->update connection, as it results in a double write()
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
-	// TO BE DELETED connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
 	connect(&_componentRegister, &ComponentRegister::updatedComponentState, this, &Hyperion::updatedComponentState);
