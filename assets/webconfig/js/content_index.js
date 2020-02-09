@@ -43,13 +43,15 @@ $(document).ready(function () {
 		updateSessions();
 	});
 
-	$(window.hyperion).on("cmd-authorize-event cmd-authorize-getPendingRequests", function (event) {
+	$(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
 		var val = event.response.info;
 		if (Array.isArray(event.response.info)) {
 			if (event.response.info.length == 0) {
 				return
 			}
 			val = event.response.info[0]
+			if (val.comment == '')
+				$('#modal_dialog').modal('hide');
 		}
 
 		showInfoDialog("grantToken", $.i18n('conf_network_tok_grantT'), $.i18n('conf_network_tok_grantMsg') + '<br><span style="font-weight:bold">App: ' + val.comment + '</span><br><span style="font-weight:bold">Code: ' + val.id + '</span>')

@@ -3,33 +3,8 @@ Hyperion pronounces it's services at the network. Currently with ZeroConf and SS
 
 [[toc]]
 
-## Zeroconf
-Also known as [Apple Bonjour](https://en.wikipedia.org/wiki/Bonjour_(software)) or [Avahi](https://en.wikipedia.org/wiki/Avahi_(software)). Hyperion is detectable through zeroconf.
-
-**Hyperion publishes the following informations:**
-  * _hyperiond-http._tcp -> Hyperion Webserver (+Websocket)
-  * _hyperiond-json._tcp -> Hyperion JSON RPC
-  * _hyperiond-flatbuf._tcp -> Hyperion Flatbuffers server
-  * _hyperiond-udp._udp -> UDP Receiver port
-
-So you get the ip address, hostname and port of the system. Also the Hyperion instance name is part of it (before the @ for the full name). As this works realtime you have always an up2date list of available Hyperion servers right to your hand. So check your development environment if you have access to it.
-
-### TXT RECORD
-Each published entry contains at least the following informations at the txt field
-  * id = A static unique id to identify a hyperion instance (good value to sort between new and known instances)
-  * version = Hyperion version
-
-
-### Test Clients
-There are several clients available for testing like the [avahi-browse](http://manpages.ubuntu.com/manpages/bionic/man1/avahi-browse.1.html) commandline tool for ubuntu/debian. Example command 
-``` bash
-sudo apt-get install avahi-browse &&
-avahi-browse -r _hyperiond-http._tcp
-```
-<ImageWrap src="/images/en/avahi-browse.jpg" alt="Searching for Hyperion Server with Avahi cli" />
-
 ## SSDP
-**S**imple**S**ervice**D**iscovery**P**rotocol ([SSDP](https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol)), is the discovery subset of UPnP. The implementation is lighter than ZeroConf as it just needs a UdpSocket (multicast/unicast) without further dependencies, also a bunch of ssdp client libraries are available which wraps down the code to write on your own to some lines.
+**S**imple**S**ervice**D**iscovery**P**rotocol ([SSDP](https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol)), is the discovery subset of UPnP. The implementation is lighter than ZeroConf as it just needs a UdpSocket without further dependencies.
 
 
 ### SSDP-Client Library
@@ -51,3 +26,27 @@ Some headers from the response.
   * More may be added in future with additional data to other Hyperion network ports
 
 You will receive further notifications when the data changes (Network adapter changed the IP Address, port change) or Hyperion shuts down.
+
+## Zeroconf
+Also known as [Apple Bonjour](https://en.wikipedia.org/wiki/Bonjour_(software)) or [Avahi](https://en.wikipedia.org/wiki/Avahi_(software)). Hyperion is detectable through zeroconf.
+
+**Hyperion publishes the following informations:**
+  * _hyperiond-http._tcp -> Hyperion Webserver (HTTP+Websocket)
+  * _hyperiond-json._tcp -> Hyperion JSON Server (TcpSocket)
+  * _hyperiond-flatbuf._tcp -> Hyperion Flatbuffers server (Google Flatbuffers)
+
+So you get the ip address, hostname and port of the system. Also the Hyperion instance name is part of it (before the @ for the full name). As this works realtime you have always an up2date list of available Hyperion servers right to your hand. So check your development environment if you have access to it.
+
+### TXT RECORD
+Each published entry contains at least the following informations at the txt field
+  * id = A static unique id to identify a hyperion instance (good value to sort between new and known instances)
+  * version = Hyperion version
+
+
+### Test Clients
+There are several clients available for testing like the [avahi-browse](http://manpages.ubuntu.com/manpages/bionic/man1/avahi-browse.1.html) commandline tool for ubuntu/debian. Example command 
+``` bash
+sudo apt-get install avahi-browse &&
+avahi-browse -r _hyperiond-http._tcp
+```
+<ImageWrap src="/images/en/avahi-browse.jpg" alt="Searching for Hyperion Server with Avahi cli" />

@@ -11,13 +11,13 @@ It's for sure useful to check if you actually need an authorization to work with
 ``` json
 {
     "command" : "authorize",
-    "subcommand" : "required"
+    "subcommand" : "tokenRequired"
 }
 ```
 If the property "required" is true, you need authentication. Example response.
 ``` json
 {
-    "command" : "authorize-required",
+    "command" : "authorize-tokenRequired",
     "info" : {
         "required" : true
         },

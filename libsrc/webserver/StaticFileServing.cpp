@@ -10,119 +10,124 @@
 #include <QResource>
 #include <exception>
 
-StaticFileServing::StaticFileServing (QObject * parent)
-	:  QObject   (parent)
-	, _baseUrl ()
-	, _cgi(this)
-	, _log(Logger::getInstance("WEBSERVER"))
+StaticFileServing::StaticFileServing(QObject *parent)
+	: QObject(parent), _baseUrl(), _cgi(this), _log(Logger::getInstance("WEBSERVER"))
 {
 	Q_INIT_RESOURCE(WebConfig);
 
 	_mimeDb = new QMimeDatabase;
 }
 
-StaticFileServing::~StaticFileServing ()
+StaticFileServing::~StaticFileServing()
 {
 	delete _mimeDb;
 }
 
-void StaticFileServing::setBaseUrl(const QString& url)
+void StaticFileServing::setBaseUrl(const QString &url)
 {
 	_baseUrl = url;
 	_cgi.setBaseUrl(url);
 }
 
-void StaticFileServing::setSSDPDescription(const QString& desc)
+void StaticFileServing::setSSDPDescription(const QString &desc)
 {
-	if(desc.isEmpty())
+	if (desc.isEmpty())
 		_ssdpDescription.clear();
 	else
 		_ssdpDescription = desc.toLocal8Bit();
 }
 
-void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage)
+void StaticFileServing::printErrorToReply(QtHttpReply *reply, QtHttpReply::StatusCode code, QString errorMessage)
 {
 	reply->setStatusCode(code);
-	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/html"));
-	QFile errorPageHeader(_baseUrl %  "/errorpages/header.html" );
-	QFile errorPageFooter(_baseUrl %  "/errorpages/footer.html" );
-	QFile errorPage      (_baseUrl %  "/errorpages/" % QString::number((int)code) % ".html" );
+	reply->addHeader("Content-Type", QByteArrayLiteral("text/html"));
+	QFile errorPageHeader(_baseUrl % "/errorpages/header.html");
+	QFile errorPageFooter(_baseUrl % "/errorpages/footer.html");
+	QFile errorPage(_baseUrl % "/errorpages/" % QString::number((int)code) % ".html");
 
-	if (errorPageHeader.open (QFile::ReadOnly))
+	if (errorPageHeader.open(QFile::ReadOnly))
 	{
 		QByteArray data = errorPageHeader.readAll();
-		reply->appendRawData (data);
-		errorPageHeader.close ();
+		reply->appendRawData(data);
+		errorPageHeader.close();
 	}
 
-	if (errorPage.open (QFile::ReadOnly))
+	if (errorPage.open(QFile::ReadOnly))
 	{
 		QByteArray data = errorPage.readAll();
-		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit() );
-		reply->appendRawData (data);
-		errorPage.close ();
+		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit());
+		reply->appendRawData(data);
+		errorPage.close();
 	}
 	else
 	{
-		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage).toLocal8Bit());
+		reply->appendRawData(QString(QString::number(code) + " - " + errorMessage).toLocal8Bit());
 	}
 
-	if (errorPageFooter.open (QFile::ReadOnly))
+	if (errorPageFooter.open(QFile::ReadOnly))
 	{
-		QByteArray data = errorPageFooter.readAll ();
-		reply->appendRawData (data);
-		errorPageFooter.close ();
+		QByteArray data = errorPageFooter.readAll();
+		reply->appendRawData(data);
+		errorPageFooter.close();
 	}
 }
 
-void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpReply * reply)
+void StaticFileServing::onRequestNeedsReply(QtHttpRequest *request, QtHttpReply *reply)
 {
-	QString command = request->getCommand ();
-	if (command == QStringLiteral ("GET"))
+	QString command = request->getCommand();
+	if (command == QStringLiteral("GET"))
 	{
-		QString path = request->getUrl ().path ();
+		QString path = request->getUrl().path();
 		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
 
 		// special uri handling for server commands
-		if ( ! uri_parts.empty() )
+		if (!uri_parts.empty())
 		{
-			if(uri_parts.at(0) == "cgi")
+			if (uri_parts.at(0) == "cgi")
 			{
 				uri_parts.removeAt(0);
 				try
 				{
 					_cgi.exec(uri_parts, request, reply);
 				}
-				catch(int err)
+				catch (int err)
 				{
-					Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+					Error(_log, "Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
+					printErrorToReply(reply, QtHttpReply::InternalError, "script failed (" % path % ")");
 				}
-				catch(std::exception &e)
+				catch (std::exception &e)
 				{
-					Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
+					Error(_log, "Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());
+					printErrorToReply(reply, QtHttpReply::InternalError, "script failed (" % path % ")");
 				}
 				return;
 			}
-			else if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
+			else if (uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
 			{
-				reply->addHeader ("Content-Type", "text/xml");
-				reply->appendRawData (_ssdpDescription);
+				reply->addHeader("Content-Type", "text/xml");
+				reply->appendRawData(_ssdpDescription);
 				return;
+			}
+			// As long the webinterface is at /next/ forward all routes (not file routes) to index.html
+			else if (uri_parts.at(0) == "next")
+			{
+				if (!path.contains("."))
+				{
+					path = "/next/index.html";
+				}
 			}
 		}
 
 		QFileInfo info(_baseUrl % "/" % path);
-		if ( path == "/" || path.isEmpty()  )
+		if (path == "/" || path.isEmpty())
 		{
 			path = "index.html";
 		}
-		else if (info.isDir() && path.endsWith("/") )
+		else if (info.isDir() && path.endsWith("/"))
 		{
 			path += "index.html";
 		}
-		else if (info.isDir() && ! path.endsWith("/") )
+		else if (info.isDir() && !path.endsWith("/"))
 		{
 			path += "/index.html";
 		}
@@ -131,29 +136,30 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 		QFile file(_baseUrl % "/" % path);
 		if (file.exists())
 		{
-			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
-			if (file.open (QFile::ReadOnly)) {
-				QByteArray data = file.readAll ();
-				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
-				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
+			QMimeType mime = _mimeDb->mimeTypeForFile(file.fileName());
+			if (file.open(QFile::ReadOnly))
+			{
+				QByteArray data = file.readAll();
+				reply->addHeader("Content-Type", mime.name().toLocal8Bit());
+				reply->addHeader(QtHttpHeader::AccessControlAllow, "*");
 				// TODO: enable to protect against side loaded scripts. JQuery uses EVAL(), get rid of JQuery. Inline js is also not allowed
 				// reply->addHeader (QtHttpHeader::ContentSecurityPol, "default-src 'self'"); // connect-src '*' for remote applications
-				reply->addHeader (QtHttpHeader::XFrameOptions, "sameorigin");
-				reply->appendRawData (data);
-				file.close ();
+				reply->addHeader(QtHttpHeader::XFrameOptions, "sameorigin");
+				reply->appendRawData(data);
+				file.close();
 			}
 			else
 			{
-				printErrorToReply (reply, QtHttpReply::Forbidden ,"Requested file: " % path);
+				printErrorToReply(reply, QtHttpReply::Forbidden, "Requested file: " % path);
 			}
 		}
 		else
 		{
-			printErrorToReply (reply, QtHttpReply::NotFound, "Requested file: " % path);
+			printErrorToReply(reply, QtHttpReply::NotFound, "Requested file: " % path);
 		}
 	}
 	else
 	{
-		printErrorToReply (reply, QtHttpReply::MethodNotAllowed,"Unhandled HTTP/1.1 method " % command);
+		printErrorToReply(reply, QtHttpReply::MethodNotAllowed, "Unhandled HTTP/1.1 method " % command);
 	}
 }

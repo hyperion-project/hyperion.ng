@@ -254,16 +254,24 @@ protected:
 	/// @brief Get a new token from AuthManager. Requires ADMIN ACCESS
 	/// @param comment   The comment of the request
 	/// @param def       The final definition
-	/// @return True on success else false
+	/// @return Empty string on success else error message
 	///
-	bool createToken(const QString &comment, AuthManager::AuthDefinition &def);
+	QString createToken(const QString &comment, AuthManager::AuthDefinition &def);
+
+	///
+	/// @brief Rename a token by given id. Requires ADMIN ACCESS
+	/// @param id  The id of the token
+	/// @param comment The new comment
+	/// @return Empty string on success else error message
+	///
+	QString renameToken(const QString &id, const QString &comment);
 
 	///
 	/// @brief Delete a token by given id. Requires ADMIN ACCESS
 	/// @param id  The id of the token
-	/// @return True on succes
+	/// @return Empty string on success else error message
 	///
-	bool deleteToken(const QString &id);
+	QString deleteToken(const QString &id);
 
 	///
 	/// @brief Set a new token request
@@ -297,7 +305,7 @@ protected:
 	/// @brief Get all current pending token requests. Requires ADMIN ACCESS
 	/// @return True on success
 	///
-	bool getPendingTokenRequests(QMap<QString, AuthManager::AuthDefinition> &map);
+	bool getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map);
 
 	///
 	/// @brief Is User Token Authorized. On success this will grant acces to API and ADMIN API
@@ -360,7 +368,7 @@ signals:
 	///
 	/// @brief Emits whenever a new Token request is pending. This signal is just active when ADMIN ACCESS has been granted
 	/// @param id  The id of the request
-	/// @param comment The comment of the request
+	/// @param comment The comment of the request; If the commen is EMPTY the request has been revoked by the caller. So remove it from the pending list
 	///
 	void onPendingTokenRequest(const QString &id, const QString &comment);
 

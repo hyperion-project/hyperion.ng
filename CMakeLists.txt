@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+# webconfig version of package.json
+SET( WEBCONFIG_VERSION "0.4.6" )
+
 PROJECT(hyperion)
+
+# download webconfig
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/webconfig.cmake)
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)

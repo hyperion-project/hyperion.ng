@@ -34,6 +34,10 @@ Open the sdcard with a file explorer. It's called "boot".
 <ImageWrap src="/images/en/user_hyperbian_wpa_suppli2.jpg" alt="Rename to wpa_supplicant.conf"/>
  - Add your WLAN credentials, replace **YOUR_SSID** and **YOUR_PASSWORD** with your values
 ```
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=GB
+
   network={
     ssid="YOUR_SSID"
     psk="YOUR_PASSWORD"

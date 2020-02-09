@@ -21,12 +21,8 @@
 #include <effectengine/EffectFileHandler.h>
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion)
-	: _hyperion(hyperion)
-	, _availableEffects()
-	, _activeEffects()
-	, _log(Logger::getInstance("EFFECTENGINE"))
-	, _effectFileHandler(EffectFileHandler::getInstance())
+EffectEngine::EffectEngine(Hyperion *hyperion)
+	: _hyperion(hyperion), _availableEffects(), _activeEffects(), _log(Logger::getInstance("EFFECTENGINE")), _effectFileHandler(EffectFileHandler::getInstance())
 {
 
 	Q_INIT_RESOURCE(EffectEngine);
@@ -47,12 +43,12 @@ EffectEngine::~EffectEngine()
 {
 }
 
-QString EffectEngine::saveEffect(const QJsonObject& obj)
+QString EffectEngine::saveEffect(const QJsonObject &obj)
 {
 	return _effectFileHandler->saveEffect(obj);
 }
 
-QString EffectEngine::deleteEffect(const QString& effectName)
+QString EffectEngine::deleteEffect(const QString &effectName)
 {
 	return _effectFileHandler->deleteEffect(effectName);
 }
@@ -61,21 +57,21 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 {
 	_availableActiveEffects.clear();
 
-	for (Effect * effect : _activeEffects)
+	for (Effect *effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
-		activeEffectDefinition.script   = effect->getScript();
-		activeEffectDefinition.name     = effect->getName();
+		activeEffectDefinition.script = effect->getScript();
+		activeEffectDefinition.name = effect->getName();
 		activeEffectDefinition.priority = effect->getPriority();
-		activeEffectDefinition.timeout  = effect->getTimeout();
-		activeEffectDefinition.args     = effect->getArgs();
+		activeEffectDefinition.timeout = effect->getTimeout();
+		activeEffectDefinition.args = effect->getArgs();
 		_availableActiveEffects.push_back(activeEffectDefinition);
 	}
 
 	return _availableActiveEffects;
 }
 
-const std::list<EffectSchema> & EffectEngine::getEffectSchemas()
+const std::list<EffectSchema> &EffectEngine::getEffectSchemas()
 {
 	return _effectFileHandler->getEffectSchemas();
 }
@@ -84,14 +80,14 @@ void EffectEngine::cacheRunningEffects()
 {
 	_cachedActiveEffects.clear();
 
-	for (Effect * effect : _activeEffects)
+	for (Effect *effect : _activeEffects)
 	{
 		ActiveEffectDefinition activeEffectDefinition;
-		activeEffectDefinition.script    = effect->getScript();
-		activeEffectDefinition.name      = effect->getName();
-		activeEffectDefinition.priority  = effect->getPriority();
-		activeEffectDefinition.timeout   = effect->getTimeout();
-		activeEffectDefinition.args      = effect->getArgs();
+		activeEffectDefinition.script = effect->getScript();
+		activeEffectDefinition.name = effect->getName();
+		activeEffectDefinition.priority = effect->getPriority();
+		activeEffectDefinition.timeout = effect->getTimeout();
+		activeEffectDefinition.args = effect->getArgs();
 		_cachedActiveEffects.push_back(activeEffectDefinition);
 		channelCleared(effect->getPriority());
 	}
@@ -99,7 +95,7 @@ void EffectEngine::cacheRunningEffects()
 
 void EffectEngine::startCachedEffects()
 {
-	for (const auto & def : _cachedActiveEffects)
+	for (const auto &def : _cachedActiveEffects)
 	{
 		// the smooth cfg AND origin are ignored for this start!
 		runEffect(def.name, def.args, def.priority, def.timeout, def.script);
@@ -119,7 +115,7 @@ void EffectEngine::handleUpdatedEffectList()
 			def.smoothCfg = _hyperion->addSmoothingConfig(
 				def.args["smoothing-time_ms"].toInt(),
 				def.args["smoothing-updateFrequency"].toDouble(),
-				0 );
+				0);
 		}
 		else
 		{
@@ -137,7 +133,7 @@ int EffectEngine::runEffect(const QString &effectName, int priority, int timeout
 
 int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
-	Info( _log, "run effect %s on channel %d", QSTRING_CSTR(effectName), priority);
+	Info(_log, "run effect %s on channel %d", QSTRING_CSTR(effectName), priority);
 
 	if (pythonScript.isEmpty())
 	{
@@ -153,7 +149,7 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 		if (effectDefinition == nullptr)
 		{
 			// no such effect
-			Error(_log, "Effect %s not found",  QSTRING_CSTR(effectName));
+			Error(_log, "Effect %s not found", QSTRING_CSTR(effectName));
 			return -1;
 		}
 
@@ -176,7 +172,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	_hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
+	_hyperion->registerInput(priority, hyperion::TYPE_EFFECT, origin, name, smoothCfg);
 	effect->start();
 
 	return 0;
@@ -184,7 +180,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 
 void EffectEngine::channelCleared(int priority)
 {
-	for (Effect * effect : _activeEffects)
+	for (Effect *effect : _activeEffects)
 	{
 		if (effect->getPriority() == priority && !effect->isInterruptionRequested())
 		{
@@ -195,7 +191,7 @@ void EffectEngine::channelCleared(int priority)
 
 void EffectEngine::allChannelsCleared()
 {
-	for (Effect * effect : _activeEffects)
+	for (Effect *effect : _activeEffects)
 	{
 		if (effect->getPriority() != 254 && !effect->isInterruptionRequested())
 		{
@@ -206,14 +202,14 @@ void EffectEngine::allChannelsCleared()
 
 void EffectEngine::effectFinished()
 {
-	Effect* effect = qobject_cast<Effect*>(sender());
+	Effect *effect = qobject_cast<Effect *>(sender());
 	if (!effect->isInterruptionRequested())
 	{
 		// effect stopped by itself. Clear the channel
 		_hyperion->clear(effect->getPriority());
 	}
 
-	Info( _log, "effect finished");
+	Info(_log, "effect finished");
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{
 		if (*effectIt == effect)

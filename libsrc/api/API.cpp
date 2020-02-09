@@ -385,31 +385,45 @@ bool API::updateHyperionPassword(const QString &password, const QString &newPass
 	return res;
 }
 
-bool API::createToken(const QString &comment, AuthManager::AuthDefinition &def)
+QString API::createToken(const QString &comment, AuthManager::AuthDefinition &def)
 {
 	if (!_adminAuthorized)
-		return false;
+		return NO_AUTH;
+	if (comment.isEmpty())
+		return "comment is empty";
 	QMetaObject::invokeMethod(_authManager, "createToken", Qt::BlockingQueuedConnection, Q_RETURN_ARG(AuthManager::AuthDefinition, def), Q_ARG(QString, comment));
-	return true;
+	return "";
 }
 
-bool API::deleteToken(const QString &id)
+QString API::renameToken(const QString &id, const QString &comment)
 {
 	if (!_adminAuthorized)
-		return false;
+		return NO_AUTH;
+	if (comment.isEmpty() || id.isEmpty())
+		return "Empty comment or id";
+
+	QMetaObject::invokeMethod(_authManager, "renameToken", Qt::QueuedConnection, Q_ARG(QString, id), Q_ARG(QString, comment));
+	return "";
+}
+
+QString API::deleteToken(const QString &id)
+{
+	if (!_adminAuthorized)
+		return NO_AUTH;
+	if (id.isEmpty())
+		return "Empty id";
+
 	QMetaObject::invokeMethod(_authManager, "deleteToken", Qt::QueuedConnection, Q_ARG(QString, id));
-	return true;
+	return "";
 }
 
 void API::setNewTokenRequest(const QString &comment, const QString &id)
 {
-	_authManager->setNewTokenRequest(this, comment, id);
 	QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id));
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &id)
 {
-	_authManager->setNewTokenRequest(this, comment, id);
 	QMetaObject::invokeMethod(_authManager, "cancelNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id));
 }
 
@@ -429,11 +443,11 @@ bool API::getTokenList(QVector<AuthManager::AuthDefinition> &def)
 	return true;
 }
 
-bool API::getPendingTokenRequests(QMap<QString, AuthManager::AuthDefinition> &map)
+bool API::getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map)
 {
 	if (!_adminAuthorized)
 		return false;
-	QMetaObject::invokeMethod(_authManager, "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(MapAuthDefs, map));
+	QMetaObject::invokeMethod(_authManager, "getPendingRequests", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<AuthManager::AuthDefinition>, map));
 	return true;
 }
 

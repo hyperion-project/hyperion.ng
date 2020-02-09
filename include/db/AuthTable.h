@@ -16,10 +16,11 @@ class AuthTable : public DBManager
 
 public:
 	/// construct wrapper with auth table
-	AuthTable(const QString& rootPath = "", QObject* parent = nullptr)
+	AuthTable(const QString &rootPath = "", QObject *parent = nullptr)
 		: DBManager(parent)
 	{
-		if(!rootPath.isEmpty()){
+		if (!rootPath.isEmpty())
+		{
 			// Init Hyperion database usage
 			setRootPath(rootPath);
 			setDatabaseName("hyperion");
@@ -27,7 +28,14 @@ public:
 		// init Auth table
 		setTable("auth");
 		// create table columns
-		createTable(QStringList()<<"user TEXT"<<"password BLOB"<<"token BLOB"<<"salt BLOB"<<"comment TEXT"<<"id TEXT"<<"created_at TEXT"<<"last_use TEXT");
+		createTable(QStringList() << "user TEXT"
+								  << "password BLOB"
+								  << "token BLOB"
+								  << "salt BLOB"
+								  << "comment TEXT"
+								  << "id TEXT"
+								  << "created_at TEXT"
+								  << "last_use TEXT");
 	};
 	~AuthTable(){};
 
@@ -37,18 +45,18 @@ public:
 	/// @param[in]  pw             The password
 	/// @return     true on success else false
 	///
-	inline bool createUser(const QString& user, const QString& pw)
+	inline bool createUser(const QString &user, const QString &pw)
 	{
 		// new salt
 		QByteArray salt = QCryptographicHash::hash(QUuid::createUuid().toByteArray(), QCryptographicHash::Sha512).toHex();
 		QVariantMap map;
 		map["user"] = user;
 		map["salt"] = salt;
-		map["password"] = hashPasswordWithSalt(pw,salt);
+		map["password"] = hashPasswordWithSalt(pw, salt);
 		map["created_at"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
 
 		VectorPair cond;
-		cond.append(CPair("user",user));
+		cond.append(CPair("user", user));
 		return createRecord(cond, map);
 	}
 
@@ -57,10 +65,10 @@ public:
 	/// @param[in]  user   The user id
 	/// @return     true on success else false
 	///
-	inline bool userExist(const QString& user)
+	inline bool userExist(const QString &user)
 	{
 		VectorPair cond;
-		cond.append(CPair("user",user));
+		cond.append(CPair("user", user));
 		return recordExists(cond);
 	}
 
@@ -70,9 +78,9 @@ public:
 	/// @param pw     The password
 	/// @return       True on success else false
 	///
-	inline bool isUserAuthorized(const QString& user, const QString& pw)
+	inline bool isUserAuthorized(const QString &user, const QString &pw)
 	{
-		if(userExist(user) && (calcPasswordHashOfUser(user, pw) == getPasswordHashOfUser(user)))
+		if (userExist(user) && (calcPasswordHashOfUser(user, pw) == getPasswordHashOfUser(user)))
 		{
 			updateUserUsed(user);
 			return true;
@@ -86,9 +94,9 @@ public:
 	/// @param token The token
 	/// @return       True on success else false
 	///
-	inline bool isUserTokenAuthorized(const QString& usr, const QString& token)
+	inline bool isUserTokenAuthorized(const QString &usr, const QString &token)
 	{
-		if(getUserToken(usr) == token.toUtf8())
+		if (getUserToken(usr) == token.toUtf8())
 		{
 			updateUserUsed(usr);
 			return true;
@@ -101,7 +109,7 @@ public:
 	/// @param user   The user name
 	/// @return       True on success else false
 	///
-	inline bool setUserToken(const QString& user)
+	inline bool setUserToken(const QString &user)
 	{
 		QVariantMap map;
 		map["token"] = QCryptographicHash::hash(QUuid::createUuid().toByteArray(), QCryptographicHash::Sha512).toHex();
@@ -116,12 +124,12 @@ public:
 	/// @param user   The user name
 	/// @return       The token
 	///
-	inline const QByteArray getUserToken(const QString& user)
+	inline const QByteArray getUserToken(const QString &user)
 	{
 		QVariantMap results;
 		VectorPair cond;
 		cond.append(CPair("user", user));
-		getRecord(cond, results, QStringList()<<"token");
+		getRecord(cond, results, QStringList() << "token");
 
 		return results["token"].toByteArray();
 	}
@@ -132,7 +140,7 @@ public:
 	/// @param newPw  The new password to set
 	/// @return       True on success else false
 	///
-	inline bool updateUserPassword(const QString& user, const QString& newPw)
+	inline bool updateUserPassword(const QString &user, const QString &newPw)
 	{
 		QVariantMap map;
 		map["password"] = calcPasswordHashOfUser(user, newPw);
@@ -160,7 +168,7 @@ public:
 	/// @brief Update 'last_use' column entry for the corresponding user
 	/// @param[in]  user   The user to search for
 	///
-	inline void updateUserUsed(const QString& user)
+	inline void updateUserUsed(const QString &user)
 	{
 		QVariantMap map;
 		map["last_use"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
@@ -175,17 +183,17 @@ public:
 	/// @param[in]  token       The token id
 	/// @return     true on success else false
 	///
-	inline bool tokenExist(const QString& token)
+	inline bool tokenExist(const QString &token)
 	{
 		QVariantMap map;
 		map["last_use"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
 
 		VectorPair cond;
 		cond.append(CPair("token", hashToken(token)));
-		if(recordExists(cond))
+		if (recordExists(cond))
 		{
 			// update it
-			createRecord(cond,map);
+			createRecord(cond, map);
 			return true;
 		}
 		return false;
@@ -198,7 +206,7 @@ public:
 	/// @param[in]  id      The id for the token
 	/// @return     true on success else false
 	///
-	inline bool createToken(const QString& token, const QString& comment, const QString& id)
+	inline bool createToken(const QString &token, const QString &comment, const QString &id)
 	{
 		QVariantMap map;
 		map["comment"] = comment;
@@ -211,11 +219,27 @@ public:
 	}
 
 	///
+	/// @brief      Rename token record by id
+	/// @param[in]  id    The token id
+	/// @param[in]  comment The new comment
+	/// @return     true on success else false
+	///
+	inline bool renameToken(const QString &id, const QString &comment)
+	{
+		QVariantMap map;
+		map["comment"] = comment;
+
+		VectorPair cond;
+		cond.append(CPair("id", id));
+		return updateRecord(cond, map);
+	}
+
+	///
 	/// @brief      Delete token record by id
 	/// @param[in]  id    The token id
 	/// @return     true on success else false
 	///
-	inline bool deleteToken(const QString& id)
+	inline bool deleteToken(const QString &id)
 	{
 		VectorPair cond;
 		cond.append(CPair("id", id));
@@ -229,7 +253,9 @@ public:
 	inline const QVector<QVariantMap> getTokenList()
 	{
 		QVector<QVariantMap> results;
-		getRecords(results, QStringList() << "comment" << "id" << "last_use");
+		getRecords(results, QStringList() << "comment"
+										  << "id"
+										  << "last_use");
 
 		return results;
 	}
@@ -239,7 +265,7 @@ public:
 	/// @param[in]  id      The id
 	/// @return     true on success else false
 	///
-	inline bool idExist(const QString& id)
+	inline bool idExist(const QString &id)
 	{
 
 		VectorPair cond;
@@ -252,12 +278,12 @@ public:
 	/// @param   user  The user name
 	/// @return         password as hash
 	///
-	inline const QByteArray getPasswordHashOfUser(const QString& user)
+	inline const QByteArray getPasswordHashOfUser(const QString &user)
 	{
 		QVariantMap results;
 		VectorPair cond;
 		cond.append(CPair("user", user));
-		getRecord(cond, results, QStringList()<<"password");
+		getRecord(cond, results, QStringList() << "password");
 
 		return results["password"].toByteArray();
 	}
@@ -268,16 +294,16 @@ public:
 	/// @param   pw    The password
 	/// @return        The calced password hash
 	///
-	inline const QByteArray calcPasswordHashOfUser(const QString& user, const QString& pw)
+	inline const QByteArray calcPasswordHashOfUser(const QString &user, const QString &pw)
 	{
 		// get salt
 		QVariantMap results;
 		VectorPair cond;
 		cond.append(CPair("user", user));
-		getRecord(cond, results, QStringList()<<"salt");
+		getRecord(cond, results, QStringList() << "salt");
 
 		// calc
-		return hashPasswordWithSalt(pw,results["salt"].toByteArray());
+		return hashPasswordWithSalt(pw, results["salt"].toByteArray());
 	}
 
 	///
@@ -286,7 +312,7 @@ public:
 	/// @param  salt  The salt
 	/// @return       The password hash with salt
 	///
-	inline const QByteArray hashPasswordWithSalt(const QString& pw, const QByteArray& salt)
+	inline const QByteArray hashPasswordWithSalt(const QString &pw, const QByteArray &salt)
 	{
 		return QCryptographicHash::hash(pw.toUtf8().append(salt), QCryptographicHash::Sha512).toHex();
 	}
@@ -296,7 +322,7 @@ public:
 	/// @param  token The plaintext token
 	/// @return The token hash
 	///
-	inline const QByteArray hashToken(const QString& token)
+	inline const QByteArray hashToken(const QString &token)
 	{
 		return QCryptographicHash::hash(token.toUtf8(), QCryptographicHash::Sha512).toHex();
 	}

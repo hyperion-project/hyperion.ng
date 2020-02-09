@@ -19,3 +19,4 @@ CMakeCache.txt
 *.pyc
 /docs/dist
 node_modules
+/assets/webconfig/next/*

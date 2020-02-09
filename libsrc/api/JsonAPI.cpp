@@ -237,7 +237,7 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const QString &comm
 	idata.data = QByteArray::fromBase64(QByteArray(message["imagedata"].toString().toUtf8()));
 	QString replyMsg;
 
-	if (!API::setImage(idata, COMP_IMAGE, replyMsg))
+	if (!API::setImage(idata, TYPE_IMAGE, replyMsg))
 	{
 		sendErrorReply(replyMsg, command, tan);
 		return;
@@ -339,7 +339,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		item["active"] = (priorityInfo.timeoutTime_ms >= -1);
 		item["visible"] = (priority == currentPriority);
 
-		if (priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
+		if (priorityInfo.componentId == hyperion::TYPE_COLOR && !priorityInfo.ledColors.empty())
 		{
 			QJsonObject LEDcolor;
 
@@ -589,7 +589,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	// ACTIVE STATIC LED COLOR
 	QJsonArray activeLedColors;
 	const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
-	if (priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
+	if (priorityInfo.componentId == hyperion::TYPE_COLOR && !priorityInfo.ledColors.empty())
 	{
 		QJsonObject LEDcolor;
 		// check if LED Color not Black (0,0,0)
@@ -651,7 +651,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		for (const auto &entry : subsArr)
 		{
 			// config callbacks just if auth is set
-			if (entry == "settings-update" && !API::isAdminAuthorized())
+			if ((entry == "settings-update" || entry == "token-update") && !API::isAdminAuthorized())
 				continue;
 			// silent failure if a subscribe type is not found
 			_jsonCB->subscribeFor(entry.toString());
@@ -948,6 +948,8 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 				_ledStreamTimer->start(streaming_interval);
 		},
 				Qt::UniqueConnection);
+		// push once
+		_hyperion->update();
 	}
 	else if (subcommand == "ledstream-stop")
 	{
@@ -1035,13 +1037,13 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	const QString &id = message["id"].toString().trimmed();
 	const QString &password = message["password"].toString().trimmed();
 	const QString &newPassword = message["newPassword"].toString().trimmed();
+	const QString &comment = message["comment"].toString().trimmed();
 
 	// catch test if auth is required
-	if (subc == "required")
+	if (subc == "tokenRequired")
 	{
 		QJsonObject req;
 		req["required"] = !API::isAuthorized();
-		;
 
 		sendSuccessDataReply(QJsonDocument(req), command + "-" + subc, tan);
 		return;
@@ -1096,10 +1098,11 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	// token created from ui
 	if (subc == "createToken")
 	{
-		const QString &c = message["comment"].toString().trimmed();
+		// use comment
 		// for user authorized sessions
 		AuthManager::AuthDefinition def;
-		if (API::createToken(c, def))
+		const QString res = API::createToken(comment, def);
+		if (res.isEmpty())
 		{
 			QJsonObject newTok;
 			newTok["comment"] = def.comment;
@@ -1109,7 +1112,21 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			sendSuccessDataReply(QJsonDocument(newTok), command + "-" + subc, tan);
 			return;
 		}
-		sendErrorReply("No Authorization", command + "-" + subc, tan);
+		sendErrorReply(res, command + "-" + subc, tan);
+		return;
+	}
+
+	// rename Token
+	if (subc == "renameToken")
+	{
+		// use id/comment
+		const QString res = API::renameToken(id, comment);
+		if (res.isEmpty())
+		{
+			sendSuccessReply(command + "-" + subc, tan);
+			return;
+		}
+		sendErrorReply(res, command + "-" + subc, tan);
 		return;
 	}
 
@@ -1117,20 +1134,20 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "deleteToken")
 	{
 		// use id
-		// for user authorized sessions
-		if (API::deleteToken(id))
+		const QString res = API::deleteToken(id);
+		if (res.isEmpty())
 		{
 			sendSuccessReply(command + "-" + subc, tan);
 			return;
 		}
-		sendErrorReply("No Authorization", command + "-" + subc, tan);
+		sendErrorReply(res, command + "-" + subc, tan);
 		return;
 	}
 
 	// catch token request
 	if (subc == "requestToken")
 	{
-		// use id
+		// use id/comment
 		const QString &comment = message["comment"].toString().trimmed();
 		const bool &acc = message["accept"].toBool(true);
 		if (acc)
@@ -1142,18 +1159,18 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// get pending token requests
-	if (subc == "getPendingRequests")
+	if (subc == "getPendingTokenRequests")
 	{
-		QMap<QString, AuthManager::AuthDefinition> map;
-		if (API::getPendingTokenRequests(map))
+		QVector<AuthManager::AuthDefinition> vec;
+		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : map)
+			for (const auto &entry : vec)
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;
 				obj["id"] = entry.id;
-				obj["timeout"] = int(entry.timeoutTime - QDateTime::currentMSecsSinceEpoch());
+				obj["timeout"] = int(entry.timeoutTime);
 				arr.append(obj);
 			}
 			sendSuccessDataReply(QJsonDocument(arr), command + "-" + subc, tan);
@@ -1220,9 +1237,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			{
 				if (API::isTokenAuthorized(token))
 				{
-					QJsonObject obj;
-					obj["token"] = token;
-					sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
+					sendSuccessReply(command + "-" + subc, tan);
 				}
 				else
 					sendErrorReply("No Authorization", command + "-" + subc, tan);
@@ -1240,7 +1255,6 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 				// Return the current valid Hyperion user token
 				QJsonObject obj;
 				obj["token"] = userTokenRep;
-				obj["password"] = password;
 				sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
 			}
 			else
@@ -1444,7 +1458,8 @@ void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 	obj["comment"] = comment;
 	obj["id"] = id;
 	obj["timeout"] = 180000;
-	sendSuccessDataReply(QJsonDocument(obj), "authorize-event", 1);
+
+	sendSuccessDataReply(QJsonDocument(obj), "authorize-tokenRequest", 1);
 }
 
 void JsonAPI::handleTokenResponse(const bool &success, const QString &token, const QString &comment, const QString &id)

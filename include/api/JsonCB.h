@@ -8,6 +8,8 @@
 #include <utils/Components.h>
 // bonjour
 #include <bonjour/bonjourrecord.h>
+// AuthManager
+#include <hyperion/AuthManager.h>
 // videModes
 #include <utils/VideoMode.h>
 // settings
@@ -22,7 +24,7 @@ class JsonCB : public QObject
 	Q_OBJECT
 
 public:
-	JsonCB(QObject* parent);
+	JsonCB(QObject *parent);
 
 	///
 	/// @brief Subscribe to future data updates given by cmd
@@ -30,7 +32,7 @@ public:
 	/// @param unsubscribe  Revert subscription
 	/// @return      True on success, false if not found
 	///
-	bool subscribeFor(const QString& cmd, const bool & unsubscribe = false);
+	bool subscribeFor(const QString &cmd, const bool &unsubscribe = false);
 
 	///
 	/// @brief Get all possible commands to subscribe for
@@ -52,7 +54,7 @@ public:
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
 	///
-	void setSubscriptionsTo(Hyperion* hyperion);
+	void setSubscriptionsTo(Hyperion *hyperion);
 
 signals:
 	///
@@ -71,7 +73,7 @@ private slots:
 	/// @brief handle emits from bonjour wrapper
 	/// @param  bRegisters   The full register map
 	///
-	void handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters);
+	void handleBonjourChange(const QMap<QString, BonjourRecord> &bRegisters);
 
 	///
 	/// @brief handle emits from PriorityMuxer
@@ -81,7 +83,7 @@ private slots:
 	///
 	/// @brief Handle imageToLedsMapping updates
 	///
-	void handleImageToLedsMappingChange(const int& mappingType);
+	void handleImageToLedsMappingChange(const int &mappingType);
 
 	///
 	/// @brief Handle the adjustment update
@@ -92,7 +94,7 @@ private slots:
 	/// @brief Handle video mode change
 	/// @param mode  The new videoMode
 	///
-	void handleVideoModeChange(const VideoMode& mode);
+	void handleVideoModeChange(const VideoMode &mode);
 
 	///
 	/// @brief Handle effect list change
@@ -104,31 +106,36 @@ private slots:
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
-	void handleSettingsChange(const settings::type& type, const QJsonDocument& data);
+	void handleSettingsChange(const settings::type &type, const QJsonDocument &data);
 
 	///
 	/// @brief Handle led config specific updates (required for led color streaming with positional display)
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
-	void handleLedsConfigChange(const settings::type& type, const QJsonDocument& data);
+	void handleLedsConfigChange(const settings::type &type, const QJsonDocument &data);
 
 	///
 	/// @brief Handle Hyperion instance manager change
 	///
 	void handleInstanceChange();
 
+	///
+	/// @brief Handle AuthManager token changes
+	///
+	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
+
 private:
 	/// pointer of Hyperion instance
-	Hyperion* _hyperion;
+	Hyperion *_hyperion;
 	/// Bonjour instance
-	BonjourBrowserWrapper* _bonjour;
+	BonjourBrowserWrapper *_bonjour;
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	PriorityMuxer *_prioMuxer;
 	/// contains all available commands
 	QStringList _availableCommands;
 	/// contains active subscriptions
 	QStringList _subscribedCommands;
 	/// construct callback msg
-	void doCallback(const QString& cmd, const QVariant& data);
+	void doCallback(const QString &cmd, const QVariant &data);
 };

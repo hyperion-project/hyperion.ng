@@ -82,5 +82,8 @@
         "**/*.vue",
         "**/*.styl"
     ],
-    "workbench.iconTheme": "vscode-icons"
+    "workbench.iconTheme": "vscode-icons",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }
