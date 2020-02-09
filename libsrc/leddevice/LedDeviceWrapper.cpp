@@ -60,7 +60,6 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 
 	connect(this, &LedDeviceWrapper::closeLedDevice, _ledDevice, &LedDevice::close, Qt::BlockingQueuedConnection);
 
-	connect(_hyperion->getMuxerInstance(), &PriorityMuxer::visiblePriorityChanged, _ledDevice, &LedDevice::visiblePriorityChanged, Qt::QueuedConnection);
 	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
 
 	// start the thread

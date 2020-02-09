@@ -121,14 +121,6 @@ signals:
 	///
 	void enableStateChanged(bool newState);
 
-	///
-	/// PIPER signal for Priority Muxer -> LedDevice
-	///
-	/// @brief Handle priority updates from Priority Muxer
-	/// @param  priority  The new visible priority
-	///
-	void visiblePriorityChanged(const quint8 &priority);
-
 protected:
 
 	///
