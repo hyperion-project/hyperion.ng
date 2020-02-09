@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-# webconfig version of package.json
-SET( WEBCONFIG_VERSION "0.4.6" )
+# webconfig version and hash (currently at brindosch/hyperion-remote)
+SET( WEBCONFIG_VERSION "0.4.7" )
+SET( WEBCONFIG_FILE_SHA256 "2154bb59efdabd11ebf1b0a8b531ab85f52661bf0e1f52e3b5657cae6956695d")
 
 PROJECT(hyperion)
 
