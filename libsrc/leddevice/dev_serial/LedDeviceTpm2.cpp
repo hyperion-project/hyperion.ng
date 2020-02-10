@@ -4,7 +4,8 @@
 LedDeviceTpm2::LedDeviceTpm2(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceTpm2::construct(const QJsonObject &deviceConfig)
@@ -14,7 +15,7 @@ LedDevice* LedDeviceTpm2::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTpm2::init(const QJsonObject &deviceConfig)
 {
-	ProviderRs232::init(deviceConfig);
+	bool isInitOK = ProviderRs232::init(deviceConfig);
 
 	_ledBuffer.resize(5 + _ledRGBCount);
 	_ledBuffer[0] = 0xC9; // block-start byte
@@ -23,7 +24,7 @@ bool LedDeviceTpm2::init(const QJsonObject &deviceConfig)
 	_ledBuffer[3] = _ledRGBCount & 0xFF; // frame size low byte
 	_ledBuffer.back() = 0x36; // block-end byte
 
-	return true;
+	return isInitOK;
 }
 
 int LedDeviceTpm2::write(const std::vector<ColorRgb> &ledValues)

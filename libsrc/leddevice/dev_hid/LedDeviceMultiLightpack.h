@@ -22,29 +22,30 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	LedDeviceMultiLightpack(const QJsonObject &);
+	explicit LedDeviceMultiLightpack(const QJsonObject &);
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~LedDeviceMultiLightpack();
+	virtual ~LedDeviceMultiLightpack() override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
+	virtual int switchOff() override;
+
+protected:
+	///
 	/// Opens and configures the output device7
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
-
+	int open() override;
 	///
 	/// Switch the leds off
 	///
 	/// @return Zero on success else negative
-	///
-	virtual int switchOff();
 
 private:
 	///
@@ -54,7 +55,7 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
+	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 
 	static QStringList getLightpackSerials();
 	static QString getString(libusb_device * device, int stringDescriptorIndex);

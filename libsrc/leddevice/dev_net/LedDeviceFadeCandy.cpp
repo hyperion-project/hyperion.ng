@@ -9,13 +9,13 @@ LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
 	: LedDevice()
 	, _client(nullptr)
 {
-	_deviceReady = init(deviceConfig);
-	_client = new QTcpSocket(this);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
-	_client->close();
+	_client->deleteLater();
 }
 
 LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
@@ -25,44 +25,89 @@ LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 {
-	LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
-	if (_ledCount > MAX_NUM_LEDS)
+	if ( isInitOK )
 	{
-		Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
-		return false;
+		if (_ledCount > MAX_NUM_LEDS)
+		{
+			//Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
+			QString errortext = QString ("More LED configured than allowed (%1)").arg(MAX_NUM_LEDS);
+			this->setInError(errortext);
+			isInitOK = false;
+		}
+		else
+		{
+			_host        = deviceConfig["output"].toString("127.0.0.1");
+			_port        = deviceConfig["port"].toInt(7890);
+			_channel     = deviceConfig["channel"].toInt(0);
+			_gamma       = deviceConfig["gamma"].toDouble(1.0);
+			_noDither    = ! deviceConfig["dither"].toBool(false);
+			_noInterp    = ! deviceConfig["interpolation"].toBool(false);
+			_manualLED   = deviceConfig["manualLed"].toBool(false);
+			_ledOnOff    = deviceConfig["ledOn"].toBool(false);
+			_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
+
+			_whitePoint_r = 1.0;
+			_whitePoint_g = 1.0;
+			_whitePoint_b = 1.0;
+
+			const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
+			if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
+			{
+				_whitePoint_r = whitePointConfig[0].toDouble() / 255.0;
+				_whitePoint_g = whitePointConfig[1].toDouble() / 255.0;
+				_whitePoint_b = whitePointConfig[2].toDouble() / 255.0;
+			}
+
+			_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
+			_opc_data[0] = _channel;
+			_opc_data[1] = OPC_SET_PIXELS;
+			_opc_data[2] = _ledRGBCount >> 8;
+			_opc_data[3] = _ledRGBCount & 0xff;
+		}
 	}
-
-	_host        = deviceConfig["output"].toString("127.0.0.1");
-	_port        = deviceConfig["port"].toInt(7890);
-	_channel     = deviceConfig["channel"].toInt(0);
-	_gamma       = deviceConfig["gamma"].toDouble(1.0);
-	_noDither    = ! deviceConfig["dither"].toBool(false);
-	_noInterp    = ! deviceConfig["interpolation"].toBool(false);
-	_manualLED   = deviceConfig["manualLed"].toBool(false);
-	_ledOnOff    = deviceConfig["ledOn"].toBool(false);
-	_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
-
-	_whitePoint_r = 1.0;
-	_whitePoint_g = 1.0;
-	_whitePoint_b = 1.0;
-
-	const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
-	if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
-	{
-		_whitePoint_r = whitePointConfig[0].toDouble() / 255.0;
-		_whitePoint_g = whitePointConfig[1].toDouble() / 255.0;
-		_whitePoint_b = whitePointConfig[2].toDouble() / 255.0;
-	}
-
-	_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
-	_opc_data[0] = _channel;
-	_opc_data[1] = OPC_SET_PIXELS;
-	_opc_data[2] = _ledRGBCount >> 8;
-	_opc_data[3] = _ledRGBCount & 0xff;
-
-	return true;
+	return isInitOK;
 }
+
+bool LedDeviceFadeCandy::initNetwork()
+{
+	bool isInitOK = true;
+
+	// TODO: Add Network-Error handling
+	_client = new QTcpSocket(this);
+	return isInitOK;
+}
+
+int LedDeviceFadeCandy::open()
+{
+	int retval = -1;
+	_deviceReady = false;
+
+	if ( init(_devConfig) )
+	{
+		if ( !initNetwork() )
+		{
+			this->setInError( "Network error!" );
+		}
+		else
+		{
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+	}
+	return retval;
+}
+
+void LedDeviceFadeCandy::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	_client->close();
+}
+
 
 bool LedDeviceFadeCandy::isConnected()
 {

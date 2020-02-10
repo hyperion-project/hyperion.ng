@@ -13,19 +13,16 @@
 #include <utils/global_defines.h>
 
 // standard log messages
-//#define _FUNCNAME_ __PRETTY_FUNCTION__
-#define _FUNCNAME_ __FUNCTION__
-
-#define Debug(logger, ...)   { (logger)->Message(Logger::DEBUG  , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__); }
-#define Info(logger, ...)    { (logger)->Message(Logger::INFO   , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__); }
-#define Warning(logger, ...) { (logger)->Message(Logger::WARNING, __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__); }
-#define Error(logger, ...)   { (logger)->Message(Logger::ERROR  , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__); }
+#define Debug(logger, ...)   (logger)->Message(Logger::DEBUG  , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define Info(logger, ...)    (logger)->Message(Logger::INFO   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define Warning(logger, ...) (logger)->Message(Logger::WARNING, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define Error(logger, ...)   (logger)->Message(Logger::ERROR  , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // conditional log messages
-#define DebugIf(condition, logger, ...)   { if (condition) {(logger)->Message(Logger::DEBUG   , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__);} }
-#define InfoIf(condition, logger, ...)    { if (condition) {(logger)->Message(Logger::INFO    , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__);} }
-#define WarningIf(condition, logger, ...) { if (condition) {(logger)->Message(Logger::WARNING , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__);} }
-#define ErrorIf(condition, logger, ...)   { if (condition) {(logger)->Message(Logger::ERROR   , __FILE__, _FUNCNAME_, __LINE__, __VA_ARGS__);} }
+#define DebugIf(condition, logger, ...)   if (condition) (logger)->Message(Logger::DEBUG   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define InfoIf(condition, logger, ...)    if (condition) (logger)->Message(Logger::INFO    , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define WarningIf(condition, logger, ...) if (condition) (logger)->Message(Logger::WARNING , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define ErrorIf(condition, logger, ...)   if (condition) (logger)->Message(Logger::ERROR   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // ================================================================
 
@@ -55,8 +52,8 @@ public:
 	static LogLevel getLogLevel(QString name="");
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
-	void     setMinLevel(LogLevel level) { _minLevel = level; };
-	LogLevel getMinLevel() { return _minLevel; };
+	void     setMinLevel(LogLevel level) { _minLevel = level; }
+	LogLevel getMinLevel() { return _minLevel; }
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
@@ -83,7 +80,7 @@ class LoggerManager : public QObject
 
 public:
 	static LoggerManager* getInstance();
-	QVector<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() { return &_logMessageBuffer; };
+	QVector<Logger::T_LOG_MESSAGE>* getLogMessageBuffer() { return &_logMessageBuffer; }
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);

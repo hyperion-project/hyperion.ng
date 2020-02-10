@@ -18,14 +18,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceRawHID(const QJsonObject &deviceConfig);
+	explicit LedDeviceRawHID(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-private slots:
-	/// Write the last data to the leds again
-	void rewriteLeds();
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -34,5 +37,5 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 };

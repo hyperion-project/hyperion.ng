@@ -7,34 +7,38 @@
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	_port = 5568;
-	ProviderUdp::init(deviceConfig);
-	_e131_universe = deviceConfig["universe"].toInt(1);
-	_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
-	QString _json_cid = deviceConfig["cid"].toString("");
-
-	if (_json_cid.isEmpty()) 
+	_port = E131_DEFAULT_PORT;
+	bool isInitOK = ProviderUdp::init(deviceConfig);
+	if ( isInitOK )
 	{
-		_e131_cid = QUuid::createUuid();
-		Debug( _log, "e131 no cid found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
-	} else {
-		_e131_cid = QUuid(_json_cid);
-		Debug( _log, "e131  cid found, using %s", QSTRING_CSTR(_e131_cid.toString()));
-	}
+		_e131_universe = deviceConfig["universe"].toInt(1);
+		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
+		QString _json_cid = deviceConfig["cid"].toString("");
 
-	return true;
+		if (_json_cid.isEmpty())
+		{
+			_e131_cid = QUuid::createUuid();
+			Debug( _log, "e131 no cid found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+		}
+		else
+		{
+			_e131_cid = QUuid(_json_cid);
+			Debug( _log, "e131  cid found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+		}
+	}
+	return isInitOK;
 }
 
 LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceUdpE131(deviceConfig);
 }
-
 
 // populates the headers
 void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this_dmxChannelCount)

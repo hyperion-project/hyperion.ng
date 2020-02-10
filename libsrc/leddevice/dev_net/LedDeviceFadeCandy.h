@@ -39,7 +39,7 @@ public:
 	///
 	/// @param deviceConfig json config for fadecandy
 	///
-	LedDeviceFadeCandy(const QJsonObject &deviceConfig);
+	explicit LedDeviceFadeCandy(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice; closes the tcp client
@@ -54,7 +54,30 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
+
+public slots:
+
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
+protected:
+
+	///
+	/// Initialise device's network details
+	///
+	/// @return True if success
+	bool initNetwork();
+
+	///
+	/// Opens and initiatialises the output device
+	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	///
+	virtual int open() override;
 
 private:
 	///
@@ -63,25 +86,7 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
-
-protected:
-	QTcpSocket* _client;
-	QString     _host;
-	uint16_t    _port;
-	unsigned    _channel;
-	QByteArray  _opc_data;
-
-	// fadecandy sysEx
-	bool        _setFcConfig;
-	double      _gamma;
-	double      _whitePoint_r;
-	double      _whitePoint_g;
-	double      _whitePoint_b;
-	bool        _noDither;
-	bool        _noInterp;
-	bool        _manualLED;
-	bool        _ledOnOff;
+	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 
 	/// try to establish connection to opc server, if not connected yet
 	///
@@ -111,5 +116,22 @@ protected:
 
 	/// sends the configuration to fcserver
 	void sendFadeCandyConfiguration();
+
+	QTcpSocket* _client;
+	QString     _host;
+	uint16_t    _port;
+	unsigned    _channel;
+	QByteArray  _opc_data;
+
+	// fadecandy sysEx
+	bool        _setFcConfig;
+	double      _gamma;
+	double      _whitePoint_r;
+	double      _whitePoint_g;
+	double      _whitePoint_b;
+	bool        _noDither;
+	bool        _noInterp;
+	bool        _manualLED;
+	bool        _ledOnOff;
 
 };

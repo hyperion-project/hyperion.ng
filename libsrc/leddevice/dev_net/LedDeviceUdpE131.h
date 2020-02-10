@@ -18,7 +18,7 @@
  *
  **/
 
-#define E131_DEFAULT_PORT 5568
+const ushort E131_DEFAULT_PORT = 5568;
 
 /* E1.31 Packet Offsets */
 #define E131_ROOT_PREAMBLE_SIZE 0
@@ -105,18 +105,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceUdpE131(const QJsonObject &deviceConfig);
+	explicit LedDeviceUdpE131(const QJsonObject &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
-
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
-
+	bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -125,7 +124,7 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 
 	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
 

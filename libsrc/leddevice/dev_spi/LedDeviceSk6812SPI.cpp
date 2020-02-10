@@ -1,17 +1,18 @@
 #include "LedDeviceSk6812SPI.h"
 
-LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
+	LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
-	, _whiteAlgorithm(RGBW::INVALID)
-	, SPI_BYTES_PER_COLOUR(4)
-	, bitpair_to_byte {
-		0b10001000,
-		0b10001100,
-		0b11001000,
-		0b11001100,
-	}
+	  , _whiteAlgorithm(RGBW::INVALID)
+	  , SPI_BYTES_PER_COLOUR(4)
+	  , bitpair_to_byte {
+		  0b10001000,
+		  0b10001100,
+		  0b11001000,
+		  0b11001100,
+		  }
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
@@ -21,27 +22,31 @@ LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
-	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
-	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-
-	if (_whiteAlgorithm == RGBW::INVALID)
-	{
-		Error(_log, "unknown whiteAlgorithm %s", QSTRING_CSTR(whiteAlgorithm));
-		return false;
-	}
-	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
-
 	_baudRate_Hz = 3000000;
-	if ( !ProviderSpi::init(deviceConfig) )
-	{
-		return false;
-	}
-	WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
 
-	const int SPI_FRAME_END_LATCH_BYTES = 3;
-	_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-	
-	return true;
+	bool isInitOK = ProviderSpi::init(deviceConfig);
+	if ( isInitOK )
+	{
+		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+		if (_whiteAlgorithm == RGBW::INVALID)
+		{
+			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+			this->setInError(errortext);
+			isInitOK = false;
+		}
+		else
+		{
+			Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+
+			WarningIf(( _baudRate_Hz < 2050000 || _baudRate_Hz > 4000000 ), _log, "SPI rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+
+			const int SPI_FRAME_END_LATCH_BYTES = 3;
+			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+		}
+	}
+	return isInitOK;
 }
 
 int LedDeviceSk6812SPI::write(const std::vector<ColorRgb> &ledValues)

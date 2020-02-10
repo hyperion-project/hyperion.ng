@@ -16,11 +16,108 @@ LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
 {
-	init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 {
+}
+
+LedDevice* LedDeviceHyperionUsbasp::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceHyperionUsbasp(deviceConfig);
+}
+
+bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
+{
+	bool isInitOK = LedDevice::init(deviceConfig);
+
+	QString ledType = deviceConfig["ledType"].toString("ws2801");
+	if (ledType != "ws2801" && ledType != "ws2812")
+	{
+		QString errortext = QString ("Invalid ledType; must be 'ws2801' or 'ws2812'.");
+		this->setInError(errortext);
+		isInitOK = false;
+	}
+	else
+	{
+		_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
+	}
+
+	return isInitOK;
+}
+
+int LedDeviceHyperionUsbasp::open()
+{
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
+
+	// General initialisation and configuration of LedDevice
+	if ( init(_devConfig) )
+	{
+		int error;
+
+		// initialize the usb context
+		if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
+		{
+			//Error(_log, "Error while initializing USB context(%d):%s", error, libusb_error_name(error));
+			errortext = QString ("Error while initializing USB context(%1):%2").arg( error).arg(libusb_error_name(error));
+			_libusbContext = nullptr;
+		}
+		else
+		{
+			//libusb_set_debug(_libusbContext, 3);
+			Debug(_log, "USB context initialized");
+
+			// retrieve the list of usb devices
+			libusb_device ** deviceList;
+			ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
+
+			// iterate the list of devices
+			for (ssize_t i = 0 ; i < deviceCount; ++i)
+			{
+				// try to open and initialize the device
+				error = testAndOpen(deviceList[i]);
+
+				if (error == 0)
+				{
+					// a device was sucessfully opened. break from list
+					break;
+				}
+			}
+
+			// free the device list
+			libusb_free_device_list(deviceList, 1);
+
+			if (_deviceHandle == nullptr)
+			{
+				//Error(_log, "No %s has been found", QSTRING_CSTR(_usbProductDescription));
+				errortext = QString ("No %1 has been found").arg( _usbProductDescription);
+			}
+			else
+			{
+					// Everything is OK -> enable device
+					_deviceReady = true;
+					setEnable(true);
+					retval = 0;
+			}
+		}
+		// On error/exceptions, set LedDevice in error
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+		}
+	}
+	return retval;
+}
+
+void LedDeviceHyperionUsbasp::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
 	if (_deviceHandle != nullptr)
 	{
 		libusb_release_interface(_deviceHandle, 0);
@@ -35,69 +132,6 @@ LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()
 		libusb_exit(_libusbContext);
 		_libusbContext = nullptr;
 	}
-}
-
-bool LedDeviceHyperionUsbasp::init(const QJsonObject &deviceConfig)
-{
-	LedDevice::init(deviceConfig);
-
-	QString ledType = deviceConfig["ledType"].toString("ws2801");
-	if (ledType != "ws2801" && ledType != "ws2812")
-	{
-		throw std::runtime_error("HyperionUsbasp: invalid ledType; must be 'ws2801' or 'ws2812'.");
-	}
-
-	_writeLedsCommand = (ledType == "ws2801") ? CMD_WRITE_WS2801 : CMD_WRITE_WS2812;
-
-	return true;
-}
-
-LedDevice* LedDeviceHyperionUsbasp::construct(const QJsonObject &deviceConfig)
-{
-	return new LedDeviceHyperionUsbasp(deviceConfig);
-}
-
-
-int LedDeviceHyperionUsbasp::open()
-{
-	int error;
-
-	// initialize the usb context
-	if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
-	{
-		Error(_log, "Error while initializing USB context(%d):%s", error, libusb_error_name(error));
-		_libusbContext = nullptr;
-		return -1;
-	}
-	//libusb_set_debug(_libusbContext, 3);
-	Debug(_log, "USB context initialized");
-
-	// retrieve the list of usb devices
-	libusb_device ** deviceList;
-	ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
-
-	// iterate the list of devices
-	for (ssize_t i = 0 ; i < deviceCount; ++i)
-	{
-		// try to open and initialize the device
-		error = testAndOpen(deviceList[i]);
-
-		if (error == 0)
-		{
-			// a device was sucessfully opened. break from list
-			break;
-		}
-	}
-
-	// free the device list
-	libusb_free_device_list(deviceList, 1);
-
-	if (_deviceHandle == nullptr)
-	{
-		Error(_log, "No %s has been found", QSTRING_CSTR(_usbProductDescription));
-	}
-
-	return _deviceHandle == nullptr ? -1 : 0;
 }
 
 int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
@@ -121,6 +155,7 @@ int LedDeviceHyperionUsbasp::testAndOpen(libusb_device * device)
 
 		Info(_log, "%s found: bus=%d address=%d", QSTRING_CSTR(_usbProductDescription), busNumber, addressNumber);
 
+		// TODO: Check, if exceptions via try/catch need to be replaced in Qt environment
 		try
 		{
 			_deviceHandle = openDevice(device);

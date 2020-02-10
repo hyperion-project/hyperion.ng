@@ -2,12 +2,12 @@
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
-#include <ws2811.h>
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2812 led device via pwm.
+/// Implementation of a LedDevice ...
+/// ...
 ///
-class LedDeviceWS281x : public LedDevice
+class LedDeviceTemplate : public LedDevice
 {
 public:
 	///
@@ -15,12 +15,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceWS281x(const QJsonObject &deviceConfig);
+	explicit LedDeviceTemplate(const QJsonObject &deviceConfig);
 
 	///
-	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
+	/// Destructor of this LedDevice
 	///
-	~LedDeviceWS281x() override;
+	virtual ~LedDeviceTemplate() override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -30,7 +30,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 public slots:
 	///
@@ -38,18 +38,23 @@ public slots:
 	/// Includes switching-off the device and stopping refreshes
 	///
 	virtual void close() override;
-
-private:
+	
+protected:
 	///
+	/// Opens and initiatialises the output device
+	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	///
+	virtual int open() override;
+
 	/// Writes the led color values to the led-device
 	///
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
-	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	//////
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
-	ws2811_t    _led_string;
-	int         _channel;
-	RGBW::WhiteAlgorithm _whiteAlgorithm;
-	ColorRgbw   _temp_rgbw;
+private:
+
+
 };

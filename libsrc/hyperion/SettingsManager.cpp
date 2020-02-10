@@ -98,7 +98,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	else
 		_qconfig = dbConfig;
 
-	Debug(_log,"Settings database initialized")
+	Debug(_log,"Settings database initialized");
 }
 
 const QJsonDocument SettingsManager::getSetting(const settings::type& type)

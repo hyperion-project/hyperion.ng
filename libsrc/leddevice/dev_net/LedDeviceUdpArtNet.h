@@ -13,7 +13,7 @@
  *
  **/
 
-#define ArtNet_DEFAULT_PORT	5568
+const ushort ARTNET_DEFAULT_PORT = 6454;
 
 #define DMX_MAX			512        // 512 usable slots
 
@@ -47,18 +47,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceUdpArtNet(const QJsonObject &deviceConfig);
+	explicit LedDeviceUdpArtNet(const QJsonObject &deviceConfig);
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
-
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
-
+	bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -67,13 +66,13 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 
 	void prepare(const unsigned this_universe, const unsigned this_sequence, const unsigned this_dmxChannelCount);
 
 
 	artnet_packet_t artnet_packet;
 	uint8_t _artnet_seq = 1;
-	uint8_t _artnet_channelsPerFixture = 3;
-	unsigned _artnet_universe = 1;
+	int _artnet_channelsPerFixture = 3;
+	int _artnet_universe = 1;
 };

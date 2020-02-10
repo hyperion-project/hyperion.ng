@@ -837,7 +837,7 @@ void V4L2Grabber::stop_capturing()
 		case IO_METHOD_USERPTR:
 		{
 			type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  %d, %s", errno, strerror(errno))
+			ErrorIf((xioctl(VIDIOC_STREAMOFF, &type) == -1), _log, "VIDIOC_STREAMOFF  error code  %d, %s", errno, strerror(errno));
 		}
 		break;
 	}
