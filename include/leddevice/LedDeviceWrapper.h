@@ -57,12 +57,17 @@ public:
 	///
 	/// @brief Return the last enable state
 	///
-	const bool & enabled() { return _enabled; };
+	const bool & enabled() { return _enabled; }
 
 	///
 	/// @brief Get the current colorOrder from device
 	///
 	const QString & getColorOrder();
+
+	///
+	/// @brief Get the number of Leds from device
+	///
+	unsigned int getLedCount() const;
 
 public slots:
 	///

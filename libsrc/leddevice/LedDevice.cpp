@@ -103,7 +103,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 {
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
 	_activeDeviceType = deviceConfig["type"].toString("file").toLower();
-	setLedCount(deviceConfig["currentLedCount"].toInt(1)); // property injected to reflect real led count
+	setLedCount(static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) )); // property injected to reflect real led count
 
 	_latchTime_ms =deviceConfig["latchTime"].toInt( _latchTime_ms );
 	_refresh_timer_interval =  deviceConfig["rewriteTime"].toInt( _refresh_timer_interval);
@@ -156,7 +156,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
 		if (_latchTime_ms == 0 || elapsedTime >= _latchTime_ms)
 		{
-			std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTime << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
+			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTime << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			retval = write(ledValues);
 			_last_write_time = QDateTime::currentMSecsSinceEpoch();
 
@@ -169,7 +169,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			std::cout << "LedDevice::updateLeds(), Skip write. _latchTime_ms (" << _latchTime_ms << ") ms > elapsedTime (" << elapsedTime << ") ms" << std::endl;
+			//std::cout << "LedDevice::updateLeds(), Skip write. _latchTime_ms (" << _latchTime_ms << ") ms > elapsedTime (" << elapsedTime << ") ms" << std::endl;
 			if ( _refresh_enabled )
 			{
 				//Stop timer to allow for next non-refresh update
@@ -206,11 +206,11 @@ int LedDevice::switchOn()
 	return 0;
 }
 
-void LedDevice::setLedCount(int ledCount)
+void LedDevice::setLedCount(unsigned int ledCount)
 {
 	_ledCount     = ledCount;
-	_ledRGBCount  = _ledCount * static_cast<int>(sizeof(ColorRgb));
-	_ledRGBWCount = _ledCount * static_cast<int>(sizeof(ColorRgbw));
+	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
+	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
 }
 
 int LedDevice::rewriteLeds()

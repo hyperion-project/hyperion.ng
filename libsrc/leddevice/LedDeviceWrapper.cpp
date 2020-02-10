@@ -128,6 +128,11 @@ const QString & LedDeviceWrapper::getColorOrder()
 	return _ledDevice->getColorOrder();
 }
 
+unsigned int LedDeviceWrapper::getLedCount() const
+{
+	return _ledDevice->getLedCount();
+}
+
 void LedDeviceWrapper::handleComponentState(const hyperion::Components component, const bool state)
 {
 	if(component == hyperion::COMP_LEDDEVICE)

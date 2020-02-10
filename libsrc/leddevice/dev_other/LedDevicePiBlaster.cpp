@@ -143,11 +143,10 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 		return -1;
 	}
 
-	int valueIdx = -1;
 	for (unsigned int i=0; i < TABLE_SZ; i++ )
 	{
-		valueIdx = _gpio_to_led[ i ];
-		if ( (valueIdx >= 0) && (valueIdx < _ledCount) ) 
+		int valueIdx = _gpio_to_led[ i ];
+		if ( (valueIdx >= 0) && (valueIdx < static_cast<int>( _ledCount)) )
 		{
 			double pwmDutyCycle = 0.0;
 			switch (_gpio_to_color[ i ]) 

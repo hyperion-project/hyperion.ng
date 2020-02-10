@@ -70,9 +70,6 @@ public:
 	/// Get the serial of the Lightpack
 	const QString & getSerialNumber() const;
 
-	/// Get the number of leds
-	int getLedCount() const;
-
 public slots:
 	///
 	/// Closes the output device.

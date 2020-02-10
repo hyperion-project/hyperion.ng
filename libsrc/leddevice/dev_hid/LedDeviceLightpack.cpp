@@ -294,7 +294,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = qMin(_hwLedCount, _ledCount);
+	int count = qMin(_hwLedCount, static_cast<int>( _ledCount));
 
 	for (int i = 0; i < count ; ++i)
 	{
@@ -329,11 +329,6 @@ int LedDeviceLightpack::switchOff()
 const QString &LedDeviceLightpack::getSerialNumber() const
 {
 	return _serialNumber;
-}
-
-int LedDeviceLightpack::getLedCount() const
-{
-	return _ledCount;
 }
 
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)

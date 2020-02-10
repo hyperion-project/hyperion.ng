@@ -67,7 +67,7 @@ The Sequence field is set to 0x00 to disable this feature.
 	int dmxIdx = 0;			// offset into the current dmx packet
 
 	memset(artnet_packet.raw, 0, sizeof(artnet_packet.raw));
-	for (int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
+	for (unsigned int ledIdx = 0; ledIdx < _ledRGBCount; ledIdx++)
 	{
 
 		artnet_packet.Data[dmxIdx++] = rawdata[ledIdx];

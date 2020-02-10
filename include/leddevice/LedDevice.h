@@ -55,8 +55,8 @@ public:
 	///
 	const QString & getActiveDeviceType() const { return _activeDeviceType; }
 
-	void setLedCount(int ledCount);
-	int  getLedCount() const { return _ledCount; }
+	void setLedCount(unsigned int ledCount);
+	unsigned int getLedCount() const { return _ledCount; }
 
 	bool enabled() const { return _enabled; }
 	int getLatchTime() const { return _latchTime_ms; }
@@ -168,9 +168,9 @@ protected:
 
 	QString _activeDeviceType;
 
-	int _ledCount;
-	int _ledRGBCount;
-	int _ledRGBWCount;
+	unsigned int _ledCount;
+	unsigned int _ledRGBCount;
+	unsigned int _ledRGBWCount;
 
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds

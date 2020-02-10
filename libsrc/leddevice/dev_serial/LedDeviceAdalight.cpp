@@ -33,7 +33,7 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 		_ledBuffer.resize(_headerSize + (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize, 0x00);
 		
 		// init constant data values
-		for (signed iLed=1; iLed<=_ledCount; iLed++)
+		for (signed iLed=1; iLed<= static_cast<int>( _ledCount); iLed++)
 		{
 			_ledBuffer[iLed*4+_headerSize] = 0xFF;
 		}
@@ -62,7 +62,7 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 {
 	if(_ligthBerryAPA102Mode)
 	{
-		for (signed iLed=1; iLed<=_ledCount; iLed++)
+		for (signed iLed=1; iLed<=static_cast<int>( _ledCount); iLed++)
 		{
 			const ColorRgb& rgb = ledValues[iLed-1];
 			_ledBuffer[iLed*4+7] = rgb.red;
