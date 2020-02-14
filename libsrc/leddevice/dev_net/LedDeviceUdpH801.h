@@ -6,6 +6,11 @@
 ///
 /// Implementation of the LedDevice interface for sending led colors via udp.
 ///
+///
+
+const ushort H801_DEFAULT_PORT = 30977;
+static const char H801_DEFAULT_HOST[] = "255.255.255.255";
+
 class LedDeviceUdpH801: public ProviderUdp
 {
 protected:
@@ -22,17 +27,16 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceUdpH801(const QJsonObject &deviceConfig);
+	explicit LedDeviceUdpH801(const QJsonObject &deviceConfig);
 
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
-
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -41,5 +45,5 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 };

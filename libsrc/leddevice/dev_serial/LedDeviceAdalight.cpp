@@ -5,7 +5,9 @@ LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
 	, _headerSize(6)
 	, _ligthBerryAPA102Mode(false)
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
+
 	connect(this,SIGNAL(receivedData(QByteArray)),this,SLOT(receivedData(QByteArray)));
 }
 
@@ -16,7 +18,8 @@ LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 {
-	ProviderRs232::init(deviceConfig);
+	bool isInitOK = ProviderRs232::init(deviceConfig);
+
 	_ligthBerryAPA102Mode = deviceConfig["lightberry_apa102_mode"].toBool(false);
 
 	// create ledBuffer
@@ -30,7 +33,7 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 		_ledBuffer.resize(_headerSize + (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize, 0x00);
 		
 		// init constant data values
-		for (signed iLed=1; iLed<=_ledCount; iLed++)
+		for (signed iLed=1; iLed<= static_cast<int>( _ledCount); iLed++)
 		{
 			_ledBuffer[iLed*4+_headerSize] = 0xFF;
 		}
@@ -52,14 +55,14 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 	Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,
 			_ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5] );
 
-	return true;
+	return isInitOK;
 }
 
 int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 {
 	if(_ligthBerryAPA102Mode)
 	{
-		for (signed iLed=1; iLed<=_ledCount; iLed++)
+		for (signed iLed=1; iLed<=static_cast<int>( _ledCount); iLed++)
 		{
 			const ColorRgb& rgb = ledValues[iLed-1];
 			_ledBuffer[iLed*4+7] = rgb.red;

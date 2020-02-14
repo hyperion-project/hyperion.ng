@@ -6,6 +6,7 @@ FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned gr
 	_timer(this),
 	_grabber(device,grabWidth, grabHeight)
 {
+	_timer.setTimerType(Qt::PreciseTimer);
 	_timer.setSingleShot(false);
 	_timer.setInterval(updateRate_Hz);
 

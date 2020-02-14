@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QString>
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 ///
@@ -26,28 +26,33 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
 	///
-	virtual ~ProviderRs232();
+	virtual ~ProviderRs232() override;
 
 	///
 	/// Opens and configures the output device
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	int open() override;
+
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
 
 private slots:
-	/// Write the last data to the leds again
-	int rewriteLeds();
 
 	/// Unblock the device after a connection delay
 	void writeTimeout();
 	void unblockAfterDelay();
-	void error(QSerialPort::SerialPortError error);
+	void error(QSerialPort::SerialPortError setInError);
 	void bytesWritten(qint64 bytes);
 	void readyRead();
 

@@ -242,11 +242,6 @@ const std::string &LedDeviceLightpackHidapi::getSerialNumber() const
 	return _serialNumber;
 }
 
-int LedDeviceLightpackHidapi::getLedCount() const
-{
-	return _ledCount;
-}
-
 int LedDeviceLightpackHidapi::writeBytes(uint8_t *data, int size)
 {
 //	std::cout << "Writing " << size << " bytes: ";

@@ -37,46 +37,106 @@ public:
 	LedDevice(const QJsonObject& config = QJsonObject(), QObject* parent = nullptr);
 	virtual ~LedDevice();
 
-	/// Switch the leds off (led hardware disable)
-	virtual int switchOff();
-
-	/// Switch the leds on (led hardware enable), used if reinitialization is required for the device implementation
-	virtual int switchOn();
-
-	virtual int setLedValues(const std::vector<ColorRgb>& ledValues);
-
 	///
 	/// @brief Get color order of device
 	/// @return The color order
 	///
-	const QString & getColorOrder() { return _colorOrder; };
+	const QString & getColorOrder() const { return _colorOrder; }
 
 	///
 	/// @brief Set the current active ledDevice type
 	///
 	/// @param deviceType Device's type
 	///
-	void setActiveDeviceType(QString deviceType);
+    void setActiveDeviceType(const QString& deviceType);
 
 	///
 	/// @brief Get the current active ledDevice type
 	///
-	const QString & getActiveDeviceType() { return _activeDeviceType; };
+	const QString & getActiveDeviceType() const { return _activeDeviceType; }
 
-	void setLedCount(int ledCount);
-	int  getLedCount() { return _ledCount; }
+	void setLedCount(unsigned int ledCount);
+	unsigned int getLedCount() const { return _ledCount; }
 
-	void setEnable(bool enable);
-	bool enabled() { return _enabled; };
-	int getLatchTime() { return _latchTime_ms; };
+	bool enabled() const { return _enabled; }
+	int getLatchTime() const { return _latchTime_ms; }
 
-	inline bool componentState() { return enabled(); };
+	///
+	/// Check, if device is ready to be used
+	/// i.e. initialisation and configuration were successfull
+	///
+	/// @return True if device is ready
+	///
+	bool isReady() const { return _deviceReady; }
+
+	///
+	/// Check, if device is in error state
+	///
+	/// @return True if device is in error
+	///
+	bool isInError() const { return _deviceInError; }
+
+	inline bool componentState() const { return enabled(); }
+
+	/// Prints the RGB-Color values to stdout.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	///
+	static void printLedValues (const std::vector<ColorRgb>& ledValues );
+
 
 public slots:
 	///
 	/// Is called on thread start, all construction tasks and init should run here
 	///
 	virtual void start() { _deviceReady = (open() == 0 ? true : false);}
+
+	///
+	/// Update the RGB-Color values to the leds.
+	/// Handles refreshing of leds.
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	/// @return Zero on success else negative (i.e. device is not ready)
+	///
+	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
+
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close();
+
+	///
+	/// Enables/disables the device for output.
+	/// If the device is not ready, it will not be enabled
+	///
+	/// @param enable The new state of the device
+	///
+	void setEnable(bool enable);	///
+
+signals:
+	///
+	/// Emits whenever the led device switches between on/off
+	/// @param newState The new state of the device
+	///
+	void enableStateChanged(bool newState);
+
+protected:
+
+	///
+	/// Initialise a device's configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return True if success
+	///
+	virtual bool init(const QJsonObject &deviceConfig);
+
+	///
+	/// Opens and initiatialises the output device
+	///
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	///
+	virtual int open();
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -87,38 +147,12 @@ public slots:
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 
-signals:
-	///
-	/// Emits whenever the led device switches between on/off
-	/// @param newState The new state of the device
-	///
-	void enableStateChanged(bool newState);
-
-	///
-	/// PIPER signal for Priority Muxer -> LedDevice
-	///
-	/// @brief Handle priority updates from Priority Muxer
-	/// @param  priority  The new visible priority
-	///
-	void visiblePriorityChanged(const quint8 &priority);
-
-protected:
-	virtual bool init(const QJsonObject &deviceConfig);
-
-	///
-	/// Opens and configures the output device
-	///
-	/// @return Zero on succes else negative
-	///
-	virtual int open();
-
 	///
 	/// Writes "BLACK" to the output stream
 	///
 	/// @return Zero on success else negative
 	///
 	virtual int writeBlack();
-
 
 	// Helper to pipe device config from constructor to start()
 	QJsonObject _devConfig;
@@ -130,26 +164,66 @@ protected:
 	std::vector<uint8_t> _ledBuffer;
 
 	bool _deviceReady;
+	bool _deviceInError;
 
 	QString _activeDeviceType;
 
-	int _ledCount;
-	int _ledRGBCount;
-	int _ledRGBWCount;
+	unsigned int _ledCount;
+	unsigned int _ledRGBCount;
+	unsigned int _ledRGBWCount;
 
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
-	QTimer       _refresh_timer;
-	unsigned int _refresh_timer_interval;
-	qint64       _last_write_time;
-	unsigned int _latchTime_ms;
+	QTimer*	_refresh_timer;
+	int		_refresh_timer_interval;
+
+	/// timestamp of last write
+	qint64	_last_write_time;
+
+	/// Time a device requires mandatorily between two writes
+	int		_latchTime_ms;
+
+
 protected slots:
+
 	/// Write the last data to the leds again
+	///
+	/// @return Zero on success else negative
+	///
 	int rewriteLeds();
 
+	/// Switch the leds off
+	/// Writes "Black to LED" or may switch-off the LED hardware, if supported
+	///
+	virtual int switchOff();
+
+	/// Switch the leds on
+	/// May switch-on the LED hardware, if supported
+	///
+	virtual int switchOn();
+
+	/// Set device in error state
+	///
+	/// @param errorMsg The error message to be logged
+	///
+    virtual void setInError( const QString& errorMsg);
+
 private:
-	std::vector<ColorRgb> _ledValues;
-	bool   _componentRegistered;
-	bool   _enabled;
-	QString _colorOrder;
+
+	/// Start new refresh cycle
+	///
+	void startRefreshTimer();
+
+	/// Stop refresh cycle
+	///
+	void stopRefreshTimer();
+
+
+	bool	_componentRegistered;
+	bool	_enabled;
+	bool	_refresh_enabled;
+	QString	_colorOrder;
+
+	/// Last LED values written
+	std::vector<ColorRgb> _last_ledValues;
 };

@@ -1,4 +1,4 @@
-
+﻿
 // STL includes
 #include <exception>
 #include <sstream>
@@ -105,7 +105,7 @@ void Hyperion::start()
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
 	connect(this, &Hyperion::componentStateChanged, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
-	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper, &LedDeviceWrapper::write);
+	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper, &LedDeviceWrapper::updateLeds);
 	_ledDeviceWrapper->createLedDevice(ledDevice);
 
 	// smoothing
@@ -176,6 +176,9 @@ void Hyperion::freeObjects(bool emitCloseSignal)
 
 void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
+//	std::cout << "Hyperion::handleSettingsUpdate" << std::endl;
+//	std::cout << config.toJson().toStdString() << std::endl;
+
 	if(type == settings::COLOR)
 	{
 		const QJsonObject obj = config.object();
@@ -246,6 +249,12 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		// do always reinit until the led devices can handle dynamic changes
 		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
+
+		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop
+	}
+	else if(type == settings::SMOOTHING)
+	{
+		_deviceSmooth->handleSettingsUpdate( type, config);
 	}
 
 	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
@@ -270,6 +279,11 @@ int Hyperion::getLatchTime() const
 unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
 {
 	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
+}
+
+unsigned Hyperion::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+{
+	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
 }
 
 unsigned Hyperion::getLedCount() const
@@ -319,7 +333,9 @@ bool Hyperion::setInput(const int priority, const std::vector<ColorRgb>& ledColo
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer.getCurrentPriority())
+		{
 			update();
+		}
 
 		return true;
 	}
@@ -342,7 +358,9 @@ bool Hyperion::setInputImage(const int priority, const Image<ColorRgb>& image, i
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer.getCurrentPriority())
+		{
 			update();
+		}
 
 		return true;
 	}
@@ -577,22 +595,26 @@ void Hyperion::update()
 	// Write the data to the device
 	if (_ledDeviceWrapper->enabled())
 	{
-		_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
-
-		// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
-		if (_deviceSmooth->enabled() || _deviceSmooth->pause())
-		{
-			_deviceSmooth->setLedValues(_ledBuffer);
-		}
 		// Smoothing is disabled
 		if  (! _deviceSmooth->enabled())
 		{
+			//std::cout << "Hyperion::update()> Non-Smoothing - "; LedDevice::printLedValues ( _ledBuffer);
 			emit ledDeviceData(_ledBuffer);
 		}
+		else
+		{
+			_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
+
+			// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
+			if (_deviceSmooth->enabled() || _deviceSmooth->pause())
+			{
+				_deviceSmooth->updateLedValues(_ledBuffer);
+			}
+		}
 	}
-	else
-	{
-		// LEDDevice is disabled
-		//Debug(_log, "LEDDevice is disabled - no update required");
-	}
+	//else
+	//{
+	//	/LEDDevice is disabled
+	//	Debug(_log, "LEDDevice is disabled - no update required");
+	//}
 }

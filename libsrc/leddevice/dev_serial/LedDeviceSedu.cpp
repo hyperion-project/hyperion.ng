@@ -9,7 +9,8 @@ struct FrameSpec
 LedDeviceSedu::LedDeviceSedu(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)
@@ -19,7 +20,7 @@ LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 {
-	ProviderRs232::init(deviceConfig);
+	bool isInitOK = ProviderRs232::init(deviceConfig);
 
 	std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
 
@@ -38,11 +39,13 @@ bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 
 	if (_ledBuffer.size() == 0)
 	{
-		Warning(_log, "More rgb-channels required then available");
-		return false;
+		//Warning(_log, "More rgb-channels required then available");
+		QString errortext = "More rgb-channels required then available";
+		this->setInError(errortext);
+		isInitOK = false;
 	}
 
-	return true;
+	return isInitOK;
 }
 
 int LedDeviceSedu::write(const std::vector<ColorRgb> &ledValues)

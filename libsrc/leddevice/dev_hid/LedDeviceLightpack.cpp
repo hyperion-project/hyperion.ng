@@ -43,16 +43,118 @@ LedDeviceLightpack::LedDeviceLightpack(const QString & serialNumber)
 	, _bitsPerChannel(-1)
 	, _hwLedCount(-1)
 {
+	_deviceReady = false;
 }
 
 LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
 	: LedDevice()
+	  , _libusbContext(nullptr)
+	  , _deviceHandle(nullptr)
+	  , _busNumber(-1)
+	  , _addressNumber(-1)
+	  , _firmwareVersion({-1,-1})
+	  , _bitsPerChannel(-1)
+	  , _hwLedCount(-1)
 {
-	init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDeviceLightpack::~LedDeviceLightpack()
 {
+}
+
+LedDevice* LedDeviceLightpack::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceLightpack(deviceConfig);
+}
+
+bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
+{
+	bool isInitOK = LedDevice::init(deviceConfig);
+	_serialNumber = deviceConfig["output"].toString("");
+
+	return isInitOK;
+}
+
+int LedDeviceLightpack::open()
+{
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
+
+	// General initialisation and configuration of LedDevice
+	if ( init(_devConfig) )
+	{
+	int error;
+
+		// initialize the usb context
+		if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
+		{
+			//Error(_log, "Error while initializing USB context(%d): %s", error, libusb_error_name(error));
+			errortext = QString ("Error while initializing USB context(%1):%2").arg( error).arg(libusb_error_name(error));
+			_libusbContext = nullptr;
+		}
+		else
+		{
+			//libusb_set_debug(_libusbContext, 3);
+			Debug(_log, "USB context initialized");
+
+			// retrieve the list of usb devices
+			libusb_device ** deviceList;
+			ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
+
+			// iterate the list of devices
+			for (ssize_t i = 0 ; i < deviceCount; ++i)
+			{
+				// try to open and initialize the device
+				error = testAndOpen(deviceList[i], _serialNumber);
+
+				if (error == 0)
+				{
+					// a device was sucessfully opened. break from list
+					break;
+				}
+			}
+
+			// free the device list
+			libusb_free_device_list(deviceList, 1);
+
+			if (_deviceHandle == nullptr)
+			{
+				if (_serialNumber.isEmpty())
+				{
+					//Warning(_log, "No Lightpack device has been found");
+					errortext = QString ("No Lightpack devices were found");
+				}
+				else
+				{
+					//Error(_log,"No Lightpack device has been found with serial %", QSTRING_CSTR(_serialNumber));
+					errortext = QString ("No Lightpack device has been found with serial %1").arg( _serialNumber);
+				}
+			}
+			else
+			{
+				// Everything is OK -> enable device
+				_deviceReady = true;
+				setEnable(true);
+				retval = 0;
+			}
+		}
+		// On error/exceptions, set LedDevice in error
+		if ( retval < 0 )
+		{
+			this->setInError( errortext );
+		}
+	}
+	return retval;
+}
+
+void LedDeviceLightpack::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
 	if (_deviceHandle != nullptr)
 	{
 		libusb_release_interface(_deviceHandle, LIGHTPACK_INTERFACE);
@@ -67,68 +169,6 @@ LedDeviceLightpack::~LedDeviceLightpack()
 		libusb_exit(_libusbContext);
 		_libusbContext = nullptr;
 	}
-}
-
-bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
-{
-	LedDevice::init(deviceConfig);
-	_serialNumber = deviceConfig["output"].toString("");
-
-	return true;
-}
-
-LedDevice* LedDeviceLightpack::construct(const QJsonObject &deviceConfig)
-{
-	return new LedDeviceLightpack(deviceConfig);
-}
-
-int LedDeviceLightpack::open()
-{
-	int error;
-
-	// initialize the usb context
-	if ((error = libusb_init(&_libusbContext)) != LIBUSB_SUCCESS)
-	{
-		Error(_log, "Error while initializing USB context(%d): %s", error, libusb_error_name(error));
-		_libusbContext = nullptr;
-		return -1;
-	}
-	//libusb_set_debug(_libusbContext, 3);
-	Debug(_log, "USB context initialized");
-
-	// retrieve the list of usb devices
-	libusb_device ** deviceList;
-	ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
-
-	// iterate the list of devices
-	for (ssize_t i = 0 ; i < deviceCount; ++i)
-	{
-		// try to open and initialize the device
-		error = testAndOpen(deviceList[i], _serialNumber);
-
-		if (error == 0)
-		{
-			// a device was sucessfully opened. break from list
-			break;
-		}
-	}
-
-	// free the device list
-	libusb_free_device_list(deviceList, 1);
-
-	if (_deviceHandle == nullptr)
-	{
-		if (_serialNumber.isEmpty())
-		{
-			Warning(_log, "No Lightpack device has been found");
-		}
-		else
-		{
-			Error(_log,"No Lightpack device has been found with serial %s", QSTRING_CSTR(_serialNumber));
-		}
-	}
-
-	return _deviceHandle == nullptr ? -1 : 0;
 }
 
 int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requestedSerialNumber)
@@ -154,6 +194,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 		QString serialNumber;
 		if (deviceDescriptor.iSerialNumber != 0)
 		{
+			// TODO: Check, if exceptions via try/catch need to be replaced in Qt environment
 			try
 			{
 				serialNumber = LedDeviceLightpack::getString(device, deviceDescriptor.iSerialNumber);
@@ -171,6 +212,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 		if (requestedSerialNumber.isEmpty() || requestedSerialNumber == serialNumber)
 		{
 			// This is it!
+			// TODO: Check, if exceptions via try/catch need to be replaced in Qt environment
 			try
 			{
 				_deviceHandle = openDevice(device);
@@ -252,7 +294,7 @@ int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = qMin(_hwLedCount, _ledCount);
+	int count = qMin(_hwLedCount, static_cast<int>( _ledCount));
 
 	for (int i = 0; i < count ; ++i)
 	{
@@ -275,18 +317,18 @@ int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 
 int LedDeviceLightpack::switchOff()
 {
-	unsigned char buf[1] = {CMD_OFF_ALL};
-	return writeBytes(buf, sizeof(buf)) == sizeof(buf);
+	int rc = LedDevice::switchOff();
+	if ( _deviceReady )
+	{
+		unsigned char buf[1] = {CMD_OFF_ALL};
+		rc = writeBytes(buf, sizeof(buf)) == sizeof(buf);
+	}
+	return rc;
 }
 
 const QString &LedDeviceLightpack::getSerialNumber() const
 {
 	return _serialNumber;
-}
-
-int LedDeviceLightpack::getLedCount() const
-{
-	return _ledCount;
 }
 
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)

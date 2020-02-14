@@ -1,0 +1,12 @@
+{
+	"name" : "Led Test",
+	"script" : "ledtest.py",
+	"args" :
+	{
+		"sleepTime" : 0.20,
+		"testleds" : "all",
+		"smoothing-custom-settings" : true,
+		"smoothing-time_ms" : 500,
+		"smoothing-updateFrequency" : 20.0
+	}
+}

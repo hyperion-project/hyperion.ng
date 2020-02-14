@@ -659,6 +659,8 @@
 	"edt_eff_gif_header_desc": "Dieser Effekt spielt .gif Dateien ab. Bietet die Möglichkeit kleine GIF-Videos abzuspielen.",
 	"edt_eff_candle_header": "Kerze",
 	"edt_eff_candle_header_desc": "Flackerndes Kerzenlicht",
+	"edt_eff_ledtest_header" : "Led Test",
+	"edt_eff_ledtest_header_desc" : "Rotierende Ausgabe von Rot, Grün, Blau, Weiß und Schwarz",
 	"edt_eff_police_header": "Polizei",
 	"edt_eff_police_header_desc": "Lights like a police car in action",
 	"edt_eff_fade_header": "Farbübergang",

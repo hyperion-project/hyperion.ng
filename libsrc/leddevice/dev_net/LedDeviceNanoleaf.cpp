@@ -17,7 +17,7 @@ static const bool verbose  = false;
 static const bool verbose3 = false;
 
 // Controller configuration settings
-static const char CONFIG_ADDRESS[] = "output";
+static const char CONFIG_ADDRESS[] = "host";
 //static const char CONFIG_PORT[] = "port";
 static const char CONFIG_AUTH_TOKEN[] ="token";
 
@@ -85,33 +85,74 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceNanoleaf(deviceConfig);
 }
 
+LedDeviceNanoleaf::~LedDeviceNanoleaf()
+{
+	_networkmanager->deleteLater();
+}
+
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
+	_networkmanager = nullptr;
+	_extControlVersion = EXTCTRLVER_V2;
+	_panelLedCount = 0;
 }
 
-bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
+bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
+{
+	// Overwrite non supported/required features
+	_devConfig["latchTime"]   = 0;
+	if (deviceConfig["rewriteTime"].toInt(0) > 0)
+	{
+		Info (_log, "Device Nanoleaf does not require rewrites. Refresh time is ignored.");
+		_devConfig["rewriteTime"] = 0;
+	}
 
-	LedDevice::init(deviceConfig);
+	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	uint configuredLedCount = static_cast<uint>(this->getLedCount());
-	Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-	Debug(_log, "LedCount     : %u", configuredLedCount);
-	Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-	Debug(_log, "LatchTime    : %d", this->getLatchTime());
+	bool isInitOK = LedDevice::init(deviceConfig);
 
-	//Set hostname as per configuration and default port
-	_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();
-	_api_port   = API_DEFAULT_PORT;
-	_auth_token = deviceConfig[ CONFIG_AUTH_TOKEN ].toString();
+	if ( isInitOK )
+	{
+		uint configuredLedCount = this->getLedCount();
+		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
+		Debug(_log, "LedCount     : %u", configuredLedCount);
+		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
+		Debug(_log, "RefreshTime  : %d", _refresh_timer_interval);
+		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
-	//If host not configured then discover device
-	if ( _hostname.isEmpty() )
-		//Discover Nanoleaf device
-		if ( !discoverNanoleafDevice() ) {
-			throw std::runtime_error("No target IP defined nor Nanoleaf device discovered");
+		//Set hostname as per configuration and_defaultHost default port
+		_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();
+		_api_port   = API_DEFAULT_PORT;
+		_auth_token = deviceConfig[ CONFIG_AUTH_TOKEN ].toString();
+
+		//If host not configured then discover device
+		if ( _hostname.isEmpty() )
+		{
+			//Discover Nanoleaf device
+			if ( !discoverNanoleafDevice() )
+			{
+				this->setInError("No target IP defined nor Nanoleaf device was discovered");
+				return false;
+			}
 		}
+
+		// Set UDP streaming port
+		_devConfig["host"] = _hostname;
+		_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
+		isInitOK = ProviderUdp::init(_devConfig);
+
+		Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));
+		Debug(_log, "Port         : %d", _port);
+	}
+	return isInitOK;
+}
+
+bool LedDeviceNanoleaf::initLeds()
+{
+	bool isInitOK = true;
 
 	//Get Nanoleaf device details and configuration
 	_networkmanager = new QNetworkAccessManager();
@@ -119,86 +160,114 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig) {
 	// Read Panel count and panel Ids
 	QString url = getUrl(_hostname, _api_port, _auth_token, API_ROOT );
 	QJsonDocument doc = getJson( url );
+	if ( this->isInError() )
+	{
+		isInitOK = false;
+	}
+	else
+	{
+		QJsonObject jsonAllPanelInfo = doc.object();
 
-	QJsonObject jsonAllPanelInfo = doc.object();
+		QString deviceName = jsonAllPanelInfo[DEV_DATA_NAME].toString();
+		_deviceModel = jsonAllPanelInfo[DEV_DATA_MODEL].toString();
+		QString deviceManufacturer = jsonAllPanelInfo[DEV_DATA_MANUFACTURER].toString();
+		_deviceFirmwareVersion = jsonAllPanelInfo[DEV_DATA_FIRMWAREVERSION].toString();
 
-	QString deviceName = jsonAllPanelInfo[DEV_DATA_NAME].toString();
-	_deviceModel = jsonAllPanelInfo[DEV_DATA_MODEL].toString();
-	QString deviceManufacturer = jsonAllPanelInfo[DEV_DATA_MANUFACTURER].toString();
-	_deviceFirmwareVersion = jsonAllPanelInfo[DEV_DATA_FIRMWAREVERSION].toString();
+		Debug(_log, "Name           : %s", QSTRING_CSTR( deviceName ));
+		Debug(_log, "Model          : %s", QSTRING_CSTR( _deviceModel ));
+		Debug(_log, "Manufacturer   : %s", QSTRING_CSTR( deviceManufacturer ));
+		Debug(_log, "FirmwareVersion: %s", QSTRING_CSTR( _deviceFirmwareVersion));
 
-	Debug(_log, "Name           : %s", QSTRING_CSTR( deviceName ));
-	Debug(_log, "Model          : %s", QSTRING_CSTR( _deviceModel ));
-	Debug(_log, "Manufacturer   : %s", QSTRING_CSTR( deviceManufacturer ));
-	Debug(_log, "FirmwareVersion: %s", QSTRING_CSTR( _deviceFirmwareVersion));
+		// Get panel details from /panelLayout/layout
+		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
+		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
-	// Get panel details from /panelLayout/layout
-	QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
-	QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
+		uint panelNum = static_cast<uint>(jsonLayout[PANEL_NUM].toInt());
+		QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
 
-	uint panelNum = static_cast<uint>(jsonLayout[PANEL_NUM].toInt());
-	QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
+		std::map<uint, std::map<uint, uint>> panelMap;
 
-	std::map<uint, std::map<uint, uint>> panelMap;
+		// Loop over all children.
+		foreach (const QJsonValue & value, positionData)
+		{
+			QJsonObject panelObj = value.toObject();
 
-	// Loop over all children.
-	foreach (const QJsonValue & value, positionData) {
-		QJsonObject panelObj = value.toObject();
+			uint panelId = static_cast<uint>(panelObj[PANEL_ID].toInt());
+			uint panelX  = static_cast<uint>(panelObj[PANEL_POS_X].toInt());
+			uint panelY  = static_cast<uint>(panelObj[PANEL_POS_Y].toInt());
+			uint panelshapeType = static_cast<uint>(panelObj[PANEL_SHAPE_TYPE].toInt());
+			//uint panelOrientation = static_cast<uint>(panelObj[PANEL_ORIENTATION].toInt());
 
-		uint panelId = static_cast<uint>(panelObj[PANEL_ID].toInt());
-		uint panelX  = static_cast<uint>(panelObj[PANEL_POS_X].toInt());
-		uint panelY  = static_cast<uint>(panelObj[PANEL_POS_Y].toInt());
-		uint panelshapeType = static_cast<uint>(panelObj[PANEL_SHAPE_TYPE].toInt());
-		//uint panelOrientation = static_cast<uint>(panelObj[PANEL_ORIENTATION].toInt());
+			DebugIf(verbose, _log, "Panel [%u] (%u,%u) - Type: [%u]", panelId, panelX, panelY, panelshapeType );
 
-		DebugIf(verbose, _log, "Panel [%u] (%u,%u) - Type: [%u]", panelId, panelX, panelY, panelshapeType );
+			// Skip Rhythm panels
+			if ( panelshapeType != RHYTM )
+			{
+				panelMap[panelY][panelX] = panelId;
+			}
+			else
+			{	// Reset non support/required features
+				Info(_log, "Rhythm panel skipped.");
+			}
+		}
 
-		// Skip Rhythm panels
-		if ( panelshapeType != RHYTM ) {
-			panelMap[panelY][panelX] = panelId;
-		} else  {
-			Info(_log, "Rhythm panel skipped.");
+		// Sort panels top down, left right
+		for(auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY)
+		{
+			// posY.first is the first key
+			for(auto const &posX : posY->second)
+			{
+				// posX.first is the second key, posX.second is the data
+				DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX.first, posX.second );
+				_panelIds.push_back(posX.second);
+			}
+		}
+		this->_panelLedCount = static_cast<uint>(_panelIds.size());
+		_devConfig["hardwareLedCount"] = static_cast<int>(_panelLedCount);
+
+		Debug(_log, "PanelsNum      : %u", panelNum);
+		Debug(_log, "PanelLedCount  : %u", _panelLedCount);
+
+		// Check. if enough panelds were found.
+		uint configuredLedCount = this->getLedCount();
+		if (_panelLedCount < configuredLedCount )
+		{
+			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
+								  .arg(_panelLedCount)
+								  .arg(configuredLedCount);
+			this->setInError(errorReason);
+			isInitOK = false;
+		}
+		else
+		{
+			if ( _panelLedCount > this->getLedCount() )
+			{
+				Warning(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
+			}
 		}
 	}
-
-	// Sort panels top down, left right
-	for(auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY) {
-		// posY.first is the first key
-		for(auto const &posX : posY->second) {
-			// posX.first is the second key, posX.second is the data
-			DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX.first, posX.second );
-			_panelIds.push_back(posX.second);
-		}
-	}
-	this->_panelLedCount = static_cast<uint>(_panelIds.size());
-
-
-	Debug(_log, "PanelsNum      : %u", panelNum);
-	Debug(_log, "PanelLedCount  : %u", _panelLedCount);
-
-	// Check. if enough panelds were found.
-	if (_panelLedCount < configuredLedCount) {
-
-		throw std::runtime_error ( (QString ("Not enough panels [%1] for configured LEDs [%2] found!").arg(_panelLedCount).arg(configuredLedCount)).toStdString() );
-	} else {
-		if ( _panelLedCount > static_cast<uint>(this->getLedCount()) ) {
-			Warning(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
-		}
-	}
-
-	// Set UDP streaming port
-	_port = STREAM_CONTROL_DEFAULT_PORT;
-	_defaultHost = _hostname;
-
-	switchOn();
-
-	ProviderUdp::init(deviceConfig);
-
-	Debug(_log, "Started successfully" );
-	return true;
+	return isInitOK;
 }
 
-bool LedDeviceNanoleaf::discoverNanoleafDevice() {
+int LedDeviceNanoleaf::open()
+{
+	int retval = -1;
+	_deviceReady = false;
+
+	if ( init(_devConfig) )
+	{
+		if ( initLeds() )
+		{
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+	}
+	return retval;
+}
+
+bool LedDeviceNanoleaf::discoverNanoleafDevice()
+{
 
 	bool isDeviceFound (false);
 	// device searching by ssdp
@@ -229,7 +298,9 @@ bool LedDeviceNanoleaf::discoverNanoleafDevice() {
 	return isDeviceFound;
 }
 
-QJsonDocument LedDeviceNanoleaf::changeToExternalControlMode() {
+
+QJsonDocument LedDeviceNanoleaf::changeToExternalControlMode()
+{
 
 	QString url = getUrl(_hostname, _api_port, _auth_token, API_EFFECT );
 	QJsonDocument jsonDoc;
@@ -245,7 +316,8 @@ QString LedDeviceNanoleaf::getUrl(QString host, QString port, QString auth_token
 	return QString(API_URL_FORMAT).arg(host, port, auth_token, endpoint);
 }
 
-QJsonDocument LedDeviceNanoleaf::getJson(QString url) const {
+QJsonDocument LedDeviceNanoleaf::getJson(QString url)
+{
 
 	Debug(_log, "GET: [%s]", QSTRING_CSTR( url ));
 
@@ -269,7 +341,8 @@ QJsonDocument LedDeviceNanoleaf::getJson(QString url) const {
 	return jsonDoc;
 }
 
-QJsonDocument LedDeviceNanoleaf::putJson(QString url, QString json) const {
+QJsonDocument LedDeviceNanoleaf::putJson(QString url, QString json)
+{
 
 	Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url ), QSTRING_CSTR( json ) );
 	// Perfrom request
@@ -293,15 +366,15 @@ QJsonDocument LedDeviceNanoleaf::putJson(QString url, QString json) const {
 	return jsonDoc;
 }
 
-QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const  {
+QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
+{
 
 	QJsonDocument jsonDoc;
 
 	int httpStatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
 	Debug(_log, "Reply.httpStatusCode [%d]", httpStatusCode );
 
-	if(reply->error() ==
-			QNetworkReply::NoError)
+	if(reply->error() == QNetworkReply::NoError)
 	{
 		if ( httpStatusCode != 204 ){
 			QByteArray response = reply->readAll();
@@ -309,8 +382,7 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const
 			jsonDoc = QJsonDocument::fromJson(response, &error);
 			if (error.error != QJsonParseError::NoError)
 			{
-				Error (_log, "Got invalid response");
-				throw std::runtime_error("");
+				this->setInError ( "Got invalid response" );
 			}
 			else {
 				//Debug
@@ -326,35 +398,30 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply ) const
 			QString httpReason = reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString();
 			QString advise;
 			switch ( httpStatusCode ) {
-				case 400:
-					advise = "Check Request Body";
-					break;
-				case 401:
-					advise = "Check Authentication Token (API Key)";
-					break;
-				case 404:
-					advise = "Check Resource given";
-					break;
-				default:
-					break;
+			case 400:
+				advise = "Check Request Body";
+				break;
+			case 401:
+				advise = "Check Authentication Token (API Key)";
+				break;
+			case 404:
+				advise = "Check Resource given";
+				break;
+			default:
+				break;
 			}
-			errorReason = QString ("%1:%2 [%3 %4] - %5").arg(_hostname, _api_port, QString(httpStatusCode) , httpReason);
+			errorReason = QString ("%1:%2 [%3 %4] - %5").arg(_hostname, _api_port, QString(httpStatusCode) , httpReason, advise);
 		}
 		else {
 			errorReason = QString ("%1:%2 - %3").arg(_hostname, _api_port, reply->errorString());
 		}
-		Error (_log, "%s", QSTRING_CSTR( errorReason ));
-		throw std::runtime_error("Network Error");
+		this->setInError ( errorReason );
 	}
 	// Return response
 	return jsonDoc;
 }
 
 
-LedDeviceNanoleaf::~LedDeviceNanoleaf()
-{
-	delete _networkmanager;
-}
 
 int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 {
@@ -396,7 +463,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		lowByte  = static_cast<uchar>(panelID & 0xFF);
 
 		// Set panels configured
-		if( panelCounter < static_cast<uint>(this->getLedCount()) ) {
+		if( panelCounter < this->getLedCount() )  {
 			color = static_cast<ColorRgb>(ledValues.at(panelCounter));
 		}
 		else
@@ -437,40 +504,43 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	return retVal;
 }
 
-QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const {
+QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
+{
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
 	return QString( "{\"%1\":{\"%2\":%3}}" ).arg(STATE_ON, STATE_ONOFF_VALUE, state);
 }
 
-int LedDeviceNanoleaf::switchOn() {
-	Debug(_log, "switchOn()");
+int LedDeviceNanoleaf::switchOn()
+{
+	if ( _deviceReady)
+	{
+		// Set Nanoleaf to External Control (UDP) mode
+		Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
+		QJsonDocument responseDoc = changeToExternalControlMode();
+		// Resolve port for Ligh Panels
+		QJsonObject jsonStreamControllInfo = responseDoc.object();
+		if ( ! jsonStreamControllInfo.isEmpty() ) {
+			_port = static_cast<uchar>(jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt());
+		}
 
-	// Set Nanoleaf to External Control (UDP) mode
-	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
-	QJsonDocument responseDoc = changeToExternalControlMode();
-	// Resolve port for Ligh Panels
-	QJsonObject jsonStreamControllInfo = responseDoc.object();
-	if ( ! jsonStreamControllInfo.isEmpty() ) {
-		_port = static_cast<uchar>(jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt());
+		//Switch on Nanoleaf device
+		QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
+		putJson(url, this->getOnOffRequest(true) );
 	}
-
-	//Switch on Nanoleaf device
-	QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
-	putJson(url, this->getOnOffRequest(true) );
-
 	return 0;
 }
 
-int LedDeviceNanoleaf::switchOff() {
-	Debug(_log, "switchOff()");
-
+int LedDeviceNanoleaf::switchOff()
+{
 	//Set all LEDs to Black
-	int rc = writeBlack();
+	int rc = LedDevice::switchOff();
 
-	//Switch off Nanoleaf device physically
-	QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
-	putJson(url, getOnOffRequest(false) );
-
+	if ( _deviceReady)
+	{
+		//Switch off Nanoleaf device physically
+		QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
+		putJson(url, getOnOffRequest(false) );
+	}
 	return rc;
 }
 
@@ -480,7 +550,7 @@ std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<ui
 	ss << std::hex << std::setfill('0');
 	std::vector<uint8_t>::const_iterator it;
 
-	for (it = buffer.begin(); it != buffer.end(); it++)
+	for (it = buffer.begin(); it != buffer.end(); ++it)
 	{
 		ss << " " << std::setw(2) << static_cast<unsigned>(*it);
 	}

@@ -14,10 +14,17 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePaintpack(const QJsonObject &deviceConfig);
+	explicit LedDevicePaintpack(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+	///
+	/// Sets configuration
+	///
+	/// @param deviceConfig the json device config
+	/// @return true if success
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -27,5 +34,5 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
+	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 };

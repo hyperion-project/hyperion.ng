@@ -21,7 +21,7 @@ class Hyperion;
 ///
 /// This class processes the requested led values and forwards them to the device after applying
 /// a linear smoothing effect. This class can be handled as a generic LedDevice.
-class LinearColorSmoothing : public LedDevice
+class LinearColorSmoothing : public QObject
 {
 	Q_OBJECT
 
@@ -35,20 +35,17 @@ public:
 	/// Destructor
 	virtual ~LinearColorSmoothing();
 
-	/// write updated values as input for the smoothing filter
+	/// LED values as input for the smoothing filter
 	///
 	/// @param ledValues The color-value per led
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
-
-	/// Switch the leds off
-	virtual int switchOff();
+	virtual int updateLedValues(const std::vector<ColorRgb>& ledValues);
 
 	void setEnable(bool enable);
 	void setPause(bool pause);
-	bool pause() { return _pause; } ;
-	bool enabled() { return LedDevice::enabled() && !_pause; };
+	bool pause() const { return _pause; }
+	bool enabled() const { return _enabled && !_pause; }
 
 	///
 	/// @brief Add a new smoothing cfg which can be used with selectConfig()
@@ -59,6 +56,19 @@ public:
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
 	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+
+	///
+	/// @brief Update a smoothing cfg which can be used with selectConfig()
+	///	       In case the ID does not exist, a smoothing cfg is added
+	///
+	/// @param   cfgID				   Smoothing configuration item to be updated
+	/// @param   settlingTime_ms       The buffer time
+	/// @param   ledUpdateFrequency_hz The frequency of update
+	/// @param   updateDelay           The delay
+	///
+	/// @return The index of the cfg which can be passed to selectConfig()
+	///
+	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
 	///
 	/// @brief select a smoothing cfg given by cfg index from addConfig()
@@ -89,12 +99,21 @@ private slots:
 	void componentStateChange(const hyperion::Components component, const bool state);
 
 private:
+
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
 	 *
 	 * @param ledColors The colors to queue
 	 */
 	void queueColors(const std::vector<ColorRgb> & ledColors);
+	void clearQueuedColors();
+
+	/// write updated values as input for the smoothing filter
+	///
+	/// @param ledValues The color-value per led
+	/// @return Zero on success else negative
+	///
+	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	/// Logger instance
 	Logger* _log;
@@ -149,4 +168,5 @@ private:
 	QVector<SMOOTHING_CFG> _cfgList;
 
 	unsigned _currentConfigId;
+	bool   _enabled;
 };

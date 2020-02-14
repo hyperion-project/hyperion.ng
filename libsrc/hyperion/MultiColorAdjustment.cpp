@@ -14,6 +14,7 @@ MultiColorAdjustment::~MultiColorAdjustment()
 	for (ColorAdjustment * adjustment : _adjustment)
 	{
 		delete adjustment;
+		_adjustment.pop_back();
 	}
 }
 
@@ -26,22 +27,25 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, unsigned endLed)
 {
 	// abort
-	if(startLed >= endLed)
+	if(startLed > endLed)
 	{
-		Error(_log,"startLed >= endLed -> %d >= %d", startLed, endLed);
+		Error(_log,"startLed > endLed -> %d > %d", startLed, endLed);
 		return;
 	}
 	// catch wrong values
-	if(endLed > _ledAdjustments.size())
+	if(endLed > _ledAdjustments.size()-1)
 	{
 		Warning(_log,"The color calibration 'LED index' field has leds specified which aren't part of your led layout");
-		endLed = _ledAdjustments.size();
+		endLed = _ledAdjustments.size()-1;
 	}
 
 	// Get the identified adjustment (don't care if is nullptr)
 	ColorAdjustment * adjustment = getAdjustment(id);
+
+	//Debug(_log,"ColorAdjustment Profile [%s], startLed[%u], endLed[%u]", QSTRING_CSTR(id), startLed, endLed);
 	for (unsigned iLed=startLed; iLed<=endLed; ++iLed)
 	{
+		//Debug(_log,"_ledAdjustments [%u] -> [%p]", iLed, adjustment);
 		_ledAdjustments[iLed] = adjustment;
 	}
 }
@@ -98,6 +102,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		ColorAdjustment* adjustment = _ledAdjustments[i];
 		if (adjustment == nullptr)
 		{
+			//std::cout << "MultiColorAdjustment::applyAdjustment() - No transform set for this led : " << i << std::endl;
 			// No transform set for this led (do nothing)
 			continue;
 		}
