@@ -11,6 +11,11 @@ LedDeviceWS281x::~LedDeviceWS281x()
 {
 }
 
+LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceWS281x(deviceConfig);
+}
+
 bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
 	QString errortext;
@@ -82,11 +87,6 @@ void LedDeviceWS281x::close()
 	{
 		ws2811_fini(&_led_string);
 	}
-}
-
-LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
-{
-	return new LedDeviceWS281x(deviceConfig);
 }
 
 // Send new values down the LED chain
