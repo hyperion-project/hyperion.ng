@@ -804,5 +804,7 @@
     "edt_eff_collision_header": "färgkollision",
     "edt_eff_collision_header_desc": "Två färgprojektiler skickas från slumpmässiga positioner och kolliderar med varandra",
     "edt_eff_explodeRadius": "Detonationsområde",
-    "edt_dev_spec_printTimeStamp_title": "Lägg till tidsstämpel"
+    "edt_dev_spec_printTimeStamp_title": "Lägg till tidsstämpel",
+    "edt_eff_ledtest_header": "LED-test",
+    "edt_eff_ledtest_header_desc": "Roterande utgång: röd, blå, grön, vit, svart"
 }
