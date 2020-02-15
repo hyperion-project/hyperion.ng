@@ -207,6 +207,12 @@ signals:
 	void visiblePriorityChanged(const quint8& priority);
 
 	///
+	/// @brief Emits whenever the current visible component changed
+	/// @param comp  The new component
+	///
+	void visibleComponentChanged(const hyperion::Components& comp);
+
+	///
 	/// @brief Emits whenever a priority changes active state
 	/// @param  priority  The priority who changed the active state
 	/// @param  state     The new state, state true = active else false
@@ -243,6 +249,12 @@ private slots:
 	void setCurrentTime(void);
 
 private:
+	///
+	/// @brief Get the component of the given priority
+	/// @return The component
+	///
+	hyperion::Components getComponentOfPriority(const int& priority);
+
 	/// Logger instance
 	Logger* _log;
 
@@ -251,6 +263,9 @@ private:
 
 	/// The manual select priority set with setPriority
 	int _manualSelectedPriority;
+
+	// The last visible component
+	hyperion::Components _prevVisComp = hyperion::COMP_INVALID;
 
 	/// The mapping from priority channel to led-information
 	QMap<int, InputInfo> _activeInputs;
