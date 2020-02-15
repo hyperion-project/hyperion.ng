@@ -4,10 +4,10 @@ message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(hyperion)
 
-# Hyperion Semantic Version 2.0.0 definition
-# The "stable" can be replaced with alpha.1 | beta.1 |rc.1 and so on
+# Parse semantic version of version file
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
-SetVersionNumber(HYPERION 2 0 0 alpha.1)
+file (STRINGS "version" HYPERION_VERSION)
+SetVersionNumber(HYPERION ${HYPERION_VERSION})
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
