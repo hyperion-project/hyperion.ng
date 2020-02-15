@@ -133,6 +133,11 @@ const PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(const int priority) c
 	return elemIt.value();
 }
 
+hyperion::Components PriorityMuxer::getComponentOfPriority(const int &priority)
+{
+	return _activeInputs[priority].componentId;
+}
+
 void PriorityMuxer::registerInput(const int priority, const hyperion::Components& component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	// detect new registers
@@ -322,16 +327,18 @@ void PriorityMuxer::setCurrentTime(void)
 		}
 	}
 	// apply & emit on change (after apply!)
-	bool changed = false;
-	if(_currentPriority != newPriority)
-		changed = true;
-
-	_currentPriority = newPriority;
-
-	if(changed)
+	if (_currentPriority != newPriority)
 	{
+		_currentPriority = newPriority;
 		Debug(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);
+		// check for visible comp change
+		hyperion::Components comp = getComponentOfPriority(newPriority);
+		if (comp != _prevVisComp)
+		{
+			_prevVisComp = comp;
+			emit visibleComponentChanged(comp);
+		}
 		emit prioritiesChanged();
 	}
 }
