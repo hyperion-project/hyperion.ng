@@ -79,7 +79,7 @@ $(document).ready( function() {
         }
     });
 
-	$(window.hyperion).one("cmd-authorize-login", function(event) {
+	$(window.hyperion).on("cmd-authorize-login", function(event) {
 		$("#main-nav").removeAttr('style')
 		$("#top-navbar").removeAttr('style')
 
@@ -104,7 +104,7 @@ $(document).ready( function() {
 		}
     });
 
-	$(window.hyperion).one("cmd-authorize-newPasswordRequired", function(event) {
+	$(window.hyperion).on("cmd-authorize-newPasswordRequired", function(event) {
 		var loginToken = getStorage("loginToken", true)
 
 		if (event.response.info.newPasswordRequired == true)
@@ -129,7 +129,7 @@ $(document).ready( function() {
 		}
 	});
 
-	$(window.hyperion).one("cmd-authorize-adminRequired", function(event) {
+	$(window.hyperion).on("cmd-authorize-adminRequired", function(event) {
 		//Check if a admin login is required.
 		//If yes: check if default pw is set. If no: go ahead to get server config and render page
 		if (event.response.info.adminRequired === true)
