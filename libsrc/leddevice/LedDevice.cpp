@@ -40,8 +40,19 @@ LedDevice::~LedDevice()
 
 int LedDevice::open()
 {
-	setEnable (true);
-	return 0;
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
+
+	// General initialisation and configuration of LedDevice
+	if ( init(_devConfig) )
+	{
+			// Everything is OK -> enable device
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+	}
+	return retval;
 }
 
 void LedDevice::setInError(const QString& errorMsg)
@@ -70,6 +81,11 @@ void LedDevice::setEnable(bool enable)
 		{
 			Error(_log, "Device '%s' cannot be enabled, as it is not ready!", QSTRING_CSTR(_activeDeviceType));
 			return;
+		}
+		else
+		{
+			// Open worked
+			_deviceInError = false;
 		}
 	}
 
@@ -101,6 +117,8 @@ void LedDevice::setActiveDeviceType(const QString& deviceType)
 
 bool LedDevice::init(const QJsonObject &deviceConfig)
 {
+	//Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
 	_activeDeviceType = deviceConfig["type"].toString("file").toLower();
 	setLedCount(static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) )); // property injected to reflect real led count
@@ -146,7 +164,7 @@ void LedDevice::stopRefreshTimer()
 int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 {
 	int retval = 0;
-	if ( !_deviceReady )
+	if ( !_deviceReady || _deviceInError)
 	{
 		std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
 		return -1;

@@ -379,6 +379,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, c
 	hyperion["jsonrpc_version" ] = QString(HYPERION_JSON_VERSION);
 	hyperion["version"         ] = QString(HYPERION_VERSION);
 	hyperion["build"           ] = QString(HYPERION_BUILD_ID);
+	hyperion["gitremote"       ] = QString(HYPERION_GIT_REMOTE);
 	hyperion["time"            ] = QString(__DATE__ " " __TIME__);
 	hyperion["id"              ] = _authManager->getID();
 	info["hyperion"] = hyperion;

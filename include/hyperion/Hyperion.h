@@ -458,11 +458,10 @@ public slots:
 private slots:
 
 	///
-	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
-	///	@param comp   The component
-	///	@param state  The new state of the component
+	///	@brief Handle whenever the visible component changed
+	///	@param comp      The new component
 	///
-	void updatedComponentState(const hyperion::Components comp, const bool state);
+	void handleVisibleComponentChanged(const hyperion::Components& comp);
 
 	///
 	///	@brief Apply settings updates for LEDS and COLOR
@@ -528,9 +527,6 @@ private:
 	unsigned _hwLedCount;
 
 	QSize _ledGridSize;
-
-	/// Store the previous compID for smarter update()
-	hyperion::Components   _prevCompId;
 
 	/// Background effect instance, kept active to react on setting changes
 	BGEffectHandler* _BGEffectHandler;
