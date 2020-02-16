@@ -1,11 +1,7 @@
 #!/bin/bash
 
 # detect CI
-if [ -n "${TRAVIS-}" ]; then
-	# Travis-CI
-	CI_NAME="$(echo "$TRAVIS_OS_NAME" | tr '[:upper:]' '[:lower:]')"
-	CI_BUILD_DIR="$TRAVIS_BUILD_DIR"
-elif [ "$SYSTEM_COLLECTIONID" != "" ]; then
+if [ "$SYSTEM_COLLECTIONID" != "" ]; then
 	# Azure Pipelines
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"

@@ -2,7 +2,6 @@
 
 [![Dependencies](https://img.shields.io/librariesio/github/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/tree/master/dependencies/external)
 [![Azure-Pipeline](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_apis/build/status/Hyperion.NG?branchName=master)](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_build/latest?definitionId=7&branchName=master)
-[![Travis-CI](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/GitHub%20Actions/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
 [![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
