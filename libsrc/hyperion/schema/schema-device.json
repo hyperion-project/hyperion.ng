@@ -19,6 +19,17 @@
 			"access" : "expert",
 			"propertyOrder" : 2
 		},
+		"outputDelay" :
+		{
+			"type" : "integer",
+			"title" : "edt_dev_general_outputDelay_title",
+			"minimum" : 0,
+			"maximum" : 2000,
+			"default" : 0,
+			"required" : true,
+			"append" : "edt_append_ms",
+			"propertyOrder" : 3
+		},
 		"colorOrder" :
 		{
 			"type" : "string",
@@ -28,7 +39,7 @@
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
 			},
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -37,7 +48,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : true

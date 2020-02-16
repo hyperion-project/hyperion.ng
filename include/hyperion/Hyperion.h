@@ -221,8 +221,8 @@ public:
 	int getLatchTime() const;
 
 	/// forward smoothing config
-	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
-	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0);
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0);
 
 
 	const VideoMode & getCurrentVideoMode();

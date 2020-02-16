@@ -14,10 +14,11 @@
 	{
 		"type"       : "file",
 		"hardwareLedCount" : 1,
+		"outputDelay": 0,
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"latchTime" : 1,
+		"latchTime"  : 1,
 		"rewriteTime": 5000
 	},
 
@@ -53,7 +54,6 @@
 		"type"             : "linear",
 		"time_ms"          : 200,
 		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
 		"continuousOutput" : true
 	},
 

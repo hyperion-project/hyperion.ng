@@ -120,8 +120,8 @@ void EffectEngine::handleUpdatedEffectList()
 			def.smoothCfg = _hyperion->updateSmoothingConfig(
 				id,
 				def.args["smoothing-time_ms"].toInt(),
-				def.args["smoothing-updateFrequency"].toDouble(),
-				0 );
+				def.args["smoothing-updateFrequency"].toDouble()
+				);
 			//Debug( _log, "Customs Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		else

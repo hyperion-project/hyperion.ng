@@ -51,11 +51,10 @@ public:
 	/// @brief Add a new smoothing cfg which can be used with selectConfig()
 	/// @param   settlingTime_ms       The buffer time
 	/// @param   ledUpdateFrequency_hz The frequency of update
-	/// @param   updateDelay           The delay
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0);
 
 	///
 	/// @brief Update a smoothing cfg which can be used with selectConfig()
@@ -64,11 +63,10 @@ public:
 	/// @param   cfgID				   Smoothing configuration item to be updated
 	/// @param   settlingTime_ms       The buffer time
 	/// @param   ledUpdateFrequency_hz The frequency of update
-	/// @param   updateDelay           The delay
 	///
 	/// @return The index of the cfg which can be passed to selectConfig()
 	///
-	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz=25.0);
 
 	///
 	/// @brief select a smoothing cfg given by cfg index from addConfig()
@@ -101,12 +99,12 @@ private slots:
 private:
 
 	/**
-	 * Pushes the colors into the output queue and popping the head to the led-device
+	 * Pushes the colors to Hyperion if allowed
 	 *
 	 * @param ledColors The colors to queue
 	 */
-	void queueColors(std::vector<ColorRgb> & ledColors);
-	
+	void writeColors(std::vector<ColorRgb> & ledColors);
+
 	void clearQueuedColors();
 
 	/// write updated values as input for the smoothing filter
@@ -143,11 +141,6 @@ private:
 	/// The previously written led data
 	std::vector<ColorRgb> _previousValues;
 
-	/// The number of updates to keep in the output queue (delayed) before being output
-	unsigned _outputDelay;
-	/// The output queue
-	std::list<std::vector<ColorRgb> > _outputQueue;
-
 	/// Prevent sending data to device when no intput data is sent
 	bool _writeToLedsEnable;
 
@@ -162,7 +155,6 @@ private:
 		bool     pause;
 		int64_t  settlingTime;
 		int64_t  updateInterval;
-		unsigned outputDelay;
 	};
 
 	/// smooth config list

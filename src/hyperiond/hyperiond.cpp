@@ -85,6 +85,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8,QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>&");
 
 	// init settings
 	_settingsManager = new SettingsManager(0,this);

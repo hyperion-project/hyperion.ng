@@ -266,14 +266,14 @@ int Hyperion::getLatchTime() const
   return _ledDeviceWrapper->getLatchTime();
 }
 
-unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz)
 {
-	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
+	return _deviceSmooth->addConfig(settlingTime_ms, ledUpdateFrequency_hz);
 }
 
-unsigned Hyperion::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
+unsigned Hyperion::updateSmoothingConfig(unsigned id, int settlingTime_ms, double ledUpdateFrequency_hz)
 {
-	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
+	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz);
 }
 
 unsigned Hyperion::getLedCount() const

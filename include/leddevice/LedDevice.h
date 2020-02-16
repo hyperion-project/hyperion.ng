@@ -92,13 +92,22 @@ public slots:
 	virtual void start() { _deviceReady = (open() == 0 ? true : false);}
 
 	///
+	/// Preprocess led values.
+	/// Will call updateLeds()
+	///
+	/// @param[in] ledValues  The RGB-color per led
+	/// @return Zero on success else negative (i.e. device is not ready)
+	///
+	virtual int preUpdateLeds(std::vector<ColorRgb>& ledValues);
+
+	///
 	/// Update the RGB-Color values to the leds.
 	/// Handles refreshing of leds.
 	///
 	/// @param[in] ledValues  The RGB-color per led
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	virtual int updateLeds(std::vector<ColorRgb>& ledValues);
+	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
 
 	///
 	/// Closes the output device.
@@ -224,6 +233,7 @@ private:
 	bool		_refresh_enabled;
 	QString		_colorOrder;
 	unsigned	_hwLedCount;
+	unsigned	_outputDelay;
 
 	/// Last LED values written
 	std::vector<ColorRgb> _last_ledValues;

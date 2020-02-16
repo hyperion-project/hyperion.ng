@@ -23,6 +23,8 @@
 	/// Device configuration contains the following fields:
 	/// * 'name'       : The user friendly name of the device (only used for display purposes)
 	/// * 'type'       : The type of the device
+	/// * 'hardwareLC' : The real led count of the device
+	/// * 'outputDelay': Time in ms to delay the output
 	/// * [device type specific configuration]
 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
 	/// * 'rewriteTime': in ms. Data is resend to leds, if no new data is available in thistime. 0 means no refresh
@@ -30,6 +32,7 @@
 	{
 		"type"       : "file",
 		"hardwareLedCount" : 1,
+		"outputDelay": 0,
 		"output"     : "/dev/null",
 		"rate"     : 1000000,
 		"colorOrder" : "rgb",
@@ -87,7 +90,6 @@
 	///            - 'type'             The type of smoothing algorithm ('linear' or 'none')
 	///            - 'time_ms'          The time constant for smoothing algorithm in milliseconds
 	///            - 'updateFrequency'  The update frequency of the leds in Hz
-	///            - 'updateDelay'      The delay of the output to leds (in periods of smoothing)
 	///            - 'continuousOutput' Flag for enabling continuous output to Leds regardless of new input or not
 	"smoothing" :
 	{
@@ -95,7 +97,6 @@
 		"type"             : "linear",
 		"time_ms"          : 200,
 		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
 		"continuousOutput" : true
 	},
 
