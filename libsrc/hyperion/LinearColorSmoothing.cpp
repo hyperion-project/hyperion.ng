@@ -26,7 +26,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	, _continuousOutput(false)
 	, _pause(false)
 	, _currentConfigId(0)
-	, _enabled(true)
+	, _enabled(false)
 {
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
