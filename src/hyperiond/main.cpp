@@ -190,6 +190,8 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	if (isGuiApp)
 	{
 		QApplication* app = new QApplication(argc, argv);
+		// add optional library path
+		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
 		app->setApplicationDisplayName("Hyperion");
 		app->setWindowIcon(QIcon(":/hyperion-icon-32px.png"));
 		return app;
@@ -198,6 +200,9 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	QCoreApplication* app = new QCoreApplication(argc, argv);
 	app->setApplicationName("Hyperion");
 	app->setApplicationVersion(HYPERION_VERSION);
+	// add optional library path
+	app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
+
 	return app;
 }
 
