@@ -76,6 +76,7 @@ jobs:
       target: $(Build.SourceVersion)
       tagSource: manual
       tag: $(Build.SourceBranchName)
+      title: 'Hyperion $(semVer)'
       assets: '$(Build.ArtifactStagingDirectory)/*'
       assetUploadMode: 'replace'
       addChangeLog: false
@@ -139,6 +140,7 @@ jobs:
       target: $(Build.SourceVersion)
       tagSource: manual
       tag: '$(Build.SourceBranchName)'
+      title: 'Hyperion $(semVer)'
       assets: '$(Build.ArtifactStagingDirectory)/*'
       assetUploadMode: 'replace'
       addChangeLog: false
