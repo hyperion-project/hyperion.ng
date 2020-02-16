@@ -5,6 +5,8 @@
 
 **Summary**
 
+
+
 **What kind of change does this PR introduce?** (check at least one)
 
 - [ ] Bugfix
@@ -25,8 +27,8 @@ If changing the UI of web configuration, please provide the **before/after** scr
 If yes, please describe the impact and migration path for existing setups:
 
 **The PR fulfills these requirements:**
-
-- [ ] When resolving a specific issue, it's referenced in the PR's title (e.g. `fix #xxx[,#xxx]`, where "xxx" is the issue number)
+<!-- Github will close properly linked issues automatically on PR merge -->
+- [ ] When resolving a specific issue, it's referenced in the PR's body (e.g. `Fixes: #xxx[,#xxx]`, where "xxx" is the issue number)
 
 If adding a **new feature**, the PR's description includes:
 
