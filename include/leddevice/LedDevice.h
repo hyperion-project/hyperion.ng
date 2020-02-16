@@ -98,7 +98,7 @@ public slots:
 	/// @param[in] ledValues  The RGB-color per led
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
+	virtual int updateLeds(std::vector<ColorRgb>& ledValues);
 
 	///
 	/// Closes the output device.
@@ -219,10 +219,11 @@ private:
 	void stopRefreshTimer();
 
 
-	bool	_componentRegistered;
-	bool	_enabled;
-	bool	_refresh_enabled;
-	QString	_colorOrder;
+	bool		_componentRegistered;
+	bool		_enabled;
+	bool		_refresh_enabled;
+	QString		_colorOrder;
+	unsigned	_hwLedCount;
 
 	/// Last LED values written
 	std::vector<ColorRgb> _last_ledValues;

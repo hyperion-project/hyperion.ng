@@ -85,7 +85,7 @@ signals:
 	///
 	/// @return Zero on success else negative
 	///
-	int updateLeds(const std::vector<ColorRgb>& ledValues);
+	int updateLeds(std::vector<ColorRgb>& ledValues);
 
 	void setEnable(bool enable);
 	void closeLedDevice();

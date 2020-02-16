@@ -105,7 +105,8 @@ private:
 	 *
 	 * @param ledColors The colors to queue
 	 */
-	void queueColors(const std::vector<ColorRgb> & ledColors);
+	void queueColors(std::vector<ColorRgb> & ledColors);
+	
 	void clearQueuedColors();
 
 	/// write updated values as input for the smoothing filter

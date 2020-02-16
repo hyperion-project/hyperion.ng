@@ -26,6 +26,7 @@ LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	, _componentRegistered(false)
 	, _enabled(false)
 	, _refresh_enabled (false)
+	, _hwLedCount(0)
 {
 	// setup refreshTimer
 	_refresh_timer->setTimerType(Qt::PreciseTimer);
@@ -122,6 +123,9 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
 	_activeDeviceType = deviceConfig["type"].toString("file").toLower();
 	setLedCount(static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) )); // property injected to reflect real led count
+	_hwLedCount = deviceConfig["hardwareLedCount"].toInt(0);
+
+	WarningIf(getLedCount() > _hwLedCount,_log, "LedLayout is bigger than LedDevice led count (%d > %d)",getLedCount(),_hwLedCount);
 
 	_latchTime_ms =deviceConfig["latchTime"].toInt( _latchTime_ms );
 	_refresh_timer_interval =  deviceConfig["rewriteTime"].toInt( _refresh_timer_interval);
@@ -161,7 +165,7 @@ void LedDevice::stopRefreshTimer()
 	_refresh_timer->stop();
 }
 
-int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
+int LedDevice::updateLeds(std::vector<ColorRgb>& ledValues)
 {
 	int retval = 0;
 	if ( !_deviceReady || _deviceInError)
@@ -171,6 +175,10 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	}
 	else
 	{
+		// if hwLeds > ledValues fill them with black
+		if(_hwLedCount > ledValues.size())
+			ledValues.resize(_hwLedCount, ColorRgb::BLACK);
+
 		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
 		if (_latchTime_ms == 0 || elapsedTime >= _latchTime_ms)
 		{
@@ -200,7 +208,8 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 
 int LedDevice::writeBlack()
 {
-	return _deviceReady ? updateLeds(std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK )) : -1;
+	auto vec = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK );
+	return _deviceReady ? updateLeds(vec) : -1;
 }
 
 int LedDevice::switchOff()

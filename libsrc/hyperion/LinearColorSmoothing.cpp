@@ -169,7 +169,7 @@ void LinearColorSmoothing::updateLeds()
 	}
 }
 
-void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> & ledColors)
+void LinearColorSmoothing::queueColors(std::vector<ColorRgb> & ledColors)
 {
 	//Debug(_log, "queueColors -  _outputDelay[%d] _outputQueue.size() [%d], _writeToLedsEnable[%d]", _outputDelay, _outputQueue.size(), _writeToLedsEnable);
 	if (_outputDelay == 0)

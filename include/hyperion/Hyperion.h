@@ -431,7 +431,7 @@ signals:
 	///
 	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice
 	///
-	void ledDeviceData(const std::vector<ColorRgb>& ledValues);
+	void ledDeviceData(std::vector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
@@ -522,9 +522,6 @@ private:
 
 	/// Logger instance
 	Logger * _log;
-
-	/// count of hardware leds
-	unsigned _hwLedCount;
 
 	QSize _ledGridSize;
 

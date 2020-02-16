@@ -52,7 +52,6 @@ Hyperion::Hyperion(const quint8& instance)
 	, _effectEngine(nullptr)
 	, _messageForwarder(nullptr)
 	, _log(Logger::getInstance("HYPERION"))
-	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
 {
@@ -77,9 +76,6 @@ void Hyperion::start()
 		Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
 	}
 
-	// handle hwLedCount
-	_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
-
 	// init colororder vector
 	for (Led& led : _ledString.leds())
 	{
@@ -101,7 +97,7 @@ void Hyperion::start()
 
 	// initialize leddevices
 	QJsonObject ledDevice = getSetting(settings::DEVICE).object();
-	ledDevice["currentLedCount"] = int(_hwLedCount); // Inject led count info
+	ledDevice["currentLedCount"] = int(getLedCount()); // Inject led count info
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
 	connect(this, &Hyperion::componentStateChanged, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
@@ -215,9 +211,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 			_ledStringColorOrder.push_back(led.colorOrder);
 		}
 
-		// handle hwLedCount update
-		_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
-
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
 		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object());
@@ -229,9 +222,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	{
 		QMutexLocker lock(&_changes);
 		QJsonObject dev = config.object();
-
-		// handle hwLedCount update
-		_hwLedCount = qMax(unsigned(dev["hardwareLedCount"].toInt(getLedCount())), getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
@@ -247,7 +237,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
-		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
+		dev["currentLedCount"] = int(getLedCount()); // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
 
 		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop
@@ -577,12 +567,6 @@ void Hyperion::update()
 			break;
 		}
 		i++;
-	}
-
-	// fill additional hw leds with black
-	if ( _hwLedCount > _ledBuffer.size() )
-	{
-		_ledBuffer.resize(_hwLedCount, ColorRgb::BLACK);
 	}
 
 	// Write the data to the device
