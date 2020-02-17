@@ -5,8 +5,6 @@ include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 macro(InstallDependencies TARGET INSTALL_COMPONENT)
 	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
 	set(SYSTEM_LIBS_SKIP
-		"libavahi-client"
-		"libavahi-common"
 		"libbsd"
 		"libc"
 		"libdbus-1"
@@ -38,7 +36,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		"libXext"
 		"libXrender"
 		"libz"
-	    )
+	)
 
 	if(EXISTS ${TARGET_FILE})
 		include(GetPrerequisites)
@@ -46,7 +44,6 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		if (APPLE)
 			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 		endif(APPLE)
-		find_package(OpenSSL 1.0.0 REQUIRED)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
@@ -68,6 +65,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		endforeach()
 
 		# Append the OpenSSL library to the list
+		find_package(OpenSSL 1.0.0 REQUIRED)
 		if (OPENSSL_FOUND)
 			foreach(openssl_lib ${OPENSSL_LIBRARIES})
 				get_prerequisites(${openssl_lib} openssl_deps 0 1 "" "")
@@ -87,6 +85,8 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 				endforeach()
 
 				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
+				get_filename_component(file_canonical ${openssl_lib} REALPATH)
+				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			endforeach()
 		endif(OPENSSL_FOUND)
 
@@ -128,7 +128,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 					endforeach()
 				endif()
 			endforeach()
-		endif()
+		endif(QT_PLUGINS_DIR)
 
 		# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
@@ -161,7 +161,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 				DESTINATION "share/hyperion/lib/python"
 				COMPONENT "${INSTALL_COMPONENT}"
 			)
-		endif()
+		endif(PYTHON_MODULES_DIR)
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
