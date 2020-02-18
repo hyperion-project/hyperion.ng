@@ -38,7 +38,7 @@
     "dashboard_infobox_label_title": "Información",
     "dashboard_infobox_label_currenthyp": "Tu versión de Hyperion:",
     "dashboard_infobox_label_latesthyp": "Última versión de Hyperion:",
-    "dashboard_infobox_message_updatewarning": "¡Una versión más nueva de Hyperion está disponible! (V$1)",
+    "dashboard_infobox_message_updatewarning": "¡Una versión más nueva de Hyperion está disponible! ($1)",
     "dashboard_infobox_message_updatesuccess": "Ejecutas la última versión de Hyperion.",
     "dashboard_componentbox_label_title": "Estado de los componentes",
     "dashboard_componentbox_label_comp": "Estado de los componentes",

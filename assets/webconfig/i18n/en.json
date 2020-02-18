@@ -283,6 +283,7 @@
 	"update_label_type" : "Type:",
 	"update_versreminder" : "Your version: $1",
 	"update_error_getting_versions" : "We had trouble determining the latest available Version.",
+	"update_no_updates_for_branch": "No updates for selected version channel.",
 	"about_version" : "Version",
 	"about_build" : "Build",
 	"about_builddate" : "Build date",
