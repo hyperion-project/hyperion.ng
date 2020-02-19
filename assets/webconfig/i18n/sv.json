@@ -806,5 +806,7 @@
     "edt_eff_explodeRadius": "Detonationsområde",
     "edt_dev_spec_printTimeStamp_title": "Lägg till tidsstämpel",
     "edt_eff_ledtest_header": "LED-test",
-    "edt_eff_ledtest_header_desc": "Roterande utgång: röd, blå, grön, vit, svart"
+    "edt_eff_ledtest_header_desc": "Roterande utgång: röd, blå, grön, vit, svart",
+    "update_no_updates_for_branch": "",
+    "general_speech_sv": ""
 }
