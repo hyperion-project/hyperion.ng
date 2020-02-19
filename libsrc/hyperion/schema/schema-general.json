@@ -18,12 +18,12 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_gen_watchedVersionBranch_title",
-			"enum" : ["Stable", "Beta"],
+			"enum" : ["Stable", "Beta", "Alpha"],
 			"required" : true,
 			"access" : "expert",
 			"default" : "Stable",
 			"options" : {
-				"enum_titles" : ["Stable", "Beta"]
+				"enum_titles" : ["Stable", "Beta", "Alpha"]
 			},
 			"propertyOrder" : 2
 		},
