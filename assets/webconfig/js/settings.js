@@ -1,6 +1,6 @@
 var storedAccess;
 var storedLang;
-var availLang = ['en','de','es','it','cs'];
+var availLang = ['en','de','es','it','cs','sv'];
 var availAccess = ['default','advanced','expert'];
 //$.i18n.debug = true;
 
