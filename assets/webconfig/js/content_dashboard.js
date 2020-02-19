@@ -83,7 +83,6 @@ $(document).ready( function() {
 	getReleases(function(callback){
 		if(callback)
 		{
-			debugger;
 			$('#dash_latev').html(window.latestVersion.tag_name);
 
 			if (semverLite.gt(window.latestVersion.tag_name, window.currentVersion))
