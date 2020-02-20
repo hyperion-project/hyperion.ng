@@ -42,7 +42,7 @@ We provide a macOS Build but we can not support this.
 See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md).
 
 ## Download
-First alpha release is available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
+Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).  
