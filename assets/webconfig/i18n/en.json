@@ -354,7 +354,7 @@
 	"wiz_hue_create_user" : "Create new User",
 	"wiz_hue_failure_ip" : "No Bridge found, please type in a valid ip",
 	"wiz_hue_failure_connection" : "Timeout: Please press the bridge button within the period of 30 seconds",
-	"wiz_hue_failure_user" : "User not found, create a new one below or input a valid user id",
+	"wiz_hue_failure_user" : "User not found, create a new one with the button below or input a valid user id and press the \"reload\" symbol.",
 	"wiz_hue_press_link" : "Please press link button on the Hue Bridge.",
 	"wiz_hue_ids_disabled" : "Deactivated",
 	"wiz_hue_ids_entire" : "Whole picture",
