@@ -187,21 +187,33 @@
 
 	"ledConfig" :
 	{
-		"top"	 	: 8,
-		"bottom"	: 8,
-		"left"		: 5,
-		"right"		: 5,
-		"glength"	: 0,
-		"gpos"		: 0,
-		"position"	: 0,
-		"reverse"	: false,
-		"hdepth"	: 8,
-		"vdepth"	: 5,
-		"overlap"	: 0,
-		"edgegap"	: 0
+  		"classic":
+		{
+			"top"	 	: 8,
+			"bottom"	: 8,
+			"left"		: 5,
+			"right"		: 5,
+			"glength"	: 0,
+			"gpos"		: 0,
+			"position"	: 0,
+			"reverse"	: false,
+			"hdepth"	: 8,
+			"vdepth"	: 5,
+			"overlap"	: 0,
+			"edgegap"	: 0
+
+ 		},
+
+		"matrix":
+		{
+			"ledshoriz": 10,
+			"ledsvert" : 10,
+			"cabling"  : "snake",
+			"start"    : "top-left"
+    		}	
 	},
 
-    "leds":
+	"leds":
 	[
 		{
 			"h": {
