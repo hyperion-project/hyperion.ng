@@ -355,7 +355,7 @@
 	"wiz_hue_create_user": "Neuen Benutzer erstellen",
 	"wiz_hue_failure_ip": "Keine Hue Bridge gefunden, bitte überprüfe die IP",
 	"wiz_hue_failure_connection": "Zeitüberschreitung. Bitte drücke die Taste auf deiner Hue Bridge rechtzeitig",
-	"wiz_hue_failure_user": "Benutzer ID wurde nicht gefunden, erstelle eine Neue oder gib eine bereits registrierte an.",
+	"wiz_hue_failure_user": "Benutzer ID wurde nicht gefunden, erstelle eine Neue, indem du auf den nachfolgenden Button klickst, oder gib eine bereits registrierte an und klicke dann auf das \"neu laden\" Symbol.",
 	"wiz_hue_press_link": "Bitte \"Link\" Taste auf der Hue Bridge drücken.",
 	"wiz_hue_ids_disabled": "Deaktiviert",
 	"wiz_hue_ids_entire": "Ganzes Bild",
