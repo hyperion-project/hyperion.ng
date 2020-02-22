@@ -306,6 +306,59 @@ function createMatrixLeds(){
   createLedPreview(leds, 'matrix');
 }
 
+function migrateLedConfig(slConfig){
+
+	var newLedConfig = {classic:{}, matrix:{}};
+
+	//Default Classic layout
+  	newLedConfig.classic = {
+				"top"	 	: 8,
+				"bottom"	: 8,
+				"left"		: 5,
+				"right"		: 5,
+				"glength"	: 0,
+				"gpos"		: 0,
+				"position"	: 0,
+				"reverse"	: false,
+				"hdepth"	: 8,
+				"vdepth"	: 5,
+				"overlap"	: 0,
+				"edgegap"	: 0
+				}
+
+	//Move Classic layout
+	newLedConfig.classic.top 	= slConfig.top;
+	newLedConfig.classic.bottom	= slConfig.bottom;
+	newLedConfig.classic.left 	= slConfig.left;
+	newLedConfig.classic.right	= slConfig.right;
+	newLedConfig.classic.glength 	= slConfig.glength;
+	newLedConfig.classic.position	= slConfig.position;
+	newLedConfig.classic.reverse 	= slConfig.reverse;
+	newLedConfig.classic.hdepth	= slConfig.hdepth;
+	newLedConfig.classic.vdepth 	= slConfig.vdepth;
+	newLedConfig.classic.overlap	= slConfig.overlap;
+
+	//Default Matrix layout
+	newLedConfig["matrix"] = { "ledshoriz": 10,
+				"ledsvert" : 10,
+				"cabling"  : "snake",
+				"start"    : "top-left"
+				}
+
+	// Persit new structure
+	requestWriteConfig({ledConfig:newLedConfig})
+	return newLedConfig
+
+}
+
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
 $(document).ready(function() {
 	// translate
 	performTranslation();
@@ -320,28 +373,55 @@ $(document).ready(function() {
 
 	var slConfig = window.serverConfig.ledConfig;
 
-	//restore ledConfig
-	for(var key in slConfig)
+	//Check, if structure is not aligned to expected -> migrate structure
+	var newConfig = {};
+	if ( isEmpty(slConfig.classic) )
 	{
-		if(typeof(slConfig[key]) === "boolean")
-			$('#ip_cl_'+key).prop('checked', slConfig[key]);
+		slConfig = migrateLedConfig( slConfig );
+	}
+
+	//restore ledConfig - Classic
+	for(var key in slConfig.classic)
+	{
+		if(typeof(slConfig.classic[key]) === "boolean")
+			$('#ip_cl_'+key).prop('checked', slConfig.classic[key]);
 		else
-			$('#ip_cl_'+key).val(slConfig[key]);
+			$('#ip_cl_'+key).val(slConfig.classic[key]);
+	}
+
+	//restore ledConfig - Matrix
+	for(var key in slConfig.matrix)
+	{
+		if(typeof(slConfig.matrix[key]) === "boolean")
+			$('#ip_ma_'+key).prop('checked', slConfig.matrix[key]);
+		else
+			$('#ip_ma_'+key).val(slConfig.matrix[key]);
 	}
 
 	function saveValues()
 	{
-		var ledConfig = {};
-		for(var key in slConfig)
+		var ledConfig = {classic:{}, matrix:{}};
+
+		for(var key in slConfig.classic)
 		{
-			if(typeof(slConfig[key]) === "boolean")
-				ledConfig[key] = $('#ip_cl_'+key).is(':checked');
-			else if(Number.isInteger(slConfig[key]))
-				ledConfig[key] = parseInt($('#ip_cl_'+key).val());
+			if(typeof(slConfig.classic[key]) === "boolean")
+				ledConfig.classic[key] = $('#ip_cl_'+key).is(':checked');
+			else if(Number.isInteger(slConfig.classic[key]))
+				ledConfig.classic[key] = parseInt($('#ip_cl_'+key).val());
 			else
-				ledConfig[key] = $('#ip_cl_'+key).val();
+				ledConfig.classic[key] = $('#ip_cl_'+key).val();
 		}
-		setTimeout(requestWriteConfig, 100, {ledConfig});
+
+		for(var key in slConfig.matrix)
+		{
+			if(typeof(slConfig.matrix[key]) === "boolean")
+				ledConfig.matrix[key]  = $('#ip_ma_'+key).is(':checked');
+			else if(Number.isInteger(slConfig.matrix[key]))
+				ledConfig.matrix[key]  = parseInt($('#ip_ma_'+key).val());
+			else
+				ledConfig.matrix[key]  = $('#ip_ma_'+key).val();
+		}
+		requestWriteConfig({ledConfig});
 	}
 
 	// check access level and adjust ui
