@@ -346,7 +346,7 @@ function migrateLedConfig(slConfig){
 				}
 
 	// Persit new structure
-	setTimeout(requestWriteConfig, 100, newLedConfig);
+	requestWriteConfig({ledConfig:newLedConfig})
 	return newLedConfig
 
 }
@@ -421,7 +421,7 @@ $(document).ready(function() {
 			else
 				ledConfig.matrix[key]  = $('#ip_ma_'+key).val();
 		}
-		setTimeout(requestWriteConfig, 100, {ledConfig});
+		requestWriteConfig({ledConfig});
 	}
 
 	// check access level and adjust ui
