@@ -166,7 +166,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	int retval = 0;
 	if ( !_deviceReady || _deviceInError)
 	{
-		std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
+		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
 		return -1;
 	}
 	else
