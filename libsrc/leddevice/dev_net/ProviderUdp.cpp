@@ -76,10 +76,21 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 
 bool ProviderUdp::initNetwork()
 {
-	bool isInitOK = true;
+	bool isInitOK = false;
 
-	// TODO: Add Network-Error handling
-	_udpSocket = new QUdpSocket(this);
+	_udpSocket =new QUdpSocket(this);
+
+	if ( _udpSocket != nullptr)
+	{
+		QHostAddress localAddress = QHostAddress::Any;
+		quint16      localPort = 0;
+		if ( !_udpSocket->bind(localAddress, localPort) )
+		{
+			Warning ( _log, "Could not bind local address: %s", strerror(errno));
+		}
+		isInitOK = true;
+	}
+
 	return isInitOK;
 }
 
@@ -93,17 +104,10 @@ int ProviderUdp::open()
 	{
 		if ( ! initNetwork())
 		{
-			this->setInError( "Network error!" );
+			this->setInError( "UDP Network error!" );
 		}
 		else
 		{
-			QHostAddress localAddress = QHostAddress::Any;
-			quint16      localPort = 0;
-
-			if ( !_udpSocket->bind(localAddress, localPort) )
-			{
-				Warning ( _log, "Could not bind local address: %s", strerror(errno));
-			}
 			// Everything is OK -> enable device
 			_deviceReady = true;
 			setEnable(true);

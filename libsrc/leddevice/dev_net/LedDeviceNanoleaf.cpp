@@ -258,7 +258,7 @@ int LedDeviceNanoleaf::open()
 	{
 		if ( !initNetwork() )
 		{
-			this->setInError( "Network error!" );
+			this->setInError( "UDP Network error!" );
 		}
 		else
 		{
