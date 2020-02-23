@@ -30,7 +30,7 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	mkdir build || exit 1
 	cd build
 	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-	make -j $(sysctl -n hw.ncpu) || exit 3 # Notes: The package creation is currently not supported because of strange errors.
+	make -j $(sysctl -n hw.ncpu) package || exit 3
 	cd ${CI_BUILD_DIR} && source /${CI_BUILD_DIR}/test/testrunner.sh || exit 4
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
