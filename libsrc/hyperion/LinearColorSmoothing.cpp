@@ -38,7 +38,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	_cfgList.append(cfg);
 
 	// listen for comp changes
-	connect(_hyperion, &Hyperion::componentStateChanged, this, &LinearColorSmoothing::componentStateChange);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
 	// timer
 	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
@@ -235,7 +235,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 		clearQueuedColors();
 	}
 	// update comp register
-	_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_SMOOTHING, enable);
+	_hyperion->getComponentRegister().setNewComponentState(hyperion::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)

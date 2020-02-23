@@ -744,7 +744,7 @@ void JsonAPI::handleClearCommand(const QJsonObject& message, const QString& comm
 	if(priority > 0)
 		_hyperion->clear(priority);
 	else if(priority < 0)
-		_hyperion->clearall();
+		_hyperion->clear(-1);
 	else
 	{
 		sendErrorReply("Priority 0 is not allowed", command, tan);
@@ -760,7 +760,7 @@ void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& c
 	emit forwardJsonMessage(message);
 
 	// clear priority
-	_hyperion->clearall();
+	_hyperion->clear(-1);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -1015,7 +1015,7 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 	{
 		// send result before apply
 		sendSuccessReply(command, tan);
-		_hyperion->setComponentState(component, compState);
+		emit _hyperion->compStateChangeRequest(component, compState);
 		return;
 	}
 	sendErrorReply("invalid component name", command, tan);

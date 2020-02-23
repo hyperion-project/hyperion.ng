@@ -24,7 +24,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 	
-	connect(this, &V4L2Wrapper::componentStateChanged, _ggrabber, &Grabber::componentStateChanged);
+	connect(this, &V4L2Wrapper::compStateChangeRequest, _ggrabber, &Grabber::compStateChangeRequest);
 }
 
 bool V4L2Wrapper::start()

@@ -33,9 +33,9 @@ bool ComponentRegister::setHyperionEnable(const bool& state)
 			_prevComponentStates.emplace(comp.first, comp.second);
 			// disable if enabled
 			if(comp.second)
-				_hyperion->setComponentState(comp.first, false);
+				emit _hyperion->compStateChangeRequest(comp.first, false);
 		}
-		componentStateChanged(COMP_ALL, false);
+		setNewComponentState(COMP_ALL, false);
 		return true;
 	}
 	else if(state && !_prevComponentStates.empty())
@@ -45,11 +45,11 @@ bool ComponentRegister::setHyperionEnable(const bool& state)
 		{
 			// if comp was enabled, enable again
 			if(comp.second)
-				_hyperion->setComponentState(comp.first, true);
+				emit _hyperion->compStateChangeRequest(comp.first, true);
 
 		}
 		_prevComponentStates.clear();
-		componentStateChanged(COMP_ALL, true);
+		setNewComponentState(COMP_ALL, true);
 		return true;
 	}
 	return false;
@@ -60,7 +60,7 @@ int ComponentRegister::isComponentEnabled(const hyperion::Components& comp) cons
 	return (_componentStates.count(comp)) ? _componentStates.at(comp) : -1;
 }
 
-void ComponentRegister::componentStateChanged(const hyperion::Components comp, const bool activated)
+void ComponentRegister::setNewComponentState(const hyperion::Components comp, const bool activated)
 {
 	if(_componentStates[comp] != activated)
 	{

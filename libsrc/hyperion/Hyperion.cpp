@@ -104,7 +104,7 @@ void Hyperion::start()
 	ledDevice["currentLedCount"] = int(_hwLedCount); // Inject led count info
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
-	connect(this, &Hyperion::componentStateChanged, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
+	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
 	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper, &LedDeviceWrapper::updateLeds);
 	_ledDeviceWrapper->createLedDevice(ledDevice);
 
@@ -132,7 +132,6 @@ void Hyperion::start()
 	// forwards global signals to the corresponding slots
 	connect(GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput, this, &Hyperion::registerInput);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput, this, &Hyperion::clear);
-	connect(GlobalSignals::getInstance(), &GlobalSignals::clearAllGlobalInput, this, &Hyperion::clearall);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor, this, &Hyperion::setColor);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &Hyperion::setInputImage);
 
@@ -157,7 +156,7 @@ void Hyperion::stop()
 void Hyperion::freeObjects(bool emitCloseSignal)
 {
 	// switch off all leds
-	clearall(true);
+	clear(-1,true);
 
 	if (emitCloseSignal)
 	{
@@ -309,13 +308,7 @@ bool Hyperion::sourceAutoSelectEnabled()
 
 void Hyperion::setNewComponentState(const hyperion::Components& component, const bool& state)
 {
-	_componentRegister.componentStateChanged(component, state);
-}
-
-void Hyperion::setComponentState(const hyperion::Components component, const bool state)
-{
-	// TODO REMOVE THIS STEP
-	emit componentStateChanged(component, state);
+	_componentRegister.setNewComponentState(component, state);
 }
 
 void Hyperion::registerInput(const int priority, const hyperion::Components& component, const QString& origin, const QString& owner, unsigned smooth_cfg)
@@ -409,24 +402,26 @@ void Hyperion::adjustmentsUpdated()
 	update();
 }
 
-bool Hyperion::clear(const int priority)
+bool Hyperion::clear(const int priority, bool forceClearAll)
 {
-	// send clear signal to the effect engine
-	// (outside the check so the effect gets cleared even when the effect is not sending colors)
-	_effectEngine->channelCleared(priority);
+	if (priority < 0)
+	{
+		_muxer.clearAll(forceClearAll);
 
-	if(_muxer.clearInput(priority))
+		// send clearall signal to the effect engine
+		_effectEngine->allChannelsCleared();
 		return true;
+	}
+	else
+	{
+		// send clear signal to the effect engine
+		// (outside the check so the effect gets cleared even when the effect is not sending colors)
+		_effectEngine->channelCleared(priority);
 
+		if (_muxer.clearInput(priority))
+			return true;
+	}
 	return false;
-}
-
-void Hyperion::clearall(bool forceClearAll)
-{
-	_muxer.clearAll(forceClearAll);
-
-	// send clearall signal to the effect engine
-	_effectEngine->allChannelsCleared();
 }
 
 int Hyperion::getCurrentPriority() const

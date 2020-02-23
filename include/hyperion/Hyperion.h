@@ -205,14 +205,6 @@ public:
 	///
 	void setNewComponentState(const hyperion::Components& component, const bool& state);
 
-	///
-	/// @brief Enable/Disable components during runtime, called from external API (requests)
-	///
-	/// @param component The component from enum
-	/// @param state The state of the component [true | false]
-	///
-	void setComponentState(const hyperion::Components component, const bool state);
-
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
 	/// gets the methode how image is maped to leds
@@ -311,15 +303,11 @@ public slots:
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
 	/// lower priority channel (or off if no more channels are set)
 	///
-	/// @param[in] priority  The priority channel
+	/// @param[in] priority  The priority channel. -1 clears all priorities
+	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(const int priority);
-
-	///
-	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
-	///
-	void clearall(bool forceClearAll=false);
+	bool clear(const int priority, bool forceClearAll=false);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -375,7 +363,7 @@ signals:
 	/// @param component  The component from enum
 	/// @param enabled    The new state of the component
 	///
-	void componentStateChanged(const hyperion::Components component, bool enabled);
+	void compStateChangeRequest(const hyperion::Components component, bool enabled);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed

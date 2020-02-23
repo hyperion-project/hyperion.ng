@@ -105,7 +105,7 @@ namespace hyperion
 		///
 		/// @brief Handle component state changes, it's not possible for BB to be enabled, when a hardDisable is active
 		///
-		void componentStateChanged(const hyperion::Components component, bool enable);
+		void handleCompStateChangeRequest(const hyperion::Components component, bool enable);
 
 	private:
 		/// Hyperion instance

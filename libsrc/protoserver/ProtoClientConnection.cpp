@@ -202,7 +202,7 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 void ProtoClientConnection::handleClearallCommand()
 {
 	// clear all priority
-	emit clearAllGlobalInput();
+	emit clearGlobalInput(-1);
 
 	// send reply
 	sendSuccessReply();

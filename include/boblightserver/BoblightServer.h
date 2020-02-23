@@ -54,7 +54,7 @@ public slots:
 	///
 	void stop();
 
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor

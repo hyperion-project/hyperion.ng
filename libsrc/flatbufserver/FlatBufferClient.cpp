@@ -172,17 +172,12 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 	// extract parameters
 	const int priority = clear->priority();
 
-	if (priority == -1) {
-		emit clearAllGlobalInput();
+	// Check if we are clearing ourselves.
+	if (priority == _priority) {
+		_priority = -1;
 	}
-	else {
-		// Check if we are clearing ourselves.
-		if (priority == _priority) {
-			_priority = -1;
-		}
 
-		emit clearGlobalInput(priority);
-	}
+	emit clearGlobalInput(priority);
 
 	sendSuccessReply();
 }

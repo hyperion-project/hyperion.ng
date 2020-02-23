@@ -50,11 +50,11 @@ signals:
 
 public slots:
 	///
-	/// @brief is called whenever a component change a state, DO NOT CALL FROM API (use hyperion->setComponentState() instead)
+	/// @brief is called whenever a component change a state, DO NOT CALL FROM API, use signal hyperion->compStateChangeRequest
 	///	@param comp   The component
 	///	@param state  The new state of the component
 	///
-	void componentStateChanged(const hyperion::Components comp, const bool activated);
+	void setNewComponentState(const hyperion::Components comp, const bool activated);
 
 private:
 	///  Hyperion instance

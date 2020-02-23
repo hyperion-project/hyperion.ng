@@ -60,7 +60,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 
 	// connect componentStateChange only for build-in grabber
 	if (HyperionIManager::HIMinstance)
-		connect(this, &Grabber::componentStateChanged, this, &V4L2Grabber::componentStateChanged);
+		connect(this, &Grabber::compStateChangeRequest, this, &V4L2Grabber::compStateChangeRequest);
 
 	// init
 	setDeviceVideoStandard(device, videoStandard);
@@ -1176,7 +1176,7 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 	}
 }
 
-void V4L2Grabber::componentStateChanged(const hyperion::Components component, bool enable)
+void V4L2Grabber::compStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if (component == hyperion::COMP_V4L)
 	{

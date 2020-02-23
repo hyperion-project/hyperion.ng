@@ -41,12 +41,7 @@ signals:
 	///
 	/// @brief Forward clear command to HyperionDaemon
 	///
-	void clearGlobalInput(const int priority);
-
-	///
-	/// @brief Forward clearAll command to HyperionDaemon
-	///
-	void clearAllGlobalInput(bool forceClearAll=false);
+	void clearGlobalInput(const int priority, bool forceClearAll=false);
 
 	///
 	/// @brief forward prepared image to HyperionDaemon

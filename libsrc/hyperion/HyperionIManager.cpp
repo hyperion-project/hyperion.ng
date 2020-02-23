@@ -76,7 +76,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 			// from Hyperion
 			connect(hyperion, &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
 			connect(hyperion, &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
-			connect(hyperion, &Hyperion::componentStateChanged, this, &HyperionIManager::componentStateChanged);
+			connect(hyperion, &Hyperion::compStateChangeRequest, this, &HyperionIManager::compStateChangeRequest);
 			// to Hyperion
 			connect(this, &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
 
