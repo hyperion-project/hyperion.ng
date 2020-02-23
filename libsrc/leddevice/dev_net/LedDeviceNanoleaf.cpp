@@ -256,11 +256,18 @@ int LedDeviceNanoleaf::open()
 
 	if ( init(_devConfig) )
 	{
-		if ( initLeds() )
+		if ( !initNetwork() )
 		{
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
+			this->setInError( "UDP Network error!" );
+		}
+		else
+		{
+			if ( initLeds() )
+			{
+				_deviceReady = true;
+				setEnable(true);
+				retval = 0;
+			}
 		}
 	}
 	return retval;
