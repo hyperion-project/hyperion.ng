@@ -518,11 +518,11 @@ $('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
 var hueIPs = [];
 var hueIPsinc = 0;
 var lightIDs = null;
-var huePosTop =    {h: {max: 0.85, min: 0.15}, v: {max: 0.2, min: 0}};
-var huePosBottom = {h: {max: 0.85, min: 0.15}, v: {max: 1, min: 0.8}};
-var huePosLeft =   {h: {max: 0.15, min: 0},    v: {max: 0.85, min: 0.15}};
-var huePosRight =  {h: {max: 1, min: 0.85},    v: {max: 0.85, min: 0.15}};
-var huePosEntire = {h: {max: 1.0, min: 0.0},   v: {max: 1.0, min: 0.0}};
+var huePosTop =    {hmax: 0.85, hmin: 0.15, vmax: 0.2,  vmin: 0};
+var huePosBottom = {hmax: 0.85, hmin: 0.15, vmax: 1,    vmin: 0.8};
+var huePosLeft =   {hmax: 0.15, hmin: 0,    vmax: 0.85, vmin: 0.15};
+var huePosRight =  {hmax: 1,    hmin: 0.85, vmax: 0.85, vmin: 0.15};
+var huePosEntire = {hmax: 1.0,  hmin: 0.0,  vmax: 1.0,  vmin: 0.0};
 
 function startWizardPhilipsHue()
 {
