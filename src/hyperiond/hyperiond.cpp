@@ -112,7 +112,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 
 	// pipe settings changes and component state changes from HyperionIManager to Daemon
 	connect(_instanceManager, &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
-	connect(_instanceManager, &HyperionIManager::componentStateChanged, this, &HyperionDaemon::componentStateChanged);
+	connect(_instanceManager, &HyperionIManager::compStateChangeRequest, this, &HyperionDaemon::compStateChangeRequest);
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
@@ -247,7 +247,7 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt());
+	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(),  getSetting(settings::GENERAL).object()["name"].toString());
 	QThread* ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
 	connect( ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer );
@@ -436,7 +436,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-			connect(this, &HyperionDaemon::componentStateChanged, _v4l2Grabber, &V4L2Wrapper::componentStateChanged);
+			connect(this, &HyperionDaemon::compStateChangeRequest, _v4l2Grabber, &V4L2Wrapper::compStateChangeRequest);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
