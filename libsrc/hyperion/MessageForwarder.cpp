@@ -91,7 +91,7 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 		}
 
 		// update comp state
-		_hyperion->getComponentRegister().setNewComponentState(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
+		_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
 	}
 }
 
@@ -102,7 +102,7 @@ void MessageForwarder::handleCompStateChangeRequest(const hyperion::Components c
 		_forwarder_enabled = enable;
 		handleSettingsUpdate(settings::NETFORWARD, _hyperion->getSetting(settings::NETFORWARD));
 		Info(_log, "Forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled"));
-		_hyperion->getComponentRegister().setNewComponentState(component, _forwarder_enabled);
+		_hyperion->setNewComponentState(component, _forwarder_enabled);
 	}
 }
 

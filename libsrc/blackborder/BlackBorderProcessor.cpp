@@ -85,7 +85,7 @@ void BlackBorderProcessor::handleCompStateChangeRequest(const hyperion::Componen
 			_enabled = enable;
 		}
 
-		_hyperion->getComponentRegister().setNewComponentState(hyperion::COMP_BLACKBORDER, enable);
+		_hyperion->setNewComponentState(hyperion::COMP_BLACKBORDER, enable);
 	}
 }
 

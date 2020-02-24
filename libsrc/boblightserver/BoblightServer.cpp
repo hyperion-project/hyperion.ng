@@ -51,7 +51,7 @@ void BoblightServer::start()
 
 	Info(_log, "Started on port %d", _port);
 
-	_hyperion->getComponentRegister().setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 void BoblightServer::stop()
@@ -65,7 +65,7 @@ void BoblightServer::stop()
 	_server->close();
 
 	Info(_log, "Stopped");
-	_hyperion->getComponentRegister().setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
+	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
 bool BoblightServer::active()

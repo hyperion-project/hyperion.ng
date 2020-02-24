@@ -23,14 +23,6 @@ public:
 	~ComponentRegister();
 
 	///
-	/// @brief Enable or disable Hyperion (all components)
-	/// @param state   The new state of Hyperion
-	///
-	/// @return Returns true on success, false when Hyperion is already at the requested state
-	///
-	bool setHyperionEnable(const bool& state);
-
-	///
 	/// @brief  Check if a component is currently enabled
 	/// @param  comp   The component from enum
 	/// @return        True if component is running else false. Not found is -1
@@ -56,6 +48,12 @@ public slots:
 	///
 	void setNewComponentState(const hyperion::Components comp, const bool activated);
 
+private slots:
+	///
+	/// @brief Handle COMP_ALL changes from Hyperion->compStateChangeRequest
+	///
+	void handleCompStateChangeRequest(const hyperion::Components comp, const bool activated);
+
 private:
 	///  Hyperion instance
 	Hyperion * _hyperion;
@@ -65,4 +63,6 @@ private:
 	std::map<hyperion::Components, bool> _componentStates;
 	/// on hyperion off we save the previous states of all components
 	std::map<hyperion::Components, bool> _prevComponentStates;
+	// helper to prevent self emit chains
+	bool _inProgress = false;
 };

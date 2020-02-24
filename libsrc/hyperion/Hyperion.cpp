@@ -311,6 +311,16 @@ void Hyperion::setNewComponentState(const hyperion::Components& component, const
 	_componentRegister.setNewComponentState(component, state);
 }
 
+std::map<hyperion::Components, bool> Hyperion::getAllComponents()
+{
+	return _componentRegister.getRegister();
+}
+
+int Hyperion::isComponentEnabled(const hyperion::Components &comp)
+{
+	return _componentRegister.isComponentEnabled(comp);
+}
+
 void Hyperion::registerInput(const int priority, const hyperion::Components& component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	_muxer.registerInput(priority, component, origin, owner, smooth_cfg);

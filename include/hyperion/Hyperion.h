@@ -205,6 +205,19 @@ public:
 	///
 	void setNewComponentState(const hyperion::Components& component, const bool& state);
 
+	///
+	/// @brief Get a list of all contrable components and their current state
+	/// @return list of components
+	///
+	std::map<hyperion::Components, bool> getAllComponents();
+
+	///
+	/// @brief Test if a component is enabled
+	/// @param The component to test
+	/// @return Component state
+	///
+	int isComponentEnabled(const hyperion::Components& comp);
+
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
 	/// gets the methode how image is maped to leds

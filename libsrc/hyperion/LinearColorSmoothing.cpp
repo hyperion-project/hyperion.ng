@@ -235,7 +235,7 @@ void LinearColorSmoothing::setEnable(bool enable)
 		clearQueuedColors();
 	}
 	// update comp register
-	_hyperion->getComponentRegister().setNewComponentState(hyperion::COMP_SMOOTHING, enable);
+	_hyperion->setNewComponentState(hyperion::COMP_SMOOTHING, enable);
 }
 
 void LinearColorSmoothing::setPause(bool pause)

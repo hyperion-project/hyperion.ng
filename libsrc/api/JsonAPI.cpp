@@ -562,7 +562,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 	// get available components
 	QJsonArray component;
-	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+	std::map<hyperion::Components, bool> components = _hyperion->getAllComponents();
 	for(auto comp : components)
 	{
 		QJsonObject item;
@@ -920,7 +920,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject& message, const QString &
 	if (message.contains("config"))
 	{
 		QJsonObject config = message["config"].toObject();
-		if(_hyperion->getComponentRegister().isComponentEnabled(hyperion::COMP_ALL))
+		if(_hyperion->isComponentEnabled(hyperion::COMP_ALL))
 		{
 			if(_hyperion->saveSettings(config, true))
 				sendSuccessReply(command,tan);
@@ -1004,14 +1004,7 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 
 	Components component = stringToComponent(compStr);
 
-	if (compStr == "ALL" )
-	{
-		if(_hyperion->getComponentRegister().setHyperionEnable(compState))
-			sendSuccessReply(command, tan);
-
-		return;
-	}
-	else if (component != COMP_INVALID)
+	if (component != COMP_INVALID)
 	{
 		// send result before apply
 		sendSuccessReply(command, tan);
