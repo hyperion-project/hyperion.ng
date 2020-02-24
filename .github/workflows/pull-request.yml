@@ -1,7 +1,15 @@
-name: GitHub Actions
-on: [push, pull_request]
+name: Hyperion PR Build
+on:
+  pull_request:
+    branches:
+      - master
 
 jobs:
+
+######################
+###### Linux #########
+######################
+
   Linux:
     name: ${{ matrix.dockerName }}
     runs-on: ubuntu-latest
@@ -30,7 +38,12 @@ jobs:
         with:
           submodules: true
 
-      # build process
+      # Append PR number to version
+      - name: Append PR number to version
+        shell: bash
+        run: 'echo -n -PR#${{ github.event.pull_request.number }} >> version'
+
+      # Build packages
       - name: Build packages
         env:
           DOCKER_TAG: ${{ matrix.dockerTag }}
@@ -39,15 +52,23 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # create/update github release (replacement for Microsoft Azure after the beta phase)
+      # Collecting deployable artifacts
+      - name: Collecting deployable artifacts
+        shell: bash
+        run: |
+          mkdir -p ${{ matrix.dockerTag }}
+          mv deploy/Hyperion-* ${{ matrix.dockerTag }}
 
-#      - name: Create/Update GitHub release
-#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
-#        uses: docker://softprops/action-gh-release
-#        with:
-#          files: deploy/Hyperion.NG-*
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.dockerTag }}.zip
+          path: ${{ matrix.dockerTag }}
+
+######################
+###### macOS #########
+######################
 
   macOS:
     name: macOS
@@ -57,24 +78,33 @@ jobs:
         with:
           submodules: true
 
-      # install dependencies
+      # Append PR number to version
+      - name: Append PR number to version
+        shell: bash
+        run: echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+
+      # Install dependencies
       - name: Install dependencies
         shell: bash
         run: ./.ci/ci_install.sh
 
-      # build process
+      # Build packages
       - name: Build packages
         env:
           PLATFORM: osx
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # create/update github release (replacement for Microsoft Azure after the beta phase)
+      # Collecting deployable artifacts
+      - name: Collecting deployable artifacts
+        shell: bash
+        run: |
+          mkdir -p macOS
+          mv build/Hyperion-* macOS
 
-#      - name: Create/Update GitHub release
-#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
-#        uses: docker://softprops/action-gh-release
-#        with:
-#          files: deploy/Hyperion.NG-*
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: macOS.zip
+          path: macOS

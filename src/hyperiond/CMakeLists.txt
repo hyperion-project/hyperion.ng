@@ -256,5 +256,8 @@ if(CMAKE_HOST_UNIX)
 	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "${PLATFORM}" )
 endif(CMAKE_HOST_UNIX)
 
-# Copy dependencies
-InstallDependencies("hyperiond" ${PLATFORM})
+
+# Copy dependencies (not for OSX)
+if (NOT ENABLE_OSX)
+	InstallDependencies("hyperiond" ${PLATFORM})
+endif ()
