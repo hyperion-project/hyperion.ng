@@ -180,11 +180,13 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 		const QJsonArray ledarr = config["leds"].toArray();
 		const QJsonObject led = ledarr[0].toObject();
 
-		if(led.contains("hscan") || led.contains("h")){
+		if(led.contains("hscan") || led.contains("h"))
+		{
 			const bool whscan = led.contains("hscan");
 			QJsonArray newLedarr;
 
-			for(const auto & entry : ledarr){
+			for(const auto & entry : ledarr)
+			{
 				const QJsonObject led = entry.toObject();
 				QJsonObject hscan;
 				QJsonObject vscan;
@@ -194,14 +196,17 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 				QJsonValue vmax;
 				QJsonObject nL;
 
-				if(whscan){
+				if(whscan)
+				{
 					hscan = led["hscan"].toObject();
 					vscan = led["vscan"].toObject();
 					hmin = hscan["minimum"];
 					hmax = hscan["maximum"];
 					vmin = vscan["minimum"];
 					vmax = vscan["maximum"];
-				} else {
+				}
+				else
+				{
 					hscan = led["h"].toObject();
 					vscan = led["v"].toObject();
 					hmin = hscan["min"];
