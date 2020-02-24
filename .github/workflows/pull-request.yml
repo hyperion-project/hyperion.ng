@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p ${{ matrix.dockerTag }}
-          mv deploy/Hyperion-* ${{ matrix.dockerTag }}
+          mv deploy/*.tar.gz ${{ matrix.dockerTag }}
 
       # Upload artifacts
       - name: Upload artifacts
@@ -100,7 +100,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p macOS
-          mv build/Hyperion-* macOS
+          mv build/*.tar.gz macOS
 
       # Upload artifacts
       - name: Upload artifacts
