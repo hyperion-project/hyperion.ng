@@ -80,7 +80,7 @@ signals:
 	/// @param[in] origin      The setter
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalColor(const int priority, const ColorRgb &ledColor, const int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
+	void setGlobalColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
 
 	///////////////////////////////////////
 	//////////// FROM HYPERION ////////////

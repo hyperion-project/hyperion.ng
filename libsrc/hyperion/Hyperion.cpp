@@ -375,14 +375,25 @@ bool Hyperion::setInputInactive(const quint8& priority)
 	return _muxer.setInputInactive(priority);
 }
 
-void Hyperion::setColor(const int priority, const ColorRgb &color, const int timeout_ms, const QString& origin, bool clearEffects)
+void Hyperion::setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, const QString &origin, bool clearEffects)
 {
 	// clear effect if this call does not come from an effect
-	if(clearEffects)
+	if (clearEffects)
 		_effectEngine->channelCleared(priority);
 
-	// create led vector from single color
-	std::vector<ColorRgb> ledColors(_ledString.leds().size(), color);
+	// create full led vector from single/multiple colors
+	unsigned int size = _ledString.leds().size();
+	std::vector<ColorRgb> newLedColors;
+	while (true)
+	{
+		for (const auto &entry : ledColors)
+		{
+			newLedColors.emplace_back(entry);
+			if (newLedColors.size() == size)
+				goto end;
+		}
+	}
+end:
 
 	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
 		clear(priority);
@@ -391,8 +402,8 @@ void Hyperion::setColor(const int priority, const ColorRgb &color, const int tim
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
 	// write color to muxer & queuePush
-	setInput(priority, ledColors, timeout_ms);
-	if(timeout_ms <= 0)
+	setInput(priority, newLedColors, timeout_ms);
+	if (timeout_ms <= 0)
 		_muxer.queuePush();
 }
 

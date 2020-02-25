@@ -204,17 +204,29 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& command, const int tan)
 {
 	emit forwardJsonMessage(message);
-
-	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	const QString origin = message["origin"].toString("JsonRpc") + "@"+_peerAddress;
+	const QString origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 
-	const QJsonArray & jsonColor = message["color"].toArray();
-	const ColorRgb color = {uint8_t(jsonColor.at(0).toInt()),uint8_t(jsonColor.at(1).toInt()),uint8_t(jsonColor.at(2).toInt())};
+	const QJsonArray &jsonColor = message["color"].toArray();
+	std::vector<uint8_t> colors;
+	// TODO faster copy
+	for (const auto &entry : jsonColor)
+	{
+		colors.emplace_back(uint8_t(entry.toInt()));
+	}
+
+		std::vector<ColorRgb> fledColors;
+	if (colors.size() % 3 == 0)
+	{
+		for (unsigned i = 0; i < colors.size(); i += 3)
+		{
+			fledColors.emplace_back(ColorRgb{colors[i], colors[i + 1], colors[i + 2]});
+		}
+	}
 
 	// set color
-	_hyperion->setColor(priority, color, duration, origin);
+	_hyperion->setColor(priority, fledColors, duration, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);

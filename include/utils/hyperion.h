@@ -34,13 +34,15 @@ namespace hyperion {
 			}
 			if ( fgTypeConfig.contains("color") )
 			{
-				ColorRgb fg_color = {
-					(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
-					(uint8_t)FGCONFIG_ARRAY.at(1).toInt(0),
-					(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
+				std::vector<ColorRgb> fg_color = {
+					ColorRgb {
+						(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
+						(uint8_t)FGCONFIG_ARRAY.at(1).toInt(0),
+						(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
+					}
 				};
 				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
+				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
 			else
 			{

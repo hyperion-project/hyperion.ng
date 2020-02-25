@@ -95,10 +95,7 @@ void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 {
 	// extract parameters
 	const int32_t rgbData = colorReq->data();
-	ColorRgb color;
-	color.red = qRed(rgbData);
-	color.green = qGreen(rgbData);
-	color.blue = qBlue(rgbData);
+	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
 
 	// set output
 	emit setGlobalInputColor(_priority, color, colorReq->duration());

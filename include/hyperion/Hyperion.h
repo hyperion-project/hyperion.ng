@@ -283,12 +283,12 @@ public slots:
 	/// Should be never used to update leds continuous
 	///
 	/// @param[in] priority The priority of the written color
-	/// @param[in] ledColor The color to write to the leds
+	/// @param[in] ledColors The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(const int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive

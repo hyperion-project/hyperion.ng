@@ -51,7 +51,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(const int priority, const ColorRgb &ledColor, const int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emits whenever the client disconnected
