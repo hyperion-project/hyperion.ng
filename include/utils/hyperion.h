@@ -34,13 +34,15 @@ namespace hyperion {
 			}
 			if ( fgTypeConfig.contains("color") )
 			{
-				ColorRgb fg_color = {
-					(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
-					(uint8_t)FGCONFIG_ARRAY.at(1).toInt(0),
-					(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
+				std::vector<ColorRgb> fg_color = {
+					ColorRgb {
+						(uint8_t)FGCONFIG_ARRAY.at(0).toInt(0),
+						(uint8_t)FGCONFIG_ARRAY.at(1).toInt(0),
+						(uint8_t)FGCONFIG_ARRAY.at(2).toInt(0)
+					}
 				};
 				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.red,fg_color.green,fg_color.blue);
+				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
 			else
 			{
@@ -195,15 +197,13 @@ namespace hyperion {
 
 		for (signed i = 0; i < ledConfigArray.size(); ++i)
 		{
-			const QJsonObject& index = ledConfigArray[i].toObject();
+			const QJsonObject& ledConfig = ledConfigArray[i].toObject();
 			Led led;
 
-			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
-			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
-			led.minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
-			led.maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
-			led.minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
-			led.maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
+			led.minX_frac = qMax(0.0, qMin(1.0, ledConfig["hmin"].toDouble()));
+			led.maxX_frac = qMax(0.0, qMin(1.0, ledConfig["hmax"].toDouble()));
+			led.minY_frac = qMax(0.0, qMin(1.0, ledConfig["vmin"].toDouble()));
+			led.maxY_frac = qMax(0.0, qMin(1.0, ledConfig["vmax"].toDouble()));
 			// Fix if the user swapped min and max
 			if (led.minX_frac > led.maxX_frac)
 			{
@@ -215,7 +215,7 @@ namespace hyperion {
 			}
 
 			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(index["colorOrder"].toString(deviceOrderStr));
+			led.colorOrder = stringToColorOrder(ledConfig["colorOrder"].toString(deviceOrderStr));
 			ledString.leds().push_back(led);
 		}
 		return ledString;
@@ -228,12 +228,12 @@ namespace hyperion {
 
 		for (signed i = 0; i < ledConfigArray.size(); ++i)
 		{
-			const QJsonObject& hscanConfig = ledConfigArray[i].toObject()["h"].toObject();
-			const QJsonObject& vscanConfig = ledConfigArray[i].toObject()["v"].toObject();
-			double minX_frac = qMax(0.0, qMin(1.0, hscanConfig["min"].toDouble()));
-			double maxX_frac = qMax(0.0, qMin(1.0, hscanConfig["max"].toDouble()));
-			double minY_frac = qMax(0.0, qMin(1.0, vscanConfig["min"].toDouble()));
-			double maxY_frac = qMax(0.0, qMin(1.0, vscanConfig["max"].toDouble()));
+			const QJsonObject& ledConfig = ledConfigArray[i].toObject();
+
+			double minX_frac = qMax(0.0, qMin(1.0, ledConfig["hmin"].toDouble()));
+			double maxX_frac = qMax(0.0, qMin(1.0, ledConfig["hmax"].toDouble()));
+			double minY_frac = qMax(0.0, qMin(1.0, ledConfig["vmin"].toDouble()));
+			double maxY_frac = qMax(0.0, qMin(1.0, ledConfig["vmax"].toDouble()));
 			// Fix if the user swapped min and max
 			if (minX_frac > maxX_frac)
 			{

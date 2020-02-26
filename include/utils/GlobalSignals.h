@@ -58,14 +58,10 @@ signals:
 
 	///
 	/// @brief PIPE the clear command for the global priority channel over HyperionDaemon to Hyperion class
-	/// @param[in] priority    The priority channel
+	/// @param[in] priority       The priority channel (-1 to clear all possible priorities)
+	/// @param[in] forceclearAll  Force the clear
 	///
-	void clearGlobalInput(int priority);
-
-	///
-	/// @brief PIPE the clearAll command over HyperionDaemon to Hyperion class
-	///
-	void clearAllGlobalInput(bool forceClearAll=false);
+	void clearGlobalInput(int priority, bool forceClearAll=false);
 
 	///
 	/// @brief PIPE external images over HyperionDaemon to Hyperion class
@@ -84,7 +80,7 @@ signals:
 	/// @param[in] origin      The setter
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalColor(const int priority, const ColorRgb &ledColor, const int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
+	void setGlobalColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
 
 	///////////////////////////////////////
 	//////////// FROM HYPERION ////////////

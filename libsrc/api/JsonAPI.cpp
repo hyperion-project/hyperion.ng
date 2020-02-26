@@ -204,17 +204,29 @@ void JsonAPI::handleMessage(const QString& messageString, const QString& httpAut
 void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& command, const int tan)
 {
 	emit forwardJsonMessage(message);
-
-	// extract parameters
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
-	const QString origin = message["origin"].toString("JsonRpc") + "@"+_peerAddress;
+	const QString origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 
-	const QJsonArray & jsonColor = message["color"].toArray();
-	const ColorRgb color = {uint8_t(jsonColor.at(0).toInt()),uint8_t(jsonColor.at(1).toInt()),uint8_t(jsonColor.at(2).toInt())};
+	const QJsonArray &jsonColor = message["color"].toArray();
+	std::vector<uint8_t> colors;
+	// TODO faster copy
+	for (const auto &entry : jsonColor)
+	{
+		colors.emplace_back(uint8_t(entry.toInt()));
+	}
+
+		std::vector<ColorRgb> fledColors;
+	if (colors.size() % 3 == 0)
+	{
+		for (unsigned i = 0; i < colors.size(); i += 3)
+		{
+			fledColors.emplace_back(ColorRgb{colors[i], colors[i + 1], colors[i + 2]});
+		}
+	}
 
 	// set color
-	_hyperion->setColor(priority, color, duration, origin);
+	_hyperion->setColor(priority, fledColors, duration, origin);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -562,7 +574,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString&
 
 	// get available components
 	QJsonArray component;
-	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+	std::map<hyperion::Components, bool> components = _hyperion->getAllComponents();
 	for(auto comp : components)
 	{
 		QJsonObject item;
@@ -744,7 +756,7 @@ void JsonAPI::handleClearCommand(const QJsonObject& message, const QString& comm
 	if(priority > 0)
 		_hyperion->clear(priority);
 	else if(priority < 0)
-		_hyperion->clearall();
+		_hyperion->clear(-1);
 	else
 	{
 		sendErrorReply("Priority 0 is not allowed", command, tan);
@@ -760,7 +772,7 @@ void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& c
 	emit forwardJsonMessage(message);
 
 	// clear priority
-	_hyperion->clearall();
+	_hyperion->clear(-1);
 
 	// send reply
 	sendSuccessReply(command, tan);
@@ -920,7 +932,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject& message, const QString &
 	if (message.contains("config"))
 	{
 		QJsonObject config = message["config"].toObject();
-		if(_hyperion->getComponentRegister().isComponentEnabled(hyperion::COMP_ALL))
+		if(_hyperion->isComponentEnabled(hyperion::COMP_ALL))
 		{
 			if(_hyperion->saveSettings(config, true))
 				sendSuccessReply(command,tan);
@@ -1004,18 +1016,11 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QStr
 
 	Components component = stringToComponent(compStr);
 
-	if (compStr == "ALL" )
-	{
-		if(_hyperion->getComponentRegister().setHyperionEnable(compState))
-			sendSuccessReply(command, tan);
-
-		return;
-	}
-	else if (component != COMP_INVALID)
+	if (component != COMP_INVALID)
 	{
 		// send result before apply
 		sendSuccessReply(command, tan);
-		_hyperion->setComponentState(component, compState);
+		emit _hyperion->compStateChangeRequest(component, compState);
 		return;
 	}
 	sendErrorReply("invalid component name", command, tan);

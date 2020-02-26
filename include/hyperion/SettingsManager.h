@@ -53,6 +53,14 @@ signals:
 	void settingsChanged(const settings::type& type, const QJsonDocument& data);
 
 private:
+	///
+	/// @brief Add possile migrations steps for config here
+	/// @param config The configuration object
+	/// @return True when a migration has been triggered
+	///
+	bool handleConfigUpgrade(QJsonObject& config);
+
+
 	/// Hyperion instance
 	Hyperion* _hyperion;
 

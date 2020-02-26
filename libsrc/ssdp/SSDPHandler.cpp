@@ -9,7 +9,7 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
-SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
@@ -17,6 +17,7 @@ SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const
 {
 	setFlatBufPort(flatBufPort);
 	setJsonServerPort(jsonServerPort);
+	setHyperionName(name);
 }
 
 SSDPHandler::~SSDPHandler()
@@ -74,6 +75,15 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
 			SSDPServer::setJsonServerPort(obj["port"].toInt());
+		}
+	}
+
+	if (type == settings::GENERAL)
+	{
+		const QJsonObject &obj = config.object();
+		if (obj["name"].toString() != SSDPServer::getHyperionName())
+		{
+			SSDPServer::setHyperionName(obj["name"].toString());
 		}
 	}
 }

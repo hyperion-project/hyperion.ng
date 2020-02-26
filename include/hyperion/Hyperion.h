@@ -206,12 +206,17 @@ public:
 	void setNewComponentState(const hyperion::Components& component, const bool& state);
 
 	///
-	/// @brief Enable/Disable components during runtime, called from external API (requests)
+	/// @brief Get a list of all contrable components and their current state
+	/// @return list of components
 	///
-	/// @param component The component from enum
-	/// @param state The state of the component [true | false]
+	std::map<hyperion::Components, bool> getAllComponents();
+
 	///
-	void setComponentState(const hyperion::Components component, const bool state);
+	/// @brief Test if a component is enabled
+	/// @param The component to test
+	/// @return Component state
+	///
+	int isComponentEnabled(const hyperion::Components& comp);
 
 	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
@@ -278,12 +283,12 @@ public slots:
 	/// Should be never used to update leds continuous
 	///
 	/// @param[in] priority The priority of the written color
-	/// @param[in] ledColor The color to write to the leds
+	/// @param[in] ledColors The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(const int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -311,15 +316,11 @@ public slots:
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
 	/// lower priority channel (or off if no more channels are set)
 	///
-	/// @param[in] priority  The priority channel
+	/// @param[in] priority  The priority channel. -1 clears all priorities
+	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(const int priority);
-
-	///
-	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
-	///
-	void clearall(bool forceClearAll=false);
+	bool clear(const int priority, bool forceClearAll=false);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -375,7 +376,7 @@ signals:
 	/// @param component  The component from enum
 	/// @param enabled    The new state of the component
 	///
-	void componentStateChanged(const hyperion::Components component, bool enabled);
+	void compStateChangeRequest(const hyperion::Components component, bool enabled);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed

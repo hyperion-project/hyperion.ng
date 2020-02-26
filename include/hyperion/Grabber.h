@@ -101,7 +101,7 @@ signals:
 	///
 	/// @brief PIPE component state changes from HyperionDaemon to V4L2Grabber
 	///
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 protected:
 	ImageResampler _imageResampler;

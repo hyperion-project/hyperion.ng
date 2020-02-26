@@ -6,6 +6,7 @@ execute_process( COMMAND sh -c "git remote --verbose | grep origin | grep fetch 
 STRING ( STRIP "${BUILD_ID}" BUILD_ID )
 STRING ( STRIP "${VERSION_ID}" VERSION_ID )
 STRING ( STRIP "${GIT_REMOTE_PATH}" GIT_REMOTE_PATH )
-SET ( HYPERION_BUILD_ID "${VERSION_ID} (${BUILD_ID}) Git Remote: ${GIT_REMOTE_PATH}" )
+SET ( HYPERION_BUILD_ID "${VERSION_ID} (${BUILD_ID})" )
+SET ( HYPERION_GIT_REMOTE "${GIT_REMOTE_PATH}" )
 message ( STATUS "Current Version: ${HYPERION_VERSION}" )
 message ( STATUS " - Build: ${HYPERION_BUILD_ID}" )
