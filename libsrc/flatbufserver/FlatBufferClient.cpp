@@ -44,7 +44,7 @@ void FlatBufferClient::readyRead()
 		if((uint32_t) _receiveBuffer.size() < messageSize + 4) return;
 
 		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
-		const QByteArray msg = _receiveBuffer.right(messageSize);
+		const QByteArray msg = _receiveBuffer.mid(4, messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
 
 		const auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
@@ -113,6 +113,8 @@ void FlatBufferClient::registationRequired(const int priority)
 
 		// send reply
 		sendMessage();
+
+		_builder.Clear();
 	}
 }
 
@@ -133,6 +135,8 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }
 
 void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
@@ -192,7 +196,6 @@ void FlatBufferClient::sendMessage()
 	_socket->write((const char *) sizeData, sizeof(sizeData));
 	_socket->write((const char *)buffer, size);
 	_socket->flush();
-	_builder.Clear();
 }
 
 void FlatBufferClient::sendSuccessReply()
@@ -202,6 +205,8 @@ void FlatBufferClient::sendSuccessReply()
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }
 
 void FlatBufferClient::sendErrorReply(const std::string &error)
@@ -212,4 +217,6 @@ void FlatBufferClient::sendErrorReply(const std::string &error)
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }

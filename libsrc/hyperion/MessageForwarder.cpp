@@ -118,9 +118,9 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
 		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
 		{
-			if ( !obj["proto"].isNull() )
+			if ( !obj["flat"].isNull() )
 			{
-				const QJsonArray & addr = obj["proto"].toArray();
+				const QJsonArray & addr = obj["flat"].toArray();
 				for (const auto& entry : addr)
 				{
 					addFlatbufferSlave(entry.toString());
@@ -202,7 +202,7 @@ void MessageForwarder::addFlatbufferSlave(QString slave)
 		return;
 	}
 
-	// verify loop with protoserver
+	// verify loop with flatbufserver
 	const QJsonObject &obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
 	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 	{
