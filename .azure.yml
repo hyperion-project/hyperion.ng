@@ -72,7 +72,7 @@ jobs:
   # create or update github release
   - task: GithubRelease@0
     inputs: 
-      gitHubConnection: Hyperion.NG
+      gitHubConnection: 'Hyperion-Bot'
       repositoryName: $(Build.Repository.Name)
       action: edit
       target: $(Build.SourceVersion)
@@ -138,7 +138,7 @@ jobs:
   # create or update github release
   - task: GithubRelease@0
     inputs: 
-      gitHubConnection: Hyperion.NG
+      gitHubConnection: 'Hyperion-Bot'
       repositoryName: $(Build.Repository.Name)
       action: edit
       target: $(Build.SourceVersion)
