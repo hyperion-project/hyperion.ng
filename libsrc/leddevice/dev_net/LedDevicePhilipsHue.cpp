@@ -312,11 +312,10 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 	}
 	else
 	{
-
-		QJsonObject jsonConfigInfo = doc[API_CONFIG].toObject();
+		QJsonObject jsonConfigInfo = doc.object()[API_CONFIG].toObject();
 		if ( verbose )
 		{
-			std::cout <<  "jsonConfigInfo: ]" << QString(QJsonDocument(jsonConfigInfo).toJson(QJsonDocument::Compact)).toUtf8().constData() << "]" << std::endl;
+			std::cout <<  "jsonConfigInfo: [" << QString(QJsonDocument(jsonConfigInfo).toJson(QJsonDocument::Compact)).toUtf8().constData() << "]" << std::endl;
 		}
 
 		QString deviceName = jsonConfigInfo[DEV_DATA_NAME].toString();
@@ -338,7 +337,6 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 			}
 		}
 
-
 		Debug(_log, "Bridge Name       : %s", QSTRING_CSTR( deviceName ));
 		Debug(_log, "Model             : %s", QSTRING_CSTR( _deviceModel ));
 		Debug(_log, "Bridge-ID         : %s", QSTRING_CSTR( deviceBridgeID ));
@@ -346,7 +344,8 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 		Debug(_log, "API-Version       : %u.%u.%u", _api_major,_api_minor, _api_patch );
 		Debug(_log, "EntertainmentReady: %d", _isHueEntertainmentReady);
 
-		QJsonObject jsonLightsInfo = doc[API_LIGHTS].toObject();
+		QJsonObject jsonLightsInfo = doc.object()[API_LIGHTS].toObject();
+
 		DebugIf(verbose, _log, "jsonLightsInfo: [%s]", QString(QJsonDocument(jsonLightsInfo).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 		// Get all available light ids and their values
