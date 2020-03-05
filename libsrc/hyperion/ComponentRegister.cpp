@@ -37,6 +37,7 @@ void ComponentRegister::setNewComponentState(const hyperion::Components comp, co
 		_componentStates[comp] = activated;
 		// emit component has changed state
 	 	emit updatedComponentState(comp, activated);
+		emit _hyperion->compStateChangeRequest(comp, activated);
 	}
 }
 
