@@ -21,12 +21,15 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QDebug>
 
 #include "grabber/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 V4L2Grabber::V4L2Grabber(const QString & device
+		, const unsigned width
+		, const unsigned height
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
@@ -63,6 +66,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		connect(this, &Grabber::compStateChangeRequest, this, &V4L2Grabber::compStateChangeRequest);
 
 	// init
+	setWidthHeight(width, height);
 	setDeviceVideoStandard(device, videoStandard);
 }
 
@@ -581,6 +585,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// get maximum video devices resolution
+	// to hack this goto WebUI -> configuration
 	__u32 max_width = 0, max_height = 0;
 	struct v4l2_fmtdesc fmtdesc;
 	CLEAR(fmtdesc);
@@ -617,15 +622,20 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// set the settings
-	if (max_width != 0 || max_height != 0)
-	{
-		fmt.fmt.pix.width = max_width;
-		fmt.fmt.pix.height = max_height;
-	}
-	else
+
+
+	qDebug() << _width << "x" << _height;
+
+
+	if (_width != 0 && _height != 0) // custom settings
 	{
 		fmt.fmt.pix.width = _width;
 		fmt.fmt.pix.height = _height;
+	}
+	else if (max_width != 0 && max_height != 0) // max resolution
+	{
+		fmt.fmt.pix.width = max_width;
+		fmt.fmt.pix.height = max_height;
 	}
 
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))

@@ -411,8 +411,12 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 
 			const QJsonObject & grabberConfig = config.object();
 
+			_grabber_width     = grabberConfig["width"].toInt(0);
+			_grabber_height    = grabberConfig["height"].toInt(0);
+
 			_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
+				_grabber_width, _grabber_height,
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8) );

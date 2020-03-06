@@ -165,7 +165,9 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 			_ggrabber->setDeviceVideoStandard(
 				obj["device"].toString("auto"),
 				parseVideoStandard(obj["standard"].toString("no-change")));
-
+			_ggrabber->setWidthHeight(
+				obj["width"].toInt(0),
+				obj["height"].toInt(0));
 		}
 	}
 }

@@ -31,6 +31,8 @@ class V4L2Grabber : public Grabber
 
 public:
 	V4L2Grabber(const QString & device,
+			const unsigned width,
+			const unsigned height,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation
@@ -45,11 +47,6 @@ public:
 	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
 
 	int grabFrame(Image<ColorRgb> &);
-
-	///
-	/// @brief  overwrite Grabber.h implementation, as v4l doesn't use width/height
-	///
-	virtual void setWidthHeight(){};
 
 	///
 	/// @brief  set new PixelDecimation value to ImageResampler

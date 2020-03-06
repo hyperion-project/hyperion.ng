@@ -105,6 +105,9 @@ int main(int argc, char** argv)
 		// initialize the grabber
 		V4L2Grabber grabber(
 					argDevice.value(parser),
+					// TODO // add parameter for custom width and height
+					0, 
+					0,
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
 					std::max(1, argSizeDecimation.getInt(parser)));
