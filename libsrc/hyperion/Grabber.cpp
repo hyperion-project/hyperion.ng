@@ -7,6 +7,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _videoMode(VIDEO_2D)
 	, _width(width)
 	, _height(height)
+	, _fps(15)
 	, _cropLeft(0)
 	, _cropRight(0)
 	, _cropTop(0)
@@ -67,6 +68,17 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
+}
+
+bool Grabber::setFramerate(int fps)
+{
+	if (fps>0 && _fps != fps)
+	{
+		Debug(_log, "Set framerate to: %d fps", fps);
+		_fps = fps;
+		return true;
+	}
+	return false;
 }
 
 bool Grabber::setWidthHeight(int width, int height)

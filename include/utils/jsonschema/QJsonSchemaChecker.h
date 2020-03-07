@@ -187,6 +187,14 @@ private:
 	///
 	void checkEnum(const QJsonValue & value, const QJsonValue & schema, const QJsonValue & defaultValue);
 
+	///
+	/// @brief Return the "default" value as string. If not found, an empty string is output
+	///
+	/// @param value The JSON value to search
+	/// @return The "default" value as string
+	///
+	QString getDefaultValue(const QJsonValue & value);
+
 private:
 	/// The schema of the entire json-configuration
 	QJsonObject _qSchema;

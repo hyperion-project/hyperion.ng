@@ -7,7 +7,8 @@
 
 V4L2Wrapper::V4L2Wrapper(const QString &device,
 		const unsigned grabWidth,
-		const unsigned grabHeight, 
+		const unsigned grabHeight,
+		const unsigned fps,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
 		int pixelDecimation )
@@ -15,6 +16,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	, _grabber(device,
 			grabWidth,
 			grabHeight,
+			fps,
 			videoStandard,
 			pixelFormat,
 			pixelDecimation)

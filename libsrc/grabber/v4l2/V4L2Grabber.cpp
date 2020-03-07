@@ -21,7 +21,6 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
-#include <QDebug>
 
 #include "grabber/V4L2Grabber.h"
 
@@ -30,6 +29,7 @@
 V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned width
 		, const unsigned height
+		, const unsigned fps
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
@@ -67,6 +67,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 
 	// init
 	setWidthHeight(width, height);
+	setFramerate(fps);
 	setDeviceVideoStandard(device, videoStandard);
 }
 
@@ -584,59 +585,41 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 	}
 
-	// get maximum video devices resolution
-	// to hack this goto WebUI -> configuration
-	__u32 max_width = 0, max_height = 0;
-	struct v4l2_fmtdesc fmtdesc;
-	CLEAR(fmtdesc);
-	fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmtdesc.index = 0;
-	while (xioctl(VIDIOC_ENUM_FMT, &fmtdesc) >= 0)
+	// collect available device resolutions
+	QString v4lDevice_res;
+	v4l2_frmsizeenum frmsizeenum;
+	CLEAR(frmsizeenum);
+	frmsizeenum.index = 0;
+	frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+	while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
 	{
-		v4l2_frmsizeenum frmsizeenum;
-		CLEAR(frmsizeenum);
-		frmsizeenum.pixel_format = fmtdesc.pixelformat;
-		frmsizeenum.index = 0;
-		while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+		switch (frmsizeenum.type)
 		{
-			switch (frmsizeenum.type)
+			case V4L2_FRMSIZE_TYPE_DISCRETE:
+				v4lDevice_res += "\t"+ QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height) + "\n";
+			break;
+			case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+			case V4L2_FRMSIZE_TYPE_STEPWISE:
 			{
-				case V4L2_FRMSIZE_TYPE_DISCRETE:
+				for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
 				{
-					max_width = std::max(max_width, frmsizeenum.discrete.width);
-					max_height = std::max(max_height, frmsizeenum.discrete.height);
-				}
-				break;
-				case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-				case V4L2_FRMSIZE_TYPE_STEPWISE:
-				{
-					max_width = std::max(max_width, frmsizeenum.stepwise.max_width);
-					max_height = std::max(max_height, frmsizeenum.stepwise.max_height);
+					for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
+					{
+						v4lDevice_res += "\t"+ QString::number(x) + "x" + QString::number(y) + "\n";
+					}
 				}
 			}
-
-			frmsizeenum.index++;
 		}
-
-		fmtdesc.index++;
+		frmsizeenum.index++;
 	}
+
+	// print available device resolutions in debug mode
+	if (!v4lDevice_res.isEmpty())
+		Debug(_log, "available V4L2 resolutions:\n%s", QSTRING_CSTR(v4lDevice_res));
 
 	// set the settings
-
-
-	qDebug() << _width << "x" << _height;
-
-
-	if (_width != 0 && _height != 0) // custom settings
-	{
-		fmt.fmt.pix.width = _width;
-		fmt.fmt.pix.height = _height;
-	}
-	else if (max_width != 0 && max_height != 0) // max resolution
-	{
-		fmt.fmt.pix.width = max_width;
-		fmt.fmt.pix.height = max_height;
-	}
+	fmt.fmt.pix.width = _width;
+	fmt.fmt.pix.height = _height;
 
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
@@ -666,14 +649,18 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
 		{
 			// Driver supports the feature. Set required framerate
-			streamparms.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
+			CLEAR(streamparms);
+			streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			streamparms.parm.capture.timeperframe.numerator = 1;
-			streamparms.parm.capture.timeperframe.denominator = 30;
+			streamparms.parm.capture.timeperframe.denominator = _fps;
 			if(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
 			{
 				throw_errno_exception("VIDIOC_S_PARM");
 				// continue
 			}
+			else
+				// display the used framerate
+				Debug(_log, "Set framerate to %d fps", _fps);
 		}
 	}
 

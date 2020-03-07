@@ -1,9 +1,9 @@
 {
 	"general" :
 	{
-		"name"       : "My Hyperion Config",
-		"watchedVersionBranch" : "Stable",
-		"showOptHelp" : true
+		"name"					: "My Hyperion Config",
+		"watchedVersionBranch"	: "Stable",
+		"showOptHelp"			: true
 	},
 	"logger" :
 	{
@@ -12,117 +12,120 @@
 
 	"device" :
 	{
-		"type"       : "file",
-		"hardwareLedCount" : 1,
-		"output"     : "/dev/null",
-		"rate"       : 1000000,
-		"colorOrder" : "rgb",
-		"latchTime" : 1,
-		"rewriteTime": 5000
+		"type"				: "file",
+		"hardwareLedCount"	: 1,
+		"output"			: "/dev/null",
+		"rate"				: 1000000,
+		"colorOrder"		: "rgb",
+		"latchTime"			: 1,
+		"rewriteTime"		: 5000
 	},
 
 	"color" :
 	{
-		"imageToLedMappingType" : "multicolor_mean",
+		"imageToLedMappingType"				: "multicolor_mean",
 		"channelAdjustment" :
 		[
 			{
-				"id"   : "default",
-				"leds" : "*",
-				"white"   : [255,255,255],
-				"red"     : [255,0,0],
-				"green"   : [0,255,0],
-				"blue"    : [0,0,255],
-				"cyan"    : [0,255,255],
-				"magenta" : [255,0,255],
-				"yellow"  : [255,255,0],
-				"gammaRed"   : 1.5,
-				"gammaGreen" : 1.5,
-				"gammaBlue"  : 1.5,
-				"backlightThreshold"  : 0,
-				"backlightColored"  : false,
-				"brightness" : 100,
-				"brightnessCompensation" : 100
+				"id"						: "default",
+				"leds"						: "*",
+				"white"						: [255,255,255],
+				"red"						: [255,0,0],
+				"green"						: [0,255,0],
+				"blue"						: [0,0,255],
+				"cyan"						: [0,255,255],
+				"magenta"					: [255,0,255],
+				"yellow"					: [255,255,0],
+				"gammaRed"					: 1.5,
+				"gammaGreen"				: 1.5,
+				"gammaBlue"					: 1.5,
+				"backlightThreshold"		: 0,
+				"backlightColored"			: false,
+				"brightness"				: 100,
+				"brightnessCompensation"	: 100
 			}
 		]
 	},
 
 	"smoothing" :
 	{
-		"enable"           : true,
-		"type"             : "linear",
-		"time_ms"          : 200,
-		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
-		"continuousOutput" : true
+		"enable"			: true,
+		"type"				: "linear",
+		"time_ms"			: 200,
+		"updateFrequency"	: 25.0000,
+		"updateDelay"		: 0,
+		"continuousOutput"	: true
 	},
 
 	"grabberV4L2" :
 	{
-		"device"   : "auto",
-		"standard" : "NO_CHANGE",
-		"sizeDecimation"  : 8,
-		"cropLeft"    : 0,
-		"cropRight"   : 0,
-		"cropTop"     : 0,
-		"cropBottom"  : 0,
-		"redSignalThreshold"   : 5,
-		"greenSignalThreshold" : 5,
-		"blueSignalThreshold"  : 5,
-		"signalDetection"      : false,
-		"sDVOffsetMin"   : 0.25,
-		"sDHOffsetMin" : 0.25,
-		"sDVOffsetMax"   : 0.75,
-		"sDHOffsetMax" : 0.75
+		"device"				: "auto",
+		"width"					: 0,
+		"height"				: 0,
+		"fps"					: 15,
+		"standard"				: "NO_CHANGE",
+		"sizeDecimation" 		: 8,
+		"cropLeft"				: 0,
+		"cropRight"				: 0,
+		"cropTop"				: 0,
+		"cropBottom"			: 0,
+		"redSignalThreshold"	: 5,
+		"greenSignalThreshold"	: 5,
+		"blueSignalThreshold"	: 5,
+		"signalDetection"		: false,
+		"sDVOffsetMin"			: 0.25,
+		"sDHOffsetMin"			: 0.25,
+		"sDVOffsetMax"			: 0.75,
+		"sDHOffsetMax"			: 0.75
 	},
 
 	"framegrabber" :
 	{
-		"type"						: "auto",
-		"width"						: 80,
-		"height"					: 45,
-		"frequency_Hz"				: 10,
-		"pixelDecimation"       	: 8,
-		"cropLeft"					: 0,
-		"cropRight"					: 0,
-		"cropTop"					: 0,
-		"cropBottom"				: 0,
-		"device"					: "/dev/fb0"
+		"type"				: "auto",
+		"width"				: 80,
+		"height"			: 45,
+		"frequency_Hz"		: 10,
+		"pixelDecimation"	: 8,
+		"cropLeft"			: 0,
+		"cropRight"			: 0,
+		"cropTop"			: 0,
+		"cropBottom"		: 0,
+		"device"			: "/dev/fb0"
 	},
 
 	"blackborderdetector" :
 	{
-		"enable" : true,
-		"threshold" : 5,
-		"unknownFrameCnt"    : 600,
-		"borderFrameCnt"     : 50,
-		"maxInconsistentCnt" : 10,
-		"blurRemoveCnt"      : 1,
-		"mode" : "default"
+		"enable"				: true,
+		"threshold"				: 5,
+		"unknownFrameCnt"		: 600,
+		"borderFrameCnt"		: 50,
+		"maxInconsistentCnt"	: 10,
+		"blurRemoveCnt"			: 1,
+		"mode"					: "default"
 	},
 
 	"foregroundEffect" :
 	{
-		"enable"      : true,
-		"type"        : "effect",
-		"color"       : [0,0,255],
-		"effect"      : "Rainbow swirl fast",
-		"duration_ms" : 3000
+		"enable"		: true,
+		"type"			: "effect",
+		"color"			: [0,0,255],
+		"effect"		: "Rainbow swirl fast",
+		"duration_ms"	: 3000
 	},
 
 	"backgroundEffect" :
 	{
-		"enable"      : true,
-		"type"        : "effect",
-		"color"       : [255,138,0],
-		"effect"      : "Warm mood blobs"
+		"enable"	: true,
+		"type"		: "effect",
+		"color"		: [255,138,0],
+		"effect"	: "Warm mood blobs"
 	},
 
 	"forwarder" :
 	{
-		"enable" : false,
-		"json"   : ["127.0.0.1:19446"],
-		"flat"  : ["127.0.0.1:19401"]
+		"enable"	: false,
+		"json"		: ["127.0.0.1:19446"],
+		"flat"		: ["127.0.0.1:19401"]
 	},
 
 	"jsonServer" :
@@ -132,29 +135,29 @@
 
 	"flatbufServer" :
 	{
-		"enable" : true,
-		"port" : 19400,
-		"timeout" : 5
+		"enable"	: true,
+		"port"		: 19400,
+		"timeout"	: 5
 	},
 
 	"protoServer" :
 	{
-		"enable" : true,
-		"port" : 19445,
-		"timeout" : 5
+		"enable"	: true,
+		"port"		: 19445,
+		"timeout"	: 5
 	},
 
 	"boblightServer" :
 	{
-		"enable"   : false,
-		"port"     : 19333,
-		"priority" : 128
+		"enable"	: false,
+		"port"		: 19333,
+		"priority"	: 128
 	},
 
 	"webConfig" :
 	{
-		"document_root" : "",
-		"port"          : 8090,
+		"document_root"	: "",
+		"port"			: 8090,
 		"sslPort"		: 8092,
 		"crtPath"		: "",
 		"keyPath"		: "",
@@ -163,31 +166,31 @@
 
 	"effects" :
 	{
-		"paths" : ["$ROOT/custom-effects"],
-		"disable": [""]
+		"paths"		: ["$ROOT/custom-effects"],
+		"disable"	: [""]
 	},
 
 	"instCapture" :
 	{
-		"systemEnable" : true,
-		"systemPriority" : 250,
-		"v4lEnable" : false,
-		"v4lPriority" : 240
+		"systemEnable"		: true,
+		"systemPriority"	: 250,
+		"v4lEnable"			: false,
+		"v4lPriority"		: 240
 	},
 
 	"network" :
 	{
-		"internetAccessAPI" : false,
-		"restirctedInternetAccessAPI" : false,
-		"ipWhitelist" : [],
-		"apiAuth" : true,
-		"localApiAuth" : false,
-		"localAdminAuth": true
+		"internetAccessAPI"				: false,
+		"restirctedInternetAccessAPI"	: false,
+		"ipWhitelist"					: [],
+		"apiAuth"						: true,
+		"localApiAuth"					: false,
+		"localAdminAuth"				: true
 	},
 
 	"ledConfig" :
 	{
-  		"classic":
+		"classic" :
 		{
 			"top"	 	: 8,
 			"bottom"	: 8,
@@ -202,18 +205,18 @@
 			"overlap"	: 0,
 			"edgegap"	: 0
 
- 		},
+		},
 
-		"matrix":
+		"matrix" :
 		{
-			"ledshoriz": 10,
-			"ledsvert" : 10,
-			"cabling"  : "snake",
-			"start"    : "top-left"
+			"ledshoriz"	: 10,
+			"ledsvert"	: 10,
+			"cabling"	: "snake",
+			"start"		: "top-left"
     		}	
 	},
 
-	"leds":
+	"leds" :
 	[
 		{
 			"hmax": 0.125,
