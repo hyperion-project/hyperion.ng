@@ -6,22 +6,48 @@ on:
 
 jobs:
 
-###########################################
-###### GitHub Actions bot comment #########
-###########################################
+################################################################
+###### Hyperion-Bot comment on open or synchronized PR #########
+################################################################
 
   comment_pr:
     runs-on: ubuntu-latest
-    name: GitHub Actions bot comment
+    name: Create PR comment
     steps:
       - name: Checkout
+        if: success() && github.repository == 'hyperion-project/hyperion.ng' && (github.event.action == 'opened' || github.event.action == 'synchronize')
         uses: actions/checkout@v1
 
-      - name: Comment on PR
-        uses: thollander/actions-comment-pull-request@master
+      - name: Opened
+        if: success() && github.repository == 'hyperion-project/hyperion.ng' && github.event.action == 'opened'
+        uses: peter-evans/create-or-update-comment@v1.0.0
         with:
-          message: "PR Artifacts on: [GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Hello ${{ github.event.pull_request.user.login }} :wave:
+
+            I'm your friendly neighborhood bot and would like to say thank you for
+            submitting a pull request to Hyperion!
+
+            To help you and other users test your changes faster,
+            see [GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for finished workflow artifacts.
+
+            If you make changes to your PR, i create a new link to your finished
+            workflow artifacts for each commit.
+
+            Best regards,
+            Hyperion-Bot
+
+      - name: Synchronized
+        if: success() && github.repository == 'hyperion-project/hyperion.ng' && github.event.action == 'synchronize'
+        uses: peter-evans/create-or-update-comment@v1.0.0
+        with:
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            I have a new link to your workflow artifacts for your:
+            [GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
 ######################
 ###### Linux #########
