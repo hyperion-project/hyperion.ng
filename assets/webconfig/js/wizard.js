@@ -738,6 +738,7 @@ function beginWizardHue()
 			}
 		}
 
+		var ledCount= Object.keys(lightIDs).length; 
 
 		window.serverConfig.leds = hueLedConfig;
 
@@ -755,7 +756,7 @@ function beginWizardHue()
 		d.lightIds = finalLightIds;
 		d.username = $('#user').val();
 		d.type = "philipshue";
-		d.hardwareLedCount = $('#hardwareLedCount').val();
+		d.hardwareLedCount = ledCount;
 		d.transitiontime = 1;
 		d.switchOffOnBlack = true;
 
@@ -832,16 +833,11 @@ function get_hue_lights(){
 				$('#hue_ids_t, #btn_wiz_save').toggle(true);
 				lightIDs = r;
 
-				var ledCount = 0;
 				for(var lightid in r)
 				{
 
-					ledCount++;
-
 					$('.lidsb').append(createTableRow([lightid+' ('+r[lightid].name+')', '<select id="hue_'+lightid+'" class="hue_sel_watch form-control"><option value="disabled">'+$.i18n('wiz_hue_ids_disabled')+'</option><option value="top">'+$.i18n('conf_leds_layout_cl_top')+'</option><option value="bottom">'+$.i18n('conf_leds_layout_cl_bottom')+'</option><option value="left">'+$.i18n('conf_leds_layout_cl_left')+'</option><option value="right">'+$.i18n('conf_leds_layout_cl_right')+'</option><option value="entire">'+$.i18n('wiz_hue_ids_entire')+'</option></select>','<button class="btn btn-sm btn-primary" onClick=identHueId('+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
 				}
-
-				$('#hardwareLedCount').val( ledCount );
 
 				$('.hue_sel_watch').bind("change", function(){
 					var cC = 0;
