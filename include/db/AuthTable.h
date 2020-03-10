@@ -223,6 +223,22 @@ public:
 	}
 
 	///
+	/// @brief      Rename token record by id
+	/// @param[in]  id    The token id
+	/// @param[in]  comment The new comment
+	/// @return     true on success else false
+	///
+	inline bool renameToken(const QString &id, const QString &comment)
+	{
+		QVariantMap map;
+		map["comment"] = comment;
+
+		VectorPair cond;
+		cond.append(CPair("id", id));
+		return updateRecord(cond, map);
+	}
+
+	///
 	/// @brief Get all 'comment', 'last_use' and 'id' column entries
 	/// @return            A vector of all lists
 	///

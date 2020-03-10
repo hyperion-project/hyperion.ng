@@ -53,6 +53,9 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
+// API metaregisters
+#include <api/apiStructs.h>
+
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
@@ -85,6 +88,10 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8,QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	// for API class
+	qRegisterMetaType<int64_t>("int64_t");
+	qRegisterMetaType<VideoMode>("VideoMode");
+	qRegisterMetaType<std::map<int, registerData>>("std::map<int,registerData>");
 
 	// init settings
 	_settingsManager = new SettingsManager(0,this);
