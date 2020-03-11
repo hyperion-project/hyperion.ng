@@ -183,7 +183,7 @@ public:
 	/// @return true if success
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-	unsigned int getLightsCount() const { return _ledCount; }
+
 
 	///
 	/// @param route the route of the POST request.
@@ -334,10 +334,12 @@ public:
 	///
 	void newLights(QMap<quint16, QJsonObject> map);
 
+	unsigned int getLightsCount() const { return _lightsCount; }
+	void setLightsCount( unsigned int lightsCount);
+
 	void setOnOffState(PhilipsHueLight& light, bool on);
 	void setTransitionTime(PhilipsHueLight& light, unsigned int transitionTime);
 	void setColor(PhilipsHueLight& light, const CiColor& color, double brightnessFactor);
-
 
 	void restoreOriginalState();
 
@@ -355,8 +357,6 @@ private slots:
 	/// @param map Map of lightid/value pairs of bridge
 	///
 	void updateLights(QMap<quint16, QJsonObject> map);
-
-	//void stateChanged(bool newState);
 
 protected:
 
@@ -399,6 +399,8 @@ private:
 	std::vector<unsigned int> _lightIds;
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> _lights;
+
+	unsigned int _lightsCount;
 
 
 };

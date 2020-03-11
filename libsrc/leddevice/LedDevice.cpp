@@ -231,6 +231,12 @@ void LedDevice::setLedCount(unsigned int ledCount)
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
 }
 
+void LedDevice::setLatchTime( int latchTime_ms )
+{
+	_latchTime_ms = latchTime_ms;
+	Debug(_log, "LatchTime updated to %dms", this->getLatchTime());
+}
+
 int LedDevice::rewriteLeds()
 {
 	int retval = -1;

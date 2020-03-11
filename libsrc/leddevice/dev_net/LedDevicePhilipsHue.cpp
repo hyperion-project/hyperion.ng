@@ -357,13 +357,13 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 			_lightsMap.insert(keys.at(i).toInt(), jsonLightsInfo.take(keys.at(i)).toObject());
 		}
 
-		if (getLightsCount() == 0 )
+		if (getLedCount() == 0 )
 		{
 			setInError("No light-IDs found at the Philips Hue Bridge");
 		}
 		else
 		{
-			Debug(_log, "Lights found      : %u", getLightsCount() );
+			Debug(_log, "Lights found      : %u", getLedCount() );
 		}
 	}
 	return isInitOK;
@@ -740,9 +740,7 @@ bool LedDevicePhilipsHue::initLeds()
 	{
 		updateLights( getLightMap() );
 		// adapt latchTime to count of user lightIds (bridge 10Hz max overall)
-		_latchTime_ms = 100 * getLightsCount();
-		_devConfig["latchTime"]   = _latchTime_ms;
-		Debug(_log, "LatchTime updated to %dms", this->getLatchTime());
+		setLatchTime( static_cast<int>( 100 * getLightsCount() ) );
 		isInitOK = true;
 	}
 
@@ -770,6 +768,7 @@ void LedDevicePhilipsHue::updateLights(QMap<quint16, QJsonObject> map)
 			}
 			ledidx++;
 		}
+		setLightsCount ( _lights.size() );
 	}
 }
 
@@ -825,7 +824,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 	if(_lights.empty()) return -1;
 
 	// more lights then leds, stop always
-	if(ledValues.size() < _lights.size())
+	if(ledValues.size() < getLightsCount() )
 	{
 		Error(_log,"More light-IDs configured than leds, each light-ID requires one led!");
 		return -1;
@@ -892,6 +891,12 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, const CiColor& color,
 		setLightState( light.getId(), stateCmd );
 	}
 }
+
+void LedDevicePhilipsHue::setLightsCount( unsigned int lightsCount )
+{
+	_lightsCount = lightsCount;
+}
+
 
 int LedDevicePhilipsHue::switchOn()
 {
