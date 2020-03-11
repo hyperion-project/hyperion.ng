@@ -20,6 +20,7 @@ static const char CONFIG_USERNAME[] ="username";
 static const char CONFIG_BRIGHTNESSFACTOR [] = "brightnessFactor";
 static const char CONFIG_TRANSITIONTIME [] = "transitiontime";
 static const char CONFIG_ON_OFF_BLACK [] = "switchOffOnBlack";
+static const char CONFIG_RESTORE_STATE [] = "restoreOriginalState";
 static const char CONFIG_LIGHTIDS [] = "lightIds";
 
 // Device Data elements
@@ -683,6 +684,7 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _switchOffOnBlack (false)
 	  , _brightnessFactor(1.0)
 	  , _transitionTime (1)
+	  , _isRestoreOrigState (true)
 {
 	_devConfig = deviceConfig;
 	_deviceReady = false;
@@ -704,10 +706,11 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 	if ( isInitOK )
 	{
 		// Initiatiale LedDevice configuration and execution environment
-		_switchOffOnBlack = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
-		_brightnessFactor = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
-		_transitionTime   = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
-		QJsonArray lArray = _devConfig[CONFIG_LIGHTIDS].toArray();
+		_switchOffOnBlack   = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
+		_brightnessFactor   = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
+		_transitionTime     = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
+		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
+		QJsonArray lArray   = _devConfig[CONFIG_LIGHTIDS].toArray();
 
 		if(!lArray.empty())
 		{
@@ -813,8 +816,11 @@ void LedDevicePhilipsHue::close()
 
 	if ( _deviceReady)
 	{
-		//Restore Philips Hue devices state
-		restoreOriginalState();
+		if ( _isRestoreOrigState )
+		{
+			//Restore Philips Hue devices state
+			restoreOriginalState();
+		}
 	}
 }
 

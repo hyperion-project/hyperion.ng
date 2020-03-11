@@ -35,6 +35,13 @@
 			"maximum" : 10.0,
 			"propertyOrder" : 5
 		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : true,
+			"propertyOrder" : 6
+		},
+
 		"lightIds": {
 			"type": "array",
 			"title":"edt_dev_spec_lightid_title",
@@ -45,7 +52,7 @@
 				"minimum" : 0,
 				"title" : "edt_dev_spec_lightid_itemtitle"
 			},
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": true

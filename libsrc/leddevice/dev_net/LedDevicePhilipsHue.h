@@ -395,6 +395,8 @@ private:
 	/// The default of the Hue lights is 400 ms, but we may want it snapier.
 	unsigned int _transitionTime;
 
+	bool _isRestoreOrigState;
+
 	/// Array of the light ids.
 	std::vector<unsigned int> _lightIds;
 	/// Array to save the lamps.
