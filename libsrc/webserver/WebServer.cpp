@@ -29,6 +29,7 @@ WebServer::~WebServer()
 
 void WebServer::initServer()
 {
+	Debug(_log, "Initialize Webserver");
 	_server = new QtHttpServer (this);
 	_server->setServerName (QStringLiteral ("Hyperion Webserver"));
 
@@ -85,6 +86,7 @@ void WebServer::handleSettingsUpdate(const settings::type& type, const QJsonDocu
 {
 	if(type == settings::WEBSERVER)
 	{
+		Debug(_log, "Apply Webserver settings");
 		const QJsonObject& obj = config.object();
 
 		_baseUrl = obj["document_root"].toString(WEBSERVER_DEFAULT_PATH);
