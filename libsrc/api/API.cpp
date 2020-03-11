@@ -39,6 +39,10 @@ using namespace hyperion;
 API::API(Logger *log, const bool &localConnection, QObject *parent)
     : QObject(parent)
 {
+	qRegisterMetaType<int64_t>("int64_t");
+	qRegisterMetaType<VideoMode>("VideoMode");
+	qRegisterMetaType<std::map<int, registerData>>("std::map<int,registerData>");
+
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
