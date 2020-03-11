@@ -6,23 +6,6 @@ on:
 
 jobs:
 
-###########################################
-###### GitHub Actions bot comment #########
-###########################################
-
-  comment_pr:
-    runs-on: ubuntu-latest
-    name: GitHub Actions bot comment
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-
-      - name: Comment on PR
-        uses: thollander/actions-comment-pull-request@master
-        with:
-          message: "PR Artifacts on: [GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 ######################
 ###### Linux #########
 ######################
