@@ -353,6 +353,8 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 		QStringList keys = jsonLightsInfo.keys();
 
 		_ledCount = keys.size();
+		_lightsMap.clear();
+
 		for (uint i = 0; i < _ledCount; ++i)
 		{
 			_lightsMap.insert(keys.at(i).toInt(), jsonLightsInfo.take(keys.at(i)).toObject());
@@ -712,6 +714,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
 		QJsonArray lArray   = _devConfig[CONFIG_LIGHTIDS].toArray();
 
+		_lightIds.clear();
 		if(!lArray.empty())
 		{
 			for(const auto i : lArray)
