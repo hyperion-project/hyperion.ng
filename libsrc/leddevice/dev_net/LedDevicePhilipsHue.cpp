@@ -861,10 +861,8 @@ int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValue
 		}
 		else
 		{
-			this->setOnOffState(light, true);
 			// Write color if color has been changed.
-			this->setTransitionTime(light, _transitionTime);
-			this->setColor(light, xy, _brightnessFactor);
+			this->setState(light, true, xy, _brightnessFactor,_transitionTime);
 		}
 		idx++;
 	}
@@ -896,10 +894,43 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, const CiColor& color,
 	if (light.getColor() != color)
 	{
 		light.setColor( color) ;
-		QString stateCmd = QString("{\"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(color.x, 0, 'd', 4).arg(color.y, 0, 'd', 4).arg (API_BRIGHTNESS).arg(bri);
+		QString stateCmd = QString("\"%1\":[%2,%3],\"%4\":%5").arg(API_XY_COORDINATES).arg(color.x, 0, 'd', 4).arg(color.y, 0, 'd', 4).arg (API_BRIGHTNESS).arg(bri);
 		setLightState( light.getId(), stateCmd );
 	}
 }
+
+void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColor& color, double brightnessFactor, unsigned int transitionTime)
+{
+
+	QString stateCmd;
+
+	if (light.getOnOffState() != on)
+	{
+		light.setOnOffState( on );
+		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
+		stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, state);
+	}
+
+	if (light.getTransitionTime() != transitionTime)
+	{
+		light.setTransitionTime( transitionTime );
+		stateCmd += QString("\"%1\":%2,").arg(API_TRANSITIONTIME).arg( transitionTime );
+	}
+
+	const int bri = qRound(qMin(254.0, brightnessFactor * qMax(1.0, color.bri * 254.0)));
+	if (light.getColor() != color)
+	{
+		light.setColor( color) ;
+		stateCmd += QString("\"%1\":[%2,%3],\"%4\":%5").arg(API_XY_COORDINATES).arg(color.x, 0, 'd', 4).arg(color.y, 0, 'd', 4).arg (API_BRIGHTNESS).arg(bri);
+
+	}
+
+	if ( !stateCmd.isEmpty() )
+	{
+		setLightState( light.getId(), "{" + stateCmd + "}" );
+	}
+}
+
 
 void LedDevicePhilipsHue::setLightsCount( unsigned int lightsCount )
 {

@@ -340,6 +340,7 @@ public:
 	void setOnOffState(PhilipsHueLight& light, bool on);
 	void setTransitionTime(PhilipsHueLight& light, unsigned int transitionTime);
 	void setColor(PhilipsHueLight& light, const CiColor& color, double brightnessFactor);
+	void setState(PhilipsHueLight& light, bool on, const CiColor& color, double brightnessFactor, unsigned int transitionTime);
 
 	void restoreOriginalState();
 
