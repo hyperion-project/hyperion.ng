@@ -67,6 +67,12 @@ public:
 	bool stopInstance(const quint8& inst);
 
 	///
+	/// @brief Toggle the state of all Hyperion instances
+	/// @param pause If true all instances toggle to pause, else to resume
+	///
+	void toggleStateAllInstances(const bool& pause = false);
+
+	///
 	/// @brief Create a new Hyperion instance entry in db
 	/// @param name  The friendly name of the instance
 	/// @param start     If true it will be started after creation (async)
