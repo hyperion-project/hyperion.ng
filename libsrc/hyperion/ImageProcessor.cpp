@@ -86,8 +86,8 @@ void ImageProcessor::setLedString(const LedString& ledString)
 		_ledString = ledString;
 
 		// get current width/height
-		const unsigned width = _imageToLeds->width();
-		const unsigned height = _imageToLeds->height();
+		unsigned width = _imageToLeds->width();
+		unsigned height = _imageToLeds->height();
 
 		// Clean up the old buffer and mapping
 		delete _imageToLeds;
