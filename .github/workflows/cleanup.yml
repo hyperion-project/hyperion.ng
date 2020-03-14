@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: cleanup
-        uses: glassechidna/artifact-cleaner@master
+        uses: kolpav/purge-artifacts-action@v1
         with:
-          minimumAge: 3024000 # all artifacts at least 14 days old
+          token: ${{ secrets.GITHUB_TOKEN }}
+          expire-in: 14days # all artifacts at least 14 days old
