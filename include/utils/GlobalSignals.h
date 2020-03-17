@@ -95,9 +95,9 @@ signals:
 	///
 	/// @brief Tell v4l2/screen capture the listener state
 	/// @param component  The component to handle
-	/// @param hyperion The Hyperion pointer as identifier
+	/// @param hyperionInd The Hyperion instance index as identifier
 	/// @param listen  True when listening, else false
 	///
-	void requestSource(const hyperion::Components& component, Hyperion* hyperion, const bool listen);
+	void requestSource(const hyperion::Components& component, const int hyperionInd, const bool listen);
 
 };

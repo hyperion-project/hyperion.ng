@@ -13,7 +13,6 @@
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 
-class Hyperion;
 class Grabber;
 class GlobalSignals;
 class QTimer;
@@ -98,11 +97,11 @@ signals:
 private slots:
 	/// @brief Handle a source request event from Hyperion.
 	/// Will start and stop grabber based on active listeners count
-	void handleSourceRequest(const hyperion::Components& component, Hyperion* hyperion, const bool listen);
+	void handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen);
 
 protected:
 	/// List of Hyperion instances that requested this grabber
-	QList<Hyperion*> _registeredClients;
+	QList<int> _registeredClients;
 
 	QString _grabberName;
 

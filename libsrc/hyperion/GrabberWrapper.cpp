@@ -173,14 +173,14 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 	}
 }
 
-void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, Hyperion* hyperion, const bool listen)
+void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen)
 {
-	if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L") || component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
+	if((component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L")) || (component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L")))
 	{
-		if(listen && !_registeredClients.contains(hyperion))
-			_registeredClients.append(hyperion);
+		if(listen && !_registeredClients.contains(hyperionInd))
+			_registeredClients.append(hyperionInd);
 		else if (!listen)
-			_registeredClients.removeOne(hyperion);
+			_registeredClients.removeOne(hyperionInd);
 
 		if(_registeredClients.empty())
 			stop();
