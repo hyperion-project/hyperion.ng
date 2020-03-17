@@ -28,6 +28,9 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 	(_grabberName.startsWith("V4L"))
 		? connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setV4lImage)
 		: connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setSystemImage);
+
+	// listen for source requests
+	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
 }
 
 GrabberWrapper::~GrabberWrapper()
@@ -167,5 +170,21 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 				parseVideoStandard(obj["standard"].toString("no-change")));
 
 		}
+	}
+}
+
+void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, Hyperion* hyperion, const bool listen)
+{
+	if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L") || component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
+	{
+		if(listen && !_registeredClients.contains(hyperion))
+			_registeredClients.append(hyperion);
+		else if (!listen)
+			_registeredClients.removeOne(hyperion);
+
+		if(_registeredClients.empty())
+			stop();
+		else
+			start();
 	}
 }
