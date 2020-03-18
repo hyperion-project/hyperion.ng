@@ -42,6 +42,7 @@ GrabberWrapper::~GrabberWrapper()
 bool GrabberWrapper::start()
 {
 	// Start the timer with the pre configured interval
+	Debug(_log,"Grabber start()");
 	_timer->start();
 	return _timer->isActive();
 }
@@ -49,6 +50,7 @@ bool GrabberWrapper::start()
 void GrabberWrapper::stop()
 {
 	// Stop the timer, effectivly stopping the process
+	Debug(_log,"Grabber stop()");
 	_timer->stop();
 }
 
@@ -175,16 +177,37 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 
 void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen)
 {
-	if((component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L")) || (component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L")))
+	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
 	{
-		if(listen && !_registeredClients.contains(hyperionInd))
-			_registeredClients.append(hyperionInd);
+		if(listen && !GRABBER_SYS_CLIENTS.contains(hyperionInd))
+			GRABBER_SYS_CLIENTS.append(hyperionInd);
 		else if (!listen)
-			_registeredClients.removeOne(hyperionInd);
+			GRABBER_SYS_CLIENTS.removeOne(hyperionInd);
 
-		if(_registeredClients.empty())
+		if(GRABBER_SYS_CLIENTS.empty())
 			stop();
 		else
 			start();
+	}
+	else if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L"))
+	{
+		if(listen && !GRABBER_V4L_CLIENTS.contains(hyperionInd))
+			GRABBER_V4L_CLIENTS.append(hyperionInd);
+		else if (!listen)
+			GRABBER_V4L_CLIENTS.removeOne(hyperionInd);
+
+		if(GRABBER_V4L_CLIENTS.empty())
+			stop();
+		else
+			start();
+	}
+}
+
+void GrabberWrapper::tryStart()
+{
+		// verify start condition
+	if((_grabberName.startsWith("V4L") && !GRABBER_V4L_CLIENTS.empty()) || (!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty()))
+	{
+		start();
 	}
 }

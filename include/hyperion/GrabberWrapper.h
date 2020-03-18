@@ -17,6 +17,10 @@ class Grabber;
 class GlobalSignals;
 class QTimer;
 
+/// List of Hyperion instances that requested screen capt
+static QList<int> GRABBER_SYS_CLIENTS;
+static QList<int> GRABBER_V4L_CLIENTS;
+
 ///
 /// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
 ///
@@ -32,6 +36,11 @@ public:
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
 	virtual bool start();
+
+	///
+	/// Starts maybe the grabber wich produces led values with the specified update rate
+	///
+	virtual void tryStart();
 
 	///
 	/// Stop grabber
@@ -100,9 +109,6 @@ private slots:
 	void handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen);
 
 protected:
-	/// List of Hyperion instances that requested this grabber
-	QList<int> _registeredClients;
-
 	QString _grabberName;
 
 	/// The timer for generating events with the specified update rate
