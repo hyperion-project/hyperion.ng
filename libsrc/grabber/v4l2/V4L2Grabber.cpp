@@ -27,6 +27,9 @@
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 V4L2Grabber::V4L2Grabber(const QString & device
+		, const unsigned width
+		, const unsigned height
+		, const unsigned fps
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
@@ -63,6 +66,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		connect(this, &Grabber::compStateChangeRequest, this, &V4L2Grabber::compStateChangeRequest);
 
 	// init
+	setWidthHeight(width, height);
+	setFramerate(fps);
 	setDeviceVideoStandard(device, videoStandard);
 }
 
@@ -565,7 +570,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 		case PIXELFORMAT_MJPEG:
 		{
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
@@ -580,53 +585,41 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 	}
 
-	// get maximum video devices resolution
-	__u32 max_width = 0, max_height = 0;
-	struct v4l2_fmtdesc fmtdesc;
-	CLEAR(fmtdesc);
-	fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmtdesc.index = 0;
-	while (xioctl(VIDIOC_ENUM_FMT, &fmtdesc) >= 0)
+	// collect available device resolutions
+	QString v4lDevice_res;
+	v4l2_frmsizeenum frmsizeenum;
+	CLEAR(frmsizeenum);
+	frmsizeenum.index = 0;
+	frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+	while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
 	{
-		v4l2_frmsizeenum frmsizeenum;
-		CLEAR(frmsizeenum);
-		frmsizeenum.pixel_format = fmtdesc.pixelformat;
-		frmsizeenum.index = 0;
-		while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+		switch (frmsizeenum.type)
 		{
-			switch (frmsizeenum.type)
+			case V4L2_FRMSIZE_TYPE_DISCRETE:
+				v4lDevice_res += "\t"+ QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height) + "\n";
+			break;
+			case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+			case V4L2_FRMSIZE_TYPE_STEPWISE:
 			{
-				case V4L2_FRMSIZE_TYPE_DISCRETE:
+				for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
 				{
-					max_width = std::max(max_width, frmsizeenum.discrete.width);
-					max_height = std::max(max_height, frmsizeenum.discrete.height);
-				}
-				break;
-				case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-				case V4L2_FRMSIZE_TYPE_STEPWISE:
-				{
-					max_width = std::max(max_width, frmsizeenum.stepwise.max_width);
-					max_height = std::max(max_height, frmsizeenum.stepwise.max_height);
+					for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
+					{
+						v4lDevice_res += "\t"+ QString::number(x) + "x" + QString::number(y) + "\n";
+					}
 				}
 			}
-
-			frmsizeenum.index++;
 		}
-
-		fmtdesc.index++;
+		frmsizeenum.index++;
 	}
+
+	// print available device resolutions in debug mode
+	if (!v4lDevice_res.isEmpty())
+		Debug(_log, "available V4L2 resolutions:\n%s", QSTRING_CSTR(v4lDevice_res));
 
 	// set the settings
-	if (max_width != 0 || max_height != 0)
-	{
-		fmt.fmt.pix.width = max_width;
-		fmt.fmt.pix.height = max_height;
-	}
-	else
-	{
-		fmt.fmt.pix.width = _width;
-		fmt.fmt.pix.height = _height;
-	}
+	fmt.fmt.pix.width = _width;
+	fmt.fmt.pix.height = _height;
 
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
@@ -656,14 +649,18 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
 		{
 			// Driver supports the feature. Set required framerate
-			streamparms.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
+			CLEAR(streamparms);
+			streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 			streamparms.parm.capture.timeperframe.numerator = 1;
-			streamparms.parm.capture.timeperframe.denominator = 30;
+			streamparms.parm.capture.timeperframe.denominator = _fps;
 			if(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
 			{
 				throw_errno_exception("VIDIOC_S_PARM");
 				// continue
 			}
+			else
+				// display the used framerate
+				Debug(_log, "Set framerate to %d fps", _fps);
 		}
 	}
 
@@ -697,7 +694,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 		break;
 
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 		case V4L2_PIX_FMT_MJPEG:
 		{
 			_pixelFormat = PIXELFORMAT_MJPEG;
@@ -707,7 +704,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 #endif
 
 		default:
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 			throw_exception("Only pixel formats UYVY, YUYV, RGB32 and MJPEG are supported");
 #else
 			throw_exception("Only pixel formats UYVY, YUYV, and RGB32 are supported");
@@ -959,7 +956,7 @@ int V4L2Grabber::read_frame()
 bool V4L2Grabber::process_image(const void *p, int size)
 {
 	// We do want a new frame...
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 	if (size != _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
 #else
 	if (size != _frameByteSize)
@@ -980,9 +977,15 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 {
 	Image<ColorRgb> image(_width, _height);
 
-#ifdef HAVE_JPEG
+/* ----------------------------------------------------------
+ * ----------- BEGIN of JPEG decoder related code -----------
+ * --------------------------------------------------------*/
+
+#ifdef HAVE_JPEG_DECODER
 	if (_pixelFormat == PIXELFORMAT_MJPEG)
 	{
+#endif
+#ifdef HAVE_JPEG
 		_decompress = new jpeg_decompress_struct;
 		_error = new errorManager;
 
@@ -1052,7 +1055,31 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 
 		if (imageFrame.isNull() || _error->pub.num_warnings > 0)
 			return;
+#endif
+#ifdef HAVE_TURBO_JPEG
+		_decompress = tjInitDecompress();
+		if (_decompress == nullptr)
+			return;
 
+		if (tjDecompressHeader2(_decompress, const_cast<uint8_t*>(data), size, &_width, &_height, &_subsamp) != 0)
+		{
+			tjDestroy(_decompress);
+			return;
+		}
+
+		QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
+		if (tjDecompress2(_decompress, const_cast<uint8_t*>(data), size, imageFrame.bits(), _width, 0, _height, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
+		{
+			tjDestroy(_decompress);
+			return;
+		}
+
+		tjDestroy(_decompress);
+
+		if (imageFrame.isNull())
+			return;
+#endif
+#ifdef HAVE_JPEG_DECODER
 		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
 		imageFrame = imageFrame.copy(rect);
 		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
@@ -1072,6 +1099,11 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 	}
 	else
 #endif
+
+/* ----------------------------------------------------------
+ * ------------ END of JPEG decoder related code ------------
+ * --------------------------------------------------------*/
+
 		_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 
 	if (_signalDetectionEnabled)

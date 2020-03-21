@@ -152,6 +152,12 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 				obj["cropTop"].toInt(0),
 				obj["cropBottom"].toInt(0));
 
+			// device resolution
+			_ggrabber->setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
+
+			// device framerate
+			_ggrabber->setFramerate(obj["fps"].toInt(15));
+
 			_ggrabber->setSignalDetectionEnable(obj["signalDetection"].toBool(true));
 			_ggrabber->setSignalDetectionOffset(
 				obj["sDHOffsetMin"].toDouble(0.25),
@@ -165,7 +171,6 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 			_ggrabber->setDeviceVideoStandard(
 				obj["device"].toString("auto"),
 				parseVideoStandard(obj["standard"].toString("no-change")));
-
 		}
 	}
 }

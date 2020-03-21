@@ -9,7 +9,6 @@
 			"type" : "string",
 			"title" : "edt_conf_v4l2_device_title",
 			"default" : "auto",
-			"minLength" : 4,
 			"required" : true,
 			"propertyOrder" : 1
 		},
@@ -17,13 +16,40 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_v4l2_standard_title",
-			"enum" : ["PAL","NTSC","SECAM","NO_CHANGE"],
+			"enum" : ["NO_CHANGE", "PAL","NTSC","SECAM"],
 			"default" : "NO_CHANGE",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM", "edt_conf_enum_NO_CHANGE"]
+				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"]
 			},
 			"required" : true,
 			"propertyOrder" : 2
+		},
+		"width" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_width_title",
+			"default" : 0,
+			"required" : true,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},
+		"height" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_fg_height_title",
+			"default" : 0,
+			"required" : true,
+			"access" : "expert",
+			"propertyOrder" : 4
+		},
+		"fps" :
+		{
+			"type" : "integer",
+			"title" : "Framerate",
+			"default" : 15,
+			"required" : true,
+			"access" : "expert",
+			"propertyOrder" : 5
 		},
 		"sizeDecimation" :
 		{
@@ -33,7 +59,7 @@
 			"maximum" : 30,
 			"default" : 6,
 			"required" : true,
-			"propertyOrder" : 3
+			"propertyOrder" : 6
 		},
 		"cropLeft" :
 		{
@@ -43,7 +69,7 @@
 			"default" : 0,
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 4
+			"propertyOrder" : 7
 		},
 		"cropRight" :
 		{
@@ -53,7 +79,7 @@
 			"default" : 0,
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 5
+			"propertyOrder" : 8
 		},
 		"cropTop" :
 		{
@@ -63,7 +89,7 @@
 			"default" : 0,
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 6
+			"propertyOrder" : 9
 		},
 		"cropBottom" :
 		{
@@ -73,7 +99,7 @@
 			"default" : 0,
 			"append" : "edt_append_pixel",
 			"required" : true,
-			"propertyOrder" : 7
+			"propertyOrder" : 10
 		},
 		"signalDetection" :
 		{
@@ -81,7 +107,7 @@
 			"title" : "edt_conf_v4l2_signalDetection_title",
 			"default" : false,
 			"required" : true,
-			"propertyOrder" : 8
+			"propertyOrder" : 11
 		},
 		"redSignalThreshold" :
 		{
@@ -97,7 +123,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 9
+			"propertyOrder" : 12
 		},
 		"greenSignalThreshold" :
 		{
@@ -113,7 +139,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 10
+			"propertyOrder" : 13
 		},
 		"blueSignalThreshold" :
 		{
@@ -129,7 +155,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 11
+			"propertyOrder" : 14
 		},
 		"sDVOffsetMin" :
 		{
@@ -145,7 +171,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 12
+			"propertyOrder" : 15
 		},
 		"sDVOffsetMax" :
 		{
@@ -161,7 +187,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 13
+			"propertyOrder" : 16
 		},
 		"sDHOffsetMin" :
 		{
@@ -177,7 +203,7 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 14
+			"propertyOrder" : 17
 		},
 		"sDHOffsetMax" :
 		{
@@ -193,8 +219,8 @@
 				}
 			},
 			"required" : true,
-			"propertyOrder" : 15
+			"propertyOrder" : 18
 		}
 	},
-	"additionalProperties" : false
+	"additionalProperties" : true
 }

@@ -413,9 +413,12 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 
 			_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
+				grabberConfig["width"].toInt(0),
+				grabberConfig["height"].toInt(0),
+				grabberConfig["fps"].toInt(15),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				grabberConfig["sizeDecimation"].toInt(8) );
+				grabberConfig["sizeDecimation"].toInt(8));
 			_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
