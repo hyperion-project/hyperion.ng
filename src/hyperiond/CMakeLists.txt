@@ -31,7 +31,7 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		"libutil"
 		"libX11"
 #		"libXau"
-		"libxcb"
+#		"libxcb"
 #		"libXdmcp"
 #		"libXext"
 #		"libXrender"
