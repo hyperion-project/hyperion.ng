@@ -190,7 +190,6 @@ target_link_libraries(hyperiond
 		flatbufserver
 		protoserver
 		webserver
-		bonjour
 		ssdp
 		database
 		python
@@ -198,6 +197,10 @@ target_link_libraries(hyperiond
 		${PYTHON_LIBRARIES}
 		Qt5::Widgets
 )
+
+if (ENABLE_AVAHI)
+	target_link_libraries(hyperiond bonjour)
+endif ()
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond

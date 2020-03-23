@@ -3,15 +3,18 @@
 #include <QHostInfo>
 #include <QSysInfo>
 #include <iostream>
-#include <sys/utsname.h>
 #include "HyperionConfig.h"
 
 #include <stdlib.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
+#if defined(Q_OS_LINUX)
+#include <sys/utsname.h>
+#include <unistd.h>
+#endif
 
 SysInfo* SysInfo::_instance = nullptr;
 

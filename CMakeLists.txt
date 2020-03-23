@@ -35,6 +35,7 @@ SET ( DEFAULT_OSX        OFF )
 SET ( DEFAULT_X11        OFF )
 SET ( DEFAULT_QT         ON )
 SET ( DEFAULT_WS281XPWM  OFF )
+SET ( DEFAULT_AVAHI      ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
@@ -43,12 +44,14 @@ SET ( DEFAULT_TESTS      OFF )
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2   ON  )
 	SET ( DEFAULT_SPIDEV ON )
+	SET ( DEFAULT_TINKERFORGE ON)
 	SET ( DEFAULT_FB     ON )
 	SET ( DEFAULT_USB_HID ON )
 ELSE()
 	SET ( DEFAULT_V4L2   OFF )
 	SET ( DEFAULT_FB     OFF )
 	SET ( DEFAULT_SPIDEV OFF )
+	SET ( DEFAULT_TINKERFORGE OFF)
 	SET ( DEFAULT_USB_HID OFF )
 ENDIF()
 
@@ -115,9 +118,10 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
 elseif ( "${PLATFORM}" STREQUAL "windows" )
-	MESSAGE( WARNING "Hyperion is not developed nor tested on MS Windows.")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "G:/Programme/Qt/5.14.1/msvc2017_64" )
+	SET ( DEFAULT_AVAHI    OFF)
 endif()
-
+message("AVAHAHI   !!!!!!!!!!!! ${DEFAULT_AVAHI}")
 # enable tests for -dev builds
 if ( "${PLATFORM}" MATCHES "-dev" )
 	SET ( DEFAULT_TESTS      ON )
@@ -147,7 +151,7 @@ message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
 
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ${DEFAULT_TINKERFORGE})
 message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
@@ -155,6 +159,11 @@ message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
+
+option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
+set(ENABLE_AVAHI OFF)
+message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
+
 
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
@@ -202,11 +211,14 @@ IF ( ${CHECK_EFFECTS_FAILED} )
 ENDIF ()
 
 # for python 3 the checkschema.py file must be rewritten
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_CONFIG_FAILED
-)
+# TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
+IF ( NOT "${PLATFORM}" STREQUAL "windows" )
+	EXECUTE_PROCESS (
+		COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		RESULT_VARIABLE CHECK_CONFIG_FAILED
+	)
+ENDIF()
 IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
@@ -236,21 +248,30 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
 # enable C++11
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-if (CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+	if(COMPILER_SUPPORTS_CXX11)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(COMPILER_SUPPORTS_CXX0X)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+	endif()
 endif()
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-    message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+
+# MSVC options
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	message("MSVC VERSION: ${MSVC_VERSION}")
+	# Disable warnings
+	#string(REPLACE "/W3" "/W0" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 # Use GNU gold linker if available

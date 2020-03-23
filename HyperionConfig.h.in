@@ -30,6 +30,9 @@
 // Define to enable the tinkerforge device
 #cmakedefine ENABLE_TINKERFORGE
 
+// Define to enable avahi
+#cmakedefine ENABLE_AVAHI
+
 // Define to enable the usb / hid devices
 #cmakedefine ENABLE_USB_HID
 
