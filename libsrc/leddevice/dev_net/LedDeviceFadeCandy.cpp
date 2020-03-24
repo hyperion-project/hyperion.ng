@@ -159,7 +159,7 @@ int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArra
 	if ( isConnected() )
 	{
 		QByteArray sysExData;
-		ssize_t data_size = msg.size() + 4;
+		size_t data_size = msg.size() + 4;
 		sysExData.resize( 4 + OPC_HEADER_SIZE );
 
 		sysExData[0] = 0;
