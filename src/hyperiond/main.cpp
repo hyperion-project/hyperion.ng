@@ -1,12 +1,17 @@
 #include <cassert>
 #include <csignal>
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(_WIN32)
 /* prctl is Linux only */
 #include <sys/prctl.h>
+#endif
+// getpid()
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
 #endif
 
 #include <exception>
@@ -43,10 +48,12 @@ using namespace commandline;
 
 unsigned int getProcessIdsByProcessName(const char* processName, QStringList &listOfPids)
 {
+
 	// Clear content of returned list of PIDS
 	listOfPids.clear();
 
 #if defined(WIN32)
+	/*
 	// Get the list of process identifiers.
 	DWORD aProcesses[1024], cbNeeded, cProcesses;
 	unsigned int i;
@@ -86,7 +93,7 @@ unsigned int getProcessIdsByProcessName(const char* processName, QStringList &li
 			}
 		}
 	}
-
+*/
 	return listOfPids.count();
 
 #else
@@ -113,6 +120,7 @@ unsigned int getProcessIdsByProcessName(const char* processName, QStringList &li
 #endif
 }
 
+#ifndef _WIN32
 void signal_handler(const int signum)
 {
 	// Hyperion Managment instance
@@ -146,6 +154,7 @@ void signal_handler(const int signum)
 	// reset signal handler to default (in case this handler is not capable of stopping)
 	signal(signum, SIG_DFL);
 }
+#endif
 
 QCoreApplication* createApplication(int &argc, char *argv[])
 {
@@ -166,7 +175,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	}
 
 	// on osx/windows gui always available
-#if defined(__APPLE__) || defined(__WIN32__)
+#if defined(__APPLE__) || defined(_WIN32)
 	isGuiApp = true && ! forceNoGui;
 #else
 	if (!forceNoGui)
@@ -204,8 +213,9 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 
 int main(int argc, char** argv)
 {
+#ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-
+#endif
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);
@@ -226,6 +236,7 @@ int main(int argc, char** argv)
 
 	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
+#ifndef _WIN32
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
 	signal(SIGABRT, signal_handler);
@@ -233,7 +244,7 @@ int main(int argc, char** argv)
 	signal(SIGPIPE, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGUSR2, signal_handler);
-
+#endif
 	// force the locale
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());

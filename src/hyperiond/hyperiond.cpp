@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <cassert>
 #include <stdlib.h>
 
@@ -126,7 +125,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 // ---- grabber -----
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
 	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 #endif
 
