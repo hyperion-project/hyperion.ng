@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QString>
-#include <QByteArray>
 
 class SysInfo : public QObject
 {
@@ -30,27 +29,4 @@ private:
 	static SysInfo* _instance;
 
 	HyperionSysInfo _sysinfo;
-
-	struct QUnixOSVersion
-	{
-		QString productType;
-		QString productVersion;
-		QString prettyName;
-	};
-
-	QString machineHostName();
-	QString currentCpuArchitecture();
-	QString kernelType();
-	QString kernelVersion();
-	bool findUnixOsVersion(QUnixOSVersion &v);
-
-	QByteArray getEtcFileFirstLine(const char *fileName);
-	bool readEtcRedHatRelease(QUnixOSVersion &v);
-	bool readEtcDebianVersion(QUnixOSVersion &v);
-
-	bool readEtcOsRelease(SysInfo::QUnixOSVersion &v);
-	bool readEtcFile(SysInfo::QUnixOSVersion &v, const char *filename, const QByteArray &idKey, const QByteArray &versionKey, const QByteArray &prettyNameKey);
-	QByteArray getEtcFileContent(const char *filename);
-	QString unquote(const char *begin, const char *end);
-	bool readEtcLsbRelease(SysInfo::QUnixOSVersion &v);
 };
