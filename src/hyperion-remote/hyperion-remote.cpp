@@ -58,8 +58,9 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString name){
 
 int main(int argc, char * argv[])
 {
+#ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-
+#endif
 	std::cout
 		<< "hyperion-remote:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
