@@ -118,10 +118,12 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
 elseif ( "${PLATFORM}" STREQUAL "windows" )
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "G:/Programme/Qt/5.14.1/msvc2017_64" )
+	# Based on default qt install path and msvc2017 64bit installer component option
+	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64" "G:/Programme/Qt/5.14.1/msvc2017_64" )
 	SET ( DEFAULT_AVAHI    OFF)
 endif()
-message("AVAHAHI   !!!!!!!!!!!! ${DEFAULT_AVAHI}")
+
 # enable tests for -dev builds
 if ( "${PLATFORM}" MATCHES "-dev" )
 	SET ( DEFAULT_TESTS      ON )
@@ -161,9 +163,7 @@ option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
 
 option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
-set(ENABLE_AVAHI OFF)
 message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
-
 
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
@@ -269,16 +269,16 @@ endif()
 
 # MSVC options
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	message("MSVC VERSION: ${MSVC_VERSION}")
-	# Disable warnings
-	#string(REPLACE "/W3" "/W0" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
 endif()
 
 # Use GNU gold linker if available
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 
 # Don't create new dynamic tags (RUNPATH)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+endif()
 
 # setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)
