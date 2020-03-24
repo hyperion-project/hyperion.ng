@@ -7,10 +7,11 @@
 	"settings": {
 		"editor.formatOnSave": false,
 		"cmake.environment": {
-			"PythonInterp_ROOT": "pathtopython",
-			"Qt5": "G:/Programme/Qt/5.14.1/msvc2017_64/"
 		},
-		"cmake.cmakePath": "G:/Programme/Visual Studio/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+		"cmake.cmakePath": "G:/Programme/Visual Studio/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe",
+		"files.associations": {
+			"qfileinfo": "cpp"
+		}
 	},
 	"extensions": {
 		"recommendations": [
@@ -20,13 +21,8 @@
 			"spmeesseman.vscode-taskexplorer",
 			"yzhang.markdown-all-in-one",
 			"formulahendry.auto-rename-tag",
-			"dbaeumer.vscode-eslint",
 			"CoenraadS.bracket-pair-colorizer",
-			"lacroixdavid1.vscode-format-context-menu",
 			"eamodio.gitlens",
-			"sysoev.language-stylus",
-			"eg2.vscode-npm-script",
-			"mrmlnc.vscode-attrs-sorter",
 			"vscode-icons-team.vscode-icons"
 		]
 	}
