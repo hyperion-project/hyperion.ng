@@ -29,5 +29,5 @@ target_link_libraries(hyperion
 )
 
 if (ENABLE_AVAHI)
-	target_link_libraries(hyperiond bonjour)
+	target_link_libraries(hyperion bonjour)
 endif ()
