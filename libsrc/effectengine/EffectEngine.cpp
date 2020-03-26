@@ -47,14 +47,14 @@ EffectEngine::~EffectEngine()
 {
 }
 
-bool EffectEngine::saveEffect(const QJsonObject& obj, QString& resultMsg)
+QString EffectEngine::saveEffect(const QJsonObject& obj)
 {
-	return _effectFileHandler->saveEffect(obj, resultMsg);
+	return _effectFileHandler->saveEffect(obj);
 }
 
-bool EffectEngine::deleteEffect(const QString& effectName, QString& resultMsg)
+QString EffectEngine::deleteEffect(const QString& effectName)
 {
-	return _effectFileHandler->deleteEffect(effectName, resultMsg);
+	return _effectFileHandler->deleteEffect(effectName);
 }
 
 const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
