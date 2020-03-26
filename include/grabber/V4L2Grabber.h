@@ -90,8 +90,6 @@ public slots:
 
 	void stop();
 
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
-
 signals:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);

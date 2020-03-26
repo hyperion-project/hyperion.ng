@@ -92,4 +92,12 @@ signals:
 	///
 	void globalRegRequired(int priority);
 
+	///
+	/// @brief Tell v4l2/screen capture the listener state
+	/// @param component  The component to handle
+	/// @param hyperionInd The Hyperion instance index as identifier
+	/// @param listen  True when listening, else false
+	///
+	void requestSource(const hyperion::Components& component, const int hyperionInd, const bool listen);
+
 };

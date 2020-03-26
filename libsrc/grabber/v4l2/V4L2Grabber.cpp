@@ -58,10 +58,6 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
 
-	// connect componentStateChange only for build-in grabber
-	if (HyperionIManager::HIMinstance)
-		connect(this, &Grabber::compStateChangeRequest, this, &V4L2Grabber::compStateChangeRequest);
-
 	// init
 	setDeviceVideoStandard(device, videoStandard);
 }
@@ -1173,19 +1169,5 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 		_videoStandard = videoStandard;
 
 		if(started) start();
-	}
-}
-
-void V4L2Grabber::compStateChangeRequest(const hyperion::Components component, bool enable)
-{
-	if (component == hyperion::COMP_V4L)
-	{
-		if (_initialized != enable)
-		{
-			if (enable)
-				start();
-			else
-				stop();
-		}
 	}
 }
