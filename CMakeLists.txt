@@ -118,9 +118,6 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
 elseif ( "${PLATFORM}" STREQUAL "windows" )
-	# Based on default qt install path and msvc2017 64bit installer component option
-	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64" "G:/Programme/Qt/5.14.1/msvc2017_64" )
 	SET ( DEFAULT_AVAHI    OFF)
 endif()
 
@@ -247,7 +244,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-# enable C++11
+# enable C++11; MSVC doesn't have c++11 feature switch
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	include(CheckCXXCompilerFlag)
 	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -270,6 +267,13 @@ endif()
 # MSVC options
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
+	# Qt5 default install path with msvc2017 64bit component
+	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64" "G:/Programme/Qt/5.14.1/msvc2017_64" )
+	# Windows 10 SDK headers/libs (Install path not selectable)
+	#SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "C:/Program Files (x86)/Windows Kits/10" )
+	# MSVC headers/libs (Install path selectable)
+	#SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}  "G:/Programme/Visual Studio/VC/Tools/MSVC/14.16.27023" )
 endif()
 
 # Use GNU gold linker if available
