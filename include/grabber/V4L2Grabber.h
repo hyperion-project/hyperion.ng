@@ -92,6 +92,16 @@ public:
 	/// 
 	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
+	///
+	/// @brief overwrite Grabber.h implementation
+	/// 
+	virtual bool setFramerate(int fps);
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	virtual bool setWidthHeight(int width, int height);
+
 public slots:
 
 	bool start();

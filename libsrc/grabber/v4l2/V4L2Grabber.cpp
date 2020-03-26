@@ -1208,6 +1208,30 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 	}
 }
 
+bool V4L2Grabber::setFramerate(int fps)
+{
+	if(Grabber::setFramerate(fps))
+	{
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+		return true;
+	}
+	return false;
+}
+
+bool V4L2Grabber::setWidthHeight(int width, int height)
+{
+	if(Grabber::setWidthHeight(width,height))
+	{
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+		return true;
+	}
+	return false;
+}
+
 void V4L2Grabber::compStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if (component == hyperion::COMP_V4L)

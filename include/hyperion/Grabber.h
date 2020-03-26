@@ -40,6 +40,10 @@ public:
 	///
 	virtual bool setWidthHeight(int width, int height);
 
+	///
+	/// @brief Apply new framerate (used from v4l)
+	/// @param fps  framesPerSecond
+	///
 	virtual bool setFramerate(int fps);
 
 	///

@@ -70,17 +70,6 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	}
 }
 
-bool Grabber::setFramerate(int fps)
-{
-	if (fps>0 && _fps != fps)
-	{
-		Debug(_log, "Set framerate to: %d fps", fps);
-		_fps = fps;
-		return true;
-	}
-	return false;
-}
-
 bool Grabber::setWidthHeight(int width, int height)
 {
 	// eval changes with crop
@@ -97,4 +86,12 @@ bool Grabber::setWidthHeight(int width, int height)
 		return true;
 	}
 	return false;
+}
+
+bool Grabber::setFramerate(int fps)
+{
+	if(fps > 0)
+		_fps = fps;
+		
+	return fps > 0;
 }
