@@ -33,12 +33,7 @@ QtGrabber::~QtGrabber()
 
 void QtGrabber::freeResources()
 {
-	// cleanup
-	if (_screen != nullptr)
-	{
-		delete _screen;
-		_screen = nullptr;
-	}
+	// Qt seems to hold the ownership of the QScreen pointers
 }
 
 bool QtGrabber::setupDisplay()
