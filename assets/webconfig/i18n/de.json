@@ -426,6 +426,7 @@
 	"edt_dev_spec_transistionTime_title": "Übergangszeit",
 	"edt_dev_spec_switchOffOnBlack_title": "Aus bei schwarz",
 	"edt_dev_spec_brightnessFactor_title": "Helligkeitsfaktor",
+	"edt_dev_spec_restoreOriginalState_title" : "Lampen Originalzustand wiederhestellen",
 	"edt_dev_spec_ledType_title": "LED typ",
 	"edt_dev_spec_uid_title": "UID",
 	"edt_dev_spec_intervall_title": "Intervall",

@@ -103,7 +103,7 @@ private:
 	///
 	/// @return True, if Nanoleaf device was found
 	///
-	bool discoverNanoleafDevice();
+	bool discoverDevice();
 
 	///
 	/// Change Nanoleaf device to External Control (UDP) mode
