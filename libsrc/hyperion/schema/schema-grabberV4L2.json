@@ -29,6 +29,7 @@
 			"type" : "integer",
 			"title" : "edt_conf_fg_width_title",
 			"default" : 0,
+			"minimum" : 0,
 			"required" : true,
 			"access" : "expert",
 			"propertyOrder" : 3
@@ -38,6 +39,7 @@
 			"type" : "integer",
 			"title" : "edt_conf_fg_height_title",
 			"default" : 0,
+			"minimum" : 0,
 			"required" : true,
 			"access" : "expert",
 			"propertyOrder" : 4
@@ -47,6 +49,7 @@
 			"type" : "integer",
 			"title" : "Framerate",
 			"default" : 15,
+			"minimum" : 1,
 			"required" : true,
 			"access" : "expert",
 			"propertyOrder" : 5
