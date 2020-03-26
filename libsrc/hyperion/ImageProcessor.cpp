@@ -69,8 +69,11 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 		return;
 	}
 
-	// Clean up the old buffer and mapping
-	_imageToLeds = 0;
+	if ( _imageToLeds != nullptr)
+	{
+		// Clean up the old buffer and mapping
+		delete _imageToLeds;
+	}
 
 	// Construct a new buffer and mapping
 	_imageToLeds = (width>0 && height>0) ? (new ImageToLedsMap(width, height, 0, 0, _ledString.leds())) : nullptr;
@@ -78,17 +81,20 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 
 void ImageProcessor::setLedString(const LedString& ledString)
 {
-	_ledString = ledString;
+	if ( _imageToLeds != nullptr)
+	{
+		_ledString = ledString;
 
-	// get current width/height
-	const unsigned width = _imageToLeds->width();
-	const unsigned height = _imageToLeds->height();
+		// get current width/height
+		unsigned width = _imageToLeds->width();
+		unsigned height = _imageToLeds->height();
 
-	// Clean up the old buffer and mapping
-	_imageToLeds = 0;
+		// Clean up the old buffer and mapping
+		delete _imageToLeds;
 
-	// Construct a new buffer and mapping
-	_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
+		// Construct a new buffer and mapping
+		_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
+	}
 }
 
 void ImageProcessor::setBlackbarDetectDisable(bool enable)

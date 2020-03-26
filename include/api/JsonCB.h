@@ -12,6 +12,8 @@
 #include <utils/VideoMode.h>
 // settings
 #include <utils/settings.h>
+// AuthManager
+#include <hyperion/AuthManager.h>
 
 class Hyperion;
 class ComponentRegister;
@@ -118,6 +120,11 @@ private slots:
 	/// @brief Handle Hyperion instance manager change
 	///
 	void handleInstanceChange();
+
+	///
+	/// @brief Handle AuthManager token changes
+	///
+	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
 
 private:
 	/// pointer of Hyperion instance

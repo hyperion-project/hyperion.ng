@@ -59,7 +59,9 @@ public:
 	unsigned int getLedCount() const { return _ledCount; }
 
 	bool enabled() const { return _enabled; }
+
 	int getLatchTime() const { return _latchTime_ms; }
+	void setLatchTime( int latchTime_ms );
 
 	///
 	/// Check, if device is ready to be used

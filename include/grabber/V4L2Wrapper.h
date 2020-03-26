@@ -30,7 +30,6 @@ public slots:
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 signals:
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

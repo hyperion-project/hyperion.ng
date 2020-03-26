@@ -32,6 +32,7 @@ public:
 	static HyperionIManager* getInstance() { return HIMinstance; };
 	static HyperionIManager* HIMinstance;
 
+public slots:
 	///
 	/// @brief Is given instance running?
 	/// @param inst  The instance to check

@@ -37,13 +37,13 @@ static const char STATE_ONOFF_VALUE[] = "value";
 static const char STATE_VALUE_TRUE[] = "true";
 static const char STATE_VALUE_FALSE[] = "false";
 
-//Device Data elements
+// Device Data elements
 static const char DEV_DATA_NAME[] = "name";
 static const char DEV_DATA_MODEL[] = "model";
 static const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 static const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
 
-//Nanoleaf Stream Control elements
+// Nanoleaf Stream Control elements
 //static const char STREAM_CONTROL_IP[] = "streamControlIpAddr";
 static const char STREAM_CONTROL_PORT[] = "streamControlPort";
 //static const char STREAM_CONTROL_PROTOCOL[] = "streamControlProtocol";
@@ -59,7 +59,7 @@ static const char API_STATE[] ="state";
 static const char API_PANELLAYOUT[] = "panelLayout";
 static const char API_EFFECT[] = "effects";
 
-//Nanoleaf ssdp services
+// Nanoleaf ssdp services
 static const char SSDP_CANVAS[] = "nanoleaf:nl29";
 static const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 const int SSDP_TIMEOUT = 5000; // timout in ms
@@ -132,7 +132,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		if ( _hostname.isEmpty() )
 		{
 			//Discover Nanoleaf device
-			if ( !discoverNanoleafDevice() )
+			if ( !discoverDevice() )
 			{
 				this->setInError("No target IP defined nor Nanoleaf device was discovered");
 				return false;
@@ -256,24 +256,17 @@ int LedDeviceNanoleaf::open()
 
 	if ( init(_devConfig) )
 	{
-		if ( !initNetwork() )
+		if ( initLeds() )
 		{
-			this->setInError( "UDP Network error!" );
-		}
-		else
-		{
-			if ( initLeds() )
-			{
-				_deviceReady = true;
-				setEnable(true);
-				retval = 0;
-			}
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
 		}
 	}
 	return retval;
 }
 
-bool LedDeviceNanoleaf::discoverNanoleafDevice()
+bool LedDeviceNanoleaf::discoverDevice()
 {
 
 	bool isDeviceFound (false);

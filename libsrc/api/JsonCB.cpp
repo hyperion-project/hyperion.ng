@@ -35,7 +35,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update";
+	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
 bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
@@ -129,6 +129,14 @@ bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
 			disconnect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange);
 		else
 			connect(HyperionIManager::getInstance(), &HyperionIManager::change, this, &JsonCB::handleInstanceChange, Qt::UniqueConnection);
+	}
+
+	if (type == "token-update")
+	{
+		if (unsubscribe)
+			disconnect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCB::handleTokenChange);
+		else
+			connect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCB::handleTokenChange, Qt::UniqueConnection);
 	}
 
 	return true;
@@ -400,4 +408,18 @@ void JsonCB::handleInstanceChange()
 		arr.append(obj);
 	}
 	doCallback("instance-update", QVariant(arr));
+}
+
+void JsonCB::handleTokenChange(const QVector<AuthManager::AuthDefinition> &def)
+{
+	QJsonArray arr;
+	for (const auto &entry : def)
+	{
+		QJsonObject sub;
+		sub["comment"] = entry.comment;
+		sub["id"] = entry.id;
+		sub["last_use"] = entry.lastUse;
+		arr.push_back(sub);
+	}
+	doCallback("token-update", QVariant(arr));
 }

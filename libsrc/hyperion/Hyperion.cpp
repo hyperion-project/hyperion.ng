@@ -290,13 +290,12 @@ unsigned Hyperion::getLedCount() const
 	return _ledString.leds().size();
 }
 
-void Hyperion::setSourceAutoSelectEnabled(bool enabled)
+void Hyperion::setSourceAutoSelect(const bool state)
 {
-	if(_muxer.setSourceAutoSelectEnabled(enabled))
-		update();
+	_muxer.setSourceAutoSelectEnabled(state);
 }
 
-bool Hyperion::setCurrentSourcePriority(int priority )
+bool Hyperion::setVisiblePriority(const int& priority)
 {
 	return _muxer.setPriority(priority);
 }
@@ -465,14 +464,14 @@ const Hyperion::InputInfo Hyperion::getPriorityInfo(const int priority) const
 	return _muxer.getInputInfo(priority);
 }
 
-bool Hyperion::saveEffect(const QJsonObject& obj, QString& resultMsg)
+QString Hyperion::saveEffect(const QJsonObject& obj)
 {
-	return _effectEngine->saveEffect(obj, resultMsg);
+	return _effectEngine->saveEffect(obj);
 }
 
-bool Hyperion::deleteEffect(const QString& effectName, QString& resultMsg)
+QString Hyperion::deleteEffect(const QString& effectName)
 {
-	return _effectEngine->deleteEffect(effectName, resultMsg);
+	return _effectEngine->deleteEffect(effectName);
 }
 
 const std::list<EffectDefinition> & Hyperion::getEffects() const
