@@ -466,7 +466,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-			connect(this, &HyperionDaemon::compStateChangeRequest, _v4l2Grabber, &V4L2Wrapper::compStateChangeRequest);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
