@@ -12,7 +12,7 @@ enum PixelFormat {
 	PIXELFORMAT_BGR24,
 	PIXELFORMAT_RGB32,
 	PIXELFORMAT_BGR32,
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 	PIXELFORMAT_MJPEG,
 #endif
 	PIXELFORMAT_NO_CHANGE
@@ -47,7 +47,7 @@ inline PixelFormat parsePixelFormat(QString pixelFormat)
 	{
 		return PIXELFORMAT_BGR32;
 	}
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 	else if (pixelFormat == "mjpeg")
 	{
 		return PIXELFORMAT_MJPEG;

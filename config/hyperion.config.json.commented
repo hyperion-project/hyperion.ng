@@ -101,6 +101,8 @@
 
 	/// Configuration for the embedded V4L2 grabber
 	///  * device               : V4L2 Device to use [default="auto"] (Auto detection)
+	///  * width                : The width of the grabbed frames (pixels) [default=0]
+	///  * height               : The height of the grabbed frames (pixels) [default=0]
 	///  * standard             : Video standard (PAL/NTSC/SECAM/NO_CHANGE) [default="NO_CHANGE"]
 	///  * sizeDecimation       : Size decimation factor [default=8]
 	///  * cropLeft             : Cropping from the left [default=0]
@@ -118,6 +120,8 @@
 	"grabberV4L2" :
 	{
 		"device"   : "auto",
+		"width" : 0,
+		"height" : 0,
 		"standard" : "NO_CHANGE",
 		"sizeDecimation"  : 8,
 		"priority"    : 240,
