@@ -316,7 +316,7 @@ if (ENABLE_V4L2)
 		else()
 			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
 		endif()
-	endif (TurboJPEG_FOUND)
+	endif (TURBOJPEG_FOUND)
 
 	
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
