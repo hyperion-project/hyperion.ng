@@ -495,50 +495,49 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 
-	// set the video standard if needed and supported
-	v4l2_std_id std_id;
-	if (-1 != xioctl(VIDIOC_ENUMSTD, &std_id))
+	// set the video standard if needed
+	switch (videoStandard)
 	{
-		switch (videoStandard)
+		case VIDEOSTANDARD_PAL:
 		{
-			case VIDEOSTANDARD_PAL:
+			v4l2_std_id std_id = V4L2_STD_PAL;
+			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
 			{
-				std_id = V4L2_STD_PAL;
-				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-			}
-			break;
-
-			case VIDEOSTANDARD_NTSC:
-			{
-				std_id = V4L2_STD_NTSC;
-				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-			}
-			break;
-
-			case VIDEOSTANDARD_SECAM:
-			{
-				std_id = V4L2_STD_SECAM;
-				if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-				{
-					throw_errno_exception("VIDIOC_S_STD");
-					break;
-				}
-			}
-			break;
-
-			case VIDEOSTANDARD_NO_CHANGE:
-			default:
-				// No change to device settings
+				throw_errno_exception("VIDIOC_S_STD");
 				break;
+			}
+			Debug(_log, "Video standard=PAL");
 		}
+		break;
+
+		case VIDEOSTANDARD_NTSC:
+		{
+			v4l2_std_id std_id = V4L2_STD_NTSC;
+			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+			{
+				throw_errno_exception("VIDIOC_S_STD");
+				break;
+			}
+			Debug(_log, "Video standard=NTSC");
+		}
+		break;
+
+		case VIDEOSTANDARD_SECAM:
+		{
+			v4l2_std_id std_id = V4L2_STD_SECAM;
+			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+			{
+				throw_errno_exception("VIDIOC_S_STD");
+				break;
+			}
+			Debug(_log, "Video standard=SECAM");
+		}
+		break;
+
+		case VIDEOSTANDARD_NO_CHANGE:
+		default:
+			// No change to device settings
+			break;
 	}
 
 	// get the current settings
@@ -613,10 +612,14 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	if (!v4lDevice_res.isEmpty())
 		Debug(_log, "available V4L2 resolutions:\n%s", QSTRING_CSTR(v4lDevice_res));
 
-	// set the settings
-	fmt.fmt.pix.width = _width;
-	fmt.fmt.pix.height = _height;
+	// set custom resolution for width and height if they are not zero
+	if(_width && _height)
+	{
+		fmt.fmt.pix.width = _width;
+		fmt.fmt.pix.height = _height;
+	}
 
+	// set the settings
 	if (-1 == xioctl(VIDIOC_S_FMT, &fmt))
 	{
 		throw_errno_exception("VIDIOC_S_FMT");
@@ -634,31 +637,11 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	struct v4l2_streamparm streamparms;
 	CLEAR(streamparms);
 	streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	if (-1 == xioctl(VIDIOC_G_PARM, &streamparms))
-	{
-		Debug(_log, "Frame rate settings not supported");
-		// continue
-	}
-	else
-	{
-		// Check the capability flag is set to V4L2_CAP_TIMEPERFRAME
-		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
-		{
-			// Driver supports the feature. Set required framerate
-			CLEAR(streamparms);
-			streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-			streamparms.parm.capture.timeperframe.numerator = 1;
-			streamparms.parm.capture.timeperframe.denominator = _fps;
-			if(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
-			{
-				throw_errno_exception("VIDIOC_S_PARM");
-				// continue
-			}
-			else
-				// display the used framerate
-				Debug(_log, "Set framerate to %d fps", _fps);
-		}
-	}
+	streamparms.parm.capture.timeperframe.numerator = 1;
+	streamparms.parm.capture.timeperframe.denominator = _fps;
+	(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
+	?	Debug(_log, "Frame rate settings not supported.")
+	:	Debug(_log, "Set framerate to %d fps", _fps);
 
 	// set the line length
 	_lineLength = fmt.fmt.pix.bytesperline;
@@ -953,9 +936,9 @@ bool V4L2Grabber::process_image(const void *p, int size)
 {
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
-	if (size != _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
+	if (size < _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
 #else
-	if (size != _frameByteSize)
+	if (size < _frameByteSize)
 #endif
 	{
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
