@@ -2,6 +2,19 @@ var instNameInit = false
 
 $(document).ready(function () {
 
+	var darkModeOverwrite = getStorage("darkModeOverwrite", true);
+
+	if(darkModeOverwrite == "false" || darkModeOverwrite == null)
+	{
+		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			handleDarkMode();
+		}
+	
+		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+			setStorage("darkMode", "off", false);
+		}
+	}
+	
 	if(getStorage("darkMode", false) == "on")
 	{
 		handleDarkMode();
@@ -286,9 +299,11 @@ $("#btn_darkmode").off().on("click",function(e){
 	if(getStorage("darkMode", false) != "on")
 	{
 		handleDarkMode();
+		setStorage("darkModeOverwrite", true, true);
 	}
 	else {
 		setStorage("darkMode", "off", false);
+		setStorage("darkModeOverwrite", true, true);
 		location.reload();
 	}
 	
