@@ -866,7 +866,10 @@ int V4L2Grabber::read_frame()
 
 						case EIO: /* Could ignore EIO, see spec. */
 						default:
+						{
 							throw_errno_exception("VIDIOC_DQBUF");
+							stop();
+						}
 						return 0;
 					}
 				}
@@ -899,7 +902,10 @@ int V4L2Grabber::read_frame()
 
 						case EIO: /* Could ignore EIO, see spec. */
 						default:
+						{
 							throw_errno_exception("VIDIOC_DQBUF");
+							stop();
+						}
 						return 0;
 					}
 				}
