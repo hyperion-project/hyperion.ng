@@ -231,3 +231,14 @@ button.close:hover {
     background-color: #121212;
     color: #03dac6;
 }
+
+/*Burger Button*/
+.navbar-default .navbar-toggle {
+    border-color: #005d5c;
+    background-color: #080808;
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+    border-color: #005d5c;
+    background-color: #080808;
+}
