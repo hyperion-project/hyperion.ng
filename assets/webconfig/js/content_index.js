@@ -2,6 +2,11 @@ var instNameInit = false
 
 $(document).ready(function () {
 
+	if(getStorage("darkMode", false) == "on")
+	{
+		handleDarkMode();
+	}
+
 	loadContentTo("#container_connection_lost", "connection_lost");
 	loadContentTo("#container_restart", "restart");
 	initWebSocket();
@@ -273,4 +278,18 @@ $(function () {
 // hotfix body padding when bs modals overlap
 $(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
 	$('body').css('padding-right', '0');
+});
+
+//Dark Mode
+$("#btn_darkmode").off().on("click",function(e){
+
+	if(getStorage("darkMode", false) != "on")
+	{
+		handleDarkMode();
+	}
+	else {
+		setStorage("darkMode", "off", false);
+		location.reload();
+	}
+	
 });

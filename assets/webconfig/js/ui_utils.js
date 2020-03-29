@@ -936,3 +936,15 @@ function getReleases(callback)
 	});
 }
 
+function handleDarkMode()
+{
+		$("<link/>", {
+			rel: "stylesheet",
+			type: "text/css",
+			href: "../css/darkMode.css"
+		}).appendTo("head");
+
+		setStorage("darkMode", "on", false);
+		$('#btn_darkmode_icon').removeClass('fa fa-moon-o');
+		$('#btn_darkmode_icon').addClass('fa fa-sun-o');
+}
