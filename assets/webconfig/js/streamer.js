@@ -2,7 +2,7 @@ $(document).ready( function() {
 
 	// check if browser supports streaming
 	if(window.navigator.mediaDevices && window.navigator.mediaDevices.getDisplayMedia){
-		$("#btn_streamer").toggle()
+		$("#btn_streamer").toggle();
 	}
 
 	// variables

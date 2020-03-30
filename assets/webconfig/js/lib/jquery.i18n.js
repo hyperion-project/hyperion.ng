@@ -247,7 +247,7 @@
 	String.locale = String.locale || $( 'html' ).attr( 'lang' );
 
 	if ( !String.locale ) {
-		if ( typeof window.navigator !== undefined ) {
+		if ( typeof window.navigator !== 'undefined' ) {
 			nav = window.navigator;
 			String.locale = nav.language || nav.userLanguage || '';
 		} else {
