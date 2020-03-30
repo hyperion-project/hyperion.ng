@@ -36,7 +36,7 @@ function installAndUpgrade()
 if [[ $CI_NAME == 'osx' || $CI_NAME == 'darwin' ]]; then
 	echo "Install dependencies"
 	brew update
-	dependencies=("qt5" "python" "libusb" "cmake" "doxygen")
+	dependencies=("qt5" "python" "libusb" "cmake" "doxygen", "mbedtls")
 	installAndUpgrade "${dependencies[@]}"
 elif [[ $CI_NAME != 'linux' ]]; then
 	echo "Unsupported platform: $CI_NAME"

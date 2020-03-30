@@ -96,7 +96,7 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt5")
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
-	include_directories("/opt/X11/include/")
+	include_directories("/opt/X11/include/" "/usr/local/include")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
 elseif ( "${PLATFORM}" STREQUAL "rpi" )
@@ -293,8 +293,9 @@ IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
 
-# Add libusb and pthreads
+# Add libusb, Mbedtls and pthreads
 find_package(libusb-1.0 REQUIRED)
+find_package(MbedTLS REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
@@ -318,7 +319,6 @@ if (ENABLE_V4L2)
 		endif()
 	endif (TURBOJPEG_FOUND)
 
-	
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)
 	endif()

@@ -5,10 +5,11 @@
 
 // Qt includes
 #include <QNetworkAccessManager>
-#include <QTimer>
+#include <QElapsedTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
+#include "ProviderUdpSSL.h"
 
 // Forward declaration
 struct CiColorTriangle;
@@ -167,7 +168,7 @@ private:
 	CiColor _originalColor;
 };
 
-class LedDevicePhilipsHueBridge : public LedDevice
+class LedDevicePhilipsHueBridge : public ProviderUdpSSL
 {
 	Q_OBJECT
 
@@ -183,18 +184,22 @@ public:
 	/// @return true if success
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-
-
 	///
 	/// @param route the route of the POST request.
 	///
 	/// @param content the content of the POST request.
 	///
-	void post(const QString& route, const QString& content);
+	QJsonDocument post(const QString& route, const QString& content);
 
 	void setLightState(unsigned int lightId = 0, QString state = "");
 
 	const QMap<quint16,QJsonObject>& getLightMap();
+
+	const QMap<quint16,QJsonObject>& getGroupMap();
+
+	QString getGroupName(unsigned int groupId = 0);
+
+	QJsonArray getGroupLights(unsigned int groupId = 0);
 
 //	/// Set device in error state
 //	///
@@ -221,6 +226,15 @@ protected:
 	QString _api_port;
 	/// User name for the API ("newdeveloper")
 	QString _username;
+
+	bool _useHueEntertainmentAPI;
+	bool _logCommands;
+
+	QJsonDocument getGroupState( unsigned int groupId );
+	QJsonDocument setGroupState( unsigned int groupId, bool state);
+
+	bool isStreamOwner(QString streamOwner);
+	bool resetMaps();
 
 private:
 
@@ -267,6 +281,11 @@ private:
 	///
 	QJsonDocument handleReply(QNetworkReply* const &reply );
 
+	QJsonDocument getAllBridgeInfos();
+	void setBridgeConfig( QJsonDocument doc );
+	void setLightsMap( QJsonDocument doc );
+	void setGroupMap( QJsonDocument doc );
+
 	/// QNetworkAccessManager  for sending requests.
 	QNetworkAccessManager* _networkmanager;
 
@@ -282,6 +301,7 @@ private:
 	bool _isHueEntertainmentReady;
 
 	QMap<quint16,QJsonObject> _lightsMap;
+	QMap<quint16,QJsonObject> _groupsMap;
 };
 
 
@@ -296,7 +316,6 @@ private:
  */
 class LedDevicePhilipsHue: public LedDevicePhilipsHueBridge
 {
-
 	Q_OBJECT
 
 public:
@@ -337,10 +356,16 @@ public:
 	unsigned int getLightsCount() const { return _lightsCount; }
 	void setLightsCount( unsigned int lightsCount);
 
+	bool initStream();
+	bool getStreamGroupState();
+	bool setStreamGroupState(bool state);
+	bool startStream();
+	bool stopStream();
+
 	void setOnOffState(PhilipsHueLight& light, bool on);
-	void setTransitionTime(PhilipsHueLight& light, unsigned int transitionTime);
-	void setColor(PhilipsHueLight& light, const CiColor& color, double brightnessFactor);
-	void setState(PhilipsHueLight& light, bool on, const CiColor& color, double brightnessFactor, unsigned int transitionTime);
+	void setTransitionTime(PhilipsHueLight& light);
+	void setColor(PhilipsHueLight& light, CiColor& color);
+	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
 	void restoreOriginalState();
 
@@ -359,6 +384,8 @@ private slots:
 	///
 	void updateLights(QMap<quint16, QJsonObject> map);
 
+	bool noSignalDetection();
+
 protected:
 
 	///
@@ -374,6 +401,7 @@ protected:
 	/// @return True, if Nanoleaf device capabilities fit configuration
 	///
 	bool initLeds();
+	bool reinitLeds();
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -386,7 +414,13 @@ protected:
 
 private:
 
+	bool setLights(QJsonArray lArray);
+
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
+
+	void writeStream();
+
+	QByteArray prepareStreamData();
 
 	///
 	bool _switchOffOnBlack;
@@ -397,6 +431,8 @@ private:
 	unsigned int _transitionTime;
 
 	bool _isRestoreOrigState;
+	bool _lightStatesRestored;
+	bool _isInitLeds;
 
 	/// Array of the light ids.
 	std::vector<unsigned int> _lightIds;
@@ -405,5 +441,20 @@ private:
 
 	unsigned int _lightsCount;
 
+	double _brightnessMin;
+	double _brightnessMax;
 
+	bool _allLightsBlack;
+
+	QElapsedTimer _blackLightsTimer;
+	unsigned int _blackLightsTimeout;
+	bool _stopConnection;
+
+	unsigned int _groupId;
+
+	QString _groupName;
+	QString _streamOwner;
+
+	int start_retry_left;
+	int stop_retry_left;
 };

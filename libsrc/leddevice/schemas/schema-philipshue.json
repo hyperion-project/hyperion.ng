@@ -14,34 +14,52 @@
 			"default": "",
 			"propertyOrder" : 2
 		},
+		"clientkey": {
+			"type": "string",
+			"title":"edt_dev_spec_clientKey_title",
+			"default" : "",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 3
+		},
+		"useEntertainmentAPI": {
+			"type": "boolean",
+			"title":"edt_dev_spec_useEntertainmentAPI_title",
+			"default" : false,
+			"propertyOrder" : 4
+		},
 		"transitiontime": {
 			"type": "integer",
 			"title":"edt_dev_spec_transistionTime_title",
 			"default" : 1,
 			"append" : "x100ms",
-			"propertyOrder" : 3
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": false
+				}
+			},
+			"propertyOrder" : 5
 		},
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"title":"edt_dev_spec_switchOffOnBlack_title",
 			"default" : true,
-			"propertyOrder" : 4
-		},
-		"brightnessFactor": {
-			"type": "number",
-			"title":"edt_dev_spec_brightnessFactor_title",
-			"default" : 1.0,
-			"minimum" : 0.5,
-			"maximum" : 10.0,
-			"propertyOrder" : 5
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": false
+				}
+			},
+			"propertyOrder" : 6
 		},
 		"restoreOriginalState": {
 			"type": "boolean",
 			"title":"edt_dev_spec_restoreOriginalState_title",
 			"default" : true,
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
-
 		"lightIds": {
 			"type": "array",
 			"title":"edt_dev_spec_lightid_title",
@@ -52,7 +70,119 @@
 				"minimum" : 0,
 				"title" : "edt_dev_spec_lightid_itemtitle"
 			},
-			"propertyOrder" : 7
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": false
+				}
+			},
+			"propertyOrder" : 8
+		},
+		"groupId": {
+			"type": "integer",
+			"title":"edt_dev_spec_groupId_title",
+			"default" : 0,
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 9
+		},
+		"blackLightsTimeout": {
+			"type": "number",
+			"title":"edt_dev_spec_blackLightsTimeout_title",
+			"default" : 15000,
+			"step": 500,
+			"minimum" : 10000,
+			"maximum" : 60000,
+			"access" : "advanced",
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 10
+		},
+		"brightnessFactor": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessFactor_title",
+			"default" : 1.0,
+			"step": 0.25,
+			"minimum" : 0.5,
+			"maximum" : 10.0,
+			"access" : "advanced",
+			"propertyOrder" : 11
+		},
+		"brightnessMin": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessMin_title",
+			"default" : 0,
+			"step": 0.05,
+			"minimum" : 0,
+			"maximum" : 1.0,
+			"access" : "advanced",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 12
+		},
+		"brightnessMax": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessMax_title",
+			"default" : 1.0,
+			"step": 0.05,
+			"minimum" : 0,
+			"maximum" : 1.0,
+			"access" : "advanced",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 13
+		},
+		"logCommands": {
+			"type": "boolean",
+			"title":"edt_dev_spec_logCommands_title",
+			"default" : false,
+			"access" : "expert",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 14
+		},
+		"debugStreamer": {
+			"type": "boolean",
+			"title":"edt_dev_spec_debugStreamer_title",
+			"default" : false,
+			"access" : "expert",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 15
+		},
+		"debugLevel": {
+			"type": "integer",
+			"title":"edt_dev_spec_debugLevel_title",
+			"enum" : [0, 1, 2, 3, 4],
+			"default" : 0,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_error", "edt_conf_enum_dl_statechange", "edt_conf_enum_dl_informational", "edt_conf_enum_dl_verbose"],
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"minimum" : 0,
+			"maximum" : 4,
+			"access" : "expert",
+			"propertyOrder" : 16
 		}
 	},
 	"additionalProperties": true

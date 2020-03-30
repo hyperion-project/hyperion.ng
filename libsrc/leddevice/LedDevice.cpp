@@ -135,7 +135,6 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 			int new_refresh_timer_interval = _latchTime_ms + 10;
 			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refresh_timer_interval, new_refresh_timer_interval);
 			_refresh_timer_interval = new_refresh_timer_interval;
-			_refresh_timer->setInterval( _refresh_timer_interval );
 		}
 
 		//Debug(_log, "Refresh interval = %dms",_refresh_timer_interval );
