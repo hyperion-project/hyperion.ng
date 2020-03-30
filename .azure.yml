@@ -15,7 +15,7 @@ jobs:
         dockerName: 'Debian Stretch (AMD64)'
         platform: 'x11'
       i386 (x86):
-        dockerTag: 'i386'
+       dockerTag: 'i386'
         dockerName: 'Debian Stretch (i386)'
         platform: 'x11'
       ARMv6hf (Raspberry Pi v1 & ZERO):
@@ -35,13 +35,6 @@ jobs:
   - checkout: self # represents the repo where the initial Pipelines YAML file was found
     submodules: recursive # set to 'recursive' to get submodules of submodules
 
-  # read version file
-  - bash: |
-      echo "##vso[task.setvariable variable=semVer]$(cat version)"
-      echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
-    workingDirectory: '$(Build.SourcesDirectory)'
-    displayName: 'Read and generate pipeline variables'
-
   # build process
   - bash: ./.ci/ci_build.sh
     displayName: 'Build $(dockerName) packages'
@@ -50,41 +43,19 @@ jobs:
       DOCKER_NAME: $(dockerName)
       PLATFORM: $(platform)
 
-  # copy files
-  - bash: 'cp -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-    workingDirectory: '$(Build.SourcesDirectory)'
+  # move files
+  - bash: 'mv -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
+    workingDirectory: $(Build.SourcesDirectory)
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Collecting deployable artifacts'
+    displayName: 'Collect artifacts'
 
   # publish artifacts
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
       ArtifactName: $(dockerTag)
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Publish deployables artifacts'
-
-  # set release to pre-release
-  - bash: echo '##vso[task.setvariable variable=preRelease;]true'
-    condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Mark alpha or beta as pre-release'
-
-  # create or update github release
-  - task: GithubRelease@0
-    inputs: 
-      gitHubConnection: 'Hyperion-Bot'
-      repositoryName: $(Build.Repository.Name)
-      action: edit
-      target: $(Build.SourceVersion)
-      tagSource: manual
-      tag: $(Build.SourceBranchName)
-      title: 'Hyperion $(semVer)'
-      assets: '$(Build.ArtifactStagingDirectory)/*'
-      assetUploadMode: 'replace'
-      addChangeLog: false
-      isPreRelease: $(preRelease)
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: Create/Update GitHub release
+    displayName: 'Publish artifacts'
 
 ######################
 ###### macOS #########
@@ -99,55 +70,85 @@ jobs:
   - checkout: self # represents the repo where the initial Pipelines YAML file was found
     submodules: recursive # set to 'recursive' to get submodules of submodules
 
-  # read version file
-  - bash: |
-      echo "##vso[task.setvariable variable=semVer]$(cat version)"
-      echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
-    workingDirectory: '$(Build.SourcesDirectory)'
-    displayName: 'Read and generate pipeline variables'
-
   # install dependencies
   - bash: ./.ci/ci_install.sh
     displayName: 'Install dependencies'
 
   # build process
   - bash: ./.ci/ci_build.sh
-    displayName: 'Build macOS 10.13 packages'
     env:
       PLATFORM: 'osx'
+    condition: succeeded()
+    displayName: 'Build macOS 10.13 packages'
 
-  # copy files
-  - bash: 'cp -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-    workingDirectory: '$(Build.SourcesDirectory)'
+  # move files
+  - bash: 'mv -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
+    workingDirectory: $(Build.SourcesDirectory)
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Collecting deployable artifacts'
+    displayName: 'Collect artifacts'
 
   # publish artifacts
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
       ArtifactName: 'macos'
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Publish deployables artifacts'
+    displayName: 'Publish artifacts'
+
+################################
+###### Publish Releases ########
+################################
+
+- job: PublishReleases
+  timeoutInMinutes: 120
+  dependsOn:
+  - Linux
+  - macOS
+  condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  pool:
+    vmImage: ubuntu-16.04
+
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+
+  # download deployables artifacts
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      path: $(Build.ArtifactStagingDirectory)
+    displayName: Download artifacts
+
+  # read version file
+  - bash: |
+      echo "##vso[task.setvariable variable=semVer]$(cat version)"
+      echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
+    workingDirectory: '$(Build.SourcesDirectory)'
+    condition: succeeded()
+    displayName: 'Read and generate pipeline variables'
 
   # set release to pre-release
   - bash: echo '##vso[task.setvariable variable=preRelease;]true'
     condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     displayName: 'Mark alpha or beta as pre-release'
 
-  # create or update github release
+  # create github releases
   - task: GithubRelease@0
     inputs: 
-      gitHubConnection: 'Hyperion-Bot'
+      gitHubConnection: Hyperion-Bot
       repositoryName: $(Build.Repository.Name)
-      action: edit
+      action: create
       target: $(Build.SourceVersion)
       tagSource: manual
-      tag: '$(Build.SourceBranchName)'
+      tag: $(Build.SourceBranchName)
       title: 'Hyperion $(semVer)'
-      assets: '$(Build.ArtifactStagingDirectory)/*'
+      assets: |
+        $(Build.ArtifactStagingDirectory)/amd64/*
+        $(Build.ArtifactStagingDirectory)/i386/*
+        $(Build.ArtifactStagingDirectory)/armv6hf/*
+        $(Build.ArtifactStagingDirectory)/armv7hf/*
+        $(Build.ArtifactStagingDirectory)/aarch64/*
+        $(Build.ArtifactStagingDirectory)/macos/*
       assetUploadMode: 'replace'
       addChangeLog: false
       isPreRelease: $(preRelease)
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: Create/Update GitHub release
+    condition: succeeded()
+    displayName: Create GitHub releases
