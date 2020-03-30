@@ -25,7 +25,7 @@ LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	, _latchTime_ms(0)
 	, _componentRegistered(false)
 	, _enabled(false)
-	, _refresh_enabled (false)
+	, _refresh_enabled(false)
 {
 	// setup refreshTimer
 	_refresh_timer->setTimerType(Qt::PreciseTimer);
@@ -74,7 +74,7 @@ void LedDevice::close()
 
 void LedDevice::setEnable(bool enable)
 {
-	if (!_deviceReady && enable)
+	if ( !_deviceReady && enable )
 	{
 		Debug(_log, "Device '%s' was not ready! Trying to re-open.", QSTRING_CSTR(_activeDeviceType));
 		if ( open() < 0 )
@@ -90,19 +90,19 @@ void LedDevice::setEnable(bool enable)
 	}
 
 	// emit signal when state changed
-	if (_enabled != enable)
+	if ( _enabled != enable )
 	{
 		emit enableStateChanged(enable);
 	}
 	// switch off device when disabled, default: set black to leds when they should go off
-	if ( _enabled && !enable)
+	if ( _enabled && !enable )
 	{
 		switchOff();
 	}
 	else
 	{
 		// switch on device when enabled
-		if ( !_enabled && enable)
+		if ( !_enabled && enable )
 		{
 			switchOn();
 		}
@@ -123,14 +123,14 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 	_activeDeviceType = deviceConfig["type"].toString("file").toLower();
 	setLedCount(static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) )); // property injected to reflect real led count
 
-	_latchTime_ms =deviceConfig["latchTime"].toInt( _latchTime_ms );
-	_refresh_timer_interval =  deviceConfig["rewriteTime"].toInt( _refresh_timer_interval);
+	_latchTime_ms = deviceConfig["latchTime"].toInt( _latchTime_ms );
+	_refresh_timer_interval = deviceConfig["rewriteTime"].toInt( _refresh_timer_interval);
 
 	if ( _refresh_timer_interval > 0 )
 	{
 		_refresh_enabled = true;
 
-		if (_refresh_timer_interval <= _latchTime_ms )
+		if ( _refresh_timer_interval <= _latchTime_ms )
 		{
 			int new_refresh_timer_interval = _latchTime_ms + 10;
 			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refresh_timer_interval, new_refresh_timer_interval);
@@ -150,7 +150,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 
 void LedDevice::startRefreshTimer()
 {
-	if ( _deviceReady)
+	if ( _deviceReady )
 	{
 		_refresh_timer->start();
 	}
@@ -164,7 +164,7 @@ void LedDevice::stopRefreshTimer()
 int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 {
 	int retval = 0;
-	if ( !_deviceReady || _deviceInError)
+	if ( !_deviceReady || _deviceInError )
 	{
 		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
 		return -1;
@@ -243,8 +243,8 @@ int LedDevice::rewriteLeds()
 
 	if ( _deviceReady )
 	{
-		//qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
-		//std::cout << "LedDevice::rewriteLeds(): Rewrite Leds now, elapsedTime [" << elapsedTime << "] ms" << std::endl;
+//		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
+//		std::cout << "LedDevice::rewriteLeds(): Rewrite Leds now, elapsedTime [" << elapsedTime << "] ms" << std::endl;
 //		//:TESTING: Inject "white" output records to differentiate from normal writes
 //		_last_ledValues.clear();
 //		_last_ledValues.resize(static_cast<unsigned long>(_ledCount), ColorRgb::WHITE);
@@ -262,7 +262,7 @@ int LedDevice::rewriteLeds()
 	return retval;
 }
 
-void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues )
+void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
 {
 	std::cout << "LedValues [" << ledValues.size() <<"] [";
 	for (const ColorRgb& color : ledValues)

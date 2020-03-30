@@ -421,8 +421,6 @@ QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
 	return jsonDoc;
 }
 
-
-
 int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 {
 

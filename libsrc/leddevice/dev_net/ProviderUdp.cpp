@@ -78,7 +78,7 @@ bool ProviderUdp::initNetwork()
 {
 	bool isInitOK = false;
 
-	_udpSocket =new QUdpSocket(this);
+	_udpSocket = new QUdpSocket(this);
 
 	if ( _udpSocket != nullptr)
 	{
