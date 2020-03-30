@@ -15,7 +15,7 @@ jobs:
         dockerName: 'Debian Stretch (AMD64)'
         platform: 'x11'
       i386 (x86):
-       dockerTag: 'i386'
+        dockerTag: 'i386'
         dockerName: 'Debian Stretch (i386)'
         platform: 'x11'
       ARMv6hf (Raspberry Pi v1 & ZERO):
