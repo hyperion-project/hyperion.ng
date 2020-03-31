@@ -154,8 +154,8 @@ private:
 	const char*		_server_name;
 	QString			username;
 	QString			clientkey;
-	QMutex 			_hueMutex;
-	int 			retry_left;
+	QMutex			_hueMutex;
+	int				retry_left;
 	QString			_defaultHost;
 	bool			_stopConnection;
 

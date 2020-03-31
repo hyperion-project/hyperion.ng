@@ -1044,7 +1044,7 @@ bool LedDevicePhilipsHue::initLeds()
 
 	if ( !this->isInError() )
 	{
-		if(	setLights() )
+		if( setLights() )
 		{
 			if( _useHueEntertainmentAPI )
 			{
