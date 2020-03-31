@@ -9,7 +9,7 @@
 #include <QStringList>
 #include <QHostInfo>
 #include <QThread>
-#include <QDebug>
+#include <QtGlobal>
 
 #include <chrono>
 
@@ -44,8 +44,6 @@
 #define READ_TIMEOUT_MS 1000
 #define MAX_RETRY       5
 //#define DEBUG_LEVEL 0
-#define SERVER_PORT "2100"
-#define SERVER_NAME "Hue"
 
 //----------- END mbedtls
 
@@ -151,11 +149,13 @@ private:
 	const char *pers = "dtls_client";
 
 	QHostAddress	_address;
-	ushort			_port;
+	unsigned int	_port;
+	const char*		_server_port;
+	const char*		_server_name;
 	QString			username;
 	QString			clientkey;
 	QMutex 			_hueMutex;
-	int retry_left;
+	int 			retry_left;
 	QString			_defaultHost;
 	bool			_stopConnection;
 

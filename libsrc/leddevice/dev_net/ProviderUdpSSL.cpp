@@ -23,6 +23,7 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, ctr_drbg()
 	, timer()
 	, _port(1)
+	, _server_name()
 	, retry_left(MAX_RETRY)
 	, _defaultHost("127.0.0.1")
 	, _stopConnection(true)
@@ -43,8 +44,12 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	_debugLevel = deviceConfig["debugLevel"].toInt(0);
 	username = deviceConfig["username"].toString("");
 	clientkey = deviceConfig["clientkey"].toString("");
+	_port = deviceConfig["sslport"].toInt(2100);
+	_server_name = deviceConfig["servername"].toString("").toStdString().c_str();
 
 	#define DEBUG_LEVEL _debugLevel
+	#define SERVER_PORT "2100"
+	#define SERVER_NAME "Hue"
 
 	QString host = deviceConfig["host"].toString(_defaultHost);
 
@@ -70,7 +75,7 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		}
 	}
 
-	int config_port = deviceConfig["port"].toInt(_port);
+	int config_port = deviceConfig["sslport"].toInt(_port);
 	if ( config_port <= 0 || config_port > MAX_PORT_SSL )
 	{
 		QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
@@ -79,8 +84,8 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	}
 	else
 	{
-		_port = static_cast<int>(config_port);
-		Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
+		_server_port = reinterpret_cast<const char *>(config_port);
+		Debug( _log, "UDP SSL using %s:%d", _address.toString().toStdString().c_str() , config_port );
 	}
 
 	return isInitOK;

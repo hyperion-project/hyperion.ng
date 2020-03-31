@@ -2,6 +2,8 @@
 
 // STL includes
 #include <set>
+#include <string>
+#include <stdarg.h>
 
 // Qt includes
 #include <QNetworkAccessManager>
@@ -234,7 +236,9 @@ protected:
 	QJsonDocument setGroupState( unsigned int groupId, bool state);
 
 	bool isStreamOwner(QString streamOwner);
-	bool resetMaps();
+	bool initMaps();
+
+	void log(const char* msg, const char* type, ...);
 
 private:
 
@@ -382,7 +386,7 @@ private slots:
 	///
 	/// @param map Map of lightid/value pairs of bridge
 	///
-	void updateLights(QMap<quint16, QJsonObject> map);
+	bool updateLights(QMap<quint16, QJsonObject> map);
 
 	bool noSignalDetection();
 
@@ -414,7 +418,7 @@ protected:
 
 private:
 
-	bool setLights(QJsonArray lArray);
+	bool setLights();
 
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
 
