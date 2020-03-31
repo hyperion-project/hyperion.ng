@@ -409,6 +409,8 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 {
 	struct v4l2_capability cap;
+	CLEAR(cap);
+
 	if (-1 == xioctl(VIDIOC_QUERYCAP, &cap))
 	{
 		if (EINVAL == errno)
@@ -484,6 +486,8 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 	// set input if needed and supported
 	struct v4l2_input v4l2Input;
+	CLEAR(v4l2Input);
+
 	v4l2Input.index = input;
 
 	if (input >= 0 && 0 == xioctl(VIDIOC_ENUMINPUT,&v4l2Input))
@@ -495,54 +499,61 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		}
 	}
 
-	// set the video standard if needed
-	switch (videoStandard)
+	// set the video standard if needed and supported
+	struct v4l2_standard standard;
+	CLEAR(standard);
+
+	if (-1 != xioctl(VIDIOC_ENUMSTD, &standard))
 	{
-		case VIDEOSTANDARD_PAL:
+		switch (videoStandard)
 		{
-			v4l2_std_id std_id = V4L2_STD_PAL;
-			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
+			case VIDEOSTANDARD_PAL:
 			{
-				throw_errno_exception("VIDIOC_S_STD");
-				break;
+				standard.id = V4L2_STD_PAL;
+				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
+				{
+					throw_errno_exception("VIDIOC_S_STD");
+					break;
+				}
+				Debug(_log, "Video standard=PAL");
 			}
-			Debug(_log, "Video standard=PAL");
-		}
-		break;
-
-		case VIDEOSTANDARD_NTSC:
-		{
-			v4l2_std_id std_id = V4L2_STD_NTSC;
-			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-			{
-				throw_errno_exception("VIDIOC_S_STD");
-				break;
-			}
-			Debug(_log, "Video standard=NTSC");
-		}
-		break;
-
-		case VIDEOSTANDARD_SECAM:
-		{
-			v4l2_std_id std_id = V4L2_STD_SECAM;
-			if (-1 == xioctl(VIDIOC_S_STD, &std_id))
-			{
-				throw_errno_exception("VIDIOC_S_STD");
-				break;
-			}
-			Debug(_log, "Video standard=SECAM");
-		}
-		break;
-
-		case VIDEOSTANDARD_NO_CHANGE:
-		default:
-			// No change to device settings
 			break;
+
+			case VIDEOSTANDARD_NTSC:
+			{
+				standard.id = V4L2_STD_NTSC;
+				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
+				{
+					throw_errno_exception("VIDIOC_S_STD");
+					break;
+				}
+				Debug(_log, "Video standard=NTSC");
+			}
+			break;
+
+			case VIDEOSTANDARD_SECAM:
+			{
+				standard.id = V4L2_STD_SECAM;
+				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
+				{
+					throw_errno_exception("VIDIOC_S_STD");
+					break;
+				}
+				Debug(_log, "Video standard=SECAM");
+			}
+			break;
+
+			case VIDEOSTANDARD_NO_CHANGE:
+			default:
+				// No change to device settings
+				break;
+		}
 	}
 
 	// get the current settings
 	struct v4l2_format fmt;
 	CLEAR(fmt);
+
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if (-1 == xioctl(VIDIOC_G_FMT, &fmt))
 	{
@@ -581,9 +592,10 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	}
 
 	// collect available device resolutions
-	QString v4lDevice_res;
 	v4l2_frmsizeenum frmsizeenum;
 	CLEAR(frmsizeenum);
+
+	QString v4lDevice_res;
 	frmsizeenum.index = 0;
 	frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
 	while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
@@ -636,6 +648,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// Trying to set frame rate
 	struct v4l2_streamparm streamparms;
 	CLEAR(streamparms);
+
 	streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	streamparms.parm.capture.timeperframe.numerator = 1;
 	streamparms.parm.capture.timeperframe.denominator = _fps;
@@ -1089,7 +1102,7 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
  * ------------ END of JPEG decoder related code ------------
  * --------------------------------------------------------*/
 
-		_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+	_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
 
 	if (_signalDetectionEnabled)
 	{
