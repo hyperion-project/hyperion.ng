@@ -698,7 +698,7 @@ QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QStrin
 
 void LedDevicePhilipsHueBridge::setLightState(const unsigned int lightId, QString state)
 {
-	Debug(_log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state));
+	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state));
 	post( QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE), state );
 }
 
@@ -979,13 +979,14 @@ bool LedDevicePhilipsHue::setLights()
 	{
 		for(const auto id : lArray)
 		{
-			unsigned int lightId = static_cast<uint>(id.toInt());
+			unsigned int lightId = ( _useHueEntertainmentAPI ) ? id.toString().toInt() : static_cast<unsigned int>(id.toInt());
 			if( lightId > 0 )
 			{
 				if(std::find(_lightIds.begin(), _lightIds.end(), lightId) == _lightIds.end())
 				{
 					_lightIds.emplace_back(lightId);
-					lightIDStr.append(id.toString() + ", ");
+					if(!lightIDStr.isEmpty()) lightIDStr.append(", ");
+					lightIDStr.append(QString::number(lightId));
 				}
 			}
 		}
