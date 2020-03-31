@@ -72,6 +72,8 @@ brew install python3
 brew install cmake
 brew install libusb
 brew install doxygen
+brew install zlib
+brew install mbedtls
 ```
 
 

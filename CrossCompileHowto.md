@@ -72,8 +72,6 @@ git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPE
 ```
 ### Get required submodules for Hyperion
 ```
-brew install zlib
-brew install mbedtls
 cd "$HYPERION_DIR"
 git fetch --recurse-submodules -j2
 ```
