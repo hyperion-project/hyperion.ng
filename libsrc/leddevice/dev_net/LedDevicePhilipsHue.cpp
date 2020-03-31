@@ -979,7 +979,7 @@ bool LedDevicePhilipsHue::setLights()
 	{
 		for(const auto id : lArray)
 		{
-			unsigned int lightId = id.toString().toInt();
+			unsigned int lightId = static_cast<uint>(id.toInt());
 			if( lightId > 0 )
 			{
 				if(std::find(_lightIds.begin(), _lightIds.end(), lightId) == _lightIds.end())
