@@ -9,6 +9,8 @@
 // qt
 #include <QTimer>
 
+GrabberWrapper* GrabberWrapper::instance = nullptr;
+
 GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz)
 	: _grabberName(grabberName)
 	, _timer(new QTimer(this))
@@ -17,6 +19,8 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 	, _ggrabber(ggrabber)
 	, _image(0,0)
 {
+	GrabberWrapper::instance = this;
+
 	// Configure the timer to generate events every n milliseconds
 	_timer->setInterval(_updateInterval_ms);
 
@@ -88,7 +92,6 @@ QStringList GrabberWrapper::availableGrabbers()
 
 	return grabbers;
 }
-
 
 void GrabberWrapper::setVideoMode(const VideoMode& mode)
 {

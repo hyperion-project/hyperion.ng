@@ -469,6 +469,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	QJsonObject grabbers;
 	QJsonArray availableGrabbers;
+	QJsonArray availableResolution;
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
 	// get available grabbers
 	//grabbers["active"] = ????;
@@ -476,8 +477,15 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	{
 		availableGrabbers.append(grabber);
 	}
+
+	for (auto resolution : GrabberWrapper::getInstance()->getV4L2Resolution())
+	{
+		availableResolution.append(resolution);
+	}
+
 #endif
 	grabbers["available"] = availableGrabbers;
+	grabbers["Resolution"] = availableResolution;
 	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 	info["grabbers"] = grabbers;
 

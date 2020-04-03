@@ -32,6 +32,9 @@ public:
 
 	virtual ~GrabberWrapper();
 
+	static GrabberWrapper* instance;
+	static GrabberWrapper* getInstance(){ return instance; };
+
 	///
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
@@ -69,6 +72,13 @@ public:
 		return false;
 	}
 
+public:
+	///
+	/// @brief Get a list of supported V4L2 device resolution
+	/// @return List of resolutions on success else empty List
+	///
+	virtual QStringList getV4L2Resolution();
+
 public slots:
 	///
 	/// virtual method, should perform single frame grab and computes the led-colors
@@ -96,6 +106,7 @@ public slots:
 	/// @param config configuration object
 	///
 	virtual void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
 
 signals:
 	///

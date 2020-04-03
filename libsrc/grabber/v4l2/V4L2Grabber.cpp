@@ -1229,3 +1229,49 @@ bool V4L2Grabber::setWidthHeight(int width, int height)
 	}
 	return false;
 }
+
+QStringList V4L2Grabber::getV4L2Resolution()
+{
+	if(_initialized)
+	{
+		// get the current settings
+		struct v4l2_format fmt;
+		CLEAR(fmt);
+
+		fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+		xioctl(VIDIOC_G_FMT, &fmt);
+
+		// collect available device resolutions
+		v4l2_frmsizeenum frmsizeenum;
+		CLEAR(frmsizeenum);
+
+		QStringList ret;
+		frmsizeenum.index = 0;
+		frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+		while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+		{
+			switch (frmsizeenum.type)
+			{
+				case V4L2_FRMSIZE_TYPE_DISCRETE:
+					ret << QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height);
+				break;
+				case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+				case V4L2_FRMSIZE_TYPE_STEPWISE:
+				{
+					for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
+					{
+						for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
+						{
+							ret << QString::number(x) + "x" + QString::number(y);
+						}
+					}
+				}
+			}
+			frmsizeenum.index++;
+		}
+
+		return ret;
+	}
+
+	return QStringList();
+}
