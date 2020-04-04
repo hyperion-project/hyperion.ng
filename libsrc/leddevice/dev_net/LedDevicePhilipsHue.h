@@ -7,7 +7,6 @@
 
 // Qt includes
 #include <QNetworkAccessManager>
-#include <QElapsedTimer>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -447,13 +446,13 @@ private:
 
 	double _brightnessMin;
 	double _brightnessMax;
-	double _brightnessThreshold;
 
 	bool _allLightsBlack;
 
-	//QElapsedTimer* _blackLightsTimer;
 	QTimer* _blackLightsTimer;
 	unsigned int _blackLightsTimeout;
+	double _brightnessThreshold;
+
 	bool _stopConnection;
 
 	unsigned int _groupId;
