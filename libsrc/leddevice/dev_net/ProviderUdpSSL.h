@@ -30,6 +30,7 @@
 #endif
 
 #include <string.h>
+#include <cstring>
 
 //#include "mbedtls/certs.h"
 #include <mbedtls/net_sockets.h>

@@ -308,8 +308,6 @@ private:
 	QMap<quint16,QJsonObject> _groupsMap;
 };
 
-
-
 /**
  * Implementation for the Philips Hue system.
  *
@@ -388,7 +386,7 @@ private slots:
 	///
 	bool updateLights(QMap<quint16, QJsonObject> map);
 
-	bool noSignalDetection();
+	void noSignalTimeout();
 
 protected:
 
@@ -424,6 +422,8 @@ private:
 
 	void writeStream();
 
+	bool noSignalDetection();
+
 	QByteArray prepareStreamData();
 
 	///
@@ -447,10 +447,12 @@ private:
 
 	double _brightnessMin;
 	double _brightnessMax;
+	double _brightnessThreshold;
 
 	bool _allLightsBlack;
 
-	QElapsedTimer _blackLightsTimer;
+	//QElapsedTimer* _blackLightsTimer;
+	QTimer* _blackLightsTimer;
 	unsigned int _blackLightsTimeout;
 	bool _stopConnection;
 
