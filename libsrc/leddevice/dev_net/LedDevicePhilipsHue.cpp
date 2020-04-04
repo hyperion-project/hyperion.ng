@@ -1418,6 +1418,14 @@ void LedDevicePhilipsHue::noSignalTimeout()
 	switchOff();
 }
 
+void LedDevicePhilipsHue::stopTimeoutTimer()
+{
+	if ( _blackLightsTimer != nullptr )
+	{
+		_blackLightsTimer->stop();
+	}
+}
+
 bool LedDevicePhilipsHue::noSignalDetection()
 {
 	if( _allLightsBlack )
@@ -1426,7 +1434,7 @@ bool LedDevicePhilipsHue::noSignalDetection()
 		{
 			if ( !_blackLightsTimer->isActive() )
 			{
-				Debug(_log, "No Signal detected - timeout timer started" );
+				DebugIf( verbose, _log, "No Signal detected - timeout timer started" );
 				_blackLightsTimer->start( ( _blackLightsTimeout + 500 ) );
 			}
 		}
@@ -1435,8 +1443,8 @@ bool LedDevicePhilipsHue::noSignalDetection()
 	{
 		if ( _blackLightsTimer->isActive() )
 		{
-			Debug(_log, "Signal detected - timeout timer stopped" );
-			_blackLightsTimer->stop();
+			DebugIf( verbose, _log, "Signal detected - timeout timer stopped" );
+			this->stopTimeoutTimer();
 		}
 
 		if( _stopConnection )
@@ -1622,9 +1630,7 @@ int LedDevicePhilipsHue::switchOff()
 	//Set all LEDs to Black
 	int rc = LedDevice::switchOff();
 
-	if ( _blackLightsTimer != nullptr ) {
-		_blackLightsTimer->stop();
-	}
+	this->stopTimeoutTimer();
 
 	if ( _deviceReady )
 	{

@@ -47,34 +47,32 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	_server_name = deviceConfig["servername"].toString("").toStdString().c_str();
 
 	#define DEBUG_LEVEL _debugLevel
-	#define SERVER_PORT "2100"
-	#define SERVER_NAME "Hue"
 
 	QString host = deviceConfig["host"].toString(_defaultHost);
 
 	if ( _address.setAddress(host) )
 	{
-		Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
+		Debug( _log, "Successfully parsed %s as an ip address.", host.toStdString().c_str() );
 	}
 	else
 	{
-		Debug( _log, "Failed to parse [%s] as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
+		Debug( _log, "Failed to parse [%s] as an ip address.", host.toStdString().c_str() );
 		QHostInfo info = QHostInfo::fromName(host);
 		if ( info.addresses().isEmpty() )
 		{
-			Debug( _log, "Failed to parse [%s] as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-			QString errortext = QString ("Invalid target address [%1]!").arg(host);
+			Debug( _log, "Failed to parse [%s] as a hostname.", host.toStdString().c_str() );
+			QString errortext = QString("Invalid target address [%1]!").arg(host);
 			this->setInError( errortext );
 			isInitOK = false;
 		}
 		else
 		{
-			Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
+			Debug( _log, "Successfully parsed %s as a hostname.", host.toStdString().c_str() );
 			_address = info.addresses().first();
 		}
 	}
 
-	int config_port = deviceConfig["sslport"].toInt(_port);
+	unsigned int config_port = deviceConfig["sslport"].toInt(_port);
 	if ( config_port <= 0 || config_port > MAX_PORT_SSL )
 	{
 		QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
@@ -83,10 +81,9 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	}
 	else
 	{
-		_server_port = reinterpret_cast<const char *>(config_port);
+		_server_port = QString::number(config_port).toStdString().c_str();
 		Debug( _log, "UDP SSL using %s:%d", _address.toString().toStdString().c_str() , config_port );
 	}
-
 	return isInitOK;
 }
 
@@ -219,7 +216,7 @@ bool ProviderUdpSSL::setupStructure()
 		return false;
 	}
 
-	if ((ret = mbedtls_ssl_set_hostname(&ssl, SERVER_NAME)) != 0)
+	if ((ret = mbedtls_ssl_set_hostname(&ssl, _server_name)) != 0)
 	{
 		if(_debugStreamer) qCritical() << "mbedtls_ssl_set_hostname FAILED" << ret;
 		return false;
@@ -238,9 +235,9 @@ bool ProviderUdpSSL::startUPDConnection()
 
 	if(!setupPSK()) return false;
 
-	if(_debugStreamer) qDebug() << "Connecting to udp" << _address << SERVER_PORT;
+	if(_debugStreamer) qDebug() << "Connecting to udp" << _address << _server_port;
 
-	if ((ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), SERVER_PORT, MBEDTLS_NET_PROTO_UDP)) != 0)
+	if ((ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), _server_port, MBEDTLS_NET_PROTO_UDP)) != 0)
 	{
 		if(_debugStreamer) qCritical() << "mbedtls_net_connect FAILED" << ret;
 		return false;

@@ -423,6 +423,8 @@ private:
 
 	bool noSignalDetection();
 
+	void stopTimeoutTimer();
+
 	QByteArray prepareStreamData();
 
 	///
