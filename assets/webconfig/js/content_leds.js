@@ -504,19 +504,17 @@ $(document).ready(function() {
 		var values_specific = {};
 		var isCurrentDevice = (window.serverConfig.device.type == ledType);
 
-		for(var key in window.serverConfig.device){
-			if (key != "type" && key in generalOptions.properties)
-				values_general[key] = window.serverConfig.device[key];
+		for(var key in window.serverConfig.device) {
+			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
 		if (isCurrentDevice)
 		{
-			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
+			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
 			for(var key in specificOptions_val){
 				values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 			};
-
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 

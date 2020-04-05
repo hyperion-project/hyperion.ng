@@ -383,6 +383,7 @@
 	"wiz_hue_e_noegrpids": "No entertainment groups in this Hue bridge defined.",
 	"wiz_hue_e_nogrpids": "This Hue bridge has no groups defined, please create at least one before with the Hue Apps.",
 	"wiz_hue_e_noapisupport": "The Wizard has disabled entertainment API support and will continue in classic mode.",
+	"wiz_hue_e_noapisupport_hint": "The option \"<b>Use Hue Entertainment API</b>\" was unchecked.",
 	"wiz_hue_e_title" : "Philips Hue Entertainment Wizard",
 	"wiz_hue_e_intro1" : "This wizards configures Hyperion for the well known Philips Hue Entertainment system. Features are Hue Bridge auto detection, user and clientkey creation, entertainment group selection and set group lights to a specific position on your picture and tune the Hyperion settings automatically! So in short: All you need are some clicks and you are done!",
 	"wiz_hue_e_desc1" : "It searches automatically for a hue bridge, in case it can't find one you need to provide the ip address and push the reload button on the right. Now you need a user id and the clientkey, if you don't have both, create a new one.",
