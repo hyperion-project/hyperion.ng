@@ -186,7 +186,7 @@ bool CiColor::isPointInLampsReach(CiColor p, CiColorTriangle colorSpace)
 	CiColor  q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
 	double s = crossProduct(q, v2) / crossProduct(v1, v2);
 	double t = crossProduct(v1, q) / crossProduct(v1, v2);
-	if ((s >= 0.0) && (t >= 0.0) && (s + t <= 1.0))
+	if ( ( s >= 0.0 ) && ( t >= 0.0 ) && ( s + t <= 1.0 ) )
 	{
 		return true;
 	}
@@ -200,11 +200,11 @@ CiColor CiColor::getClosestPointToPoint(CiColor a, CiColor b, CiColor p)
 	double ab2 = AB.x * AB.x + AB.y * AB.y;
 	double ap_ab = AP.x * AB.x + AP.y * AB.y;
 	double t = ap_ab / ab2;
-	if (t < 0.0)
+	if ( t < 0.0 )
 	{
 		t = 0.0;
 	}
-	else if (t > 1.0)
+	else if ( t > 1.0 )
 	{
 		t = 1.0;
 	}
@@ -249,8 +249,6 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
 	_logCommands            = deviceConfig[CONFIG_LOG_COMMANDS].toBool(false);
 
-	//if( !_useHueEntertainmentAPI )
-	//{
 	// Overwrite non supported/required features
 	_devConfig["latchTime"]   = 0;
 	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
@@ -258,18 +256,11 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		Info ( _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
 		_devConfig["rewriteTime"] = 0;
 	}
-	//}
 
 	DebugIf( verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	bool isInitOK = LedDevice::init(deviceConfig);
-/*
-	Debug (_log, "DeviceType                : %s", QSTRING_CSTR( this->getActiveDeviceType() ) );
-	Debug( _log, "LedCount                  : %u", this->getLedCount() );
-	Debug( _log, "ColorOrder                : %s", QSTRING_CSTR( this->getColorOrder() ) );
-	Debug( _log, "RefreshTime               : %d", _refresh_timer_interval );
-	Debug( _log, "LatchTime                 : %d", this->getLatchTime() );
-*/
+
 	log( "DeviceType", "%s", QSTRING_CSTR( this->getActiveDeviceType() ) );
 	log( "LedCount", "%u", this->getLedCount() );
 	log( "ColorOrder", "%s", QSTRING_CSTR( this->getColorOrder() ) );
@@ -292,13 +283,11 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 			}
 			else
 			{
-				_api_port   = API_DEFAULT_PORT;
+				_api_port = API_DEFAULT_PORT;
 			}
 		}
 		_username = deviceConfig[ CONFIG_USERNAME ].toString();
 
-		//Debug( _log, "Hostname/IP               : %s", QSTRING_CSTR( _hostname ) );
-		//Debug( _log, "Port                      : %s", QSTRING_CSTR( _api_port ) );
 		log( "Hostname/IP", "%s", QSTRING_CSTR( _hostname ) );
 		log( "Port", "%s", QSTRING_CSTR( _api_port ) );
 	}
@@ -354,7 +343,7 @@ void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...)
 	std::string s = msg;
 	int max = 30;
 	s.append(max - s.length(), ' ');
-	Debug( _log, "%s: %s", s.c_str(), val);
+	Debug( _log, "%s: %s", s.c_str(), val );
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::getAllBridgeInfos()
@@ -418,14 +407,7 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(QJsonDocument doc)
 		DebugIf( !_isHueEntertainmentReady, _log, "Bridge is not Entertainment API Ready - Entertainment API usage was disabled!" );
 		_useHueEntertainmentAPI = _isHueEntertainmentReady;
 	}
-/*
-	Debug(_log, "Bridge Name       : %s", QSTRING_CSTR( deviceName ));
-	Debug(_log, "Model             : %s", QSTRING_CSTR( _deviceModel ));
-	Debug(_log, "Bridge-ID         : %s", QSTRING_CSTR( deviceBridgeID ));
-	Debug(_log, "SoftwareVersion   : %s", QSTRING_CSTR( _deviceFirmwareVersion ));
-	Debug(_log, "API-Version       : %u.%u.%u", _api_major, _api_minor, _api_patch );
-	Debug(_log, "EntertainmentReady: %d", _isHueEntertainmentReady );
-*/
+
 	log( "Bridge Name", "%s", QSTRING_CSTR( deviceName ));
 	log( "Model", "%s", QSTRING_CSTR( _deviceModel ));
 	log( "Bridge-ID", "%s", QSTRING_CSTR( deviceBridgeID ));
@@ -476,7 +458,7 @@ void LedDevicePhilipsHueBridge::setGroupMap(QJsonDocument doc)
 
 	for ( unsigned int i = 0; i < _groupsCount; ++i )
 	{
-		_groupsMap.insert(keys.at(i).toInt(), jsonGroupsInfo.take(keys.at(i)).toObject());
+		_groupsMap.insert( keys.at(i).toInt(), jsonGroupsInfo.take(keys.at(i)).toObject() );
 	}
 }
 
@@ -562,7 +544,7 @@ QJsonArray LedDevicePhilipsHueBridge::getGroupLights(unsigned int groupId)
 }
 
 QString LedDevicePhilipsHueBridge::getUrl(QString host, QString port, QString auth_token, QString endpoint) const {
-	return QString(API_URL_FORMAT).arg(host, port, auth_token, endpoint);
+	return QString(API_URL_FORMAT).arg( host, port, auth_token, endpoint );
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::getJson(QString url)
@@ -684,11 +666,11 @@ QJsonDocument LedDevicePhilipsHueBridge::handleReply(QNetworkReply* const &reply
 			default:
 				break;
 			}
-			errorReason = QString( "%1:%2 [%3 %4] - %5").arg(_hostname, _api_port, QString(httpStatusCode) , httpReason, advise );
+			errorReason = QString( "%1:%2 [%3 %4] - %5").arg( _hostname, _api_port, QString(httpStatusCode), httpReason, advise );
 		}
 		else
 		{
-			errorReason = QString( "%1:%2 - %3").arg(_hostname, _api_port, reply->errorString() );
+			errorReason = QString( "%1:%2 - %3").arg( _hostname, _api_port, reply->errorString() );
 		}
 		this->setInError( errorReason );
 	}
@@ -705,12 +687,12 @@ QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QStrin
 void LedDevicePhilipsHueBridge::setLightState(const unsigned int lightId, QString state)
 {
 	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state) );
-	post( QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE), state );
+	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state );
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::getGroupState(const unsigned int groupId)
 {
-	QString url = getUrl( _hostname, _api_port, _username, QString("%1/%2").arg(API_GROUPS).arg(groupId) );
+	QString url = getUrl( _hostname, _api_port, _username, QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
 	return getJson( url );
 }
 
@@ -722,7 +704,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const unsigned int groupI
 
 bool LedDevicePhilipsHueBridge::isStreamOwner(QString streamOwner)
 {
-	return (streamOwner != "" && streamOwner == _username);
+	return ( streamOwner != "" && streamOwner == _username );
 }
 
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
@@ -739,7 +721,7 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject value
 	  , _on(false)
 	  , _transitionTime(0)
 	  , _colorBlack({0.0, 0.0, 0.0})
-	  , _modelId (values[API_MODEID].toString().trimmed().replace("\"", ""))
+	  , _modelId(values[API_MODEID].toString().trimmed().replace("\"", ""))
 {
 	// Find id in the sets and set the appropriate color space.
 	if (GAMUT_A_MODEL_IDS.find(_modelId) != GAMUT_A_MODEL_IDS.end())
@@ -922,27 +904,6 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		if(_brightnessThreshold < 0.0) _brightnessThreshold = 0.0;
 		if(_brightnessThreshold > 1.0) _brightnessThreshold = 1.0;
 
-/*
-		Debug(_log, "Off on Black              : %d", _switchOffOnBlack );
-		Debug(_log, "Brightness Factor         : %f", _brightnessFactor );
-		Debug(_log, "Transition Time           : %d", _transitionTime );
-		Debug(_log, "Restore Original State    : %d", _isRestoreOrigState );
-		Debug(_log, "Use Hue Entertainment API : %d", _useHueEntertainmentAPI );
-
-		if( _useHueEntertainmentAPI )
-		{
-			Debug(_log, "Entertainment API GroupID : %d", _groupId );
-			Debug(_log, "Signal Timeout on Black   : %dms", _blackLightsTimeout );
-			Debug(_log, "Brightness Min            : %f", _brightnessMin );
-			Debug(_log, "Brightness Max            : %f", _brightnessMax );
-
-			if( _groupId <= 0)
-			{
-				Debug(_log, "Group-ID is invalid       : %d", _groupId );
-				_useHueEntertainmentAPI = false;
-			}
-		}
-*/
 		log( "Off on Black", "%d", _switchOffOnBlack );
 		log( "Brightness Factor", "%f", _brightnessFactor );
 		log( "Transition Time", "%d", _transitionTime );
@@ -957,7 +918,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 			log( "Brightness Max", "%f", _brightnessMax );
 			log( "Brightness Threshold", "%f", _brightnessThreshold );
 
-			if( _groupId <= 0)
+			if( _groupId <= 0 )
 			{
 				log( "Group-ID is invalid", "%d", _groupId );
 				_useHueEntertainmentAPI = false;
@@ -1012,10 +973,10 @@ bool LedDevicePhilipsHue::setLights()
 	}
 
 	unsigned int configuredLightsCount = _lightIds.size();
-	//Debug(_log, "Light IDs defined         : %d", configuredLightsCount );
+
 	log( "Light-IDs configured", "%d", configuredLightsCount );
 
-	if ( configuredLightsCount == 0)
+	if ( configuredLightsCount == 0 )
 	{
 		this->setInError( "No light-IDs configured" );
 		isInitOK = false;
