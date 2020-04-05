@@ -12,7 +12,7 @@ $(window.hyperion).one("ready", function(event) {
   }
 });
 
-function resetWizard()
+function resetWizard(reload)
 {
   $("#wizard_modal").modal('hide');
   clearInterval(wIntveralId);
@@ -25,7 +25,7 @@ function resetWizard()
   if(withKodi)
     sendToKodi("stop");
   step = 0;
-  location.reload();
+  if(!reload) location.reload();
 }
 
 //rgb byte order wizard
@@ -144,7 +144,7 @@ function beginWizardRGB()
   setTimeout(requestSetSource, 100, 'auto');
   setStorage("wizardactive", true);
 
-  $('#btn_wiz_abort').off().on('click', resetWizard);
+  $('#btn_wiz_abort').off().on('click',function() { resetWizard(true); });
 
   $('#btn_wiz_checkok').off().on('click',function() {
     showInfoDialog('success', "", $.i18n('infoDialog_wizrgb_text'));
@@ -539,6 +539,7 @@ var huePosRightMiddle = {hmin: 0.85,	hmax: 1.0 ,	vmin: 0.25,	vmax: 0.75};
 var huePosRightBottom = {hmin: 0.85,	hmax: 1.0 ,	vmin: 0.5 ,	vmax: 1.0 };
 var huePosEntire      = {hmin: 0.0 ,	hmax: 1.0 ,	vmin: 0.0 ,	vmax: 1.0 };
 var hueType = "philipshue";
+var APIsupport = false;
 
 function startWizardPhilipsHue(e)
 {
@@ -556,6 +557,7 @@ function startWizardPhilipsHue(e)
     hue_intro1 = 'wiz_hue_e_intro1';
     hue_desc1 = 'wiz_hue_e_desc1';
     hue_create_user = 'wiz_hue_e_create_user';
+    APIsupport = true;
   }
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>'+$.i18n(hue_title));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n(hue_title)+'</h4><p>'+$.i18n(hue_intro1)+'</p>');
@@ -577,11 +579,11 @@ function startWizardPhilipsHue(e)
     $('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p style="font-weight:bold">'+$.i18n('wiz_hue_e_desc2')+'</p></div>');
     createTable("gidsh", "gidsb", "hue_grp_ids_t");
     $('.gidsh').append(createTableRow([$.i18n('edt_dev_spec_groupId_title'),$.i18n('wiz_hue_e_use_group')], true));
-    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold">'+$.i18n('wiz_hue_e_desc3')+'</p></div>');
+    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">'+$.i18n('wiz_hue_e_desc3')+'</p></div>');
   }
   else
   {
-    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold">'+$.i18n('wiz_hue_desc2')+'</p></div>');
+    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">'+$.i18n('wiz_hue_desc2')+'</p></div>');
   }
   createTable("lidsh", "lidsb", "hue_ids_t");
   $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lightid_title'),$.i18n('wiz_hue_pos'),$.i18n('wiz_hue_ident')], true));
@@ -644,6 +646,7 @@ function checkUserResult(reply, usr){
   {
     $('#wiz_hue_usrstate').html("");
     $('#wiz_hue_create_user').toggle(false);
+    $('#user').val(usr);
     if(hueType == 'philipshue')
     {
       get_hue_lights();
@@ -652,7 +655,6 @@ function checkUserResult(reply, usr){
     {
       get_hue_groups();
     }
-    $('#user').val(usr);
   }
   else
   {
@@ -982,19 +984,25 @@ function get_hue_groups(){
         }
         if(gC == 0)
         {
-          $('#wizp2_body').html('<h4>'+$.i18n('wiz_hue_e_noegrpids')+'</h4>');
-          hueType = 'philipshue';
-          get_hue_lights();
+          noAPISupport('wiz_hue_e_noegrpids');
         }
       }
       else
       {
-        $('#wizp2_body').html('<h4>'+$.i18n('wiz_hue_e_nogrpids')+'</h4>');
-        hueType = 'philipshue';
-        get_hue_lights();
+        noAPISupport('wiz_hue_e_nogrpids');
       }
     }
   });
+}
+
+function noAPISupport(txt)
+{
+  $('#hue_grp_ids_t').toggle(false);
+  var txt = (txt) ? $.i18n(txt) : $.i18n('wiz_hue_e_nogrpids');
+  $('<p style="font-weight:bold;color:red;">'+txt+'<br />'+$.i18n('wiz_hue_e_noapisupport')+'</p>').insertBefore('#wizp2_body #hue_ids_t');
+  $('#hue_id_headline').html($.i18n('wiz_hue_desc2'));
+  hueType = 'philipshue';
+  get_hue_lights();
 }
 
 function get_light_state(id){
@@ -1102,7 +1110,8 @@ function get_hue_lights(){
       }
       else
       {
-        $('#wizp2_body').html('<h4>'+$.i18n('wiz_hue_noids')+'</h4>')
+        var txt = '<p style="font-weight:bold;color:red;">'+$.i18n('wiz_hue_noids')+'</p>';
+        $('#wizp2_body').append(txt);
       }
     }
   });

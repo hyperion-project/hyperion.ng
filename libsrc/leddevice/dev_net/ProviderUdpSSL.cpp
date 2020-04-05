@@ -22,7 +22,8 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, ctr_drbg()
 	, timer()
 	, _port(1)
-	, _server_name()
+	, _ssl_port(1)
+	, _server_name("")
 	, retry_left(MAX_RETRY)
 	, _defaultHost("127.0.0.1")
 	, _stopConnection(true)
@@ -72,7 +73,8 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		}
 	}
 
-	unsigned int config_port = deviceConfig["sslport"].toInt(_port);
+	int config_port = deviceConfig["sslport"].toInt(_port);
+
 	if ( config_port <= 0 || config_port > MAX_PORT_SSL )
 	{
 		QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
@@ -81,8 +83,8 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	}
 	else
 	{
-		_server_port = QString::number(config_port).toStdString().c_str();
-		Debug( _log, "UDP SSL using %s:%d", _address.toString().toStdString().c_str() , config_port );
+		_ssl_port = config_port;
+		Debug( _log, "UDP SSL using %s:%u", _address.toString().toStdString().c_str() , _ssl_port );
 	}
 	return isInitOK;
 }
@@ -235,9 +237,9 @@ bool ProviderUdpSSL::startUPDConnection()
 
 	if(!setupPSK()) return false;
 
-	if(_debugStreamer) qDebug() << "Connecting to udp" << _address << _server_port;
+	if(_debugStreamer) qDebug() << "Connecting to udp" << _address << _ssl_port;
 
-	if ((ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), _server_port, MBEDTLS_NET_PROTO_UDP)) != 0)
+	if ((ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP)) != 0)
 	{
 		if(_debugStreamer) qCritical() << "mbedtls_net_connect FAILED" << ret;
 		return false;

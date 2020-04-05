@@ -151,7 +151,7 @@ private:
 
 	QHostAddress	_address;
 	unsigned int	_port;
-	const char*		_server_port;
+	unsigned int	_ssl_port;
 	const char*		_server_name;
 	QString			username;
 	QString			clientkey;
