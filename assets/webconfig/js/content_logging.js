@@ -154,7 +154,7 @@ $(document).ready(function() {
 			messages = (event.response.result.messages);
 			if(messages.length != 0 && !createdCont)
 			{
-				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-success" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
+				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
 				createdCont = true;
 				
 				$('#btn_autoscroll').off().on('click',function() {

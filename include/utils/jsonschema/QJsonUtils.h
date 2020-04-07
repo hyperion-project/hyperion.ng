@@ -41,6 +41,37 @@ public:
 		return createValue(schema, ignoreRequired);
 	}
 
+	static QString getDefaultValue(const QJsonValue & value)
+	{
+		QString ret;
+		switch (value.type())
+		{
+			case QJsonValue::Array:
+			{
+				for (const QJsonValue &v : value.toArray())
+				{
+					ret = getDefaultValue(v);
+					if (!ret.isEmpty())
+						break;
+				}
+				break;
+			}
+			case QJsonValue::Object:
+				ret = getDefaultValue(value.toObject().find("default").value());
+				break;
+			case QJsonValue::Bool:
+				return value.toBool() ? "True" : "False";
+			case QJsonValue::Double:
+				return QString::number(value.toDouble());
+			case QJsonValue::String:
+				return value.toString();
+			case QJsonValue::Null:
+			case QJsonValue::Undefined:
+				break;
+		}
+		return ret;
+	}
+
 private:
 
 	static QJsonValue createValue(QJsonValue schema, bool ignoreRequired)

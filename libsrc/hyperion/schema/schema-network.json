@@ -45,7 +45,8 @@
 			"required" : true,
 			"items" : {
 				"type": "string",
-				"title" : "edt_conf_net_ip_itemtitle"
+				"title" : "edt_conf_net_ip_itemtitle",
+				"allowEmptyArray" : true
 			},
 			"options": {
 				"dependencies": {

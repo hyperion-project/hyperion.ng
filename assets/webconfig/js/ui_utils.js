@@ -107,8 +107,12 @@ function loadContent(event, forceRefresh)
 	var tag;
 
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-	if(lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
-		instanceSwitch(lastSelectedInstance);
+
+	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
+		if (typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)	
+			instanceSwitch(lastSelectedInstance);
+		else
+			removeStorage('lastSelectedInstance', false);
 
 	if(typeof event != "undefined")
 	{
@@ -936,3 +940,15 @@ function getReleases(callback)
 	});
 }
 
+function handleDarkMode()
+{
+		$("<link/>", {
+			rel: "stylesheet",
+			type: "text/css",
+			href: "../css/darkMode.css"
+		}).appendTo("head");
+
+		setStorage("darkMode", "on", false);
+		$('#btn_darkmode_icon').removeClass('fa fa-moon-o');
+		$('#btn_darkmode_icon').addClass('fa fa-sun-o');
+}
