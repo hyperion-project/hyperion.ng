@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # detect CI
-if [[ -z "${SYSTEM_COLLECTIONID}" ]]; then
+if [ -z "${SYSTEM_COLLECTIONID}" ]; then
 	# Azure Pipelines
 	echo "Azure detected"
 	CI_NAME="$(echo "$AGENT_OS" | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$BUILD_SOURCESDIRECTORY"
-elif [[ -z "${GITHUB_ACTIONS}" ]]; then
+elif [ -z "${GITHUB_ACTIONS}" ]; then
 	# GitHub Actions
-	echo "Azure detected"
+	echo "Github Actions detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$GITHUB_WORKSPACE"
 else
