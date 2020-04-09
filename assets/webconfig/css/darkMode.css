@@ -175,6 +175,7 @@ tr:hover td {
     border-color: #616161;
     background-color: #212121;
     color: #DDDDDD !important;
+    -webkit-appearance: none;
 }
 
 .input-group .form-control:last-child, .input-group-addon:last-child, .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group>.btn, .input-group-btn:last-child>.dropdown-toggle, .input-group-btn:first-child>.btn:not(:first-child), .input-group-btn:first-child>.btn-group:not(:first-child)>.btn {
