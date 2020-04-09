@@ -7,11 +7,9 @@
 	"settings": {
 		"editor.formatOnSave": false,
 		"cmake.environment": {
+			"Qt5_DIR":"G:/Programme/Qt/5.14.1/msvc2017_64/lib/cmake/Qt5",
+			"CMAKE_PREFIX_PATH": "G:/Programme/Qt/5.14.1/msvc2017_64"
 		},
-		"cmake.cmakePath": "G:/Programme/Visual Studio/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe",
-		"files.associations": {
-			"qfileinfo": "cpp"
-		}
 	},
 	"extensions": {
 		"recommendations": [
@@ -23,7 +21,8 @@
 			"formulahendry.auto-rename-tag",
 			"CoenraadS.bracket-pair-colorizer",
 			"eamodio.gitlens",
-			"vscode-icons-team.vscode-icons"
+			"vscode-icons-team.vscode-icons",
+			"editorconfig.editorconfig"
 		]
 	}
 }

@@ -266,14 +266,19 @@ endif()
 
 # MSVC options
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	# Search for Windows SDK
+	find_package(WindowsSDK REQUIRED)
+	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
 	# Qt5 default install path with msvc2017 64bit component
+	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
+	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64" "G:/Programme/Qt/5.14.1/msvc2017_64" )
-	# Windows 10 SDK headers/libs (Install path not selectable)
-	#SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "C:/Program Files (x86)/Windows Kits/10" )
-	# MSVC headers/libs (Install path selectable)
-	#SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}  "G:/Programme/Visual Studio/VC/Tools/MSVC/14.16.27023" )
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
+	if(NOT DEFINED ENV{Qt5_DIR})
+		message(STATUS "Set Qt5_DIR to default install path C:/Qt")
+		SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
+	endif()
 endif()
 
 # Use GNU gold linker if available
