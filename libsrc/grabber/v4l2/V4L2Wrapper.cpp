@@ -6,11 +6,17 @@
 #include <QTimer>
 
 V4L2Wrapper::V4L2Wrapper(const QString &device,
+		const unsigned grabWidth,
+		const unsigned grabHeight,
+		const unsigned fps,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
 		int pixelDecimation )
-	: GrabberWrapper("V4L2:"+device, &_grabber, 0, 0, 10)
+	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
+			grabWidth,
+			grabHeight,
+			fps,
 			videoStandard,
 			pixelFormat,
 			pixelDecimation)

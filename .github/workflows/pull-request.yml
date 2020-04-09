@@ -42,7 +42,9 @@ jobs:
       # Append PR number to version
       - name: Append PR number to version
         shell: bash
-        run: 'echo -n -PR#${{ github.event.pull_request.number }} >> version'
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          echo -n -PR#${{ github.event.pull_request.number }} >> version
 
       # Build packages
       - name: Build packages
@@ -83,7 +85,9 @@ jobs:
       # Append PR number to version
       - name: Append PR number to version
         shell: bash
-        run: echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
 
       # Install dependencies
       - name: Install dependencies

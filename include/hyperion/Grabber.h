@@ -41,6 +41,12 @@ public:
 	virtual bool setWidthHeight(int width, int height);
 
 	///
+	/// @brief Apply new framerate (used from v4l)
+	/// @param fps  framesPerSecond
+	///
+	virtual bool setFramerate(int fps);
+
+	///
 	/// @brief Apply new pixelDecimation (used from x11 and qt)
 	///
 	virtual void setPixelDecimation(int pixelDecimation) {};
@@ -110,6 +116,8 @@ protected:
 
 	/// Height of the captured snapshot [pixels]
 	int _height;
+
+	int _fps;
 
 	// number of pixels to crop after capturing
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
