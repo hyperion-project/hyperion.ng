@@ -32,6 +32,9 @@ public:
 
 	virtual ~GrabberWrapper();
 
+	static GrabberWrapper* instance;
+	static GrabberWrapper* getInstance(){ return instance; }
+
 	///
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
@@ -46,6 +49,24 @@ public:
 	/// Stop grabber
 	///
 	virtual void stop();
+
+	///
+	/// @brief Get a list of available V4L devices
+	/// @return List of available V4L devices on success else empty List
+	///
+	virtual QStringList getV4L2devices();
+
+	///
+	/// @brief Get a list of supported device resolutions
+	/// @return List of resolutions on success else empty List
+	///
+	virtual QStringList getResolutions();
+
+	///
+	/// @brief Get a list of supported device framerates
+	/// @return List of framerates on success else empty List
+	///
+	virtual QStringList getFramerates();
 
 	static QStringList availableGrabbers();
 
