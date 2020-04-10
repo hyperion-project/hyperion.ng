@@ -84,13 +84,13 @@ void V4L2Grabber::uninit()
 
 bool V4L2Grabber::init()
 {
-	if (! _initialized)
+	if (!_initialized)
 	{
 		getV4Ldevices();
 		QString v4lDevices_str;
 
 		// show list only once
-		if ( ! QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/") )
+		if (!QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/"))
 		{
 			for (auto& dev: _v4lDevices)
 			{
@@ -100,7 +100,7 @@ bool V4L2Grabber::init()
 				Info(_log, "available V4L2 devices:\n%s", QSTRING_CSTR(v4lDevices_str));
 		}
 
-		if ( _deviceName == "auto" )
+		if (_deviceName == "auto")
 		{
 			_deviceAutoDiscoverEnabled = true;
 			_deviceName = "unknown";
@@ -108,20 +108,20 @@ bool V4L2Grabber::init()
 			for (auto& dev: _v4lDevices)
 			{
 				_deviceName = dev.first;
-				if ( init() )
+				if (init())
 				{
 					Info(_log, "found usable v4l2 device: %s (%s)",QSTRING_CSTR(dev.first), QSTRING_CSTR(dev.second));
 					_deviceAutoDiscoverEnabled = false;
 					return _initialized;
 				}
 			}
-			Info( _log, "no usable device found" );
+			Info(_log, "no usable device found");
 		}
-		else if ( ! _deviceName.startsWith("/dev/") )
+		else if (!_deviceName.startsWith("/dev/"))
 		{
 			for (auto& dev: _v4lDevices)
 			{
-				if ( _deviceName.toLower() == dev.second.toLower() )
+				if (_deviceName.toLower() == dev.second.toLower())
 				{
 					_deviceName = dev.first;
 					Info(_log, "found v4l2 device with configured name: %s (%s)", QSTRING_CSTR(dev.second), QSTRING_CSTR(dev.first) );
@@ -138,7 +138,7 @@ bool V4L2Grabber::init()
 		try
 		{
 			// do not init with unknown device
-			if(_deviceName != "unknown")
+			if (_deviceName != "unknown")
 			{
 				if (open_device())
 				{
@@ -165,15 +165,42 @@ bool V4L2Grabber::init()
 void V4L2Grabber::getV4Ldevices()
 {
 	QDirIterator it("/sys/class/video4linux/", QDirIterator::NoIteratorFlags);
+	_availableDevices.clear();
 	while(it.hasNext())
 	{
 		//_v4lDevices
 		QString dev = it.next();
 		if (it.fileName().startsWith("video"))
 		{
+			QString devName = "/dev/" + it.fileName();
+			int fd = open(QSTRING_CSTR(devName), O_RDWR | O_NONBLOCK, 0);
+
+			if (fd < 0) // cannot open
+			{
+				throw_errno_exception("Cannot open '" + devName + "'");
+				continue;
+			}
+
+			struct v4l2_capability cap;
+			CLEAR(cap);
+
+			if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) // no V4L2 device
+			{
+				throw_errno_exception("'" + devName + "' is no V4L2 device");
+				close(fd);
+				continue;
+			}
+
+			if (cap.device_caps & V4L2_CAP_META_CAPTURE) // this device has bit 23 set (and bit 1 reset), so it doesn't have capture.
+			{
+				close(fd);
+				continue;
+			}
+
+			if (close(fd) < 0) continue; // close error
+
 			QFile devNameFile(dev+"/name");
-			QString devName;
-			if ( devNameFile.exists())
+			if (devNameFile.exists())
 			{
 				devNameFile.open(QFile::ReadOnly);
 				devName = devNameFile.readLine();
@@ -181,6 +208,8 @@ void V4L2Grabber::getV4Ldevices()
 				devNameFile.close();
 			}
 			_v4lDevices.emplace("/dev/"+it.fileName(), devName);
+ 			if (!_availableDevices.contains("/dev/"+it.fileName()))
+ 				_availableDevices.append("/dev/"+it.fileName());
 		}
     }
 }
@@ -237,6 +266,8 @@ void V4L2Grabber::stop()
 		uninit_device();
 		close_device();
 		_initialized = false;
+		_availableResolutions.clear();
+		_availableFramerates.clear();
 		Info(_log, "Stopped");
 	}
 }
@@ -591,11 +622,12 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 	}
 
-	// collect available device resolutions
-	v4l2_frmsizeenum frmsizeenum;
+	// collect available device resolutions & frame rates
+	struct v4l2_frmsizeenum frmsizeenum;
 	CLEAR(frmsizeenum);
 
-	QString v4lDevice_res;
+	_availableResolutions.clear();
+	_availableFramerates.clear();
 	frmsizeenum.index = 0;
 	frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
 	while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
@@ -603,7 +635,10 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		switch (frmsizeenum.type)
 		{
 			case V4L2_FRMSIZE_TYPE_DISCRETE:
-				v4lDevice_res += "\t"+ QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height) + "\n";
+			{
+				_availableResolutions << QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height);
+				enumFrameIntervals(fmt.fmt.pix.pixelformat, frmsizeenum.discrete.width, frmsizeenum.discrete.height);
+			}
 			break;
 			case V4L2_FRMSIZE_TYPE_CONTINUOUS:
 			case V4L2_FRMSIZE_TYPE_STEPWISE:
@@ -612,17 +647,14 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 				{
 					for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
 					{
-						v4lDevice_res += "\t"+ QString::number(x) + "x" + QString::number(y) + "\n";
+						_availableResolutions << QString::number(x) + "x" + QString::number(y);
+						enumFrameIntervals(fmt.fmt.pix.pixelformat, x, y);
 					}
 				}
 			}
 		}
 		frmsizeenum.index++;
 	}
-
-	// print available device resolutions in debug mode
-	if (!v4lDevice_res.isEmpty())
-		Debug(_log, "available V4L2 resolutions:\n%s", QSTRING_CSTR(v4lDevice_res));
 
 	// set custom resolution for width and height if they are not zero
 	if(_width && _height)
@@ -650,11 +682,19 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	CLEAR(streamparms);
 
 	streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	streamparms.parm.capture.timeperframe.numerator = 1;
-	streamparms.parm.capture.timeperframe.denominator = _fps;
-	(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
-	?	Debug(_log, "Frame rate settings not supported.")
-	:	Debug(_log, "Set framerate to %d fps", _fps);
+	// Check that the driver knows about framerate get/set
+	if (xioctl(VIDIOC_G_PARM, &streamparms) >= 0)
+	{
+		// Check if the device is able to accept a capture framerate set.
+		if (streamparms.parm.capture.capability == V4L2_CAP_TIMEPERFRAME)
+		{
+			streamparms.parm.capture.timeperframe.numerator = 1;
+			streamparms.parm.capture.timeperframe.denominator = _fps;
+			(-1 == xioctl(VIDIOC_S_PARM, &streamparms))
+			?	Debug(_log, "Frame rate settings not supported.")
+			:	Debug(_log, "Set framerate to %d fps", streamparms.parm.capture.timeperframe.denominator);
+		}
+	}
 
 	// set the line length
 	_lineLength = fmt.fmt.pix.bytesperline;
@@ -882,6 +922,7 @@ int V4L2Grabber::read_frame()
 						{
 							throw_errno_exception("VIDIOC_DQBUF");
 							stop();
+							getV4Ldevices();
 						}
 						return 0;
 					}
@@ -918,6 +959,7 @@ int V4L2Grabber::read_frame()
 						{
 							throw_errno_exception("VIDIOC_DQBUF");
 							stop();
+							getV4Ldevices();
 						}
 						return 0;
 					}
@@ -1168,6 +1210,60 @@ int V4L2Grabber::xioctl(int request, void *arg)
 	while (-1 == r && EINTR == errno);
 
 	return r;
+}
+
+int V4L2Grabber::xioctl(int fileDescriptor, int request, void *arg)
+{
+	int r;
+
+	do
+	{
+		r = ioctl(fileDescriptor, request, arg);
+	}
+	while (r < 0 && errno == EINTR );
+
+	return r;
+}
+
+void V4L2Grabber::enumFrameIntervals(int pixelformat, int width, int height)
+{
+	// collect available frame rates
+	struct v4l2_frmivalenum frmivalenum;
+	CLEAR(frmivalenum);
+
+	frmivalenum.index = 0;
+	frmivalenum.pixel_format = pixelformat;
+	frmivalenum.width = width;
+	frmivalenum.height = height;
+
+	while (xioctl(VIDIOC_ENUM_FRAMEINTERVALS, &frmivalenum) >= 0)
+	{
+		int rate;
+		switch (frmivalenum.type)
+		{
+			case V4L2_FRMSIZE_TYPE_DISCRETE:
+			{
+				if (frmivalenum.discrete.numerator != 0)
+				{
+					rate = frmivalenum.discrete.denominator / frmivalenum.discrete.numerator;
+					if (!_availableFramerates.contains(QString::number(rate)))
+						_availableFramerates.append(QString::number(rate));
+				}
+			}
+			break;
+			case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+			case V4L2_FRMSIZE_TYPE_STEPWISE:
+			{
+				if (frmivalenum.stepwise.min.denominator != 0)
+				{
+					rate = frmivalenum.stepwise.min.denominator / frmivalenum.stepwise.min.numerator;
+					if (!_availableFramerates.contains(QString::number(rate)))
+						_availableFramerates.append(QString::number(rate));
+				}
+			}
+		}
+		frmivalenum.index++;
+	}
 }
 
 void V4L2Grabber::setSignalDetectionEnable(bool enable)

@@ -886,12 +886,12 @@ function getReleases(callback)
 						continue;
 
 					if(releases[i].tag_name.includes('alpha'))
-					{	
+					{
 						if (sem = semverLite.gt(releases[i].tag_name, highestAlphaRelease.tag_name))
-							highestAlphaRelease = releases[i];	
+							highestAlphaRelease = releases[i];
 					}
 					else if (releases[i].tag_name.includes('beta'))
-					{	
+					{
 						if (sem = semverLite.gt(releases[i].tag_name, highestBetaRelease.tag_name))
 							highestBetaRelease = releases[i];
 					}
@@ -903,7 +903,7 @@ function getReleases(callback)
 					else
 					{
 						if (semverLite.gt(releases[i].tag_name, highestRelease.tag_name))
-							highestRelease = releases[i];				
+							highestRelease = releases[i];
 					}
 				}
 				window.latestStableVersion = highestRelease;
@@ -911,7 +911,7 @@ function getReleases(callback)
 				window.latestAlphaVersion= highestAlphaRelease;
 				window.latestRcVersion = highestRcRelease;
 
-				
+
 				if(window.serverConfig.general.watchedVersionBranch == "Beta" && semverLite.gt(highestBetaRelease.tag_name, highestRelease.tag_name))
 					window.latestVersion = highestBetaRelease;
 				else

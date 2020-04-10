@@ -469,8 +469,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	QJsonObject grabbers;
 	QJsonArray availableGrabbers;
-	QJsonArray availableResolution;
+	QJsonObject availableProperties;
+
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
+
 	// get available grabbers
 	//grabbers["active"] = ????;
 	for (auto grabber : GrabberWrapper::availableGrabbers())
@@ -478,12 +480,34 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		availableGrabbers.append(grabber);
 	}
 
-	for (auto resolution : GrabberWrapper::getInstance()->getV4L2Resolution())
+#endif
+
+#if defined(ENABLE_V4L2)
+
+	QJsonArray availableV4L2devices, availableResolutions, availableFramerates;
+
+	for (auto device : GrabberWrapper::getInstance()->getV4L2devices() )
 	{
-		availableResolution.append(resolution);
+		availableV4L2devices.append(device);
 	}
 
+	for (auto resolution : GrabberWrapper::getInstance()->getResolutions() )
+	{
+		availableResolutions.append(resolution);
+	}
+
+	for (auto framerate : GrabberWrapper::getInstance()->getFramerates() )
+	{
+		availableFramerates.append(framerate);
+	}
+
+	availableProperties["available_v4l2_devices"] = availableV4L2devices;
+	availableProperties["resolutions"] = availableResolutions;
+	availableProperties["framerates"] = availableFramerates;
+	grabbers["v4l2_properties"] = availableProperties;
+
 #endif
+
 	grabbers["available"] = availableGrabbers;
 	grabbers["Resolution"] = availableResolution;
 	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));

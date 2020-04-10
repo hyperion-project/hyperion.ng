@@ -219,3 +219,27 @@ void GrabberWrapper::tryStart()
 		start();
 	}
 }
+
+QStringList GrabberWrapper::getV4L2devices()
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getV4L2devices();
+
+	return QStringList();
+}
+
+QStringList GrabberWrapper::getResolutions()
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getResolutions();
+
+	return QStringList();
+}
+
+QStringList GrabberWrapper::getFramerates()
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getFramerates();
+
+	return QStringList();
+}
