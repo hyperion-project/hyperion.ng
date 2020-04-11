@@ -26,6 +26,10 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+#ifndef V4L2_CAP_META_CAPTURE
+#define V4L2_CAP_META_CAPTURE 0x00800000 // Specified in kernel header v4.16. Required for backward compatibility.
+#endif
+
 V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned width
 		, const unsigned height
