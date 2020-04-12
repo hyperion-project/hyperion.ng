@@ -431,6 +431,7 @@
     "edt_conf_enum_bbclassic": "Classico",
     "edt_conf_enum_bbosd": "OSD",
     "edt_conf_enum_automatic": "Automatico",
+    "edt_conf_enum_custom": "",
     "edt_conf_gen_heading_title": "impostazioni Generali",
     "edt_conf_gen_name_title": "Nome configurazione",
     "edt_conf_gen_name_expl": "Un nome definito dall'utente che viene utilizzato per riconoscere Hyperion. (Utile con più di un'istanza di Hyperion)",

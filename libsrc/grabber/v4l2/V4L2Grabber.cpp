@@ -169,7 +169,7 @@ bool V4L2Grabber::init()
 void V4L2Grabber::getV4Ldevices()
 {
 	QDirIterator it("/sys/class/video4linux/", QDirIterator::NoIteratorFlags);
-	_availableDevices.clear();
+	_deviceProperties.clear();
 	while(it.hasNext())
 	{
 		//_v4lDevices
@@ -179,7 +179,7 @@ void V4L2Grabber::getV4Ldevices()
 			QString devName = "/dev/" + it.fileName();
 			int fd = open(QSTRING_CSTR(devName), O_RDWR | O_NONBLOCK, 0);
 
-			if (fd < 0) // cannot open
+			if (fd < 0)
 			{
 				throw_errno_exception("Cannot open '" + devName + "'");
 				continue;
@@ -188,7 +188,7 @@ void V4L2Grabber::getV4Ldevices()
 			struct v4l2_capability cap;
 			CLEAR(cap);
 
-			if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) // no V4L2 device
+			if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
 			{
 				throw_errno_exception("'" + devName + "' is no V4L2 device");
 				close(fd);
@@ -201,7 +201,52 @@ void V4L2Grabber::getV4Ldevices()
 				continue;
 			}
 
-			if (close(fd) < 0) continue; // close error
+			// get the current settings
+			struct v4l2_format fmt;
+			CLEAR(fmt);
+
+			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+			if (xioctl(fd, VIDIOC_G_FMT, &fmt) < 0)
+			{
+				close(fd);
+				continue;
+			}
+
+			V4L2Grabber::DeviceProperties properties;
+
+			// collect available device resolutions & frame rates
+			struct v4l2_frmsizeenum frmsizeenum;
+			CLEAR(frmsizeenum);
+
+			frmsizeenum.index = 0;
+			frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
+			while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+			{
+				switch (frmsizeenum.type)
+				{
+					case V4L2_FRMSIZE_TYPE_DISCRETE:
+					{
+						properties.resolutions << QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height);
+						enumFrameIntervals(properties.framerates, fd, fmt.fmt.pix.pixelformat, frmsizeenum.discrete.width, frmsizeenum.discrete.height);
+					}
+					break;
+					case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+					case V4L2_FRMSIZE_TYPE_STEPWISE:
+					{
+						for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
+						{
+							for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
+							{
+								properties.resolutions << QString::number(x) + "x" + QString::number(y);
+								enumFrameIntervals(properties.framerates, fd, fmt.fmt.pix.pixelformat, x, y);
+							}
+						}
+					}
+				}
+				frmsizeenum.index++;
+			}
+
+			if (close(fd) < 0) continue;
 
 			QFile devNameFile(dev+"/name");
 			if (devNameFile.exists())
@@ -209,11 +254,11 @@ void V4L2Grabber::getV4Ldevices()
 				devNameFile.open(QFile::ReadOnly);
 				devName = devNameFile.readLine();
 				devName = devName.trimmed();
+				properties.name = devName;
 				devNameFile.close();
 			}
 			_v4lDevices.emplace("/dev/"+it.fileName(), devName);
- 			if (!_availableDevices.contains("/dev/"+it.fileName()))
- 				_availableDevices.append("/dev/"+it.fileName());
+			_deviceProperties.insert("/dev/"+it.fileName(), properties);
 		}
     }
 }
@@ -270,8 +315,7 @@ void V4L2Grabber::stop()
 		uninit_device();
 		close_device();
 		_initialized = false;
-		_availableResolutions.clear();
-		_availableFramerates.clear();
+		_deviceProperties.clear();
 		Info(_log, "Stopped");
 	}
 }
@@ -624,40 +668,6 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		default:
 			// No change to device settings
 			break;
-	}
-
-	// collect available device resolutions & frame rates
-	struct v4l2_frmsizeenum frmsizeenum;
-	CLEAR(frmsizeenum);
-
-	_availableResolutions.clear();
-	_availableFramerates.clear();
-	frmsizeenum.index = 0;
-	frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
-	while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
-	{
-		switch (frmsizeenum.type)
-		{
-			case V4L2_FRMSIZE_TYPE_DISCRETE:
-			{
-				_availableResolutions << QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height);
-				enumFrameIntervals(fmt.fmt.pix.pixelformat, frmsizeenum.discrete.width, frmsizeenum.discrete.height);
-			}
-			break;
-			case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-			case V4L2_FRMSIZE_TYPE_STEPWISE:
-			{
-				for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
-				{
-					for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
-					{
-						_availableResolutions << QString::number(x) + "x" + QString::number(y);
-						enumFrameIntervals(fmt.fmt.pix.pixelformat, x, y);
-					}
-				}
-			}
-		}
-		frmsizeenum.index++;
 	}
 
 	// set custom resolution for width and height if they are not zero
@@ -1229,7 +1239,7 @@ int V4L2Grabber::xioctl(int fileDescriptor, int request, void *arg)
 	return r;
 }
 
-void V4L2Grabber::enumFrameIntervals(int pixelformat, int width, int height)
+void V4L2Grabber::enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height)
 {
 	// collect available frame rates
 	struct v4l2_frmivalenum frmivalenum;
@@ -1240,7 +1250,7 @@ void V4L2Grabber::enumFrameIntervals(int pixelformat, int width, int height)
 	frmivalenum.width = width;
 	frmivalenum.height = height;
 
-	while (xioctl(VIDIOC_ENUM_FRAMEINTERVALS, &frmivalenum) >= 0)
+	while (xioctl(fileDescriptor, VIDIOC_ENUM_FRAMEINTERVALS, &frmivalenum) >= 0)
 	{
 		int rate;
 		switch (frmivalenum.type)
@@ -1250,8 +1260,8 @@ void V4L2Grabber::enumFrameIntervals(int pixelformat, int width, int height)
 				if (frmivalenum.discrete.numerator != 0)
 				{
 					rate = frmivalenum.discrete.denominator / frmivalenum.discrete.numerator;
-					if (!_availableFramerates.contains(QString::number(rate)))
-						_availableFramerates.append(QString::number(rate));
+					if (!framerates.contains(QString::number(rate)))
+						framerates.append(QString::number(rate));
 				}
 			}
 			break;
@@ -1261,8 +1271,8 @@ void V4L2Grabber::enumFrameIntervals(int pixelformat, int width, int height)
 				if (frmivalenum.stepwise.min.denominator != 0)
 				{
 					rate = frmivalenum.stepwise.min.denominator / frmivalenum.stepwise.min.numerator;
-					if (!_availableFramerates.contains(QString::number(rate)))
-						_availableFramerates.append(QString::number(rate));
+					if (!framerates.contains(QString::number(rate)))
+						framerates.append(QString::number(rate));
 				}
 			}
 		}
@@ -1328,4 +1338,29 @@ bool V4L2Grabber::setWidthHeight(int width, int height)
 		return true;
 	}
 	return false;
+}
+
+QStringList V4L2Grabber::getV4L2devices()
+{
+	QStringList result = QStringList();
+	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+	{
+		result << it.key();
+	}
+	return result;
+}
+
+QString V4L2Grabber::getV4L2deviceName(QString devicePath)
+{
+	return _deviceProperties.value(devicePath).name;
+}
+
+QStringList V4L2Grabber::getResolutions(QString devicePath)
+{
+	return _deviceProperties.value(devicePath).resolutions;
+}
+
+QStringList V4L2Grabber::getFramerates(QString devicePath)
+{
+	return _deviceProperties.value(devicePath).framerates;
 }

@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QSocketNotifier>
 #include <QRectF>
+#include <QMap>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -40,6 +41,13 @@ class V4L2Grabber : public Grabber
 	Q_OBJECT
 
 public:
+	struct DeviceProperties
+	{
+		QString		name		= QString();
+		QStringList	resolutions	= QStringList();
+		QStringList	framerates	= QStringList();
+	};
+
 	V4L2Grabber(const QString & device,
 			const unsigned width,
 			const unsigned height,
@@ -105,17 +113,22 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getV4L2devices() override { return _availableDevices; }
+	QStringList getV4L2devices() override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getResolutions() override { return _availableResolutions; }
+	QString getV4L2deviceName(QString devicePath) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates() override { return _availableFramerates; }
+	QStringList getResolutions(QString devicePath) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QStringList getFramerates(QString devicePath) override;
 
 public slots:
 
@@ -215,13 +228,13 @@ private:
 
 private:
 	QString _deviceName;
-	std::map<QString,QString>	_v4lDevices;
-	QStringList					_availableDevices, _availableResolutions, _availableFramerates;
-	int							_input;
-	VideoStandard				_videoStandard;
-	io_method					_ioMethod;
-	int							_fileDescriptor;
-	std::vector<buffer>			_buffers;
+	std::map<QString, QString>						_v4lDevices;
+	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
+	int												_input;
+	VideoStandard									_videoStandard;
+	io_method										_ioMethod;
+	int												_fileDescriptor;
+	std::vector<buffer>								_buffers;
 
 	PixelFormat _pixelFormat;
 	int         _pixelDecimation;
@@ -245,5 +258,5 @@ private:
 	bool _deviceAutoDiscoverEnabled;
 
 protected:
-	void enumFrameIntervals(int pixelformat, int width, int height);
+	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

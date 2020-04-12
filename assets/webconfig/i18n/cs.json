@@ -431,6 +431,7 @@
     "edt_conf_enum_bbclassic": "Klasický",
     "edt_conf_enum_bbosd": "OSD",
     "edt_conf_enum_automatic": "",
+    "edt_conf_enum_custom": "",
     "edt_conf_gen_heading_title": "Obecné nastavení",
     "edt_conf_gen_name_title": "Název konfigurace",
     "edt_conf_gen_name_expl": "Uživatelské jméno, které se používá k detekci Hyperionu. (Užitečné s více než jednou instancí Hyperion)",

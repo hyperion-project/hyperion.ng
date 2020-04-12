@@ -51,22 +51,31 @@ public:
 	virtual void stop();
 
 	///
-	/// @brief Get a list of available V4L devices
-	/// @return List of available V4L devices on success else empty List
+	/// @brief Get a list of all available V4L devices
+	/// @return List of all available V4L devices on success else empty List
 	///
 	virtual QStringList getV4L2devices();
 
 	///
+	/// @brief Get the V4L device name
+	/// @param devicePath The device path
+	/// @return The name of the V4L device on success else empty String
+	///
+	virtual QString getV4L2deviceName(QString devicePath);
+
+	///
 	/// @brief Get a list of supported device resolutions
+	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List
 	///
-	virtual QStringList getResolutions();
+	virtual QStringList getResolutions(QString devicePath);
 
 	///
 	/// @brief Get a list of supported device framerates
+	/// @param devicePath The device path
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates();
+	virtual QStringList getFramerates(QString devicePath);
 
 	static QStringList availableGrabbers();
 

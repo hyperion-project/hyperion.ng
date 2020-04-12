@@ -228,18 +228,26 @@ QStringList GrabberWrapper::getV4L2devices()
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getResolutions()
+QString GrabberWrapper::getV4L2deviceName(QString devicePath)
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getResolutions();
+		return _ggrabber->getV4L2deviceName(devicePath);
+
+	return QString();
+}
+
+QStringList GrabberWrapper::getResolutions(QString devicePath)
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getResolutions(devicePath);
 
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getFramerates()
+QStringList GrabberWrapper::getFramerates(QString devicePath)
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getFramerates();
+		return _ggrabber->getFramerates(devicePath);
 
 	return QStringList();
 }
