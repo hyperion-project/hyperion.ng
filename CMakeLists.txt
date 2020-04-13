@@ -26,7 +26,10 @@ if ( CCACHE_FOUND )
 endif(CCACHE_FOUND)
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	find_package(Python COMPONENTS Interpreter Development REQUIRED)
+	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+	if(Python_FOUND)
+		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+	endif()
 else()
 	set(Python_ADDITIONAL_VERSIONS 3.5)
 	find_package( PythonInterp 3.5 REQUIRED )
@@ -193,6 +196,9 @@ SET( JSON_FILES
 	config/hyperion.config.json.default
 	${HYPERION_SCHEMAS}
 )
+
+
+
 EXECUTE_PROCESS (
 	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

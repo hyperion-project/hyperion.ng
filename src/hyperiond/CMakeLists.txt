@@ -5,14 +5,16 @@ else()
 endif()
 
 find_package(Qt5Widgets REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+	include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
+else()
+	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+endif()
 
 macro(InstallDependencies TARGET INSTALL_COMPONENT)
 	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
 	set(SYSTEM_LIBS_SKIP
-#		"libbsd"
 		"libc"
-#		"libdbus-1"
 		"libdl"
 		"libexpat"
 		"libfontconfig"
@@ -24,22 +26,14 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 		"libglib-2"
 		"libGLX"
 		"libgpg-error"
-#		"liblz4"
-#		"liblzma"
 		"libm"
 		"libpthread"
 		"librt"
 		"libstdc++"
-#		"libsystemd"
 		"libudev"
 		"libusb-1"
 		"libutil"
 		"libX11"
-#		"libXau"
-#		"libxcb"
-#		"libXdmcp"
-#		"libXext"
-#		"libXrender"
 		"libz"
 	)
 
@@ -152,12 +146,24 @@ macro(InstallDependencies TARGET INSTALL_COMPONENT)
 			)
 		endforeach()
 
-		# Detect the Python modules directory
-		execute_process(
-			COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-			OUTPUT_VARIABLE PYTHON_MODULES_DIR
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
+		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+
+			# Detect the Python modules directory
+			execute_process(
+				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+				OUTPUT_VARIABLE PYTHON_MODULES_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		else()
+
+			# Detect the Python modules directory
+			execute_process(
+				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+				OUTPUT_VARIABLE PYTHON_MODULES_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+
+		endif()
 
 		# Copy Python modules to 'share/hyperion/lib/python'
 		if (PYTHON_MODULES_DIR)
@@ -199,9 +205,14 @@ target_link_libraries(hyperiond
 		database
 		python
 		resources
-		${PYTHON_LIBRARIES}
 		Qt5::Widgets
 )
+
+if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+	target_link_libraries( hyperiond ${Python3_LIBRARIES} )
+else()
+	target_link_libraries( hyperiond ${PYTHON_LIBRARIES} )
+endif()
 
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperiond bonjour)

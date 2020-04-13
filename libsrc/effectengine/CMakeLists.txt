@@ -6,7 +6,11 @@ endif()
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.
-include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+	include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
+else()
+	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+endif()
 
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/effectengine)
@@ -34,5 +38,10 @@ target_link_libraries(effectengine
 	python
 	Qt5::Core
 	Qt5::Gui
-	${PYTHON_LIBRARIES}
 )
+
+if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+	target_link_libraries( effectengine ${Python3_LIBRARIES} )
+else()
+	target_link_libraries( effectengine ${PYTHON_LIBRARIES} )
+endif()
