@@ -109,9 +109,9 @@ Logger::Logger ( QString name, LogLevel minLevel )
     const char* _appname_char = program_invocation_short_name;
 #elif !defined(_WIN32)
     const char* _appname_char = getprogname();
-#elif defined(_WIN32)
+#else
 	char fileName[MAX_PATH];
-	char* _appname_char;
+	char *_appname_char;
 	HINSTANCE hinst = GetModuleHandle(NULL);
 	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
 	{
@@ -120,7 +120,10 @@ Logger::Logger ( QString name, LogLevel minLevel )
 	}
 	else
 		_appname_char = "unknown";
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1084bc6b2bd8481c3e85177720837513d45dfd81
 #endif
 	_appname = QString(_appname_char).toLower();
 
