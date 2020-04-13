@@ -3,8 +3,13 @@
 
 #include <iostream>
 #include <algorithm>
+
 #ifndef _WIN32
 #include <syslog.h>
+#elif _WIN32
+#include <windows.h>
+#include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 #endif
 #include <QFileInfo>
 #include <time.h>
@@ -105,7 +110,16 @@ Logger::Logger ( QString name, LogLevel minLevel )
 #elif !defined(_WIN32)
     const char* _appname_char = getprogname();
 #else
-		const char* _appname_char = "unknown";
+	char fileName[MAX_PATH];
+	char *_appname_char;
+	HINSTANCE hinst = GetModuleHandle(NULL);
+	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
+	{
+		_appname_char = PathFindFileName(fileName);
+		*(PathFindExtension(fileName)) = 0;
+	}
+	else
+		_appname_char = "unknown";
 #endif
 	_appname = QString(_appname_char).toLower();
 
