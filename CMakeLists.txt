@@ -25,8 +25,19 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-set(Python_ADDITIONAL_VERSIONS 3.5)
-find_package( PythonInterp 3.5 REQUIRED )
+if(NOT CMAKE_VERSION VERSION_LESS "3.12")
+	find_package(Python COMPONENTS Interpreter Development REQUIRED)
+	if(Python_FOUND)
+  		set(PYTHON_EXECUTABLE          ${Python_EXECUTABLE})
+  		set(PYTHON_LIBRARY             ${Python_LIBRARIES})
+  		set(PYTHON_INCLUDE_DIR         ${Python_INCLUDE_DIRS})
+  		set(PYTHON_VERSION_STRING      ${Python_VERSION})
+ 		set(PYTHONLIBS_VERSION_STRING  ${Python_VERSION})
+	endif()
+else()
+	set(Python_ADDITIONAL_VERSIONS 3.5)
+	find_package( PythonInterp 3.5 REQUIRED )
+endif()
 
 # Set build variables
 SET ( DEFAULT_AMLOGIC    OFF )
@@ -270,14 +281,55 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
+
 	# Qt5 default install path with msvc2017 64bit component
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
 	if(NOT DEFINED ENV{Qt5_DIR})
-		message(STATUS "Set Qt5_DIR to default install path C:/Qt")
-		SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
+    	# look for user-registry pointing to qtcreator
+		GET_FILENAME_COMPONENT(QT_BIN [HKEY_CURRENT_USER\\Software\\Classes\\Applications\\QtProject.QtCreator.cpp\\shell\\Open\\Command] PATH)
+
+		# get root path so we can search for 5.3, 5.4, 5.5, etc
+		STRING(REPLACE "/Tools" ";" QT_BIN "${QT_BIN}")
+		LIST(GET QT_BIN 0 QT_BIN)
+		FILE(GLOB QT_VERSIONS "${QT_BIN}/5.*")
+		LIST(SORT QT_VERSIONS)
+
+		# assume the latest version will be last alphabetically
+		LIST(REVERSE QT_VERSIONS)
+		LIST(GET QT_VERSIONS 0 QT_VERSION)
+
+		# fix any double slashes which seem to be common
+		STRING(REPLACE "//" "/"  QT_VERSION "${QT_VERSION}")
+
+        if(MSVC_VERSION GREATER_EQUAL "1910")
+            set(QT_MSVC "2017")
+        elseif(MSVC_VERSION GREATER_EQUAL "1900")
+            set(QT_MSVC "2015")
+        else()
+            # Latest QT versions >5.10 provides only 2015 and 2017 prebuilt binaries
+            message(WARNING "Unsupported MSVC toolchain version")
+        endif()
+
+		if(QT_MSVC)
+			# check for 64-bit os
+			IF(CMAKE_SYSTEM_PROCESSOR MATCHES 64)
+				SET(QT_MSVC "${QT_MSVC}_64")
+			ENDIF()
+			SET(QT_PATH "${QT_VERSION}/msvc${QT_MSVC}")
+			message(STATUS "${QT_PATH}")
+		endif()
+
+		IF(EXISTS "${QT_PATH}")
+			SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_PATH}")
+			message(STATUS "Set Qt5_DIR to install path: ${QT_PATH}/lib/cmake/Qt5")
+			SET(Qt5_DIR "${QT_PATH}/lib/cmake/Qt5")
+		else()
+			SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
+			message(STATUS "Set Qt5_DIR to default install path C:/Qt")
+			SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
+		endif()
 	endif()
 endif()
 

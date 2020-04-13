@@ -1,4 +1,7 @@
-find_package(PythonLibs 3.4 REQUIRED)
+if (NOT Python_FOUND)
+	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
+endif()
+
 find_package(Qt5Widgets REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 

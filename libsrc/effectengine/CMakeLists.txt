@@ -1,5 +1,6 @@
-set(Python_ADDITIONAL_VERSIONS 3.5)
-find_package(PythonLibs 3.5 REQUIRED)
+if (NOT Python_FOUND)
+	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
+endif()
 
 # Include the python directory. Also include the parent (which is for example /usr/include)
 # which may be required when it is not includes by the (cross-) compiler by default.
