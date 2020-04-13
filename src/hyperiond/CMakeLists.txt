@@ -1,5 +1,5 @@
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	find_package(Python COMPONENTS Interpreter Development REQUIRED)
+	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 else()
 	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
 endif()
