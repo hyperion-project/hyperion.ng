@@ -95,6 +95,38 @@ jobs:
     condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     displayName: 'Publish artifacts'
 
+######################
+###### windows #######
+######################
+
+- job: windows
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'windows-latest'
+
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+      architecture: 'x64'
+
+  - script: |
+      cd $(Build.SourcesDirectory)
+      python -m pip install aqtinstall
+      python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
+    displayName: 'Install Qt 5.14.0'
+
+  # build process
+  - bash: ./.ci/ci_build.sh
+    env:
+      PLATFORM: 'windows'
+    condition: succeeded()
+    displayName: 'Build windows packages'
+
 ################################
 ###### Publish Releases ########
 ################################
@@ -124,7 +156,6 @@ jobs:
     workingDirectory: '$(Build.SourcesDirectory)'
     condition: succeeded()
     displayName: 'Read and generate pipeline variables'
-
   # set release to pre-release
   - bash: echo '##vso[task.setvariable variable=preRelease;]true'
     condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))

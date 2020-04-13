@@ -117,7 +117,7 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
-elseif ( "${PLATFORM}" STREQUAL "windows" )
+elseif (WIN32)
 	SET ( DEFAULT_AVAHI    OFF)
 endif()
 
@@ -209,7 +209,7 @@ ENDIF ()
 
 # for python 3 the checkschema.py file must be rewritten
 # TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
-IF ( NOT "${PLATFORM}" STREQUAL "windows" )
+IF (NOT WIN32)
 	EXECUTE_PROCESS (
 		COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -282,10 +282,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 # Use GNU gold linker if available
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+if(NOT WIN32)
+	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+endif()
 
-# Don't create new dynamic tags (RUNPATH)
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+# Don't create new dynamic tags (RUNPATH)	
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")	
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 endif()
 
@@ -348,7 +350,7 @@ if (ENABLE_V4L2)
 		endif()
 	endif (TURBOJPEG_FOUND)
 
-	
+
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)
 	endif()
