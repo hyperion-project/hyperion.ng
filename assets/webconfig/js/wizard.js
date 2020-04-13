@@ -835,10 +835,7 @@ function beginWizardHue()
       }
       if($('#hue_'+key).val() != "disabled")
       {
-        if(hueType == 'philipshue')
-        {
-          finalLightIds.push(key);
-        }
+        finalLightIds.push(key);
         var idx_content = assignHuePos(key, $('#hue_'+key).val());
         hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
       }
@@ -856,34 +853,33 @@ function beginWizardHue()
 
     //device config
     var d = window.serverConfig.device;
-    d.output = $('#ip').val();
-    d.username = $('#user').val();
-    d.type = 'philipshue';
-    d.colorOrder = 'rgb';
-    d.brightnessFactor = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessFactor").getValue());
-    d.restoreOriginalState = (conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue() == true);
-    d.latchTime = 0;
-    d.transitiontime = 0;
-    d.lightIds = finalLightIds;
-    d.switchOffOnBlack = true;
+    d.output                = $('#ip').val();
+    d.username              = $('#user').val();
+    d.type                  = 'philipshue';
+    d.colorOrder            = 'rgb';
+    d.brightnessFactor      = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessFactor").getValue());
+    d.restoreOriginalState  = (conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue() == true);
+    d.latchTime             = 0;
+    d.transitiontime        = 0;
+    d.lightIds              = finalLightIds;
+    d.switchOffOnBlack      = true;
 
-    d.clientkey = $('#clientkey').val();
-    d.groupId = parseInt($('#groupId').val());
-    d.blackLightsTimeout = parseInt(conf_editor.getEditor("root.specificOptions.blackLightsTimeout").getValue());
-    d.logCommands = (conf_editor.getEditor("root.specificOptions.logCommands").getValue() == true);
-    d.brightnessMin = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMin").getValue());
-    d.brightnessMax = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMax").getValue());
-    d.brightnessThreshold = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessThreshold").getValue());
-    d.debugStreamer = (conf_editor.getEditor("root.specificOptions.debugStreamer").getValue() == true);
-    d.debugLevel = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
+    d.clientkey             = $('#clientkey').val();
+    d.groupId               = parseInt($('#groupId').val());
+    d.blackLightsTimeout    = parseInt(conf_editor.getEditor("root.specificOptions.blackLightsTimeout").getValue());
+    d.verbose               = (conf_editor.getEditor("root.specificOptions.verbose").getValue() == true);
+    d.brightnessMin         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMin").getValue());
+    d.brightnessMax         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMax").getValue());
+    d.brightnessThreshold   = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessThreshold").getValue());
+    d.debugStreamer         = (conf_editor.getEditor("root.specificOptions.debugStreamer").getValue() == true);
+    d.debugLevel            = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
 
     if(hueType == 'philipshue')
     {
       d.useEntertainmentAPI = false;
-      d.hardwareLedCount = finalLightIds.length;
-      d.rewriteTime = 1;
-      d.brightnessMin = 0;
-      d.brightnessMax = 1;
+      d.hardwareLedCount    = finalLightIds.length;
+      d.rewriteTime         = 0;
+      d.verbose             = false;
       //smoothing off
       window.serverConfig.smoothing.enable = false;
     }
@@ -891,8 +887,8 @@ function beginWizardHue()
     if(hueType == 'philipshueentertainment')
     {
       d.useEntertainmentAPI = true;
-      d.hardwareLedCount = groupLights.length;
-      d.rewriteTime = 20;
+      d.hardwareLedCount    = groupLights.length;
+      d.rewriteTime         = 20;
       //smoothing on
       window.serverConfig.smoothing.enable = true;
     }

@@ -6,12 +6,8 @@
 // Qt includes
 #include <QMutex>
 #include <QMutexLocker>
-#include <QStringList>
 #include <QHostInfo>
 #include <QThread>
-#include <QtGlobal>
-
-#include <chrono>
 
 //----------- mbedtls
 
@@ -44,7 +40,6 @@
 
 #define READ_TIMEOUT_MS 1000
 #define MAX_RETRY       5
-//#define DEBUG_LEVEL 0
 
 //----------- END mbedtls
 
@@ -85,6 +80,7 @@ protected:
 	/// Initialise device's network details
 	///
 	/// @return True if success
+	///
 	bool initNetwork();
 
 	///
@@ -102,6 +98,18 @@ protected:
 	/// @param[in] data The data
 	///
 	void writeBytes(const unsigned size, const uint8_t *data);
+
+	///
+	/// get ciphersuites list from mbedtls_ssl_list_ciphersuites
+	///
+	/// @return const int * array
+	///
+	virtual const int * getCiphersuites();
+
+	void log(QString msg);
+	void log(QString msg, const char* errorType);
+	void log(const char* msg);
+	void log(const char* msg, const char* errorType);
 
 //#if DEBUG_LEVEL > 0
 	static void ProviderUdpSSLDebug(void *ctx, int level, const char *file, int line, const char *str)
@@ -126,8 +134,6 @@ protected:
 	void closeSSLConnection();
 
 private:
-	///
-	const int ciphers[1] = {MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256};
 
 	bool buildConnection();
 	bool initConnection();
@@ -140,26 +146,26 @@ private:
 	void closeSSLNotify();
 	void freeSSLConnection();
 
-	mbedtls_net_context client_fd;
-	mbedtls_entropy_context entropy;
-	mbedtls_ssl_context ssl;
-	mbedtls_ssl_config conf;
-	mbedtls_x509_crt cacert;
-	mbedtls_ctr_drbg_context ctr_drbg;
+	mbedtls_net_context          client_fd;
+	mbedtls_entropy_context      entropy;
+	mbedtls_ssl_context          ssl;
+	mbedtls_ssl_config           conf;
+	mbedtls_x509_crt             cacert;
+	mbedtls_ctr_drbg_context     ctr_drbg;
 	mbedtls_timing_delay_context timer;
-	const char *pers = "dtls_client";
 
-	QHostAddress	_address;
-	unsigned int	_port;
-	unsigned int	_ssl_port;
-	const char*		_server_name;
-	QString			username;
-	QString			clientkey;
-	QMutex			_hueMutex;
-	int				retry_left;
-	QString			_defaultHost;
-	bool			_stopConnection;
-
-	bool			_debugStreamer;
-	unsigned int	_debugLevel;
+	QString      _custom;
+	QHostAddress _address;
+	QString      _defaultHost;
+	unsigned int _port;
+	unsigned int _ssl_port;
+	QString      _server_name;
+	QString      _psk;
+	QString      _psk_identity;
+	QMutex       _hueMutex;
+	int          _retry_left;
+	int          _handshake_attempts;
+	bool         _stopConnection;
+	bool         _debugStreamer;
+	unsigned int _debugLevel;
 };

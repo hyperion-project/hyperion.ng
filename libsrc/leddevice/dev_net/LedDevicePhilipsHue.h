@@ -7,6 +7,10 @@
 
 // Qt includes
 #include <QNetworkAccessManager>
+#include <QEventLoop>
+#include <QNetworkReply>
+#include <QtCore/qmath.h>
+#include <QStringList>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -229,7 +233,6 @@ protected:
 	QString _username;
 
 	bool _useHueEntertainmentAPI;
-	bool _logCommands;
 
 	QJsonDocument getGroupState( unsigned int groupId );
 	QJsonDocument setGroupState( unsigned int groupId, bool state);
@@ -238,6 +241,8 @@ protected:
 	bool initMaps();
 
 	void log(const char* msg, const char* type, ...);
+
+	const int * getCiphersuites() override;
 
 private:
 

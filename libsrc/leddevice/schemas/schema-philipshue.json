@@ -159,9 +159,9 @@
 			},
 			"propertyOrder" : 14
 		},
-		"logCommands": {
+		"verbose": {
 			"type": "boolean",
-			"title":"edt_dev_spec_logCommands_title",
+			"title":"edt_dev_spec_verbose_title",
 			"default" : false,
 			"access" : "expert",
 			"options": {

@@ -4,13 +4,7 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
-// Qt includes
-#include <QtCore/qmath.h>
-#include <QEventLoop>
-#include <QNetworkReply>
-#include <QThread>
-
-static const bool verbose = false;
+bool verbose = false;
 
 // Configuration settings
 static const char CONFIG_ADDRESS[] = "output";
@@ -26,7 +20,7 @@ static const char CONFIG_LIGHTIDS[] = "lightIds";
 static const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 static const char CONFIG_GROUPID[] = "groupId";
 
-static const char CONFIG_LOG_COMMANDS[] = "logCommands";
+static const char CONFIG_VERBOSE[] = "verbose";
 static const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
 static const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
 static const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
@@ -82,6 +76,15 @@ static const char API_SUCCESS[] = "success";
 // Phlips Hue ssdp services
 static const char SSDP_ID[] = "urn:schemas-upnp-org:device:Basic:1";
 const int SSDP_TIMEOUT = 5000; // timout in ms
+
+// DTLS Connection / SSL / Cipher Suite
+static const char API_SSL_SERVER_NAME[] = "Hue";
+static const char API_SSL_SEED_CUSTOM[] = "dtls_client";
+const int API_SSL_SERVER_PORT = 2100;
+const int STREAM_CONNECTION_RETRYS = 5;
+const int STREAM_REWRITE_TIME = 20;
+const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
+const int SSL_CIPHERSUITES[1] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256 };
 
 bool operator ==(const CiColor& p1, const CiColor& p2)
 {
@@ -224,8 +227,7 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2)
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
 	: ProviderUdpSSL()
 	  , _useHueEntertainmentAPI(false)
-	  , _logCommands(false)
-	  ,	_networkmanager(nullptr)
+	  , _networkmanager(nullptr)
 	  , _api_major(0)
 	  , _api_minor(0)
 	  , _api_patch(0)
@@ -247,7 +249,6 @@ LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 {
 	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
-	_logCommands            = deviceConfig[CONFIG_LOG_COMMANDS].toBool(false);
 
 	// Overwrite non supported/required features
 	_devConfig["latchTime"]   = 0;
@@ -330,6 +331,11 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 	isInitOK = initMaps();
 
 	return isInitOK;
+}
+
+const int *LedDevicePhilipsHueBridge::getCiphersuites()
+{
+	return SSL_CIPHERSUITES;
 }
 
 void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...)
@@ -439,7 +445,6 @@ void LedDevicePhilipsHueBridge::setLightsMap(QJsonDocument doc)
 	}
 	else
 	{
-		//Debug(_log, "Lights found      : %u", getLedCount() );
 		log( "Lights in Bridge found", "%u", getLedCount() );
 	}
 }
@@ -628,10 +633,6 @@ QJsonDocument LedDevicePhilipsHueBridge::handleReply(QNetworkReply* const &reply
 						QString errorAddress = map.value(API_ERROR).toMap().value(API_ERROR_ADDRESS).toString();
 						QString errorDesc    = map.value(API_ERROR).toMap().value(API_ERROR_DESCRIPTION).toString();
 						QString errorType    = map.value(API_ERROR).toMap().value(API_ERROR_TYPE).toString();
-
-						//Debug(_log, "Error Type        : %s", QSTRING_CSTR( errorType ));
-						//Debug(_log, "Error Address     : %s", QSTRING_CSTR( errorAddress ));
-						//Debug(_log, "Error Description : %s", QSTRING_CSTR( errorDesc ));
 
 						log( "Error Type", "%s", QSTRING_CSTR( errorType ) );
 						log( "Error Address", "%s", QSTRING_CSTR( errorAddress ) );
@@ -853,7 +854,7 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _transitionTime(1)
 	  , _isRestoreOrigState(true)
   	  , _lightStatesRestored(false)
-	  ,	_isInitLeds(false)
+	  , _isInitLeds(false)
 	  , _brightnessMin(0.0)
 	  , _brightnessMax(1.0)
 	  , _allLightsBlack(false)
@@ -883,6 +884,8 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
+	verbose = deviceConfig[CONFIG_VERBOSE].toBool(false);
+
 	bool isInitOK = LedDevicePhilipsHueBridge::init(deviceConfig);
 
 	if ( isInitOK )
@@ -1029,17 +1032,27 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useHueEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
-				_devConfig["host"] = _hostname;
-				_devConfig["sslport"] = 2100;
-				_devConfig["servername"] = "Hue";
-				_devConfig["latchTime"]   = 0;
-				_devConfig["rewriteTime"] = 20;
-				if ( _blackLightsTimer == nullptr )
-				{
-					_blackLightsTimer = new QTimer(this);
-					connect( _blackLightsTimer, SIGNAL( timeout() ), this, SLOT( noSignalTimeout() ) );
-				}
+				_devConfig["latchTime"]    = 0;
+				_devConfig["host"]         = _hostname;
+				_devConfig["sslport"]      = API_SSL_SERVER_PORT;
+				_devConfig["servername"]   = API_SSL_SERVER_NAME;
+				_devConfig["rewriteTime"]  = STREAM_REWRITE_TIME;
+				_devConfig["psk"]          = _devConfig[ CONFIG_CLIENTKEY ];
+				_devConfig["psk_identity"] = _devConfig[ CONFIG_USERNAME ];
+				_devConfig["seed_custom"]  = API_SSL_SEED_CUSTOM;
+				_devConfig["retry_left"]   = STREAM_CONNECTION_RETRYS;
+				_devConfig["hs_attempts"]  = STREAM_SSL_HANDSHAKE_ATTEMPTS;
+
 				isInitOK = ProviderUdpSSL::init( _devConfig );
+
+				if( isInitOK )
+				{
+					if ( _blackLightsTimer == nullptr )
+					{
+						_blackLightsTimer = new QTimer(this);
+						connect( _blackLightsTimer, SIGNAL( timeout() ), this, SLOT( noSignalTimeout() ) );
+					}
+				}
 			}
 			else
 			{

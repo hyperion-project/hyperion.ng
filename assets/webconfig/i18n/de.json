@@ -453,7 +453,7 @@
 	"edt_dev_spec_brightnessFactor_title": "Helligkeitsfaktor",
 	"edt_dev_spec_brightnessMin_title": "Helligkeit minimum",
 	"edt_dev_spec_brightnessMax_title": "Helligkeit maximum",
-	"edt_dev_spec_logCommands_title": "Logge alle Hue Commandos",
+	"edt_dev_spec_verbose_title": "Logge alle Hue Commandos",
 	"edt_dev_spec_debugStreamer_title": "Streamer Debugging",
 	"edt_dev_spec_debugLevel_title": "Streamer Verbindung Debug Stufe",
 	"edt_dev_spec_restoreOriginalState_title" : "Lampen Originalzustand wiederherstellen",
