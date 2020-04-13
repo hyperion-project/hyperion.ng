@@ -275,7 +275,7 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 # MSVC options
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Search for Windows SDK
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
@@ -285,60 +285,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	if(NOT DEFINED ENV{Qt5_DIR})
-    	# look for user-registry pointing to qtcreator
-		GET_FILENAME_COMPONENT(QT_BIN [HKEY_CURRENT_USER\\Software\\Classes\\Applications\\QtProject.QtCreator.cpp\\shell\\Open\\Command] PATH)
-
-		# get root path so we can search for 5.3, 5.4, 5.5, etc
-		STRING(REPLACE "/Tools" ";" QT_BIN "${QT_BIN}")
-		LIST(GET QT_BIN 0 QT_BIN)
-		FILE(GLOB QT_VERSIONS "${QT_BIN}/5.*")
-		LIST(SORT QT_VERSIONS)
-
-		# assume the latest version will be last alphabetically
-		LIST(REVERSE QT_VERSIONS)
-		LIST(GET QT_VERSIONS 0 QT_VERSION)
-
-		# fix any double slashes which seem to be common
-		STRING(REPLACE "//" "/"  QT_VERSION "${QT_VERSION}")
-
-        if(MSVC_VERSION GREATER_EQUAL "1910")
-            set(QT_MSVC "2017")
-        elseif(MSVC_VERSION GREATER_EQUAL "1900")
-            set(QT_MSVC "2015")
-        else()
-            # Latest QT versions >5.10 provides only 2015 and 2017 prebuilt binaries
-            message(WARNING "Unsupported MSVC toolchain version")
-        endif()
-
-		if(QT_MSVC)
-			# check for 64-bit os
-			IF(CMAKE_SYSTEM_PROCESSOR MATCHES 64)
-				SET(QT_MSVC "${QT_MSVC}_64")
-			ENDIF()
-			SET(QT_PATH "${QT_VERSION}/msvc${QT_MSVC}")
-			message(STATUS "${QT_PATH}")
-		endif()
-
-		IF(EXISTS "${QT_PATH}")
-			SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${QT_PATH}")
-			message(STATUS "Set Qt5_DIR to install path: ${QT_PATH}/lib/cmake/Qt5")
-			SET(Qt5_DIR "${QT_PATH}/lib/cmake/Qt5")
-		else()
-			SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
-			message(STATUS "Set Qt5_DIR to default install path C:/Qt")
-			SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
-		endif()
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
+	if (NOT DEFINED ENV{Qt5_DIR})
+		message(STATUS "Set Qt5_DIR to default install path C:/Qt")
+		SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
 	endif()
 endif()
 
 # Use GNU gold linker if available
-if(NOT WIN32)
+if (NOT WIN32)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 endif()
 
-# Don't create new dynamic tags (RUNPATH)	
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")	
+# Don't create new dynamic tags (RUNPATH)
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 endif()
 
