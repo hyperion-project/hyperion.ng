@@ -21,17 +21,20 @@ PythonInit::PythonInit()
 	EffectModule::registerHyperionExtensionModule();
 
 	// set Python module path when exists
-	// TODO Crash on Windows
-#ifndef _WIN32
-	const wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
-	if(QDir(QString::fromWCharArray(pythonPath)).exists())
+	wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
+
+#ifdef _WIN32
+	pythonPath = wcscat(pythonPath, L"/python38.zip");
+	if (QFile(QString::fromWCharArray(pythonPath)).exists())
+#else
+	if (QDir(QString::fromWCharArray(pythonPath)).exists())
+#endif
 	{
 		Py_NoSiteFlag++;
 		Py_SetPath(pythonPath);
 	}
 	delete pythonPath;
 
-#endif
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");
 	Py_InitializeEx(0);
