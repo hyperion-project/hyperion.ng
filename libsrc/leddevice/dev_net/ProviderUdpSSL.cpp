@@ -20,6 +20,7 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, conf()
 	, ctr_drbg()
 	, timer()
+	, _transport_type("DTLS")
 	, _custom("dtls_client")
 	, _address("127.0.0.1")
 	, _defaultHost("127.0.0.1")
@@ -53,9 +54,11 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	_port = deviceConfig["sslport"].toInt(2100);
 	_server_name = deviceConfig["servername"].toString("");
 
-	if( deviceConfig.contains("retry_left") )	_retry_left         = deviceConfig["retry_left"].toInt(MAX_RETRY);
-	if( deviceConfig.contains("hs_attempts") )	_handshake_attempts = deviceConfig["hs_attempts"].toInt(5);
-	if( deviceConfig.contains("seed_custom") )	_custom             = deviceConfig["seed_custom"].toString("dtls_client");
+	if( deviceConfig.contains("retry_left") )		_retry_left         = deviceConfig["retry_left"].toInt(MAX_RETRY);
+	if( deviceConfig.contains("hs_attempts") )		_handshake_attempts = deviceConfig["hs_attempts"].toInt(5);
+	if( deviceConfig.contains("seed_custom") )		_custom             = deviceConfig["seed_custom"].toString("dtls_client");
+	if( deviceConfig.contains("transport_type") )	_transport_type     = deviceConfig["transport_type"].toString("DTLS");
+
 
 	#define DEBUG_LEVEL _debugLevel
 
@@ -232,9 +235,14 @@ bool ProviderUdpSSL::setupStructure()
 {
 	int ret;
 
-	log( "Setting up the structure..." );
+	log( QString( "Setting up the %1 structure").arg( _transport_type ) );
 
-	if ((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_DATAGRAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
+	//TLS  MBEDTLS_SSL_TRANSPORT_STREAM
+	//DTLS MBEDTLS_SSL_TRANSPORT_DATAGRAM
+
+	int transport = ( _transport_type == "DTLS" ) ? MBEDTLS_SSL_TRANSPORT_DATAGRAM : MBEDTLS_SSL_TRANSPORT_STREAM;
+
+	if ((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, transport, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
 	{
 		log( QString("mbedtls_ssl_config_defaults FAILED %1").arg(ret), "error" );
 		return false;
@@ -244,7 +252,19 @@ bool ProviderUdpSSL::setupStructure()
 	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
 	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
-	mbedtls_ssl_conf_ciphersuites(&conf, getCiphersuites());
+	const int * ciphersuites = getCiphersuites();
+
+	int s = sizeof(ciphersuites) / sizeof(ciphersuites[0]);
+
+	QString cipher_values;
+	for(int i=0; i<s; i++)
+	{
+		cipher_values.append(QString::number(ciphersuites[i]));
+	}
+
+	log( QString("used ciphersuites value: %1").arg(cipher_values), "debug" );
+
+	mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
 #if DEBUG_LEVEL > 0
@@ -338,6 +358,9 @@ bool ProviderUdpSSL::startSSLHandshake()
 	if (ret != 0)
 	{
 		log( QString("mbedtls_ssl_handshake FAILED %1").arg(ret), "error" );
+
+		handleReturn(ret);
+
 		Error(_log, "UDP SSL Connection failed!");
 
 #if DEBUG_LEVEL > 0
@@ -420,9 +443,8 @@ void ProviderUdpSSL::handleReturn(int ret)
 			ret = 0;
 			closeNotify = true;
 			break;
-
 		default:
-			log( QString("mbedtls_ssl_read returned %1").arg(ret), "warning" );
+			log( QString("mbedtls_ssl_read returned %1").arg( errorMsg(ret) ), "warning" );
 			gotoExit = true;
 	}
 
@@ -437,6 +459,284 @@ void ProviderUdpSSL::handleReturn(int ret)
 		log( "Exit SSL connection" );
 		_stopConnection = true;
 	}
+}
+
+QString ProviderUdpSSL::errorMsg(int ret) {
+
+	QString msg = "";
+
+	switch (ret)
+	{
+#if defined(MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE)
+		case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE:
+			msg = "MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_INPUT_DATA)
+		case MBEDTLS_ERR_SSL_BAD_INPUT_DATA:
+			msg = "MBEDTLS_ERR_SSL_BAD_INPUT_DATA                     -0x7100";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_INVALID_MAC)
+		case MBEDTLS_ERR_SSL_INVALID_MAC:
+			msg = "MBEDTLS_ERR_SSL_INVALID_MAC                        -0x7180";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_INVALID_RECORD)
+		case MBEDTLS_ERR_SSL_INVALID_RECORD:
+			msg = "MBEDTLS_ERR_SSL_INVALID_RECORD                     -0x7200";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CONN_EOF)
+		case MBEDTLS_ERR_SSL_CONN_EOF:
+			msg = "MBEDTLS_ERR_SSL_CONN_EOF                           -0x7280";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNKNOWN_CIPHER)
+		case MBEDTLS_ERR_SSL_UNKNOWN_CIPHER:
+			msg = "MBEDTLS_ERR_SSL_UNKNOWN_CIPHER                     -0x7300";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN)
+		case MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN:
+			msg = "MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN                   -0x7380";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NO_RNG)
+		case MBEDTLS_ERR_SSL_NO_RNG:
+			msg = "MBEDTLS_ERR_SSL_NO_RNG                             -0x7400";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE)
+		case MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE:
+			msg = "MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE              -0x7480";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE)
+		case MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE:
+			msg = "MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE              -0x7500";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED)
+		case MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED:
+			msg = "MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED               -0x7580";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED)
+		case MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED:
+			msg = "MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED               -0x7600";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED)
+		case MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED:
+			msg = "MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED                  -0x7680";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE)
+		case MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE:
+			msg = "MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE                 -0x7700";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE)
+		case MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE:
+			msg = "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE                -0x7780";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED)
+		case MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED:
+			msg = "MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED                 -0x7800";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO)
+		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO                -0x7900";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO)
+		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO                -0x7980";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE)
+		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE                 -0x7A00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST)
+		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST         -0x7A80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE)
+		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE         -0x7B00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE)
+		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE           -0x7B80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE)
+		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE         -0x7C00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP)
+		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP      -0x7C80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS)
+		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS      -0x7D00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY)
+		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY          -0x7D80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC)
+		case MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC          -0x7E00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_FINISHED)
+		case MBEDTLS_ERR_SSL_BAD_HS_FINISHED:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_FINISHED                    -0x7E80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_ALLOC_FAILED)
+		case MBEDTLS_ERR_SSL_ALLOC_FAILED:
+			msg = "MBEDTLS_ERR_SSL_ALLOC_FAILED                       -0x7F00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_HW_ACCEL_FAILED)
+		case MBEDTLS_ERR_SSL_HW_ACCEL_FAILED:
+			msg = "MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                    -0x7F80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH)
+		case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
+			msg = "MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH               -0x6F80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_COMPRESSION_FAILED)
+		case MBEDTLS_ERR_SSL_COMPRESSION_FAILED:
+			msg = "MBEDTLS_ERR_SSL_COMPRESSION_FAILED                 -0x6F00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION)
+		case MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION            -0x6E80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET)
+		case MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET:
+			msg = "MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET          -0x6E00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED)
+		case MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED:
+			msg = "MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED             -0x6D80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH)
+		case MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH:
+			msg = "MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH                   -0x6D00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY)
+		case MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY:
+			msg = "MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY                   -0x6C80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_INTERNAL_ERROR)
+		case MBEDTLS_ERR_SSL_INTERNAL_ERROR:
+			msg = "MBEDTLS_ERR_SSL_INTERNAL_ERROR                     -0x6C00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_COUNTER_WRAPPING)
+		case MBEDTLS_ERR_SSL_COUNTER_WRAPPING:
+			msg = "MBEDTLS_ERR_SSL_COUNTER_WRAPPING                   -0x6B80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO)
+		case MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO:
+			msg = "MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO        -0x6B00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED)
+		case MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED:
+			msg = "MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED              -0x6A80";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL)
+		case MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL:
+			msg = "MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                   -0x6A00";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE)
+		case MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE:
+			msg = "MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE              -0x6980";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_WANT_READ)
+		case MBEDTLS_ERR_SSL_WANT_READ:
+			msg = "MBEDTLS_ERR_SSL_WANT_READ                          -0x6900";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_WANT_WRITE)
+		case MBEDTLS_ERR_SSL_WANT_WRITE:
+			msg = "MBEDTLS_ERR_SSL_WANT_WRITE                         -0x6880";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CLIENT_RECONNECT)
+		case MBEDTLS_ERR_SSL_CLIENT_RECONNECT:
+			msg = "MBEDTLS_ERR_SSL_CLIENT_RECONNECT                   -0x6780";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNEXPECTED_RECORD)
+		case MBEDTLS_ERR_SSL_UNEXPECTED_RECORD:
+			msg = "MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                  -0x6700";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NON_FATAL)
+		case MBEDTLS_ERR_SSL_NON_FATAL:
+			msg = "MBEDTLS_ERR_SSL_NON_FATAL                          -0x6680";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH)
+		case MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH:
+			msg = "MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH                -0x6600";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING)
+		case MBEDTLS_ERR_SSL_CONTINUE_PROCESSING:
+			msg = "MBEDTLS_ERR_SSL_CONTINUE_PROCESSING                -0x6580";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS)
+		case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+			msg = "MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                  -0x6500";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_EARLY_MESSAGE)
+		case MBEDTLS_ERR_SSL_EARLY_MESSAGE:
+			msg = "MBEDTLS_ERR_SSL_EARLY_MESSAGE                      -0x6480";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS)
+		case MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS:
+			msg = "MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                 -0x7000";
+			break;
+#endif
+		default:
+			msg = QString::number(ret);
+	}
+
+	return msg;
 }
 
 void ProviderUdpSSL::closeSSLNotify()

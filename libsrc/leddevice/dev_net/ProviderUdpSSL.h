@@ -143,6 +143,7 @@ private:
 	bool setupPSK();
 	bool startSSLHandshake();
 	void handleReturn(int ret);
+	QString errorMsg(int ret);
 	void closeSSLNotify();
 	void freeSSLConnection();
 
@@ -154,6 +155,7 @@ private:
 	mbedtls_ctr_drbg_context     ctr_drbg;
 	mbedtls_timing_delay_context timer;
 
+	QString      _transport_type;
 	QString      _custom;
 	QHostAddress _address;
 	QString      _defaultHost;

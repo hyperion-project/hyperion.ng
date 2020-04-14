@@ -84,7 +84,7 @@ const int API_SSL_SERVER_PORT = 2100;
 const int STREAM_CONNECTION_RETRYS = 5;
 const int STREAM_REWRITE_TIME = 20;
 const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-const int SSL_CIPHERSUITES[1] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256 };
+const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };
 
 bool operator ==(const CiColor& p1, const CiColor& p2)
 {
