@@ -18,19 +18,26 @@
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include <mbedtls/platform.h>
+#include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
-#define mbedtls_fprintf    fprintf
+#include <stdlib.h>
+#define mbedtls_time         time
+#define mbedtls_time_t       time_t
+#define mbedtls_printf       printf
+#define mbedtls_fprintf      fprintf
+#define mbedtls_snprintf     snprintf
+#define mbedtls_calloc       calloc
+#define mbedtls_free         free
+#define mbedtls_exit         exit
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #include <string.h>
 #include <cstring>
 
-//#include "mbedtls/certs.h"
 #include <mbedtls/net_sockets.h>
-//#include <mbedtls/ssl.h>
 #include <mbedtls/ssl_ciphersuites.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/timing.h>
@@ -111,7 +118,10 @@ protected:
 	void log(const char* msg);
 	void log(const char* msg, const char* errorType);
 
-//#if DEBUG_LEVEL > 0
+	/**
+	 * Debug callback for mbed TLS
+	 * Just prints on the USB serial port
+	 */
 	static void ProviderUdpSSLDebug(void *ctx, int level, const char *file, int line, const char *str)
 	{
 		const char *p, *basename;
@@ -124,9 +134,35 @@ protected:
 				basename = p + 1;
 			}
 		}
-		mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
+		mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
+		fflush(  (FILE *) ctx  );
 	}
-//#endif
+
+	/**
+	 * Certificate verification callback for mbed TLS
+	 * Here we only use it to display information on each cert in the chain
+	 */
+	static int ProviderUdpSSLVerify(void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags)
+	{
+		const uint32_t buf_size = 1024;
+		char *buf = new char[buf_size];
+		(void) data;
+
+		mbedtls_printf("\nVerifying certificate at depth %d:\n", depth);
+		mbedtls_x509_crt_info(buf, buf_size - 1, "  ", crt);
+		mbedtls_printf("%s", buf);
+
+		if (*flags == 0)
+			mbedtls_printf("No verification issue for this certificate\n");
+		else
+		{
+			mbedtls_x509_crt_verify_info(buf, buf_size, "  ! ", *flags);
+			mbedtls_printf("%s\n", buf);
+		}
+
+		delete[] buf;
+		return 0;
+	}
 
 	///
 	/// closeSSLNotify and freeSSLConnection
@@ -160,8 +196,8 @@ private:
 	QString      _custom;
 	QHostAddress _address;
 	QString      _defaultHost;
-	unsigned int _port;
-	unsigned int _ssl_port;
+	int          _port;
+	int          _ssl_port;
 	QString      _server_name;
 	QString      _psk;
 	QString      _psk_identity;
@@ -172,5 +208,5 @@ private:
 	int          _retry_left;
 	bool         _stopConnection;
 	bool         _debugStreamer;
-	unsigned int _debugLevel;
+	int          _debugLevel;
 };
