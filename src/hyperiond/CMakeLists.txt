@@ -1,189 +1,12 @@
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-else()
-	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
-endif()
-
-find_package(Qt5Widgets REQUIRED)
-if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 	include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
 else()
+	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 endif()
 
-macro(InstallDependencies TARGET INSTALL_COMPONENT)
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
-	set(SYSTEM_LIBS_SKIP
-		"libc"
-		"libdl"
-		"libexpat"
-		"libfontconfig"
-		"libfreetype"
-		"libgcc_s"
-		"libgcrypt"
-		"libGL"
-		"libGLdispatch"
-		"libglib-2"
-		"libGLX"
-		"libgpg-error"
-		"libm"
-		"libpthread"
-		"librt"
-		"libstdc++"
-		"libudev"
-		"libusb-1"
-		"libutil"
-		"libX11"
-		"libz"
-	)
-
-	if(EXISTS ${TARGET_FILE})
-		include(GetPrerequisites)
-
-		if (APPLE)
-			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-		endif(APPLE)
-
-		# Extract dependencies ignoring the system ones
-		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
-
-		# Append symlink and non-symlink dependencies to the list
-		set(PREREQUISITE_LIBS "")
-		foreach(DEPENDENCY ${DEPENDENCIES})
-			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-			list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-			if (${_index} GREATER -1)
-				continue() # Skip system libraries
-			else()
-				gp_resolve_item("${TARGET_FILE}" "${DEPENDENCY}" "" "" resolved_file)
-				get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-				gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-				get_filename_component(file_canonical ${resolved_file} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			endif()
-		endforeach()
-
-		# Append the OpenSSL library to the list
-		find_package(OpenSSL 1.0.0 REQUIRED)
-		if (OPENSSL_FOUND)
-			foreach(openssl_lib ${OPENSSL_LIBRARIES})
-				get_prerequisites(${openssl_lib} openssl_deps 0 1 "" "")
-
-				foreach(openssl_dep ${openssl_deps})
-					get_filename_component(resolved ${openssl_dep} NAME_WE)
-					list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-					if (${_index} GREATER -1)
-						continue() # Skip system libraries
-					else()
-						gp_resolve_item("${openssl_lib}" "${openssl_dep}" "" "" resolved_file)
-						get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-						gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-						get_filename_component(file_canonical ${resolved_file} REALPATH)
-						gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-					endif()
-				endforeach()
-
-				gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
-				get_filename_component(file_canonical ${openssl_lib} REALPATH)
-				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-			endforeach()
-		endif(OPENSSL_FOUND)
-
-		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
-		execute_process(
-			COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-			OUTPUT_VARIABLE QT_PLUGINS_DIR
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-
-		# Copy Qt plugins to 'share/hyperion/lib'
-		if(QT_PLUGINS_DIR)
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
-				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
-					foreach(file ${files})
-						get_prerequisites(${file} PLUGINS 0 1 "" "")
-
-						foreach(DEPENDENCY ${PLUGINS})
-							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-							list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-							if (${_index} GREATER -1)
-								continue() # Skip system libraries
-							else()
-								gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
-								get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-								gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-								get_filename_component(file_canonical ${resolved_file} REALPATH)
-								gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-							endif()
-						endforeach()
-
-						install(
-							FILES ${file}
-							DESTINATION "share/hyperion/lib/${PLUGIN}"
-							COMPONENT "${INSTALL_COMPONENT}"
-						)
-					endforeach()
-				endif()
-			endforeach()
-		endif(QT_PLUGINS_DIR)
-
-		# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
-		install(
-			FILES "${CMAKE_BINARY_DIR}/qt.conf"
-			DESTINATION "share/hyperion/bin"
-			COMPONENT "${INSTALL_COMPONENT}"
-		)
-
-		# Copy dependencies to 'share/hyperion/lib'
-		foreach(PREREQUISITE_LIB ${PREREQUISITE_LIBS})
-			install(
-				FILES ${PREREQUISITE_LIB}
-				DESTINATION "share/hyperion/lib"
-				COMPONENT "${INSTALL_COMPONENT}"
-			)
-		endforeach()
-
-		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-
-			# Detect the Python modules directory
-			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-		else()
-
-			# Detect the Python modules directory
-			execute_process(
-				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-
-		endif()
-
-		# Copy Python modules to 'share/hyperion/lib/python'
-		if (PYTHON_MODULES_DIR)
-			install(
-				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python"
-				COMPONENT "${INSTALL_COMPONENT}"
-			)
-		endif(PYTHON_MODULES_DIR)
-	else()
-		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
-		add_custom_command(
-			TARGET ${TARGET} POST_BUILD
-			COMMAND ${CMAKE_COMMAND}
-			ARGS ${CMAKE_SOURCE_DIR}
-			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-			VERBATIM
-		)
-	endif()
-endmacro()
+find_package(Qt5Widgets REQUIRED)
 
 add_executable(hyperiond
 	hyperiond.h
@@ -270,13 +93,21 @@ install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION 
 install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
 
 if(CMAKE_HOST_UNIX)
-	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT  "${PLATFORM}" )
-	install(FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "${PLATFORM}" )
-	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "${PLATFORM}" )
-endif(CMAKE_HOST_UNIX)
-
+	install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT  "${PLATFORM}" )
+	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "${PLATFORM}" )
+	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "${PLATFORM}" )
+elseif(CMAKE_HOST_WIN32)
+	set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
+	set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+	include(InstallRequiredSystemLibraries)
+	install( FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION "bin" COMPONENT "${PLATFORM}" )
+endif()
 
 # Copy dependencies (not for OSX)
-if (NOT ENABLE_OSX)
-	InstallDependencies("hyperiond" ${PLATFORM})
+include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+
+if (NOT ENABLE_OSX AND NOT WIN32) # Unix
+	DeployUnix("hyperiond" ${PLATFORM})
+elseif(WIN32) # Windows
+	DeployWindows("hyperiond" ${PLATFORM})
 endif ()
