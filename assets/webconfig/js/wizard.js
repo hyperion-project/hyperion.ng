@@ -871,6 +871,9 @@ function beginWizardHue()
     d.brightnessMin         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMin").getValue());
     d.brightnessMax         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMax").getValue());
     d.brightnessThreshold   = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessThreshold").getValue());
+    d.sslReadTimeout        = parseInt(conf_editor.getEditor("root.specificOptions.sslReadTimeout").getValue());
+    d.sslHSTimeoutMin       = parseInt(conf_editor.getEditor("root.specificOptions.sslHSTimeoutMin").getValue());
+    d.sslHSTimeoutMax       = parseInt(conf_editor.getEditor("root.specificOptions.sslHSTimeoutMax").getValue());
     d.debugStreamer         = (conf_editor.getEditor("root.specificOptions.debugStreamer").getValue() == true);
     d.debugLevel            = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
 

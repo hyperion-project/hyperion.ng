@@ -159,6 +159,54 @@
 			},
 			"propertyOrder" : 14
 		},
+		"sslReadTimeout": {
+			"type": "number",
+			"title":"edt_dev_spec_sslReadTimeout_title",
+			"default" : 0,
+			"step": 100,
+			"minimum" : 0,
+			"maximum" : 30000,
+			"access" : "expert",
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 15
+		},
+		"sslHSTimeoutMin": {
+			"type": "number",
+			"title":"edt_dev_spec_sslHSTimeoutMin_title",
+			"default" : 400,
+			"step": 100,
+			"minimum" : 1,
+			"maximum" : 30000,
+			"access" : "expert",
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 16
+		},
+		"sslHSTimeoutMax": {
+			"type": "number",
+			"title":"edt_dev_spec_sslHSTimeoutMax_title",
+			"default" : 1000,
+			"step": 100,
+			"minimum" : 1,
+			"maximum" : 30000,
+			"access" : "expert",
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"useEntertainmentAPI": true
+				}
+			},
+			"propertyOrder" : 17
+		},
 		"verbose": {
 			"type": "boolean",
 			"title":"edt_dev_spec_verbose_title",
@@ -169,7 +217,7 @@
 					"useEntertainmentAPI": true
 				}
 			},
-			"propertyOrder" : 15
+			"propertyOrder" : 18
 		},
 		"debugStreamer": {
 			"type": "boolean",
@@ -181,7 +229,7 @@
 					"useEntertainmentAPI": true
 				}
 			},
-			"propertyOrder" : 16
+			"propertyOrder" : 19
 		},
 		"debugLevel": {
 			"type": "integer",
@@ -197,7 +245,7 @@
 			"minimum" : 0,
 			"maximum" : 4,
 			"access" : "expert",
-			"propertyOrder" : 17
+			"propertyOrder" : 20
 		}
 	},
 	"additionalProperties": true

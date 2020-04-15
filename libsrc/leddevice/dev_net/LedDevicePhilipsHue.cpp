@@ -25,6 +25,10 @@ static const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
 static const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
 static const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
 
+static const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
+static const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
+static const char CONFIG_SSL_READ_TIMEOUT[] = "sslReadTimeout";
+
 // Device Data elements
 static const char DEV_DATA_BRIDGEID[] = "bridgeid";
 static const char DEV_DATA_MODEL[] = "modelid";
@@ -75,15 +79,18 @@ static const char API_SUCCESS[] = "success";
 
 // Phlips Hue ssdp services
 static const char SSDP_ID[] = "urn:schemas-upnp-org:device:Basic:1";
-const int SSDP_TIMEOUT = 5000; // timout in ms
+const unsigned int SSDP_TIMEOUT = 5000; // timout in ms
 
 // DTLS Connection / SSL / Cipher Suite
 static const char API_SSL_SERVER_NAME[] = "Hue";
 static const char API_SSL_SEED_CUSTOM[] = "dtls_client";
-const int API_SSL_SERVER_PORT = 2100;
-const int STREAM_CONNECTION_RETRYS = 5;
-const int STREAM_REWRITE_TIME = 20;
-const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
+const unsigned int API_SSL_SERVER_PORT = 2100;
+const unsigned int STREAM_CONNECTION_RETRYS = 5;
+const unsigned int STREAM_REWRITE_TIME = 20;
+const unsigned int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
+const unsigned int STREAM_SSL_HANDSHAKE_TIMEOUT_MIN = 400;
+const unsigned int STREAM_SSL_HANDSHAKE_TIMEOUT_MAX = 1000;
+const unsigned int STREAM_SSL_READ_TIMEOUT = 0;
 const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };
 
 bool operator ==(const CiColor& p1, const CiColor& p2)
@@ -252,7 +259,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 
 	// Overwrite non supported/required features
 	_devConfig["latchTime"]   = 0;
-	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
+	if ( deviceConfig["rewriteTime"].toUInt(0) > 0 )
 	{
 		Info ( _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
 		_devConfig["rewriteTime"] = 0;
@@ -308,7 +315,7 @@ int LedDevicePhilipsHueBridge::open( const QString& hostname, const QString& por
 	//If host not configured then discover device
 	if ( hostname.isEmpty() )
 	{
-		//Discover Nanoleaf device
+		//Discover Philips Hue Bridge device
 		if ( !discoverDevice() )
 		{
 			this->setInError( "No target IP defined nor Philips Hue Bridge was discovered" );
@@ -436,7 +443,7 @@ void LedDevicePhilipsHueBridge::setLightsMap(QJsonDocument doc)
 
 	for ( unsigned int i = 0; i < _ledCount; ++i )
 	{
-		_lightsMap.insert(keys.at(i).toInt(), jsonLightsInfo.take(keys.at(i)).toObject());
+		_lightsMap.insert(keys.at(i).toUInt(), jsonLightsInfo.take(keys.at(i)).toObject());
 	}
 
 	if ( getLedCount() == 0 )
@@ -463,7 +470,7 @@ void LedDevicePhilipsHueBridge::setGroupMap(QJsonDocument doc)
 
 	for ( unsigned int i = 0; i < _groupsCount; ++i )
 	{
-		_groupsMap.insert( keys.at(i).toInt(), jsonGroupsInfo.take(keys.at(i)).toObject() );
+		_groupsMap.insert( keys.at(i).toUInt(), jsonGroupsInfo.take(keys.at(i)).toObject() );
 	}
 }
 
@@ -806,7 +813,7 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 		_originalColor = _color;
 		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
 		DebugIf(verbose, _log, "OriginalColor state on: %s", QSTRING_CSTR(c));
-		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toInt();
+		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toUInt();
 	}
 	//Determine the original state.
 	_originalState = QJsonDocument(state).toJson(QJsonDocument::JsonFormat::Compact).trimmed();
@@ -861,6 +868,9 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _blackLightsTimer(nullptr)
 	  , _blackLightsTimeout(15000)
 	  , _brightnessThreshold(0.0)
+	  , _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN)
+	  , _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX)
+	  , _ssl_read_timeout(STREAM_SSL_READ_TIMEOUT)
 	  , _stopConnection(false)
 	  , start_retry_left(3)
 	  , stop_retry_left(3)
@@ -892,15 +902,17 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 	{
 		// Initiatiale LedDevice configuration and execution environment
 		_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
-		_blackLightsTimeout     = _devConfig[CONFIG_BLACK_LIGHTS_TIMEOUT].toInt(15000);
+		_blackLightsTimeout     = _devConfig[CONFIG_BLACK_LIGHTS_TIMEOUT].toUInt(15000);
 		_brightnessFactor       = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
-		_transitionTime         = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
+		_transitionTime         = _devConfig[CONFIG_TRANSITIONTIME].toUInt(1);
 		_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
-		_groupId                = _devConfig[CONFIG_GROUPID].toInt(0);
+		_groupId                = _devConfig[CONFIG_GROUPID].toUInt(0);
 		_brightnessMin          = _devConfig[CONFIG_BRIGHTNESS_MIN].toDouble(0.0);
 		_brightnessMax          = _devConfig[CONFIG_BRIGHTNESS_MAX].toDouble(1.0);
 		_brightnessThreshold    = _devConfig[CONFIG_BRIGHTNESS_THRESHOLD].toDouble(0.0);
-
+		_handshake_timeout_min  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN].toUInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN);
+		_handshake_timeout_max  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX].toUInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX);
+		_ssl_read_timeout       = _devConfig[CONFIG_SSL_READ_TIMEOUT].toUInt(STREAM_SSL_READ_TIMEOUT);
 
 		if(_brightnessMin < 0.0) _brightnessMin = 0.0;
 		if(_brightnessMax > 1.0) _brightnessMax = 1.0;
@@ -920,6 +932,9 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 			log( "Brightness Min", "%f", _brightnessMin );
 			log( "Brightness Max", "%f", _brightnessMax );
 			log( "Brightness Threshold", "%f", _brightnessThreshold );
+			log( "SSL Handshake Timeout min", "%d", _handshake_timeout_min );
+			log( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
+			log( "SSL Read Timeout", "%d", _ssl_read_timeout );
 
 			if( _groupId <= 0 )
 			{
@@ -961,7 +976,7 @@ bool LedDevicePhilipsHue::setLights()
 	{
 		for(const auto id : lArray)
 		{
-			unsigned int lightId = id.toString().toInt();
+			unsigned int lightId = id.toString().toUInt();
 			if( lightId > 0 )
 			{
 				if(std::find(_lightIds.begin(), _lightIds.end(), lightId) == _lightIds.end())
@@ -1032,16 +1047,19 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useHueEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
-				_devConfig["latchTime"]    = 0;
-				_devConfig["host"]         = _hostname;
-				_devConfig["sslport"]      = API_SSL_SERVER_PORT;
-				_devConfig["servername"]   = API_SSL_SERVER_NAME;
-				_devConfig["rewriteTime"]  = STREAM_REWRITE_TIME;
-				_devConfig["psk"]          = _devConfig[ CONFIG_CLIENTKEY ];
-				_devConfig["psk_identity"] = _devConfig[ CONFIG_USERNAME ];
-				_devConfig["seed_custom"]  = API_SSL_SEED_CUSTOM;
-				_devConfig["retry_left"]   = STREAM_CONNECTION_RETRYS;
-				_devConfig["hs_attempts"]  = STREAM_SSL_HANDSHAKE_ATTEMPTS;
+				_devConfig["latchTime"]      = 0;
+				_devConfig["host"]           = _hostname;
+				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
+				_devConfig["servername"]     = API_SSL_SERVER_NAME;
+				_devConfig["rewriteTime"]    = STREAM_REWRITE_TIME;
+				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ];
+				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ];
+				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
+				_devConfig["retry_left"]     = STREAM_CONNECTION_RETRYS;
+				_devConfig["hs_attempts"]    = STREAM_SSL_HANDSHAKE_ATTEMPTS;
+				_devConfig["hs_timeout_min"] = _handshake_timeout_min;
+				_devConfig["hs_timeout_max"] = _handshake_timeout_max;
+				_devConfig["read_timeout"]   = _read_timeout;
 
 				isInitOK = ProviderUdpSSL::init( _devConfig );
 

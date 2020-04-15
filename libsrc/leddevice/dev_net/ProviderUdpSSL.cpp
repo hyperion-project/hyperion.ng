@@ -29,8 +29,11 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _server_name("")
 	, _psk("")
 	, _psk_identity("")
-	, _retry_left(MAX_RETRY)
+	, _read_timeout(0)
+	, _handshake_timeout_min(400)
+	, _handshake_timeout_max(1000)
 	, _handshake_attempts(5)
+	, _retry_left(MAX_RETRY)
 	, _stopConnection(true)
 {
 	_deviceReady = false;
@@ -46,19 +49,21 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_debugStreamer = deviceConfig["debugStreamer"].toBool(false);
-	_debugLevel = deviceConfig["debugLevel"].toInt(0);
+	_debugLevel = deviceConfig["debugLevel"].toUInt(0);
 
 	//PSK Pre Shared Key
 	_psk = deviceConfig["psk"].toString("");
 	_psk_identity = deviceConfig["psk_identity"].toString("");
-	_port = deviceConfig["sslport"].toInt(2100);
+	_port = deviceConfig["sslport"].toUInt(2100);
 	_server_name = deviceConfig["servername"].toString("");
 
-	if( deviceConfig.contains("retry_left") )		_retry_left         = deviceConfig["retry_left"].toInt(MAX_RETRY);
-	if( deviceConfig.contains("hs_attempts") )		_handshake_attempts = deviceConfig["hs_attempts"].toInt(5);
-	if( deviceConfig.contains("seed_custom") )		_custom             = deviceConfig["seed_custom"].toString("dtls_client");
-	if( deviceConfig.contains("transport_type") )	_transport_type     = deviceConfig["transport_type"].toString("DTLS");
-
+	if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
+	if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
+	if( deviceConfig.contains("retry_left") )     _retry_left            = deviceConfig["retry_left"].toInt(MAX_RETRY);
+	if( deviceConfig.contains("read_timeout") )   _read_timeout          = deviceConfig["read_timeout"].toUInt(0);
+	if( deviceConfig.contains("hs_timeout_min") ) _handshake_timeout_min = deviceConfig["hs_timeout_min"].toUInt(400);
+	if( deviceConfig.contains("hs_timeout_max") ) _handshake_timeout_max = deviceConfig["hs_timeout_max"].toUInt(1000);
+	if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toUInt(5);
 
 	#define DEBUG_LEVEL _debugLevel
 
@@ -86,7 +91,7 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		}
 	}
 
-	int config_port = deviceConfig["sslport"].toInt(_port);
+	int config_port = deviceConfig["sslport"].toUInt(_port);
 
 	if ( config_port <= 0 || config_port > MAX_PORT_SSL )
 	{
@@ -244,7 +249,7 @@ bool ProviderUdpSSL::setupStructure()
 
 	if ((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, transport, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
 	{
-		log( QString("mbedtls_ssl_config_defaults FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_ssl_config_defaults FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
@@ -259,6 +264,7 @@ bool ProviderUdpSSL::setupStructure()
 	QString cipher_values;
 	for(int i=0; i<s; i++)
 	{
+		if(i > 0) cipher_values.append(", ");
 		cipher_values.append(QString::number(ciphersuites[i]));
 	}
 
@@ -272,21 +278,25 @@ bool ProviderUdpSSL::setupStructure()
 	mbedtls_debug_set_threshold(DEBUG_LEVEL);
 #endif
 
-	mbedtls_ssl_conf_handshake_timeout(&conf, 400, 1000);
+uint32_t
+
+	mbedtls_ssl_conf_read_timeout(&conf, _read_timeout);
+
+	mbedtls_ssl_conf_handshake_timeout(&conf, _handshake_timeout_min, _handshake_timeout_max);
 
 	if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0)
 	{
-		log( QString("mbedtls_ssl_setup FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_ssl_setup FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
 	if ((ret = mbedtls_ssl_set_hostname(&ssl, _server_name.toStdString().c_str())) != 0)
 	{
-		log( QString("mbedtls_ssl_set_hostname FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_ssl_set_hostname FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
-	log( "Setting up the structure...ok" );
+	log( QString( "Setting up the %1 structure...ok").arg( _transport_type ) );
 
 	return true;
 }
@@ -303,7 +313,7 @@ bool ProviderUdpSSL::startUPDConnection()
 
 	if ((ret = mbedtls_net_connect( &client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP)) != 0)
 	{
-		log( QString("mbedtls_net_connect FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_net_connect FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
@@ -327,7 +337,7 @@ bool ProviderUdpSSL::setupPSK()
 
 	if (0 != (ret = mbedtls_ssl_conf_psk( &conf, ( const unsigned char* ) pskRawArray.data(), pskRawArray.length() * sizeof(char), reinterpret_cast<const unsigned char *> ( pskIdRawArray.data() ), pskIdRawArray.length() * sizeof(char) ) ) )
 	{
-		log( QString("mbedtls_ssl_conf_psk FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_ssl_conf_psk FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
@@ -338,7 +348,7 @@ bool ProviderUdpSSL::startSSLHandshake()
 {
 	int ret;
 
-	log( "Performing the SSL/TLS handshake..." );
+	log( QString( "Performing the SSL/%1 handshake...").arg( _transport_type ) );
 
 	for (int attempt = 1; attempt <= _handshake_attempts; ++attempt)
 	{
@@ -357,23 +367,15 @@ bool ProviderUdpSSL::startSSLHandshake()
 
 	if (ret != 0)
 	{
-		log( QString("mbedtls_ssl_handshake FAILED %1").arg(ret), "error" );
+		log( QString("mbedtls_ssl_handshake FAILED %1").arg( errorMsg( ret ) ), "error" );
 
 		handleReturn(ret);
 
 		Error(_log, "UDP SSL Connection failed!");
-
-#if DEBUG_LEVEL > 0
-#ifdef MBEDTLS_ERROR_C
-		char error_buf[100];
-		mbedtls_strerror(ret, error_buf, 100);
-		mbedtls_printf("Last error was: %d - %s\n\n", ret, error_buf);
-#endif
-#endif
 		return false;
 	}
 
-	log( "Performing the SSL/TLS handshake...ok" );
+	log( QString( "Performing the SSL/%1 handshake...ok").arg( _transport_type ) );
 
 	return true;
 }
@@ -433,13 +435,13 @@ void ProviderUdpSSL::handleReturn(int ret)
 	switch (ret)
 	{
 		case MBEDTLS_ERR_SSL_TIMEOUT:
-			log( "timeout", "warning" );
+			log( "The operation timed out. - MBEDTLS_ERR_SSL_TIMEOUT -0x6800", "warning" );
 			if (_retry_left-- > 0) return;
 			gotoExit = true;
 			break;
 
 		case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-			log( "SSL Connection was closed gracefully", "warning" );
+			log( "SSL Connection was closed gracefully ", "warning" );
 			ret = 0;
 			closeNotify = true;
 			break;
@@ -464,278 +466,299 @@ void ProviderUdpSSL::handleReturn(int ret)
 QString ProviderUdpSSL::errorMsg(int ret) {
 
 	QString msg = "";
+	char error_buf[100];
 
+#ifdef MBEDTLS_ERROR_C
+
+#if DEBUG_LEVEL > 0
+	mbedtls_strerror(ret, error_buf, 100);
+	msg.sprintf(error_buf, "Last error was: %d - %s\n", ret, error_buf);
+#else
+	msg.sprintf(error_buf, "Last error was: %d - %s\n", ret, mbedtls_strerror(ret, NULL, 0));
+#endif
+
+#else
 	switch (ret)
 	{
 #if defined(MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE)
 		case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE:
-			msg = "MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE               -0x7080";
+			msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE -0x7080";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_INPUT_DATA)
 		case MBEDTLS_ERR_SSL_BAD_INPUT_DATA:
-			msg = "MBEDTLS_ERR_SSL_BAD_INPUT_DATA                     -0x7100";
+			msg = "Bad input parameters to function. - MBEDTLS_ERR_SSL_BAD_INPUT_DATA -0x7100";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_INVALID_MAC)
 		case MBEDTLS_ERR_SSL_INVALID_MAC:
-			msg = "MBEDTLS_ERR_SSL_INVALID_MAC                        -0x7180";
+			msg = "Verification of the message MAC failed. - MBEDTLS_ERR_SSL_INVALID_MAC -0x7180";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_INVALID_RECORD)
 		case MBEDTLS_ERR_SSL_INVALID_RECORD:
-			msg = "MBEDTLS_ERR_SSL_INVALID_RECORD                     -0x7200";
+			msg = "An invalid SSL record was received. - MBEDTLS_ERR_SSL_INVALID_RECORD -0x7200";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CONN_EOF)
 		case MBEDTLS_ERR_SSL_CONN_EOF:
-			msg = "MBEDTLS_ERR_SSL_CONN_EOF                           -0x7280";
+			msg = "The connection indicated an EOF. - MBEDTLS_ERR_SSL_CONN_EOF -0x7280";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_UNKNOWN_CIPHER)
 		case MBEDTLS_ERR_SSL_UNKNOWN_CIPHER:
-			msg = "MBEDTLS_ERR_SSL_UNKNOWN_CIPHER                     -0x7300";
+			msg = "An unknown cipher was received. - MBEDTLS_ERR_SSL_UNKNOWN_CIPHER -0x7300";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN)
 		case MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN:
-			msg = "MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN                   -0x7380";
+			msg = "The server has no ciphersuites in common with the client. - MBEDTLS_ERR_SSL_NO_CIPHER_CHOSEN -0x7380";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_NO_RNG)
 		case MBEDTLS_ERR_SSL_NO_RNG:
-			msg = "MBEDTLS_ERR_SSL_NO_RNG                             -0x7400";
+			msg = "No RNG was provided to the SSL module. - MBEDTLS_ERR_SSL_NO_RNG -0x7400";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE)
 		case MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE:
-			msg = "MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE              -0x7480";
+			msg = "No client certification received from the client, but required by the authentication mode. - MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE -0x7480";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE)
 		case MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE:
-			msg = "MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE              -0x7500";
+			msg = "Our own certificate(s) is/are too large to send in an SSL message. - MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE -0x7500";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED)
 		case MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED:
-			msg = "MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED               -0x7580";
+			msg = "The own certificate is not set, but needed by the server. - MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED -0x7580";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED)
 		case MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED:
-			msg = "MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED               -0x7600";
+			msg = "The own private key or pre-shared key is not set, but needed. - MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED -0x7600";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED)
 		case MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED:
-			msg = "MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED                  -0x7680";
+			msg = "No CA Chain is set, but required to operate. - MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED -0x7680";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE)
 		case MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE:
-			msg = "MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE                 -0x7700";
+			msg = "An unexpected message was received from our peer. - MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE -0x7700";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE)
 		case MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE:
-			msg = "MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE                -0x7780";
+			msg = "A fatal alert message was received from our peer. - MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE -0x7780";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED)
 		case MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED:
-			msg = "MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED                 -0x7800";
+			msg = "Verification of our peer failed. - MBEDTLS_ERR_SSL_PEER_VERIFY_FAILED -0x7800";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY)
+		case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
+			msg = "The peer notified us that the connection is going to be closed. - MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY -0x7880";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO)
 		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO                -0x7900";
+			msg = "Processing of the ClientHello handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO -0x7900";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO)
 		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO                -0x7980";
+			msg = "Processing of the ServerHello handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO -0x7980";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE)
 		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE                 -0x7A00";
+			msg = "Processing of the Certificate handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE -0x7A00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST)
 		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST         -0x7A80";
+			msg = "Processing of the CertificateRequest handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST -0x7A80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE)
 		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE         -0x7B00";
+			msg = "Processing of the ServerKeyExchange handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE -0x7B00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE)
 		case MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE           -0x7B80";
+			msg = "Processing of the ServerHelloDone handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE -0x7B80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE)
 		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE         -0x7C00";
+			msg = "Processing of the ClientKeyExchange handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE -0x7C00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP)
 		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP      -0x7C80";
+			msg = "Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Read Public. - MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP -0x7C80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS)
 		case MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS      -0x7D00";
+			msg = "Processing of the ClientKeyExchange handshake message failed in DHM / ECDH Calculate Secret. - MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS -0x7D00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY)
 		case MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY          -0x7D80";
+			msg = "Processing of the CertificateVerify handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY -0x7D80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC)
 		case MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC          -0x7E00";
+			msg = "Processing of the ChangeCipherSpec handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC -0x7E00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_FINISHED)
 		case MBEDTLS_ERR_SSL_BAD_HS_FINISHED:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_FINISHED                    -0x7E80";
+			msg = "Processing of the Finished handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_FINISHED -0x7E80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_ALLOC_FAILED)
 		case MBEDTLS_ERR_SSL_ALLOC_FAILED:
-			msg = "MBEDTLS_ERR_SSL_ALLOC_FAILED                       -0x7F00";
+			msg = "Memory allocation failed. - MBEDTLS_ERR_SSL_ALLOC_FAILED -0x7F00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_HW_ACCEL_FAILED)
 		case MBEDTLS_ERR_SSL_HW_ACCEL_FAILED:
-			msg = "MBEDTLS_ERR_SSL_HW_ACCEL_FAILED                    -0x7F80";
+			msg = "Hardware acceleration function returned with error. - MBEDTLS_ERR_SSL_HW_ACCEL_FAILED -0x7F80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH)
 		case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
-			msg = "MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH               -0x6F80";
+			msg = "Hardware acceleration function skipped / left alone data. - MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH -0x6F80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_COMPRESSION_FAILED)
 		case MBEDTLS_ERR_SSL_COMPRESSION_FAILED:
-			msg = "MBEDTLS_ERR_SSL_COMPRESSION_FAILED                 -0x6F00";
+			msg = "Processing of the compression / decompression failed. - MBEDTLS_ERR_SSL_COMPRESSION_FAILED -0x6F00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION)
 		case MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION            -0x6E80";
+			msg = "Handshake protocol not within min/max boundaries. - MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION -0x6E80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET)
 		case MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET:
-			msg = "MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET          -0x6E00";
+			msg = "Processing of the NewSessionTicket handshake message failed. - MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET -0x6E00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED)
 		case MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED:
-			msg = "MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED             -0x6D80";
+			msg = "Session ticket has expired. - MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED -0x6D80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH)
 		case MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH:
-			msg = "MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH                   -0x6D00";
+			msg = "Public key type mismatch (eg, asked for RSA key exchange and presented EC key) - MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH -0x6D00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY)
 		case MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY:
-			msg = "MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY                   -0x6C80";
+			msg = "Unknown identity received (eg, PSK identity) - MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY -0x6C80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_INTERNAL_ERROR)
 		case MBEDTLS_ERR_SSL_INTERNAL_ERROR:
-			msg = "MBEDTLS_ERR_SSL_INTERNAL_ERROR                     -0x6C00";
+			msg = "Internal error (eg, unexpected failure in lower-level module) - MBEDTLS_ERR_SSL_INTERNAL_ERROR -0x6C00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_COUNTER_WRAPPING)
 		case MBEDTLS_ERR_SSL_COUNTER_WRAPPING:
-			msg = "MBEDTLS_ERR_SSL_COUNTER_WRAPPING                   -0x6B80";
+			msg = "A counter would wrap (eg, too many messages exchanged). - MBEDTLS_ERR_SSL_COUNTER_WRAPPING -0x6B80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO)
 		case MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO:
-			msg = "MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO        -0x6B00";
+			msg = "Unexpected message at ServerHello in renegotiation. - MBEDTLS_ERR_SSL_WAITING_SERVER_HELLO_RENEGO -0x6B00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED)
 		case MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED:
-			msg = "MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED              -0x6A80";
+			msg = "DTLS client must retry for hello verification. - MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED -0x6A80";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL)
 		case MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL:
-			msg = "MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL                   -0x6A00";
+			msg = "A buffer is too small to receive or write a message. - MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL -0x6A00";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE)
 		case MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE:
-			msg = "MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE              -0x6980";
+			msg = "None of the common ciphersuites is usable (eg, no suitable certificate, see debug messages). - MBEDTLS_ERR_SSL_NO_USABLE_CIPHERSUITE -0x6980";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_WANT_READ)
 		case MBEDTLS_ERR_SSL_WANT_READ:
-			msg = "MBEDTLS_ERR_SSL_WANT_READ                          -0x6900";
+			msg = "No data of requested type currently available on underlying transport. - MBEDTLS_ERR_SSL_WANT_READ -0x6900";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_WANT_WRITE)
 		case MBEDTLS_ERR_SSL_WANT_WRITE:
-			msg = "MBEDTLS_ERR_SSL_WANT_WRITE                         -0x6880";
+			msg = "Connection requires a write call. - MBEDTLS_ERR_SSL_WANT_WRITE -0x6880";
+			break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_TIMEOUT)
+		case MBEDTLS_ERR_SSL_TIMEOUT:
+			msg = "The operation timed out. - MBEDTLS_ERR_SSL_TIMEOUT -0x6800";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CLIENT_RECONNECT)
 		case MBEDTLS_ERR_SSL_CLIENT_RECONNECT:
-			msg = "MBEDTLS_ERR_SSL_CLIENT_RECONNECT                   -0x6780";
+			msg = "The client initiated a reconnect from the same port. - MBEDTLS_ERR_SSL_CLIENT_RECONNECT -0x6780";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_UNEXPECTED_RECORD)
 		case MBEDTLS_ERR_SSL_UNEXPECTED_RECORD:
-			msg = "MBEDTLS_ERR_SSL_UNEXPECTED_RECORD                  -0x6700";
+			msg = "Record header looks valid but is not expected. - MBEDTLS_ERR_SSL_UNEXPECTED_RECORD -0x6700";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_NON_FATAL)
 		case MBEDTLS_ERR_SSL_NON_FATAL:
-			msg = "MBEDTLS_ERR_SSL_NON_FATAL                          -0x6680";
+			msg = "The alert message received indicates a non-fatal error. - MBEDTLS_ERR_SSL_NON_FATAL -0x6680";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH)
 		case MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH:
-			msg = "MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH                -0x6600";
+			msg = "Couldn't set the hash for verifying CertificateVerify. - MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH -0x6600";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING)
 		case MBEDTLS_ERR_SSL_CONTINUE_PROCESSING:
-			msg = "MBEDTLS_ERR_SSL_CONTINUE_PROCESSING                -0x6580";
+			msg = "Internal-only message signaling that further message-processing should be done. - MBEDTLS_ERR_SSL_CONTINUE_PROCESSING -0x6580";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS)
 		case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
-			msg = "MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                  -0x6500";
+			msg = "The asynchronous operation is not completed yet. - MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS -0x6500";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_EARLY_MESSAGE)
 		case MBEDTLS_ERR_SSL_EARLY_MESSAGE:
-			msg = "MBEDTLS_ERR_SSL_EARLY_MESSAGE                      -0x6480";
+			msg = "Internal-only message signaling that a message arrived early. - MBEDTLS_ERR_SSL_EARLY_MESSAGE -0x6480";
 			break;
 #endif
 #if defined(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS)
 		case MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS:
-			msg = "MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                 -0x7000";
+			msg = "A cryptographic operation is in progress. - MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS -0x7000";
 			break;
 #endif
 		default:
-			msg = QString::number(ret);
+			msg.append("Last error was: ").append( QString::number(ret) );
 	}
-
+#endif
 	return msg;
 }
 

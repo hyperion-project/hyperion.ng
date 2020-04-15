@@ -155,6 +155,7 @@ private:
 	mbedtls_ctr_drbg_context     ctr_drbg;
 	mbedtls_timing_delay_context timer;
 
+	QMutex       _hueMutex;
 	QString      _transport_type;
 	QString      _custom;
 	QHostAddress _address;
@@ -164,9 +165,11 @@ private:
 	QString      _server_name;
 	QString      _psk;
 	QString      _psk_identity;
-	QMutex       _hueMutex;
+	uint32_t     _read_timeout;
+	uint32_t     _handshake_timeout_min;
+	uint32_t     _handshake_timeout_max;
+	unsigned int _handshake_attempts;
 	int          _retry_left;
-	int          _handshake_attempts;
 	bool         _stopConnection;
 	bool         _debugStreamer;
 	unsigned int _debugLevel;

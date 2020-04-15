@@ -460,6 +460,10 @@ private:
 	unsigned int _blackLightsTimeout;
 	double _brightnessThreshold;
 
+	unsigned int _handshake_timeout_min;
+	unsigned int _handshake_timeout_max;
+	unsigned int _ssl_read_timeout;
+
 	bool _stopConnection;
 
 	unsigned int _groupId;
