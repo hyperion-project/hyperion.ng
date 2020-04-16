@@ -32,7 +32,7 @@
 			"propertyOrder" : 4
 		},
 		"transitiontime": {
-			"type": "integer",
+			"type": "number",
 			"title":"edt_dev_spec_transistionTime_title",
 			"default" : 1,
 			"append" : "x100ms",
@@ -78,7 +78,7 @@
 			"propertyOrder" : 8
 		},
 		"groupId": {
-			"type": "integer",
+			"type": "number",
 			"title":"edt_dev_spec_groupId_title",
 			"default" : 0,
 			"options": {
@@ -232,10 +232,10 @@
 			"propertyOrder" : 19
 		},
 		"debugLevel": {
-			"type": "integer",
+			"type": "string",
 			"title":"edt_dev_spec_debugLevel_title",
-			"enum" : [0, 1, 2, 3, 4],
-			"default" : 0,
+			"enum" : ["0", "1", "2", "3", "4"],
+			"default" : "0",
 			"options" : {
 				"enum_titles" : ["edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_error", "edt_conf_enum_dl_statechange", "edt_conf_enum_dl_informational", "edt_conf_enum_dl_verbose"],
 				"dependencies": {

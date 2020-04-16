@@ -1,6 +1,5 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
-
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
@@ -258,10 +257,10 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
 
 	// Overwrite non supported/required features
-	_devConfig["latchTime"]   = 0;
+	_devConfig["latchTime"] = 0;
 	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
 	{
-		Info ( _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
+		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
 		_devConfig["rewriteTime"] = 0;
 	}
 
@@ -919,7 +918,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		if( _brightnessThreshold < 0.0 ) _brightnessThreshold = 0.0;
 		if( _brightnessThreshold > 1.0 ) _brightnessThreshold = 1.0;
 
-		if( _handshake_timeout_min<=0 ) _handshake_timeout_min = 1;
+		if( _handshake_timeout_min <= 0 ) _handshake_timeout_min = 1;
 
 		log( "Off on Black", "%d", _switchOffOnBlack );
 		log( "Brightness Factor", "%f", _brightnessFactor );
@@ -934,9 +933,6 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 			log( "Brightness Min", "%f", _brightnessMin );
 			log( "Brightness Max", "%f", _brightnessMax );
 			log( "Brightness Threshold", "%f", _brightnessThreshold );
-			log( "SSL Handshake Timeout min", "%d", _handshake_timeout_min );
-			log( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
-			log( "SSL Read Timeout", "%d", _ssl_read_timeout );
 
 			if( _groupId <= 0 )
 			{

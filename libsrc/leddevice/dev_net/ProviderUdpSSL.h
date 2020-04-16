@@ -117,6 +117,7 @@ protected:
 	void log(QString msg, const char* errorType);
 	void log(const char* msg);
 	void log(const char* msg, const char* errorType);
+	void configLog(const char* msg, const char* type, ...);
 
 	/**
 	 * Debug callback for mbed TLS
@@ -134,8 +135,7 @@ protected:
 				basename = p + 1;
 			}
 		}
-		mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s", basename, line, level, str );
-		fflush(  (FILE *) ctx  );
+		mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
 	}
 
 	/**

@@ -35,6 +35,8 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _handshake_attempts(5)
 	, _retry_left(MAX_RETRY)
 	, _stopConnection(true)
+	, _debugStreamer(false)
+	, _debugLevel(0)
 {
 	_deviceReady = false;
 	_latchTime_ms = 1;
@@ -49,13 +51,13 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	bool isInitOK = LedDevice::init(deviceConfig);
 
 	_debugStreamer = deviceConfig["debugStreamer"].toBool(false);
-	_debugLevel = deviceConfig["debugLevel"].toInt(0);
+	_debugLevel    = deviceConfig["debugLevel"].toString().toInt(0);
 
 	//PSK Pre Shared Key
-	_psk          = deviceConfig["psk"].toString("");
-	_psk_identity = deviceConfig["psk_identity"].toString("");
-	_port         = deviceConfig["sslport"].toInt(2100);
-	_server_name  = deviceConfig["servername"].toString("");
+	_psk           = deviceConfig["psk"].toString("");
+	_psk_identity  = deviceConfig["psk_identity"].toString("");
+	_port          = deviceConfig["sslport"].toInt(2100);
+	_server_name   = deviceConfig["servername"].toString("");
 
 	if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
 	if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
@@ -66,25 +68,42 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
 
 	QString host = deviceConfig["host"].toString(_defaultHost);
+	QStringList debugLevels = QStringList() << "No Debug" << "Error" << "State Change" << "Informational" << "Verbose";
+
+	configLog( "SSL Streamer Debug", "%s", ( _debugStreamer ) ? "yes" : "no" );
+	configLog( "SSL DebugLevel", "[%d] %s", _debugLevel, QSTRING_CSTR( debugLevels[ _debugLevel ]) );
+
+	configLog( "SSL Servername", "%s", QSTRING_CSTR( _server_name ) );
+	configLog( "SSL Host", "%s", QSTRING_CSTR( host ) );
+	configLog( "SSL Port", "%d", _port );
+	configLog( "PSK", "%s", QSTRING_CSTR( _psk ) );
+	configLog( "PSK-Identity", "%s", QSTRING_CSTR( _psk_identity ) );
+	configLog( "SSL Transport Type", "%s", QSTRING_CSTR( _transport_type ) );
+	configLog( "SSL Seed Custom", "%s", QSTRING_CSTR( _custom ) );
+	configLog( "SSL Retry Left", "%d", _retry_left );
+	configLog( "SSL Read Timeout", "%d", _read_timeout );
+	configLog( "SSL Handshake Timeout min", "%d", _handshake_timeout_min );
+	configLog( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
+	configLog( "SSL Handshake attempts", "%d", _handshake_attempts );
 
 	if ( _address.setAddress(host) )
 	{
-		Debug( _log, "Successfully parsed %s as an ip address.", host.toStdString().c_str() );
+		Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR( host ) );
 	}
 	else
 	{
-		Debug( _log, "Failed to parse [%s] as an ip address.", host.toStdString().c_str() );
+		Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR( host ) );
 		QHostInfo info = QHostInfo::fromName(host);
 		if ( info.addresses().isEmpty() )
 		{
-			Debug( _log, "Failed to parse [%s] as a hostname.", host.toStdString().c_str() );
+			Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR( host ) );
 			QString errortext = QString("Invalid target address [%1]!").arg(host);
 			this->setInError( errortext );
 			isInitOK = false;
 		}
 		else
 		{
-			Debug( _log, "Successfully parsed %s as a hostname.", host.toStdString().c_str() );
+			Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR( host ) );
 			_address = info.addresses().first();
 		}
 	}
@@ -100,7 +119,7 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	else
 	{
 		_ssl_port = config_port;
-		Debug( _log, "UDP SSL using %s:%u", _address.toString().toStdString().c_str() , _ssl_port );
+		Debug( _log, "UDP SSL using %s:%u", QSTRING_CSTR( _address.toString() ), _ssl_port );
 	}
 	return isInitOK;
 }
@@ -146,6 +165,20 @@ void ProviderUdpSSL::closeSSLConnection()
 const int *ProviderUdpSSL::getCiphersuites()
 {
 	return mbedtls_ssl_list_ciphersuites();
+}
+
+void ProviderUdpSSL::configLog(const char* msg, const char* type, ...)
+{
+	const size_t max_val_length = 1024;
+	char val[max_val_length];
+	va_list args;
+	va_start(args, type);
+	vsnprintf(val, max_val_length, type, args);
+	va_end(args);
+	std::string s = msg;
+	int max = 30;
+	s.append(max - s.length(), ' ');
+	Debug( _log, "%s: %s", s.c_str(), val );
 }
 
 void ProviderUdpSSL::log(const char* msg)
@@ -208,7 +241,7 @@ bool ProviderUdpSSL::seedingRNG()
 
 	log( "Set mbedtls_ctr_drbg_seed..." );
 
-	const char* custom = _custom.toStdString().c_str();
+	const char* custom = QSTRING_CSTR( _custom );
 
 	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char *>(custom), strlen(custom))) != 0)
 	{
@@ -275,7 +308,7 @@ bool ProviderUdpSSL::setupStructure()
 		return false;
 	}
 
-	if ((ret = mbedtls_ssl_set_hostname(&ssl, _server_name.toStdString().c_str())) != 0)
+	if ((ret = mbedtls_ssl_set_hostname(&ssl, QSTRING_CSTR( _server_name ))) != 0)
 	{
 		log( QString("mbedtls_ssl_set_hostname FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
@@ -348,7 +381,14 @@ bool ProviderUdpSSL::startSSLHandshake()
 		}
 		while (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
-		if (ret == 0) break;
+		if (ret == 0)
+		{
+			break;
+		}
+		else
+		{
+			log( QString("mbedtls_ssl_handshake attempt %1/%2 FAILED %3").arg( attempt ).arg( _handshake_attempts ).arg( errorMsg( ret ) ) );
+		}
 
 		QThread::msleep(200);
 	}

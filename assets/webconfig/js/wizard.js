@@ -781,7 +781,7 @@ function getHueIPs(){
 
 function beginWizardHue()
 {
-  var usr = conf_editor.getEditor("root.specificOptions.username").getValue();
+  var usr = ev("username");
   if(usr != "")
   {
     $('#user').val(usr);
@@ -789,20 +789,20 @@ function beginWizardHue()
 
   if(hueType == 'philipshueentertainment')
   {
-    var clkey = conf_editor.getEditor("root.specificOptions.clientkey").getValue();
+    var clkey = ev("clientkey");
     if(clkey != "")
     {
       $('#clientkey').val(clkey);
     }
   }
   //check if ip is empty/reachable/search for bridge
-  if(conf_editor.getEditor("root.specificOptions.output").getValue() == "")
+  if(ev("output") == "")
   {
     getHueIPs();
   }
   else
   {
-    var ip = conf_editor.getEditor("root.specificOptions.output").getValue();
+    var ip = ev("output");
     $('#ip').val(ip);
     hueIPs.push({internalipaddress : ip});
     checkHueBridge(checkBridgeResult);
@@ -841,10 +841,11 @@ function beginWizardHue()
       }
     }
 
-    window.serverConfig.leds = hueLedConfig;
+    var sc = window.serverConfig;
+    sc.leds = hueLedConfig;
 
     //Adjust gamma, brightness and compensation
-    var c = window.serverConfig.color.channelAdjustment[0];
+    var c = sc.color.channelAdjustment[0];
     c.gammaBlue = 1.0;
     c.gammaRed = 1.0;
     c.gammaGreen = 1.0;
@@ -852,30 +853,30 @@ function beginWizardHue()
     c.brightnessCompensation = 0;
 
     //device config
-    var d = window.serverConfig.device;
+    var d = sc.device;
     d.output                = $('#ip').val();
     d.username              = $('#user').val();
     d.type                  = 'philipshue';
     d.colorOrder            = 'rgb';
-    d.brightnessFactor      = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessFactor").getValue());
-    d.restoreOriginalState  = (conf_editor.getEditor("root.specificOptions.restoreOriginalState").getValue() == true);
-    d.latchTime             = 0;
-    d.transitiontime        = 0;
     d.lightIds              = finalLightIds;
-    d.switchOffOnBlack      = true;
+    d.latchTime             = 0;
+    d.transitiontime        = parseInt(eV("transitiontime") );
+    d.restoreOriginalState  = (ev("restoreOriginalState") == true);
+    d.switchOffOnBlack      = (ev("switchOffOnBlack") == true);
+    d.brightnessFactor      = parseFloat(ev("brightnessFactor"));
 
     d.clientkey             = $('#clientkey').val();
     d.groupId               = parseInt($('#groupId').val());
-    d.blackLightsTimeout    = parseInt(conf_editor.getEditor("root.specificOptions.blackLightsTimeout").getValue());
-    d.verbose               = (conf_editor.getEditor("root.specificOptions.verbose").getValue() == true);
-    d.brightnessMin         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMin").getValue());
-    d.brightnessMax         = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessMax").getValue());
-    d.brightnessThreshold   = parseFloat(conf_editor.getEditor("root.specificOptions.brightnessThreshold").getValue());
-    d.sslReadTimeout        = parseInt(conf_editor.getEditor("root.specificOptions.sslReadTimeout").getValue());
-    d.sslHSTimeoutMin       = parseInt(conf_editor.getEditor("root.specificOptions.sslHSTimeoutMin").getValue());
-    d.sslHSTimeoutMax       = parseInt(conf_editor.getEditor("root.specificOptions.sslHSTimeoutMax").getValue());
-    d.debugStreamer         = (conf_editor.getEditor("root.specificOptions.debugStreamer").getValue() == true);
-    d.debugLevel            = parseInt(conf_editor.getEditor("root.specificOptions.debugLevel").getValue());
+    d.blackLightsTimeout    = parseInt(ev("blackLightsTimeout"));
+    d.brightnessMin         = parseFloat(ev("brightnessMin"));
+    d.brightnessMax         = parseFloat(ev("brightnessMax"));
+    d.brightnessThreshold   = parseFloat(ev("brightnessThreshold"));
+    d.sslReadTimeout        = parseInt(ev("sslReadTimeout"));
+    d.sslHSTimeoutMin       = parseInt(ev("sslHSTimeoutMin"));
+    d.sslHSTimeoutMax       = parseInt(ev("sslHSTimeoutMax"));
+    d.verbose               = (ev("verbose") == true);
+    d.debugStreamer         = (ev("debugStreamer") == true);
+    d.debugLevel            = (ev("debugLevel"));
 
     if(hueType == 'philipshue')
     {
@@ -884,7 +885,7 @@ function beginWizardHue()
       d.rewriteTime         = 0;
       d.verbose             = false;
       //smoothing off
-      window.serverConfig.smoothing.enable = false;
+      sc.smoothing.enable = false;
     }
 
     if(hueType == 'philipshueentertainment')
@@ -893,14 +894,20 @@ function beginWizardHue()
       d.hardwareLedCount    = groupLights.length;
       d.rewriteTime         = 20;
       //smoothing on
-      window.serverConfig.smoothing.enable = true;
+      sc.smoothing.enable = true;
     }
-
-    requestWriteConfig(window.serverConfig, true);
+    console.log(sc);
+    requestWriteConfig(sc, true);
     resetWizard();
   });
 
   $('#btn_wiz_abort').off().on('click', resetWizard);
+}
+
+//return editor Value
+function eV(vn)
+{
+  return (vn) ? conf_editor.getEditor("root.specificOptions." + nv).getValue() : "";
 }
 
 function createHueUser()
