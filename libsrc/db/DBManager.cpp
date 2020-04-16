@@ -181,7 +181,7 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 	return true;
 }
 
-bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns) const
+bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
@@ -191,18 +191,24 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	if(!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
+	QString sOrder("");
+	if(!tOrder.isEmpty())
+	{
+		sOrder = " ORDER BY ";
+		sOrder.append(tOrder.join(", "));
+	}
 	// prep conditions
 	QStringList prepCond;
 	QVariantList bindVal;
 	if(!conditions.isEmpty())
-		prepCond << "WHERE";
+		prepCond << " WHERE";
 
 	for(const auto& pair : conditions)
 	{
 		prepCond << pair.first+"=?";
 		bindVal << pair.second;
 	}
-	query.prepare(QString("SELECT %1 FROM %2 %3").arg(sColumns,_table).arg(prepCond.join(" ")));
+	query.prepare(QString("SELECT %1 FROM %2%3%4").arg(sColumns,_table).arg(prepCond.join(" ")).arg(sOrder));
 	doAddBindValue(query, bindVal);
 
 	if(!query.exec())
@@ -223,7 +229,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	return true;
 }
 
-bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tColumns) const
+bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
@@ -233,7 +239,14 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	if(!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
-	query.prepare(QString("SELECT %1 FROM %2").arg(sColumns,_table));
+	QString sOrder("");
+	if(!tOrder.isEmpty())
+	{
+		sOrder = " ORDER BY ";
+		sOrder.append(tOrder.join(", "));
+	}
+
+	query.prepare(QString("SELECT %1 FROM %2%3").arg(sColumns,_table,sOrder));
 
 	if(!query.exec())
 	{
