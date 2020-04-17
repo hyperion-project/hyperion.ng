@@ -9,6 +9,8 @@
 // qt
 #include <QTimer>
 
+GrabberWrapper* GrabberWrapper::instance = nullptr;
+
 GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz)
 	: _grabberName(grabberName)
 	, _timer(new QTimer(this))
@@ -17,6 +19,8 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 	, _ggrabber(ggrabber)
 	, _image(0,0)
 {
+	GrabberWrapper::instance = this;
+
 	// Configure the timer to generate events every n milliseconds
 	_timer->setInterval(_updateInterval_ms);
 
@@ -88,7 +92,6 @@ QStringList GrabberWrapper::availableGrabbers()
 
 	return grabbers;
 }
-
 
 void GrabberWrapper::setVideoMode(const VideoMode& mode)
 {
@@ -215,4 +218,36 @@ void GrabberWrapper::tryStart()
 	{
 		start();
 	}
+}
+
+QStringList GrabberWrapper::getV4L2devices()
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getV4L2devices();
+
+	return QStringList();
+}
+
+QString GrabberWrapper::getV4L2deviceName(QString devicePath)
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getV4L2deviceName(devicePath);
+
+	return QString();
+}
+
+QStringList GrabberWrapper::getResolutions(QString devicePath)
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getResolutions(devicePath);
+
+	return QStringList();
+}
+
+QStringList GrabberWrapper::getFramerates(QString devicePath)
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getFramerates(devicePath);
+
+	return QStringList();
 }
