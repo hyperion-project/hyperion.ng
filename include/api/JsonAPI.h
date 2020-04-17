@@ -216,7 +216,7 @@ private:
 	///
 	void handleConfigCommand(const QJsonObject &message, const QString &command, const int tan);
 
-	/// Handle an incoming JSON GetConfig message from handleConfigCommand()
+	/// Handle an incoming JSON GetSchema message from handleConfigCommand()
 	///
 	/// @param message the incoming message
 	///
