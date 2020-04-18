@@ -173,32 +173,8 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 endmacro()
 
 macro(DeployWindows TARGET INSTALL_COMPONENT)
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET}.exe)
-	set(SYSTEM_LIBS_SKIP
-		"KERNEL32.dll"
-		"VERSION.dll"
-		"ADVAPI32.dll"
-		"msvcrt.dll"
-		"MPR.DLL"
-		"MPR.dll"
-		"NETAPI32.dll"
-		"ole32.dll"
-		"SHELL32.dll"
-		"USER32.dll"
-		"USERENV.dll"
-		"WINMM.DLL"
-		"WINMM.dll"
-		"WS2_32.dll"
-		"GDI32.dll"
-		"OPENGL32.DLL"
-		"OPENGL32.dll"
-		"CRYPT32.dll"
-		"DNSAPI.dll"
-		"IPHLPAPI.DLL"
-		"IPHLPAPI.dll"
-		"dwmapi.dll"
-		"UxTheme.dll"
-	)
+	# TODO Find out what build type it is
+	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/Release/${TARGET}.exe)
 
 	if(EXISTS ${TARGET_FILE})
 		find_package(Qt5Core REQUIRED)
@@ -223,43 +199,77 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
-		# Convert OUTPUT_VARIABLE to List
-		string(REPLACE "[\r\n]+" " " DEPENDENCIES "${DEPS}")
-		string(REGEX REPLACE "^\"" "" DEPENDENCIES "${DEPENDENCIES}")
-		string(REGEX REPLACE "\"$" "" DEPENDENCIES "${DEPENDENCIES}")
-		string(REPLACE "\" \"" ";" DEPENDENCIES "${DEPENDENCIES}")
-		string(REPLACE "\";\"" ";" DEPENDENCIES "${DEPENDENCIES}")
+		# Parse DEPS into a semicolon-separated list.
+		separate_arguments(DEPENDENCIES WINDOWS_COMMAND ${DEPS})
+		string(REPLACE "\\" "/" DEPENDENCIES "${DEPENDENCIES}")
 
-		# Copydependencies to 'share/hyperion/lib'
-		while (DEPS_SIZE GREATER 1)
+		# Copy dependencies to 'share/hyperion/lib' or 'share/hyperion/bin'
+		while (DEPENDENCIES)
 			list(GET DEPENDENCIES 0 src)
 			list(GET DEPENDENCIES 1 dst)
+			get_filename_component(dst ${dst} DIRECTORY)
 
-			install(
-				FILES ${src}
-				DESTINATION "share/hyperion/lib/${dst}"
-				COMPONENT "${INSTALL_COMPONENT}"
-			)
+			if (NOT "${dst}" STREQUAL "")
+				install(
+					FILES ${src}
+					DESTINATION "share/hyperion/lib/${dst}"
+					COMPONENT "${INSTALL_COMPONENT}"
+				)
+			else()
+				install(
+					FILES ${src}
+					DESTINATION "share/hyperion/bin"
+					COMPONENT "${INSTALL_COMPONENT}"
+				)
+			endif()
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
-			list(LENGTH DEPENDENCIES DEPS_SIZE)
 		endwhile()
 
-		########## Is this step unnecessary? Already takes place here: src/hyperiond/CMakeLists.txt#L99-L104
-		# set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
-		# set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+		# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+		install(
+			FILES "${CMAKE_BINARY_DIR}/qt.conf"
+			DESTINATION "share/hyperion/bin"
+			COMPONENT "${INSTALL_COMPONENT}"
+		)
 
-		# include(InstallRequiredSystemLibraries)
-		# include(GetPrerequisites)
+		# Download embed python package
+		# Currently only cmake version >= 3.12 implemented
+		set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
+		set(filename "python-${Python3_VERSION}-embed-amd64.zip")
 
-		# set(PREREQUISITE_LIBS "")
-		# foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
-		# 	get_filename_component(libname "${lib}" NAME)
-		# 	gp_append_unique(PREREQUISITE_LIBS ${libname})
-		# endforeach()
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+			file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+				STATUS result
+				SHOW_PROGRESS
+			)
 
+			# Check if the download is successful
+			list(GET result 0 result_code)
+			if(NOT result_code EQUAL 0)
+				list(GET result 1 reason)
+				message(FATAL_ERROR "Could not download file ${url}${filename}: ${reason}")
+			endif()
+		endif()
+
+		# Unpack downloaded embed python
+		file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
+		execute_process(
+			COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+			WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+			OUTPUT_QUIET
+		)
+
+		# Copy to 'share/hyperion/lib'
+		# TODO PythonInit.cpp Line 28
+		install(
+			DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+			DESTINATION "share/hyperion/lib"
+			COMPONENT "${INSTALL_COMPONENT}"
+		)
 	else()
-		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
+		# Run CMake after target was built
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
 			COMMAND ${CMAKE_COMMAND}
