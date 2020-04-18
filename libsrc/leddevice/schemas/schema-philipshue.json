@@ -212,11 +212,6 @@
 			"title":"edt_dev_spec_verbose_title",
 			"default" : false,
 			"access" : "expert",
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": true
-				}
-			},
 			"propertyOrder" : 18
 		},
 		"debugStreamer": {

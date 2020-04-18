@@ -779,9 +779,15 @@ function getHueIPs(){
   });
 };
 
+//return editor Value
+function eV(vn)
+{
+  return (vn) ? conf_editor.getEditor("root.specificOptions." + vn).getValue() : "";
+}
+
 function beginWizardHue()
 {
-  var usr = ev("username");
+  var usr = eV("username");
   if(usr != "")
   {
     $('#user').val(usr);
@@ -789,20 +795,20 @@ function beginWizardHue()
 
   if(hueType == 'philipshueentertainment')
   {
-    var clkey = ev("clientkey");
+    var clkey = eV("clientkey");
     if(clkey != "")
     {
       $('#clientkey').val(clkey);
     }
   }
   //check if ip is empty/reachable/search for bridge
-  if(ev("output") == "")
+  if(eV("output") == "")
   {
     getHueIPs();
   }
   else
   {
-    var ip = ev("output");
+    var ip = eV("output");
     $('#ip').val(ip);
     hueIPs.push({internalipaddress : ip});
     checkHueBridge(checkBridgeResult);
@@ -861,22 +867,22 @@ function beginWizardHue()
     d.lightIds              = finalLightIds;
     d.latchTime             = 0;
     d.transitiontime        = parseInt(eV("transitiontime") );
-    d.restoreOriginalState  = (ev("restoreOriginalState") == true);
-    d.switchOffOnBlack      = (ev("switchOffOnBlack") == true);
-    d.brightnessFactor      = parseFloat(ev("brightnessFactor"));
+    d.restoreOriginalState  = (eV("restoreOriginalState") == true);
+    d.switchOffOnBlack      = (eV("switchOffOnBlack") == true);
+    d.brightnessFactor      = parseFloat(eV("brightnessFactor"));
 
     d.clientkey             = $('#clientkey').val();
     d.groupId               = parseInt($('#groupId').val());
-    d.blackLightsTimeout    = parseInt(ev("blackLightsTimeout"));
-    d.brightnessMin         = parseFloat(ev("brightnessMin"));
-    d.brightnessMax         = parseFloat(ev("brightnessMax"));
-    d.brightnessThreshold   = parseFloat(ev("brightnessThreshold"));
-    d.sslReadTimeout        = parseInt(ev("sslReadTimeout"));
-    d.sslHSTimeoutMin       = parseInt(ev("sslHSTimeoutMin"));
-    d.sslHSTimeoutMax       = parseInt(ev("sslHSTimeoutMax"));
-    d.verbose               = (ev("verbose") == true);
-    d.debugStreamer         = (ev("debugStreamer") == true);
-    d.debugLevel            = (ev("debugLevel"));
+    d.blackLightsTimeout    = parseInt(eV("blackLightsTimeout"));
+    d.brightnessMin         = parseFloat(eV("brightnessMin"));
+    d.brightnessMax         = parseFloat(eV("brightnessMax"));
+    d.brightnessThreshold   = parseFloat(eV("brightnessThreshold"));
+    d.sslReadTimeout        = parseInt(eV("sslReadTimeout"));
+    d.sslHSTimeoutMin       = parseInt(eV("sslHSTimeoutMin"));
+    d.sslHSTimeoutMax       = parseInt(eV("sslHSTimeoutMax"));
+    d.verbose               = (eV("verbose") == true);
+    d.debugStreamer         = (eV("debugStreamer") == true);
+    d.debugLevel            = (eV("debugLevel"));
 
     if(hueType == 'philipshue')
     {
@@ -902,12 +908,6 @@ function beginWizardHue()
   });
 
   $('#btn_wiz_abort').off().on('click', resetWizard);
-}
-
-//return editor Value
-function eV(vn)
-{
-  return (vn) ? conf_editor.getEditor("root.specificOptions." + nv).getValue() : "";
 }
 
 function createHueUser()

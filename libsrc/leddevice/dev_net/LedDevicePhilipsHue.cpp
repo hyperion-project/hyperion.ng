@@ -1050,8 +1050,8 @@ bool LedDevicePhilipsHue::initLeds()
 				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
 				_devConfig["servername"]     = API_SSL_SERVER_NAME;
 				_devConfig["rewriteTime"]    = STREAM_REWRITE_TIME;
-				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ];
-				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ];
+				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
+				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
 				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
 				_devConfig["retry_left"]     = STREAM_CONNECTION_RETRYS;
 				_devConfig["hs_attempts"]    = STREAM_SSL_HANDSHAKE_ATTEMPTS;
@@ -1403,7 +1403,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 
 void LedDevicePhilipsHue::noSignalTimeout()
 {
-	Debug(_log, "No Signal (timeout: %sms), only black color detected - stop stream for \"%s\" [%u]", QSTRING_CSTR(  QString::number( _blackLightsTimer->remainingTime() ) ), QSTRING_CSTR(_groupName), _groupId );
+	Debug(_log, "No Signal (timeout: %sms), only black color detected - stop stream for \"%s\" [%u]", QSTRING_CSTR( QString::number( _blackLightsTimer->remainingTime() ) ), QSTRING_CSTR(_groupName), _groupId );
 	_stopConnection = true;
 	switchOff();
 }

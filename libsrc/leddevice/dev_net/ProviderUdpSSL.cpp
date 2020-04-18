@@ -26,9 +26,9 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _defaultHost("127.0.0.1")
 	, _port(1)
 	, _ssl_port(1)
-	, _server_name("")
-	, _psk("")
-	, _psk_identity("")
+	, _server_name()
+	, _psk()
+	, _psk_identity()
 	, _read_timeout(0)
 	, _handshake_timeout_min(400)
 	, _handshake_timeout_max(1000)
@@ -54,10 +54,10 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 	_debugLevel    = deviceConfig["debugLevel"].toString().toInt(0);
 
 	//PSK Pre Shared Key
-	_psk           = deviceConfig["psk"].toString("");
-	_psk_identity  = deviceConfig["psk_identity"].toString("");
+	_psk           = deviceConfig["psk"].toString();
+	_psk_identity  = deviceConfig["psk_identity"].toString();
 	_port          = deviceConfig["sslport"].toInt(2100);
-	_server_name   = deviceConfig["servername"].toString("");
+	_server_name   = deviceConfig["servername"].toString();
 
 	if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
 	if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
@@ -169,16 +169,19 @@ const int *ProviderUdpSSL::getCiphersuites()
 
 void ProviderUdpSSL::configLog(const char* msg, const char* type, ...)
 {
-	const size_t max_val_length = 1024;
-	char val[max_val_length];
-	va_list args;
-	va_start(args, type);
-	vsnprintf(val, max_val_length, type, args);
-	va_end(args);
-	std::string s = msg;
-	int max = 30;
-	s.append(max - s.length(), ' ');
-	Debug( _log, "%s: %s", s.c_str(), val );
+	if( _debugStreamer )
+	{
+		const size_t max_val_length = 1024;
+		char val[max_val_length];
+		va_list args;
+		va_start(args, type);
+		vsnprintf(val, max_val_length, type, args);
+		va_end(args);
+		std::string s = msg;
+		int max = 30;
+		s.append(max - s.length(), ' ');
+		Debug( _log, "%s: %s", s.c_str(), val );
+	}
 }
 
 void ProviderUdpSSL::log(const char* msg)
