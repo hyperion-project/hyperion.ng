@@ -1,154 +1,161 @@
-jobs:
+stages:
+- stage: Build
+  displayName: Build packages
 
-######################
-###### Linux #########
-######################
+  jobs:
 
-- job: Linux
-  timeoutInMinutes: 120
-  pool:
-    vmImage: 'ubuntu-16.04'
-  strategy:
-    matrix:
-      AMD64 (x64):
-        dockerTag: 'amd64'
-        dockerName: 'Debian Stretch (AMD64)'
-        platform: 'x11'
-      i386 (x86):
-        dockerTag: 'i386'
-        dockerName: 'Debian Stretch (i386)'
-        platform: 'x11'
-      ARMv6hf (Raspberry Pi v1 & ZERO):
-        dockerTag: 'armv6hf'
-        dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
-        platform: 'rpi'
-      ARMv7hf (Raspberry Pi 2 & 3):
-        dockerTag: 'armv7hf'
-        dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
-        platform: 'rpi'
-      ARMv8 (Generic AARCH64):
-        dockerTag: 'aarch64'
-        dockerName: 'ARMv8 (Generic AARCH64)'
-        platform: 'amlogic'
+    ######################
+    ###### Linux #########
+    ######################
 
-  steps:
-  - checkout: self # represents the repo where the initial Pipelines YAML file was found
-    submodules: recursive # set to 'recursive' to get submodules of submodules
+  - job: Linux
+    timeoutInMinutes: 120
+    pool:
+      vmImage: 'ubuntu-16.04'
+    strategy:
+      matrix:
+        AMD64 (x64):
+          dockerTag: 'amd64'
+          dockerName: 'Debian Stretch (AMD64)'
+          platform: 'x11'
+        i386 (x86):
+          dockerTag: 'i386'
+          dockerName: 'Debian Stretch (i386)'
+          platform: 'x11'
+        ARMv6hf (Raspberry Pi v1 & ZERO):
+          dockerTag: 'armv6hf'
+          dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
+          platform: 'rpi'
+        ARMv7hf (Raspberry Pi 2 & 3):
+          dockerTag: 'armv7hf'
+          dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
+          platform: 'rpi'
+        ARMv8 (Generic AARCH64):
+          dockerTag: 'aarch64'
+          dockerName: 'ARMv8 (Generic AARCH64)'
+          platform: 'amlogic'
 
-  # build process
-  - bash: ./.ci/ci_build.sh
-    displayName: 'Build $(dockerName) packages'
-    env:
-      DOCKER_TAG: $(dockerTag)
-      DOCKER_NAME: $(dockerName)
-      PLATFORM: $(platform)
+    steps:
+    - checkout: self # represents the repo where the initial Pipelines YAML file was found
+      submodules: recursive # set to 'recursive' to get submodules of submodules
 
-  # move files
-  - bash: 'mv -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-    workingDirectory: $(Build.SourcesDirectory)
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Collect artifacts'
+    # build process
+    - bash: ./.ci/ci_build.sh
+      displayName: 'Build $(dockerName) packages'
+      env:
+        DOCKER_TAG: $(dockerTag)
+        DOCKER_NAME: $(dockerName)
+        PLATFORM: $(platform)
 
-  # publish artifacts
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: $(dockerTag)
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Publish artifacts'
+    # move files
+    - bash: 'mv -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
+      workingDirectory: $(Build.SourcesDirectory)
+      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      displayName: 'Collect artifacts'
 
-######################
-###### macOS #########
-######################
+    # publish artifacts
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: $(Build.ArtifactStagingDirectory)
+        ArtifactName: $(dockerTag)
+      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      displayName: 'Publish artifacts'
 
-- job: macOS
-  timeoutInMinutes: 120
-  pool:
-    vmImage: 'macOS-10.14'
+    ######################
+    ###### macOS #########
+    ######################
 
-  steps:
-  - checkout: self # represents the repo where the initial Pipelines YAML file was found
-    submodules: recursive # set to 'recursive' to get submodules of submodules
+  - job: macOS
+    timeoutInMinutes: 120
+    pool:
+      vmImage: 'macOS-10.14'
 
-  # install dependencies
-  - bash: ./.ci/ci_install.sh
-    displayName: 'Install dependencies'
+    steps:
+    - checkout: self # represents the repo where the initial Pipelines YAML file was found
+      submodules: recursive # set to 'recursive' to get submodules of submodules
 
-  # build process
-  - bash: ./.ci/ci_build.sh
-    env:
-      PLATFORM: 'osx'
-    condition: succeeded()
-    displayName: 'Build macOS 10.13 packages'
+    # install dependencies
+    - bash: ./.ci/ci_install.sh
+      displayName: 'Install dependencies'
 
-  # move files
-  - bash: 'mv -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-    workingDirectory: $(Build.SourcesDirectory)
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Collect artifacts'
+    # build process
+    - bash: ./.ci/ci_build.sh
+      env:
+        PLATFORM: 'osx'
+      condition: succeeded()
+      displayName: 'Build macOS 10.13 packages'
 
-  # publish artifacts
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: 'macos'
-    condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Publish artifacts'
+    # move files
+    - bash: 'mv -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
+      workingDirectory: $(Build.SourcesDirectory)
+      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      displayName: 'Collect artifacts'
+
+    # publish artifacts
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: $(Build.ArtifactStagingDirectory)
+        ArtifactName: 'macos'
+      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      displayName: 'Publish artifacts'
 
 ################################
 ###### Publish Releases ########
 ################################
 
-- job: PublishReleases
-  timeoutInMinutes: 120
+- stage: Publish
+  displayName: Publish Releases
   dependsOn:
-  - Linux
-  - macOS
-  condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-  pool:
-    vmImage: ubuntu-16.04
+  - Build
+  condition: and(succeeded('Build'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
 
-  steps:
-  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+  jobs:
+  - job: PublishReleases
+    timeoutInMinutes: 120
+    pool:
+      vmImage: ubuntu-16.04
 
-  # download deployables artifacts
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      path: $(Build.ArtifactStagingDirectory)
-    displayName: Download artifacts
+    steps:
+    - checkout: self # represents the repo where the initial Pipelines YAML file was found
 
-  # read version file
-  - bash: |
-      echo "##vso[task.setvariable variable=semVer]$(cat version)"
-      echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
-    workingDirectory: '$(Build.SourcesDirectory)'
-    condition: succeeded()
-    displayName: 'Read and generate pipeline variables'
+    # download deployables artifacts
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        path: $(Build.ArtifactStagingDirectory)
+      displayName: Download artifacts
 
-  # set release to pre-release
-  - bash: echo '##vso[task.setvariable variable=preRelease;]true'
-    condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-    displayName: 'Mark alpha or beta as pre-release'
+    # read version file
+    - bash: |
+        echo "##vso[task.setvariable variable=semVer]$(cat version)"
+        echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
+      workingDirectory: '$(Build.SourcesDirectory)'
+      condition: succeeded()
+      displayName: 'Read and generate pipeline variables'
 
-  # create github releases
-  - task: GithubRelease@0
-    inputs: 
-      gitHubConnection: Hyperion-Bot
-      repositoryName: $(Build.Repository.Name)
-      action: create
-      target: $(Build.SourceVersion)
-      tagSource: manual
-      tag: $(Build.SourceBranchName)
-      title: 'Hyperion $(semVer)'
-      assets: |
-        $(Build.ArtifactStagingDirectory)/amd64/*
-        $(Build.ArtifactStagingDirectory)/i386/*
-        $(Build.ArtifactStagingDirectory)/armv6hf/*
-        $(Build.ArtifactStagingDirectory)/armv7hf/*
-        $(Build.ArtifactStagingDirectory)/aarch64/*
-        $(Build.ArtifactStagingDirectory)/macos/*
-      assetUploadMode: 'replace'
-      addChangeLog: false
-      isPreRelease: $(preRelease)
-    condition: succeeded()
-    displayName: Create GitHub releases
+    # set release to pre-release
+    - bash: echo '##vso[task.setvariable variable=preRelease;]true'
+      condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      displayName: 'Mark alpha or beta as pre-release'
+
+    # create github releases
+    - task: GithubRelease@0
+      inputs: 
+        gitHubConnection: Hyperion-Bot
+        repositoryName: $(Build.Repository.Name)
+        action: create
+        target: $(Build.SourceVersion)
+        tagSource: manual
+        tag: $(Build.SourceBranchName)
+        title: 'Hyperion $(semVer)'
+        assets: |
+          $(Build.ArtifactStagingDirectory)/amd64/*
+          $(Build.ArtifactStagingDirectory)/i386/*
+          $(Build.ArtifactStagingDirectory)/armv6hf/*
+          $(Build.ArtifactStagingDirectory)/armv7hf/*
+          $(Build.ArtifactStagingDirectory)/aarch64/*
+          $(Build.ArtifactStagingDirectory)/macos/*
+        assetUploadMode: 'replace'
+        addChangeLog: false
+        isPreRelease: $(preRelease)
+      condition: succeeded()
+      displayName: Create GitHub releases
