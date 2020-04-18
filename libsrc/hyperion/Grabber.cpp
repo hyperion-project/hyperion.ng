@@ -90,8 +90,8 @@ bool Grabber::setWidthHeight(int width, int height)
 
 bool Grabber::setFramerate(int fps)
 {
-	if(fps > 0)
+	if((fps > 0) && (_fps != fps))
 		_fps = fps;
-		
-	return fps > 0;
+
+	return (fps > 0) && (_fps != fps);
 }
