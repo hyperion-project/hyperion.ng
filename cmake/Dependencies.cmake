@@ -174,7 +174,7 @@ endmacro()
 
 macro(DeployWindows TARGET INSTALL_COMPONENT)
 	# TODO Find out what build type it is
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/${TARGET}.exe)
+	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/Release/${TARGET}.exe)
 
 	if(EXISTS ${TARGET_FILE})
 		find_package(Qt5Core REQUIRED)
