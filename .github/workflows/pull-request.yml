@@ -131,6 +131,7 @@ jobs:
       # Append PR number to version
       - name: Append PR number to version
         shell: bash
+        tr -d '\n' < version > temp && mv temp version
         run: echo -n "-PR#${{ github.event.pull_request.number }}" >> version
 
       - name: Install Qt
