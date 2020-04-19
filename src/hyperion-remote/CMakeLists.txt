@@ -3,7 +3,7 @@ project(hyperion-remote)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 
-# The following I do not undrstand completely...
+# The following I do not understand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
 # Therefore, an extra path is needed on which to find the required libraries
 IF ( EXISTS ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf )
@@ -36,7 +36,11 @@ if (ENABLE_AMLOGIC)
 	)
 endif()
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+if(NOT WIN32)
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+else()
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "hyperion/" COMPONENT "${PLATFORM}" )
+endif()
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\" )" COMPONENT  "${PLATFORM}" )

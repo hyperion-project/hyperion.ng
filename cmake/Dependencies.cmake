@@ -203,7 +203,7 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 		separate_arguments(DEPENDENCIES WINDOWS_COMMAND ${DEPS})
 		string(REPLACE "\\" "/" DEPENDENCIES "${DEPENDENCIES}")
 
-		# Copy dependencies to 'share/hyperion/lib' or 'share/hyperion/bin'
+		# Copy dependencies to 'hyperion/lib' or 'hyperion'
 		while (DEPENDENCIES)
 			list(GET DEPENDENCIES 0 src)
 			list(GET DEPENDENCIES 1 dst)
@@ -212,13 +212,13 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 			if (NOT "${dst}" STREQUAL "")
 				install(
 					FILES ${src}
-					DESTINATION "share/hyperion/lib/${dst}"
+					DESTINATION "hyperion/lib/${dst}"
 					COMPONENT "${INSTALL_COMPONENT}"
 				)
 			else()
 				install(
 					FILES ${src}
-					DESTINATION "share/hyperion/bin"
+					DESTINATION "hyperion"
 					COMPONENT "${INSTALL_COMPONENT}"
 				)
 			endif()
@@ -226,11 +226,11 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
 
-		# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+		# Create a qt.conf file in 'hyperion/bin' to override hard-coded search paths in Qt plugins
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=./lib/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
-			DESTINATION "share/hyperion/bin"
+			DESTINATION "hyperion"
 			COMPONENT "${INSTALL_COMPONENT}"
 		)
 
@@ -239,10 +239,9 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 		set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
 		set(filename "python-${Python3_VERSION}-embed-amd64.zip")
 
-		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
 			file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
 				STATUS result
-				SHOW_PROGRESS
 			)
 
 			# Check if the download is successful
@@ -251,23 +250,29 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 				list(GET result 1 reason)
 				message(FATAL_ERROR "Could not download file ${url}${filename}: ${reason}")
 			endif()
+
+			# Unpack downloaded embed python
+			file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/python)
+			file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
+			execute_process(
+				COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+				OUTPUT_QUIET
+			)
 		endif()
 
-		# Unpack downloaded embed python
-		file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
-		execute_process(
-			COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-			WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
-			OUTPUT_QUIET
+		# Copy pythonXX.dll and pythonXX.zip to 'hyperion'
+		foreach(PYTHON_FILE
+			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll"
+			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.zip"
 		)
+			install(
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_FILE}
+				DESTINATION "hyperion"
+				COMPONENT "${INSTALL_COMPONENT}"
+			)
+		endforeach()
 
-		# Copy to 'share/hyperion/lib'
-		# TODO PythonInit.cpp Line 28
-		install(
-			DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
-			DESTINATION "share/hyperion/lib"
-			COMPONENT "${INSTALL_COMPONENT}"
-		)
 	else()
 		# Run CMake after target was built
 		add_custom_command(

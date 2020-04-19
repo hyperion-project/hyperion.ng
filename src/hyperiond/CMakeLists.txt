@@ -83,23 +83,30 @@ if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()
 
-install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
-install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )
-install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "share/hyperion/effects" COMPONENT  "${PLATFORM}" )
-install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "share/hyperion/icons" COMPONENT "${PLATFORM}" )
+if(NOT WIN32)
+	install ( TARGETS hyperiond DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT  "${PLATFORM}" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "share/hyperion/effects" COMPONENT  "${PLATFORM}" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "share/hyperion/icons" COMPONENT "${PLATFORM}" )
 
-# Desktop file for hyperiond
-install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
-install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
+	# Desktop file for hyperiond
+	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
+else()
+	install ( TARGETS hyperiond DESTINATION "hyperion/" COMPONENT "${PLATFORM}" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "hyperion/effects" COMPONENT  "${PLATFORM}" )
+	# TODO create .ico instead of .png
+	# install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "hyperion" COMPONENT "${PLATFORM}" )
+
+	set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
+	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
+	include( InstallRequiredSystemLibraries )
+endif()
 
 if(CMAKE_HOST_UNIX)
 	install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT  "${PLATFORM}" )
 	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "${PLATFORM}" )
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "${PLATFORM}" )
-elseif(CMAKE_HOST_WIN32)
-	set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
-	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
-	include( InstallRequiredSystemLibraries )
 endif()
 
 # Copy dependencies (not for OSX)
