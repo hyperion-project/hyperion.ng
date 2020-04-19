@@ -131,7 +131,9 @@ jobs:
       # Append PR number to version
       - name: Append PR number to version
         shell: bash
-        run: echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
@@ -152,6 +154,7 @@ jobs:
       # Build packages
       - name: Build packages
         env:
+          VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
           PLATFORM: windows
         shell: bash
         run: ./.ci/ci_build.sh
