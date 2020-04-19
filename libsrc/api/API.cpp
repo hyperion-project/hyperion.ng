@@ -269,12 +269,12 @@ bool API::setHyperionInstance(const quint8 &inst)
     if (_currInstanceIndex == inst)
         return true;
     bool isRunning;
-    QMetaObject::invokeMethod(_instanceManager, "IsInstanceRunning", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isRunning), Q_ARG(quint8, inst));
+    QMetaObject::invokeMethod(_instanceManager, "IsInstanceRunning", Qt::DirectConnection, Q_RETURN_ARG(bool, isRunning), Q_ARG(quint8, inst));
     if (!isRunning)
         return false;
 
     disconnect(_hyperion, 0, this, 0);
-    QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(Hyperion *, _hyperion), Q_ARG(quint8, inst));
+    QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(Hyperion *, _hyperion), Q_ARG(quint8, inst));
     _currInstanceIndex = inst;
     return true;
 }
@@ -296,7 +296,7 @@ bool API::isHyperionEnabled()
 QVector<QVariantMap> API::getAllInstanceData(void)
 {
     QVector<QVariantMap> vec;
-    QMetaObject::invokeMethod(_instanceManager, "getInstanceData", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
+    QMetaObject::invokeMethod(_instanceManager, "getInstanceData", Qt::DirectConnection, Q_RETURN_ARG(QVector<QVariantMap>, vec));
     return vec;
 }
 
@@ -333,7 +333,7 @@ QString API::createInstance(const QString &name)
     if (_adminAuthorized)
     {
         bool success;
-        QMetaObject::invokeMethod(_instanceManager, "createInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
+        QMetaObject::invokeMethod(_instanceManager, "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
         if (!success)
             return QString("Instance name '%1' is already in use").arg(name);
 
