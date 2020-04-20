@@ -19,7 +19,9 @@ set(hyperion-remote_SOURCES
 
 add_executable(${PROJECT_NAME}
 	${hyperion-remote_HEADERS}
-	${hyperion-remote_SOURCES})
+	${hyperion-remote_SOURCES}
+	${WIN_RC_ICON_FILE}
+)
 
 target_link_libraries(${PROJECT_NAME}
 	effectengine
@@ -39,7 +41,7 @@ endif()
 if(NOT WIN32)
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 else()
-	install ( TARGETS ${PROJECT_NAME} DESTINATION "hyperion/" COMPONENT "${PLATFORM}" )
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "Hyperion" )
 endif()
 
 if(CMAKE_HOST_UNIX)

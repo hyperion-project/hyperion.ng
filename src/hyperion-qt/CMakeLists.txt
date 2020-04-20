@@ -20,6 +20,7 @@ set(Hyperion_QT_SOURCES
 add_executable(${PROJECT_NAME}
 	${Hyperion_QT_HEADERS}
 	${Hyperion_QT_SOURCES}
+	${WIN_RC_ICON_FILE}
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -33,7 +34,11 @@ target_link_libraries(${PROJECT_NAME}
 	Qt5::Network
 )
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+if(NOT WIN32)
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+else()
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_qt" )
+endif()
 
 if(CMAKE_HOST_UNIX)
 	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\" )" COMPONENT  "${PLATFORM}" )

@@ -14,6 +14,7 @@ add_executable(hyperiond
 	hyperiond.cpp
 	systray.cpp
 	main.cpp
+	${WIN_RC_ICON_FILE}
 )
 
 target_link_libraries(hyperiond
@@ -93,14 +94,12 @@ if(NOT WIN32)
 	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
 	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "${PLATFORM}" )
 else()
-	install ( TARGETS hyperiond DESTINATION "hyperion/" COMPONENT "${PLATFORM}" )
-	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "hyperion/effects" COMPONENT  "${PLATFORM}" )
-	# TODO create .ico instead of .png
-	# install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "hyperion" COMPONENT "${PLATFORM}" )
+	install ( TARGETS hyperiond DESTINATION "bin" COMPONENT "Hyperion" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "effects" COMPONENT "Hyperion" )
 
-	set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
-	set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
-	include( InstallRequiredSystemLibraries )
+	#set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
+	#set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
+	#include( InstallRequiredSystemLibraries )
 endif()
 
 if(CMAKE_HOST_UNIX)

@@ -290,6 +290,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	endif()
 endif()
 
+# Windows specific
+# Path to .rc icon file for add_executable() calls
+if(WIN32)
+	SET ( WIN_RC_ICON_FILE ${CMAKE_SOURCE_DIR}/cmake/nsis/icon.rc)
+endif()
+
 # Use GNU gold linker if available
 if (NOT WIN32)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)

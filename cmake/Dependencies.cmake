@@ -212,26 +212,26 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 			if (NOT "${dst}" STREQUAL "")
 				install(
 					FILES ${src}
-					DESTINATION "hyperion/lib/${dst}"
-					COMPONENT "${INSTALL_COMPONENT}"
+					DESTINATION "lib/${dst}"
+					COMPONENT "Hyperion"
 				)
 			else()
 				install(
 					FILES ${src}
-					DESTINATION "hyperion"
-					COMPONENT "${INSTALL_COMPONENT}"
+					DESTINATION "bin"
+					COMPONENT "Hyperion"
 				)
 			endif()
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
 
-		# Create a qt.conf file in 'hyperion/bin' to override hard-coded search paths in Qt plugins
-		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=./lib/\n")
+		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
+		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
-			DESTINATION "hyperion"
-			COMPONENT "${INSTALL_COMPONENT}"
+			DESTINATION "bin"
+			COMPONENT "Hyperion"
 		)
 
 		# Download embed python package
@@ -268,8 +268,8 @@ macro(DeployWindows TARGET INSTALL_COMPONENT)
 		)
 			install(
 				FILES ${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_FILE}
-				DESTINATION "hyperion"
-				COMPONENT "${INSTALL_COMPONENT}"
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
 			)
 		endforeach()
 

@@ -85,9 +85,6 @@ We assume a 64bit Windows 7 or higher. Install the following
   - Select C++ Desktop Development Tools
   - Now just select `MSVC v142 VS 2019 C++ x64/x86-Buildtools`, `C++-CMake Tools for Windows` and `Windows 10 SDK`. Everything else is not needed.
 
-**The target compiler that works is amd64, everything else creates linking issues with Qt. (Based on the pre compiled/installed Qt libs)**
-
-
 # Compiling and installing Hyperion
 
 ### The general quick way (without big comments)
@@ -161,6 +158,13 @@ Platform should be auto detected and refer to osx, you can also force osx:
 cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
 ```
 
+To generate files on Windows (Release+Debug capable):
+
+Platform should be auto detected and refer to windows, you can also force windows:
+```
+cmake -DPLATFORM=windows -G "Windows 16 2019" ..
+```
+
 ### Run make to build Hyperion
 The `-j $(nproc)` specifies the amount of CPU cores to use.
 ```bash
@@ -171,6 +175,11 @@ On a mac you can use ``sysctl -n hw.ncpu`` to get the number of available CPU co
 
 ```bash
 make -j $(sysctl -n hw.ncpu)
+```
+
+On Windows run
+```bash
+cmake --build . --config Release -- -maxcpucount
 ```
 
 ### Install hyperion into your system

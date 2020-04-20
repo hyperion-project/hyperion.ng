@@ -6,7 +6,7 @@ IF (APPLE)
 ELSEIF (UNIX)
 	SET ( CPACK_GENERATOR "TGZ" "STGZ")
 ELSEIF (WIN32)
-	SET ( CPACK_GENERATOR "ZIP")
+	SET ( CPACK_GENERATOR "ZIP" "NSIS")
 ENDIF()
 
 # Determine packages by found generator executables
@@ -35,7 +35,9 @@ ELSE()
 ENDIF()
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
+SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
+SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "Hyperion" )
 SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png")
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
@@ -67,18 +69,50 @@ SET ( CPACK_BUNDLE_ICON ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Hyperion.icn
 SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist )
 SET ( CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/cmake/osxbundle/launch.sh" )
 
-# NSIS for windows, requires NSIS TODO finish
-SET ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico")
-SET ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/uninstaller.ico")
-#SET ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.bmp") #bmp required? If so, wrap in WIN32 check else: Use default icon instead
-SET ( CPACK_NSIS_MODIFY_PATH ON)
-SET ( CPACK_NSIS_DISPLAY_NAME "Hyperion Installer")
-SET ( CPACK_NSIS_INSTALLED_ICON_NAME "Link to .exe")
+# Windows NSIS
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico" HYP_NSIS_ICO)
+#file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo-white.bmp" HYP_NSIS_BMP)
+STRING(REGEX REPLACE "\\\\" "\\\\\\\\" HYP_NSIS_ICO "${HYP_NSIS_ICO}")
+#STRING(REGEX REPLACE "\\\\" "\\\\\\\\" HYP_NSIS_BMP "${RELATIVE_ARANGO_ICON}")
+
+SET ( CPACK_NSIS_MUI_ICON ${HYP_NSIS_ICO})
+SET ( CPACK_NSIS_MUI_UNIICON ${HYP_NSIS_ICO})
+#SET ( CPACK_NSIS_MUI_HEADERIMAGE ${HYP_NSIS_ICO} )
+#SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${HYP_NSIS_BMP})
+SET ( CPACK_NSIS_DISPLAY_NAME "Hyperion Ambient Light")
+SET ( CPACK_NSIS_PACKAGE_NAME "Hyperion" )
+SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
 SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
+# hyperiond startmenu link
+SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
+SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
+# hyperiond desktop link
+SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
+SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
+
+# With cli args: SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Debug).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d'")
+#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
+#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
 
 # define the install components
-SET ( CPACK_COMPONENTS_ALL "${PLATFORM}" )
+# See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
+if(NOT WIN32)
+	SET ( CPACK_COMPONENTS_ALL "${PLATFORM}" )
+else()
+	# Components base
+	SET ( CPACK_COMPONENTS_ALL "Hyperion" )
+	SET ( CPACK_COMPONENT_HYPERION_REMOTE_DEPENDS Hyperion )
+	SET ( CPACK_COMPONENT_HYPERION_DISPLAY_NAME "Hyperion runtime")
+	SET ( CPACK_COMPONENT_HYPERION_DESCRIPTION "Hyperion runtime and hyperion-remote cli tool")
+	# optional compiled
+	if(ENABLE_QT)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
+		SET ( CPACK_COMPONENT_HYPERION_QT_DEPENDS Hyperion )
+		SET ( CPACK_COMPONENT_HYPERION_QT_DISPLAY_NAME "Qt Standalone Screencap")
+		SET ( CPACK_COMPONENT_HYPERION_QT_DESCRIPTION "Qt based standalone screen capture")
+	endif()
+endif()
 
 SET ( CPACK_COMPONENT_${PLATFORM}_ARCHIVE_FILE "${CPACK_PACKAGE_FILE_NAME}" )
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
