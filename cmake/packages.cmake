@@ -4,7 +4,7 @@
 IF (APPLE)
 	SET ( CPACK_GENERATOR "TGZ" "Bundle")
 ELSEIF (UNIX)
-	SET ( CPACK_GENERATOR "TGZ" "STGZ")
+	SET ( CPACK_GENERATOR "TGZ")
 ELSEIF (WIN32)
 	SET ( CPACK_GENERATOR "ZIP")
 ENDIF()
@@ -55,6 +55,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
+
 # Notes: This is a dependency list for Fedora 27, different .rpm OSes use different names for their deps
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )

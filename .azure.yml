@@ -18,10 +18,6 @@ stages:
           dockerTag: 'amd64'
           dockerName: 'Debian Stretch (AMD64)'
           platform: 'x11'
-        i386 (x86):
-          dockerTag: 'i386'
-          dockerName: 'Debian Stretch (i386)'
-          platform: 'x11'
         ARMv6hf (Raspberry Pi v1 & ZERO):
           dockerTag: 'armv6hf'
           dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
@@ -50,7 +46,7 @@ stages:
     # move files
     - bash: 'mv -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
       workingDirectory: $(Build.SourcesDirectory)
-      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
       displayName: 'Collect artifacts'
 
     # publish artifacts
@@ -58,7 +54,7 @@ stages:
       inputs:
         pathtoPublish: $(Build.ArtifactStagingDirectory)
         ArtifactName: $(dockerTag)
-      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+      condition: and(succeeded(), in(variables['dockerTag'], 'amd64', 'armv6hf', 'armv7hf'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
       displayName: 'Publish artifacts'
 
     ######################
@@ -149,7 +145,6 @@ stages:
         title: 'Hyperion $(semVer)'
         assets: |
           $(Build.ArtifactStagingDirectory)/amd64/*
-          $(Build.ArtifactStagingDirectory)/i386/*
           $(Build.ArtifactStagingDirectory)/armv6hf/*
           $(Build.ArtifactStagingDirectory)/armv7hf/*
           $(Build.ArtifactStagingDirectory)/aarch64/*

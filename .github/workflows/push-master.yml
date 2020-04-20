@@ -14,13 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dockerTag: [ amd64, i386, armv6hf, armv7hf, aarch64 ]
+        dockerTag: [ amd64, armv6hf, armv7hf, aarch64 ]
         include:
           - dockerTag: amd64
             dockerName: Debian Stretch (AMD64)
-            platform: x11
-          - dockerTag: i386
-            dockerName: Debian Stretch (i386)
             platform: x11
           - dockerTag: armv6hf
             dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
