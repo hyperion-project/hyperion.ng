@@ -6,7 +6,7 @@ IF (APPLE)
 ELSEIF (UNIX)
 	SET ( CPACK_GENERATOR "TGZ" "STGZ")
 ELSEIF (WIN32)
-	SET ( CPACK_GENERATOR "ZIP")
+	SET ( CPACK_GENERATOR "ZIP" "NSIS")
 ENDIF()
 
 # Determine packages by found generator executables
@@ -68,12 +68,12 @@ SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist 
 SET ( CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/cmake/osxbundle/launch.sh" )
 
 # NSIS for windows, requires NSIS TODO finish
-SET ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico")
-SET ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/uninstaller.ico")
-#SET ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.bmp") #bmp required? If so, wrap in WIN32 check else: Use default icon instead
+# SET ( CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico")
+# SET ( CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/uninstaller.ico")
+# SET ( CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.bmp") #bmp required? If so, wrap in WIN32 check else: Use default icon instead
 SET ( CPACK_NSIS_MODIFY_PATH ON)
 SET ( CPACK_NSIS_DISPLAY_NAME "Hyperion Installer")
-SET ( CPACK_NSIS_INSTALLED_ICON_NAME "Link to .exe")
+# SET ( CPACK_NSIS_INSTALLED_ICON_NAME "Link to .exe")
 SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 

@@ -147,6 +147,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install NSIS
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/nsis/NSIS%203/3.05/nsis-3.05-setup.exe -OutFile nsis-setup.exe
+          .\nsis-setup.exe /S
+
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
