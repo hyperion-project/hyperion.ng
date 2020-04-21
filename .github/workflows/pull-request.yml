@@ -66,6 +66,7 @@ jobs:
         with:
           name: ${{ matrix.dockerTag }}.zip
           path: ${{ matrix.dockerTag }}
+        if: matrix.dockerTag != 'aarch64'
 
 ######################
 ###### macOS #########
