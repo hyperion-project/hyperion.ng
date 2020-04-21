@@ -38,17 +38,13 @@ SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
 SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
 SET ( CPACK_PACKAGE_INSTALL_DIRECTORY "Hyperion" )
-
-IF (WIN32)
-	file(TO_NATIVE_PATH "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png" CPACK_PACKAGE_ICON)
-ELSE()
-	SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png")
-ENDIF()
+SET ( CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png")
 
 SET ( CPACK_PACKAGE_VERSION_MAJOR "${HYPERION_VERSION_MAJOR}")
 SET ( CPACK_PACKAGE_VERSION_MINOR "${HYPERION_VERSION_MINOR}")
 SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERION_VERSION_PATCH}")
 SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
+SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
 # Specific CPack Package Generators
@@ -76,26 +72,32 @@ SET ( CPACK_BUNDLE_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/osxbundle/Info.plist 
 SET ( CPACK_BUNDLE_STARTUP_COMMAND "${CMAKE_SOURCE_DIR}/cmake/osxbundle/launch.sh" )
 
 # Windows NSIS
+# Some path transformations
+if(WIN32)
+	file(TO_NATIVE_PATH ${CPACK_PACKAGE_ICON} CPACK_PACKAGE_ICON)
+	STRING(REGEX REPLACE "\\\\" "\\\\\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON})
+endif()
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico" HYP_NSIS_ICO)
-#file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo-white.bmp" HYP_NSIS_BMP)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo-white.bmp" HYP_NSIS_BMP)
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" HYP_NSIS_ICO "${HYP_NSIS_ICO}")
-#STRING(REGEX REPLACE "\\\\" "\\\\\\\\" HYP_NSIS_BMP "${RELATIVE_ARANGO_ICON}")
+STRING(REGEX REPLACE "\\\\" "\\\\\\\\" HYP_NSIS_BMP "${HYP_NSIS_BMP}")
 
+SET ( CPACK_NSIS_MODIFY_PATH ON )
 SET ( CPACK_NSIS_MUI_ICON ${HYP_NSIS_ICO})
 SET ( CPACK_NSIS_MUI_UNIICON ${HYP_NSIS_ICO})
-#SET ( CPACK_NSIS_MUI_HEADERIMAGE ${HYP_NSIS_ICO} )
-#SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${HYP_NSIS_BMP})
+SET ( CPACK_NSIS_MUI_HEADERIMAGE ${HYP_NSIS_BMP} )
+SET ( CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP ${HYP_NSIS_BMP})
 SET ( CPACK_NSIS_DISPLAY_NAME "Hyperion Ambient Light")
 SET ( CPACK_NSIS_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
 SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 # hyperiond startmenu link
-SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
+#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
+#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
 # hyperiond desktop link
-SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
+#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
+#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
 
 # With cli args: SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Debug).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d'")
 #SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
@@ -103,20 +105,16 @@ SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
+# and https://cmake.org/cmake/help/latest/module/CPackComponent.html
 if(NOT WIN32)
 	SET ( CPACK_COMPONENTS_ALL "${PLATFORM}" )
 else()
+	SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 	# Components base
-	SET ( CPACK_COMPONENTS_ALL "Hyperion" )
-	SET ( CPACK_COMPONENT_HYPERION_REMOTE_DEPENDS Hyperion )
-	SET ( CPACK_COMPONENT_HYPERION_DISPLAY_NAME "Hyperion runtime")
-	SET ( CPACK_COMPONENT_HYPERION_DESCRIPTION "Hyperion runtime and hyperion-remote cli tool")
+	SET ( CPACK_COMPONENTS_ALL "Hyperion" "hyperion_remote" )
 	# optional compiled
 	if(ENABLE_QT)
 		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
-		SET ( CPACK_COMPONENT_HYPERION_QT_DEPENDS Hyperion )
-		SET ( CPACK_COMPONENT_HYPERION_QT_DISPLAY_NAME "Qt Standalone Screencap")
-		SET ( CPACK_COMPONENT_HYPERION_QT_DESCRIPTION "Qt based standalone screen capture")
 	endif()
 endif()
 
@@ -133,3 +131,36 @@ SET ( CPACK_STRIP_FILES ON )
 
 # no code after following line!
 INCLUDE ( CPack )
+
+if(WIN32)
+	cpack_add_install_type(Full DISPLAY_NAME "Full")
+	cpack_add_install_type(Min DISPLAY_NAME "Minimal")
+	cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyperion-remote commandline tool")
+	cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
+	# Components base
+	cpack_add_component(Hyperion
+		DISPLAY_NAME "Hyperion"
+		DESCRIPTION "Hyperion runtime"
+		INSTALL_TYPES Full Min
+		GROUP Runtime
+		REQUIRED
+	)
+	cpack_add_component(hyperion_remote
+		DISPLAY_NAME "Hyperion Remote"
+		DESCRIPTION "Hyperion remote cli tool"
+		INSTALL_TYPES Full
+		GROUP Runtime
+		DEPENDS Hyperion
+	)
+
+	# optional compiled
+	if(ENABLE_QT)
+		cpack_add_component(hyperion_qt
+			DISPLAY_NAME "Qt Standalone Screencap"
+			DESCRIPTION "Qt based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+endif()

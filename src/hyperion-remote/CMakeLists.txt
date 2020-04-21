@@ -41,7 +41,7 @@ endif()
 if(NOT WIN32)
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
 else()
-	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "Hyperion" )
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_remote" )
 endif()
 
 if(CMAKE_HOST_UNIX)
