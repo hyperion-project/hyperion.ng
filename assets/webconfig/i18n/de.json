@@ -380,6 +380,7 @@
 	"wiz_hue_blinkblue": "Lasse ID $1 blau aufleuchten",
 	"wiz_hue_ident": "Identifiziere",
 	"wiz_hue_e_create_user": "Neuen Benutzer und Clientkey erstellen",
+	"wiz_hue_e_clientkey_needed": "Für die Verwendung der Entertainment API, ist ein zum Usernamen passender Clientkey erforderlich. Bitte einen vorhandenen eingeben oder über die Schaltflächen unten einen neuen erstellen.",
 	"wiz_hue_e_use_groupid": "Gruppen ID $1 verwenden",
 	"wiz_hue_e_noegrpids": "Es wurden keine Entertainment Gruppen in dieser Hue Bridge gefunden.",
 	"wiz_hue_e_nogrpids": "Diese Hue Bridge hat keine definierten Gruppen, bitte erstelle zuvor wenigstens eine in der Hue App.",

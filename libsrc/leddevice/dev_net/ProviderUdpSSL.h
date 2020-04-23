@@ -18,7 +18,7 @@
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
+#include <mbedtls/platform.h>
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,10 +113,8 @@ protected:
 	///
 	virtual const int * getCiphersuites();
 
-	void log(QString msg);
-	void log(QString msg, const char* errorType);
-	void log(const char* msg);
-	void log(const char* msg, const char* errorType);
+	void log(const QString &msg, const char* errorType = "debug");
+	void log(const char* msg, const char* errorType = "debug");
 	void configLog(const char* msg, const char* type, ...);
 
 	/**

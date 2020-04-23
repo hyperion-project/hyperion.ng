@@ -133,7 +133,6 @@ public:
 	///
 	void setColor(const CiColor& _color);
 
-
 	unsigned int getId() const;
 
 	bool getOnOffState() const;
@@ -144,9 +143,7 @@ public:
 	/// @return the color space of the light determined by the model id reported by the bridge.
 	CiColorTriangle getColorSpace() const;
 
-
-	QString getOriginalState();
-
+	QString getOriginalState() const;
 
 private:
 
@@ -237,7 +234,7 @@ protected:
 	QJsonDocument getGroupState( unsigned int groupId );
 	QJsonDocument setGroupState( unsigned int groupId, bool state);
 
-	bool isStreamOwner(QString streamOwner);
+	bool isStreamOwner(const QString streamOwner);
 	bool initMaps();
 
 	void log(const char* msg, const char* type, ...);
@@ -450,6 +447,7 @@ private:
 	std::vector<PhilipsHueLight> _lights;
 
 	unsigned int _lightsCount;
+	unsigned int _groupId;
 
 	double _brightnessMin;
 	double _brightnessMax;
@@ -465,8 +463,6 @@ private:
 	int _ssl_read_timeout;
 
 	bool _stopConnection;
-
-	unsigned int _groupId;
 
 	QString _groupName;
 	QString _streamOwner;

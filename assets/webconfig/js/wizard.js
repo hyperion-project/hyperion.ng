@@ -539,7 +539,6 @@ var huePosRightMiddle = {hmin: 0.85,	hmax: 1.0 ,	vmin: 0.25,	vmax: 0.75};
 var huePosRightBottom = {hmin: 0.85,	hmax: 1.0 ,	vmin: 0.5 ,	vmax: 1.0 };
 var huePosEntire      = {hmin: 0.0 ,	hmax: 1.0 ,	vmin: 0.0 ,	vmax: 1.0 };
 var hueType = "philipshue";
-var APIsupport = false;
 
 function startWizardPhilipsHue(e)
 {
@@ -557,13 +556,13 @@ function startWizardPhilipsHue(e)
     hue_intro1 = 'wiz_hue_e_intro1';
     hue_desc1 = 'wiz_hue_e_desc1';
     hue_create_user = 'wiz_hue_e_create_user';
-    APIsupport = true;
   }
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>'+$.i18n(hue_title));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n(hue_title)+'</h4><p>'+$.i18n(hue_intro1)+'</p>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
-  $('#wh_topcontainer').append('<p style="font-weight:bold">'+$.i18n(hue_desc1)+'</p><div class="form-group"><label>'+$.i18n('wiz_hue_ip')+'</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span>');
+  $('#wh_topcontainer').append('<p style="font-weight:bold">'+$.i18n(hue_desc1)+'</p><div class="form-group"><label>'+$.i18n('wiz_hue_ip')+'</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" class="component-on" id="wiz_hue_discovered"></span>');
+  $('#wh_topcontainer').append();
   $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
   if(hueType == 'philipshue')
   {
@@ -605,65 +604,24 @@ function startWizardPhilipsHue(e)
   });
 }
 
-function checkHueBridge(cb,hueUser){
-  var usr = "";
-
-  if(typeof hueUser != "undefined")
-    usr = hueUser;
-
-  $.ajax({
-    url: 'http://'+hueIPs[hueIPsinc].internalipaddress+'/api/'+usr,
-    contentType: 'application/json',
-    type: 'GET',
-    timeout: 2000
-  })
-  .done( function( data, textStatus, jqXHR ) {
-    if( Array.isArray(data) && data[0].error)
-    {
-      if ( data[0].error.type == 3 || data[0].error.type == 4)
-      {
-        cb(true, usr);
-      }
-      else
-      {
-        cb(false);
-      }
-    }
-    else
-    {
+function checkHueBridge(cb,hueUser) {
+  var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
+  if(usr == 'config') $('#wiz_hue_discovered').html("");
+  $.getJSON( 'http://'+hueIPs[hueIPsinc].internalipaddress+'/api/'+usr, function( json ) {
+    if (json.config) {
       cb(true, usr);
+    } else if( json.name && json.bridgeid && json.modelid) {
+      $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+      cb(true);
+    } else {
+      cb(false);
     }
-
-  })
-  .fail( function( jqXHR, textStatus ) {
+  }).fail(function() {
     cb(false);
   });
 }
 
-function checkUserResult(reply, usr){
-
-  if(reply)
-  {
-    $('#wiz_hue_usrstate').html("");
-    $('#wiz_hue_create_user').toggle(false);
-    $('#user').val(usr);
-    if(hueType == 'philipshue')
-    {
-      get_hue_lights();
-    }
-    if(hueType == 'philipshueentertainment')
-    {
-      get_hue_groups();
-    }
-  }
-  else
-  {
-    $('#wiz_hue_usrstate').html($.i18n('wiz_hue_failure_user'));
-    $('#wiz_hue_create_user').toggle(true);
-  }
-};
-
-function checkBridgeResult(reply){
+function checkBridgeResult(reply, usr){
   if(reply)
   {
     //abort checking, first reachable result is used
@@ -687,6 +645,35 @@ function checkBridgeResult(reply){
       $('#usrcont').toggle(false);
       $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
     }
+  }
+};
+
+function checkUserResult(reply, usr) {
+
+  if(reply)
+  {
+    $('#user').val(usr);
+    if(hueType == 'philipshueentertainment' && $('#clientkey').val() == "") {
+      $('#usrcont').toggle(true);
+      $('#wiz_hue_usrstate').html($.i18n('wiz_hue_e_clientkey_needed'));
+      $('#wiz_hue_create_user').toggle(true);
+    } else {
+      $('#wiz_hue_usrstate').html("");
+      $('#wiz_hue_create_user').toggle(false);
+      if(hueType == 'philipshue')
+      {
+        get_hue_lights();
+      }
+      if(hueType == 'philipshueentertainment')
+      {
+        get_hue_groups();
+      }
+    }
+  }
+  else
+  {
+    $('#wiz_hue_usrstate').html($.i18n('wiz_hue_failure_user'));
+    $('#wiz_hue_create_user').toggle(true);
   }
 };
 
@@ -766,10 +753,9 @@ function getHueIPs(){
     timeout: 3000
   })
   .done( function( data, textStatus, jqXHR ) {
-    if(data.length == 0)
+    if(data.length == 0) {
       $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-    else
-    {
+    } else {
       hueIPs = data;
       checkHueBridge(checkBridgeResult);
     }
@@ -788,13 +774,11 @@ function eV(vn)
 function beginWizardHue()
 {
   var usr = eV("username");
-  if(usr != "")
-  {
+  if(usr != "") {
     $('#user').val(usr);
   }
 
-  if(hueType == 'philipshueentertainment')
-  {
+  if(hueType == 'philipshueentertainment') {
     var clkey = eV("clientkey");
     if(clkey != "")
     {
@@ -810,14 +794,23 @@ function beginWizardHue()
   {
     var ip = eV("output");
     $('#ip').val(ip);
-    hueIPs.push({internalipaddress : ip});
-    checkHueBridge(checkBridgeResult);
+    hueIPs.unshift({internalipaddress : ip});
+    if(usr != "") {
+      checkHueBridge(checkUserResult, usr);
+    }else{
+      checkHueBridge(checkBridgeResult);
+    }
   }
 
   $('#retry_bridge').off().on('click', function(){
-    hueIPs.push({internalipaddress : $('#ip').val()});
+    if($('#ip').val()!="") hueIPs.unshift({internalipaddress : $('#ip').val()});
     hueIPsinc = 0;
-    checkHueBridge(checkBridgeResult);
+    var usr = $('#user').val();
+    if(usr != "") {
+      checkHueBridge(checkUserResult, usr);
+    }else{
+      checkHueBridge(checkBridgeResult);
+    }
   });
 
   $('#retry_usr').off().on('click', function(){
@@ -825,6 +818,7 @@ function beginWizardHue()
   });
 
   $('#wiz_hue_create_user').off().on('click',function() {
+    if($('#ip').val()!="") hueIPs.unshift({internalipaddress : $('#ip').val()});
     createHueUser();
   });
 
@@ -902,7 +896,6 @@ function beginWizardHue()
       //smoothing on
       sc.smoothing.enable = true;
     }
-    console.log(sc);
     requestWriteConfig(sc, true);
     resetWizard();
   });
@@ -945,10 +938,16 @@ function createHueUser()
           $('#wizp1').toggle(false);
           $('#wizp2').toggle(true);
           $('#wizp3').toggle(false);
-          if(r[0].success.username != 'undefined') $('#user').val(r[0].success.username);
+          if(r[0].success.username != 'undefined') {
+            $('#user').val(r[0].success.username);
+            conf_editor.getEditor("root.specificOptions.username").setValue( r[0].success.username );
+          }
           if(hueType == 'philipshueentertainment')
           {
-            if(r[0].success.clientkey != 'undefined') $('#clientkey').val(r[0].success.clientkey);
+            if(r[0].success.clientkey != 'undefined') {
+              $('#clientkey').val(r[0].success.clientkey);
+              conf_editor.getEditor("root.specificOptions.clientkey").setValue( r[0].success.clientkey );
+            }
           }
           checkHueBridge(checkUserResult,r[0].success.username);
           clearInterval(UserInterval);
@@ -1003,6 +1002,7 @@ function get_hue_groups(){
 
 function noAPISupport(txt)
 {
+  showNotification('danger', $.i18n('wiz_hue_e_title'), $.i18n('wiz_hue_e_noapisupport_hint'));
   conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").setValue( false );
   $("#root_specificOptions_useEntertainmentAPI").trigger("change");
   $('#btn_wiz_holder').append('<div class="bs-callout bs-callout-danger" style="margin-top:0px">'+$.i18n('wiz_hue_e_noapisupport_hint')+'</div>');

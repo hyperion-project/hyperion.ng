@@ -709,7 +709,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const unsigned int groupI
 	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM ).arg( API_STREAM_ACTIVE ).arg( active ) );
 }
 
-bool LedDevicePhilipsHueBridge::isStreamOwner(QString streamOwner)
+bool LedDevicePhilipsHueBridge::isStreamOwner(const QString streamOwner)
 {
 	return ( streamOwner != "" && streamOwner == _username );
 }
@@ -780,7 +780,7 @@ unsigned int PhilipsHueLight::getId() const
 	return _id;
 }
 
-QString PhilipsHueLight::getOriginalState()
+QString PhilipsHueLight::getOriginalState() const
 {
 	return _originalState;
 }
@@ -859,8 +859,10 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _brightnessFactor(1.0)
 	  , _transitionTime(1)
 	  , _isRestoreOrigState(true)
-  	  , _lightStatesRestored(false)
+	  , _lightStatesRestored(false)
 	  , _isInitLeds(false)
+	  , _lightsCount(0)
+	  , _groupId(0)
 	  , _brightnessMin(0.0)
 	  , _brightnessMax(1.0)
 	  , _allLightsBlack(false)
@@ -934,7 +936,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 			log( "Brightness Max", "%f", _brightnessMax );
 			log( "Brightness Threshold", "%f", _brightnessThreshold );
 
-			if( _groupId <= 0 )
+			if( _groupId == 0 )
 			{
 				log( "Group-ID is invalid", "%d", _groupId );
 				_useHueEntertainmentAPI = false;
@@ -1116,7 +1118,7 @@ bool LedDevicePhilipsHue::updateLights(QMap<quint16, QJsonObject> map)
 
 	setLightsCount( lightsCount );
 
-	if( lightsCount <= 0 )
+	if( lightsCount == 0 )
 	{
 		Debug(_log, "No usable lights found!" );
 		isInitOK = false;

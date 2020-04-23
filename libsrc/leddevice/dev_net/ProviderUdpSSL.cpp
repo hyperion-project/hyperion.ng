@@ -7,8 +7,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include <QHostInfo>
-
 // Local Hyperion includes
 #include "ProviderUdpSSL.h"
 
@@ -184,17 +182,7 @@ void ProviderUdpSSL::configLog(const char* msg, const char* type, ...)
 	}
 }
 
-void ProviderUdpSSL::log(const char* msg)
-{
-	log( msg, "debug" );
-}
-
-void ProviderUdpSSL::log(QString msg)
-{
-	log( msg, "debug" );
-}
-
-void ProviderUdpSSL::log(QString msg, const char* errorType)
+void ProviderUdpSSL::log(const QString &msg, const char* errorType)
 {
 	log( msg.toStdString().c_str(), errorType );
 }
@@ -274,22 +262,12 @@ bool ProviderUdpSSL::setupStructure()
 		return false;
 	}
 
+	const int * ciphersuites = getCiphersuites();
+
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
 	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
 	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
-	const int * ciphersuites = getCiphersuites();
-
-	int s = sizeof(ciphersuites) / sizeof(ciphersuites[0]);
-
-	QString cipher_values;
-	for(int i=0; i<s; i++)
-	{
-		if(i > 0) cipher_values.append(", ");
-		cipher_values.append(QString::number(ciphersuites[i]));
-	}
-
-	log( QString("used ciphersuites value: %1").arg( cipher_values ), "debug" );
 
 	mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
 	mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
@@ -405,8 +383,7 @@ bool ProviderUdpSSL::startSSLHandshake()
 	}
 	else
 	{
-		uint32_t _flags;
-		if( ( _flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 ) {
+		if( ( mbedtls_ssl_get_verify_result( &ssl ) ) != 0 ) {
 			log( "SSL certificate verification failed!", "fatal" );
 			return false;
 		}
