@@ -214,33 +214,41 @@ $(document).ready(function() {
 			}
 		});
 
-		// create buttons
-		$('#componentsbutton').html("");
+		//User default button-style, as hyperion one creates problems
+		$('#componentsbutton').append('<link href="css/bootstrap-toggle.min.css" rel="stylesheet">');
+
 		for (var idx=0; idx<components.length;idx++)
 		{
-			if(components[idx].name == "ALL")
+			if(components[idx].name === "ALL")
 				continue;
 
-			var enable_style = (components[idx].enabled? "btn-success" : "btn-danger");
-			var enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
+			var enable_style = (components[idx].enabled? "checked" : "");
 			var comp_name    = components[idx].name;
 			var comp_btn_id  = "comp_btn_"+comp_name;
-			var comp_goff    = hyperionEnabled? "enabled" : "disabled";
 
-			// create btn if not there
-			if ($("#"+comp_btn_id).length == 0)
+			if ($("#"+comp_btn_id).length === 0)
 			{
-				var d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
-					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
+				console.log ("updateComponent: ", comp_btn_id);
+
+				var d='<span style="display:block;margin:3px">'
+						+'<input id="'+comp_btn_id+'"'+enable_style+' type="checkbox"'
+						+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">'
+						+'&nbsp;&nbsp;&nbsp;<label>'+$.i18n('general_comp_'+components[idx].name)+'</label>'
+						+'<div id="console-event"></div>'
+						+'<script>'
+						+'$(function() {'
+							+'$(\'#'+comp_btn_id+'\').bootstrapToggle();'
+
+							+'$(\'#'+comp_btn_id+'\').change(function() {'
+							+'requestSetComponentState(\''+comp_name+'\', $(this).prop("checked") );'
+							+'})'
+						+'})'
+						+'</script>'
+						+'</span>';
+
 				$('#componentsbutton').append(d);
 			}
-			else // already create, update state
-			{
-				setClassByBool( $('#'+comp_btn_id)        , components[idx].enabled, "btn-danger", "btn-success" );
-				setClassByBool( $('#'+comp_btn_id+"_icon"), components[idx].enabled, "fa-stop"    , "fa-play" );
-				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')').attr(comp_goff);
-			}
+			//else Buttons already exist
 		}
 	}
 
