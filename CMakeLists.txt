@@ -291,9 +291,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 # Windows specific
-# Path to .rc icon file for add_executable() calls
 if(WIN32)
+	# Path to .rc icon file for add_executable() calls
 	SET ( WIN_RC_ICON_FILE ${CMAKE_SOURCE_DIR}/cmake/nsis/icon.rc)
+	# Force gui app
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
 # Use GNU gold linker if available
